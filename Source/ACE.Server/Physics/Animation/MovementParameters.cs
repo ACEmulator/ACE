@@ -50,6 +50,7 @@ namespace ACE.Server.Physics.Animation
             HoldKeyToApply = HoldKey.Invalid;
             StopCompletely = true;
             CancelMoveTo = true;
+            //ModifyInterpretedState = true;
             ModifyInterpretedState = false;
             ModifyRawState = true;
             SetHoldKey = true;
@@ -61,6 +62,29 @@ namespace ACE.Server.Physics.Animation
             CanWalk = true;
             CanCharge = true;
             Bitfield = 0x1EE0F;     // todo: union of bools
+        }
+
+        public MovementParameters(MovementParameters mp)
+        {
+            MinDistance = mp.MinDistance;
+            DistanceToObject = mp.DistanceToObject;
+            FailDistance = mp.FailDistance;
+            Speed = mp.Speed;
+            WalkRunThreshold = mp.WalkRunThreshold;
+            HoldKeyToApply = mp.HoldKeyToApply;
+            StopCompletely = mp.StopCompletely;
+            CancelMoveTo = mp.CancelMoveTo;
+            ModifyInterpretedState = mp.ModifyInterpretedState;
+            ModifyRawState = mp.ModifyRawState;
+            SetHoldKey = mp.SetHoldKey;
+            UseSpheres = mp.UseSpheres;
+            MoveTowards = mp.MoveTowards;
+            CanWalkBackwards = mp.CanWalkBackwards;
+            CanSidestep = mp.CanSidestep;
+            CanRun = mp.CanRun;
+            CanWalk = mp.CanWalk;
+            CanCharge = mp.CanCharge;
+            Bitfield = mp.Bitfield;
         }
 
         public void get_command(float dist, float heading, ref uint motion, ref HoldKey holdKey, ref bool movingAway)

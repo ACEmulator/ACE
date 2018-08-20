@@ -367,7 +367,7 @@ namespace ACE.Server.Network.GameEvent.Events
             foreach (var item in Session.Player.EquippedObjects.Values)
             {
                 Writer.Write(item.Guid.Full);
-                Writer.Write((uint)item.CurrentWieldedLocation);
+                Writer.Write((uint)(item.CurrentWieldedLocation ?? 0));
                 Writer.Write((uint)(item.Priority ?? 0));
             }
         }

@@ -64,7 +64,7 @@ namespace ACE.Server.Physics.Animation
                     break;
 
                 default:
-                    if ((motion & 0x40000000) != 0)
+                    if ((motion & (uint)CommandMask.SubState) != 0)
                     {
                         if (motion != (uint)MotionCommand.RunForward)
                         {
@@ -81,7 +81,7 @@ namespace ACE.Server.Physics.Animation
                             }
                         }
                     }
-                    else if ((motion & 0x80000000) != 0)
+                    else if ((motion & (uint)CommandMask.Style) != 0)
                     {
                         if (CurrentStyle != motion)
                         {
@@ -89,7 +89,7 @@ namespace ACE.Server.Physics.Animation
                             CurrentStyle = motion;
                         }
                     }
-                    else if ((motion & 0x10000000) != 0)
+                    else if ((motion & (uint)CommandMask.Action) != 0)
                     {
                         AddAction(motion, movementParams.Speed, movementParams.ActionStamp, movementParams.Autonomous);
                     }
@@ -139,7 +139,7 @@ namespace ACE.Server.Physics.Animation
                     break;
 
                 default:
-                    if ((motion & 0x40000000) != 0)
+                    if ((motion & (uint)CommandMask.SubState) != 0)
                     {
                         if (motion == ForwardCommand)
                         {
@@ -147,7 +147,7 @@ namespace ACE.Server.Physics.Animation
                             ForwardSpeed = 1.0f;
                         }
                     }
-                    else if ((motion & 0x80000000) != 0)
+                    else if ((motion & (uint)CommandMask.Style) != 0)
                     {
                         if (motion == CurrentStyle)
                             CurrentStyle = (uint)MotionCommand.NonCombat;

@@ -40,7 +40,7 @@ namespace ACE.Server.Physics.Animation
                     if (entry.NumAnims > AnimationCounter)
                         break;
 
-                    if ((entry.Motion & 0x10000000) != 0)
+                    if ((entry.Motion & (uint)CommandMask.Action) != 0)
                         State.remove_action_head();
 
                     var motionID = entry.Motion;
@@ -73,7 +73,7 @@ namespace ACE.Server.Physics.Animation
 
                 var motionID = pendingAnimation.Value.Motion;
 
-                if ((motionID & 0x10000000) != 0)
+                if ((motionID & (uint)CommandMask.Action) != 0)
                     State.remove_action_head();
 
                 PhysicsObj.MotionDone(motionID, true);
@@ -188,9 +188,9 @@ namespace ACE.Server.Physics.Animation
 
                 if (entry.NumAnims != 0)
                 {
-                    if ((entry.Motion & 0x40000000) == 0 || (entry.Motion & 0x20000000) != 0)
+                    if ((entry.Motion & (uint)CommandMask.SubState) == 0 || (entry.Motion & (uint)CommandMask.Modifier) != 0)
                     {
-                        if ((entry.Motion & 0x80000000) == 0)
+                        if ((entry.Motion & (uint)CommandMask.Style) == 0)
                             return;
 
                         if (remove_redundant_links_inner(node, sequence, true))

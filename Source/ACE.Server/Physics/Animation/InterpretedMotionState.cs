@@ -40,22 +40,33 @@ namespace ACE.Server.Physics.Animation
                     break;
 
                 default:
-                    if ((motion & 0x40000000) != 0)
+                    if ((motion & (uint)CommandMask.SubState) != 0)
                     {
                         ForwardCommand = motion;
                         ForwardSpeed = movementParams.Speed;
                     }
-                    else if ((motion & 0x80000000) != 0)
+                    else if ((motion & (uint)CommandMask.Style) != 0)
                     {
                         ForwardCommand = (uint)MotionCommand.Ready;
                         CurrentStyle = motion;
                     }
-                    else if ((motion & 0x10000000) != 0)
+                    else if ((motion & (uint)CommandMask.Action) != 0)
                     {
                         AddAction(motion, movementParams.Speed, movementParams.ActionStamp, movementParams.Autonomous);
                     }
                     break;
             }
+        }
+
+        public void copy_movement_from(InterpretedMotionState state)
+        {
+            CurrentStyle = state.CurrentStyle;
+            ForwardCommand = state.ForwardCommand;
+            ForwardSpeed = state.ForwardSpeed;
+            SideStepCommand = state.SideStepCommand;
+            SideStepSpeed = state.SideStepSpeed;
+            TurnCommand = state.TurnCommand;
+            TurnSpeed = state.TurnSpeed;
         }
 
         public void InitDefaults()
@@ -97,7 +108,7 @@ namespace ACE.Server.Physics.Animation
                     break;
 
                 default:
-                    if ((motion & 0x40000000) != 0)
+                    if ((motion & (uint)CommandMask.SubState) != 0)
                     {
                         if (ForwardCommand == motion)
                         {
@@ -105,7 +116,7 @@ namespace ACE.Server.Physics.Animation
                             ForwardSpeed = 1.0f;
                         }
                     }
-                    else if ((motion & 0x80000000) != 0)
+                    else if ((motion & (uint)CommandMask.Style) != 0)
                     {
                         if (CurrentStyle == motion)
                             CurrentStyle = (uint)MotionCommand.NonCombat;
