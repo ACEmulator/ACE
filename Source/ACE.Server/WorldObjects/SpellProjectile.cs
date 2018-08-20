@@ -27,7 +27,6 @@ namespace ACE.Server.WorldObjects
 
         public Creature ParentWorldObject { get => projectileCaster; set => projectileCaster = value; }
         public float DistanceToTarget { get; set; }
-        public Vector3 GlobalOrigin { get; set; }
         public uint SpellId { get => spellId; private set => spellId = value; }
         public uint LifeProjectileDamage { get => lifeProjectileDamage; set => lifeProjectileDamage = value; }
         public float PlayscriptIntensity { get; set; }
@@ -78,6 +77,13 @@ namespace ACE.Server.WorldObjects
                 PlayscriptIntensity = GetProjectileScriptIntensity(SpellType, spellLevel);
             }
 
+            if (SpellType == ProjectileSpellType.Ring)
+            {
+                ScriptedCollision = false;
+                var spellLevel = CalculateSpellLevel(spell);
+                PlayscriptIntensity = GetProjectileScriptIntensity(SpellType, spellLevel);
+            }
+
             // Whirling Blade spells get omega values and "align path" turned off which
             // creates the nice swirling animation
             if (WeenieClassId == 1636 || WeenieClassId == 7268 || WeenieClassId == 20979)
@@ -109,7 +115,7 @@ namespace ACE.Server.WorldObjects
             {
                 return ProjectileSpellType.Streak;
             }
-            else if (WeenieClassId >= 7269 && WeenieClassId <= 2725)
+            else if (WeenieClassId >= 7269 && WeenieClassId <= 7275)
             {
                 return ProjectileSpellType.Ring;
             }
@@ -144,10 +150,16 @@ namespace ACE.Server.WorldObjects
 
         private float GetProjectileScriptIntensity(ProjectileSpellType spellType, SpellLevel spellLevel)
         {
-            if (spellType == ProjectileSpellType.Ring || spellType == ProjectileSpellType.Wall)
+            if (spellType == ProjectileSpellType.Wall)
             {
                 return 0.4f;
-                // TODO: higher level ring spells use 1.0f intensity
+            }
+            if (spellType == ProjectileSpellType.Ring)
+            {
+                if (spellLevel == SpellLevel.Six)
+                    return 0.4f;
+                if (spellLevel == SpellLevel.Seven)
+                    return 1.0f;
             }
 
             // Bolt, Blast, Volley, Streak and Arc all seem to use this scale
