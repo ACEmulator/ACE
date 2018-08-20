@@ -325,7 +325,7 @@ namespace ACE.Database
         private static Biota GetBiota(ShardDbContext context, uint id)
         {
             var biota = context.Biota
-            .FirstOrDefault(r => r.Id == id);
+                .FirstOrDefault(r => r.Id == id);
 
             if (biota == null)
                 return null;
@@ -991,6 +991,13 @@ namespace ACE.Database
         {
             using (var context = new ShardDbContext())
             {
+                var existingBiota = context.Biota
+                    .AsNoTracking()
+                    .FirstOrDefault(r => r.Id == biota.Id);
+
+                if (existingBiota == null)
+                    return true;
+
                 rwLock.EnterWriteLock();
                 try
                 {
