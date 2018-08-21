@@ -30,6 +30,9 @@ namespace ACE.Server.WorldObjects
         public float PlayscriptIntensity { get; set; }
         public ProjectileSpellType SpellType { get; set; }
 
+        public ACE.Entity.Position SpawnPos;
+        public SpellBase SpellBase;
+
         /// <summary>
         /// A new biota be created taking all of its values from weenie.
         /// </summary>
@@ -64,7 +67,7 @@ namespace ACE.Server.WorldObjects
             SpellId = spellId;
 
             SpellType = GetProjectileSpellType(spellId);
-            var spell = DatManager.PortalDat.SpellTable.Spells[SpellId];
+            SpellBase = DatManager.PortalDat.SpellTable.Spells[SpellId];
 
             // Runtime changes to default state
             ReportCollisions = true;
@@ -80,7 +83,7 @@ namespace ACE.Server.WorldObjects
             {
                 PhysicsObj.DefaultScript = ACE.Entity.Enum.PlayScript.ProjectileCollision;
                 PhysicsObj.DefaultScriptIntensity = 1.0f;
-                var spellLevel = CalculateSpellLevel(spell);
+                var spellLevel = CalculateSpellLevel(SpellBase);
                 PlayscriptIntensity = GetProjectileScriptIntensity(SpellType, spellLevel);
             }
 
@@ -98,7 +101,7 @@ namespace ACE.Server.WorldObjects
             if (SpellType == ProjectileSpellType.Ring)
             {
                 ScriptedCollision = false;
-                var spellLevel = CalculateSpellLevel(spell);
+                var spellLevel = CalculateSpellLevel(SpellBase);
                 PlayscriptIntensity = GetProjectileScriptIntensity(SpellType, spellLevel);
             }
 
@@ -202,7 +205,7 @@ namespace ACE.Server.WorldObjects
             }
         }
 
-        private void ProjectileImpact()
+        public void ProjectileImpact()
         {
             SpellTable spellTable = DatManager.PortalDat.SpellTable;
             SpellBase spell = spellTable.Spells[spellId];

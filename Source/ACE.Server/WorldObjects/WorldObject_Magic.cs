@@ -1057,6 +1057,7 @@ namespace ACE.Server.WorldObjects
             spellProjectile.ProjectileSource = this;
             spellProjectile.ProjectileTarget = target;
             spellProjectile.SetProjectilePhysicsState(spellProjectile.ProjectileTarget, useGravity);
+            spellProjectile.SpawnPos = new Position(spellProjectile.Location);
 
             return spellProjectile;
         }
