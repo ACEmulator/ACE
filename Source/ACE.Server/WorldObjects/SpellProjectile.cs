@@ -220,12 +220,6 @@ namespace ACE.Server.WorldObjects
                 PhysicsObj.set_active(false);
 
                 EnqueueBroadcastPhysicsState();
-
-                SpellType = GetProjectileSpellType(spellId);
-                var spellPower = spell.Power;
-                var spellLevel = CalculateSpellLevel(spell);
-                PlayscriptIntensity = GetProjectileScriptIntensity(SpellType, spellLevel);
-
                 EnqueueBroadcast(new GameMessageScript(Guid, ACE.Entity.Enum.PlayScript.Explode, PlayscriptIntensity));
             });
             selfDestructChain.AddDelaySeconds(5.0);
