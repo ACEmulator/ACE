@@ -76,7 +76,7 @@ namespace ACE.Server.Command
 
         public static void ParseCommand(string commandLine, out string command, out string[] parameters)
         {
-            var commandSplit = commandLine.Split(' ');
+            var commandSplit = commandLine.Split(' ',StringSplitOptions.RemoveEmptyEntries);
             command = commandSplit[0];
             parameters = new string[commandSplit.Length - 1];
 
