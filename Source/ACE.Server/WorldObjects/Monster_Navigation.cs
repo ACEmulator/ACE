@@ -329,7 +329,7 @@ namespace ACE.Server.WorldObjects
             mvp.MoveAway = true;
             mvp.CanCharge = true;
             mvp.FailWalk = true;
-            //mvp.UseFinalHeading = true;
+            mvp.UseFinalHeading = true;
             mvp.Sticky = true;
 
             mvp.MinDistance = 0.1f;
