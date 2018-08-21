@@ -804,8 +804,19 @@ namespace ACE.Server.WorldObjects
             switch (castingPreCheckStatus)
             {
                 case CastingPreCheckStatus.Success:
-                    // TODO - Successful spell casting code goes here for untargeted spells to replace line below
-                    Session.Network.EnqueueSend(new GameMessageSystemChat("Targeted SpellID " + spellId + " not yet implemented!", ChatMessageType.System));
+                    // TODO - Add other untargeted spells below
+                    spellChain.AddAction(this, () =>
+                    {
+                        switch (spell.School)
+                        {
+                            case MagicSchool.WarMagic:
+                                WarMagic(spell, spellStatMod);
+                                break;
+                            default:
+                                Session.Network.EnqueueSend(new GameMessageSystemChat("Untargeted SpellID " + spellId + " not yet implemented!", ChatMessageType.System));
+                                break;
+                        }
+                    });
                     break;
                 default:
                     spellChain.AddAction(this, () => EnqueueBroadcast(new GameMessageScript(Guid, ACE.Entity.Enum.PlayScript.Fizzle, 0.5f)));

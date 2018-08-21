@@ -596,5 +596,26 @@ namespace ACE.Server.Physics.Common
             }
             return adjacents;
         }
+
+        private List<EnvCell> envcells;
+
+        public List<EnvCell> get_envcells()
+        {
+            if (envcells != null) return envcells;
+
+            envcells = new List<EnvCell>();
+
+            var startCell = ID & 0xFFFF0000 | 0x100;
+            var cellID = startCell;
+            for (var i = 0; i < Info.NumCells; i++)
+            {
+                var envCell = (EnvCell)LScape.get_landcell(cellID++);
+                if (envCell != null)
+                    envcells.Add(envCell);
+                else
+                    break;
+            }
+            return envcells;
+        }
     }
 }

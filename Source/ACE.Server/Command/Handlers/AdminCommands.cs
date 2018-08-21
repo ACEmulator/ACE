@@ -16,6 +16,7 @@ using ACE.DatLoader;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Server.Entity;
 using ACE.Server.Factories;
 using ACE.Server.Managers;
 using ACE.Server.Network;
@@ -961,6 +962,8 @@ namespace ACE.Server.Command.Handlers
             else
                 loot.Location = session.Player.Location.InFrontOf((loot.UseRadius ?? 2) > 2 ? loot.UseRadius.Value : 2);
 
+            loot.Location.LandblockId = new LandblockId(loot.Location.GetCell());
+
             //Console.WriteLine($"Spawning {loot.Name} @ {loot.Location.Cell:X8} - {loot.Location.Pos}");
             LastSpawnPos = loot.Location;
 
@@ -994,9 +997,12 @@ namespace ACE.Server.Command.Handlers
 
             session.Player.Teleport(newPos);
 
-            var totalDist = Vector3.Distance(LastSpawnPos.GlobalPos, newPos.GlobalPos);
+            var globLastSpawnPos = LastSpawnPos.ToGlobal();
+            var globNewPos = newPos.ToGlobal();
 
-            var totalDist2d = Vector2.Distance(new Vector2(LastSpawnPos.GlobalPos.X, LastSpawnPos.GlobalPos.Y), new Vector2(newPos.GlobalPos.X, newPos.GlobalPos.Y));
+            var totalDist = Vector3.Distance(globLastSpawnPos, globNewPos);
+
+            var totalDist2d = Vector2.Distance(new Vector2(globLastSpawnPos.X, globLastSpawnPos.Y), new Vector2(globNewPos.X, globNewPos.Y));
 
             Console.WriteLine($"Teleporting player to {newPos.Cell:X8} @ {newPos.Pos}");
 

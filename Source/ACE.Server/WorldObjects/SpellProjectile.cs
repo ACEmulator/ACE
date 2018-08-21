@@ -1,5 +1,5 @@
 using System;
-
+using System.Numerics;
 using ACE.Database;
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
@@ -21,16 +21,12 @@ namespace ACE.Server.WorldObjects
 {
     public class SpellProjectile : WorldObject
     {
-        private Creature projectileCaster;
-        private ObjectGuid targetGuid;
         private uint spellId;
         private uint lifeProjectileDamage;
 
-        public Creature ParentWorldObject { get => projectileCaster; set => projectileCaster = value; }
-        public ObjectGuid TargetGuid { get => targetGuid; set => targetGuid = value; }
+        public float DistanceToTarget { get; set; }
         public uint SpellId { get => spellId; private set => spellId = value; }
         public uint LifeProjectileDamage { get => lifeProjectileDamage; set => lifeProjectileDamage = value; }
-        public float FlightTime { get; set; }
         public float PlayscriptIntensity { get; set; }
         public ProjectileSpellType SpellType { get; set; }
 
@@ -70,11 +66,38 @@ namespace ACE.Server.WorldObjects
             SpellType = GetProjectileSpellType(spellId);
             var spell = DatManager.PortalDat.SpellTable.Spells[SpellId];
 
+            // Runtime changes to default state
+            ReportCollisions = true;
+            Missile = true;
+            AlignPath = true;
+            PathClipped = true;
+            Ethereal = false;
+            IgnoreCollisions = false;
+
             if (SpellType == ProjectileSpellType.Bolt || SpellType == ProjectileSpellType.Streak
-                || SpellType == ProjectileSpellType.Arc || SpellType == ProjectileSpellType.Volley)
+                || SpellType == ProjectileSpellType.Arc || SpellType == ProjectileSpellType.Volley || SpellType == ProjectileSpellType.Blast
+                || WeenieClassId == 7276 || WeenieClassId == 7277 || WeenieClassId == 7279 || WeenieClassId == 7280)
             {
                 PhysicsObj.DefaultScript = ACE.Entity.Enum.PlayScript.ProjectileCollision;
                 PhysicsObj.DefaultScriptIntensity = 1.0f;
+                var spellLevel = CalculateSpellLevel(spell);
+                PlayscriptIntensity = GetProjectileScriptIntensity(SpellType, spellLevel);
+            }
+
+            // Some wall spells don't have scripted collisions
+            if (WeenieClassId == 7278 || WeenieClassId == 7281 || WeenieClassId == 7282 || WeenieClassId == 23144)
+            {
+                ScriptedCollision = false;
+            }
+
+            AllowEdgeSlide = false;
+            // No need to send an ObjScale of 1.0f over the wire since that is the default value
+            if (ObjScale == 1.0f)
+                ObjScale = null;
+
+            if (SpellType == ProjectileSpellType.Ring)
+            {
+                ScriptedCollision = false;
                 var spellLevel = CalculateSpellLevel(spell);
                 PlayscriptIntensity = GetProjectileScriptIntensity(SpellType, spellLevel);
             }
@@ -110,7 +133,7 @@ namespace ACE.Server.WorldObjects
             {
                 return ProjectileSpellType.Streak;
             }
-            else if (WeenieClassId >= 7269 && WeenieClassId <= 2725)
+            else if (WeenieClassId >= 7269 && WeenieClassId <= 7275)
             {
                 return ProjectileSpellType.Ring;
             }
@@ -145,10 +168,16 @@ namespace ACE.Server.WorldObjects
 
         private float GetProjectileScriptIntensity(ProjectileSpellType spellType, SpellLevel spellLevel)
         {
-            if (spellType == ProjectileSpellType.Ring || spellType == ProjectileSpellType.Wall)
+            if (spellType == ProjectileSpellType.Wall)
             {
                 return 0.4f;
-                // TODO: higher level ring spells use 1.0f intensity
+            }
+            if (spellType == ProjectileSpellType.Ring)
+            {
+                if (spellLevel == SpellLevel.Six)
+                    return 0.4f;
+                if (spellLevel == SpellLevel.Seven)
+                    return 1.0f;
             }
 
             // Bolt, Blast, Volley, Streak and Arc all seem to use this scale
@@ -191,12 +220,6 @@ namespace ACE.Server.WorldObjects
                 PhysicsObj.set_active(false);
 
                 EnqueueBroadcastPhysicsState();
-
-                SpellType = GetProjectileSpellType(spellId);
-                var spellPower = spell.Power;
-                var spellLevel = CalculateSpellLevel(spell);
-                PlayscriptIntensity = GetProjectileScriptIntensity(SpellType, spellLevel);
-
                 EnqueueBroadcast(new GameMessageScript(Guid, ACE.Entity.Enum.PlayScript.Explode, PlayscriptIntensity));
             });
             selfDestructChain.AddDelaySeconds(5.0);
@@ -223,7 +246,7 @@ namespace ACE.Server.WorldObjects
 
             Spell spellStatMod = DatabaseManager.World.GetCachedSpell(spellId);
 
-            var player = projectileCaster as Player;
+            var player = ProjectileSource as Player;
 
             // ensure valid creature target
             // non-target objects will be excluded beforehand from collision detection
@@ -247,7 +270,7 @@ namespace ACE.Server.WorldObjects
             }
 
             var critical = false;
-            var damage = MagicDamageTarget(projectileCaster, target, spell, spellStatMod, out DamageType damageType, ref critical, LifeProjectileDamage);
+            var damage = MagicDamageTarget(ProjectileSource as Creature, target, spell, spellStatMod, out DamageType damageType, ref critical, LifeProjectileDamage);
 
             var targetPlayer = target as Player;
 
@@ -274,7 +297,7 @@ namespace ACE.Server.WorldObjects
                 {
                     percent = (float)damage / target.Health.MaxValue;
                     amount = (uint)-target.UpdateVitalDelta(target.Health, (int)-Math.Round(damage.Value));
-                    target.DamageHistory.Add(projectileCaster, amount);
+                    target.DamageHistory.Add(ProjectileSource, amount);
                 }
 
                 string verb = null, plural = null;
@@ -305,7 +328,7 @@ namespace ACE.Server.WorldObjects
                     }
 
                     if (targetPlayer != null)
-                        targetPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"{projectileCaster.Name} {plural} you for {amount} points of {type} damage!", ChatMessageType.Magic));
+                        targetPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"{ProjectileSource.Name} {plural} you for {amount} points of {type} damage!", ChatMessageType.Magic));
                         //targetPlayer.Session.Network.EnqueueSend(new GameEventDefenderNotification(targetPlayer.Session, projectileCaster.Name, damageType, percent, amount, DamageLocation.Chest, critical, new AttackConditions()));    // damageLocation?
                 }
             }
@@ -314,13 +337,13 @@ namespace ACE.Server.WorldObjects
                 if (damage == -1)
                     return;
 
-                CurrentLandblock?.EnqueueBroadcastSound(projectileCaster, Sound.ResistSpell);
+                CurrentLandblock?.EnqueueBroadcastSound(ProjectileSource, Sound.ResistSpell);
 
                 if (player != null)
                     player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{target.Name} resists {spell.Name}", ChatMessageType.Magic));
 
                 if (targetPlayer != null)
-                    targetPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"You resist {ParentWorldObject.Name}'s {spell.Name}", ChatMessageType.Magic));
+                    targetPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"You resist {ProjectileSource.Name}'s {spell.Name}", ChatMessageType.Magic));
 
             }
 
@@ -335,14 +358,6 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void SetProjectilePhysicsState(WorldObject target, bool useGravity)
         {
-            // runtime changes to default state
-            ReportCollisions = true;
-            Missile = true;
-            AlignPath = true;
-            PathClipped = true;
-            Ethereal = false;
-            IgnoreCollisions = false;
-
             if (useGravity) GravityStatus = true;
 
             CurrentMotionState = null;

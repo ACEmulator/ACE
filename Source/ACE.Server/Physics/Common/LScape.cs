@@ -50,8 +50,8 @@ namespace ACE.Server.Physics.Common
         /// <summary>
         /// Loads the backing store landblock structure
         /// </summary>
-        /// <param name="cellID">Any cellID within the landblock</param>
-        public static Landblock get_landblock(uint cellID)
+        /// <param name="blockCellID">Any landblock + cell ID within the landblock</param>
+        public static Landblock get_landblock(uint blockCellID)
         {
             // client implementation
             /*if (Landblocks == null || Landblocks.Count == 0)
@@ -71,7 +71,7 @@ namespace ACE.Server.Physics.Common
 
             return Landblocks[yDiff + xDiff * MidWidth];*/
 
-            var landblockID = cellID | 0xFFFF;
+            var landblockID = blockCellID | 0xFFFF;
 
             // check if landblock is already cached
             Landblock landblock = null;
