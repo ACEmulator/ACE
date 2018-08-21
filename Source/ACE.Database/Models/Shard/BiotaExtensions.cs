@@ -122,14 +122,17 @@ namespace ACE.Database.Models.Shard
 
 
 
-        public static void SetProperty(this Biota biota, PropertyBool property, bool value, ReaderWriterLockSlim rwLock)
+        public static void SetProperty(this Biota biota, PropertyBool property, bool value, ReaderWriterLockSlim rwLock, out bool biotaChanged)
         {
             rwLock.EnterUpgradeableReadLock();
             try
             {
                 var result = biota.BiotaPropertiesBool.FirstOrDefault(x => x.Type == (uint)property);
                 if (result != null)
+                {
+                    biotaChanged = (result.Value != value);
                     result.Value = value;
+                }
                 else
                 {
                     rwLock.EnterWriteLock();
@@ -137,6 +140,7 @@ namespace ACE.Database.Models.Shard
                     {
                         var entity = new BiotaPropertiesBool { ObjectId = biota.Id, Type = (ushort)property, Value = value, Object = biota };
                         biota.BiotaPropertiesBool.Add(entity);
+                        biotaChanged = true;
                     }
                     finally
                     {
@@ -150,14 +154,17 @@ namespace ACE.Database.Models.Shard
             }
         }
 
-        public static void SetProperty(this Biota biota, PropertyDataId property, uint value, ReaderWriterLockSlim rwLock)
+        public static void SetProperty(this Biota biota, PropertyDataId property, uint value, ReaderWriterLockSlim rwLock, out bool biotaChanged)
         {
             rwLock.EnterUpgradeableReadLock();
             try
             {
                 var result = biota.BiotaPropertiesDID.FirstOrDefault(x => x.Type == (uint)property);
                 if (result != null)
+                {
+                    biotaChanged = (result.Value != value);
                     result.Value = value;
+                }
                 else
                 {
                     rwLock.EnterWriteLock();
@@ -165,6 +172,7 @@ namespace ACE.Database.Models.Shard
                     {
                         var entity = new BiotaPropertiesDID { ObjectId = biota.Id, Type = (ushort)property, Value = value, Object = biota };
                         biota.BiotaPropertiesDID.Add(entity);
+                        biotaChanged = true;
                     }
                     finally
                     {
@@ -180,14 +188,17 @@ namespace ACE.Database.Models.Shard
 
         // BiotaPropertiesEnchantmentRegistry
 
-        public static void SetProperty(this Biota biota, PropertyFloat property, double value, ReaderWriterLockSlim rwLock)
+        public static void SetProperty(this Biota biota, PropertyFloat property, double value, ReaderWriterLockSlim rwLock, out bool biotaChanged)
         {
             rwLock.EnterUpgradeableReadLock();
             try
             {
                 var result = biota.BiotaPropertiesFloat.FirstOrDefault(x => x.Type == (ushort)property);
                 if (result != null)
+                {
+                    biotaChanged = (result.Value != value);
                     result.Value = value;
+                }
                 else
                 {
                     rwLock.EnterWriteLock();
@@ -195,6 +206,7 @@ namespace ACE.Database.Models.Shard
                     {
                         var entity = new BiotaPropertiesFloat { ObjectId = biota.Id, Type = (ushort)property, Value = value, Object = biota };
                         biota.BiotaPropertiesFloat.Add(entity);
+                        biotaChanged = true;
                     }
                     finally
                     {
@@ -208,14 +220,17 @@ namespace ACE.Database.Models.Shard
             }
         }
 
-        public static void SetProperty(this Biota biota, PropertyInstanceId property, uint value, ReaderWriterLockSlim rwLock)
+        public static void SetProperty(this Biota biota, PropertyInstanceId property, uint value, ReaderWriterLockSlim rwLock, out bool biotaChanged)
         {
             rwLock.EnterUpgradeableReadLock();
             try
             {
                 var result = biota.BiotaPropertiesIID.FirstOrDefault(x => x.Type == (uint)property);
                 if (result != null)
+                {
+                    biotaChanged = (result.Value != value);
                     result.Value = value;
+                }
                 else
                 {
                     rwLock.EnterWriteLock();
@@ -223,6 +238,7 @@ namespace ACE.Database.Models.Shard
                     {
                         var entity = new BiotaPropertiesIID { ObjectId = biota.Id, Type = (ushort)property, Value = value, Object = biota };
                         biota.BiotaPropertiesIID.Add(entity);
+                        biotaChanged = true;
                     }
                     finally
                     {
@@ -236,14 +252,17 @@ namespace ACE.Database.Models.Shard
             }
         }
 
-        public static void SetProperty(this Biota biota, PropertyInt property, int value, ReaderWriterLockSlim rwLock)
+        public static void SetProperty(this Biota biota, PropertyInt property, int value, ReaderWriterLockSlim rwLock, out bool biotaChanged)
         {
             rwLock.EnterUpgradeableReadLock();
             try
             {
                 var result = biota.BiotaPropertiesInt.FirstOrDefault(x => x.Type == (uint)property);
                 if (result != null)
+                {
+                    biotaChanged = (result.Value != value);
                     result.Value = value;
+                }
                 else
                 {
                     rwLock.EnterWriteLock();
@@ -251,6 +270,7 @@ namespace ACE.Database.Models.Shard
                     {
                         var entity = new BiotaPropertiesInt { ObjectId = biota.Id, Type = (ushort)property, Value = value, Object = biota };
                         biota.BiotaPropertiesInt.Add(entity);
+                        biotaChanged = true;
                     }
                     finally
                     {
@@ -264,14 +284,17 @@ namespace ACE.Database.Models.Shard
             }
         }
 
-        public static void SetProperty(this Biota biota, PropertyInt64 property, long value, ReaderWriterLockSlim rwLock)
+        public static void SetProperty(this Biota biota, PropertyInt64 property, long value, ReaderWriterLockSlim rwLock, out bool biotaChanged)
         {
             rwLock.EnterUpgradeableReadLock();
             try
             {
                 var result = biota.BiotaPropertiesInt64.FirstOrDefault(x => x.Type == (uint)property);
                 if (result != null)
+                {
+                    biotaChanged = (result.Value != value);
                     result.Value = value;
+                }
                 else
                 {
                     rwLock.EnterWriteLock();
@@ -279,6 +302,7 @@ namespace ACE.Database.Models.Shard
                     {
                         var entity = new BiotaPropertiesInt64 { ObjectId = biota.Id, Type = (ushort)property, Value = value, Object = biota };
                         biota.BiotaPropertiesInt64.Add(entity);
+                        biotaChanged = true;
                     }
                     finally
                     {
@@ -292,7 +316,7 @@ namespace ACE.Database.Models.Shard
             }
         }
 
-        public static void SetPosition(this Biota biota, PositionType positionType, Position position, ReaderWriterLockSlim rwLock)
+        public static void SetPosition(this Biota biota, PositionType positionType, Position position, ReaderWriterLockSlim rwLock, out bool biotaChanged)
         {
             rwLock.EnterUpgradeableReadLock();
             try
@@ -300,6 +324,7 @@ namespace ACE.Database.Models.Shard
                 var result = biota.BiotaPropertiesPosition.FirstOrDefault(x => x.PositionType == (uint)positionType);
                 if (result != null)
                 {
+                    biotaChanged = true; // we just assume at least one of the values changed...
                     result.ObjCellId = position.Cell;
                     result.OriginX = position.PositionX;
                     result.OriginY = position.PositionY;
@@ -316,6 +341,7 @@ namespace ACE.Database.Models.Shard
                     {
                         var entity = new BiotaPropertiesPosition { ObjectId = biota.Id, PositionType = (ushort)positionType, ObjCellId = position.Cell, OriginX = position.PositionX, OriginY = position.PositionY, OriginZ = position.PositionZ, AnglesW = position.RotationW, AnglesX = position.RotationX, AnglesY = position.RotationY, AnglesZ = position.RotationZ, Object = biota };
                         biota.BiotaPropertiesPosition.Add(entity);
+                        biotaChanged = true;
                     }
                     finally
                     {
@@ -329,14 +355,17 @@ namespace ACE.Database.Models.Shard
             }
         }
 
-        public static void SetProperty(this Biota biota, PropertyString property, string value, ReaderWriterLockSlim rwLock)
+        public static void SetProperty(this Biota biota, PropertyString property, string value, ReaderWriterLockSlim rwLock, out bool biotaChanged)
         {
             rwLock.EnterUpgradeableReadLock();
             try
             {
                 var result = biota.BiotaPropertiesString.FirstOrDefault(x => x.Type == (uint)property);
                 if (result != null)
+                {
+                    biotaChanged = (result.Value != value);
                     result.Value = value;
+                }
                 else
                 {
                     rwLock.EnterWriteLock();
@@ -344,6 +373,7 @@ namespace ACE.Database.Models.Shard
                     {
                         var entity = new BiotaPropertiesString { ObjectId = biota.Id, Type = (ushort)property, Value = value, Object = biota };
                         biota.BiotaPropertiesString.Add(entity);
+                        biotaChanged = true;
                     }
                     finally
                     {
