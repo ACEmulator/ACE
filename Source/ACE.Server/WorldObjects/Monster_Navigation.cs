@@ -81,7 +81,8 @@ namespace ACE.Server.WorldObjects
             IsTurning = false;
             IsMoving = true;
 
-            var mvp = GetMovementParameters();
+            //var mvp = GetMovementParameters();
+            var mvp = new MovementParameters();
 
             PhysicsObj.MoveToObject(AttackTarget.PhysicsObj, mvp);
             PhysicsObj.add_moveto_listener(OnMoveComplete);
