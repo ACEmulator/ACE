@@ -383,6 +383,8 @@ namespace ACE.Database
                 rwLock.EnterWriteLock();
                 try
                 {
+                    SetBiotaPopulatedCollections(biota);
+
                     try
                     {
                         cachedContext.SaveChanges();
