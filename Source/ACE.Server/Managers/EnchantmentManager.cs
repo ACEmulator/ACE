@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 
@@ -37,40 +38,12 @@ namespace ACE.Server.Managers
         /// <summary>
         /// Returns TRUE if this object has any active enchantments in the registry
         /// </summary>
-        public bool HasEnchantments
-        {
-            get
-            {
-                WorldObject.BiotaDatabaseLock.EnterReadLock();
-                try
-                {
-                    return WorldObject.Biota.BiotaPropertiesEnchantmentRegistry.Any();
-                }
-                finally
-                {
-                    WorldObject.BiotaDatabaseLock.ExitReadLock();
-                }
-            }
-        }
+        public bool HasEnchantments => WorldObject.Biota.HasEnchantments(WorldObject.BiotaDatabaseLock);
 
         /// <summary>
         /// Returns TRUE If this object has a vitae penalty
         /// </summary>
-        public bool HasVitae
-        {
-            get
-            {
-                WorldObject.BiotaDatabaseLock.EnterReadLock();
-                try
-                {
-                    return WorldObject.Biota.BiotaPropertiesEnchantmentRegistry.Any(e => e.SpellId == (uint)Spell.Vitae);
-                }
-                finally
-                {
-                    WorldObject.BiotaDatabaseLock.ExitReadLock();
-                }
-            }
-        }
+        public bool HasVitae => WorldObject.Biota.HasEnchantment((uint)Spell.Vitae, WorldObject.BiotaDatabaseLock);
 
         /// <summary>
         /// Constructs a new EnchantmentManager for a WorldObject
@@ -265,21 +238,10 @@ namespace ACE.Server.Managers
         /// </summary>
         public void RemoveAllEnchantments()
         {
-            WorldObject.BiotaDatabaseLock.EnterWriteLock();
-            try
-            {
-                var enchantments = WorldObject.Biota.BiotaPropertiesEnchantmentRegistry.Where(e => e.SpellId != (int)Spell.Vitae).ToList();
+            var spellsToExclude = new Collection<int> { (int)Spell.Vitae };
 
-                foreach (var enchantment in enchantments)
-                {
-                    WorldObject.Biota.BiotaPropertiesEnchantmentRegistry.Remove(enchantment);
-                    WorldObject.ChangesDetected = true;
-                }
-            }
-            finally
-            {
-                WorldObject.BiotaDatabaseLock.ExitWriteLock();
-            }
+            WorldObject.Biota.RemoveAllEnchantments(spellsToExclude, WorldObject.BiotaDatabaseLock);
+            WorldObject.ChangesDetected = true;
         }
 
         /// <summary>
@@ -323,15 +285,7 @@ namespace ACE.Server.Managers
         /// </summary>
         public bool HasSpell(uint spellId)
         {
-            WorldObject.BiotaDatabaseLock.EnterReadLock();
-            try
-            {
-                return WorldObject.Biota.BiotaPropertiesEnchantmentRegistry.Any(e => e.SpellId == spellId);
-            }
-            finally
-            {
-                WorldObject.BiotaDatabaseLock.ExitReadLock();
-            }
+            return WorldObject.Biota.HasEnchantment(spellId, WorldObject.BiotaDatabaseLock);
         }
 
         /// <summary>
@@ -339,19 +293,7 @@ namespace ACE.Server.Managers
         /// </summary>
         public List<BiotaPropertiesEnchantmentRegistry> GetCategory(uint categoryID)
         {
-            IEnumerable<BiotaPropertiesEnchantmentRegistry> result;
-
-            WorldObject.BiotaDatabaseLock.EnterReadLock();
-            try
-            {
-                result = WorldObject.Biota.BiotaPropertiesEnchantmentRegistry.Where(e => e.SpellCategory == categoryID);
-            }
-            finally
-            {
-                WorldObject.BiotaDatabaseLock.ExitReadLock();
-            }
-
-            return result.ToList();
+            return WorldObject.Biota.GetEnchantmentsByCategory((ushort)categoryID, WorldObject.BiotaDatabaseLock);
         }
 
         /// <summary>
@@ -359,15 +301,7 @@ namespace ACE.Server.Managers
         /// </summary>
         public BiotaPropertiesEnchantmentRegistry GetSpell(uint spellID)
         {
-            WorldObject.BiotaDatabaseLock.EnterReadLock();
-            try
-            {
-                return WorldObject.Biota.BiotaPropertiesEnchantmentRegistry.FirstOrDefault(e => e.SpellId == spellID);
-            }
-            finally
-            {
-                WorldObject.BiotaDatabaseLock.ExitReadLock();
-            }
+            return WorldObject.Biota.GetEnchantmentBySpell((int)spellID, WorldObject.BiotaDatabaseLock);
         }
 
         /// <summary>
@@ -527,23 +461,14 @@ namespace ACE.Server.Managers
         /// </summary>
         public List<BiotaPropertiesEnchantmentRegistry> GetEnchantments(EnchantmentTypeFlags statModType)
         {
-            IEnumerable<BiotaPropertiesEnchantmentRegistry> enchantments;
+            var enchantments = WorldObject.Biota.GetEnchantmentsByStatModType((uint)statModType, WorldObject.BiotaDatabaseLock);
 
-            WorldObject.BiotaDatabaseLock.EnterReadLock();
-            try
-            {
-                enchantments = from e in WorldObject.Biota.BiotaPropertiesEnchantmentRegistry
-                    where ((EnchantmentTypeFlags) e.StatModType).HasFlag(statModType)
-                    group e by e.SpellCategory
-                    into categories
-                    select categories.OrderByDescending(c => c.LayerId).First();
-            }
-            finally
-            {
-                WorldObject.BiotaDatabaseLock.ExitReadLock();
-            }
+            var results = from e in enchantments
+                group e by e.SpellCategory
+                into categories
+                select categories.OrderByDescending(c => c.LayerId).First();
 
-            return enchantments.ToList();
+            return results.ToList();
         }
 
         /// <summary>
@@ -551,23 +476,15 @@ namespace ACE.Server.Managers
         /// </summary>
         public List<BiotaPropertiesEnchantmentRegistry> GetEnchantments(EnchantmentTypeFlags statModType, uint statModKey)
         {
-            IEnumerable<BiotaPropertiesEnchantmentRegistry> enchantments;
+            var enchantments = WorldObject.Biota.GetEnchantmentsByStatModType((uint)statModType, WorldObject.BiotaDatabaseLock);
 
-            WorldObject.BiotaDatabaseLock.EnterReadLock();
-            try
-            {
-                enchantments = from e in WorldObject.Biota.BiotaPropertiesEnchantmentRegistry
-                    where ((EnchantmentTypeFlags) e.StatModType).HasFlag(statModType) && e.StatModKey == statModKey
-                    group e by e.SpellCategory
-                    into categories
-                    select categories.OrderByDescending(c => c.LayerId).First();
-            }
-            finally
-            {
-                WorldObject.BiotaDatabaseLock.ExitReadLock();
-            }
+            var results = from e in enchantments
+                where (e.StatModKey == statModKey)
+                group e by e.SpellCategory
+                into categories
+                select categories.OrderByDescending(c => c.LayerId).First();
 
-            return enchantments.ToList();
+            return results.ToList();
         }
 
         /// <summary>

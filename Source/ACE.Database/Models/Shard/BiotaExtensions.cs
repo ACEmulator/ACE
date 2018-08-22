@@ -36,19 +36,6 @@ namespace ACE.Database.Models.Shard
             }
         }
 
-        public static IList<BiotaPropertiesEnchantmentRegistry> GetEnchantments(this Biota biota, ReaderWriterLockSlim rwLock)
-        {
-            rwLock.EnterReadLock();
-            try
-            {
-                return biota.BiotaPropertiesEnchantmentRegistry.ToList();
-            }
-            finally
-            {
-                rwLock.ExitReadLock();
-            }
-        }
-
         public static double? GetProperty(this Biota biota, PropertyFloat property, ReaderWriterLockSlim rwLock)
         {
             rwLock.EnterReadLock();
@@ -195,19 +182,6 @@ namespace ACE.Database.Models.Shard
             finally
             {
                 rwLock.ExitUpgradeableReadLock();
-            }
-        }
-
-        public static void AddEnchantment(this Biota biota, BiotaPropertiesEnchantmentRegistry entity, ReaderWriterLockSlim rwLock)
-        {
-            rwLock.EnterWriteLock();
-            try
-            {
-                biota.BiotaPropertiesEnchantmentRegistry.Add(entity);
-            }
-            finally
-            {
-                rwLock.ExitWriteLock();
             }
         }
 
@@ -468,34 +442,6 @@ namespace ACE.Database.Models.Shard
             }
         }
 
-        public static bool TryRemoveEnchantment(this Biota biota, int spellId, out BiotaPropertiesEnchantmentRegistry entity, ReaderWriterLockSlim rwLock)
-        {
-            rwLock.EnterUpgradeableReadLock();
-            try
-            {
-                entity = biota.BiotaPropertiesEnchantmentRegistry.FirstOrDefault(x => x.SpellId == spellId);
-                if (entity != null)
-                {
-                    rwLock.EnterWriteLock();
-                    try
-                    {
-                        biota.BiotaPropertiesEnchantmentRegistry.Remove(entity);
-                        entity.Object = null;
-                        return true;
-                    }
-                    finally
-                    {
-                        rwLock.ExitWriteLock();
-                    }
-                }
-                return false;
-            }
-            finally
-            {
-                rwLock.ExitUpgradeableReadLock();
-            }
-        }
-
         public static bool TryRemoveProperty(this Biota biota, PropertyFloat property, out BiotaPropertiesFloat entity, ReaderWriterLockSlim rwLock)
         {
             rwLock.EnterUpgradeableReadLock();
@@ -661,6 +607,143 @@ namespace ACE.Database.Models.Shard
             finally
             {
                 rwLock.ExitUpgradeableReadLock();
+            }
+        }
+
+
+        public static bool HasEnchantments(this Biota biota, ReaderWriterLockSlim rwLock)
+        {
+            rwLock.EnterReadLock();
+            try
+            {
+                return biota.BiotaPropertiesEnchantmentRegistry.Any();
+            }
+            finally
+            {
+                rwLock.ExitReadLock();
+            }
+        }
+
+        public static bool HasEnchantment(this Biota biota, uint spellId, ReaderWriterLockSlim rwLock)
+        {
+            rwLock.EnterReadLock();
+            try
+            {
+                return biota.BiotaPropertiesEnchantmentRegistry.Any(e => e.SpellId == spellId);
+            }
+            finally
+            {
+                rwLock.ExitReadLock();
+            }
+        }
+
+        public static BiotaPropertiesEnchantmentRegistry GetEnchantmentBySpell(this Biota biota, int spellId, ReaderWriterLockSlim rwLock)
+        {
+            rwLock.EnterReadLock();
+            try
+            {
+                return biota.BiotaPropertiesEnchantmentRegistry.FirstOrDefault(e => e.SpellId == spellId);
+            }
+            finally
+            {
+                rwLock.ExitReadLock();
+            }
+
+        }
+
+        public static List<BiotaPropertiesEnchantmentRegistry> GetEnchantments(this Biota biota, ReaderWriterLockSlim rwLock)
+        {
+            rwLock.EnterReadLock();
+            try
+            {
+                return biota.BiotaPropertiesEnchantmentRegistry.ToList();
+            }
+            finally
+            {
+                rwLock.ExitReadLock();
+            }
+        }
+
+        public static List<BiotaPropertiesEnchantmentRegistry> GetEnchantmentsByCategory(this Biota biota, ushort spellCategory, ReaderWriterLockSlim rwLock)
+        {
+            rwLock.EnterReadLock();
+            try
+            {
+                return biota.BiotaPropertiesEnchantmentRegistry.Where(e => e.SpellCategory == spellCategory).ToList();
+            }
+            finally
+            {
+                rwLock.ExitReadLock();
+            }
+        }
+
+        public static List<BiotaPropertiesEnchantmentRegistry> GetEnchantmentsByStatModType(this Biota biota, uint statModType, ReaderWriterLockSlim rwLock)
+        {
+            rwLock.EnterReadLock();
+            try
+            {
+                return biota.BiotaPropertiesEnchantmentRegistry.Where(e => (e.StatModType & statModType) == statModType).ToList();
+            }
+            finally
+            {
+                rwLock.ExitReadLock();
+            }
+        }
+
+        public static void AddEnchantment(this Biota biota, BiotaPropertiesEnchantmentRegistry entity, ReaderWriterLockSlim rwLock)
+        {
+            rwLock.EnterWriteLock();
+            try
+            {
+                biota.BiotaPropertiesEnchantmentRegistry.Add(entity);
+            }
+            finally
+            {
+                rwLock.ExitWriteLock();
+            }
+        }
+
+        public static bool TryRemoveEnchantment(this Biota biota, int spellId, out BiotaPropertiesEnchantmentRegistry entity, ReaderWriterLockSlim rwLock)
+        {
+            rwLock.EnterUpgradeableReadLock();
+            try
+            {
+                entity = biota.BiotaPropertiesEnchantmentRegistry.FirstOrDefault(x => x.SpellId == spellId);
+                if (entity != null)
+                {
+                    rwLock.EnterWriteLock();
+                    try
+                    {
+                        biota.BiotaPropertiesEnchantmentRegistry.Remove(entity);
+                        entity.Object = null;
+                        return true;
+                    }
+                    finally
+                    {
+                        rwLock.ExitWriteLock();
+                    }
+                }
+                return false;
+            }
+            finally
+            {
+                rwLock.ExitUpgradeableReadLock();
+            }
+        }
+
+        public static void RemoveAllEnchantments(this Biota biota, ICollection<int> spellsToExclude, ReaderWriterLockSlim rwLock)
+        {
+            rwLock.EnterWriteLock();
+            try
+            {
+               var enchantments = biota.BiotaPropertiesEnchantmentRegistry.Where(e => !spellsToExclude.Contains(e.SpellId));
+
+                foreach (var enchantment in enchantments)
+                    biota.BiotaPropertiesEnchantmentRegistry.Remove(enchantment);
+            }
+            finally
+            {
+                rwLock.ExitWriteLock();
             }
         }
 
