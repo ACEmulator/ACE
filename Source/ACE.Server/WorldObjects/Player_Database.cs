@@ -30,12 +30,6 @@ namespace ACE.Server.WorldObjects
             GetSaveChain(showMsg).EnqueueChain();
         }
 
-        public void SaveDatabase(bool showMsg = true)
-        {
-            var saveChain = GetSaveChain(showMsg);
-            saveChain.EnqueueChain();
-        }
-
         /// <summary>
         /// This will set the LastRequestedDatabaseSave to UtcNow and ChangesDetected to false.<para />
         /// If enqueueSave is set to true, DatabaseManager.Shard.SaveBiota() will be called for the biota.<para />

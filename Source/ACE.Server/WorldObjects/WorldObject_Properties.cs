@@ -400,13 +400,6 @@ namespace ACE.Server.WorldObjects
         }
 
 
-        public void RemoveEnchantment(int spellId)
-        {
-            if (Biota.TryRemoveEnchantment(spellId, out _, BiotaDatabaseLock))
-                ChangesDetected = true;
-        }
-
-
         // SetPropertiesForWorld, SetPropertiesForContainer, SetPropertiesForVendor
         #region Utility Functions
         internal void SetPropertiesForWorld(WorldObject objectToPlaceInRelationTo)

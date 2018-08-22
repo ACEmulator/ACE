@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+
 using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
 using ACE.Server.WorldObjects;
@@ -17,12 +18,12 @@ namespace ACE.Server.Network.Structure
 
         public EnchantmentRegistry(Player player)
         {
-            var registry = player.Biota.BiotaPropertiesEnchantmentRegistry;
+            var enchantments = player.Biota.GetEnchantments(player.BiotaDatabaseLock);
 
-            var lifeSpells = GetEntries(registry, EnchantmentMask.LifeSpells);
-            var creatureSpells = GetEntries(registry, EnchantmentMask.CreatureSpells);
-            var cooldowns = GetEntries(registry, EnchantmentMask.Cooldown);
-            var vitae = GetEntries(registry, EnchantmentMask.Vitae);
+            var lifeSpells = GetEntries(enchantments, EnchantmentMask.LifeSpells);
+            var creatureSpells = GetEntries(enchantments, EnchantmentMask.CreatureSpells);
+            var cooldowns = GetEntries(enchantments, EnchantmentMask.Cooldown);
+            var vitae = GetEntries(enchantments, EnchantmentMask.Vitae);
 
             LifeSpells = BuildList(lifeSpells, player);
             CreatureSpells = BuildList(creatureSpells, player);
@@ -32,7 +33,22 @@ namespace ACE.Server.Network.Structure
             SetEnchantMask();
         }
 
-        public void SetEnchantMask()
+        private static IEnumerable<BiotaPropertiesEnchantmentRegistry> GetEntries(ICollection<BiotaPropertiesEnchantmentRegistry> registry, EnchantmentMask enchantmentMask)
+        {
+            return registry.Where(e => ((EnchantmentMask)e.EnchantmentCategory).HasFlag(enchantmentMask));
+        }
+
+        private static List<Enchantment> BuildList(IEnumerable<BiotaPropertiesEnchantmentRegistry> registry, Player player)
+        {
+            var enchantments = new List<Enchantment>();
+
+            foreach (var entry in registry)
+                enchantments.Add(new Enchantment(player, entry));
+
+            return enchantments;
+        }
+
+        private void SetEnchantMask()
         {
             EnchantmentMask = 0;
 
@@ -44,21 +60,6 @@ namespace ACE.Server.Network.Structure
                 EnchantmentMask |= EnchantmentMask.Cooldown;
             if (Vitae != null)
                 EnchantmentMask |= EnchantmentMask.Vitae;
-        }
-
-        public static IEnumerable<BiotaPropertiesEnchantmentRegistry> GetEntries(ICollection<BiotaPropertiesEnchantmentRegistry> registry, EnchantmentMask enchantmentMask)
-        {
-            return registry.Where(e => ((EnchantmentMask)e.EnchantmentCategory).HasFlag(enchantmentMask));
-        }
-
-        public static List<Enchantment> BuildList(IEnumerable<BiotaPropertiesEnchantmentRegistry> registry, Player player)
-        {
-            var enchantments = new List<Enchantment>();
-
-            foreach (var entry in registry)
-                enchantments.Add(new Enchantment(player, entry));
-
-            return enchantments;
         }
     }
 
