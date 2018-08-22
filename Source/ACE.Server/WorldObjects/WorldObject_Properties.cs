@@ -63,8 +63,9 @@ namespace ACE.Server.WorldObjects
                 EphemeralPropertyBools[property] = value;
             else
             {
-                Biota.SetProperty(property, value, BiotaDatabaseLock);
-                ChangesDetected = true;
+                Biota.SetProperty(property, value, BiotaDatabaseLock, out var biotaChanged);
+                if (biotaChanged)
+                    ChangesDetected = true;
             }
         }
         public void SetProperty(PropertyDataId property, uint value)
@@ -73,8 +74,9 @@ namespace ACE.Server.WorldObjects
                 EphemeralPropertyDataIds[property] = value;
             else
             {
-                Biota.SetProperty(property, value, BiotaDatabaseLock);
-                ChangesDetected = true;
+                Biota.SetProperty(property, value, BiotaDatabaseLock, out var biotaChanged);
+                if (biotaChanged)
+                    ChangesDetected = true;
             }
         }
         public void SetProperty(PropertyFloat property, double value)
@@ -83,8 +85,9 @@ namespace ACE.Server.WorldObjects
                 EphemeralPropertyFloats[property] = value;
             else
             {
-                Biota.SetProperty(property, value, BiotaDatabaseLock);
-                ChangesDetected = true;
+                Biota.SetProperty(property, value, BiotaDatabaseLock, out var biotaChanged);
+                if (biotaChanged)
+                    ChangesDetected = true;
             }
         }
         public void SetProperty(PropertyInstanceId property, uint value)
@@ -93,8 +96,9 @@ namespace ACE.Server.WorldObjects
                 EphemeralPropertyInstanceIds[property] = value;
             else
             {
-                Biota.SetProperty(property, value, BiotaDatabaseLock);
-                ChangesDetected = true;
+                Biota.SetProperty(property, value, BiotaDatabaseLock, out var biotaChanged);
+                if (biotaChanged)
+                    ChangesDetected = true;
             }
         }
         public void SetProperty(PropertyInt property, int value)
@@ -103,8 +107,9 @@ namespace ACE.Server.WorldObjects
                 EphemeralPropertyInts[property] = value;
             else
             {
-                Biota.SetProperty(property, value, BiotaDatabaseLock);
-                ChangesDetected = true;
+                Biota.SetProperty(property, value, BiotaDatabaseLock, out var biotaChanged);
+                if (biotaChanged)
+                    ChangesDetected = true;
             }
         }
         public void SetProperty(PropertyInt64 property, long value)
@@ -113,8 +118,9 @@ namespace ACE.Server.WorldObjects
                 EphemeralPropertyInt64s[property] = value;
             else
             {
-                Biota.SetProperty(property, value, BiotaDatabaseLock);
-                ChangesDetected = true;
+                Biota.SetProperty(property, value, BiotaDatabaseLock, out var biotaChanged);
+                if (biotaChanged)
+                    ChangesDetected = true;
             }
         }
         public void SetProperty(PropertyString property, string value)
@@ -123,8 +129,9 @@ namespace ACE.Server.WorldObjects
                 EphemeralPropertyStrings[property] = value;
             else
             {
-                Biota.SetProperty(property, value, BiotaDatabaseLock);
-                ChangesDetected = true;
+                Biota.SetProperty(property, value, BiotaDatabaseLock, out var biotaChanged);
+                if (biotaChanged)
+                    ChangesDetected = true;
             }
         }
         #endregion
@@ -378,8 +385,9 @@ namespace ACE.Server.WorldObjects
                 else
                     Positions[positionType] = position;
 
-                Biota.SetPosition(positionType, position, BiotaDatabaseLock);
-                ChangesDetected = true;
+                Biota.SetPosition(positionType, position, BiotaDatabaseLock, out var biotaChanged);
+                if (biotaChanged)
+                    ChangesDetected = true;
             }
         }
 

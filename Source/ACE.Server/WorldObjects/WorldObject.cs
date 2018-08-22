@@ -83,6 +83,8 @@ namespace ACE.Server.WorldObjects
         {
             Biota = weenie.CreateCopyAsBiota(guid.Full);
 
+            CreationTimestamp = Server.Entity.Timer.CurrentTime;
+
             SetEphemeralValues();
         }
 
@@ -300,8 +302,6 @@ namespace ACE.Server.WorldObjects
 
             EmoteManager = new EmoteManager(this);
             EnchantmentManager = new EnchantmentManager(this);
-
-            CreationTimestamp = Server.Entity.Timer.CurrentTime;
 
             if (Placement == null)
                 Placement = ACE.Entity.Enum.Placement.Resting;
