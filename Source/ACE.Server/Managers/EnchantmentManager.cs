@@ -121,10 +121,8 @@ namespace ACE.Server.Managers
 
                             var newEntry = BuildEntry(enchantment.Spell.Id, caster);
                             newEntry.LayerId = enchantment.Layer;
-
                             WorldObject.Biota.AddEnchantment(newEntry, WorldObject.BiotaDatabaseLock);
                             WorldObject.ChangesDetected = true;
-
                             result = StackType.Refresh;
                             break;
                         }
@@ -157,10 +155,8 @@ namespace ACE.Server.Managers
 
                     var newEntry = BuildEntry(enchantment.Spell.Id, caster);
                     newEntry.LayerId = enchantment.Layer;
-
                     WorldObject.Biota.AddEnchantment(newEntry, WorldObject.BiotaDatabaseLock);
                     WorldObject.ChangesDetected = true;
-
                     result = StackType.Surpass;
                 }
             }
@@ -173,11 +169,8 @@ namespace ACE.Server.Managers
         /// </summary>
         public void SendRegistry(BinaryWriter writer)
         {
-            if (Player == null)
-                return;
-
+            if (Player == null) return;
             var enchantmentRegistry = new EnchantmentRegistry(Player);
-
             writer.Write(enchantmentRegistry);
         }
 
@@ -186,11 +179,8 @@ namespace ACE.Server.Managers
         /// </summary>
         public void SendUpdateVitae()
         {
-            if (Player == null)
-                return;
-
+            if (Player == null) return;
             var vitae = new Enchantment(Player, GetVitae());
-
             Player.Session.Network.EnqueueSend(new GameEventMagicUpdateEnchantment(Player.Session, vitae));
         }
 
@@ -199,9 +189,7 @@ namespace ACE.Server.Managers
         /// </summary>
         public float UpdateVitae()
         {
-            if (Player == null)
-                return 0;
-
+            if (Player == null) return 0;
             BiotaPropertiesEnchantmentRegistry vitae;
 
             if (!HasVitae)
@@ -211,7 +199,6 @@ namespace ACE.Server.Managers
                 vitae.EnchantmentCategory = (uint)EnchantmentMask.Vitae;
                 vitae.LayerId = 0;
                 vitae.StatModValue = 1.0f - (float)PropertyManager.GetDouble("vitae_penalty").Item;
-
                 WorldObject.Biota.BiotaPropertiesEnchantmentRegistry.Add(vitae);
                 WorldObject.ChangesDetected = true;
             }
@@ -250,7 +237,6 @@ namespace ACE.Server.Managers
         public float ReduceVitae()
         {
             var vitae = GetVitae();
-
             vitae.StatModValue += 0.01f;
 
             if (Math.Abs(vitae.StatModValue - 1.0f) < PhysicsGlobals.EPSILON)
@@ -439,17 +425,14 @@ namespace ACE.Server.Managers
             var propVitae = PropertyManager.GetDouble("vitae_min").Item;
 
             var maxPenalty = (level - 1) * 3;
-
             if (maxPenalty < 1)
                 maxPenalty = 1;
 
             var globalMax = 100 - (uint)Math.Round(propVitae * 100);
-
             if (maxPenalty > globalMax)
                 maxPenalty = globalMax;
 
             var minVitae = (100 - maxPenalty) / 100.0f;
-
             if (minVitae < propVitae)
                 minVitae = (float)propVitae;
 
@@ -495,7 +478,6 @@ namespace ACE.Server.Managers
             var enchantments = GetEnchantments(EnchantmentTypeFlags.Skill, (uint)skill);
 
             var skillMod = 0;
-
             foreach (var enchantment in enchantments)
                 skillMod += (int)enchantment.StatModValue;
 
@@ -510,7 +492,6 @@ namespace ACE.Server.Managers
             var enchantments = GetEnchantments(EnchantmentTypeFlags.Attribute, (uint)attribute);
 
             var attributeMod = 0;
-
             foreach (var enchantment in enchantments)
                 attributeMod += (int)enchantment.StatModValue;
 
@@ -534,7 +515,6 @@ namespace ACE.Server.Managers
             var enchantments = GetEnchantments(type);
 
             var modifier = 0;
-
             foreach (var enchantment in enchantments)
                 modifier += (int)enchantment.StatModValue;
 
@@ -549,7 +529,6 @@ namespace ACE.Server.Managers
             var enchantments = GetEnchantments(EnchantmentTypeFlags.Additive, (uint)statModKey);
 
             var modifier = 0;
-
             foreach (var enchantment in enchantments)
                 modifier += (int)enchantment.StatModValue;
 
@@ -563,7 +542,6 @@ namespace ACE.Server.Managers
             var enchantments = GetEnchantments(typeFlags, (uint)statModKey);
 
             var modifier = 0.0f;
-
             foreach (var enchantment in enchantments)
                 modifier += enchantment.StatModValue;
 
@@ -579,7 +557,6 @@ namespace ACE.Server.Managers
 
             // multiplicative
             var modifier = 1.0f;
-
             foreach (var enchantment in enchantments)
                 modifier *= enchantment.StatModValue;
 
@@ -592,14 +569,11 @@ namespace ACE.Server.Managers
         public float GetResistanceMod(DamageType damageType)
         {
             var typeFlags = EnchantmentTypeFlags.Float | EnchantmentTypeFlags.SingleStat | EnchantmentTypeFlags.Multiplicative;
-
             var resistance = GetResistanceKey(damageType);
-
             var enchantments = GetEnchantments(typeFlags, (uint)resistance);
 
             // multiplicative
             var modifier = 1.0f;
-
             foreach (var enchantment in enchantments)
                 modifier *= enchantment.StatModValue;
 
@@ -613,14 +587,11 @@ namespace ACE.Server.Managers
         public float GetRegenerationMod(CreatureVital vital)
         {
             var typeFlags = EnchantmentTypeFlags.Float | EnchantmentTypeFlags.SingleStat | EnchantmentTypeFlags.Multiplicative;
-
             var vitalKey = GetVitalKey(vital);
-
             var enchantments = GetEnchantments(typeFlags, (uint)vitalKey);
 
             // multiplicative
             var modifier = 1.0f;
-
             foreach (var enchantment in enchantments)
                 modifier *= enchantment.StatModValue;
 
@@ -758,14 +729,11 @@ namespace ACE.Server.Managers
         public float GetArmorModVsType(DamageType damageType)
         {
             var typeFlags = EnchantmentTypeFlags.Float | EnchantmentTypeFlags.SingleStat | EnchantmentTypeFlags.Additive;
-
             var key = GetImpenBaneKey(damageType);
-
             var enchantments = GetEnchantments(typeFlags, (uint)key);
 
             // additive
             var modifier = 0.0f;
-
             foreach (var enchantment in enchantments)
                 modifier += enchantment.StatModValue;
 
@@ -778,7 +746,6 @@ namespace ACE.Server.Managers
         public List<BiotaPropertiesEnchantmentRegistry> GetEnchantments(MagicSchool magicSchool)
         {
             var spells = new List<BiotaPropertiesEnchantmentRegistry>();
-
             var enchantments = WorldObject.Biota.GetEnchantments(WorldObject.BiotaDatabaseLock);
 
             foreach (var enchantment in enchantments)
