@@ -7,14 +7,6 @@ using ACE.Server.Physics.Extensions;
 
 namespace ACE.Server.Physics.Animation
 {
-    public enum HoldKey
-    {
-        Invalid = 0x0,
-        None = 0x1,
-        Run = 0x2,
-        NumHoldKeys = 0x3
-    };
-
     /// <summary>
     /// Motion network command interpretor
     /// </summary>
@@ -87,7 +79,7 @@ namespace ACE.Server.Physics.Animation
                         {
                             jump_error_code = motion_allows_jump(motion);
 
-                            if (jump_error_code == 0 && (motion & 0x10000000) != 0)
+                            if (jump_error_code == WeenieError.None && (motion & (uint)CommandMask.Action) == 0)
                                 jump_error_code = motion_allows_jump(InterpretedState.ForwardCommand);
                         }
 
@@ -100,7 +92,7 @@ namespace ACE.Server.Physics.Animation
             }
             else
             {
-                if ((motion & 0x10000000) != 0)
+                if ((motion & (uint)CommandMask.Action) != 0)
                     result = WeenieError.YouCantJumpWhileInTheAir;
 
                 else
@@ -112,7 +104,7 @@ namespace ACE.Server.Physics.Animation
                 }
             }
 
-            if (PhysicsObj != null && PhysicsObj.CurCell == null)
+            if (PhysicsObj.CurCell == null)
                 PhysicsObj.RemoveLinkAnimations();
 
             return result;
@@ -123,11 +115,17 @@ namespace ACE.Server.Physics.Animation
             if (PhysicsObj == null)
                 return WeenieError.NoPhysicsObject;
 
+            // movementparams ref?
+            var currentParams = new MovementParameters(movementParams);
+            var currentMotion = motion;
+
             if (movementParams.CancelMoveTo)
                 PhysicsObj.cancel_moveto();
 
             if (movementParams.SetHoldKey)
                 SetHoldKey(movementParams.HoldKeyToApply, movementParams.CancelMoveTo);
+
+            adjust_motion(ref currentMotion, ref currentParams.Speed, movementParams.HoldKeyToApply);
 
             if (InterpretedState.CurrentStyle != (uint)MotionCommand.NonCombat)
             {
@@ -141,16 +139,16 @@ namespace ACE.Server.Physics.Animation
                         return WeenieError.CantLieDownInCombat;
                 }
 
-                if ((motion & 0x2000000) != 0)
+                if ((motion & (uint)CommandMask.ChatEmote) != 0)
                     return WeenieError.CantChatEmoteInCombat;
             }
 
-            if ((motion & 0x10000000) != 0)
+            if ((motion & (uint)CommandMask.Action) != 0)
             {
                 if (InterpretedState.GetNumActions() >= 6)
                     return WeenieError.TooManyActions;
             }
-            var result = DoInterpretedMotion(motion, movementParams);
+            var result = DoInterpretedMotion(currentMotion, currentParams);
 
             if (result == WeenieError.None && movementParams.ModifyRawState)
                 RawState.ApplyMotion(motion, movementParams);
@@ -162,7 +160,7 @@ namespace ACE.Server.Physics.Animation
         {
             foreach (var pendingMotion in PendingMotions)
             {
-                if (PhysicsObj != null && (pendingMotion.Motion & 0x10000000) != 0)
+                if (PhysicsObj != null && (pendingMotion.Motion & (uint)CommandMask.Action) != 0)
                 {
                     PhysicsObj.unstick_from_object();
                     InterpretedState.RemoveAction();
@@ -176,9 +174,9 @@ namespace ACE.Server.Physics.Animation
         {
             if (PhysicsObj == null) return;
 
-            if (PhysicsObj.State.HasFlag(PhysicsState.Gravity)) return;
-
             if (WeenieObj != null && !WeenieObj.IsCreature()) return;
+
+            if (!PhysicsObj.State.HasFlag(PhysicsState.Gravity)) return;
 
             PhysicsObj.RemoveLinkAnimations();
             apply_current_movement(false, true);
@@ -193,9 +191,9 @@ namespace ACE.Server.Physics.Animation
         {
             if (PhysicsObj == null) return;
 
-            if (!PhysicsObj.State.HasFlag(PhysicsState.Gravity)) return;
-
             if (WeenieObj != null && !WeenieObj.IsCreature()) return;
+
+            if (!PhysicsObj.State.HasFlag(PhysicsState.Gravity)) return;
 
             var velocity = get_leave_ground_velocity();
             PhysicsObj.set_local_velocity(velocity, true);
@@ -213,10 +211,11 @@ namespace ACE.Server.Physics.Animation
 
             var motionData = PendingMotions.First;
 
+            // null or != last in list?
             if (motionData != null)
             {
                 var pendingMotion = motionData.Value;
-                if ((pendingMotion.Motion & 0x10000000) != 0)
+                if ((pendingMotion.Motion & (uint)CommandMask.Action) != 0)
                 {
                     PhysicsObj.unstick_from_object();
                     InterpretedState.RemoveAction();
@@ -316,7 +315,7 @@ namespace ACE.Server.Physics.Animation
 
             add_to_queue(0, (uint)MotionCommand.Ready, jump);
 
-            if (PhysicsObj.CurCell != null)
+            if (PhysicsObj.CurCell == null)
                 PhysicsObj.RemoveLinkAnimations();
 
             return WeenieError.None;
@@ -367,9 +366,12 @@ namespace ACE.Server.Physics.Animation
             if (movementParams.CancelMoveTo)
                 PhysicsObj.cancel_moveto();
 
-            adjust_motion(ref motion, ref movementParams.Speed, movementParams.HoldKeyToApply);
+            var currentMotion = motion;
+            var currentParams = new MovementParameters(movementParams);
 
-            var result = StopInterpretedMotion(motion, movementParams);
+            adjust_motion(ref currentMotion, ref currentParams.Speed, movementParams.HoldKeyToApply);
+
+            var result = StopInterpretedMotion(currentMotion, currentParams);
 
             if (result == WeenieError.None && movementParams.ModifyRawState)
                 RawState.RemoveMotion(motion);
@@ -379,14 +381,6 @@ namespace ACE.Server.Physics.Animation
 
         public void add_to_queue(int contextID, uint motion, WeenieError jumpErrorCode)
         {
-            // pending motion queue bug?
-            if (PendingMotions.Count > 0)
-            {
-                var prevMotion = PendingMotions.Last;
-                if (motion == prevMotion.Value.Motion)
-                    return;
-            }
-
             PendingMotions.AddLast(new MotionNode(contextID, motion, jumpErrorCode));
         }
 
@@ -414,11 +408,10 @@ namespace ACE.Server.Physics.Animation
                     motion = (uint)MotionCommand.SideStepRight;
                     speed *= -1.0f;
                     break;
-
-                case (uint)MotionCommand.SideStepRight:
-                    speed = speed * SidestepFactor * (WalkAnimSpeed / SidestepAnimSpeed);
-                    break;
             }
+
+            if (motion == (uint)MotionCommand.SideStepRight)
+                speed *= SidestepFactor * (WalkAnimSpeed / SidestepAnimSpeed);
 
             if (holdKey == HoldKey.Invalid)
                 holdKey = RawState.CurrentHoldKey;
@@ -431,10 +424,10 @@ namespace ACE.Server.Physics.Animation
         {
             if (PhysicsObj == null || !Initted) return;
 
-            if (WeenieObj == null || WeenieObj.IsCreature() && PhysicsObj.movement_is_autonomous())
-                apply_raw_movement(cancelMoveTo, allowJump);
-            else
+            if (WeenieObj != null && !WeenieObj.IsCreature() || !PhysicsObj.movement_is_autonomous())
                 apply_interpreted_movement(cancelMoveTo, allowJump);
+            else
+                apply_raw_movement(cancelMoveTo, allowJump);
         }
 
         public void apply_interpreted_movement(bool cancelMoveTo, bool allowJump)
@@ -442,10 +435,11 @@ namespace ACE.Server.Physics.Animation
             if (PhysicsObj == null) return;
 
             var movementParams = new MovementParameters();
-            if (cancelMoveTo)
-                movementParams.CancelMoveTo = true;
-            if (!allowJump)
-                movementParams.DisableJumpDuringLink = true;
+
+            movementParams.SetHoldKey = false;
+            movementParams.ModifyInterpretedState = false;
+            movementParams.CancelMoveTo = cancelMoveTo;
+            movementParams.DisableJumpDuringLink = !allowJump;
 
             if (InterpretedState.ForwardCommand == (uint)MotionCommand.RunForward)
                 MyRunRate = InterpretedState.ForwardSpeed;
@@ -487,7 +481,7 @@ namespace ACE.Server.Physics.Animation
             }
             else
             {
-                var result = StopInterpretedMotion((uint)MotionCommand.TurnRight, movementParams);
+                var result = PhysicsObj.StopInterpretedMotion((uint)MotionCommand.TurnRight, movementParams);
 
                 if (result == WeenieError.None)
                 {
@@ -606,7 +600,7 @@ namespace ACE.Server.Physics.Animation
             InterpretedState = new InterpretedMotionState();
 
             PhysicsObj.InitializeMotionTables();
-            PendingMotions = new LinkedList<MotionNode>();
+            PendingMotions = new LinkedList<MotionNode>();  // ??
 
             add_to_queue(0, (uint)MotionCommand.Ready, 0);
 
@@ -789,9 +783,9 @@ namespace ACE.Server.Physics.Animation
             RawState.CurrentStyle = state.CurrentStyle;
             PhysicsObj.cancel_moveto();
 
-            var allowJump = motion_allows_jump(InterpretedState.ForwardCommand) == 0 ? true : false;
+            var allowJump = motion_allows_jump(InterpretedState.ForwardCommand) == WeenieError.None ? true : false;
 
-            InterpretedState = state;
+            InterpretedState.copy_movement_from(state);
             apply_current_movement(true, allowJump);
 
             var movementParams = new MovementParameters();
@@ -805,12 +799,15 @@ namespace ACE.Server.Physics.Animation
 
                 var diff = deltaStamp <= 0x3FFF ? serverStamp < currentStamp : currentStamp < serverStamp;
 
-                if (diff && WeenieObj != null && !WeenieObj.IsCreature() || action.Autonomous)
+                if (diff)
                 {
-                    ServerActionStamp = action.Stamp;
-                    movementParams.Speed = action.Speed;
-                    movementParams.Autonomous = action.Autonomous;
-                    DoInterpretedMotion(action.Action, movementParams);
+                    if (WeenieObj != null && WeenieObj.IsCreature() || action.Autonomous)
+                    {
+                        ServerActionStamp = action.Stamp;
+                        movementParams.Speed = action.Speed;
+                        movementParams.Autonomous = action.Autonomous;
+                        DoInterpretedMotion(action.Action, movementParams);
+                    }
                 }
             }
             return true;

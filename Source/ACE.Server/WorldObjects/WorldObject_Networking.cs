@@ -1063,6 +1063,10 @@ namespace ACE.Server.WorldObjects
 
         public static double ProjectileTimeout = 30.0f;
 
+        public double LastPhysicsUpdate;
+
+        public static double UpdateRate_Creature = 0.2f;
+
         /// <summary>
         /// Handles calling the physics engine for non-player objects
         /// </summary>
@@ -1079,8 +1083,17 @@ namespace ACE.Server.WorldObjects
             var monster = creature != null && creature.IsMonster;
 
             // determine if updates should be run for object
-            var runUpdate = !monster && (isMissile || !PhysicsObj.IsGrounded);
-            //var runUpdate = isMissile;
+            //var runUpdate = !monster && (isMissile || !PhysicsObj.IsGrounded);
+            var runUpdate = isMissile;
+
+            if (creature != null)
+            {
+                if (LastPhysicsUpdate + UpdateRate_Creature <= Timer.CurrentTime)
+                    LastPhysicsUpdate = Timer.CurrentTime;
+                else
+                    runUpdate = false;
+            }
+
             if (!runUpdate) return false;
 
             if (isMissile && CreationTimestamp + ProjectileTimeout <= Timer.CurrentTime)

@@ -3165,7 +3165,9 @@ namespace ACE.Server.Physics
             //Position.Frame.Origin = frame.Origin;
             //Position.Frame.Orientation = frame.Orientation;
 
-            if (PartArray != null && !State.HasFlag(PhysicsState.ParticleEmitter))
+            // custom for server:
+            // only update part frames for objects with physics bsp
+            if (PartArray != null && !State.HasFlag(PhysicsState.ParticleEmitter) && State.HasFlag(PhysicsState.HasPhysicsBSP))
                 PartArray.SetFrame(frame);
 
             UpdateChildrenInternal();
@@ -3677,6 +3679,8 @@ namespace ACE.Server.Physics
                     set_active(true);   // sets UpdateTime
             }*/
 
+            PhysicsTimer.CurrentTime = UpdateTime;
+
             var deltaTime = Timer.CurrentTime - UpdateTime;
 
             if (deltaTime < TickRate)
@@ -3684,23 +3688,26 @@ namespace ACE.Server.Physics
 
             //Console.WriteLine("deltaTime: " + deltaTime);
 
-            PhysicsTimer.CurrentTime = UpdateTime;
-            if (deltaTime <= PhysicsGlobals.EPSILON /*|| deltaTime > 2.0f */)   // commented out for debugging
+            // commented out for debugging
+            /*if (deltaTime > PhysicsGlobals.HugeQuantum)
             {
-                //UpdateTime = Timer.CurrentTime;   // consume time?
+                UpdateTime = Timer.CurrentTime;   // consume time?
                 return false;
-            }
+            }*/
+
             while (deltaTime > PhysicsGlobals.MaxQuantum)
             {
                 PhysicsTimer.CurrentTime += PhysicsGlobals.MaxQuantum;
                 UpdateObjectInternal(PhysicsGlobals.MaxQuantum);
                 deltaTime -= PhysicsGlobals.MaxQuantum;
             }
+
             if (deltaTime > PhysicsGlobals.MinQuantum)
             {
                 PhysicsTimer.CurrentTime += deltaTime;
                 UpdateObjectInternal(deltaTime);
             }
+
             UpdateTime = Timer.CurrentTime;
             return true;
         }

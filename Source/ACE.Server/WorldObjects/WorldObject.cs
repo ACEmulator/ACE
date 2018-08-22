@@ -104,6 +104,8 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public virtual void InitPhysicsObj()
         {
+            var defaultState = CalculatedPhysicsState();
+
             PhysicsObj = new PhysicsObj();
             PhysicsObj.set_object_guid(Guid);
 
@@ -123,8 +125,7 @@ namespace ACE.Server.WorldObjects
             PhysicsObj.SetMotionTableID(MotionTableId);
 
             PhysicsObj.SetScaleStatic(ObjScale ?? 1.0f);
-
-            PhysicsObj.State = CalculatedPhysicsState();
+            PhysicsObj.State = defaultState;
 
             /*var player = this as Player;
             if (creature != null && player == null)

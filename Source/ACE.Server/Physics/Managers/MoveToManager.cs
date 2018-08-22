@@ -55,6 +55,8 @@ namespace ACE.Server.Physics.Animation
 
         public void Init()
         {
+            MovementParams = new MovementParameters();
+
             PendingActions = new List<MovementNode>();
             Callbacks = new List<Action>();
         }
@@ -63,7 +65,8 @@ namespace ACE.Server.Physics.Animation
         {
             MovementType = MovementType.Invalid;
 
-            MovementParams = new MovementParameters();
+            MovementParams.DistanceToObject = 0;
+            MovementParams.ContextID = 0;
 
             PreviousDistanceTime = Timer.CurrentTime;
             OriginalDistanceTime = Timer.CurrentTime;
@@ -104,6 +107,7 @@ namespace ACE.Server.Physics.Animation
                     TurnToHeading(mvs.Params);
                     break;
             }
+            // server - movement/anim update
             return WeenieError.None;
         }
 
@@ -112,15 +116,18 @@ namespace ACE.Server.Physics.Animation
             //Console.WriteLine("MoveToObject");
 
             if (PhysicsObj == null) return;
+
             PhysicsObj.StopCompletely(false);
 
-            StartingPosition = PhysicsObj.Position;
+            StartingPosition = new Position(PhysicsObj.Position);
             SoughtObjectID = objectID;
             SoughtObjectRadius = radius;
             SoughtObjectHeight = height;
             MovementType = MovementType.MoveToObject;
-            MovementParams = movementParams;
             TopLevelObjectID = topLevelID;
+
+            MovementParams = new MovementParameters(movementParams);
+
             Initialized = false;
             if (PhysicsObj.ID != topLevelID)
             {
@@ -140,8 +147,9 @@ namespace ACE.Server.Physics.Animation
                 CancelMoveTo(WeenieError.NoPhysicsObject);
                 return;
             }
-            SoughtPosition = interpolatedPosition;
-            CurrentTargetPosition = targetPosition;
+
+            SoughtPosition = new Position(interpolatedPosition);
+            CurrentTargetPosition = new Position(targetPosition);
 
             var iHeading = PhysicsObj.Position.heading(interpolatedPosition);
             var heading = iHeading - PhysicsObj.get_heading();
@@ -164,7 +172,7 @@ namespace ACE.Server.Physics.Animation
             }
             if (MovementParams.UseFinalHeading)
             {
-                var dHeading = MovementParams.DesiredHeading;
+                var dHeading = iHeading + MovementParams.DesiredHeading;
                 if (dHeading >= 360.0f)
                     dHeading -= 360.0f;
                 AddTurnToHeadingNode(dHeading);
@@ -177,15 +185,11 @@ namespace ACE.Server.Physics.Animation
         {
             //Console.WriteLine("MoveToPosition");
 
-            if (PhysicsObj == null)
-            {
-                CancelMoveTo(WeenieError.NoPhysicsObject);
-                return;
-            }
+            if (PhysicsObj == null) return;
 
             PhysicsObj.StopCompletely(false);
 
-            CurrentTargetPosition = position;
+            CurrentTargetPosition = new Position(position);
             SoughtObjectRadius = 0.0f;
 
             var distance = GetCurrentDistance();
@@ -210,12 +214,14 @@ namespace ACE.Server.Physics.Animation
             if (MovementParams.UseFinalHeading)
                 AddTurnToHeadingNode(movementParams.DesiredHeading);
 
-            SoughtPosition = position;
-            StartingPosition = PhysicsObj.Position;
+            SoughtPosition = new Position(position);
+            StartingPosition = new Position(PhysicsObj.Position);
 
             MovementType = MovementType.MoveToPosition;
-            MovementParams = movementParams;
-            MovementParams.Bitfield &= 0xFFFFFF7F;
+
+            MovementParams = new MovementParameters(movementParams);
+            var flags = (MovementParamFlags)0xFFFFFF7F;     // ???
+            MovementParams.Flags = MovementParams.Flags & flags;
 
             BeginNextNode();
         }
@@ -239,7 +245,7 @@ namespace ACE.Server.Physics.Animation
             CurrentTargetPosition.Frame.set_heading(movementParams.DesiredHeading);
 
             TopLevelObjectID = topLevelID;
-            MovementParams = movementParams;
+            MovementParams = new MovementParameters(movementParams);
 
             if (PhysicsObj.ID != topLevelID)
             {
@@ -261,7 +267,7 @@ namespace ACE.Server.Physics.Animation
                 return;
             }
 
-            CurrentTargetPosition = targetPosition; // ref?
+            CurrentTargetPosition = new Position(targetPosition); // ref?
 
             var targetHeading = PhysicsObj.Position.heading(CurrentTargetPosition);
             var soughtHeading = SoughtPosition.Frame.get_heading();
@@ -287,7 +293,7 @@ namespace ACE.Server.Physics.Animation
             if (movementParams.StopCompletely)
                 PhysicsObj.StopCompletely(false);
 
-            MovementParams = movementParams;
+            MovementParams = new MovementParameters(movementParams);
             MovementParams.Sticky = false;
 
             SoughtPosition.Frame.set_heading(movementParams.DesiredHeading);
@@ -308,7 +314,7 @@ namespace ACE.Server.Physics.Animation
 
         public void BeginNextNode()
         {
-            if (PendingActions.Count > 0) 
+            if (PendingActions.Count > 0)
             {
                 var pendingAction = PendingActions.First();
 
@@ -329,15 +335,15 @@ namespace ACE.Server.Physics.Animation
                     var soughtObjectRadius = SoughtObjectRadius;
                     var soughtObjectHeight = SoughtObjectHeight;
                     var topLevelObjectID = TopLevelObjectID;
-                    
+
                     // unsets sticky flag
-                    CleanUpAndCallWeenie(0);
+                    CleanUpAndCallWeenie(WeenieError.None);
 
                     if (PhysicsObj != null)
                         PhysicsObj.get_position_manager().StickTo(topLevelObjectID, soughtObjectRadius, soughtObjectHeight);
                 }
                 else
-                    CleanUpAndCallWeenie(0);
+                    CleanUpAndCallWeenie(WeenieError.None);
 
             }
 
@@ -368,7 +374,7 @@ namespace ACE.Server.Physics.Animation
 
             if (motion == 0)
             {
-                PendingActions.Clear();
+                RemovePendingActionsHead();
                 BeginNextNode();
                 return;
             }
@@ -407,12 +413,13 @@ namespace ACE.Server.Physics.Animation
                 return;
             }
 
-            var curPos = PhysicsObj.Position;
+            var curPos = new Position(PhysicsObj.Position);
 
             var movementParams = new MovementParameters();
-            //movementParams.Speed = MovementParams.Speed;
-            movementParams.Speed = 1.0f;    // ??
-            movementParams.Bitfield &= 0xFFFF7FFF;
+            movementParams.Speed = MovementParams.Speed;
+            //movementParams.Speed = 1.0f;    // commented out?
+            var flags = (MovementParamFlags)0xFFFF7FFF;
+            movementParams.Flags = movementParams.Flags & flags;    // ??
             movementParams.HoldKeyToApply = MovementParams.HoldKeyToApply;
 
             if (!PhysicsObj.motions_pending())
@@ -428,7 +435,7 @@ namespace ACE.Server.Physics.Animation
 
                 if (diff > 20.0f && diff < 340.0f)
                 {
-                    uint motionID = (uint)(diff >= 180.0f ? (uint)MotionCommand.TurnLeft : (uint)MotionCommand.TurnRight);
+                    uint motionID = diff >= 180.0f ? (uint)MotionCommand.TurnLeft : (uint)MotionCommand.TurnRight;
                     if (motionID != AuxCommand)
                     {
                         _DoMotion(motionID, movementParams);
@@ -451,7 +458,7 @@ namespace ACE.Server.Physics.Animation
             else
             {
                 FailProgressCount = 0;
-                if (MovingAway && dist >= MovementParams.MinDistance && MovingAway || !MovingAway && dist <= MovementParams.DistanceToObject)
+                if (MovingAway && dist >= MovementParams.MinDistance || !MovingAway && dist <= MovementParams.DistanceToObject)
                 {
                     PendingActions.RemoveAt(0);
                     _StopMotion(CurrentCommand, movementParams);
@@ -467,6 +474,7 @@ namespace ACE.Server.Physics.Animation
                         CancelMoveTo(WeenieError.YouChargedTooFar);
                 }
             }
+
             if (TopLevelObjectID != 0 && MovementType != MovementType.Invalid)
             {
                 var velocity = PhysicsObj.get_velocity();
@@ -526,8 +534,8 @@ namespace ACE.Server.Physics.Animation
 
             var movementParams = new MovementParameters();
             movementParams.CancelMoveTo = false;
-            //movementParams.Speed = MovementParams.Speed;
-            movementParams.Speed = 1.0f;    // ??
+            movementParams.Speed = MovementParams.Speed;
+            //movementParams.Speed = 1.0f;    // commented out?
             movementParams.HoldKeyToApply = MovementParams.HoldKeyToApply;
 
             var result = _DoMotion(motionID, movementParams);
@@ -581,13 +589,20 @@ namespace ACE.Server.Physics.Animation
                 return;
             }
 
-            PreviousHeading = heading;
             var diff = heading_diff(heading, PreviousHeading, CurrentCommand);
 
             if (diff > PhysicsGlobals.EPSILON && diff < 180.0f)
+            {
                 FailProgressCount = 0;
-            else if (!PhysicsObj.IsInterpolating() && !PhysicsObj.motions_pending())
-                FailProgressCount++;
+                PreviousHeading = heading;
+            }
+            else
+            {
+                PreviousHeading = heading;
+
+                if (!PhysicsObj.IsInterpolating() && !PhysicsObj.motions_pending())
+                    FailProgressCount++;
+            }
         }
 
         public void HandleUpdateTarget(TargetInfo targetInfo)
@@ -607,8 +622,8 @@ namespace ACE.Server.Physics.Animation
                 {
                     if (MovementType == MovementType.MoveToObject)
                     {
-                        SoughtPosition = targetInfo.InterpolatedPosition;
-                        CurrentTargetPosition = targetInfo.TargetPosition;
+                        SoughtPosition = new Position(targetInfo.InterpolatedPosition);
+                        CurrentTargetPosition = new Position(targetInfo.TargetPosition);
                         PreviousDistance = float.MaxValue;
                         PreviousDistanceTime = Timer.CurrentTime;
                         OriginalDistance = float.MaxValue;
@@ -620,8 +635,8 @@ namespace ACE.Server.Physics.Animation
             }
             else if (TopLevelObjectID == PhysicsObj.ID)
             {
-                SoughtPosition = PhysicsObj.Position;
-                CurrentTargetPosition = PhysicsObj.Position;
+                SoughtPosition = new Position(PhysicsObj.Position);
+                CurrentTargetPosition = new Position(PhysicsObj.Position);
                 CleanUpAndCallWeenie(WeenieError.None);
             }
             else if (targetInfo.Status == TargetStatus.OK)
@@ -691,6 +706,8 @@ namespace ACE.Server.Physics.Animation
             CleanUp();
             if (PhysicsObj != null)
                 PhysicsObj.StopCompletely(false);
+
+            // server - handle move to done?
         }
 
         public float GetCurrentDistance()
@@ -698,7 +715,7 @@ namespace ACE.Server.Physics.Animation
             if (PhysicsObj == null)
                 return float.MaxValue;
 
-            if ((MovementParams.Bitfield & 0x400) == 0)
+            if (!MovementParams.Flags.HasFlag(MovementParamFlags.UseSpheres))
                 return PhysicsObj.Position.Distance(CurrentTargetPosition);
 
             return (float)Position.CylinderDistance(PhysicsObj.GetRadius(), PhysicsObj.GetHeight(), PhysicsObj.Position,
@@ -732,19 +749,22 @@ namespace ACE.Server.Physics.Animation
             if (PhysicsObj == null || !PhysicsObj.TransientState.HasFlag(TransientStateFlags.Contact))
                 return;
 
-            if (TopLevelObjectID == 0 || MovementType == MovementType.Invalid || !Initialized || PendingActions.Count == 0)
+            if (PendingActions.Count == 0)
                 return;
 
             var pendingAction = PendingActions.First();
 
-            switch (pendingAction.Type)
+            if (TopLevelObjectID != 0 || MovementType != MovementType.Invalid || Initialized)
             {
-                case MovementType.MoveToPosition:
-                    HandleMoveToPosition();
-                    break;
-                case MovementType.TurnToHeading:
-                    HandleTurnToHeading();
-                    break;
+                switch (pendingAction.Type)
+                {
+                    case MovementType.MoveToPosition:
+                        HandleMoveToPosition();
+                        break;
+                    case MovementType.TurnToHeading:
+                        HandleTurnToHeading();
+                        break;
+                }
             }
         }
 
@@ -776,9 +796,9 @@ namespace ACE.Server.Physics.Animation
             return minterp.StopInterpretedMotion(motion, movementParams);
         }
 
-        public static float heading_diff(float x, float y, uint motion)
+        public static float heading_diff(float h1, float h2, uint motion)
         {
-            var result = x - y;
+            var result = h1 - h2;
 
             if (Math.Abs(result) < PhysicsGlobals.EPSILON)
                 result = 0.0f;
@@ -789,26 +809,26 @@ namespace ACE.Server.Physics.Animation
             return result;
         }
 
-        public static bool heading_greater(float x, float y, uint motion)
+        public static bool heading_greater(float h1, float h2, uint motion)
         {
             /*var less = Math.Abs(x - y) <= 180.0f ? x < y : y < x;
             var result = (less || x == y) == false;
             if (motion != 0x6500000D)
                 result = !result;
             return result;*/
-            var diff = Math.Abs(x - y);
+            var diff = Math.Abs(h1 - h2);
 
             float v1, v2;
 
             if (diff <= 180.0f)
             {
-                v1 = y;
-                v2 = x;
+                v1 = h2;
+                v2 = h1;
             }
             else
             {
-                v1 = x;
-                v2 = y;
+                v1 = h1;
+                v2 = h2;
             }
 
             var result = (v2 > v1) ? true : false;
