@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 
@@ -35,7 +36,18 @@ namespace ACE.Database.Models.Shard
             }
         }
 
-        // BiotaPropertiesEnchantmentRegistry
+        public static IList<BiotaPropertiesEnchantmentRegistry> GetEnchantments(this Biota biota, ReaderWriterLockSlim rwLock)
+        {
+            rwLock.EnterReadLock();
+            try
+            {
+                return biota.BiotaPropertiesEnchantmentRegistry.ToList();
+            }
+            finally
+            {
+                rwLock.ExitReadLock();
+            }
+        }
 
         public static double? GetProperty(this Biota biota, PropertyFloat property, ReaderWriterLockSlim rwLock)
         {
@@ -186,7 +198,18 @@ namespace ACE.Database.Models.Shard
             }
         }
 
-        // BiotaPropertiesEnchantmentRegistry
+        public static void AddEnchantment(this Biota biota, BiotaPropertiesEnchantmentRegistry entity, ReaderWriterLockSlim rwLock)
+        {
+            rwLock.EnterWriteLock();
+            try
+            {
+                biota.BiotaPropertiesEnchantmentRegistry.Add(entity);
+            }
+            finally
+            {
+                rwLock.ExitWriteLock();
+            }
+        }
 
         public static void SetProperty(this Biota biota, PropertyFloat property, double value, ReaderWriterLockSlim rwLock, out bool biotaChanged)
         {

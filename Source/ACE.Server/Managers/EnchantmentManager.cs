@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+
 using ACE.Database;
 using ACE.Database.Models.Shard;
 using ACE.DatLoader;
@@ -33,17 +34,43 @@ namespace ACE.Server.Managers
         public WorldObject WorldObject { get; }
         public Player Player { get; }
 
-        public ICollection<BiotaPropertiesEnchantmentRegistry> Enchantments { get; }
-
         /// <summary>
         /// Returns TRUE if this object has any active enchantments in the registry
         /// </summary>
-        public bool HasEnchantments => WorldObject.Biota.BiotaPropertiesEnchantmentRegistry.Any();
+        public bool HasEnchantments
+        {
+            get
+            {
+                WorldObject.BiotaDatabaseLock.EnterReadLock();
+                try
+                {
+                    return WorldObject.Biota.BiotaPropertiesEnchantmentRegistry.Any();
+                }
+                finally
+                {
+                    WorldObject.BiotaDatabaseLock.ExitReadLock();
+                }
+            }
+        }
 
         /// <summary>
         /// Returns TRUE If this object has a vitae penalty
         /// </summary>
-        public bool HasVitae => WorldObject.Biota.BiotaPropertiesEnchantmentRegistry.Any(e => e.SpellId == (uint)Spell.Vitae);
+        public bool HasVitae
+        {
+            get
+            {
+                WorldObject.BiotaDatabaseLock.EnterReadLock();
+                try
+                {
+                    return WorldObject.Biota.BiotaPropertiesEnchantmentRegistry.Any(e => e.SpellId == (uint)Spell.Vitae);
+                }
+                finally
+                {
+                    WorldObject.BiotaDatabaseLock.ExitReadLock();
+                }
+            }
+        }
 
         /// <summary>
         /// Constructs a new EnchantmentManager for a WorldObject
@@ -52,7 +79,6 @@ namespace ACE.Server.Managers
         {
             WorldObject = obj;
             Player = obj as Player;
-            Enchantments = WorldObject.Biota.BiotaPropertiesEnchantmentRegistry;
         }
 
         public Database.Models.World.Spell Surpass; // retval
@@ -82,10 +108,10 @@ namespace ACE.Server.Managers
             {
                 var newEntry = BuildEntry(enchantment.Spell.Id, caster);
                 newEntry.LayerId = enchantment.Layer;
-                var type = (EnchantmentTypeFlags)newEntry.StatModType;
-                WorldObject.Biota.BiotaPropertiesEnchantmentRegistry.Add(newEntry);
 
-                result = StackType.Initial;
+                WorldObject.Biota.AddEnchantment(newEntry, WorldObject.BiotaDatabaseLock);
+                WorldObject.ChangesDetected = true;
+
                 return StackType.Initial;
             }
 
@@ -96,6 +122,7 @@ namespace ACE.Server.Managers
                 {
                     // superior existing spell
                     Surpass = DatabaseManager.World.GetCachedSpell((uint)entry.SpellId);
+
                     result = StackType.Surpassed;
                 }
             }
@@ -110,6 +137,7 @@ namespace ACE.Server.Managers
                         if (entry.Duration == -1)
                         {
                             result = StackType.None;
+
                             break;
                         }
 
@@ -117,9 +145,12 @@ namespace ACE.Server.Managers
                         if ((caster as Creature) == null)
                         {
                             enchantment.Layer = entry.LayerId; // Should be a higher layer than existing enchant
+
                             var newEntry = BuildEntry(enchantment.Spell.Id, caster);
                             newEntry.LayerId = enchantment.Layer;
-                            WorldObject.Biota.BiotaPropertiesEnchantmentRegistry.Add(newEntry);
+
+                            WorldObject.Biota.AddEnchantment(newEntry, WorldObject.BiotaDatabaseLock);
+                            WorldObject.ChangesDetected = true;
 
                             result = StackType.Refresh;
                             break;
@@ -127,7 +158,9 @@ namespace ACE.Server.Managers
 
                         // refresh existing spell
                         entry.StartTime = 0;
+
                         result = StackType.Refresh;
+
                         break;
                     }
                 }
@@ -148,9 +181,12 @@ namespace ACE.Server.Managers
                     }
 
                     enchantment.Layer = (ushort)(layerBuffer + 1); // Should be a higher layer than existing enchant
+
                     var newEntry = BuildEntry(enchantment.Spell.Id, caster);
                     newEntry.LayerId = enchantment.Layer;
-                    WorldObject.Biota.BiotaPropertiesEnchantmentRegistry.Add(newEntry);
+
+                    WorldObject.Biota.AddEnchantment(newEntry, WorldObject.BiotaDatabaseLock);
+                    WorldObject.ChangesDetected = true;
 
                     result = StackType.Surpass;
                 }
@@ -164,8 +200,11 @@ namespace ACE.Server.Managers
         /// </summary>
         public void SendRegistry(BinaryWriter writer)
         {
-            if (Player == null) return;
+            if (Player == null)
+                return;
+
             var enchantmentRegistry = new EnchantmentRegistry(Player);
+
             writer.Write(enchantmentRegistry);
         }
 
@@ -174,8 +213,11 @@ namespace ACE.Server.Managers
         /// </summary>
         public void SendUpdateVitae()
         {
-            if (Player == null) return;
+            if (Player == null)
+                return;
+
             var vitae = new Enchantment(Player, GetVitae());
+
             Player.Session.Network.EnqueueSend(new GameEventMagicUpdateEnchantment(Player.Session, vitae));
         }
 
@@ -184,8 +226,10 @@ namespace ACE.Server.Managers
         /// </summary>
         public float UpdateVitae()
         {
-            if (Player == null) return 0;
-            BiotaPropertiesEnchantmentRegistry vitae = null;
+            if (Player == null)
+                return 0;
+
+            BiotaPropertiesEnchantmentRegistry vitae;
 
             if (!HasVitae)
             {
@@ -196,6 +240,7 @@ namespace ACE.Server.Managers
                 vitae.StatModValue = 1.0f - (float)PropertyManager.GetDouble("vitae_penalty").Item;
 
                 WorldObject.Biota.BiotaPropertiesEnchantmentRegistry.Add(vitae);
+                WorldObject.ChangesDetected = true;
             }
             else
             {
@@ -205,11 +250,11 @@ namespace ACE.Server.Managers
             }
 
             var minVitae = GetMinVitae((uint)Player.Level);
+
             if (vitae.StatModValue < minVitae)
                 vitae.StatModValue = minVitae;
 
             RemoveAllEnchantments();
-            SaveDatabase();
 
             return vitae.StatModValue;
         }
@@ -220,9 +265,21 @@ namespace ACE.Server.Managers
         /// </summary>
         public void RemoveAllEnchantments()
         {
-            var enchantments = Enchantments.Where(e => e.SpellId != (int)Spell.Vitae).ToList();
-            foreach (var enchantment in enchantments)
-                WorldObject.RemoveEnchantment(enchantment.SpellId);
+            WorldObject.BiotaDatabaseLock.EnterWriteLock();
+            try
+            {
+                var enchantments = WorldObject.Biota.BiotaPropertiesEnchantmentRegistry.Where(e => e.SpellId != (int)Spell.Vitae).ToList();
+
+                foreach (var enchantment in enchantments)
+                {
+                    WorldObject.Biota.BiotaPropertiesEnchantmentRegistry.Remove(enchantment);
+                    WorldObject.ChangesDetected = true;
+                }
+            }
+            finally
+            {
+                WorldObject.BiotaDatabaseLock.ExitWriteLock();
+            }
         }
 
         /// <summary>
@@ -231,8 +288,8 @@ namespace ACE.Server.Managers
         public float ReduceVitae()
         {
             var vitae = GetVitae();
+
             vitae.StatModValue += 0.01f;
-            //SaveDatabase();
 
             if (Math.Abs(vitae.StatModValue - 1.0f) < PhysicsGlobals.EPSILON)
                 return 1.0f;
@@ -245,8 +302,11 @@ namespace ACE.Server.Managers
         /// </summary>
         public void RemoveVitae()
         {
-            if (Player == null) return;
-            WorldObject.RemoveEnchantment((int)Spell.Vitae);
+            if (Player == null)
+                return;
+
+            if (WorldObject.Biota.TryRemoveEnchantment((int)Spell.Vitae, out _, WorldObject.BiotaDatabaseLock))
+                WorldObject.ChangesDetected = true;
 
             var actionChain = new ActionChain();
             actionChain.AddDelaySeconds(2.0f);
@@ -263,7 +323,15 @@ namespace ACE.Server.Managers
         /// </summary>
         public bool HasSpell(uint spellId)
         {
-            return WorldObject.Biota.BiotaPropertiesEnchantmentRegistry.Any(e => e.SpellId == spellId);
+            WorldObject.BiotaDatabaseLock.EnterReadLock();
+            try
+            {
+                return WorldObject.Biota.BiotaPropertiesEnchantmentRegistry.Any(e => e.SpellId == spellId);
+            }
+            finally
+            {
+                WorldObject.BiotaDatabaseLock.ExitReadLock();
+            }
         }
 
         /// <summary>
@@ -271,8 +339,19 @@ namespace ACE.Server.Managers
         /// </summary>
         public List<BiotaPropertiesEnchantmentRegistry> GetCategory(uint categoryID)
         {
-            var result = WorldObject.Biota.BiotaPropertiesEnchantmentRegistry.Where(e => e.SpellCategory == categoryID).ToList();
-            return result;
+            IEnumerable<BiotaPropertiesEnchantmentRegistry> result;
+
+            WorldObject.BiotaDatabaseLock.EnterReadLock();
+            try
+            {
+                result = WorldObject.Biota.BiotaPropertiesEnchantmentRegistry.Where(e => e.SpellCategory == categoryID);
+            }
+            finally
+            {
+                WorldObject.BiotaDatabaseLock.ExitReadLock();
+            }
+
+            return result.ToList();
         }
 
         /// <summary>
@@ -280,7 +359,15 @@ namespace ACE.Server.Managers
         /// </summary>
         public BiotaPropertiesEnchantmentRegistry GetSpell(uint spellID)
         {
-            return WorldObject.Biota.BiotaPropertiesEnchantmentRegistry.FirstOrDefault(e => e.SpellId == spellID);
+            WorldObject.BiotaDatabaseLock.EnterReadLock();
+            try
+            {
+                return WorldObject.Biota.BiotaPropertiesEnchantmentRegistry.FirstOrDefault(e => e.SpellId == spellID);
+            }
+            finally
+            {
+                WorldObject.BiotaDatabaseLock.ExitReadLock();
+            }
         }
 
         /// <summary>
@@ -289,16 +376,6 @@ namespace ACE.Server.Managers
         public BiotaPropertiesEnchantmentRegistry GetVitae()
         {
             return GetSpell((uint)Spell.Vitae);
-        }
-
-        /// <summary>
-        /// Called on player death
-        /// </summary>
-        public void SaveDatabase()
-        {
-            if (Player == null) return;
-            var saveChain = Player.GetSaveChain(false);
-            saveChain.EnqueueChain();
         }
 
         /// <summary>
@@ -312,7 +389,6 @@ namespace ACE.Server.Managers
             var entry = new BiotaPropertiesEnchantmentRegistry();
 
             entry.EnchantmentCategory = (uint)spellBase.MetaSpellType;
-            var enchantmentType = (EnchantmentTypeFlags)entry.EnchantmentCategory;
             entry.ObjectId = WorldObject.Guid.Full;
             entry.Object = WorldObject.Biota;
             entry.SpellId = (int)spell.Id;
@@ -353,7 +429,9 @@ namespace ACE.Server.Managers
         {
             var expired = new List<BiotaPropertiesEnchantmentRegistry>();
 
-            foreach (var enchantment in Enchantments)
+            var enchantments = WorldObject.Biota.GetEnchantments(WorldObject.BiotaDatabaseLock);
+
+            foreach (var enchantment in enchantments)
             {
                 enchantment.StartTime -= WorldObject.HeartbeatInterval ?? 5;
 
@@ -374,7 +452,9 @@ namespace ACE.Server.Managers
         {
             var spellID = entry.SpellId;
             var spell = DatabaseManager.World.GetCachedSpell((uint)spellID);
-            WorldObject.RemoveEnchantment(spellID);
+
+            if (WorldObject.Biota.TryRemoveEnchantment(spellID, out _, WorldObject.BiotaDatabaseLock))
+                WorldObject.ChangesDetected = true;
 
             if (Player != null)
             {
@@ -385,10 +465,12 @@ namespace ACE.Server.Managers
             }
             else
             {
-                var ownerID = WorldObject.OwnerId ?? WorldObject.WielderId ?? null;
+                var ownerID = WorldObject.OwnerId ?? WorldObject.WielderId;
+
                 if (ownerID != null)
                 {
                     var owner = WorldManager.GetPlayerByGuidId((uint)ownerID);
+
                     if (owner != null)
                     {
                         owner.Session.Network.EnqueueSend(new GameMessageSystemChat($"The spell {spell.Name} on {WorldObject.Name} has expired.", ChatMessageType.Magic));
@@ -407,8 +489,9 @@ namespace ACE.Server.Managers
         public void Dispel(BiotaPropertiesEnchantmentRegistry entry)
         {
             var spellID = entry.SpellId;
-            var spell = DatabaseManager.World.GetCachedSpell((uint)spellID);
-            WorldObject.RemoveEnchantment(spellID);
+
+            if (WorldObject.Biota.TryRemoveEnchantment(spellID, out _, WorldObject.BiotaDatabaseLock))
+                WorldObject.ChangesDetected = true;
 
             if (Player != null)
                 Player.Session.Network.EnqueueSend(new GameEventMagicDispelEnchantment(Player.Session, (ushort)entry.SpellId, entry.LayerId));
@@ -420,14 +503,19 @@ namespace ACE.Server.Managers
         public float GetMinVitae(uint level)
         {
             var propVitae = PropertyManager.GetDouble("vitae_min").Item;
+
             var maxPenalty = (level - 1) * 3;
+
             if (maxPenalty < 1)
                 maxPenalty = 1;
+
             var globalMax = 100 - (uint)Math.Round(propVitae * 100);
+
             if (maxPenalty > globalMax)
                 maxPenalty = globalMax;
 
             var minVitae = (100 - maxPenalty) / 100.0f;
+
             if (minVitae < propVitae)
                 minVitae = (float)propVitae;
 
@@ -439,10 +527,21 @@ namespace ACE.Server.Managers
         /// </summary>
         public List<BiotaPropertiesEnchantmentRegistry> GetEnchantments(EnchantmentTypeFlags statModType)
         {
-            var enchantments = from e in WorldObject.Biota.BiotaPropertiesEnchantmentRegistry
-                               where ((EnchantmentTypeFlags)e.StatModType).HasFlag(statModType)
-                               group e by e.SpellCategory into categories
-                               select categories.OrderByDescending(c => c.LayerId).First();
+            IEnumerable<BiotaPropertiesEnchantmentRegistry> enchantments;
+
+            WorldObject.BiotaDatabaseLock.EnterReadLock();
+            try
+            {
+                enchantments = from e in WorldObject.Biota.BiotaPropertiesEnchantmentRegistry
+                    where ((EnchantmentTypeFlags) e.StatModType).HasFlag(statModType)
+                    group e by e.SpellCategory
+                    into categories
+                    select categories.OrderByDescending(c => c.LayerId).First();
+            }
+            finally
+            {
+                WorldObject.BiotaDatabaseLock.ExitReadLock();
+            }
 
             return enchantments.ToList();
         }
@@ -452,10 +551,21 @@ namespace ACE.Server.Managers
         /// </summary>
         public List<BiotaPropertiesEnchantmentRegistry> GetEnchantments(EnchantmentTypeFlags statModType, uint statModKey)
         {
-            var enchantments = from e in WorldObject.Biota.BiotaPropertiesEnchantmentRegistry
-                               where ((EnchantmentTypeFlags)e.StatModType).HasFlag(statModType) && e.StatModKey == statModKey
-                               group e by e.SpellCategory into categories
-                               select categories.OrderByDescending(c => c.LayerId).First();
+            IEnumerable<BiotaPropertiesEnchantmentRegistry> enchantments;
+
+            WorldObject.BiotaDatabaseLock.EnterReadLock();
+            try
+            {
+                enchantments = from e in WorldObject.Biota.BiotaPropertiesEnchantmentRegistry
+                    where ((EnchantmentTypeFlags) e.StatModType).HasFlag(statModType) && e.StatModKey == statModKey
+                    group e by e.SpellCategory
+                    into categories
+                    select categories.OrderByDescending(c => c.LayerId).First();
+            }
+            finally
+            {
+                WorldObject.BiotaDatabaseLock.ExitReadLock();
+            }
 
             return enchantments.ToList();
         }
@@ -468,6 +578,7 @@ namespace ACE.Server.Managers
             var enchantments = GetEnchantments(EnchantmentTypeFlags.Skill, (uint)skill);
 
             var skillMod = 0;
+
             foreach (var enchantment in enchantments)
                 skillMod += (int)enchantment.StatModValue;
 
@@ -482,6 +593,7 @@ namespace ACE.Server.Managers
             var enchantments = GetEnchantments(EnchantmentTypeFlags.Attribute, (uint)attribute);
 
             var attributeMod = 0;
+
             foreach (var enchantment in enchantments)
                 attributeMod += (int)enchantment.StatModValue;
 
@@ -505,6 +617,7 @@ namespace ACE.Server.Managers
             var enchantments = GetEnchantments(type);
 
             var modifier = 0;
+
             foreach (var enchantment in enchantments)
                 modifier += (int)enchantment.StatModValue;
 
@@ -519,6 +632,7 @@ namespace ACE.Server.Managers
             var enchantments = GetEnchantments(EnchantmentTypeFlags.Additive, (uint)statModKey);
 
             var modifier = 0;
+
             foreach (var enchantment in enchantments)
                 modifier += (int)enchantment.StatModValue;
 
@@ -532,6 +646,7 @@ namespace ACE.Server.Managers
             var enchantments = GetEnchantments(typeFlags, (uint)statModKey);
 
             var modifier = 0.0f;
+
             foreach (var enchantment in enchantments)
                 modifier += enchantment.StatModValue;
 
@@ -547,6 +662,7 @@ namespace ACE.Server.Managers
 
             // multiplicative
             var modifier = 1.0f;
+
             foreach (var enchantment in enchantments)
                 modifier *= enchantment.StatModValue;
 
@@ -559,12 +675,14 @@ namespace ACE.Server.Managers
         public float GetResistanceMod(DamageType damageType)
         {
             var typeFlags = EnchantmentTypeFlags.Float | EnchantmentTypeFlags.SingleStat | EnchantmentTypeFlags.Multiplicative;
+
             var resistance = GetResistanceKey(damageType);
 
             var enchantments = GetEnchantments(typeFlags, (uint)resistance);
 
             // multiplicative
             var modifier = 1.0f;
+
             foreach (var enchantment in enchantments)
                 modifier *= enchantment.StatModValue;
 
@@ -578,12 +696,14 @@ namespace ACE.Server.Managers
         public float GetRegenerationMod(CreatureVital vital)
         {
             var typeFlags = EnchantmentTypeFlags.Float | EnchantmentTypeFlags.SingleStat | EnchantmentTypeFlags.Multiplicative;
+
             var vitalKey = GetVitalKey(vital);
 
             var enchantments = GetEnchantments(typeFlags, (uint)vitalKey);
 
             // multiplicative
             var modifier = 1.0f;
+
             foreach (var enchantment in enchantments)
                 modifier *= enchantment.StatModValue;
 
@@ -721,12 +841,14 @@ namespace ACE.Server.Managers
         public float GetArmorModVsType(DamageType damageType)
         {
             var typeFlags = EnchantmentTypeFlags.Float | EnchantmentTypeFlags.SingleStat | EnchantmentTypeFlags.Additive;
+
             var key = GetImpenBaneKey(damageType);
 
             var enchantments = GetEnchantments(typeFlags, (uint)key);
 
             // additive
             var modifier = 0.0f;
+
             foreach (var enchantment in enchantments)
                 modifier += enchantment.StatModValue;
 
@@ -740,12 +862,16 @@ namespace ACE.Server.Managers
         {
             var spells = new List<BiotaPropertiesEnchantmentRegistry>();
 
-            foreach (var enchantment in Enchantments)
+            var enchantments = WorldObject.Biota.GetEnchantments(WorldObject.BiotaDatabaseLock);
+
+            foreach (var enchantment in enchantments)
             {
                 var spellBase = DatManager.PortalDat.SpellTable.Spells[(uint)enchantment.SpellId];
+
                 if (spellBase.School == magicSchool)
                     spells.Add(enchantment);
             }
+
             return spells;
         }
     }

@@ -12,7 +12,7 @@ namespace ACE.Server.WorldObjects
         /// This variable is set to true when a change is made, and set to false before a save is requested.<para />
         /// The primary use for this is to trigger save on add/modify/remove of properties.
         /// </summary>
-        public bool ChangesDetected { get; protected set; }
+        public bool ChangesDetected { get; set; }
 
         /// <summary>
         /// This will set the LastRequestedDatabaseSave to UtcNow and ChangesDetected to false.<para />
