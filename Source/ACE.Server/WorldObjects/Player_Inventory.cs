@@ -1087,8 +1087,8 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// This code handle objects between players and other world objects
-        /// </summary>
+        /// Called when player attempts to give an object to someone else,
+        /// ie. to another player, or NPC
         public void HandleActionGiveObjectRequest(ObjectGuid targetID, ObjectGuid itemGuid, uint amount)
         {
             var target = CurrentLandblock?.GetObject(targetID);

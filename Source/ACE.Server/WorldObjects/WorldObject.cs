@@ -127,9 +127,7 @@ namespace ACE.Server.WorldObjects
             PhysicsObj.SetScaleStatic(ObjScale ?? 1.0f);
             PhysicsObj.State = defaultState;
 
-            /*var player = this as Player;
-            if (creature != null && player == null)
-                AllowEdgeSlide = false;*/
+            if (creature != null) AllowEdgeSlide = true;
         }
 
         public bool AddPhysicsObj()

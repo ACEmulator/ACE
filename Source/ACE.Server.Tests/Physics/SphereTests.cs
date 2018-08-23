@@ -104,7 +104,7 @@ namespace ACE.Server.Tests.Physics
             // not enough distance to make it this time
             transition.SpherePath.GlobalCurrCenter[0] = new Sphere(new Vector3(1, 1, 1), 5.0f);
             transitionState = sphere.CollideWithPoint(transition, checkPos, disp, radsum, sphereNum);
-            Assert.IsTrue(transitionState == TransitionState.Adjusted);
+            Assert.IsTrue(transitionState == TransitionState.Collided);
         }
 
         [TestMethod]
@@ -226,7 +226,7 @@ namespace ACE.Server.Tests.Physics
             var disp = new Vector3(0, 0, -10);
             var checkPos = new Sphere();
 
-            var transitionState = sphere.StepSphereDown(transition, checkPos, disp, sphere.Radius * 2.0f);
+            var transitionState = sphere.StepSphereDown(transition, checkPos, ref disp, sphere.Radius * 2.0f);
             Assert.AreEqual(transitionState, TransitionState.Adjusted);
         }
 
