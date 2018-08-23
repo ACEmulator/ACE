@@ -1095,14 +1095,121 @@ namespace ACE.Server.WorldObjects
             var item = GetInventoryItem(itemGuid) ?? GetWieldedItem(itemGuid);
             if (target == null || item == null) return;
 
-            //Console.WriteLine("HandleActionGiveObjectRequest(" + item.Name + ")");
+            // giver rotates to receiver
+            var rotateDelay = Rotate(target);
 
             var giveChain = new ActionChain();
-            var rotateDelay = Rotate(target);   // giver rotates to receiver
             giveChain.AddDelaySeconds(rotateDelay);
 
             var receiveChain = new ActionChain();
             receiveChain.AddDelaySeconds(rotateDelay);
+
+            if (target is Player)
+            {
+                GiveObjecttoPlayer(target as Player, item, amount, giveChain, receiveChain);
+            }
+            else
+                GiveObjecttoNPC(target, item, amount, giveChain, receiveChain);
+
+            giveChain.EnqueueChain();
+            receiveChain.EnqueueChain();
+        }
+
+        /// <summary>
+        /// This code handle objects between players and other players
+        /// </summary>
+        private void GiveObjecttoPlayer(Player target, WorldObject item, uint amount, ActionChain giveChain, ActionChain receiveChain)
+        {
+            Player player = this;
+
+            if ((item.GetProperty(PropertyInt.Attuned) ?? 0) == 1)
+            {
+                giveChain.AddAction(this, () =>
+                {
+                    Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, WeenieError.AttunedItem));
+                    Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, this));
+                    Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, WeenieError.AttunedItem)); // Second message appears in PCAPs
+                });
+                return;
+            }
+
+            if (((player.CharacterOptions1Mapping ?? 0) & (int)CharacterOptions1.LetOtherPlayersGiveYouItems) == 1)
+            {
+                if (target.HandlePlayerReceiveItem(item, player))
+                {
+                    // Item accepted by other Player
+                    giveChain.AddAction(this, () => ItemAccepted(item, amount, target));
+
+                    receiveChain.AddAction(target, () =>
+                    {
+                        target.Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name} gives you {item.Name}.", ChatMessageType.Broadcast));
+                        target.Session.Network.EnqueueSend(new GameMessageSound(target.Guid, Sound.ReceiveItem, 1));
+                    });
+                }
+            }
+            else
+            {
+                giveChain.AddAction(this, () =>
+                {
+                    Session.Network.EnqueueSend(new GameMessageSystemChat(target.Name + WeenieErrorWithString._IsNotAcceptingGiftsRightNow, ChatMessageType.Broadcast));
+                    Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, this));
+                });
+            }
+        }
+
+        /// <summary>
+        /// This code handles receiving objects from other players, ie. attempting to place the item in the target's inventory
+        /// </summary>
+        private bool HandlePlayerReceiveItem(WorldObject item, Player giver)
+        {
+            var placementPosition = 0;
+
+            if ((this as Player) == null)
+                return false;
+
+            if (this == giver)
+                return false;
+
+            var container = this;
+
+            item.SetPropertiesForContainer();
+
+            if (!container.TryAddToInventory(item, placementPosition, true))
+            {
+                log.Error("Player_Inventory HandlePlayerReceiveItem TryAddToInventory failed");
+                return false;
+            }
+
+            // If we've put the item to a side pack, we must increment our main EncumbranceValue and Value
+            if (container != this && container.ContainerId == Guid.Full)
+            {
+                EncumbranceVal += item.EncumbranceVal;
+                Value += item.Value;
+            }
+
+            if (item is Container itemAsContainer)
+            {
+                Session.Network.EnqueueSend(new GameEventViewContents(Session, itemAsContainer));
+
+                foreach (var packItem in itemAsContainer.Inventory)
+                    Session.Network.EnqueueSend(new GameMessageCreateObject(packItem.Value));
+            }
+
+            Session.Network.EnqueueSend(
+                new GameMessageSound(Guid, Sound.PickUpItem, 1.0f),
+                new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Container, container.Guid),
+                new GameMessageCreateObject(item),
+                new GameEventItemServerSaysContainId(Session, item, container));
+
+            return true;
+        }
+
+        /// <summary>
+        /// This code handles objects between players and other world objects
+        /// </summary>
+        private void GiveObjecttoNPC(WorldObject target, WorldObject item, uint amount, ActionChain giveChain, ActionChain receiveChain)
+        {
+            if (target == null || item == null) return;
 
             if (target.GetProperty(PropertyBool.AiAcceptEverything) ?? false)
             {
@@ -1141,23 +1248,12 @@ namespace ACE.Server.WorldObjects
             {
                 var result = target.Biota.BiotaPropertiesEmote.Where(emote => emote.WeenieClassId == item.WeenieClassId);
                 WorldObject player = this;
-                if (target.HandleReceive(item, amount, target, player, receiveChain))
+                if (target.HandleNPCReceiveItem(item, target, player, receiveChain))
                 {
                     if (result.ElementAt(0).Category == (uint)EmoteCategory.Give)
                     {
                         // Item accepted by collector/NPC
-                        giveChain.AddAction(this, () =>
-                        {
-                            if (item.CurrentWieldedLocation != null)
-                                UnwieldItemWithNetworking(this, item, 0);       // refactor, duplicate code from above
-
-                            TryRemoveItemFromInventoryWithNetworking(item, (ushort)amount);
-
-                            Session.Network.EnqueueSend(new GameMessageSystemChat($"You give {target.Name} {item.Name}.", ChatMessageType.Broadcast));
-                            Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, target));
-                            Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.ReceiveItem, 1));
-                            Session.Network.EnqueueSend(new GameEventInventoryRemoveObject(Session, item));
-                        });
+                        giveChain.AddAction(this, () => ItemAccepted(item, amount, target));
                     }
                     else if (result.ElementAt(0).Category == (uint)EmoteCategory.Refuse)
                     {
@@ -1178,10 +1274,26 @@ namespace ACE.Server.WorldObjects
                     });
                 }
             }
-            giveChain.EnqueueChain();
-            receiveChain.EnqueueChain();
         }
 
+        /// <summary>
+        /// Player giver processes used upon successful acceptance of item for both other players and NPCs
+        /// </summary>
+        /// <param name="item"></param>
+        /// <param name="amount"></param>
+        /// <param name="target"></param>
+        private void ItemAccepted(WorldObject item, uint amount, WorldObject target)
+        {
+            if (item.CurrentWieldedLocation != null)
+                UnwieldItemWithNetworking(this, item, 0);       // refactor, duplicate code from above
+
+            TryRemoveItemFromInventoryWithNetworking(item, (ushort)amount);
+
+            Session.Network.EnqueueSend(new GameMessageSystemChat($"You give {target.Name} {item.Name}.", ChatMessageType.Broadcast));
+            Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, target));
+            Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.ReceiveItem, 1));
+            Session.Network.EnqueueSend(new GameEventInventoryRemoveObject(Session, item));
+        }
 
         // ===========================
         // Game Action Handlers - Misc
