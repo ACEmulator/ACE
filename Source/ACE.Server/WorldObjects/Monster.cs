@@ -47,6 +47,12 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
+            if (!AttackTarget.IsVisible(this))
+            {
+                Sleep();
+                return;
+            }
+
             // decide current type of attack
             if (CurrentAttack == null)
             {

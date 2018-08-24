@@ -61,10 +61,10 @@ namespace ACE.Server.Physics.Animation
                 if (Vec.NormalizeCheckSmall(ref slideOffset))
                     offset = Vector3.Zero;
                 else
-                    offset = slideOffset = Vector3.Dot(slideOffset, offset) * slideOffset;
+                    offset = Vector3.Dot(slideOffset, offset) * slideOffset;
             }
             else if (collisionAngle <= 0.0f)
-                slideOffset = offset -= CollisionInfo.ContactPlane.Normal * collisionAngle;
+                offset -= CollisionInfo.ContactPlane.Normal * collisionAngle;
             else
                 CollisionInfo.ContactPlane.SnapToPlane(ref offset);
 
@@ -80,7 +80,7 @@ namespace ACE.Server.Physics.Animation
             var zDist = (globSphere.Radius - dist) / CollisionInfo.ContactPlane.Normal.Z;
             if (globSphere.Radius > Math.Abs(zDist))
             {
-                var checkOffset = new Vector3(0.0f, 0.0f, zDist);
+                var checkOffset = new Vector3(0, 0, zDist);
                 SpherePath.AddOffsetToCheckPos(checkOffset);
             }
             return offset;
@@ -127,7 +127,7 @@ namespace ACE.Server.Physics.Animation
                 return;
             }
 
-            if (dist < PhysicsGlobals.EPSILON)
+            if (dist <= PhysicsGlobals.EPSILON)
             {
                 offsetPerStep = Vector3.Zero;
                 numSteps = 0;
@@ -142,10 +142,7 @@ namespace ACE.Server.Physics.Animation
         public bool CheckCollisions(PhysicsObj obj)
         {
             SpherePath.InsertType = InsertType.Placement;
-            SpherePath.CheckPos = SpherePath.CurPos;
-            SpherePath.CheckCell = SpherePath.CurCell;
-            SpherePath.CellArrayValid = false;
-            SpherePath.CacheGlobalSphere(Vector3.Zero);
+            SpherePath.SetCheckPos(SpherePath.CurPos, SpherePath.CurCell);
 
             return obj.FindObjCollisions(this) != TransitionState.OK;
         }
@@ -156,15 +153,16 @@ namespace ACE.Server.Physics.Animation
 
             SpherePath.CellArrayValid = true;
             SpherePath.HitsInteriorCell = false;
-            ObjCell newCell = new ObjCell();    // null check?
+
+            //ObjCell newCell = null;
+            var newCell = new ObjCell();    // null check?
             ObjCell.find_cell_list(CellArray, ref newCell, SpherePath);
 
-            //var checkCells = CellArray.Cells.Values.ToList();
             for (var i = 0; i < CellArray.Cells.Count; i++)
-            //foreach (var cell in checkCells)
             {
                 var cell = CellArray.Cells.Values.ElementAt(i);
                 if (cell == null || cell.Equals(currCell)) continue;
+
                 var collides = cell.FindCollisions(this);
                 switch (collides)
                 {
@@ -178,7 +176,6 @@ namespace ACE.Server.Physics.Animation
                         return collides;
                 }
             }
-
             SpherePath.CheckCell = newCell;
 
             if (newCell != null)
@@ -186,9 +183,11 @@ namespace ACE.Server.Physics.Animation
                 SpherePath.AdjustCheckPos(newCell.ID);
                 return result;
             }
-            if (SpherePath.StepDown) return TransitionState.Collided;
 
-            var checkPos = SpherePath.CheckPos;
+            if (SpherePath.StepDown)
+                return TransitionState.Collided;
+
+            var checkPos = new Position(SpherePath.CheckPos);
             if ((checkPos.ObjCellID & 0xFFFF) < 0x100)
                 LandDefs.AdjustToOutside(checkPos);
 
@@ -245,7 +244,7 @@ namespace ACE.Server.Physics.Animation
             var contactNormal = Vector3.Cross(contactPlane.Normal, CollisionInfo.LastKnownContactPlane.Normal);
             contactNormal.Z = 0.0f;
 
-            var collideNormal = new Vector3(contactNormal.Z - contactNormal.Y, contactNormal.X - contactNormal.Z, 0.0f);
+            var collideNormal = new Vector3(contactNormal.Z - contactNormal.Y, contactNormal.X - contactNormal.Z, 0);
             if (Vec.NormalizeCheckSmall(ref collideNormal))
                 return TransitionState.OK;
 
@@ -261,7 +260,7 @@ namespace ACE.Server.Physics.Animation
             else
             {
                 SpherePath.AddOffsetToCheckPos(collideNormal * -angle);
-                CollisionInfo.SetCollisionNormal(collideNormal * angle);
+                CollisionInfo.SetCollisionNormal(collideNormal * angle);    // verify
             }
             return TransitionState.Adjusted;
         }
@@ -752,7 +751,7 @@ namespace ACE.Server.Physics.Animation
             SpherePath.StepUp = true;
             SpherePath.StepUpNormal = new Vector3(collisionNormal.X, collisionNormal.Y, collisionNormal.Z);
 
-            var stepDownHeight = 0.039999999f;  // set global
+            var stepDownHeight = 0.039999999f;  // set global?
 
             var zLandingValue = PhysicsGlobals.LandingZ;
 
@@ -764,7 +763,7 @@ namespace ACE.Server.Physics.Animation
 
             SpherePath.WalkableAllowance = zLandingValue;
             SpherePath.BackupCell = SpherePath.CheckCell;
-            SpherePath.BackupCheckPos = SpherePath.CheckPos;    // reference?
+            SpherePath.BackupCheckPos = new Position(SpherePath.CheckPos);
 
             var stepDown = StepDown(stepDownHeight, zLandingValue);
 
@@ -867,6 +866,7 @@ namespace ACE.Server.Physics.Animation
 
                             if (radsum < stepDownHeight)
                             {
+                                // bad path
                                 stepDownHeight *= 0.5f;
                                 if (StepDown(stepDownHeight, zVal) || StepDown(stepDownHeight, zVal))   // double step..
                                 {
@@ -1077,7 +1077,7 @@ namespace ACE.Server.Physics.Animation
 
         public void SetCurrentCheckPos()
         {
-            SpherePath.CurPos = SpherePath.CheckPos;
+            SpherePath.CurPos = new Position(SpherePath.CheckPos);
             SpherePath.CurCell = SpherePath.CheckCell;
             SpherePath.CacheGlobalCurrCenter();
 

@@ -384,7 +384,7 @@ namespace ACE.Server.Physics
 
             var missileIgnore = transition.ObjectInfo.MissileIgnore(this);
             var isCreature = State.HasFlag(PhysicsState.Missile) || WeenieObj != null && WeenieObj.IsCreature();
-            isCreature = false; // hack?
+            //isCreature = false; // hack?
 
             if (!State.HasFlag(PhysicsState.HasPhysicsBSP) || missileIgnore || exemption)
             {
@@ -2303,13 +2303,15 @@ namespace ACE.Server.Physics
 
         public bool handle_all_collisions(CollisionInfo collisions, bool prev_has_contact, bool prev_on_walkable)
         {
-            var apply_bounce = !prev_on_walkable || !TransientState.HasFlag(TransientStateFlags.OnWalkable) || State.HasFlag(PhysicsState.Sledding);
+            var apply_bounce = true;
+            if (prev_on_walkable && TransientState.HasFlag(TransientStateFlags.OnWalkable) && !State.HasFlag(PhysicsState.Sledding))
+                apply_bounce = false;
+
             var retval = false;
             foreach (var collideObject in collisions.CollideObject)
-            {
                 if (collideObject != null && track_object_collision(collideObject, prev_has_contact))
                     retval = true;
-            }
+
             report_collision_end(false);
 
             if (CollidingWithEnvironment)
@@ -2318,8 +2320,11 @@ namespace ACE.Server.Physics
             }
             else if (collisions.CollidedWithEnvironment || !prev_on_walkable && TransientState.HasFlag(TransientStateFlags.OnWalkable))
             {
-                retval = report_environment_collision(prev_has_contact);
+                //retval = report_environment_collision(prev_has_contact);
+                report_environment_collision(prev_has_contact);
+                retval = true;
             }
+
             if (collisions.FramesStationaryFall <= 1)
             {
                 if (apply_bounce && collisions.CollisionNormalValid)
@@ -2332,9 +2337,7 @@ namespace ACE.Server.Physics
                         if (collisionAngle < 0.0f)
                         {
                             var elasticAngle = -(collisionAngle * (Elasticity + 1.0f));
-                            Velocity.X += collisions.CollisionNormal.X * elasticAngle;
-                            Velocity.Y += collisions.CollisionNormal.Y;
-                            Velocity.Z += collisions.CollisionNormal.Z;
+                            Velocity += collisions.CollisionNormal * elasticAngle;
                         }
                     }
                 }
@@ -2348,6 +2351,7 @@ namespace ACE.Server.Physics
                     return retval;
                 }
             }
+
             if (collisions.FramesStationaryFall == 0)
                 TransientState &= ~TransientStateFlags.StationaryComplete;
             else if (collisions.FramesStationaryFall == 1)
@@ -2793,7 +2797,7 @@ namespace ACE.Server.Physics
 
         public void remove_shadows_from_cells()
         {
-            foreach (var shadowObj in ShadowObjects.Values)
+            foreach (var shadowObj in ShadowObjects.Values.ToList())
             {
                 if (shadowObj.Cell == null) continue;
                 var cell = shadowObj.Cell;

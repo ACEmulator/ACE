@@ -127,9 +127,7 @@ namespace ACE.Server.WorldObjects
             PhysicsObj.SetScaleStatic(ObjScale ?? 1.0f);
             PhysicsObj.State = defaultState;
 
-            /*var player = this as Player;
-            if (creature != null && player == null)
-                AllowEdgeSlide = false;*/
+            if (creature != null) AllowEdgeSlide = true;
         }
 
         public bool AddPhysicsObj()
@@ -333,6 +331,15 @@ namespace ACE.Server.WorldObjects
                 EmoteManager.ExecuteEmote(emote, action, chain, receiver, giver);
 
             return true;
+        }
+
+        public bool IsVisible(WorldObject wo)
+        {
+            if (PhysicsObj == null || wo.PhysicsObj == null)
+                return false;
+
+            // note: visibility lists are actively maintained only for players
+            return PhysicsObj.ObjMaint.VisibleObjectTable.ContainsKey(wo.PhysicsObj.ID);
         }
 
 
