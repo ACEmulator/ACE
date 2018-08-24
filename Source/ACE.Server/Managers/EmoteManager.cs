@@ -870,11 +870,11 @@ namespace ACE.Server.Managers
                     {
                         actionChain.AddDelaySeconds(emoteAction.Delay);
                         var pos = new Position(creature.Location.Cell, creature.Location.PositionX, creature.Location.PositionY, creature.Location.PositionZ, emoteAction.AnglesX ?? 0, emoteAction.AnglesY ?? 0, emoteAction.AnglesZ ?? 0, emoteAction.AnglesW ?? 0);
-                        var rotateTime = 0.0f;
                         actionChain.AddAction(creature, () =>
                         {
-                            rotateTime = creature.TurnTo(pos);
+                            creature.TurnTo(pos);
                         });
+                        var rotateTime = creature.GetRotateDelay(pos);
                         actionChain.AddDelaySeconds(rotateTime);
                     }
                     break;
@@ -884,11 +884,11 @@ namespace ACE.Server.Managers
                     if (creature != null && targetCreature != null)
                     {
                         actionChain.AddDelaySeconds(emoteAction.Delay);
-                        var rotateTime = 0.0f;
                         actionChain.AddAction(creature, () =>
                         {
-                            rotateTime = creature.Rotate(targetCreature);
+                            creature.Rotate(targetCreature);
                         });
+                        var rotateTime = creature.GetRotateDelay(targetCreature);
                         actionChain.AddDelaySeconds(rotateTime);
                     }
                     break;

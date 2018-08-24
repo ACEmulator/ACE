@@ -315,7 +315,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public bool Teleporting { get; set; } = false;
 
-        public bool HandleReceive(WorldObject item, uint amount, WorldObject receiver, WorldObject giver, ActionChain chain)
+        public bool HandleNPCReceiveItem(WorldObject item, WorldObject receiver, WorldObject giver, ActionChain chain)
         {
             if (chain == null) chain = new ActionChain();
 

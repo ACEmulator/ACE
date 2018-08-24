@@ -1095,36 +1095,126 @@ namespace ACE.Server.WorldObjects
             var item = GetInventoryItem(itemGuid) ?? GetWieldedItem(itemGuid);
             if (target == null || item == null) return;
 
-            //Console.WriteLine("HandleActionGiveObjectRequest(" + item.Name + ")");
+            // giver rotates to receiver
+            var rotateDelay = Rotate(target);
 
             var giveChain = new ActionChain();
-            var rotateDelay = Rotate(target);   // giver rotates to receiver
             giveChain.AddDelaySeconds(rotateDelay);
 
-            var receiveChain = new ActionChain();
-            receiveChain.AddDelaySeconds(rotateDelay);
+            if (target is Player)
+            {
+                giveChain.AddAction(this, () => GiveObjecttoPlayer(target as Player, item, (ushort)amount));
+
+                giveChain.EnqueueChain();
+            }
+            else
+            {
+                var receiveChain = new ActionChain();
+                receiveChain.AddDelaySeconds(rotateDelay);
+
+                GiveObjecttoNPC(target, item, amount, giveChain, receiveChain);
+
+                giveChain.EnqueueChain();
+                receiveChain.EnqueueChain();
+            }
+        }
+
+        /// <summary>
+        /// This code handle objects between players and other players
+        /// </summary>
+        private void GiveObjecttoPlayer(Player target, WorldObject item, ushort amount)
+        {
+            Player player = this;
+
+            if ((item.GetProperty(PropertyInt.Attuned) ?? 0) == 1)
+            {
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, WeenieError.AttunedItem));
+                Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, this));
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, WeenieError.AttunedItem)); // Second message appears in PCAPs
+
+                return;
+            }
+
+            if (((target.CharacterOptions1Mapping ?? 0) & (int)CharacterOptions1.LetOtherPlayersGiveYouItems) == (int)CharacterOptions1.LetOtherPlayersGiveYouItems)
+            {
+                if (target != player)
+                {
+                    if (target.HandlePlayerReceiveItem(item, player))
+                    {
+                        if (item.CurrentWieldedLocation != null)
+                            UnwieldItemWithNetworking(this, item, 0);       // refactor, duplicate code from above
+
+                        if (amount >= (item.StackSize ?? 1))
+                        {
+                            if (TryRemoveFromInventory(item.Guid, false))
+                            {
+                                Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
+
+                                if (item.WeenieType == WeenieType.Coin)
+                                    UpdateCoinValue();
+                            }
+                        }
+                        else
+                        {
+                            item.StackSize -= amount;
+
+                            Session.Network.EnqueueSend(new GameMessageSetStackSize(item));
+
+                            EncumbranceVal = (EncumbranceVal - (item.StackUnitEncumbrance * amount));
+                            Value = (Value - (item.StackUnitValue * amount));
+
+                            Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
+
+                            if (item.WeenieType == WeenieType.Coin)
+                                UpdateCoinValue();
+                        }
+
+                        Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, target));
+                        Session.Network.EnqueueSend(new GameMessageSystemChat($"You give {target.Name} {item.Name}.", ChatMessageType.Broadcast));
+                        Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.ReceiveItem, 1));
+                    }
+                }
+            }
+            else
+            {
+                Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(Session, WeenieErrorWithString._IsNotAcceptingGiftsRightNow, target.Name));
+                Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, this));
+            }
+        }
+
+        /// <summary>
+        /// This code handles receiving objects from other players, ie. attempting to place the item in the target's inventory
+        /// </summary>
+        private bool HandlePlayerReceiveItem(WorldObject item, Player player)
+        {
+            if ((this as Player) == null)
+                return false;
+
+            Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name} gives you {item.Name}.", ChatMessageType.Broadcast));
+            Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.ReceiveItem, 1));
+
+            TryCreateInInventoryWithNetworking(item);
+
+            return true;
+        }
+
+        /// <summary>
+        /// This code handles objects between players and other world objects
+        /// </summary>
+        private void GiveObjecttoNPC(WorldObject target, WorldObject item, uint amount, ActionChain giveChain, ActionChain receiveChain)
+        {
+            if (target == null || item == null) return;
 
             if (target.GetProperty(PropertyBool.AiAcceptEverything) ?? false)
             {
                 // NPC accepts any item
-                giveChain.AddAction(this, () =>
-                {
-                    if (item.CurrentWieldedLocation != null)
-                        UnwieldItemWithNetworking(this, item, 0);
-
-                    TryRemoveItemFromInventoryWithNetworking(item, (ushort)amount);     // TODO: doesn't handle failure return code
-
-                    Session.Network.EnqueueSend(new GameMessageSystemChat($"You give {target.Name} {item.Name}.", ChatMessageType.Broadcast));
-                    Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, target));
-                    Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.ReceiveItem, 1));
-                    Session.Network.EnqueueSend(new GameEventInventoryRemoveObject(Session, item));
-                });
+                giveChain.AddAction(this, () => ItemAccepted(item, amount, target));
             }
             else if (!target.GetProperty(PropertyBool.AllowGive) ?? false)
             {
                 giveChain.AddAction(this, () =>
                 {
-                    Session.Network.EnqueueSend(new GameMessageSystemChat(target.Name + WeenieErrorWithString._IsNotAcceptingGiftsRightNow , ChatMessageType.Broadcast));
+                    Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(Session, WeenieErrorWithString._IsNotAcceptingGiftsRightNow, target.Name));
                     Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, this));
                 });
             }
@@ -1141,23 +1231,12 @@ namespace ACE.Server.WorldObjects
             {
                 var result = target.Biota.BiotaPropertiesEmote.Where(emote => emote.WeenieClassId == item.WeenieClassId);
                 WorldObject player = this;
-                if (target.HandleReceive(item, amount, target, player, receiveChain))
+                if (target.HandleNPCReceiveItem(item, target, player, receiveChain))
                 {
                     if (result.ElementAt(0).Category == (uint)EmoteCategory.Give)
                     {
                         // Item accepted by collector/NPC
-                        giveChain.AddAction(this, () =>
-                        {
-                            if (item.CurrentWieldedLocation != null)
-                                UnwieldItemWithNetworking(this, item, 0);       // refactor, duplicate code from above
-
-                            TryRemoveItemFromInventoryWithNetworking(item, (ushort)amount);
-
-                            Session.Network.EnqueueSend(new GameMessageSystemChat($"You give {target.Name} {item.Name}.", ChatMessageType.Broadcast));
-                            Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, target));
-                            Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.ReceiveItem, 1));
-                            Session.Network.EnqueueSend(new GameEventInventoryRemoveObject(Session, item));
-                        });
+                        giveChain.AddAction(this, () => ItemAccepted(item, amount, target));
                     }
                     else if (result.ElementAt(0).Category == (uint)EmoteCategory.Refuse)
                     {
@@ -1178,10 +1257,27 @@ namespace ACE.Server.WorldObjects
                     });
                 }
             }
-            giveChain.EnqueueChain();
-            receiveChain.EnqueueChain();
         }
 
+        /// <summary>
+        /// Giver methods used upon successful acceptance of item by NPC
+        /// </summary>
+        /// <param name="item"></param>
+        /// <param name="amount"></param>
+        /// <param name="target"></param>
+        private void ItemAccepted(WorldObject item, uint amount, WorldObject target)
+        {
+            if (item.CurrentWieldedLocation != null)
+                UnwieldItemWithNetworking(this, item, 0);       // refactor, duplicate code from above
+
+            TryRemoveItemFromInventoryWithNetworking(item, (ushort)amount);
+
+            Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, target));
+            Session.Network.EnqueueSend(new GameMessageSystemChat($"You give {target.Name} {item.Name}.", ChatMessageType.Broadcast));
+            Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.ReceiveItem, 1));
+
+            Session.Network.EnqueueSend(new GameEventInventoryRemoveObject(Session, item));
+        }
 
         // ===========================
         // Game Action Handlers - Misc
