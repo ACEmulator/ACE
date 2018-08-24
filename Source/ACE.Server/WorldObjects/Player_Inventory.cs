@@ -1144,6 +1144,8 @@ namespace ACE.Server.WorldObjects
                     {
                         target.Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name} gives you {item.Name}.", ChatMessageType.Broadcast));
                         target.Session.Network.EnqueueSend(new GameMessageSound(target.Guid, Sound.ReceiveItem, 1));
+
+                        item.SaveBiotaToDatabase();
                     });
                 }
             }
@@ -1199,8 +1201,6 @@ namespace ACE.Server.WorldObjects
                 new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Container, container.Guid),
                 new GameMessageCreateObject(item),
                 new GameEventItemServerSaysContainId(Session, item, container));
-
-            item.SaveBiotaToDatabase();
 
             return true;
         }
