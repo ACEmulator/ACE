@@ -333,6 +333,15 @@ namespace ACE.Server.WorldObjects
             return true;
         }
 
+        public bool IsVisible(WorldObject wo)
+        {
+            if (PhysicsObj == null || wo.PhysicsObj == null)
+                return false;
+
+            // note: visibility lists are actively maintained only for players
+            return PhysicsObj.ObjMaint.VisibleObjectTable.ContainsKey(wo.PhysicsObj.ID);
+        }
+
 
 
 
