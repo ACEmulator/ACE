@@ -1101,106 +1101,67 @@ namespace ACE.Server.WorldObjects
             var giveChain = new ActionChain();
             giveChain.AddDelaySeconds(rotateDelay);
 
-            var receiveChain = new ActionChain();
-            receiveChain.AddDelaySeconds(rotateDelay);
-
             if (target is Player)
             {
-                GiveObjecttoPlayer(target as Player, item, amount, giveChain, receiveChain);
+                giveChain.AddAction(this, () => GiveObjecttoPlayer(target as Player, item, amount));
+
+                giveChain.EnqueueChain();
             }
             else
+            {
+                var receiveChain = new ActionChain();
+                receiveChain.AddDelaySeconds(rotateDelay);
+
                 GiveObjecttoNPC(target, item, amount, giveChain, receiveChain);
 
-            giveChain.EnqueueChain();
-            receiveChain.EnqueueChain();
+                giveChain.EnqueueChain();
+                receiveChain.EnqueueChain();
+            }
         }
 
         /// <summary>
         /// This code handle objects between players and other players
         /// </summary>
-        private void GiveObjecttoPlayer(Player target, WorldObject item, uint amount, ActionChain giveChain, ActionChain receiveChain)
+        private void GiveObjecttoPlayer(Player target, WorldObject item, uint amount)
         {
             Player player = this;
 
             if ((item.GetProperty(PropertyInt.Attuned) ?? 0) == 1)
             {
-                giveChain.AddAction(this, () =>
-                {
-                    Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, WeenieError.AttunedItem));
-                    Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, this));
-                    Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, WeenieError.AttunedItem)); // Second message appears in PCAPs
-                });
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, WeenieError.AttunedItem));
+                Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, this));
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, WeenieError.AttunedItem)); // Second message appears in PCAPs
+
                 return;
             }
 
-            if (((player.CharacterOptions1Mapping ?? 0) & (int)CharacterOptions1.LetOtherPlayersGiveYouItems) == (int)CharacterOptions1.LetOtherPlayersGiveYouItems)
+            if (((target.CharacterOptions1Mapping ?? 0) & (int)CharacterOptions1.LetOtherPlayersGiveYouItems) == (int)CharacterOptions1.LetOtherPlayersGiveYouItems)
             {
-                if (target.HandlePlayerReceiveItem(item, player))
+                if (target != player)
                 {
-                    // Item accepted by other Player
-                    giveChain.AddAction(this, () => ItemAccepted(item, amount, target));
-
-                    receiveChain.AddAction(target, () =>
-                    {
-                        target.Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name} gives you {item.Name}.", ChatMessageType.Broadcast));
-                        target.Session.Network.EnqueueSend(new GameMessageSound(target.Guid, Sound.ReceiveItem, 1));
-
-                        item.SaveBiotaToDatabase();
-                    });
+                    if (target.HandlePlayerReceiveItem(item, player))
+                        ItemAccepted(item, amount, target);
                 }
             }
             else
             {
-                giveChain.AddAction(this, () =>
-                {
-                    Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(Session, WeenieErrorWithString._IsNotAcceptingGiftsRightNow, target.Name));
-                    Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, this));
-                });
+                Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(Session, WeenieErrorWithString._IsNotAcceptingGiftsRightNow, target.Name));
+                Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, this));
             }
         }
 
         /// <summary>
         /// This code handles receiving objects from other players, ie. attempting to place the item in the target's inventory
         /// </summary>
-        private bool HandlePlayerReceiveItem(WorldObject item, Player giver)
+        private bool HandlePlayerReceiveItem(WorldObject item, Player player)
         {
-            var placementPosition = 0;
-
             if ((this as Player) == null)
                 return false;
 
-            if (this == giver)
-                return false;
+            Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name} gives you {item.Name}.", ChatMessageType.Broadcast));
+            Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.ReceiveItem, 1));
 
-            var container = this;
-
-            item.SetPropertiesForContainer();
-
-            if (!container.TryAddToInventory(item, placementPosition, true))
-            {
-                log.Error("Player_Inventory HandlePlayerReceiveItem TryAddToInventory failed");
-                return false;
-            }
-
-            // If we've put the item to a side pack, we must increment our main EncumbranceValue and Value
-            if (container != this && container.ContainerId == Guid.Full)
-            {
-                EncumbranceVal += item.EncumbranceVal;
-                Value += item.Value;
-            }
-
-            if (item is Container itemAsContainer)
-            {
-                Session.Network.EnqueueSend(new GameEventViewContents(Session, itemAsContainer));
-
-                foreach (var packItem in itemAsContainer.Inventory)
-                    Session.Network.EnqueueSend(new GameMessageCreateObject(packItem.Value));
-            }
-
-            Session.Network.EnqueueSend(
-                new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Container, container.Guid),
-                new GameMessageCreateObject(item),
-                new GameEventItemServerSaysContainId(Session, item, container));
+            TryCreateInInventoryWithNetworking(item);
 
             return true;
         }
