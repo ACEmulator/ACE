@@ -1169,9 +1169,6 @@ namespace ACE.Server.WorldObjects
                                 UpdateCoinValue();
                         }
 
-                        // It's important that we save an item after it's changed owners.
-                        item.SaveBiotaToDatabase();
-
                         Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, target));
                         Session.Network.EnqueueSend(new GameMessageSystemChat($"You give {target.Name} {item.Name}.", ChatMessageType.Broadcast));
                         Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.ReceiveItem, 1));
