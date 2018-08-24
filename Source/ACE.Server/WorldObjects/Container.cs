@@ -279,9 +279,12 @@ namespace ACE.Server.WorldObjects
         /// This will clear the ContainerId and PlacementPosition properties.<para />
         /// It will also subtract the EncumbranceVal and Value.
         /// </summary>
-        public bool TryRemoveFromInventory(ObjectGuid objectGuid)
+        public bool TryRemoveFromInventory(ObjectGuid objectGuid, bool withClear = true)
         {
-            return TryRemoveFromInventory(objectGuid, out _);
+            if (withClear)
+                return TryRemoveFromInventory(objectGuid, out _);
+
+            return TryRemoveFromInventoryWithoutClear(objectGuid, out _);
         }
 
         /// <summary>
@@ -327,6 +330,44 @@ namespace ACE.Server.WorldObjects
             return false;
         }
 
+        /// <summary>
+        /// Remove the object from the Inventory dictionary.<para />
+        /// It will also subtract the EncumbranceVal and Value.
+        /// </summary>
+        public bool TryRemoveFromInventoryWithoutClear(ObjectGuid objectGuid, out WorldObject item)
+        {
+            // first search me / add all items of type.
+            if (Inventory.Remove(objectGuid, out item))
+            {
+                int removedItemsPlacementPosition = item.PlacementPosition ?? 0;
+
+                // Move all the existing items PlacementPosition over.
+                if (!item.UseBackpackSlot)
+                    Inventory.Values.Where(i => !i.UseBackpackSlot && i.PlacementPosition > removedItemsPlacementPosition).ToList().ForEach(i => i.PlacementPosition--);
+                else
+                    Inventory.Values.Where(i => i.UseBackpackSlot && i.PlacementPosition > removedItemsPlacementPosition).ToList().ForEach(i => i.PlacementPosition--);
+
+                EncumbranceVal -= item.EncumbranceVal;
+                Value -= item.Value;
+
+                return true;
+            }
+
+            // next search all containers for item.. run function again for each container.
+            var sideContainers = Inventory.Values.Where(i => i.WeenieType == WeenieType.Container).ToList();
+            foreach (var container in sideContainers)
+            {
+                if (((Container)container).TryRemoveFromInventory(objectGuid, out item))
+                {
+                    EncumbranceVal -= item.EncumbranceVal;
+                    Value -= item.Value;
+
+                    return true;
+                }
+            }
+
+            return false;
+        }
 
         /// <summary>
         /// This is raised by Player.HandleActionUseItem, and is wrapped in ActionChain.<para />
