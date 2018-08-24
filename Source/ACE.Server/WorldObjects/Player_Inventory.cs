@@ -1133,7 +1133,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if (((player.CharacterOptions1Mapping ?? 0) & (int)CharacterOptions1.LetOtherPlayersGiveYouItems) == 1)
+            if (((player.CharacterOptions1Mapping ?? 0) & (int)CharacterOptions1.LetOtherPlayersGiveYouItems) == (int)CharacterOptions1.LetOtherPlayersGiveYouItems)
             {
                 if (target.HandlePlayerReceiveItem(item, player))
                 {
@@ -1151,7 +1151,7 @@ namespace ACE.Server.WorldObjects
             {
                 giveChain.AddAction(this, () =>
                 {
-                    Session.Network.EnqueueSend(new GameMessageSystemChat(target.Name + WeenieErrorWithString._IsNotAcceptingGiftsRightNow, ChatMessageType.Broadcast));
+                    Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(Session, WeenieErrorWithString._IsNotAcceptingGiftsRightNow, target.Name));
                     Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, this));
                 });
             }
@@ -1196,12 +1196,31 @@ namespace ACE.Server.WorldObjects
             }
 
             Session.Network.EnqueueSend(
-                new GameMessageSound(Guid, Sound.PickUpItem, 1.0f),
                 new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Container, container.Guid),
                 new GameMessageCreateObject(item),
                 new GameEventItemServerSaysContainId(Session, item, container));
 
+            item.SaveBiotaToDatabase();
+
             return true;
+        }
+
+        /// <summary>
+        /// Player giver processes used upon successful acceptance of item for both other players and NPCs
+        /// </summary>
+        /// <param name="item"></param>
+        /// <param name="amount"></param>
+        /// <param name="target"></param>
+        private void ItemAccepted(WorldObject item, uint amount, WorldObject target)
+        {
+            if (item.CurrentWieldedLocation != null)
+                UnwieldItemWithNetworking(this, item, 0);       // refactor, duplicate code from above
+
+            TryRemoveItemFromInventoryWithNetworking(item, (ushort)amount);
+
+            Session.Network.EnqueueSend(new GameMessageSystemChat($"You give {target.Name} {item.Name}.", ChatMessageType.Broadcast));
+            Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, target));
+            Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.ReceiveItem, 1));
         }
 
         /// <summary>
@@ -1216,14 +1235,8 @@ namespace ACE.Server.WorldObjects
                 // NPC accepts any item
                 giveChain.AddAction(this, () =>
                 {
-                    if (item.CurrentWieldedLocation != null)
-                        UnwieldItemWithNetworking(this, item, 0);
+                    ItemAccepted(item, amount, target);
 
-                    TryRemoveItemFromInventoryWithNetworking(item, (ushort)amount);     // TODO: doesn't handle failure return code
-
-                    Session.Network.EnqueueSend(new GameMessageSystemChat($"You give {target.Name} {item.Name}.", ChatMessageType.Broadcast));
-                    Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, target));
-                    Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.ReceiveItem, 1));
                     Session.Network.EnqueueSend(new GameEventInventoryRemoveObject(Session, item));
                 });
             }
@@ -1231,7 +1244,7 @@ namespace ACE.Server.WorldObjects
             {
                 giveChain.AddAction(this, () =>
                 {
-                    Session.Network.EnqueueSend(new GameMessageSystemChat(target.Name + WeenieErrorWithString._IsNotAcceptingGiftsRightNow , ChatMessageType.Broadcast));
+                    Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(Session, WeenieErrorWithString._IsNotAcceptingGiftsRightNow, target.Name));
                     Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, this));
                 });
             }
@@ -1253,7 +1266,12 @@ namespace ACE.Server.WorldObjects
                     if (result.ElementAt(0).Category == (uint)EmoteCategory.Give)
                     {
                         // Item accepted by collector/NPC
-                        giveChain.AddAction(this, () => ItemAccepted(item, amount, target));
+                        giveChain.AddAction(this, () =>
+                        {
+                            ItemAccepted(item, amount, target);
+
+                            Session.Network.EnqueueSend(new GameEventInventoryRemoveObject(Session, item));
+                        });
                     }
                     else if (result.ElementAt(0).Category == (uint)EmoteCategory.Refuse)
                     {
@@ -1274,25 +1292,6 @@ namespace ACE.Server.WorldObjects
                     });
                 }
             }
-        }
-
-        /// <summary>
-        /// Player giver processes used upon successful acceptance of item for both other players and NPCs
-        /// </summary>
-        /// <param name="item"></param>
-        /// <param name="amount"></param>
-        /// <param name="target"></param>
-        private void ItemAccepted(WorldObject item, uint amount, WorldObject target)
-        {
-            if (item.CurrentWieldedLocation != null)
-                UnwieldItemWithNetworking(this, item, 0);       // refactor, duplicate code from above
-
-            TryRemoveItemFromInventoryWithNetworking(item, (ushort)amount);
-
-            Session.Network.EnqueueSend(new GameMessageSystemChat($"You give {target.Name} {item.Name}.", ChatMessageType.Broadcast));
-            Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, target));
-            Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.ReceiveItem, 1));
-            Session.Network.EnqueueSend(new GameEventInventoryRemoveObject(Session, item));
         }
 
         // ===========================
