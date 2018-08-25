@@ -578,10 +578,5 @@ namespace ACE.Server.Managers
 
             return newPosition;
         }
-
-        public static double SecondsToTicks(double elapsedTimeSeconds)
-        {
-            return elapsedTimeSeconds;
-        }
     }
 }
