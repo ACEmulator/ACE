@@ -244,18 +244,16 @@ namespace ACE.Server.WorldObjects
             if ((int)Math.Floor(spell.BaseRangeConstant) == 0 && ((target is Player) == false))
                 return true;
 
-            // Invalidate non Item Enchantment spells cast against non Creatures or Players
+            // Invalidate non Item Enchantment spells cast against non Creatures, Cows, or other Players
             if (spell.School != MagicSchool.ItemEnchantment)
-            {
                 if (target.WeenieType != WeenieType.Creature)
-                {
-                    if ((target is Player) == false)
-                        return true;
-                }
-            }
+                    if (target.WeenieType != WeenieType.Cow)
+                        if ((target is Player) == false)
+                            return true;
 
             // Invalidate beneficial spells against Creature/Non-player targets
-            if (target.WeenieType == WeenieType.Creature && ((target is Player) == false) && IsSpellHarmful(spell) == false)
+            if ((target.WeenieType == WeenieType.Creature || target.WeenieType == WeenieType.Cow)
+                && ((target is Player) == false) && IsSpellHarmful(spell) == false)
                 return true;
 
             // Cannot cast Weapon Aura spells on targets that are not players or creatures
