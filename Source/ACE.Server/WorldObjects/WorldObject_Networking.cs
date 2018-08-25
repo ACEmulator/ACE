@@ -346,10 +346,10 @@ namespace ACE.Server.WorldObjects
             }
 
             if ((physicsDescriptionFlag & PhysicsDescriptionFlag.DefaultScript) != 0)
-                writer.Write((uint)(PhysicsObj.DefaultScript ?? 0u));
+                writer.Write(DefaultScriptId ?? 0);
 
             if ((physicsDescriptionFlag & PhysicsDescriptionFlag.DefaultScriptIntensity) != 0)
-                writer.Write(PhysicsObj.DefaultScriptIntensity ?? 0u);
+                writer.Write(DefaultScriptIntensity ?? 0);
 
             // timestamps
             writer.Write(Sequences.GetCurrentSequence(SequenceType.ObjectPosition));        // 0
@@ -469,10 +469,10 @@ namespace ACE.Server.WorldObjects
             if (Omega != null)
                 physicsDescriptionFlag |= PhysicsDescriptionFlag.Omega;
 
-            if (PhysicsObj != null && PhysicsObj.DefaultScript != null && PhysicsObj.DefaultScript != 0)
+            if (DefaultScriptId != null)
                 physicsDescriptionFlag |= PhysicsDescriptionFlag.DefaultScript;
 
-            if (PhysicsObj != null && PhysicsObj.DefaultScriptIntensity != null)
+            if (DefaultScriptIntensity != null)
                 physicsDescriptionFlag |= PhysicsDescriptionFlag.DefaultScriptIntensity;
 
             return physicsDescriptionFlag;

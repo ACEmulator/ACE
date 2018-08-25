@@ -24,11 +24,6 @@ namespace ACE.Server.WorldObjects
                 return PowerAccuracy.High;
         }
 
-        public override string GetAttackHeight()
-        {
-            return AttackHeight?.GetString();
-        }
-
         public void HandleActionTargetedMeleeAttack(ObjectGuid guid, uint attackHeight, float powerLevel)
         {
             /*Console.WriteLine("HandleActionTargetedMeleeAttack");
@@ -109,11 +104,11 @@ namespace ACE.Server.WorldObjects
             }
             else
                 MeleeTarget = null;
-                
+
             actionChain.EnqueueChain();
         }
 
-        public override ActionChain DoSwingMotion(WorldObject target, out float animLength)
+        public ActionChain DoSwingMotion(WorldObject target, out float animLength)
         {
             // FIXME: proper swing animation speeds
             var animSpeedMod = IsDualWieldAttack ? 1.2f : 1.0f;     // dual wield swing animation 20% faster

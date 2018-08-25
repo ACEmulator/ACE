@@ -61,6 +61,9 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void RangeAttack()
         {
+            // should this be called each launch?
+            AttackHeight = ChooseAttackHeight();
+
             var dist = GetDistanceToTarget();
             //Console.WriteLine("RangeAttack: " + dist);
 
@@ -72,7 +75,7 @@ namespace ACE.Server.WorldObjects
             EnqueueBroadcast(new GameMessageSound(Guid, sound, 1.0f));
 
             var player = AttackTarget as Player;
-            var bodyPart = GetBodyPart();
+            var bodyPart = BodyParts.GetBodyPart(AttackHeight.Value);
 
             float targetTime = 0.0f;
             var damageSource = LaunchProjectile(AttackTarget, out targetTime);
@@ -86,7 +89,7 @@ namespace ACE.Server.WorldObjects
 
                 var critical = false;
                 var damageType = DamageType.Undef;
-                var damage = CalculateDamage(ref damageType, bodyPart, ref critical);
+                var damage = CalculateDamage(ref damageType, null, bodyPart, ref critical);
 
                 if (damage > 0.0f)
                     player.TakeDamage(this, damageType, damage, bodyPart, critical);

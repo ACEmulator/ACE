@@ -497,13 +497,26 @@ namespace ACE.Server.Physics.Animation
         /// <summary>
         /// Returns the MotionData for a motionTable and motion ID
         /// </summary>
-        public static MotionData GetMotionData(uint motionTableID, uint motion)
+        public static MotionData GetMotionData(uint motionTableID, uint motion, uint? currentStyle = null)
         {
             var motionTable = DatManager.PortalDat.ReadFromDat<DatLoader.FileTypes.MotionTable>(motionTableID);
-            var defaultStyle = motionTable.DefaultStyle;
+            if (currentStyle == null)
+                currentStyle = motionTable.DefaultStyle;
             var motionID = motion & 0xFFFFFF;
-            var key = defaultStyle << 16 | motionID;
+            var key = currentStyle.Value << 16 | motionID;
             motionTable.Cycles.TryGetValue(key, out var motionData);
+            return motionData;
+        }
+
+        public static MotionData GetLinkData(uint motionTableID, uint motion, uint? currentStyle = null)
+        {
+            var motionTable = DatManager.PortalDat.ReadFromDat<DatLoader.FileTypes.MotionTable>(motionTableID);
+            if (currentStyle == null)
+                currentStyle = motionTable.DefaultStyle;
+            var key = (currentStyle.Value << 16) | (int)MotionCommand.Ready & 0xFFFF;
+            motionTable.Links.TryGetValue(key, out var links);
+            if (links == null) return null;
+            links.TryGetValue(motion, out var motionData);
             return motionData;
         }
 
@@ -527,6 +540,30 @@ namespace ACE.Server.Physics.Animation
             var dist = offset.Length();
             if (dist == 0.0f) return 0.0f;
             return dist / totalFrames * motionData.Anims[0].Framerate;
+        }
+
+        /// <summary>
+        /// Returns TRUE if this animation has a DefaultScript hook type
+        /// </summary>
+        public static bool HasDefaultScript(uint motionTableID, uint motion, uint currentStyle)
+        {
+            var motionData = GetLinkData(motionTableID, motion, currentStyle);
+            if (motionData == null)
+                return false;
+
+            foreach (var anim in motionData.Anims)
+            {
+                var animation = DatManager.PortalDat.ReadFromDat<DatLoader.FileTypes.Animation>(anim.AnimId);
+                if (animation == null) continue;
+
+                foreach (var frame in animation.PartFrames)
+                {
+                    foreach (var hook in frame.Hooks)
+                        if (hook.HookType == AnimationHookType.DefaultScript)
+                            return true;
+                }
+            }
+            return false;
         }
     }
 }
