@@ -62,6 +62,8 @@ namespace ACE.Server.WorldObjects
         {
             get
             {
+                if (CombatTable == null) return null;
+
                 if (_attackHeights == null)
                     _attackHeights = CombatTable.CMT.Select(m => (AttackHeight)m.AttackHeight).Distinct().ToList();
 
