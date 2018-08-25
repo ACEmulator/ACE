@@ -39,6 +39,8 @@ namespace ACE.Server.WorldObjects
 
             // choose a random combat maneuver
             var maneuver = GetCombatManeuver();
+            if (maneuver == null) return 0.0f;
+
             AttackHeight = maneuver.AttackHeight;
 
             // select random body part @ current attack height
@@ -76,10 +78,15 @@ namespace ACE.Server.WorldObjects
         {
             //ShowCombatTable();
 
-            var rng = Physics.Common.Random.RollDice(0, CombatTable.CMT.Count - 1);
+            var stanceManeuvers = CombatTable.CMT.Where(m => m.Style == (MotionCommand)CurrentMotionState.Stance).ToList();
+
+            if (stanceManeuvers.Count == 0)
+                return null;
+
+            var rng = Physics.Common.Random.RollDice(0, stanceManeuvers.Count - 1);
             //Console.WriteLine("Selecting combat maneuver #" + rng);
 
-            return CombatTable.CMT[rng];
+            return stanceManeuvers[rng];
         }
 
         /// <summary>
@@ -91,7 +98,7 @@ namespace ACE.Server.WorldObjects
             for (var i = 0; i < CombatTable.CMT.Count; i++)
             {
                 var maneuver = CombatTable.CMT[i];
-                Console.WriteLine($"{i} - {maneuver.Motion} - {maneuver.AttackHeight}");
+                Console.WriteLine($"{i} - {maneuver.Style} - {maneuver.Motion} - {maneuver.AttackHeight}");
             }
         }
 
