@@ -207,20 +207,22 @@ namespace ACE.Server.WorldObjects
             }
 
             // get random body part @ attack height
-            var bodyPart = BodyParts.GetBodyPart(AttackHeight.Value);
+            var bodyPart = BodyParts.GetBodyPart(target, AttackHeight.Value);
+            if (bodyPart == null) return 0.0f;
+
+            var creaturePart = new Creature_BodyPart(creature, bodyPart);
 
             // get target armor
-            var armor = GetArmor(target, bodyPart);
+            var armor = creaturePart.BaseArmorMod;
 
             // get target resistance
             DamageType damageType;
             if (damageSource?.ItemType == ItemType.MissileWeapon)
-            {
                 damageType = (DamageType)damageSource.GetProperty(PropertyInt.DamageType);
-            }
             else
                 damageType = GetDamageType();
-            var resistance = GetResistance(target, bodyPart, damageType);
+
+            var resistance = GetResistance(creaturePart, damageType);
 
             // scale damage for armor and shield
             var armorMod = SkillFormula.CalcArmorMod(resistance);
@@ -238,27 +240,6 @@ namespace ACE.Server.WorldObjects
                 return AccuracyLevel + 0.6f;
             else
                 return 1.0f;
-        }
-
-        public Creature_BodyPart GetBodyPart(WorldObject target, BodyPart bodyPart)
-        {
-            var creature = target as Creature;
-
-            BiotaPropertiesBodyPart part = null;
-            var idx = BodyParts.Indices[bodyPart];
-            if (creature.Biota.BiotaPropertiesBodyPart.Count > idx)
-                part = creature.Biota.BiotaPropertiesBodyPart.ElementAt(idx);
-            else
-                part = creature.Biota.BiotaPropertiesBodyPart.FirstOrDefault();
-
-            return new Creature_BodyPart(creature, part);
-        }
-
-        public float GetArmor(WorldObject target, BodyPart bodyPart)
-        {
-            var part = GetBodyPart(target, bodyPart);
-
-            return part.BaseArmorMod;
         }
 
         public double GetLifeResistance(DamageType damageType)
@@ -303,10 +284,8 @@ namespace ACE.Server.WorldObjects
             return resistance;
         }
 
-        public float GetResistance(WorldObject target, BodyPart bodyPart, DamageType damageType)
+        public float GetResistance(Creature_BodyPart part, DamageType damageType)
         {
-            var part = GetBodyPart(target, bodyPart);
-
             var resistance = 1.0f;
 
             switch (damageType)

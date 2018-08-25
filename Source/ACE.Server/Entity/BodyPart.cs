@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
+using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Entity
 {
@@ -50,6 +52,22 @@ namespace ACE.Server.Entity
 
             // return a random part within list
             return parts.ToList()[Physics.Common.Random.RollDice(0, parts.Count() - 1)];
+        }
+
+        public static BiotaPropertiesBodyPart GetBodyPart(WorldObject target, AttackHeight height)
+        {
+            var creature = target as Creature;
+            if (creature == null) return null;
+
+            // get all of the body parts for this creature
+            // at this attack height
+            var heightParts = creature.Biota.BiotaPropertiesBodyPart.Where(b => b.BH == (int)height).ToList();
+            if (heightParts.Count == 0) return null;
+
+            // get random body part
+            var rng = Physics.Common.Random.RollDice(0, heightParts.Count - 1);
+            var part = heightParts[rng];
+            return part;
         }
 
         public static BodyPart GetBodyPart(AttackHeight attackHeight)
