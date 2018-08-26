@@ -51,7 +51,7 @@ namespace ACE.Server.Entity
         /// The clientlib backing store landblock
         /// Eventually these classes could be merged, but for now they are separate...
         /// </summary>
-        private readonly Physics.Common.Landblock _landblock;
+        public readonly Physics.Common.Landblock _landblock;
 
         public readonly Dictionary<ObjectGuid, WorldObject> worldObjects = new Dictionary<ObjectGuid, WorldObject>();
         private readonly Dictionary<Adjacency, Landblock> adjacencies = new Dictionary<Adjacency, Landblock>();
