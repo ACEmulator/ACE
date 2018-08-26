@@ -5,7 +5,6 @@ using System.Linq;
 
 using log4net;
 
-using ACE.Database;
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.DatLoader;
@@ -26,7 +25,6 @@ using ACE.Server.WorldObjects.Entity;
 using ACE.Server.Physics.Animation;
 using ACE.Server.Physics.Common;
 
-using Landblock = ACE.Server.Entity.Landblock;
 using MotionTable = ACE.DatLoader.FileTypes.MotionTable;
 using Position = ACE.Entity.Position;
 
@@ -480,82 +478,7 @@ namespace ACE.Server.WorldObjects
             Session.Network.EnqueueSend(new GameMessageSound(sourceId, sound, volume));
         }
 
-        /// <summary>
-        /// Adds a friend and updates the database.
-        /// </summary>
-        /// <param name="friendName">The name of the friend that is being added.</param>
-        public void HandleActionAddFriend(string friendName)
-        {
-            if (string.Equals(friendName, Name, StringComparison.CurrentCultureIgnoreCase))
-                ChatPacket.SendServerMessage(Session, "Sorry, but you can't be friends with yourself.", ChatMessageType.Broadcast);
-
-            // get friend player info
-            var friendInfo = WorldManager.AllPlayers.FirstOrDefault(p => p.Name.Equals(friendName));
-
-            if (friendInfo == null)
-            {
-                ChatPacket.SendServerMessage(Session, "That character does not exist", ChatMessageType.Broadcast);
-                return;
-            }
-
-            // already exists in friends list?
-            if (Character.CharacterPropertiesFriendList.FirstOrDefault(f => f.FriendId == friendInfo.Guid.Full) != null)
-                ChatPacket.SendServerMessage(Session, "That character is already in your friends list", ChatMessageType.Broadcast);
-
-            var newFriend = new CharacterPropertiesFriendList();
-            newFriend.CharacterId = Biota.Id;      // current player id
-            //newFriend.AccountId = Biota.Character.AccountId;    // current player account id
-            newFriend.FriendId = friendInfo.Biota.Id;
-
-            // add friend to DB
-            Character.CharacterPropertiesFriendList.Add(newFriend);
-
-            // send network message
-            Session.Network.EnqueueSend(new GameEventFriendsListUpdate(Session, GameEventFriendsListUpdate.FriendsUpdateTypeFlag.FriendAdded, newFriend));
-        }
-
-        /// <summary>
-        /// Remove a single friend and update the database.
-        /// </summary>
-        /// <param name="friendId">The ObjectGuid of the friend that is being removed</param>
-        public void HandleActionRemoveFriend(ObjectGuid friendId)
-        {
-            var friendToRemove = Character.CharacterPropertiesFriendList.SingleOrDefault(f => f.FriendId == friendId.Full);
-
-            // Not in friend list
-            if (friendToRemove == null)
-            {
-                ChatPacket.SendServerMessage(Session, "That character is not in your friends list!", ChatMessageType.Broadcast);
-                return;
-            }
-
-            // remove friend in DB
-            if (Character.TryRemoveFriend(friendId, out var entity) && entity.Id != 0)
-                CharacterChangesDetected = true;
-
-            // send network message
-            Session.Network.EnqueueSend(new GameEventFriendsListUpdate(Session, GameEventFriendsListUpdate.FriendsUpdateTypeFlag.FriendRemoved, friendToRemove));
-        }
-
-        /// <summary>
-        /// Delete all friends and update the database.
-        /// </summary>
-        public void HandleActionRemoveAllFriends()
-        {
-            // Remove all from DB
-            log.Warn("HandleActionRemoveAllFriends is not implemented.");
-        }
-
-        /// <summary>
-        /// Set the AppearOffline option to the provided value.  It will also send out an update to all online clients that have this player as a friend. This option does not save to the database.
-        /// </summary>
-        public void AppearOffline(bool appearOffline)
-        {
-            SetCharacterOption(CharacterOption.AppearOffline, appearOffline);
-            SendFriendStatusUpdates();
-        }
-
-
+ 
         /// <summary>
         /// Set the currently position of the character, to later save in the database.
         /// </summary>
