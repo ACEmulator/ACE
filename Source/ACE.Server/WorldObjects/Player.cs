@@ -725,6 +725,7 @@ namespace ACE.Server.WorldObjects
             HeadObjectDID = message.Payload.ReadUInt32();
             Character.HairTexture = message.Payload.ReadUInt32();
             Character.DefaultHairTexture = message.Payload.ReadUInt32();
+            CharacterChangesDetected = true;
             EyesTextureDID = message.Payload.ReadUInt32();
             DefaultEyesTextureDID = message.Payload.ReadUInt32();
             NoseTextureDID = message.Payload.ReadUInt32();
