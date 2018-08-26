@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+
 using log4net;
 
 namespace ACE.Server.Network
@@ -7,6 +8,8 @@ namespace ACE.Server.Network
     public class ClientPacket : Packet
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog packetLog = LogManager.GetLogger(System.Reflection.Assembly.GetEntryAssembly(), "Packets");
+
         public BinaryReader Payload { get; private set; }
         public PacketHeaderOptional HeaderOptional { get; private set; }
         public bool IsValid { get; private set; } = false;
@@ -60,7 +63,7 @@ namespace ACE.Server.Network
             uint payloadChecksum = HeaderOptional.CalculateHash32() + fragmentChecksum;
 
             uint finalChecksum = Header.CalculateHash32() + (payloadChecksum ^ issacXor);
-            log.DebugFormat("Checksum is calculated as {0} and is {1} in header", finalChecksum, Header.Checksum);
+            packetLog.DebugFormat("Checksum is calculated as {0} and is {1} in header", finalChecksum, Header.Checksum);
             return finalChecksum == Header.Checksum;
         }
     }
