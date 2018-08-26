@@ -22,6 +22,11 @@ namespace ACE.Server.WorldObjects
                 return 1.0f;
         }
 
+        public string GetAttackHeight()
+        {
+            return AttackHeight?.GetString();
+        }
+
         public string GetSplatterHeight()
         {
             switch (AttackHeight.Value)
@@ -64,7 +69,6 @@ namespace ACE.Server.WorldObjects
 
             return Math.Max(reducedSkill, halfSkill);
         }
-
 
         public virtual float GetAimHeight(WorldObject target)
         {
