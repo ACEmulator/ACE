@@ -723,8 +723,8 @@ namespace ACE.Server.WorldObjects
             // Read the payload sent from the client...
             PaletteBaseId = message.Payload.ReadUInt32();
             HeadObjectDID = message.Payload.ReadUInt32();
-            HairTextureDID = message.Payload.ReadUInt32();
-            DefaultHairTextureDID = message.Payload.ReadUInt32();
+            Character.HairTexture = message.Payload.ReadUInt32();
+            Character.DefaultHairTexture = message.Payload.ReadUInt32();
             EyesTextureDID = message.Payload.ReadUInt32();
             DefaultEyesTextureDID = message.Payload.ReadUInt32();
             NoseTextureDID = message.Payload.ReadUInt32();

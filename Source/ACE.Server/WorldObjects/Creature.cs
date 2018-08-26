@@ -176,10 +176,6 @@ namespace ACE.Server.WorldObjects
                 MouthTextureDID = sex.GetMouthTexture(appearance.Mouth);
             if (!DefaultMouthTextureDID.HasValue)
                 DefaultMouthTextureDID = sex.GetDefaultMouthTexture(appearance.Mouth);
-            if (!HairTextureDID.HasValue)
-                HairTextureDID = sex.GetHairTexture(appearance.HairStyle);
-            if (!DefaultHairTextureDID.HasValue)
-                DefaultHairTextureDID = sex.GetDefaultHairTexture(appearance.HairStyle);
             if (!HeadObjectDID.HasValue)
                 HeadObjectDID = sex.GetHeadObject(appearance.HairStyle);
 

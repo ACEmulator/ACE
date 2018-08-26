@@ -1143,18 +1143,6 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyDataId.HeadObject); else SetProperty(PropertyDataId.HeadObject, value.Value); }
         }
 
-        public uint? HairTextureDID
-        {
-            get => GetProperty(PropertyDataId.HairTexture);
-            set { if (!value.HasValue) RemoveProperty(PropertyDataId.HairTexture); else SetProperty(PropertyDataId.HairTexture, value.Value); }
-        }
-
-        public uint? DefaultHairTextureDID
-        {
-            get => GetProperty(PropertyDataId.DefaultHairTexture);
-            set { if (!value.HasValue) RemoveProperty(PropertyDataId.DefaultHairTexture); else SetProperty(PropertyDataId.DefaultHairTexture, value.Value); }
-        }
-
         public uint? HairPaletteDID
         {
             get => GetProperty(PropertyDataId.HairPalette);

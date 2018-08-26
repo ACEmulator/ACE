@@ -1237,8 +1237,8 @@ namespace ACE.Server.WorldObjects
             if (HeadObjectDID.HasValue)
                 objDesc.AnimPartChanges.Add(new ACE.Entity.AnimationPartChange { PartIndex = 0x10, PartID = HeadObjectDID.Value });
             //AddModel(0x10, HeadObjectDID.Value);
-            if (DefaultHairTextureDID.HasValue && HairTextureDID.HasValue)
-                objDesc.TextureChanges.Add(new ACE.Entity.TextureMapChange { PartIndex = 0x10, OldTexture = DefaultHairTextureDID.Value, NewTexture = HairTextureDID.Value });
+            if (this is Player player)
+                objDesc.TextureChanges.Add(new ACE.Entity.TextureMapChange { PartIndex = 0x10, OldTexture = player.Character.DefaultHairTexture, NewTexture = player.Character.HairTexture });
             //AddTexture(0x10, DefaultHairTextureDID.Value, HairTextureDID.Value);
             if (HairPaletteDID.HasValue)
                 objDesc.SubPalettes.Add(new ACE.Entity.SubPalette { SubID = HairPaletteDID.Value, Offset = 0x18, NumColors = 0x8 });
