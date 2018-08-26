@@ -1286,6 +1286,31 @@ namespace ACE.Server.WorldObjects
 
         /// <summary>
         /// Sends network messages to all Players who currently know about this object
+        /// within a maximum range
+        /// </summary>
+        public void EnqueueBroadcast(GameMessage msg, float range)
+        {
+            if (PhysicsObj == null || CurrentLandblock == null) return;
+
+            var self = this as Player;
+            if (self != null)
+                self.Session.Network.EnqueueSend(msg);
+
+            var isDungeon = CurrentLandblock._landblock.IsDungeon;
+
+            foreach (var player in PhysicsObj.ObjMaint.VoyeurTable.Values.Select(v => v.WeenieObj.WorldObject as Player))
+            {
+                if (isDungeon && Location.Landblock != player.Location.Landblock)
+                    continue;
+
+                var dist = Vector3.Distance(Location.ToGlobal(), player.Location.ToGlobal());
+                if (dist <= range)
+                    player.Session.Network.EnqueueSend(msg);
+            }
+        }
+
+        /// <summary>
+        /// Sends network messages to all Players who currently know about this object
         /// </summary>
         public void EnqueueBroadcast(params GameMessage[] msgs)
         {
