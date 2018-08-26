@@ -1220,42 +1220,6 @@ namespace ACE.Server.WorldObjects
         // =========== Other Properties ===========
         // ========================================
 
-        public uint? EyesTexture
-        {
-            get => GetProperty(PropertyDataId.EyesTexture);
-            set { if (!value.HasValue) RemoveProperty(PropertyDataId.EyesTexture); else SetProperty(PropertyDataId.EyesTexture, value.Value); }
-        }
-
-        public uint? DefaultEyesTexture
-        {
-            get => GetProperty(PropertyDataId.DefaultEyesTexture);
-            set { if (!value.HasValue) RemoveProperty(PropertyDataId.DefaultEyesTexture); else SetProperty(PropertyDataId.DefaultEyesTexture, value.Value); }
-        }
-
-        public uint? NoseTexture
-        {
-            get => GetProperty(PropertyDataId.NoseTexture);
-            set { if (!value.HasValue) RemoveProperty(PropertyDataId.NoseTexture); else SetProperty(PropertyDataId.NoseTexture, value.Value); }
-        }
-
-        public uint? DefaultNoseTexture
-        {
-            get => GetProperty(PropertyDataId.DefaultNoseTexture);
-            set { if (!value.HasValue) RemoveProperty(PropertyDataId.DefaultNoseTexture); else SetProperty(PropertyDataId.DefaultNoseTexture, value.Value); }
-        }
-
-        public uint? MouthTexture
-        {
-            get => GetProperty(PropertyDataId.MouthTexture);
-            set { if (!value.HasValue) RemoveProperty(PropertyDataId.MouthTexture); else SetProperty(PropertyDataId.MouthTexture, value.Value); }
-        }
-
-        public uint? DefaultMouthTexture
-        {
-            get => GetProperty(PropertyDataId.DefaultMouthTexture);
-            set { if (!value.HasValue) RemoveProperty(PropertyDataId.DefaultMouthTexture); else SetProperty(PropertyDataId.DefaultMouthTexture, value.Value); }
-        }
-
         public uint? HairTexture
         {
             get => GetProperty(PropertyDataId.HairTexture);
@@ -1268,41 +1232,12 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyDataId.DefaultHairTexture); else SetProperty(PropertyDataId.DefaultHairTexture, value.Value); }
         }
 
-        public uint? HeadObject
-        {
-            get => GetProperty(PropertyDataId.HeadObject);
-            set { if (!value.HasValue) RemoveProperty(PropertyDataId.HeadObject); else SetProperty(PropertyDataId.HeadObject, value.Value); }
-        }
-
-        public uint? SkinPalette
-        {
-            get => GetProperty(PropertyDataId.SkinPalette);
-            set { if (!value.HasValue) RemoveProperty(PropertyDataId.SkinPalette); else SetProperty(PropertyDataId.SkinPalette, value.Value); }
-        }
-
-        public uint? HairPalette
-        {
-            get => GetProperty(PropertyDataId.HairPalette);
-            set { if (!value.HasValue) RemoveProperty(PropertyDataId.HairPalette); else SetProperty(PropertyDataId.HairPalette, value.Value); }
-        }
-
-        public uint? EyesPalette
-        {
-            get => GetProperty(PropertyDataId.EyesPalette);
-            set { if (!value.HasValue) RemoveProperty(PropertyDataId.EyesPalette); else SetProperty(PropertyDataId.EyesPalette, value.Value); }
-        }
-
         public int? Level
         {
             get => GetProperty(PropertyInt.Level);
             set { if (!value.HasValue) RemoveProperty(PropertyInt.Level); else SetProperty(PropertyInt.Level, value.Value); }
         }
 
-        public uint? PaletteId
-        {
-            get => GetProperty(PropertyDataId.PaletteBase);
-            set { if (!value.HasValue) RemoveProperty(PropertyDataId.PaletteBase); else SetProperty(PropertyDataId.PaletteBase, value.Value); }
-        }
 
 
         //public uint? SetupDID

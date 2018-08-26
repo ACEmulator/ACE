@@ -722,18 +722,18 @@ namespace ACE.Server.WorldObjects
         {
             // Read the payload sent from the client...
             PaletteBaseId = message.Payload.ReadUInt32();
-            HeadObject = message.Payload.ReadUInt32();
+            HeadObjectDID = message.Payload.ReadUInt32();
             HairTexture = message.Payload.ReadUInt32();
             DefaultHairTexture = message.Payload.ReadUInt32();
-            EyesTexture = message.Payload.ReadUInt32();
-            DefaultEyesTexture = message.Payload.ReadUInt32();
-            NoseTexture = message.Payload.ReadUInt32();
-            DefaultNoseTexture = message.Payload.ReadUInt32();
-            MouthTexture = message.Payload.ReadUInt32();
-            DefaultMouthTexture = message.Payload.ReadUInt32();
-            SkinPalette = message.Payload.ReadUInt32();
-            HairPalette = message.Payload.ReadUInt32();
-            EyesPalette = message.Payload.ReadUInt32();
+            EyesTextureDID = message.Payload.ReadUInt32();
+            DefaultEyesTextureDID = message.Payload.ReadUInt32();
+            NoseTextureDID = message.Payload.ReadUInt32();
+            DefaultNoseTextureDID = message.Payload.ReadUInt32();
+            MouthTextureDID = message.Payload.ReadUInt32();
+            DefaultMouthTextureDID = message.Payload.ReadUInt32();
+            SkinPaletteDID = message.Payload.ReadUInt32();
+            HairPaletteDID = message.Payload.ReadUInt32();
+            EyesPaletteDID = message.Payload.ReadUInt32();
             SetupTableId = message.Payload.ReadUInt32();
 
             uint option_bound = message.Payload.ReadUInt32(); // Supress Levitation - Empyrean Only

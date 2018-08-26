@@ -1248,7 +1248,7 @@ namespace ACE.Server.WorldObjects
             // PaletteBaseId = PaletteBaseDID;
             if (PaletteBaseDID.HasValue)
                 objDesc.PaletteID = PaletteBaseDID.Value;
-            if (SkinPalette.HasValue)
+            if (SkinPaletteDID.HasValue)
                 objDesc.SubPalettes.Add(new ACE.Entity.SubPalette { SubID = SkinPaletteDID.Value, Offset = 0x0, NumColors = 0x18 });
             //AddPalette(SkinPalette.Value, 0x0, 0x18);
 
@@ -1262,7 +1262,7 @@ namespace ACE.Server.WorldObjects
 
             // Nose & Mouth
             if (DefaultNoseTextureDID.HasValue && NoseTextureDID.HasValue)
-                objDesc.TextureChanges.Add(new ACE.Entity.TextureMapChange { PartIndex = 0x10, OldTexture = DefaultNoseTexture.Value, NewTexture = NoseTextureDID.Value });
+                objDesc.TextureChanges.Add(new ACE.Entity.TextureMapChange { PartIndex = 0x10, OldTexture = DefaultNoseTextureDID.Value, NewTexture = NoseTextureDID.Value });
             //AddTexture(0x10, NoseTextureDID.Value, NoseTextureDID.Value);
             if (DefaultMouthTextureDID.HasValue && MouthTextureDID.HasValue)
                 objDesc.TextureChanges.Add(new ACE.Entity.TextureMapChange { PartIndex = 0x10, OldTexture = DefaultMouthTextureDID.Value, NewTexture = MouthTextureDID.Value });

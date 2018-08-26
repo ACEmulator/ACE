@@ -24,12 +24,12 @@ namespace ACE.Server.WorldObjects
 
         private bool GetCharacterOptions1(CharacterOptions1 option)
         {
-            return (Character.CharacterOptions1 & (uint)option) != 0;
+            return (Character.CharacterOptions1 & (int)option) != 0;
         }
 
         private bool GetCharacterOptions2(CharacterOptions2 option)
         {
-            return (Character.CharacterOptions2 & (uint)option) != 0;
+            return (Character.CharacterOptions2 & (int)option) != 0;
         }
 
         public void SetCharacterOption(CharacterOption option, bool value)
