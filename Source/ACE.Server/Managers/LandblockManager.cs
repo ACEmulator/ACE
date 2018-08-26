@@ -50,7 +50,7 @@ namespace ACE.Server.Managers
             var start = DateTime.UtcNow;
             DatabaseManager.Shard.GetPlayerBiotas(character.Id, biotas =>
             {
-                log.Info("GetPlayerBiotas took " + (DateTime.UtcNow - start).TotalMilliseconds + " ms"); // This can be removed after EF performance is at the desired level.
+                log.Debug($"GetPlayerBiotas for {character.Name} took {(DateTime.UtcNow - start).TotalMilliseconds} ms");
                 Player player;
 
                 if (biotas.Player.WeenieType == (int)WeenieType.Admin)
