@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-using ACE.Database;
 using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
@@ -32,48 +31,50 @@ namespace ACE.Server.WorldObjects
                 SetCharacterOptions2((CharacterOptions2)Enum.Parse(typeof(CharacterOptions2), option.ToString()), value);
         }
 
-        public bool GetCharacterOptions1(CharacterOptions1 option)
+        private bool GetCharacterOptions1(CharacterOptions1 option)
         {
-            return (GetProperty(PropertyInt.CharacterOptions1) & (uint)option) != 0;
+            return (Character.CharacterOptions1 & (uint)option) != 0;
         }
 
-        public void SetCharacterOptions1(CharacterOptions1 option, bool value)
+        private void SetCharacterOptions1(CharacterOptions1 option, bool value)
         {
-            var options = GetProperty(PropertyInt.CharacterOptions1) ?? 0;
+            var options = Character.CharacterOptions1;
 
             if (value)
                 options |= (int)option;
             else
                 options &= ~(int)option;
 
-            SetProperty(PropertyInt.CharacterOptions1, options);
+            SetCharacterOptions1(options);
         }
 
         public void SetCharacterOptions1(int value)
         {
-            SetProperty(PropertyInt.CharacterOptions1, value);
+            Character.CharacterOptions1 = value;
+            CharacterChangesDetected = true;
         }
 
         public bool GetCharacterOptions2(CharacterOptions2 option)
         {
-            return (GetProperty(PropertyInt.CharacterOptions2) & (uint)option) != 0;
+            return (Character.CharacterOptions2 & (uint)option) != 0;
         }
 
-        public void SetCharacterOptions2(CharacterOptions2 option, bool value)
+        private void SetCharacterOptions2(CharacterOptions2 option, bool value)
         {
-            var options = GetProperty(PropertyInt.CharacterOptions2) ?? 0;
+            var options = Character.CharacterOptions2;
 
             if (value)
                 options |= (int)option;
             else
                 options &= ~(int)option;
 
-            SetProperty(PropertyInt.CharacterOptions2, options);
+            SetCharacterOptions2(options);
         }
 
         public void SetCharacterOptions2(int value)
         {
-            SetProperty(PropertyInt.CharacterOptions2, value);
+            Character.CharacterOptions2 = value;
+            CharacterChangesDetected = true;
         }
 
 
@@ -102,7 +103,7 @@ namespace ACE.Server.WorldObjects
             var entity = new CharacterPropertiesShortcutBar { CharacterId = Biota.Id, ShortcutBarIndex = shortcut.Index, ShortcutObjectId = shortcut.ObjectId };
 
             Character.CharacterPropertiesShortcutBar.Add(entity);
-            ChangesDetected = true;
+            CharacterChangesDetected = true;
         }
 
         /// <summary>
@@ -115,9 +116,7 @@ namespace ACE.Server.WorldObjects
             if (entity != null)
             {
                 Character.CharacterPropertiesShortcutBar.Remove(entity);
-
-                if (entity.Id != 0)
-                    DatabaseManager.Shard.RemoveEntity(entity, null);
+                CharacterChangesDetected = true;
             }
         }
     }

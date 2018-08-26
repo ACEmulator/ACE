@@ -390,7 +390,7 @@ namespace ACE.Server.Network.Handlers
                     possessedBiotas.Add((possession.Biota, possession.BiotaDatabaseLock));
 
                 // We must await here -- 
-                DatabaseManager.Shard.AddCharacter(player.Biota, possessedBiotas, player.Character, saveSuccess =>
+                DatabaseManager.Shard.AddCharacter(player.Biota, player.BiotaDatabaseLock, possessedBiotas, player.Character, player.CharacterDatabaseLock, saveSuccess =>
                 {
                     if (!saveSuccess)
                     {
@@ -560,9 +560,6 @@ namespace ACE.Server.Network.Handlers
             session.State = SessionState.WorldConnected;
 
             LandblockManager.PlayerEnterWorld(session, character);
-
-            // Save the the LoginTimestamp
-            character.LastLoginTimestamp = Time.GetTimestamp();
         }
 
 
@@ -594,21 +591,15 @@ namespace ACE.Server.Network.Handlers
 
             session.Network.EnqueueSend(new GameMessageCharacterDelete());
 
-            var deleteTime = Time.GetUnixTime() + 3600ul;
+            character.DeleteTime = Time.GetUnixTime() + 3600ul;
+            character.IsDeleted = false;
 
-            DatabaseManager.Shard.DeleteOrRestoreCharacter(deleteTime, character.Id, deleteOrRestoreSuccess =>
+            DatabaseManager.Shard.SaveCharacter(character, new ReaderWriterLockSlim(), result =>
             {
-                if (deleteOrRestoreSuccess)
-                {
-                    character.DeleteTime = deleteTime;
-                    character.IsDeleted = false;
-
+                if (result)
                     session.Network.EnqueueSend(new GameMessageCharacterList(session.Characters, session));
-                }
                 else
-                {
                     session.SendCharacterError(CharacterError.Delete);
-                }
             });
         }
 
@@ -629,15 +620,13 @@ namespace ACE.Server.Network.Handlers
                 }
                 else
                 {
-                    DatabaseManager.Shard.DeleteOrRestoreCharacter(0, character.Id, deleteOrRestoreSuccess =>
-                    {
-                        if (deleteOrRestoreSuccess)
-                        {
-                            character.DeleteTime = 0;
-                            character.IsDeleted = false;
+                    character.DeleteTime = 0;
+                    character.IsDeleted = false;
 
+                    DatabaseManager.Shard.SaveCharacter(character, new ReaderWriterLockSlim(), result =>
+                    {
+                        if (result)
                             session.Network.EnqueueSend(new GameMessageCharacterRestore(guid, character.Name, 0u));
-                        }
                         else
                             SendCharacterCreateResponse(session, CharacterGenerationVerificationResponse.Corrupt);
                     });

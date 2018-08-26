@@ -16,6 +16,8 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public Sentinel(Weenie weenie, ObjectGuid guid, Session session) : base(weenie, guid, session)
         {
+            Character.IsPlussed = true;
+
             SetEphemeralValues();
         }
 

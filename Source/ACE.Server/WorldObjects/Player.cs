@@ -51,6 +51,7 @@ namespace ACE.Server.WorldObjects
             Character.Id = guid.Full;
             Character.AccountId = session.Id;
             Character.Name = GetProperty(PropertyString.Name);
+            CharacterChangesDetected = true;
 
             Session = session;
 
@@ -530,7 +531,7 @@ namespace ACE.Server.WorldObjects
 
             // remove friend in DB
             if (Character.TryRemoveFriend(friendId, out var entity) && entity.Id != 0)
-                DatabaseManager.Shard.RemoveEntity(entity, null);
+                CharacterChangesDetected = true;
 
             // send network message
             Session.Network.EnqueueSend(new GameEventFriendsListUpdate(Session, GameEventFriendsListUpdate.FriendsUpdateTypeFlag.FriendRemoved, friendToRemove));
@@ -542,10 +543,7 @@ namespace ACE.Server.WorldObjects
         public void HandleActionRemoveAllFriends()
         {
             // Remove all from DB
-            DatabaseManager.Shard.RemoveAllFriends(Guid.Low, null);
-
-            // Remove from character object
-            HandleActionRemoveAllFriends();
+            log.Warn("HandleActionRemoveAllFriends is not implemented.");
         }
 
         /// <summary>

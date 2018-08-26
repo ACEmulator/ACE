@@ -1231,6 +1231,10 @@ namespace ACE.Database.Models.Shard
                     .HasColumnName("is_Deleted")
                     .HasColumnType("bit(1)");
 
+                entity.Property(e => e.IsPlussed)
+                    .HasColumnName("is_Plussed")
+                    .HasColumnType("bit(1)");
+
                 entity.Property(e => e.LastLoginTimestamp)
                     .HasColumnName("last_Login_Timestamp")
                     .HasDefaultValueSql("'0'");

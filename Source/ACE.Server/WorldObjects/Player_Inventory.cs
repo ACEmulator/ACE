@@ -1135,7 +1135,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if (((target.CharacterOptions1Mapping ?? 0) & (int)CharacterOptions1.LetOtherPlayersGiveYouItems) == (int)CharacterOptions1.LetOtherPlayersGiveYouItems)
+            if ((Character.CharacterOptions1 & (int)CharacterOptions1.LetOtherPlayersGiveYouItems) == (int)CharacterOptions1.LetOtherPlayersGiveYouItems)
             {
                 if (target != player)
                 {

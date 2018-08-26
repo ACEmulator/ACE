@@ -1,3 +1,7 @@
+08/26/2018
+---------
+ - Added `is_Plussed` key to `character` table
+
 08/19/2018
 ---------
  - Added `alwaysshowwelcome` key to `config_properties_boolean` table

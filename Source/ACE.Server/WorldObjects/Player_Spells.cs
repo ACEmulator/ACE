@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
 
-using ACE.Database;
 using ACE.Database.Models.Shard;
 using ACE.DatLoader;
 using ACE.Entity;
@@ -137,7 +136,7 @@ namespace ACE.Server.WorldObjects
             var entity = new CharacterPropertiesSpellBar { CharacterId = Biota.Id, SpellBarNumber = spellBarId, SpellBarIndex = spellBarPositionId, SpellId = spellId };
 
             Character.CharacterPropertiesSpellBar.Add(entity);
-            ChangesDetected = true;
+            CharacterChangesDetected = true;
         }
 
         /// <summary>
@@ -155,14 +154,12 @@ namespace ACE.Server.WorldObjects
                     if (property.SpellBarNumber == spellBarId && property.SpellBarIndex > entity.SpellBarIndex)
                     {
                         property.SpellBarIndex--;
-                        ChangesDetected = true;
+                        CharacterChangesDetected = true;
                     }
                 }
 
                 Character.CharacterPropertiesSpellBar.Remove(entity);
-
-                if (entity.Id != 0)
-                    DatabaseManager.Shard.RemoveEntity(entity, null);
+                CharacterChangesDetected = true;
             }
         }
     }
