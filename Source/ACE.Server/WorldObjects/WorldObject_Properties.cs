@@ -1220,18 +1220,6 @@ namespace ACE.Server.WorldObjects
         // =========== Other Properties ===========
         // ========================================
 
-        public uint? HairTexture
-        {
-            get => GetProperty(PropertyDataId.HairTexture);
-            set { if (!value.HasValue) RemoveProperty(PropertyDataId.HairTexture); else SetProperty(PropertyDataId.HairTexture, value.Value); }
-        }
-
-        public uint? DefaultHairTexture
-        {
-            get => GetProperty(PropertyDataId.DefaultHairTexture);
-            set { if (!value.HasValue) RemoveProperty(PropertyDataId.DefaultHairTexture); else SetProperty(PropertyDataId.DefaultHairTexture, value.Value); }
-        }
-
         public int? Level
         {
             get => GetProperty(PropertyInt.Level);
