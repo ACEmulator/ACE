@@ -948,7 +948,7 @@ namespace ACE.Server.WorldObjects
             int amount = 0;
             int numItems = 0;
             int value = 0;
-            if (GetCharacterOptions2(CharacterOptions2.SalvageMultipleMaterialsAtOnce))
+            if (GetCharacterOption(CharacterOption.SalvageMultipleMaterialsAtOnce))
             {
                 int counter = 0;
                 int objectCounter = 0;

@@ -45,8 +45,8 @@ namespace ACE.Server.WorldObjects
 
             if (this is Player player)
             { 
-                showHelm = (player.Character.CharacterOptions2 & (int)CharacterOptions2.ShowYourHelmOrHeadGear) == (int)CharacterOptions2.ShowYourHelmOrHeadGear;
-                showCloak = (player.Character.CharacterOptions2 & (int)CharacterOptions2.ShowYourCloak) == (int)CharacterOptions2.ShowYourCloak;
+                showHelm = player.GetCharacterOption(CharacterOption.ShowYourHelmOrHeadGear);
+                showCloak = player.GetCharacterOption(CharacterOption.ShowYourCloak);
 
                 // Some player races use an AlternateSetupDid, either at creation of via Barber options.
                 // BUT -- those values do not correspond with entries in the Clothing Table.

@@ -4,7 +4,6 @@ using System.Linq;
 
 using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
-using ACE.Entity.Enum.Properties;
 using ACE.Server.Network.Structure;
 
 namespace ACE.Server.WorldObjects
@@ -23,17 +22,22 @@ namespace ACE.Server.WorldObjects
             return GetCharacterOptions2((CharacterOptions2)Enum.Parse(typeof(CharacterOptions2), option.ToString()));
         }
 
+        private bool GetCharacterOptions1(CharacterOptions1 option)
+        {
+            return (Character.CharacterOptions1 & (uint)option) != 0;
+        }
+
+        private bool GetCharacterOptions2(CharacterOptions2 option)
+        {
+            return (Character.CharacterOptions2 & (uint)option) != 0;
+        }
+
         public void SetCharacterOption(CharacterOption option, bool value)
         {
             if (option.GetCharacterOptions1Attribute() != null)
                 SetCharacterOptions1((CharacterOptions1)Enum.Parse(typeof(CharacterOptions1), option.ToString()), value);
             else
                 SetCharacterOptions2((CharacterOptions2)Enum.Parse(typeof(CharacterOptions2), option.ToString()), value);
-        }
-
-        private bool GetCharacterOptions1(CharacterOptions1 option)
-        {
-            return (Character.CharacterOptions1 & (uint)option) != 0;
         }
 
         private void SetCharacterOptions1(CharacterOptions1 option, bool value)
@@ -48,17 +52,6 @@ namespace ACE.Server.WorldObjects
             SetCharacterOptions1(options);
         }
 
-        public void SetCharacterOptions1(int value)
-        {
-            Character.CharacterOptions1 = value;
-            CharacterChangesDetected = true;
-        }
-
-        public bool GetCharacterOptions2(CharacterOptions2 option)
-        {
-            return (Character.CharacterOptions2 & (uint)option) != 0;
-        }
-
         private void SetCharacterOptions2(CharacterOptions2 option, bool value)
         {
             var options = Character.CharacterOptions2;
@@ -69,6 +62,12 @@ namespace ACE.Server.WorldObjects
                 options &= ~(int)option;
 
             SetCharacterOptions2(options);
+        }
+
+        public void SetCharacterOptions1(int value)
+        {
+            Character.CharacterOptions1 = value;
+            CharacterChangesDetected = true;
         }
 
         public void SetCharacterOptions2(int value)
