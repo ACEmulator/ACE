@@ -247,7 +247,7 @@ namespace ACE.Server.WorldObjects
             if ((int)Math.Floor(spell.BaseRangeConstant) == 0 && targetPlayer == null)
                 return true;
 
-            // Invalidate non Item Enchantment spells cast against non Creatures, Cows, or other Players
+            // Invalidate non Item Enchantment spells cast against non Creatures or Players
             if (spell.School != MagicSchool.ItemEnchantment && targetCreature == null)
                 return true;
 
