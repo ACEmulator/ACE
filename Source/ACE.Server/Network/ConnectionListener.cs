@@ -2,7 +2,9 @@ using System;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+
 using ACE.Server.Managers;
+
 using log4net;
 
 namespace ACE.Server.Network
@@ -11,6 +13,7 @@ namespace ACE.Server.Network
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         private static readonly ILog packetLog = LogManager.GetLogger(System.Reflection.Assembly.GetEntryAssembly(), "Packets");
+
         public Socket Socket { get; private set; }
 
         private IPEndPoint listenerEndpoint;

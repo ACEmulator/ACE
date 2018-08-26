@@ -25,6 +25,7 @@ namespace ACE.Server.Network.Handlers
         public const int DefaultAuthTimeout = 15;
 
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog packetLog = LogManager.GetLogger(System.Reflection.Assembly.GetEntryAssembly(), "Packets");
 
         public static void HandleLoginRequest(ClientPacket packet, Session session)
         {
@@ -67,7 +68,7 @@ namespace ACE.Server.Network.Handlers
 
         private static void AccountSelectCallback(Account account, Session session, PacketInboundLoginRequest loginRequest)
         {
-            log.DebugFormat("ConnectRequest TS: {0}", session.Network.ConnectionData.ServerTime);
+            packetLog.DebugFormat("ConnectRequest TS: {0}", session.Network.ConnectionData.ServerTime);
             var connectRequest = new PacketOutboundConnectRequest(session.Network.ConnectionData.ServerTime, 0, session.Network.ClientId, ISAAC.ServerSeed, ISAAC.ClientSeed);
 
             session.Network.EnqueueSend(connectRequest);

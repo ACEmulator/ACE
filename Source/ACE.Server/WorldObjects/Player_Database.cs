@@ -4,9 +4,7 @@ using System.Threading;
 
 using ACE.Database;
 using ACE.Database.Models.Shard;
-using ACE.Entity.Enum;
 using ACE.Server.Entity.Actions;
-using ACE.Server.Network.GameMessages.Messages;
 
 namespace ACE.Server.WorldObjects
 {
@@ -17,17 +15,17 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Gets the ActionChain to save a character
         /// </summary>
-        public ActionChain GetSaveChain(bool showMsg = true)
+        public ActionChain GetSaveChain()
         {
-            return new ActionChain(this, () => SavePlayer(showMsg));
+            return new ActionChain(this, SavePlayer);
         }
 
         /// <summary>
         /// Creates and Enqueues an ActionChain to save a character
         /// </summary>
-        public void EnqueueSaveChain(bool showMsg = true)
+        public void EnqueueSaveChain()
         {
-            GetSaveChain(showMsg).EnqueueChain();
+            GetSaveChain().EnqueueChain();
         }
 
         /// <summary>
@@ -48,7 +46,7 @@ namespace ACE.Server.WorldObjects
         /// Saves the character to the persistent database. Includes Stats, Position, Skills, etc.<para />
         /// Will also save any possessions that are marked with ChangesDetected.
         /// </summary>
-        private void SavePlayer(bool showMsg = true)
+        private void SavePlayer()
         {
             DatabaseManager.Shard.SaveCharacter(Character, null);
 
@@ -70,13 +68,7 @@ namespace ACE.Server.WorldObjects
 
             var requestedTime = DateTime.UtcNow;
 
-            DatabaseManager.Shard.SaveBiotas(biotas, result =>
-            {
-                #if DEBUG
-                if (Session.Player != null && showMsg)
-                    Session.Network.EnqueueSend(new GameMessageSystemChat($"{Session.Player.Name} has been saved. It took {(DateTime.UtcNow - requestedTime).TotalMilliseconds:N0} ms to process the request.", ChatMessageType.Broadcast));
-                #endif
-            });
+            DatabaseManager.Shard.SaveBiotas(biotas, result => log.Debug($"{Session.Player.Name} has been saved. It took {(DateTime.UtcNow - requestedTime).TotalMilliseconds} ms to process the request."));
         }
     }
 }
