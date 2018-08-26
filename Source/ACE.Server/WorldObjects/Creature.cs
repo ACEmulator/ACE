@@ -616,6 +616,8 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public override void HeartBeat()
         {
+            EmoteManager.HeartBeat();
+
             EnchantmentManager.HeartBeat();
             VitalTick();
             // item enchantment ticks?

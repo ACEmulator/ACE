@@ -240,38 +240,32 @@ namespace ACE.Server.WorldObjects
         /// <returns></returns>
         protected bool IsInvalidTarget(SpellBase spell, WorldObject target)
         {
+            var targetPlayer = target as Player;
+            var targetCreature = target as Creature;
+
             // Self targeted spells should have a target of self
-            if ((int)Math.Floor(spell.BaseRangeConstant) == 0 && ((target is Player) == false))
+            if ((int)Math.Floor(spell.BaseRangeConstant) == 0 && targetPlayer == null)
                 return true;
 
             // Invalidate non Item Enchantment spells cast against non Creatures or Players
-            if (spell.School != MagicSchool.ItemEnchantment)
-            {
-                if (target.WeenieType != WeenieType.Creature)
-                {
-                    if ((target is Player) == false)
-                        return true;
-                }
-            }
+            if (spell.School != MagicSchool.ItemEnchantment && targetCreature == null)
+                return true;
 
             // Invalidate beneficial spells against Creature/Non-player targets
-            if (target.WeenieType == WeenieType.Creature && ((target is Player) == false) && IsSpellHarmful(spell) == false)
+            if (targetCreature != null && targetPlayer == null && IsSpellHarmful(spell) == false)
                 return true;
 
             // Cannot cast Weapon Aura spells on targets that are not players or creatures
             if ((spell.Name.Contains("Aura of")) && (spell.School == MagicSchool.ItemEnchantment))
             {
-                if ((target is Player) == false)
-                {
-                    if (target.WeenieType != WeenieType.Creature)
-                        return true;
-                }
+                if (targetCreature == null)
+                    return true;
             }
 
             // Cannot cast Weapon Aura spells on targets that are not players or creatures
             if ((spell.MetaSpellType == SpellType.Enchantment) && (spell.School == MagicSchool.ItemEnchantment))
             {
-                if ((target is Player)
+                if (targetPlayer != null
                     || (target.WeenieType == WeenieType.Creature)
                     || (target.WeenieType == WeenieType.Clothing)
                     || (target.WeenieType == WeenieType.Caster)
@@ -282,8 +276,8 @@ namespace ACE.Server.WorldObjects
                     || (target.WeenieType == WeenieType.Chest)
                     || (target.CombatUse != null && target.CombatUse == ACE.Entity.Enum.CombatUse.Shield))
                     return false;
-                else
-                    return true;
+
+                return true;
             }
 
             return false;
