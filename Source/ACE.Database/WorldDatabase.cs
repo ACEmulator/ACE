@@ -373,6 +373,23 @@ namespace ACE.Database
             return null;
         }
 
+        /// <summary>
+        /// Will return all Points of Interests from the DB
+        /// </summary>
+        public List<PointsOfInterest> GetAllPointsOfInterests()
+        {
+            using (var context = new WorldDbContext())
+            {
+                var results = context.PointsOfInterest
+                    .AsNoTracking();
+
+                if (results != null) return results.ToList();
+
+            }
+
+            return null;
+        }
+
         private readonly Dictionary<uint, Dictionary<uint, CookBook>> cookbookCache = new Dictionary<uint, Dictionary<uint, CookBook>>();
 
         /// <summary>
