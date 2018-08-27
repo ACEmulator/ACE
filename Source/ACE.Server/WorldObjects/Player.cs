@@ -92,7 +92,7 @@ namespace ACE.Server.WorldObjects
             // This is the default send upon log in and the most common. Anything with a velocity will need to add that flag.
             PositionFlag |= UpdatePositionFlag.ZeroQx | UpdatePositionFlag.ZeroQy | UpdatePositionFlag.Contact | UpdatePositionFlag.Placement;
 
-            CurrentMotionState = new UniversalMotion(MotionStance.Standing);
+            CurrentMotionState = new UniversalMotion(MotionStance.NonCombat);
 
             // radius for object updates
             ListeningRadius = 5f;
@@ -331,7 +331,7 @@ namespace ACE.Server.WorldObjects
         //public ReadOnlyCollection<Friend> Friends => Friends;
         public ReadOnlyCollection<Friend> Friends { get; set; }
 
-        public MotionStance stance = MotionStance.Standing;
+        public MotionStance stance = MotionStance.NonCombat;
 
         public void ExamineObject(ObjectGuid examinationId)
         {
@@ -655,7 +655,7 @@ namespace ACE.Server.WorldObjects
 
             if (!clientSessionTerminatedAbruptly)
             {
-                var logout = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.LogOut));
+                var logout = new UniversalMotion(MotionStance.NonCombat, new MotionItem(MotionCommand.LogOut));
                 CurrentLandblock?.EnqueueBroadcastMotion(this, logout);
 
                 EnqueueBroadcastPhysicsState();
@@ -1039,7 +1039,7 @@ namespace ACE.Server.WorldObjects
                 motionCommand = MotionCommand.Drink;
 
             var soundEvent = new GameMessageSound(Guid, sound, 1.0f);
-            var motion = new UniversalMotion(MotionStance.Standing, new MotionItem(motionCommand));
+            var motion = new UniversalMotion(MotionStance.NonCombat, new MotionItem(motionCommand));
 
             DoMotion(motion);
 
@@ -1091,7 +1091,7 @@ namespace ACE.Server.WorldObjects
             motionChain.AddDelaySeconds(motionAnimationLength);
 
             // Return to standing position after the animation delay
-            motionChain.AddAction(this, () => DoMotion(new UniversalMotion(MotionStance.Standing)));
+            motionChain.AddAction(this, () => DoMotion(new UniversalMotion(MotionStance.NonCombat)));
             motionChain.EnqueueChain();
         }
 

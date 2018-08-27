@@ -95,19 +95,19 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyDataId.UseTargetAnimation); else SetProperty(PropertyDataId.UseTargetAnimation, value.Value); }
         }
 
-        private static readonly UniversalMotion twitch = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.Twitch1));
+        private static readonly UniversalMotion twitch = new UniversalMotion(MotionStance.NonCombat, new MotionItem(MotionCommand.Twitch1));
 
         public override void ActOnUse(WorldObject worldObject)
         {
             var switchTimer = new ActionChain();
-            var turnToMotion = new UniversalMotion(MotionStance.Standing, Location, Guid);
+            var turnToMotion = new UniversalMotion(MotionStance.NonCombat, Location, Guid);
             turnToMotion.MovementTypes = MovementTypes.TurnToObject;
             switchTimer.AddAction(this, () => worldObject.CurrentLandblock?.EnqueueBroadcastMotion(worldObject, turnToMotion));
             switchTimer.AddDelaySeconds(1);
             switchTimer.AddAction(worldObject, () =>
             {
                 if (UseTargetAnimation.HasValue)
-                    CurrentLandblock?.EnqueueBroadcastMotion(this, new UniversalMotion(MotionStance.Standing, new MotionItem((MotionCommand)UseTargetAnimation)));
+                    CurrentLandblock?.EnqueueBroadcastMotion(this, new UniversalMotion(MotionStance.NonCombat, new MotionItem((MotionCommand)UseTargetAnimation)));
                 else
                     CurrentLandblock?.EnqueueBroadcastMotion(this, twitch);
             });

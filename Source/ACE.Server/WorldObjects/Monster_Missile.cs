@@ -78,7 +78,8 @@ namespace ACE.Server.WorldObjects
             var bodyPart = BodyParts.GetBodyPart(AttackHeight.Value);
 
             float targetTime = 0.0f;
-            var damageSource = LaunchProjectile(AttackTarget, out targetTime);
+            var ammo = GetEquippedAmmo();
+            var damageSource = LaunchProjectile(ammo, AttackTarget, out targetTime);
             var animLength = ReloadMotion();
 
             var actionChain = new ActionChain();

@@ -67,6 +67,8 @@ namespace ACE.Server.WorldObjects
         public bool IsBusy { get => busyState; set => busyState = value; }
         public bool IsMovingTo { get => movingState; set => movingState = value; }
         public bool IsShield { get => CombatUse != null && CombatUse == ACE.Entity.Enum.CombatUse.Shield; }
+        public bool IsTwoHanded { get => CurrentWieldedLocation != null && CurrentWieldedLocation == EquipMask.TwoHanded; }
+        public bool IsBow { get => DefaultCombatStyle != null && (DefaultCombatStyle == CombatStyle.Bow || DefaultCombatStyle == CombatStyle.Crossbow); }
 
         public EmoteManager EmoteManager;
         public EnchantmentManager EnchantmentManager;
@@ -613,7 +615,11 @@ namespace ACE.Server.WorldObjects
 
         public virtual void OnCollideObject(WorldObject target)
         {
-            // empty base
+            // thrown weapons
+            if (ProjectileTarget == null) return;
+
+            var proj = new Projectile(this);
+            proj.OnCollideObject(target);
         }
 
         public virtual void OnCollideObjectEnd(WorldObject target)
@@ -623,7 +629,11 @@ namespace ACE.Server.WorldObjects
 
         public virtual void OnCollideEnvironment()
         {
-            // empty base
+            // thrown weapons
+            if (ProjectileTarget == null) return;
+
+            var proj = new Projectile(this);
+            proj.OnCollideEnvironment();
         }
 
         public void HandleActionMotion(UniversalMotion motion)

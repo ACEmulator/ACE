@@ -204,7 +204,7 @@ namespace ACE.Server.WorldObjects
                     return;
                 }*/
 
-                var motion = new UniversalMotion(MotionStance.Standing);
+                var motion = new UniversalMotion(MotionStance.NonCombat);
                 motion.MovementData.ForwardCommand = (uint)MotionCommand.Pickup;
                 EnqueueBroadcast(new GameMessageUpdatePosition(this),
                     new GameMessageUpdateMotion(Guid, Sequences.GetCurrentSequence(SequenceType.ObjectInstance), Sequences, motion));
@@ -328,7 +328,7 @@ namespace ACE.Server.WorldObjects
                 if (item.WeenieType == WeenieType.Coin)
                     UpdateCoinValue();
 
-                var motion = new UniversalMotion(MotionStance.Standing);
+                var motion = new UniversalMotion(MotionStance.NonCombat);
 
                 EnqueueBroadcast(new GameMessageUpdateMotion(Guid, Sequences.GetCurrentSequence(SequenceType.ObjectInstance), Sequences, motion),
                     new GameMessagePickupEvent(item));
@@ -412,8 +412,8 @@ namespace ACE.Server.WorldObjects
             if ((oldLocation != EquipMask.MissileWeapon && oldLocation != EquipMask.Held && oldLocation != EquipMask.MeleeWeapon) || ((CombatMode & CombatMode.CombatCombat) == 0))
                 return true;
 
-            HandleSwitchToPeaceMode(CombatMode);
-            HandleSwitchToMeleeCombatMode(CombatMode);
+            HandleSwitchToPeaceMode();
+            HandleSwitchToMeleeCombatMode();
             return true;
         }
 
@@ -613,7 +613,7 @@ namespace ACE.Server.WorldObjects
                 // We want to avoid the scenario where the server crashes and a player has too many items.
                 item.SaveBiotaToDatabase();
 
-                var motion = new UniversalMotion(MotionStance.Standing);
+                var motion = new UniversalMotion(MotionStance.NonCombat);
                 motion.MovementData.ForwardCommand = (uint)MotionCommand.Pickup;
                 Session.Network.EnqueueSend(new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Container, new ObjectGuid(0)));
 
@@ -632,7 +632,7 @@ namespace ACE.Server.WorldObjects
                 // Put item on landblock
                 dropChain.AddAction(this, () =>
                 {
-                    motion = new UniversalMotion(MotionStance.Standing);
+                    motion = new UniversalMotion(MotionStance.NonCombat);
                     CurrentLandblock?.EnqueueBroadcastMotion(this, motion);
                     EnqueueBroadcast(new GameMessageSound(Guid, Sound.DropItem, (float)1.0));
                     Session.Network.EnqueueSend(
@@ -1521,7 +1521,7 @@ namespace ACE.Server.WorldObjects
                     Value -= newStack.Value;
                 }
 
-                var motion = new UniversalMotion(MotionStance.Standing);
+                var motion = new UniversalMotion(MotionStance.NonCombat);
                 motion.MovementData.ForwardCommand = (uint)MotionCommand.Pickup;
 
                 // Set drop motion
@@ -1543,7 +1543,7 @@ namespace ACE.Server.WorldObjects
                         Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(container, PropertyInt.EncumbranceVal, container.EncumbranceVal ?? 0));
                     Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
 
-                    motion = new UniversalMotion(MotionStance.Standing);
+                    motion = new UniversalMotion(MotionStance.NonCombat);
                     CurrentLandblock?.EnqueueBroadcastMotion(this, motion);
                     EnqueueBroadcast(new GameMessageSound(Guid, Sound.DropItem, 1.0f));
 

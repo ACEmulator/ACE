@@ -17,13 +17,39 @@ namespace ACE.Server.WorldObjects
 {
     partial class Creature
     {
+        public void ReloadMissileAmmo()
+        {
+            var ammo = GetEquippedAmmo();
+            if (ammo == null) return;
+
+            var actionChain = new ActionChain();
+            EnqueueMotion(actionChain, MotionCommand.Reload);   // start pulling out next arrow
+            EnqueueMotion(actionChain, MotionCommand.Ready);    // finish reloading
+
+            var linkTime = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, MotionCommand.Ready, MotionCommand.Reload);
+            actionChain.AddDelaySeconds(linkTime / 2.0f);
+
+            // arrow appears in hand
+            EnqueueBroadcast(actionChain, new GameMessageParentEvent(this, ammo,
+                (int)ACE.Entity.Enum.ParentLocation.RightHand, (int)ACE.Entity.Enum.Placement.RightHandCombat));
+
+            EnqueueActionBroadcast(actionChain, (Player p) => p.TrackObject(this));  // ensures ammo visible to other players
+
+            actionChain.EnqueueChain();
+        }
+
         /// <summary>
-        /// Executes the weapon reload animation for the player
+        /// TODO: deprecated
         /// </summary>
         public float ReloadMotion()
         {
-            var reloadAnimation = new MotionItem(GetReloadAnimation(), 1.0f);
-            var animLength = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, reloadAnimation);
+            var weapon = GetEquippedMissileWeapon();
+            if (weapon == null) return 0.0f;
+
+            var ammo = weapon.IsBow ? GetEquippedAmmo() : weapon;
+
+            var actionChain = new ActionChain();
+            var animLength = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, MotionCommand.Reload);
 
             var motion = new UniversalMotion(CurrentMotionState.Stance);
             motion.MovementData.CurrentStyle = (uint)CurrentMotionState.Stance;
@@ -33,10 +59,9 @@ namespace ACE.Server.WorldObjects
             //motion.TargetGuid = target.Guid;
             CurrentMotionState = motion;
 
-            var actionChain = new ActionChain();
             actionChain.AddAction(this, () => DoMotion(motion));
-
             actionChain.AddDelaySeconds(animLength);
+
             actionChain.AddAction(this, () =>
             {
                 motion.MovementData.ForwardCommand = (uint)MotionCommand.Invalid;
@@ -44,11 +69,9 @@ namespace ACE.Server.WorldObjects
                 CurrentMotionState = motion;
             });
 
-            var ammo = GetEquippedAmmo();
-            if (ammo != null)
-                actionChain.AddAction(this, () => EnqueueBroadcast(
-                    new GameMessageParentEvent(this, ammo, (int)ACE.Entity.Enum.ParentLocation.RightHand,
-                        (int)ACE.Entity.Enum.Placement.RightHandCombat)));
+            actionChain.AddAction(this, () => EnqueueBroadcast(
+                new GameMessageParentEvent(this, ammo, (int)ACE.Entity.Enum.ParentLocation.RightHand,
+                    (int)ACE.Entity.Enum.Placement.RightHandCombat)));
 
             actionChain.AddDelaySeconds(animLength);
 
@@ -62,27 +85,15 @@ namespace ACE.Server.WorldObjects
             }
             actionChain.EnqueueChain();
 
-            var weapon = GetEquippedWeapon();
-            var reloadTime = weapon.DefaultCombatStyle == CombatStyle.Crossbow ? 3.2f : 1.6f;
-            return animLength * reloadTime;
-        }
-
-        /// <summary>
-        /// Gets the reload animation for the current weapon
-        /// </summary>
-        public MotionCommand GetReloadAnimation()
-        {
-            MotionCommand motion = new MotionCommand();
-
-            switch (CurrentMotionState.Stance)
+            switch (weapon.DefaultCombatStyle)
             {
-                case MotionStance.BowAttack:
-                case MotionStance.CrossBowAttack:
-                    var action = "Reload";
-                    Enum.TryParse(action, out motion);
-                    return motion;
+                case CombatStyle.Bow:
+                    return animLength * 1.6f;
+                case CombatStyle.Crossbow:
+                    return animLength * 3.2f;
+                default:
+                    return animLength * 1.0f;
             }
-            return motion;
         }
 
         public Vector3 GetDir2D(Vector3 source, Vector3 dest)
@@ -95,85 +106,62 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Launches a projectile from player to target
         /// </summary>
-        public WorldObject LaunchProjectile(WorldObject target, out float time)
+        public WorldObject LaunchProjectile(WorldObject ammo, WorldObject target, out float time)
         {
-            var ammo = GetEquippedAmmo();
-            var arrow = WorldObjectFactory.CreateNewWorldObject(ammo.WeenieClassId);
+            var proj = WorldObjectFactory.CreateNewWorldObject(ammo.WeenieClassId);
 
-            arrow.ProjectileSource = this;
-            arrow.ProjectileTarget = target;
+            proj.ProjectileSource = this;
+            proj.ProjectileTarget = target;
 
             var origin = Location.ToGlobal();
             origin.Z += Height;
 
             var dest = target.Location.ToGlobal();
-            //var dest = target.Location.Pos;
             dest.Z += target.Height / GetAimHeight(target);
 
-            var speed = 35.0f;
+            var speed = 35.0f;  // TODO: get correct speed
             var dir = GetDir2D(origin, dest);
             origin += dir * 2.0f;
 
             var velocity = GetProjectileVelocity(target, origin, dir, dest, speed, out time);
-            arrow.Velocity = new AceVector3(velocity.X, velocity.Y, velocity.Z);
+            proj.Velocity = new AceVector3(velocity.X, velocity.Y, velocity.Z);
 
-            origin = Location.FromGlobal(origin).Pos;
-            var rotation = Location.Rotation;
-            arrow.Location = new Position(Location.LandblockId.Raw, origin.X, origin.Y, origin.Z, rotation.X, rotation.Y, rotation.Z, rotation.W);
-            SetProjectilePhysicsState(arrow, target);
+            proj.Location = Location.FromGlobal(origin);
 
-            // TODO: Get correct aim level based on arrow velocity and add aim motion delay.
-            var motion = new UniversalMotion(CurrentMotionState.Stance);
-            motion.MovementData.CurrentStyle = (uint)CurrentMotionState.Stance;
-            motion.MovementData.ForwardCommand = (uint)MotionCommand.AimLevel;
-            CurrentMotionState = motion;
+            SetProjectilePhysicsState(proj, target);
 
-            DoMotion(motion);
-            //actionChain.AddDelaySeconds(animLength);
-
-            LandblockManager.AddObject(arrow);
-            arrow.EnqueueBroadcast(new GameMessagePickupEvent(ammo));
+            LandblockManager.AddObject(proj);
 
             var player = this as Player;
-            // TODO: Add support for monster ammo depletion. For now only players will use up ammo.
-            if (player != null)
-                UpdateAmmoAfterLaunch(ammo);
-            // Not sure why this would be needed but it is sent in retail pcaps.
-            arrow.EnqueueBroadcast(new GameMessageSetStackSize(arrow));
-
             var pkStatus = player == null ? PlayerKillerStatus.Creature : player.PlayerKillerStatus;
 
-            arrow.EnqueueBroadcast(new GameMessagePublicUpdatePropertyInt(arrow, PropertyInt.PlayerKillerStatus, (int)pkStatus));
-            arrow.EnqueueBroadcast(new GameMessageScript(arrow.Guid, ACE.Entity.Enum.PlayScript.Launch, 0f));
+            proj.EnqueueBroadcast(new GameMessagePublicUpdatePropertyInt(proj, PropertyInt.PlayerKillerStatus, (int)pkStatus));
+            proj.EnqueueBroadcast(new GameMessageScript(proj.Guid, ACE.Entity.Enum.PlayScript.Launch, 0f));
 
             // detonate point-blank projectiles immediately
-            var radsum = target.PhysicsObj.GetRadius() + arrow.PhysicsObj.GetRadius();
+            var radsum = target.PhysicsObj.GetRadius() + proj.PhysicsObj.GetRadius();
             var dist = Vector3.Distance(origin, dest);
             if (dist < radsum)
-                arrow.OnCollideObject(target);
+                proj.OnCollideObject(target);
 
-            return arrow;
+            return proj;
         }
 
         /// <summary>
         /// Updates the ammo count or destroys the ammo after launching the projectile.
         /// </summary>
-        /// <param name="ammo">The missile ammo object</param>
+        /// <param name="ammo">The equipped missile ammo object</param>
         public void UpdateAmmoAfterLaunch(WorldObject ammo)
         {
-            var player = this as Player;
-
             if (ammo.StackSize == 1)
             {
                 TryDequipObject(ammo.Guid);
-                player?.Session.Network.EnqueueSend(new GameMessageDeleteObject(ammo));
                 EnqueueActionBroadcast(p => p.RemoveTrackedObject(ammo, true));
             }
             else
             {
                 ammo.StackSize--;
-                player?.Session.Network.EnqueueSend(new GameMessageSetStackSize(ammo));
-                EnqueueBroadcast(new GameMessagePickupEvent(ammo));
+                EnqueueBroadcast(new GameMessagePickupEvent(ammo), new GameMessageSetStackSize(ammo));
             }
         }
 

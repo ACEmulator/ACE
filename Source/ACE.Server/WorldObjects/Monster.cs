@@ -1,4 +1,10 @@
 using System;
+using ACE.Database;
+using ACE.Database.Models.World;
+using ACE.Entity;
+using ACE.Entity.Enum;
+using ACE.Entity.Enum.Properties;
+using ACE.Server.Factories;
 
 namespace ACE.Server.WorldObjects
 {
@@ -22,6 +28,31 @@ namespace ACE.Server.WorldObjects
             Idle,
             Awake
         };
+
+        public void EquipWieldedTreasure()
+        {
+            var wielded = SelectWieldedTreasure();
+
+            if (wielded != null)
+            {
+                var weenie = DatabaseManager.World.GetCachedWeenie(wielded.WeenieClassId);
+                var wo = WorldObjectFactory.CreateWorldObject(weenie, new ObjectGuid(wielded.Id));
+
+                if (wo == null) return;
+
+                if (wielded.PaletteId != 0)
+                    wo.PaletteTemplate = (int)wielded.PaletteId;
+
+                if (wielded.Shade != 0)
+                    wo.Shade = wielded.Shade;
+
+                if (wo.ValidLocations != null)
+                    TryEquipObject(wo, (int)wo.ValidLocations);
+
+                var combatStance = GetCombatStance();
+                Console.WriteLine($"{Name} equipped {wo.Name} - {combatStance}");
+            }
+        }
 
         /// <summary>
         /// Called every ~1 second

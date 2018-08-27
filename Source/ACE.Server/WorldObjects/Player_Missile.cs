@@ -37,10 +37,13 @@ namespace ACE.Server.WorldObjects
         /// <param name="accuracyLevel">The 0-1 accuracy bar level</param>
         public void HandleActionTargetedMissileAttack(ObjectGuid guid, uint attackHeight, float accuracyLevel)
         {
+            var weapon = GetEquippedMissileWeapon();
+            var ammo = GetEquippedAmmo();
+
             // sanity check
             accuracyLevel = Math.Clamp(accuracyLevel, 0.0f, 1.0f);
 
-            if (GetEquippedAmmo() == null) return;
+            if (weapon == null || weapon.IsBow && ammo == null) return;
 
             AttackHeight = (AttackHeight)attackHeight;
             AccuracyLevel = accuracyLevel;
@@ -72,45 +75,86 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void LaunchMissile(WorldObject target)
         {
-            if (GetEquippedAmmo() == null || CombatMode == CombatMode.NonCombat)
-                return;
+            var weapon = GetEquippedMissileWeapon();
+            if (weapon == null || CombatMode == CombatMode.NonCombat) return;
+
+            var ammo = weapon.IsBow ? GetEquippedAmmo() : weapon;
+            if (ammo == null) return;
 
             var creature = target as Creature;
-            if (!IsAlive || MissileTarget == null || creature.Health.Current <= 0)
+            if (!IsAlive || MissileTarget == null || !creature.IsAlive)
             {
                 MissileTarget = null;
                 return;
             }
 
-            var weapon = GetEquippedWeapon();
-            var sound = weapon.DefaultCombatStyle == CombatStyle.Crossbow ? Sound.CrossbowRelease : Sound.BowRelease;
-            EnqueueBroadcast(new GameMessageSound(Guid, sound, 1.0f));
-
-            float targetTime = 0.0f;
-            var damageSource = LaunchProjectile(target, out targetTime);
-
-            // todo: get correct animlengths for shoot + reload + aim
-            var animLength = ReloadMotion() * 2.5f;
-
+            // launch animation
             var actionChain = new ActionChain();
-            //actionChain.AddDelaySeconds(targetTime);
-            //actionChain.AddAction(this, () => DamageTarget(target, damageSource));
+            var launchTime = EnqueueMotion(actionChain, MotionCommand.AimLevel);
 
-            if (creature.Health.Current > 0 && GetCharacterOption(CharacterOption.AutoRepeatAttacks))
+            // launch projectile
+            actionChain.AddAction(this, () =>
             {
-                // reload animation, accuracy bar refill
-                actionChain.AddDelaySeconds(animLength + AccuracyLevel);
-                actionChain.AddAction(this, () => { LaunchMissile(target); });
-                actionChain.EnqueueChain();
-            }
-            else
-                MissileTarget = null;
+                var sound = GetLaunchMissileSound(weapon);
+                EnqueueBroadcast(new GameMessageSound(Guid, sound, 1.0f));
 
-            // stamina usage
-            // TODO: ensure enough stamina for attack
-            // TODO: verify formulas - double/triple cost for bow/xbow?
-            var staminaCost = GetAttackStamina(GetAccuracyRange());
-            UpdateVitalDelta(Stamina, -staminaCost);
+                // stamina usage
+                // TODO: ensure enough stamina for attack
+                // TODO: verify formulas - double/triple cost for bow/xbow?
+                var staminaCost = GetAttackStamina(GetAccuracyRange());
+                UpdateVitalDelta(Stamina, -staminaCost);
+
+                float targetTime = 0.0f;
+                var projectile = LaunchProjectile(ammo, target, out targetTime);
+                UpdateAmmoAfterLaunch(ammo);
+            });
+
+            // reload animation
+            var reloadTime = EnqueueMotion(actionChain, MotionCommand.Reload);
+
+            // reset for next projectile
+            EnqueueMotion(actionChain, MotionCommand.Ready);
+            var linkTime = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, MotionCommand.Ready, MotionCommand.Reload);
+            var cycleTime = MotionTable.GetCycleLength(MotionTableId, CurrentMotionState.Stance, MotionCommand.Ready);
+
+            actionChain.AddAction(this, () => EnqueueBroadcast(new GameMessageParentEvent(this, ammo, (int)ACE.Entity.Enum.ParentLocation.RightHand,
+                (int)ACE.Entity.Enum.Placement.RightHandCombat)));
+
+            actionChain.AddDelaySeconds(linkTime);
+
+            actionChain.AddAction(this, () =>
+            {
+                if (creature.IsAlive && GetCharacterOption(CharacterOption.AutoRepeatAttacks))
+                {
+                    Session.Network.EnqueueSend(new GameEventAttackDone(Session));
+                    Session.Network.EnqueueSend(new GameEventCombatCommmenceAttack(Session));
+                    Session.Network.EnqueueSend(new GameEventAttackDone(Session));
+
+                    var nextAttack = new ActionChain();
+                    nextAttack.AddDelaySeconds(AccuracyLevel + 0.1f);
+
+                    // perform next attack
+                    nextAttack.AddAction(this, () => { LaunchMissile(target); });
+                    nextAttack.EnqueueChain();
+                }
+                else
+                    MissileTarget = null;
+            });
+
+            actionChain.EnqueueChain();
+        }
+
+        public Sound GetLaunchMissileSound(WorldObject weapon)
+        {
+            switch (weapon.DefaultCombatStyle)
+            {
+                case CombatStyle.Bow:
+                    return Sound.BowRelease;
+                case CombatStyle.Crossbow:
+                    return Sound.CrossbowRelease;
+                default:
+                    return Sound.ThrownWeaponRelease1;
+            }
         }
 
         public override float GetAimHeight(WorldObject target)

@@ -108,7 +108,7 @@ namespace ACE.Server.WorldObjects
         public ActionChain DoSwingMotion(WorldObject target, CombatManeuver maneuver, out float animLength)
         {
             var swingAnimation = new MotionItem(maneuver.Motion, 1.25f);
-            animLength = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, swingAnimation);
+            animLength = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, maneuver.Motion, null, 1.25f);
 
             var motion = new UniversalMotion(CurrentMotionState.Stance, swingAnimation);
             motion.MovementData.CurrentStyle = (uint)CurrentMotionState.Stance;
@@ -138,19 +138,19 @@ namespace ACE.Server.WorldObjects
 
             switch (CurrentMotionState.Stance)
             {
-                case MotionStance.DualWieldAttack:
-                case MotionStance.MeleeNoShieldAttack:
-                case MotionStance.MeleeShieldAttack:
+                case MotionStance.DualWieldCombat:
+                case MotionStance.SwordCombat:
+                case MotionStance.SwordShieldCombat:
                 case MotionStance.ThrownShieldCombat:
-                case MotionStance.ThrownWeaponAttack:
-                case MotionStance.TwoHandedStaffAttack:
-                case MotionStance.TwoHandedSwordAttack:
+                case MotionStance.ThrownWeaponCombat:
+                case MotionStance.TwoHandedStaffCombat:
+                case MotionStance.TwoHandedSwordCombat:
                     {
                         Enum.TryParse("Slash" + GetAttackHeight(), out motion);
                         return motion;
                     }
 
-                case MotionStance.UaNoShieldAttack:
+                case MotionStance.HandCombat:
                 default:
                     {
                         Enum.TryParse("Attack" + GetAttackHeight() + (int)GetPowerRange(), out motion);

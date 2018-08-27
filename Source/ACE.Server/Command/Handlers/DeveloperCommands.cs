@@ -306,7 +306,7 @@ namespace ACE.Server.Command.Handlers
                 return;
             }
 
-            UniversalMotion motion = new UniversalMotion(MotionStance.Standing, new MotionItem((MotionCommand)animationId));
+            UniversalMotion motion = new UniversalMotion(MotionStance.NonCombat, new MotionItem((MotionCommand)animationId));
             session.Player.HandleActionMotion(motion);
         }
 
@@ -321,13 +321,13 @@ namespace ACE.Server.Command.Handlers
             if ((parameters?.Length > 0))
                 forwardCommand = (ushort)Convert.ToInt16(parameters[0]);
 
-            var movement = new UniversalMotion(MotionStance.Standing);
+            var movement = new UniversalMotion(MotionStance.NonCombat);
             movement.MovementData.ForwardCommand = forwardCommand;
             session.Network.EnqueueSend(new GameMessageUpdateMotion(session.Player.Guid,
                                                                     session.Player.Sequences.GetCurrentSequence(Network.Sequence.SequenceType.ObjectInstance),
                                                                     session.Player.Sequences,
                                                                     movement));
-            movement = new UniversalMotion(MotionStance.Standing);
+            movement = new UniversalMotion(MotionStance.NonCombat);
             session.Network.EnqueueSend(new GameMessageUpdateMotion(session.Player.Guid,
                                                                     session.Player.Sequences.GetCurrentSequence(Network.Sequence.SequenceType.ObjectInstance),
                                                                     session.Player.Sequences,

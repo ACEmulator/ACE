@@ -54,7 +54,7 @@ namespace ACE.Server.WorldObjects
                 Killer = topDamager.Guid.Full;
 
             // broadcast death animation
-            var motionDeath = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.Dead));
+            var motionDeath = new UniversalMotion(MotionStance.NonCombat, new MotionItem(MotionCommand.Dead));
             CurrentLandblock?.EnqueueBroadcastMotion(this, motionDeath);
 
             var dieChain = new ActionChain();
