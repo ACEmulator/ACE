@@ -16,7 +16,6 @@ using ACE.Server.Entity.Actions;
 using ACE.Server.Managers;
 using ACE.Server.Network;
 using ACE.Server.Network.GameEvent.Events;
-using ACE.Server.Network.GameMessages;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Motion;
 using ACE.Server.Network.Sequence;
@@ -909,6 +908,84 @@ namespace ACE.Server.WorldObjects
         public override int GetHashCode()
         {
             return Guid.Full.GetHashCode();
+        }
+
+        public enum WeaponDamageBonusType
+        {
+            NoBonus,
+            CritFrequency,
+            CritMultiplier,
+            CreatureSlayer,
+            ElementalDamageMod,
+            ResistanceModifier,
+            ArmorRending
+        }
+
+        /// <summary>
+        /// Returns the bonus amount based upon the properties of a given weapon
+        /// </summary>
+        /// <param name="wielder"></param>
+        /// <param name="weaponDmgBonusType"></param>
+        /// <param name="damageType"></param>
+        /// <param name="target"></param>
+        /// <returns></returns>
+        public static float GetWeaponDamageBonus(Creature wielder, WeaponDamageBonusType weaponDmgBonusType = WeaponDamageBonusType.NoBonus, DamageType damageType = DamageType.Undef, Creature target = null)
+        {
+            float modifier = 1.0f;
+            WorldObject weapon = wielder.GetEquippedWeapon();
+
+            if (weapon == null)
+                weapon = wielder.GetEquippedWand();
+
+            if (weapon is MeleeWeapon || weapon is Missile || weapon is MissileLauncher || weapon is Caster)
+            {
+                switch (weaponDmgBonusType)
+                {
+                    case WeaponDamageBonusType.NoBonus:
+                        break;
+                    case WeaponDamageBonusType.CritFrequency:
+                        // Critical chance increase
+                        // TODO: Critial Strike imbue that scales with player's skill
+                        if (weapon is Caster)
+                            return (float)(weapon.GetProperty(PropertyFloat.CriticalFrequency) ?? 0.02f);
+                        return (float)(weapon.GetProperty(PropertyFloat.CriticalFrequency) ?? 0.1f);
+                    case WeaponDamageBonusType.CritMultiplier:
+                        // Critical damage multiplier
+                        // TODO: Crippling Blow imbue that scales with player's skill
+                        return (float)(weapon.GetProperty(PropertyFloat.CriticalMultiplier) ?? 1.0f);
+                    case WeaponDamageBonusType.CreatureSlayer:
+                        // Fixed 2x damage bonus against specified CreatureType
+                        if (weapon.GetProperty(PropertyInt.SlayerCreatureType) != null && target != null)
+                            if ((CreatureType)weapon.GetProperty(PropertyInt.SlayerCreatureType) == target.CreatureType)
+                                modifier = (float)(weapon.GetProperty(PropertyFloat.SlayerDamageBonus) ?? 1.0f);
+                        return modifier;
+                    case WeaponDamageBonusType.ElementalDamageMod:
+                        // Caster weapon only bonus
+                        if (weapon is Caster)
+                        {
+                            var elementalDamageModType = weapon.GetProperty(PropertyInt.DamageType) ?? (int)DamageType.Undef;
+                            if (elementalDamageModType != (int)DamageType.Undef)
+                                if (elementalDamageModType == (int)damageType)
+                                    modifier = (float)(weapon.GetProperty(PropertyFloat.ElementalDamageMod) ?? 1.0f);
+                            return modifier;
+                        }
+                        break;
+                    case WeaponDamageBonusType.ResistanceModifier:
+                        // Quest weapon fixed Resistance Cleaving equivalent to Level 5 Life Vulnerability spell
+                        // TODO: Resistance Rending imbue that scales with player's skill
+                        var weaponResistanceModifierType = weapon.GetProperty(PropertyInt.ResistanceModifierType) ?? (int)DamageType.Undef;
+                        if (weaponResistanceModifierType != (int)DamageType.Undef)
+                            if (weaponResistanceModifierType == (int)damageType)
+                                modifier = (float)(weapon.GetProperty(PropertyFloat.ResistanceModifier) ?? 1.0f) + 1.0f;
+                        return modifier;
+                    case WeaponDamageBonusType.ArmorRending:
+                        // Effectively a non-spell damage imbue that reduces armors physical damage mitigation, which scales against player's skill
+                        // TODO
+                        break;
+                }
+            }
+
+            return modifier;
         }
     }
 }

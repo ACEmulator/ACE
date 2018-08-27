@@ -1049,7 +1049,8 @@ namespace ACE.Server.WorldObjects
                 if (spellDID == null)
                     spellDID = 0;
 
-                // TODO: Handle spell cast
+                if (spellDID != 0)
+                    CreateSingleSpell((uint)spellDID);
                 buffMessage = new GameMessageSystemChat($"Consuming {consumableName} not yet fully implemented.", ChatMessageType.System);
             }
             else

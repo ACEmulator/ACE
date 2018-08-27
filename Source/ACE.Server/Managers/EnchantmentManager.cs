@@ -581,6 +581,46 @@ namespace ACE.Server.Managers
         }
 
         /// <summary>
+        /// Gets the resistance modifier for a damage type
+        /// </summary>
+        public float GetProtectionResistanceMod(DamageType damageType)
+        {
+            var typeFlags = EnchantmentTypeFlags.Float | EnchantmentTypeFlags.SingleStat | EnchantmentTypeFlags.Multiplicative;
+            var resistance = GetResistanceKey(damageType);
+            var enchantments = GetEnchantments(typeFlags, (uint)resistance);
+
+            // multiplicative
+            var modifier = 1.0f;
+            foreach (var enchantment in enchantments)
+            {
+                if (enchantment.StatModValue < 1.0f)
+                    modifier *= enchantment.StatModValue;
+            }
+
+            return modifier;
+        }
+
+        /// <summary>
+        /// Gets the resistance modifier for a damage type
+        /// </summary>
+        public float GetVulnerabilityResistanceMod(DamageType damageType)
+        {
+            var typeFlags = EnchantmentTypeFlags.Float | EnchantmentTypeFlags.SingleStat | EnchantmentTypeFlags.Multiplicative;
+            var resistance = GetResistanceKey(damageType);
+            var enchantments = GetEnchantments(typeFlags, (uint)resistance);
+
+            // multiplicative
+            var modifier = 1.0f;
+            foreach (var enchantment in enchantments)
+            {
+                if (enchantment.StatModValue > 1.0f)
+                    modifier *= enchantment.StatModValue;
+            }
+
+            return modifier;
+        }
+
+        /// <summary>
         /// Gets the regeneration modifier for a vital type
         /// (regeneration / rejuvenation / mana renewal)
         /// </summary>

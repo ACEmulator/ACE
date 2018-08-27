@@ -199,10 +199,10 @@ namespace ACE.Server.WorldObjects
             var damage = baseDamage * attributeMod * powerAccuracyMod;
 
             // critical hit
-            var critical = 0.1f;
+            var critical = GetWeaponDamageBonus(this, WeaponDamageBonusType.CritFrequency);
             if (Physics.Common.Random.RollDice(0.0f, 1.0f) < critical)
             {
-                damage = baseDamageRange.Max * attributeMod * powerAccuracyMod * 2.0f;
+                damage = baseDamageRange.Max * attributeMod * powerAccuracyMod * 2.0f / GetWeaponDamageBonus(this, WeaponDamageBonusType.CritMultiplier);
                 criticalHit = true;
             }
 
@@ -222,13 +222,15 @@ namespace ACE.Server.WorldObjects
             else
                 damageType = GetDamageType();
 
+            creaturePart.WeaponResistanceMod = GetWeaponDamageBonus(this, WeaponDamageBonusType.ResistanceModifier, damageType);
             var resistance = GetResistance(creaturePart, damageType);
 
             // scale damage for armor and shield
             var armorMod = SkillFormula.CalcArmorMod(resistance);
             var shieldMod = creature.GetShieldMod(this, damageType);
 
-            return damage * armorMod * shieldMod;
+            var slayerBonus = GetWeaponDamageBonus(this, WeaponDamageBonusType.CreatureSlayer, DamageType.Undef, target as Creature);
+            return damage * armorMod * shieldMod * slayerBonus;
         }
 
         public float GetPowerAccuracyMod()
