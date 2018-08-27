@@ -915,6 +915,8 @@ namespace ACE.Server.WorldObjects
             NoBonus,
             PhysicalCritFrequency,
             MagicCritFrequency,
+            ManaConversion,
+            MeleeDefense,
             CritMultiplier,
             CreatureSlayer,
             ElementalDamageMod,
@@ -930,7 +932,7 @@ namespace ACE.Server.WorldObjects
         /// <param name="damageType"></param>
         /// <param name="target"></param>
         /// <returns></returns>
-        public static float GetWeaponDamageBonus(Creature wielder, WeaponDamageBonusType weaponDmgBonusType = WeaponDamageBonusType.NoBonus, DamageType damageType = DamageType.Undef, Creature target = null)
+        public static float GetWeaponBonus(Creature wielder, WeaponDamageBonusType weaponDmgBonusType = WeaponDamageBonusType.NoBonus, DamageType damageType = DamageType.Undef, Creature target = null)
         {
             const float defaultPhysicalCritFrequency = 0.10f;
             const float defaultMagicCritFrequency = 0.02f;
@@ -962,6 +964,12 @@ namespace ACE.Server.WorldObjects
                 {
                     case WeaponDamageBonusType.NoBonus:
                         break;
+                    case WeaponDamageBonusType.ManaConversion:
+                        // Mana Conversion skill modifier
+                        return (float)(weapon.GetProperty(PropertyFloat.ManaConversionMod) ?? defaultBonusModifier);
+                    case WeaponDamageBonusType.MeleeDefense:
+                        // Melee Defense skill modifier
+                        return (float)(weapon.GetProperty(PropertyFloat.WeaponDefense) ?? defaultBonusModifier);
                     case WeaponDamageBonusType.PhysicalCritFrequency:
                         // Critical chance increase
                         // TODO: Critial Strike imbue that scales with player's skill
@@ -1004,6 +1012,19 @@ namespace ACE.Server.WorldObjects
                         // TODO
                         break;
                 }
+            }
+
+            switch (weaponDmgBonusType)
+            {
+                case WeaponDamageBonusType.PhysicalCritFrequency:
+                    modifier = defaultPhysicalCritFrequency;
+                    break;
+                case WeaponDamageBonusType.MagicCritFrequency:
+                    modifier = defaultMagicCritFrequency;
+                    break;
+                default:
+                    modifier = defaultBonusModifier;
+                    break;
             }
 
             return modifier;
