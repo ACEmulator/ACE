@@ -463,8 +463,8 @@ namespace ACE.Server.Managers
 
                 // Removes sessions in the NetworkTimeout state, incuding sessions that have reached a timeout limit.
                 var deadSessions = sessions.FindAll(s => s.State == Network.Enum.SessionState.NetworkTimeout);
-                if (deadSessions.Count > 0)
-                    Parallel.ForEach(deadSessions, RemoveSession);
+                foreach (var session in deadSessions)
+                    RemoveSession(session);
 
                 Thread.Sleep(1);
 
@@ -577,11 +577,6 @@ namespace ACE.Server.Managers
                 player.ClearRequestedPositions();
 
             return newPosition;
-        }
-
-        public static double SecondsToTicks(double elapsedTimeSeconds)
-        {
-            return elapsedTimeSeconds;
         }
     }
 }

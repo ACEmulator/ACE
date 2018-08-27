@@ -418,8 +418,8 @@ namespace ACE.Server.WorldObjects
 
                     if (distanceTo > spell.BaseRangeConstant + magicSkill * spell.BaseRangeMod)
                     {
-                        player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.MagicTargetOutOfRange),
-                            new GameMessageSystemChat($"{target.Name} is out of range!", ChatMessageType.Magic));
+                        player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.None),
+                            new GameMessageSystemChat($"Target is out of range!", ChatMessageType.Magic));
                         player.IsBusy = false;
                         return;
                     }

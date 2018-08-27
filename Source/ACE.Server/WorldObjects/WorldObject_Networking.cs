@@ -346,10 +346,10 @@ namespace ACE.Server.WorldObjects
             }
 
             if ((physicsDescriptionFlag & PhysicsDescriptionFlag.DefaultScript) != 0)
-                writer.Write((uint)(PhysicsObj.DefaultScript ?? 0u));
+                writer.Write(DefaultScriptId ?? 0);
 
             if ((physicsDescriptionFlag & PhysicsDescriptionFlag.DefaultScriptIntensity) != 0)
-                writer.Write(PhysicsObj.DefaultScriptIntensity ?? 0u);
+                writer.Write(DefaultScriptIntensity ?? 0);
 
             // timestamps
             writer.Write(Sequences.GetCurrentSequence(SequenceType.ObjectPosition));        // 0
@@ -469,10 +469,10 @@ namespace ACE.Server.WorldObjects
             if (Omega != null)
                 physicsDescriptionFlag |= PhysicsDescriptionFlag.Omega;
 
-            if (PhysicsObj != null && PhysicsObj.DefaultScript != null && PhysicsObj.DefaultScript != 0)
+            if (DefaultScriptId != null)
                 physicsDescriptionFlag |= PhysicsDescriptionFlag.DefaultScript;
 
-            if (PhysicsObj != null && PhysicsObj.DefaultScriptIntensity != null)
+            if (DefaultScriptIntensity != null)
                 physicsDescriptionFlag |= PhysicsDescriptionFlag.DefaultScriptIntensity;
 
             return physicsDescriptionFlag;
@@ -1145,7 +1145,19 @@ namespace ACE.Server.WorldObjects
             //var dist = Vector3.Distance(ProjectileTarget.Location.Pos, newPos);
             //Console.WriteLine("Dist: " + dist);
             //Console.WriteLine("Velocity: " + PhysicsObj.Velocity);
-
+            var spellProjectile = this as SpellProjectile;
+            if (spellProjectile != null && spellProjectile.SpellType == SpellProjectile.ProjectileSpellType.Ring)
+            {
+                var dist = Vector3.Distance(spellProjectile.SpawnPos.ToGlobal(), Location.ToGlobal());
+                var maxRange = spellProjectile.SpellBase.BaseRangeConstant;
+                //Console.WriteLine("Max range: " + maxRange);
+                if (dist > maxRange)
+                {
+                    PhysicsObj.set_active(false);
+                    spellProjectile.ProjectileImpact();
+                    return false;
+                }
+            }
             return landblockUpdate;
         }
 
@@ -1282,6 +1294,31 @@ namespace ACE.Server.WorldObjects
 
             foreach (var player in PhysicsObj.ObjMaint.VoyeurTable.Values.Select(v => v.WeenieObj.WorldObject as Player))
                 player.EnqueueAction(new ActionEventDelegate(() => delegateAction(player)));
+        }
+
+        /// <summary>
+        /// Sends network messages to all Players who currently know about this object
+        /// within a maximum range
+        /// </summary>
+        public void EnqueueBroadcast(GameMessage msg, float range)
+        {
+            if (PhysicsObj == null || CurrentLandblock == null) return;
+
+            var self = this as Player;
+            if (self != null)
+                self.Session.Network.EnqueueSend(msg);
+
+            var isDungeon = CurrentLandblock._landblock.IsDungeon;
+
+            foreach (var player in PhysicsObj.ObjMaint.VoyeurTable.Values.Select(v => v.WeenieObj.WorldObject as Player))
+            {
+                if (isDungeon && Location.Landblock != player.Location.Landblock)
+                    continue;
+
+                var dist = Vector3.Distance(Location.ToGlobal(), player.Location.ToGlobal());
+                if (dist <= range)
+                    player.Session.Network.EnqueueSend(msg);
+            }
         }
 
         /// <summary>

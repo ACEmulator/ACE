@@ -51,7 +51,7 @@ namespace ACE.Server.Managers
                 case EmoteType.Act:
                     // short for 'acting' text
                     var message = Replace(text, sourceObject, targetObject);
-                    sourceObject?.EnqueueBroadcast(new GameMessageSystemChat(message, ChatMessageType.Broadcast));
+                    sourceObject?.EnqueueBroadcast(new GameMessageSystemChat(message, ChatMessageType.Broadcast), 30.0f);
                     break;
 
                 case EmoteType.Activate:

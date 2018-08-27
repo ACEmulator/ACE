@@ -563,9 +563,12 @@ namespace ACE.Server.WorldObjects
 
         public uint? DefaultScriptId
         {
-            // Is this CSetup.DefaultScript?
-            get => Script;
-            set { Script = (ushort?)value; }
+            get
+            {
+                var defaultScriptId = GetProperty(PropertyDataId.PhysicsScript);
+                return defaultScriptId == null ? null : defaultScriptId + 1;    // bug in data?
+            }
+            set { if (!value.HasValue) RemoveProperty(PropertyDataId.PhysicsScript); else SetProperty(PropertyDataId.PhysicsScript, value.Value); }
         }
 
         public float? DefaultScriptIntensity
@@ -1348,11 +1351,11 @@ namespace ACE.Server.WorldObjects
         //}
 
 
-        //public uint? CombatTableDID
-        //{
-        //    get { return GetProperty(PropertyDataId.CombatTable); }
-        //    set { SetProperty(PropertyDataId.CombatTable, value); }
-        //}
+        public uint? CombatTableDID
+        {
+            get => GetProperty(PropertyDataId.CombatTable);
+            set { if (!value.HasValue) RemoveProperty(PropertyDataId.CombatTable); else SetProperty(PropertyDataId.CombatTable, value.Value); }
+        }
 
 
         //public int? PhysicsState

@@ -127,7 +127,7 @@ namespace ACE.Server.Entity.Actions
                 return this;
             }
 
-            AddAction(WorldManager.DelayManager, new DelayAction(WorldManager.SecondsToTicks(timeInSeconds)));
+            AddAction(WorldManager.DelayManager, new DelayAction(timeInSeconds));
 
             return this;
         }
