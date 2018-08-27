@@ -219,7 +219,7 @@ namespace ACE.Server.WorldObjects
         {
             var spells = new List<SpellBarPositions>();
 
-            var results = Character.CharacterPropertiesSpellBar.Where(x => x.SpellBarNumber == barId);
+            var results = Character.GetSpellsInBar(barId, CharacterDatabaseLock);
 
             foreach (var result in results)
             {
@@ -238,21 +238,8 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void HandleActionAddSpellFavorite(uint spellId, uint spellBarPositionId, uint spellBarId)
         {
-            var spells = GetSpellsInSpellBar((int)spellBarId);
+            Character.AddSpellToBar(spellBarId, spellBarPositionId, spellId, CharacterDatabaseLock);
 
-            if (spellBarPositionId > spells.Count + 1)
-                spellBarPositionId = (uint)(spells.Count + 1);
-
-            // We must increment the position of existing spells in the bar that exist on or after this position
-            foreach (var property in Character.CharacterPropertiesSpellBar)
-            {
-                if (property.SpellBarNumber == spellBarId && property.SpellBarIndex >= spellBarPositionId)
-                    property.SpellBarIndex++;
-            }
-
-            var entity = new CharacterPropertiesSpellBar { CharacterId = Biota.Id, SpellBarNumber = spellBarId, SpellBarIndex = spellBarPositionId, SpellId = spellId };
-
-            Character.CharacterPropertiesSpellBar.Add(entity);
             CharacterChangesDetected = true;
         }
 
@@ -261,23 +248,8 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void HandleActionRemoveSpellFavorite(uint spellId, uint spellBarId)
         {
-            var entity = Character.CharacterPropertiesSpellBar.FirstOrDefault(x => x.SpellBarNumber == spellBarId && x.SpellId == spellId);
-
-            if (entity != null)
-            {
-                // We must decrement the position of existing spells in the bar that exist after this position
-                foreach (var property in Character.CharacterPropertiesSpellBar)
-                {
-                    if (property.SpellBarNumber == spellBarId && property.SpellBarIndex > entity.SpellBarIndex)
-                    {
-                        property.SpellBarIndex--;
-                        CharacterChangesDetected = true;
-                    }
-                }
-
-                Character.CharacterPropertiesSpellBar.Remove(entity);
+            if (Character.TryRemoveSpellFromBar(spellBarId, spellId, out _, CharacterDatabaseLock))
                 CharacterChangesDetected = true;
-            }
         }
 
 
