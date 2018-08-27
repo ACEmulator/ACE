@@ -38,6 +38,10 @@ namespace ACE.Server.WorldObjects.Entity
             set => biotaPropertiesSkill.PP = value;
         }
 
+        /// <summary>
+        /// Total skill level due to
+        /// directly raising the skill
+        /// </summary>
         public ushort Ranks
         {
             get => biotaPropertiesSkill.LevelFromPP;

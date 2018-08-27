@@ -21,6 +21,7 @@ namespace ACE.Entity.Enum
         FellowshipSpell                 = 0x2000,
         FastCast                        = 0x4000,
         IndoorLongRange                 = 0x8000,
-        DamageOverTime                  = 0x10000
+        DamageOverTime                  = 0x10000,
+        UNKNOWN                         = 0x20000
     }
 }

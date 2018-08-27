@@ -1145,7 +1145,19 @@ namespace ACE.Server.WorldObjects
             //var dist = Vector3.Distance(ProjectileTarget.Location.Pos, newPos);
             //Console.WriteLine("Dist: " + dist);
             //Console.WriteLine("Velocity: " + PhysicsObj.Velocity);
-
+            var spellProjectile = this as SpellProjectile;
+            if (spellProjectile != null && spellProjectile.SpellType == SpellProjectile.ProjectileSpellType.Ring)
+            {
+                var dist = Vector3.Distance(spellProjectile.SpawnPos.ToGlobal(), Location.ToGlobal());
+                var maxRange = spellProjectile.SpellBase.BaseRangeConstant;
+                //Console.WriteLine("Max range: " + maxRange);
+                if (dist > maxRange)
+                {
+                    PhysicsObj.set_active(false);
+                    spellProjectile.ProjectileImpact();
+                    return false;
+                }
+            }
             return landblockUpdate;
         }
 

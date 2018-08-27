@@ -45,6 +45,18 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
+        /// Returns the magic skill level used for spell range checks.
+        /// (initial points + points due to directly raising the skill)
+        /// </summary>
+        /// <returns></returns>
+        public uint GetMagicSkillForRangeCheck()
+        {
+            var currentSpell = GetCurrentSpell();
+            var skill = GetCreatureSkill((MagicSchool)currentSpell.School);
+            return skill.InitLevel + skill.Ranks;
+        }
+
+        /// <summary>
         /// Returns the sum of all probabilities from monster's spell_book
         /// </summary>
         public float GetSpellProbability()
@@ -123,7 +135,7 @@ namespace ACE.Server.WorldObjects
             var spellBase = GetCurrentSpellBase();
             var spell = GetCurrentSpell();
 
-            var targetSelf = spellBase.Name.Contains("Self");   // better way?
+            var targetSelf = (spellBase.Bitfield & (uint)SpellBitfield.SelfTargeted) == 1;
             var target = targetSelf ? this : AttackTarget;
 
             var player = AttackTarget as Player;
@@ -190,7 +202,7 @@ namespace ACE.Server.WorldObjects
         public float GetSpellMaxRange()
         {
             var spell = GetCurrentSpellBase();
-            var skill = GetMagicSkill();
+            var skill = GetMagicSkillForRangeCheck();
 
             var maxRange = spell.BaseRangeConstant + skill * spell.BaseRangeMod;
             if (maxRange == 0.0f)
