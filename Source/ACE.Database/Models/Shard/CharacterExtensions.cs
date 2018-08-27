@@ -22,12 +22,43 @@ namespace ACE.Database.Models.Shard
         // CharacterPropertiesFriendList
         // =====================================
 
-        public static bool TryRemoveFriend(this Character character, ObjectGuid friendGuid, out CharacterPropertiesFriendList entity, ReaderWriterLockSlim rwLock)
+        public static CharacterPropertiesFriendList AddFriend(this Character character, uint friendId, ReaderWriterLockSlim rwLock, out bool friendAlreadyExists)
         {
             rwLock.EnterUpgradeableReadLock();
             try
             {
-                entity = character.CharacterPropertiesFriendList.FirstOrDefault(x => x.FriendId == friendGuid.Full);
+                var entity = character.CharacterPropertiesFriendList.FirstOrDefault(x => x.FriendId == friendId);
+                if (entity != null)
+                {
+                    friendAlreadyExists = true;
+                    return entity;
+                }
+
+                rwLock.EnterWriteLock();
+                try
+                {
+                    entity = new CharacterPropertiesFriendList { CharacterId = character.Id, FriendId = friendId, Character = character};
+                    character.CharacterPropertiesFriendList.Add(entity);
+                    friendAlreadyExists = false;
+                    return entity;
+                }
+                finally
+                {
+                    rwLock.ExitWriteLock();
+                }
+            }
+            finally
+            {
+                rwLock.ExitUpgradeableReadLock();
+            }
+        }
+
+        public static bool TryRemoveFriend(this Character character, uint friendId, out CharacterPropertiesFriendList entity, ReaderWriterLockSlim rwLock)
+        {
+            rwLock.EnterUpgradeableReadLock();
+            try
+            {
+                entity = character.CharacterPropertiesFriendList.FirstOrDefault(x => x.FriendId == friendId);
                 if (entity != null)
                 {
                     rwLock.EnterWriteLock();

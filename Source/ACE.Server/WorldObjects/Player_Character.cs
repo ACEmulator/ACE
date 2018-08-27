@@ -113,17 +113,15 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            // already exists in friends list?
-            if (Character.CharacterPropertiesFriendList.FirstOrDefault(f => f.FriendId == friendInfo.Guid.Full) != null)
+            var newFriend = Character.AddFriend(friendInfo.Guid.Full, CharacterDatabaseLock, out var friendAlreadyExists);
+
+            if (friendAlreadyExists)
+            {
                 ChatPacket.SendServerMessage(Session, "That character is already in your friends list", ChatMessageType.Broadcast);
+                return;
+            }
 
-            var newFriend = new CharacterPropertiesFriendList();
-            newFriend.CharacterId = Biota.Id;      // current player id
-            //newFriend.AccountId = Biota.Character.AccountId;    // current player account id
-            newFriend.FriendId = friendInfo.Biota.Id;
-
-            // add friend to DB
-            Character.CharacterPropertiesFriendList.Add(newFriend);
+            CharacterChangesDetected = true;
 
             // send network message
             Session.Network.EnqueueSend(new GameEventFriendsListUpdate(Session, GameEventFriendsListUpdate.FriendsUpdateTypeFlag.FriendAdded, newFriend));
@@ -135,7 +133,7 @@ namespace ACE.Server.WorldObjects
         /// <param name="friendId">The ObjectGuid of the friend that is being removed</param>
         public void HandleActionRemoveFriend(ObjectGuid friendId)
         {
-            if (!Character.TryRemoveFriend(friendId, out var friendToRemove, CharacterDatabaseLock))
+            if (!Character.TryRemoveFriend(friendId.Full, out var friendToRemove, CharacterDatabaseLock))
             {
                 ChatPacket.SendServerMessage(Session, "That character is not in your friends list!", ChatMessageType.Broadcast);
                 return;
