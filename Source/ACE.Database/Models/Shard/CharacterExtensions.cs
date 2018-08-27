@@ -209,5 +209,37 @@ namespace ACE.Database.Models.Shard
         // =====================================
         // CharacterPropertiesTitleBook
         // =====================================
+
+        public static void AddTitleToRegistry(this Character character, uint title, ReaderWriterLockSlim rwLock, out bool titleAlreadyExists, out int numCharacterTitles)
+        {
+            rwLock.EnterUpgradeableReadLock();
+            try
+            {
+                var entity = character.CharacterPropertiesTitleBook.FirstOrDefault(x => x.TitleId == title);
+                if (entity != null)
+                {
+                    titleAlreadyExists = true;
+                    numCharacterTitles = character.CharacterPropertiesTitleBook.Count;
+                    return;
+                }
+
+                rwLock.EnterWriteLock();
+                try
+                {
+                    entity = new CharacterPropertiesTitleBook { CharacterId = character.Id, TitleId = title, Character = character };
+                    character.CharacterPropertiesTitleBook.Add(entity);
+                    titleAlreadyExists = false;
+                    numCharacterTitles = character.CharacterPropertiesTitleBook.Count;
+                }
+                finally
+                {
+                    rwLock.ExitWriteLock();
+                }
+            }
+            finally
+            {
+                rwLock.ExitUpgradeableReadLock();
+            }
+        }
     }
 }

@@ -267,23 +267,20 @@ namespace ACE.Server.WorldObjects
             if (!Enum.IsDefined(typeof(CharacterTitle), titleId))
                 return;
 
-            var titlebook = new List<uint>();
-
-            foreach (var title in Character.CharacterPropertiesTitleBook)
-                titlebook.Add(title.TitleId);
-
-            NumCharacterTitles = titlebook.Count();
+            Character.AddTitleToRegistry(titleId, CharacterDatabaseLock, out var titleAlreadyExists, out var numCharacterTitles);
 
             bool sendMsg = false;
             bool notifyNewTitle = false;
 
-            if (!titlebook.Contains(titleId))
+            if (!titleAlreadyExists)
             {
-                Character.CharacterPropertiesTitleBook.Add(new Database.Models.Shard.CharacterPropertiesTitleBook { CharacterId = Guid.Full, TitleId = titleId });
-                titlebook.Add(titleId);
-                NumCharacterTitles++;
+                CharacterChangesDetected = true;
+
+                NumCharacterTitles = numCharacterTitles;
+
                 sendMsg = true;
                 notifyNewTitle = true;
+
             }
 
             if (setAsDisplayTitle && CharacterTitleId != titleId)
@@ -292,10 +289,10 @@ namespace ACE.Server.WorldObjects
                 sendMsg = true;
             }
 
-            if (sendMsg && FirstEnterWorldDone.Value)
+            if (sendMsg && FirstEnterWorldDone != null && FirstEnterWorldDone.Value)
             {
-                var message = new GameEventUpdateTitle(Session, titleId, setAsDisplayTitle);
-                Session.Network.EnqueueSend(message);
+                Session.Network.EnqueueSend(new GameEventUpdateTitle(Session, titleId, setAsDisplayTitle));
+
                 if (notifyNewTitle)
                     Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "You have been granted a new title."));
             }
