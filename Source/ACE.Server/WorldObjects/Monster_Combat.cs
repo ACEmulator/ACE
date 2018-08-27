@@ -188,10 +188,11 @@ namespace ACE.Server.WorldObjects
 
         public DamageType GetDamageType(BiotaPropertiesBodyPart attackPart)
         {
-            if (CurrentAttack != AttackType.Missile)
-                return (DamageType)attackPart.DType;
+            var weapon = GetEquippedWeapon();
+            if (weapon != null)
+                return GetDamageType();
             else
-                return GetDamageType(false);
+                return (DamageType)attackPart.DType;
         }
 
         /// <summary>

@@ -868,12 +868,15 @@ namespace ACE.Server.WorldObjects
             if (multiple) return damageTypes;
 
             // get single damage type
+            var motion = creature.CurrentMotionState != null && creature.CurrentMotionState.Commands != null
+                && creature.CurrentMotionState.Commands.Count > 0 ? creature.CurrentMotionState.Commands[0].Motion.ToString() : "";
+
             foreach (DamageType damageType in Enum.GetValues(typeof(DamageType)))
             {
                 if ((damageTypes & damageType) != 0)
                 {
                     // handle multiple damage types
-                    if (damageType == DamageType.Slash && creature.CurrentMotionState.Commands[0].Motion.ToString().Contains("Thrust"))
+                    if (damageType == DamageType.Slash && motion.Contains("Thrust"))
                         continue;
 
                     return damageType;

@@ -16,5 +16,10 @@ namespace ACE.Server.Entity
             Min = min;
             Max = max;
         }
+
+        public override string ToString()
+        {
+            return $"{Min}-{Max}";
+        }
     }
 }
