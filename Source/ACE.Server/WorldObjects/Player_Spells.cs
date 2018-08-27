@@ -1,4 +1,3 @@
-using System.Linq;
 
 using ACE.Database.Models.Shard;
 using ACE.DatLoader;
@@ -13,9 +12,7 @@ namespace ACE.Server.WorldObjects
     {
         public bool SpellIsKnown(uint spellId)
         {
-            var result = Biota.BiotaPropertiesSpellBook.FirstOrDefault(x => x.Spell == spellId);
-
-            return (result != null);
+            return Biota.SpellIsKnown((int)spellId, BiotaDatabaseLock);
         }
 
         /// <summary>
@@ -23,19 +20,12 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public bool AddKnownSpell(uint spellId)
         {
-            var result = Biota.BiotaPropertiesSpellBook.FirstOrDefault(x => x.Spell == spellId);
+            Biota.GetOrAddKnownSpell((int)spellId, BiotaDatabaseLock, out var spellAdded);
 
-            if (result == null)
-            {
-                result = new BiotaPropertiesSpellBook { ObjectId = Biota.Id, Spell = (int)spellId, Object = Biota };
-
-                Biota.BiotaPropertiesSpellBook.Add(result);
+            if (spellAdded)
                 ChangesDetected = true;
 
-                return true;
-            }
-
-            return false;
+            return spellAdded;
         }
 
         public void LearnSpellWithNetworking(uint spellId, bool uiOutput = true)
@@ -75,16 +65,12 @@ namespace ACE.Server.WorldObjects
         {
             new ActionChain(this, () =>
             {
-                var entity = Biota.BiotaPropertiesSpellBook.FirstOrDefault(x => x.Spell == spellId);
-
-                if (entity == null)
+                if (!Biota.TryRemoveKnownSpell((int)spellId, out _, BiotaDatabaseLock))
                 {
                     log.Error("Invalid spellId passed to Player.RemoveSpellFromSpellBook");
                     return;
                 }
 
-                Biota.BiotaPropertiesSpellBook.Remove(entity);
-                entity.Object = null;
                 ChangesDetected = true;
 
                 GameEventMagicRemoveSpellId removeSpellEvent = new GameEventMagicRemoveSpellId(Session, spellId);

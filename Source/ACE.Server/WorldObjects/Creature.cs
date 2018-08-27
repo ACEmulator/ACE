@@ -67,7 +67,7 @@ namespace ACE.Server.WorldObjects
             Attributes[PropertyAttribute.Self] = new CreatureAttribute(this, PropertyAttribute.Self);
 
             foreach (var skillProperty in Biota.BiotaPropertiesSkill)
-                Skills[(Skill)skillProperty.Type] = new CreatureSkill(this, (Skill)skillProperty.Type);
+                Skills[(Skill)skillProperty.Type] = new CreatureSkill(this, skillProperty);
 
             if (Health.Current == 0)
                 Health.Current = Health.MaxValue;
