@@ -966,10 +966,13 @@ namespace ACE.Server.WorldObjects
                         break;
                     case WeaponDamageBonusType.ManaConversion:
                         // Mana Conversion skill modifier
+                        // TODO: Add EmchantmentManager buff/debuff from Hermetic Link/Void to ManaConversion property
                         return (float)(weapon.GetProperty(PropertyFloat.ManaConversionMod) ?? defaultBonusModifier);
                     case WeaponDamageBonusType.MeleeDefense:
                         // Melee Defense skill modifier
-                        return (float)(weapon.GetProperty(PropertyFloat.WeaponDefense) ?? defaultBonusModifier);
+                        if (wielder.CombatMode != CombatMode.NonCombat)
+                            return (float)(weapon.GetProperty(PropertyFloat.WeaponDefense) ?? defaultBonusModifier) + wielder.EnchantmentManager.GetDefenseMod();
+                        return defaultBonusModifier;
                     case WeaponDamageBonusType.PhysicalCritFrequency:
                         // Critical chance increase
                         // TODO: Critial Strike imbue that scales with player's skill
@@ -995,6 +998,7 @@ namespace ACE.Server.WorldObjects
                             var elementalDamageModType = weapon.GetProperty(PropertyInt.DamageType) ?? (int)DamageType.Undef;
                             if (elementalDamageModType != (int)DamageType.Undef)
                                 if (elementalDamageModType == (int)damageType)
+                                    // TODO: Add EmchantmentManager buff/debuff from Spirit Drinker/Loather to ElementalDamageMod property
                                     modifier = (float)(weapon.GetProperty(PropertyFloat.ElementalDamageMod) ?? defaultBonusModifier);
                             return modifier;
                         }
