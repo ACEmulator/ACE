@@ -1597,7 +1597,7 @@ namespace ACE.Server.WorldObjects
                 return null;
 
             // critical hit
-            var critical = GetWeaponDamageBonus(source, WeaponDamageBonusType.CritFrequency);
+            var critical = GetWeaponDamageBonus(source, WeaponDamageBonusType.MagicCritFrequency);
             if (Physics.Common.Random.RollDice(0.0f, 1.0f) < critical)
                 criticalHit = true;
 

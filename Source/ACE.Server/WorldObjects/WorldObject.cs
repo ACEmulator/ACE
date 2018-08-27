@@ -913,7 +913,8 @@ namespace ACE.Server.WorldObjects
         public enum WeaponDamageBonusType
         {
             NoBonus,
-            CritFrequency,
+            PhysicalCritFrequency,
+            MagicCritFrequency,
             CritMultiplier,
             CreatureSlayer,
             ElementalDamageMod,
@@ -931,8 +932,26 @@ namespace ACE.Server.WorldObjects
         /// <returns></returns>
         public static float GetWeaponDamageBonus(Creature wielder, WeaponDamageBonusType weaponDmgBonusType = WeaponDamageBonusType.NoBonus, DamageType damageType = DamageType.Undef, Creature target = null)
         {
-            float modifier = 1.0f;
-            WorldObject weapon = wielder.GetEquippedWeapon();
+            const float defaultPhysicalCritFrequency = 0.10f;
+            const float defaultMagicCritFrequency = 0.02f;
+            const float defaultBonusModifier = 1.0f;
+
+            float modifier = defaultBonusModifier;
+
+            if (!(wielder is Player wielderAsPlayer))
+            {
+                switch (weaponDmgBonusType)
+                {
+                    case WeaponDamageBonusType.PhysicalCritFrequency:
+                        return defaultPhysicalCritFrequency;
+                    case WeaponDamageBonusType.MagicCritFrequency:
+                        return defaultMagicCritFrequency;
+                    default:
+                        return defaultBonusModifier;
+                }
+            }
+
+            WorldObject weapon = wielderAsPlayer.GetEquippedWeapon();
 
             if (weapon == null)
                 weapon = wielder.GetEquippedWand();
@@ -943,21 +962,23 @@ namespace ACE.Server.WorldObjects
                 {
                     case WeaponDamageBonusType.NoBonus:
                         break;
-                    case WeaponDamageBonusType.CritFrequency:
+                    case WeaponDamageBonusType.PhysicalCritFrequency:
                         // Critical chance increase
                         // TODO: Critial Strike imbue that scales with player's skill
-                        if (weapon is Caster)
-                            return (float)(weapon.GetProperty(PropertyFloat.CriticalFrequency) ?? 0.02f);
-                        return (float)(weapon.GetProperty(PropertyFloat.CriticalFrequency) ?? 0.1f);
+                        return (float)(weapon.GetProperty(PropertyFloat.CriticalFrequency) ?? defaultPhysicalCritFrequency);
+                    case WeaponDamageBonusType.MagicCritFrequency:
+                        // Critical chance increase
+                        // TODO: Critial Strike imbue that scales with player's skill
+                        return (float)(weapon.GetProperty(PropertyFloat.CriticalFrequency) ?? defaultMagicCritFrequency);
                     case WeaponDamageBonusType.CritMultiplier:
                         // Critical damage multiplier
                         // TODO: Crippling Blow imbue that scales with player's skill
-                        return (float)(weapon.GetProperty(PropertyFloat.CriticalMultiplier) ?? 1.0f);
+                        return (float)(weapon.GetProperty(PropertyFloat.CriticalMultiplier) ?? defaultBonusModifier);
                     case WeaponDamageBonusType.CreatureSlayer:
                         // Fixed 2x damage bonus against specified CreatureType
                         if (weapon.GetProperty(PropertyInt.SlayerCreatureType) != null && target != null)
                             if ((CreatureType)weapon.GetProperty(PropertyInt.SlayerCreatureType) == target.CreatureType)
-                                modifier = (float)(weapon.GetProperty(PropertyFloat.SlayerDamageBonus) ?? 1.0f);
+                                modifier = (float)(weapon.GetProperty(PropertyFloat.SlayerDamageBonus) ?? defaultBonusModifier);
                         return modifier;
                     case WeaponDamageBonusType.ElementalDamageMod:
                         // Caster weapon only bonus
@@ -966,7 +987,7 @@ namespace ACE.Server.WorldObjects
                             var elementalDamageModType = weapon.GetProperty(PropertyInt.DamageType) ?? (int)DamageType.Undef;
                             if (elementalDamageModType != (int)DamageType.Undef)
                                 if (elementalDamageModType == (int)damageType)
-                                    modifier = (float)(weapon.GetProperty(PropertyFloat.ElementalDamageMod) ?? 1.0f);
+                                    modifier = (float)(weapon.GetProperty(PropertyFloat.ElementalDamageMod) ?? defaultBonusModifier);
                             return modifier;
                         }
                         break;
@@ -976,7 +997,7 @@ namespace ACE.Server.WorldObjects
                         var weaponResistanceModifierType = weapon.GetProperty(PropertyInt.ResistanceModifierType) ?? (int)DamageType.Undef;
                         if (weaponResistanceModifierType != (int)DamageType.Undef)
                             if (weaponResistanceModifierType == (int)damageType)
-                                modifier = (float)(weapon.GetProperty(PropertyFloat.ResistanceModifier) ?? 1.0f) + 1.0f;
+                                modifier = (float)(weapon.GetProperty(PropertyFloat.ResistanceModifier) ?? defaultBonusModifier) + 1.0f;
                         return modifier;
                     case WeaponDamageBonusType.ArmorRending:
                         // Effectively a non-spell damage imbue that reduces armors physical damage mitigation, which scales against player's skill

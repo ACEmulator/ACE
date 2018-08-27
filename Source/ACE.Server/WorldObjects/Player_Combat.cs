@@ -199,7 +199,7 @@ namespace ACE.Server.WorldObjects
             var damage = baseDamage * attributeMod * powerAccuracyMod;
 
             // critical hit
-            var critical = GetWeaponDamageBonus(this, WeaponDamageBonusType.CritFrequency);
+            var critical = GetWeaponDamageBonus(this, WeaponDamageBonusType.PhysicalCritFrequency);
             if (Physics.Common.Random.RollDice(0.0f, 1.0f) < critical)
             {
                 damage = baseDamageRange.Max * attributeMod * powerAccuracyMod * 2.0f / GetWeaponDamageBonus(this, WeaponDamageBonusType.CritMultiplier);
