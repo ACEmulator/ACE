@@ -135,18 +135,13 @@ namespace ACE.Server.WorldObjects
         /// <param name="friendId">The ObjectGuid of the friend that is being removed</param>
         public void HandleActionRemoveFriend(ObjectGuid friendId)
         {
-            var friendToRemove = Character.CharacterPropertiesFriendList.SingleOrDefault(f => f.FriendId == friendId.Full);
-
-            // Not in friend list
-            if (friendToRemove == null)
+            if (!Character.TryRemoveFriend(friendId, out var friendToRemove, CharacterDatabaseLock))
             {
                 ChatPacket.SendServerMessage(Session, "That character is not in your friends list!", ChatMessageType.Broadcast);
                 return;
             }
 
-            // remove friend in DB
-            if (Character.TryRemoveFriend(friendId, out var entity) && entity.Id != 0)
-                CharacterChangesDetected = true;
+            CharacterChangesDetected = true;
 
             // send network message
             Session.Network.EnqueueSend(new GameEventFriendsListUpdate(Session, GameEventFriendsListUpdate.FriendsUpdateTypeFlag.FriendRemoved, friendToRemove));
@@ -184,7 +179,7 @@ namespace ACE.Server.WorldObjects
         {
             var shortcuts = new List<Shortcut>();
 
-            foreach (var shortcut in Character.CharacterPropertiesShortcutBar)
+            foreach (var shortcut in Character.GetShortcuts(CharacterDatabaseLock))
                 shortcuts.Add(new Shortcut(shortcut));
 
             return shortcuts;
@@ -198,9 +193,8 @@ namespace ACE.Server.WorldObjects
         {
             // When a shortcut is added on top of an existing item, the client automatically sends the RemoveShortcut command for that existing item first, then will add the new item, and re-add the existing item to the appropriate place.
 
-            var entity = new CharacterPropertiesShortcutBar { CharacterId = Biota.Id, ShortcutBarIndex = shortcut.Index, ShortcutObjectId = shortcut.ObjectId };
+            Character.AddShortcut(shortcut.Index, shortcut.ObjectId, CharacterDatabaseLock);
 
-            Character.CharacterPropertiesShortcutBar.Add(entity);
             CharacterChangesDetected = true;
         }
 
@@ -209,13 +203,8 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void HandleActionRemoveShortcut(uint index)
         {
-            var entity = Character.CharacterPropertiesShortcutBar.FirstOrDefault(x => x.ShortcutBarIndex == index);
-
-            if (entity != null)
-            {
-                Character.CharacterPropertiesShortcutBar.Remove(entity);
+            if (Character.TryRemoveShortcut(index, out _, CharacterDatabaseLock))
                 CharacterChangesDetected = true;
-            }
         }
 
 
