@@ -1578,6 +1578,9 @@ namespace ACE.Server.WorldObjects
 
         public static double? MagicDamageTarget(Creature source, Creature target, SpellBase spell, Database.Models.World.Spell spellStatMod, out DamageType damageType, ref bool criticalHit, uint lifeMagicDamage = 0)
         {
+            var sourceAsPlayer = source as Player;
+            var targetAsPlayer = target as Player;
+
             if (target.Health.Current <= 0)
             {
                 // Target already dead
@@ -1594,15 +1597,15 @@ namespace ACE.Server.WorldObjects
                 return null;
 
             // critical hit
-            var critical = 0.02f;
+            var critical = GetWeaponBonus(source, WeaponDamageBonusType.MagicCritFrequency);
             if (Physics.Common.Random.RollDice(0.0f, 1.0f) < critical)
                 criticalHit = true;
 
             if (criticalHit == true)
             {
-                if (((source as Player) != null) && ((target as Player) != null)) // PvP
+                if (sourceAsPlayer != null && targetAsPlayer != null) // PvP
                     magicCritType = MagicCritType.PvPCrit;
-                else if ((((source as Player) != null) && ((target as Player) == null))) // PvE
+                else if (sourceAsPlayer != null && targetAsPlayer == null) // PvE
                     magicCritType = MagicCritType.PvECrit;
                 else
                     magicCritType = MagicCritType.NoCrit;
@@ -1610,27 +1613,30 @@ namespace ACE.Server.WorldObjects
             else
                 magicCritType = MagicCritType.NoCrit;
 
+            // Possible x2 damage bonus for the slayer property
+            var slayerBonus = GetWeaponBonus(source, WeaponDamageBonusType.CreatureSlayer, DamageType.Undef, target);
+
             if (spell.School == MagicSchool.LifeMagic)
             {
                 if (magicCritType == MagicCritType.PvECrit) // PvE: 50% of the MAX damage added to normal damage
-                    damageBonus = lifeMagicDamage * (spellStatMod.DamageRatio ?? 0.0f) * 0.5f;
+                    damageBonus = (lifeMagicDamage * (spellStatMod.DamageRatio ?? 0.0f) * 0.5f) / GetWeaponBonus(source, WeaponDamageBonusType.CritMultiplier);
 
                 if (magicCritType == MagicCritType.PvPCrit) // PvP: 50% of the MIN damage added to normal damage
-                    damageBonus = lifeMagicDamage * 0.5f;
+                    damageBonus = (lifeMagicDamage * 0.5f) / GetWeaponBonus(source, WeaponDamageBonusType.CritMultiplier);
 
-                finalDamage = (lifeMagicDamage * (spellStatMod.DamageRatio ?? 0.0f)) + damageBonus;
+                finalDamage = (lifeMagicDamage * (spellStatMod.DamageRatio ?? 0.0f)) + damageBonus * slayerBonus;
             }
             else
             {
                 if (magicCritType == MagicCritType.PvECrit) // PvE: 50% of the MAX damage added to normal damage roll
-                    maxDamageBonus = ((spellStatMod.Variance + spellStatMod.BaseIntensity) ?? 0) * 0.5f;
+                    maxDamageBonus = (((spellStatMod.Variance + spellStatMod.BaseIntensity) ?? 0) * 0.5f) / GetWeaponBonus(source, WeaponDamageBonusType.CritMultiplier);
                 else if (magicCritType == MagicCritType.PvPCrit) // PvP: 50% of the MIN damage added to normal damage roll
-                    minDamageBonus = (spellStatMod.BaseIntensity ?? 0) * 0.5f;
+                    minDamageBonus = ((spellStatMod.BaseIntensity ?? 0) * 0.5f) / GetWeaponBonus(source, WeaponDamageBonusType.CritMultiplier);
 
                 /* War Magic skill-based damage bonus
                  * http://acpedia.org/wiki/Announcements_-_2002/08_-_Atonement#Letter_to_the_Players
                  */
-                if (((source as Player) != null) && (spell.School == MagicSchool.WarMagic))
+                if (sourceAsPlayer != null && spell.School == MagicSchool.WarMagic)
                 {
                     if (source.GetCreatureSkill(spell.School).Current > spell.Power)
                     {
@@ -1643,7 +1649,16 @@ namespace ACE.Server.WorldObjects
                 finalDamage = Physics.Common.Random.RollDice((spellStatMod.BaseIntensity ?? 0), (spellStatMod.Variance + spellStatMod.BaseIntensity) ?? 0) + minDamageBonus + maxDamageBonus + warSkillBonus;
             }
 
-            return finalDamage * target.GetNaturalResistance(resistanceType);
+            float elementalDmgBonusPvPReduction = 0.0f;
+            if (sourceAsPlayer != null && targetAsPlayer != null)
+                elementalDmgBonusPvPReduction = 0.04f;
+
+            var elementalDmgBonus = GetWeaponBonus(source, WeaponDamageBonusType.ElementalDamageMod, damageType) - elementalDmgBonusPvPReduction;
+
+            return finalDamage
+                * target.GetNaturalResistance(resistanceType, GetWeaponBonus(source, WeaponDamageBonusType.ResistanceModifier, damageType))
+                * slayerBonus
+                * elementalDmgBonus;
         }
     }
 }

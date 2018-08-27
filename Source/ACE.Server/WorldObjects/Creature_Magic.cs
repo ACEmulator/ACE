@@ -104,7 +104,7 @@ namespace ACE.Server.WorldObjects
                 items = (target as Player).GetAllWieldedItems();
 
             CreatureSkill mc = caster.GetCreatureSkill(Skill.ManaConversion);
-            double z = mc.Current;
+            double z = mc.Current * GetWeaponBonus(caster, WeaponDamageBonusType.ManaConversion);
             double baseManaPercent = 1;
             if (z > spell.Power)
             {

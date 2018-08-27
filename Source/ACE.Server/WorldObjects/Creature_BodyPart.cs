@@ -9,6 +9,7 @@ namespace ACE.Server.WorldObjects
     {
         public Creature Creature;
         public BiotaPropertiesBodyPart Biota;
+        public float WeaponResistanceMod;
 
         public EnchantmentManager EnchantmentManager => Creature.EnchantmentManager;
 
@@ -34,7 +35,14 @@ namespace ACE.Server.WorldObjects
             if (double.IsNaN(resistance))
                 resistance = 1.0f;
 
-            var mod = EnchantmentManager.GetResistanceMod(damageType);
+            float mod;
+            var spellVuln = EnchantmentManager.GetVulnerabilityResistanceMod(damageType);
+            var spellProt = EnchantmentManager.GetProtectionResistanceMod(damageType);
+
+            if (WeaponResistanceMod < spellVuln)
+                mod = WeaponResistanceMod * spellProt;
+            else
+                mod = spellVuln * spellProt;
 
             var baseArmorMod = BaseArmorMod;
 

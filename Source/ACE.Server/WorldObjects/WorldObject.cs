@@ -16,7 +16,6 @@ using ACE.Server.Entity.Actions;
 using ACE.Server.Managers;
 using ACE.Server.Network;
 using ACE.Server.Network.GameEvent.Events;
-using ACE.Server.Network.GameMessages;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Motion;
 using ACE.Server.Network.Sequence;
@@ -909,6 +908,130 @@ namespace ACE.Server.WorldObjects
         public override int GetHashCode()
         {
             return Guid.Full.GetHashCode();
+        }
+
+        public enum WeaponDamageBonusType
+        {
+            NoBonus,
+            PhysicalCritFrequency,
+            MagicCritFrequency,
+            ManaConversion,
+            MeleeDefense,
+            CritMultiplier,
+            CreatureSlayer,
+            ElementalDamageMod,
+            ResistanceModifier,
+            ArmorRending
+        }
+
+        /// <summary>
+        /// Returns the bonus amount based upon the properties of a given weapon
+        /// </summary>
+        /// <param name="wielder"></param>
+        /// <param name="weaponDmgBonusType"></param>
+        /// <param name="damageType"></param>
+        /// <param name="target"></param>
+        /// <returns></returns>
+        public static float GetWeaponBonus(Creature wielder, WeaponDamageBonusType weaponDmgBonusType = WeaponDamageBonusType.NoBonus, DamageType damageType = DamageType.Undef, Creature target = null)
+        {
+            const float defaultPhysicalCritFrequency = 0.10f;
+            const float defaultMagicCritFrequency = 0.02f;
+            const float defaultBonusModifier = 1.0f;
+
+            float modifier = defaultBonusModifier;
+
+            if (!(wielder is Player wielderAsPlayer))
+            {
+                switch (weaponDmgBonusType)
+                {
+                    case WeaponDamageBonusType.PhysicalCritFrequency:
+                        return defaultPhysicalCritFrequency;
+                    case WeaponDamageBonusType.MagicCritFrequency:
+                        return defaultMagicCritFrequency;
+                    default:
+                        return defaultBonusModifier;
+                }
+            }
+
+            WorldObject weapon = wielderAsPlayer.GetEquippedWeapon();
+
+            if (weapon == null)
+                weapon = wielder.GetEquippedWand();
+
+            if (weapon is MeleeWeapon || weapon is Missile || weapon is MissileLauncher || weapon is Caster)
+            {
+                switch (weaponDmgBonusType)
+                {
+                    case WeaponDamageBonusType.NoBonus:
+                        break;
+                    case WeaponDamageBonusType.ManaConversion:
+                        // Mana Conversion skill modifier
+                        // TODO: Add EmchantmentManager buff/debuff from Hermetic Link/Void to ManaConversion property
+                        return (float)(weapon.GetProperty(PropertyFloat.ManaConversionMod) ?? defaultBonusModifier);
+                    case WeaponDamageBonusType.MeleeDefense:
+                        // Melee Defense skill modifier
+                        if (wielder.CombatMode != CombatMode.NonCombat)
+                            return (float)(weapon.GetProperty(PropertyFloat.WeaponDefense) ?? defaultBonusModifier) + wielder.EnchantmentManager.GetDefenseMod();
+                        return defaultBonusModifier;
+                    case WeaponDamageBonusType.PhysicalCritFrequency:
+                        // Critical chance increase
+                        // TODO: Critial Strike imbue that scales with player's skill
+                        return (float)(weapon.GetProperty(PropertyFloat.CriticalFrequency) ?? defaultPhysicalCritFrequency);
+                    case WeaponDamageBonusType.MagicCritFrequency:
+                        // Critical chance increase
+                        // TODO: Critial Strike imbue that scales with player's skill
+                        return (float)(weapon.GetProperty(PropertyFloat.CriticalFrequency) ?? defaultMagicCritFrequency);
+                    case WeaponDamageBonusType.CritMultiplier:
+                        // Critical damage multiplier
+                        // TODO: Crippling Blow imbue that scales with player's skill
+                        return (float)(weapon.GetProperty(PropertyFloat.CriticalMultiplier) ?? defaultBonusModifier);
+                    case WeaponDamageBonusType.CreatureSlayer:
+                        // Fixed 2x damage bonus against specified CreatureType
+                        if (weapon.GetProperty(PropertyInt.SlayerCreatureType) != null && target != null)
+                            if ((CreatureType)weapon.GetProperty(PropertyInt.SlayerCreatureType) == target.CreatureType)
+                                modifier = (float)(weapon.GetProperty(PropertyFloat.SlayerDamageBonus) ?? defaultBonusModifier);
+                        return modifier;
+                    case WeaponDamageBonusType.ElementalDamageMod:
+                        // Caster weapon only bonus
+                        if (weapon is Caster)
+                        {
+                            var elementalDamageModType = weapon.GetProperty(PropertyInt.DamageType) ?? (int)DamageType.Undef;
+                            if (elementalDamageModType != (int)DamageType.Undef)
+                                if (elementalDamageModType == (int)damageType)
+                                    // TODO: Add EmchantmentManager buff/debuff from Spirit Drinker/Loather to ElementalDamageMod property
+                                    modifier = (float)(weapon.GetProperty(PropertyFloat.ElementalDamageMod) ?? defaultBonusModifier);
+                            return modifier;
+                        }
+                        break;
+                    case WeaponDamageBonusType.ResistanceModifier:
+                        // Quest weapon fixed Resistance Cleaving equivalent to Level 5 Life Vulnerability spell
+                        // TODO: Resistance Rending imbue that scales with player's skill
+                        var weaponResistanceModifierType = weapon.GetProperty(PropertyInt.ResistanceModifierType) ?? (int)DamageType.Undef;
+                        if (weaponResistanceModifierType != (int)DamageType.Undef)
+                            if (weaponResistanceModifierType == (int)damageType)
+                                modifier = (float)(weapon.GetProperty(PropertyFloat.ResistanceModifier) ?? defaultBonusModifier) + 1.0f;
+                        return modifier;
+                    case WeaponDamageBonusType.ArmorRending:
+                        // Effectively a non-spell damage imbue that reduces armors physical damage mitigation, which scales against player's skill
+                        // TODO
+                        break;
+                }
+            }
+
+            switch (weaponDmgBonusType)
+            {
+                case WeaponDamageBonusType.PhysicalCritFrequency:
+                    modifier = defaultPhysicalCritFrequency;
+                    break;
+                case WeaponDamageBonusType.MagicCritFrequency:
+                    modifier = defaultMagicCritFrequency;
+                    break;
+                default:
+                    modifier = defaultBonusModifier;
+                    break;
+            }
+
+            return modifier;
         }
     }
 }

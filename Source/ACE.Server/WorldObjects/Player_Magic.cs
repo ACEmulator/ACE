@@ -113,6 +113,83 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Method used for handling items casting spells on the player who is either equiping the item, or using a gem in posessions
         /// </summary>
+        /// <param name="spellId">the spell id</param>
+        /// <returns>FALSE - the spell was NOT created because the spell is invalid or not implemented yet.<para />TRUE - the spell was created or it is surpassed</returns>
+        public bool CreateSingleSpell(uint spellId)
+        {
+            Player player = CurrentLandblock?.GetObject(Guid) as Player;
+            if (player == null && ((this as Player) != null)) player = this as Player;
+
+            SpellTable spellTable = DatManager.PortalDat.SpellTable;
+            if (!spellTable.Spells.ContainsKey(spellId))
+            {
+                player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.MagicInvalidSpellType));
+                return false;
+            }
+
+            SpellBase spell = spellTable.Spells[spellId];
+
+            Spell spellStatMod = DatabaseManager.World.GetCachedSpell(spellId);
+            if (spellStatMod == null)
+            {
+                player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{spell.Name} spell not implemented, yet!", ChatMessageType.System));
+                return false;
+            }
+
+            float scale = SpellAttributes(player.Session.Account, spellId, out float castingDelay, out MotionCommand windUpMotion, out MotionCommand spellGesture);
+
+            EnchantmentStatus enchantmentStatus = default(EnchantmentStatus);
+            switch (spell.School)
+            {
+                case MagicSchool.CreatureEnchantment:
+                    enchantmentStatus = CreatureMagic(player, spell, spellStatMod);
+                    if (enchantmentStatus.message != null)
+                        EnqueueBroadcast(new GameMessageScript(player.Guid, (PlayScript)spell.TargetEffect, scale));
+                    break;
+                case MagicSchool.LifeMagic:
+                    LifeMagic(player, spell, spellStatMod, out uint damage, out bool critical, out enchantmentStatus);
+                    if (enchantmentStatus.message != null)
+                        EnqueueBroadcast(new GameMessageScript(player.Guid, (PlayScript)spell.TargetEffect, scale));
+                    break;
+                case MagicSchool.ItemEnchantment:
+                    if ((spell.MetaSpellType == SpellType.PortalLink)
+                        || (spell.MetaSpellType == SpellType.PortalRecall)
+                        || (spell.MetaSpellType == SpellType.PortalSending)
+                        || (spell.MetaSpellType == SpellType.PortalSummon))
+                    {
+                        PlayScript playScript;
+                        if (spell.CasterEffect > 0)
+                            playScript = (PlayScript)spell.CasterEffect;
+                        else
+                            playScript = (PlayScript)spell.TargetEffect;
+                        EnqueueBroadcast(new GameMessageScript(player.Guid, playScript, scale));
+                        enchantmentStatus = ItemMagic(player, spell, spellStatMod);
+                    }
+                    else
+                    {
+                        if ((spell.Category == (uint)SpellCategory.AttackModRaising)
+                            || (spell.Category == (uint)SpellCategory.DamageRaising)
+                            || (spell.Category == (uint)SpellCategory.DefenseModRaising)
+                            || (spell.Category == (uint)SpellCategory.WeaponTimeRaising)
+                            || (spell.Category == (uint)SpellCategory.AppraisalResistanceLowering)
+                            || (spell.Category == (uint)SpellCategory.SpellDamageRaising))
+                        {
+                            enchantmentStatus = ItemMagic(player, spell, spellStatMod);
+                        }
+
+                        EnqueueBroadcast(new GameMessageScript(player.Guid, (PlayScript)spell.TargetEffect, scale));
+                    }
+                    break;
+
+                default:
+                    break;
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Method used for handling items casting spells on the player who is either equiping the item, or using a gem in posessions
+        /// </summary>
         /// <param name="guidItem">the GUID of the item casting the spell(s)</param>
         /// <param name="spellId">the spell id</param>
         /// <param name="suppressSpellChatText">prevent spell text from being sent to the player's chat windows (used for already affecting items during Player.EnterWorld)</param>
@@ -162,7 +239,7 @@ namespace ACE.Server.WorldObjects
                 SpellTable spellTable = DatManager.PortalDat.SpellTable;
                 if (!spellTable.Spells.ContainsKey(spellId))
                 {
-                    player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, errorType: WeenieError.MagicInvalidSpellType));
+                    player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.MagicInvalidSpellType));
                     return false;
                 }
 

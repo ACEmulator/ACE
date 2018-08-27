@@ -246,11 +246,8 @@ namespace ACE.Server.Command.Handlers
                         session.Network.EnqueueSend(new GameMessageSystemChat("Run speed boost is currently INACTIVE", ChatMessageType.Broadcast));
                     break;
                 case "on":
-                    var runEnchantment = new Enchantment(session.Player, session.Player.Guid, spellID, (double)spell.Duration, 1, spell.StatModType, spell.StatModVal);
-                    var msgRunEnchantment = new GameEventMagicUpdateEnchantment(session, runEnchantment);
-                    session.Player.EnqueueBroadcast(new GameMessageScript(session.Player.Guid, (PlayScript)spell.TargetEffect, 1f));
-                    session.Player.EnchantmentManager.Add(runEnchantment, null);
-                    session.Network.EnqueueSend(new GameMessageSystemChat("Run forrest, run!", ChatMessageType.Broadcast), msgRunEnchantment);
+                    session.Player.CreateSingleSpell(spellID);
+                    session.Network.EnqueueSend(new GameMessageSystemChat("Run forrest, run!", ChatMessageType.Broadcast));
                     break;
             }
         }

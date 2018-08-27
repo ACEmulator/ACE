@@ -124,7 +124,7 @@ namespace ACE.Server.WorldObjects
             // get target defense skill
             var creature = target as Creature;
             var defenseSkill = GetAttackType() == AttackType.Melee ? Skill.MeleeDefense : Skill.MissileDefense;
-            var difficulty = creature.GetCreatureSkill(defenseSkill).Current;
+            var difficulty = (uint)Math.Round(creature.GetCreatureSkill(defenseSkill).Current * GetWeaponBonus(creature, WeaponDamageBonusType.MeleeDefense));
 
             if (creature.IsExhausted) difficulty = 0;
 
@@ -199,10 +199,10 @@ namespace ACE.Server.WorldObjects
             var damage = baseDamage * attributeMod * powerAccuracyMod;
 
             // critical hit
-            var critical = 0.1f;
+            var critical = GetWeaponBonus(this, WeaponDamageBonusType.PhysicalCritFrequency);
             if (Physics.Common.Random.RollDice(0.0f, 1.0f) < critical)
             {
-                damage = baseDamageRange.Max * attributeMod * powerAccuracyMod * 2.0f;
+                damage = baseDamageRange.Max * attributeMod * powerAccuracyMod * 2.0f / GetWeaponBonus(this, WeaponDamageBonusType.CritMultiplier);
                 criticalHit = true;
             }
 
@@ -222,13 +222,15 @@ namespace ACE.Server.WorldObjects
             else
                 damageType = GetDamageType();
 
+            creaturePart.WeaponResistanceMod = GetWeaponBonus(this, WeaponDamageBonusType.ResistanceModifier, damageType);
             var resistance = GetResistance(creaturePart, damageType);
 
             // scale damage for armor and shield
             var armorMod = SkillFormula.CalcArmorMod(resistance);
             var shieldMod = creature.GetShieldMod(this, damageType);
 
-            return damage * armorMod * shieldMod;
+            var slayerBonus = GetWeaponBonus(this, WeaponDamageBonusType.CreatureSlayer, DamageType.Undef, target as Creature);
+            return damage * armorMod * shieldMod * slayerBonus;
         }
 
         public float GetPowerAccuracyMod()
