@@ -50,7 +50,7 @@ namespace ACE.Server.WorldObjects
                     TryEquipObject(wo, (int)wo.ValidLocations);
 
                 var combatStance = GetCombatStance();
-                Console.WriteLine($"{Name} equipped {wo.Name} - {combatStance}");
+                //Console.WriteLine($"{Name} equipped {wo.Name} - {combatStance}");
             }
         }
 
