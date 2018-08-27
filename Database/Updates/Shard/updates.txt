@@ -1,6 +1,7 @@
 08/26/2018
 ---------
- - Added `is_Plussed` key to `character` table
+ - Added `is_Plussed` to `character` table
+ - Removed `AccountId` from `CharacterPropertiesFriendList` table
 
 08/19/2018
 ---------

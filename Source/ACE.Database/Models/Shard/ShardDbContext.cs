@@ -1328,10 +1328,6 @@ namespace ACE.Database.Models.Shard
 
                 entity.Property(e => e.Id).HasColumnName("id");
 
-                entity.Property(e => e.AccountId)
-                    .HasColumnName("account_Id")
-                    .HasDefaultValueSql("'0'");
-
                 entity.Property(e => e.CharacterId)
                     .HasColumnName("character_Id")
                     .HasDefaultValueSql("'0'");
