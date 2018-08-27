@@ -1296,30 +1296,6 @@ namespace ACE.Server.WorldObjects
                 player.EnqueueAction(new ActionEventDelegate(() => delegateAction(player)));
         }
 
-        public void EnqueueActionBroadcast(ActionChain actionChain, Action<Player> delegateAction)
-        {
-            if (PhysicsObj == null) return;
-
-            var self = this as Player;
-            if (self != null)
-                actionChain.AddAction(this, () => self.EnqueueAction(new ActionEventDelegate(() => delegateAction(self))));
-
-            foreach (var player in PhysicsObj.ObjMaint.VoyeurTable.Values.Select(v => v.WeenieObj.WorldObject as Player))
-                actionChain.AddAction(this, () => player.EnqueueAction(new ActionEventDelegate(() => delegateAction(player))));
-        }
-
-        public void EnqueueBroadcast(ActionChain actionChain, params GameMessage[] msgs)
-        {
-            if (PhysicsObj == null) return;
-
-            var self = this as Player;
-            if (self != null)
-                actionChain.AddAction(this, () => self.Session.Network.EnqueueSend(msgs));
-
-            foreach (var player in PhysicsObj.ObjMaint.VoyeurTable.Values.Select(v => v.WeenieObj.WorldObject as Player))
-                actionChain.AddAction(this, () => player.Session.Network.EnqueueSend(msgs));
-        }
-
         /// <summary>
         /// Sends network messages to all Players who currently know about this object
         /// within a maximum range

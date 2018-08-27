@@ -118,7 +118,7 @@ namespace ACE.Server.WorldObjects
             SetMotionState(this, motion);
 
             var ammo = GetEquippedAmmo();
-            if (weapon.IsBow && ammo != null)
+            if (ammo != null && weapon.IsAmmoLauncher)
                 ReloadMissileAmmo();
 
             var player = this as Player;

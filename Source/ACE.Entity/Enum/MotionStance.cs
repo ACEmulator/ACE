@@ -24,7 +24,7 @@ namespace ACE.Entity.Enum
         Magic                = 0x80000049,
         BowNoAmmo            = 0x800000e8,
         CrossBowNoAmmo       = 0x800000e9,
-        AtlatlCombat         = 0x80000138, // 13b?
-        ThrownShieldCombat   = 0x80000139, // 13c?
+        AtlatlCombat         = 0x8000013b, // 138 in PY16
+        ThrownShieldCombat   = 0x8000013c, // 139 in PY16
     }
 }

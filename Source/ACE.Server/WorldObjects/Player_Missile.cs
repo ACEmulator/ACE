@@ -78,7 +78,7 @@ namespace ACE.Server.WorldObjects
             var weapon = GetEquippedMissileWeapon();
             if (weapon == null || CombatMode == CombatMode.NonCombat) return;
 
-            var ammo = weapon.IsBow ? GetEquippedAmmo() : weapon;
+            var ammo = weapon.IsAmmoLauncher ? GetEquippedAmmo() : weapon;
             if (ammo == null) return;
 
             var creature = target as Creature;

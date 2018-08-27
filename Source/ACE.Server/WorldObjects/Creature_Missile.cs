@@ -19,21 +19,28 @@ namespace ACE.Server.WorldObjects
     {
         public void ReloadMissileAmmo()
         {
+            var weapon = GetEquippedMissileWeapon();
             var ammo = GetEquippedAmmo();
-            if (ammo == null) return;
+
+            if (weapon == null || ammo == null) return;
 
             var actionChain = new ActionChain();
-            EnqueueMotion(actionChain, MotionCommand.Reload);   // start pulling out next arrow
-            EnqueueMotion(actionChain, MotionCommand.Ready);    // finish reloading
 
-            var linkTime = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, MotionCommand.Ready, MotionCommand.Reload);
-            actionChain.AddDelaySeconds(linkTime / 2.0f);
+            if (weapon.IsBow)
+            {
+                EnqueueMotion(actionChain, MotionCommand.Reload);   // start pulling out next arrow
+                EnqueueMotion(actionChain, MotionCommand.Ready);    // finish reloading
 
-            // arrow appears in hand
-            EnqueueBroadcast(actionChain, new GameMessageParentEvent(this, ammo,
-                (int)ACE.Entity.Enum.ParentLocation.RightHand, (int)ACE.Entity.Enum.Placement.RightHandCombat));
+                var linkTime = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, MotionCommand.Ready, MotionCommand.Reload);
+                actionChain.AddDelaySeconds(linkTime / 2.0f);
+            }
 
-            EnqueueActionBroadcast(actionChain, (Player p) => p.TrackObject(this));  // ensures ammo visible to other players
+            // ensure ammo visibility for players
+            actionChain.AddAction(this, () =>
+            {
+                EnqueueBroadcast(new GameMessageParentEvent(this, ammo, (int)ACE.Entity.Enum.ParentLocation.RightHand, (int)ACE.Entity.Enum.Placement.RightHandCombat));
+                EnqueueActionBroadcast((Player p) => p.TrackObject(this));
+            });
 
             actionChain.EnqueueChain();
         }
@@ -217,7 +224,7 @@ namespace ACE.Server.WorldObjects
             obj.CurrentMotionState = null;
 
             var velocity = obj.Velocity.Get();
-            //velocity = Vector3.Transform(velocity, Matrix4x4.Transpose(Matrix4x4.CreateFromQuaternion(rotation)));
+
             obj.PhysicsObj.Velocity = velocity;
             obj.PhysicsObj.ProjectileTarget = target.PhysicsObj;
 
