@@ -1030,6 +1030,8 @@ namespace ACE.Server.WorldObjects
         /// <param name="spellDID">Id of the spell cast by the consumable; can be null, if buffType != ConsumableBuffType.Spell</param>
         public void ApplyComsumable(string consumableName, Sound sound, ConsumableBuffType buffType, uint? boostAmount, uint? spellDID)
         {
+            uint spellId = spellDID ?? 0;
+
             GameMessageSystemChat buffMessage;
             MotionCommand motionCommand;
 
@@ -1045,12 +1047,14 @@ namespace ACE.Server.WorldObjects
 
             if (buffType == ConsumableBuffType.Spell)
             {
-                // Null check for safety
-                if (spellDID == null)
-                    spellDID = 0;
+                bool result = false;
+                if (spellId != 0)
+                    result = CreateSingleSpell(spellId);
 
-                // TODO: Handle spell cast
-                buffMessage = new GameMessageSystemChat($"Consuming {consumableName} not yet fully implemented.", ChatMessageType.System);
+                if (!result)
+                    buffMessage = new GameMessageSystemChat($"Consuming {consumableName} attempted to apply a spell not yet fully implemented.", ChatMessageType.System);
+                else
+                    buffMessage = new GameMessageSystemChat($"{consumableName} applies {DatManager.PortalDat.SpellTable.Spells[spellId].Name} on you.", ChatMessageType.Craft);
             }
             else
             {

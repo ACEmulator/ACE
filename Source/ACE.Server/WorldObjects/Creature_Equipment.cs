@@ -65,7 +65,17 @@ namespace ACE.Server.WorldObjects
             var meleeWeapon = EquippedObjects.Values.FirstOrDefault(e => e.CurrentWieldedLocation == EquipMask.MeleeWeapon);
             var missileWeapon = EquippedObjects.Values.FirstOrDefault(e => e.CurrentWieldedLocation == EquipMask.MissileWeapon);
 
-            return meleeWeapon != null ? meleeWeapon : missileWeapon;
+            return meleeWeapon ?? missileWeapon;
+        }
+
+        /// <summary>
+        /// Returns the currently equipped weapon
+        /// </summary>
+        public WorldObject GetEquippedWand()
+        {
+            var casterWeapon = EquippedObjects.Values.FirstOrDefault(e => e.CurrentWieldedLocation == EquipMask.Held);
+
+            return casterWeapon;
         }
 
         /// <summary>

@@ -1,10 +1,6 @@
-using ACE.Database;
-using ACE.DatLoader;
 using ACE.Entity.Enum;
 using ACE.Server.Network;
-using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
-using ACE.Server.Network.Structure;
 using ACE.Server.WorldObjects;
 using System.Collections.Generic;
 
@@ -225,8 +221,6 @@ namespace ACE.Server.Command.Handlers
                 param = "toggle";
 
             var spellID = (uint)Network.Enum.Spell.SentinelRun;
-            var spellBase = DatManager.PortalDat.SpellTable.Spells[spellID];
-            var spell = DatabaseManager.World.GetCachedSpell(spellID);
 
             switch (param)
             {
@@ -246,11 +240,8 @@ namespace ACE.Server.Command.Handlers
                         session.Network.EnqueueSend(new GameMessageSystemChat("Run speed boost is currently INACTIVE", ChatMessageType.Broadcast));
                     break;
                 case "on":
-                    var runEnchantment = new Enchantment(session.Player, session.Player.Guid, spellID, (double)spell.Duration, 1, spell.StatModType, spell.StatModVal);
-                    var msgRunEnchantment = new GameEventMagicUpdateEnchantment(session, runEnchantment);
-                    session.Player.EnqueueBroadcast(new GameMessageScript(session.Player.Guid, (PlayScript)spell.TargetEffect, 1f));
-                    session.Player.EnchantmentManager.Add(runEnchantment, null);
-                    session.Network.EnqueueSend(new GameMessageSystemChat("Run forrest, run!", ChatMessageType.Broadcast), msgRunEnchantment);
+                    session.Player.CreateSingleSpell(spellID);
+                    session.Network.EnqueueSend(new GameMessageSystemChat("Run forrest, run!", ChatMessageType.Broadcast));
                     break;
             }
         }
