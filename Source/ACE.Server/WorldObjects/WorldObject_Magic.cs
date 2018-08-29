@@ -1616,10 +1616,10 @@ namespace ACE.Server.WorldObjects
             if (spell.School == MagicSchool.LifeMagic)
             {
                 if (magicCritType == MagicCritType.PvECrit) // PvE: 50% of the MAX damage added to normal damage
-                    damageBonus = (lifeMagicDamage * (spellStatMod.DamageRatio ?? 0.0f) * 0.5f) / GetWeaponCritMultiplierBonus(source);
+                    damageBonus = lifeMagicDamage * (spellStatMod.DamageRatio ?? 0.0f) * (0.5f + GetWeaponCritMultiplierBonus(source));
 
                 if (magicCritType == MagicCritType.PvPCrit) // PvP: 50% of the MIN damage added to normal damage
-                    damageBonus = (lifeMagicDamage * 0.5f) / GetWeaponCritMultiplierBonus(source);
+                    damageBonus = lifeMagicDamage * (0.5f + GetWeaponCritMultiplierBonus(source));
 
                 finalDamage = (lifeMagicDamage * (spellStatMod.DamageRatio ?? 0.0f)) + damageBonus * slayerBonus;
             }

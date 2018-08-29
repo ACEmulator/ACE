@@ -9,6 +9,7 @@ namespace ACE.Server.WorldObjects
     {
         const float defaultPhysicalCritFrequency = 0.10f;
         const float defaultMagicCritFrequency = 0.02f;
+        const float defaultCritMultiplier = 0.0f;
         const float defaultBonusModifier = 1.0f;
 
         private static WorldObject GetWeapon(Player wielder)
@@ -100,10 +101,10 @@ namespace ACE.Server.WorldObjects
             WorldObject weapon = GetWeapon(wielder as Player);
 
             if (weapon == null)
-                return defaultBonusModifier;
+                return defaultCritMultiplier;
 
             // TODO: Crippling Blow imbue that scales with player's skill
-            return 1 / (float)(weapon.GetProperty(PropertyFloat.CriticalMultiplier) ?? defaultBonusModifier);
+            return (float)(weapon.GetProperty(PropertyFloat.CriticalMultiplier) ?? defaultCritMultiplier);
         }
 
         /// <summary>

@@ -201,7 +201,7 @@ namespace ACE.Server.WorldObjects
             var critical = GetWeaponPhysicalCritFrequencyBonus(this);
             if (Physics.Common.Random.RollDice(0.0f, 1.0f) < critical)
             {
-                damage = (baseDamageRange.Max * attributeMod * powerAccuracyMod * 2.0f) * GetWeaponCritMultiplierBonus(this);
+                damage = baseDamageRange.Max * attributeMod * powerAccuracyMod * (2.0f + GetWeaponCritMultiplierBonus(this));
                 criticalHit = true;
             }
 
