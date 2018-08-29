@@ -50,7 +50,7 @@ namespace ACE.Server.Managers
             var start = DateTime.UtcNow;
             DatabaseManager.Shard.GetPlayerBiotas(character.Id, biotas =>
             {
-                log.Debug($"GetPlayerBiotas for {character.Name} took {(DateTime.UtcNow - start).TotalMilliseconds} ms");
+                log.Debug($"GetPlayerBiotas for {character.Name} took {(DateTime.UtcNow - start).TotalMilliseconds:N0} ms");
                 Player player;
 
                 if (biotas.Player.WeenieType == (int)WeenieType.Admin)

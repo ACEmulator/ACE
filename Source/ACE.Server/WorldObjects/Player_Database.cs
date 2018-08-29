@@ -68,7 +68,7 @@ namespace ACE.Server.WorldObjects
 
             var requestedTime = DateTime.UtcNow;
 
-            DatabaseManager.Shard.SaveBiotas(biotas, result => log.Debug($"{Session.Player.Name} has been saved. It took {(DateTime.UtcNow - requestedTime).TotalMilliseconds} ms to process the request."));
+            DatabaseManager.Shard.SaveBiotas(biotas, result => log.Debug($"{Session.Player.Name} has been saved. It took {(DateTime.UtcNow - requestedTime).TotalMilliseconds:N0} ms to process the request."));
         }
     }
 }
