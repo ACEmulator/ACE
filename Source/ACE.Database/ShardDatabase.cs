@@ -76,194 +76,6 @@ namespace ACE.Database
         }
 
 
-        public List<Character> GetCharacters(uint accountId, bool includeDeleted)
-        {
-            using (var context = new ShardDbContext())
-            {
-                var results = context.Character
-                    .Include(r => r.CharacterPropertiesContract)
-                    .Include(r => r.CharacterPropertiesFillCompBook)
-                    .Include(r => r.CharacterPropertiesFriendList)
-                    .Include(r => r.CharacterPropertiesQuestRegistry)
-                    .Include(r => r.CharacterPropertiesShortcutBar)
-                    .Include(r => r.CharacterPropertiesSpellBar)
-                    .Include(r => r.CharacterPropertiesTitleBook)
-                    .AsNoTracking()
-                    .Where(r => r.AccountId == accountId && (includeDeleted || !r.IsDeleted))
-                    .ToList();
-
-                return results;
-            }
-        }
-
-        public List<Character> GetAllCharacters()
-        {
-            using (var context = new ShardDbContext())
-            {
-                var results = context.Character
-                    .AsNoTracking()
-                    .ToList();
-
-                return results;
-            }
-        }
-
-        public List<Character> GetAllegianceCharacters(uint monarchID)
-        {
-            using (var context = new ShardDbContext())
-            {
-                /*var results = context.Character
-                    .AsNoTracking()
-                    .Where(r => r.Biota.BiotaProperties)
-                    .ToList();
-
-                return results;*/
-            }
-            return null;
-        }
-
-        public bool IsCharacterNameAvailable(string name)
-        {
-            using (var context = new ShardDbContext())
-            {
-                var result = context.Character
-                    .AsNoTracking()
-                    .Where(r => !r.IsDeleted)
-                    .Where(r => !(r.DeleteTime > 0))
-                    .FirstOrDefault(r => r.Name == name);
-
-                return result == null;
-            }
-        }
-
-        public bool IsCharacterPlussed(uint biotaId)
-        {
-            using (var context = new ShardDbContext())
-            {
-                var result = context.Biota
-                    .AsNoTracking()
-                    .Include(r => r.BiotaPropertiesBool)
-                    .FirstOrDefault(r => r.Id == biotaId);
-
-                if (result == null)
-                    return false;
-
-                if (result.GetProperty(PropertyBool.IsAdmin, new ReaderWriterLockSlim()) ?? false)
-                    return true;
-                if (result.GetProperty(PropertyBool.IsArch, new ReaderWriterLockSlim()) ?? false)
-                    return true;
-                if (result.GetProperty(PropertyBool.IsPsr, new ReaderWriterLockSlim()) ?? false)
-                    return true;
-                if (result.GetProperty(PropertyBool.IsSentinel, new ReaderWriterLockSlim()) ?? false)
-                    return true;
-
-                if (result.WeenieType == (int)WeenieType.Admin || result.WeenieType == (int)WeenieType.Sentinel)
-                    return true;
-
-                return false;
-            }
-        }
-
-        public bool AddCharacterInParallel(Biota biota, IEnumerable<(Biota biota, ReaderWriterLockSlim rwLock)> possessions, Character character)
-        {
-            if (!SaveBiota(biota, new ReaderWriterLockSlim()))
-                return false; // Biota save failed which mean Character fails.
-
-            if (!SaveBiotasInParallel(possessions))
-                return false;
-
-            using (var context = new ShardDbContext())
-            {
-                context.Character.Add(character);
-
-                try
-                {
-                    context.SaveChanges();
-                    return true;
-                }
-                catch (Exception ex)
-                {
-                    // Character name might be in use or some other fault
-                    log.Error($"AddCharacter failed with exception: {ex}");
-                    return false;
-                }
-            }
-        }
-
-        public bool DeleteOrRestoreCharacter(ulong unixTime, uint guid)
-        {
-            using (var context = new ShardDbContext())
-            {
-                var result = context.Character
-                    .FirstOrDefault(r => r.Id == guid);
-
-                if (result != null)
-                {
-                    result.DeleteTime = unixTime;
-                    result.IsDeleted = false;
-                }
-                else
-                    return false;
-
-                try
-                {
-                    context.SaveChanges();
-                    return true;
-                }
-                catch (Exception ex)
-                {
-                    log.Error($"DeleteOrRestoreCharacter failed with exception: {ex}");
-                    return false;
-                }
-            }
-        }
-
-        public bool MarkCharacterDeleted(uint guid)
-        {
-            using (var context = new ShardDbContext())
-            {
-                var result = context.Character
-                    .FirstOrDefault(r => r.Id == guid);
-
-                if (result != null)
-                    result.IsDeleted = true;
-                else
-                    return false;
-
-                try
-                {
-                    context.SaveChanges();
-                    return true;
-                }
-                catch (Exception ex)
-                {
-                    log.Error($"MarkCharacterDeleted failed with exception: {ex}");
-                    return false;
-                }
-            }
-        }
-
-        public bool SaveCharacter(Character character)
-        {
-            using (var context = new ShardDbContext())
-            {
-                context.Character.Update(character);
-
-                try
-                {
-                    context.SaveChanges();
-                    return true;
-                }
-                catch (Exception ex)
-                {
-                    // Character name might be in use or some other fault
-                    log.Error($"SaveCharacter failed with exception: {ex}");
-                    return false;
-                }
-            }
-        }
-
-
         [Flags]
         enum PopulatedCollectionFlags
         {
@@ -506,67 +318,6 @@ namespace ACE.Database
         }
 
 
-        public bool RemoveEntity(object entity)
-        {
-            using (var context = new ShardDbContext())
-            {
-                context.Remove(entity);
-
-                try
-                {
-                    context.SaveChanges();
-                    return true;
-                }
-                catch (Exception ex)
-                {
-                    // Character name might be in use or some other fault
-                    log.Error($"RemoveEntity failed with exception: {ex}");
-                    return false;
-                }
-            }
-        }
-
-        public bool RemoveEntity(CharacterPropertiesShortcutBar entity)
-        {
-            using (var context = new ShardDbContext())
-            {
-                context.CharacterPropertiesShortcutBar.Remove(entity);
-
-                try
-                {
-                    context.SaveChanges();
-                    return true;
-                }
-                catch (Exception ex)
-                {
-                    // Character name might be in use or some other fault
-                    log.Error($"RemoveEntity failed with exception: {ex}");
-                    return false;
-                }
-            }
-        }
-
-        public bool RemoveEntity(CharacterPropertiesSpellBar entity)
-        {
-            using (var context = new ShardDbContext())
-            {
-                context.CharacterPropertiesSpellBar.Remove(entity);
-
-                try
-                {
-                    context.SaveChanges();
-                    return true;
-                }
-                catch (Exception ex)
-                {
-                    // Character name might be in use or some other fault
-                    log.Error($"RemoveEntity failed with exception: {ex}");
-                    return false;
-                }
-            }
-        }
-
-
         public PlayerBiotas GetPlayerBiotasInParallel(uint id)
         {
             var biota = GetBiota(id);
@@ -636,7 +387,6 @@ namespace ACE.Database
             return wieldedItems.ToList();
         }
 
-
         public List<Biota> GetObjectsByLandblockInParallel(ushort landblockId)
         {
             var decayables = new ConcurrentBag<Biota>();
@@ -659,6 +409,124 @@ namespace ACE.Database
             }
 
             return decayables.ToList();
+        }
+
+
+        public bool IsCharacterNameAvailable(string name)
+        {
+            using (var context = new ShardDbContext())
+            {
+                var result = context.Character
+                    .AsNoTracking()
+                    .Where(r => !r.IsDeleted)
+                    .Where(r => !(r.DeleteTime > 0))
+                    .FirstOrDefault(r => r.Name == name);
+
+                return result == null;
+            }
+        }
+
+        private static readonly ConditionalWeakTable<Character, ShardDbContext> CharacterContexts = new ConditionalWeakTable<Character, ShardDbContext>();
+
+        public List<Character> GetCharacters(uint accountId, bool includeDeleted)
+        {
+            var context = new ShardDbContext();
+
+            var results = context.Character
+                .Include(r => r.CharacterPropertiesContract)
+                .Include(r => r.CharacterPropertiesFillCompBook)
+                .Include(r => r.CharacterPropertiesFriendList)
+                .Include(r => r.CharacterPropertiesQuestRegistry)
+                .Include(r => r.CharacterPropertiesShortcutBar)
+                .Include(r => r.CharacterPropertiesSpellBar)
+                .Include(r => r.CharacterPropertiesTitleBook)
+                .Where(r => r.AccountId == accountId && (includeDeleted || !r.IsDeleted))
+                .ToList();
+
+            foreach (var result in results)
+                CharacterContexts.Add(result, context);
+
+            return results;
+        }
+
+        public bool SaveCharacter(Character character, ReaderWriterLockSlim rwLock)
+        {
+            if (CharacterContexts.TryGetValue(character, out var cachedContext))
+            {
+                rwLock.EnterWriteLock();
+                try
+                {
+                    try
+                    {
+                        cachedContext.SaveChanges();
+                        return true;
+                    }
+                    catch (Exception ex)
+                    {
+                        // Character name might be in use or some other fault
+                        log.Error($"SaveCharacter failed with exception: {ex}");
+                        return false;
+                    }
+                }
+                finally
+                {
+                    rwLock.ExitWriteLock();
+                }
+            }
+
+            var context = new ShardDbContext();
+
+            CharacterContexts.Add(character, context);
+
+            rwLock.EnterWriteLock();
+            try
+            {
+                context.Character.Add(character);
+
+                try
+                {
+                    context.SaveChanges();
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    // Character name might be in use or some other fault
+                    log.Error($"SaveCharacter failed with exception: {ex}");
+                    return false;
+                }
+            }
+            finally
+            {
+                rwLock.ExitWriteLock();
+            }
+        }
+
+
+        public bool AddCharacterInParallel(Biota biota, ReaderWriterLockSlim biotaLock, IEnumerable<(Biota biota, ReaderWriterLockSlim rwLock)> possessions, Character character, ReaderWriterLockSlim characterLock)
+        {
+            if (!SaveBiota(biota, biotaLock))
+                return false; // Biota save failed which mean Character fails.
+
+            if (!SaveBiotasInParallel(possessions))
+                return false;
+
+            if (!SaveCharacter(character, characterLock))
+                return false;
+
+            return true;
+        }
+
+
+        public List<Character> GetAllCharacters()
+        {
+            using (var context = new ShardDbContext())
+            {
+                var results = context.Character
+                    .AsNoTracking()
+                    .ToList();
+
+                return results;
+            }
         }
     }
 }

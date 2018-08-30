@@ -5,7 +5,6 @@ using System.Linq;
 
 using log4net;
 
-using ACE.Database;
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.DatLoader;
@@ -26,7 +25,6 @@ using ACE.Server.WorldObjects.Entity;
 using ACE.Server.Physics.Animation;
 using ACE.Server.Physics.Common;
 
-using Landblock = ACE.Server.Entity.Landblock;
 using MotionTable = ACE.DatLoader.FileTypes.MotionTable;
 using Position = ACE.Entity.Position;
 
@@ -51,6 +49,7 @@ namespace ACE.Server.WorldObjects
             Character.Id = guid.Full;
             Character.AccountId = session.Id;
             Character.Name = GetProperty(PropertyString.Name);
+            CharacterChangesDetected = true;
 
             Session = session;
 
@@ -479,85 +478,7 @@ namespace ACE.Server.WorldObjects
             Session.Network.EnqueueSend(new GameMessageSound(sourceId, sound, volume));
         }
 
-        /// <summary>
-        /// Adds a friend and updates the database.
-        /// </summary>
-        /// <param name="friendName">The name of the friend that is being added.</param>
-        public void HandleActionAddFriend(string friendName)
-        {
-            if (string.Equals(friendName, Name, StringComparison.CurrentCultureIgnoreCase))
-                ChatPacket.SendServerMessage(Session, "Sorry, but you can't be friends with yourself.", ChatMessageType.Broadcast);
-
-            // get friend player info
-            var friendInfo = WorldManager.AllPlayers.FirstOrDefault(p => p.Name.Equals(friendName));
-
-            if (friendInfo == null)
-            {
-                ChatPacket.SendServerMessage(Session, "That character does not exist", ChatMessageType.Broadcast);
-                return;
-            }
-
-            // already exists in friends list?
-            if (Character.CharacterPropertiesFriendList.FirstOrDefault(f => f.FriendId == friendInfo.Guid.Full) != null)
-                ChatPacket.SendServerMessage(Session, "That character is already in your friends list", ChatMessageType.Broadcast);
-
-            var newFriend = new CharacterPropertiesFriendList();
-            newFriend.CharacterId = Biota.Id;      // current player id
-            //newFriend.AccountId = Biota.Character.AccountId;    // current player account id
-            newFriend.FriendId = friendInfo.Biota.Id;
-
-            // add friend to DB
-            Character.CharacterPropertiesFriendList.Add(newFriend);
-
-            // send network message
-            Session.Network.EnqueueSend(new GameEventFriendsListUpdate(Session, GameEventFriendsListUpdate.FriendsUpdateTypeFlag.FriendAdded, newFriend));
-        }
-
-        /// <summary>
-        /// Remove a single friend and update the database.
-        /// </summary>
-        /// <param name="friendId">The ObjectGuid of the friend that is being removed</param>
-        public void HandleActionRemoveFriend(ObjectGuid friendId)
-        {
-            var friendToRemove = Character.CharacterPropertiesFriendList.SingleOrDefault(f => f.FriendId == friendId.Full);
-
-            // Not in friend list
-            if (friendToRemove == null)
-            {
-                ChatPacket.SendServerMessage(Session, "That character is not in your friends list!", ChatMessageType.Broadcast);
-                return;
-            }
-
-            // remove friend in DB
-            if (Character.TryRemoveFriend(friendId, out var entity) && entity.Id != 0)
-                DatabaseManager.Shard.RemoveEntity(entity, null);
-
-            // send network message
-            Session.Network.EnqueueSend(new GameEventFriendsListUpdate(Session, GameEventFriendsListUpdate.FriendsUpdateTypeFlag.FriendRemoved, friendToRemove));
-        }
-
-        /// <summary>
-        /// Delete all friends and update the database.
-        /// </summary>
-        public void HandleActionRemoveAllFriends()
-        {
-            // Remove all from DB
-            DatabaseManager.Shard.RemoveAllFriends(Guid.Low, null);
-
-            // Remove from character object
-            HandleActionRemoveAllFriends();
-        }
-
-        /// <summary>
-        /// Set the AppearOffline option to the provided value.  It will also send out an update to all online clients that have this player as a friend. This option does not save to the database.
-        /// </summary>
-        public void AppearOffline(bool appearOffline)
-        {
-            SetCharacterOption(CharacterOption.AppearOffline, appearOffline);
-            SendFriendStatusUpdates();
-        }
-
-
+ 
         /// <summary>
         /// Set the currently position of the character, to later save in the database.
         /// </summary>
@@ -724,18 +645,19 @@ namespace ACE.Server.WorldObjects
         {
             // Read the payload sent from the client...
             PaletteBaseId = message.Payload.ReadUInt32();
-            HeadObject = message.Payload.ReadUInt32();
-            HairTexture = message.Payload.ReadUInt32();
-            DefaultHairTexture = message.Payload.ReadUInt32();
-            EyesTexture = message.Payload.ReadUInt32();
-            DefaultEyesTexture = message.Payload.ReadUInt32();
-            NoseTexture = message.Payload.ReadUInt32();
-            DefaultNoseTexture = message.Payload.ReadUInt32();
-            MouthTexture = message.Payload.ReadUInt32();
-            DefaultMouthTexture = message.Payload.ReadUInt32();
-            SkinPalette = message.Payload.ReadUInt32();
-            HairPalette = message.Payload.ReadUInt32();
-            EyesPalette = message.Payload.ReadUInt32();
+            HeadObjectDID = message.Payload.ReadUInt32();
+            Character.HairTexture = message.Payload.ReadUInt32();
+            Character.DefaultHairTexture = message.Payload.ReadUInt32();
+            CharacterChangesDetected = true;
+            EyesTextureDID = message.Payload.ReadUInt32();
+            DefaultEyesTextureDID = message.Payload.ReadUInt32();
+            NoseTextureDID = message.Payload.ReadUInt32();
+            DefaultNoseTextureDID = message.Payload.ReadUInt32();
+            MouthTextureDID = message.Payload.ReadUInt32();
+            DefaultMouthTextureDID = message.Payload.ReadUInt32();
+            SkinPaletteDID = message.Payload.ReadUInt32();
+            HairPaletteDID = message.Payload.ReadUInt32();
+            EyesPaletteDID = message.Payload.ReadUInt32();
             SetupTableId = message.Payload.ReadUInt32();
 
             uint option_bound = message.Payload.ReadUInt32(); // Supress Levitation - Empyrean Only

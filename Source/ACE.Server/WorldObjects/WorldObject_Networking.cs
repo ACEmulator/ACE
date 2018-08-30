@@ -1249,8 +1249,8 @@ namespace ACE.Server.WorldObjects
             if (HeadObjectDID.HasValue)
                 objDesc.AnimPartChanges.Add(new ACE.Entity.AnimationPartChange { PartIndex = 0x10, PartID = HeadObjectDID.Value });
             //AddModel(0x10, HeadObjectDID.Value);
-            if (DefaultHairTextureDID.HasValue && HairTextureDID.HasValue)
-                objDesc.TextureChanges.Add(new ACE.Entity.TextureMapChange { PartIndex = 0x10, OldTexture = DefaultHairTextureDID.Value, NewTexture = HairTextureDID.Value });
+            if (this is Player player)
+                objDesc.TextureChanges.Add(new ACE.Entity.TextureMapChange { PartIndex = 0x10, OldTexture = player.Character.DefaultHairTexture, NewTexture = player.Character.HairTexture });
             //AddTexture(0x10, DefaultHairTextureDID.Value, HairTextureDID.Value);
             if (HairPaletteDID.HasValue)
                 objDesc.SubPalettes.Add(new ACE.Entity.SubPalette { SubID = HairPaletteDID.Value, Offset = 0x18, NumColors = 0x8 });
@@ -1260,7 +1260,7 @@ namespace ACE.Server.WorldObjects
             // PaletteBaseId = PaletteBaseDID;
             if (PaletteBaseDID.HasValue)
                 objDesc.PaletteID = PaletteBaseDID.Value;
-            if (SkinPalette.HasValue)
+            if (SkinPaletteDID.HasValue)
                 objDesc.SubPalettes.Add(new ACE.Entity.SubPalette { SubID = SkinPaletteDID.Value, Offset = 0x0, NumColors = 0x18 });
             //AddPalette(SkinPalette.Value, 0x0, 0x18);
 
@@ -1274,7 +1274,7 @@ namespace ACE.Server.WorldObjects
 
             // Nose & Mouth
             if (DefaultNoseTextureDID.HasValue && NoseTextureDID.HasValue)
-                objDesc.TextureChanges.Add(new ACE.Entity.TextureMapChange { PartIndex = 0x10, OldTexture = DefaultNoseTexture.Value, NewTexture = NoseTextureDID.Value });
+                objDesc.TextureChanges.Add(new ACE.Entity.TextureMapChange { PartIndex = 0x10, OldTexture = DefaultNoseTextureDID.Value, NewTexture = NoseTextureDID.Value });
             //AddTexture(0x10, NoseTextureDID.Value, NoseTextureDID.Value);
             if (DefaultMouthTextureDID.HasValue && MouthTextureDID.HasValue)
                 objDesc.TextureChanges.Add(new ACE.Entity.TextureMapChange { PartIndex = 0x10, OldTexture = DefaultMouthTextureDID.Value, NewTexture = MouthTextureDID.Value });

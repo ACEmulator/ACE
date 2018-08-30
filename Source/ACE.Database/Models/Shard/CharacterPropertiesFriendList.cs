@@ -8,7 +8,6 @@ namespace ACE.Database.Models.Shard
         public uint Id { get; set; }
         public uint CharacterId { get; set; }
         public uint FriendId { get; set; }
-        public uint AccountId { get; set; }
 
         public Character Character { get; set; }
     }

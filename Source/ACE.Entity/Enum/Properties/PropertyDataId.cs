@@ -134,10 +134,10 @@ namespace ACE.Entity.Enum.Properties
         [ServerOnly]
         OlthoiDeathTreasureType    = 61,
 
-        [ServerOnly]
-        HairTexture                = 9001,
-        [ServerOnly]
-        DefaultHairTexture         = 9002,
+        //[ServerOnly]
+        //HairTexture                = 9001,
+        //[ServerOnly]
+        //DefaultHairTexture         = 9002,
     }
 
     public static class PropertyDataIdExtensions

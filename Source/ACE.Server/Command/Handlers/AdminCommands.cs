@@ -1413,8 +1413,8 @@ namespace ACE.Server.Command.Handlers
             var player = new Player(weenie, guid, session);
             player.Location = session.Player.Location;
 
-            player.CharacterOptions1Mapping = session.Player.CharacterOptions1Mapping;
-            player.CharacterOptions2Mapping = session.Player.CharacterOptions2Mapping;
+            player.Character.CharacterOptions1 = session.Player.Character.CharacterOptions1;
+            player.Character.CharacterOptions2 = session.Player.Character.CharacterOptions2;
 
             //var wearables = weenie.GetCreateList((sbyte)DestinationType.Wield);
             var wearables = weenie.WeeniePropertiesCreateList.Where(x => x.DestinationType == (int)DestinationType.Wield || x.DestinationType == (int)DestinationType.WieldTreasure).ToList();
@@ -1463,7 +1463,7 @@ namespace ACE.Server.Command.Handlers
             foreach (var possession in possessions)
                 possessedBiotas.Add((possession.Biota, possession.BiotaDatabaseLock));
 
-            DatabaseManager.Shard.AddCharacter(player.Biota, possessedBiotas, player.Character, null);
+            DatabaseManager.Shard.AddCharacter(player.Biota, player.BiotaDatabaseLock, possessedBiotas, player.Character, player.CharacterDatabaseLock, null);
 
             session.LogOffPlayer();
         }

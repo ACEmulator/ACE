@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 
 using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
@@ -12,27 +11,6 @@ namespace ACE.Server.WorldObjects
         public readonly Dictionary<Skill, CreatureSkill> Skills = new Dictionary<Skill, CreatureSkill>();
 
         /// <summary>
-        /// Will return true if the skill was added, or false if the skill already exists.
-        /// </summary>
-        public bool AddSkill(Skill skill, SkillAdvancementClass skillStatus)
-        {
-            var result = Biota.BiotaPropertiesSkill.FirstOrDefault(x => x.Type == (uint)skill);
-
-            if (result == null)
-            {
-                result = new BiotaPropertiesSkill { ObjectId = Biota.Id, Type = (ushort)skill, SAC = (uint)skillStatus };
-
-                Biota.BiotaPropertiesSkill.Add(result);
-
-                Skills[skill] = new CreatureSkill(this, skill);
-
-                return true;
-            }
-
-            return false;
-        }
-
-        /// <summary>
         /// This will get a CreatureSkill wrapper around the BiotaPropertiesSkill record for this player.
         /// If the skill doesn't exist for this Biota, one will be creatd with a status of Untrained.
         /// </summary>
@@ -41,7 +19,15 @@ namespace ACE.Server.WorldObjects
             if (Skills.TryGetValue(skill, out var value))
                 return value;
 
-            AddSkill(skill, SkillAdvancementClass.Untrained);
+            var biotaPropertiesSkill = Biota.GetOrAddSkill((ushort)skill, BiotaDatabaseLock, out var skillAdded);
+
+            if (skillAdded)
+            {
+                biotaPropertiesSkill.SAC = (uint)SkillAdvancementClass.Untrained;
+                ChangesDetected = true;
+            }
+
+            Skills[skill] = new CreatureSkill(this, biotaPropertiesSkill);
 
             return Skills[skill];
         }
