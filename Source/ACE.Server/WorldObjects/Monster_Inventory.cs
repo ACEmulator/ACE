@@ -82,7 +82,6 @@ namespace ACE.Server.WorldObjects
                 if (weapon == null) return null;
 
                 // does this weapon require ammo?
-                weapon.StackSize = 1;
                 if (!weapon.IsAmmoLauncher)
                     return new List<WorldObject>() { weapon };
 
@@ -98,7 +97,6 @@ namespace ACE.Server.WorldObjects
 
                 //Console.WriteLine("Ammo type: " + (AmmoType)(weapon.AmmoType ?? 0));
 
-                curAmmo.StackSize = 1;
                 return new List<WorldObject>() { weapon, curAmmo };
             }
         }
