@@ -52,10 +52,8 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public List<WorldObject> SelectWieldedTreasure()
         {
-            foreach (var item in Inventory.Values)
-            {
-                Console.WriteLine($"{item.Name} - {item.WeenieType}");
-            }
+            /*foreach (var item in Inventory.Values)
+                Console.WriteLine($"{item.Name} - {item.WeenieType}");*/
 
             var meleeWeapons = GetInventoryItemsOfTypeWeenieType(WeenieType.MeleeWeapon);
             meleeWeapons.Clear();
