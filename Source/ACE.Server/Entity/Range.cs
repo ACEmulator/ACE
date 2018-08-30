@@ -8,6 +8,7 @@ namespace ACE.Server.Entity
     {
         public float Min;
         public float Max;
+        public float Avg;
 
         public Range() { }
 
@@ -15,6 +16,7 @@ namespace ACE.Server.Entity
         {
             Min = min;
             Max = max;
+            Avg = (Min + Max) / 2.0f;
         }
 
         public override string ToString()

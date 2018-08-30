@@ -31,27 +31,20 @@ namespace ACE.Server.WorldObjects
 
         public void EquipWieldedTreasure()
         {
-            var wielded = SelectWieldedTreasure();
-
-            if (wielded != null)
+            var items = SelectWieldedTreasure();
+            if (items != null)
             {
-                var weenie = DatabaseManager.World.GetCachedWeenie(wielded.WeenieClassId);
-                var wo = WorldObjectFactory.CreateWorldObject(weenie, new ObjectGuid(wielded.Id));
+                foreach (var item in items)
+                {
+                    //Console.WriteLine($"{Name} equipping {item.Name}");
 
-                if (wo == null) return;
-
-                if (wielded.PaletteId != 0)
-                    wo.PaletteTemplate = (int)wielded.PaletteId;
-
-                if (wielded.Shade != 0)
-                    wo.Shade = wielded.Shade;
-
-                if (wo.ValidLocations != null)
-                    TryEquipObject(wo, (int)wo.ValidLocations);
-
-                var combatStance = GetCombatStance();
-                //Console.WriteLine($"{Name} equipped {wo.Name} - {combatStance}");
+                    if (item.ValidLocations != null)
+                        TryEquipObject(item, (int)item.ValidLocations);
+                }
             }
+            var combatStance = GetCombatStance();
+            //Console.WriteLine($"{Name} combat stance: {combatStance}");
+            DoAttackStance();
         }
 
         /// <summary>
@@ -82,6 +75,24 @@ namespace ACE.Server.WorldObjects
             {
                 Sleep();
                 return;
+            }
+
+            // select a new weapon if missile launcher is out of ammo
+            var weapon = GetEquippedWeapon();
+            if (weapon != null && weapon.IsAmmoLauncher)
+            {
+                var ammo = GetEquippedAmmo();
+                if (ammo == null)
+                {
+                    TryDequipObject(weapon.Guid);
+                    EquipWieldedTreasure();
+                    CurrentAttack = null;
+                }
+            }
+            if (weapon == null && CurrentAttack != null && CurrentAttack == AttackType.Missile)
+            {
+                EquipWieldedTreasure();
+                CurrentAttack = null;
             }
 
             // decide current type of attack
@@ -119,10 +130,11 @@ namespace ACE.Server.WorldObjects
             }
             else
             {
+                if (IsTurning) return;
+
                 if (!IsFacing(AttackTarget))
                 {
-                    if (!IsTurning)
-                        StartTurn();
+                    StartTurn();
                 }
                 else if (targetDist <= MaxRange)
                 {

@@ -116,6 +116,20 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
+        /// Returns the ammo slot item for bows / atlatls,
+        /// or the missile weapon for thrown weapons
+        /// </summary>
+        public WorldObject GetMissileAmmo()
+        {
+            var weapon = GetEquippedMissileWeapon();
+
+            if (weapon.IsAmmoLauncher)
+                return GetEquippedAmmo();
+            else
+                return weapon;
+        }
+
+        /// <summary>
         /// This will set the CurrentWieldedLocation property to wieldedLocation and the Wielder property to this guid and will add it to the EquippedObjects dictionary.<para />
         /// It will also increase the EncumbranceVal and Value.
         /// </summary>

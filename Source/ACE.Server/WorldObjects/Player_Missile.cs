@@ -43,7 +43,7 @@ namespace ACE.Server.WorldObjects
             // sanity check
             accuracyLevel = Math.Clamp(accuracyLevel, 0.0f, 1.0f);
 
-            if (weapon == null || weapon.IsBow && ammo == null) return;
+            if (weapon == null || weapon.IsAmmoLauncher && ammo == null) return;
 
             AttackHeight = (AttackHeight)attackHeight;
             AccuracyLevel = accuracyLevel;
@@ -142,19 +142,6 @@ namespace ACE.Server.WorldObjects
             });
 
             actionChain.EnqueueChain();
-        }
-
-        public Sound GetLaunchMissileSound(WorldObject weapon)
-        {
-            switch (weapon.DefaultCombatStyle)
-            {
-                case CombatStyle.Bow:
-                    return Sound.BowRelease;
-                case CombatStyle.Crossbow:
-                    return Sound.CrossbowRelease;
-                default:
-                    return Sound.ThrownWeaponRelease1;
-            }
         }
 
         public override float GetAimHeight(WorldObject target)

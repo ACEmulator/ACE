@@ -363,9 +363,8 @@ namespace ACE.Server.Physics
         // s3 (out Vector3): firing solution (next impact)
         //
         // return (int): number of unique solutions found: 0, 1, 2, 3, or 4.
-        public static int solve_ballistic_arc(Vector3 proj_pos, float proj_speed, Vector3 target_pos, Vector3 target_velocity, float gravity, out Vector3 s0, out Vector3 s1)
+        public static int solve_ballistic_arc(Vector3 proj_pos, float proj_speed, Vector3 target_pos, Vector3 target_velocity, float gravity, out Vector3 s0, out Vector3 s1, out float time)
         {
-
             // Initialize output parameters
             s0 = Vector3.Zero;
             s1 = Vector3.Zero;
@@ -432,11 +431,15 @@ namespace ACE.Server.Physics
             Vector3[] solutions = new Vector3[2];
             int numSolutions = 0;
 
+            time = 0.0f;
             for (int i = 0; i < numTimes && numSolutions < 2; ++i)
             {
                 double t = times[i];
                 if (t <= 0)
                     continue;
+
+                if (numSolutions == 0)
+                    time = (float)t;
 
                 solutions[numSolutions].X = (float)((H + P * t) / t);
                 solutions[numSolutions].Y = (float)((J + R * t) / t);

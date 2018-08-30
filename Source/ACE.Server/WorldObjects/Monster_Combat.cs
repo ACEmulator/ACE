@@ -111,9 +111,6 @@ namespace ACE.Server.WorldObjects
         {
             var combatMode = IsRanged ? CombatMode.Missile : CombatMode.Melee;
 
-            if (IsRanged)
-                GiveAmmo();
-
             SetCombatMode(combatMode);
         }
 
@@ -189,6 +186,7 @@ namespace ACE.Server.WorldObjects
         public DamageType GetDamageType(BiotaPropertiesBodyPart attackPart)
         {
             var weapon = GetEquippedWeapon();
+
             if (weapon != null)
                 return GetDamageType();
             else

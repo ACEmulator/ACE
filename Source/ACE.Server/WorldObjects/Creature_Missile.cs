@@ -164,6 +164,7 @@ namespace ACE.Server.WorldObjects
             {
                 TryDequipObject(ammo.Guid);
                 EnqueueActionBroadcast(p => p.RemoveTrackedObject(ammo, true));
+                TryRemoveFromInventory(ammo.Guid);
             }
             else
             {
@@ -189,7 +190,7 @@ namespace ACE.Server.WorldObjects
             if (!targetVelocity.Equals(Vector3.Zero))
             {
                 // use movement quartic solver
-                var numSolutions = Trajectory.solve_ballistic_arc(origin, speed, dest, targetVelocity, gravity, out s0, out s1);
+                var numSolutions = Trajectory.solve_ballistic_arc(origin, speed, dest, targetVelocity, gravity, out s0, out s1, out time);
 
                 if (numSolutions > 0)
                     return s0;
@@ -229,6 +230,19 @@ namespace ACE.Server.WorldObjects
             obj.PhysicsObj.ProjectileTarget = target.PhysicsObj;
 
             obj.PhysicsObj.set_active(true);
+        }
+
+        public Sound GetLaunchMissileSound(WorldObject weapon)
+        {
+            switch (weapon.DefaultCombatStyle)
+            {
+                case CombatStyle.Bow:
+                    return Sound.BowRelease;
+                case CombatStyle.Crossbow:
+                    return Sound.CrossbowRelease;
+                default:
+                    return Sound.ThrownWeaponRelease1;
+            }
         }
     }
 }

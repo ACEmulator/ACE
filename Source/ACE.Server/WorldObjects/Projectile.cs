@@ -1,5 +1,6 @@
 using System;
 using ACE.Entity.Enum;
+using ACE.Server.Entity;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Physics;
 
@@ -39,14 +40,35 @@ namespace ACE.Server.WorldObjects
             }
 
             // take damage
-            var player = ProjectileSource as Player;
-            var creatureTarget = target as Creature;
-            if (player != null && creatureTarget != null)
-            {
-                var damage = player.DamageTarget(creatureTarget, WorldObject);
+            var sourceCreature = ProjectileSource as Creature;
+            var sourcePlayer = ProjectileSource as Player;
+            var targetCreature = target as Creature;
 
-                if (damage > 0)
-                    player.Session.Network.EnqueueSend(new GameMessageSound(WorldObject.Guid, Sound.Collision, 1.0f));    // todo: landblock broadcast?
+            if (targetCreature != null)
+            {
+                if (sourcePlayer != null)
+                {
+                    // player damage monster
+                    var damage = sourcePlayer.DamageTarget(targetCreature, WorldObject);
+
+                    if (damage > 0)
+                        sourcePlayer.Session.Network.EnqueueSend(new GameMessageSound(WorldObject.Guid, Sound.Collision, 1.0f));    // todo: landblock broadcast?
+                }
+                else if (sourceCreature != null && sourceCreature.AttackTarget != null)
+                {
+                    // monster damage player
+                    var targetPlayer = sourceCreature.AttackTarget as Player;
+                    var bodyPart = BodyParts.GetBodyPart(sourceCreature.AttackHeight.Value);
+
+                    var critical = false;
+                    var damageType = DamageType.Undef;
+                    var damage = sourceCreature.CalculateDamage(ref damageType, null, bodyPart, ref critical);
+
+                    if (damage > 0.0f)
+                        targetPlayer.TakeDamage(sourceCreature, damageType, damage, bodyPart, critical);
+                    else
+                        targetPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"You evaded {sourceCreature.Name}!", ChatMessageType.CombatEnemy));
+                }
             }
 
             WorldObject.CurrentLandblock?.RemoveWorldObject(WorldObject.Guid, false);

@@ -851,18 +851,17 @@ namespace ACE.Server.WorldObjects
             var creature = this as Creature;
 
             var weapon = creature.GetEquippedWeapon();
+            var ammo = creature.GetEquippedAmmo();
+
             if (weapon == null)
                 return DamageType.Bludgeon;
 
             DamageType damageTypes;
             var attackType = creature.GetAttackType();
-            if (attackType == AttackType.Melee)
+            if (attackType == AttackType.Melee || ammo == null || !weapon.IsAmmoLauncher)
                 damageTypes = (DamageType)weapon.GetProperty(PropertyInt.DamageType);
             else
-            {
-                var ammo = creature.GetEquippedAmmo();
                 damageTypes = (DamageType)ammo.GetProperty(PropertyInt.DamageType);
-            }
 
             // returning multiple damage types
             if (multiple) return damageTypes;

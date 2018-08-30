@@ -3,6 +3,7 @@ using System.Numerics;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Server.Entity;
+using ACE.Server.Entity.Actions;
 using ACE.Server.Managers;
 using ACE.Server.Physics.Animation;
 using ACE.Server.Physics.Common;
@@ -71,12 +72,11 @@ namespace ACE.Server.WorldObjects
 
             IsTurning = true;
 
+            // send network actions
             if (IsRanged)
                 TurnTo(AttackTarget);
             else
                 MoveTo(AttackTarget, RunRate);
-
-            if (IsRanged) return;
 
             // need turning listener?
             IsTurning = false;
@@ -85,7 +85,11 @@ namespace ACE.Server.WorldObjects
             //var mvp = GetMovementParameters();
             var mvp = new MovementParameters();
 
-            PhysicsObj.MoveToObject(AttackTarget.PhysicsObj, mvp);
+            if (IsRanged)
+                PhysicsObj.TurnToObject(AttackTarget.PhysicsObj.ID, mvp);
+            else
+                PhysicsObj.MoveToObject(AttackTarget.PhysicsObj, mvp);
+
             PhysicsObj.add_moveto_listener(OnMoveComplete);
 
             if (!InitSticky)
@@ -309,12 +313,12 @@ namespace ACE.Server.WorldObjects
             //Console.WriteLine("Dist: " + dist);
 
             // rotation accuracy?
-            var threshold = 10.0f;
+            var threshold = 5.0f;
 
             var minDist = 10.0f;
 
             if (dist < minDist)
-                threshold += (minDist - dist) * 2.0f;
+                threshold += (minDist - dist) * 1.5f;
 
             return angle < threshold;
         }
