@@ -56,7 +56,6 @@ namespace ACE.Server.WorldObjects
                 Console.WriteLine($"{item.Name} - {item.WeenieType}");*/
 
             var meleeWeapons = GetInventoryItemsOfTypeWeenieType(WeenieType.MeleeWeapon);
-            meleeWeapons.Clear();
             var missileWeapons = GetInventoryItemsOfTypeWeenieType(WeenieType.MissileLauncher);
             var missiles = GetInventoryItemsOfTypeWeenieType(WeenieType.Missile);
             missileWeapons.AddRange(missiles);
