@@ -302,20 +302,25 @@ namespace ACE.Server.WorldObjects
         /// <returns></returns>
         public bool? ResistSpell(WorldObject target, SpellBase spell)
         {
-            var caster = this as Creature;
-            if (caster != null)
+            if (this is Creature caster)
             {
+                var player = caster as Player;
+                var targetPlayer = target as Player;
+
                 // Retrieve creature's skill level in the Magic School
                 var creatureMagicSkill = caster.GetCreatureSkill(spell.School).Current;
 
                 // Retrieve target's Magic Defense Skill
-                Creature creature = (Creature)target;
+                Creature creature = target as Creature;
                 var targetMagicDefenseSkill = creature.GetCreatureSkill(Skill.MagicDefense).Current;
 
                 bool resisted = MagicDefenseCheck(creatureMagicSkill, targetMagicDefenseSkill);
+
+                if (targetPlayer != null)
+                    resisted |= targetPlayer.Invincible == true;
+
                 if (resisted)
                 {
-                    var player = caster as Player;
                     if (player != null)
                     {
                         player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{creature.Name} resists {spell.Name}", ChatMessageType.Magic));
@@ -323,7 +328,6 @@ namespace ACE.Server.WorldObjects
                     }
                     else
                     {
-                        var targetPlayer = target as Player;
                         if (targetPlayer != null)
                         {
                             targetPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"You resist the spell cast by {caster.Name}", ChatMessageType.Magic));
@@ -1578,11 +1582,23 @@ namespace ACE.Server.WorldObjects
 
         public static double? MagicDamageTarget(Creature source, Creature target, SpellBase spell, Database.Models.World.Spell spellStatMod, out DamageType damageType, ref bool criticalHit, uint lifeMagicDamage = 0)
         {
+            var sourceAsPlayer = source as Player;
+            var targetAsPlayer = target as Player;
+
             if (target.Health.Current <= 0)
             {
                 // Target already dead
                 damageType = DamageType.Undef;
                 return -1;
+            }
+
+            if (targetAsPlayer != null)
+            {
+                if (targetAsPlayer.Invincible == true)
+                {
+                    damageType = DamageType.Undef;
+                    return null;
+                }
             }
 
             double damageBonus = 0.0f, minDamageBonus = 0, maxDamageBonus = 0, warSkillBonus = 0.0f, finalDamage = 0.0f;
@@ -1600,9 +1616,9 @@ namespace ACE.Server.WorldObjects
 
             if (criticalHit == true)
             {
-                if (((source as Player) != null) && ((target as Player) != null)) // PvP
+                if ((sourceAsPlayer != null) && (targetAsPlayer != null)) // PvP
                     magicCritType = MagicCritType.PvPCrit;
-                else if ((((source as Player) != null) && ((target as Player) == null))) // PvE
+                else if (((sourceAsPlayer != null) && (targetAsPlayer == null))) // PvE
                     magicCritType = MagicCritType.PvECrit;
                 else
                     magicCritType = MagicCritType.NoCrit;
