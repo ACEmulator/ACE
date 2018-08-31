@@ -208,7 +208,9 @@ namespace ACE.Server.WorldObjects
             var player = AttackTarget as Player;
 
             var defenseSkill = CurrentAttack == AttackType.Missile ? Skill.MissileDefense : Skill.MeleeDefense;
-            var difficulty = player.GetCreatureSkill(defenseSkill).Current * GetWeaponMeleeDefenseBonus(AttackTarget as Creature);
+            var difficulty = player.GetCreatureSkill(defenseSkill).Current;
+            if (defenseSkill == Skill.MeleeDefense)
+                difficulty = (uint)Math.Round(difficulty * GetWeaponMeleeDefenseBonus(AttackTarget as Creature));
 
             if (player.IsExhausted) difficulty = 0;
 
