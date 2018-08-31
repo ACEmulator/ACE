@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using System.Linq;
 
 using ACE.Common;
@@ -7,9 +5,7 @@ using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
-using ACE.Server.Entity.Actions;
 using ACE.Server.Managers;
-using ACE.Server.Network;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Motion;
@@ -21,9 +17,6 @@ namespace ACE.Server.WorldObjects
     {
         public void PlayerEnterWorld()
         {
-            var player = this;
-            var physicsObj = PhysicsObj;
-
             IsOnline = true;
 
             // Save the the LoginTimestamp
@@ -172,33 +165,29 @@ namespace ACE.Server.WorldObjects
 
         public void RequestUpdateMotion(uint holdKey, MovementData md, MotionItem[] commands)
         {
-            new ActionChain(this, () =>
+            // Update our current style
+            if ((md.MovementStateFlag & MovementStateFlag.CurrentStyle) != 0)
             {
-                // Update our current style
-                if ((md.MovementStateFlag & MovementStateFlag.CurrentStyle) != 0)
-                {
-                    MotionStance newStance = (MotionStance)md.CurrentStyle;
+                MotionStance newStance = (MotionStance)md.CurrentStyle;
 
-                    if (newStance != stance)
-                        stance = (MotionStance)md.CurrentStyle;
-                }
+                if (newStance != stance)
+                    stance = (MotionStance)md.CurrentStyle;
+            }
 
-                md = md.ConvertToClientAccepted(holdKey, GetCreatureSkill(Skill.Run));
-                UniversalMotion newMotion = new UniversalMotion(stance, md);
+            md = md.ConvertToClientAccepted(holdKey, GetCreatureSkill(Skill.Run));
+            UniversalMotion newMotion = new UniversalMotion(stance, md);
 
-                // This is a hack to make walking work correctly.   Og II
-                if (holdKey != 0 || (md.ForwardCommand == (uint)MotionCommand.WalkForward))
-                    newMotion.IsAutonomous = true;
+            // This is a hack to make walking work correctly.   Og II
+            if (holdKey != 0 || (md.ForwardCommand == (uint)MotionCommand.WalkForward))
+                newMotion.IsAutonomous = true;
 
-                // FIXME(ddevec): May need to de-dupe animation/commands from client -- getting multiple (e.g. wave)
-                // FIXME(ddevec): This is the operation that should update our velocity (for physics later)
-                newMotion.Commands.AddRange(commands);
-                CurrentLandblock?.EnqueueBroadcastMotion(this, newMotion);
+            // FIXME(ddevec): May need to de-dupe animation/commands from client -- getting multiple (e.g. wave)
+            // FIXME(ddevec): This is the operation that should update our velocity (for physics later)
+            newMotion.Commands.AddRange(commands);
+            CurrentLandblock?.EnqueueBroadcastMotion(this, newMotion);
 
-                // TODO: use real motion / animation system from physics
-                CurrentMotionCommand = md.ForwardCommand;
-
-            }).EnqueueChain();
+            // TODO: use real motion / animation system from physics
+            CurrentMotionCommand = md.ForwardCommand;
         }
 
         private void ExternalUpdatePosition(Position newPosition)

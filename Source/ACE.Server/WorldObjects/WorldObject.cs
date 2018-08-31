@@ -642,11 +642,8 @@ namespace ACE.Server.WorldObjects
 
         public void ApplyVisualEffects(PlayScript effect)
         {
-            // new ActionChain(this, () => PlayParticleEffect(effect, Guid)).EnqueueChain();
             if (CurrentLandblock != null)
-            {
                 PlayParticleEffect(effect, Guid);
-            }
         }
 
         // plays particle effect like spell casting or bleed etc..

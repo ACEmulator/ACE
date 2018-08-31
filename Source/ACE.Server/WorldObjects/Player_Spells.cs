@@ -2,7 +2,6 @@
 using ACE.Database.Models.Shard;
 using ACE.DatLoader;
 using ACE.Entity.Enum;
-using ACE.Server.Entity.Actions;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 
@@ -63,19 +62,16 @@ namespace ACE.Server.WorldObjects
 
         public void HandleActionMagicRemoveSpellId(uint spellId)
         {
-            new ActionChain(this, () =>
+            if (!Biota.TryRemoveKnownSpell((int)spellId, out _, BiotaDatabaseLock))
             {
-                if (!Biota.TryRemoveKnownSpell((int)spellId, out _, BiotaDatabaseLock))
-                {
-                    log.Error("Invalid spellId passed to Player.RemoveSpellFromSpellBook");
-                    return;
-                }
+                log.Error("Invalid spellId passed to Player.RemoveSpellFromSpellBook");
+                return;
+            }
 
-                ChangesDetected = true;
+            ChangesDetected = true;
 
-                GameEventMagicRemoveSpellId removeSpellEvent = new GameEventMagicRemoveSpellId(Session, spellId);
-                Session.Network.EnqueueSend(removeSpellEvent);
-            }).EnqueueChain();
+            GameEventMagicRemoveSpellId removeSpellEvent = new GameEventMagicRemoveSpellId(Session, spellId);
+            Session.Network.EnqueueSend(removeSpellEvent);
         }
     }
 }

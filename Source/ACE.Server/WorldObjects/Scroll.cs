@@ -153,11 +153,10 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// This is raised by Player.HandleActionUseItem, and is wrapped in ActionChain.<para />
-        /// The actor of the ActionChain is the player using the item.<para />
+        /// This is raised by Player.HandleActionUseItem.<para />
         /// The item should be in the players possession.
         /// </summary>
-        public override void UseItem(Player player, ActionChain actionChain)
+        public override void UseItem(Player player)
         {
             bool success = true;
             string failReason = "You are unable to read the scroll.";
@@ -183,6 +182,8 @@ namespace ACE.Server.WorldObjects
                 success = false;
                 failReason = "You already know the spell inscribed upon this scroll.";
             }
+
+            var actionChain = new ActionChain();
 
             actionChain
                 .AddAction(player, () => player.HandleActionMotion(motionReading))
@@ -211,6 +212,8 @@ namespace ACE.Server.WorldObjects
 
             actionChain
                 .AddAction(player, () => player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session)));
+
+            actionChain.EnqueueChain();
         }
 
         //public override void SerializeIdentifyObjectResponse(BinaryWriter writer, bool success, IdentifyResponseFlags flags = IdentifyResponseFlags.None)
