@@ -45,7 +45,7 @@ namespace ACE.Server.Network
 
 
         private DateTime lastAutoSaveTime;
-        public DateTime LogOffRequestTime { get; private set; }
+        private DateTime logOffRequestTime;
         private DateTime lastAgeIntUpdateTime;
         private DateTime lastSendAgeIntUpdateTime;
 
@@ -128,9 +128,9 @@ namespace ACE.Server.Network
 
             // Live server seemed to take about 6 seconds. 4 seconds is nice because it has smooth animation, and saves the user 2 seconds every logoff
             // This could be made 0 for instant logoffs.
-            if (LogOffRequestTime != DateTime.MinValue && LogOffRequestTime.AddSeconds(6) <= DateTime.UtcNow)
+            if (logOffRequestTime != DateTime.MinValue && logOffRequestTime.AddSeconds(6) <= DateTime.UtcNow)
             {
-                LogOffRequestTime = DateTime.MinValue;
+                logOffRequestTime = DateTime.MinValue;
                 SendFinalLogOffMessages();
             }
 
@@ -271,11 +271,18 @@ namespace ACE.Server.Network
             logoutChain.AddChain(Player.GetLogoutChain());
             logoutChain.EnqueueChain();
 
-            LogOffRequestTime = DateTime.UtcNow;
+            logOffRequestTime = DateTime.UtcNow;
         }
 
         private void SendFinalLogOffMessages()
         {
+            // It's possible for a character change to happen from a GameActionSetCharacterOptions message.
+            // This message can be received/procesed by the server AFTER LogOfPlayer has been called.
+            // What that means is, we could end up with Character changes after the Character has been saved from the initial LogOff request.
+            // To make sure we commit these additional changes (if any), we check again here
+            if (Player.CharacterChangesDetected)
+                Player.SaveCharacterToDatabase();
+
             Network.EnqueueSend(new GameMessageCharacterLogOff());
 
             CheckCharactersForDeletion();

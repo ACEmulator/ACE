@@ -174,12 +174,6 @@ namespace ACE.Server.Network.GameAction.Actions
                 gameplayOptions = message.Payload.ReadBytes(size);
                 session.Player.SetCharacterGameplayOptions(gameplayOptions);
             }
-
-            // This message is also sent when a character logs off.
-            // When this happens, the message is sent AFTER ACE has already processed and saved the character to the database.
-            // To make sure we commit these additional changes (if any), we check to see if the log off requested time has a value.
-            if (session.Player.CharacterChangesDetected && session.LogOffRequestTime != DateTime.MinValue)
-                session.Player.SaveCharacterToDatabase();
         }
     }
 }
