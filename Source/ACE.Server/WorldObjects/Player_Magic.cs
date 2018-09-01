@@ -553,8 +553,8 @@ namespace ACE.Server.WorldObjects
             {
                 spellChain.AddAction(this, () =>
                 {
-                    var motionWindUp = new UniversalMotion(MotionStance.Spellcasting);
-                    motionWindUp.MovementData.CurrentStyle = (ushort)((uint)MotionStance.Spellcasting & 0xFFFF);
+                    var motionWindUp = new UniversalMotion(MotionStance.Magic);
+                    motionWindUp.MovementData.CurrentStyle = (ushort)((uint)MotionStance.Magic & 0xFFFF);
                     motionWindUp.MovementData.ForwardCommand = (uint)windUpMotion;
                     motionWindUp.MovementData.ForwardSpeed = 2;
                     DoMotion(motionWindUp);
@@ -567,8 +567,8 @@ namespace ACE.Server.WorldObjects
                 if (spellWords != null)
                     EnqueueBroadcast(new GameMessageCreatureMessage(spellWords, Name, Guid.Full, ChatMessageType.Spellcasting));
 
-                var motionCastSpell = new UniversalMotion(MotionStance.Spellcasting);
-                motionCastSpell.MovementData.CurrentStyle = (ushort)((uint)MotionStance.Spellcasting & 0xFFFF);
+                var motionCastSpell = new UniversalMotion(MotionStance.Magic);
+                motionCastSpell.MovementData.CurrentStyle = (ushort)((uint)MotionStance.Magic & 0xFFFF);
                 motionCastSpell.MovementData.ForwardCommand = (uint)spellGesture;
                 motionCastSpell.MovementData.ForwardSpeed = 2;
                 DoMotion(motionCastSpell);
@@ -739,8 +739,8 @@ namespace ACE.Server.WorldObjects
 
             spellChain.AddAction(this, () =>
             {
-                var motionReturnToCastStance = new UniversalMotion(MotionStance.Spellcasting);
-                motionReturnToCastStance.MovementData.CurrentStyle = (ushort)((uint)MotionStance.Spellcasting & 0xFFFF);
+                var motionReturnToCastStance = new UniversalMotion(MotionStance.Magic);
+                motionReturnToCastStance.MovementData.CurrentStyle = (ushort)((uint)MotionStance.Magic & 0xFFFF);
                 motionReturnToCastStance.MovementData.ForwardCommand = (uint)MotionCommand.Invalid;
                 DoMotion(motionReturnToCastStance);
             });
@@ -850,8 +850,8 @@ namespace ACE.Server.WorldObjects
             {
                 spellChain.AddAction(this, () =>
                 {
-                    var motionWindUp = new UniversalMotion(MotionStance.Spellcasting);
-                    motionWindUp.MovementData.CurrentStyle = (ushort)((uint)MotionStance.Spellcasting & 0xFFFF);
+                    var motionWindUp = new UniversalMotion(MotionStance.Magic);
+                    motionWindUp.MovementData.CurrentStyle = (ushort)((uint)MotionStance.Magic & 0xFFFF);
                     motionWindUp.MovementData.ForwardCommand = (uint)windUpMotion;
                     motionWindUp.MovementData.ForwardSpeed = 2;
                     DoMotion(motionWindUp);
@@ -864,8 +864,8 @@ namespace ACE.Server.WorldObjects
                 if (spellWords != null)
                     EnqueueBroadcast(new GameMessageCreatureMessage(spellWords, Name, Guid.Full, ChatMessageType.Magic));
 
-                var motionCastSpell = new UniversalMotion(MotionStance.Spellcasting);
-                motionCastSpell.MovementData.CurrentStyle = (ushort)((uint)MotionStance.Spellcasting & 0xFFFF);
+                var motionCastSpell = new UniversalMotion(MotionStance.Magic);
+                motionCastSpell.MovementData.CurrentStyle = (ushort)((uint)MotionStance.Magic & 0xFFFF);
                 motionCastSpell.MovementData.ForwardCommand = (uint)spellGesture;
                 motionCastSpell.MovementData.ForwardSpeed = 2;
                 DoMotion(motionCastSpell);
@@ -902,8 +902,8 @@ namespace ACE.Server.WorldObjects
 
             spellChain.AddAction(this, () =>
             {
-                var motionReturnToCastStance = new UniversalMotion(MotionStance.Spellcasting);
-                motionReturnToCastStance.MovementData.CurrentStyle = (ushort)((uint)MotionStance.Spellcasting & 0xFFFF);
+                var motionReturnToCastStance = new UniversalMotion(MotionStance.Magic);
+                motionReturnToCastStance.MovementData.CurrentStyle = (ushort)((uint)MotionStance.Magic & 0xFFFF);
                 motionReturnToCastStance.MovementData.ForwardCommand = (uint)MotionCommand.Invalid;
                 DoMotion(motionReturnToCastStance);
             });

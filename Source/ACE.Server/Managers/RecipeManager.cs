@@ -40,7 +40,7 @@ namespace ACE.Server.Managers
             bool skillSuccess = true; // assume success, unless there's a skill check
             double percentSuccess = 1;
 
-            UniversalMotion motion = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.ClapHands));
+            UniversalMotion motion = new UniversalMotion(MotionStance.NonCombat, new MotionItem(MotionCommand.ClapHands));
             craftChain.AddAction(player, () => player.HandleActionMotion(motion));
             var motionTable = DatManager.PortalDat.ReadFromDat<MotionTable>(player.MotionTableId);
             var craftAnimationLength = motionTable.GetAnimationLength(MotionCommand.ClapHands);

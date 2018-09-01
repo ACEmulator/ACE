@@ -18,8 +18,8 @@ namespace ACE.Server.WorldObjects
 {
     public class Scroll : WorldObject
     {
-        private static readonly UniversalMotion motionReading = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.Reading));
-        private static readonly UniversalMotion motionReady = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.Ready));
+        private static readonly UniversalMotion motionReading = new UniversalMotion(MotionStance.NonCombat, new MotionItem(MotionCommand.Reading));
+        private static readonly UniversalMotion motionReady = new UniversalMotion(MotionStance.NonCombat, new MotionItem(MotionCommand.Ready));
 
         private const uint spellLevel1 = 0;
         private const uint spellLevel2 = 50;

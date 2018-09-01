@@ -383,7 +383,7 @@ namespace ACE.Server.WorldObjects
                 var player = worldObject as Player;
                 if (!(IsOpen ?? false))
                 {
-                    var turnToMotion = new UniversalMotion(MotionStance.Standing, Location, Guid);
+                    var turnToMotion = new UniversalMotion(MotionStance.NonCombat, Location, Guid);
                     turnToMotion.MovementTypes = MovementTypes.TurnToObject;
 
                     var turnToTimer = new ActionChain();

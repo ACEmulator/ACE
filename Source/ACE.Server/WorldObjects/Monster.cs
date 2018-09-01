@@ -1,4 +1,10 @@
 using System;
+using ACE.Database;
+using ACE.Database.Models.World;
+using ACE.Entity;
+using ACE.Entity.Enum;
+using ACE.Entity.Enum.Properties;
+using ACE.Server.Factories;
 
 namespace ACE.Server.WorldObjects
 {
@@ -22,6 +28,24 @@ namespace ACE.Server.WorldObjects
             Idle,
             Awake
         };
+
+        public void EquipWieldedTreasure()
+        {
+            var items = SelectWieldedTreasure();
+            if (items != null)
+            {
+                foreach (var item in items)
+                {
+                    //Console.WriteLine($"{Name} equipping {item.Name}");
+
+                    if (item.ValidLocations != null)
+                        TryEquipObject(item, (int)item.ValidLocations);
+                }
+            }
+            var combatStance = GetCombatStance();
+            //Console.WriteLine($"{Name} combat stance: {combatStance}");
+            DoAttackStance();
+        }
 
         /// <summary>
         /// Called every ~1 second
@@ -51,6 +75,24 @@ namespace ACE.Server.WorldObjects
             {
                 Sleep();
                 return;
+            }
+
+            // select a new weapon if missile launcher is out of ammo
+            var weapon = GetEquippedWeapon();
+            if (weapon != null && weapon.IsAmmoLauncher)
+            {
+                var ammo = GetEquippedAmmo();
+                if (ammo == null)
+                {
+                    TryDequipObject(weapon.Guid);
+                    EquipWieldedTreasure();
+                    CurrentAttack = null;
+                }
+            }
+            if (weapon == null && CurrentAttack != null && CurrentAttack == AttackType.Missile)
+            {
+                EquipWieldedTreasure();
+                CurrentAttack = null;
             }
 
             // decide current type of attack
@@ -88,10 +130,11 @@ namespace ACE.Server.WorldObjects
             }
             else
             {
+                if (IsTurning) return;
+
                 if (!IsFacing(AttackTarget))
                 {
-                    if (!IsTurning)
-                        StartTurn();
+                    StartTurn();
                 }
                 else if (targetDist <= MaxRange)
                 {

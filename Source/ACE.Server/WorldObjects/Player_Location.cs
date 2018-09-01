@@ -35,7 +35,7 @@ namespace ACE.Server.WorldObjects
             return false;
         }
 
-        private static readonly UniversalMotion motionLifestoneRecall = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.LifestoneRecall));
+        private static readonly UniversalMotion motionLifestoneRecall = new UniversalMotion(MotionStance.NonCombat, new MotionItem(MotionCommand.LifestoneRecall));
 
         /// <summary>
         /// Handles teleporting a player to the lifestone (/ls or /lifestone command)
@@ -72,7 +72,7 @@ namespace ACE.Server.WorldObjects
             }
         }
 
-        private static readonly UniversalMotion motionMarketplaceRecall = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.MarketplaceRecall));
+        private static readonly UniversalMotion motionMarketplaceRecall = new UniversalMotion(MotionStance.NonCombat, new MotionItem(MotionCommand.MarketplaceRecall));
 
         public void HandleActionTeleToMarketPlace()
         {
