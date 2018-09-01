@@ -824,7 +824,11 @@ namespace ACE.Server.WorldObjects
 
             var baseVariance = baseDamage.Min / baseDamage.Max;
 
-            var maxDamageMod = baseDamage.Max + damageMod;
+            var weapon = wielder.GetEquippedWeapon();
+            var damageBonus = weapon != null ? (float)(weapon.GetProperty(PropertyFloat.DamageMod) ?? 1.0f) : 1.0f;
+
+            // additives first, then multipliers?
+            var maxDamageMod = (baseDamage.Max + damageMod) * damageBonus;
             var minDamageMod = maxDamageMod * (baseVariance * varianceMod);
 
             return new Range(minDamageMod, maxDamageMod);

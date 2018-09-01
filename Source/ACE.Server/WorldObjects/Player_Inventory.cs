@@ -810,13 +810,15 @@ namespace ACE.Server.WorldObjects
             {
                 case WieldRequirement.RawSkill:
                     // Check WieldDifficulty property against player's Skill level, defined by item's WieldSkilltype property
-                    var itemSkillReq = (Skill)(item.GetProperty(PropertyInt.WieldSkilltype) ?? 0);
+                    var itemSkillReq = ConvertToMoASkill((Skill)(item.GetProperty(PropertyInt.WieldSkilltype) ?? 0));
 
                     if (itemSkillReq != Skill.None)
                     {
                         var playerSkill = GetCreatureSkill(itemSkillReq).Current;
 
-                        if (playerSkill < (uint)(item.GetProperty(PropertyInt.WieldDifficulty) ?? 0))
+                        var skillDifficulty = (uint)(item.GetProperty(PropertyInt.WieldDifficulty) ?? 0);
+
+                        if (playerSkill < skillDifficulty)
                             return WeenieError.SkillTooLow;
                     }
                     break;
@@ -841,6 +843,19 @@ namespace ACE.Server.WorldObjects
                     break;
             }
             return WeenieError.None;
+        }
+
+        public Skill ConvertToMoASkill(Skill skill)
+        {
+            var player = this as Player;
+            if (player != null)
+            {
+                if ((skill & SkillExtensions.RetiredMelee) != 0)
+                    return player.GetHighestMeleeSkill();
+                if ((skill & SkillExtensions.RetiredMissile) != 0)
+                    return Skill.MissileWeapons;
+            }
+            return skill;
         }
 
         /// <summary>

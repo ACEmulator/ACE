@@ -244,6 +244,11 @@ namespace ACE.Entity.Enum
 
     public static class SkillExtensions
     {
+        public static Skill RetiredMelee = Skill.Axe | Skill.Dagger | Skill.Mace | Skill.Spear | Skill.Staff | Skill.Sword | Skill.UnarmedCombat;
+        public static Skill RetiredMissile = Skill.Bow | Skill.Crossbow | Skill.Sling | Skill.ThrownWeapon;
+
+        public static Skill RetiredWeapons = RetiredMelee | RetiredMissile;
+
         public static AttributeFormulaAttribute GetFormula(this Skill skill)
         {
             return skill.GetAttributeOfType<AttributeFormulaAttribute>();

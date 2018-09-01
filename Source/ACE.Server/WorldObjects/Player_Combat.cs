@@ -36,15 +36,7 @@ namespace ACE.Server.WorldObjects
                 return GetCreatureSkill(Skill.MissileWeapons).Skill;
 
             // hack for converting pre-MoA skills
-            var light = GetCreatureSkill(Skill.LightWeapons);
-            var heavy = GetCreatureSkill(Skill.HeavyWeapons);
-            var finesse = GetCreatureSkill(Skill.FinesseWeapons);
-
-            var maxMelee = light;
-            if (heavy.Current > maxMelee.Current)
-                maxMelee = heavy;
-            if (finesse.Current > maxMelee.Current)
-                maxMelee = finesse;
+            var maxMelee = GetCreatureSkill(GetHighestMeleeSkill());
 
             // DualWieldAlternate will be TRUE if *next* attack is offhand
             if (IsDualWieldAttack && !DualWieldAlternate)
@@ -55,6 +47,25 @@ namespace ACE.Server.WorldObjects
                 if (dualWield.Current < maxMelee.Current)
                     return dualWield.Skill;
             }
+
+            return maxMelee.Skill;
+        }
+
+        /// <summary>
+        /// Returns the highest melee skill for the player
+        /// (light / heavy / finesse)
+        /// </summary>
+        public Skill GetHighestMeleeSkill()
+        {
+            var light = GetCreatureSkill(Skill.LightWeapons);
+            var heavy = GetCreatureSkill(Skill.HeavyWeapons);
+            var finesse = GetCreatureSkill(Skill.FinesseWeapons);
+
+            var maxMelee = light;
+            if (heavy.Current > maxMelee.Current)
+                maxMelee = heavy;
+            if (finesse.Current > maxMelee.Current)
+                maxMelee = finesse;
 
             return maxMelee.Skill;
         }
@@ -115,26 +126,31 @@ namespace ACE.Server.WorldObjects
         public float GetEvadeChance(WorldObject target)
         {
             // get player attack skill
+            var creature = target as Creature;
             var attackSkill = GetCreatureSkill(GetCurrentWeaponSkill()).Current;
+            var offenseMod = GetWeaponOffenseBonus(this);
+            attackSkill = (uint)Math.Round(attackSkill * offenseMod);
 
             if (IsExhausted)
                 attackSkill = GetExhaustedSkill(attackSkill);
 
             // get target defense skill
-            var creature = target as Creature;
             var defenseSkill = GetAttackType() == AttackType.Melee ? Skill.MeleeDefense : Skill.MissileDefense;
-            var difficulty = creature.GetCreatureSkill(defenseSkill).Current;
-            if (defenseSkill == Skill.MeleeDefense)
-                difficulty = (uint)Math.Round(difficulty * GetWeaponMeleeDefenseBonus(creature));
+            var defenseMod = defenseSkill == Skill.MeleeDefense ? GetWeaponMeleeDefenseBonus(creature) : 1.0f;
+            var difficulty = (uint)Math.Round(creature.GetCreatureSkill(defenseSkill).Current * defenseMod);
 
             if (creature.IsExhausted) difficulty = 0;
 
-            //Console.WriteLine("Attack skill: " + attackSkill);
-            //Console.WriteLine("Defense skill: " + difficulty);
+            /*var baseStr = offenseMod != 1.0f ? $" (base: {GetCreatureSkill(GetCurrentWeaponSkill()).Current})" : "";
+            Console.WriteLine("Attack skill: " + attackSkill + baseStr);
+
+            baseStr = defenseMod != 1.0f ? $" (base: {creature.GetCreatureSkill(defenseSkill).Current})" : "";
+            Console.WriteLine("Defense skill: " + difficulty + baseStr);*/
 
             var evadeChance = 1.0f - SkillCheck.GetSkillChance((int)attackSkill, (int)difficulty);
             return (float)evadeChance;
         }
+
 
         /// <summary>
         /// Called when player successfully avoids an attack

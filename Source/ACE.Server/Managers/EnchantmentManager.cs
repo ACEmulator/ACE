@@ -627,7 +627,7 @@ namespace ACE.Server.Managers
         public float GetRegenerationMod(CreatureVital vital)
         {
             var typeFlags = EnchantmentTypeFlags.Float | EnchantmentTypeFlags.SingleStat | EnchantmentTypeFlags.Multiplicative;
-            var vitalKey = GetVitalKey(vital);
+            var vitalKey = GetVitalRateKey(vital);
             var enchantments = GetEnchantments(typeFlags, (uint)vitalKey);
 
             // multiplicative
@@ -639,9 +639,25 @@ namespace ACE.Server.Managers
         }
 
         /// <summary>
+        /// Gets the direct modifiers to a vital / secondary attribute
+        /// </summary>
+        public float GetVitalMod(CreatureVital vital)
+        {
+            var typeFlags = EnchantmentTypeFlags.SecondAtt | EnchantmentTypeFlags.SingleStat | EnchantmentTypeFlags.Additive;
+            var enchantments = GetEnchantments(typeFlags, (uint)vital.Vital);
+
+            // additive
+            var modifier = 0.0f;
+            foreach (var enchantment in enchantments)
+                modifier += enchantment.StatModValue;
+
+            return modifier;
+        }
+
+        /// <summary>
         /// Gets the VitalRate key for a CreatureVital
         /// </summary>
-        public PropertyFloat GetVitalKey(CreatureVital vital)
+        public PropertyFloat GetVitalRateKey(CreatureVital vital)
         {
             switch (vital.Vital)
             {
