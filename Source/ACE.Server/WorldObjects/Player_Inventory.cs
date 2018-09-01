@@ -850,9 +850,9 @@ namespace ACE.Server.WorldObjects
             var player = this as Player;
             if (player != null)
             {
-                if ((skill & SkillExtensions.RetiredMelee) != 0)
+                if (SkillExtensions.RetiredMelee.Contains(skill))
                     return player.GetHighestMeleeSkill();
-                if ((skill & SkillExtensions.RetiredMissile) != 0)
+                if (SkillExtensions.RetiredMissile.Contains(skill))
                     return Skill.MissileWeapons;
             }
             return skill;
