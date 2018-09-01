@@ -88,7 +88,7 @@ namespace ACE.Server.Network.Structure
             if (weapon is Ammunition) return 1.0f;
 
             var baseOffense = weapon.GetProperty(PropertyFloat.WeaponOffense) ?? 1.0f;
-            var offenseMod = wielder != null ? wielder.EnchantmentManager.GetAttackMod() : 1.0f;
+            var offenseMod = wielder != null ? wielder.EnchantmentManager.GetAttackMod() : 0.0f;
             return (float)(baseOffense + offenseMod);
         }
     }
