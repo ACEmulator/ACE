@@ -10,6 +10,11 @@ namespace ACE.Database.Models.Shard
 {
     public static class BiotaExtensions
     {
+        // =====================================
+        // Get
+        // Bool, DID, Float, IID, Int, Int64, Position, String
+        // =====================================
+
         public static bool? GetProperty(this Biota biota, PropertyBool property, ReaderWriterLockSlim rwLock)
         {
             rwLock.EnterReadLock();
@@ -120,6 +125,10 @@ namespace ACE.Database.Models.Shard
         }
 
 
+        // =====================================
+        // Set
+        // Bool, DID, Float, IID, Int, Int64, Position, String
+        // =====================================
 
         public static void SetProperty(this Biota biota, PropertyBool property, bool value, ReaderWriterLockSlim rwLock, out bool biotaChanged)
         {
@@ -385,6 +394,10 @@ namespace ACE.Database.Models.Shard
         }
 
 
+        // =====================================
+        // Remove
+        // Bool, DID, Float, IID, Int, Int64, Position, String
+        // =====================================
 
         public static bool TryRemoveProperty(this Biota biota, PropertyBool property, out BiotaPropertiesBool entity, ReaderWriterLockSlim rwLock)
         {
@@ -611,6 +624,10 @@ namespace ACE.Database.Models.Shard
         }
 
 
+        // =====================================
+        // BiotaPropertiesEnchantmentRegistry
+        // =====================================
+
         public static bool HasEnchantments(this Biota biota, ReaderWriterLockSlim rwLock)
         {
             rwLock.EnterReadLock();
@@ -747,6 +764,123 @@ namespace ACE.Database.Models.Shard
             }
         }
 
+
+        // =====================================
+        // BiotaPropertiesSkill
+        // =====================================
+
+        public static BiotaPropertiesSkill GetOrAddSkill(this Biota biota, ushort type, ReaderWriterLockSlim rwLock, out bool skillAdded)
+        {
+            rwLock.EnterUpgradeableReadLock();
+            try
+            {
+                var entity = biota.BiotaPropertiesSkill.FirstOrDefault(x => x.Type == type);
+                if (entity != null)
+                {
+                    skillAdded = false;
+                    return entity;
+                }
+
+                rwLock.EnterWriteLock();
+                try
+                {
+                    entity = new BiotaPropertiesSkill { ObjectId = biota.Id, Type = type, Object = biota };
+                    biota.BiotaPropertiesSkill.Add(entity);
+                    skillAdded = true;
+                    return entity;
+                }
+                finally
+                {
+                    rwLock.ExitWriteLock();
+                }
+            }
+            finally
+            {
+                rwLock.ExitUpgradeableReadLock();
+            }
+        }
+
+
+        // =====================================
+        // BiotaPropertiesSpellBook
+        // =====================================
+
+        public static bool SpellIsKnown(this Biota biota, int spell, ReaderWriterLockSlim rwLock)
+        {
+            rwLock.EnterReadLock();
+            try
+            {
+                return biota.BiotaPropertiesSpellBook.FirstOrDefault(x => x.Spell == spell) != null;
+            }
+            finally
+            {
+                rwLock.ExitReadLock();
+            }
+        }
+
+        public static BiotaPropertiesSpellBook GetOrAddKnownSpell(this Biota biota, int spell, ReaderWriterLockSlim rwLock, out bool spellAdded)
+        {
+            rwLock.EnterUpgradeableReadLock();
+            try
+            {
+                var entity = biota.BiotaPropertiesSpellBook.FirstOrDefault(x => x.Spell == spell);
+                if (entity != null)
+                {
+                    spellAdded = false;
+                    return entity;
+                }
+
+                rwLock.EnterWriteLock();
+                try
+                {
+                    entity = new BiotaPropertiesSpellBook { ObjectId = biota.Id, Spell = spell, Object = biota };
+                    biota.BiotaPropertiesSpellBook.Add(entity);
+                    spellAdded = true;
+                    return entity;
+                }
+                finally
+                {
+                    rwLock.ExitWriteLock();
+                }
+            }
+            finally
+            {
+                rwLock.ExitUpgradeableReadLock();
+            }
+        }
+
+        public static bool TryRemoveKnownSpell(this Biota biota, int spell, out BiotaPropertiesSpellBook entity, ReaderWriterLockSlim rwLock)
+        {
+            rwLock.EnterUpgradeableReadLock();
+            try
+            {
+                entity = biota.BiotaPropertiesSpellBook.FirstOrDefault(x => x.Spell == spell);
+                if (entity != null)
+                {
+                    rwLock.EnterWriteLock();
+                    try
+                    {
+                        biota.BiotaPropertiesSpellBook.Remove(entity);
+                        entity.Object = null;
+                        return true;
+                    }
+                    finally
+                    {
+                        rwLock.ExitWriteLock();
+                    }
+                }
+                return false;
+            }
+            finally
+            {
+                rwLock.ExitUpgradeableReadLock();
+            }
+        }
+
+
+        // =====================================
+        // Clone
+        // =====================================
 
         public static Biota Clone(this Biota biota)
         {

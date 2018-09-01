@@ -27,13 +27,15 @@ namespace ACE.Server.WorldObjects
             IsOnline = true;
 
             // Save the the LoginTimestamp
-            SetProperty(PropertyFloat.LoginTimestamp, Time.GetTimestamp());
+            var lastLoginTimestamp = Time.GetTimestamp();
 
-            var totalLogins = GetProperty(PropertyInt.TotalLogins) ?? 0;
-            totalLogins++;
-            SetProperty(PropertyInt.TotalLogins, totalLogins);
+            SetProperty(PropertyFloat.LoginTimestamp, lastLoginTimestamp);
 
-            Sequences.AddOrSetSequence(SequenceType.ObjectInstance, new UShortSequence((ushort)totalLogins));
+            Character.LastLoginTimestamp = lastLoginTimestamp;
+            Character.TotalLogins++;
+            CharacterChangesDetected = true;
+
+            Sequences.AddOrSetSequence(SequenceType.ObjectInstance, new UShortSequence((ushort)Character.TotalLogins));
 
             // SendSelf will trigger the entrance into portal space
             SendSelf();

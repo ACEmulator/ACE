@@ -36,7 +36,7 @@ namespace ACE.Server.WorldObjects
                 Killer = topDamager.Guid.Full;
 
             // broadcast death animation
-            var deathAnim = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.Dead));
+            var deathAnim = new UniversalMotion(MotionStance.NonCombat, new MotionItem(MotionCommand.Dead));
             CurrentLandblock?.EnqueueBroadcastMotion(this, deathAnim);
 
             // killer death message = last damager
@@ -115,7 +115,7 @@ namespace ACE.Server.WorldObjects
                 Session.Network.EnqueueSend(msgHealthUpdate, msgStaminaUpdate, msgManaUpdate);
 
                 // Stand back up
-                DoMotion(new UniversalMotion(MotionStance.Standing));
+                DoMotion(new UniversalMotion(MotionStance.NonCombat));
             });
             teleportChain.EnqueueChain();
         }

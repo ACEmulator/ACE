@@ -101,24 +101,35 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyFloat.ResistNether); else SetProperty(PropertyFloat.ResistNether, value.Value); }
         }
 
-        public double GetNaturalResistance(ResistanceType resistance)
+        private double GetResistanceMod(DamageType damageType, double bonusMultiplier)
+        {
+            var spellVuln = EnchantmentManager.GetVulnerabilityResistanceMod(damageType);
+            var spellProt = EnchantmentManager.GetProtectionResistanceMod(damageType);
+
+            if (bonusMultiplier > spellVuln)
+                return (double)bonusMultiplier * spellProt;
+
+            return spellVuln * spellProt;
+        }
+
+        public double GetNaturalResistance(ResistanceType resistance, double bonusMultiplier = 1)
         {
             switch (resistance)
             {
                 case ResistanceType.Slash:
-                    return ResistSlashMod;
+                    return (ResistSlash ?? 1.0) * GetResistanceMod(DamageType.Slash, bonusMultiplier);
                 case ResistanceType.Pierce:
-                    return ResistPierceMod;
+                    return (ResistPierce ?? 1.0) * GetResistanceMod(DamageType.Pierce, bonusMultiplier);
                 case ResistanceType.Bludgeon:
-                    return ResistBludgeonMod;
+                    return (ResistBludgeon ?? 1.0) * GetResistanceMod(DamageType.Bludgeon, bonusMultiplier);
                 case ResistanceType.Fire:
-                    return ResistFireMod;
+                    return (ResistFire ?? 1.0) * GetResistanceMod(DamageType.Fire, bonusMultiplier);
                 case ResistanceType.Cold:
-                    return ResistColdMod;
+                    return (ResistCold ?? 1.0) * GetResistanceMod(DamageType.Cold, bonusMultiplier);
                 case ResistanceType.Acid:
-                    return ResistAcidMod;
+                    return (ResistAcid ?? 1.0) * GetResistanceMod(DamageType.Acid, bonusMultiplier);
                 case ResistanceType.Electric:
-                    return ResistElectricMod;
+                    return (ResistElectric ?? 1.0) * GetResistanceMod(DamageType.Electric, bonusMultiplier);
                 case ResistanceType.Nether:
                     return ResistNetherMod;
                 case ResistanceType.HealthBoost:

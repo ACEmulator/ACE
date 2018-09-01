@@ -521,14 +521,14 @@ namespace ACE.Entity.Enum.Properties
         [SendOnLogin]
         Enlightenment                            = 390,
 
-        [ServerOnly]
-        TotalLogins                              = 9001,
+        //[ServerOnly]
+        //TotalLogins                              = 9001,
         //[ServerOnly]
         //DeletionTimestamp                        = 9002,
-        [ServerOnly]
-        CharacterOptions1                        = 9003,
-        [ServerOnly]
-        CharacterOptions2                        = 9004,
+        //[ServerOnly]
+        //CharacterOptions1                        = 9003,
+        //[ServerOnly]
+        //CharacterOptions2                        = 9004,
         //[ServerOnly]
         //LootTier                                 = 9005,
         //[ServerOnly]

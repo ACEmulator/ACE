@@ -7,7 +7,6 @@ using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
-using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Motion;
 using ACE.Server.Physics.Animation;
 
@@ -108,7 +107,7 @@ namespace ACE.Server.WorldObjects
         public ActionChain DoSwingMotion(WorldObject target, CombatManeuver maneuver, out float animLength)
         {
             var swingAnimation = new MotionItem(maneuver.Motion, 1.25f);
-            animLength = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, swingAnimation);
+            animLength = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, maneuver.Motion, null, 1.25f);
 
             var motion = new UniversalMotion(CurrentMotionState.Stance, swingAnimation);
             motion.MovementData.CurrentStyle = (uint)CurrentMotionState.Stance;
@@ -138,19 +137,19 @@ namespace ACE.Server.WorldObjects
 
             switch (CurrentMotionState.Stance)
             {
-                case MotionStance.DualWieldAttack:
-                case MotionStance.MeleeNoShieldAttack:
-                case MotionStance.MeleeShieldAttack:
+                case MotionStance.DualWieldCombat:
+                case MotionStance.SwordCombat:
+                case MotionStance.SwordShieldCombat:
                 case MotionStance.ThrownShieldCombat:
-                case MotionStance.ThrownWeaponAttack:
-                case MotionStance.TwoHandedStaffAttack:
-                case MotionStance.TwoHandedSwordAttack:
+                case MotionStance.ThrownWeaponCombat:
+                case MotionStance.TwoHandedStaffCombat:
+                case MotionStance.TwoHandedSwordCombat:
                     {
                         Enum.TryParse("Slash" + GetAttackHeight(), out motion);
                         return motion;
                     }
 
-                case MotionStance.UaNoShieldAttack:
+                case MotionStance.HandCombat:
                 default:
                     {
                         Enum.TryParse("Attack" + GetAttackHeight() + (int)GetPowerRange(), out motion);
@@ -160,18 +159,29 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Returns base damage range for monster body part
+        /// Returns base damage range for next monster attack
         /// </summary>
         public Range GetBaseDamage(BiotaPropertiesBodyPart attackPart)
         {
             if (CurrentAttack == AttackType.Missile)
                 return GetMissileDamage();
 
+            // use weapon damage for every attack?
+            var weapon = GetEquippedMeleeWeapon();
+            if (weapon != null)
+            {
+                var weaponDamage = weapon.GetBaseDamage();
+                //Console.WriteLine($"{Name} using weapon damage: {weaponDamage}");
+                return weaponDamage;
+            }
+
             var maxDamage = attackPart.DVal;
             var variance = attackPart.DVar;
             var minDamage = maxDamage - maxDamage * variance;
-            //Console.WriteLine(string.Format("Base damage: {0}-{1}", minDamage, maxDamage));
-            return new Range(minDamage, maxDamage);
+
+            var baseDamage = new Range(minDamage, maxDamage);
+            //Console.WriteLine($"{Name} using base damage: {baseDamage}");
+            return baseDamage;
         }
 
         /// <summary>
@@ -200,21 +210,26 @@ namespace ACE.Server.WorldObjects
         public float GetEvadeChance()
         {
             // get monster attack skill
+            var player = AttackTarget as Player;
             var attackSkill = GetCreatureSkill(GetCurrentAttackSkill()).Current;
+            var offenseMod = GetWeaponOffenseBonus(this);
+            attackSkill = (uint)Math.Round(attackSkill * offenseMod);
 
             if (IsExhausted)
                 attackSkill = GetExhaustedSkill(attackSkill);
 
             // get player defense skill
-            var player = AttackTarget as Player;
-
             var defenseSkill = CurrentAttack == AttackType.Missile ? Skill.MissileDefense : Skill.MeleeDefense;
-            var difficulty = player.GetCreatureSkill(defenseSkill).Current;
+            var defenseMod = defenseSkill == Skill.MeleeDefense ? GetWeaponMeleeDefenseBonus(AttackTarget as Creature) : 1.0f;
+            var difficulty = (uint)Math.Round(player.GetCreatureSkill(defenseSkill).Current * defenseMod);
 
             if (player.IsExhausted) difficulty = 0;
 
-            //Console.WriteLine("Attack skill: " + attackSkill);
-            //Console.WriteLine("Defense skill: " + difficulty);
+            /*var baseStr = offenseMod != 1.0f ? $" (base: {GetCreatureSkill(GetCurrentAttackSkill()).Current})" : "";
+            Console.WriteLine("Attack skill: " + attackSkill + baseStr);
+
+            baseStr = defenseMod != 1.0f ? $" (base: {player.GetCreatureSkill(defenseSkill).Current})" : "";
+            Console.WriteLine("Defense skill: " + difficulty + baseStr);*/
 
             var evadeChance = 1.0f - SkillCheck.GetSkillChance((int)attackSkill, (int)difficulty);
             return (float)evadeChance;

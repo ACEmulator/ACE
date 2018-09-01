@@ -36,7 +36,7 @@ namespace ACE.Server.WorldObjects
             RadarColor = ACE.Entity.Enum.RadarColor.LifeStone;
         }
 
-        private static readonly UniversalMotion sanctuary = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.Sanctuary));
+        private static readonly UniversalMotion sanctuary = new UniversalMotion(MotionStance.NonCombat, new MotionItem(MotionCommand.Sanctuary));
 
         /// <summary>
         /// This is raised by Player.HandleActionUseItem, and is wrapped in ActionChain.<para />

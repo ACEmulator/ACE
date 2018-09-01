@@ -204,7 +204,7 @@ namespace ACE.Server.WorldObjects
                     return;
                 }*/
 
-                var motion = new UniversalMotion(MotionStance.Standing);
+                var motion = new UniversalMotion(MotionStance.NonCombat);
                 motion.MovementData.ForwardCommand = (uint)MotionCommand.Pickup;
                 EnqueueBroadcast(new GameMessageUpdatePosition(this),
                     new GameMessageUpdateMotion(Guid, Sequences.GetCurrentSequence(SequenceType.ObjectInstance), Sequences, motion));
@@ -328,7 +328,7 @@ namespace ACE.Server.WorldObjects
                 if (item.WeenieType == WeenieType.Coin)
                     UpdateCoinValue();
 
-                var motion = new UniversalMotion(MotionStance.Standing);
+                var motion = new UniversalMotion(MotionStance.NonCombat);
 
                 EnqueueBroadcast(new GameMessageUpdateMotion(Guid, Sequences.GetCurrentSequence(SequenceType.ObjectInstance), Sequences, motion),
                     new GameMessagePickupEvent(item));
@@ -412,8 +412,8 @@ namespace ACE.Server.WorldObjects
             if ((oldLocation != EquipMask.MissileWeapon && oldLocation != EquipMask.Held && oldLocation != EquipMask.MeleeWeapon) || ((CombatMode & CombatMode.CombatCombat) == 0))
                 return true;
 
-            HandleSwitchToPeaceMode(CombatMode);
-            HandleSwitchToMeleeCombatMode(CombatMode);
+            HandleSwitchToPeaceMode();
+            HandleSwitchToMeleeCombatMode();
             return true;
         }
 
@@ -613,7 +613,7 @@ namespace ACE.Server.WorldObjects
                 // We want to avoid the scenario where the server crashes and a player has too many items.
                 item.SaveBiotaToDatabase();
 
-                var motion = new UniversalMotion(MotionStance.Standing);
+                var motion = new UniversalMotion(MotionStance.NonCombat);
                 motion.MovementData.ForwardCommand = (uint)MotionCommand.Pickup;
                 Session.Network.EnqueueSend(new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Container, new ObjectGuid(0)));
 
@@ -632,7 +632,7 @@ namespace ACE.Server.WorldObjects
                 // Put item on landblock
                 dropChain.AddAction(this, () =>
                 {
-                    motion = new UniversalMotion(MotionStance.Standing);
+                    motion = new UniversalMotion(MotionStance.NonCombat);
                     CurrentLandblock?.EnqueueBroadcastMotion(this, motion);
                     EnqueueBroadcast(new GameMessageSound(Guid, Sound.DropItem, (float)1.0));
                     Session.Network.EnqueueSend(
@@ -810,13 +810,15 @@ namespace ACE.Server.WorldObjects
             {
                 case WieldRequirement.RawSkill:
                     // Check WieldDifficulty property against player's Skill level, defined by item's WieldSkilltype property
-                    var itemSkillReq = (Skill)(item.GetProperty(PropertyInt.WieldSkilltype) ?? 0);
+                    var itemSkillReq = ConvertToMoASkill((Skill)(item.GetProperty(PropertyInt.WieldSkilltype) ?? 0));
 
                     if (itemSkillReq != Skill.None)
                     {
                         var playerSkill = GetCreatureSkill(itemSkillReq).Current;
 
-                        if (playerSkill < (uint)(item.GetProperty(PropertyInt.WieldDifficulty) ?? 0))
+                        var skillDifficulty = (uint)(item.GetProperty(PropertyInt.WieldDifficulty) ?? 0);
+
+                        if (playerSkill < skillDifficulty)
                             return WeenieError.SkillTooLow;
                     }
                     break;
@@ -841,6 +843,19 @@ namespace ACE.Server.WorldObjects
                     break;
             }
             return WeenieError.None;
+        }
+
+        public Skill ConvertToMoASkill(Skill skill)
+        {
+            var player = this as Player;
+            if (player != null)
+            {
+                if (SkillExtensions.RetiredMelee.Contains(skill))
+                    return player.GetHighestMeleeSkill();
+                if (SkillExtensions.RetiredMissile.Contains(skill))
+                    return Skill.MissileWeapons;
+            }
+            return skill;
         }
 
         /// <summary>
@@ -948,7 +963,7 @@ namespace ACE.Server.WorldObjects
             int amount = 0;
             int numItems = 0;
             int value = 0;
-            if (GetCharacterOptions2(CharacterOptions2.SalvageMultipleMaterialsAtOnce))
+            if (GetCharacterOption(CharacterOption.SalvageMultipleMaterialsAtOnce))
             {
                 int counter = 0;
                 int objectCounter = 0;
@@ -1135,7 +1150,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if (((target.CharacterOptions1Mapping ?? 0) & (int)CharacterOptions1.LetOtherPlayersGiveYouItems) == (int)CharacterOptions1.LetOtherPlayersGiveYouItems)
+            if ((Character.CharacterOptions1 & (int)CharacterOptions1.LetOtherPlayersGiveYouItems) == (int)CharacterOptions1.LetOtherPlayersGiveYouItems)
             {
                 if (target != player)
                 {
@@ -1521,7 +1536,7 @@ namespace ACE.Server.WorldObjects
                     Value -= newStack.Value;
                 }
 
-                var motion = new UniversalMotion(MotionStance.Standing);
+                var motion = new UniversalMotion(MotionStance.NonCombat);
                 motion.MovementData.ForwardCommand = (uint)MotionCommand.Pickup;
 
                 // Set drop motion
@@ -1543,7 +1558,7 @@ namespace ACE.Server.WorldObjects
                         Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(container, PropertyInt.EncumbranceVal, container.EncumbranceVal ?? 0));
                     Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
 
-                    motion = new UniversalMotion(MotionStance.Standing);
+                    motion = new UniversalMotion(MotionStance.NonCombat);
                     CurrentLandblock?.EnqueueBroadcastMotion(this, motion);
                     EnqueueBroadcast(new GameMessageSound(Guid, Sound.DropItem, 1.0f));
 

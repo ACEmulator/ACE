@@ -466,13 +466,13 @@ namespace ACE.Server.Managers
                 foreach (var session in deadSessions)
                     RemoveSession(session);
 
+                // clean up inactive landblocks
+                LandblockManager.UnloadLandblocks();
+
                 Thread.Sleep(1);
 
                 lastTick = (double)worldTickTimer.ElapsedTicks / Stopwatch.Frequency;
                 PortalYearTicks += lastTick;
-
-                // clean up inactive landblocks
-                LandblockManager.UnloadLandblocks();
             }
 
             // World has finished operations and concedes the thread to garbage collection

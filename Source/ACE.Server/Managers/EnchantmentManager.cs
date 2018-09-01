@@ -581,13 +581,53 @@ namespace ACE.Server.Managers
         }
 
         /// <summary>
+        /// Gets the resistance modifier for a damage type
+        /// </summary>
+        public float GetProtectionResistanceMod(DamageType damageType)
+        {
+            var typeFlags = EnchantmentTypeFlags.Float | EnchantmentTypeFlags.SingleStat | EnchantmentTypeFlags.Multiplicative;
+            var resistance = GetResistanceKey(damageType);
+            var enchantments = GetEnchantments(typeFlags, (uint)resistance);
+
+            // multiplicative
+            var modifier = 1.0f;
+            foreach (var enchantment in enchantments)
+            {
+                if (enchantment.StatModValue < 1.0f)
+                    modifier *= enchantment.StatModValue;
+            }
+
+            return modifier;
+        }
+
+        /// <summary>
+        /// Gets the resistance modifier for a damage type
+        /// </summary>
+        public float GetVulnerabilityResistanceMod(DamageType damageType)
+        {
+            var typeFlags = EnchantmentTypeFlags.Float | EnchantmentTypeFlags.SingleStat | EnchantmentTypeFlags.Multiplicative;
+            var resistance = GetResistanceKey(damageType);
+            var enchantments = GetEnchantments(typeFlags, (uint)resistance);
+
+            // multiplicative
+            var modifier = 1.0f;
+            foreach (var enchantment in enchantments)
+            {
+                if (enchantment.StatModValue > 1.0f)
+                    modifier *= enchantment.StatModValue;
+            }
+
+            return modifier;
+        }
+
+        /// <summary>
         /// Gets the regeneration modifier for a vital type
         /// (regeneration / rejuvenation / mana renewal)
         /// </summary>
         public float GetRegenerationMod(CreatureVital vital)
         {
             var typeFlags = EnchantmentTypeFlags.Float | EnchantmentTypeFlags.SingleStat | EnchantmentTypeFlags.Multiplicative;
-            var vitalKey = GetVitalKey(vital);
+            var vitalKey = GetVitalRateKey(vital);
             var enchantments = GetEnchantments(typeFlags, (uint)vitalKey);
 
             // multiplicative
@@ -599,9 +639,25 @@ namespace ACE.Server.Managers
         }
 
         /// <summary>
+        /// Gets the direct modifiers to a vital / secondary attribute
+        /// </summary>
+        public float GetVitalMod(CreatureVital vital)
+        {
+            var typeFlags = EnchantmentTypeFlags.SecondAtt | EnchantmentTypeFlags.SingleStat | EnchantmentTypeFlags.Additive;
+            var enchantments = GetEnchantments(typeFlags, (uint)vital.Vital);
+
+            // additive
+            var modifier = 0.0f;
+            foreach (var enchantment in enchantments)
+                modifier += enchantment.StatModValue;
+
+            return modifier;
+        }
+
+        /// <summary>
         /// Gets the VitalRate key for a CreatureVital
         /// </summary>
-        public PropertyFloat GetVitalKey(CreatureVital vital)
+        public PropertyFloat GetVitalRateKey(CreatureVital vital)
         {
             switch (vital.Vital)
             {
