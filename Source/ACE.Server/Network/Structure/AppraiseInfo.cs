@@ -80,14 +80,13 @@ namespace ACE.Server.Network.Structure
             NPCLooksLikeObject = wo.GetProperty(PropertyBool.NpcLooksLikeObject) ?? false;
 
             // armor / clothing / shield
-            var isShield = wo.CombatUse != null && wo.CombatUse == CombatUse.Shield;
-            if (wo is Clothing || isShield)
+            if (wo is Clothing || wo.IsShield)
                 BuildArmor(wo);
 
             if (wo is Creature creature)
                 BuildCreature(creature);
 
-            if (wo is MeleeWeapon || wo is Missile || wo is MissileLauncher || wo is Caster)
+            if (wo is MeleeWeapon || wo is Missile || wo is MissileLauncher || wo is Ammunition || wo is Caster )
                 BuildWeapon(wo, wielder);
 
             BuildFlags();
@@ -112,7 +111,7 @@ namespace ACE.Server.Network.Structure
             if (PropertiesInt.ContainsKey(PropertyInt.ArmorLevel))
                 PropertiesInt[PropertyInt.ArmorLevel] += wo.EnchantmentManager.GetArmorMod();
 
-            if (wielder != null && PropertiesFloat.ContainsKey(PropertyFloat.WeaponDefense))
+            if (wielder != null && PropertiesFloat.ContainsKey(PropertyFloat.WeaponDefense) && !(wo is Ammunition))
                 PropertiesFloat[PropertyFloat.WeaponDefense] += wielder.EnchantmentManager.GetDefenseMod();
         }
 
@@ -140,8 +139,7 @@ namespace ACE.Server.Network.Structure
             if (wielder != null)
                 wielderEnchantments = wielder.EnchantmentManager.GetEnchantments(MagicSchool.ItemEnchantment);
 
-            var isShield = worldObject.CombatUse != null && worldObject.CombatUse == CombatUse.Shield;
-            if (worldObject.WeenieType == WeenieType.Clothing || isShield)
+            if (worldObject.WeenieType == WeenieType.Clothing || worldObject.IsShield)
             {
                 // Only show Clothing type item enchantments
                 foreach (var enchantment in woEnchantments)
@@ -164,6 +162,11 @@ namespace ACE.Server.Network.Structure
                         {
                             activeSpells.Add(new AppraisalSpellBook() { SpellId = (ushort)enchantment.SpellId, EnchantmentState = AppraisalSpellBook._EnchantmentState.On });
                         }
+                    }
+                    else if (worldObject is Ammunition)
+                    {
+                        if ((enchantment.SpellCategory == (uint)SpellCategory.DamageLowering))
+                            activeSpells.Add(new AppraisalSpellBook() { SpellId = (ushort)enchantment.SpellId, EnchantmentState = AppraisalSpellBook._EnchantmentState.On });
                     }
                     else
                     {
@@ -192,6 +195,11 @@ namespace ACE.Server.Network.Structure
                             {
                                 activeSpells.Add(new AppraisalSpellBook() { SpellId = (ushort)enchantment.SpellId, EnchantmentState = AppraisalSpellBook._EnchantmentState.On });
                             }
+                        }
+                        else if (worldObject is Ammunition)
+                        {
+                            if ((enchantment.SpellCategory == (uint)SpellCategory.DamageRaising))
+                                activeSpells.Add(new AppraisalSpellBook() { SpellId = (ushort)enchantment.SpellId, EnchantmentState = AppraisalSpellBook._EnchantmentState.On });
                         }
                         else
                         {

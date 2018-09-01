@@ -99,37 +99,8 @@ namespace ACE.Server.WorldObjects
 
 
         // ========================================
-        // ========== Client Properties ===========
-        // ========================================
-
-        public int? CharacterOptions1Mapping
-        {
-            get => GetProperty(PropertyInt.CharacterOptions1);
-            set { if (!value.HasValue) RemoveProperty(PropertyInt.CharacterOptions1); else SetProperty(PropertyInt.CharacterOptions1, value.Value); }
-        }
-
-        public int? CharacterOptions2Mapping
-        {
-            get => GetProperty(PropertyInt.CharacterOptions2);
-            set { if (!value.HasValue) RemoveProperty(PropertyInt.CharacterOptions2); else SetProperty(PropertyInt.CharacterOptions2, value.Value); }
-        }
-
-
-        // ========================================
         // ========== Player Properties ===========
         // ========================================
-
-        public int? TotalLogins
-        {
-            get => GetProperty(PropertyInt.TotalLogins);
-            set { if (!value.HasValue) RemoveProperty(PropertyInt.TotalLogins); else SetProperty(PropertyInt.TotalLogins, value.Value); }
-        }
-
-        //public long? DeleteTime
-        //{
-        //    get => GetProperty(PropertyInt64.DeleteTime);
-        //    set { if (!value.HasValue) RemoveProperty(PropertyInt64.DeleteTime); else SetProperty(PropertyInt64.DeleteTime, value.Value); }
-        //}
 
         public int? Age
         {

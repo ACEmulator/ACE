@@ -359,6 +359,8 @@ namespace ACE.Server.Physics.Common
         /// </summary>
         public void RemoveObject(PhysicsObj obj)
         {
+            if (obj == null) return;
+
             ObjectTable.Remove(obj.ID);
             VisibleObjectTable.Remove(obj.ID);
             DestructionQueue.Remove(obj);

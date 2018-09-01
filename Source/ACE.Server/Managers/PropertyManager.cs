@@ -47,19 +47,15 @@ namespace ACE.Server.Managers
         /// </summary>
         private static void LoadPropertiesFromDB()
         {
-            log.Debug("Fetching boolean properties from database");
             foreach (var i in DatabaseManager.ShardConfig.GetAllBools())
                 CachedBooleanSettings[i.Key] = new ConfigurationEntry<bool>(false, i.Value, i.Description);
 
-            log.Debug("Fetching long properties from database");
             foreach (var i in DatabaseManager.ShardConfig.GetAllLongs())
                 CachedLongSettings[i.Key] = new ConfigurationEntry<long>(false, i.Value, i.Description);
 
-            log.Debug("Fetching double properties from database");
             foreach (var i in DatabaseManager.ShardConfig.GetAllDoubles())
                 CachedDoubleSettings[i.Key] = new ConfigurationEntry<double>(false, i.Value, i.Description);
 
-            log.Debug("Fetching string properties from database");
             foreach (var i in DatabaseManager.ShardConfig.GetAllStrings())
                 CachedStringSettings[i.Key] = new ConfigurationEntry<string>(false, i.Value, i.Description);
         }
@@ -275,8 +271,6 @@ namespace ACE.Server.Managers
         /// </summary>
         private static void WriteBoolToDB()
         {
-            log.Debug("Beginning to write modified boolean properties into database");
-
             foreach (var i in CachedBooleanSettings.Where(r => r.Value.Modified))
             {
                 // this probably should be upsert. This does 2 queries per modified datapoint.
@@ -293,8 +287,6 @@ namespace ACE.Server.Managers
         /// </summary>
         private static void WriteLongToDB()
         {
-            log.Debug("Beginning to write modified integer properties into database");
-
             foreach (var i in CachedLongSettings.Where(r => r.Value.Modified))
             {
                 // todo: see boolean section for caveat in this approach
@@ -310,8 +302,6 @@ namespace ACE.Server.Managers
         /// </summary>
         private static void WriteDoubleToDB()
         {
-            log.Debug("Beginning to write modified float properties into database");
-
             foreach (var i in CachedDoubleSettings.Where(r => r.Value.Modified))
             {
                 // todo: see boolean section for caveat in this approach
@@ -327,8 +317,6 @@ namespace ACE.Server.Managers
         /// </summary>
         private static void WriteStringToDB()
         {
-            log.Debug("Beginning to write modified string properties into database");
-
             foreach (var i in CachedStringSettings.Where(r => r.Value.Modified))
             {
                 // todo: see boolean section for caveat in this approach
@@ -341,9 +329,11 @@ namespace ACE.Server.Managers
 
         private static void DoWork(Object source, ElapsedEventArgs e)
         {
+            var startTime = DateTime.UtcNow;
+
             // first, check for variables updated on the server-side. Write those to the DB.
             // then, compare variables to DB and update from DB as necessary. (needs to minimize r/w)
-
+            
             WriteBoolToDB();
             WriteLongToDB();
             WriteDoubleToDB();
@@ -351,6 +341,8 @@ namespace ACE.Server.Managers
 
             // next, we need to fetch all of the variables from the DB and compare them quickly.
             LoadPropertiesFromDB();
+
+            log.Debug($"PropertyManager DoWork took {(DateTime.UtcNow - startTime).TotalMilliseconds:N0} ms");
         }
     }
 

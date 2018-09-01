@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Threading;
 
 using ACE.Database;
 using ACE.Database.Models.Shard;
@@ -31,20 +30,6 @@ namespace ACE.Server.WorldObjects
         public Dictionary<PropertyInt, int?> EphemeralPropertyInts = new Dictionary<PropertyInt, int?>();
         public Dictionary<PropertyInt64, long?> EphemeralPropertyInt64s = new Dictionary<PropertyInt64, long?>();
         public Dictionary<PropertyString, string> EphemeralPropertyStrings = new Dictionary<PropertyString, string>();
-
-        /// <summary>
-        /// Best practice says you should use this lock any time you read/write the Biota.<para />
-        /// However, it's only a requirement to do this for properties/collections that will be modified after the initial biota has been created.<para />
-        /// There are several properties/collections of the biota that are simply duplicates of the original weenie and are never changed. You wouldn't need to use this lock to read those collections.<para />
-        /// <para />
-        /// For absolute maximum performance, if you're willing to assume (and risk) the following:<para />
-        ///  - that the biota in the database will not be modified (in a way that adds or removes properties) outside of ACE while ACE is running with a reference to that biota<para />
-        ///  - that the biota will only be read/modified by a single thread in ACE<para />
-        /// You can remove the lock usage for any Get/GetAll Property functions. You would simply use it for Set/Remove Property functions because each of these could end up adding/removing to the collections.<para />
-        /// The critical thing is that the collections are not added to or removed from while Entity Framework is iterating over them.<para />
-        /// Mag-nus 2018-08-19
-        /// </summary>
-        public readonly ReaderWriterLockSlim BiotaDatabaseLock = new ReaderWriterLockSlim();
 
         #region GetProperty Functions
         public bool? GetProperty(PropertyBool property) { if (EphemeralPropertyBools.TryGetValue(property, out var value)) return value; return Biota.GetProperty(property, BiotaDatabaseLock); }
@@ -1161,18 +1146,6 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyDataId.HeadObject); else SetProperty(PropertyDataId.HeadObject, value.Value); }
         }
 
-        public uint? HairTextureDID
-        {
-            get => GetProperty(PropertyDataId.HairTexture);
-            set { if (!value.HasValue) RemoveProperty(PropertyDataId.HairTexture); else SetProperty(PropertyDataId.HairTexture, value.Value); }
-        }
-
-        public uint? DefaultHairTextureDID
-        {
-            get => GetProperty(PropertyDataId.DefaultHairTexture);
-            set { if (!value.HasValue) RemoveProperty(PropertyDataId.DefaultHairTexture); else SetProperty(PropertyDataId.DefaultHairTexture, value.Value); }
-        }
-
         public uint? HairPaletteDID
         {
             get => GetProperty(PropertyDataId.HairPalette);
@@ -1238,89 +1211,12 @@ namespace ACE.Server.WorldObjects
         // =========== Other Properties ===========
         // ========================================
 
-        public uint? EyesTexture
-        {
-            get => GetProperty(PropertyDataId.EyesTexture);
-            set { if (!value.HasValue) RemoveProperty(PropertyDataId.EyesTexture); else SetProperty(PropertyDataId.EyesTexture, value.Value); }
-        }
-
-        public uint? DefaultEyesTexture
-        {
-            get => GetProperty(PropertyDataId.DefaultEyesTexture);
-            set { if (!value.HasValue) RemoveProperty(PropertyDataId.DefaultEyesTexture); else SetProperty(PropertyDataId.DefaultEyesTexture, value.Value); }
-        }
-
-        public uint? NoseTexture
-        {
-            get => GetProperty(PropertyDataId.NoseTexture);
-            set { if (!value.HasValue) RemoveProperty(PropertyDataId.NoseTexture); else SetProperty(PropertyDataId.NoseTexture, value.Value); }
-        }
-
-        public uint? DefaultNoseTexture
-        {
-            get => GetProperty(PropertyDataId.DefaultNoseTexture);
-            set { if (!value.HasValue) RemoveProperty(PropertyDataId.DefaultNoseTexture); else SetProperty(PropertyDataId.DefaultNoseTexture, value.Value); }
-        }
-
-        public uint? MouthTexture
-        {
-            get => GetProperty(PropertyDataId.MouthTexture);
-            set { if (!value.HasValue) RemoveProperty(PropertyDataId.MouthTexture); else SetProperty(PropertyDataId.MouthTexture, value.Value); }
-        }
-
-        public uint? DefaultMouthTexture
-        {
-            get => GetProperty(PropertyDataId.DefaultMouthTexture);
-            set { if (!value.HasValue) RemoveProperty(PropertyDataId.DefaultMouthTexture); else SetProperty(PropertyDataId.DefaultMouthTexture, value.Value); }
-        }
-
-        public uint? HairTexture
-        {
-            get => GetProperty(PropertyDataId.HairTexture);
-            set { if (!value.HasValue) RemoveProperty(PropertyDataId.HairTexture); else SetProperty(PropertyDataId.HairTexture, value.Value); }
-        }
-
-        public uint? DefaultHairTexture
-        {
-            get => GetProperty(PropertyDataId.DefaultHairTexture);
-            set { if (!value.HasValue) RemoveProperty(PropertyDataId.DefaultHairTexture); else SetProperty(PropertyDataId.DefaultHairTexture, value.Value); }
-        }
-
-        public uint? HeadObject
-        {
-            get => GetProperty(PropertyDataId.HeadObject);
-            set { if (!value.HasValue) RemoveProperty(PropertyDataId.HeadObject); else SetProperty(PropertyDataId.HeadObject, value.Value); }
-        }
-
-        public uint? SkinPalette
-        {
-            get => GetProperty(PropertyDataId.SkinPalette);
-            set { if (!value.HasValue) RemoveProperty(PropertyDataId.SkinPalette); else SetProperty(PropertyDataId.SkinPalette, value.Value); }
-        }
-
-        public uint? HairPalette
-        {
-            get => GetProperty(PropertyDataId.HairPalette);
-            set { if (!value.HasValue) RemoveProperty(PropertyDataId.HairPalette); else SetProperty(PropertyDataId.HairPalette, value.Value); }
-        }
-
-        public uint? EyesPalette
-        {
-            get => GetProperty(PropertyDataId.EyesPalette);
-            set { if (!value.HasValue) RemoveProperty(PropertyDataId.EyesPalette); else SetProperty(PropertyDataId.EyesPalette, value.Value); }
-        }
-
         public int? Level
         {
             get => GetProperty(PropertyInt.Level);
             set { if (!value.HasValue) RemoveProperty(PropertyInt.Level); else SetProperty(PropertyInt.Level, value.Value); }
         }
 
-        public uint? PaletteId
-        {
-            get => GetProperty(PropertyDataId.PaletteBase);
-            set { if (!value.HasValue) RemoveProperty(PropertyDataId.PaletteBase); else SetProperty(PropertyDataId.PaletteBase, value.Value); }
-        }
 
 
         //public uint? SetupDID

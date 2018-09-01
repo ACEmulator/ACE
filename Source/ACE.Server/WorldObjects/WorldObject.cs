@@ -67,6 +67,10 @@ namespace ACE.Server.WorldObjects
         public bool IsBusy { get => busyState; set => busyState = value; }
         public bool IsMovingTo { get => movingState; set => movingState = value; }
         public bool IsShield { get => CombatUse != null && CombatUse == ACE.Entity.Enum.CombatUse.Shield; }
+        public bool IsTwoHanded { get => CurrentWieldedLocation != null && CurrentWieldedLocation == EquipMask.TwoHanded; }
+        public bool IsBow { get => DefaultCombatStyle != null && (DefaultCombatStyle == CombatStyle.Bow || DefaultCombatStyle == CombatStyle.Crossbow); }
+        public bool IsAtlatl { get => DefaultCombatStyle != null && DefaultCombatStyle == CombatStyle.Atlatl; }
+        public bool IsAmmoLauncher { get => IsBow || IsAtlatl; }
 
         public EmoteManager EmoteManager;
         public EnchantmentManager EnchantmentManager;
@@ -613,7 +617,11 @@ namespace ACE.Server.WorldObjects
 
         public virtual void OnCollideObject(WorldObject target)
         {
-            // empty base
+            // thrown weapons
+            if (ProjectileTarget == null) return;
+
+            var proj = new Projectile(this);
+            proj.OnCollideObject(target);
         }
 
         public virtual void OnCollideObjectEnd(WorldObject target)
@@ -623,7 +631,11 @@ namespace ACE.Server.WorldObjects
 
         public virtual void OnCollideEnvironment()
         {
-            // empty base
+            // thrown weapons
+            if (ProjectileTarget == null) return;
+
+            var proj = new Projectile(this);
+            proj.OnCollideEnvironment();
         }
 
         public void HandleActionMotion(UniversalMotion motion)
@@ -808,7 +820,7 @@ namespace ACE.Server.WorldObjects
         {
             var maxDamage = GetProperty(PropertyInt.Damage) ?? 0;
             var variance = GetProperty(PropertyFloat.DamageVariance) ?? 0;
-            var minDamage = maxDamage * variance;
+            var minDamage = maxDamage * (1.0f - variance);
             return new Range((float)minDamage, (float)maxDamage);
         }
 
@@ -822,10 +834,14 @@ namespace ACE.Server.WorldObjects
             var damageMod = wielder.EnchantmentManager.GetDamageMod();
             var varianceMod = wielder.EnchantmentManager.GetVarianceMod();
 
-            var baseVariance = baseDamage.Min / baseDamage.Max;
+            var baseVariance = 1.0f - (baseDamage.Min / baseDamage.Max);
 
-            var maxDamageMod = baseDamage.Max + damageMod;
-            var minDamageMod = maxDamageMod * (baseVariance * varianceMod);
+            var weapon = wielder.GetEquippedWeapon();
+            var damageBonus = weapon != null ? (float)(weapon.GetProperty(PropertyFloat.DamageMod) ?? 1.0f) : 1.0f;
+
+            // additives first, then multipliers?
+            var maxDamageMod = (baseDamage.Max + damageMod) * damageBonus;
+            var minDamageMod = maxDamageMod * (1.0f - baseVariance * varianceMod);
 
             return new Range(minDamageMod, maxDamageMod);
         }
@@ -839,29 +855,31 @@ namespace ACE.Server.WorldObjects
             var creature = this as Creature;
 
             var weapon = creature.GetEquippedWeapon();
+            var ammo = creature.GetEquippedAmmo();
+
             if (weapon == null)
                 return DamageType.Bludgeon;
 
             DamageType damageTypes;
             var attackType = creature.GetAttackType();
-            if (attackType == AttackType.Melee)
+            if (attackType == AttackType.Melee || ammo == null || !weapon.IsAmmoLauncher)
                 damageTypes = (DamageType)weapon.GetProperty(PropertyInt.DamageType);
             else
-            {
-                var ammo = creature.GetEquippedAmmo();
                 damageTypes = (DamageType)ammo.GetProperty(PropertyInt.DamageType);
-            }
 
             // returning multiple damage types
             if (multiple) return damageTypes;
 
             // get single damage type
+            var motion = creature.CurrentMotionState != null && creature.CurrentMotionState.Commands != null
+                && creature.CurrentMotionState.Commands.Count > 0 ? creature.CurrentMotionState.Commands[0].Motion.ToString() : "";
+
             foreach (DamageType damageType in Enum.GetValues(typeof(DamageType)))
             {
                 if ((damageTypes & damageType) != 0)
                 {
                     // handle multiple damage types
-                    if (damageType == DamageType.Slash && creature.CurrentMotionState.Commands[0].Motion.ToString().Contains("Thrust"))
+                    if (damageType == DamageType.Slash && motion.Contains("Thrust"))
                         continue;
 
                     return damageType;

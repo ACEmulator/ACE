@@ -75,6 +75,8 @@ namespace ACE.Server.WorldObjects
 
         public void HandleActionCancelAttack()
         {
+            //Console.WriteLine("HandleActionCancelAttack");
+
             MeleeTarget = null;
             MissileTarget = null;
         }
@@ -112,8 +114,9 @@ namespace ACE.Server.WorldObjects
         {
             // FIXME: proper swing animation speeds
             var animSpeedMod = IsDualWieldAttack ? 1.2f : 1.0f;     // dual wield swing animation 20% faster
-            var swingAnimation = new MotionItem(GetSwingAnimation(), 1.25f * animSpeedMod);
-            animLength = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, swingAnimation);
+            var animSpeed = 1.25f * animSpeedMod;
+            var swingAnimation = new MotionItem(GetSwingAnimation(), animSpeed);
+            animLength = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, swingAnimation.Motion, null, animSpeed);
 
             var motion = new UniversalMotion(CurrentMotionState.Stance, swingAnimation);
             motion.MovementData.CurrentStyle = (uint)CurrentMotionState.Stance;
@@ -139,16 +142,15 @@ namespace ACE.Server.WorldObjects
 
             switch (CurrentMotionState.Stance)
             {
-                case MotionStance.DualWieldAttack:
-                case MotionStance.MeleeNoShieldAttack:
-                case MotionStance.MeleeShieldAttack:
-                case MotionStance.ThrownShieldCombat:
-                case MotionStance.ThrownWeaponAttack:
-                case MotionStance.TwoHandedStaffAttack:
-                case MotionStance.TwoHandedSwordAttack:
+                case MotionStance.SwordCombat:
+                case MotionStance.SwordShieldCombat:
+                case MotionStance.TwoHandedSwordCombat:
+                case MotionStance.TwoHandedStaffCombat:
+                case MotionStance.DualWieldCombat:
                     {
+                        // thrust for all of these?
                         var action = PowerLevel < 0.33f ? "Thrust" : "Slash";
-                        if (CurrentMotionState.Stance == MotionStance.DualWieldAttack)
+                        if (CurrentMotionState.Stance == MotionStance.DualWieldCombat)
                         {
                             if (DualWieldAlternate)
                                 action = "Offhand" + action;
@@ -159,7 +161,7 @@ namespace ACE.Server.WorldObjects
                         Enum.TryParse(action + GetAttackHeight(), out motion);
                         return motion;
                     }
-                case MotionStance.UaNoShieldAttack:
+                case MotionStance.HandCombat:
                 default:
                     {
                         // is the player holding a weapon?

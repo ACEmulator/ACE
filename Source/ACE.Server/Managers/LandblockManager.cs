@@ -24,14 +24,6 @@ namespace ACE.Server.Managers
 
         private static readonly object landblockMutex = new object();
 
-        private static string MotdString
-        {
-            get
-            {
-                return PropertyManager.GetString("motd_string").Item;
-            }
-        }
-
         // FIXME(ddevec): Does making this volatile really make double-check locking safe?
         private static volatile Landblock[,] landblocks = new Landblock[256, 256];
 
@@ -50,7 +42,7 @@ namespace ACE.Server.Managers
             var start = DateTime.UtcNow;
             DatabaseManager.Shard.GetPlayerBiotas(character.Id, biotas =>
             {
-                log.Debug($"GetPlayerBiotas for {character.Name} took {(DateTime.UtcNow - start).TotalMilliseconds} ms");
+                log.Debug($"GetPlayerBiotas for {character.Name} took {(DateTime.UtcNow - start).TotalMilliseconds:N0} ms");
                 Player player;
 
                 if (biotas.Player.WeenieType == (int)WeenieType.Admin)
@@ -72,14 +64,15 @@ namespace ACE.Server.Managers
 
                 string msg = "To begin your training, speak to the Society Greeter. Walk up to the Society Greeter using the 'W' key, then double-click on her to initiate a conversation.";
 
-                if ((player.TotalLogins <= 1) || ((bool)PropertyManager.GetBool("alwaysshowwelcome").Item == true))
+                if ((character.TotalLogins <= 1) || PropertyManager.GetBool("alwaysshowwelcome").Item)
                     session.Network.EnqueueSend(new GameEventPopupString(session, $"{welcomeHeader}\n{msg}"));
 
                 var location = player.GetPosition(PositionType.Location);
                 var landblock = GetLandblock(location.LandblockId, true);
                 landblock.AddWorldObject(session.Player);
 
-                session.Network.EnqueueSend(new GameMessageSystemChat(MotdString, ChatMessageType.Broadcast));
+                var motdString = PropertyManager.GetString("motd_string").Item;
+                session.Network.EnqueueSend(new GameMessageSystemChat(motdString, ChatMessageType.Broadcast));
             });
         }
 

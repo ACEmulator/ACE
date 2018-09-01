@@ -567,7 +567,7 @@ namespace ACE.Server.Managers
                     }
                     else
                     {
-                        var motion = new UniversalMotion(MotionStance.Standing, new MotionItem((MotionCommand)emoteAction.Motion, emoteAction.Extent));
+                        var motion = new UniversalMotion(MotionStance.NonCombat, new MotionItem((MotionCommand)emoteAction.Motion, emoteAction.Extent));
 
                         actionChain.AddDelaySeconds(emoteAction.Delay);
                         actionChain.AddAction(sourceObject, () =>

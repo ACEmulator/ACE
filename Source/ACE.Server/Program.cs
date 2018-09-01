@@ -45,6 +45,9 @@ namespace ACE.Server
             log.Info("Starting DatabaseManager...");
             DatabaseManager.Start();
 
+            log.Info("Starting PropertyManager...");
+            PropertyManager.Initialize();
+
             log.Info("Initializing GuidManager...");
             GuidManager.Initialize();
 
@@ -59,9 +62,6 @@ namespace ACE.Server
 
             log.Info("Initializing EventManager...");
             EventManager.Initialize();
-
-            log.Info("Starting PropertyManager...");
-            PropertyManager.Initialize();
 
             // This should be last
             log.Info("Initializing CommandManager...");

@@ -39,7 +39,7 @@ namespace ACE.Server.WorldObjects
                 BaseDescriptionFlags |= ObjectDescriptionFlag.PkSwitch;
         }
 
-        private static readonly UniversalMotion twitch = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.Twitch1));
+        private static readonly UniversalMotion twitch = new UniversalMotion(MotionStance.NonCombat, new MotionItem(MotionCommand.Twitch1));
 
         public uint? UseTargetSuccessAnimation
         {
@@ -93,14 +93,14 @@ namespace ACE.Server.WorldObjects
                         AllowedActivator = ObjectGuid.Invalid.Full;
 
                         var switchTimer = new ActionChain();
-                        var turnToMotion = new UniversalMotion(MotionStance.Standing, Location, Guid);
+                        var turnToMotion = new UniversalMotion(MotionStance.NonCombat, Location, Guid);
                         turnToMotion.MovementTypes = MovementTypes.TurnToObject;
                         switchTimer.AddAction(this, () => player.CurrentLandblock?.EnqueueBroadcastMotion(player, turnToMotion));
                         switchTimer.AddDelaySeconds(1);
                         switchTimer.AddAction(player, () =>
                         {
                             if (UseTargetSuccessAnimation.HasValue)
-                                CurrentLandblock?.EnqueueBroadcastMotion(this, new UniversalMotion(MotionStance.Standing, new MotionItem((MotionCommand)UseTargetSuccessAnimation)));
+                                CurrentLandblock?.EnqueueBroadcastMotion(this, new UniversalMotion(MotionStance.NonCombat, new MotionItem((MotionCommand)UseTargetSuccessAnimation)));
                             else
                                 CurrentLandblock?.EnqueueBroadcastMotion(this, twitch);
                         });
@@ -129,7 +129,7 @@ namespace ACE.Server.WorldObjects
                     else
                     {
                         if (UseTargetFailureAnimation.HasValue)
-                            CurrentLandblock?.EnqueueBroadcastMotion(this, new UniversalMotion(MotionStance.Standing, new MotionItem((MotionCommand)UseTargetFailureAnimation)));
+                            CurrentLandblock?.EnqueueBroadcastMotion(this, new UniversalMotion(MotionStance.NonCombat, new MotionItem((MotionCommand)UseTargetFailureAnimation)));
                         player.Session.Network.EnqueueSend(new GameMessageSystemChat(GetProperty(PropertyString.ActivationFailure), ChatMessageType.Broadcast));
                         player.SendUseDoneEvent();
                     }

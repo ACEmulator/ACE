@@ -88,7 +88,7 @@ namespace ACE.Server.WorldObjects
         public void DoCastMotion(WorldObject target, out float animLength)
         {
             var castMotion = new MotionItem(MotionCommand.CastSpell, 1.5f);
-            animLength = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, castMotion);
+            animLength = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, MotionCommand.CastSpell, null, 1.5f);
 
             var motion = new UniversalMotion(CurrentMotionState.Stance, castMotion);
             motion.MovementData.CurrentStyle = (uint)CurrentMotionState.Stance;
