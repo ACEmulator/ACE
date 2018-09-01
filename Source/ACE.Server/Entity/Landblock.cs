@@ -77,7 +77,6 @@ namespace ACE.Server.Entity
         public LandBlockStatus Status = new LandBlockStatus();
 
         private NestedActionQueue actionQueue;
-        private NestedActionQueue motionQueue;
 
         public LandblockId Id { get; }
 
@@ -144,8 +143,6 @@ namespace ACE.Server.Entity
 
             // FIXME(ddevec): Goal: get rid of UseTime() function...
             actionQueue.EnqueueAction(new ActionEventDelegate(() => UseTimeWrapper()));
-
-            motionQueue = new NestedActionQueue(WorldManager.LandblockMotionQueue);
 
             LastActiveTime = Timer.CurrentTime;
 
@@ -382,6 +379,35 @@ namespace ACE.Server.Entity
         public void RemoveWorldObjectForPhysics(ObjectGuid objectId, bool adjacencyMove = false)
         {
             RemoveWorldObjectInternal(objectId, adjacencyMove);
+        }
+
+        /// <summary>
+        /// This will also set the item.Location to null.
+        /// </summary>
+        public bool RemoveWorldObjectFromPickup(ObjectGuid objectGuid)
+        {
+            // Find owner of wo
+            var lb = GetOwner(objectGuid);
+
+            if (lb == null)
+            {
+                log.Error("Landblock QueueItemRemove failed to GetOwner");
+                return false;
+            }
+
+            var item = GetObject(objectGuid);
+
+            if (item == null)
+            {
+                log.Error("Landblock QueueItemRemove failed to GetObject");
+                return false;
+            }
+
+            RemoveWorldObjectInternal(objectGuid, true);
+
+            item.Location = null;
+
+            return true;
         }
 
         private void RemoveWorldObjectInternal(ObjectGuid objectId, bool adjacencyMove = false)
@@ -775,39 +801,6 @@ namespace ACE.Server.Entity
             chain.AddAction(wo, () => action(wo));
         }
         */
-
-        /// <summary>
-        /// This will create a RemoveWorldObjectInternal action for objectGuid on the appropriate Landblocks ActionChain, and that action will be added to callersChain.<para />
-        /// What that means is, callersChain will start to execute after you queue it accordingly. When it gets to the point where you injected QueueItemRemove, it will block and wait for the objectGuids
-        /// landblock to begin executing the RemoveWorldObjectInternal on its own ActionChain. After the landblock finishes that command, it will return and allow callersChain to resume execution.<para />
-        /// This will also set the item.Location to null.
-        /// </summary>
-        public void QueueItemRemove(ActionChain callersChain, ObjectGuid objectGuid)
-        {
-            // Find owner of wo
-            var lb = GetOwner(objectGuid);
-
-            if (lb == null)
-            {
-                log.Error("Landblock QueueItemRemove failed to GetOwner");
-                return;
-            }
-
-            callersChain.AddAction(lb.motionQueue, () =>
-            {
-                var item = GetObject(objectGuid);
-
-                if (item == null)
-                {
-                    log.Error("Landblock QueueItemRemove failed to GetObject");
-                    return;
-                }
-
-                RemoveWorldObjectInternal(objectGuid, true);
-
-                item.Location = null;
-            });
-        }
 
         private void Log(string message)
         {

@@ -222,9 +222,11 @@ namespace ACE.Server.WorldObjects
             if (item != null)
             {
                 itemWasRestingOnLandblock = true;
-                item.NotifyOfEvent(RegenerationType.PickUp);
-                // Queue up an action that wait for the landblock to remove the item. The action that gets queued, when fired, will be run on the landblocks ActionChain, not this players.
-                CurrentLandblock?.QueueItemRemove(pickUpItemChain, itemGuid);
+                pickUpItemChain.AddAction(this, () =>
+                {
+                    if (CurrentLandblock != null && CurrentLandblock.RemoveWorldObjectFromPickup(itemGuid))
+                        item.NotifyOfEvent(RegenerationType.PickUp);
+                });
             }
             else
             {
