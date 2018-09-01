@@ -65,7 +65,6 @@ namespace ACE.Server.Managers
 
         public static readonly ActionQueue LandblockActionQueue = new ActionQueue();
         public static readonly ActionQueue LandblockMotionQueue = new ActionQueue();
-        public static readonly ActionQueue LandblockBroadcastQueue = new ActionQueue();
 
         public static readonly DelayManager DelayManager = new DelayManager();
 
@@ -445,9 +444,6 @@ namespace ACE.Server.Managers
                 // FIXME(ddevec): Goal is to eventually migrate to an "Act" function of the LandblockManager ActiveLandblocks
                 //    Inactive landblocks will be put on TimeoutManager queue for timeout killing
                 LandblockActionQueue.RunActions();
-
-                // Handles sending out all per-landblock broadcasts -- This may rework when we rework tracking -- tbd
-                LandblockBroadcastQueue.RunActions();
 
                 // XXX(ddevec): Should this be its own step in world-update thread?
                 sessionLock.EnterReadLock();
