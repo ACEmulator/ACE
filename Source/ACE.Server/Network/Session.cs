@@ -45,7 +45,7 @@ namespace ACE.Server.Network
 
 
         private DateTime lastAutoSaveTime;
-        private DateTime logOffRequestTime;
+        public DateTime LogOffRequestTime { get; private set; }
         private DateTime lastAgeIntUpdateTime;
         private DateTime lastSendAgeIntUpdateTime;
 
@@ -128,9 +128,9 @@ namespace ACE.Server.Network
 
             // Live server seemed to take about 6 seconds. 4 seconds is nice because it has smooth animation, and saves the user 2 seconds every logoff
             // This could be made 0 for instant logoffs.
-            if (logOffRequestTime != DateTime.MinValue && logOffRequestTime.AddSeconds(6) <= DateTime.UtcNow)
+            if (LogOffRequestTime != DateTime.MinValue && LogOffRequestTime.AddSeconds(6) <= DateTime.UtcNow)
             {
-                logOffRequestTime = DateTime.MinValue;
+                LogOffRequestTime = DateTime.MinValue;
                 SendFinalLogOffMessages();
             }
 
@@ -271,7 +271,7 @@ namespace ACE.Server.Network
             logoutChain.AddChain(Player.GetLogoutChain());
             logoutChain.EnqueueChain();
 
-            logOffRequestTime = DateTime.UtcNow;
+            LogOffRequestTime = DateTime.UtcNow;
         }
 
         private void SendFinalLogOffMessages()
