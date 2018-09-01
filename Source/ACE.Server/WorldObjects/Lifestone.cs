@@ -39,8 +39,7 @@ namespace ACE.Server.WorldObjects
         private static readonly UniversalMotion sanctuary = new UniversalMotion(MotionStance.NonCombat, new MotionItem(MotionCommand.Sanctuary));
 
         /// <summary>
-        /// This is raised by Player.HandleActionUseItem, and is wrapped in ActionChain.<para />
-        /// The actor of the ActionChain is the item being used.<para />
+        /// This is raised by Player.HandleActionUseItem.<para />
         /// The item does not exist in the players possession.<para />
         /// If the item was outside of range, the player will have been commanded to move using DoMoveTo before ActOnUse is called.<para />
         /// When this is called, it should be assumed that the player is within range.

@@ -39,11 +39,10 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// This is raised by Player.HandleActionUseItem, and is wrapped in ActionChain.<para />
-        /// The actor of the ActionChain is the player using the item.<para />
+        /// This is raised by Player.HandleActionUseItem.<para />
         /// The item should be in the players possession.
         /// </summary>
-        public override void UseItem(Player player, ActionChain actionChain)
+        public override void UseItem(Player player)
         {
             Player.ConsumableBuffType buffType;
 

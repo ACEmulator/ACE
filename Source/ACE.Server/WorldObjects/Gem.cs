@@ -49,8 +49,7 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// This is raised by Player.HandleActionUseItem, and is wrapped in ActionChain.<para />
-        /// The actor of the ActionChain is the player using the item.<para />
+        /// This is raised by Player.HandleActionUseItem.<para />
         /// The item should be in the players possession.
         /// 
         /// The OnUse method for this class is to use a contract to add a tracked quest to our quest panel.
@@ -58,7 +57,7 @@ namespace ACE.Server.WorldObjects
         /// and shows our progress for kill tasks as well as any timing information such as when we can repeat the
         /// quest or how much longer we have to complete it in the case of at timed quest.   Og II
         /// </summary>
-        public override void UseItem(Player player, ActionChain actionChain)
+        public override void UseItem(Player player)
         {
             if (UseCreateContractId == null)
             {

@@ -168,121 +168,115 @@ namespace ACE.Server.WorldObjects
         {
             StopExistingMoveToChains();
 
-            new ActionChain(this, () =>
+            var invSource = GetInventoryItem(sourceObjectId);
+            var invTarget = GetInventoryItem(targetObjectId);
+            var invWielded = GetWieldedItem(targetObjectId);
+
+            var worldTarget = (invTarget == null) ? CurrentLandblock?.GetObject(targetObjectId) : null;
+
+            if (invTarget != null)
             {
-                var invSource = GetInventoryItem(sourceObjectId);
-                var invTarget = GetInventoryItem(targetObjectId);
-                var invWielded = GetWieldedItem(targetObjectId);
-
-                var worldTarget = (invTarget == null) ? CurrentLandblock?.GetObject(targetObjectId) : null;
-
-                if (invTarget != null)
+                // inventory on inventory, we can do this now
+                if (invSource.WeenieType == WeenieType.ManaStone)
                 {
-                    // inventory on inventory, we can do this now
-                    if (invSource.WeenieType == WeenieType.ManaStone)
-                    {
-                        var stone = invSource as ManaStone;
-                        stone.HandleActionUseOnTarget(this, invTarget);
-                    }
-                    else
-                        RecipeManager.UseObjectOnTarget(this, invSource, invTarget);
-                }
-                else if (invSource.WeenieType == WeenieType.Healer)
-                {
-                    if (!(worldTarget is Player))
-                        return;
-
-                    var healer = invSource as Healer;
-                    healer.HandleActionUseOnTarget(this, worldTarget as Player);
-                }
-                else if (invSource.WeenieType == WeenieType.Key)
-                {
-                    var key = invSource as Key;
-                    key.HandleActionUseOnTarget(this, worldTarget);
-                }
-                else if (invSource.WeenieType == WeenieType.Lockpick && worldTarget is Lock)
-                {
-                    var lp = invSource as Lockpick;
-                    lp.HandleActionUseOnTarget(this, worldTarget);
-                }
-                else if (targetObjectId == Guid)
-                {
-                    // using something on ourselves
-                    if (invSource.WeenieType == WeenieType.ManaStone)
-                    {
-                        var stone = invSource as ManaStone;
-                        stone.HandleActionUseOnTarget(this, this);
-                    }
-                    else
-                        RecipeManager.UseObjectOnTarget(this, invSource, this);
-                }
-                else if (invWielded != null)
-                {
-                    if (invSource.WeenieType == WeenieType.ManaStone)
-                    {
-                        var stone = invSource as ManaStone;
-                        stone.HandleActionUseOnTarget(this, invWielded);
-                    }
-                    else
-                        RecipeManager.UseObjectOnTarget(this, invSource, invWielded);
+                    var stone = invSource as ManaStone;
+                    stone.HandleActionUseOnTarget(this, invTarget);
                 }
                 else
+                    RecipeManager.UseObjectOnTarget(this, invSource, invTarget);
+            }
+            else if (invSource.WeenieType == WeenieType.Healer)
+            {
+                if (!(worldTarget is Player))
+                    return;
+
+                var healer = invSource as Healer;
+                healer.HandleActionUseOnTarget(this, worldTarget as Player);
+            }
+            else if (invSource.WeenieType == WeenieType.Key)
+            {
+                var key = invSource as Key;
+                key.HandleActionUseOnTarget(this, worldTarget);
+            }
+            else if (invSource.WeenieType == WeenieType.Lockpick && worldTarget is Lock)
+            {
+                var lp = invSource as Lockpick;
+                lp.HandleActionUseOnTarget(this, worldTarget);
+            }
+            else if (targetObjectId == Guid)
+            {
+                // using something on ourselves
+                if (invSource.WeenieType == WeenieType.ManaStone)
                 {
-                    RecipeManager.UseObjectOnTarget(this, invSource, worldTarget);
+                    var stone = invSource as ManaStone;
+                    stone.HandleActionUseOnTarget(this, this);
                 }
-            }).EnqueueChain();
+                else
+                    RecipeManager.UseObjectOnTarget(this, invSource, this);
+            }
+            else if (invWielded != null)
+            {
+                if (invSource.WeenieType == WeenieType.ManaStone)
+                {
+                    var stone = invSource as ManaStone;
+                    stone.HandleActionUseOnTarget(this, invWielded);
+                }
+                else
+                    RecipeManager.UseObjectOnTarget(this, invSource, invWielded);
+            }
+            else
+            {
+                RecipeManager.UseObjectOnTarget(this, invSource, worldTarget);
+            }
         }
 
         public void HandleActionUseItem(ObjectGuid usedItemId)
         {
             StopExistingMoveToChains();
 
-            var actionChain = new ActionChain();
+            // Search our inventory first
+            var item = GetInventoryItem(usedItemId);
 
-            actionChain.AddAction(this, () =>
+            if (item != null)
+                item.UseItem(this);
+            else
             {
-                // Search our inventory first
-                var item = GetInventoryItem(usedItemId);
+                // Search the world second
+                item = CurrentLandblock?.GetObject(usedItemId);
 
-                if (item != null)
-                    item.UseItem(this, actionChain);
-                else
+                if (item == null)
                 {
-                    // Search the world second
-                    item = CurrentLandblock?.GetObject(usedItemId);
+                    Session.Network.EnqueueSend(new GameEventUseDone(Session)); // todo add an argument that indicates the item was not found
+                    return;
+                }
 
-                    if (item == null)
+                if (item is Container)
+                    lastUsedContainerId = usedItemId;
+
+                var actionChain = new ActionChain();
+
+                if (!IsWithinUseRadiusOf(item))
+                {
+                    var moveToChain = CreateMoveToChain(item, item.UseRadiusSquared, out var thisMoveToChainNumber);
+
+                    actionChain.AddChain(moveToChain);
+                    actionChain.AddDelaySeconds(0.50);
+
+                    // Make sure that after we've executed our MoveToChain, and waited our delay, we're still within use radius.
+                    actionChain.AddAction(this, () =>
                     {
-                        Session.Network.EnqueueSend(new GameEventUseDone(Session)); // todo add an argument that indicates the item was not found
-                        return;
-                    }
-
-                    if (item is Container)
-                        lastUsedContainerId = usedItemId;
-
-                    if (!IsWithinUseRadiusOf(item))
-                    {
-                        var moveToChain = CreateMoveToChain(item, item.UseRadiusSquared, out var thisMoveToChainNumber);
-
-                        actionChain.AddChain(moveToChain);
-                        actionChain.AddDelaySeconds(0.50);
-
-                        // Make sure that after we've executed our MoveToChain, and waited our delay, we're still within use radius.
-                        actionChain.AddAction(this, () =>
-                        {
-                            if (IsWithinUseRadiusOf(item) && thisMoveToChainNumber == moveToChainCounter)
-                                actionChain.AddAction(item, () => item.ActOnUse(this));
-                            else
+                        if (IsWithinUseRadiusOf(item) && thisMoveToChainNumber == moveToChainCounter)
+                            actionChain.AddAction(item, () => item.ActOnUse(this));
+                        else
                                 // Action is cancelled
                                 Session.Network.EnqueueSend(new GameEventUseDone(Session));
-                        });
-                    }
-                    else
-                        actionChain.AddAction(item, () => item.ActOnUse(this));
+                    });
                 }
-            });
+                else
+                    actionChain.AddAction(item, () => item.ActOnUse(this));
 
-            actionChain.EnqueueChain();
+                actionChain.EnqueueChain();
+            }
         }
     }
 }
