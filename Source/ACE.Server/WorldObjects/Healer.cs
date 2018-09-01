@@ -53,7 +53,7 @@ namespace ACE.Server.WorldObjects
         public void DoHealMotion(Player healer, Player target)
         {
             var healAnimation = new MotionItem(MotionCommand.SkillHealSelf, 1.0f);
-            var animLength = MotionTable.GetAnimationLength(healer.MotionTableId, healer.CurrentMotionState.Stance, healAnimation);
+            var animLength = MotionTable.GetAnimationLength(healer.MotionTableId, healer.CurrentMotionState.Stance, MotionCommand.SkillHealSelf);
 
             var motion = new UniversalMotion(healer.CurrentMotionState.Stance, healAnimation);
             motion.MovementData.CurrentStyle = (uint)healer.CurrentMotionState.Stance;

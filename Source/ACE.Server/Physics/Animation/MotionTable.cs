@@ -452,10 +452,16 @@ namespace ACE.Server.Physics.Animation
             }
         }
 
-        public static float GetAnimationLength(uint motionTableId, MotionStance stance, MotionItem motionItem)
+        public static float GetAnimationLength(uint motionTableId, MotionStance stance, MotionCommand motion, MotionCommand? currentMotion = null, float speed = 1.0f)
         {
             var motionTable = DatManager.PortalDat.ReadFromDat<DatLoader.FileTypes.MotionTable>(motionTableId);
-            return motionTable.GetAnimationLength(stance, motionItem.Motion) / motionItem.Speed;
+            return motionTable.GetAnimationLength(stance, motion, currentMotion) / speed;
+        }
+
+        public static float GetCycleLength(uint motionTableId, MotionStance stance, MotionCommand motion, float speed = 1.0f)
+        {
+            var motionTable = DatManager.PortalDat.ReadFromDat<DatLoader.FileTypes.MotionTable>(motionTableId);
+            return motionTable.GetCycleLength(stance, motion) / speed;
         }
 
         /// <summary>

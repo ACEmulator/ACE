@@ -47,54 +47,66 @@ namespace ACE.DatLoader.FileTypes
 
         public float GetAnimationLength(MotionCommand motion)
         {
-            MotionStance defaultStyle = (MotionStance)DefaultStyle;
+            var defaultStance = (MotionStance)DefaultStyle;
+            var defaultMotion = GetDefaultMotion(defaultStance);
 
-            // get the default motion for the default
-            MotionCommand defaultMotion = GetDefaultMotion(defaultStyle);
-            return GetAnimationLength(defaultMotion, defaultStyle, motion);
+            return GetAnimationLength(defaultStance, motion, defaultMotion);
         }
 
-        public float GetAnimationLength(MotionStance style, MotionCommand motion)
+        public float GetAnimationLength(MotionStance stance, MotionCommand motion, MotionCommand? currentMotion = null)
         {
-            // get the default motion for the selected style
-            MotionCommand defaultMotion = GetDefaultMotion(style);
-            return GetAnimationLength(defaultMotion, style, motion);
+            if (currentMotion == null)
+                currentMotion = GetDefaultMotion(stance);
+
+            return GetAnimationLength(stance, motion, currentMotion.Value);
         }
 
-        public float GetAnimationLength(MotionCommand currentMotionState, MotionStance style, MotionCommand motion)
+        public float GetCycleLength(MotionStance stance, MotionCommand motion)
         {
-            float length = 0; // init our length var...will return as 0 if not found
+            uint key = (uint)stance << 16 | (uint)motion & 0xFFFFF;
 
-            uint motionHash = ((uint)currentMotionState & 0xFFFFFF) | ((uint)style << 16);
+            Cycles.TryGetValue(key, out var motionData);
 
-            if (Links.ContainsKey(motionHash))
-            {
-                Dictionary<uint, MotionData> links = Links[motionHash];
+            if (motionData == null)
+                return 0.0f;
 
-                if (links.ContainsKey((uint)motion))
-                {
-                    // loop through all that animations to get our total count
-                    for (int i = 0; i < links[(uint)motion].Anims.Count; i++)
-                    {
-                        AnimData anim = links[(uint)motion].Anims[i];
-
-                        uint numFrames;
-
-                        // check if the animation is set to play the whole thing, in which case we need to get the numbers of frames in the raw animation
-                        if ((anim.LowFrame == 0) && (anim.HighFrame == uint.MaxValue))
-                        {
-                            var animation = DatManager.PortalDat.ReadFromDat<Animation>(anim.AnimId);
-                            numFrames = animation.NumFrames;
-                        }
-                        else
-                            numFrames = anim.HighFrame - anim.LowFrame;
-
-                        length += numFrames / Math.Abs(anim.Framerate); // Framerates can be negative, which tells the client to play in reverse
-                    }
-                }
-            }
+            var length = 0.0f;
+            foreach (var anim in motionData.Anims)
+                length += GetAnimationLength(anim);
 
             return length;
+        }
+
+        public float GetAnimationLength(MotionStance stance, MotionCommand motion, MotionCommand currentMotion)
+        {
+            uint motionHash = (uint)stance << 16 | (uint)currentMotion & 0xFFFFF;
+
+            Links.TryGetValue(motionHash, out var link);
+            if (link == null) return 0.0f;
+
+            link.TryGetValue((uint)motion, out var motionData);
+            if (motionData == null) return 0.0f;
+
+            var length = 0.0f;
+            foreach (var anim in motionData.Anims)
+                length += GetAnimationLength(anim);
+
+            return length;
+        }
+
+        public float GetAnimationLength(AnimData anim)
+        {
+            var highFrame = anim.HighFrame;
+            if (anim.HighFrame == uint.MaxValue)
+            {
+                // get the actual high frame from the animation length
+                var animation = DatManager.PortalDat.ReadFromDat<Animation>(anim.AnimId);
+                highFrame = animation.NumFrames;
+            }
+
+            var numFrames = highFrame - anim.LowFrame;
+
+            return numFrames / Math.Abs(anim.Framerate); // framerates can be negative, which tells the client to play in reverse
         }
 
         public ACE.Entity.Position GetAnimationFinalPositionFromStart(ACE.Entity.Position position, float objScale, MotionCommand motion)

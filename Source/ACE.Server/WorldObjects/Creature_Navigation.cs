@@ -192,9 +192,9 @@ namespace ACE.Server.WorldObjects
         /// It is mostly a duplicate of Rotate(), and should be refactored eventually...
         /// It sets CurrentMotionState and AttackTarget here
         /// </summary>
-        public void TurnTo(WorldObject target)
+        public float TurnTo(WorldObject target)
         {
-            if (this is Player) return;
+            if (this is Player) return 0.0f;
 
             var turnToMotion = new UniversalMotion(CurrentMotionState.Stance, target.Location, target.Guid);
             turnToMotion.MovementTypes = MovementTypes.TurnToObject;
@@ -215,6 +215,7 @@ namespace ACE.Server.WorldObjects
                 //Console.WriteLine("Finished turning - " + turnTime + "s");
             });
             actionChain.EnqueueChain();
+            return rotateDelay;
         }
 
         /// <summary>

@@ -11,7 +11,7 @@ namespace ACE.Server.WorldObjects
 {
     public class Cow : Creature
     {
-        private static readonly UniversalMotion motionTipRight = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.TippedRight));
+        private static readonly UniversalMotion motionTipRight = new UniversalMotion(MotionStance.NonCombat, new MotionItem(MotionCommand.TippedRight));
 
         /// <summary>
         /// A new biota be created taking all of its values from weenie.
