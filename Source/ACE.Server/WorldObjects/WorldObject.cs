@@ -808,7 +808,7 @@ namespace ACE.Server.WorldObjects
         {
             var maxDamage = GetProperty(PropertyInt.Damage) ?? 0;
             var variance = GetProperty(PropertyFloat.DamageVariance) ?? 0;
-            var minDamage = maxDamage * variance;
+            var minDamage = maxDamage * (1.0f - variance);
             return new Range((float)minDamage, (float)maxDamage);
         }
 
@@ -822,10 +822,14 @@ namespace ACE.Server.WorldObjects
             var damageMod = wielder.EnchantmentManager.GetDamageMod();
             var varianceMod = wielder.EnchantmentManager.GetVarianceMod();
 
-            var baseVariance = baseDamage.Min / baseDamage.Max;
+            var baseVariance = 1.0f - (baseDamage.Min / baseDamage.Max);
 
-            var maxDamageMod = baseDamage.Max + damageMod;
-            var minDamageMod = maxDamageMod * (baseVariance * varianceMod);
+            var weapon = wielder.GetEquippedWeapon();
+            var damageBonus = weapon != null ? (float)(weapon.GetProperty(PropertyFloat.DamageMod) ?? 1.0f) : 1.0f;
+
+            // additives first, then multipliers?
+            var maxDamageMod = (baseDamage.Max + damageMod) * damageBonus;
+            var minDamageMod = maxDamageMod * (1.0f - baseVariance * varianceMod);
 
             return new Range(minDamageMod, maxDamageMod);
         }

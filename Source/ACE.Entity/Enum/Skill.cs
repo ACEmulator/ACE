@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 
 namespace ACE.Entity.Enum
@@ -244,6 +245,27 @@ namespace ACE.Entity.Enum
 
     public static class SkillExtensions
     {
+        public static List<Skill> RetiredMelee = new List<Skill>()
+        {
+            Skill.Axe,
+            Skill.Dagger,
+            Skill.Mace,
+            Skill.Spear,
+            Skill.Staff,
+            Skill.Sword,
+            Skill.UnarmedCombat
+        };
+
+        public static List<Skill> RetiredMissile = new List<Skill>()
+        {
+            Skill.Bow,
+            Skill.Crossbow,
+            Skill.Sling,
+            Skill.ThrownWeapon
+        };
+
+        public static List<Skill> RetiredWeapons = RetiredMelee.Concat(RetiredMissile).ToList();
+
         public static AttributeFormulaAttribute GetFormula(this Skill skill)
         {
             return skill.GetAttributeOfType<AttributeFormulaAttribute>();

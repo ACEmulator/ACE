@@ -7,7 +7,6 @@ using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
-using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Motion;
 using ACE.Server.Physics.Animation;
 
@@ -200,21 +199,26 @@ namespace ACE.Server.WorldObjects
         public float GetEvadeChance()
         {
             // get monster attack skill
+            var player = AttackTarget as Player;
             var attackSkill = GetCreatureSkill(GetCurrentAttackSkill()).Current;
+            var offenseMod = GetWeaponOffenseBonus(this);
+            attackSkill = (uint)Math.Round(attackSkill * offenseMod);
 
             if (IsExhausted)
                 attackSkill = GetExhaustedSkill(attackSkill);
 
             // get player defense skill
-            var player = AttackTarget as Player;
-
             var defenseSkill = CurrentAttack == AttackType.Missile ? Skill.MissileDefense : Skill.MeleeDefense;
-            var difficulty = player.GetCreatureSkill(defenseSkill).Current;
+            var defenseMod = defenseSkill == Skill.MeleeDefense ? GetWeaponMeleeDefenseBonus(AttackTarget as Creature) : 1.0f;
+            var difficulty = (uint)Math.Round(player.GetCreatureSkill(defenseSkill).Current * defenseMod);
 
             if (player.IsExhausted) difficulty = 0;
 
-            //Console.WriteLine("Attack skill: " + attackSkill);
-            //Console.WriteLine("Defense skill: " + difficulty);
+            /*var baseStr = offenseMod != 1.0f ? $" (base: {GetCreatureSkill(GetCurrentAttackSkill()).Current})" : "";
+            Console.WriteLine("Attack skill: " + attackSkill + baseStr);
+
+            baseStr = defenseMod != 1.0f ? $" (base: {player.GetCreatureSkill(defenseSkill).Current})" : "";
+            Console.WriteLine("Defense skill: " + difficulty + baseStr);*/
 
             var evadeChance = 1.0f - SkillCheck.GetSkillChance((int)attackSkill, (int)difficulty);
             return (float)evadeChance;
