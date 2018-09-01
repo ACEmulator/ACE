@@ -277,7 +277,7 @@ namespace ACE.Server.Network
         private void SendFinalLogOffMessages()
         {
             // It's possible for a character change to happen from a GameActionSetCharacterOptions message.
-            // This message can be received/procesed by the server AFTER LogOfPlayer has been called.
+            // This message can be received/processed by the server AFTER LogOfPlayer has been called.
             // What that means is, we could end up with Character changes after the Character has been saved from the initial LogOff request.
             // To make sure we commit these additional changes (if any), we check again here
             if (Player.CharacterChangesDetected)
