@@ -66,7 +66,7 @@ namespace ACE.Server.WorldObjects
             Attributes[PropertyAttribute.Self] = new CreatureAttribute(this, PropertyAttribute.Self);
 
             foreach (var skillProperty in Biota.BiotaPropertiesSkill)
-                Skills[(Skill)skillProperty.Type] = new CreatureSkill(this, (Skill)skillProperty.Type);
+                Skills[(Skill)skillProperty.Type] = new CreatureSkill(this, skillProperty);
 
             if (Health.Current == 0)
                 Health.Current = Health.MaxValue;
@@ -176,10 +176,6 @@ namespace ACE.Server.WorldObjects
                 MouthTextureDID = sex.GetMouthTexture(appearance.Mouth);
             if (!DefaultMouthTextureDID.HasValue)
                 DefaultMouthTextureDID = sex.GetDefaultMouthTexture(appearance.Mouth);
-            if (!HairTextureDID.HasValue)
-                HairTextureDID = sex.GetHairTexture(appearance.HairStyle);
-            if (!DefaultHairTextureDID.HasValue)
-                DefaultHairTextureDID = sex.GetDefaultHairTexture(appearance.HairStyle);
             if (!HeadObjectDID.HasValue)
                 HeadObjectDID = sex.GetHeadObject(appearance.HairStyle);
 

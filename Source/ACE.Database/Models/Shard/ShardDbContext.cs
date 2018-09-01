@@ -1231,6 +1231,10 @@ namespace ACE.Database.Models.Shard
                     .HasColumnName("is_Deleted")
                     .HasColumnType("bit(1)");
 
+                entity.Property(e => e.IsPlussed)
+                    .HasColumnName("is_Plussed")
+                    .HasColumnType("bit(1)");
+
                 entity.Property(e => e.LastLoginTimestamp)
                     .HasColumnName("last_Login_Timestamp")
                     .HasDefaultValueSql("'0'");
@@ -1323,10 +1327,6 @@ namespace ACE.Database.Models.Shard
                     .IsUnique();
 
                 entity.Property(e => e.Id).HasColumnName("id");
-
-                entity.Property(e => e.AccountId)
-                    .HasColumnName("account_Id")
-                    .HasDefaultValueSql("'0'");
 
                 entity.Property(e => e.CharacterId)
                     .HasColumnName("character_Id")

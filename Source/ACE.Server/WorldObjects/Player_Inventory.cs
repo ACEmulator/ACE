@@ -810,13 +810,15 @@ namespace ACE.Server.WorldObjects
             {
                 case WieldRequirement.RawSkill:
                     // Check WieldDifficulty property against player's Skill level, defined by item's WieldSkilltype property
-                    var itemSkillReq = (Skill)(item.GetProperty(PropertyInt.WieldSkilltype) ?? 0);
+                    var itemSkillReq = ConvertToMoASkill((Skill)(item.GetProperty(PropertyInt.WieldSkilltype) ?? 0));
 
                     if (itemSkillReq != Skill.None)
                     {
                         var playerSkill = GetCreatureSkill(itemSkillReq).Current;
 
-                        if (playerSkill < (uint)(item.GetProperty(PropertyInt.WieldDifficulty) ?? 0))
+                        var skillDifficulty = (uint)(item.GetProperty(PropertyInt.WieldDifficulty) ?? 0);
+
+                        if (playerSkill < skillDifficulty)
                             return WeenieError.SkillTooLow;
                     }
                     break;
@@ -841,6 +843,19 @@ namespace ACE.Server.WorldObjects
                     break;
             }
             return WeenieError.None;
+        }
+
+        public Skill ConvertToMoASkill(Skill skill)
+        {
+            var player = this as Player;
+            if (player != null)
+            {
+                if (SkillExtensions.RetiredMelee.Contains(skill))
+                    return player.GetHighestMeleeSkill();
+                if (SkillExtensions.RetiredMissile.Contains(skill))
+                    return Skill.MissileWeapons;
+            }
+            return skill;
         }
 
         /// <summary>
@@ -948,7 +963,7 @@ namespace ACE.Server.WorldObjects
             int amount = 0;
             int numItems = 0;
             int value = 0;
-            if (GetCharacterOptions2(CharacterOptions2.SalvageMultipleMaterialsAtOnce))
+            if (GetCharacterOption(CharacterOption.SalvageMultipleMaterialsAtOnce))
             {
                 int counter = 0;
                 int objectCounter = 0;
@@ -1135,7 +1150,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if (((target.CharacterOptions1Mapping ?? 0) & (int)CharacterOptions1.LetOtherPlayersGiveYouItems) == (int)CharacterOptions1.LetOtherPlayersGiveYouItems)
+            if ((Character.CharacterOptions1 & (int)CharacterOptions1.LetOtherPlayersGiveYouItems) == (int)CharacterOptions1.LetOtherPlayersGiveYouItems)
             {
                 if (target != player)
                 {

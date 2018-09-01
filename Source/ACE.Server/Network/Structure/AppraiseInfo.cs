@@ -86,7 +86,7 @@ namespace ACE.Server.Network.Structure
             if (wo is Creature creature)
                 BuildCreature(creature);
 
-            if (wo is MeleeWeapon || wo is Missile || wo is MissileLauncher || wo is Caster)
+            if (wo is MeleeWeapon || wo is Missile || wo is MissileLauncher || wo is Ammunition || wo is Caster )
                 BuildWeapon(wo, wielder);
 
             BuildFlags();
@@ -111,7 +111,7 @@ namespace ACE.Server.Network.Structure
             if (PropertiesInt.ContainsKey(PropertyInt.ArmorLevel))
                 PropertiesInt[PropertyInt.ArmorLevel] += wo.EnchantmentManager.GetArmorMod();
 
-            if (wielder != null && PropertiesFloat.ContainsKey(PropertyFloat.WeaponDefense))
+            if (wielder != null && PropertiesFloat.ContainsKey(PropertyFloat.WeaponDefense) && !(wo is Ammunition))
                 PropertiesFloat[PropertyFloat.WeaponDefense] += wielder.EnchantmentManager.GetDefenseMod();
         }
 
@@ -163,6 +163,11 @@ namespace ACE.Server.Network.Structure
                             activeSpells.Add(new AppraisalSpellBook() { SpellId = (ushort)enchantment.SpellId, EnchantmentState = AppraisalSpellBook._EnchantmentState.On });
                         }
                     }
+                    else if (worldObject is Ammunition)
+                    {
+                        if ((enchantment.SpellCategory == (uint)SpellCategory.DamageLowering))
+                            activeSpells.Add(new AppraisalSpellBook() { SpellId = (ushort)enchantment.SpellId, EnchantmentState = AppraisalSpellBook._EnchantmentState.On });
+                    }
                     else
                     {
                         // Other weapon type Auras
@@ -190,6 +195,11 @@ namespace ACE.Server.Network.Structure
                             {
                                 activeSpells.Add(new AppraisalSpellBook() { SpellId = (ushort)enchantment.SpellId, EnchantmentState = AppraisalSpellBook._EnchantmentState.On });
                             }
+                        }
+                        else if (worldObject is Ammunition)
+                        {
+                            if ((enchantment.SpellCategory == (uint)SpellCategory.DamageRaising))
+                                activeSpells.Add(new AppraisalSpellBook() { SpellId = (ushort)enchantment.SpellId, EnchantmentState = AppraisalSpellBook._EnchantmentState.On });
                         }
                         else
                         {

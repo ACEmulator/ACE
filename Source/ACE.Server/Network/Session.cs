@@ -201,15 +201,7 @@ namespace ACE.Server.Network
                 {
                     Characters[i].IsDeleted = true;
 
-                    var idToDelete = Characters[i].Id;
-
-                    DatabaseManager.Shard.MarkCharacterDeleted(idToDelete, deleteSuccess =>
-                    {
-                        if (deleteSuccess)
-                            log.Info($"Character {idToDelete:X} successfully marked as deleted");
-                        else
-                            log.Error($"Unable to mark character {idToDelete:X} as deleted");
-                    });
+                    DatabaseManager.Shard.SaveCharacter(Characters[i], new ReaderWriterLockSlim(), null);
 
                     Characters.RemoveAt(i);
                 }
