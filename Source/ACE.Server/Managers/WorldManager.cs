@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using log4net;
 
 using ACE.Common;
+using ACE.Database;
 using ACE.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.WorldObjects;
@@ -17,7 +18,6 @@ using ACE.Server.Network;
 using ACE.Server.Network.GameMessages;
 using ACE.Server.Physics;
 using ACE.Server.Physics.Common;
-using ACE.Database;
 
 using Landblock = ACE.Server.Entity.Landblock;
 using Position = ACE.Entity.Position;
@@ -31,18 +31,6 @@ namespace ACE.Server.Managers
         // Hard coded server Id, this will need to change if we move to multi-process or multi-server model
         public const ushort ServerId = 0xB;
 
-        private static readonly ReaderWriterLockSlim sessionLock = new ReaderWriterLockSlim();
-        private static Session[] sessionMap = new Session[ConfigManager.Config.Server.Network.MaximumAllowedSessions];
-        private static readonly List<Session> sessions = new List<Session>();
-        private static List<IPEndPoint> loggedInClients = new List<IPEndPoint>((int)ConfigManager.Config.Server.Network.MaximumAllowedSessions);
-
-        private static readonly PhysicsEngine Physics;
-
-        public static List<Player> AllPlayers;
-
-        public static readonly object UpdateWorldLandblockLock = new object();
-        public static bool Concurrency = false;
-
         /// <summary>
         /// Seconds until a session will timeout. 
         /// Raising this value allows connections to remain active for a longer period of time. 
@@ -52,23 +40,31 @@ namespace ACE.Server.Managers
         /// </remarks>
         public static uint DefaultSessionTimeout = ConfigManager.Config.Server.Network.DefaultSessionTimeout;
 
-        private static volatile bool pendingWorldStop;
-        public static bool WorldActive { get; private set; }
+        private static readonly ReaderWriterLockSlim sessionLock = new ReaderWriterLockSlim();
+        private static readonly Session[] sessionMap = new Session[ConfigManager.Config.Server.Network.MaximumAllowedSessions];
+        private static readonly List<Session> sessions = new List<Session>();
+        private static readonly List<IPEndPoint> loggedInClients = new List<IPEndPoint>((int)ConfigManager.Config.Server.Network.MaximumAllowedSessions);
+
+        public static readonly object UpdateWorldLandblockLock = new object();
+        public static bool Concurrency = false;
+
+        private static readonly PhysicsEngine Physics;
 
         public static DateTime WorldStartTime { get; } = DateTime.UtcNow;
-
         public static DerethDateTime WorldStartFromTime { get; } = new DerethDateTime().UTCNowToLoreTime;
-
         public static double PortalYearTicks { get; private set; } = WorldStartFromTime.Ticks;
+
+        public static bool WorldActive { get; private set; }
+        private static volatile bool pendingWorldStop;
 
         /// <summary>
         /// Handles ClientMessages in InboundMessageManager
         /// </summary>
         public static readonly ActionQueue InboundMessageQueue = new ActionQueue();
-
+        public static readonly DelayManager DelayManager = new DelayManager();
         public static readonly ActionQueue LandblockActionQueue = new ActionQueue();
 
-        public static readonly DelayManager DelayManager = new DelayManager();
+        public static List<Player> AllPlayers;
 
         static WorldManager()
         {
@@ -155,14 +151,12 @@ namespace ACE.Server.Managers
 
         public static void ProcessPacket(ClientPacket packet, IPEndPoint endPoint)
         {
-            if (packet.Header.HasFlag(PacketHeaderFlags.LoginRequest) && !loggedInClients.Contains(endPoint) &&
-                loggedInClients.Count < ConfigManager.Config.Server.Network.MaximumAllowedSessions)
+            if (packet.Header.HasFlag(PacketHeaderFlags.LoginRequest) && !loggedInClients.Contains(endPoint) && loggedInClients.Count < ConfigManager.Config.Server.Network.MaximumAllowedSessions)
             {
                 log.DebugFormat("Login Request from {0}", endPoint);
                 var session = FindOrCreateSession(endPoint);
                 if (session != null)
                     session.ProcessPacket(packet);
-                
             }
             else if (sessionMap.Length > packet.Header.Id && loggedInClients.Contains(endPoint))
             {
@@ -424,10 +418,8 @@ namespace ACE.Server.Managers
             {
                 worldTickTimer.Restart();
 
-                // handle time-based actions
-                DelayManager.RunActions();
-
                 InboundMessageQueue.RunActions();
+                DelayManager.RunActions();
 
                 lock (UpdateWorldLandblockLock)
                 {
@@ -486,11 +478,6 @@ namespace ACE.Server.Managers
         }
 
         /// <summary>
-        /// A list of WorldObjects that have transitioned to adjacent landblocks for this update frame
-        /// </summary>
-        public static List<WorldObject> UpdateLandblock = new List<WorldObject>();
-
-        /// <summary>
         /// The number of times per second physics updates are processed (inverted)
         /// </summary>
         public static double PhysicsRate = 1.0f / 60.0f;
@@ -534,23 +521,20 @@ namespace ACE.Server.Managers
             return movedObjects;
         }
 
-        public static void HandlePhysicsLandblock(Landblock landblock, double timeTick, ConcurrentQueue<WorldObject> movedObjects)
+        private static void HandlePhysicsLandblock(Landblock landblock, double timeTick, ConcurrentQueue<WorldObject> movedObjects)
         {
             foreach (WorldObject wo in landblock.GetPhysicsWorldObjects())
             {
-                Position newPosition = null;
-
                 // set to TRUE if object changes landblock
                 var landblockUpdate = false;
 
                 // detect player movement
                 // TODO: handle players the same as everything else
-                var player = wo as Player;
-                if (player != null)
+                if (wo is Player player)
                 {
                     wo.InUpdate = true;
 
-                    newPosition = HandlePlayerPhysics(player, timeTick);
+                    var newPosition = HandlePlayerPhysics(player, timeTick);
 
                     // update position through physics engine
                     if (newPosition != null)

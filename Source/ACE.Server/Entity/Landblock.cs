@@ -6,6 +6,8 @@ using System.Linq;
 using System.Numerics;
 using System.Threading;
 
+using log4net;
+
 using ACE.Database;
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
@@ -23,8 +25,6 @@ using ACE.Server.Network.Motion;
 using ACE.Server.Network.Sequence;
 using ACE.Server.Physics.Common;
 using ACE.Server.WorldObjects;
-
-using log4net;
 
 using Position = ACE.Entity.Position;
 

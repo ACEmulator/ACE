@@ -1,6 +1,6 @@
 using System;
-using System.Collections.Generic;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Diagnostics;
 
 using log4net;
@@ -23,19 +23,15 @@ namespace ACE.Server.Managers
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         private static readonly object landblockMutex = new object();
-
-        // FIXME(ddevec): Does making this volatile really make double-check locking safe?
-        private static volatile Landblock[,] landblocks = new Landblock[256, 256];
+        private static readonly Landblock[,] landblocks = new Landblock[256, 256];
 
         /// <summary>
         /// This list of all currently active landblocks may only be accessed externally from locations in which the landblocks /CANNOT/ be concurrently modified
         ///   e.g. -- the WorldManager update loop
-        /// Landblocks should not be directly accessed by world objects, or world-object associated handlers.
-        ///   Instead use: FIXME(ddevec): TBD, interface a work in progress
         /// </summary>
-        public static ConcurrentDictionary<Landblock, bool> ActiveLandblocks { get; } = new ConcurrentDictionary<Landblock, bool>();
+        public static Dictionary<Landblock, bool> ActiveLandblocks { get; } = new Dictionary<Landblock, bool>();
 
-        public static List<Landblock> DestructionQueue = new List<Landblock>();
+        private static readonly ConcurrentBag<Landblock> destructionQueue = new ConcurrentBag<Landblock>();
 
         public static void PlayerEnterWorld(Session session, Character character)
         {
@@ -103,9 +99,7 @@ namespace ACE.Server.Managers
             var newBlock = GetLandblock(worldObject.Location.LandblockId, true);
             // Remove from the old landblock -- force
             if (oldBlock != null)
-            {
                 oldBlock.RemoveWorldObjectForPhysics(worldObject.Guid, adjacencyMove);
-            }
             // Add to the new landblock
             newBlock.AddWorldObjectForPhysics(worldObject);
         }
@@ -116,13 +110,13 @@ namespace ACE.Server.Managers
         /// </summary>
         private static Landblock GetLandblock(LandblockId landblockId, bool propagate)
         {
-            var landblock = landblocks[landblockId.LandblockX, landblockId.LandblockY];
-            var autoLoad = propagate && landblockId.MapScope == MapScope.Outdoors;
-
-            // standard check/lock/recheck pattern
-            if (landblock == null || autoLoad && !landblock.AdjacenciesLoaded)
+            lock (landblockMutex)
             {
-                lock (landblockMutex)
+                var landblock = landblocks[landblockId.LandblockX, landblockId.LandblockY];
+                var autoLoad = propagate && landblockId.MapScope == MapScope.Outdoors;
+
+                // standard check/lock/recheck pattern
+                if (landblock == null || autoLoad && !landblock.AdjacenciesLoaded)
                 {
                     landblock = landblocks[landblockId.LandblockX, landblockId.LandblockY];
                     if (landblock == null || autoLoad && !landblock.AdjacenciesLoaded)
@@ -136,7 +130,7 @@ namespace ACE.Server.Managers
                             // block.StartUseTime();
                             if (!ActiveLandblocks.TryAdd(landblock, true))
                             {
-                                Console.WriteLine("LandblockManager: failed to add " + (landblock.Id.Raw | 0xFFFF).ToString("X8") + " to active landblocks!");
+                                log.Error("LandblockManager: failed to add " + (landblock.Id.Raw | 0xFFFF).ToString("X8") + " to active landblocks!");
                                 return landblock;
                             }
                         }
@@ -145,8 +139,9 @@ namespace ACE.Server.Managers
                             landblock.AdjacenciesLoaded = true;
                     }
                 }
+
+                return landblock;
             }
-            return landblock;
         }
 
         /// <summary>
@@ -242,8 +237,7 @@ namespace ACE.Server.Managers
         /// <param name="landblock">The landblock to be unloaded</param>
         public static void AddToDestructionQueue(Landblock landblock)
         {
-            if (!DestructionQueue.Contains(landblock))
-                DestructionQueue.Add(landblock);
+            destructionQueue.Add(landblock);
         }
 
         /// <summary>
@@ -251,20 +245,27 @@ namespace ACE.Server.Managers
         /// </summary>
         public static void UnloadLandblocks()
         {
-            if (DestructionQueue.Count == 0)
-                return;
-
-            foreach (var landblock in DestructionQueue)
+            while (!destructionQueue.IsEmpty)
             {
-                landblock.Unload();
+                if (destructionQueue.TryTake(out Landblock landblock))
+                {
+                    landblock.Unload();
 
-                // remove from list of managed landblocks
-                if (ActiveLandblocks.TryRemove(landblock, out var active))
-                    landblocks[landblock.Id.LandblockX, landblock.Id.LandblockY] = null;
-                else
-                    Console.WriteLine("LandblockManager: failed to unload " + (landblock.Id.Raw | 0xFFFF).ToString("X8"));
+                    bool unloadFailed = false;
+
+                    lock (landblockMutex)
+                    {
+                        // remove from list of managed landblocks
+                        if (ActiveLandblocks.Remove(landblock, out _))
+                            landblocks[landblock.Id.LandblockX, landblock.Id.LandblockY] = null;
+                        else
+                            unloadFailed = true;
+                    }
+
+                    if (unloadFailed)
+                        log.Error("LandblockManager: failed to unload " + (landblock.Id.Raw | 0xFFFF).ToString("X8"));
+                }
             }
-            DestructionQueue.Clear();
         }
     }
 }
