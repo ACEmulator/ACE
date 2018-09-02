@@ -216,9 +216,8 @@ namespace ACE.Server.Managers
         }
 
         /// <summary>
-        /// Removes a player or worldobject from the active world.
+        /// Removes a session, network client and network endpoint from the various tracker objects.
         /// </summary>
-        /// <param name="session"></param>
         public static void RemoveSession(Session session)
         {
             sessionLock.EnterWriteLock();
@@ -440,25 +439,26 @@ namespace ACE.Server.Managers
                 //    Inactive landblocks will be put on TimeoutManager queue for timeout killing
                 LandblockActionQueue.RunActions();
 
-                // XXX(ddevec): Should this be its own step in world-update thread?
-                sessionLock.EnterReadLock();
+                // clean up inactive landblocks
+                LandblockManager.UnloadLandblocks();
+
+                // Session Maintenance
+                sessionLock.EnterUpgradeableReadLock();
                 try
                 {
                     // Send the current time ticks to allow sessions to declare themselves bad
                     Parallel.ForEach(sessions, s => s.Update(lastTick, DateTime.UtcNow.Ticks));
+
+                    // Removes sessions in the NetworkTimeout state, incuding sessions that have reached a timeout limit.
+                    var deadSessions = sessions.FindAll(s => s.State == Network.Enum.SessionState.NetworkTimeout);
+
+                    foreach (var session in deadSessions)
+                        RemoveSession(session);
                 }
                 finally
                 {
-                    sessionLock.ExitReadLock();
+                    sessionLock.ExitUpgradeableReadLock();
                 }
-
-                // Removes sessions in the NetworkTimeout state, incuding sessions that have reached a timeout limit.
-                var deadSessions = sessions.FindAll(s => s.State == Network.Enum.SessionState.NetworkTimeout);
-                foreach (var session in deadSessions)
-                    RemoveSession(session);
-
-                // clean up inactive landblocks
-                LandblockManager.UnloadLandblocks();
 
                 Thread.Sleep(1);
 
