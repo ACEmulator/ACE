@@ -64,7 +64,6 @@ namespace ACE.Server.Managers
         public static readonly ActionQueue InboundMessageQueue = new ActionQueue();
 
         public static readonly ActionQueue LandblockActionQueue = new ActionQueue();
-        public static readonly ActionQueue LandblockMotionQueue = new ActionQueue();
 
         public static readonly DelayManager DelayManager = new DelayManager();
 
@@ -431,10 +430,6 @@ namespace ACE.Server.Managers
                 }
 
                 InboundMessageQueue.RunActions();
-
-                // Process between landblock object motions sequentially
-                // Currently only used for picking items up off a landblock
-                LandblockMotionQueue.RunActions();
 
                 // Now, update actions within landblocks
                 //   This is responsible for updating all "actors" residing within the landblock. 
