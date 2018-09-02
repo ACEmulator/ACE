@@ -30,10 +30,12 @@ namespace ACE.Server.Managers
 
         // Hard coded server Id, this will need to change if we move to multi-process or multi-server model
         public const ushort ServerId = 0xB;
+
+        private static readonly ReaderWriterLockSlim sessionLock = new ReaderWriterLockSlim();
         private static Session[] sessionMap = new Session[ConfigManager.Config.Server.Network.MaximumAllowedSessions];
         private static readonly List<Session> sessions = new List<Session>();
-        private static readonly ReaderWriterLockSlim sessionLock = new ReaderWriterLockSlim();
         private static List<IPEndPoint> loggedInClients = new List<IPEndPoint>((int)ConfigManager.Config.Server.Network.MaximumAllowedSessions);
+
         private static readonly PhysicsEngine Physics;
 
         public static List<Player> AllPlayers;
@@ -180,31 +182,41 @@ namespace ACE.Server.Managers
 
         public static Session FindOrCreateSession(IPEndPoint endPoint)
         {
-            Session session = null;
-            sessionLock.EnterWriteLock();
+            Session session;
+
+            sessionLock.EnterUpgradeableReadLock();
             try
             {
                 session = sessions.SingleOrDefault(s => endPoint.Equals(s.EndPoint));
                 if (session == null)
                 {
-                    for (ushort i = 0; i < sessionMap.Length; i++)
+                    sessionLock.EnterWriteLock();
+                    try
                     {
-                        if (sessionMap[i] == null)
+                        for (ushort i = 0; i < sessionMap.Length; i++)
                         {
-                            log.InfoFormat("Creating new session for {0} with id {1}", endPoint, i);
-                            session = new Session(endPoint, i, ServerId);
-                            sessions.Add(session);
-                            sessionMap[i] = session;
-                            loggedInClients.Add(endPoint);
-                            break;
+                            if (sessionMap[i] == null)
+                            {
+                                log.InfoFormat("Creating new session for {0} with id {1}", endPoint, i);
+                                session = new Session(endPoint, i, ServerId);
+                                sessions.Add(session);
+                                sessionMap[i] = session;
+                                loggedInClients.Add(endPoint);
+                                break;
+                            }
                         }
+                    }
+                    finally
+                    {
+                        sessionLock.ExitWriteLock();
                     }
                 }
             }
             finally
             {
-                sessionLock.ExitWriteLock();
+                sessionLock.ExitUpgradeableReadLock();
             }
+
             // If session is still null we either have no room or had some kind of failure, we'll create a temporary session just to send an error back.
             if (session == null)
             {
@@ -212,6 +224,7 @@ namespace ACE.Server.Managers
                 var errorSession = new Session(endPoint, (ushort)(sessionMap.Length + 1), ServerId);
                 errorSession.SendCharacterError(Network.Enum.CharacterError.LogonServerFull);
             }
+
             return session;
         }
 
@@ -307,7 +320,7 @@ namespace ACE.Server.Managers
                 else
                     session = sessions.SingleOrDefault(s => s.Player != null && s.Player.Guid.Full == playerId);
 
-                return session != null ? session.Player : null;
+                return session?.Player;
             }
             finally
             {
@@ -381,9 +394,7 @@ namespace ACE.Server.Managers
             try
             {
                 foreach (Session session in sessions.Where(s => s.Player != null && s.Player.IsOnline).ToList())
-                {
                     session.Network.EnqueueSend(msg);
-                }
             }
             finally
             {
