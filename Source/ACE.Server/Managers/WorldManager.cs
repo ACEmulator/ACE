@@ -11,11 +11,15 @@ using log4net;
 
 using ACE.Common;
 using ACE.Database;
+using ACE.Database.Models.Shard;
 using ACE.Entity;
+using ACE.Entity.Enum;
 using ACE.Server.Entity.Actions;
 using ACE.Server.WorldObjects;
 using ACE.Server.Network;
+using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages;
+using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Physics;
 using ACE.Server.Physics.Common;
 
@@ -45,7 +49,7 @@ namespace ACE.Server.Managers
         private static readonly List<Session> sessions = new List<Session>();
         private static readonly List<IPEndPoint> loggedInClients = new List<IPEndPoint>((int)ConfigManager.Config.Server.Network.MaximumAllowedSessions);
 
-        public static readonly object UpdateWorldLandblockLock = new object();
+        private static readonly object updateWorldLandblockLock = new object();
         public static bool Concurrency = false;
 
         private static readonly PhysicsEngine Physics;
@@ -397,10 +401,40 @@ namespace ACE.Server.Managers
             }
         }
 
-        /// <summary>
-        /// Function to begin ending the operations inside of an active world.
-        /// </summary>
-        public static void StopWorld() { pendingWorldStop = true; }
+        public static void PlayerEnterWorld(Session session, Character character)
+        {
+            var start = DateTime.UtcNow;
+            DatabaseManager.Shard.GetPlayerBiotas(character.Id, biotas =>
+            {
+                log.Debug($"GetPlayerBiotas for {character.Name} took {(DateTime.UtcNow - start).TotalMilliseconds:N0} ms");
+                Player player;
+
+                if (biotas.Player.WeenieType == (int)WeenieType.Admin)
+                    player = new Admin(biotas.Player, biotas.Inventory, biotas.WieldedItems, character, session);
+                else if (biotas.Player.WeenieType == (int)WeenieType.Sentinel)
+                    player = new Sentinel(biotas.Player, biotas.Inventory, biotas.WieldedItems, character, session);
+                else
+                    player = new Player(biotas.Player, biotas.Inventory, biotas.WieldedItems, character, session);
+
+                session.SetPlayer(player);
+                session.Player.PlayerEnterWorld();
+
+                if ((character.TotalLogins <= 1) || PropertyManager.GetBool("alwaysshowwelcome").Item)
+                {
+                    // check the value of the welcome message. Only display it if it is not empty
+                    string welcomeHeader = ConfigManager.Config.Server.Welcome ?? "Welcome to Asheron's Call!";
+                    string msg = "To begin your training, speak to the Society Greeter. Walk up to the Society Greeter using the 'W' key, then double-click on her to initiate a conversation.";
+
+                    session.Network.EnqueueSend(new GameEventPopupString(session, $"{welcomeHeader}\n{msg}"));
+                }
+
+                lock (updateWorldLandblockLock)
+                    LandblockManager.AddObject(session.Player, true);
+
+                var motdString = PropertyManager.GetString("motd_string").Item;
+                session.Network.EnqueueSend(new GameMessageSystemChat(motdString, ChatMessageType.Broadcast));
+            });
+        }
 
         /// <summary>
         /// Manages updating all entities on the world.
@@ -421,7 +455,7 @@ namespace ACE.Server.Managers
                 InboundMessageQueue.RunActions();
                 DelayManager.RunActions();
 
-                lock (UpdateWorldLandblockLock)
+                lock (updateWorldLandblockLock)
                 {
                     // update positions through physics engine
                     var movedObjects = HandlePhysics(PortalYearTicks);
@@ -476,6 +510,11 @@ namespace ACE.Server.Managers
             // World has finished operations and concedes the thread to garbage collection
             WorldActive = false;
         }
+
+        /// <summary>
+        /// Function to begin ending the operations inside of an active world.
+        /// </summary>
+        public static void StopWorld() { pendingWorldStop = true; }
 
         /// <summary>
         /// The number of times per second physics updates are processed (inverted)

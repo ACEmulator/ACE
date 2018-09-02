@@ -5,16 +5,10 @@ using System.Diagnostics;
 
 using log4net;
 
-using ACE.Common;
-using ACE.Database;
-using ACE.Database.Models.Shard;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Server.Entity;
 using ACE.Server.WorldObjects;
-using ACE.Server.Network;
-using ACE.Server.Network.GameEvent.Events;
-using ACE.Server.Network.GameMessages.Messages;
 
 namespace ACE.Server.Managers
 {
@@ -33,56 +27,11 @@ namespace ACE.Server.Managers
 
         private static readonly ConcurrentBag<Landblock> destructionQueue = new ConcurrentBag<Landblock>();
 
-        public static void PlayerEnterWorld(Session session, Character character)
+        public static void AddObject(WorldObject worldObject, bool propegate = false)
         {
-            var start = DateTime.UtcNow;
-            DatabaseManager.Shard.GetPlayerBiotas(character.Id, biotas =>
-            {
-                log.Debug($"GetPlayerBiotas for {character.Name} took {(DateTime.UtcNow - start).TotalMilliseconds:N0} ms");
-                Player player;
-
-                if (biotas.Player.WeenieType == (int)WeenieType.Admin)
-                    player = new Admin(biotas.Player, biotas.Inventory, biotas.WieldedItems, character, session);
-                else if (biotas.Player.WeenieType == (int)WeenieType.Sentinel)
-                    player = new Sentinel(biotas.Player, biotas.Inventory, biotas.WieldedItems, character, session);
-                else
-                    player = new Player(biotas.Player, biotas.Inventory, biotas.WieldedItems, character, session);
-
-                session.SetPlayer(player);
-                session.Player.PlayerEnterWorld();
-
-                // check the value of the welcome message. Only display it if it is not empty
-                string welcomeHeader;
-                if (!String.IsNullOrEmpty(ConfigManager.Config.Server.Welcome))
-                    welcomeHeader = ConfigManager.Config.Server.Welcome;
-                else
-                    welcomeHeader = "Welcome to Asheron's Call!";
-
-                string msg = "To begin your training, speak to the Society Greeter. Walk up to the Society Greeter using the 'W' key, then double-click on her to initiate a conversation.";
-
-                if ((character.TotalLogins <= 1) || PropertyManager.GetBool("alwaysshowwelcome").Item)
-                    session.Network.EnqueueSend(new GameEventPopupString(session, $"{welcomeHeader}\n{msg}"));
-
-                var location = player.GetPosition(PositionType.Location);
-
-                lock (WorldManager.UpdateWorldLandblockLock)
-                {
-                    var landblock = GetLandblock(location.LandblockId, true);
-                    landblock.AddWorldObject(session.Player);
-                }
-
-                var motdString = PropertyManager.GetString("motd_string").Item;
-                session.Network.EnqueueSend(new GameMessageSystemChat(motdString, ChatMessageType.Broadcast));
-            });
-        }
-
-        public static void AddObject(WorldObject worldObject)
-        {
-            var block = GetLandblock(worldObject.Location.LandblockId, false);
+            var block = GetLandblock(worldObject.Location.LandblockId, propegate);
             block.AddWorldObject(worldObject);
         }
-
-        // TODO: Need to be able to read the position of an object on the landblock and get information about that object CFS
 
         public static void RemoveObject(WorldObject worldObject)
         {
