@@ -200,13 +200,14 @@ namespace ACE.Server.WorldObjects
             motion.MovementData.ForwardCommand = (uint)motionCommand;
             motion.MovementData.TurnSpeed = 2.25f;  // ??
 
+            var animLength = Physics.Animation.MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, motionCommand);
+
             actionChain.AddAction(this, () =>
             {
                 CurrentMotionState = motion;
                 DoMotion(motion);
+                //Console.WriteLine($"{Name}.EnqueueMotion({motionCommand}): {animLength}s");
             });
-
-            var animLength = Physics.Animation.MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, motionCommand);
 
             actionChain.AddDelaySeconds(animLength);
             return animLength;

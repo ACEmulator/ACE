@@ -85,7 +85,14 @@ namespace ACE.DatLoader.FileTypes
             if (link == null) return 0.0f;
 
             link.TryGetValue((uint)motion, out var motionData);
-            if (motionData == null) return 0.0f;
+            if (motionData == null)
+            {
+                motionHash = (uint)stance << 16;
+                Links.TryGetValue(motionHash, out link);
+                if (link == null) return 0.0f;
+                link.TryGetValue((uint)motion, out motionData);
+                if (motionData == null) return 0.0f;
+            }
 
             var length = 0.0f;
             foreach (var anim in motionData.Anims)
