@@ -27,6 +27,12 @@ namespace ACE.Server.WorldObjects
 
         public List<int> GeneratorProfilesActive = new List<int>();
 
+        /// <summary>
+        /// Returns TRUE if this object is a generator
+        /// (spawns other world objects)
+        /// </summary>
+        public bool IsGenerator { get => GeneratorProfiles.Count > 0; }
+
         public void SelectGeneratorProfiles()
         {
             GeneratorProfilesActive.Clear();
@@ -96,106 +102,180 @@ namespace ACE.Server.WorldObjects
                     continue;
 
                 var queue = new GeneratorQueueNode();
-
                 queue.Slot = (uint)slot;
-                //double when = Common.Time.GetFutureTimestamp((RegenerationInterval ?? 0) + (GeneratorProfiles[slot].Delay ?? 0));
-                double when = Time.GetFutureTimestamp(Physics.Common.Random.RollDice(0, (float)(RegenerationInterval ?? 0)) + (GeneratorProfiles[0].Delay ?? 0));
-                //Console.WriteLine(Name + " RegenerationInterval: " + RegenerationInterval + ", Delay: " + GeneratorProfiles[slot].Delay);
 
-                if (GeneratorRegistry.Count < InitGeneratedObjects)
-                    if (CurrentlyPoweringUp ?? false)
-                        when = Time.GetFutureTimestamp((GeneratorInitialDelay ?? 0));
+                if (GeneratorRegistry.Count < InitGeneratedObjects && (CurrentlyPoweringUp ?? false))
+                {
+                    // initial spawn delay
+                    queue.SpawnTime = Time.GetFutureTimestamp(GeneratorInitialDelay ?? 0);
+                }
+                else
+                {
+                    // determine the delay for respawning
+                    var regenInterval = RegenerationInterval ?? 0;
+                    var delay = GeneratorProfiles[0].Delay ?? 0;     //  found encounters with delays only in slot 0?
+                    var minRegenTime = delay;
+                    var maxRegenTime = delay + regenInterval;
+                    var regenTime = Physics.Common.Random.RollDice(minRegenTime, (float)maxRegenTime);
+                    //Console.WriteLine($"QueueGenerator({Name}): RegenerationInterval: {regenInterval} - Delay: {delay} - RegenTime: {regenTime}");
 
-                queue.When = when;
+                    queue.SpawnTime = Time.GetFutureTimestamp(regenTime);
+                }
 
                 // System.Diagnostics.Debug.WriteLine($"Adding {queue.Slot} @ {queue.When} to GeneratorQueue for {Guid.Full}");
                 GeneratorQueue.Add(queue);
             }
         }
 
+        /// <summary>
+        /// Spawns generator objects at the correct SpawnTime
+        /// Called on heartbeat ticks every ~5 seconds
+        /// </summary>
         public void ProcessGeneratorQueue()
         {
             var index = 0;
             while (index < GeneratorQueue.Count)
             {
-                double ts = Common.Time.GetTimestamp();
-                if (ts >= GeneratorQueue[index].When)
+                var currentTime = Time.GetTimestamp();
+                if (currentTime < GeneratorQueue[index].SpawnTime)
                 {
-                    if (GeneratorRegistry.Count >= MaxGeneratedObjects)
-                    {
-                        // System.Diagnostics.Debug.WriteLine($"GeneratorRegistry for {Guid.Full} is at MaxGeneratedObjects {MaxGeneratedObjects}");
-                        // System.Diagnostics.Debug.WriteLine($"Removing {GeneratorQueue[index].Slot} from GeneratorQueue for {Guid.Full}");
-                        GeneratorQueue.RemoveAt(index);
-                        index++;
-                        continue;
-                    }
-                    var profile = GeneratorProfiles[(int)GeneratorQueue[index].Slot];
-
-                    var rNode = new GeneratorRegistryNode();
-
-                    rNode.WeenieClassId = profile.WeenieClassId;
-                    rNode.Timestamp = Common.Time.GetTimestamp();
-                    rNode.Slot = GeneratorQueue[index].Slot;
-
-                    var wo = WorldObjectFactory.CreateNewWorldObject(profile.WeenieClassId);
-
-                    if (wo != null)
-                    {
-                        switch ((RegenLocationType)profile.WhereCreate)
-                        {
-                            case RegenLocationType.SpecificTreasure:
-                            case RegenLocationType.Specific:
-                                if ((profile.ObjCellId ?? 0) > 0)
-                                    wo.Location = new ACE.Entity.Position(profile.ObjCellId ?? 0,
-                                        profile.OriginX ?? 0, profile.OriginY ?? 0, profile.OriginZ ?? 0,
-                                        profile.AnglesX ?? 0, profile.AnglesY ?? 0, profile.AnglesZ ?? 0, profile.AnglesW ?? 0);
-                                else
-                                    wo.Location = new ACE.Entity.Position(Location.Cell,
-                                        Location.PositionX + profile.OriginX ?? 0, Location.PositionY + profile.OriginY ?? 0, Location.PositionZ + profile.OriginZ ?? 0,
-                                        profile.AnglesX ?? 0, profile.AnglesY ?? 0, profile.AnglesZ ?? 0, profile.AnglesW ?? 0);
-                                break;
-                            case RegenLocationType.ScatterTreasure:
-                            case RegenLocationType.Scatter:
-                                float genRadius = (float)(GetProperty(PropertyFloat.GeneratorRadius) ?? 0f);
-                                var random_x = Physics.Common.Random.RollDice(genRadius * -1, genRadius);
-                                var random_y = Physics.Common.Random.RollDice(genRadius * -1, genRadius);
-                                var pos = new Physics.Common.Position(Location);
-                                wo.Location = new ACE.Entity.Position(pos.ObjCellID, pos.Frame.Origin.X, pos.Frame.Origin.Y, pos.Frame.Origin.Z, pos.Frame.Orientation.X, pos.Frame.Orientation.Y, pos.Frame.Orientation.Z, pos.Frame.Orientation.W);
-                                var newPos = wo.Location.Pos + new Vector3(random_x, random_y, 0.0f);
-                                if (!Location.Indoors)
-                                {
-                                    // Based on GDL scatter
-                                    newPos.X = Math.Clamp(newPos.X, 0.5f, 191.5f);
-                                    newPos.Y = Math.Clamp(newPos.Y, 0.5f, 191.5f);
-                                    wo.Location.SetPosition(newPos);
-                                    newPos.Z = LScape.get_landblock(wo.Location.Cell).GetZ(newPos);
-                                }
-                                wo.Location.SetPosition(newPos);
-                                break;
-                            default:
-                                wo.Location = Location;
-                                break;
-                        }
-
-                        wo.Generator = this;
-                        wo.GeneratorId = Guid.Full;
-
-                        // System.Diagnostics.Debug.WriteLine($"Adding {wo.Guid.Full} | {rNode.Slot} in GeneratorRegistry for {Guid.Full}");
-                        GeneratorRegistry.Add(wo.Guid.Full, rNode);
-                        GeneratorCache.Add(wo.Guid.Full, wo);
-                        // System.Diagnostics.Debug.WriteLine($"Spawning {GeneratorQueue[index].Slot} in GeneratorQueue for {Guid.Full}");
-                        wo.EnterWorld();
-                        // System.Diagnostics.Debug.WriteLine($"Removing {GeneratorQueue[index].Slot} from GeneratorQueue for {Guid.Full}");
-                        GeneratorQueue.RemoveAt(index);
-                    }
-                    else
-                    {
-                        // System.Diagnostics.Debug.WriteLine($"Removing {GeneratorQueue[index].Slot} from GeneratorQueue for {Guid.Full} because wcid {rNode.WeenieClassId} is not in the database");
-                        GeneratorQueue.RemoveAt(index);
-                    }
-                }
-                else
+                    // not time to spawn yet
                     index++;
+                    continue;
+                }
+
+                if (GeneratorRegistry.Count >= MaxGeneratedObjects)
+                {
+                    //System.Diagnostics.Debug.WriteLine($"GeneratorRegistry for {Guid.Full} is at MaxGeneratedObjects {MaxGeneratedObjects}");
+                    //System.Diagnostics.Debug.WriteLine($"Removing {GeneratorQueue[index].Slot} from GeneratorQueue for {Guid.Full}");
+                    GeneratorQueue.RemoveAt(index);
+                    continue;
+                }
+
+                var profile = GeneratorProfiles[(int)GeneratorQueue[index].Slot];
+
+                var rNode = new GeneratorRegistryNode();
+
+                rNode.WeenieClassId = profile.WeenieClassId;
+                rNode.Timestamp = Time.GetTimestamp();
+                rNode.Slot = GeneratorQueue[index].Slot;
+
+                var isTreasure = false;
+
+                switch ((RegenLocationType)profile.WhereCreate)
+                {
+                    case RegenLocationType.ContainTreasure:
+                    case RegenLocationType.OnTopTreasure:
+                    case RegenLocationType.ScatterTreasure:
+                    case RegenLocationType.SpecificTreasure:
+                    case RegenLocationType.Treasure:
+                    case RegenLocationType.WieldTreasure:
+
+                        isTreasure = true;
+
+                        // profile.WeenieClassId is not a weenieClassId,
+                        // it's a DeathTreasure or WieldedTreasure table DID
+                        // there is no overlap of DIDs between these 2 tables,
+                        // so they can be searched in any order..
+                        var deathTreasure = DatabaseManager.World.GetCachedDeathTreasure(profile.WeenieClassId);
+                        if (deathTreasure != null)
+                        {
+                            // TODO: get randomly generated death treasure from LootGenerationFactory
+                        }
+                        else
+                        {
+                            var wieldedTreasure = DatabaseManager.World.GetCachedWieldedTreasure(profile.WeenieClassId);
+                            if (wieldedTreasure != null)
+                            {
+                                // TODO: get randomly generated wielded treasure from LootGenerationFactory
+                            }
+                            else
+                            {
+                                Console.WriteLine($"Generator({Name}) - couldn't find death treasure or wielded treasure for ID {profile.WeenieClassId}");
+                            }
+                        }
+                        break;
+                }
+
+                if (isTreasure)
+                {
+                    // not generating for now, until LootGenerationFactory has this API
+                    GeneratorQueue.RemoveAt(index);
+                    continue;
+                }
+
+                var wo = WorldObjectFactory.CreateNewWorldObject(profile.WeenieClassId);
+                if (wo == null)
+                {
+                    // System.Diagnostics.Debug.WriteLine($"Removing {GeneratorQueue[index].Slot} from GeneratorQueue for {Guid.Full} because wcid {rNode.WeenieClassId} is not in the database");
+                    GeneratorQueue.RemoveAt(index);
+                    continue;
+                }
+
+                //Console.WriteLine($"Generator({Name} - {Location.Cell:X8}) spawned {wo.Name}");
+
+                switch ((RegenLocationType)profile.WhereCreate)
+                {
+                    // spawns an object at a specific position
+                    case RegenLocationType.Specific:
+                    case RegenLocationType.SpecificTreasure:
+                        if ((profile.ObjCellId ?? 0) > 0)
+                            wo.Location = new ACE.Entity.Position(profile.ObjCellId ?? 0,
+                                profile.OriginX ?? 0, profile.OriginY ?? 0, profile.OriginZ ?? 0,
+                                profile.AnglesX ?? 0, profile.AnglesY ?? 0, profile.AnglesZ ?? 0, profile.AnglesW ?? 0);
+                        else
+                            wo.Location = new ACE.Entity.Position(Location.Cell,
+                                Location.PositionX + profile.OriginX ?? 0, Location.PositionY + profile.OriginY ?? 0, Location.PositionZ + profile.OriginZ ?? 0,
+                                profile.AnglesX ?? 0, profile.AnglesY ?? 0, profile.AnglesZ ?? 0, profile.AnglesW ?? 0);
+                        break;
+
+                    // spawns at random position within radius of generator
+                    case RegenLocationType.Scatter:
+                    case RegenLocationType.ScatterTreasure:
+                        float genRadius = (float)(GetProperty(PropertyFloat.GeneratorRadius) ?? 0f);
+                        var random_x = Physics.Common.Random.RollDice(-genRadius, genRadius);
+                        var random_y = Physics.Common.Random.RollDice(-genRadius, genRadius);
+                        wo.Location = new ACE.Entity.Position(Location);
+                        var newPos = wo.Location.Pos + new Vector3(random_x, random_y, 0.0f);
+                        if (!Location.Indoors)
+                        {
+                            // Based on GDL scatter
+                            newPos.X = Math.Clamp(newPos.X, 0.5f, 191.5f);
+                            newPos.Y = Math.Clamp(newPos.Y, 0.5f, 191.5f);
+                            wo.Location.SetPosition(newPos);
+                            newPos.Z = LScape.get_landblock(wo.Location.Cell).GetZ(newPos);
+                        }
+                        wo.Location.SetPosition(newPos);
+                        break;
+
+                    // generator is a container, spawns in inventory
+                    case RegenLocationType.Contain:
+                    case RegenLocationType.ContainTreasure:
+                        var container = this as Container;
+                        if (container == null || !container.TryAddToInventory(wo))
+                        {
+                            Console.WriteLine($"Generator({Name}) - failed to add {wo.Name} to container inventory");
+                            wo.Location = new ACE.Entity.Position(Location);
+                        }
+                        break;
+
+                    default:
+                        wo.Location = new ACE.Entity.Position(Location);
+                        break;
+                }
+
+                wo.Generator = this;
+                wo.GeneratorId = Guid.Full;
+
+                // System.Diagnostics.Debug.WriteLine($"Adding {wo.Guid.Full} | {rNode.Slot} in GeneratorRegistry for {Guid.Full}");
+                GeneratorRegistry.Add(wo.Guid.Full, rNode);
+                GeneratorCache.Add(wo.Guid.Full, wo);
+
+                // System.Diagnostics.Debug.WriteLine($"Spawning {GeneratorQueue[index].Slot} in GeneratorQueue for {Guid.Full}");
+                wo.EnterWorld();
+
+                // System.Diagnostics.Debug.WriteLine($"Removing {GeneratorQueue[index].Slot} from GeneratorQueue for {Guid.Full}");
+                GeneratorQueue.RemoveAt(index);
             }
         }
 
@@ -221,6 +301,8 @@ namespace ACE.Server.WorldObjects
         {
             if (GeneratorId != null)
             {
+                //Console.WriteLine($"{Name}.NotifyOfEvent({regenerationType}) -> {Generator.Name}");
+
                 Generator.NotifyGenerator(Guid, regenerationType);
 
                 GeneratorId = null;
@@ -395,8 +477,8 @@ namespace ACE.Server.WorldObjects
                     GeneratorQueue.Clear();
                     GeneratorProfilesActive.Clear();
 
-                    InitGeneratedObjects = Biota.GetProperty(PropertyInt.InitGeneratedObjects, biotaPropertiesIntLock);
-                    MaxGeneratedObjects = Biota.GetProperty(PropertyInt.MaxGeneratedObjects, biotaPropertiesIntLock);
+                    InitGeneratedObjects = GetProperty(PropertyInt.InitGeneratedObjects);
+                    MaxGeneratedObjects = GetProperty(PropertyInt.MaxGeneratedObjects);
                 }
                 else
                 {
@@ -408,6 +490,48 @@ namespace ACE.Server.WorldObjects
                     QueueGenerator();
                     CurrentlyPoweringUp = false;
                 }
+            }
+        }
+
+        /// <summary>
+        /// Called every ~5 seconds for object generators
+        /// </summary>
+        public void Generator_HeartBeat()
+        {
+            if (!IsGenerator)
+                return;
+
+            // fixme: default properties
+            if (!(FirstEnterWorldDone ?? false))
+                FirstEnterWorldDone = true;
+
+            CheckGeneratorStatus();
+
+            if (!(GeneratorEnteredWorld ?? false) && (FirstEnterWorldDone ?? false))
+            {
+                if (!(GeneratorDisabled ?? false))
+                {
+                    // spawn initial object for this generator
+                    CurrentlyPoweringUp = true;
+                    SelectGeneratorProfiles();
+                    UpdateGeneratorInts();
+                    QueueGenerator();
+                    CurrentlyPoweringUp = false;
+                }
+                GeneratorEnteredWorld = true;
+            }
+
+            if (!(GeneratorDisabled ?? false))
+            {
+                if (GeneratorRegistry.Count < InitGeneratedObjects)
+                {
+                    // subsequent objects / respawning
+                    SelectMoreGeneratorProfiles();
+                    QueueGenerator();
+                }
+
+                if (GeneratorQueue.Count > 0)
+                    ProcessGeneratorQueue();
             }
         }
     }

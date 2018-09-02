@@ -35,7 +35,8 @@ namespace ACE.Server.Physics
 
         public static readonly float MinQuantum = 1.0f / 30.0f;     // 0.0333... 30fps
 
-        public static readonly float MaxQuantum = 0.2f;     // 5fps
+        //public static readonly float MaxQuantum = 0.2f;     // 5fps   // this is buggy with MoveToManager turning
+        public static readonly float MaxQuantum = 0.1f;     // 10fps
 
         public static readonly float HugeQuantum = 2.0f;    // 0.5fps
 

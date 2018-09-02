@@ -24,14 +24,6 @@ namespace ACE.Server.Managers
 
         private static readonly object landblockMutex = new object();
 
-        private static string MotdString
-        {
-            get
-            {
-                return PropertyManager.GetString("motd_string").Item;
-            }
-        }
-
         // FIXME(ddevec): Does making this volatile really make double-check locking safe?
         private static volatile Landblock[,] landblocks = new Landblock[256, 256];
 
@@ -50,7 +42,7 @@ namespace ACE.Server.Managers
             var start = DateTime.UtcNow;
             DatabaseManager.Shard.GetPlayerBiotas(character.Id, biotas =>
             {
-                log.Info("GetPlayerBiotas took " + (DateTime.UtcNow - start).TotalMilliseconds + " ms"); // This can be removed after EF performance is at the desired level.
+                log.Debug($"GetPlayerBiotas for {character.Name} took {(DateTime.UtcNow - start).TotalMilliseconds:N0} ms");
                 Player player;
 
                 if (biotas.Player.WeenieType == (int)WeenieType.Admin)
@@ -72,15 +64,15 @@ namespace ACE.Server.Managers
 
                 string msg = "To begin your training, speak to the Society Greeter. Walk up to the Society Greeter using the 'W' key, then double-click on her to initiate a conversation.";
 
-                if (player.TotalLogins <= 1)
+                if ((character.TotalLogins <= 1) || PropertyManager.GetBool("alwaysshowwelcome").Item)
                     session.Network.EnqueueSend(new GameEventPopupString(session, $"{welcomeHeader}\n{msg}"));
 
                 var location = player.GetPosition(PositionType.Location);
-                Landblock block = GetLandblock(location.LandblockId, true);
-                // Must enqueue add world object -- this is called from a message handler context
-                block.AddWorldObject(session.Player);
+                var landblock = GetLandblock(location.LandblockId, true);
+                landblock.AddWorldObject(session.Player);
 
-                session.Network.EnqueueSend(new GameMessageSystemChat(MotdString, ChatMessageType.Broadcast));
+                var motdString = PropertyManager.GetString("motd_string").Item;
+                session.Network.EnqueueSend(new GameMessageSystemChat(motdString, ChatMessageType.Broadcast));
             });
         }
 
@@ -101,14 +93,14 @@ namespace ACE.Server.Managers
         /// <summary>
         /// Relocates an object to the appropriate landblock -- Should only be called from physics/worldmanager -- not player!
         /// </summary>
-        public static void RelocateObjectForPhysics(WorldObject worldObject)
+        public static void RelocateObjectForPhysics(WorldObject worldObject, bool adjacencyMove)
         {
             var oldBlock = worldObject.CurrentLandblock;
             var newBlock = GetLandblock(worldObject.Location.LandblockId, true);
             // Remove from the old landblock -- force
             if (oldBlock != null)
             {
-                oldBlock.RemoveWorldObjectForPhysics(worldObject.Guid, true);
+                oldBlock.RemoveWorldObjectForPhysics(worldObject.Guid, adjacencyMove);
             }
             // Add to the new landblock
             newBlock.AddWorldObjectForPhysics(worldObject);

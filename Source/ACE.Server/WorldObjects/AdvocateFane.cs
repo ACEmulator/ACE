@@ -35,11 +35,11 @@ namespace ACE.Server.WorldObjects
         {
         }
 
-        private static readonly UniversalMotion twitch = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.Twitch1));
+        private static readonly UniversalMotion twitch = new UniversalMotion(MotionStance.NonCombat, new MotionItem(MotionCommand.Twitch1));
 
-        private static readonly UniversalMotion twitch2 = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.Twitch2));
+        private static readonly UniversalMotion twitch2 = new UniversalMotion(MotionStance.NonCombat, new MotionItem(MotionCommand.Twitch2));
 
-        private static readonly UniversalMotion bowDeep = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.BowDeep));
+        private static readonly UniversalMotion bowDeep = new UniversalMotion(MotionStance.NonCombat, new MotionItem(MotionCommand.BowDeep));
 
         public uint? UseTargetSuccessAnimation
         {
@@ -66,8 +66,7 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// This is raised by Player.HandleActionUseItem, and is wrapped in ActionChain.<para />
-        /// The actor of the ActionChain is the item being used.<para />
+        /// This is raised by Player.HandleActionUseItem.<para />
         /// The item does not exist in the players possession.<para />
         /// If the item was outside of range, the player will have been commanded to move using DoMoveTo before ActOnUse is called.<para />
         /// When this is called, it should be assumed that the player is within range.
@@ -84,7 +83,7 @@ namespace ACE.Server.WorldObjects
                     {
                         //error msg here
                         if (UseTargetFailureAnimation.HasValue)
-                            CurrentLandblock?.EnqueueBroadcastMotion(this, new UniversalMotion(MotionStance.Standing, new MotionItem((MotionCommand)UseTargetFailureAnimation)));
+                            CurrentLandblock?.EnqueueBroadcastMotion(this, new UniversalMotion(MotionStance.NonCombat, new MotionItem((MotionCommand)UseTargetFailureAnimation)));
                         else
                             CurrentLandblock?.EnqueueBroadcastMotion(this, twitch2);
 
@@ -97,21 +96,21 @@ namespace ACE.Server.WorldObjects
                         AllowedActivator = ObjectGuid.Invalid.Full;
 
                         var faneTimer = new ActionChain();
-                        var turnToMotion = new UniversalMotion(MotionStance.Standing, Location, Guid);
+                        var turnToMotion = new UniversalMotion(MotionStance.NonCombat, Location, Guid);
                         turnToMotion.MovementTypes = MovementTypes.TurnToObject;
                         faneTimer.AddAction(this, () => player.CurrentLandblock?.EnqueueBroadcastMotion(player, turnToMotion));
                         faneTimer.AddDelaySeconds(1);
                         faneTimer.AddAction(player, () =>
                         {
                             if (UseUserAnimation.HasValue)
-                                CurrentLandblock?.EnqueueBroadcastMotion(player, new UniversalMotion(MotionStance.Standing, new MotionItem((MotionCommand)UseUserAnimation)));
+                                CurrentLandblock?.EnqueueBroadcastMotion(player, new UniversalMotion(MotionStance.NonCombat, new MotionItem((MotionCommand)UseUserAnimation)));
                             else
                                 CurrentLandblock?.EnqueueBroadcastMotion(player, bowDeep);
                         });
                         faneTimer.AddAction(player, () =>
                         {
                             if (UseTargetSuccessAnimation.HasValue)
-                                CurrentLandblock?.EnqueueBroadcastMotion(this, new UniversalMotion(MotionStance.Standing, new MotionItem((MotionCommand)UseTargetSuccessAnimation)));
+                                CurrentLandblock?.EnqueueBroadcastMotion(this, new UniversalMotion(MotionStance.NonCombat, new MotionItem((MotionCommand)UseTargetSuccessAnimation)));
                             else
                                 CurrentLandblock?.EnqueueBroadcastMotion(this, twitch);
                         });
@@ -171,7 +170,7 @@ namespace ACE.Server.WorldObjects
                     else
                     {
                         if (UseTargetFailureAnimation.HasValue)
-                            CurrentLandblock?.EnqueueBroadcastMotion(this, new UniversalMotion(MotionStance.Standing, new MotionItem((MotionCommand)UseTargetFailureAnimation)));
+                            CurrentLandblock?.EnqueueBroadcastMotion(this, new UniversalMotion(MotionStance.NonCombat, new MotionItem((MotionCommand)UseTargetFailureAnimation)));
                         else
                             CurrentLandblock?.EnqueueBroadcastMotion(this, twitch2);
 

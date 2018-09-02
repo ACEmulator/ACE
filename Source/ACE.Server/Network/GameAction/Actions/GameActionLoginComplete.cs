@@ -2,15 +2,15 @@ namespace ACE.Server.Network.GameAction.Actions
 {
     public static class GameActionLoginComplete
     {
+        /// <summary>
+        /// This is called when the client player exits portal space
+        /// It includes initial login, as well as portaling / teleporting
+        /// </summary>
         [GameAction(GameActionType.LoginComplete)]
         public static void Handle(ClientMessage message, Session session)
         {
-            session.Player.InWorld = true;
-            session.Player.ReportCollisions = true;
-            session.Player.IgnoreCollisions = false;
-            session.Player.Hidden = false;
-            session.Player.EnqueueBroadcastPhysicsState();
-            session.Player.Teleporting = false;
+            session.Player.OnTeleportComplete();
+
             if (!session.Player.FirstEnterWorldDone.Value)
                 session.Player.FirstEnterWorldDone = true;
         }

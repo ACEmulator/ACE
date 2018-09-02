@@ -2,7 +2,9 @@ using System;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
+
 using ACE.Server.Managers;
+
 using log4net;
 
 namespace ACE.Server.Network
@@ -11,6 +13,7 @@ namespace ACE.Server.Network
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         private static readonly ILog packetLog = LogManager.GetLogger(System.Reflection.Assembly.GetEntryAssembly(), "Packets");
+
         public Socket Socket { get; private set; }
 
         private IPEndPoint listenerEndpoint;
@@ -58,6 +61,11 @@ namespace ACE.Server.Network
             {
                 EndPoint clientEndPoint = new IPEndPoint(listeningHost, 0);
                 Socket.BeginReceiveFrom(buffer, 0, buffer.Length, SocketFlags.None, ref clientEndPoint, OnDataReceieve, Socket);
+            }
+            catch (SocketException socketException)
+            {
+                log.DebugFormat("Network Socket has thrown: {0} {1}", socketException.ErrorCode, socketException.Message);
+                Listen();
             }
             catch (Exception exception)
             {

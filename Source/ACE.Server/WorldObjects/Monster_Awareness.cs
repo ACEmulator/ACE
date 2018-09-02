@@ -44,7 +44,8 @@ namespace ACE.Server.WorldObjects
             IsAwake = true;
             DoAttackStance();
 
-            if (IsBow)
+            var weapon = GetEquippedMissileWeapon();
+            if (weapon != null && weapon.IsBow)
                 NextAttackTime = Timer.CurrentTime + MissileDelay + 1.0f;   // initial reload motion
         }
 
@@ -53,9 +54,10 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void Sleep()
         {
-            MonsterState = State.Idle;
+            AttackTarget = null;
             IsAwake = false;
             IsMoving = false;
+            MonsterState = State.Idle;
         }
     }
 }

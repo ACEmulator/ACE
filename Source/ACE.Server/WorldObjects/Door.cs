@@ -16,8 +16,8 @@ namespace ACE.Server.WorldObjects
 {
     public class Door : WorldObject, Lock
     {
-        private static readonly UniversalMotion motionOpen = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.On));
-        private static readonly UniversalMotion motionClosed = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.Off));
+        private static readonly UniversalMotion motionOpen = new UniversalMotion(MotionStance.NonCombat, new MotionItem(MotionCommand.On));
+        private static readonly UniversalMotion motionClosed = new UniversalMotion(MotionStance.NonCombat, new MotionItem(MotionCommand.Off));
 
         /// <summary>
         /// A new biota be created taking all of its values from weenie.
@@ -245,8 +245,9 @@ namespace ACE.Server.WorldObjects
                 if (DefaultLocked)
                 {
                     IsLocked = true;
-                    CurrentLandblock?.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyBool(this, PropertyBool.Locked, IsLocked ?? true));
-                    CurrentLandblock?.EnqueueBroadcastSound(this, Sound.OpenFailDueToLock); // TODO: This should probably come 1.5 seconds after the door closes so that sounds don't overlap
+                    var updateProperty = new GameMessagePublicUpdatePropertyBool(this, PropertyBool.Locked, IsLocked ?? true);
+                    var sound = new GameMessageSound(Guid, Sound.OpenFailDueToLock, 1.0f); // TODO: This should probably come 1.5 seconds after the door closes so that sounds don't overlap
+                    EnqueueBroadcast(updateProperty, sound);
                 }
             }
             else

@@ -66,6 +66,11 @@ namespace ACE.Server.WorldObjects
 
         public bool IsBusy { get => busyState; set => busyState = value; }
         public bool IsMovingTo { get => movingState; set => movingState = value; }
+        public bool IsShield { get => CombatUse != null && CombatUse == ACE.Entity.Enum.CombatUse.Shield; }
+        public bool IsTwoHanded { get => CurrentWieldedLocation != null && CurrentWieldedLocation == EquipMask.TwoHanded; }
+        public bool IsBow { get => DefaultCombatStyle != null && (DefaultCombatStyle == CombatStyle.Bow || DefaultCombatStyle == CombatStyle.Crossbow); }
+        public bool IsAtlatl { get => DefaultCombatStyle != null && DefaultCombatStyle == CombatStyle.Atlatl; }
+        public bool IsAmmoLauncher { get => IsBow || IsAtlatl; }
 
         public EmoteManager EmoteManager;
         public EnchantmentManager EnchantmentManager;
@@ -73,12 +78,16 @@ namespace ACE.Server.WorldObjects
         public WorldObject ProjectileSource;
         public WorldObject ProjectileTarget;
 
+        public bool IsDestroyed = false;
+
         /// <summary>
         /// A new biota will be created taking all of its values from weenie.
         /// </summary>
         protected WorldObject(Weenie weenie, ObjectGuid guid)
         {
             Biota = weenie.CreateCopyAsBiota(guid.Full);
+
+            CreationTimestamp = Server.Entity.Timer.CurrentTime;
 
             SetEphemeralValues();
         }
@@ -91,9 +100,6 @@ namespace ACE.Server.WorldObjects
         {
             Biota = biota;
 
-            ExistsInDatabase = true;
-            LastRequestedDatabaseSave = DateTime.UtcNow;
-
             SetEphemeralValues();
         }
 
@@ -102,6 +108,8 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public virtual void InitPhysicsObj()
         {
+            var defaultState = CalculatedPhysicsState();
+
             PhysicsObj = new PhysicsObj();
             PhysicsObj.set_object_guid(Guid);
 
@@ -121,12 +129,9 @@ namespace ACE.Server.WorldObjects
             PhysicsObj.SetMotionTableID(MotionTableId);
 
             PhysicsObj.SetScaleStatic(ObjScale ?? 1.0f);
+            PhysicsObj.State = defaultState;
 
-            PhysicsObj.State = CalculatedPhysicsState();
-
-            /*var player = this as Player;
-            if (creature != null && player == null)
-                AllowEdgeSlide = false;*/
+            if (creature != null) AllowEdgeSlide = true;
         }
 
         public bool AddPhysicsObj()
@@ -154,7 +159,7 @@ namespace ACE.Server.WorldObjects
                 return false;
             }
             //Console.WriteLine($"AddPhysicsObj: success: {Name}");
-            Location.LandblockId = new LandblockId(location.ObjCellID);
+            Location.LandblockId = new LandblockId(PhysicsObj.Position.ObjCellID);
             Location.Pos = PhysicsObj.Position.Frame.Origin;
             Location.Rotation = PhysicsObj.Position.Frame.Orientation;
 
@@ -301,8 +306,6 @@ namespace ACE.Server.WorldObjects
             EmoteManager = new EmoteManager(this);
             EnchantmentManager = new EnchantmentManager(this);
 
-            CreationTimestamp = Server.Entity.Timer.CurrentTime;
-
             if (Placement == null)
                 Placement = ACE.Entity.Enum.Placement.Resting;
 
@@ -316,7 +319,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public bool Teleporting { get; set; } = false;
 
-        public bool HandleReceive(WorldObject item, uint amount, WorldObject receiver, WorldObject giver, ActionChain chain)
+        public bool HandleNPCReceiveItem(WorldObject item, WorldObject receiver, WorldObject giver, ActionChain chain)
         {
             if (chain == null) chain = new ActionChain();
 
@@ -332,6 +335,15 @@ namespace ACE.Server.WorldObjects
                 EmoteManager.ExecuteEmote(emote, action, chain, receiver, giver);
 
             return true;
+        }
+
+        public bool IsVisible(WorldObject wo)
+        {
+            if (PhysicsObj == null || wo.PhysicsObj == null)
+                return false;
+
+            // note: visibility lists are actively maintained only for players
+            return PhysicsObj.ObjMaint.VisibleObjectTable.ContainsKey(wo.PhysicsObj.ID);
         }
 
 
@@ -594,33 +606,22 @@ namespace ACE.Server.WorldObjects
 
         public void EnqueueBroadcastPhysicsState()
         {
-            if (CurrentLandblock != null)
-            {
-                GameMessage msg = new GameMessageSetState(this, PhysicsObj.State);
-                CurrentLandblock?.EnqueueBroadcast(Location, Landblock.MaxObjectRange, msg);
-            }
+            if (PhysicsObj != null)
+                EnqueueBroadcast(new GameMessageSetState(this, PhysicsObj.State));
         }
 
         public void EnqueueBroadcastUpdateObject()
         {
-            if (CurrentLandblock != null)
-            {
-                GameMessage msg = new GameMessageUpdateObject(this);
-                CurrentLandblock?.EnqueueBroadcast(Location, Landblock.MaxObjectRange, msg);
-            }
+            EnqueueBroadcast(new GameMessageUpdateObject(this));
         }
-
-        /*public AceObject SnapShotOfAceObject(bool clearDirtyFlags = false)
-        {
-            AceObject snapshot = (AceObject)AceObject.Clone();
-            if (clearDirtyFlags)
-                AceObject.ClearDirtyFlags();
-            return snapshot;
-        }*/
 
         public virtual void OnCollideObject(WorldObject target)
         {
-            // empty base
+            // thrown weapons
+            if (ProjectileTarget == null) return;
+
+            var proj = new Projectile(this);
+            proj.OnCollideObject(target);
         }
 
         public virtual void OnCollideObjectEnd(WorldObject target)
@@ -630,7 +631,11 @@ namespace ACE.Server.WorldObjects
 
         public virtual void OnCollideEnvironment()
         {
-            // empty base
+            // thrown weapons
+            if (ProjectileTarget == null) return;
+
+            var proj = new Projectile(this);
+            proj.OnCollideEnvironment();
         }
 
         public void HandleActionMotion(UniversalMotion motion)
@@ -649,21 +654,14 @@ namespace ACE.Server.WorldObjects
 
         public void ApplyVisualEffects(PlayScript effect)
         {
-            // new ActionChain(this, () => PlayParticleEffect(effect, Guid)).EnqueueChain();
             if (CurrentLandblock != null)
-            {
                 PlayParticleEffect(effect, Guid);
-            }
         }
 
         // plays particle effect like spell casting or bleed etc..
         public void PlayParticleEffect(PlayScript effectId, ObjectGuid targetId)
         {
-            if (CurrentLandblock != null)
-            {
-                var effectEvent = new GameMessageScript(targetId, effectId);
-                CurrentLandblock?.EnqueueBroadcast(Location, Landblock.MaxObjectRange, effectEvent);
-            }
+            EnqueueBroadcast(new GameMessageScript(targetId, effectId));
         }
 
         //public List<AceObjectInventory> CreateList => AceObject.CreateList;
@@ -689,48 +687,16 @@ namespace ACE.Server.WorldObjects
             }
         }
 
+        /// <summary>
+        /// Called every ~5 seconds for WorldObject base
+        /// </summary>
         public virtual void HeartBeat()
         {
-            // Do Stuff
-            if (!(FirstEnterWorldDone ?? false))
-            {
-                FirstEnterWorldDone = true;
-            }
-
-            CheckGeneratorStatus();
-
-            if (!(GeneratorEnteredWorld ?? false))
-            {
-                if (FirstEnterWorldDone ?? false)
-                {
-                    if (!(GeneratorDisabled ?? false))
-                    {
-                        CurrentlyPoweringUp = true;
-                        SelectGeneratorProfiles();
-                        UpdateGeneratorInts();
-                        QueueGenerator();
-                        CurrentlyPoweringUp = false;
-                    }
-
-                    GeneratorEnteredWorld = true;
-                }
-            }
+            Generator_HeartBeat();
 
             EmoteManager.HeartBeat();
 
             EnchantmentManager.HeartBeat();
-
-            if (!(GeneratorDisabled ?? false))
-            {
-                if (GeneratorRegistry.Count < InitGeneratedObjects)
-                {
-                    SelectMoreGeneratorProfiles();
-                    QueueGenerator();
-                }
-
-                if (GeneratorQueue.Count > 0)
-                    ProcessGeneratorQueue();
-            }
 
             QueueNextHeartBeat();
 
@@ -851,7 +817,7 @@ namespace ACE.Server.WorldObjects
         {
             var maxDamage = GetProperty(PropertyInt.Damage) ?? 0;
             var variance = GetProperty(PropertyFloat.DamageVariance) ?? 0;
-            var minDamage = maxDamage * variance;
+            var minDamage = maxDamage * (1.0f - variance);
             return new Range((float)minDamage, (float)maxDamage);
         }
 
@@ -865,10 +831,14 @@ namespace ACE.Server.WorldObjects
             var damageMod = wielder.EnchantmentManager.GetDamageMod();
             var varianceMod = wielder.EnchantmentManager.GetVarianceMod();
 
-            var baseVariance = baseDamage.Min / baseDamage.Max;
+            var baseVariance = 1.0f - (baseDamage.Min / baseDamage.Max);
 
-            var maxDamageMod = baseDamage.Max + damageMod;
-            var minDamageMod = maxDamageMod * (baseVariance * varianceMod);
+            var weapon = wielder.GetEquippedWeapon();
+            var damageBonus = weapon != null ? (float)(weapon.GetProperty(PropertyFloat.DamageMod) ?? 1.0f) : 1.0f;
+
+            // additives first, then multipliers?
+            var maxDamageMod = (baseDamage.Max + damageMod) * damageBonus;
+            var minDamageMod = maxDamageMod * (1.0f - baseVariance * varianceMod);
 
             return new Range(minDamageMod, maxDamageMod);
         }
@@ -882,29 +852,31 @@ namespace ACE.Server.WorldObjects
             var creature = this as Creature;
 
             var weapon = creature.GetEquippedWeapon();
+            var ammo = creature.GetEquippedAmmo();
+
             if (weapon == null)
                 return DamageType.Bludgeon;
 
             DamageType damageTypes;
             var attackType = creature.GetAttackType();
-            if (attackType == AttackType.Melee)
+            if (attackType == AttackType.Melee || ammo == null || !weapon.IsAmmoLauncher)
                 damageTypes = (DamageType)weapon.GetProperty(PropertyInt.DamageType);
             else
-            {
-                var ammo = creature.GetEquippedAmmo();
                 damageTypes = (DamageType)ammo.GetProperty(PropertyInt.DamageType);
-            }
 
             // returning multiple damage types
             if (multiple) return damageTypes;
 
             // get single damage type
+            var motion = creature.CurrentMotionState != null && creature.CurrentMotionState.Commands != null
+                && creature.CurrentMotionState.Commands.Count > 0 ? creature.CurrentMotionState.Commands[0].Motion.ToString() : "";
+
             foreach (DamageType damageType in Enum.GetValues(typeof(DamageType)))
             {
                 if ((damageTypes & damageType) != 0)
                 {
                     // handle multiple damage types
-                    if (damageType == DamageType.Slash && creature.CurrentMotionState.Commands[0].Motion.ToString().Contains("Thrust"))
+                    if (damageType == DamageType.Slash && motion.Contains("Thrust"))
                         continue;
 
                     return damageType;

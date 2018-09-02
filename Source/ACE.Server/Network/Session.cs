@@ -201,15 +201,7 @@ namespace ACE.Server.Network
                 {
                     Characters[i].IsDeleted = true;
 
-                    var idToDelete = Characters[i].Id;
-
-                    DatabaseManager.Shard.MarkCharacterDeleted(idToDelete, deleteSuccess =>
-                    {
-                        if (deleteSuccess)
-                            log.Info($"Character {idToDelete:X} successfully marked as deleted");
-                        else
-                            log.Error($"Unable to mark character {idToDelete:X} as deleted");
-                    });
+                    DatabaseManager.Shard.SaveCharacter(Characters[i], new ReaderWriterLockSlim(), null);
 
                     Characters.RemoveAt(i);
                 }
@@ -261,6 +253,7 @@ namespace ACE.Server.Network
         {
             playerWaitLock.EnterWriteLock();
             Player = player;
+            lastAutoSaveTime = DateTime.UtcNow;
             // NOTE(ddevec): Once again -- no reader-writer lock and Monitor support in c# -- ventring frustration now --  asa;gklkfj;kl
             //  -- This should be a rare operation, so we don't really care about the stupid double locking, as long as its done right for no deadlocks
             lock (playerSync)
@@ -283,6 +276,13 @@ namespace ACE.Server.Network
 
         private void SendFinalLogOffMessages()
         {
+            // It's possible for a character change to happen from a GameActionSetCharacterOptions message.
+            // This message can be received/processed by the server AFTER LogOfPlayer has been called.
+            // What that means is, we could end up with Character changes after the Character has been saved from the initial LogOff request.
+            // To make sure we commit these additional changes (if any), we check again here
+            if (Player.CharacterChangesDetected)
+                Player.SaveCharacterToDatabase();
+
             Network.EnqueueSend(new GameMessageCharacterLogOff());
 
             CheckCharactersForDeletion();

@@ -36,8 +36,6 @@ namespace ACE.Entity
             return new Tuple<bool, bool>(blockUpdate, cellUpdate);
         }
 
-        public Vector3 GlobalPos { get => ToGlobal(); }
-
         public Quaternion Rotation
         {
             get => new Quaternion(RotationX, RotationY, RotationZ, RotationW);
@@ -152,7 +150,7 @@ namespace ACE.Entity
                     PositionX = 0;
             }
 
-            if (PositionX > BlockLength)
+            if (PositionX >= BlockLength)
             {
                 var blockOffset = (int)PositionX / BlockLength;
                 var landblock = LandblockId.TransitionX(blockOffset);
@@ -169,7 +167,7 @@ namespace ACE.Entity
             if (PositionY < 0)
             {
                 var blockOffset = (int)PositionY / BlockLength - 1;
-                var landblock = LandblockId.TransitionX(blockOffset);
+                var landblock = LandblockId.TransitionY(blockOffset);
                 if (landblock != null)
                 {
                     LandblockId = landblock.Value;
@@ -180,10 +178,10 @@ namespace ACE.Entity
                     PositionY = 0;
             }
 
-            if (PositionY > BlockLength)
+            if (PositionY >= BlockLength)
             {
                 var blockOffset = (int)PositionY / BlockLength;
-                var landblock = LandblockId.TransitionX(blockOffset);
+                var landblock = LandblockId.TransitionY(blockOffset);
                 if (landblock != null)
                 {
                     LandblockId = landblock.Value;
@@ -222,6 +220,13 @@ namespace ACE.Entity
         {
             Pos = Vector3.Zero;
             Rotation = Quaternion.Identity;
+        }
+
+        public Position(Position pos)
+        {
+            LandblockId = new LandblockId(pos.LandblockId.Raw);
+            Pos = pos.Pos;
+            Rotation = pos.Rotation;
         }
 
         public Position(uint blockCellID, float newPositionX, float newPositionY, float newPositionZ, float newRotationX, float newRotationY, float newRotationZ, float newRotationW)
@@ -457,43 +462,5 @@ namespace ACE.Entity
         public static readonly int BlockLength = 192;
         public static readonly int CellSide = 8;
         public static readonly int CellLength = 24;
-
-        public Vector3 ToGlobal()
-        {
-            if (Indoors)
-                return Pos;
-
-            var x = LandblockId.LandblockX * BlockLength + PositionX;
-            var y = LandblockId.LandblockY * BlockLength + PositionY;
-            var z = PositionZ;
-
-            return new Vector3(x, y, z);
-        }
-
-        public Position FromGlobal(Vector3 pos)
-        {
-            if (Indoors)
-            {
-                var iPos = new Position();
-                iPos.LandblockId = LandblockId;
-                iPos.Pos = new Vector3(pos.X, pos.Y, pos.Z);
-                return iPos;
-            }
-
-            var blockX = (uint)pos.X / BlockLength;
-            var blockY = (uint)pos.Y / BlockLength;
-
-            var localX = pos.X % BlockLength;
-            var localY = pos.Y % BlockLength;
-
-            var landblockID = blockX << 24 | blockY << 16 | 0xFFFF;
-
-            var position = new Position();
-            position.LandblockId = new LandblockId((byte)blockX, (byte)blockY);
-            position.PositionX = localX;
-            position.PositionY = localY;
-            position.PositionZ = pos.Z;
-            return position;
-        }
     }
 }

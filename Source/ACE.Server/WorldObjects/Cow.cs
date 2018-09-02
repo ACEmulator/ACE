@@ -11,7 +11,7 @@ namespace ACE.Server.WorldObjects
 {
     public class Cow : Creature
     {
-        private static readonly UniversalMotion motionTipRight = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.TippedRight));
+        private static readonly UniversalMotion motionTipRight = new UniversalMotion(MotionStance.NonCombat, new MotionItem(MotionCommand.TippedRight));
 
         /// <summary>
         /// A new biota be created taking all of its values from weenie.
@@ -50,8 +50,7 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// This is raised by Player.HandleActionUseItem, and is wrapped in ActionChain.<para />
-        /// The actor of the ActionChain is the item being used.<para />
+        /// This is raised by Player.HandleActionUseItem.<para />
         /// The item does not exist in the players possession.<para />
         /// If the item was outside of range, the player will have been commanded to move using DoMoveTo before ActOnUse is called.<para />
         /// When this is called, it should be assumed that the player is within range.

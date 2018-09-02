@@ -67,10 +67,10 @@ namespace ACE.Server.Physics.Animation
 
             StyleDefaults.TryGetValue(currState.Style, out substate);
 
-            if (motion == substate && !stopModifiers && (substate & 0x20000000) != 0)
+            if (motion == substate && !stopModifiers && (currState.Substate & (uint)CommandMask.Modifier) != 0)
                 return true;
 
-            if ((motion & 0x80000000) != 0)
+            if ((motion & (uint)CommandMask.Style) != 0)
             {
                 if (currState.Style == motion) return true;
 
@@ -85,9 +85,11 @@ namespace ACE.Server.Physics.Animation
                         if ((cycles.Bitfield & 1) != 0)
                             currState.clear_modifiers();
 
-                        var link = get_link(currState.Style, substate, 1.0f, DefaultStyle, 1.0f);
-                        if (link != null && currState.Style != motion)
+                        var link = get_link(currState.Style, substate, currState.SubstateMod, motion, speedMod);
+                        if (link == null && currState.Style != motion)
                         {
+                            link = get_link(currState.Style, substate, 1.0f, DefaultStyle, 1.0f);
+
                             uint defaultStyle = 0;
                             StyleDefaults.TryGetValue(DefaultStyle, out defaultStyle);
                             motionData_ = get_link(DefaultStyle, defaultStyle, 1.0f, motion, 1.0f);
@@ -113,7 +115,7 @@ namespace ACE.Server.Physics.Animation
                     }
                 }
             }
-            if ((motion & 0x40000000) != 0)
+            if ((motion & (uint)CommandMask.SubState) != 0)
             {
                 var motionID = motion & 0xFFFFFF;
 
@@ -162,7 +164,7 @@ namespace ACE.Server.Physics.Animation
 
                         add_motion(sequence, motionData, speedMod);
 
-                        if (currState.Substate != motion && (currState.Substate & 0x20000000) != 0)
+                        if (currState.Substate != motion && (currState.Substate & (uint)CommandMask.Modifier) != 0)
                         {
                             uint defaultMotion = 0;
                             StyleDefaults.TryGetValue(currState.Style, out defaultMotion);
@@ -181,13 +183,13 @@ namespace ACE.Server.Physics.Animation
                     }
                 }
             }
-            if ((motion & 0x10000000) != 0)  // CM_Action
+            if ((motion & (uint)CommandMask.Action) != 0)
             {
-                var cycleKey = (currState.Style << 16) | (substate & 0xFFFFFF);
+                var cycleKey = (currState.Style << 16) | (currState.Substate & 0xFFFFFF);
                 Cycles.TryGetValue(cycleKey, out motionData);
                 if (motionData != null)
                 {
-                    var link = get_link(currState.Style, substate, currState.SubstateMod, motion, speedMod);
+                    var link = get_link(currState.Style, currState.Substate, currState.SubstateMod, motion, speedMod);
                     if (link != null)
                     {
                         currState.add_action(motion, speedMod);
@@ -226,7 +228,7 @@ namespace ACE.Server.Physics.Animation
                     }
                 }
             }
-            if ((motion & 0x20000000) != 0) // CM_Modifier
+            if ((motion & (uint)CommandMask.Modifier) != 0)
             {
                 var styleKey = currState.Style << 16;
                 Cycles.TryGetValue(styleKey | (currState.Substate & 0xFFFFFF), out cycles);
@@ -237,12 +239,15 @@ namespace ACE.Server.Physics.Animation
                         Modifiers.TryGetValue(motion & 0xFFFFFF, out motionData);
                     if (motionData != null)
                     {
-                        StopSequenceMotion(motion, 1.0f, currState, sequence, ref numAnims);
                         if (!currState.add_modifier(motion, speedMod))
-                            return false;
+                        {
+                            StopSequenceMotion(motion, 1.0f, currState, sequence, ref numAnims);
+                            if (!currState.add_modifier(motion, speedMod))
+                                return false;
+                        }
+                        combine_motion(sequence, motionData, speedMod);
+                        return true;
                     }
-                    combine_motion(sequence, motionData, speedMod);
-                    return true;
                 }
             }
             return false;
@@ -312,14 +317,14 @@ namespace ACE.Server.Physics.Animation
         public bool StopSequenceMotion(uint motion, float speed, MotionState currState, Sequence sequence, ref uint numAnims)
         {
             numAnims = 0;
-            if ((motion & 0x40000000) != 0 && currState.Substate == motion)
+            if ((motion & (uint)CommandMask.SubState) != 0 && currState.Substate == motion)
             {
                 uint style = 0;
                 StyleDefaults.TryGetValue(currState.Style, out style);
                 GetObjectSequence(style, currState, sequence, 1.0f, ref numAnims, true);
                 return true;
             }
-            if ((motion & 0x20000000) == 0)
+            if ((motion & (uint)CommandMask.Modifier) == 0)
                 return false;
 
             var modifier = currState.Modifiers.First;
@@ -447,10 +452,16 @@ namespace ACE.Server.Physics.Animation
             }
         }
 
-        public static float GetAnimationLength(uint motionTableId, MotionStance stance, MotionItem motionItem)
+        public static float GetAnimationLength(uint motionTableId, MotionStance stance, MotionCommand motion, MotionCommand? currentMotion = null, float speed = 1.0f)
         {
             var motionTable = DatManager.PortalDat.ReadFromDat<DatLoader.FileTypes.MotionTable>(motionTableId);
-            return motionTable.GetAnimationLength(stance, motionItem.Motion) / motionItem.Speed;
+            return motionTable.GetAnimationLength(stance, motion, currentMotion) / speed;
+        }
+
+        public static float GetCycleLength(uint motionTableId, MotionStance stance, MotionCommand motion, float speed = 1.0f)
+        {
+            var motionTable = DatManager.PortalDat.ReadFromDat<DatLoader.FileTypes.MotionTable>(motionTableId);
+            return motionTable.GetCycleLength(stance, motion) / speed;
         }
 
         /// <summary>
@@ -492,13 +503,26 @@ namespace ACE.Server.Physics.Animation
         /// <summary>
         /// Returns the MotionData for a motionTable and motion ID
         /// </summary>
-        public static MotionData GetMotionData(uint motionTableID, uint motion)
+        public static MotionData GetMotionData(uint motionTableID, uint motion, uint? currentStyle = null)
         {
             var motionTable = DatManager.PortalDat.ReadFromDat<DatLoader.FileTypes.MotionTable>(motionTableID);
-            var defaultStyle = motionTable.DefaultStyle;
+            if (currentStyle == null)
+                currentStyle = motionTable.DefaultStyle;
             var motionID = motion & 0xFFFFFF;
-            var key = defaultStyle << 16 | motionID;
+            var key = currentStyle.Value << 16 | motionID;
             motionTable.Cycles.TryGetValue(key, out var motionData);
+            return motionData;
+        }
+
+        public static MotionData GetLinkData(uint motionTableID, uint motion, uint? currentStyle = null)
+        {
+            var motionTable = DatManager.PortalDat.ReadFromDat<DatLoader.FileTypes.MotionTable>(motionTableID);
+            if (currentStyle == null)
+                currentStyle = motionTable.DefaultStyle;
+            var key = (currentStyle.Value << 16) | (int)MotionCommand.Ready & 0xFFFF;
+            motionTable.Links.TryGetValue(key, out var links);
+            if (links == null) return null;
+            links.TryGetValue(motion, out var motionData);
             return motionData;
         }
 
@@ -522,6 +546,30 @@ namespace ACE.Server.Physics.Animation
             var dist = offset.Length();
             if (dist == 0.0f) return 0.0f;
             return dist / totalFrames * motionData.Anims[0].Framerate;
+        }
+
+        /// <summary>
+        /// Returns TRUE if this animation has a DefaultScript hook type
+        /// </summary>
+        public static bool HasDefaultScript(uint motionTableID, uint motion, uint currentStyle)
+        {
+            var motionData = GetLinkData(motionTableID, motion, currentStyle);
+            if (motionData == null)
+                return false;
+
+            foreach (var anim in motionData.Anims)
+            {
+                var animation = DatManager.PortalDat.ReadFromDat<DatLoader.FileTypes.Animation>(anim.AnimId);
+                if (animation == null) continue;
+
+                foreach (var frame in animation.PartFrames)
+                {
+                    foreach (var hook in frame.Hooks)
+                        if (hook.HookType == AnimationHookType.DefaultScript)
+                            return true;
+                }
+            }
+            return false;
         }
     }
 }

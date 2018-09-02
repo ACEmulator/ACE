@@ -3,10 +3,145 @@
 [mcreedjr]
 * Added missing comma in updated ShardBase.sql to allow creation of updated Shard DB after Mag-nus' previous PR
 
+### 2018-08-30
+[gmriggs]
+* Added thrown weapons for players and monsters
+* Added atlatls for players and monsters
+* Added monster wielded weapons
+* Implemented monster inventory / weapon switching
+* Monster projectiles are now dodgeable
+* Fixed a bug with AmmoType not being enumerated as Flags
+
+### 2018-08-28
+[Mag-nus]
+* Migrate Character tables over to new caching / threading model
+
+### 2018-08-27
+[Jyrus]
+* Added support for weapon bonuses: Melee Defense, Mana Conversion, Biting Strike, Crushing Blow, Resistance Cleaving, Elemental Damage modifier for casters, and Slayer bonuses
+  - Melee Defense bonus
+  - Mana Conversion bonus
+  - Biting Strike - Increases critical chance
+  - Crushing Blow - Increases critical damage
+  - Resistance Cleaving - Makes the target vulnerable to the weapon's element
+  - Elemental Damage modifiers for magic weapons
+  - Slayer - Increases damage to a specific creature type
+
+[gmriggs]
+* Added pre-MoA skill conversion to wielded item requirements
+* Added enchantments that directly modify vitals / secondary attributes
+* Added weapno offense bonuses
+* Fixed a bug where players/monsters were greanted Melee Defense bonus for missile attacks
+* Fixed the appraisal fields for ammunition
+* Added DamageMod for missile launchers
+
+### 2018-08-26
+[gmriggs]
+* Adding max broadcast range for some chat emotes (Act)
+* Adding monster combat maneuvers / special attacks
+
+[Slushnas]
+* Added max spell range support for ring spells
+* Updated magic casting range checks to match retail servers / client
+
+### 2018-08-25
+[Jyrus]
+* Fixed a bug for Creatures calling EmoteManager
+
+[Mag-nus]
+* Threading improvement for WorldManager
+* ActionChain AddDelaySeconds cleanup
+
+### 2018-08-24
+[gmriggs]
+* Improved body part + attack height formulas
+* Fixed some issues with stuck/ falling monsters
+
+[Jyrus]
+* Improved system for players giving items to other players
+
+### 2018-08-22
+[Mag-nus]
+* Added ShardDbContext caching system
+* EnchantmentRegistry improvements
+
+### 2018-08-21
+[gmriggs]
+* Fixed a bug with monsters running away from players
+* Added a system for finding the correct cell when spawning new items
+
+[Slushnas]
+* Added support for untargeted war spells
+* Added war spell projectiles: rings, walls, and blast spells
+
+### 2018-08-20
+[Mag-nus]
+* Shard Biota & Threading Model Rework
+
+### 2018-08-19
+[mcreedjr]
+* Added alwaysshowwelcome Boolean config property
+
+[Mag-nus]
+* Added database performance tests
+
+### 2018-08-18
+[gmriggs]
+* Added dual wield combat
+* Added weapon swapping between hands
+
+### 2018-08-17
+* Fixing PhysicsDesc bitflags - monsters are now recognized by vtank
+* Improved network resiliency, recovery from socket exceptions
+* Fixed a bug with monster transitions between some landblocks
+
+### 2018-08-16
+[gmriggs]
+* Complete rewrite of player visibility / broadcast system
+* Fixed a bug where portaling could keep the player at original location
+* Fixed a bug with player not appearing as pink bubbles on login/portal
+
+### 2018-08-13
+[gmriggs]
+* Fixed a bug with generators not respawning items
+* Fixed a bug with generators not spawning items in containers
+* Fixed a bug with generators spawning the wrong items
+* Refactored generators
+
+### 2018-08-12
+[OptimShi]
+* Added handling of Bool.NpcLooksLikeObject to the AppraiseInfo event.
+
+[fartwhif]
+* Improved /buff Player command with auras, imp, and banes
+* Added /fellowbuff command
+
+[Jyrus]
+* Fixed a bug with casting spells on items wielded by other players and creatures
+
+### 2018-08-11
+[mcreedjr]
+* Added missing comma in updated ShardBase.sql to allow creation of updated Shard DB after Mag-nus' previous PR
+
+[Ripley]
+* Improved SQL writers w/ additional comments
+
+[Jyrus]
+* Fixed a bug with Admin and Sentinel players in the PK targeting system
+
 ### 2018-08-10
 [Mag-nus]
 * Significantly improved GetBiota performance from the shard by using flags to indicate populated collections.
 * Also added Parallel.ForEach support for Shard GetPlayerBiotas.
+
+[gmriggs]
+* Adding dungeon position adjustments system. This fixes dungeons where cells have been relocated since PY16 (ie. Burial Temple, North Glenden Prison, and Nuhmudira's Dungeon)
+* Adding physics entity caching system. This provides massive improvements with reduced memory usage, especially over the course of a lifetime for long-running servers.
+
+### 2018-08-08
+[gmriggs]
+* Adding spell components to /comps debug command
+* Adding proper object spawning / initial placement system
 
 ### 2018-08-07
 [Mag-nus]
@@ -16,11 +151,21 @@
 ### 2018-08-06
 [Mag-nus]
 * Change from .NET Core 2.0 to .NET Core 2.1. This requires .NET Core 2.1 x64 SDK.
-
-### 2018-08-06
-[Mag-nus]
 * Major schema refactoring + changes for World and Shard.
 * New PY16 format required
+
+[gmriggs]
+* Refactored PhysicsState
+
+### 2018-08-05
+[Jyrus]
+* Randomize spell death messages
+* Refactored PK checks for magic system
+* Added support for linking to portals
+
+### 2018-08-02
+[Slushnas]
+* Added support for Volley spells
 
 ### 2018-08-01
 [gmriggs]

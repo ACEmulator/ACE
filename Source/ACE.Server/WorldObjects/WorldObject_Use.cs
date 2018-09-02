@@ -1,11 +1,8 @@
 
-using ACE.Database;
-using ACE.DatLoader;
 using ACE.Entity.Enum;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
-using ACE.Server.Network.Structure;
 
 namespace ACE.Server.WorldObjects
 {
@@ -23,11 +20,10 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// This is raised by Player.HandleActionUseItem, and is wrapped in ActionChain.<para />
-        /// The actor of the ActionChain is the player using the item.<para />
+        /// This is raised by Player.HandleActionUseItem.<para />
         /// The item should be in the players possession.
         /// </summary>
-        public virtual void UseItem(Player player, ActionChain actionChain)
+        public virtual void UseItem(Player player)
         {
             // Do Nothing by default
 #if DEBUG
@@ -40,8 +36,7 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// This is raised by Player.HandleActionUseItem, and is wrapped in ActionChain.<para />
-        /// The actor of the ActionChain is the item being used.<para />
+        /// This is raised by Player.HandleActionUseItem.<para />
         /// The item does not exist in the players possession.<para />
         /// If the item was outside of range, the player will have been commanded to move using DoMoveTo before ActOnUse is called.<para />
         /// When this is called, it should be assumed that the player is within range.
@@ -49,9 +44,8 @@ namespace ACE.Server.WorldObjects
         public virtual void ActOnUse(WorldObject worldObject)
         {
             // Do Nothing by default
-            if (worldObject is Player)
+            if (worldObject is Player player)
             {
-                var player = worldObject as Player;
 #if DEBUG
                 var message = $"Default ActOnUse reached, this object ({Name}) not programmed yet.";
                 player.Session.Network.EnqueueSend(new GameMessageSystemChat(message, ChatMessageType.System));

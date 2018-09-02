@@ -30,10 +30,12 @@ namespace ACE.Server.Managers
 
         // Hard coded server Id, this will need to change if we move to multi-process or multi-server model
         public const ushort ServerId = 0xB;
+
+        private static readonly ReaderWriterLockSlim sessionLock = new ReaderWriterLockSlim();
         private static Session[] sessionMap = new Session[ConfigManager.Config.Server.Network.MaximumAllowedSessions];
         private static readonly List<Session> sessions = new List<Session>();
-        private static readonly ReaderWriterLockSlim sessionLock = new ReaderWriterLockSlim();
         private static List<IPEndPoint> loggedInClients = new List<IPEndPoint>((int)ConfigManager.Config.Server.Network.MaximumAllowedSessions);
+
         private static readonly PhysicsEngine Physics;
 
         public static List<Player> AllPlayers;
@@ -64,8 +66,6 @@ namespace ACE.Server.Managers
         public static readonly ActionQueue InboundMessageQueue = new ActionQueue();
 
         public static readonly ActionQueue LandblockActionQueue = new ActionQueue();
-        public static readonly ActionQueue LandblockMotionQueue = new ActionQueue();
-        public static readonly ActionQueue LandblockBroadcastQueue = new ActionQueue();
 
         public static readonly DelayManager DelayManager = new DelayManager();
 
@@ -182,31 +182,41 @@ namespace ACE.Server.Managers
 
         public static Session FindOrCreateSession(IPEndPoint endPoint)
         {
-            Session session = null;
-            sessionLock.EnterWriteLock();
+            Session session;
+
+            sessionLock.EnterUpgradeableReadLock();
             try
             {
                 session = sessions.SingleOrDefault(s => endPoint.Equals(s.EndPoint));
                 if (session == null)
                 {
-                    for (ushort i = 0; i < sessionMap.Length; i++)
+                    sessionLock.EnterWriteLock();
+                    try
                     {
-                        if (sessionMap[i] == null)
+                        for (ushort i = 0; i < sessionMap.Length; i++)
                         {
-                            log.InfoFormat("Creating new session for {0} with id {1}", endPoint, i);
-                            session = new Session(endPoint, i, ServerId);
-                            sessions.Add(session);
-                            sessionMap[i] = session;
-                            loggedInClients.Add(endPoint);
-                            break;
+                            if (sessionMap[i] == null)
+                            {
+                                log.InfoFormat("Creating new session for {0} with id {1}", endPoint, i);
+                                session = new Session(endPoint, i, ServerId);
+                                sessions.Add(session);
+                                sessionMap[i] = session;
+                                loggedInClients.Add(endPoint);
+                                break;
+                            }
                         }
+                    }
+                    finally
+                    {
+                        sessionLock.ExitWriteLock();
                     }
                 }
             }
             finally
             {
-                sessionLock.ExitWriteLock();
+                sessionLock.ExitUpgradeableReadLock();
             }
+
             // If session is still null we either have no room or had some kind of failure, we'll create a temporary session just to send an error back.
             if (session == null)
             {
@@ -214,13 +224,13 @@ namespace ACE.Server.Managers
                 var errorSession = new Session(endPoint, (ushort)(sessionMap.Length + 1), ServerId);
                 errorSession.SendCharacterError(Network.Enum.CharacterError.LogonServerFull);
             }
+
             return session;
         }
 
         /// <summary>
-        /// Removes a player or worldobject from the active world.
+        /// Removes a session, network client and network endpoint from the various tracker objects.
         /// </summary>
-        /// <param name="session"></param>
         public static void RemoveSession(Session session)
         {
             sessionLock.EnterWriteLock();
@@ -310,7 +320,7 @@ namespace ACE.Server.Managers
                 else
                     session = sessions.SingleOrDefault(s => s.Player != null && s.Player.Guid.Full == playerId);
 
-                return session != null ? session.Player : null;
+                return session?.Player;
             }
             finally
             {
@@ -384,9 +394,7 @@ namespace ACE.Server.Managers
             try
             {
                 foreach (Session session in sessions.Where(s => s.Player != null && s.Player.IsOnline).ToList())
-                {
                     session.Network.EnqueueSend(msg);
-                }
             }
             finally
             {
@@ -415,45 +423,23 @@ namespace ACE.Server.Managers
             {
                 worldTickTimer.Restart();
 
-                // Handle time-based timeouts
+                // handle time-based actions
                 DelayManager.RunActions();
 
-                // Sequences of update thread:
-                // Update positions based on new tick
-                // TODO(ddevec): Physics here
-                IEnumerable<WorldObject> movedObjects = HandlePhysics(PortalYearTicks);
+                // update positions through physics engine
+                var movedObjects = HandlePhysics(PortalYearTicks);
 
-                // Do any pre-calculated landblock transfers --
-                foreach (WorldObject wo in movedObjects)
+                // iterate through objects that have changed landblocks
+                foreach (var movedObject in movedObjects)
                 {
-                    // If it was picked up, or moved
                     // NOTE: The object's Location can now be null, if a player logs out, or an item is picked up
-                    if (wo.Location != null && wo.Location.LandblockId != wo.CurrentLandblock?.Id)
-                    {
-                        // NOTE: We are moving the objects on behalf of the physics 
-                        LandblockManager.RelocateObjectForPhysics(wo);
-                    }
-                }
+                    if (movedObject.Location == null) continue;
 
-                // FIXME(ddevec): This O(n^2) tracking loop is a remenant of the old structure -- we should probably come up with a more efficient tracking scheme
-                if (Concurrency)
-                {
-                    Parallel.ForEach(movedObjects, movedObject =>
-                    {
-                        UpdateWorld_MovedObject(movedObject);
-                    });
-                }
-                else
-                {
-                    foreach (var movedObject in movedObjects)
-                        UpdateWorld_MovedObject(movedObject);
+                    // assume adjacency move here?
+                    LandblockManager.RelocateObjectForPhysics(movedObject, true);
                 }
 
                 InboundMessageQueue.RunActions();
-
-                // Process between landblock object motions sequentially
-                // Currently only used for picking items up off a landblock
-                LandblockMotionQueue.RunActions();
 
                 // Now, update actions within landblocks
                 //   This is responsible for updating all "actors" residing within the landblock. 
@@ -464,79 +450,40 @@ namespace ACE.Server.Managers
                 //    Inactive landblocks will be put on TimeoutManager queue for timeout killing
                 LandblockActionQueue.RunActions();
 
-                // Handles sending out all per-landblock broadcasts -- This may rework when we rework tracking -- tbd
-                LandblockBroadcastQueue.RunActions();
+                // clean up inactive landblocks
+                LandblockManager.UnloadLandblocks();
 
-                // XXX(ddevec): Should this be its own step in world-update thread?
-                sessionLock.EnterReadLock();
+                // Session Maintenance
+                sessionLock.EnterUpgradeableReadLock();
                 try
                 {
                     // Send the current time ticks to allow sessions to declare themselves bad
                     Parallel.ForEach(sessions, s => s.Update(lastTick, DateTime.UtcNow.Ticks));
+
+                    // Removes sessions in the NetworkTimeout state, incuding sessions that have reached a timeout limit.
+                    var deadSessions = sessions.FindAll(s => s.State == Network.Enum.SessionState.NetworkTimeout);
+
+                    foreach (var session in deadSessions)
+                        RemoveSession(session);
                 }
                 finally
                 {
-                    sessionLock.ExitReadLock();
+                    sessionLock.ExitUpgradeableReadLock();
                 }
-
-                // Removes sessions in the NetworkTimeout state, incuding sessions that have reached a timeout limit.
-                var deadSessions = sessions.FindAll(s => s.State == Network.Enum.SessionState.NetworkTimeout);
-                if (deadSessions.Count > 0)
-                    Parallel.ForEach(deadSessions, RemoveSession);
 
                 Thread.Sleep(1);
 
                 lastTick = (double)worldTickTimer.ElapsedTicks / Stopwatch.Frequency;
                 PortalYearTicks += lastTick;
-
-                // clean up inactive landblocks
-                LandblockManager.UnloadLandblocks();
             }
 
             // World has finished operations and concedes the thread to garbage collection
             WorldActive = false;
         }
 
-        private static void UpdateWorld_MovedObject(WorldObject mo)
-        {
-            // detect all world objects in ghost range
-            List<WorldObject> woproxghost = new List<WorldObject>();
-            woproxghost.AddRange(mo.CurrentLandblock?.GetWorldObjectsInRangeForPhysics(mo, Landblock.MaxObjectGhostRange));
-
-            // for all objects in range of this moving object or in ghost range of moving object update them.
-            if (Concurrency)
-            {
-                Parallel.ForEach(woproxghost, gwo =>
-                {
-                    UpdateWorld_MovedObjectTrack(mo, gwo);
-                });
-            }
-            else
-            {
-                foreach (var gwo in woproxghost)
-                    UpdateWorld_MovedObjectTrack(mo, gwo);
-            }
-        }
-
-        private static void UpdateWorld_MovedObjectTrack(WorldObject mo, WorldObject gwo)
-        {
-            if (!mo.Guid.IsPlayer()) return;
-
-            // if world object is in active zone then.
-            if (gwo.Location.SquaredDistanceTo(mo.Location) <= Landblock.MaxObjectRange * Landblock.MaxObjectRange)
-            {
-                // if world object is in active zone.
-                if (!(mo as Player).GetTrackedObjectGuids().Contains(gwo.Guid))
-                    (mo as Player).TrackObject(gwo);
-            }
-            // if world object is in ghost zone and outside of active zone
-            else
-            {
-                if ((mo as Player).GetTrackedObjectGuids().Contains(gwo.Guid))
-                    (mo as Player).StopTrackingObject(gwo, false);
-            }
-        }
-
+        /// <summary>
+        /// A list of WorldObjects that have transitioned to adjacent landblocks for this update frame
+        /// </summary>
         public static List<WorldObject> UpdateLandblock = new List<WorldObject>();
 
         /// <summary>
@@ -578,13 +525,6 @@ namespace ACE.Server.Managers
                 Console.WriteLine(e);   // FIXME: concurrency + collection was modified
             }
 
-            foreach (var wo in UpdateLandblock)
-            {
-                wo.PreviousLocation = wo.Location;
-                LandblockManager.RelocateObjectForPhysics(wo);
-            }
-            UpdateLandblock.Clear();
-
             LastPhysicsUpdate = Server.Physics.Common.Timer.CurrentTime;
 
             return movedObjects;
@@ -596,29 +536,29 @@ namespace ACE.Server.Managers
             {
                 Position newPosition = null;
 
+                // set to TRUE if object changes landblock
+                var landblockUpdate = false;
+
                 // detect player movement
                 // TODO: handle players the same as everything else
                 var player = wo as Player;
                 if (player != null)
                 {
+                    wo.InUpdate = true;
+
                     newPosition = HandlePlayerPhysics(player, timeTick);
 
+                    // update position through physics engine
                     if (newPosition != null)
-                    {
-                        movedObjects.Enqueue(wo);
+                        landblockUpdate = wo.UpdatePlayerPhysics(newPosition);
 
-                        // update position through physics engine
-                        wo.UpdatePlayerPhysics(newPosition);
-                    }
+                    wo.InUpdate = false;
                 }
-                //else if (wo.Missile.HasValue && wo.Missile.Value)
                 else
-                {
-                    // physics minimum quantum?
-                    var isMoved = wo.UpdateObjectPhysics();
-                    if (isMoved)
-                        movedObjects.Enqueue(wo);   // send update?
-                }
+                    landblockUpdate = wo.UpdateObjectPhysics();
+
+                if (landblockUpdate)
+                    movedObjects.Enqueue(wo);
             }
         }
 
@@ -639,11 +579,6 @@ namespace ACE.Server.Managers
                 player.ClearRequestedPositions();
 
             return newPosition;
-        }
-
-        public static double SecondsToTicks(double elapsedTimeSeconds)
-        {
-            return elapsedTimeSeconds;
         }
     }
 }

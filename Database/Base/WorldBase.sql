@@ -38,9 +38,9 @@ CREATE TABLE `cook_book` (
   `source_W_C_I_D` int(10) unsigned NOT NULL COMMENT 'Weenie Class Id of the source object for this recipe',
   `target_W_C_I_D` int(10) unsigned NOT NULL COMMENT 'Weenie Class Id of the target object for this recipe',
   PRIMARY KEY (`id`),
+  UNIQUE KEY `recipe_source_target_uidx` (`recipe_Id`,`source_W_C_I_D`,`target_W_C_I_D`),
   KEY `source_idx` (`source_W_C_I_D`),
   KEY `target_idx` (`target_W_C_I_D`),
-  UNIQUE KEY `recipe_source_target_uidx` (`recipe_Id`,`source_W_C_I_D`,`target_W_C_I_D`),
   CONSTRAINT `cookbook_recipe` FOREIGN KEY (`recipe_Id`) REFERENCES `recipe` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Cook Book for Recipes';
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -59,8 +59,8 @@ CREATE TABLE `encounter` (
   `cell_X` int(5) NOT NULL COMMENT 'CellX position of this Encounter',
   `cell_Y` int(5) NOT NULL COMMENT 'CellY position of this Encounter',
   PRIMARY KEY (`id`),
-  KEY `landblock_idx` (`landblock`),
-  UNIQUE KEY `landblock_cellx_celly_uidx` (`landblock`,`cell_X`,`cell_Y`)
+  UNIQUE KEY `landblock_cellx_celly_uidx` (`landblock`,`cell_X`,`cell_Y`),
+  KEY `landblock_idx` (`landblock`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Encounters';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -126,6 +126,7 @@ CREATE TABLE `landblock_instance` (
   `angles_Z` float NOT NULL,
   `is_Link_Child` bit(1) NOT NULL COMMENT 'Is this a child link for any other instances?',
   PRIMARY KEY (`guid`),
+  KEY `wcid_instance` (`weenie_Class_Id`),
   KEY `instance_landblock_idx` (`landblock`),
   CONSTRAINT `wcid_instance` FOREIGN KEY (`weenie_Class_Id`) REFERENCES `weenie` (`class_Id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Weenie Instances for each Landblock';
@@ -161,6 +162,7 @@ CREATE TABLE `points_of_interest` (
   `weenie_Class_Id` int(10) unsigned NOT NULL COMMENT 'Weenie Class Id of portal weenie to reference for destination of POI',
   PRIMARY KEY (`id`),
   UNIQUE KEY `name_UNIQUE` (`name`(100)),
+  KEY `wcid_poi` (`weenie_Class_Id`),
   CONSTRAINT `wcid_poi` FOREIGN KEY (`weenie_Class_Id`) REFERENCES `weenie` (`class_Id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Points of Interest for @telepoi command';
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -238,6 +240,7 @@ CREATE TABLE `recipe_mod` (
   `unknown_9` int(10) NOT NULL,
   `instance_Id` int(10) NOT NULL,
   PRIMARY KEY (`id`),
+  KEY `recipeId_Mod` (`recipe_Id`),
   CONSTRAINT `recipeId_Mod` FOREIGN KEY (`recipe_Id`) REFERENCES `recipe` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Recipe Mods';
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -257,6 +260,7 @@ CREATE TABLE `recipe_mods_bool` (
   `enum` int(10) NOT NULL,
   `unknown_1` int(10) NOT NULL,
   PRIMARY KEY (`id`),
+  KEY `recipeId_mod_bool` (`recipe_Mod_Id`),
   CONSTRAINT `recipeId_mod_bool` FOREIGN KEY (`recipe_Mod_Id`) REFERENCES `recipe_mod` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Recipe Bool Mods';
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -276,6 +280,7 @@ CREATE TABLE `recipe_mods_d_i_d` (
   `enum` int(10) NOT NULL,
   `unknown_1` int(10) NOT NULL,
   PRIMARY KEY (`id`),
+  KEY `recipeId_mod_did` (`recipe_Mod_Id`),
   CONSTRAINT `recipeId_mod_did` FOREIGN KEY (`recipe_Mod_Id`) REFERENCES `recipe_mod` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Recipe DID Mods';
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -295,6 +300,7 @@ CREATE TABLE `recipe_mods_float` (
   `enum` int(10) NOT NULL,
   `unknown_1` int(10) NOT NULL,
   PRIMARY KEY (`id`),
+  KEY `recipeId_mod_float` (`recipe_Mod_Id`),
   CONSTRAINT `recipeId_mod_float` FOREIGN KEY (`recipe_Mod_Id`) REFERENCES `recipe_mod` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Recipe Float Mods';
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -314,6 +320,7 @@ CREATE TABLE `recipe_mods_i_i_d` (
   `enum` int(10) NOT NULL,
   `unknown_1` int(10) NOT NULL,
   PRIMARY KEY (`id`),
+  KEY `recipeId_mod_iid` (`recipe_Mod_Id`),
   CONSTRAINT `recipeId_mod_iid` FOREIGN KEY (`recipe_Mod_Id`) REFERENCES `recipe_mod` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Recipe IID Mods';
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -333,6 +340,7 @@ CREATE TABLE `recipe_mods_int` (
   `enum` int(10) NOT NULL,
   `unknown_1` int(10) NOT NULL,
   PRIMARY KEY (`id`),
+  KEY `recipeId_mod_int` (`recipe_Mod_Id`),
   CONSTRAINT `recipeId_mod_int` FOREIGN KEY (`recipe_Mod_Id`) REFERENCES `recipe_mod` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Recipe Int Mods';
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -352,6 +360,7 @@ CREATE TABLE `recipe_mods_string` (
   `enum` int(10) NOT NULL,
   `unknown_1` int(10) NOT NULL,
   PRIMARY KEY (`id`),
+  KEY `recipeId_mod_string` (`recipe_Mod_Id`),
   CONSTRAINT `recipeId_mod_string` FOREIGN KEY (`recipe_Mod_Id`) REFERENCES `recipe_mod` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Recipe String Mods';
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -371,6 +380,7 @@ CREATE TABLE `recipe_requirements_bool` (
   `enum` int(10) NOT NULL,
   `message` text,
   PRIMARY KEY (`id`),
+  KEY `recipeId_req_bool` (`recipe_Id`),
   CONSTRAINT `recipeId_req_bool` FOREIGN KEY (`recipe_Id`) REFERENCES `recipe` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Recipe Bool Requirments';
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -390,6 +400,7 @@ CREATE TABLE `recipe_requirements_d_i_d` (
   `enum` int(10) NOT NULL,
   `message` text,
   PRIMARY KEY (`id`),
+  KEY `recipeId_req_did` (`recipe_Id`),
   CONSTRAINT `recipeId_req_did` FOREIGN KEY (`recipe_Id`) REFERENCES `recipe` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Recipe DID Requirments';
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -409,6 +420,7 @@ CREATE TABLE `recipe_requirements_float` (
   `enum` int(10) NOT NULL,
   `message` text,
   PRIMARY KEY (`id`),
+  KEY `recipeId_req_float` (`recipe_Id`),
   CONSTRAINT `recipeId_req_float` FOREIGN KEY (`recipe_Id`) REFERENCES `recipe` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Recipe Float Requirments';
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -428,6 +440,7 @@ CREATE TABLE `recipe_requirements_i_i_d` (
   `enum` int(10) NOT NULL,
   `message` text,
   PRIMARY KEY (`id`),
+  KEY `recipeId_req_iid` (`recipe_Id`),
   CONSTRAINT `recipeId_req_iid` FOREIGN KEY (`recipe_Id`) REFERENCES `recipe` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Recipe IID Requirments';
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -447,6 +460,7 @@ CREATE TABLE `recipe_requirements_int` (
   `enum` int(10) NOT NULL,
   `message` text,
   PRIMARY KEY (`id`),
+  KEY `recipeId_req_int` (`recipe_Id`),
   CONSTRAINT `recipeId_req_int` FOREIGN KEY (`recipe_Id`) REFERENCES `recipe` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Recipe Int Requirments';
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -466,6 +480,7 @@ CREATE TABLE `recipe_requirements_string` (
   `enum` int(10) NOT NULL,
   `message` text,
   PRIMARY KEY (`id`),
+  KEY `recipeId_req_string` (`recipe_Id`),
   CONSTRAINT `recipeId_req_string` FOREIGN KEY (`recipe_Id`) REFERENCES `recipe` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Recipe String Requirments';
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -510,72 +525,72 @@ CREATE TABLE `spell` (
   `display_Order` int(10) unsigned NOT NULL,
   `non_Component_Target_Type` int(10) unsigned NOT NULL,
   `mana_Mod` int(10) unsigned NOT NULL,
-  `duration` double,
-  `degrade_Modifier` float,
-  `degrade_Limit` float,
-  `stat_Mod_Type` int(10) unsigned,
-  `stat_Mod_Key` int(10) unsigned,
-  `stat_Mod_Val` float,
-  `e_Type` int(10) unsigned,
-  `base_Intensity` int(10),
-  `variance` int(10),
-  `wcid` int(10) unsigned,
-  `num_Projectiles` int(10),
-  `num_Projectiles_Variance` int(10),
-  `spread_Angle` float,
-  `vertical_Angle` float,
-  `default_Launch_Angle` float,
-  `non_Tracking` bit(1),
-  `create_Offset_Origin_X` float,
-  `create_Offset_Origin_Y` float,
-  `create_Offset_Origin_Z` float,
-  `padding_Origin_X` float,
-  `padding_Origin_Y` float,
-  `padding_Origin_Z` float,
-  `dims_Origin_X` float,
-  `dims_Origin_Y` float,
-  `dims_Origin_Z` float,
-  `peturbation_Origin_X` float,
-  `peturbation_Origin_Y` float,
-  `peturbation_Origin_Z` float,
-  `imbued_Effect` int(10) unsigned,
-  `slayer_Creature_Type` int(10),
-  `slayer_Damage_Bonus` float,
-  `crit_Freq` double,
-  `crit_Multiplier` double,
-  `ignore_Magic_Resist` int(10),
-  `elemental_Modifier` double,
-  `drain_Percentage` float,
-  `damage_Ratio` float,
-  `damage_Type` int(10),
-  `boost` int(10),
-  `boost_Variance` int(10),
-  `source` int(10),
-  `destination` int(10),
-  `proportion` float,
-  `loss_Percent` float,
-  `source_Loss` int(10),
-  `transfer_Cap` int(10),
-  `max_Boost_Allowed` int(10),
-  `transfer_Bitfield` int(10) unsigned,
-  `index` int(10),
-  `portal_Lifetime` double,
-  `link` int(10),
-  `position_Obj_Cell_ID` int(10) unsigned,
-  `position_Origin_X` float,
-  `position_Origin_Y` float,
-  `position_Origin_Z` float,
-  `position_Angles_W` float,
-  `position_Angles_X` float,
-  `position_Angles_Y` float,
-  `position_Angles_Z` float,
-  `min_Power` int(10),
-  `max_Power` int(10),
-  `power_Variance` float,
-  `dispel_School` int(10),
-  `align` int(10),
-  `number` int(10),
-  `number_Variance` float,
+  `duration` double DEFAULT NULL,
+  `degrade_Modifier` float DEFAULT NULL,
+  `degrade_Limit` float DEFAULT NULL,
+  `stat_Mod_Type` int(10) unsigned DEFAULT NULL,
+  `stat_Mod_Key` int(10) unsigned DEFAULT NULL,
+  `stat_Mod_Val` float DEFAULT NULL,
+  `e_Type` int(10) unsigned DEFAULT NULL,
+  `base_Intensity` int(10) DEFAULT NULL,
+  `variance` int(10) DEFAULT NULL,
+  `wcid` int(10) unsigned DEFAULT NULL,
+  `num_Projectiles` int(10) DEFAULT NULL,
+  `num_Projectiles_Variance` int(10) DEFAULT NULL,
+  `spread_Angle` float DEFAULT NULL,
+  `vertical_Angle` float DEFAULT NULL,
+  `default_Launch_Angle` float DEFAULT NULL,
+  `non_Tracking` bit(1) DEFAULT NULL,
+  `create_Offset_Origin_X` float DEFAULT NULL,
+  `create_Offset_Origin_Y` float DEFAULT NULL,
+  `create_Offset_Origin_Z` float DEFAULT NULL,
+  `padding_Origin_X` float DEFAULT NULL,
+  `padding_Origin_Y` float DEFAULT NULL,
+  `padding_Origin_Z` float DEFAULT NULL,
+  `dims_Origin_X` float DEFAULT NULL,
+  `dims_Origin_Y` float DEFAULT NULL,
+  `dims_Origin_Z` float DEFAULT NULL,
+  `peturbation_Origin_X` float DEFAULT NULL,
+  `peturbation_Origin_Y` float DEFAULT NULL,
+  `peturbation_Origin_Z` float DEFAULT NULL,
+  `imbued_Effect` int(10) unsigned DEFAULT NULL,
+  `slayer_Creature_Type` int(10) DEFAULT NULL,
+  `slayer_Damage_Bonus` float DEFAULT NULL,
+  `crit_Freq` double DEFAULT NULL,
+  `crit_Multiplier` double DEFAULT NULL,
+  `ignore_Magic_Resist` int(10) DEFAULT NULL,
+  `elemental_Modifier` double DEFAULT NULL,
+  `drain_Percentage` float DEFAULT NULL,
+  `damage_Ratio` float DEFAULT NULL,
+  `damage_Type` int(10) DEFAULT NULL,
+  `boost` int(10) DEFAULT NULL,
+  `boost_Variance` int(10) DEFAULT NULL,
+  `source` int(10) DEFAULT NULL,
+  `destination` int(10) DEFAULT NULL,
+  `proportion` float DEFAULT NULL,
+  `loss_Percent` float DEFAULT NULL,
+  `source_Loss` int(10) DEFAULT NULL,
+  `transfer_Cap` int(10) DEFAULT NULL,
+  `max_Boost_Allowed` int(10) DEFAULT NULL,
+  `transfer_Bitfield` int(10) unsigned DEFAULT NULL,
+  `index` int(10) DEFAULT NULL,
+  `portal_Lifetime` double DEFAULT NULL,
+  `link` int(10) DEFAULT NULL,
+  `position_Obj_Cell_ID` int(10) unsigned DEFAULT NULL,
+  `position_Origin_X` float DEFAULT NULL,
+  `position_Origin_Y` float DEFAULT NULL,
+  `position_Origin_Z` float DEFAULT NULL,
+  `position_Angles_W` float DEFAULT NULL,
+  `position_Angles_X` float DEFAULT NULL,
+  `position_Angles_Y` float DEFAULT NULL,
+  `position_Angles_Z` float DEFAULT NULL,
+  `min_Power` int(10) DEFAULT NULL,
+  `max_Power` int(10) DEFAULT NULL,
+  `power_Variance` float DEFAULT NULL,
+  `dispel_School` int(10) DEFAULT NULL,
+  `align` int(10) DEFAULT NULL,
+  `number` int(10) DEFAULT NULL,
+  `number_Variance` float DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `metaspell_id_uidx` (`meta_Spell_Id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Spell Table Extended Data';
@@ -835,6 +850,7 @@ CREATE TABLE `weenie_properties_create_list` (
   `shade` float NOT NULL COMMENT 'Shade of Object''s Palette',
   `try_To_Bond` bit(1) NOT NULL COMMENT 'Unused?',
   PRIMARY KEY (`id`),
+  KEY `wcid_createlist` (`object_Id`),
   CONSTRAINT `wcid_createlist` FOREIGN KEY (`object_Id`) REFERENCES `weenie` (`class_Id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='CreateList Properties of Weenies';
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -869,14 +885,15 @@ CREATE TABLE `weenie_properties_emote` (
   `object_Id` int(10) unsigned NOT NULL COMMENT 'Id of the object this property belongs to',
   `category` int(10) unsigned NOT NULL COMMENT 'EmoteCategory',
   `probability` float NOT NULL DEFAULT '1' COMMENT 'Probability of this EmoteSet being chosen',
-  `weenie_Class_Id` int(10) unsigned,
-  `style` int(10) unsigned,
-  `substyle` int(10) unsigned,
+  `weenie_Class_Id` int(10) unsigned DEFAULT NULL,
+  `style` int(10) unsigned DEFAULT NULL,
+  `substyle` int(10) unsigned DEFAULT NULL,
   `quest` text,
-  `vendor_Type` int(10),
-  `min_Health` float,
-  `max_Health` float,
+  `vendor_Type` int(10) DEFAULT NULL,
+  `min_Health` float DEFAULT NULL,
+  `max_Health` float DEFAULT NULL,
   PRIMARY KEY (`id`),
+  KEY `wcid_emote` (`object_Id`),
   CONSTRAINT `wcid_emote` FOREIGN KEY (`object_Id`) REFERENCES `weenie` (`class_Id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Emote Properties of Weenies';
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -895,41 +912,41 @@ CREATE TABLE `weenie_properties_emote_action` (
   `type` int(10) unsigned NOT NULL COMMENT 'EmoteType',
   `delay` float NOT NULL DEFAULT '1' COMMENT 'Time to wait before EmoteAction starts execution',
   `extent` float NOT NULL DEFAULT '1' COMMENT '?',
-  `motion` int(10),
+  `motion` int(10) DEFAULT NULL,
   `message` text,
   `test_String` text,
-  `min` int(10),
-  `max` int(10),
-  `min_64` bigint(10),
-  `max_64` bigint(10),
-  `min_Dbl` double,
-  `max_Dbl` double,
-  `stat` int(10),
-  `display` int(10),
-  `amount` int(10),
-  `amount_64` bigint(10),
-  `hero_X_P_64` bigint(10),
-  `percent` double,
-  `spell_Id` int(10),
-  `wealth_Rating` int(10),
-  `treasure_Class` int(10),
-  `treasure_Type` int(10),
-  `p_Script` int(10),
-  `sound` int(10),
-  `destination_Type` tinyint(5) COMMENT 'Type of Destination the value applies to (DestinationType.????)',
-  `weenie_Class_Id` int(10) unsigned COMMENT 'Weenie Class Id of object to Create',
-  `stack_Size` int(10) COMMENT 'Stack Size of object to create (-1 = infinite)',
-  `palette` int(10) COMMENT 'Palette Color of Object',
-  `shade` float COMMENT 'Shade of Object''s Palette',
-  `try_To_Bond` bit(1) COMMENT 'Unused?',
-  `obj_Cell_Id` int(10) unsigned,
-  `origin_X` float,
-  `origin_Y` float,
-  `origin_Z` float,
-  `angles_W` float,
-  `angles_X` float,
-  `angles_Y` float,
-  `angles_Z` float,
+  `min` int(10) DEFAULT NULL,
+  `max` int(10) DEFAULT NULL,
+  `min_64` bigint(10) DEFAULT NULL,
+  `max_64` bigint(10) DEFAULT NULL,
+  `min_Dbl` double DEFAULT NULL,
+  `max_Dbl` double DEFAULT NULL,
+  `stat` int(10) DEFAULT NULL,
+  `display` int(10) DEFAULT NULL,
+  `amount` int(10) DEFAULT NULL,
+  `amount_64` bigint(10) DEFAULT NULL,
+  `hero_X_P_64` bigint(10) DEFAULT NULL,
+  `percent` double DEFAULT NULL,
+  `spell_Id` int(10) DEFAULT NULL,
+  `wealth_Rating` int(10) DEFAULT NULL,
+  `treasure_Class` int(10) DEFAULT NULL,
+  `treasure_Type` int(10) DEFAULT NULL,
+  `p_Script` int(10) DEFAULT NULL,
+  `sound` int(10) DEFAULT NULL,
+  `destination_Type` tinyint(5) DEFAULT NULL COMMENT 'Type of Destination the value applies to (DestinationType.????)',
+  `weenie_Class_Id` int(10) unsigned DEFAULT NULL COMMENT 'Weenie Class Id of object to Create',
+  `stack_Size` int(10) DEFAULT NULL COMMENT 'Stack Size of object to create (-1 = infinite)',
+  `palette` int(10) DEFAULT NULL COMMENT 'Palette Color of Object',
+  `shade` float DEFAULT NULL COMMENT 'Shade of Object''s Palette',
+  `try_To_Bond` bit(1) DEFAULT NULL COMMENT 'Unused?',
+  `obj_Cell_Id` int(10) unsigned DEFAULT NULL,
+  `origin_X` float DEFAULT NULL,
+  `origin_Y` float DEFAULT NULL,
+  `origin_Z` float DEFAULT NULL,
+  `angles_W` float DEFAULT NULL,
+  `angles_X` float DEFAULT NULL,
+  `angles_Y` float DEFAULT NULL,
+  `angles_Z` float DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `emoteid_order_uidx` (`emote_Id`,`order`),
   CONSTRAINT `emoteid_emoteaction` FOREIGN KEY (`emote_Id`) REFERENCES `weenie_properties_emote` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
@@ -983,23 +1000,24 @@ CREATE TABLE `weenie_properties_generator` (
   `object_Id` int(10) unsigned NOT NULL COMMENT 'Id of the object this property belongs to',
   `probability` float NOT NULL DEFAULT '1',
   `weenie_Class_Id` int(10) unsigned NOT NULL COMMENT 'Weenie Class Id of object to generate',
-  `delay` float COMMENT 'Amount of delay before generation',
+  `delay` float DEFAULT NULL COMMENT 'Amount of delay before generation',
   `init_Create` int(10) unsigned NOT NULL DEFAULT '1' COMMENT 'Number of object to generate initially',
   `max_Create` int(10) unsigned NOT NULL DEFAULT '1' COMMENT 'Maximum amount of objects to generate',
   `when_Create` int(10) unsigned NOT NULL DEFAULT '2' COMMENT 'When to generate the weenie object',
   `where_Create` int(10) unsigned NOT NULL DEFAULT '4' COMMENT 'Where to generate the weenie object',
-  `stack_Size` int(10) COMMENT 'StackSize of object generated',
-  `palette_Id` int(10) unsigned COMMENT 'Palette Color of Object Generated',
-  `shade` float COMMENT 'Shade of Object generated''s Palette',
-  `obj_Cell_Id` int(10) unsigned,
-  `origin_X` float,
-  `origin_Y` float,
-  `origin_Z` float,
-  `angles_W` float,
-  `angles_X` float,
-  `angles_Y` float,
-  `angles_Z` float,
+  `stack_Size` int(10) DEFAULT NULL COMMENT 'StackSize of object generated',
+  `palette_Id` int(10) unsigned DEFAULT NULL COMMENT 'Palette Color of Object Generated',
+  `shade` float DEFAULT NULL COMMENT 'Shade of Object generated''s Palette',
+  `obj_Cell_Id` int(10) unsigned DEFAULT NULL,
+  `origin_X` float DEFAULT NULL,
+  `origin_Y` float DEFAULT NULL,
+  `origin_Z` float DEFAULT NULL,
+  `angles_W` float DEFAULT NULL,
+  `angles_X` float DEFAULT NULL,
+  `angles_Y` float DEFAULT NULL,
+  `angles_Z` float DEFAULT NULL,
   PRIMARY KEY (`id`),
+  KEY `wcid_generator` (`object_Id`),
   CONSTRAINT `wcid_generator` FOREIGN KEY (`object_Id`) REFERENCES `weenie` (`class_Id`) ON DELETE CASCADE ON UPDATE NO ACTION
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Generator Properties of Weenies';
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -1189,4 +1207,4 @@ CREATE TABLE `weenie_properties_texture_map` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2018-07-22 13:10:11
+-- Dump completed on 2018-08-11 15:10:17

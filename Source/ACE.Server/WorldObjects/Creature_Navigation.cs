@@ -2,6 +2,7 @@ using System;
 using System.Numerics;
 using ACE.Entity;
 using ACE.Entity.Enum;
+using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Network.Motion;
 using ACE.Server.Physics.Animation;
@@ -109,7 +110,7 @@ namespace ACE.Server.WorldObjects
             actionChain.AddDelaySeconds(rotateDelay);
             actionChain.AddAction(this, () =>
             {
-                var targetDir = GetDirection(Location.GlobalPos, target.Location.GlobalPos);
+                var targetDir = GetDirection(Location.ToGlobal(), target.Location.ToGlobal());
                 Location.Rotate(targetDir);
             });
             actionChain.EnqueueChain();
@@ -191,9 +192,9 @@ namespace ACE.Server.WorldObjects
         /// It is mostly a duplicate of Rotate(), and should be refactored eventually...
         /// It sets CurrentMotionState and AttackTarget here
         /// </summary>
-        public void TurnTo(WorldObject target)
+        public float TurnTo(WorldObject target)
         {
-            if (this is Player) return;
+            if (this is Player) return 0.0f;
 
             var turnToMotion = new UniversalMotion(CurrentMotionState.Stance, target.Location, target.Guid);
             turnToMotion.MovementTypes = MovementTypes.TurnToObject;
@@ -214,6 +215,7 @@ namespace ACE.Server.WorldObjects
                 //Console.WriteLine("Finished turning - " + turnTime + "s");
             });
             actionChain.EnqueueChain();
+            return rotateDelay;
         }
 
         /// <summary>

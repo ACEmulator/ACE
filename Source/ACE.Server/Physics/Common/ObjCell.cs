@@ -23,17 +23,10 @@ namespace ACE.Server.Physics.Common
         public uint RestrictionObj;
         public List<int> ClipPlanes;
         public int NumStabs;
-        public List<DatLoader.Entity.Stab> StabList;
+        public List<DatLoader.Entity.Stab> VisibleCells;
         public bool SeenOutside;
         public List<uint> VoyeurTable;
         public Landblock CurLandblock;
-
-        public static ObjectMaint ObjMaint;
-
-        static ObjCell()
-        {
-            ObjMaint = new ObjectMaint();   // global static?
-        }
 
         public ObjCell(): base()
         {
@@ -224,6 +217,8 @@ namespace ACE.Server.Physics.Common
                 for (var i = 0; i < cellArray.Cells.Count; i++)
                 {
                     var cell = cellArray.Cells.Values.ElementAt(i);
+                    if (cell == null) continue;
+
                     cell.find_transit_cells(position, numSphere, sphere, cellArray, path);
                 }
                 //var checkCells = cellArray.Cells.Values.ToList();
@@ -235,6 +230,8 @@ namespace ACE.Server.Physics.Common
                     currCell = null;
                     foreach (var cell in cellArray.Cells.Values)
                     {
+                        if (cell == null) continue;
+
                         var blockOffset = LandDefs.GetBlockOffset(position.ObjCellID, cell.ID);
                         var localPoint = sphere[0].Center - blockOffset;
 
@@ -255,6 +252,8 @@ namespace ACE.Server.Physics.Common
                 var cells = cellArray.Cells.Values.ToList();
                 foreach (var cell in cells)
                 {
+                    if (cell == null) continue;
+
                     if (visibleCell.ID == cell.ID)
                         continue;
 
@@ -352,13 +351,9 @@ namespace ACE.Server.Physics.Common
 
         public void init_objects()
         {
-            if (ObjMaint == null) return;
-            ObjMaint.InitObjCell(this);
             foreach (var obj in ObjectList)
-            {
                 if (!obj.State.HasFlag(PhysicsState.Static) && !obj.is_completely_visible())
                     obj.recalc_cross_cells();
-            }
         }
 
         public virtual bool point_in_cell(Vector3 point)
@@ -375,8 +370,8 @@ namespace ACE.Server.Physics.Common
 
                 shadowObj.PhysicsObj.remove_parts(this);
             }
-            if (NumObjects > 0 && ObjMaint != null)
-                ObjMaint.ReleaseObjCell(this);
+            //if (NumObjects > 0 && ObjMaint != null)
+                //ObjMaint.ReleaseObjCell(this);
         }
 
         public void remove_shadow_object(ShadowObj shadowObj)

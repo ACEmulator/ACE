@@ -24,11 +24,6 @@ namespace ACE.Server.WorldObjects
                 return PowerAccuracy.High;
         }
 
-        public override string GetAttackHeight()
-        {
-            return AttackHeight?.GetString();
-        }
-
         public void HandleActionTargetedMeleeAttack(ObjectGuid guid, uint attackHeight, float powerLevel)
         {
             /*Console.WriteLine("HandleActionTargetedMeleeAttack");
@@ -80,6 +75,8 @@ namespace ACE.Server.WorldObjects
 
         public void HandleActionCancelAttack()
         {
+            //Console.WriteLine("HandleActionCancelAttack");
+
             MeleeTarget = null;
             MissileTarget = null;
         }
@@ -101,21 +98,25 @@ namespace ACE.Server.WorldObjects
             DamageTarget(creature, null);
 
             if (creature.Health.Current > 0 && GetCharacterOption(CharacterOption.AutoRepeatAttacks))
-            { 
+            {
                 // powerbar refill timing
-                actionChain.AddDelaySeconds(PowerLevel);
+                var refillMod = IsDualWieldAttack ? 0.8f : 1.0f;    // dual wield powerbar refills 20% faster
+                actionChain.AddDelaySeconds(PowerLevel * refillMod);
                 actionChain.AddAction(this, () => Attack(target));
             }
             else
                 MeleeTarget = null;
-                
+
             actionChain.EnqueueChain();
         }
 
-        public override ActionChain DoSwingMotion(WorldObject target, out float animLength)
+        public ActionChain DoSwingMotion(WorldObject target, out float animLength)
         {
-            var swingAnimation = new MotionItem(GetSwingAnimation(), 1.25f);
-            animLength = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, swingAnimation);
+            // FIXME: proper swing animation speeds
+            var animSpeedMod = IsDualWieldAttack ? 1.2f : 1.0f;     // dual wield swing animation 20% faster
+            var animSpeed = 1.25f * animSpeedMod;
+            var swingAnimation = new MotionItem(GetSwingAnimation(), animSpeed);
+            animLength = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, swingAnimation.Motion, null, animSpeed);
 
             var motion = new UniversalMotion(CurrentMotionState.Stance, swingAnimation);
             motion.MovementData.CurrentStyle = (uint)CurrentMotionState.Stance;
@@ -133,25 +134,34 @@ namespace ACE.Server.WorldObjects
             return actionChain;
         }
 
+        public bool DualWieldAlternate;
+
         public override MotionCommand GetSwingAnimation()
         {
             MotionCommand motion = new MotionCommand();
 
             switch (CurrentMotionState.Stance)
             {
-                case MotionStance.DualWieldAttack:
-                case MotionStance.MeleeNoShieldAttack:
-                case MotionStance.MeleeShieldAttack:
-                case MotionStance.ThrownShieldCombat:
-                case MotionStance.ThrownWeaponAttack:
-                case MotionStance.TwoHandedStaffAttack:
-                case MotionStance.TwoHandedSwordAttack:
+                case MotionStance.SwordCombat:
+                case MotionStance.SwordShieldCombat:
+                case MotionStance.TwoHandedSwordCombat:
+                case MotionStance.TwoHandedStaffCombat:
+                case MotionStance.DualWieldCombat:
                     {
+                        // thrust for all of these?
                         var action = PowerLevel < 0.33f ? "Thrust" : "Slash";
+                        if (CurrentMotionState.Stance == MotionStance.DualWieldCombat)
+                        {
+                            if (DualWieldAlternate)
+                                action = "Offhand" + action;
+
+                            DualWieldAlternate = !DualWieldAlternate;
+                        }
+
                         Enum.TryParse(action + GetAttackHeight(), out motion);
                         return motion;
                     }
-                case MotionStance.UaNoShieldAttack:
+                case MotionStance.HandCombat:
                 default:
                     {
                         // is the player holding a weapon?

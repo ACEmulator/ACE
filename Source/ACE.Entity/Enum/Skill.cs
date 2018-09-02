@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 
 namespace ACE.Entity.Enum
@@ -69,19 +70,19 @@ namespace ACE.Entity.Enum
 
         Spellcraft,          /* Unimplemented */
 
-        [AttributeFormula(AttributeCache.Focus | AttributeCache.Self, 6)]
+        [AttributeFormula(AttributeCache.Focus | AttributeCache.Coordination, 2)]
         [SkillCost(2, CanSpecialize = false)]
-        [SkillUsableUntrained(false)]
+        [SkillUsableUntrained(true)]
         ItemTinkering,
 
         [AttributeFormula(AttributeCache.Undef)]
         [SkillCost(2, 2)]
-        [SkillUsableUntrained(false)]
+        [SkillUsableUntrained(true)]
         AssessPerson,
 
         [AttributeFormula(AttributeCache.Undef)]
         [SkillCost(4, 2)]
-        [SkillUsableUntrained(false)]
+        [SkillUsableUntrained(true)]
         Deception,
 
         [AttributeFormula(AttributeCache.Focus | AttributeCache.Coordination, 3)]
@@ -109,22 +110,22 @@ namespace ACE.Entity.Enum
 
         [AttributeFormula(AttributeCache.Undef)]
         [SkillCost(4, 2)]
-        [SkillUsableUntrained(false)]
+        [SkillUsableUntrained(true)]
         AssessCreature,
 
         [AttributeFormula(AttributeCache.Focus | AttributeCache.Strength, 2)]
         [SkillCost(4, CanSpecialize = false)]
-        [SkillUsableUntrained(false)]
+        [SkillUsableUntrained(true)]
         WeaponTinkering,
 
         [AttributeFormula(AttributeCache.Focus | AttributeCache.Endurance, 2)]
         [SkillCost(4, CanSpecialize = false)]
-        [SkillUsableUntrained(false)]
+        [SkillUsableUntrained(true)]
         ArmorTinkering,
 
         [AttributeFormula(AttributeCache.Focus)]
         [SkillCost(4, CanSpecialize = false)]
-        [SkillUsableUntrained(false)]
+        [SkillUsableUntrained(true)]
         MagicItemTinkering,
 
         [AttributeFormula(AttributeCache.Focus | AttributeCache.Self, 4)]
@@ -216,7 +217,7 @@ namespace ACE.Entity.Enum
 
         [AttributeFormula(AttributeCache.Coordination, 3, AbilityMultiplier = 2)]
         [SkillCost(2, 2)]
-        [SkillUsableUntrained(false)]
+        [SkillUsableUntrained(true)]
         DualWield,
 
         [AttributeFormula(AttributeCache.Strength | AttributeCache.Quickness, 3)]
@@ -244,6 +245,27 @@ namespace ACE.Entity.Enum
 
     public static class SkillExtensions
     {
+        public static List<Skill> RetiredMelee = new List<Skill>()
+        {
+            Skill.Axe,
+            Skill.Dagger,
+            Skill.Mace,
+            Skill.Spear,
+            Skill.Staff,
+            Skill.Sword,
+            Skill.UnarmedCombat
+        };
+
+        public static List<Skill> RetiredMissile = new List<Skill>()
+        {
+            Skill.Bow,
+            Skill.Crossbow,
+            Skill.Sling,
+            Skill.ThrownWeapon
+        };
+
+        public static List<Skill> RetiredWeapons = RetiredMelee.Concat(RetiredMissile).ToList();
+
         public static AttributeFormulaAttribute GetFormula(this Skill skill)
         {
             return skill.GetAttributeOfType<AttributeFormulaAttribute>();

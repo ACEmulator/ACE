@@ -1,11 +1,17 @@
+using System;
 using ACE.Entity.Enum;
 
 namespace ACE.Server.Physics.Animation
 {
     public class MovementParameters
     {
-        public uint Bitfield;
-        public bool CanWalk;    
+        public MovementParamFlags Flags
+        {
+            get => MovementParamFlagsHelper.Get(this);
+            set => MovementParamFlagsHelper.Set(this, value);
+        }
+
+        public bool CanWalk;
         public bool CanRun;
         public bool CanSidestep;
         public bool CanWalkBackwards;
@@ -30,6 +36,7 @@ namespace ACE.Server.Physics.Animation
         public float Speed;
         public float FailDistance;
         public float WalkRunThreshold;
+
         public int ContextID;
         public HoldKey HoldKeyToApply;
         public int ActionStamp;
@@ -38,29 +45,92 @@ namespace ACE.Server.Physics.Animation
         public static readonly float Default_FailDistance = float.MaxValue;
         public static readonly float Default_MinDistance = 0.0f;
         public static readonly float Default_Speed = 1.0f;
-        public static readonly float Default_WalkRunThreshold = 15.0f;
+        //public static readonly float Default_WalkRunThreshold = 15.0f;
+        public static readonly float Default_WalkRunThreshold = 1.0f;
 
         public MovementParameters()
         {
-            MinDistance = Default_MinDistance;
+            CanWalk = true;
+            CanRun = true;
+            CanSidestep = true;
+            CanWalkBackwards = true;
+            CanCharge = true;
+            //FailWalk = false;
+            //UseFinalHeading = false;
+            //Sticky = false;
+            //MoveAway = false;
+            MoveTowards = true;
+            UseSpheres = true;
+            SetHoldKey = true;
+            //Autonomous = false;
+            ModifyRawState = true;
+            ModifyInterpretedState = true;
+            CancelMoveTo = true;
+            StopCompletely = true;
+            //DisableJumpDuringLink = false;
+
             DistanceToObject = Default_DistanceToObject;
             FailDistance = Default_FailDistance;
+            //DesiredHeading = 0;
+            MinDistance = Default_MinDistance;
             Speed = Default_Speed;
             WalkRunThreshold = Default_WalkRunThreshold;
+
+            //ContextID = 0;
             HoldKeyToApply = HoldKey.Invalid;
-            StopCompletely = true;
-            CancelMoveTo = true;
-            ModifyInterpretedState = false;
-            ModifyRawState = true;
-            SetHoldKey = true;
-            UseSpheres = true;
-            MoveTowards = true;
-            CanWalkBackwards = true;
-            CanSidestep = true;
-            CanRun = true;
-            CanWalk = true;
-            CanCharge = true;
-            Bitfield = 0x1EE0F;     // todo: union of bools
+            //ActionStamp = 0;
+
+            //Flags = (MovementParamFlags)0x1EE0F;
+        }
+
+        /// <summary>
+        /// Copy constructor for some fields
+        /// </summary>
+        public MovementParameters(MovementParameters mvp)
+        {
+            CanWalk = mvp.CanWalk;
+            CanRun = mvp.CanRun;
+            CanSidestep = mvp.CanSidestep;
+            CanWalkBackwards = mvp.CanWalkBackwards;
+            CanCharge = mvp.CanCharge;
+            // - failwalk
+            // - use final heading
+            // - sticky
+            // - moveaway
+            MoveTowards = mvp.MoveTowards;
+            UseSpheres = mvp.UseSpheres;
+            SetHoldKey = mvp.SetHoldKey;
+            // - autonomous
+            ModifyRawState = mvp.ModifyRawState;
+            ModifyInterpretedState = mvp.ModifyInterpretedState;
+            CancelMoveTo = mvp.CancelMoveTo;
+            StopCompletely = mvp.StopCompletely;
+            // - disable jump during link
+
+            DistanceToObject = mvp.DistanceToObject;
+            FailDistance = mvp.FailDistance;
+            // - desired heading
+            MinDistance = mvp.MinDistance;
+            Speed = mvp.Speed;
+            WalkRunThreshold = mvp.WalkRunThreshold;
+
+            // - context id
+            HoldKeyToApply = mvp.HoldKeyToApply;
+            // - action stamp
+        }
+
+        public void CopyNonFlag(MovementParameters mvp)
+        {
+            DistanceToObject = mvp.DistanceToObject;
+            FailDistance = mvp.FailDistance;
+            DesiredHeading = mvp.DesiredHeading;
+            MinDistance = mvp.MinDistance;
+            Speed = mvp.Speed;
+            WalkRunThreshold = mvp.WalkRunThreshold;
+
+            ContextID = mvp.ContextID;
+            HoldKeyToApply = mvp.HoldKeyToApply;
+            ActionStamp = mvp.ActionStamp;
         }
 
         public void get_command(float dist, float heading, ref uint motion, ref HoldKey holdKey, ref bool movingAway)

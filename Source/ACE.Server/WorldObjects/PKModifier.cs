@@ -39,7 +39,7 @@ namespace ACE.Server.WorldObjects
                 BaseDescriptionFlags |= ObjectDescriptionFlag.PkSwitch;
         }
 
-        private static readonly UniversalMotion twitch = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.Twitch1));
+        private static readonly UniversalMotion twitch = new UniversalMotion(MotionStance.NonCombat, new MotionItem(MotionCommand.Twitch1));
 
         public uint? UseTargetSuccessAnimation
         {
@@ -54,8 +54,7 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// This is raised by Player.HandleActionUseItem, and is wrapped in ActionChain.<para />
-        /// The actor of the ActionChain is the item being used.<para />
+        /// This is raised by Player.HandleActionUseItem.<para />
         /// The item does not exist in the players possession.<para />
         /// If the item was outside of range, the player will have been commanded to move using DoMoveTo before ActOnUse is called.<para />
         /// When this is called, it should be assumed that the player is within range.
@@ -93,14 +92,14 @@ namespace ACE.Server.WorldObjects
                         AllowedActivator = ObjectGuid.Invalid.Full;
 
                         var switchTimer = new ActionChain();
-                        var turnToMotion = new UniversalMotion(MotionStance.Standing, Location, Guid);
+                        var turnToMotion = new UniversalMotion(MotionStance.NonCombat, Location, Guid);
                         turnToMotion.MovementTypes = MovementTypes.TurnToObject;
                         switchTimer.AddAction(this, () => player.CurrentLandblock?.EnqueueBroadcastMotion(player, turnToMotion));
                         switchTimer.AddDelaySeconds(1);
                         switchTimer.AddAction(player, () =>
                         {
                             if (UseTargetSuccessAnimation.HasValue)
-                                CurrentLandblock?.EnqueueBroadcastMotion(this, new UniversalMotion(MotionStance.Standing, new MotionItem((MotionCommand)UseTargetSuccessAnimation)));
+                                CurrentLandblock?.EnqueueBroadcastMotion(this, new UniversalMotion(MotionStance.NonCombat, new MotionItem((MotionCommand)UseTargetSuccessAnimation)));
                             else
                                 CurrentLandblock?.EnqueueBroadcastMotion(this, twitch);
                         });
@@ -116,11 +115,11 @@ namespace ACE.Server.WorldObjects
                             player.SendUseDoneEvent();
 
                             if (player.PkLevelModifier == 1)
-                                player.PlayerKillerStatus = ACE.Entity.Enum.PlayerKillerStatus.PK;
+                                player.PlayerKillerStatus = PlayerKillerStatus.PK;
                             else
-                                player.PlayerKillerStatus = ACE.Entity.Enum.PlayerKillerStatus.NPK;
+                                player.PlayerKillerStatus = PlayerKillerStatus.NPK;
 
-                            player.CurrentLandblock?.EnqueueBroadcast(player.Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyInt(player, PropertyInt.PlayerKillerStatus, (int)player.PlayerKillerStatus));
+                            player.EnqueueBroadcast(new GameMessagePublicUpdatePropertyInt(player, PropertyInt.PlayerKillerStatus, (int)player.PlayerKillerStatus));
 
                             Reset();
                         });
@@ -129,7 +128,7 @@ namespace ACE.Server.WorldObjects
                     else
                     {
                         if (UseTargetFailureAnimation.HasValue)
-                            CurrentLandblock?.EnqueueBroadcastMotion(this, new UniversalMotion(MotionStance.Standing, new MotionItem((MotionCommand)UseTargetFailureAnimation)));
+                            CurrentLandblock?.EnqueueBroadcastMotion(this, new UniversalMotion(MotionStance.NonCombat, new MotionItem((MotionCommand)UseTargetFailureAnimation)));
                         player.Session.Network.EnqueueSend(new GameMessageSystemChat(GetProperty(PropertyString.ActivationFailure), ChatMessageType.Broadcast));
                         player.SendUseDoneEvent();
                     }

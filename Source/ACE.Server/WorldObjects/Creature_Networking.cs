@@ -9,7 +9,9 @@ using ACE.Entity.Enum;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameMessages.Messages;
+using ACE.Server.Network.Motion;
 using ACE.Server.Network.Structure;
+using ACE.Server.Physics.Animation;
 
 namespace ACE.Server.WorldObjects
 {
@@ -45,10 +47,8 @@ namespace ACE.Server.WorldObjects
 
             if (this is Player player)
             { 
-                var characterOptions2 = player.CharacterOptions2Mapping ?? 0;
-
-                showHelm = (characterOptions2 & (int)CharacterOptions2.ShowYourHelmOrHeadGear) == (int)CharacterOptions2.ShowYourHelmOrHeadGear;
-                showCloak = (characterOptions2 & (int)CharacterOptions2.ShowYourCloak) == (int)CharacterOptions2.ShowYourCloak;
+                showHelm = player.GetCharacterOption(CharacterOption.ShowYourHelmOrHeadGear);
+                showCloak = player.GetCharacterOption(CharacterOption.ShowYourCloak);
 
                 // Some player races use an AlternateSetupDid, either at creation of via Barber options.
                 // BUT -- those values do not correspond with entries in the Clothing Table.
@@ -191,6 +191,25 @@ namespace ACE.Server.WorldObjects
         {
             var creatureProfile = new CreatureProfile(creature, success);
             writer.Write(creatureProfile);
+        }
+
+        public float EnqueueMotion(ActionChain actionChain, MotionCommand motionCommand, float speed = 1.0f)
+        {
+            var motion = new UniversalMotion(CurrentMotionState.Stance);
+            motion.MovementData.CurrentStyle = (uint)CurrentMotionState.Stance;
+            motion.MovementData.ForwardCommand = (uint)motionCommand;
+            motion.MovementData.TurnSpeed = 2.25f;  // ??
+
+            actionChain.AddAction(this, () =>
+            {
+                CurrentMotionState = motion;
+                DoMotion(motion);
+            });
+
+            var animLength = Physics.Animation.MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, motionCommand);
+
+            actionChain.AddDelaySeconds(animLength);
+            return animLength;
         }
     }
 }

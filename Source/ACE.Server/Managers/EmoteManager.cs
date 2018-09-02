@@ -51,7 +51,7 @@ namespace ACE.Server.Managers
                 case EmoteType.Act:
                     // short for 'acting' text
                     var message = Replace(text, sourceObject, targetObject);
-                    sourceObject.CurrentLandblock?.EnqueueBroadcast(sourceObject.Location, new GameMessageSystemChat(message, ChatMessageType.Broadcast));
+                    sourceObject?.EnqueueBroadcast(new GameMessageSystemChat(message, ChatMessageType.Broadcast), 30.0f);
                     break;
 
                 case EmoteType.Activate:
@@ -504,11 +504,11 @@ namespace ACE.Server.Managers
                         actionChain.AddDelaySeconds(emoteAction.Delay);
                         actionChain.AddAction(sourceObject, () =>
                         {
-                            sourceObject.CurrentLandblock?.EnqueueBroadcast(sourceObject.Location, new GameMessageCreatureMessage(emoteAction.Message, sourceObject.Name, sourceObject.Guid.Full, ChatMessageType.Broadcast));
+                            sourceObject?.EnqueueBroadcast(new GameMessageCreatureMessage(emoteAction.Message, sourceObject.Name, sourceObject.Guid.Full, ChatMessageType.Broadcast));
                         });
                     }
                     else
-                        sourceObject.CurrentLandblock?.EnqueueBroadcast(sourceObject.Location, new GameMessageCreatureMessage(emoteAction.Message, sourceObject.Name, sourceObject.Guid.Full, ChatMessageType.Broadcast));
+                        sourceObject.EnqueueBroadcast(new GameMessageCreatureMessage(emoteAction.Message, sourceObject.Name, sourceObject.Guid.Full, ChatMessageType.Broadcast));
                     break;
 
                 case EmoteType.LocalSignal:
@@ -567,7 +567,7 @@ namespace ACE.Server.Managers
                     }
                     else
                     {
-                        var motion = new UniversalMotion(MotionStance.Standing, new MotionItem((MotionCommand)emoteAction.Motion, emoteAction.Extent));
+                        var motion = new UniversalMotion(MotionStance.NonCombat, new MotionItem((MotionCommand)emoteAction.Motion, emoteAction.Extent));
 
                         actionChain.AddDelaySeconds(emoteAction.Delay);
                         actionChain.AddAction(sourceObject, () =>
@@ -687,7 +687,7 @@ namespace ACE.Server.Managers
                     actionChain.AddDelaySeconds(emoteAction.Delay);
                     actionChain.AddAction(sourceObject, () =>
                     {
-                        sourceObject.CurrentLandblock?.EnqueueBroadcast(sourceObject.Location, new GameMessageCreatureMessage(emoteAction.Message, sourceObject.Name, sourceObject.Guid.Full, ChatMessageType.Emote));
+                        sourceObject?.EnqueueBroadcast(new GameMessageCreatureMessage(emoteAction.Message, sourceObject.Name, sourceObject.Guid.Full, ChatMessageType.Emote));
                     });
                     break;
 
@@ -870,11 +870,11 @@ namespace ACE.Server.Managers
                     {
                         actionChain.AddDelaySeconds(emoteAction.Delay);
                         var pos = new Position(creature.Location.Cell, creature.Location.PositionX, creature.Location.PositionY, creature.Location.PositionZ, emoteAction.AnglesX ?? 0, emoteAction.AnglesY ?? 0, emoteAction.AnglesZ ?? 0, emoteAction.AnglesW ?? 0);
-                        var rotateTime = 0.0f;
                         actionChain.AddAction(creature, () =>
                         {
-                            rotateTime = creature.TurnTo(pos);
+                            creature.TurnTo(pos);
                         });
+                        var rotateTime = creature.GetRotateDelay(pos);
                         actionChain.AddDelaySeconds(rotateTime);
                     }
                     break;
@@ -884,11 +884,11 @@ namespace ACE.Server.Managers
                     if (creature != null && targetCreature != null)
                     {
                         actionChain.AddDelaySeconds(emoteAction.Delay);
-                        var rotateTime = 0.0f;
                         actionChain.AddAction(creature, () =>
                         {
-                            rotateTime = creature.Rotate(targetCreature);
+                            creature.Rotate(targetCreature);
                         });
+                        var rotateTime = creature.GetRotateDelay(targetCreature);
                         actionChain.AddDelaySeconds(rotateTime);
                     }
                     break;

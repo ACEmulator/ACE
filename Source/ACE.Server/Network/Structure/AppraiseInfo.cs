@@ -56,6 +56,9 @@ namespace ACE.Server.Network.Structure
 
         public ArmorLevel ArmorLevels;
 
+        // This helps ensure the item will identify properly. Some "items" are technically "Creatures".
+        private bool NPCLooksLikeObject; 
+
         /// <summary>
         /// Construct all of the info required for appraising any WorldObject
         /// </summary>
@@ -73,15 +76,17 @@ namespace ACE.Server.Network.Structure
             BuildProperties(wo, wielder);
             BuildSpells(wo);
 
+            // Help us make sure the item identify properly
+            NPCLooksLikeObject = wo.GetProperty(PropertyBool.NpcLooksLikeObject) ?? false;
+
             // armor / clothing / shield
-            var isShield = wo.CombatUse != null && wo.CombatUse == CombatUse.Shield;
-            if (wo is Clothing || isShield)
+            if (wo is Clothing || wo.IsShield)
                 BuildArmor(wo);
 
             if (wo is Creature creature)
                 BuildCreature(creature);
 
-            if (wo is MeleeWeapon || wo is Missile || wo is MissileLauncher || wo is Caster)
+            if (wo is MeleeWeapon || wo is Missile || wo is MissileLauncher || wo is Ammunition || wo is Caster )
                 BuildWeapon(wo, wielder);
 
             BuildFlags();
@@ -106,7 +111,7 @@ namespace ACE.Server.Network.Structure
             if (PropertiesInt.ContainsKey(PropertyInt.ArmorLevel))
                 PropertiesInt[PropertyInt.ArmorLevel] += wo.EnchantmentManager.GetArmorMod();
 
-            if (wielder != null && PropertiesFloat.ContainsKey(PropertyFloat.WeaponDefense))
+            if (wielder != null && PropertiesFloat.ContainsKey(PropertyFloat.WeaponDefense) && !(wo is Ammunition))
                 PropertiesFloat[PropertyFloat.WeaponDefense] += wielder.EnchantmentManager.GetDefenseMod();
         }
 
@@ -134,8 +139,7 @@ namespace ACE.Server.Network.Structure
             if (wielder != null)
                 wielderEnchantments = wielder.EnchantmentManager.GetEnchantments(MagicSchool.ItemEnchantment);
 
-            var isShield = worldObject.CombatUse != null && worldObject.CombatUse == CombatUse.Shield;
-            if (worldObject.WeenieType == WeenieType.Clothing || isShield)
+            if (worldObject.WeenieType == WeenieType.Clothing || worldObject.IsShield)
             {
                 // Only show Clothing type item enchantments
                 foreach (var enchantment in woEnchantments)
@@ -158,6 +162,11 @@ namespace ACE.Server.Network.Structure
                         {
                             activeSpells.Add(new AppraisalSpellBook() { SpellId = (ushort)enchantment.SpellId, EnchantmentState = AppraisalSpellBook._EnchantmentState.On });
                         }
+                    }
+                    else if (worldObject is Ammunition)
+                    {
+                        if ((enchantment.SpellCategory == (uint)SpellCategory.DamageLowering))
+                            activeSpells.Add(new AppraisalSpellBook() { SpellId = (ushort)enchantment.SpellId, EnchantmentState = AppraisalSpellBook._EnchantmentState.On });
                     }
                     else
                     {
@@ -186,6 +195,11 @@ namespace ACE.Server.Network.Structure
                             {
                                 activeSpells.Add(new AppraisalSpellBook() { SpellId = (ushort)enchantment.SpellId, EnchantmentState = AppraisalSpellBook._EnchantmentState.On });
                             }
+                        }
+                        else if (worldObject is Ammunition)
+                        {
+                            if ((enchantment.SpellCategory == (uint)SpellCategory.DamageRaising))
+                                activeSpells.Add(new AppraisalSpellBook() { SpellId = (ushort)enchantment.SpellId, EnchantmentState = AppraisalSpellBook._EnchantmentState.On });
                         }
                         else
                         {
@@ -261,7 +275,14 @@ namespace ACE.Server.Network.Structure
                 Flags |= IdentifyResponseFlags.IntStatsTable;
             if (PropertiesInt64.Count > 0)
                 Flags |= IdentifyResponseFlags.Int64StatsTable;
-            if (PropertiesBool.Count > 0)
+            if (SpellBook.Count > 0)
+                Flags |= IdentifyResponseFlags.SpellBook;
+            if (ResistHighlight != 0)
+                Flags |= IdentifyResponseFlags.ResistEnchantmentBitfield;
+            
+			if (NPCLooksLikeObject) return;
+				
+			if (PropertiesBool.Count > 0)
                 Flags |= IdentifyResponseFlags.BoolStatsTable;
             if (PropertiesFloat.Count > 0)
                 Flags |= IdentifyResponseFlags.FloatStatsTable;
@@ -269,8 +290,6 @@ namespace ACE.Server.Network.Structure
                 Flags |= IdentifyResponseFlags.StringStatsTable;
             if (PropertiesDID.Count > 0)
                 Flags |= IdentifyResponseFlags.DidStatsTable;
-            if (SpellBook.Count > 0)
-                Flags |= IdentifyResponseFlags.SpellBook;
             if (ArmorProfile != null)
                 Flags |= IdentifyResponseFlags.ArmorProfile;
             if (CreatureProfile != null)
@@ -283,8 +302,6 @@ namespace ACE.Server.Network.Structure
                 Flags |= IdentifyResponseFlags.ArmorEnchantmentBitfield;
             if (WeaponHighlight != 0)
                 Flags |= IdentifyResponseFlags.WeaponEnchantmentBitfield;
-            if (ResistHighlight != 0)
-                Flags |= IdentifyResponseFlags.ResistEnchantmentBitfield;
             if (ArmorLevels != null)
                 Flags |= IdentifyResponseFlags.ArmorLevels;
         }

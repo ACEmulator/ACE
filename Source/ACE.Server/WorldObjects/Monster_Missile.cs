@@ -1,9 +1,10 @@
+using System;
 using ACE.Entity.Enum;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
 using ACE.Server.Network.GameMessages.Messages;
-using System;
+using ACE.Server.Physics.Animation;
 
 namespace ACE.Server.WorldObjects
 {
@@ -12,7 +13,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// The delay between missile attacks (todo: find actual value)
         /// </summary>
-        public static readonly float MissileDelay = 2.5f;
+        public static readonly float MissileDelay = 2.0f;
 
         /// <summary>
         /// Returns TRUE if monster has physical ranged attacks
@@ -21,77 +22,79 @@ namespace ACE.Server.WorldObjects
         {
             get
             {
-                var weapon = GetEquippedWeapon();
-                return weapon != null && weapon is MissileLauncher;
+                var weapon = GetEquippedMissileWeapon();
+                return weapon != null;
             }
         }
 
         /// <summary>
-        /// Returns TRUE if monster is wielding a bow or crossbow
+        /// Starts a monster missile attack
         /// </summary>
-        public bool IsBow
+        public void RangeAttack()
         {
-            get
-            {
-                var weapon = GetEquippedWeapon();
-                if (weapon == null) return false;
-
-                var combatStyle = weapon.DefaultCombatStyle;
-                return combatStyle == CombatStyle.Bow || combatStyle == CombatStyle.Crossbow;
-            }
-        }
-
-        /// <summary>
-        /// Gives default ranged ammo if none in wielded treasure
-        /// </summary>
-        public void GiveAmmo()
-        {
+            var weapon = GetEquippedMissileWeapon();
             var ammo = GetEquippedAmmo();
 
-            if (ammo != null) return;
+            if (weapon == null || weapon.IsAmmoLauncher && ammo == null) return;
 
-            ammo = WorldObjectFactory.CreateNewWorldObject(300);
-            TryEquipObject(ammo, (int)EquipMask.MissileAmmo);
+            // simulate accuracy bar / allow client rotate to fully complete
+            var actionChain = new ActionChain();
+            IsTurning = true;
+            actionChain.AddDelaySeconds(0.5f);
 
-            SetChild(ammo, (int)ammo.CurrentWieldedLocation, out var placementId, out var parentLocation);
+            // do missile attack
+            actionChain.AddAction(this, LaunchMissile);
+            actionChain.EnqueueChain();
         }
 
         /// <summary>
         /// Launches a missile attack from monster to target
         /// </summary>
-        public void RangeAttack()
+        public void LaunchMissile()
         {
+            IsTurning = false;
+
+            var weapon = GetEquippedMissileWeapon();
+            if (weapon == null || AttackTarget == null) return;
+
+            var ammo = weapon.IsAmmoLauncher ? GetEquippedAmmo() : weapon;
+            if (ammo == null) return;
+
+            // should this be called each launch?
+            AttackHeight = ChooseAttackHeight();
+
             var dist = GetDistanceToTarget();
             //Console.WriteLine("RangeAttack: " + dist);
 
             NextAttackTime = Timer.CurrentTime + MissileDelay;
 
-            var weapon = GetEquippedWeapon();
-            var sound = weapon.DefaultCombatStyle == CombatStyle.Crossbow ? Sound.CrossbowRelease : Sound.BowRelease;
-
-            if (CurrentLandblock != null)
-                CurrentLandblock?.EnqueueBroadcast(Location, new GameMessageSound(Guid, sound, 1.0f));
-
-            var player = AttackTarget as Player;
-            var bodyPart = GetBodyPart();
-
-            float targetTime = 0.0f;
-            var damageSource = LaunchProjectile(AttackTarget, out targetTime);
-            var animLength = ReloadMotion();
-
+            // launch animation
             var actionChain = new ActionChain();
-            actionChain.AddDelaySeconds(targetTime);
+            var launchTime = EnqueueMotion(actionChain, MotionCommand.AimLevel);
+
+            // launch projectile
+            float targetTime = 0.0f;
             actionChain.AddAction(this, () =>
             {
-                var critical = false;
-                var damageType = DamageType.Undef;
-                var damage = CalculateDamage(ref damageType, bodyPart, ref critical);
+                var sound = GetLaunchMissileSound(weapon);
+                EnqueueBroadcast(new GameMessageSound(Guid, sound, 1.0f));
 
-                if (damage > 0.0f)
-                    player.TakeDamage(this, damageType, damage, bodyPart, critical);
-                else
-                    player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You evaded {Name}!", ChatMessageType.CombatEnemy));
+                // TODO: monster stamina usage
+
+                var projectile = LaunchProjectile(ammo, AttackTarget, out targetTime);
+                UpdateAmmoAfterLaunch(ammo);
             });
+
+            // reload animation
+            var reloadTime = EnqueueMotion(actionChain, MotionCommand.Reload);
+
+            // reset for next projectile
+            EnqueueMotion(actionChain, MotionCommand.Ready);
+            //var linkTime = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, MotionCommand.Ready, MotionCommand.Reload);
+            //var cycleTime = MotionTable.GetCycleLength(MotionTableId, CurrentMotionState.Stance, MotionCommand.Ready);
+
+            actionChain.AddAction(this, () => EnqueueBroadcast(new GameMessageParentEvent(this, ammo, (int)ACE.Entity.Enum.ParentLocation.RightHand,
+                (int)ACE.Entity.Enum.Placement.RightHandCombat)));
 
             actionChain.EnqueueChain();
         }
@@ -101,7 +104,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public Range GetMissileDamage()
         {
-            var ammo = GetEquippedAmmo();
+            var ammo = GetMissileAmmo();
 
             return ammo.GetDamageMod(this);
         }

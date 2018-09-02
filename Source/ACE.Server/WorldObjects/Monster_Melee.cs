@@ -2,11 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using ACE.Database.Models.Shard;
+using ACE.DatLoader.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
-using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Motion;
 using ACE.Server.Physics.Animation;
 
@@ -36,19 +36,27 @@ namespace ACE.Server.WorldObjects
             var player = AttackTarget as Player;
             if (player.Health.Current <= 0) return 0.0f;
 
-            // select random body part @ current attack height
-            var bodyPart = GetBodyPart();
+            // choose a random combat maneuver
+            var maneuver = GetCombatManeuver();
+            if (maneuver == null) return 0.0f;
 
-            DoSwingMotion(AttackTarget, out float animLength);
+            AttackHeight = maneuver.AttackHeight;
+
+            // select random body part @ current attack height
+            var bodyPart = BodyParts.GetBodyPart(AttackHeight.Value);
+
+            DoSwingMotion(AttackTarget, maneuver, out float animLength);
             PhysicsObj.stick_to_object(AttackTarget.PhysicsObj.ID);
 
             var actionChain = new ActionChain();
             actionChain.AddDelaySeconds(animLength / 2.0f);
             actionChain.AddAction(this, () =>
             {
+                if (AttackTarget == null) return;
+
                 var critical = false;
                 var damageType = DamageType.Undef;
-                var damage = CalculateDamage(ref damageType, bodyPart, ref critical);
+                var damage = CalculateDamage(ref damageType, maneuver, bodyPart, ref critical);
 
                 if (damage > 0.0f)
                     player.TakeDamage(this, damageType, damage, bodyPart, critical);
@@ -63,12 +71,43 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
+        /// Selects a random combat maneuver for a monster's next attack
+        /// </summary>
+        public CombatManeuver GetCombatManeuver()
+        {
+            //ShowCombatTable();
+
+            var stanceManeuvers = CombatTable.CMT.Where(m => m.Style == (MotionCommand)CurrentMotionState.Stance).ToList();
+
+            if (stanceManeuvers.Count == 0)
+                return null;
+
+            var rng = Physics.Common.Random.RollDice(0, stanceManeuvers.Count - 1);
+            //Console.WriteLine("Selecting combat maneuver #" + rng);
+
+            return stanceManeuvers[rng];
+        }
+
+        /// <summary>
+        /// Shows debug info for this monster's combat maneuvers table
+        /// </summary>
+        public void ShowCombatTable()
+        {
+            Console.WriteLine($"CombatManeuverTable ID: {CombatTable.Id:X8}");
+            for (var i = 0; i < CombatTable.CMT.Count; i++)
+            {
+                var maneuver = CombatTable.CMT[i];
+                Console.WriteLine($"{i} - {maneuver.Style} - {maneuver.Motion} - {maneuver.AttackHeight}");
+            }
+        }
+
+        /// <summary>
         /// Perform the melee attack swing animation
         /// </summary>
-        public virtual ActionChain DoSwingMotion(WorldObject target, out float animLength)
+        public ActionChain DoSwingMotion(WorldObject target, CombatManeuver maneuver, out float animLength)
         {
-            var swingAnimation = new MotionItem(GetSwingAnimation(), 1.25f);
-            animLength = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, swingAnimation);
+            var swingAnimation = new MotionItem(maneuver.Motion, 1.25f);
+            animLength = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, maneuver.Motion, null, 1.25f);
 
             var motion = new UniversalMotion(CurrentMotionState.Stance, swingAnimation);
             motion.MovementData.CurrentStyle = (uint)CurrentMotionState.Stance;
@@ -79,6 +118,10 @@ namespace ACE.Server.WorldObjects
 
             if (CurrentLandblock != null)
                 CurrentLandblock?.EnqueueBroadcastMotion(this, motion);
+
+            // play default script? (special attack)
+            //if (MotionTable.HasDefaultScript(MotionTableId, maneuver.Motion, maneuver.Style))
+                //EnqueueBroadcast(new GameMessageScript(Guid, (PlayScript)DefaultScriptId));
 
             return null;
         }
@@ -94,19 +137,19 @@ namespace ACE.Server.WorldObjects
 
             switch (CurrentMotionState.Stance)
             {
-                case MotionStance.DualWieldAttack:
-                case MotionStance.MeleeNoShieldAttack:
-                case MotionStance.MeleeShieldAttack:
+                case MotionStance.DualWieldCombat:
+                case MotionStance.SwordCombat:
+                case MotionStance.SwordShieldCombat:
                 case MotionStance.ThrownShieldCombat:
-                case MotionStance.ThrownWeaponAttack:
-                case MotionStance.TwoHandedStaffAttack:
-                case MotionStance.TwoHandedSwordAttack:
+                case MotionStance.ThrownWeaponCombat:
+                case MotionStance.TwoHandedStaffCombat:
+                case MotionStance.TwoHandedSwordCombat:
                     {
                         Enum.TryParse("Slash" + GetAttackHeight(), out motion);
                         return motion;
                     }
 
-                case MotionStance.UaNoShieldAttack:
+                case MotionStance.HandCombat:
                 default:
                     {
                         Enum.TryParse("Attack" + GetAttackHeight() + (int)GetPowerRange(), out motion);
@@ -116,20 +159,35 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Returns base damage range for monster body part
+        /// Returns base damage range for next monster attack
         /// </summary>
         public Range GetBaseDamage(BiotaPropertiesBodyPart attackPart)
         {
             if (CurrentAttack == AttackType.Missile)
                 return GetMissileDamage();
 
+            // use weapon damage for every attack?
+            var weapon = GetEquippedMeleeWeapon();
+            if (weapon != null)
+            {
+                var weaponDamage = weapon.GetBaseDamage();
+                //Console.WriteLine($"{Name} using weapon damage: {weaponDamage}");
+                return weaponDamage;
+            }
+
             var maxDamage = attackPart.DVal;
             var variance = attackPart.DVar;
             var minDamage = maxDamage - maxDamage * variance;
-            //Console.WriteLine(string.Format("Base damage: {0}-{1}", minDamage, maxDamage));
-            return new Range(minDamage, maxDamage);
+
+            var baseDamage = new Range(minDamage, maxDamage);
+            //Console.WriteLine($"{Name} using base damage: {baseDamage}");
+            return baseDamage;
         }
 
+        /// <summary>
+        /// Returns the current attack skill for this monster,
+        /// given their stance and wielded weapon
+        /// </summary>
         public Skill GetCurrentAttackSkill()
         {
             var weapon = GetEquippedWeapon();
@@ -152,21 +210,26 @@ namespace ACE.Server.WorldObjects
         public float GetEvadeChance()
         {
             // get monster attack skill
+            var player = AttackTarget as Player;
             var attackSkill = GetCreatureSkill(GetCurrentAttackSkill()).Current;
+            var offenseMod = GetWeaponOffenseBonus(this);
+            attackSkill = (uint)Math.Round(attackSkill * offenseMod);
 
             if (IsExhausted)
                 attackSkill = GetExhaustedSkill(attackSkill);
 
             // get player defense skill
-            var player = AttackTarget as Player;
-
             var defenseSkill = CurrentAttack == AttackType.Missile ? Skill.MissileDefense : Skill.MeleeDefense;
-            var difficulty = player.GetCreatureSkill(defenseSkill).Current;
+            var defenseMod = defenseSkill == Skill.MeleeDefense ? GetWeaponMeleeDefenseBonus(AttackTarget as Creature) : 1.0f;
+            var difficulty = (uint)Math.Round(player.GetCreatureSkill(defenseSkill).Current * defenseMod);
 
             if (player.IsExhausted) difficulty = 0;
 
-            //Console.WriteLine("Attack skill: " + attackSkill);
-            //Console.WriteLine("Defense skill: " + difficulty);
+            /*var baseStr = offenseMod != 1.0f ? $" (base: {GetCreatureSkill(GetCurrentAttackSkill()).Current})" : "";
+            Console.WriteLine("Attack skill: " + attackSkill + baseStr);
+
+            baseStr = defenseMod != 1.0f ? $" (base: {player.GetCreatureSkill(defenseSkill).Current})" : "";
+            Console.WriteLine("Defense skill: " + difficulty + baseStr);*/
 
             var evadeChance = 1.0f - SkillCheck.GetSkillChance((int)attackSkill, (int)difficulty);
             return (float)evadeChance;
@@ -177,7 +240,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         /// <param name="bodyPart">The player body part the monster is targeting</param>
         /// <param name="criticalHit">Is TRUE if monster rolls a critical hit</param>
-        public float CalculateDamage(ref DamageType damageType, BodyPart bodyPart, ref bool criticalHit)
+        public float CalculateDamage(ref DamageType damageType, CombatManeuver maneuver, BodyPart bodyPart, ref bool criticalHit)
         {
             // evasion chance
             var evadeChance = GetEvadeChance();
@@ -185,7 +248,7 @@ namespace ACE.Server.WorldObjects
                 return 0.0f;
 
             // get base damage
-            var attackPart = GetAttackPart();
+            var attackPart = GetAttackPart(maneuver);
             damageType = GetDamageType(attackPart);
             var damageRange = GetBaseDamage(attackPart);
             var baseDamage = Physics.Common.Random.RollDice(damageRange.Min, damageRange.Max);
@@ -220,16 +283,6 @@ namespace ACE.Server.WorldObjects
             if (criticalHit) damage *= 2;
 
             return damage;
-        }
-
-        /// <summary>
-        /// Selects a random body part at current attack height
-        /// </summary>
-        public BodyPart GetBodyPart()
-        {
-            if (AttackHeight == null) GetAttackHeight();
-
-            return BodyParts.GetBodyPart(AttackHeight.Value);
         }
 
         /// <summary>
@@ -358,18 +411,6 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Returns the attack height for the current monster
-        /// </summary>
-        public virtual string GetAttackHeight()
-        {
-            // if not attack height has been selected
-            //if (AttackHeight == null)
-            AttackHeight = ((AttackHeight)Physics.Common.Random.RollDice(1, 3));
-
-            return AttackHeight.Value.GetString();
-        }
-
-        /// <summary>
         /// Returns the power range for the current melee attack
         /// </summary>
         public virtual PowerAccuracy GetPowerRange()
@@ -378,21 +419,24 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Returns a random attackable body part
+        /// Returns the monster body part performing the next attack
         /// </summary>
-        public BiotaPropertiesBodyPart GetAttackPart()
+        public BiotaPropertiesBodyPart GetAttackPart(CombatManeuver maneuver)
         {
-            var parts = GetAttackParts();
-            var part = parts[Physics.Common.Random.RollDice(0, parts.Count - 1)];
-            return part;
-        }
+            List<BiotaPropertiesBodyPart> parts = null;
+            var attackHeight = (uint)AttackHeight;
+            if (maneuver != null)
+            {
+                var motionName = ((MotionCommand)maneuver.Motion).ToString();
+                if (motionName.Contains("Special"))
+                    parts = Biota.BiotaPropertiesBodyPart.Where(b => b.DVal != 0 && b.BH == 0).ToList();
+            }
+            if (parts == null)
+                parts = Biota.BiotaPropertiesBodyPart.Where(b => b.DVal != 0 && b.BH != 0).ToList();
 
-        /// <summary>
-        /// Returns the body parts which have damage values
-        /// </summary>
-        public List<BiotaPropertiesBodyPart> GetAttackParts()
-        {
-            return Biota.BiotaPropertiesBodyPart.Where(b => b.DVal != 0).ToList();
+            var part = parts[Physics.Common.Random.RollDice(0, parts.Count - 1)];
+
+            return part;
         }
     }
 }

@@ -5,7 +5,6 @@ using System.Linq;
 
 using log4net;
 
-using ACE.Database;
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.DatLoader;
@@ -26,7 +25,6 @@ using ACE.Server.WorldObjects.Entity;
 using ACE.Server.Physics.Animation;
 using ACE.Server.Physics.Common;
 
-using Landblock = ACE.Server.Entity.Landblock;
 using MotionTable = ACE.DatLoader.FileTypes.MotionTable;
 using Position = ACE.Entity.Position;
 
@@ -51,6 +49,7 @@ namespace ACE.Server.WorldObjects
             Character.Id = guid.Full;
             Character.AccountId = session.Id;
             Character.Name = GetProperty(PropertyString.Name);
+            CharacterChangesDetected = true;
 
             Session = session;
 
@@ -73,11 +72,23 @@ namespace ACE.Server.WorldObjects
             Session = session;
 
             SetEphemeralValues();
+
+            // THIS IS A TEMPORARY PATCH TO COPY OVER EXISTING CHARACTER OPTIONS FROM THE BIOTA TO THE CHARACTER OBJECT.
+            // This can be removed in time. 2018-09-01 Mag-nus
+            if (Character.CharacterOptions1 == 0 && Character.CharacterOptions2 == 0)
+            {
+                Character.CharacterOptions1 = GetProperty((PropertyInt)9003) ?? 1355064650;
+                Character.CharacterOptions2 = GetProperty((PropertyInt)9004) ?? 34560;
+                CharacterChangesDetected = true;
+            }
         }
 
         public override void InitPhysicsObj()
         {
             base.InitPhysicsObj();
+
+            // set pink bubble state
+            IgnoreCollisions = true; ReportCollisions = false; Hidden = true;
 
             PhysicsObj.SetPlayer();
         }
@@ -86,12 +97,10 @@ namespace ACE.Server.WorldObjects
         {
             BaseDescriptionFlags |= ObjectDescriptionFlag.Player;
 
-            IgnoreCollisions = true; ReportCollisions = false; Hidden = true;
-
             // This is the default send upon log in and the most common. Anything with a velocity will need to add that flag.
             PositionFlag |= UpdatePositionFlag.ZeroQx | UpdatePositionFlag.ZeroQy | UpdatePositionFlag.Contact | UpdatePositionFlag.Placement;
 
-            CurrentMotionState = new UniversalMotion(MotionStance.Standing);
+            CurrentMotionState = new UniversalMotion(MotionStance.NonCombat);
 
             // radius for object updates
             ListeningRadius = 5f;
@@ -330,7 +339,7 @@ namespace ACE.Server.WorldObjects
         //public ReadOnlyCollection<Friend> Friends => Friends;
         public ReadOnlyCollection<Friend> Friends { get; set; }
 
-        public MotionStance stance = MotionStance.Standing;
+        public MotionStance stance = MotionStance.NonCombat;
 
         public void ExamineObject(ObjectGuid examinationId)
         {
@@ -463,7 +472,9 @@ namespace ACE.Server.WorldObjects
         public void ActionBroadcastKill(string deathMessage, ObjectGuid victimId, ObjectGuid killerId)
         {
             var deathBroadcast = new GameMessagePlayerKilled(deathMessage, victimId, killerId);
-            CurrentLandblock?.EnqueueBroadcast(Location, Landblock.OutdoorChatRange, deathBroadcast);
+
+            // OutdoorChatRange?
+            EnqueueBroadcast(deathBroadcast);
         }
 
         /// <summary>
@@ -476,85 +487,7 @@ namespace ACE.Server.WorldObjects
             Session.Network.EnqueueSend(new GameMessageSound(sourceId, sound, volume));
         }
 
-        /// <summary>
-        /// Adds a friend and updates the database.
-        /// </summary>
-        /// <param name="friendName">The name of the friend that is being added.</param>
-        public void HandleActionAddFriend(string friendName)
-        {
-            if (string.Equals(friendName, Name, StringComparison.CurrentCultureIgnoreCase))
-                ChatPacket.SendServerMessage(Session, "Sorry, but you can't be friends with yourself.", ChatMessageType.Broadcast);
-
-            // get friend player info
-            var friendInfo = WorldManager.AllPlayers.FirstOrDefault(p => p.Name.Equals(friendName));
-
-            if (friendInfo == null)
-            {
-                ChatPacket.SendServerMessage(Session, "That character does not exist", ChatMessageType.Broadcast);
-                return;
-            }
-
-            // already exists in friends list?
-            if (Character.CharacterPropertiesFriendList.FirstOrDefault(f => f.FriendId == friendInfo.Guid.Full) != null)
-                ChatPacket.SendServerMessage(Session, "That character is already in your friends list", ChatMessageType.Broadcast);
-
-            var newFriend = new CharacterPropertiesFriendList();
-            newFriend.CharacterId = Biota.Id;      // current player id
-            //newFriend.AccountId = Biota.Character.AccountId;    // current player account id
-            newFriend.FriendId = friendInfo.Biota.Id;
-
-            // add friend to DB
-            Character.CharacterPropertiesFriendList.Add(newFriend);
-
-            // send network message
-            Session.Network.EnqueueSend(new GameEventFriendsListUpdate(Session, GameEventFriendsListUpdate.FriendsUpdateTypeFlag.FriendAdded, newFriend));
-        }
-
-        /// <summary>
-        /// Remove a single friend and update the database.
-        /// </summary>
-        /// <param name="friendId">The ObjectGuid of the friend that is being removed</param>
-        public void HandleActionRemoveFriend(ObjectGuid friendId)
-        {
-            var friendToRemove = Character.CharacterPropertiesFriendList.SingleOrDefault(f => f.FriendId == friendId.Full);
-
-            // Not in friend list
-            if (friendToRemove == null)
-            {
-                ChatPacket.SendServerMessage(Session, "That character is not in your friends list!", ChatMessageType.Broadcast);
-                return;
-            }
-
-            // remove friend in DB
-            if (Character.TryRemoveFriend(friendId, out var entity) && ExistsInDatabase && entity.Id != 0)
-                DatabaseManager.Shard.RemoveEntity(entity, null);
-
-            // send network message
-            Session.Network.EnqueueSend(new GameEventFriendsListUpdate(Session, GameEventFriendsListUpdate.FriendsUpdateTypeFlag.FriendRemoved, friendToRemove));
-        }
-
-        /// <summary>
-        /// Delete all friends and update the database.
-        /// </summary>
-        public void HandleActionRemoveAllFriends()
-        {
-            // Remove all from DB
-            DatabaseManager.Shard.RemoveAllFriends(Guid.Low, null);
-
-            // Remove from character object
-            HandleActionRemoveAllFriends();
-        }
-
-        /// <summary>
-        /// Set the AppearOffline option to the provided value.  It will also send out an update to all online clients that have this player as a friend. This option does not save to the database.
-        /// </summary>
-        public void AppearOffline(bool appearOffline)
-        {
-            SetCharacterOption(CharacterOption.AppearOffline, appearOffline);
-            SendFriendStatusUpdates();
-        }
-
-
+ 
         /// <summary>
         /// Set the currently position of the character, to later save in the database.
         /// </summary>
@@ -652,7 +585,7 @@ namespace ACE.Server.WorldObjects
 
             if (!clientSessionTerminatedAbruptly)
             {
-                var logout = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.LogOut));
+                var logout = new UniversalMotion(MotionStance.NonCombat, new MotionItem(MotionCommand.LogOut));
                 CurrentLandblock?.EnqueueBroadcastMotion(this, logout);
 
                 EnqueueBroadcastPhysicsState();
@@ -669,16 +602,6 @@ namespace ACE.Server.WorldObjects
         }
 
         public void HandleMRT()
-        {
-            ActionChain mrtChain = new ActionChain();
-
-            // Handle MRT Toggle internal must decide what to do next...
-            mrtChain.AddAction(this, new ActionEventDelegate(() => HandleMRTToggleInternal()));
-
-            mrtChain.EnqueueChain();
-        }
-
-        private void HandleMRTToggleInternal()
         {
             // This requires the Admin flag set on ObjectDescriptionFlags
             // I would expect this flag to be set in Admin.cs which would be a subclass of Player
@@ -698,7 +621,7 @@ namespace ACE.Server.WorldObjects
             // var updateBool = new GameMessagePrivateUpdatePropertyBool(Session, PropertyBool.IgnoreHouseBarriers, ImmuneCellRestrictions);
             // Session.Network.EnqueueSend(updateBool);
 
-            CurrentLandblock?.EnqueueBroadcast(Location, Landblock.MaxObjectRange, new GameMessagePublicUpdatePropertyBool(this, PropertyBool.IgnoreHouseBarriers, IgnoreHouseBarriers ?? false));
+            EnqueueBroadcast(new GameMessagePublicUpdatePropertyBool(this, PropertyBool.IgnoreHouseBarriers, IgnoreHouseBarriers ?? false));
 
             Session.Network.EnqueueSend(new GameMessageSystemChat($"Bypass Housing Barriers now set to: {IgnoreHouseBarriers}", ChatMessageType.Broadcast));
         }
@@ -712,27 +635,21 @@ namespace ACE.Server.WorldObjects
 
         public void HandleActionFinishBarber(ClientMessage message)
         {
-            ActionChain chain = new ActionChain();
-            chain.AddAction(this, () => DoFinishBarber(message));
-            chain.EnqueueChain();
-        }
-
-        public void DoFinishBarber(ClientMessage message)
-        {
             // Read the payload sent from the client...
             PaletteBaseId = message.Payload.ReadUInt32();
-            HeadObject = message.Payload.ReadUInt32();
-            HairTexture = message.Payload.ReadUInt32();
-            DefaultHairTexture = message.Payload.ReadUInt32();
-            EyesTexture = message.Payload.ReadUInt32();
-            DefaultEyesTexture = message.Payload.ReadUInt32();
-            NoseTexture = message.Payload.ReadUInt32();
-            DefaultNoseTexture = message.Payload.ReadUInt32();
-            MouthTexture = message.Payload.ReadUInt32();
-            DefaultMouthTexture = message.Payload.ReadUInt32();
-            SkinPalette = message.Payload.ReadUInt32();
-            HairPalette = message.Payload.ReadUInt32();
-            EyesPalette = message.Payload.ReadUInt32();
+            HeadObjectDID = message.Payload.ReadUInt32();
+            Character.HairTexture = message.Payload.ReadUInt32();
+            Character.DefaultHairTexture = message.Payload.ReadUInt32();
+            CharacterChangesDetected = true;
+            EyesTextureDID = message.Payload.ReadUInt32();
+            DefaultEyesTextureDID = message.Payload.ReadUInt32();
+            NoseTextureDID = message.Payload.ReadUInt32();
+            DefaultNoseTextureDID = message.Payload.ReadUInt32();
+            MouthTextureDID = message.Payload.ReadUInt32();
+            DefaultMouthTextureDID = message.Payload.ReadUInt32();
+            SkinPaletteDID = message.Payload.ReadUInt32();
+            HairPaletteDID = message.Payload.ReadUInt32();
+            EyesPaletteDID = message.Payload.ReadUInt32();
             SetupTableId = message.Payload.ReadUInt32();
 
             uint option_bound = message.Payload.ReadUInt32(); // Supress Levitation - Empyrean Only
@@ -778,10 +695,7 @@ namespace ACE.Server.WorldObjects
 
 
             // Broadcast updated character appearance
-            CurrentLandblock?.EnqueueBroadcast(
-                Location,
-                Landblock.MaxObjectRange,
-                new GameMessageObjDescEvent(this));
+            EnqueueBroadcast(new GameMessageObjDescEvent(this));
         }
 
         /// <summary>
@@ -790,17 +704,11 @@ namespace ACE.Server.WorldObjects
         /// <param name="item"></param>
         public void HandleActionForceObjDescSend(ObjectGuid item)
         {
-            ActionChain objDescChain = new ActionChain();
-            objDescChain.AddAction(this, () =>
-            {
-                WorldObject wo = GetInventoryItem(item);
-                if (wo != null)
-                    CurrentLandblock?.EnqueueBroadcast(Location, Landblock.MaxObjectRange,
-                        new GameMessageObjDescEvent(wo));
-                else
-                    log.Debug($"Error - requested object description for an item I do not know about - {item.Full:X}");
-            });
-            objDescChain.EnqueueChain();
+            WorldObject wo = GetInventoryItem(item);
+            if (wo != null)
+                EnqueueBroadcast(new GameMessageObjDescEvent(wo));
+            else
+                log.Debug($"Error - requested object description for an item I do not know about - {item.Full:X}");
         }
 
         protected override void SendUpdatePosition(bool forcePos = false)
@@ -854,7 +762,7 @@ namespace ACE.Server.WorldObjects
 
         public void HandleActionApplySoundEffect(Sound sound)
         {
-            new ActionChain(this, () => PlaySound(sound, Guid)).EnqueueChain();
+            PlaySound(sound, Guid);
         }
 
         //public void TestWieldItem(Session session, uint modelId, int palOption, float shade = 0)
@@ -942,48 +850,20 @@ namespace ACE.Server.WorldObjects
 
         public void HandleActionTalk(string message)
         {
-            ActionChain chain = new ActionChain();
-            chain.AddAction(this, () => DoTalk(message));
-            chain.EnqueueChain();
-        }
-
-        public void DoTalk(string message)
-        {
             CurrentLandblock?.EnqueueBroadcastLocalChat(this, message);
         }
 
         public void HandleActionEmote(string message)
-        {
-            ActionChain chain = new ActionChain();
-            chain.AddAction(this, () => DoEmote(message));
-            chain.EnqueueChain();
-        }
-
-        public void DoEmote(string message)
         {
             CurrentLandblock?.EnqueueBroadcastLocalChatEmote(this, message);
         }
 
         public void HandleActionSoulEmote(string message)
         {
-            ActionChain chain = new ActionChain();
-            chain.AddAction(this, () => DoSoulEmote(message));
-            chain.EnqueueChain();
-        }
-
-        public void DoSoulEmote(string message)
-        {
             CurrentLandblock?.EnqueueBroadcastLocalChatSoulEmote(this, message);
         }
 
         public void HandleActionJump(JumpPack jump)
-        {
-            //Console.WriteLine(jump);
-
-            UseJumpStamina(jump);
-        }
-
-        public void UseJumpStamina(JumpPack jump)
         {
             var strength = GetCreatureAttribute(PropertyAttribute.Strength).Current;
             var capacity = EncumbranceSystem.EncumbranceCapacity((int)strength, 0);     // TODO: augs
@@ -1031,6 +911,8 @@ namespace ACE.Server.WorldObjects
         /// <param name="spellDID">Id of the spell cast by the consumable; can be null, if buffType != ConsumableBuffType.Spell</param>
         public void ApplyComsumable(string consumableName, Sound sound, ConsumableBuffType buffType, uint? boostAmount, uint? spellDID)
         {
+            uint spellId = spellDID ?? 0;
+
             GameMessageSystemChat buffMessage;
             MotionCommand motionCommand;
 
@@ -1040,18 +922,20 @@ namespace ACE.Server.WorldObjects
                 motionCommand = MotionCommand.Drink;
 
             var soundEvent = new GameMessageSound(Guid, sound, 1.0f);
-            var motion = new UniversalMotion(MotionStance.Standing, new MotionItem(motionCommand));
+            var motion = new UniversalMotion(MotionStance.NonCombat, new MotionItem(motionCommand));
 
             DoMotion(motion);
 
             if (buffType == ConsumableBuffType.Spell)
             {
-                // Null check for safety
-                if (spellDID == null)
-                    spellDID = 0;
+                bool result = false;
+                if (spellId != 0)
+                    result = CreateSingleSpell(spellId);
 
-                // TODO: Handle spell cast
-                buffMessage = new GameMessageSystemChat($"Consuming {consumableName} not yet fully implemented.", ChatMessageType.System);
+                if (!result)
+                    buffMessage = new GameMessageSystemChat($"Consuming {consumableName} attempted to apply a spell not yet fully implemented.", ChatMessageType.System);
+                else
+                    buffMessage = new GameMessageSystemChat($"{consumableName} applies {DatManager.PortalDat.SpellTable.Spells[spellId].Name} on you.", ChatMessageType.Craft);
             }
             else
             {
@@ -1092,7 +976,7 @@ namespace ACE.Server.WorldObjects
             motionChain.AddDelaySeconds(motionAnimationLength);
 
             // Return to standing position after the animation delay
-            motionChain.AddAction(this, () => DoMotion(new UniversalMotion(MotionStance.Standing)));
+            motionChain.AddAction(this, () => DoMotion(new UniversalMotion(MotionStance.NonCombat)));
             motionChain.EnqueueChain();
         }
 

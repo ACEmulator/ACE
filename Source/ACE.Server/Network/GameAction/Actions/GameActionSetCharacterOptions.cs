@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 using ACE.Common.Extensions;
@@ -171,7 +172,7 @@ namespace ACE.Server.Network.GameAction.Actions
 
                 byte[] gameplayOptions = new byte[size];
                 gameplayOptions = message.Payload.ReadBytes(size);
-                session.Player.Character.GameplayOptions = gameplayOptions;
+                session.Player.SetCharacterGameplayOptions(gameplayOptions);
             }
         }
     }

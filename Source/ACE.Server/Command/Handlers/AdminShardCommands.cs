@@ -6,7 +6,7 @@ using ACE.Server.Network.GameMessages.Messages;
 
 namespace ACE.Server.Command.Handlers
 {
-    public static class ShardCommands
+    public static class AdminShardCommands
     {
         // // commandname parameters
         // [CommandHandler("commandname", AccessLevel.Admin, CommandHandlerFlag.RequiresWorld, 0)]

@@ -4,12 +4,15 @@ using ACE.Server.Physics.Animation;
 
 namespace ACE.Server.Physics.Common
 {
-    public class BuildingObj: PhysicsObj
+    public class BuildingObj : PhysicsObj
     {
+        public List<EnvCell> BuildingCells;
         public List<BldPortal> Portals;
         public List<PartCell> LeafCells;
         public List<ShadowPart> ShadowList;
         public uint NumLeaves;
+
+        public uint LandblockID { get => CurCell.ID | 0xFFFF; }
 
         public BuildingObj() : base()
         {
@@ -64,6 +67,32 @@ namespace ACE.Server.Physics.Common
                 if (otherCell != null)
                     otherCell.check_building_transit(portal.OtherPortalId, numParts, parts, cellArray);
             }
+        }
+
+        public List<EnvCell> get_building_cells()
+        {
+            if (BuildingCells != null) return BuildingCells;
+
+            BuildingCells = new List<EnvCell>();
+
+            // entry points into the building,
+            // aka cells touching the outdoor landblock
+            foreach (var portal in Portals)
+            {
+                var entrypoint = portal.GetOtherCell(LandblockID);
+                add_cells_recursive(entrypoint);
+            }
+            return BuildingCells;
+        }
+
+        public void add_cells_recursive(EnvCell cell)
+        {
+            if (cell == null || BuildingCells.Contains(cell)) return;
+
+            BuildingCells.Add(cell);
+
+            foreach (var visibleCell in cell.VisibleCells.Values)
+                add_cells_recursive(visibleCell);
         }
 
         public PhysicsObj get_object(int objectID)

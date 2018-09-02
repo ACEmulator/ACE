@@ -45,6 +45,18 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
+        /// Returns the magic skill level used for spell range checks.
+        /// (initial points + points due to directly raising the skill)
+        /// </summary>
+        /// <returns></returns>
+        public uint GetMagicSkillForRangeCheck()
+        {
+            var currentSpell = GetCurrentSpell();
+            var skill = GetCreatureSkill((MagicSchool)currentSpell.School);
+            return skill.InitLevel + skill.Ranks;
+        }
+
+        /// <summary>
         /// Returns the sum of all probabilities from monster's spell_book
         /// </summary>
         public float GetSpellProbability()
@@ -76,7 +88,7 @@ namespace ACE.Server.WorldObjects
         public void DoCastMotion(WorldObject target, out float animLength)
         {
             var castMotion = new MotionItem(MotionCommand.CastSpell, 1.5f);
-            animLength = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, castMotion);
+            animLength = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, MotionCommand.CastSpell, null, 1.5f);
 
             var motion = new UniversalMotion(CurrentMotionState.Stance, castMotion);
             motion.MovementData.CurrentStyle = (uint)CurrentMotionState.Stance;
@@ -117,11 +129,13 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void CastSpell()
         {
+            if (AttackTarget == null) return;
+
             bool? resisted;
             var spellBase = GetCurrentSpellBase();
             var spell = GetCurrentSpell();
 
-            var targetSelf = spellBase.Name.Contains("Self");   // better way?
+            var targetSelf = (spellBase.Bitfield & (uint)SpellBitfield.SelfTargeted) == 1;
             var target = targetSelf ? this : AttackTarget;
 
             var player = AttackTarget as Player;
@@ -144,7 +158,7 @@ namespace ACE.Server.WorldObjects
                         break;
                     }
                     LifeMagic(target, spellBase, spell, out uint damage, out bool critical, out var msg);
-                    if (CurrentLandblock != null) CurrentLandblock?.EnqueueBroadcast(Location, new GameMessageScript(target.Guid, (PlayScript)spellBase.TargetEffect, scale));
+                    EnqueueBroadcast(new GameMessageScript(target.Guid, (PlayScript)spellBase.TargetEffect, scale));
                     break;
 
                 case MagicSchool.CreatureEnchantment:
@@ -157,7 +171,7 @@ namespace ACE.Server.WorldObjects
                         break;
                     }
                     CreatureMagic(target, spellBase, spell);
-                    if (CurrentLandblock != null) CurrentLandblock?.EnqueueBroadcast(Location, new GameMessageScript(target.Guid, (PlayScript)spellBase.TargetEffect, scale));
+                    EnqueueBroadcast(new GameMessageScript(target.Guid, (PlayScript)spellBase.TargetEffect, scale));
                     break;
             }
         }
@@ -188,7 +202,7 @@ namespace ACE.Server.WorldObjects
         public float GetSpellMaxRange()
         {
             var spell = GetCurrentSpellBase();
-            var skill = GetMagicSkill();
+            var skill = GetMagicSkillForRangeCheck();
 
             var maxRange = spell.BaseRangeConstant + skill * spell.BaseRangeMod;
             if (maxRange == 0.0f)

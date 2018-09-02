@@ -8,23 +8,29 @@ namespace ACE.Server.WorldObjects.Entity
     public class CreatureSkill
     {
         private readonly Creature creature;
-        public readonly Skill Skill;
-
         // This is the underlying database record
         private readonly BiotaPropertiesSkill biotaPropertiesSkill;
 
-        public CreatureSkill(Creature creature, Skill skill)
+        public readonly Skill Skill;
+
+        public CreatureSkill(Creature creature, BiotaPropertiesSkill biotaPropertiesSkill)
         {
             this.creature = creature;
-            Skill = skill;
+            this.biotaPropertiesSkill = biotaPropertiesSkill;
 
-            biotaPropertiesSkill = creature.Biota.GetProperty(skill);
+            Skill = (Skill)biotaPropertiesSkill.Type;
         }
 
         public SkillAdvancementClass AdvancementClass
         {
             get => (SkillAdvancementClass)biotaPropertiesSkill.SAC;
-            set => biotaPropertiesSkill.SAC = (uint)value;
+            set
+            {
+                if (biotaPropertiesSkill.SAC != (uint)value)
+                    creature.ChangesDetected = true;
+
+                biotaPropertiesSkill.SAC = (uint)value;
+            }
         }
 
         /// <summary>
@@ -34,13 +40,29 @@ namespace ACE.Server.WorldObjects.Entity
         public uint ExperienceSpent
         {
             get => biotaPropertiesSkill.PP;
-            set => biotaPropertiesSkill.PP = value;
+            set
+            {
+                if (biotaPropertiesSkill.PP != value)
+                    creature.ChangesDetected = true;
+
+                biotaPropertiesSkill.PP = value;
+            }
         }
 
+        /// <summary>
+        /// Total skill level due to
+        /// directly raising the skill
+        /// </summary>
         public ushort Ranks
         {
             get => biotaPropertiesSkill.LevelFromPP;
-            set => biotaPropertiesSkill.LevelFromPP = value;
+            set
+            {
+                if (biotaPropertiesSkill.LevelFromPP != value)
+                    creature.ChangesDetected = true;
+
+                biotaPropertiesSkill.LevelFromPP = value;
+            }
         }
 
         public uint Base

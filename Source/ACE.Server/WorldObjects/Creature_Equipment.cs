@@ -58,23 +58,52 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Returns the currently equipped weapon
+        /// Returns the currently equipped primary weapon
         /// </summary>
         public WorldObject GetEquippedWeapon()
         {
-            var meleeWeapon = EquippedObjects.Values.FirstOrDefault(e => e.CurrentWieldedLocation == EquipMask.MeleeWeapon);
-            var missileWeapon = EquippedObjects.Values.FirstOrDefault(e => e.CurrentWieldedLocation == EquipMask.MissileWeapon);
+            var meleeWeapon = GetEquippedMeleeWeapon();
+            return meleeWeapon != null ? meleeWeapon : GetEquippedMissileWeapon();
+        }
 
-            return meleeWeapon != null ? meleeWeapon : missileWeapon;
+        /// <summary>
+        /// Returns the currently equipped primary melee weapon
+        /// </summary>
+        public WorldObject GetEquippedMeleeWeapon()
+        {
+            return EquippedObjects.Values.FirstOrDefault(e => e.ParentLocation == ACE.Entity.Enum.ParentLocation.RightHand && (e.CurrentWieldedLocation == EquipMask.MeleeWeapon || e.CurrentWieldedLocation == EquipMask.TwoHanded));
+        }
+
+        /// <summary>
+        /// Returns the currently equipped secondary weapon
+        /// </summary>
+        public WorldObject GetDualWieldWeapon()
+        {
+            return EquippedObjects.Values.FirstOrDefault(e => !e.IsShield && e.CurrentWieldedLocation == EquipMask.Shield);
+        }
+
+        /// <summary>
+        /// Returns the currently equipped wand
+        /// </summary>
+        public WorldObject GetEquippedWand()
+        {
+            return EquippedObjects.Values.FirstOrDefault(e => e.CurrentWieldedLocation == EquipMask.Held);
+        }
+
+        /// <summary>
+        /// Returns the currently equipped missile weapon
+        /// </summary>
+        public WorldObject GetEquippedMissileWeapon()
+        {
+            return EquippedObjects.Values.FirstOrDefault(e => e.CurrentWieldedLocation == EquipMask.MissileWeapon);
         }
 
         /// <summary>
         /// Returns the currently equipped shield
         /// </summary>
-        /// <returns></returns>
         public WorldObject GetEquippedShield()
         {
-            return EquippedObjects.Values.FirstOrDefault(e => e.CurrentWieldedLocation == EquipMask.Shield);
+            return EquippedObjects.Values.FirstOrDefault(e => e.IsShield && e.CurrentWieldedLocation == EquipMask.Shield);
         }
 
         /// <summary>
@@ -84,6 +113,20 @@ namespace ACE.Server.WorldObjects
         public WorldObject GetEquippedAmmo()
         {
             return EquippedObjects.Values.FirstOrDefault(e => e.CurrentWieldedLocation == EquipMask.MissileAmmo);
+        }
+
+        /// <summary>
+        /// Returns the ammo slot item for bows / atlatls,
+        /// or the missile weapon for thrown weapons
+        /// </summary>
+        public WorldObject GetMissileAmmo()
+        {
+            var weapon = GetEquippedMissileWeapon();
+
+            if (weapon.IsAmmoLauncher)
+                return GetEquippedAmmo();
+            else
+                return weapon;
         }
 
         /// <summary>
@@ -102,8 +145,7 @@ namespace ACE.Server.WorldObjects
             EncumbranceVal += worldObject.EncumbranceVal;
             Value += worldObject.Value;
 
-            if (CurrentLandblock != null)
-                CurrentLandblock?.EnqueueActionBroadcast(Location, Landblock.MaxObjectRange, (Player p) => p.TrackObject(this));
+            EnqueueActionBroadcast((Player p) => p.TrackObject(this));
 
             return true;
         }
@@ -133,8 +175,7 @@ namespace ACE.Server.WorldObjects
                 EncumbranceVal -= worldObject.EncumbranceVal;
                 Value -= worldObject.Value;
 
-                if (CurrentLandblock != null)
-                    CurrentLandblock?.EnqueueActionBroadcast(Location, Landblock.MaxObjectRange, (Player p) => p.TrackObject(this));
+                EnqueueActionBroadcast((Player p) => p.TrackObject(this));
 
                 return true;
             }

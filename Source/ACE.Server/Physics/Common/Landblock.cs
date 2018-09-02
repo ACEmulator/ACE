@@ -27,6 +27,7 @@ namespace ACE.Server.Physics.Common
         public List<ushort> StabList;
         public List<LandCell> DrawArray;
         public List<PhysicsObj> Scenery;
+        public List<PhysicsObj> ServerObjects;
 
         public static bool UseSceneFiles = true;
 
@@ -58,6 +59,7 @@ namespace ACE.Server.Physics.Common
             BlockCoord = new Vector2();
             StaticObjects = new List<PhysicsObj>();
             Buildings = new List<BuildingObj>();
+            ServerObjects = new List<PhysicsObj>();
         }
 
         public void PostInit()
@@ -69,6 +71,29 @@ namespace ACE.Server.Physics.Common
         public void add_static_object(PhysicsObj obj)
         {
             StaticObjects.Add(obj);
+        }
+
+        /// <summary>
+        /// Called when a server object to be broadcast to clients
+        /// enters this landblock
+        /// </summary>
+        public bool add_server_object(PhysicsObj obj)
+        {
+            if (!ServerObjects.Contains(obj))
+            {
+                ServerObjects.Add(obj);
+                return true;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Called when a server object to be broadcast to clients
+        /// is removed from this landblock
+        /// </summary>
+        public bool remove_server_object(PhysicsObj obj)
+        {
+            return ServerObjects.Remove(obj);
         }
 
         public void adjust_scene_obj_height()
@@ -234,6 +259,7 @@ namespace ACE.Server.Physics.Common
 
                         // build object
                         var physicsObj = PhysicsObj.makeObject(obj.ObjId, 0, false);
+                        physicsObj.DatObject = true;
                         physicsObj.set_initial_frame(pos.Frame);
                         if (!physicsObj.obj_within_block()) continue;
 
@@ -454,6 +480,7 @@ namespace ACE.Server.Physics.Common
                 foreach (var info in Info.Objects)
                 {
                     var obj = PhysicsObj.makeObject(info.Id, 0, false);
+                    obj.DatObject = true;
                     var position = new Position(ID, new AFrame(info.Frame));
                     var outside = LandDefs.AdjustToOutside(position);
                     var cell = get_landcell(position.ObjCellID);
@@ -528,6 +555,67 @@ namespace ACE.Server.Physics.Common
                 isDungeon = Info != null && Info.NumCells > 0 && Info.Buildings != null && Info.Buildings.Count == 0;
                 return isDungeon.Value;
             }
+        }
+
+        private List<Landblock> adjacents;
+
+        /// <summary>
+        /// Returns the list of adjacent landblocks
+        /// </summary>
+        public List<Landblock> get_adjacents()
+        {
+            if (adjacents != null) return adjacents;
+
+            adjacents = new List<Landblock>();
+
+            // dungeons have no adjacents
+            if (IsDungeon) return adjacents;
+
+            var lbx = ID >> 24;
+            var lby = ID >> 16 & 0xFF;
+
+            var startX = lbx > 0 ? lbx - 1 : lbx;
+            var startY = lby > 0 ? lby - 1 : lby;
+
+            var endX = lbx < 254 ? lbx + 1 : lbx;
+            var endY = lby < 254 ? lby + 1 : lby;
+
+            // get adjacents for outdoor landblocks
+            for (var curX = startX; curX <= endX; curX++)
+            {
+                for (var curY = startY; curY <= endY; curY++)
+                {
+                    // exclude current landblock
+                    if (curX == lbx && curY == lby) continue;
+
+                    var id = curX << 24 | curY << 16 | 0xFFFF;
+                    var landblock = LScape.get_landblock(id);
+                    if (landblock != null)
+                        adjacents.Add(landblock);
+                }
+            }
+            return adjacents;
+        }
+
+        private List<EnvCell> envcells;
+
+        public List<EnvCell> get_envcells()
+        {
+            if (envcells != null) return envcells;
+
+            envcells = new List<EnvCell>();
+
+            var startCell = ID & 0xFFFF0000 | 0x100;
+            var cellID = startCell;
+            for (var i = 0; i < Info.NumCells; i++)
+            {
+                var envCell = (EnvCell)LScape.get_landcell(cellID++);
+                if (envCell != null)
+                    envcells.Add(envCell);
+                else
+                    break;
+            }
+            return envcells;
         }
     }
 }

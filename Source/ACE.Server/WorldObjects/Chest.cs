@@ -53,15 +53,14 @@ namespace ACE.Server.WorldObjects
                 UseRadius = 2; // Until DoMoveTo (Physics, Indoor/Outside range variance) is smarter, use 2 is safest.
         }
 
-        private static readonly UniversalMotion motionOpen = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.On));
-        private static readonly UniversalMotion motionClosed = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.Off));
+        private static readonly UniversalMotion motionOpen = new UniversalMotion(MotionStance.NonCombat, new MotionItem(MotionCommand.On));
+        private static readonly UniversalMotion motionClosed = new UniversalMotion(MotionStance.NonCombat, new MotionItem(MotionCommand.Off));
 
-        //private static readonly MotionState motionStateOpen = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.On));
-        //private static readonly MotionState motionStateClosed = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.Off));
+        //private static readonly MotionState motionStateOpen = new UniversalMotion(MotionStance.NonCombat, new MotionItem(MotionCommand.On));
+        //private static readonly MotionState motionStateClosed = new UniversalMotion(MotionStance.NonCombat, new MotionItem(MotionCommand.Off));
 
         /// <summary>
-        /// This is raised by Player.HandleActionUseItem, and is wrapped in ActionChain.<para />
-        /// The actor of the ActionChain is the item being used.<para />
+        /// This is raised by Player.HandleActionUseItem.<para />
         /// The item does not exist in the players possession.<para />
         /// If the item was outside of range, the player will have been commanded to move using DoMoveTo before ActOnUse is called.<para />
         /// When this is called, it should be assumed that the player is within range.
@@ -82,7 +81,7 @@ namespace ACE.Server.WorldObjects
                 {
                     if (!(IsOpen ?? false))
                     {
-                        var turnToMotion = new UniversalMotion(MotionStance.Standing, Location, Guid);
+                        var turnToMotion = new UniversalMotion(MotionStance.NonCombat, Location, Guid);
                         turnToMotion.MovementTypes = MovementTypes.TurnToObject;
 
                         ActionChain turnToTimer = new ActionChain();

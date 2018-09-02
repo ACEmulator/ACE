@@ -1,17 +1,8 @@
-using ACE.Database;
-using ACE.Database.Models.World;
-using ACE.DatLoader;
-using ACE.DatLoader.Entity;
 using ACE.Entity.Enum;
-using ACE.Server.Managers;
 using ACE.Server.Network;
-using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
-using ACE.Server.Network.Structure;
 using ACE.Server.WorldObjects;
-using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace ACE.Server.Command.Handlers
 {
@@ -185,10 +176,10 @@ namespace ACE.Server.Command.Handlers
             if (!CommandParameterHelpers.ResolveACEParameters(session, parameters, aceParams)) return;
             if (aceParams[0].AsPlayer.Fellowship == null)
             {
-                BuffPlayers(new Player[] { aceParams[0].AsPlayer }, session.Player, aceParams[0].AsPlayer == session.Player);
+                session.Player.CreateSentinelBuffPlayers(new Player[] { aceParams[0].AsPlayer }, aceParams[0].AsPlayer == session.Player);
                 return;
             }
-            BuffPlayers(aceParams[0].AsPlayer.Fellowship.FellowshipMembers, session.Player,
+            session.Player.CreateSentinelBuffPlayers(aceParams[0].AsPlayer.Fellowship.FellowshipMembers,
                 aceParams[0].AsPlayer.Fellowship.FellowshipMembers.Count == 1 && aceParams[0].AsPlayer.Fellowship.FellowshipMembers[0] == session.Player);
         }
 
@@ -208,120 +199,8 @@ namespace ACE.Server.Command.Handlers
                 }
             };
             if (!CommandParameterHelpers.ResolveACEParameters(session, parameters, aceParams)) return;
-            BuffPlayers(new Player[] { aceParams[0].AsPlayer }, session.Player, aceParams[0].AsPlayer == session.Player);
-        }
-
-        public static void BuffPlayers(IEnumerable<Player> players, Player caster, bool self = false)
-        {
-            var SelfOrOther = self ? "Self" : "Other";
-            var maxSpellLevel = (DatabaseManager.World.GetCachedSpell((uint)Network.Enum.Spell.ArmorOther8) == null) ? "7" : "8";
-            var tySpell = typeof(Network.Enum.Spell);
-            List<BuffMessage> buffMessages = new List<BuffMessage>();
-            // prepare messages
-            foreach (var spell in Buffs)
-            {
-                uint spellID = (uint)Enum.Parse(tySpell, spell + SelfOrOther + maxSpellLevel);
-                var buffMsg = BuildBuffMessage(spellID);
-                if (buffMsg != null) buffMessages.Add(buffMsg);
-            }
-            // buff each player
-            players.ToList().ForEach(targetPlayer =>
-            {
-                // bake player into the messages
-                buffMessages.ForEach(k => k.SetTargetPlayer(targetPlayer));
-                // update client-side enchantments
-                targetPlayer.Session.Network.EnqueueSend(buffMessages.Select(k => k.SessionMessage).ToArray());
-                // run client-side effect scripts, omitting duplicates
-                targetPlayer.CurrentLandblock?.EnqueueBroadcast(targetPlayer.Location, buffMessages.GroupBy(m => m.SpellBase.TargetEffect).Select(a => a.First().LandblockMessage).ToArray());
-                // update server-side enchantments
-                targetPlayer.EnchantmentManager.AddRange(buffMessages.Select(k => k.Enchantment), caster);
-            });
-        }
-
-        private static string[] Buffs = new string[] {
-#region spells
-            // TODO: Item Aura buffs
-            "Strength",
-            "Invulnerability",
-            "FireProtection",
-            "Armor",
-            "Rejuvenation",
-            "Regeneration",
-            "ManaRenewal",
-            "Impregnability",
-            "MagicResistance",
-            "AxeMastery",
-            "DaggerMastery",
-            "MaceMastery",
-            "SpearMastery",
-            "StaffMastery",
-            "SwordMastery",
-            "UnarmedCombatMastery",
-            "BowMastery",
-            "CrossbowMastery",
-            "AcidProtection",
-            "ThrownWeaponMastery",
-            "CreatureEnchantmentMastery",
-            "ItemEnchantmentMastery",
-            "LifeMagicMastery",
-            "WarMagicMastery",
-            "ManaMastery",
-            "ArcaneEnlightenment",
-            "ArmorExpertise",
-            "ItemExpertise",
-            "MagicItemExpertise",
-            "WeaponExpertise",
-            "MonsterAttunement",
-            "PersonAttunement",
-            "DeceptionMastery",
-            "HealingMastery",
-            "LeadershipMastery",
-            "LockpickMastery",
-            "Fealty",
-            "JumpingMastery",
-            "Sprint",
-            "BludgeonProtection",
-            "ColdProtection",
-            "LightningProtection",
-            "BladeProtection",
-            "PiercingProtection",
-            "Endurance",
-            "Coordination",
-            "Quickness",
-            "Focus",
-            "Willpower",
-            "CookingMastery",
-            "FletchingMastery",
-            "AlchemyMastery",
-            "VoidMagicMastery",
-            "SummoningMastery"
-#endregion
-            };
-
-        public class BuffMessage
-        {
-            public GameEventMagicUpdateEnchantment SessionMessage { get; set; } = null;
-            public GameMessageScript LandblockMessage { get; set; } = null;
-            public SpellBase SpellBase { get; set; } = null;
-            public Spell Spell { get; set; } = null;
-            public Enchantment Enchantment { get; set; } = null;
-            public void SetTargetPlayer(Player p)
-            {
-                Enchantment.Target = p;
-                SessionMessage = new GameEventMagicUpdateEnchantment(p.Session, Enchantment);
-                LandblockMessage = new GameMessageScript(p.Guid, (PlayScript)SpellBase.TargetEffect, 1f);
-            }
-        }
-
-        public static BuffMessage BuildBuffMessage(uint spellID)
-        {
-            BuffMessage buff = new BuffMessage();
-            if (spellID < 1) throw new Exception("spell not found");
-            buff.SpellBase = DatManager.PortalDat.SpellTable.Spells[spellID]; if (buff.SpellBase == null) return null; // the portal data doesn't have the spell, throw here instead?
-            buff.Spell = DatabaseManager.World.GetCachedSpell(spellID); if (buff.Spell == null) return null; // the database doesn't have the spell
-            buff.Enchantment = new Enchantment(null, null, spellID, (double)buff.Spell.Duration, 1, buff.Spell.StatModType, buff.Spell.StatModVal);
-            return buff;
-        }
+            session.Player.CreateSentinelBuffPlayers(new Player[] { aceParams[0].AsPlayer }, aceParams[0].AsPlayer == session.Player);
+        }        
 
         // run < on | off | toggle | check >
         [CommandHandler("run", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 0,
@@ -342,8 +221,6 @@ namespace ACE.Server.Command.Handlers
                 param = "toggle";
 
             var spellID = (uint)Network.Enum.Spell.SentinelRun;
-            var spellBase = DatManager.PortalDat.SpellTable.Spells[spellID];
-            var spell = DatabaseManager.World.GetCachedSpell(spellID);
 
             switch (param)
             {
@@ -363,11 +240,8 @@ namespace ACE.Server.Command.Handlers
                         session.Network.EnqueueSend(new GameMessageSystemChat("Run speed boost is currently INACTIVE", ChatMessageType.Broadcast));
                     break;
                 case "on":
-                    var runEnchantment = new Enchantment(session.Player, session.Player.Guid, spellID, (double)spell.Duration, 1, spell.StatModType, spell.StatModVal);
-                    var msgRunEnchantment = new GameEventMagicUpdateEnchantment(session, runEnchantment);
-                    session.Player.CurrentLandblock?.EnqueueBroadcast(session.Player.Location, new GameMessageScript(session.Player.Guid, (PlayScript)spell.TargetEffect, 1f));
-                    session.Player.EnchantmentManager.Add(runEnchantment, null);
-                    session.Network.EnqueueSend(new GameMessageSystemChat("Run forrest, run!", ChatMessageType.Broadcast), msgRunEnchantment);
+                    session.Player.CreateSingleSpell(spellID);
+                    session.Network.EnqueueSend(new GameMessageSystemChat("Run forrest, run!", ChatMessageType.Broadcast));
                     break;
             }
         }

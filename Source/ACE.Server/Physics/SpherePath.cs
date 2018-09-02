@@ -155,14 +155,14 @@ namespace ACE.Server.Physics.Animation
         /// Converts the local sphere to global space
         /// relative to checkPos offset
         /// </summary>
-        public void CacheGlobalSphere(Vector3 offset)
+        public void CacheGlobalSphere(Vector3? offset)
         {
-            if (offset != Vector3.Zero)
+            if (offset != null)
             {
                 foreach (var globSphere in GlobalSphere)
-                    globSphere.Center += offset;
+                    globSphere.Center += offset.Value;
 
-                GlobalLowPoint += offset;
+                GlobalLowPoint += offset.Value;
             }
             else
             {
@@ -201,7 +201,7 @@ namespace ACE.Server.Physics.Animation
                 LocalSpaceSphere[i].Radius = LocalSphere[i].Radius * invScale;
                 LocalSpaceSphere[i].Center = pos.LocalToLocal(CheckPos, LocalSphere[i].Center) * invScale;
             }
-            LocalSpacePos = pos;
+            LocalSpacePos = new Position(pos);
             LocalSpaceZ = pos.GlobalToLocalVec(Vector3.UnitZ);
             LocalSpaceLowPoint = LocalSpaceSphere[0].Center - (LocalSpaceZ * LocalSpaceSphere[0].Radius);
         }
@@ -259,13 +259,13 @@ namespace ACE.Server.Physics.Animation
             CheckPos = new Position(BackupCheckPos);
             CheckCell = BackupCell;
             CellArrayValid = false;
-            CacheGlobalSphere(Vector3.Zero);
+            CacheGlobalSphere(null);
         }
 
         public void SaveCheckPos()
         {
             BackupCell = CheckCell;
-            BackupCheckPos = CheckPos;    // reference?
+            BackupCheckPos = new Position(CheckPos);
         }
 
         public void SetCheckPos(Position position, ObjCell cell)
@@ -273,14 +273,14 @@ namespace ACE.Server.Physics.Animation
             CheckPos = new Position(position);
             CheckCell = cell;
             CellArrayValid = false;
-            CacheGlobalSphere(Vector3.Zero);
+            CacheGlobalSphere(null);
         }
 
         public void SetCollide(Vector3 collisionNormal)
         {
             Collide = true;
             BackupCell = CheckCell;
-            BackupCheckPos = CheckPos;  // reference?
+            BackupCheckPos = new Position(CheckPos);
             StepUpNormal = new Vector3(collisionNormal.X, collisionNormal.Y, collisionNormal.Z);
             WalkInterp = 1.0f;
         }

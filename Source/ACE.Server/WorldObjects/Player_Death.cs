@@ -36,7 +36,7 @@ namespace ACE.Server.WorldObjects
                 Killer = topDamager.Guid.Full;
 
             // broadcast death animation
-            var deathAnim = new UniversalMotion(MotionStance.Standing, new MotionItem(MotionCommand.Dead));
+            var deathAnim = new UniversalMotion(MotionStance.NonCombat, new MotionItem(MotionCommand.Dead));
             CurrentLandblock?.EnqueueBroadcastMotion(this, deathAnim);
 
             // killer death message = last damager
@@ -93,10 +93,10 @@ namespace ACE.Server.WorldObjects
             // teleport to sanctuary or best location
             var newPosition = Sanctuary ?? LastPortal ?? Location;
 
-            // Enqueue a teleport action, followed by Stand-up
-            // Queue the teleport to lifestone
-            ActionChain teleportChain = GetTeleportChain(newPosition);
+            Teleport(newPosition);
 
+            var teleportChain = new ActionChain();
+            teleportChain.AddDelaySeconds(3.0f);
             teleportChain.AddAction(this, () =>
             {
                 // currently happens while in portal space
@@ -115,7 +115,7 @@ namespace ACE.Server.WorldObjects
                 Session.Network.EnqueueSend(msgHealthUpdate, msgStaminaUpdate, msgManaUpdate);
 
                 // Stand back up
-                DoMotion(new UniversalMotion(MotionStance.Standing));
+                DoMotion(new UniversalMotion(MotionStance.NonCombat));
             });
             teleportChain.EnqueueChain();
         }

@@ -1,5 +1,10 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using ACE.Database.Models.Shard;
+using ACE.DatLoader;
+using ACE.DatLoader.FileTypes;
+using ACE.DatLoader.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
@@ -42,8 +47,44 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public bool IsDead => Health.Current <= 0;
 
+        /// <summary>
+        /// The list of combat maneuvers performable by this monster
+        /// </summary>
+        public CombatManeuverTable CombatTable;
+
+        /// <summary>
+        /// A list of possible attack heights for this monster,
+        /// as determined by the combat maneuvers table
+        /// </summary>
+        private List<AttackHeight> _attackHeights;
+
+        public List<AttackHeight> AttackHeights
+        {
+            get
+            {
+                if (CombatTable == null) return null;
+
+                if (_attackHeights == null)
+                    _attackHeights = CombatTable.CMT.Select(m => (AttackHeight)m.AttackHeight).Distinct().ToList();
+
+                return _attackHeights;
+            }
+        }
+
+        /// <summary>
+        /// Selects a random attack height for the next attack
+        /// </summary>
+        public AttackHeight ChooseAttackHeight()
+        {
+            var rng = Physics.Common.Random.RollDice(0, AttackHeights.Count - 1);
+            return AttackHeights[rng];
+        }
+
         public virtual AttackType GetAttackType()
         {
+            if (CombatTable == null)
+                GetCombatTable();
+
             if (IsRanged)
                 return AttackType.Missile;
 
@@ -55,14 +96,20 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
+        /// Reads the combat maneuvers table from the DAT file
+        /// </summary>
+        public void GetCombatTable()
+        {
+            if (CombatTableDID != null)
+                CombatTable = DatManager.PortalDat.ReadFromDat<CombatManeuverTable>(CombatTableDID.Value);
+        }
+
+        /// <summary>
         /// Switch to attack stance
         /// </summary>
         public void DoAttackStance()
         {
             var combatMode = IsRanged ? CombatMode.Missile : CombatMode.Melee;
-
-            if (IsRanged)
-                GiveAmmo();
 
             SetCombatMode(combatMode);
         }
@@ -138,10 +185,12 @@ namespace ACE.Server.WorldObjects
 
         public DamageType GetDamageType(BiotaPropertiesBodyPart attackPart)
         {
-            if (CurrentAttack != AttackType.Missile)
-                return (DamageType)attackPart.DType;
+            var weapon = GetEquippedWeapon();
+
+            if (weapon != null)
+                return GetDamageType();
             else
-                return GetDamageType(false);
+                return (DamageType)attackPart.DType;
         }
 
         /// <summary>

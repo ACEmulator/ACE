@@ -10,7 +10,7 @@ using ACE.Server.Physics.Extensions;
 
 namespace ACE.Server.Physics.Common
 {
-    public class EnvCell: ObjCell
+    public class EnvCell: ObjCell, IEquatable<EnvCell>
     {
         public int NumSurfaces;
         //public List<Surface> Surfaces;
@@ -46,6 +46,7 @@ namespace ACE.Server.Physics.Common
             NumPortals = Portals.Count;
             StaticObjectIDs = new List<uint>();
             StaticObjectFrames = new List<AFrame>();
+            NumStaticObjects = envCell.StaticObjects.Count;
             foreach (var staticObj in envCell.StaticObjects)
             {
                 StaticObjectIDs.Add(staticObj.Id);
@@ -61,6 +62,12 @@ namespace ACE.Server.Physics.Common
             CellStructureID = envCell.CellStructure;    // environment can contain multiple?
             if (Environment.Cells != null && Environment.Cells.ContainsKey(CellStructureID))
                 CellStructure = new CellStruct(Environment.Cells[CellStructureID]);
+        }
+
+        public void PostInit()
+        {
+            build_visible_cells();
+            init_static_objects();
         }
 
         public override TransitionState FindEnvCollisions(Transition transition)
@@ -211,7 +218,7 @@ namespace ACE.Server.Physics.Common
             CellStructure = new CellStruct();
             StaticObjectIDs = new List<uint>();
             StaticObjectFrames = new List<AFrame>();
-            StaticObjects = new List<PhysicsObj>();
+            //StaticObjects = new List<PhysicsObj>();
             VisibleCells = new Dictionary<uint, EnvCell>();
         }
 
@@ -367,10 +374,13 @@ namespace ACE.Server.Physics.Common
                 for (var i = 0; i < NumStaticObjects; i++)
                 {
                     var staticObj = PhysicsObj.makeObject(StaticObjectIDs[i], 0, false);
+                    staticObj.DatObject = true;
                     staticObj.add_obj_to_cell(this, StaticObjectFrames[i]);
 
                     StaticObjects.Add(staticObj);
                 }
+
+                //Console.WriteLine($"{ID:X8}: loaded {NumStaticObjects} static objects");
             }
         }
 
@@ -396,6 +406,19 @@ namespace ACE.Server.Physics.Common
         {
             foreach (var stab in stabs)
                 VisibleCells.Remove(stab);
+        }
+
+        public bool Equals(EnvCell envCell)
+        {
+            if (envCell == null)
+                return false;
+
+            return ID == envCell.ID;
+        }
+
+        public override int GetHashCode()
+        {
+            return ID.GetHashCode();
         }
     }
 }
