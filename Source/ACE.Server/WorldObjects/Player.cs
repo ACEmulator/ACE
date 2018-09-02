@@ -603,16 +603,6 @@ namespace ACE.Server.WorldObjects
 
         public void HandleMRT()
         {
-            ActionChain mrtChain = new ActionChain();
-
-            // Handle MRT Toggle internal must decide what to do next...
-            mrtChain.AddAction(this, new ActionEventDelegate(() => HandleMRTToggleInternal()));
-
-            mrtChain.EnqueueChain();
-        }
-
-        private void HandleMRTToggleInternal()
-        {
             // This requires the Admin flag set on ObjectDescriptionFlags
             // I would expect this flag to be set in Admin.cs which would be a subclass of Player
             // FIXME: maybe move to Admin class?
@@ -644,13 +634,6 @@ namespace ACE.Server.WorldObjects
 
 
         public void HandleActionFinishBarber(ClientMessage message)
-        {
-            ActionChain chain = new ActionChain();
-            chain.AddAction(this, () => DoFinishBarber(message));
-            chain.EnqueueChain();
-        }
-
-        public void DoFinishBarber(ClientMessage message)
         {
             // Read the payload sent from the client...
             PaletteBaseId = message.Payload.ReadUInt32();
@@ -721,16 +704,11 @@ namespace ACE.Server.WorldObjects
         /// <param name="item"></param>
         public void HandleActionForceObjDescSend(ObjectGuid item)
         {
-            ActionChain objDescChain = new ActionChain();
-            objDescChain.AddAction(this, () =>
-            {
-                WorldObject wo = GetInventoryItem(item);
-                if (wo != null)
-                    EnqueueBroadcast(new GameMessageObjDescEvent(wo));
-                else
-                    log.Debug($"Error - requested object description for an item I do not know about - {item.Full:X}");
-            });
-            objDescChain.EnqueueChain();
+            WorldObject wo = GetInventoryItem(item);
+            if (wo != null)
+                EnqueueBroadcast(new GameMessageObjDescEvent(wo));
+            else
+                log.Debug($"Error - requested object description for an item I do not know about - {item.Full:X}");
         }
 
         protected override void SendUpdatePosition(bool forcePos = false)
@@ -784,7 +762,7 @@ namespace ACE.Server.WorldObjects
 
         public void HandleActionApplySoundEffect(Sound sound)
         {
-            new ActionChain(this, () => PlaySound(sound, Guid)).EnqueueChain();
+            PlaySound(sound, Guid);
         }
 
         //public void TestWieldItem(Session session, uint modelId, int palOption, float shade = 0)
@@ -872,48 +850,20 @@ namespace ACE.Server.WorldObjects
 
         public void HandleActionTalk(string message)
         {
-            ActionChain chain = new ActionChain();
-            chain.AddAction(this, () => DoTalk(message));
-            chain.EnqueueChain();
-        }
-
-        public void DoTalk(string message)
-        {
             CurrentLandblock?.EnqueueBroadcastLocalChat(this, message);
         }
 
         public void HandleActionEmote(string message)
-        {
-            ActionChain chain = new ActionChain();
-            chain.AddAction(this, () => DoEmote(message));
-            chain.EnqueueChain();
-        }
-
-        public void DoEmote(string message)
         {
             CurrentLandblock?.EnqueueBroadcastLocalChatEmote(this, message);
         }
 
         public void HandleActionSoulEmote(string message)
         {
-            ActionChain chain = new ActionChain();
-            chain.AddAction(this, () => DoSoulEmote(message));
-            chain.EnqueueChain();
-        }
-
-        public void DoSoulEmote(string message)
-        {
             CurrentLandblock?.EnqueueBroadcastLocalChatSoulEmote(this, message);
         }
 
         public void HandleActionJump(JumpPack jump)
-        {
-            //Console.WriteLine(jump);
-
-            UseJumpStamina(jump);
-        }
-
-        public void UseJumpStamina(JumpPack jump)
         {
             var strength = GetCreatureAttribute(PropertyAttribute.Strength).Current;
             var capacity = EncumbranceSystem.EncumbranceCapacity((int)strength, 0);     // TODO: augs
