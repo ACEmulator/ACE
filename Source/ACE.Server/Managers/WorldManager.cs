@@ -40,6 +40,7 @@ namespace ACE.Server.Managers
 
         public static List<Player> AllPlayers;
 
+        public static readonly object UpdateWorldLandblockLock = new object();
         public static bool Concurrency = false;
 
         /// <summary>
@@ -426,32 +427,35 @@ namespace ACE.Server.Managers
                 // handle time-based actions
                 DelayManager.RunActions();
 
-                // update positions through physics engine
-                var movedObjects = HandlePhysics(PortalYearTicks);
-
-                // iterate through objects that have changed landblocks
-                foreach (var movedObject in movedObjects)
-                {
-                    // NOTE: The object's Location can now be null, if a player logs out, or an item is picked up
-                    if (movedObject.Location == null) continue;
-
-                    // assume adjacency move here?
-                    LandblockManager.RelocateObjectForPhysics(movedObject, true);
-                }
-
                 InboundMessageQueue.RunActions();
 
-                // Now, update actions within landblocks
-                //   This is responsible for updating all "actors" residing within the landblock. 
-                //   Objects and landblocks are "actors"
-                //   "actors" decide if they want to read/modify their own state (set desired velocity), move-to positions, move items, read vitals, etc
-                // N.B. -- Broadcasts are enqueued for sending at the end of the landblock's action time
-                // FIXME(ddevec): Goal is to eventually migrate to an "Act" function of the LandblockManager ActiveLandblocks
-                //    Inactive landblocks will be put on TimeoutManager queue for timeout killing
-                LandblockActionQueue.RunActions();
+                lock (UpdateWorldLandblockLock)
+                {
+                    // update positions through physics engine
+                    var movedObjects = HandlePhysics(PortalYearTicks);
 
-                // clean up inactive landblocks
-                LandblockManager.UnloadLandblocks();
+                    // iterate through objects that have changed landblocks
+                    foreach (var movedObject in movedObjects)
+                    {
+                        // NOTE: The object's Location can now be null, if a player logs out, or an item is picked up
+                        if (movedObject.Location == null) continue;
+
+                        // assume adjacency move here?
+                        LandblockManager.RelocateObjectForPhysics(movedObject, true);
+                    }
+
+                    // Now, update actions within landblocks
+                    //   This is responsible for updating all "actors" residing within the landblock. 
+                    //   Objects and landblocks are "actors"
+                    //   "actors" decide if they want to read/modify their own state (set desired velocity), move-to positions, move items, read vitals, etc
+                    // N.B. -- Broadcasts are enqueued for sending at the end of the landblock's action time
+                    // FIXME(ddevec): Goal is to eventually migrate to an "Act" function of the LandblockManager ActiveLandblocks
+                    //    Inactive landblocks will be put on TimeoutManager queue for timeout killing
+                    LandblockActionQueue.RunActions();
+
+                    // clean up inactive landblocks
+                    LandblockManager.UnloadLandblocks();
+                }
 
                 // Session Maintenance
                 sessionLock.EnterUpgradeableReadLock();

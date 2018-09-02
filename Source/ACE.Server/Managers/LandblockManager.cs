@@ -68,8 +68,12 @@ namespace ACE.Server.Managers
                     session.Network.EnqueueSend(new GameEventPopupString(session, $"{welcomeHeader}\n{msg}"));
 
                 var location = player.GetPosition(PositionType.Location);
-                var landblock = GetLandblock(location.LandblockId, true);
-                landblock.AddWorldObject(session.Player);
+
+                lock (WorldManager.UpdateWorldLandblockLock)
+                {
+                    var landblock = GetLandblock(location.LandblockId, true);
+                    landblock.AddWorldObject(session.Player);
+                }
 
                 var motdString = PropertyManager.GetString("motd_string").Item;
                 session.Network.EnqueueSend(new GameMessageSystemChat(motdString, ChatMessageType.Broadcast));
