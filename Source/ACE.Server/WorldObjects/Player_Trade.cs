@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using ACE.Entity;
 using ACE.Entity.Enum;
@@ -46,15 +45,19 @@ namespace ACE.Server.WorldObjects
 
                 if (!isAttuned)
                 {
-                    session.Player.ItemsInTradeWindow.Add(item);
-
-                    session.Network.EnqueueSend(new GameEventAddToTrade(session, item, TradeSide.Self));
-
                     WorldObject wo = GetInventoryItem(item);
 
-                    targetsession.Player.TrackObject(wo);
+                    if (wo != null)
+                    {
+                        session.Player.ItemsInTradeWindow.Add(item);
 
-                    targetsession.Network.EnqueueSend(new GameEventAddToTrade(targetsession, item, TradeSide.Partner));
+                        session.Network.EnqueueSend(new GameEventAddToTrade(session, item, TradeSide.Self));
+
+                        targetsession.Player.TrackObject(wo);
+
+                        targetsession.Network.EnqueueSend(new GameEventAddToTrade(targetsession, item, TradeSide.Partner));
+                    }
+                    
                 }
                 else
                 {
@@ -91,31 +94,32 @@ namespace ACE.Server.WorldObjects
 
                         if (wo != null)
                         {
-                            Console.WriteLine(wo.Name);
                             session.Player.TryRemoveFromInventoryWithNetworking(wo);
 
                             targetsession.Player.TryCreateInInventoryWithNetworking(wo);
+
                         }
                     }
 
                     foreach (ObjectGuid itemGuid in targetsession.Player.ItemsInTradeWindow)
                     {
-                        WorldObject wo = GetInventoryItem(itemGuid);
+                        WorldObject wo = targetsession.Player.GetInventoryItem(itemGuid);
 
                         if (wo != null)
                         {
-                            Console.WriteLine(wo.Name);
                             targetsession.Player.TryRemoveFromInventoryWithNetworking(wo);
 
                             session.Player.TryCreateInInventoryWithNetworking(wo);
+
                         }
                     }
 
                     session.Player.HandleActionCloseTradeNegotiations(session);
                     targetsession.Player.HandleActionCloseTradeNegotiations(targetsession);
+
+                    session.Player.EnqueueSaveChain();
+                    targetsession.Player.EnqueueSaveChain();
                 }
-
-
             }
         }
 
