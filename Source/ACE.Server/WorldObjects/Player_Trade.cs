@@ -114,8 +114,11 @@ namespace ACE.Server.WorldObjects
                         }
                     }
 
-                    session.Player.HandleActionCloseTradeNegotiations(session);
-                    targetsession.Player.HandleActionCloseTradeNegotiations(targetsession);
+                    session.Network.EnqueueSend(new GameEventWeenieError(session, WeenieError.TradeComplete));
+                    targetsession.Network.EnqueueSend(new GameEventWeenieError(targetsession, WeenieError.TradeComplete));
+
+                    session.Player.HandleActionResetTrade(session,session.Player.Guid);
+                    targetsession.Player.HandleActionResetTrade(targetsession, session.Player.Guid);
 
                     session.Player.EnqueueSaveChain();
                     targetsession.Player.EnqueueSaveChain();
