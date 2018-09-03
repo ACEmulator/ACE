@@ -6,6 +6,7 @@ using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Network.Motion;
 using ACE.Server.Network.GameEvent.Events;
+using ACE.Server.Network.GameMessages.Messages;
 
 namespace ACE.Server.WorldObjects
 {
@@ -101,7 +102,7 @@ namespace ACE.Server.WorldObjects
                 else
                 {
                     player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, $"The {Name} is locked!"));
-                    CurrentLandblock?.EnqueueBroadcastSound(this, Sound.OpenFailDueToLock);
+                    EnqueueBroadcast(new GameMessageSound(Guid, Sound.OpenFailDueToLock, 1.0f));
                 }
 
                 player.SendUseDoneEvent();

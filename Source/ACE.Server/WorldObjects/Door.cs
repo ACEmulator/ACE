@@ -189,7 +189,7 @@ namespace ACE.Server.WorldObjects
                         var player = worldObject as Player;
                         var doorIsLocked = new GameEventCommunicationTransientString(player.Session, "The door is locked!");
                         player.Session.Network.EnqueueSend(doorIsLocked);
-                        CurrentLandblock?.EnqueueBroadcastSound(this, Sound.OpenFailDueToLock);
+                        EnqueueBroadcast(new GameMessageSound(Guid, Sound.OpenFailDueToLock, 1.0f));
                     }
                 }
 

@@ -765,7 +765,7 @@ namespace ACE.Server.Managers
                     break;
 
                 case EmoteType.Sound:
-                    targetObject.CurrentLandblock?.EnqueueBroadcastSound(targetObject, (Sound)emoteAction.Sound);
+                    targetObject.EnqueueBroadcast(new GameMessageSound(targetObject.Guid, (Sound)emoteAction.Sound, 1.0f));
                     break;
 
                 case EmoteType.SpendLuminance:

@@ -54,7 +54,7 @@ namespace ACE.Server.WorldObjects
                 sancTimer.AddAction(player, () =>
                 {
                     CurrentLandblock?.EnqueueBroadcastMotion(player, sanctuary);
-                    CurrentLandblock?.EnqueueBroadcastSound(player, Sound.LifestoneOn, 1);
+                    player.EnqueueBroadcast(new GameMessageSound(player.Guid, Sound.LifestoneOn, 1.0f));
                 });
                 sancTimer.AddDelaySeconds(DatManager.PortalDat.ReadFromDat<MotionTable>(player.MotionTableId).GetAnimationLength(MotionCommand.Sanctuary));
                 sancTimer.AddAction(player, () =>

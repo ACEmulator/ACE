@@ -399,7 +399,7 @@ namespace ACE.Server.Managers
                 case EmoteType.LocalBroadcast:
 
                     text = Replace(emote.Message, WorldObject, target);
-                    WorldObject.CurrentLandblock?.EnqueueBroadcastSystemChat(WorldObject, text, ChatMessageType.Broadcast);
+                    WorldObject.EnqueueBroadcast(new GameMessageSystemChat(text, ChatMessageType.Broadcast));
                     break;
 
                 case EmoteType.LocalSignal:
@@ -484,7 +484,7 @@ namespace ACE.Server.Managers
 
                     text = Replace(emote.Message, WorldObject, target);
                     if (player != null)
-                        player.CurrentLandblock?.EnqueueBroadcastLocalChat(player, text);
+                        player.EnqueueBroadcast(new GameMessageCreatureMessage(text, player.Name, player.Guid.Full, ChatMessageType.Speech));
                     break;
 
                 case EmoteType.SetAltRacialSkills:
@@ -564,7 +564,7 @@ namespace ACE.Server.Managers
                     break;
 
                 case EmoteType.Sound:
-                    target.CurrentLandblock?.EnqueueBroadcastSound(target, (Sound)emote.Sound);
+                    target.EnqueueBroadcast(new GameMessageSound(target.Guid, (Sound)emote.Sound, 1.0f));
                     break;
 
                 case EmoteType.SpendLuminance:

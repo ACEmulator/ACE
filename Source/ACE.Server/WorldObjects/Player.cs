@@ -850,17 +850,17 @@ namespace ACE.Server.WorldObjects
 
         public void HandleActionTalk(string message)
         {
-            CurrentLandblock?.EnqueueBroadcastLocalChat(this, message);
+            EnqueueBroadcast(new GameMessageCreatureMessage(message, Name, Guid.Full, ChatMessageType.Speech));
         }
 
         public void HandleActionEmote(string message)
         {
-            CurrentLandblock?.EnqueueBroadcastLocalChatEmote(this, message);
+            EnqueueBroadcast(new GameMessageEmoteText(Guid.Full, Name, message));
         }
 
         public void HandleActionSoulEmote(string message)
         {
-            CurrentLandblock?.EnqueueBroadcastLocalChatSoulEmote(this, message);
+            EnqueueBroadcast(new GameMessageSoulEmote(Guid.Full, Name, message));
         }
 
         public void HandleActionJump(JumpPack jump)

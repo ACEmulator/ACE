@@ -65,7 +65,7 @@ namespace ACE.Server.Entity
 
         public LandBlockStatus Status = new LandBlockStatus();
 
-        private NestedActionQueue actionQueue;
+        private readonly NestedActionQueue actionQueue;
 
         public LandblockId Id { get; }
 
@@ -530,72 +530,56 @@ namespace ACE.Server.Entity
             if (!highXInLandblock)
             {
                 if (EastAdjacency != null)
-                {
                     inRange.Add(EastAdjacency);
-                }
             }
 
             // North East
             if (!highXInLandblock && !highYInLandblock)
             {
                 if (NorthEastAdjacency != null)
-                {
                     inRange.Add(NorthEastAdjacency);
-                }
             }
 
             // North
             if (!highYInLandblock)
             {
                 if (NorthAdjacency != null)
-                {
                     inRange.Add(NorthAdjacency);
-                }
             }
 
             // North West
             if (!lowXInLandblock && !highYInLandblock)
             {
                 if (NorthWestAdjacency != null)
-                {
                     inRange.Add(NorthWestAdjacency);
-                }
             }
 
             // West
             if (!lowXInLandblock)
             {
                 if (WestAdjacency != null)
-                {
                     inRange.Add(WestAdjacency);
-                }
             }
 
             // South West
             if (!lowXInLandblock && !lowYInLandblock)
             {
                 if (SouthWestAdjacency != null)
-                {
                     inRange.Add(SouthWestAdjacency);
-                }
             }
 
             // South
             if (!lowYInLandblock)
             {
                 if (SouthAdjacency != null)
-                {
                     inRange.Add(SouthAdjacency);
-                }
             }
 
             // South East
             if (!highXInLandblock && !lowYInLandblock)
             {
                 if (SouthEastAdjacency != null)
-                {
                     inRange.Add(SouthEastAdjacency);
-                }
             }
 
             return inRange;
@@ -606,50 +590,9 @@ namespace ACE.Server.Entity
         /// </summary>
         public void EnqueueBroadcastMotion(WorldObject wo, UniversalMotion motion)
         {
-            wo.EnqueueBroadcast(new GameMessageUpdateMotion(wo.Guid,
-                wo.Sequences.GetCurrentSequence(SequenceType.ObjectInstance), wo.Sequences, motion));
-        }
-
-        /// <summary>
-        /// Convenience wrapper to EnqueueBroadcast to broadcast a sound.
-        /// </summary>
-        public void EnqueueBroadcastSound(WorldObject wo, Sound sound, float volume = 1.0f)
-        {
-            wo.EnqueueBroadcast(new GameMessageSound(wo.Guid, sound, volume));
+            wo.EnqueueBroadcast(new GameMessageUpdateMotion(wo.Guid, wo.Sequences.GetCurrentSequence(SequenceType.ObjectInstance), wo.Sequences, motion));
         }
         
-        /// <summary>
-        /// Convenience wrapper to EnqueueBroadcast to broadcast local chat.
-        /// </summary>
-        public void EnqueueBroadcastSystemChat(WorldObject wo, string message, ChatMessageType type)
-        {
-            wo.EnqueueBroadcast(new GameMessageSystemChat(message, type));
-        }
-
-        /// <summary>
-        /// Convenience wrapper to EnqueueBroadcast to broadcast local chat.
-        /// </summary>
-        public void EnqueueBroadcastLocalChat(WorldObject wo, string message)
-        {
-            wo.EnqueueBroadcast(new GameMessageCreatureMessage(message, wo.Name, wo.Guid.Full, ChatMessageType.Speech));
-        }
-
-        /// <summary>
-        /// Convenience wrapper to EnqueueBroadcast to broadcast local chat emotes.
-        /// </summary>
-        public void EnqueueBroadcastLocalChatEmote(WorldObject wo, string emote)
-        {
-            wo.EnqueueBroadcast(new GameMessageEmoteText(wo.Guid.Full, wo.Name, emote));
-        }
-
-        /// <summary>
-        /// Convenience wrapper to EnqueueBroadcast to broadcast local soul emotes.
-        /// </summary>
-        public void EnqueueBroadcastLocalChatSoulEmote(WorldObject wo, string emote)
-        {
-            wo.EnqueueBroadcast(new GameMessageSoulEmote(wo.Guid.Full, wo.Name, emote));
-        }
-
         // Wrappers so landblocks can be treated as actors and actions
         // FIXME(ddevec): Once cludgy UseTime function removed, I can probably remove the action interface from landblock...?
         public LinkedListNode<IAction> EnqueueAction(IAction actn)
@@ -883,14 +826,14 @@ namespace ACE.Server.Entity
         {
             if (adjacency == null || adjacencies[adjacency.Value] != landblock)
             {
-                Console.WriteLine($"Landblock({Id}).UnloadAdjacent({adjacency}, {landblock.Id}) couldn't find adjacent landblock");
+                log.Error($"Landblock({Id}).UnloadAdjacent({adjacency}, {landblock.Id}) couldn't find adjacent landblock");
                 return;
             }
             adjacencies[adjacency.Value] = null;
             AdjacenciesLoaded = false;
         }
 
-        public void SaveDB()
+        private void SaveDB()
         {
             var biotas = new Collection<(Biota biota, ReaderWriterLockSlim rwLock)>();
 

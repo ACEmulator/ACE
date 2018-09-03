@@ -53,8 +53,8 @@ namespace ACE.Server.WorldObjects
                     var updateCombatMode = new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.CombatMode, (int)CombatMode.NonCombat);
                     Session.Network.EnqueueSend(updateCombatMode);
                 }
-                 
-                CurrentLandblock?.EnqueueBroadcastSystemChat(this, $"{Name} is recalling to the lifestone.", ChatMessageType.Recall);
+
+                EnqueueBroadcast(new GameMessageSystemChat($"{Name} is recalling to the lifestone.", ChatMessageType.Recall));
                 CurrentLandblock?.EnqueueBroadcastMotion(this, motionLifestoneRecall);
 
                 // Wait for animation
@@ -78,7 +78,7 @@ namespace ACE.Server.WorldObjects
         {
             var updateCombatMode = new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.CombatMode, (int)CombatMode.NonCombat);
 
-            CurrentLandblock?.EnqueueBroadcastSystemChat(this, $"{Name} is recalling to the marketplace.", ChatMessageType.Recall);
+            EnqueueBroadcast(new GameMessageSystemChat($"{Name} is recalling to the marketplace.", ChatMessageType.Recall));
             Session.Network.EnqueueSend(updateCombatMode); // this should be handled by a different thing, probably a function that forces player into peacemode
             CurrentLandblock?.EnqueueBroadcastMotion(this, motionMarketplaceRecall);
 
