@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 
+using ACE.Common;
+using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity.Actions;
 
 namespace ACE.Server.WorldObjects
@@ -8,15 +10,34 @@ namespace ACE.Server.WorldObjects
     {
         private readonly ActionQueue actionQueue = new ActionQueue();
 
+        private readonly int defaultHeartbeatInterval = 5;
+
         public virtual void Tick(double lastTickDuration, long currentTimeTick)
         {
             actionQueue.RunActions();
+
+            if (HeartbeatTimestamp == null || HeartbeatTimestamp + (HeartbeatInterval ?? defaultHeartbeatInterval) <= Time.GetTimestamp())
+                HeartBeat();
+        }
+
+        /// <summary>
+        /// Called every ~5 seconds for WorldObject base
+        /// </summary>
+        public virtual void HeartBeat()
+        {
+            Generator_HeartBeat();
+
+            EmoteManager.HeartBeat();
+
+            EnchantmentManager.HeartBeat();
+
+            SetProperty(PropertyFloat.HeartbeatTimestamp, Time.GetTimestamp());
         }
 
         /// <summary>
         /// Runs all actions pending on this WorldObject
         /// </summary>
-        public void RunActions()
+        void IActor.RunActions()
         {
             actionQueue.RunActions();
         }
@@ -32,8 +53,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Satisfies action interface
         /// </summary>
-        /// <param name="node"></param>
-        public void DequeueAction(LinkedListNode<IAction> node)
+        void IActor.DequeueAction(LinkedListNode<IAction> node)
         {
             actionQueue.DequeueAction(node);
         }

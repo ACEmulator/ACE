@@ -117,7 +117,8 @@ namespace ACE.Server.WorldObjects
                 Destroy();
                 return;
             }
-            QueueNextHeartBeat();
+
+            base.HeartBeat();
         }
 
         /// <summary>

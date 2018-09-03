@@ -186,21 +186,6 @@ namespace ACE.Server.WorldObjects
 
 
         /// <summary>
-        /// Called every ~5 seconds for Players
-        /// </summary>
-        public override void HeartBeat()
-        {
-            NotifyLandblocks();
-
-            EnchantmentManager.HeartBeat();
-            VitalTick();
-            ManaConsumersTick();
-            ItemEnchantmentTick();
-
-            QueueNextHeartBeat();
-        }
-
-        /// <summary>
         /// Called every ~5 secs for inventory item enchantments
         /// </summary>
         public void ItemEnchantmentTick()

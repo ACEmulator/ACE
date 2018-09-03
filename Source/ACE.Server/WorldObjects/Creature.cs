@@ -286,15 +286,11 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public override void HeartBeat()
         {
-            EmoteManager.HeartBeat();
-
-            EnchantmentManager.HeartBeat();
-            EmoteManager.HeartBeat();
-
             VitalTick();
+
             // item enchantment ticks?
 
-            QueueNextHeartBeat();
+            base.HeartBeat();
         }
 
         public static readonly float TickInterval = 0.2f;
