@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics;
 
 using log4net;
 
@@ -165,19 +164,14 @@ namespace ACE.Server.Managers
             }
         }
 
+        /// <summary>
+        /// This function is NOT thread safe. Using it will likely result in concurrency issues with WorldManager.UpdateWorld.
+        /// You should only use this for debugging/development purposes.
+        /// </summary>
+        /// <param name="blockid"></param>
         public static void ForceLoadLandBlock(LandblockId blockid)
         {
-            Stopwatch sw = Stopwatch.StartNew();
             GetLandblock(blockid, false);
-            sw.Stop();
-            log.DebugFormat("Loaded Landblock {0:X4} in {1} milliseconds ", blockid.Landblock, sw.ElapsedMilliseconds);
-            Console.WriteLine("Loaded Landblock {0:X4} in {1} milliseconds ", blockid.Landblock, sw.ElapsedMilliseconds);
-        }
-
-        public static void FinishedForceLoading()
-        {
-            log.DebugFormat("Finished Forceloading Landblocks");
-            Console.WriteLine("Finished Forceloading Landblocks");
         }
 
         /// <summary>
