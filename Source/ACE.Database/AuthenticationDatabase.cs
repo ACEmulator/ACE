@@ -1,5 +1,6 @@
 using System.Linq;
 using System.Threading;
+using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 
 using log4net;
@@ -128,6 +129,22 @@ namespace ACE.Database
             }
 
             return true;
+        }
+
+        /// <summary>
+        /// Will return all accounts in the DB
+        /// </summary>
+        public List<Account> GetAllAccounts()
+        {
+            using (var context = new AuthDbContext())
+            {
+                var results = context.Account
+                    .AsNoTracking();
+
+                if (results != null) return results.ToList();
+            }
+
+            return null;
         }
     }
 }
