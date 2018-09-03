@@ -115,7 +115,7 @@ namespace ACE.Server.WorldObjects
             // reset for next projectile
             EnqueueMotion(actionChain, MotionCommand.Ready);
             var linkTime = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, MotionCommand.Ready, MotionCommand.Reload);
-            var cycleTime = MotionTable.GetCycleLength(MotionTableId, CurrentMotionState.Stance, MotionCommand.Ready);
+            //var cycleTime = MotionTable.GetCycleLength(MotionTableId, CurrentMotionState.Stance, MotionCommand.Ready);
 
             actionChain.AddAction(this, () => EnqueueBroadcast(new GameMessageParentEvent(this, ammo, (int)ACE.Entity.Enum.ParentLocation.RightHand,
                 (int)ACE.Entity.Enum.Placement.RightHandCombat)));

@@ -66,11 +66,10 @@ namespace ACE.Server.WorldObjects
             var dist = GetDistanceToTarget();
             //Console.WriteLine("RangeAttack: " + dist);
 
-            NextAttackTime = Timer.CurrentTime + MissileDelay;
-
             // launch animation
             var actionChain = new ActionChain();
             var launchTime = EnqueueMotion(actionChain, MotionCommand.AimLevel);
+            //Console.WriteLine("LaunchTime: " + launchTime);
 
             // launch projectile
             float targetTime = 0.0f;
@@ -87,16 +86,24 @@ namespace ACE.Server.WorldObjects
 
             // reload animation
             var reloadTime = EnqueueMotion(actionChain, MotionCommand.Reload);
+            //Console.WriteLine("ReloadTime: " + reloadTime);
 
             // reset for next projectile
             EnqueueMotion(actionChain, MotionCommand.Ready);
-            //var linkTime = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, MotionCommand.Ready, MotionCommand.Reload);
-            //var cycleTime = MotionTable.GetCycleLength(MotionTableId, CurrentMotionState.Stance, MotionCommand.Ready);
+            var linkTime = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, MotionCommand.Ready, MotionCommand.Reload);
+            //Console.WriteLine("LinkTime: " + linkTime);
 
             actionChain.AddAction(this, () => EnqueueBroadcast(new GameMessageParentEvent(this, ammo, (int)ACE.Entity.Enum.ParentLocation.RightHand,
                 (int)ACE.Entity.Enum.Placement.RightHandCombat)));
 
             actionChain.EnqueueChain();
+
+            var timeOffset = launchTime + reloadTime + linkTime;
+
+            if (timeOffset < MissileDelay)
+                timeOffset = MissileDelay;
+
+            NextAttackTime = Timer.CurrentTime + timeOffset;
         }
 
         /// <summary>

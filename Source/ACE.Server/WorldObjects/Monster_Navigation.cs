@@ -200,7 +200,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void Movement()
         {
-            if (!IsRanged)
+            //if (!IsRanged)
                 UpdatePosition();
 
             if (GetDistanceToTarget() >= MaxChaseRange)
@@ -319,6 +319,8 @@ namespace ACE.Server.WorldObjects
 
             if (dist < minDist)
                 threshold += (minDist - dist) * 1.5f;
+
+            //Console.WriteLine("Threshold: " + threshold);
 
             return angle < threshold;
         }

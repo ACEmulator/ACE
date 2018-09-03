@@ -30,6 +30,13 @@ namespace ACE.Server.Physics.Common
 
         public Position(Position p)
         {
+            if (p == null)
+            {
+                Console.WriteLine("Position copy constructor - null");
+                Frame = new AFrame();
+                return;
+            }
+
             ObjCellID = p.ObjCellID;
             Frame = new AFrame(p.Frame);
         }

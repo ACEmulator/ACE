@@ -11,42 +11,6 @@ namespace ACE.Server.WorldObjects
 {
     partial class Creature
     {
-        public void BuildInventoryForMonster()
-        {
-            if (WieldedTreasure == null) return;
-
-            // roll for each item in WieldedTreasure table
-            foreach (var item in WieldedTreasure)
-            {
-                var rng = Physics.Common.Random.RollDice(0.0f, 1.0f);
-                if (rng < item.Probability)
-                    TryAddToInventory(item);
-            }
-        }
-
-        /// <summary>
-        /// Adds a wielded treasure to monster's inventory
-        /// </summary>
-        /// <param name="item">The wielded treasure that was RNG selected to add</param>
-        /// <returns>TRUE if item was successfully added</returns>
-        public bool TryAddToInventory(TreasureWielded item)
-        {
-            var wo = WorldObjectFactory.CreateNewWorldObject(item.WeenieClassId);
-
-            if (item.PaletteId != 0)
-                wo.PaletteTemplate = (int)item.PaletteId;
-
-            if (item.Shade != 0)
-                wo.Shade = item.Shade;
-
-            if (item.StackSize != 0)
-                wo.StackSize = (ushort)item.StackSize;
-
-            //Console.WriteLine($"Adding {wo.Name} to {Name}'s inventory");
-
-            return TryAddToInventory(wo);
-        }
-
         /// <summary>
         /// Determines the monster inventory items to wield
         /// </summary>

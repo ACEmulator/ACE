@@ -211,8 +211,8 @@ namespace ACE.Server.WorldObjects
             actionChain.AddAction(this, () =>
             {
                 // fix me: in progress turn
-                var targetDir = GetDirection(Location.ToGlobal(), target.Location.ToGlobal());
-                Location.Rotate(targetDir);
+                //var targetDir = GetDirection(Location.ToGlobal(), target.Location.ToGlobal());
+                //Location.Rotate(targetDir);
                 //Console.WriteLine("Finished turning - " + turnTime + "s");
             });
             actionChain.EnqueueChain();
