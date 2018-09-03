@@ -56,17 +56,6 @@ namespace ACE.Server.Entity
         public readonly Dictionary<ObjectGuid, WorldObject> worldObjects = new Dictionary<ObjectGuid, WorldObject>();
         private readonly Dictionary<Adjacency, Landblock> adjacencies = new Dictionary<Adjacency, Landblock>();
 
-        /// <summary>
-        /// Special needs-broadcast flag.  Cleared in broadcast, but set in other phases.
-        /// Must be treated exceptionally carefully to avoid races.  Don't touch unless you /really/ know what your doing
-        /// </summary>
-        private int broadcastQueued;
-
-        // Can be appended concurrently, will be sent serially
-        // NOTE: Broadcasts have read-only access to landblocks, and EnqueueSend is thread-safe within Session.
-        //    -- Therefore broadcasting between landblocks doesn't require locking O_o
-        private readonly ConcurrentQueue<Tuple<Position, float, GameMessage>> broadcastQueue = new ConcurrentQueue<Tuple<Position, float, GameMessage>>();
-
         // private byte cellGridMaxX = 8; // todo: load from cell.dat
         // private byte cellGridMaxY = 8; // todo: load from cell.dat
 
@@ -473,9 +462,6 @@ namespace ACE.Server.Entity
                 allplayers = allworldobj.OfType<Player>().ToList();
 
                 UpdateStatus(allplayers.Count);
-
-                // Handle broadcasts
-                SendBroadcasts();
             }
             catch (Exception e)
             {
@@ -662,44 +648,6 @@ namespace ACE.Server.Entity
         public void EnqueueBroadcastLocalChatSoulEmote(WorldObject wo, string emote)
         {
             wo.EnqueueBroadcast(new GameMessageSoulEmote(wo.Guid.Full, wo.Name, emote));
-        }
-
-        /// <summary>
-        /// NOTE: Cannot be sent while objects are moving (the physics/motion portion of WorldManager)! depends on object positions not changing, and objects not moving between landblocks
-        /// </summary>
-        private void SendBroadcasts()
-        {
-            while (!broadcastQueue.IsEmpty)
-            {
-                bool success = broadcastQueue.TryDequeue(out var tuple);
-                if (!success)
-                {
-                    log.Error("Unexpected TryDequeue Failure!");
-                    break;
-                }
-                Position pos = tuple.Item1;
-                float distance = tuple.Item2;
-                GameMessage msg = tuple.Item3;
-
-                // NOTE: Doesn't need locking -- players cannot change while in "Act" SendBroadcasts is the last thing done in Act
-                // foreach player within range, do send
-
-                List<Landblock> landblocksInRange = GetLandblocksInRange(pos, distance);
-                foreach (Landblock lb in landblocksInRange)
-                {
-                    List<Player> allPlayers = lb.worldObjects.Values.OfType<Player>().ToList();
-                    foreach (Player p in allPlayers)
-                    {
-                        if (p.Location.SquaredDistanceTo(pos) < distance * distance)
-                        {
-                            p.Session.Network.EnqueueSend(msg);
-                        }
-                    }
-                }
-            }
-
-            // Sets broadcastQueued to 0, so we're ready to re-queue broadcasts later
-            broadcastQueued = 0;
         }
 
         // Wrappers so landblocks can be treated as actors and actions
