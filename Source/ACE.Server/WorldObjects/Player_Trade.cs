@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using ACE.Entity;
 using ACE.Entity.Enum;
@@ -26,7 +27,9 @@ namespace ACE.Server.WorldObjects
 
         public void HandleActionCloseTradeNegotiations(Session session)
         {
+            session.Player.TradeAccepted = false;
             session.Player.ItemsInTradeWindow.Clear();
+            session.Player.TradePartner = new ObjectGuid(0);
 
             session.Network.EnqueueSend(new GameEventCloseTrade(session, EndTradeReason.Normal));
         }
@@ -35,20 +38,98 @@ namespace ACE.Server.WorldObjects
         {
             var targetsession = WorldManager.Find(session.Player.TradePartner);
 
-            if (session.Player.TradeAccepted)
-            {
-                //If trade was previously accepted, cancel accept
-                //TODO GameEventAction to notify clients of removal of acceptance
-                session.Player.TradeAccepted = false;
-            }
-                                                
+            session.Player.TradeAccepted = false;
+
             if ((item != null) && (targetsession != null))
             {
-                session.Player.ItemsInTradeWindow.Add(item);
+                IsAttuned(item, out bool isAttuned);
 
-                session.Network.EnqueueSend(new GameEventAddToTrade(session, item, TradeSide.Self));
+                if (!isAttuned)
+                {
+                    session.Player.ItemsInTradeWindow.Add(item);
 
-                targetsession.Network.EnqueueSend(new GameEventAddToTrade(targetsession, item, TradeSide.Partner));
+                    session.Network.EnqueueSend(new GameEventAddToTrade(session, item, TradeSide.Self));
+
+                    WorldObject wo = GetInventoryItem(item);
+
+                    targetsession.Player.TrackObject(wo);
+
+                    targetsession.Network.EnqueueSend(new GameEventAddToTrade(targetsession, item, TradeSide.Partner));
+                }
+                else
+                {
+                    session.Network.EnqueueSend(new GameEventTradeFailure(session, item));
+                }
+            }
+        }
+
+        public void HandleActionResetTrade(Session session, ObjectGuid whoReset)
+        {
+            session.Player.ItemsInTradeWindow.Clear();
+            session.Player.TradeAccepted = false;
+
+            session.Network.EnqueueSend(new GameEventResetTrade(session, whoReset));
+        }
+
+        public void HandleActionAcceptTrade(Session session, ObjectGuid whoAccepted)
+        {
+            session.Player.TradeAccepted = true;
+
+            session.Network.EnqueueSend(new GameEventAcceptTrade(session, whoAccepted));
+
+            var targetsession = WorldManager.Find(session.Player.TradePartner);
+
+            if (targetsession != null)
+            {
+                targetsession.Network.EnqueueSend(new GameEventAcceptTrade(targetsession, whoAccepted));
+
+                if ((session.Player.TradeAccepted) && (targetsession.Player.TradeAccepted))
+                {
+                    foreach (ObjectGuid itemGuid in session.Player.ItemsInTradeWindow)
+                    {
+                        WorldObject wo = GetInventoryItem(itemGuid);
+
+                        if (wo != null)
+                        {
+                            Console.WriteLine(wo.Name);
+                            session.Player.TryRemoveFromInventoryWithNetworking(wo);
+
+                            targetsession.Player.TryCreateInInventoryWithNetworking(wo);
+                        }
+                    }
+
+                    foreach (ObjectGuid itemGuid in targetsession.Player.ItemsInTradeWindow)
+                    {
+                        WorldObject wo = GetInventoryItem(itemGuid);
+
+                        if (wo != null)
+                        {
+                            Console.WriteLine(wo.Name);
+                            targetsession.Player.TryRemoveFromInventoryWithNetworking(wo);
+
+                            session.Player.TryCreateInInventoryWithNetworking(wo);
+                        }
+                    }
+
+                    session.Player.HandleActionCloseTradeNegotiations(session);
+                    targetsession.Player.HandleActionCloseTradeNegotiations(targetsession);
+                }
+
+
+            }
+        }
+
+        public void HandleActionDeclineTrade(Session session)
+        {
+            session.Player.TradeAccepted = false;
+
+            session.Network.EnqueueSend(new GameEventClearTradeAcceptance(session));
+
+            var targetsession = WorldManager.Find(session.Player.TradePartner);
+
+            if (targetsession != null)
+            {
+                targetsession.Network.EnqueueSend(new GameEventClearTradeAcceptance(targetsession));
             }
         }
     }
