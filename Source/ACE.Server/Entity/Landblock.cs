@@ -270,7 +270,8 @@ namespace ACE.Server.Entity
             foreach (var obj in objects)
             {
                 var weenie = DatabaseManager.World.GetCachedWeenie(obj.WeenieClassId);
-                WeenieMeshes.Add(new ModelMesh(weenie.GetProperty(PropertyDataId.Setup) ?? 0,
+                WeenieMeshes.Add(
+                    new ModelMesh(weenie.GetProperty(PropertyDataId.Setup) ?? 0,
                     new DatLoader.Entity.Frame(new Position(obj.ObjCellId, obj.OriginX, obj.OriginY, obj.OriginZ, obj.AnglesX, obj.AnglesY, obj.AnglesZ, obj.AnglesW))));
             }
         }
@@ -288,53 +289,14 @@ namespace ACE.Server.Entity
             adjacencies[adjacency] = landblock;
         }
 
-        private Landblock NorthAdjacency
-        {
-            get { return adjacencies[Adjacency.North]; }
-            set { adjacencies[Adjacency.North] = value; }
-        }
-
-        private Landblock NorthEastAdjacency
-        {
-            get { return adjacencies[Adjacency.NorthEast]; }
-            set { adjacencies[Adjacency.NorthEast] = value; }
-        }
-
-        private Landblock EastAdjacency
-        {
-            get { return adjacencies[Adjacency.East]; }
-            set { adjacencies[Adjacency.East] = value; }
-        }
-
-        private Landblock SouthEastAdjacency
-        {
-            get { return adjacencies[Adjacency.SouthEast]; }
-            set { adjacencies[Adjacency.SouthEast] = value; }
-        }
-
-        private Landblock SouthAdjacency
-        {
-            get { return adjacencies[Adjacency.South]; }
-            set { adjacencies[Adjacency.South] = value; }
-        }
-
-        private Landblock SouthWestAdjacency
-        {
-            get { return adjacencies[Adjacency.SouthWest]; }
-            set { adjacencies[Adjacency.SouthWest] = value; }
-        }
-
-        private Landblock WestAdjacency
-        {
-            get { return adjacencies[Adjacency.West]; }
-            set { adjacencies[Adjacency.West] = value; }
-        }
-
-        private Landblock NorthWestAdjacency
-        {
-            get { return adjacencies[Adjacency.NorthWest]; }
-            set { adjacencies[Adjacency.NorthWest] = value; }
-        }
+        private Landblock NorthAdjacency => adjacencies[Adjacency.North];
+        private Landblock NorthEastAdjacency => adjacencies[Adjacency.NorthEast];
+        private Landblock EastAdjacency => adjacencies[Adjacency.East];
+        private Landblock SouthEastAdjacency => adjacencies[Adjacency.SouthEast];
+        private Landblock SouthAdjacency => adjacencies[Adjacency.South];
+        private Landblock SouthWestAdjacency => adjacencies[Adjacency.SouthWest];
+        private Landblock WestAdjacency => adjacencies[Adjacency.West];
+        private Landblock NorthWestAdjacency => adjacencies[Adjacency.NorthWest];
 
         private void AddPlayerTracking(List<WorldObject> wolist, Player player)
         {
