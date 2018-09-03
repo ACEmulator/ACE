@@ -141,40 +141,6 @@ namespace ACE.Server.Entity
             lastActiveTime = Timer.CurrentTime;
         }
 
-        public void Tick(double lastTickDuration, long currentTimeTick)
-        {
-            // Here we'd move server objects in motion (subject to landscape) and do physics collision detection
-            var allworldobj = worldObjects.Values;
-            var allplayers = allworldobj.OfType<Player>().ToList();
-
-            UpdateStatus(allplayers.Count);
-
-            if (IsActive)
-            {
-                var wos = worldObjects.Values.ToList();
-
-                foreach (var wo in wos)
-                    wo.Tick(lastTickDuration, currentTimeTick);
-            }
-
-            // Heartbeat
-            if (lastHeartBeat + heartbeatInterval <= DateTime.UtcNow)
-            {
-                if (IsActive)
-                {
-                    // tick decayable objects ?? Is this still needed now that we've migrated to the new Tick architecture?
-
-                    // tick items sold to vendors ?? Is this still needed now that we've migrated to the new Tick architecture?
-                }
-
-                // TODO: handle perma-loaded landblocks
-                if (!Permaload && lastActiveTime + unloadInterval < Timer.CurrentTime)
-                    LandblockManager.AddToDestructionQueue(this);
-
-                lastHeartBeat = DateTime.UtcNow;
-            }
-        }
-
         /// <summary>
         /// Spawns the semi-randomized monsters scattered around the outdoors
         /// </summary>
@@ -266,6 +232,40 @@ namespace ACE.Server.Entity
         private void LoadScenery()
         {
             Scenery = Entity.Scenery.Load(this);
+        }
+
+        public void Tick(double lastTickDuration, long currentTimeTick)
+        {
+            // Here we'd move server objects in motion (subject to landscape) and do physics collision detection
+            var allworldobj = worldObjects.Values;
+            var allplayers = allworldobj.OfType<Player>().ToList();
+
+            UpdateStatus(allplayers.Count);
+
+            if (IsActive)
+            {
+                var wos = worldObjects.Values.ToList();
+
+                foreach (var wo in wos)
+                    wo.Tick(lastTickDuration, currentTimeTick);
+            }
+
+            // Heartbeat
+            if (lastHeartBeat + heartbeatInterval <= DateTime.UtcNow)
+            {
+                if (IsActive)
+                {
+                    // tick decayable objects ?? Is this still needed now that we've migrated to the new Tick architecture?
+
+                    // tick items sold to vendors ?? Is this still needed now that we've migrated to the new Tick architecture?
+                }
+
+                // TODO: handle perma-loaded landblocks
+                if (!Permaload && lastActiveTime + unloadInterval < Timer.CurrentTime)
+                    LandblockManager.AddToDestructionQueue(this);
+
+                lastHeartBeat = DateTime.UtcNow;
+            }
         }
 
         public void SetAdjacency(Adjacency adjacency, Landblock landblock)
@@ -376,7 +376,7 @@ namespace ACE.Server.Entity
 
         private void RemoveWorldObjectInternal(ObjectGuid objectId, bool adjacencyMove = false)
         {
-            Log($"removing {objectId.Full:X}");
+            log.Debug($"LB {Id.Landblock:X}: removing {objectId.Full:X}");
 
             worldObjects.Remove(objectId, out var wo);
 
@@ -593,24 +593,6 @@ namespace ACE.Server.Entity
             return null;
         }
 
-        /*
-        public void ChainOnObject(ActionChain chain, ObjectGuid woGuid, Action<WorldObject> action)
-        {
-            WorldObject wo = GetObject(woGuid);
-            if (wo == null)
-            {
-                return;
-            }
-
-            chain.AddAction(wo, () => action(wo));
-        }
-        */
-
-        private void Log(string message)
-        {
-            log.Debug($"LB {Id.Landblock:X}: {message}");
-        }
-
         public void ResendObjectsInRange(WorldObject wo)
         {
             // this could need reworked a bit for consistency..
@@ -653,11 +635,12 @@ namespace ACE.Server.Entity
 
             if (isAdjacent || _landblock.IsDungeon) return;
 
-            // for outdoor landblocks, recursively call 1 iteration
-            // to set adjacents to active
+            // for outdoor landblocks, recursively call 1 iteration to set adjacents to active
             foreach (var landblock in adjacencies.Values)
+            {
                 if (landblock != null)
                     landblock.SetActive(true);
+            }
         }
 
         /// <summary>
@@ -667,7 +650,9 @@ namespace ACE.Server.Entity
         public void Unload()
         {
             var landblockID = Id.Raw | 0xFFFF;
-            //Console.WriteLine($"Landblock.Unload({landblockID:X})");
+
+            log.Debug($"Landblock.Unload({landblockID:X})");
+
             SaveDB();
 
             // remove all objects
