@@ -15,7 +15,6 @@ using ACE.DatLoader.FileTypes;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
-using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
 using ACE.Server.Managers;
 using ACE.Server.Physics.Common;
@@ -31,7 +30,7 @@ namespace ACE.Server.Entity
     /// landblock goes from 0 to 192.  "indoor" (dungeon) landblocks have no
     /// functional limit as players can't freely roam in/out of them
     /// </summary>
-    public class Landblock : IActor
+    public class Landblock
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -61,8 +60,6 @@ namespace ACE.Server.Entity
         public readonly Dictionary<ObjectGuid, WorldObject> worldObjects = new Dictionary<ObjectGuid, WorldObject>(); // TODO Make this private
         private readonly Dictionary<Adjacency, Landblock> adjacencies = new Dictionary<Adjacency, Landblock>();
 
-
-        private readonly ActionQueue actionQueue = new ActionQueue();
 
         /// <summary>
         /// Landblocks will be checked for activity every # seconds
@@ -144,15 +141,21 @@ namespace ACE.Server.Entity
             lastActiveTime = Timer.CurrentTime;
         }
 
-        public void Tick(double lastTick, long currentTimeTick)
+        public void Tick(double lastTickDuration, long currentTimeTick)
         {
-            actionQueue.RunActions();
-
             // Here we'd move server objects in motion (subject to landscape) and do physics collision detection
             var allworldobj = worldObjects.Values;
             var allplayers = allworldobj.OfType<Player>().ToList();
 
             UpdateStatus(allplayers.Count);
+
+            if (IsActive)
+            {
+                var wos = worldObjects.Values.ToList();
+
+                foreach (var wo in wos)
+                    wo.Tick(lastTickDuration, currentTimeTick);
+            }
 
             // Heartbeat
             if (lastHeartBeat + heartbeatInterval <= DateTime.UtcNow)
@@ -171,25 +174,6 @@ namespace ACE.Server.Entity
                 lastHeartBeat = DateTime.UtcNow;
             }
         }
-
-        // Wrappers so landblocks can be treated as actors and actions
-        // FIXME(ddevec): Once cludgy UseTime function removed, I can probably remove the action interface from landblock...?
-        public LinkedListNode<IAction> EnqueueAction(IAction actn)
-        {
-            // Ugh enqueue stuff...
-            return actionQueue.EnqueueAction(actn);
-        }
-
-        public void DequeueAction(LinkedListNode<IAction> node)
-        {
-            actionQueue.DequeueAction(node);
-        }
-
-        public void RunActions()
-        {
-            actionQueue.RunActions();
-        }
-        // End wrappers
 
         /// <summary>
         /// Spawns the semi-randomized monsters scattered around the outdoors
@@ -309,11 +293,6 @@ namespace ACE.Server.Entity
             AddWorldObjectInternal(wo);
         }
 
-        public ActionChain GetAddWorldObjectChain(WorldObject wo, Player noBroadcast = null)
-        {
-            return new ActionChain(this, () => AddWorldObjectInternal(wo));
-        }
-
         public void AddWorldObjectForPhysics(WorldObject wo)
         {
             AddWorldObjectInternal(wo);
@@ -321,12 +300,10 @@ namespace ACE.Server.Entity
 
         private void AddWorldObjectInternal(WorldObject wo)
         {
-            //Console.WriteLine($"AddWorldObjectInternal({wo.Name})");
-
             if (!worldObjects.ContainsKey(wo.Guid))
                 worldObjects[wo.Guid] = wo;
 
-            wo.SetParent(this);
+            wo.CurrentLandblock = this;
 
             if (wo.PhysicsObj == null)
                 wo.InitPhysicsObj();
@@ -336,7 +313,7 @@ namespace ACE.Server.Entity
                 var success = wo.AddPhysicsObj();
                 if (!success)
                 {
-                    Console.WriteLine($"AddWorldObjectInternal: couldn't spawn {wo.Name}");
+                    log.Warn($"AddWorldObjectInternal: couldn't spawn {wo.Name}");
                     return;
                 }
             }
@@ -355,24 +332,7 @@ namespace ACE.Server.Entity
 
         public void RemoveWorldObject(ObjectGuid objectId, bool adjacencyMove = false)
         {
-            ActionChain removeChain = GetRemoveWorldObjectChain(objectId, adjacencyMove);
-            if (removeChain != null)
-            {
-                removeChain.EnqueueChain();
-            }
-        }
-
-        public ActionChain GetRemoveWorldObjectChain(ObjectGuid objectId, bool adjacencyMove = false)
-        {
-            Landblock owner = GetOwner(objectId);
-
-            if (owner != null)
-            {
-                ActionChain chain = new ActionChain(owner, new ActionEventDelegate(() => RemoveWorldObjectInternal(objectId, adjacencyMove)));
-                return chain;
-            }
-
-            return null;
+            RemoveWorldObjectInternal(objectId, adjacencyMove);
         }
 
         /// <summary>
@@ -416,19 +376,13 @@ namespace ACE.Server.Entity
 
         private void RemoveWorldObjectInternal(ObjectGuid objectId, bool adjacencyMove = false)
         {
-            WorldObject wo = null;
-
             Log($"removing {objectId.Full:X}");
 
-            if (worldObjects.ContainsKey(objectId))
-            {
-                wo = worldObjects[objectId];
-                worldObjects.Remove(objectId);
-            }
+            worldObjects.Remove(objectId, out var wo);
 
             if (wo == null) return;
 
-            wo.SetParent(null);
+            wo.CurrentLandblock = null;
 
             if (!adjacencyMove)
             {
@@ -471,10 +425,10 @@ namespace ACE.Server.Entity
             // Diagnostics.Diagnostics.SetLandBlockKey(id.LandblockX, id.LandblockY, Status);
         }
 
-        private void UpdateStatus(int pcount)
+        private void UpdateStatus(int playerCount)
         {
-            Status.PlayerCount = pcount;
-            if (pcount > 0)
+            Status.PlayerCount = playerCount;
+            if (playerCount > 0)
             {
                 Status.LandBlockStatusFlag = LandBlockStatusFlag.InUseLow;
                 // TODO: Diagnostics uses WinForms, which is not supported in .net standard/core.

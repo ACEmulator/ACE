@@ -386,9 +386,9 @@ namespace ACE.Server.WorldObjects
         public Position PreviousLocation { get; set; }
 
         /// <summary>
-        /// Should only be adjusted by LandblockManager -- default is null
+        /// Should only be adjusted by Landblock -- default is null
         /// </summary>
-        public Landblock CurrentLandblock => CurrentParent as Landblock;
+        public Landblock CurrentLandblock;
 
 
         /// <summary>

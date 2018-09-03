@@ -66,7 +66,7 @@ namespace ACE.Server.Managers
         /// </summary>
         public static readonly ActionQueue InboundClientMessageQueue = new ActionQueue();
         private static readonly ActionQueue playerEnterWorldQueue = new ActionQueue();
-        public static readonly DelayManager DelayManager = new DelayManager();
+        public static readonly DelayManager DelayManager = new DelayManager(); // TODO get rid of this. Each WO should have its own delayManager
 
         public static List<Player> AllPlayers;
 
@@ -450,7 +450,7 @@ namespace ACE.Server.Managers
         private static void UpdateWorld()
         {
             log.DebugFormat("Starting UpdateWorld thread");
-            double lastTick = 0d;
+            double lastTickDuration = 0d;
             WorldActive = true;
             var worldTickTimer = new Stopwatch();
             while (!pendingWorldStop)
@@ -505,7 +505,7 @@ namespace ACE.Server.Managers
                 var activeLandblocks = LandblockManager.GetActiveLandblocks();
 
                 foreach (var landblock in activeLandblocks)
-                    landblock.Tick(lastTick, DateTime.UtcNow.Ticks);
+                    landblock.Tick(lastTickDuration, DateTime.UtcNow.Ticks);
 
                 // clean up inactive landblocks
                 LandblockManager.UnloadLandblocks();
@@ -516,10 +516,10 @@ namespace ACE.Server.Managers
                 {
                     // The session tick processes all inbound GameAction messages
                     foreach (var s in sessions)
-                        s.Tick(lastTick, DateTime.UtcNow.Ticks);
+                        s.Tick(lastTickDuration, DateTime.UtcNow.Ticks);
 
                     // Send the current time ticks to allow sessions to declare themselves bad
-                    Parallel.ForEach(sessions, s => s.TickInParallel(lastTick, DateTime.UtcNow.Ticks));
+                    Parallel.ForEach(sessions, s => s.TickInParallel(lastTickDuration, DateTime.UtcNow.Ticks));
 
                     // Removes sessions in the NetworkTimeout state, incuding sessions that have reached a timeout limit.
                     var deadSessions = sessions.FindAll(s => s.State == Network.Enum.SessionState.NetworkTimeout);
@@ -534,8 +534,8 @@ namespace ACE.Server.Managers
 
                 Thread.Sleep(1);
 
-                lastTick = (double)worldTickTimer.ElapsedTicks / Stopwatch.Frequency;
-                PortalYearTicks += lastTick;
+                lastTickDuration = (double)worldTickTimer.ElapsedTicks / Stopwatch.Frequency;
+                PortalYearTicks += lastTickDuration;
             }
 
             // World has finished operations and concedes the thread to garbage collection

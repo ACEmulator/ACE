@@ -558,7 +558,7 @@ namespace ACE.Server.WorldObjects
             if (CurrentLandblock != null)
             {
                 // remove the player from landblock management -- after the animation has run
-                logoutChain.AddChain(CurrentLandblock?.GetRemoveWorldObjectChain(Guid, false));
+                logoutChain.AddAction(this, () => CurrentLandblock.RemoveWorldObject(Guid, false));
             }
 
             return logoutChain;

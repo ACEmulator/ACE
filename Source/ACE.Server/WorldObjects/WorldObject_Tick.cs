@@ -6,19 +6,11 @@ namespace ACE.Server.WorldObjects
 {
     partial class WorldObject
     {
-        private readonly NestedActionQueue actionQueue = new NestedActionQueue();
+        private readonly ActionQueue actionQueue = new ActionQueue();
 
-        public IActor CurrentParent { get; private set; }
-
-        /// <summary>
-        /// Manages action/broadcast infrastructure
-        /// </summary>
-        /// <param name="parent"></param>
-        public void SetParent(IActor parent)
+        public virtual void Tick(double lastTickDuration, long currentTimeTick)
         {
-            CurrentParent = parent;
-            actionQueue.RemoveParent();
-            actionQueue.SetParent(parent);
+            actionQueue.RunActions();
         }
 
         /// <summary>
