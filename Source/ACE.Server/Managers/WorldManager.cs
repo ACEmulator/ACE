@@ -50,7 +50,6 @@ namespace ACE.Server.Managers
         private static readonly List<Session> sessions = new List<Session>();
         private static readonly List<IPEndPoint> loggedInClients = new List<IPEndPoint>((int)ConfigManager.Config.Server.Network.MaximumAllowedSessions);
 
-        private static readonly object updateWorldLandblockLock = new object();
         public static bool Concurrency = false;
 
         private static readonly PhysicsEngine Physics;
@@ -465,33 +464,30 @@ namespace ACE.Server.Managers
 
                 DelayManager.RunActions();
 
-                lock (updateWorldLandblockLock)
+                // update positions through physics engine
+                var movedObjects = HandlePhysics(PortalYearTicks);
+
+                // iterate through objects that have changed landblocks
+                foreach (var movedObject in movedObjects)
                 {
-                    // update positions through physics engine
-                    var movedObjects = HandlePhysics(PortalYearTicks);
+                    // NOTE: The object's Location can now be null, if a player logs out, or an item is picked up
+                    if (movedObject.Location == null) continue;
 
-                    // iterate through objects that have changed landblocks
-                    foreach (var movedObject in movedObjects)
-                    {
-                        // NOTE: The object's Location can now be null, if a player logs out, or an item is picked up
-                        if (movedObject.Location == null) continue;
-
-                        // assume adjacency move here?
-                        LandblockManager.RelocateObjectForPhysics(movedObject, true);
-                    }
-
-                    // Now, update actions within landblocks
-                    //   This is responsible for updating all "actors" residing within the landblock. 
-                    //   Objects and landblocks are "actors"
-                    //   "actors" decide if they want to read/modify their own state (set desired velocity), move-to positions, move items, read vitals, etc
-                    // N.B. -- Broadcasts are enqueued for sending at the end of the landblock's action time
-                    // FIXME(ddevec): Goal is to eventually migrate to an "Act" function of the LandblockManager ActiveLandblocks
-                    //    Inactive landblocks will be put on TimeoutManager queue for timeout killing
-                    LandblockActionQueue.RunActions();
-
-                    // clean up inactive landblocks
-                    LandblockManager.UnloadLandblocks();
+                    // assume adjacency move here?
+                    LandblockManager.RelocateObjectForPhysics(movedObject, true);
                 }
+
+                // Now, update actions within landblocks
+                //   This is responsible for updating all "actors" residing within the landblock. 
+                //   Objects and landblocks are "actors"
+                //   "actors" decide if they want to read/modify their own state (set desired velocity), move-to positions, move items, read vitals, etc
+                // N.B. -- Broadcasts are enqueued for sending at the end of the landblock's action time
+                // FIXME(ddevec): Goal is to eventually migrate to an "Act" function of the LandblockManager ActiveLandblocks
+                //    Inactive landblocks will be put on TimeoutManager queue for timeout killing
+                LandblockActionQueue.RunActions();
+
+                // clean up inactive landblocks
+                LandblockManager.UnloadLandblocks();
 
                 // Session Maintenance
                 sessionLock.EnterUpgradeableReadLock();
