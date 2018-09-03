@@ -466,7 +466,7 @@ namespace ACE.Server.Managers
                  * PlayerEnterWorld queue is run on the main UpdateWorld thread.
                    - These actions may load Landblocks and modify other WorldObjects safely.
 
-                 * Landblocks can be Loaded/Unloaded in parallel.
+                 * Landblock Groups (calculated by LandblockManager can be processed in parallel.
 
                  * Adjacent Landblocks will always be run on the same thread.
 

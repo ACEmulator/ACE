@@ -162,9 +162,9 @@ namespace ACE.Server.Entity
             {
                 if (IsActive)
                 {
-                    // tick decayable objects
+                    // tick decayable objects ?? Is this still needed now that we've migrated to the new Tick architecture?
 
-                    // tick items sold to vendors
+                    // tick items sold to vendors ?? Is this still needed now that we've migrated to the new Tick architecture?
                 }
 
                 // TODO: handle perma-loaded landblocks
