@@ -35,7 +35,7 @@ namespace ACE.Server.WorldObjects
             ActionChain killChain = new ActionChain();
             killChain.AddAction(this, () =>
             {
-                HandleActionMotion(new UniversalMotion(MotionStance.NonCombat, new MotionItem(MotionCommand.Dead)));
+                EnqueueBroadcastMotion(new UniversalMotion(MotionStance.NonCombat, new MotionItem(MotionCommand.Dead)));
             });
             killChain.AddDelaySeconds(5);
             killChain.AddAction(this, () =>

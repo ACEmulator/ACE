@@ -19,10 +19,6 @@ using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
 using ACE.Server.Managers;
-using ACE.Server.Network.GameMessages;
-using ACE.Server.Network.GameMessages.Messages;
-using ACE.Server.Network.Motion;
-using ACE.Server.Network.Sequence;
 using ACE.Server.Physics.Common;
 using ACE.Server.WorldObjects;
 
@@ -585,14 +581,6 @@ namespace ACE.Server.Entity
             return inRange;
         }
 
-        /// <summary>
-        /// Convenience wrapper to EnqueueBroadcast to broadcast a motion.
-        /// </summary>
-        public void EnqueueBroadcastMotion(WorldObject wo, UniversalMotion motion)
-        {
-            wo.EnqueueBroadcast(new GameMessageUpdateMotion(wo.Guid, wo.Sequences.GetCurrentSequence(SequenceType.ObjectInstance), wo.Sequences, motion));
-        }
-        
         // Wrappers so landblocks can be treated as actors and actions
         // FIXME(ddevec): Once cludgy UseTime function removed, I can probably remove the action interface from landblock...?
         public LinkedListNode<IAction> EnqueueAction(IAction actn)

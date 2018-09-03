@@ -81,7 +81,7 @@ namespace ACE.Server.WorldObjects
         {       
             AllowedActivator = activator.Full;
 
-            CurrentLandblock?.EnqueueBroadcastMotion(this, motionTipRight);
+            EnqueueBroadcastMotion(motionTipRight);
             
             // Stamp Cow tipping quest here;
 

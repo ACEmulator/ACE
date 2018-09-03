@@ -222,7 +222,7 @@ namespace ACE.Server.WorldObjects
             newMotion.DistanceFrom = 0.60f;
             newMotion.MovementTypes = movementType;
             EnqueueBroadcast(new GameMessageUpdatePosition(this));
-            CurrentLandblock?.EnqueueBroadcastMotion(this, newMotion);
+            EnqueueBroadcastMotion(newMotion);
         }
 
         /// <summary>

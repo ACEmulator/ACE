@@ -41,7 +41,7 @@ namespace ACE.Server.Managers
             double percentSuccess = 1;
 
             UniversalMotion motion = new UniversalMotion(MotionStance.NonCombat, new MotionItem(MotionCommand.ClapHands));
-            craftChain.AddAction(player, () => player.HandleActionMotion(motion));
+            craftChain.AddAction(player, () => player.EnqueueBroadcastMotion(motion));
             var motionTable = DatManager.PortalDat.ReadFromDat<MotionTable>(player.MotionTableId);
             var craftAnimationLength = motionTable.GetAnimationLength(MotionCommand.ClapHands);
             craftChain.AddDelaySeconds(craftAnimationLength);

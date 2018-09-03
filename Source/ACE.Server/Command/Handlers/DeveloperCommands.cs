@@ -313,7 +313,7 @@ namespace ACE.Server.Command.Handlers
             }
 
             UniversalMotion motion = new UniversalMotion(MotionStance.NonCombat, new MotionItem((MotionCommand)animationId));
-            session.Player.HandleActionMotion(motion);
+            session.Player.EnqueueBroadcastMotion(motion);
         }
 
         /// <summary>

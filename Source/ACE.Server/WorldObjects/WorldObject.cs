@@ -638,18 +638,9 @@ namespace ACE.Server.WorldObjects
             proj.OnCollideEnvironment();
         }
 
-        public void HandleActionMotion(UniversalMotion motion)
+        public void EnqueueBroadcastMotion(UniversalMotion motion)
         {
-            if (CurrentLandblock != null)
-            {
-                DoMotion(motion);
-            }
-        }
-
-        public void DoMotion(UniversalMotion motion)
-        {
-            if (CurrentLandblock != null)
-                CurrentLandblock?.EnqueueBroadcastMotion(this, motion);
+            EnqueueBroadcast(new GameMessageUpdateMotion(Guid, Sequences.GetCurrentSequence(SequenceType.ObjectInstance), Sequences, motion));
         }
 
         public void ApplyVisualEffects(PlayScript effect)

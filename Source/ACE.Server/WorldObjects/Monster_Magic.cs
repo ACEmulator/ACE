@@ -97,8 +97,7 @@ namespace ACE.Server.WorldObjects
             //motion.TargetGuid = target.Guid;
             CurrentMotionState = motion;
 
-            if (CurrentLandblock != null)
-                CurrentLandblock?.EnqueueBroadcastMotion(this, motion);
+            EnqueueBroadcastMotion(motion);
         }
 
         /// <summary>

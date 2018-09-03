@@ -55,7 +55,7 @@ namespace ACE.Server.WorldObjects
                 }
 
                 EnqueueBroadcast(new GameMessageSystemChat($"{Name} is recalling to the lifestone.", ChatMessageType.Recall));
-                CurrentLandblock?.EnqueueBroadcastMotion(this, motionLifestoneRecall);
+                EnqueueBroadcastMotion(motionLifestoneRecall);
 
                 // Wait for animation
                 ActionChain lifestoneChain = new ActionChain();
@@ -80,7 +80,7 @@ namespace ACE.Server.WorldObjects
 
             EnqueueBroadcast(new GameMessageSystemChat($"{Name} is recalling to the marketplace.", ChatMessageType.Recall));
             Session.Network.EnqueueSend(updateCombatMode); // this should be handled by a different thing, probably a function that forces player into peacemode
-            CurrentLandblock?.EnqueueBroadcastMotion(this, motionMarketplaceRecall);
+            EnqueueBroadcastMotion(motionMarketplaceRecall);
 
             // TODO: (OptimShi): Actual animation length is longer than in retail. 18.4s
             // float mpAnimationLength = MotionTable.GetAnimationLength((uint)MotionTableId, MotionCommand.MarketplaceRecall);

@@ -86,7 +86,7 @@ namespace ACE.Server.WorldObjects
                         turnToMotion.MovementTypes = MovementTypes.TurnToObject;
 
                         ActionChain turnToTimer = new ActionChain();
-                        turnToTimer.AddAction(this, () => player.CurrentLandblock?.EnqueueBroadcastMotion(player, turnToMotion));
+                        turnToTimer.AddAction(this, () => player.EnqueueBroadcastMotion(turnToMotion));
                         turnToTimer.AddDelaySeconds(1);
                         turnToTimer.AddAction(this, () => Open(player));
                         turnToTimer.EnqueueChain();
@@ -111,13 +111,13 @@ namespace ACE.Server.WorldObjects
 
         protected override void DoOnOpenMotionChanges()
         {
-            CurrentLandblock?.EnqueueBroadcastMotion(this, motionOpen);
+            EnqueueBroadcastMotion(motionOpen);
             CurrentMotionState = motionOpen;
         }
 
         protected override void DoOnCloseMotionChanges()
         {
-            CurrentLandblock?.EnqueueBroadcastMotion(this, motionClosed);
+            EnqueueBroadcastMotion(motionClosed);
             CurrentMotionState = motionClosed;
         }
 

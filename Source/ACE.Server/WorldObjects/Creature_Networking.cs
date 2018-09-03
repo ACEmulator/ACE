@@ -203,7 +203,7 @@ namespace ACE.Server.WorldObjects
             actionChain.AddAction(this, () =>
             {
                 CurrentMotionState = motion;
-                DoMotion(motion);
+                EnqueueBroadcastMotion(motion);
             });
 
             var animLength = Physics.Animation.MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, motionCommand);

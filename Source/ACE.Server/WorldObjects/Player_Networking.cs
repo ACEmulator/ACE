@@ -184,7 +184,7 @@ namespace ACE.Server.WorldObjects
             // FIXME(ddevec): May need to de-dupe animation/commands from client -- getting multiple (e.g. wave)
             // FIXME(ddevec): This is the operation that should update our velocity (for physics later)
             newMotion.Commands.AddRange(commands);
-            CurrentLandblock?.EnqueueBroadcastMotion(this, newMotion);
+            EnqueueBroadcastMotion(newMotion);
 
             // TODO: use real motion / animation system from physics
             CurrentMotionCommand = md.ForwardCommand;

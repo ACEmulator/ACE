@@ -186,7 +186,7 @@ namespace ACE.Server.WorldObjects
             var actionChain = new ActionChain();
 
             actionChain
-                .AddAction(player, () => player.HandleActionMotion(motionReading))
+                .AddAction(player, () => player.EnqueueBroadcastMotion(motionReading))
                 .AddDelaySeconds(2);
 
             if (success)
@@ -194,7 +194,7 @@ namespace ACE.Server.WorldObjects
                 actionChain.AddAction(player, () =>
                 {
                     player.LearnSpellWithNetworking(SpellId);
-                    player.HandleActionMotion(motionReady);
+                    player.EnqueueBroadcastMotion(motionReady);
                     if (player.TryRemoveFromInventoryWithNetworking(this))
                         player.Session.Network.EnqueueSend(new GameMessageSystemChat("The scroll is destroyed.", ChatMessageType.Magic));
                 });
@@ -205,7 +205,7 @@ namespace ACE.Server.WorldObjects
                     .AddDelaySeconds(2)
                     .AddAction(player, () =>
                     {
-                        player.HandleActionMotion(motionReady);
+                        player.EnqueueBroadcastMotion(motionReady);
                         player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{failReason}", ChatMessageType.Magic));
                     });
             }
