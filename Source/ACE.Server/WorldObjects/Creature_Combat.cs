@@ -22,7 +22,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Switches a player or creature to a new combat stance
         /// </summary>
-        public void SetCombatMode(CombatMode combatMode)
+        public float SetCombatMode(CombatMode combatMode)
         {
             //Console.WriteLine($"Changing combat mode for {Name} to {combatMode}");
 
@@ -31,31 +31,36 @@ namespace ACE.Server.WorldObjects
 
             CombatMode = combatMode;
 
+            var animLength = 0.0f;
+
             switch (CombatMode)
             {
                 case CombatMode.NonCombat:
-                    HandleSwitchToPeaceMode();
+                    animLength = HandleSwitchToPeaceMode();
                     break;
                 case CombatMode.Melee:
-                    HandleSwitchToMeleeCombatMode();
+                    animLength = HandleSwitchToMeleeCombatMode();
                     break;
                 case CombatMode.Magic:
-                    HandleSwitchToMagicCombatMode();
+                    animLength = HandleSwitchToMagicCombatMode();
                     break;
                 case CombatMode.Missile:
-                    HandleSwitchToMissileCombatMode();
+                    animLength = HandleSwitchToMissileCombatMode();
                     break;
                 default:
                     log.InfoFormat($"Unknown combat mode {CombatMode} for {Name}");
                     break;
             }
+            return animLength;
         }
 
         /// <summary>
         /// Switches a player or creature to non-combat mode
         /// </summary>
-        public void HandleSwitchToPeaceMode()
+        public float HandleSwitchToPeaceMode()
         {
+            var animLength = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, MotionCommand.NonCombat, MotionCommand.Ready);
+
             var motion = new UniversalMotion(MotionStance.NonCombat);
             motion.MovementData.CurrentStyle = (uint)MotionStance.NonCombat;
             SetMotionState(this, motion);
@@ -66,15 +71,20 @@ namespace ACE.Server.WorldObjects
                 player.stance = MotionStance.NonCombat;
                 player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.CombatMode, (int)CombatMode.NonCombat));
             }
+
+            //Console.WriteLine("HandleSwitchToPeaceMode() - animLength: " + animLength);
+            return animLength;
         }
 
         /// <summary>
         /// Switches a player or creature to melee attack stance
         /// </summary>
-        public void HandleSwitchToMeleeCombatMode()
+        public float HandleSwitchToMeleeCombatMode()
         {
             // get appropriate combat stance for currently wielded items
             var combatStance = GetCombatStance();
+
+            var animLength = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, (MotionCommand)combatStance, MotionCommand.Ready);
 
             var motion = new UniversalMotion(combatStance);
             motion.MovementData.CurrentStyle = (uint)combatStance;
@@ -83,15 +93,20 @@ namespace ACE.Server.WorldObjects
             var player = this as Player;
             if (player != null)
                 player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.CombatMode, (int)CombatMode.Melee));
+
+            //Console.WriteLine("HandleSwitchToMeleeCombatMode() - animLength: " + animLength);
+            return animLength;
         }
 
         /// <summary>
         /// Switches a player or creature to magic casting stance
         /// </summary>
-        public void HandleSwitchToMagicCombatMode()
+        public float HandleSwitchToMagicCombatMode()
         {
             var wand = GetEquippedWand();
-            if (wand == null) return;
+            if (wand == null) return 0.0f;
+
+            var animLength = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, MotionCommand.Magic, MotionCommand.Ready);
 
             var motion = new UniversalMotion(MotionStance.Magic);
             motion.MovementData.CurrentStyle = (uint)MotionStance.Magic;
@@ -100,18 +115,23 @@ namespace ACE.Server.WorldObjects
             var player = this as Player;
             if (player != null)
                 player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.CombatMode, (int)CombatMode.Magic));
+
+            //Console.WriteLine("HandleSwitchToMagicCombatMode() - animLength: " + animLength);
+            return animLength;
         }
 
         /// <summary>
         /// Switches a player or creature to a missile combat stance
         /// </summary>
-        public void HandleSwitchToMissileCombatMode()
+        public float HandleSwitchToMissileCombatMode()
         {
             // get appropriate combat stance for currently wielded items
             var weapon = GetEquippedMissileWeapon();
-            if (weapon == null) return;
+            if (weapon == null) return 0.0f;
 
             var combatStance = GetCombatStance();
+
+            var animLength = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, (MotionCommand)combatStance, MotionCommand.Ready);
 
             var motion = new UniversalMotion(combatStance);
             motion.MovementData.CurrentStyle = (uint)combatStance;
@@ -119,11 +139,14 @@ namespace ACE.Server.WorldObjects
 
             var ammo = GetEquippedAmmo();
             if (ammo != null && weapon.IsAmmoLauncher)
-                ReloadMissileAmmo();
+                animLength += ReloadMissileAmmo();
 
             var player = this as Player;
             if (player != null)
                 player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.CombatMode, (int)CombatMode.Missile));
+
+            //Console.WriteLine("HandleSwitchToMissileCombatMode() - animLength: " + animLength);
+            return animLength;
         }
 
         /// <summary>

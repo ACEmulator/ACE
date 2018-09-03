@@ -17,22 +17,23 @@ namespace ACE.Server.WorldObjects
 {
     partial class Creature
     {
-        public void ReloadMissileAmmo()
+        public float ReloadMissileAmmo()
         {
             var weapon = GetEquippedMissileWeapon();
             var ammo = GetEquippedAmmo();
 
-            if (weapon == null || ammo == null) return;
+            if (weapon == null || ammo == null) return 0.0f;
 
             var actionChain = new ActionChain();
 
+            var animLength = 0.0f;
             if (weapon.IsBow)
             {
                 EnqueueMotion(actionChain, MotionCommand.Reload);   // start pulling out next arrow
                 EnqueueMotion(actionChain, MotionCommand.Ready);    // finish reloading
 
-                var linkTime = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, MotionCommand.Ready, MotionCommand.Reload);
-                actionChain.AddDelaySeconds(linkTime / 2.0f);
+                animLength = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, MotionCommand.Reload, MotionCommand.Ready);
+                actionChain.AddDelaySeconds(animLength);
             }
 
             // ensure ammo visibility for players
@@ -43,6 +44,11 @@ namespace ACE.Server.WorldObjects
             });
 
             actionChain.EnqueueChain();
+
+            var animLength2 = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, MotionCommand.Ready, MotionCommand.Reload);
+            //Console.WriteLine($"AnimLength: {animLength} + {animLength2}");
+
+            return animLength + animLength2;
         }
 
         /// <summary>

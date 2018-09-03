@@ -42,9 +42,6 @@ namespace ACE.Server.WorldObjects
                         TryEquipObject(item, (int)item.ValidLocations);
                 }
             }
-            var combatStance = GetCombatStance();
-            //Console.WriteLine($"{Name} combat stance: {combatStance}");
-            DoAttackStance();
         }
 
         /// <summary>
@@ -86,12 +83,14 @@ namespace ACE.Server.WorldObjects
                 {
                     TryDequipObject(weapon.Guid);
                     EquipWieldedTreasure();
+                    DoAttackStance();
                     CurrentAttack = null;
                 }
             }
             if (weapon == null && CurrentAttack != null && CurrentAttack == AttackType.Missile)
             {
                 EquipWieldedTreasure();
+                DoAttackStance();
                 CurrentAttack = null;
             }
 
@@ -130,7 +129,11 @@ namespace ACE.Server.WorldObjects
             }
             else
             {
-                if (IsTurning) return;
+                if (IsTurning || IsMoving)
+                {
+                    Movement();
+                    return;
+                }
 
                 if (!IsFacing(AttackTarget))
                 {

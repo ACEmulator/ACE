@@ -42,11 +42,9 @@ namespace ACE.Server.WorldObjects
         {
             MonsterState = State.Awake;
             IsAwake = true;
-            DoAttackStance();
-
-            var weapon = GetEquippedMissileWeapon();
-            if (weapon != null && weapon.IsBow)
-                NextAttackTime = Timer.CurrentTime + MissileDelay + 1.0f;   // initial reload motion
+            var stanceTime = DoAttackStance();
+            //Console.WriteLine("StanceTime: " + stanceTime);
+            NextAttackTime = Timer.CurrentTime + stanceTime + 1.0f;
         }
 
         /// <summary>
