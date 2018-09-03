@@ -11,6 +11,7 @@ namespace ACE.Entity.Enum.Properties
 
         Undef                          = 0,
         HeartbeatInterval              = 1,
+        [Ephemeral]
         HeartbeatTimestamp             = 2,
         HealthRate                     = 3,
         StaminaRate                    = 4,
