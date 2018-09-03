@@ -39,7 +39,12 @@ namespace ACE.Server.WorldObjects
 
             // A player has their possessions passed via the ctor. All other world objects must load their own inventory
             if (!(this is Player) && !(new ObjectGuid(ContainerId ?? 0).IsPlayer()))
-                DatabaseManager.Shard.GetInventory(biota.Id, false, SortBiotasIntoInventory);
+            {
+                DatabaseManager.Shard.GetInventory(biota.Id, false, biotas =>
+                {
+                    EnqueueAction(new ActionEventDelegate(() => SortBiotasIntoInventory(biotas)));
+                });
+            }
         }
 
         private void SetEphemeralValues()
