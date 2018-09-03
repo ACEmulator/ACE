@@ -545,18 +545,20 @@ namespace ACE.Server.Managers
 
             try
             {
+                var activeLandblocks = LandblockManager.GetActiveLandblocks();
+
                 if (Concurrency)
                 {
                     // Access ActiveLandblocks should be safe here, but sometimes crashes with
                     // System.InvalidOperationException: 'Collection was modified; enumeration operation may not execute.'
-                    Parallel.ForEach(LandblockManager.ActiveLandblocks.Keys, landblock =>
+                    Parallel.ForEach(activeLandblocks, landblock =>
                     {
                         HandlePhysicsLandblock(landblock, timeTick, movedObjects);
                     });
                 }
                 else
                 {
-                    foreach (var landblock in LandblockManager.ActiveLandblocks.Keys)
+                    foreach (var landblock in activeLandblocks)
                         HandlePhysicsLandblock(landblock, timeTick, movedObjects);
                 }
             }
