@@ -496,26 +496,6 @@ namespace ACE.Server.WorldObjects
             Positions[type] = newPosition;
         }
 
-        public void UpdateAge()
-        {
-            if (Age != null)
-                Age++;
-            else
-                Age = 1;
-        }
-
-        public void SendAgeInt()
-        {
-            try
-            {
-                Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.Age, Age ?? 1));
-            }
-            catch (NullReferenceException)
-            {
-                // Do Nothing since player data hasn't loaded in
-            }
-        }
-
         /// <summary>
         /// Returns false if the player has chosen to Appear Offline.  Otherwise it will return their actual online status.
         /// </summary>

@@ -481,7 +481,7 @@ namespace ACE.Server.Managers
                    - Every scenario must be one where you don't care about breaking ACE
                    - DeveloperCommand Handlers
 
-                 * TODO: We need a thread safe way to handle object transitions between distance landblocks
+                 * TODO: We need a thread safe way to handle object transitions between distant landblocks
                 */
 
                 InboundClientMessageQueue.RunActions();

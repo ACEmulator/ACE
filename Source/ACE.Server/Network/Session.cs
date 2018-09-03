@@ -46,10 +46,7 @@ namespace ACE.Server.Network
         public readonly ActionQueue InboundGameActionQueue = new ActionQueue();
 
 
-        private DateTime lastAutoSaveTime;
         private DateTime logOffRequestTime;
-        private DateTime lastAgeIntUpdateTime;
-        private DateTime lastSendAgeIntUpdateTime;
 
         private bool bootSession;
 
@@ -151,40 +148,6 @@ namespace ACE.Server.Network
                 SendFinalBoot();
                 State = SessionState.NetworkTimeout;
             }
-
-            // todo: I'd like to move this to a player Update() function. Mag-nus 2018-08-10
-            if (Player != null)
-            {
-                // First, we check if the player hasn't been saved in the last 5 minutes
-                if (Player.LastRequestedDatabaseSave + Player.PlayerSaveInterval <= DateTime.UtcNow)
-                {
-                    // Secondly, we make sure this session hasn't requested a save in the last 5 minutes.
-                    // We do this because EnqueueSaveChain will queue an ActionChain that may not execute immediately. This prevents refiring while a save is pending.
-                    if (lastAutoSaveTime + Player.PlayerSaveInterval <= DateTime.UtcNow)
-                    {
-                        lastAutoSaveTime = DateTime.UtcNow;
-                        Player.EnqueueSaveChain();
-                    }
-                }
-
-                if (lastAgeIntUpdateTime == DateTime.MinValue)
-                    lastAgeIntUpdateTime = DateTime.UtcNow;
-
-                if (lastAgeIntUpdateTime != DateTime.MinValue && lastAgeIntUpdateTime.AddSeconds(1) <= DateTime.UtcNow)
-                {
-                    Player.UpdateAge();
-                    lastAgeIntUpdateTime = DateTime.UtcNow;
-                }
-
-                if (lastSendAgeIntUpdateTime == DateTime.MinValue)
-                    lastSendAgeIntUpdateTime = DateTime.UtcNow;
-
-                if (lastSendAgeIntUpdateTime != DateTime.MinValue && lastSendAgeIntUpdateTime.AddSeconds(7) <= DateTime.UtcNow)
-                {
-                    Player.SendAgeInt();
-                    lastSendAgeIntUpdateTime = DateTime.UtcNow;
-                }
-            }
         }
 
 
@@ -221,9 +184,6 @@ namespace ACE.Server.Network
 
         public void InitSessionForWorldLogin()
         {
-            lastAgeIntUpdateTime = DateTime.MinValue;
-            lastSendAgeIntUpdateTime = DateTime.MinValue;
-
             GameEventSequence = 1;
         }
 
@@ -235,7 +195,6 @@ namespace ACE.Server.Network
         public void SetPlayer(Player player)
         {
             Player = player;
-            lastAutoSaveTime = DateTime.UtcNow;
         }
 
         public void LogOffPlayer()
