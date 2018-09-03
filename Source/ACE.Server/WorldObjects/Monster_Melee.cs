@@ -116,12 +116,11 @@ namespace ACE.Server.WorldObjects
             motion.TargetGuid = target.Guid;
             CurrentMotionState = motion;
 
-            if (CurrentLandblock != null)
-                CurrentLandblock?.EnqueueBroadcastMotion(this, motion);
+            EnqueueBroadcastMotion(motion);
 
             // play default script? (special attack)
             //if (MotionTable.HasDefaultScript(MotionTableId, maneuver.Motion, maneuver.Style))
-                //EnqueueBroadcast(new GameMessageScript(Guid, (PlayScript)DefaultScriptId));
+            //EnqueueBroadcast(new GameMessageScript(Guid, (PlayScript)DefaultScriptId));
 
             return null;
         }

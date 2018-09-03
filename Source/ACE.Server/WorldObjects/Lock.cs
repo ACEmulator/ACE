@@ -81,7 +81,7 @@ namespace ACE.Server.WorldObjects
                             player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.LockAlreadyUnlocked));
                             break;
                         case UnlockResults.PickLockFailed:
-                            target.CurrentLandblock?.EnqueueBroadcastSound(target, Sound.PicklockFail);
+                            target.EnqueueBroadcast(new GameMessageSound(target.Guid, Sound.PicklockFail, 1.0f));
                             ConsumeUnlocker(player, unlocker);
                             break;
                         case UnlockResults.CannotBePicked:

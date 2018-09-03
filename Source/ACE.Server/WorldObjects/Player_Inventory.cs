@@ -612,8 +612,8 @@ namespace ACE.Server.WorldObjects
             Session.Network.EnqueueSend(new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Container, new ObjectGuid(0)));
 
             // Set drop motion
-            CurrentLandblock?.EnqueueBroadcastMotion(this, motion);
-
+            EnqueueBroadcastMotion(motion);
+            
             // Now wait for Drop Motion to finish -- use ActionChain
             var dropChain = new ActionChain();
 
@@ -626,8 +626,7 @@ namespace ACE.Server.WorldObjects
             // Put item on landblock
             dropChain.AddAction(this, () =>
             {
-                motion = new UniversalMotion(MotionStance.NonCombat);
-                CurrentLandblock?.EnqueueBroadcastMotion(this, motion);
+                EnqueueBroadcastMotion(new UniversalMotion(MotionStance.NonCombat));
                 EnqueueBroadcast(new GameMessageSound(Guid, Sound.DropItem, (float)1.0));
                 Session.Network.EnqueueSend(
                     new GameEventItemServerSaysMoveItem(Session, item),
@@ -1517,7 +1516,7 @@ namespace ACE.Server.WorldObjects
             motion.MovementData.ForwardCommand = (uint)MotionCommand.Pickup;
 
             // Set drop motion
-            CurrentLandblock?.EnqueueBroadcastMotion(this, motion);
+            EnqueueBroadcastMotion(motion);
 
             // Now wait for Drop Motion to finish -- use ActionChain
             var dropChain = new ActionChain();
@@ -1535,8 +1534,7 @@ namespace ACE.Server.WorldObjects
                     Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(container, PropertyInt.EncumbranceVal, container.EncumbranceVal ?? 0));
                 Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
 
-                motion = new UniversalMotion(MotionStance.NonCombat);
-                CurrentLandblock?.EnqueueBroadcastMotion(this, motion);
+                EnqueueBroadcastMotion(new UniversalMotion(MotionStance.NonCombat));
                 EnqueueBroadcast(new GameMessageSound(Guid, Sound.DropItem, 1.0f));
 
                 Session.Network.EnqueueSend(new GameMessageSetStackSize(stack));

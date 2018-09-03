@@ -1,20 +1,13 @@
 using System;
-using System.Collections.Generic;
 using System.Collections.Concurrent;
-using System.Diagnostics;
+using System.Collections.Generic;
 
 using log4net;
 
-using ACE.Common;
-using ACE.Database;
-using ACE.Database.Models.Shard;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Server.Entity;
 using ACE.Server.WorldObjects;
-using ACE.Server.Network;
-using ACE.Server.Network.GameEvent.Events;
-using ACE.Server.Network.GameMessages.Messages;
 
 namespace ACE.Server.Managers
 {
@@ -23,70 +16,21 @@ namespace ACE.Server.Managers
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         private static readonly object landblockMutex = new object();
-
-        // FIXME(ddevec): Does making this volatile really make double-check locking safe?
-        private static volatile Landblock[,] landblocks = new Landblock[256, 256];
+        private static readonly Landblock[,] landblocks = new Landblock[256, 256];
 
         /// <summary>
         /// This list of all currently active landblocks may only be accessed externally from locations in which the landblocks /CANNOT/ be concurrently modified
         ///   e.g. -- the WorldManager update loop
-        /// Landblocks should not be directly accessed by world objects, or world-object associated handlers.
-        ///   Instead use: FIXME(ddevec): TBD, interface a work in progress
         /// </summary>
-        public static ConcurrentDictionary<Landblock, bool> ActiveLandblocks { get; } = new ConcurrentDictionary<Landblock, bool>();
+        public static Dictionary<Landblock, bool> ActiveLandblocks { get; } = new Dictionary<Landblock, bool>();
 
-        public static List<Landblock> DestructionQueue = new List<Landblock>();
+        private static readonly ConcurrentBag<Landblock> destructionQueue = new ConcurrentBag<Landblock>();
 
-        public static void PlayerEnterWorld(Session session, Character character)
+        public static void AddObject(WorldObject worldObject, bool propegate = false)
         {
-            var start = DateTime.UtcNow;
-            DatabaseManager.Shard.GetPlayerBiotas(character.Id, biotas =>
-            {
-                log.Debug($"GetPlayerBiotas for {character.Name} took {(DateTime.UtcNow - start).TotalMilliseconds:N0} ms");
-                Player player;
-
-                if (biotas.Player.WeenieType == (int)WeenieType.Admin)
-                    player = new Admin(biotas.Player, biotas.Inventory, biotas.WieldedItems, character, session);
-                else if (biotas.Player.WeenieType == (int)WeenieType.Sentinel)
-                    player = new Sentinel(biotas.Player, biotas.Inventory, biotas.WieldedItems, character, session);
-                else
-                    player = new Player(biotas.Player, biotas.Inventory, biotas.WieldedItems, character, session);
-
-                session.SetPlayer(player);
-                session.Player.PlayerEnterWorld();
-
-                // check the value of the welcome message. Only display it if it is not empty
-                string welcomeHeader;
-                if (!String.IsNullOrEmpty(ConfigManager.Config.Server.Welcome))
-                    welcomeHeader = ConfigManager.Config.Server.Welcome;
-                else
-                    welcomeHeader = "Welcome to Asheron's Call!";
-
-                string msg = "To begin your training, speak to the Society Greeter. Walk up to the Society Greeter using the 'W' key, then double-click on her to initiate a conversation.";
-
-                if ((character.TotalLogins <= 1) || PropertyManager.GetBool("alwaysshowwelcome").Item)
-                    session.Network.EnqueueSend(new GameEventPopupString(session, $"{welcomeHeader}\n{msg}"));
-
-                var location = player.GetPosition(PositionType.Location);
-
-                lock (WorldManager.UpdateWorldLandblockLock)
-                {
-                    var landblock = GetLandblock(location.LandblockId, true);
-                    landblock.AddWorldObject(session.Player);
-                }
-
-                var motdString = PropertyManager.GetString("motd_string").Item;
-                session.Network.EnqueueSend(new GameMessageSystemChat(motdString, ChatMessageType.Broadcast));
-            });
-        }
-
-        public static void AddObject(WorldObject worldObject)
-        {
-            var block = GetLandblock(worldObject.Location.LandblockId, false);
+            var block = GetLandblock(worldObject.Location.LandblockId, propegate);
             block.AddWorldObject(worldObject);
         }
-
-        // TODO: Need to be able to read the position of an object on the landblock and get information about that object CFS
 
         public static void RemoveObject(WorldObject worldObject)
         {
@@ -103,9 +47,7 @@ namespace ACE.Server.Managers
             var newBlock = GetLandblock(worldObject.Location.LandblockId, true);
             // Remove from the old landblock -- force
             if (oldBlock != null)
-            {
                 oldBlock.RemoveWorldObjectForPhysics(worldObject.Guid, adjacencyMove);
-            }
             // Add to the new landblock
             newBlock.AddWorldObjectForPhysics(worldObject);
         }
@@ -116,13 +58,13 @@ namespace ACE.Server.Managers
         /// </summary>
         private static Landblock GetLandblock(LandblockId landblockId, bool propagate)
         {
-            var landblock = landblocks[landblockId.LandblockX, landblockId.LandblockY];
-            var autoLoad = propagate && landblockId.MapScope == MapScope.Outdoors;
-
-            // standard check/lock/recheck pattern
-            if (landblock == null || autoLoad && !landblock.AdjacenciesLoaded)
+            lock (landblockMutex)
             {
-                lock (landblockMutex)
+                var landblock = landblocks[landblockId.LandblockX, landblockId.LandblockY];
+                var autoLoad = propagate && landblockId.MapScope == MapScope.Outdoors;
+
+                // standard check/lock/recheck pattern
+                if (landblock == null || autoLoad && !landblock.AdjacenciesLoaded)
                 {
                     landblock = landblocks[landblockId.LandblockX, landblockId.LandblockY];
                     if (landblock == null || autoLoad && !landblock.AdjacenciesLoaded)
@@ -136,7 +78,7 @@ namespace ACE.Server.Managers
                             // block.StartUseTime();
                             if (!ActiveLandblocks.TryAdd(landblock, true))
                             {
-                                Console.WriteLine("LandblockManager: failed to add " + (landblock.Id.Raw | 0xFFFF).ToString("X8") + " to active landblocks!");
+                                log.Error("LandblockManager: failed to add " + (landblock.Id.Raw | 0xFFFF).ToString("X8") + " to active landblocks!");
                                 return landblock;
                             }
                         }
@@ -145,8 +87,9 @@ namespace ACE.Server.Managers
                             landblock.AdjacenciesLoaded = true;
                     }
                 }
+
+                return landblock;
             }
-            return landblock;
         }
 
         /// <summary>
@@ -221,19 +164,14 @@ namespace ACE.Server.Managers
             }
         }
 
+        /// <summary>
+        /// This function is NOT thread safe. Using it will likely result in concurrency issues with WorldManager.UpdateWorld.
+        /// You should only use this for debugging/development purposes.
+        /// </summary>
+        /// <param name="blockid"></param>
         public static void ForceLoadLandBlock(LandblockId blockid)
         {
-            Stopwatch sw = Stopwatch.StartNew();
             GetLandblock(blockid, false);
-            sw.Stop();
-            log.DebugFormat("Loaded Landblock {0:X4} in {1} milliseconds ", blockid.Landblock, sw.ElapsedMilliseconds);
-            Console.WriteLine("Loaded Landblock {0:X4} in {1} milliseconds ", blockid.Landblock, sw.ElapsedMilliseconds);
-        }
-
-        public static void FinishedForceLoading()
-        {
-            log.DebugFormat("Finished Forceloading Landblocks");
-            Console.WriteLine("Finished Forceloading Landblocks");
         }
 
         /// <summary>
@@ -242,8 +180,7 @@ namespace ACE.Server.Managers
         /// <param name="landblock">The landblock to be unloaded</param>
         public static void AddToDestructionQueue(Landblock landblock)
         {
-            if (!DestructionQueue.Contains(landblock))
-                DestructionQueue.Add(landblock);
+            destructionQueue.Add(landblock);
         }
 
         /// <summary>
@@ -251,20 +188,27 @@ namespace ACE.Server.Managers
         /// </summary>
         public static void UnloadLandblocks()
         {
-            if (DestructionQueue.Count == 0)
-                return;
-
-            foreach (var landblock in DestructionQueue)
+            while (!destructionQueue.IsEmpty)
             {
-                landblock.Unload();
+                if (destructionQueue.TryTake(out Landblock landblock))
+                {
+                    landblock.Unload();
 
-                // remove from list of managed landblocks
-                if (ActiveLandblocks.TryRemove(landblock, out var active))
-                    landblocks[landblock.Id.LandblockX, landblock.Id.LandblockY] = null;
-                else
-                    Console.WriteLine("LandblockManager: failed to unload " + (landblock.Id.Raw | 0xFFFF).ToString("X8"));
+                    bool unloadFailed = false;
+
+                    lock (landblockMutex)
+                    {
+                        // remove from list of managed landblocks
+                        if (ActiveLandblocks.Remove(landblock, out _))
+                            landblocks[landblock.Id.LandblockX, landblock.Id.LandblockY] = null;
+                        else
+                            unloadFailed = true;
+                    }
+
+                    if (unloadFailed)
+                        log.Error("LandblockManager: failed to unload " + (landblock.Id.Raw | 0xFFFF).ToString("X8"));
+                }
             }
-            DestructionQueue.Clear();
         }
     }
 }

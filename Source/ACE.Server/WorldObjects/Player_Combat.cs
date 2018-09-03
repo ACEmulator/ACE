@@ -395,7 +395,7 @@ namespace ACE.Server.WorldObjects
                 if (!string.IsNullOrWhiteSpace(hotspot.ActivationTalkString))
                     Session.Network.EnqueueSend(new GameMessageSystemChat(hotspot.ActivationTalkString.Replace("%i", amount.ToString()), ChatMessageType.Craft));
                 if (!(hotspot.Visibility ?? false))
-                    CurrentLandblock?.EnqueueBroadcastSound(hotspot, Sound.TriggerActivated);
+                    hotspot.EnqueueBroadcast(new GameMessageSound(hotspot.Guid, Sound.TriggerActivated, 1.0f));
             }
 
             if (percent >= 0.1f)

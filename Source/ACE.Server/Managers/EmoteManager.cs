@@ -538,7 +538,7 @@ namespace ACE.Server.Managers
                                 actionChain.AddDelaySeconds(emoteAction.Delay);
                                 actionChain.AddAction(sourceObject, () =>
                                 {
-                                    sourceObject.DoMotion(startingMotion);
+                                    sourceObject.EnqueueBroadcastMotion(startingMotion);
                                     sourceObject.CurrentMotionState = startingMotion;
                                 });
                             }
@@ -550,7 +550,7 @@ namespace ACE.Server.Managers
                                 actionChain.AddDelaySeconds(emoteAction.Delay);
                                 actionChain.AddAction(sourceObject, () =>
                                 {
-                                    sourceObject.DoMotion(motion);
+                                    sourceObject.EnqueueBroadcastMotion(motion);
                                     sourceObject.CurrentMotionState = motion;
                                 });
                                 actionChain.AddDelaySeconds(DatManager.PortalDat.ReadFromDat<DatLoader.FileTypes.MotionTable>(sourceObject.MotionTableId).GetAnimationLength((MotionCommand)emoteAction.Motion));
@@ -558,7 +558,7 @@ namespace ACE.Server.Managers
                                 {
                                     actionChain.AddAction(sourceObject, () =>
                                     {
-                                        sourceObject.DoMotion(startingMotion);
+                                        sourceObject.EnqueueBroadcastMotion(startingMotion);
                                         sourceObject.CurrentMotionState = startingMotion;
                                     });
                                 }
@@ -572,7 +572,7 @@ namespace ACE.Server.Managers
                         actionChain.AddDelaySeconds(emoteAction.Delay);
                         actionChain.AddAction(sourceObject, () =>
                         {
-                            sourceObject.DoMotion(motion);
+                            sourceObject.EnqueueBroadcastMotion(motion);
                             sourceObject.CurrentMotionState = motion;
                         });
                     }
@@ -765,7 +765,7 @@ namespace ACE.Server.Managers
                     break;
 
                 case EmoteType.Sound:
-                    targetObject.CurrentLandblock?.EnqueueBroadcastSound(targetObject, (Sound)emoteAction.Sound);
+                    targetObject.EnqueueBroadcast(new GameMessageSound(targetObject.Guid, (Sound)emoteAction.Sound, 1.0f));
                     break;
 
                 case EmoteType.SpendLuminance:

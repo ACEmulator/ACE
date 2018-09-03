@@ -557,7 +557,7 @@ namespace ACE.Server.WorldObjects
                     motionWindUp.MovementData.CurrentStyle = (ushort)((uint)MotionStance.Magic & 0xFFFF);
                     motionWindUp.MovementData.ForwardCommand = (uint)windUpMotion;
                     motionWindUp.MovementData.ForwardSpeed = 2;
-                    DoMotion(motionWindUp);
+                    EnqueueBroadcastMotion(motionWindUp);
                 });
             }
 
@@ -571,7 +571,7 @@ namespace ACE.Server.WorldObjects
                 motionCastSpell.MovementData.CurrentStyle = (ushort)((uint)MotionStance.Magic & 0xFFFF);
                 motionCastSpell.MovementData.ForwardCommand = (uint)spellGesture;
                 motionCastSpell.MovementData.ForwardSpeed = 2;
-                DoMotion(motionCastSpell);
+                EnqueueBroadcastMotion(motionCastSpell);
             });
 
             if (fastCast == 1)
@@ -742,7 +742,7 @@ namespace ACE.Server.WorldObjects
                 var motionReturnToCastStance = new UniversalMotion(MotionStance.Magic);
                 motionReturnToCastStance.MovementData.CurrentStyle = (ushort)((uint)MotionStance.Magic & 0xFFFF);
                 motionReturnToCastStance.MovementData.ForwardCommand = (uint)MotionCommand.Invalid;
-                DoMotion(motionReturnToCastStance);
+                EnqueueBroadcastMotion(motionReturnToCastStance);
             });
 
             switch (castingPreCheckStatus)
@@ -854,7 +854,7 @@ namespace ACE.Server.WorldObjects
                     motionWindUp.MovementData.CurrentStyle = (ushort)((uint)MotionStance.Magic & 0xFFFF);
                     motionWindUp.MovementData.ForwardCommand = (uint)windUpMotion;
                     motionWindUp.MovementData.ForwardSpeed = 2;
-                    DoMotion(motionWindUp);
+                    EnqueueBroadcastMotion(motionWindUp);
                 });
             }
 
@@ -868,7 +868,7 @@ namespace ACE.Server.WorldObjects
                 motionCastSpell.MovementData.CurrentStyle = (ushort)((uint)MotionStance.Magic & 0xFFFF);
                 motionCastSpell.MovementData.ForwardCommand = (uint)spellGesture;
                 motionCastSpell.MovementData.ForwardSpeed = 2;
-                DoMotion(motionCastSpell);
+                EnqueueBroadcastMotion(motionCastSpell);
             });
 
             if (fastCast == 1)
@@ -905,7 +905,7 @@ namespace ACE.Server.WorldObjects
                 var motionReturnToCastStance = new UniversalMotion(MotionStance.Magic);
                 motionReturnToCastStance.MovementData.CurrentStyle = (ushort)((uint)MotionStance.Magic & 0xFFFF);
                 motionReturnToCastStance.MovementData.ForwardCommand = (uint)MotionCommand.Invalid;
-                DoMotion(motionReturnToCastStance);
+                EnqueueBroadcastMotion(motionReturnToCastStance);
             });
 
             switch (castingPreCheckStatus)

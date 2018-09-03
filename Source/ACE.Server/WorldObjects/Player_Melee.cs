@@ -126,7 +126,7 @@ namespace ACE.Server.WorldObjects
             CurrentMotionState = motion;
 
             var actionChain = new ActionChain();
-            actionChain.AddAction(this, () => DoMotion(motion));
+            actionChain.AddAction(this, () => EnqueueBroadcastMotion(motion));
             actionChain.AddDelaySeconds(animLength);
             actionChain.AddAction(this, () => Session.Network.EnqueueSend(new GameEventAttackDone(Session)));
             actionChain.AddAction(this, () => Session.Network.EnqueueSend(new GameEventCombatCommmenceAttack(Session)));

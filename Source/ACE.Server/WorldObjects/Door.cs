@@ -5,7 +5,6 @@ using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
-using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
 using ACE.Server.Network.GameEvent.Events;
@@ -189,7 +188,7 @@ namespace ACE.Server.WorldObjects
                         var player = worldObject as Player;
                         var doorIsLocked = new GameEventCommunicationTransientString(player.Session, "The door is locked!");
                         player.Session.Network.EnqueueSend(doorIsLocked);
-                        CurrentLandblock?.EnqueueBroadcastSound(this, Sound.OpenFailDueToLock);
+                        EnqueueBroadcast(new GameMessageSound(Guid, Sound.OpenFailDueToLock, 1.0f));
                     }
                 }
 
@@ -209,7 +208,7 @@ namespace ACE.Server.WorldObjects
             if (CurrentMotionState == motionOpen)
                 return;
 
-            CurrentLandblock?.EnqueueBroadcastMotion(this, motionOpen);
+            EnqueueBroadcastMotion(motionOpen);
             CurrentMotionState = motionOpen;
             Ethereal = true;
             IsOpen = true;
@@ -224,7 +223,7 @@ namespace ACE.Server.WorldObjects
             if (CurrentMotionState == motionClosed)
                 return;
 
-            CurrentLandblock?.EnqueueBroadcastMotion(this, motionClosed);
+            EnqueueBroadcastMotion(motionClosed);
             CurrentMotionState = motionClosed;
             Ethereal = false;
             IsOpen = false;

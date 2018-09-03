@@ -586,7 +586,7 @@ namespace ACE.Server.WorldObjects
             if (!clientSessionTerminatedAbruptly)
             {
                 var logout = new UniversalMotion(MotionStance.NonCombat, new MotionItem(MotionCommand.LogOut));
-                CurrentLandblock?.EnqueueBroadcastMotion(this, logout);
+                EnqueueBroadcastMotion(logout);
 
                 EnqueueBroadcastPhysicsState();
 
@@ -850,17 +850,17 @@ namespace ACE.Server.WorldObjects
 
         public void HandleActionTalk(string message)
         {
-            CurrentLandblock?.EnqueueBroadcastLocalChat(this, message);
+            EnqueueBroadcast(new GameMessageCreatureMessage(message, Name, Guid.Full, ChatMessageType.Speech));
         }
 
         public void HandleActionEmote(string message)
         {
-            CurrentLandblock?.EnqueueBroadcastLocalChatEmote(this, message);
+            EnqueueBroadcast(new GameMessageEmoteText(Guid.Full, Name, message));
         }
 
         public void HandleActionSoulEmote(string message)
         {
-            CurrentLandblock?.EnqueueBroadcastLocalChatSoulEmote(this, message);
+            EnqueueBroadcast(new GameMessageSoulEmote(Guid.Full, Name, message));
         }
 
         public void HandleActionJump(JumpPack jump)
@@ -896,7 +896,7 @@ namespace ACE.Server.WorldObjects
                 };
                 CurrentMotionState = motion;
                 if (CurrentLandblock != null)
-                    CurrentLandblock?.EnqueueBroadcastMotion(this, motion);
+                    EnqueueBroadcastMotion(motion);
             }
             Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "You're Exhausted!"));
         }
@@ -924,7 +924,7 @@ namespace ACE.Server.WorldObjects
             var soundEvent = new GameMessageSound(Guid, sound, 1.0f);
             var motion = new UniversalMotion(MotionStance.NonCombat, new MotionItem(motionCommand));
 
-            DoMotion(motion);
+            EnqueueBroadcastMotion(motion);
 
             if (buffType == ConsumableBuffType.Spell)
             {
@@ -976,7 +976,7 @@ namespace ACE.Server.WorldObjects
             motionChain.AddDelaySeconds(motionAnimationLength);
 
             // Return to standing position after the animation delay
-            motionChain.AddAction(this, () => DoMotion(new UniversalMotion(MotionStance.NonCombat)));
+            motionChain.AddAction(this, () => EnqueueBroadcastMotion(new UniversalMotion(MotionStance.NonCombat)));
             motionChain.EnqueueChain();
         }
 

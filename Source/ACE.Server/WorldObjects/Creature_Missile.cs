@@ -72,13 +72,13 @@ namespace ACE.Server.WorldObjects
             //motion.TargetGuid = target.Guid;
             CurrentMotionState = motion;
 
-            actionChain.AddAction(this, () => DoMotion(motion));
+            actionChain.AddAction(this, () => EnqueueBroadcastMotion(motion));
             actionChain.AddDelaySeconds(animLength);
 
             actionChain.AddAction(this, () =>
             {
                 motion.MovementData.ForwardCommand = (uint)MotionCommand.Invalid;
-                DoMotion(motion);
+                EnqueueBroadcastMotion(motion);
                 CurrentMotionState = motion;
             });
 

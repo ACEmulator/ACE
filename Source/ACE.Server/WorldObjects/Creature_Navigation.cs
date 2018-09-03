@@ -1,5 +1,6 @@
 using System;
 using System.Numerics;
+
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Server.Entity;
@@ -95,7 +96,7 @@ namespace ACE.Server.WorldObjects
             // send network message to start turning creature
             var turnToMotion = new UniversalMotion(CurrentMotionState.Stance, target.Location, target.Guid);
             turnToMotion.MovementTypes = MovementTypes.TurnToObject;
-            CurrentLandblock?.EnqueueBroadcastMotion(this, turnToMotion);
+            EnqueueBroadcastMotion(turnToMotion);
 
             var angle = GetAngle(target);
             //Console.WriteLine("Angle: " + angle);
@@ -152,7 +153,7 @@ namespace ACE.Server.WorldObjects
             // send network message to start turning creature
             var turnToMotion = new UniversalMotion(CurrentMotionState.Stance, position);
             turnToMotion.MovementTypes = MovementTypes.TurnToHeading;
-            CurrentLandblock?.EnqueueBroadcastMotion(this, turnToMotion);
+            EnqueueBroadcastMotion(turnToMotion);
 
             var angle = GetAngle(position);
             //Console.WriteLine("Angle: " + angle);
@@ -198,7 +199,7 @@ namespace ACE.Server.WorldObjects
 
             var turnToMotion = new UniversalMotion(CurrentMotionState.Stance, target.Location, target.Guid);
             turnToMotion.MovementTypes = MovementTypes.TurnToObject;
-            CurrentLandblock?.EnqueueBroadcastMotion(this, turnToMotion);
+            EnqueueBroadcastMotion(turnToMotion);
 
             CurrentMotionState = turnToMotion;
 
@@ -233,7 +234,7 @@ namespace ACE.Server.WorldObjects
 
             CurrentMotionState = motion;
 
-            CurrentLandblock?.EnqueueBroadcastMotion(this, motion);
+            EnqueueBroadcastMotion(motion);
         }
 
         /// <summary>
@@ -250,7 +251,7 @@ namespace ACE.Server.WorldObjects
             // todo: use better movement system
             Location = position;
 
-            CurrentLandblock?.EnqueueBroadcastMotion(this, motion);
+            EnqueueBroadcastMotion(motion);
         }
     }
 }

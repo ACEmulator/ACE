@@ -1,10 +1,11 @@
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Numerics;
 using System.Threading;
+
+using log4net;
 
 using ACE.Database;
 using ACE.Database.Models.Shard;
@@ -17,14 +18,8 @@ using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
 using ACE.Server.Managers;
-using ACE.Server.Network.GameMessages;
-using ACE.Server.Network.GameMessages.Messages;
-using ACE.Server.Network.Motion;
-using ACE.Server.Network.Sequence;
 using ACE.Server.Physics.Common;
 using ACE.Server.WorldObjects;
-
-using log4net;
 
 using Position = ACE.Entity.Position;
 
@@ -56,17 +51,6 @@ namespace ACE.Server.Entity
         public readonly Dictionary<ObjectGuid, WorldObject> worldObjects = new Dictionary<ObjectGuid, WorldObject>();
         private readonly Dictionary<Adjacency, Landblock> adjacencies = new Dictionary<Adjacency, Landblock>();
 
-        /// <summary>
-        /// Special needs-broadcast flag.  Cleared in broadcast, but set in other phases.
-        /// Must be treated exceptionally carefully to avoid races.  Don't touch unless you /really/ know what your doing
-        /// </summary>
-        private int broadcastQueued;
-
-        // Can be appended concurrently, will be sent serially
-        // NOTE: Broadcasts have read-only access to landblocks, and EnqueueSend is thread-safe within Session.
-        //    -- Therefore broadcasting between landblocks doesn't require locking O_o
-        private readonly ConcurrentQueue<Tuple<Position, float, GameMessage>> broadcastQueue = new ConcurrentQueue<Tuple<Position, float, GameMessage>>();
-
         // private byte cellGridMaxX = 8; // todo: load from cell.dat
         // private byte cellGridMaxY = 8; // todo: load from cell.dat
 
@@ -76,7 +60,7 @@ namespace ACE.Server.Entity
 
         public LandBlockStatus Status = new LandBlockStatus();
 
-        private NestedActionQueue actionQueue;
+        private readonly NestedActionQueue actionQueue;
 
         public LandblockId Id { get; }
 
@@ -473,9 +457,6 @@ namespace ACE.Server.Entity
                 allplayers = allworldobj.OfType<Player>().ToList();
 
                 UpdateStatus(allplayers.Count);
-
-                // Handle broadcasts
-                SendBroadcasts();
             }
             catch (Exception e)
             {
@@ -544,162 +525,59 @@ namespace ACE.Server.Entity
             if (!highXInLandblock)
             {
                 if (EastAdjacency != null)
-                {
                     inRange.Add(EastAdjacency);
-                }
             }
 
             // North East
             if (!highXInLandblock && !highYInLandblock)
             {
                 if (NorthEastAdjacency != null)
-                {
                     inRange.Add(NorthEastAdjacency);
-                }
             }
 
             // North
             if (!highYInLandblock)
             {
                 if (NorthAdjacency != null)
-                {
                     inRange.Add(NorthAdjacency);
-                }
             }
 
             // North West
             if (!lowXInLandblock && !highYInLandblock)
             {
                 if (NorthWestAdjacency != null)
-                {
                     inRange.Add(NorthWestAdjacency);
-                }
             }
 
             // West
             if (!lowXInLandblock)
             {
                 if (WestAdjacency != null)
-                {
                     inRange.Add(WestAdjacency);
-                }
             }
 
             // South West
             if (!lowXInLandblock && !lowYInLandblock)
             {
                 if (SouthWestAdjacency != null)
-                {
                     inRange.Add(SouthWestAdjacency);
-                }
             }
 
             // South
             if (!lowYInLandblock)
             {
                 if (SouthAdjacency != null)
-                {
                     inRange.Add(SouthAdjacency);
-                }
             }
 
             // South East
             if (!highXInLandblock && !lowYInLandblock)
             {
                 if (SouthEastAdjacency != null)
-                {
                     inRange.Add(SouthEastAdjacency);
-                }
             }
 
             return inRange;
-        }
-
-        /// <summary>
-        /// Convenience wrapper to EnqueueBroadcast to broadcast a motion.
-        /// </summary>
-        public void EnqueueBroadcastMotion(WorldObject wo, UniversalMotion motion)
-        {
-            wo.EnqueueBroadcast(new GameMessageUpdateMotion(wo.Guid,
-                wo.Sequences.GetCurrentSequence(SequenceType.ObjectInstance), wo.Sequences, motion));
-        }
-
-        /// <summary>
-        /// Convenience wrapper to EnqueueBroadcast to broadcast a sound.
-        /// </summary>
-        public void EnqueueBroadcastSound(WorldObject wo, Sound sound, float volume = 1.0f)
-        {
-            wo.EnqueueBroadcast(new GameMessageSound(wo.Guid, sound, volume));
-        }
-        
-        /// <summary>
-        /// Convenience wrapper to EnqueueBroadcast to broadcast local chat.
-        /// </summary>
-        public void EnqueueBroadcastSystemChat(WorldObject wo, string message, ChatMessageType type)
-        {
-            wo.EnqueueBroadcast(new GameMessageSystemChat(message, type));
-        }
-
-        /// <summary>
-        /// Convenience wrapper to EnqueueBroadcast to broadcast local chat.
-        /// </summary>
-        public void EnqueueBroadcastLocalChat(WorldObject wo, string message)
-        {
-            wo.EnqueueBroadcast(new GameMessageCreatureMessage(message, wo.Name, wo.Guid.Full, ChatMessageType.Speech));
-        }
-
-        /// <summary>
-        /// Convenience wrapper to EnqueueBroadcast to broadcast local chat emotes.
-        /// </summary>
-        public void EnqueueBroadcastLocalChatEmote(WorldObject wo, string emote)
-        {
-            wo.EnqueueBroadcast(new GameMessageEmoteText(wo.Guid.Full, wo.Name, emote));
-        }
-
-        /// <summary>
-        /// Convenience wrapper to EnqueueBroadcast to broadcast local soul emotes.
-        /// </summary>
-        public void EnqueueBroadcastLocalChatSoulEmote(WorldObject wo, string emote)
-        {
-            wo.EnqueueBroadcast(new GameMessageSoulEmote(wo.Guid.Full, wo.Name, emote));
-        }
-
-        /// <summary>
-        /// NOTE: Cannot be sent while objects are moving (the physics/motion portion of WorldManager)! depends on object positions not changing, and objects not moving between landblocks
-        /// </summary>
-        private void SendBroadcasts()
-        {
-            while (!broadcastQueue.IsEmpty)
-            {
-                bool success = broadcastQueue.TryDequeue(out var tuple);
-                if (!success)
-                {
-                    log.Error("Unexpected TryDequeue Failure!");
-                    break;
-                }
-                Position pos = tuple.Item1;
-                float distance = tuple.Item2;
-                GameMessage msg = tuple.Item3;
-
-                // NOTE: Doesn't need locking -- players cannot change while in "Act" SendBroadcasts is the last thing done in Act
-                // foreach player within range, do send
-
-                List<Landblock> landblocksInRange = GetLandblocksInRange(pos, distance);
-                foreach (Landblock lb in landblocksInRange)
-                {
-                    List<Player> allPlayers = lb.worldObjects.Values.OfType<Player>().ToList();
-                    foreach (Player p in allPlayers)
-                    {
-                        if (p.Location.SquaredDistanceTo(pos) < distance * distance)
-                        {
-                            p.Session.Network.EnqueueSend(msg);
-                        }
-                    }
-                }
-            }
-
-            // Sets broadcastQueued to 0, so we're ready to re-queue broadcasts later
-            broadcastQueued = 0;
         }
 
         // Wrappers so landblocks can be treated as actors and actions
@@ -935,14 +813,14 @@ namespace ACE.Server.Entity
         {
             if (adjacency == null || adjacencies[adjacency.Value] != landblock)
             {
-                Console.WriteLine($"Landblock({Id}).UnloadAdjacent({adjacency}, {landblock.Id}) couldn't find adjacent landblock");
+                log.Error($"Landblock({Id}).UnloadAdjacent({adjacency}, {landblock.Id}) couldn't find adjacent landblock");
                 return;
             }
             adjacencies[adjacency.Value] = null;
             AdjacenciesLoaded = false;
         }
 
-        public void SaveDB()
+        private void SaveDB()
         {
             var biotas = new Collection<(Biota biota, ReaderWriterLockSlim rwLock)>();
 

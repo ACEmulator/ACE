@@ -1,5 +1,5 @@
+
 using ACE.Server.Network.GameMessages;
-using System;
 
 namespace ACE.Server.Network.GameEvent
 {
@@ -14,8 +14,6 @@ namespace ACE.Server.Network.GameEvent
             EventType = eventType;
             Session = session;
 
-            // Force session to not be null -- due to races with player initialization
-            session.WaitForPlayer();
             Writer.WriteGuid(session.Player.Guid);
             var debugMessage = $"GameEventSequence Update - {eventType} - GameEventSequence was {session.GameEventSequence}";
             Writer.Write(session.GameEventSequence++);

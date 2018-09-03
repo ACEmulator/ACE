@@ -10,14 +10,19 @@ using System.Threading.Tasks;
 using log4net;
 
 using ACE.Common;
+using ACE.Database;
+using ACE.Database.Entity;
+using ACE.Database.Models.Shard;
 using ACE.Entity;
+using ACE.Entity.Enum;
 using ACE.Server.Entity.Actions;
 using ACE.Server.WorldObjects;
 using ACE.Server.Network;
+using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages;
+using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Physics;
 using ACE.Server.Physics.Common;
-using ACE.Database;
 
 using Landblock = ACE.Server.Entity.Landblock;
 using Position = ACE.Entity.Position;
@@ -31,18 +36,6 @@ namespace ACE.Server.Managers
         // Hard coded server Id, this will need to change if we move to multi-process or multi-server model
         public const ushort ServerId = 0xB;
 
-        private static readonly ReaderWriterLockSlim sessionLock = new ReaderWriterLockSlim();
-        private static Session[] sessionMap = new Session[ConfigManager.Config.Server.Network.MaximumAllowedSessions];
-        private static readonly List<Session> sessions = new List<Session>();
-        private static List<IPEndPoint> loggedInClients = new List<IPEndPoint>((int)ConfigManager.Config.Server.Network.MaximumAllowedSessions);
-
-        private static readonly PhysicsEngine Physics;
-
-        public static List<Player> AllPlayers;
-
-        public static readonly object UpdateWorldLandblockLock = new object();
-        public static bool Concurrency = false;
-
         /// <summary>
         /// Seconds until a session will timeout. 
         /// Raising this value allows connections to remain active for a longer period of time. 
@@ -52,23 +45,31 @@ namespace ACE.Server.Managers
         /// </remarks>
         public static uint DefaultSessionTimeout = ConfigManager.Config.Server.Network.DefaultSessionTimeout;
 
-        private static volatile bool pendingWorldStop;
-        public static bool WorldActive { get; private set; }
+        private static readonly ReaderWriterLockSlim sessionLock = new ReaderWriterLockSlim();
+        private static readonly Session[] sessionMap = new Session[ConfigManager.Config.Server.Network.MaximumAllowedSessions];
+        private static readonly List<Session> sessions = new List<Session>();
+        private static readonly List<IPEndPoint> loggedInClients = new List<IPEndPoint>((int)ConfigManager.Config.Server.Network.MaximumAllowedSessions);
+
+        public static bool Concurrency = false;
+
+        private static readonly PhysicsEngine Physics;
 
         public static DateTime WorldStartTime { get; } = DateTime.UtcNow;
-
         public static DerethDateTime WorldStartFromTime { get; } = new DerethDateTime().UTCNowToLoreTime;
-
         public static double PortalYearTicks { get; private set; } = WorldStartFromTime.Ticks;
+
+        public static bool WorldActive { get; private set; }
+        private static volatile bool pendingWorldStop;
 
         /// <summary>
         /// Handles ClientMessages in InboundMessageManager
         /// </summary>
-        public static readonly ActionQueue InboundMessageQueue = new ActionQueue();
-
+        public static readonly ActionQueue InboundClientMessageQueue = new ActionQueue();
+        private static readonly ActionQueue playerEnterWorldQueue = new ActionQueue();
+        public static readonly DelayManager DelayManager = new DelayManager();
         public static readonly ActionQueue LandblockActionQueue = new ActionQueue();
 
-        public static readonly DelayManager DelayManager = new DelayManager();
+        public static List<Player> AllPlayers;
 
         static WorldManager()
         {
@@ -155,14 +156,12 @@ namespace ACE.Server.Managers
 
         public static void ProcessPacket(ClientPacket packet, IPEndPoint endPoint)
         {
-            if (packet.Header.HasFlag(PacketHeaderFlags.LoginRequest) && !loggedInClients.Contains(endPoint) &&
-                loggedInClients.Count < ConfigManager.Config.Server.Network.MaximumAllowedSessions)
+            if (packet.Header.HasFlag(PacketHeaderFlags.LoginRequest) && !loggedInClients.Contains(endPoint) && loggedInClients.Count < ConfigManager.Config.Server.Network.MaximumAllowedSessions)
             {
                 log.DebugFormat("Login Request from {0}", endPoint);
                 var session = FindOrCreateSession(endPoint);
                 if (session != null)
                     session.ProcessPacket(packet);
-                
             }
             else if (sessionMap.Length > packet.Header.Id && loggedInClients.Contains(endPoint))
             {
@@ -403,10 +402,45 @@ namespace ACE.Server.Managers
             }
         }
 
-        /// <summary>
-        /// Function to begin ending the operations inside of an active world.
-        /// </summary>
-        public static void StopWorld() { pendingWorldStop = true; }
+        public static void PlayerEnterWorld(Session session, Character character)
+        {
+            var start = DateTime.UtcNow;
+            DatabaseManager.Shard.GetPlayerBiotas(character.Id, biotas =>
+            {
+                log.Debug($"GetPlayerBiotas for {character.Name} took {(DateTime.UtcNow - start).TotalMilliseconds:N0} ms");
+
+                playerEnterWorldQueue.EnqueueAction(new ActionEventDelegate(() => DoPlayerEnterWorld(session, character, biotas)));
+            });
+        }
+
+        private static void DoPlayerEnterWorld(Session session, Character character, PlayerBiotas biotas)
+        {
+            Player player;
+
+            if (biotas.Player.WeenieType == (int)WeenieType.Admin)
+                player = new Admin(biotas.Player, biotas.Inventory, biotas.WieldedItems, character, session);
+            else if (biotas.Player.WeenieType == (int)WeenieType.Sentinel)
+                player = new Sentinel(biotas.Player, biotas.Inventory, biotas.WieldedItems, character, session);
+            else
+                player = new Player(biotas.Player, biotas.Inventory, biotas.WieldedItems, character, session);
+
+            session.SetPlayer(player);
+            session.Player.PlayerEnterWorld();
+
+            if (character.TotalLogins <= 1 || PropertyManager.GetBool("alwaysshowwelcome").Item)
+            {
+                // check the value of the welcome message. Only display it if it is not empty
+                string welcomeHeader = ConfigManager.Config.Server.Welcome ?? "Welcome to Asheron's Call!";
+                string msg = "To begin your training, speak to the Society Greeter. Walk up to the Society Greeter using the 'W' key, then double-click on her to initiate a conversation.";
+
+                session.Network.EnqueueSend(new GameEventPopupString(session, $"{welcomeHeader}\n{msg}"));
+            }
+
+            LandblockManager.AddObject(session.Player, true);
+
+            var motdString = PropertyManager.GetString("motd_string").Item;
+            session.Network.EnqueueSend(new GameMessageSystemChat(motdString, ChatMessageType.Broadcast));
+        }
 
         /// <summary>
         /// Manages updating all entities on the world.
@@ -424,45 +458,47 @@ namespace ACE.Server.Managers
             {
                 worldTickTimer.Restart();
 
-                // handle time-based actions
+                InboundClientMessageQueue.RunActions();
+
+                playerEnterWorldQueue.RunActions();
+
                 DelayManager.RunActions();
 
-                InboundMessageQueue.RunActions();
+                // update positions through physics engine
+                var movedObjects = HandlePhysics(PortalYearTicks);
 
-                lock (UpdateWorldLandblockLock)
+                // iterate through objects that have changed landblocks
+                foreach (var movedObject in movedObjects)
                 {
-                    // update positions through physics engine
-                    var movedObjects = HandlePhysics(PortalYearTicks);
+                    // NOTE: The object's Location can now be null, if a player logs out, or an item is picked up
+                    if (movedObject.Location == null) continue;
 
-                    // iterate through objects that have changed landblocks
-                    foreach (var movedObject in movedObjects)
-                    {
-                        // NOTE: The object's Location can now be null, if a player logs out, or an item is picked up
-                        if (movedObject.Location == null) continue;
-
-                        // assume adjacency move here?
-                        LandblockManager.RelocateObjectForPhysics(movedObject, true);
-                    }
-
-                    // Now, update actions within landblocks
-                    //   This is responsible for updating all "actors" residing within the landblock. 
-                    //   Objects and landblocks are "actors"
-                    //   "actors" decide if they want to read/modify their own state (set desired velocity), move-to positions, move items, read vitals, etc
-                    // N.B. -- Broadcasts are enqueued for sending at the end of the landblock's action time
-                    // FIXME(ddevec): Goal is to eventually migrate to an "Act" function of the LandblockManager ActiveLandblocks
-                    //    Inactive landblocks will be put on TimeoutManager queue for timeout killing
-                    LandblockActionQueue.RunActions();
-
-                    // clean up inactive landblocks
-                    LandblockManager.UnloadLandblocks();
+                    // assume adjacency move here?
+                    LandblockManager.RelocateObjectForPhysics(movedObject, true);
                 }
+
+                // Now, update actions within landblocks
+                //   This is responsible for updating all "actors" residing within the landblock. 
+                //   Objects and landblocks are "actors"
+                //   "actors" decide if they want to read/modify their own state (set desired velocity), move-to positions, move items, read vitals, etc
+                // N.B. -- Broadcasts are enqueued for sending at the end of the landblock's action time
+                // FIXME(ddevec): Goal is to eventually migrate to an "Act" function of the LandblockManager ActiveLandblocks
+                //    Inactive landblocks will be put on TimeoutManager queue for timeout killing
+                LandblockActionQueue.RunActions();
+
+                // clean up inactive landblocks
+                LandblockManager.UnloadLandblocks();
 
                 // Session Maintenance
                 sessionLock.EnterUpgradeableReadLock();
                 try
                 {
+                    // The session tick processes all inbound GameAction messages
+                    foreach (var s in sessions)
+                        s.Tick(lastTick, DateTime.UtcNow.Ticks);
+
                     // Send the current time ticks to allow sessions to declare themselves bad
-                    Parallel.ForEach(sessions, s => s.Update(lastTick, DateTime.UtcNow.Ticks));
+                    Parallel.ForEach(sessions, s => s.TickInParallel(lastTick, DateTime.UtcNow.Ticks));
 
                     // Removes sessions in the NetworkTimeout state, incuding sessions that have reached a timeout limit.
                     var deadSessions = sessions.FindAll(s => s.State == Network.Enum.SessionState.NetworkTimeout);
@@ -486,9 +522,9 @@ namespace ACE.Server.Managers
         }
 
         /// <summary>
-        /// A list of WorldObjects that have transitioned to adjacent landblocks for this update frame
+        /// Function to begin ending the operations inside of an active world.
         /// </summary>
-        public static List<WorldObject> UpdateLandblock = new List<WorldObject>();
+        public static void StopWorld() { pendingWorldStop = true; }
 
         /// <summary>
         /// The number of times per second physics updates are processed (inverted)
@@ -534,23 +570,20 @@ namespace ACE.Server.Managers
             return movedObjects;
         }
 
-        public static void HandlePhysicsLandblock(Landblock landblock, double timeTick, ConcurrentQueue<WorldObject> movedObjects)
+        private static void HandlePhysicsLandblock(Landblock landblock, double timeTick, ConcurrentQueue<WorldObject> movedObjects)
         {
             foreach (WorldObject wo in landblock.GetPhysicsWorldObjects())
             {
-                Position newPosition = null;
-
                 // set to TRUE if object changes landblock
                 var landblockUpdate = false;
 
                 // detect player movement
                 // TODO: handle players the same as everything else
-                var player = wo as Player;
-                if (player != null)
+                if (wo is Player player)
                 {
                     wo.InUpdate = true;
 
-                    newPosition = HandlePlayerPhysics(player, timeTick);
+                    var newPosition = HandlePlayerPhysics(player, timeTick);
 
                     // update position through physics engine
                     if (newPosition != null)

@@ -1,16 +1,15 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+
 using ACE.Database;
 using ACE.DatLoader;
 using ACE.DatLoader.FileTypes;
-using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
-using ACE.Server.Network;
 using ACE.Server.Network.Structure;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
@@ -37,7 +36,7 @@ namespace ACE.Server.WorldObjects
 
             // broadcast death animation
             var deathAnim = new UniversalMotion(MotionStance.NonCombat, new MotionItem(MotionCommand.Dead));
-            CurrentLandblock?.EnqueueBroadcastMotion(this, deathAnim);
+            EnqueueBroadcastMotion(deathAnim);
 
             // killer death message = last damager
             var killerMsg = lastDamager != null ? " to " + lastDamager.Name : "";
@@ -115,7 +114,7 @@ namespace ACE.Server.WorldObjects
                 Session.Network.EnqueueSend(msgHealthUpdate, msgStaminaUpdate, msgManaUpdate);
 
                 // Stand back up
-                DoMotion(new UniversalMotion(MotionStance.NonCombat));
+                EnqueueBroadcastMotion(new UniversalMotion(MotionStance.NonCombat));
             });
             teleportChain.EnqueueChain();
         }

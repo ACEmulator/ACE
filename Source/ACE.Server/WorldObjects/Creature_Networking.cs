@@ -205,8 +205,7 @@ namespace ACE.Server.WorldObjects
             actionChain.AddAction(this, () =>
             {
                 CurrentMotionState = motion;
-                DoMotion(motion);
-                //Console.WriteLine($"{Name}.EnqueueMotion({motionCommand}): {animLength}s");
+                EnqueueBroadcastMotion(motion);
             });
 
             actionChain.AddDelaySeconds(animLength);

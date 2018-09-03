@@ -559,7 +559,7 @@ namespace ACE.Server.Network.Handlers
 
             session.State = SessionState.WorldConnected;
 
-            LandblockManager.PlayerEnterWorld(session, character);
+            WorldManager.PlayerEnterWorld(session, character);
         }
 
 
