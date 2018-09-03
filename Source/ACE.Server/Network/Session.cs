@@ -43,6 +43,8 @@ namespace ACE.Server.Network
 
         public Player Player { get; private set; }
 
+        public readonly ActionQueue InboundGameActionQueue = new ActionQueue();
+
 
         private DateTime lastAutoSaveTime;
         private DateTime logOffRequestTime;
@@ -115,7 +117,16 @@ namespace ACE.Server.Network
         /// <summary>
         /// This is run in parallel from our main loop.
         /// </summary>
-        public void Update(double lastTick, long currentTimeTick)
+        public void Tick(double lastTick, long currentTimeTick)
+        {
+            if (Player != null)
+                InboundGameActionQueue.RunActions();
+        }
+
+        /// <summary>
+        /// This is run in parallel from our main loop.
+        /// </summary>
+        public void TickInParallel(double lastTick, long currentTimeTick)
         {
             // Checks if the session has stopped responding.
             if (currentTimeTick >= Network.TimeoutTick)
@@ -221,46 +232,10 @@ namespace ACE.Server.Network
             AccessLevel = accountAccesslevel;
         }
 
-        private readonly ReaderWriterLockSlim playerWaitLock = new ReaderWriterLockSlim();
-        private readonly object playerSync = new object();
-
-        public void WaitForPlayer()
-        {
-            // NOTE(ddevec): We use a Reader-writer lock because reads are common, and writes are rare
-            playerWaitLock.EnterReadLock();
-            try
-            {
-                while (Player == null)
-                {
-                    // NOTE(ddevec): This slop is because monitor doesn't support releasing a reader-writer lock 
-                    //     -- trust it's right, and optimial and don't touch it
-                    // This should be a rare operation, so the extra locking nonsense doesn't kill us
-                    lock (playerSync)
-                    {
-                        playerWaitLock.ExitReadLock();
-                        Monitor.Wait(playerSync);
-                    }
-                    playerWaitLock.EnterReadLock();
-                }
-            }
-            finally
-            {
-                playerWaitLock.ExitReadLock();
-            }
-        }
-
         public void SetPlayer(Player player)
         {
-            playerWaitLock.EnterWriteLock();
             Player = player;
             lastAutoSaveTime = DateTime.UtcNow;
-            // NOTE(ddevec): Once again -- no reader-writer lock and Monitor support in c# -- ventring frustration now --  asa;gklkfj;kl
-            //  -- This should be a rare operation, so we don't really care about the stupid double locking, as long as its done right for no deadlocks
-            lock (playerSync)
-            {
-                Monitor.PulseAll(playerSync);
-            }
-            playerWaitLock.ExitWriteLock();
         }
 
         public void LogOffPlayer()

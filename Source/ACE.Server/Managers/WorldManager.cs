@@ -11,6 +11,7 @@ using log4net;
 
 using ACE.Common;
 using ACE.Database;
+using ACE.Database.Entity;
 using ACE.Database.Models.Shard;
 using ACE.Entity;
 using ACE.Entity.Enum;
@@ -64,7 +65,8 @@ namespace ACE.Server.Managers
         /// <summary>
         /// Handles ClientMessages in InboundMessageManager
         /// </summary>
-        public static readonly ActionQueue InboundMessageQueue = new ActionQueue();
+        public static readonly ActionQueue InboundClientMessageQueue = new ActionQueue();
+        private static readonly ActionQueue playerEnterWorldQueue = new ActionQueue();
         public static readonly DelayManager DelayManager = new DelayManager();
         public static readonly ActionQueue LandblockActionQueue = new ActionQueue();
 
@@ -407,33 +409,38 @@ namespace ACE.Server.Managers
             DatabaseManager.Shard.GetPlayerBiotas(character.Id, biotas =>
             {
                 log.Debug($"GetPlayerBiotas for {character.Name} took {(DateTime.UtcNow - start).TotalMilliseconds:N0} ms");
-                Player player;
 
-                if (biotas.Player.WeenieType == (int)WeenieType.Admin)
-                    player = new Admin(biotas.Player, biotas.Inventory, biotas.WieldedItems, character, session);
-                else if (biotas.Player.WeenieType == (int)WeenieType.Sentinel)
-                    player = new Sentinel(biotas.Player, biotas.Inventory, biotas.WieldedItems, character, session);
-                else
-                    player = new Player(biotas.Player, biotas.Inventory, biotas.WieldedItems, character, session);
-
-                session.SetPlayer(player);
-                session.Player.PlayerEnterWorld();
-
-                if ((character.TotalLogins <= 1) || PropertyManager.GetBool("alwaysshowwelcome").Item)
-                {
-                    // check the value of the welcome message. Only display it if it is not empty
-                    string welcomeHeader = ConfigManager.Config.Server.Welcome ?? "Welcome to Asheron's Call!";
-                    string msg = "To begin your training, speak to the Society Greeter. Walk up to the Society Greeter using the 'W' key, then double-click on her to initiate a conversation.";
-
-                    session.Network.EnqueueSend(new GameEventPopupString(session, $"{welcomeHeader}\n{msg}"));
-                }
-
-                lock (updateWorldLandblockLock)
-                    LandblockManager.AddObject(session.Player, true);
-
-                var motdString = PropertyManager.GetString("motd_string").Item;
-                session.Network.EnqueueSend(new GameMessageSystemChat(motdString, ChatMessageType.Broadcast));
+                playerEnterWorldQueue.EnqueueAction(new ActionEventDelegate(() => DoPlayerEnterWorld(session, character, biotas)));
             });
+        }
+
+        private static void DoPlayerEnterWorld(Session session, Character character, PlayerBiotas biotas)
+        {
+            Player player;
+
+            if (biotas.Player.WeenieType == (int)WeenieType.Admin)
+                player = new Admin(biotas.Player, biotas.Inventory, biotas.WieldedItems, character, session);
+            else if (biotas.Player.WeenieType == (int)WeenieType.Sentinel)
+                player = new Sentinel(biotas.Player, biotas.Inventory, biotas.WieldedItems, character, session);
+            else
+                player = new Player(biotas.Player, biotas.Inventory, biotas.WieldedItems, character, session);
+
+            session.SetPlayer(player);
+            session.Player.PlayerEnterWorld();
+
+            if (character.TotalLogins <= 1 || PropertyManager.GetBool("alwaysshowwelcome").Item)
+            {
+                // check the value of the welcome message. Only display it if it is not empty
+                string welcomeHeader = ConfigManager.Config.Server.Welcome ?? "Welcome to Asheron's Call!";
+                string msg = "To begin your training, speak to the Society Greeter. Walk up to the Society Greeter using the 'W' key, then double-click on her to initiate a conversation.";
+
+                session.Network.EnqueueSend(new GameEventPopupString(session, $"{welcomeHeader}\n{msg}"));
+            }
+
+            LandblockManager.AddObject(session.Player, true);
+
+            var motdString = PropertyManager.GetString("motd_string").Item;
+            session.Network.EnqueueSend(new GameMessageSystemChat(motdString, ChatMessageType.Broadcast));
         }
 
         /// <summary>
@@ -452,7 +459,10 @@ namespace ACE.Server.Managers
             {
                 worldTickTimer.Restart();
 
-                InboundMessageQueue.RunActions();
+                InboundClientMessageQueue.RunActions();
+
+                playerEnterWorldQueue.RunActions();
+
                 DelayManager.RunActions();
 
                 lock (updateWorldLandblockLock)
@@ -487,8 +497,12 @@ namespace ACE.Server.Managers
                 sessionLock.EnterUpgradeableReadLock();
                 try
                 {
+                    // The session tick processes all inbound GameAction messages
+                    foreach (var s in sessions)
+                        s.Tick(lastTick, DateTime.UtcNow.Ticks);
+
                     // Send the current time ticks to allow sessions to declare themselves bad
-                    Parallel.ForEach(sessions, s => s.Update(lastTick, DateTime.UtcNow.Ticks));
+                    Parallel.ForEach(sessions, s => s.TickInParallel(lastTick, DateTime.UtcNow.Ticks));
 
                     // Removes sessions in the NetworkTimeout state, incuding sessions that have reached a timeout limit.
                     var deadSessions = sessions.FindAll(s => s.State == Network.Enum.SessionState.NetworkTimeout);

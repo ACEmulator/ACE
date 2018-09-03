@@ -97,7 +97,7 @@ namespace ACE.Server.Network.Managers
                 {
                     if (messageHandlerInfo.Attribute.State == session.State)
                     {
-                        WorldManager.InboundMessageQueue.EnqueueAction(new ActionEventDelegate(() =>
+                        WorldManager.InboundClientMessageQueue.EnqueueAction(new ActionEventDelegate(() =>
                         {
                             messageHandlerInfo.Handler.Invoke(message, session);
                         }));
@@ -114,7 +114,7 @@ namespace ACE.Server.Network.Managers
             {
                 if (actionHandlers.TryGetValue(opcode, out var actionHandlerInfo))
                 {
-                    WorldManager.InboundMessageQueue.EnqueueAction(new ActionEventDelegate(() =>
+                    session.InboundGameActionQueue.EnqueueAction(new ActionEventDelegate(() =>
                     {
                         actionHandlerInfo.Handler.Invoke(message, session);
                     }));
