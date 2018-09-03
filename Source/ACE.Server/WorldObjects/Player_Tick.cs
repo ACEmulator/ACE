@@ -10,7 +10,7 @@ namespace ACE.Server.WorldObjects
         private int initialAge;
         private DateTime initialAgeTime;
 
-        private DateTime lastSendAgeIntUpdateTime = DateTime.UtcNow;
+        private DateTime lastSendAgeIntUpdateTime;
 
         public override void Tick(double lastTickDuration, long currentTimeTick)
         {
@@ -21,6 +21,9 @@ namespace ACE.Server.WorldObjects
             }
 
             Age = initialAge + (int)(DateTime.UtcNow - initialAgeTime).TotalSeconds;
+
+            if (lastSendAgeIntUpdateTime == DateTime.MinValue)
+                lastSendAgeIntUpdateTime = DateTime.UtcNow;
 
             if (lastSendAgeIntUpdateTime.AddSeconds(7) <= DateTime.UtcNow)
             {
