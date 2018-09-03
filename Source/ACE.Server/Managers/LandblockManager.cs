@@ -59,6 +59,14 @@ namespace ACE.Server.Managers
         }
 
         /// <summary>
+        /// This should only be used for debugging/development purposes.
+        /// </summary>
+        public static void ForceLoadLandBlock(LandblockId blockid)
+        {
+            GetLandblock(blockid, false);
+        }
+
+        /// <summary>
         /// gets the landblock specified, creating it if it is not already loaded.  will create all
         /// adjacent landblocks if propagate is true (outdoor world roaming).
         /// </summary>
@@ -168,14 +176,6 @@ namespace ACE.Server.Managers
             }
         }
 
-        /// <summary>
-        /// This function is NOT thread safe. Using it will likely result in concurrency issues with WorldManager.UpdateWorld.
-        /// You should only use this for debugging/development purposes.
-        /// </summary>
-        public static void ForceLoadLandBlock(LandblockId blockid)
-        {
-            GetLandblock(blockid, false);
-        }
 
         /// <summary>
         /// Queues a landblock for thread-safe unloading

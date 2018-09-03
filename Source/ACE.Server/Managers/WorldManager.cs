@@ -67,7 +67,6 @@ namespace ACE.Server.Managers
         public static readonly ActionQueue InboundClientMessageQueue = new ActionQueue();
         private static readonly ActionQueue playerEnterWorldQueue = new ActionQueue();
         public static readonly DelayManager DelayManager = new DelayManager();
-        public static readonly ActionQueue LandblockActionQueue = new ActionQueue();
 
         public static List<Player> AllPlayers;
 
@@ -458,6 +457,31 @@ namespace ACE.Server.Managers
             {
                 worldTickTimer.Restart();
 
+                /*
+                When it comes to thread safety for Landblocks and WorldObjects, ACE makes the following assumptions:
+
+                 * Inbound ClientMessages and GameActions are handled on the main UpdateWorld thread.
+                   - These actions may load Landblocks and modify other WorldObjects safely.
+
+                 * PlayerEnterWorld queue is run on the main UpdateWorld thread.
+                   - These actions may load Landblocks and modify other WorldObjects safely.
+
+                 * Landblocks can be Loaded/Unloaded in parallel.
+
+                 * Adjacent Landblocks will always be run on the same thread.
+
+                 * Non-adjacent landblocks might be run on different threads.
+                   - If two non-adjacent landblocks both touch the same landblock, and that landblock is active, they will be run on the same thread.
+
+                 * Database results are returned from a task spawned in SerializedShardDatabase (via callback).
+                   - Minimal processing should be done from the callback. Return as quickly as possible to let the database thread do database work.
+                   - The processing of these results should be queued to an ActionQueue
+
+                 * The only cases where it's acceptable for to create a new Task, Thread or Parallel loop are the following:
+                   - Every scenario must be one where you don't care about breaking ACE
+                   - DeveloperCommand Handlers
+                */
+
                 InboundClientMessageQueue.RunActions();
 
                 playerEnterWorldQueue.RunActions();
@@ -477,14 +501,11 @@ namespace ACE.Server.Managers
                     LandblockManager.RelocateObjectForPhysics(movedObject, true);
                 }
 
-                // Now, update actions within landblocks
-                //   This is responsible for updating all "actors" residing within the landblock. 
-                //   Objects and landblocks are "actors"
-                //   "actors" decide if they want to read/modify their own state (set desired velocity), move-to positions, move items, read vitals, etc
-                // N.B. -- Broadcasts are enqueued for sending at the end of the landblock's action time
-                // FIXME(ddevec): Goal is to eventually migrate to an "Act" function of the LandblockManager ActiveLandblocks
-                //    Inactive landblocks will be put on TimeoutManager queue for timeout killing
-                LandblockActionQueue.RunActions();
+                // Tick all of our Landblocks and WorldObjects
+                var activeLandblocks = LandblockManager.GetActiveLandblocks();
+
+                foreach (var landblock in activeLandblocks)
+                    landblock.Tick(lastTick, DateTime.UtcNow.Ticks);
 
                 // clean up inactive landblocks
                 LandblockManager.UnloadLandblocks();
