@@ -376,7 +376,7 @@ namespace ACE.Server.Entity
 
         private void RemoveWorldObjectInternal(ObjectGuid objectId, bool adjacencyMove = false)
         {
-            log.Debug($"LB {Id.Landblock:X}: removing {objectId.Full:X}");
+            //log.Debug($"LB {Id.Landblock:X}: removing {objectId.Full:X}");
 
             worldObjects.Remove(objectId, out var wo);
 
