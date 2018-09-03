@@ -250,6 +250,21 @@ namespace ACE.Database
             }
         }
 
+        /// <summary>
+        /// This returns the name of a scroll given its spellDID
+        /// </summary>
+        public String GetScrollBySpellID(uint spellID)
+        {
+            using (var context = new WorldDbContext())
+            {
+                var result = from weenie in context.Weenie
+                             join did in context.WeeniePropertiesDID on weenie.ClassId equals did.ObjectId
+                             where weenie.Type == 34 && did.Type == 28 && did.Value == spellID
+                             select weenie;
+                return result.FirstOrDefault().ClassName;
+            }
+        }
+
         public List<Weenie> GetRandomWeeniesOfType(int weenieTypeId, int count)
         {
             using (var context = new WorldDbContext())
