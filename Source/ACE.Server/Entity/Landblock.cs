@@ -50,7 +50,7 @@ namespace ACE.Server.Entity
         public readonly bool Permaload = false;
 
         public bool IsActive { get; private set; } = true;
-        private double lastActiveTime;
+        private DateTime lastActiveTime;
 
         public LandBlockStatus Status { get; } = new LandBlockStatus();
 
@@ -71,7 +71,7 @@ namespace ACE.Server.Entity
         /// <summary>
         /// Landblocks which have been inactive for this many seconds will be unloaded
         /// </summary>
-        private static readonly int unloadInterval = 300;
+        private static readonly TimeSpan unloadInterval = TimeSpan.FromMinutes(5);
 
 
         /// <summary>
@@ -138,7 +138,7 @@ namespace ACE.Server.Entity
 
             UpdateStatus(LandBlockStatusFlag.IdleLoaded);
 
-            lastActiveTime = Timer.CurrentTime;
+            lastActiveTime = DateTime.UtcNow;
         }
 
         /// <summary>
@@ -261,7 +261,7 @@ namespace ACE.Server.Entity
                 }
 
                 // TODO: handle perma-loaded landblocks
-                if (!Permaload && lastActiveTime + unloadInterval < Timer.CurrentTime)
+                if (!Permaload && lastActiveTime + unloadInterval < DateTime.UtcNow)
                     LandblockManager.AddToDestructionQueue(this);
 
                 lastHeartBeat = DateTime.UtcNow;
@@ -631,7 +631,7 @@ namespace ACE.Server.Entity
         public void SetActive(bool isAdjacent = false)
         {
             IsActive = true;
-            lastActiveTime = Timer.CurrentTime;
+            lastActiveTime = DateTime.UtcNow;
 
             if (isAdjacent || _landblock.IsDungeon) return;
 
