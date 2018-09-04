@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using ACE.Common.Extensions;
+using ACE.Database;
 using ACE.Entity.Enum;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameEvent.Events;
@@ -17,100 +19,151 @@ namespace ACE.Server.Network.GameAction.Actions
             {
                 case Channel.Abuse:
                     {
-                        // TODO: Proper permissions check. This command should work for any character with AccessLevel.Advocate or higher
-                        // if (!session.Player.IsAdmin)
-                        //    break;
+                        // Should anyone be able to post to this channel? If so should they just a response back stating their message has been posted.
+                        // Should messages here also be written to a log?
+                        if (session.AccessLevel < AccessLevel.Advocate)
+                        {
+                            var statusMessage = new GameEventWeenieError(session, WeenieError.YouCantUseThatChannel);
+                            session.Network.EnqueueSend(statusMessage);
+                            break;
+                        }
 
-                        // TODO This should check if the recipient is subscribed to the channel
                         foreach (var recipient in WorldManager.GetAll())
                             if (recipient != session)
-                                recipient.Network.EnqueueSend(new GameEvent.Events.GameEventChannelBroadcast(recipient, groupChatType, session.Player.Name, message));
+                            {
+                                if (recipient.AccessLevel >= AccessLevel.Advocate)
+                                    recipient.Network.EnqueueSend(new GameEvent.Events.GameEventChannelBroadcast(recipient, groupChatType, session.Player.Name, message));
+                            }
                             else
+                            {
                                 recipient.Network.EnqueueSend(new GameEvent.Events.GameEventChannelBroadcast(recipient, groupChatType, "", message));
+                            }
                     }
                     break;
                 case Channel.Admin:
                     {
                         if (!session.Player.IsAdmin)
+                        {
+                            var statusMessage = new GameEventWeenieError(session, WeenieError.YouCantUseThatChannel);
+                            session.Network.EnqueueSend(statusMessage);
                             break;
+                        }
 
-                        // TODO This should check if the recipient is subscribed to the channel
                         foreach (var recipient in WorldManager.GetAll())
                             if (recipient != session)
-                                recipient.Network.EnqueueSend(new GameEvent.Events.GameEventChannelBroadcast(recipient, groupChatType, session.Player.Name, message));
+                            {
+                                if (recipient.AccessLevel == AccessLevel.Admin)
+                                    recipient.Network.EnqueueSend(new GameEvent.Events.GameEventChannelBroadcast(recipient, groupChatType, session.Player.Name, message));
+                            }
                             else
+                            {
                                 recipient.Network.EnqueueSend(new GameEvent.Events.GameEventChannelBroadcast(recipient, groupChatType, "", message));
-                        // NetworkManager.SendWorldMessage(recipient, gameMessageSystemChat);
+                            }
                     }
                     break;
                 case Channel.Audit:
                     {
-                        // TODO: Proper permissions check. This command should work for any character AccessLevel.Sentinel or higher
-                        // if (!session.Player.IsAdmin)
-                        //    break;
+                        if (session.AccessLevel < AccessLevel.Sentinel)
+                        {
+                            var statusMessage = new GameEventWeenieError(session, WeenieError.YouCantUseThatChannel);
+                            session.Network.EnqueueSend(statusMessage);
+                            break;
+                        }
 
-                        // TODO This should check if the recipient is subscribed to the channel
                         foreach (var recipient in WorldManager.GetAll())
                             if (recipient != session)
-                                recipient.Network.EnqueueSend(new GameEvent.Events.GameEventChannelBroadcast(recipient, groupChatType, session.Player.Name, message));
+                            {
+                                if (recipient.AccessLevel >= AccessLevel.Sentinel)
+                                    recipient.Network.EnqueueSend(new GameEvent.Events.GameEventChannelBroadcast(recipient, groupChatType, session.Player.Name, message));
+                            }
                             else
+                            {
                                 recipient.Network.EnqueueSend(new GameEvent.Events.GameEventChannelBroadcast(recipient, groupChatType, "", message));
+                            }
                     }
                     break;
                 case Channel.Advocate1:
                     {
-                        // TODO: Proper permissions check. This command should work for any character AccessLevel.Advocate or higher
-                        // if (!session.Player.IsAdmin)
-                        //    break;
+                        if (session.AccessLevel < AccessLevel.Advocate)
+                        {
+                            var statusMessage = new GameEventWeenieError(session, WeenieError.YouCantUseThatChannel);
+                            session.Network.EnqueueSend(statusMessage);
+                            break;
+                        }
 
-                        // TODO This should check if the recipient is subscribed to the channel
                         foreach (var recipient in WorldManager.GetAll())
                             if (recipient != session)
-                                recipient.Network.EnqueueSend(new GameEvent.Events.GameEventChannelBroadcast(recipient, groupChatType, session.Player.Name, message));
+                            {
+                                if (recipient.AccessLevel >= AccessLevel.Advocate)
+                                    recipient.Network.EnqueueSend(new GameEvent.Events.GameEventChannelBroadcast(recipient, groupChatType, session.Player.Name, message));
+                            }
                             else
+                            {
                                 recipient.Network.EnqueueSend(new GameEvent.Events.GameEventChannelBroadcast(recipient, groupChatType, "", message));
+                            }
                     }
                     break;
                 case Channel.Advocate2:
                     {
-                        // TODO: Proper permissions check. This command should work for any character AccessLevel.Advocate or higher
-                        // if (!session.Player.IsAdmin)
-                        //    break;
+                        if (session.AccessLevel < AccessLevel.Advocate)
+                        {
+                            var statusMessage = new GameEventWeenieError(session, WeenieError.YouCantUseThatChannel);
+                            session.Network.EnqueueSend(statusMessage);
+                            break;
+                        }
 
-                        // TODO This should check if the recipient is subscribed to the channel
                         foreach (var recipient in WorldManager.GetAll())
                             if (recipient != session)
-                                recipient.Network.EnqueueSend(new GameEvent.Events.GameEventChannelBroadcast(recipient, groupChatType, session.Player.Name, message));
+                            {
+                                if (recipient.AccessLevel >= AccessLevel.Advocate)
+                                    recipient.Network.EnqueueSend(new GameEvent.Events.GameEventChannelBroadcast(recipient, groupChatType, session.Player.Name, message));
+                            }
                             else
+                            {
                                 recipient.Network.EnqueueSend(new GameEvent.Events.GameEventChannelBroadcast(recipient, groupChatType, "", message));
+                            }
                     }
                     break;
                 case Channel.Advocate3:
                     {
-                        // TODO: Proper permissions check. This command should work for any character AccessLevel.Advocate or higher
-                        // if (!session.Player.IsAdmin)
-                        //    break;
+                        if (session.AccessLevel < AccessLevel.Advocate)
+                        {
+                            var statusMessage = new GameEventWeenieError(session, WeenieError.YouCantUseThatChannel);
+                            session.Network.EnqueueSend(statusMessage);
+                            break;
+                        }
 
-                        // TODO This should check if the recipient is subscribed to the channel
                         foreach (var recipient in WorldManager.GetAll())
                             if (recipient != session)
-                                recipient.Network.EnqueueSend(new GameEvent.Events.GameEventChannelBroadcast(recipient, groupChatType, session.Player.Name, message));
+                            {
+                                if (recipient.AccessLevel >= AccessLevel.Advocate)
+                                    recipient.Network.EnqueueSend(new GameEvent.Events.GameEventChannelBroadcast(recipient, groupChatType, session.Player.Name, message));
+                            }
                             else
+                            {
                                 recipient.Network.EnqueueSend(new GameEvent.Events.GameEventChannelBroadcast(recipient, groupChatType, "", message));
+                            }
                     }
                     break;
                 case Channel.Sentinel:
                     {
-                        // TODO: Proper permissions check. This command should work for any character with AccessLevel.Sentinel or higher
-                        // if (!session.Player.IsAdmin)
-                        //    break;
+                        if (session.AccessLevel < AccessLevel.Sentinel)
+                        {
+                            var statusMessage = new GameEventWeenieError(session, WeenieError.YouCantUseThatChannel);
+                            session.Network.EnqueueSend(statusMessage);
+                            break;
+                        }
 
-                        // TODO This should check if the recipient is subscribed to the channel
                         foreach (var recipient in WorldManager.GetAll())
                             if (recipient != session)
-                                recipient.Network.EnqueueSend(new GameEvent.Events.GameEventChannelBroadcast(recipient, groupChatType, session.Player.Name, message));
+                            {
+                                if (recipient.AccessLevel >= AccessLevel.Sentinel)
+                                    recipient.Network.EnqueueSend(new GameEvent.Events.GameEventChannelBroadcast(recipient, groupChatType, session.Player.Name, message));
+                            }
                             else
+                            {
                                 recipient.Network.EnqueueSend(new GameEvent.Events.GameEventChannelBroadcast(recipient, groupChatType, "", message));
+                            }
                     }
                     break;
                 case Channel.Help:
@@ -143,48 +196,165 @@ namespace ACE.Server.Network.GameAction.Actions
                         //        NetworkManager.SendWorldMessage(recipient, new GameEvent.Events.GameEventChannelBroadcast(recipient, groupChatType, "", message));
                     }
                     break;
-
                 case Channel.Fellow:
                     {
-                        var statusMessage = new GameEventWeenieError(session, WeenieError.YouDoNotBelongToAFellowship);
-                        session.Network.EnqueueSend(statusMessage);
+                        if (session.Player.Fellowship == null)
+                        {
+                            var statusMessage = new GameEventWeenieError(session, WeenieError.YouDoNotBelongToAFellowship);
+                            session.Network.EnqueueSend(statusMessage);
+                            break;
+                        }
 
-                        ChatPacket.SendServerMessage(session, "GameActionChatChannel TellFellowship Needs work.", ChatMessageType.Broadcast);
+                        foreach (var fellowmember in session.Player.Fellowship.FellowshipMembers)
+                            if (fellowmember.Session != session)
+                                fellowmember.Session.Network.EnqueueSend(new GameEvent.Events.GameEventChannelBroadcast(fellowmember.Session, groupChatType, session.Player.Name, message));
+                            else
+                                session.Network.EnqueueSend(new GameEvent.Events.GameEventChannelBroadcast(session, groupChatType, "", message));
                     }
                     break;
-
                 case Channel.Vassals:
                     {
-                        ChatPacket.SendServerMessage(session, "GameActionChatChannel TellVassals Needs work.", ChatMessageType.Broadcast);
+                        if (!session.Player.HasAllegiance)
+                        {
+                            var statusMessage = new GameEventWeenieError(session, WeenieError.YouAreNotInAllegiance);
+                            session.Network.EnqueueSend(statusMessage);
+                            break;
+                        }
+
+                        if (session.Player.AllegianceNode.TotalVassals == 0)
+                        {
+                            var statusMessage = new GameEventWeenieError(session, WeenieError.YouCantUseThatChannel);
+                            session.Network.EnqueueSend(statusMessage);
+                            break;
+                        }
+
+                        foreach (var vassal in session.Player.AllegianceNode.Vassals)
+                        {
+                            string vassalName = vassal.Player.Name;
+
+                            if (DatabaseManager.Authentication.GetAccountById(vassal.Player.Character.AccountId).AccessLevel == 5)
+                                vassalName = "+" + vassalName;
+
+                            Session vassalSession = WorldManager.FindByPlayerName(vassalName);
+
+                            if (vassalSession != null)
+                                vassalSession.Network.EnqueueSend(new GameEvent.Events.GameEventChannelBroadcast(vassalSession.Player.Session, groupChatType, session.Player.Name, message));
+                        }
+                        session.Network.EnqueueSend(new GameEvent.Events.GameEventChannelBroadcast(session, groupChatType, "", message));
                     }
                     break;
-
                 case Channel.Patron:
                     {
-                        ChatPacket.SendServerMessage(session, "GameActionChatChannel TellPatron Needs work.", ChatMessageType.Broadcast);
+                        if (!session.Player.HasAllegiance)
+                        {
+                            var statusMessage = new GameEventWeenieError(session, WeenieError.YouAreNotInAllegiance);
+                            session.Network.EnqueueSend(statusMessage);
+                            break;
+                        }
+
+                        if (!session.Player.Patron.HasValue)
+                        {
+                            var statusMessage = new GameEventWeenieError(session, WeenieError.YouCantUseThatChannel);
+                            session.Network.EnqueueSend(statusMessage);
+                            break;
+                        }
+
+                        string patronName = session.Player.AllegianceNode.Patron.Player.Name;
+
+                        if (DatabaseManager.Authentication.GetAccountById(session.Player.AllegianceNode.Patron.Player.Character.AccountId).AccessLevel == 5)
+                            patronName = "+" + patronName;
+
+                        Session patronSession = WorldManager.FindByPlayerName(patronName);
+
+                        if (patronSession != null)
+                            patronSession.Network.EnqueueSend(new GameEvent.Events.GameEventChannelBroadcast(patronSession.Player.Session, groupChatType, session.Player.Name, message));
+
+                        session.Network.EnqueueSend(new GameEvent.Events.GameEventChannelBroadcast(session, groupChatType, "", message));
                     }
                     break;
-
                 case Channel.Monarch:
                     {
-                        ChatPacket.SendServerMessage(session, "GameActionChatChannel TellMonarch Needs work.", ChatMessageType.Broadcast);
+                        if (!session.Player.HasAllegiance)
+                        {
+                            var statusMessage = new GameEventWeenieError(session, WeenieError.YouAreNotInAllegiance);
+                            session.Network.EnqueueSend(statusMessage);
+                            break;
+                        }
+
+                        if (!session.Player.Monarch.HasValue)
+                        {
+                            var statusMessage = new GameEventWeenieError(session, WeenieError.YouCantUseThatChannel);
+                            session.Network.EnqueueSend(statusMessage);
+                            break;
+                        }
+
+                        string monarchName = session.Player.AllegianceNode.Monarch.Player.Name;
+
+                        if (DatabaseManager.Authentication.GetAccountById(session.Player.AllegianceNode.Monarch.Player.Character.AccountId).AccessLevel == 5)
+                            monarchName = "+" + monarchName;
+
+                        Session monarchSession = WorldManager.FindByPlayerName(monarchName);
+
+                        if (monarchSession != null)
+                            monarchSession.Network.EnqueueSend(new GameEvent.Events.GameEventChannelBroadcast(monarchSession.Player.Session, Channel.Patron, session.Player.Name, message));
+
+                        session.Network.EnqueueSend(new GameEvent.Events.GameEventChannelBroadcast(session, groupChatType, "", message));
                     }
                     break;
-
                 case Channel.CoVassals:
                     {
-                        ChatPacket.SendServerMessage(session, "GameActionChatChannel TellCoVassals Needs work.", ChatMessageType.Broadcast);
+                        if (!session.Player.HasAllegiance)
+                        {
+                            var statusMessage = new GameEventWeenieError(session, WeenieError.YouAreNotInAllegiance);
+                            session.Network.EnqueueSend(statusMessage);
+                            break;
+                        }
+
+                        if (!session.Player.Patron.HasValue)
+                        {
+                            var statusMessage = new GameEventWeenieError(session, WeenieError.YouCantUseThatChannel);
+                            session.Network.EnqueueSend(statusMessage);
+                            break;
+                        }
+
+                        string patronName = session.Player.AllegianceNode.Patron.Player.Name;
+
+                        if (DatabaseManager.Authentication.GetAccountById(session.Player.AllegianceNode.Patron.Player.Character.AccountId).AccessLevel == 5)
+                            patronName = "+" + patronName;
+
+                        Session patronSession = WorldManager.FindByPlayerName(patronName);
+
+                        if (patronSession != null)
+                            patronSession.Network.EnqueueSend(new GameEvent.Events.GameEventChannelBroadcast(patronSession.Player.Session, Channel.Patron, session.Player.Name, message));
+
+                        foreach (var covassal in session.Player.AllegianceNode.Patron.Vassals)
+                        {
+                            string vassalName = covassal.Player.Name;
+
+                            if (DatabaseManager.Authentication.GetAccountById(covassal.Player.Character.AccountId).AccessLevel == 5)
+                                vassalName = "+" + vassalName;
+
+                            Session covassalSession = WorldManager.FindByPlayerName(vassalName);
+
+                            if (vassalName == session.Player.Name)
+                            {
+                                session.Network.EnqueueSend(new GameEvent.Events.GameEventChannelBroadcast(session, groupChatType, "", message));
+                            }
+                            else
+                            {
+                                if (covassalSession != null)
+                                    covassalSession.Network.EnqueueSend(new GameEvent.Events.GameEventChannelBroadcast(covassalSession.Player.Session, groupChatType, session.Player.Name, message));
+                            }
+                        }
                     }
                     break;
-
                 case Channel.AllegianceBroadcast:
                     {
                         // The client knows if we're in an allegiance or not, and will throw an error to the user if they try to /a, and no message will be dispatched to the server.
-
+                        // 
                         ChatPacket.SendServerMessage(session, "GameActionChatChannel AllegianceBroadcast Needs work.", ChatMessageType.Broadcast);
                     }
                     break;
-
                 default:
                     Console.WriteLine($"Unhandled ChatChannel GroupChatType: 0x{(uint)groupChatType:X4}");
                     break;
