@@ -1,4 +1,7 @@
 # ACEmulator Change Log
+### 2018-09-03
+[mcreedjr]
+* Initial pass at secure trade
 
 ### 2018-08-30
 [gmriggs]
