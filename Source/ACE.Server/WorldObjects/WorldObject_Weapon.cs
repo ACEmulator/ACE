@@ -31,7 +31,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Returns the Mana Conversion skill modifier for the primary weapon
         /// </summary>
-        public static float GetWeaponManaConversionBonus(Creature wielder)
+        public static float GetWeaponManaConversionModifier(Creature wielder)
         {
             WorldObject weapon = GetWeapon(wielder as Player);
 
@@ -45,7 +45,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Returns the Melee Defense skill modifier for the primary weapon
         /// </summary>
-        public static float GetWeaponMeleeDefenseBonus(Creature wielder)
+        public static float GetWeaponMeleeDefenseModifier(Creature wielder)
         {
             WorldObject weapon = GetWeapon(wielder as Player);
 
@@ -61,7 +61,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Returns the attack skill modifier for the primary weapon
         /// </summary>
-        public static float GetWeaponOffenseBonus(Creature wielder)
+        public static float GetWeaponOffenseModifier(Creature wielder)
         {
             WorldObject weapon = GetWeapon(wielder as Player);
 
@@ -77,7 +77,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Returns the critical chance modifier for the primary weapon
         /// </summary>
-        public static float GetWeaponPhysicalCritFrequencyBonus(Creature wielder)
+        public static float GetWeaponPhysicalCritFrequencyModifier(Creature wielder)
         {
             WorldObject weapon = GetWeapon(wielder as Player);
 
@@ -91,7 +91,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Returns the magic critical chance modifier for the primary weapon
         /// </summary>
-        public static float GetWeaponMagicCritFrequencyBonus(Creature wielder)
+        public static float GetWeaponMagicCritFrequencyModifier(Creature wielder)
         {
             WorldObject weapon = GetWeapon(wielder as Player);
 
@@ -105,7 +105,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Returns the critical damage multiplier for the primary weapon
         /// </summary>
-        public static float GetWeaponCritMultiplierBonus(Creature wielder)
+        public static float GetWeaponCritMultiplierModifier(Creature wielder)
         {
             WorldObject weapon = GetWeapon(wielder as Player);
 
@@ -120,7 +120,7 @@ namespace ACE.Server.WorldObjects
         /// Returns the slayer 2x+ damage bonus for the primary weapon
         /// against a particular creature type
         /// </summary>
-        public static float GetWeaponCreatureSlayerBonus(Creature wielder, Creature target)
+        public static float GetWeaponCreatureSlayerModifier(Creature wielder, Creature target)
         {
             float modifier = defaultBonusModifier;
 
@@ -136,10 +136,11 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Returns the elemental damage bonus for the magic caster weapon
+        /// Returns a multiplicative elemental damage bonus for the magic caster weapon type
         /// </summary>
-        public static float GetWeaponElementalDamageModBonus(Creature wielder, Creature target, DamageType damageType)
+        public static float GetCasterElementalDamageModifier(Creature wielder, Creature target, DamageType damageType)
         {
+            // A multiplicative bonus, so the default is 1
             float elementalDmgBonusPvPReduction = 0.5f;
             float modifier = defaultBonusModifier;
 
@@ -151,19 +152,43 @@ namespace ACE.Server.WorldObjects
             if (weapon is Caster)
             {
                 var elementalDamageModType = weapon.GetProperty(PropertyInt.DamageType) ?? (int)DamageType.Undef;
-                if (elementalDamageModType != (int)DamageType.Undef)
+                if (elementalDamageModType != (int)DamageType.Undef && elementalDamageModType == (int)damageType)
                 {
-                    if (elementalDamageModType == (int)damageType)
+                    // TODO: Add EnchantmentManager buff/debuff from Spirit Drinker/Loather
+                    var casterElementalDmgMod = (float)(weapon.GetProperty(PropertyFloat.ElementalDamageMod) ?? modifier);
+                    if (casterElementalDmgMod > modifier)
                     {
-                        // TODO: Add EnchantmentManager buff/debuff from Spirit Drinker/Loather to ElementalDamageMod property
-                        var elementalDmgMod = (float)(weapon.GetProperty(PropertyFloat.ElementalDamageMod) ?? modifier);
-                        if (elementalDmgMod > modifier)
-                        {
-                            modifier = elementalDmgMod;
-                            if (wielderAsPlayer != null && targetAsPlayer != null)
-                                modifier = 1.0f + (elementalDmgMod - 1.0f) * elementalDmgBonusPvPReduction;
-                        }
+                        modifier = casterElementalDmgMod;
+                        if (wielderAsPlayer != null && targetAsPlayer != null)
+                            modifier = 1.0f + (casterElementalDmgMod - 1.0f) * elementalDmgBonusPvPReduction;
                     }
+                }
+            }
+
+            return modifier;
+        }
+
+        /// <summary>
+        /// Returns an additive elemental damage bonus for the missile launcher weapon type
+        /// </summary>
+        public static int GetMissileElementalDamageModifier(Creature wielder, Creature target, DamageType damageType)
+        {
+            // An additive bonus, so the default is zero
+            int modifier = 0;
+
+            var wielderAsPlayer = wielder as Player;
+            var targetAsPlayer = target as Player;
+
+            WorldObject weapon = GetWeapon(wielderAsPlayer);
+
+            if (weapon is MissileLauncher)
+            {
+                var elementalDamageModType = weapon.GetProperty(PropertyInt.DamageType) ?? (int)DamageType.Undef;
+                if (elementalDamageModType != (int)DamageType.Undef && elementalDamageModType == (int)damageType)
+                {
+                    // TODO: Add EnchantmentManager buff/debuff from Spirit Drinker/Loather
+                    var launcherElementalDmgMod = weapon.GetProperty(PropertyInt.ElementalDamageBonus) ?? modifier;
+                    modifier = launcherElementalDmgMod;
                 }
             }
 
@@ -173,7 +198,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Quest weapon fixed Resistance Cleaving equivalent to Level 5 Life Vulnerability spell
         /// </summary>
-        public static float GetWeaponResistanceModifierBonus(Creature wielder, DamageType damageType)
+        public static float GetWeaponResistanceModifier(Creature wielder, DamageType damageType)
         {
             float modifier = defaultBonusModifier;
 
