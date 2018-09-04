@@ -673,7 +673,9 @@ namespace ACE.Server.WorldObjects
             if (wo != null)
                 EnqueueBroadcast(new GameMessageObjDescEvent(wo));
             else
-                log.Warn($"requested object description for an item I do not know about - {item.Full:X}");
+                // TODO: Change this back to a warn once the error is actually fixed
+                log.Debug($"Error - requested object description for an item I do not know about - {item.Full:X}");
+                //log.Warn($"requested object description for an item I do not know about - {item.Full:X}");
         }
 
         protected override void SendUpdatePosition(bool forcePos = false)
