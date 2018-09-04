@@ -128,7 +128,7 @@ namespace ACE.Server.WorldObjects
             // get player attack skill
             var creature = target as Creature;
             var attackSkill = GetCreatureSkill(GetCurrentWeaponSkill()).Current;
-            var offenseMod = GetWeaponOffenseBonus(this);
+            var offenseMod = GetWeaponOffenseModifier(this);
             attackSkill = (uint)Math.Round(attackSkill * offenseMod);
 
             if (IsExhausted)
@@ -136,7 +136,7 @@ namespace ACE.Server.WorldObjects
 
             // get target defense skill
             var defenseSkill = GetAttackType() == AttackType.Melee ? Skill.MeleeDefense : Skill.MissileDefense;
-            var defenseMod = defenseSkill == Skill.MeleeDefense ? GetWeaponMeleeDefenseBonus(creature) : 1.0f;
+            var defenseMod = defenseSkill == Skill.MeleeDefense ? GetWeaponMeleeDefenseModifier(creature) : 1.0f;
             var difficulty = (uint)Math.Round(creature.GetCreatureSkill(defenseSkill).Current * defenseMod);
 
             if (creature.IsExhausted) difficulty = 0;
@@ -216,10 +216,10 @@ namespace ACE.Server.WorldObjects
             var damage = baseDamage * attributeMod * powerAccuracyMod;
 
             // critical hit
-            var critical = GetWeaponPhysicalCritFrequencyBonus(this);
+            var critical = GetWeaponPhysicalCritFrequencyModifier(this);
             if (Physics.Common.Random.RollDice(0.0f, 1.0f) < critical)
             {
-                damage = baseDamageRange.Max * attributeMod * powerAccuracyMod * (2.0f + GetWeaponCritMultiplierBonus(this));
+                damage = baseDamageRange.Max * attributeMod * powerAccuracyMod * (2.0f + GetWeaponCritMultiplierModifier(this));
                 criticalHit = true;
             }
 
@@ -239,15 +239,16 @@ namespace ACE.Server.WorldObjects
             else
                 damageType = GetDamageType();
 
-            creaturePart.WeaponResistanceMod = GetWeaponResistanceModifierBonus(this, damageType);
+            creaturePart.WeaponResistanceMod = GetWeaponResistanceModifier(this, damageType);
             var resistance = GetResistance(creaturePart, damageType);
 
             // scale damage for armor and shield
             var armorMod = SkillFormula.CalcArmorMod(resistance);
             var shieldMod = creature.GetShieldMod(this, damageType);
 
-            var slayerBonus = GetWeaponCreatureSlayerBonus(this, target as Creature);
-            return damage * armorMod * shieldMod * slayerBonus;
+            var slayerMod = GetWeaponCreatureSlayerModifier(this, target as Creature);
+            var elementalDamageMod = GetMissileElementalDamageModifier(this, target as Creature, damageType);
+            return (damage + elementalDamageMod) * armorMod * shieldMod * slayerMod;
         }
 
         public float GetPowerAccuracyMod()
