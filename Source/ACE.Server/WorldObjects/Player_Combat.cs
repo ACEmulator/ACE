@@ -127,15 +127,17 @@ namespace ACE.Server.WorldObjects
         {
             // get player attack skill
             var creature = target as Creature;
+            var attackType = GetAttackType();
             var attackSkill = GetCreatureSkill(GetCurrentWeaponSkill()).Current;
             var offenseMod = GetWeaponOffenseModifier(this);
-            attackSkill = (uint)Math.Round(attackSkill * offenseMod);
+            var accuracyMod = attackType == AttackType.Missile ? AccuracyLevel + 0.6f : 1.0f;
+            attackSkill = (uint)Math.Round(attackSkill * accuracyMod * offenseMod);
 
             if (IsExhausted)
                 attackSkill = GetExhaustedSkill(attackSkill);
 
             // get target defense skill
-            var defenseSkill = GetAttackType() == AttackType.Melee ? Skill.MeleeDefense : Skill.MissileDefense;
+            var defenseSkill = attackType == AttackType.Missile ? Skill.MissileDefense : Skill.MeleeDefense;
             var defenseMod = defenseSkill == Skill.MeleeDefense ? GetWeaponMeleeDefenseModifier(creature) : 1.0f;
             var difficulty = (uint)Math.Round(creature.GetCreatureSkill(defenseSkill).Current * defenseMod);
 
