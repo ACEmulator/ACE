@@ -136,10 +136,11 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Returns the elemental damage bonus for the magic caster weapon
+        /// Returns a multiplicative elemental damage bonus for the magic caster weapon type
         /// </summary>
-        public static float GetWeaponElementalDamageModifier(Creature wielder, Creature target, DamageType damageType)
+        public static float GetCasterElementalDamageModifier(Creature wielder, Creature target, DamageType damageType)
         {
+            // A multiplicative bonus, so the default is 1
             float elementalDmgBonusPvPReduction = 0.5f;
             float modifier = defaultBonusModifier;
 
@@ -148,28 +149,46 @@ namespace ACE.Server.WorldObjects
 
             WorldObject weapon = GetWeapon(wielderAsPlayer);
 
-            if (weapon is Caster || weapon is MissileLauncher)
+            if (weapon is Caster)
             {
                 var elementalDamageModType = weapon.GetProperty(PropertyInt.DamageType) ?? (int)DamageType.Undef;
                 if (elementalDamageModType != (int)DamageType.Undef && elementalDamageModType == (int)damageType)
                 {
                     // TODO: Add EnchantmentManager buff/debuff from Spirit Drinker/Loather
-                    switch (weapon.WeenieType)
+                    var casterElementalDmgMod = (float)(weapon.GetProperty(PropertyFloat.ElementalDamageMod) ?? modifier);
+                    if (casterElementalDmgMod > modifier)
                     {
-                        case WeenieType.Caster:
-                            var casterElementalDmgMod = (float)(weapon.GetProperty(PropertyFloat.ElementalDamageMod) ?? modifier);
-                            if (casterElementalDmgMod > modifier)
-                            {
-                                modifier = casterElementalDmgMod;
-                                if (wielderAsPlayer != null && targetAsPlayer != null)
-                                    modifier = 1.0f + (casterElementalDmgMod - 1.0f) * elementalDmgBonusPvPReduction;
-                            }
-                            break;
-                        case WeenieType.MissileLauncher:
-                            var launcherElementalDmgMod = weapon.GetProperty(PropertyInt.ElementalDamageBonus) ?? modifier;
-                            modifier = launcherElementalDmgMod;
-                            break;
+                        modifier = casterElementalDmgMod;
+                        if (wielderAsPlayer != null && targetAsPlayer != null)
+                            modifier = 1.0f + (casterElementalDmgMod - 1.0f) * elementalDmgBonusPvPReduction;
                     }
+                }
+            }
+
+            return modifier;
+        }
+
+        /// <summary>
+        /// Returns an additive elemental damage bonus for the missile launcher weapon type
+        /// </summary>
+        public static int GetMissileElementalDamageModifier(Creature wielder, Creature target, DamageType damageType)
+        {
+            // An additive bonus, so the default is zero
+            int modifier = 0;
+
+            var wielderAsPlayer = wielder as Player;
+            var targetAsPlayer = target as Player;
+
+            WorldObject weapon = GetWeapon(wielderAsPlayer);
+
+            if (weapon is MissileLauncher)
+            {
+                var elementalDamageModType = weapon.GetProperty(PropertyInt.DamageType) ?? (int)DamageType.Undef;
+                if (elementalDamageModType != (int)DamageType.Undef && elementalDamageModType == (int)damageType)
+                {
+                    // TODO: Add EnchantmentManager buff/debuff from Spirit Drinker/Loather
+                    var launcherElementalDmgMod = weapon.GetProperty(PropertyInt.ElementalDamageBonus) ?? modifier;
+                    modifier = launcherElementalDmgMod;
                 }
             }
 

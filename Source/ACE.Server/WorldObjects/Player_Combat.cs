@@ -247,8 +247,8 @@ namespace ACE.Server.WorldObjects
             var shieldMod = creature.GetShieldMod(this, damageType);
 
             var slayerMod = GetWeaponCreatureSlayerModifier(this, target as Creature);
-            var elementalDamageMod = GetWeaponElementalDamageModifier(this, target as Creature, damageType);
-            return damage * armorMod * shieldMod * slayerMod + elementalDamageMod;
+            var elementalDamageMod = GetMissileElementalDamageModifier(this, target as Creature, damageType);
+            return (damage + elementalDamageMod) * armorMod * shieldMod * slayerMod;
         }
 
         public float GetPowerAccuracyMod()

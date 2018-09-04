@@ -1662,7 +1662,7 @@ namespace ACE.Server.WorldObjects
                 finalDamage = Physics.Common.Random.RollDice((spellStatMod.BaseIntensity ?? 0), (spellStatMod.Variance + spellStatMod.BaseIntensity) ?? 0) + minDamageBonus + maxDamageBonus + warSkillBonus;
             }
 
-            var elementalDmgBonus = GetWeaponElementalDamageModifier(source, target, damageType);
+            var elementalDmgBonus = GetCasterElementalDamageModifier(source, target, damageType);
 
             return finalDamage
                 * target.GetNaturalResistance(resistanceType, GetWeaponResistanceModifier(source, damageType))
