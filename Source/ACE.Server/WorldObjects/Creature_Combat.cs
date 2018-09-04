@@ -201,11 +201,9 @@ namespace ACE.Server.WorldObjects
                     combatStance = MotionStance.ThrownWeaponCombat;
                     break;
                 case CombatStyle.TwoHanded:
-                    var weaponType = (WeaponType)(weapon.GetProperty(PropertyInt.WeaponType) ?? 0);
-                    if (weaponType == WeaponType.Sword)
-                        combatStance = MotionStance.TwoHandedSwordCombat;
-                    else if (weaponType == WeaponType.Staff)
-                        combatStance = MotionStance.TwoHandedStaffCombat;
+                    // MotionStance.TwoHandedStaffCombat doesn't appear to do anything
+                    // Additionally, PropertyInt.WeaponType isn't always included, and the 2handed weapons that do appear to use WeaponType.TwoHanded
+                    combatStance = MotionStance.TwoHandedSwordCombat;
                     break;
                 case CombatStyle.Unarmed:
                     combatStance = MotionStance.HandCombat;
