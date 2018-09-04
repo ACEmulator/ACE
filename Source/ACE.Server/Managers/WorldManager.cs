@@ -587,7 +587,7 @@ namespace ACE.Server.Managers
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);   // FIXME: concurrency + collection was modified
+                log.Error(e);
             }
 
             LastPhysicsUpdate = Server.Physics.Common.Timer.CurrentTime;

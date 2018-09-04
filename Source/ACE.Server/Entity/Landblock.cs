@@ -412,9 +412,9 @@ namespace ACE.Server.Entity
         /// <summary>
         /// Returns landblock objects with physics initialized
         /// </summary>
-        public IEnumerable<WorldObject> GetPhysicsWorldObjects()
+        public List<WorldObject> GetPhysicsWorldObjects()
         {
-            return worldObjects.Values.Where(wo => wo.PhysicsObj != null);
+            return worldObjects.Values.Where(wo => wo.PhysicsObj != null).ToList();
         }
 
         private void UpdateStatus(LandBlockStatusFlag flag)
