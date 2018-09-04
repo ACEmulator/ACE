@@ -7,6 +7,8 @@ namespace ACE.Server.WorldObjects
 {
     partial class WorldObject
     {
+        private readonly bool biotaOriginatedFromDatabase;
+
         public DateTime LastRequestedDatabaseSave { get; protected set; }
 
         /// <summary>
@@ -50,6 +52,13 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void RemoveBiotaFromDatabase(bool enqueueRemove = true)
         {
+            // If this entity doesn't exist in the database, let's not queue up work unnecessary database work.
+            if (!biotaOriginatedFromDatabase && LastRequestedDatabaseSave == DateTime.MinValue)
+            {
+                ChangesDetected = true;
+                return;
+            }
+
             LastRequestedDatabaseSave = DateTime.MinValue;
             ChangesDetected = true;
 

@@ -104,6 +104,8 @@ namespace ACE.Server.WorldObjects
         {
             Biota = biota;
 
+            biotaOriginatedFromDatabase = true;
+
             SetEphemeralValues();
         }
 
