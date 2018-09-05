@@ -7,6 +7,26 @@ namespace ACE.Server.Network.Structure
     /// <summary>
     /// HashTable which is packable for network
     /// </summary>
+    public static class PackableHashTable
+    {
+        public static void WriteHeader(BinaryWriter writer, int numEntries)
+        {
+            var numBits = GetNumBits(numEntries);
+            var size = 1 << ((int)numBits - 1);
+
+            writer.Write(numEntries);
+            writer.Write((ushort)size);
+        }
+
+        /// <summary>
+        /// Returns the number of bits required to store the input number
+        /// </summary>
+        public static uint GetNumBits(int num)
+        {
+            return (uint)Math.Log(num, 2) + 1;
+        }
+    }
+
     public class PackableHashTable<T, U>
     {
         public Dictionary<T, U> HashTable;
