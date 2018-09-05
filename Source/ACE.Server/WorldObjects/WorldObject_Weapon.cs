@@ -10,6 +10,7 @@ namespace ACE.Server.WorldObjects
         const float defaultMagicCritFrequency = 0.02f;
         const float defaultCritMultiplier = 0.0f;
         const float defaultBonusModifier = 1.0f;
+        const uint defaultSpeed = 40;   // TODO: find default speed
 
         /// <summary>
         /// Returns the primary weapon equipped by a player
@@ -26,6 +27,21 @@ namespace ACE.Server.WorldObjects
                 weapon = wielder.GetEquippedWand();
 
             return weapon;
+        }
+
+        /// <summary>
+        /// Returns the weapon speed, with enchantments factored in
+        /// </summary>
+        public static uint GetWeaponSpeed(Creature wielder)
+        {
+            WorldObject weapon = GetWeapon(wielder as Player);
+
+            if (weapon == null)
+                return defaultSpeed;
+
+            var baseSpeed = weapon.GetProperty(PropertyInt.WeaponTime) ?? (int)defaultSpeed;
+            var speedMod = wielder != null ? wielder.EnchantmentManager.GetWeaponSpeedMod() : 0;
+            return (uint)Math.Max(0, baseSpeed + speedMod);
         }
 
         /// <summary>

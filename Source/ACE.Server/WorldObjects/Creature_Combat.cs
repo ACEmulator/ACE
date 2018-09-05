@@ -270,6 +270,34 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
+        /// Returns the animation speed for an attack,
+        /// based on the current quickness and weapon speed
+        /// </summary>
+        public float GetAnimSpeed()
+        {
+            // Weapon swing animation speed caps at ~180 quickness. But I'm not certain as to the exact formula.
+            var quickness = GetCreatureAttribute(PropertyAttribute.Quickness).Current;
+            var weaponSpeed = GetWeaponSpeed(this);
+
+            var minAttackSpeed = 0.8f;
+            var maxAttackSpeed = 2.25f;
+
+            //var minAttackSpeed = 1.0f;
+            //var maxAttackSpeed = 2.0f;
+
+            var creatureSpeed = 120 - ((int)quickness - 60) / 2; // we reach 0 creatureSpeed at 300 quickness
+            creatureSpeed = Math.Max(0, creatureSpeed);          // do not go below 0
+
+            var attackTime = (creatureSpeed + weaponSpeed) / 2;  // our attack time is the average between our speed and the speed of our weapon.
+
+            var animSpeed = maxAttackSpeed - (attackTime * (1.0f / 70.0f));
+
+            animSpeed = Math.Clamp(animSpeed, minAttackSpeed, maxAttackSpeed);
+
+            return animSpeed;
+        }
+
+        /// <summary>
         /// Returns the current attack height as an enumerable string
         /// </summary>
         public string GetAttackHeight()

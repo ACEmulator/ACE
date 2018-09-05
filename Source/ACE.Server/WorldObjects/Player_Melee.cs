@@ -113,8 +113,10 @@ namespace ACE.Server.WorldObjects
         public ActionChain DoSwingMotion(WorldObject target, out float animLength)
         {
             // FIXME: proper swing animation speeds
+            var baseSpeed = GetAnimSpeed();
             var animSpeedMod = IsDualWieldAttack ? 1.2f : 1.0f;     // dual wield swing animation 20% faster
-            var animSpeed = 1.25f * animSpeedMod;
+            var animSpeed = baseSpeed * animSpeedMod;
+
             var swingAnimation = new MotionItem(GetSwingAnimation(), animSpeed);
             animLength = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, swingAnimation.Motion, null, animSpeed);
 
