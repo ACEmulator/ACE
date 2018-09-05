@@ -708,7 +708,7 @@ namespace ACE.Server.WorldObjects
             if (wo != null)
                 EnqueueBroadcast(new GameMessageObjDescEvent(wo));
             else
-                log.Warn($"HandleActionForceObjDescSend() - couldn't find inventory item {item}");
+                log.Debug($"HandleActionForceObjDescSend() - couldn't find inventory item {item}");
         }
 
         protected override void SendUpdatePosition(bool forcePos = false)
