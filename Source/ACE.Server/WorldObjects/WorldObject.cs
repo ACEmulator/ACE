@@ -853,22 +853,25 @@ namespace ACE.Server.WorldObjects
 
         public virtual void Destroy()
         {
-            ActionChain destroyChain = new ActionChain();
-
             if (Location != null)
             {
+                ActionChain destroyChain = new ActionChain();
                 destroyChain.AddAction(this, () => ApplyVisualEffects(ACE.Entity.Enum.PlayScript.Destroy));
                 destroyChain.AddDelaySeconds(3);
-                destroyChain.AddAction(this, () => NotifyOfEvent(RegenerationType.Destruction));
+                destroyChain.AddAction(this, () =>
+                {
+                    NotifyOfEvent(RegenerationType.Destruction);
+                    CurrentLandblock?.RemoveWorldObject(Guid, false);
+                    RemoveBiotaFromDatabase();
+                });
+                destroyChain.EnqueueChain();
             }
-
-            destroyChain.AddAction(this, () =>
+            else
             {
+                NotifyOfEvent(RegenerationType.Destruction);
                 CurrentLandblock?.RemoveWorldObject(Guid, false);
                 RemoveBiotaFromDatabase();
-            });
-
-            destroyChain.EnqueueChain();
+            }
         }
 
         public string GetPluralName()
