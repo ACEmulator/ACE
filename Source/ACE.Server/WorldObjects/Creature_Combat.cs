@@ -282,7 +282,7 @@ namespace ACE.Server.WorldObjects
             var maxAttackSpeed = 2.0;
 
             var divisor = 1.0 - (quickness / 300.0) + (weaponSpeed / 150.0);
-            if (divisor < 0)
+            if (divisor <= 0)
                 return (float)maxAttackSpeed;
 
             var animSpeed = (float)Math.Clamp((1.0 / divisor), minAttackSpeed, maxAttackSpeed);
