@@ -4,6 +4,7 @@ using ACE.Database.Models.Shard;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Server.Entity;
 using ACE.Server.Factories;
 using ACE.Server.Managers;
 using ACE.Server.Physics.Common;
@@ -212,7 +213,7 @@ namespace ACE.Server.WorldObjects
                     continue;
                 }
 
-                //Console.WriteLine($"Generator({Name} - {Location.Cell:X8}) spawned {wo.Name}");
+                //Console.WriteLine($"Generator({Name} - {Location.Cell:X8}) spawned {wo.Name} - {(RegenLocationType)profile.WhereCreate}");
 
                 switch ((RegenLocationType)profile.WhereCreate)
                 {
@@ -246,6 +247,7 @@ namespace ACE.Server.WorldObjects
                             newPos.Z = LScape.get_landblock(wo.Location.Cell).GetZ(newPos);
                         }
                         wo.Location.SetPosition(newPos);
+                        wo.Location.LandblockId = new LandblockId(wo.Location.GetCell());
                         break;
 
                     // generator is a container, spawns in inventory

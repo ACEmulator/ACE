@@ -269,6 +269,27 @@ namespace ACE.Server.WorldObjects
                 return 1.0f;
         }
 
+        private static double MinAttackSpeed = 0.5;
+        private static double MaxAttackSpeed = 2.0;
+
+        /// <summary>
+        /// Returns the animation speed for an attack,
+        /// based on the current quickness and weapon speed
+        /// </summary>
+        public float GetAnimSpeed()
+        {
+            var quickness = GetCreatureAttribute(PropertyAttribute.Quickness).Current;
+            var weaponSpeed = GetWeaponSpeed(this);
+
+            var divisor = 1.0 - (quickness / 300.0) + (weaponSpeed / 150.0);
+            if (divisor <= 0)
+                return (float)MaxAttackSpeed;
+
+            var animSpeed = (float)Math.Clamp((1.0 / divisor), MinAttackSpeed, MaxAttackSpeed);
+
+            return animSpeed;
+        }
+
         /// <summary>
         /// Returns the current attack height as an enumerable string
         /// </summary>
