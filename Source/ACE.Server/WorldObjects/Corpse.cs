@@ -1,6 +1,6 @@
 using System;
 using System.Linq;
-using ACE.Database;
+
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.Entity;
@@ -11,7 +11,7 @@ using ACE.Server.Network.Motion;
 
 namespace ACE.Server.WorldObjects
 {
-    public class Corpse : Container
+    public partial class Corpse : Container
     {
         /// <summary>
         /// The default number of seconds for a corpse to disappear
@@ -89,38 +89,6 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// The maximum number of seconds
-        /// for an empty corpse to stick around
-        /// </summary>
-        public static readonly double EmptyDecayTime = 15.0;
-
-        /// <summary>
-        /// Handles corpse decay and removal
-        /// </summary>
-        public override void HeartBeat()
-        {
-            TimeToRot -= HeartbeatInterval ?? 5;
-
-            // empty corpses decay faster?
-            if (Inventory.Count == 0 && TimeToRot > EmptyDecayTime)
-                TimeToRot = EmptyDecayTime;
-
-            if (TimeToRot <= 0)
-            {
-                // TODO: if items are left on corpse,
-                // create these items in the world
-                // http://asheron.wikia.com/wiki/Item_Decay
-
-                if (!IsMonster)
-                    DatabaseManager.Shard.RemoveBiota(Biota, BiotaDatabaseLock, result => { });
-
-                Destroy();
-                return;
-            }
-            QueueNextHeartBeat();
-        }
-
-        /// <summary>
         /// Called when a player attempts to loot a corpse
         /// </summary>
         public override void Open(Player player)
@@ -135,6 +103,7 @@ namespace ACE.Server.WorldObjects
                     return;
                 }
             }
+
             base.Open(player);
         }
     }

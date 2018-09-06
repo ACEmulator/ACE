@@ -86,8 +86,6 @@ namespace ACE.Server.WorldObjects
             Value = null; // Creatures don't have value. By setting this to null, it effectively disables the Value property. (Adding/Subtracting from null results in null)
 
             CurrentMotionState = new UniversalMotion(MotionStance.Invalid, new MotionItem(MotionCommand.Invalid));
-
-            QueueNextTick();
         }
 
         public void GenerateNewFace()
@@ -279,32 +277,6 @@ namespace ACE.Server.WorldObjects
                     player.SendUseDoneEvent();
                 }
             }
-        }
-
-        /// <summary>
-        /// Called every ~5 seconds for Creatures
-        /// </summary>
-        public override void HeartBeat()
-        {
-            EmoteManager.HeartBeat();
-
-            EnchantmentManager.HeartBeat();
-            EmoteManager.HeartBeat();
-
-            VitalTick();
-            // item enchantment ticks?
-
-            QueueNextHeartBeat();
-        }
-
-        public static readonly float TickInterval = 0.2f;
-
-        public void QueueNextTick()
-        {
-            var nextTick = new ActionChain();
-            nextTick.AddDelaySeconds(TickInterval);
-            nextTick.AddAction(this, () => DoTick());
-            nextTick.EnqueueChain();
         }
     }
 }

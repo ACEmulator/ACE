@@ -1293,7 +1293,12 @@ namespace ACE.Server.WorldObjects
                 self.EnqueueAction(new ActionEventDelegate(() => delegateAction(self)));
 
             foreach (var player in PhysicsObj.ObjMaint.VoyeurTable.Values.Select(v => v.WeenieObj.WorldObject as Player))
+            {
+                if ((Visibility ?? false) && !player.Adminvision)
+                    continue;
+
                 player.EnqueueAction(new ActionEventDelegate(() => delegateAction(player)));
+            }
         }
 
         /// <summary>
@@ -1315,6 +1320,9 @@ namespace ACE.Server.WorldObjects
                 if (isDungeon && Location.Landblock != player.Location.Landblock)
                     continue;
 
+                if ((Visibility ?? false) && !player.Adminvision)
+                    continue;
+
                 var dist = Vector3.Distance(Location.ToGlobal(), player.Location.ToGlobal());
                 if (dist <= range)
                     player.Session.Network.EnqueueSend(msg);
@@ -1333,7 +1341,12 @@ namespace ACE.Server.WorldObjects
                 self.Session.Network.EnqueueSend(msgs);
 
             foreach (var player in PhysicsObj.ObjMaint.VoyeurTable.Values.Select(v => v.WeenieObj.WorldObject as Player))
+            {
+                if ((Visibility ?? false) && !player.Adminvision)
+                    continue;
+
                 player.Session.Network.EnqueueSend(msgs);
+            }
         }
 
         /// <summary>

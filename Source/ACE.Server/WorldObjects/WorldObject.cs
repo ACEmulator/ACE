@@ -16,7 +16,6 @@ using ACE.Server.Entity.Actions;
 using ACE.Server.Managers;
 using ACE.Server.Network;
 using ACE.Server.Network.GameEvent.Events;
-using ACE.Server.Network.GameMessages;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Motion;
 using ACE.Server.Network.Sequence;
@@ -55,6 +54,11 @@ namespace ACE.Server.WorldObjects
         public SequenceManager Sequences { get; } = new SequenceManager();
 
         public virtual float ListeningRadius { get; protected set; } = 5f;
+
+        /// <summary>
+        /// Should only be adjusted by Landblock -- default is null
+        /// </summary>
+        public Landblock CurrentLandblock { get; internal set; }
 
         private bool busyState;
         private bool movingState;
@@ -99,6 +103,8 @@ namespace ACE.Server.WorldObjects
         protected WorldObject(Biota biota)
         {
             Biota = biota;
+
+            biotaOriginatedFromDatabase = true;
 
             SetEphemeralValues();
         }
@@ -310,8 +316,6 @@ namespace ACE.Server.WorldObjects
                 Placement = ACE.Entity.Enum.Placement.Resting;
 
             //CurrentMotionState = new UniversalMotion(MotionStance.Invalid, new MotionItem(MotionCommand.Invalid));
-
-            QueueNextHeartBeat();
         }
 
         /// <summary>
@@ -384,11 +388,6 @@ namespace ACE.Server.WorldObjects
         public Position RequestedLocation { get; private set; }
 
         public Position PreviousLocation { get; set; }
-
-        /// <summary>
-        /// Should only be adjusted by LandblockManager -- default is null
-        /// </summary>
-        public Landblock CurrentLandblock => CurrentParent as Landblock;
 
 
         /// <summary>
@@ -678,30 +677,6 @@ namespace ACE.Server.WorldObjects
             }
         }
 
-        /// <summary>
-        /// Called every ~5 seconds for WorldObject base
-        /// </summary>
-        public virtual void HeartBeat()
-        {
-            Generator_HeartBeat();
-
-            EmoteManager.HeartBeat();
-
-            EnchantmentManager.HeartBeat();
-
-            QueueNextHeartBeat();
-
-            SetProperty(PropertyFloat.HeartbeatTimestamp, Time.GetTimestamp());
-        }
-
-        public void QueueNextHeartBeat()
-        {
-            ActionChain nextHeartBeat = new ActionChain();
-            nextHeartBeat.AddDelaySeconds(HeartbeatInterval ?? 5);
-            nextHeartBeat.AddAction(this, () => HeartBeat());
-            nextHeartBeat.EnqueueChain();
-        }
-
         public void AdjustDungeon(Position pos)
         {
             AdjustDungeonPos(pos);
@@ -881,17 +856,21 @@ namespace ACE.Server.WorldObjects
             if (Location != null)
             {
                 ActionChain destroyChain = new ActionChain();
-                destroyChain.AddAction(this, () =>
-                {
-                    ApplyVisualEffects(ACE.Entity.Enum.PlayScript.Destroy);
-                });
+                destroyChain.AddAction(this, () => ApplyVisualEffects(ACE.Entity.Enum.PlayScript.Destroy));
                 destroyChain.AddDelaySeconds(3);
                 destroyChain.AddAction(this, () =>
                 {
                     NotifyOfEvent(RegenerationType.Destruction);
-                    LandblockManager.RemoveObject(this);
+                    CurrentLandblock?.RemoveWorldObject(Guid, false);
+                    RemoveBiotaFromDatabase();
                 });
                 destroyChain.EnqueueChain();
+            }
+            else
+            {
+                NotifyOfEvent(RegenerationType.Destruction);
+                CurrentLandblock?.RemoveWorldObject(Guid, false);
+                RemoveBiotaFromDatabase();
             }
         }
 

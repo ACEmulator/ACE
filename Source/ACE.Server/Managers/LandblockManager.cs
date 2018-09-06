@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 
 using log4net;
 
@@ -18,12 +19,11 @@ namespace ACE.Server.Managers
         private static readonly object landblockMutex = new object();
         private static readonly Landblock[,] landblocks = new Landblock[256, 256];
 
-        /// <summary>
-        /// This list of all currently active landblocks may only be accessed externally from locations in which the landblocks /CANNOT/ be concurrently modified
-        ///   e.g. -- the WorldManager update loop
-        /// </summary>
-        public static Dictionary<Landblock, bool> ActiveLandblocks { get; } = new Dictionary<Landblock, bool>();
+        private static readonly HashSet<Landblock> activeLandblocks = new HashSet<Landblock>();
 
+        /// <summary>
+        /// DestructionQueue is concurrent because it can be added to by multiple threads at once, publicly via AddToDestructionQueue()
+        /// </summary>
         private static readonly ConcurrentBag<Landblock> destructionQueue = new ConcurrentBag<Landblock>();
 
         public static void AddObject(WorldObject worldObject, bool propegate = false)
@@ -52,6 +52,20 @@ namespace ACE.Server.Managers
             newBlock.AddWorldObjectForPhysics(worldObject);
         }
 
+        public static List<Landblock> GetActiveLandblocks()
+        {
+            lock (landblockMutex)
+                return activeLandblocks.ToList();
+        }
+
+        /// <summary>
+        /// This should only be used for debugging/development purposes.
+        /// </summary>
+        public static void ForceLoadLandBlock(LandblockId blockid)
+        {
+            GetLandblock(blockid, false);
+        }
+
         /// <summary>
         /// gets the landblock specified, creating it if it is not already loaded.  will create all
         /// adjacent landblocks if propagate is true (outdoor world roaming).
@@ -74,9 +88,7 @@ namespace ACE.Server.Managers
                             // load up this landblock
                             landblock = landblocks[landblockId.LandblockX, landblockId.LandblockY] = new Landblock(landblockId);
 
-                            // kick off the landblock use time thread
-                            // block.StartUseTime();
-                            if (!ActiveLandblocks.TryAdd(landblock, true))
+                            if (!activeLandblocks.Add(landblock))
                             {
                                 log.Error("LandblockManager: failed to add " + (landblock.Id.Raw | 0xFFFF).ToString("X8") + " to active landblocks!");
                                 return landblock;
@@ -164,20 +176,10 @@ namespace ACE.Server.Managers
             }
         }
 
-        /// <summary>
-        /// This function is NOT thread safe. Using it will likely result in concurrency issues with WorldManager.UpdateWorld.
-        /// You should only use this for debugging/development purposes.
-        /// </summary>
-        /// <param name="blockid"></param>
-        public static void ForceLoadLandBlock(LandblockId blockid)
-        {
-            GetLandblock(blockid, false);
-        }
 
         /// <summary>
         /// Queues a landblock for thread-safe unloading
         /// </summary>
-        /// <param name="landblock">The landblock to be unloaded</param>
         public static void AddToDestructionQueue(Landblock landblock)
         {
             destructionQueue.Add(landblock);
@@ -199,7 +201,7 @@ namespace ACE.Server.Managers
                     lock (landblockMutex)
                     {
                         // remove from list of managed landblocks
-                        if (ActiveLandblocks.Remove(landblock, out _))
+                        if (activeLandblocks.Remove(landblock))
                             landblocks[landblock.Id.LandblockX, landblock.Id.LandblockY] = null;
                         else
                             unloadFailed = true;

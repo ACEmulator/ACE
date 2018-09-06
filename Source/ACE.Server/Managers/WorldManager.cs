@@ -66,8 +66,7 @@ namespace ACE.Server.Managers
         /// </summary>
         public static readonly ActionQueue InboundClientMessageQueue = new ActionQueue();
         private static readonly ActionQueue playerEnterWorldQueue = new ActionQueue();
-        public static readonly DelayManager DelayManager = new DelayManager();
-        public static readonly ActionQueue LandblockActionQueue = new ActionQueue();
+        public static readonly DelayManager DelayManager = new DelayManager(); // TODO get rid of this. Each WO should have its own delayManager
 
         public static List<Player> AllPlayers;
 
@@ -451,12 +450,39 @@ namespace ACE.Server.Managers
         private static void UpdateWorld()
         {
             log.DebugFormat("Starting UpdateWorld thread");
-            double lastTick = 0d;
+            double lastTickDuration = 0d;
             WorldActive = true;
             var worldTickTimer = new Stopwatch();
             while (!pendingWorldStop)
             {
                 worldTickTimer.Restart();
+
+                /*
+                When it comes to thread safety for Landblocks and WorldObjects, ACE makes the following assumptions:
+
+                 * Inbound ClientMessages and GameActions are handled on the main UpdateWorld thread.
+                   - These actions may load Landblocks and modify other WorldObjects safely.
+
+                 * PlayerEnterWorld queue is run on the main UpdateWorld thread.
+                   - These actions may load Landblocks and modify other WorldObjects safely.
+
+                 * Landblock Groups (calculated by LandblockManager) can be processed in parallel.
+
+                 * Adjacent Landblocks will always be run on the same thread.
+
+                 * Non-adjacent landblocks might be run on different threads.
+                   - If two non-adjacent landblocks both touch the same landblock, and that landblock is active, they will be run on the same thread.
+
+                 * Database results are returned from a task spawned in SerializedShardDatabase (via callback).
+                   - Minimal processing should be done from the callback. Return as quickly as possible to let the database thread do database work.
+                   - The processing of these results should be queued to an ActionQueue
+
+                 * The only cases where it's acceptable for to create a new Task, Thread or Parallel loop are the following:
+                   - Every scenario must be one where you don't care about breaking ACE
+                   - DeveloperCommand Handlers
+
+                 * TODO: We need a thread safe way to handle object transitions between distant landblocks
+                */
 
                 InboundClientMessageQueue.RunActions();
 
@@ -477,14 +503,11 @@ namespace ACE.Server.Managers
                     LandblockManager.RelocateObjectForPhysics(movedObject, true);
                 }
 
-                // Now, update actions within landblocks
-                //   This is responsible for updating all "actors" residing within the landblock. 
-                //   Objects and landblocks are "actors"
-                //   "actors" decide if they want to read/modify their own state (set desired velocity), move-to positions, move items, read vitals, etc
-                // N.B. -- Broadcasts are enqueued for sending at the end of the landblock's action time
-                // FIXME(ddevec): Goal is to eventually migrate to an "Act" function of the LandblockManager ActiveLandblocks
-                //    Inactive landblocks will be put on TimeoutManager queue for timeout killing
-                LandblockActionQueue.RunActions();
+                // Tick all of our Landblocks and WorldObjects
+                var activeLandblocks = LandblockManager.GetActiveLandblocks();
+
+                foreach (var landblock in activeLandblocks)
+                    landblock.Tick(lastTickDuration, DateTime.UtcNow.Ticks);
 
                 // clean up inactive landblocks
                 LandblockManager.UnloadLandblocks();
@@ -495,10 +518,10 @@ namespace ACE.Server.Managers
                 {
                     // The session tick processes all inbound GameAction messages
                     foreach (var s in sessions)
-                        s.Tick(lastTick, DateTime.UtcNow.Ticks);
+                        s.Tick(lastTickDuration, DateTime.UtcNow.Ticks);
 
                     // Send the current time ticks to allow sessions to declare themselves bad
-                    Parallel.ForEach(sessions, s => s.TickInParallel(lastTick, DateTime.UtcNow.Ticks));
+                    Parallel.ForEach(sessions, s => s.TickInParallel(lastTickDuration, DateTime.UtcNow.Ticks));
 
                     // Removes sessions in the NetworkTimeout state, incuding sessions that have reached a timeout limit.
                     var deadSessions = sessions.FindAll(s => s.State == Network.Enum.SessionState.NetworkTimeout);
@@ -513,8 +536,8 @@ namespace ACE.Server.Managers
 
                 Thread.Sleep(1);
 
-                lastTick = (double)worldTickTimer.ElapsedTicks / Stopwatch.Frequency;
-                PortalYearTicks += lastTick;
+                lastTickDuration = (double)worldTickTimer.ElapsedTicks / Stopwatch.Frequency;
+                PortalYearTicks += lastTickDuration;
             }
 
             // World has finished operations and concedes the thread to garbage collection
@@ -545,24 +568,26 @@ namespace ACE.Server.Managers
 
             try
             {
+                var activeLandblocks = LandblockManager.GetActiveLandblocks();
+
                 if (Concurrency)
                 {
                     // Access ActiveLandblocks should be safe here, but sometimes crashes with
                     // System.InvalidOperationException: 'Collection was modified; enumeration operation may not execute.'
-                    Parallel.ForEach(LandblockManager.ActiveLandblocks.Keys, landblock =>
+                    Parallel.ForEach(activeLandblocks, landblock =>
                     {
                         HandlePhysicsLandblock(landblock, timeTick, movedObjects);
                     });
                 }
                 else
                 {
-                    foreach (var landblock in LandblockManager.ActiveLandblocks.Keys)
+                    foreach (var landblock in activeLandblocks)
                         HandlePhysicsLandblock(landblock, timeTick, movedObjects);
                 }
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);   // FIXME: concurrency + collection was modified
+                log.Error(e);
             }
 
             LastPhysicsUpdate = Server.Physics.Common.Timer.CurrentTime;
