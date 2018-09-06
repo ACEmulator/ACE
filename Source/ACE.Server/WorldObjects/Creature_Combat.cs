@@ -275,26 +275,34 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public float GetAnimSpeed()
         {
-            // Weapon swing animation speed caps at ~180 quickness. But I'm not certain as to the exact formula.
             var quickness = GetCreatureAttribute(PropertyAttribute.Quickness).Current;
             var weaponSpeed = GetWeaponSpeed(this);
 
-            var minAttackSpeed = 0.8f;
-            var maxAttackSpeed = 2.25f;
+            var minAttackSpeed = 0.5;
+            var maxAttackSpeed = 2.0;
 
-            //var minAttackSpeed = 1.0f;
-            //var maxAttackSpeed = 2.0f;
+            var divisor = 1.0 - (quickness / 300.0) + (weaponSpeed / 150.0);
+            if (divisor < 0)
+                return (float)maxAttackSpeed;
 
-            var creatureSpeed = 120 - ((int)quickness - 60) / 2; // we reach 0 creatureSpeed at 300 quickness
+            var animSpeed = (float)Math.Clamp((1.0 / divisor), minAttackSpeed, maxAttackSpeed);
+
+            return animSpeed;
+
+            // GDL bounds - feels fun, but might not be accurate
+
+            // Weapon swing animation speed caps at ~180 quickness. But I'm not certain as to the exact formula.
+            //var minAttackSpeed = 0.8f;
+            //var maxAttackSpeed = 2.25f;
+
+            /*var creatureSpeed = 120 - ((int)quickness - 60) / 2; // we reach 0 creatureSpeed at 300 quickness
             creatureSpeed = Math.Max(0, creatureSpeed);          // do not go below 0
 
             var attackTime = (creatureSpeed + weaponSpeed) / 2;  // our attack time is the average between our speed and the speed of our weapon.
 
             var animSpeed = maxAttackSpeed - (attackTime * (1.0f / 70.0f));
 
-            animSpeed = Math.Clamp(animSpeed, minAttackSpeed, maxAttackSpeed);
-
-            return animSpeed;
+            animSpeed = Math.Clamp(animSpeed, minAttackSpeed, maxAttackSpeed);*/
         }
 
         /// <summary>
