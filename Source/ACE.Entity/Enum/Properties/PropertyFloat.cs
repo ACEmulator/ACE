@@ -193,8 +193,8 @@ namespace ACE.Entity.Enum.Properties
         [SendOnLogin]
         WeaponAuraManaConv             = 171,
         // custom
-        HouseBuyTimestamp              = 1000,
-        HouseRentTimestamp             = 1001
+        HouseBuyTimestamp              = 9001,
+        HouseRentTimestamp             = 9002
     }
 
     public static class PropertyFloatExtensions
