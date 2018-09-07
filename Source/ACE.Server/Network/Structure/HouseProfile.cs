@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using ACE.Entity;
 using ACE.Entity.Enum;
+using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Network.Structure
 {
@@ -20,6 +21,35 @@ namespace ACE.Server.Network.Structure
         public string OwnerName;        // The name of the current owner
         public List<HousePayment> Buy;  // The list of items required for purchasing a house
         public List<HousePayment> Rent; // The list of items required for paying rent on a house
+
+        public HouseProfile()
+        {
+            // set defaults
+            MinLevel = -1;
+            MaxLevel = -1;
+            MinAllegRank = -1;
+            MaxAllegRank = -1;
+        }
+
+        /// <summary>
+        /// Sets the list of items required to purchase this dwelling
+        /// </summary>
+        public void SetBuyItems(List<WorldObject> buyItems)
+        {
+            Buy = new List<HousePayment>();
+            foreach (var buyItem in buyItems)
+                Buy.Add(new HousePayment(buyItem));
+        }
+
+        /// <summary>
+        /// Sets the list of items required to pay rent for this dwelling
+        /// </summary>
+        public void SetRentItems(List<WorldObject> rentItems)
+        {
+            Rent = new List<HousePayment>();
+            foreach (var rentItem in rentItems)
+                Rent.Add(new HousePayment(rentItem));
+        }
     }
 
     public static class HouseProfileExtensions

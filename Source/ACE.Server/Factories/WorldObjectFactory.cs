@@ -99,6 +99,8 @@ namespace ACE.Server.Factories
                     return new Hotspot(weenie, guid);
                 case WeenieType.ManaStone:
                     return new ManaStone(weenie, guid);
+                case WeenieType.SlumLord:
+                    return new SlumLord(weenie, guid);
                 default:
                     return new GenericObject(weenie, guid);
             }
@@ -184,6 +186,8 @@ namespace ACE.Server.Factories
                     return new Hotspot(biota);
                 case WeenieType.ManaStone:
                     return new ManaStone(biota);
+                case WeenieType.SlumLord:
+                    return new SlumLord(biota);
                 default:
                     return new GenericObject(biota);
             }
@@ -199,7 +203,7 @@ namespace ACE.Server.Factories
             // TODO: Fix how objects are generated and linked
 
             // Code for new schema
-            foreach (var instance in sourceObjects.Where(x => x.IsLinkChild == false))
+            foreach (var instance in sourceObjects/*.Where(x => x.IsLinkChild == false)*/)
             {
                 var weenie = DatabaseManager.World.GetCachedWeenie(instance.WeenieClassId);
 

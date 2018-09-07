@@ -15,6 +15,8 @@ namespace ACE.Server.Network.GameAction.Actions
 
             var slumlord = message.Payload.ReadUInt32();
             var items = message.Payload.ReadListUInt32();
+
+            session.Player.HandleActionBuyHouse(slumlord, items);
         }
     }
 }
