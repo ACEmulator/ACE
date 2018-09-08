@@ -119,7 +119,7 @@ namespace ACE.Server.Entity
             foreach (var fo in factoryObjects)
             {
                 AddWorldObject(fo);
-                fo.ActivateLinks();
+                fo.ActivateLinks(objects);
             }
 
             // create shard objects (corpses after unloading)
