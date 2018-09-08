@@ -7,6 +7,7 @@ using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Database.Models.World;
 using ACE.Server.Factories;
+using ACE.Common;
 
 namespace ACE.Server.WorldObjects
 {
@@ -42,10 +43,34 @@ namespace ACE.Server.WorldObjects
             house.SetBuyItems(SlumLord.GetBuyItems());
             house.SetRentItems(SlumLord.GetRentItems());
 
-            house.BuyTime = (uint)player.HouseBuyTimestamp;
-            house.RentTime = (uint)player.HouseRentTimestamp;
+            house.BuyTime = (uint)(player.HousePurchaseTimestamp ?? 0);
+            house.RentTime = GetRentTimestamp();
 
             HouseData = house;
+        }
+
+        /// <summary>
+        /// The client automatically adds this amount of time to the beginning of the current maintenance period
+        /// </summary>
+        public static TimeSpan RentInterval = TimeSpan.FromDays(30);
+
+        /// <summary>
+        /// Returns the beginning of the current maintenance period
+        /// </summary>
+        public uint GetRentTimestamp()
+        {
+            // get the purchaseTime -> currentTime offset
+            var purchaseTime = (uint)(Player.HousePurchaseTimestamp ?? 0);
+
+            var currentTime = (uint)Time.GetUnixTime();
+            var offset = currentTime - purchaseTime;
+
+            // calculate # of full periods in offset
+            var rentIntervalSecs = (uint)RentInterval.TotalSeconds;
+            var periods = offset / rentIntervalSecs;
+
+            // return beginning of current period
+            return purchaseTime + (rentIntervalSecs * periods);
         }
     }
 }

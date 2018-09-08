@@ -51,8 +51,7 @@ namespace ACE.Server.WorldObjects
             Console.WriteLine($"Setting {Name} as owner of {slumlord.Name}");
 
             HouseId = slumlord.Guid.Full;
-            HouseBuyTimestamp = Time.GetTimestamp();
-            HouseRentTimestamp = Time.GetTimestamp();
+            HousePurchaseTimestamp = (int)Time.GetUnixTime();
 
             // notify client w/ HouseID
 

@@ -979,21 +979,12 @@ namespace ACE.Server.WorldObjects
         public uint? HouseRestrictions { get; set; }
 
         /// <summary>
-        /// The purchase date of the house
+        /// The timestamp the player originally purchased house
         /// </summary>
-        public double? HouseBuyTimestamp
+        public int? HousePurchaseTimestamp
         {
-            get => GetProperty(PropertyFloat.HouseBuyTimestamp);
-            set { if (!value.HasValue) RemoveProperty(PropertyFloat.HouseBuyTimestamp); else SetProperty(PropertyFloat.HouseBuyTimestamp, value.Value); }
-        }
-
-        /// <summary>
-        /// The beginning of current maintenance period
-        /// </summary>
-        public double? HouseRentTimestamp
-        {
-            get => GetProperty(PropertyFloat.HouseRentTimestamp);
-            set { if (!value.HasValue) RemoveProperty(PropertyFloat.HouseRentTimestamp); else SetProperty(PropertyFloat.HouseRentTimestamp, value.Value); }
+            get => GetProperty(PropertyInt.HousePurchaseTimestamp);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.HousePurchaseTimestamp); else SetProperty(PropertyInt.HousePurchaseTimestamp, value.Value); }
         }
 
         public int? HookItemType
