@@ -1,4 +1,3 @@
-using System;
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.Entity;
@@ -6,11 +5,10 @@ using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
-using ACE.Server.Physics;
 
 namespace ACE.Server.WorldObjects
 {
-    public sealed class Portal : WorldObject
+    public class Portal : WorldObject
     {
         //public Position Destination { get; private set; }
 
@@ -118,7 +116,7 @@ namespace ACE.Server.WorldObjects
             SetEphemeralValues();
         }
 
-        private void SetEphemeralValues()
+        protected void SetEphemeralValues()
         {
             BaseDescriptionFlags |= ObjectDescriptionFlag.Portal;
 
@@ -177,7 +175,7 @@ namespace ACE.Server.WorldObjects
 
         public bool NoTie => NoRecall;
 
-        public void OnCollideObject(Player player)
+        public virtual void OnCollideObject(Player player)
         {
             string serverMessage;
 

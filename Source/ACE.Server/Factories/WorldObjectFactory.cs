@@ -101,6 +101,8 @@ namespace ACE.Server.Factories
                     return new ManaStone(weenie, guid);
                 case WeenieType.SlumLord:
                     return new SlumLord(weenie, guid);
+                case WeenieType.HousePortal:
+                    return new WorldObjects.HousePortal(weenie, guid);
                 default:
                     return new GenericObject(weenie, guid);
             }
@@ -188,6 +190,8 @@ namespace ACE.Server.Factories
                     return new ManaStone(biota);
                 case WeenieType.SlumLord:
                     return new SlumLord(biota);
+                case WeenieType.HousePortal:
+                    return new WorldObjects.HousePortal(biota);
                 default:
                     return new GenericObject(biota);
             }
