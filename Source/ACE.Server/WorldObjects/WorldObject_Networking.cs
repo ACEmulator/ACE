@@ -15,6 +15,7 @@ using ACE.Server.Managers;
 using ACE.Server.Network;
 using ACE.Server.Network.GameMessages;
 using ACE.Server.Network.GameMessages.Messages;
+using ACE.Server.Network.Structure;
 using ACE.Server.Network.Sequence;
 using ACE.Server.Physics;
 using ACE.Server.Physics.Extensions;
@@ -155,10 +156,11 @@ namespace ACE.Server.WorldObjects
                 writer.Write(HouseOwner ?? 0);
 
             if ((weenieFlags & WeenieHeaderFlag.HouseRestrictions) != 0)
-                writer.Write(HouseRestrictions ?? 0u);
+                //writer.Write(HouseRestrictions ?? 0u);
+                writer.Write(new RestrictionDB());
 
             if ((weenieFlags & WeenieHeaderFlag.HookItemTypes) != 0)
-                writer.Write(HookItemType ?? 0);
+                writer.Write((uint?)HookItemType ?? 0);
 
             if ((weenieFlags & WeenieHeaderFlag.Monarch) != 0)
                 writer.Write(Monarch ?? 0);

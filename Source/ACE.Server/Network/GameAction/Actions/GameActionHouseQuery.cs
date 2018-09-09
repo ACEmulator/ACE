@@ -13,7 +13,7 @@ namespace ACE.Server.Network.GameAction.Actions
         {
             //Console.WriteLine("Received 0x21E - GameActionHouseQuery");
 
-            session.Network.EnqueueSend(new GameEventHouseStatus(session));
+            session.Player.HandleActionQueryHouse();
         }
     }
 }

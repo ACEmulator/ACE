@@ -114,6 +114,8 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public virtual void InitPhysicsObj()
         {
+            //Console.WriteLine($"InitPhysicsObj({Name} - {Guid.Full})");
+
             var defaultState = CalculatedPhysicsState();
 
             PhysicsObj = new PhysicsObj();

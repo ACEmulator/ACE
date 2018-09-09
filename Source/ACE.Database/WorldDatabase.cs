@@ -341,6 +341,16 @@ namespace ACE.Database
             return cachedLandblockInstances[landblock];
         }
 
+        public LandblockInstance GetLandblockInstanceByGuid(uint guid)
+        {
+            using (var context = new WorldDbContext())
+            {
+                return context.LandblockInstance
+                    .AsNoTracking()
+                    .FirstOrDefault(r => r.Guid == guid);
+            }
+        }
+
 
         private readonly ConcurrentDictionary<string, PointsOfInterest> cachedPointsOfInterest = new ConcurrentDictionary<string, PointsOfInterest>();
 

@@ -10,6 +10,8 @@ namespace ACE.Server.Network
 
         public static void WriteString16L(this BinaryWriter writer, string data)
         {
+            if (data == null) data = "";
+
             writer.Write((ushort)data.Length);
             writer.Write(System.Text.Encoding.GetEncoding(1252).GetBytes(data));
 

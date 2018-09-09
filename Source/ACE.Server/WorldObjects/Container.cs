@@ -188,10 +188,51 @@ namespace ACE.Server.WorldObjects
 
             items.AddRange(localInventory);
 
-            // next search all containers for coin.. run function again for each container.
+            // next search all containers for type.. run function again for each container.
             var sideContainers = Inventory.Values.Where(i => i.WeenieType == WeenieType.Container).ToList();
             foreach (var container in sideContainers)
                 items.AddRange(((Container)container).GetInventoryItemsOfTypeWeenieType(type));
+
+            return items;
+        }
+
+        /// <summary>
+        /// Returns the inventory items matching a weenie class id
+        /// </summary>
+        public List<WorldObject> GetInventoryItemsOfWCID(uint weenieClassId)
+        {
+            var items = new List<WorldObject>();
+
+            // search main pack / creature
+            var localInventory = Inventory.Values.Where(i => i.WeenieClassId == weenieClassId).ToList();
+
+            items.AddRange(localInventory);
+
+            // next search any side containers
+            var sideContainers = Inventory.Values.Where(i => i.WeenieType == WeenieType.Container).Select(i => i as Container).ToList();
+            foreach (var container in sideContainers)
+                items.AddRange(container.GetInventoryItemsOfWCID(weenieClassId));
+
+            return items;
+        }
+
+        /// <summary>
+        /// Returns all of the trade notes from inventory + side packs
+        /// </summary>
+        public List<WorldObject> GetTradeNotes()
+        {
+            // FIXME: search by classname performance
+            var items = new List<WorldObject>();
+
+            // search main pack / creature
+            var localInventory = Inventory.Values.Where(i => i.WeenieClassName.StartsWith("tradenote")).ToList();
+
+            items.AddRange(localInventory);
+
+            // next search any side containers
+            var sideContainers = Inventory.Values.Where(i => i.WeenieType == WeenieType.Container).Select(i => i as Container).ToList();
+            foreach (var container in sideContainers)
+                items.AddRange(container.GetTradeNotes());
 
             return items;
         }

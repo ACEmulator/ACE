@@ -959,6 +959,15 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
+        /// The house owned by this player
+        /// </summary>
+        public uint? HouseId
+        {
+            get => GetProperty(PropertyDataId.HouseId);
+            set { if (!value.HasValue) RemoveProperty(PropertyDataId.HouseId); else SetProperty(PropertyDataId.HouseId, value.Value); }
+        }
+
+        /// <summary>
         /// Housing links to another packet, that needs sent.. The HouseRestrictions ACL Control list that contains all the housing data
         /// </summary>
         public uint? HouseOwner
@@ -969,9 +978,18 @@ namespace ACE.Server.WorldObjects
 
         public uint? HouseRestrictions { get; set; }
 
-        public ushort? HookItemType
+        /// <summary>
+        /// The timestamp the player originally purchased house
+        /// </summary>
+        public int? HousePurchaseTimestamp
         {
-            get => (ushort?)GetProperty(PropertyInt.HookItemType);
+            get => GetProperty(PropertyInt.HousePurchaseTimestamp);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.HousePurchaseTimestamp); else SetProperty(PropertyInt.HousePurchaseTimestamp, value.Value); }
+        }
+
+        public int? HookItemType
+        {
+            get => GetProperty(PropertyInt.HookItemType);
             set { if (!value.HasValue) RemoveProperty(PropertyInt.HookItemType); else SetProperty(PropertyInt.HookItemType, value.Value); }
         }
 

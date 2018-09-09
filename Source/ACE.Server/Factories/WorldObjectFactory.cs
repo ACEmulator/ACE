@@ -99,6 +99,8 @@ namespace ACE.Server.Factories
                     return new Hotspot(weenie, guid);
                 case WeenieType.ManaStone:
                     return new ManaStone(weenie, guid);
+                case WeenieType.SlumLord:
+                    return new SlumLord(weenie, guid);
                 default:
                     return new GenericObject(weenie, guid);
             }
@@ -184,6 +186,8 @@ namespace ACE.Server.Factories
                     return new Hotspot(biota);
                 case WeenieType.ManaStone:
                     return new ManaStone(biota);
+                case WeenieType.SlumLord:
+                    return new SlumLord(biota);
                 default:
                     return new GenericObject(biota);
             }
@@ -196,9 +200,7 @@ namespace ACE.Server.Factories
         {
             var results = new List<WorldObject>();
 
-            // TODO: Fix how objects are generated and linked
-
-            // Code for new schema
+            // spawn direct landblock objects
             foreach (var instance in sourceObjects.Where(x => x.IsLinkChild == false))
             {
                 var weenie = DatabaseManager.World.GetCachedWeenie(instance.WeenieClassId);
@@ -214,6 +216,7 @@ namespace ACE.Server.Factories
                 {
                     worldObject.Location = new Position(instance.ObjCellId, instance.OriginX, instance.OriginY, instance.OriginZ, instance.AnglesX, instance.AnglesY, instance.AnglesZ, instance.AnglesW);
 
+                    // queue linked child objects
                     foreach (var link in instance.LandblockInstanceLink)
                     {
                         var linkInstance = sourceObjects.FirstOrDefault(x => x.Guid == link.ChildGuid);
@@ -225,59 +228,6 @@ namespace ACE.Server.Factories
                     results.Add(worldObject);
                 }
             }
-
-            // Old schema code
-            /*foreach (var instance in sourceObjects.Where(x => x.LinkSlot is null))
-            {
-                var weenie = DatabaseManager.World.GetCachedWeenie(instance.WeenieClassId);
-
-                if (weenie == null)
-                    continue;
-
-                ObjectGuid guid;
-
-                if (instance.Guid != 0)
-                    guid = new ObjectGuid(instance.Guid);
-                else
-                    guid = GuidManager.NewDynamicGuid();
-
-                var worldObject = CreateWorldObject(weenie, guid);
-
-                if (worldObject != null)
-                {
-                    worldObject.Location = new Position(instance.ObjCellId, instance.OriginX, instance.OriginY, instance.OriginZ, instance.AnglesX, instance.AnglesY, instance.AnglesZ, instance.AnglesW);
-
-                    results.Add(worldObject);
-                }
-            }
-
-            foreach (var instance in sourceObjects.Where(x => !(x.LinkController is null)))
-            {
-                var weenie = DatabaseManager.World.GetCachedWeenie(instance.WeenieClassId);
-
-                if (weenie == null)
-                    continue;
-
-                ObjectGuid guid;
-
-                if (instance.Guid != 0)
-                    guid = new ObjectGuid(instance.Guid);
-                else
-                    guid = GuidManager.NewDynamicGuid();
-
-                var worldObject = CreateWorldObject(weenie, guid);
-
-                if (worldObject != null)
-                {
-                    worldObject.Location = new Position(instance.ObjCellId, instance.OriginX, instance.OriginY, instance.OriginZ, instance.AnglesX, instance.AnglesY, instance.AnglesZ, instance.AnglesW);
-
-                    foreach (var link in sourceObjects.Where(x => x.LinkSlot == instance.LinkSlot && (x.LinkController ?? false) == false))
-                        worldObject.LinkedInstances.Add(link);
-
-                    results.Add(worldObject);
-                }
-            }*/
-
             return results;
         }
 

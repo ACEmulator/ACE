@@ -1,8 +1,9 @@
-
-using ACE.Database.Models.Shard;
-using ACE.Database.Models.World;
-using System;
 using System.Collections.Generic;
+using System.Linq;
+using ACE.Database;
+using ACE.Database.Models.World;
+using ACE.Entity;
+using ACE.Server.Factories;
 
 namespace ACE.Server.WorldObjects
 {
@@ -10,32 +11,36 @@ namespace ACE.Server.WorldObjects
     {
         public List<LandblockInstance> LinkedInstances = new List<LandblockInstance>();
 
-        public virtual void ActivateLinks()
+        public virtual void ActivateLinks(List<LandblockInstance> sourceObjects)
         {
-            if (LinkedInstances.Count > 0 && GeneratorProfiles.Count > 0)
+            if (LinkedInstances.Count == 0) return;
+
+            if (IsGenerator)
             {
-                var profileTemplate = GeneratorProfiles[0];
+                AddGeneratorLinks();
+                return;
+            }
 
-                foreach (var link in LinkedInstances)
+            foreach (var link in LinkedInstances)
+            {
+                var wo = WorldObjectFactory.CreateWorldObject(DatabaseManager.World.GetCachedWeenie(link.WeenieClassId), new ObjectGuid(link.Guid));
+                if (wo == null) continue;
+
+                wo.Location = new Position(link.ObjCellId, link.OriginX, link.OriginY, link.OriginZ, link.AnglesX, link.AnglesY, link.AnglesZ, link.AnglesW);
+                wo.ActivationTarget = Guid.Full;
+                CurrentLandblock?.AddWorldObject(wo);
+
+                // process nested links recursively
+                foreach (var subLink in link.LandblockInstanceLink)
                 {
-                    var profile = new BiotaPropertiesGenerator();
-                    profile.WeenieClassId = link.WeenieClassId;
-                    profile.ObjCellId = link.ObjCellId;
-                    profile.OriginX = link.OriginX;
-                    profile.OriginY = link.OriginY;
-                    profile.OriginZ = link.OriginZ;
-                    profile.AnglesW = link.AnglesW;
-                    profile.AnglesX = link.AnglesX;
-                    profile.AnglesY = link.AnglesY;
-                    profile.AnglesZ = link.AnglesZ;
-                    profile.Probability = profileTemplate.Probability;
-                    profile.InitCreate = profileTemplate.InitCreate;
-                    profile.MaxCreate = profileTemplate.MaxCreate;
-                    profile.WhenCreate = profileTemplate.WhenCreate;
-                    profile.WhereCreate = profileTemplate.WhereCreate;
+                    var linkInstance = sourceObjects.FirstOrDefault(x => x.Guid == subLink.ChildGuid);
 
-                    GeneratorProfiles.Add(profile);
+                    if (linkInstance != null)
+                        wo.LinkedInstances.Add(linkInstance);
                 }
+
+                if (wo.LinkedInstances.Count > 0)
+                    wo.ActivateLinks(sourceObjects);
             }
         }
     }
