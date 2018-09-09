@@ -43,11 +43,10 @@ namespace ACE.Server.Network
 
         public Player Player { get; private set; }
 
+        public readonly ActionQueue InboundGameActionQueue = new ActionQueue();
 
-        private DateTime lastAutoSaveTime;
+
         private DateTime logOffRequestTime;
-        private DateTime lastAgeIntUpdateTime;
-        private DateTime lastSendAgeIntUpdateTime;
 
         private bool bootSession;
 
@@ -115,7 +114,16 @@ namespace ACE.Server.Network
         /// <summary>
         /// This is run in parallel from our main loop.
         /// </summary>
-        public void Update(double lastTick, long currentTimeTick)
+        public void Tick(double lastTickDuration, long currentTimeTick)
+        {
+            if (Player != null)
+                InboundGameActionQueue.RunActions();
+        }
+
+        /// <summary>
+        /// This is run in parallel from our main loop.
+        /// </summary>
+        public void TickInParallel(double lastTickDuration, long currentTimeTick)
         {
             // Checks if the session has stopped responding.
             if (currentTimeTick >= Network.TimeoutTick)
@@ -124,7 +132,7 @@ namespace ACE.Server.Network
                 State = SessionState.NetworkTimeout;
             }
 
-            Network.Update(lastTick);
+            Network.Update(lastTickDuration);
 
             // Live server seemed to take about 6 seconds. 4 seconds is nice because it has smooth animation, and saves the user 2 seconds every logoff
             // This could be made 0 for instant logoffs.
@@ -139,40 +147,6 @@ namespace ACE.Server.Network
             {
                 SendFinalBoot();
                 State = SessionState.NetworkTimeout;
-            }
-
-            // todo: I'd like to move this to a player Update() function. Mag-nus 2018-08-10
-            if (Player != null)
-            {
-                // First, we check if the player hasn't been saved in the last 5 minutes
-                if (Player.LastRequestedDatabaseSave + Player.PlayerSaveInterval <= DateTime.UtcNow)
-                {
-                    // Secondly, we make sure this session hasn't requested a save in the last 5 minutes.
-                    // We do this because EnqueueSaveChain will queue an ActionChain that may not execute immediately. This prevents refiring while a save is pending.
-                    if (lastAutoSaveTime + Player.PlayerSaveInterval <= DateTime.UtcNow)
-                    {
-                        lastAutoSaveTime = DateTime.UtcNow;
-                        Player.EnqueueSaveChain();
-                    }
-                }
-
-                if (lastAgeIntUpdateTime == DateTime.MinValue)
-                    lastAgeIntUpdateTime = DateTime.UtcNow;
-
-                if (lastAgeIntUpdateTime != DateTime.MinValue && lastAgeIntUpdateTime.AddSeconds(1) <= DateTime.UtcNow)
-                {
-                    Player.UpdateAge();
-                    lastAgeIntUpdateTime = DateTime.UtcNow;
-                }
-
-                if (lastSendAgeIntUpdateTime == DateTime.MinValue)
-                    lastSendAgeIntUpdateTime = DateTime.UtcNow;
-
-                if (lastSendAgeIntUpdateTime != DateTime.MinValue && lastSendAgeIntUpdateTime.AddSeconds(7) <= DateTime.UtcNow)
-                {
-                    Player.SendAgeInt();
-                    lastSendAgeIntUpdateTime = DateTime.UtcNow;
-                }
             }
         }
 
@@ -210,9 +184,6 @@ namespace ACE.Server.Network
 
         public void InitSessionForWorldLogin()
         {
-            lastAgeIntUpdateTime = DateTime.MinValue;
-            lastSendAgeIntUpdateTime = DateTime.MinValue;
-
             GameEventSequence = 1;
         }
 
@@ -221,46 +192,9 @@ namespace ACE.Server.Network
             AccessLevel = accountAccesslevel;
         }
 
-        private readonly ReaderWriterLockSlim playerWaitLock = new ReaderWriterLockSlim();
-        private readonly object playerSync = new object();
-
-        public void WaitForPlayer()
-        {
-            // NOTE(ddevec): We use a Reader-writer lock because reads are common, and writes are rare
-            playerWaitLock.EnterReadLock();
-            try
-            {
-                while (Player == null)
-                {
-                    // NOTE(ddevec): This slop is because monitor doesn't support releasing a reader-writer lock 
-                    //     -- trust it's right, and optimial and don't touch it
-                    // This should be a rare operation, so the extra locking nonsense doesn't kill us
-                    lock (playerSync)
-                    {
-                        playerWaitLock.ExitReadLock();
-                        Monitor.Wait(playerSync);
-                    }
-                    playerWaitLock.EnterReadLock();
-                }
-            }
-            finally
-            {
-                playerWaitLock.ExitReadLock();
-            }
-        }
-
         public void SetPlayer(Player player)
         {
-            playerWaitLock.EnterWriteLock();
             Player = player;
-            lastAutoSaveTime = DateTime.UtcNow;
-            // NOTE(ddevec): Once again -- no reader-writer lock and Monitor support in c# -- ventring frustration now --  asa;gklkfj;kl
-            //  -- This should be a rare operation, so we don't really care about the stupid double locking, as long as its done right for no deadlocks
-            lock (playerSync)
-            {
-                Monitor.PulseAll(playerSync);
-            }
-            playerWaitLock.ExitWriteLock();
         }
 
         public void LogOffPlayer()

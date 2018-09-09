@@ -127,16 +127,18 @@ namespace ACE.Server.WorldObjects
         {
             // get player attack skill
             var creature = target as Creature;
+            var attackType = GetAttackType();
             var attackSkill = GetCreatureSkill(GetCurrentWeaponSkill()).Current;
-            var offenseMod = GetWeaponOffenseBonus(this);
-            attackSkill = (uint)Math.Round(attackSkill * offenseMod);
+            var offenseMod = GetWeaponOffenseModifier(this);
+            var accuracyMod = attackType == AttackType.Missile ? AccuracyLevel + 0.6f : 1.0f;
+            attackSkill = (uint)Math.Round(attackSkill * accuracyMod * offenseMod);
 
             if (IsExhausted)
                 attackSkill = GetExhaustedSkill(attackSkill);
 
             // get target defense skill
-            var defenseSkill = GetAttackType() == AttackType.Melee ? Skill.MeleeDefense : Skill.MissileDefense;
-            var defenseMod = defenseSkill == Skill.MeleeDefense ? GetWeaponMeleeDefenseBonus(creature) : 1.0f;
+            var defenseSkill = attackType == AttackType.Missile ? Skill.MissileDefense : Skill.MeleeDefense;
+            var defenseMod = defenseSkill == Skill.MeleeDefense ? GetWeaponMeleeDefenseModifier(creature) : 1.0f;
             var difficulty = (uint)Math.Round(creature.GetCreatureSkill(defenseSkill).Current * defenseMod);
 
             if (creature.IsExhausted) difficulty = 0;
@@ -216,10 +218,10 @@ namespace ACE.Server.WorldObjects
             var damage = baseDamage * attributeMod * powerAccuracyMod;
 
             // critical hit
-            var critical = GetWeaponPhysicalCritFrequencyBonus(this);
+            var critical = GetWeaponPhysicalCritFrequencyModifier(this);
             if (Physics.Common.Random.RollDice(0.0f, 1.0f) < critical)
             {
-                damage = baseDamageRange.Max * attributeMod * powerAccuracyMod * (2.0f + GetWeaponCritMultiplierBonus(this));
+                damage = baseDamageRange.Max * attributeMod * powerAccuracyMod * (2.0f + GetWeaponCritMultiplierModifier(this));
                 criticalHit = true;
             }
 
@@ -239,15 +241,16 @@ namespace ACE.Server.WorldObjects
             else
                 damageType = GetDamageType();
 
-            creaturePart.WeaponResistanceMod = GetWeaponResistanceModifierBonus(this, damageType);
+            creaturePart.WeaponResistanceMod = GetWeaponResistanceModifier(this, damageType);
             var resistance = GetResistance(creaturePart, damageType);
 
             // scale damage for armor and shield
             var armorMod = SkillFormula.CalcArmorMod(resistance);
             var shieldMod = creature.GetShieldMod(this, damageType);
 
-            var slayerBonus = GetWeaponCreatureSlayerBonus(this, target as Creature);
-            return damage * armorMod * shieldMod * slayerBonus;
+            var slayerMod = GetWeaponCreatureSlayerModifier(this, target as Creature);
+            var elementalDamageMod = GetMissileElementalDamageModifier(this, target as Creature, damageType);
+            return (damage + elementalDamageMod) * armorMod * shieldMod * slayerMod;
         }
 
         public float GetPowerAccuracyMod()
@@ -395,7 +398,7 @@ namespace ACE.Server.WorldObjects
                 if (!string.IsNullOrWhiteSpace(hotspot.ActivationTalkString))
                     Session.Network.EnqueueSend(new GameMessageSystemChat(hotspot.ActivationTalkString.Replace("%i", amount.ToString()), ChatMessageType.Craft));
                 if (!(hotspot.Visibility ?? false))
-                    CurrentLandblock?.EnqueueBroadcastSound(hotspot, Sound.TriggerActivated);
+                    hotspot.EnqueueBroadcast(new GameMessageSound(hotspot.Guid, Sound.TriggerActivated, 1.0f));
             }
 
             if (percent >= 0.1f)

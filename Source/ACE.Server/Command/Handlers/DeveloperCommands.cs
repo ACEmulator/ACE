@@ -1,7 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using System.Numerics;
+
+using log4net;
+
 using ACE.Database;
 using ACE.Database.Models.Shard;
 using ACE.DatLoader;
@@ -24,6 +28,8 @@ namespace ACE.Server.Command.Handlers
 {
     public static class DeveloperCommands
     {
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         // TODO: Replace later with a command to spawn a generator at the player's location
         /*
         /// <summary>
@@ -307,7 +313,7 @@ namespace ACE.Server.Command.Handlers
             }
 
             UniversalMotion motion = new UniversalMotion(MotionStance.NonCombat, new MotionItem((MotionCommand)animationId));
-            session.Player.HandleActionMotion(motion);
+            session.Player.EnqueueBroadcastMotion(motion);
         }
 
         /// <summary>
@@ -409,16 +415,23 @@ namespace ACE.Server.Command.Handlers
         [CommandHandler("loadalllandblocks", AccessLevel.Developer, CommandHandlerFlag.None, "Loads all Landblocks. This is VERY crude. Do NOT use it on a live server!!! It will likely crash the server.")]
         public static void HandleLoadAllLandblocks(Session session, params string[] parameters)
         {
-            session.Network.EnqueueSend(new GameMessageSystemChat("Loading landblocks... This will likely crash the server...", ChatMessageType.System));
+            if (session != null)
+                session.Network.EnqueueSend(new GameMessageSystemChat("Loading landblocks... This will likely crash the server...", ChatMessageType.System));
 
-            //Task.Run(() => // Using Task.Run() seems to halt around the 0x01E# block range.
+            Task.Run(() =>
             {
                 for (int x = 0; x <= 0xFE; x++)
                 {
                     for (int y = 0; y <= 0xFE; y++)
-                        LandblockManager.ForceLoadLandBlock(new LandblockId((byte)x, (byte)y));
+                    {
+                        var blockid = new LandblockId((byte)x, (byte)y);
+                        Stopwatch sw = Stopwatch.StartNew();
+                        LandblockManager.ForceLoadLandBlock(blockid);
+                        sw.Stop();
+                        log.DebugFormat("Loaded Landblock {0:X4} in {1} milliseconds ", blockid.Landblock, sw.ElapsedMilliseconds);
+                    }
                 }
-            }//);
+            });
         }
 
         [CommandHandler("cacheallweenies", AccessLevel.Developer, CommandHandlerFlag.None, "Loads and caches all Weenies. This may take 10+ minutes and is very heavy on the database.")]

@@ -6,6 +6,7 @@ using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Network.Motion;
 using ACE.Server.Network.GameEvent.Events;
+using ACE.Server.Network.GameMessages.Messages;
 
 namespace ACE.Server.WorldObjects
 {
@@ -85,7 +86,7 @@ namespace ACE.Server.WorldObjects
                         turnToMotion.MovementTypes = MovementTypes.TurnToObject;
 
                         ActionChain turnToTimer = new ActionChain();
-                        turnToTimer.AddAction(this, () => player.CurrentLandblock?.EnqueueBroadcastMotion(player, turnToMotion));
+                        turnToTimer.AddAction(this, () => player.EnqueueBroadcastMotion(turnToMotion));
                         turnToTimer.AddDelaySeconds(1);
                         turnToTimer.AddAction(this, () => Open(player));
                         turnToTimer.EnqueueChain();
@@ -101,7 +102,7 @@ namespace ACE.Server.WorldObjects
                 else
                 {
                     player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, $"The {Name} is locked!"));
-                    CurrentLandblock?.EnqueueBroadcastSound(this, Sound.OpenFailDueToLock);
+                    EnqueueBroadcast(new GameMessageSound(Guid, Sound.OpenFailDueToLock, 1.0f));
                 }
 
                 player.SendUseDoneEvent();
@@ -110,13 +111,13 @@ namespace ACE.Server.WorldObjects
 
         protected override void DoOnOpenMotionChanges()
         {
-            CurrentLandblock?.EnqueueBroadcastMotion(this, motionOpen);
+            EnqueueBroadcastMotion(motionOpen);
             CurrentMotionState = motionOpen;
         }
 
         protected override void DoOnCloseMotionChanges()
         {
-            CurrentLandblock?.EnqueueBroadcastMotion(this, motionClosed);
+            EnqueueBroadcastMotion(motionClosed);
             CurrentMotionState = motionClosed;
         }
 

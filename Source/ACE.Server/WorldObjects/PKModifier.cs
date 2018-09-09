@@ -94,14 +94,14 @@ namespace ACE.Server.WorldObjects
                         var switchTimer = new ActionChain();
                         var turnToMotion = new UniversalMotion(MotionStance.NonCombat, Location, Guid);
                         turnToMotion.MovementTypes = MovementTypes.TurnToObject;
-                        switchTimer.AddAction(this, () => player.CurrentLandblock?.EnqueueBroadcastMotion(player, turnToMotion));
+                        switchTimer.AddAction(this, () => player.EnqueueBroadcastMotion(turnToMotion));
                         switchTimer.AddDelaySeconds(1);
                         switchTimer.AddAction(player, () =>
                         {
                             if (UseTargetSuccessAnimation.HasValue)
-                                CurrentLandblock?.EnqueueBroadcastMotion(this, new UniversalMotion(MotionStance.NonCombat, new MotionItem((MotionCommand)UseTargetSuccessAnimation)));
+                                EnqueueBroadcastMotion(new UniversalMotion(MotionStance.NonCombat, new MotionItem((MotionCommand)UseTargetSuccessAnimation)));
                             else
-                                CurrentLandblock?.EnqueueBroadcastMotion(this, twitch);
+                                EnqueueBroadcastMotion(twitch);
                         });
                         if (UseTargetSuccessAnimation.HasValue)
                             switchTimer.AddDelaySeconds(DatManager.PortalDat.ReadFromDat<MotionTable>(MotionTableId).GetAnimationLength((MotionCommand)UseTargetSuccessAnimation));
@@ -128,7 +128,7 @@ namespace ACE.Server.WorldObjects
                     else
                     {
                         if (UseTargetFailureAnimation.HasValue)
-                            CurrentLandblock?.EnqueueBroadcastMotion(this, new UniversalMotion(MotionStance.NonCombat, new MotionItem((MotionCommand)UseTargetFailureAnimation)));
+                            EnqueueBroadcastMotion(new UniversalMotion(MotionStance.NonCombat, new MotionItem((MotionCommand)UseTargetFailureAnimation)));
                         player.Session.Network.EnqueueSend(new GameMessageSystemChat(GetProperty(PropertyString.ActivationFailure), ChatMessageType.Broadcast));
                         player.SendUseDoneEvent();
                     }

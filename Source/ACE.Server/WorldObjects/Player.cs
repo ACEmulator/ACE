@@ -186,21 +186,6 @@ namespace ACE.Server.WorldObjects
 
 
         /// <summary>
-        /// Called every ~5 seconds for Players
-        /// </summary>
-        public override void HeartBeat()
-        {
-            NotifyLandblocks();
-
-            EnchantmentManager.HeartBeat();
-            VitalTick();
-            ManaConsumersTick();
-            ItemEnchantmentTick();
-
-            QueueNextHeartBeat();
-        }
-
-        /// <summary>
         /// Called every ~5 secs for inventory item enchantments
         /// </summary>
         public void ItemEnchantmentTick()
@@ -511,26 +496,6 @@ namespace ACE.Server.WorldObjects
             Positions[type] = newPosition;
         }
 
-        public void UpdateAge()
-        {
-            if (Age != null)
-                Age++;
-            else
-                Age = 1;
-        }
-
-        public void SendAgeInt()
-        {
-            try
-            {
-                Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.Age, Age ?? 1));
-            }
-            catch (NullReferenceException)
-            {
-                // Do Nothing since player data hasn't loaded in
-            }
-        }
-
         /// <summary>
         /// Returns false if the player has chosen to Appear Offline.  Otherwise it will return their actual online status.
         /// </summary>
@@ -558,7 +523,7 @@ namespace ACE.Server.WorldObjects
             if (CurrentLandblock != null)
             {
                 // remove the player from landblock management -- after the animation has run
-                logoutChain.AddChain(CurrentLandblock?.GetRemoveWorldObjectChain(Guid, false));
+                logoutChain.AddAction(this, () => CurrentLandblock.RemoveWorldObject(Guid, false));
             }
 
             return logoutChain;
@@ -586,7 +551,7 @@ namespace ACE.Server.WorldObjects
             if (!clientSessionTerminatedAbruptly)
             {
                 var logout = new UniversalMotion(MotionStance.NonCombat, new MotionItem(MotionCommand.LogOut));
-                CurrentLandblock?.EnqueueBroadcastMotion(this, logout);
+                EnqueueBroadcastMotion(logout);
 
                 EnqueueBroadcastPhysicsState();
 
@@ -708,7 +673,7 @@ namespace ACE.Server.WorldObjects
             if (wo != null)
                 EnqueueBroadcast(new GameMessageObjDescEvent(wo));
             else
-                log.Debug($"Error - requested object description for an item I do not know about - {item.Full:X}");
+                log.Debug($"HandleActionForceObjDescSend() - couldn't find inventory item {item}");
         }
 
         protected override void SendUpdatePosition(bool forcePos = false)
@@ -850,17 +815,17 @@ namespace ACE.Server.WorldObjects
 
         public void HandleActionTalk(string message)
         {
-            CurrentLandblock?.EnqueueBroadcastLocalChat(this, message);
+            EnqueueBroadcast(new GameMessageCreatureMessage(message, Name, Guid.Full, ChatMessageType.Speech));
         }
 
         public void HandleActionEmote(string message)
         {
-            CurrentLandblock?.EnqueueBroadcastLocalChatEmote(this, message);
+            EnqueueBroadcast(new GameMessageEmoteText(Guid.Full, Name, message));
         }
 
         public void HandleActionSoulEmote(string message)
         {
-            CurrentLandblock?.EnqueueBroadcastLocalChatSoulEmote(this, message);
+            EnqueueBroadcast(new GameMessageSoulEmote(Guid.Full, Name, message));
         }
 
         public void HandleActionJump(JumpPack jump)
@@ -896,7 +861,7 @@ namespace ACE.Server.WorldObjects
                 };
                 CurrentMotionState = motion;
                 if (CurrentLandblock != null)
-                    CurrentLandblock?.EnqueueBroadcastMotion(this, motion);
+                    EnqueueBroadcastMotion(motion);
             }
             Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "You're Exhausted!"));
         }
@@ -924,7 +889,7 @@ namespace ACE.Server.WorldObjects
             var soundEvent = new GameMessageSound(Guid, sound, 1.0f);
             var motion = new UniversalMotion(MotionStance.NonCombat, new MotionItem(motionCommand));
 
-            DoMotion(motion);
+            EnqueueBroadcastMotion(motion);
 
             if (buffType == ConsumableBuffType.Spell)
             {
@@ -976,7 +941,7 @@ namespace ACE.Server.WorldObjects
             motionChain.AddDelaySeconds(motionAnimationLength);
 
             // Return to standing position after the animation delay
-            motionChain.AddAction(this, () => DoMotion(new UniversalMotion(MotionStance.NonCombat)));
+            motionChain.AddAction(this, () => EnqueueBroadcastMotion(new UniversalMotion(MotionStance.NonCombat)));
             motionChain.EnqueueChain();
         }
 

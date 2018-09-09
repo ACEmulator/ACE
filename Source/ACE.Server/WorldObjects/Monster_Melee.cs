@@ -106,8 +106,10 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public ActionChain DoSwingMotion(WorldObject target, CombatManeuver maneuver, out float animLength)
         {
-            var swingAnimation = new MotionItem(maneuver.Motion, 1.25f);
-            animLength = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, maneuver.Motion, null, 1.25f);
+            var animSpeed = GetAnimSpeed();
+
+            var swingAnimation = new MotionItem(maneuver.Motion, animSpeed);
+            animLength = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, maneuver.Motion, null, animSpeed);
 
             var motion = new UniversalMotion(CurrentMotionState.Stance, swingAnimation);
             motion.MovementData.CurrentStyle = (uint)CurrentMotionState.Stance;
@@ -116,12 +118,11 @@ namespace ACE.Server.WorldObjects
             motion.TargetGuid = target.Guid;
             CurrentMotionState = motion;
 
-            if (CurrentLandblock != null)
-                CurrentLandblock?.EnqueueBroadcastMotion(this, motion);
+            EnqueueBroadcastMotion(motion);
 
             // play default script? (special attack)
             //if (MotionTable.HasDefaultScript(MotionTableId, maneuver.Motion, maneuver.Style))
-                //EnqueueBroadcast(new GameMessageScript(Guid, (PlayScript)DefaultScriptId));
+            //EnqueueBroadcast(new GameMessageScript(Guid, (PlayScript)DefaultScriptId));
 
             return null;
         }
@@ -212,7 +213,7 @@ namespace ACE.Server.WorldObjects
             // get monster attack skill
             var player = AttackTarget as Player;
             var attackSkill = GetCreatureSkill(GetCurrentAttackSkill()).Current;
-            var offenseMod = GetWeaponOffenseBonus(this);
+            var offenseMod = GetWeaponOffenseModifier(this);
             attackSkill = (uint)Math.Round(attackSkill * offenseMod);
 
             if (IsExhausted)
@@ -220,7 +221,7 @@ namespace ACE.Server.WorldObjects
 
             // get player defense skill
             var defenseSkill = CurrentAttack == AttackType.Missile ? Skill.MissileDefense : Skill.MeleeDefense;
-            var defenseMod = defenseSkill == Skill.MeleeDefense ? GetWeaponMeleeDefenseBonus(AttackTarget as Creature) : 1.0f;
+            var defenseMod = defenseSkill == Skill.MeleeDefense ? GetWeaponMeleeDefenseModifier(AttackTarget as Creature) : 1.0f;
             var difficulty = (uint)Math.Round(player.GetCreatureSkill(defenseSkill).Current * defenseMod);
 
             if (player.IsExhausted) difficulty = 0;

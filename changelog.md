@@ -1,7 +1,7 @@
 # ACEmulator Change Log
-### 2018-08-11
+### 2018-09-03
 [mcreedjr]
-* Added missing comma in updated ShardBase.sql to allow creation of updated Shard DB after Mag-nus' previous PR
+* Initial pass at secure trade
 
 ### 2018-08-30
 [gmriggs]

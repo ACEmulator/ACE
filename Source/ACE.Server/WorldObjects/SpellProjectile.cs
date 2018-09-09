@@ -340,7 +340,7 @@ namespace ACE.Server.WorldObjects
                 if (damage == -1)
                     return;
 
-                CurrentLandblock?.EnqueueBroadcastSound(ProjectileSource, Sound.ResistSpell);
+                ProjectileSource.EnqueueBroadcast(new GameMessageSound(ProjectileSource.Guid, Sound.ResistSpell, 1.0f));
 
                 if (player != null)
                     player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{target.Name} resists {spell.Name}", ChatMessageType.Magic));

@@ -1,8 +1,5 @@
 using ACE.Entity;
-using ACE.Entity.Enum;
 using ACE.Server.Managers;
-using ACE.Server.Network.GameEvent.Events;
-using System;
 
 namespace ACE.Server.Network.GameAction.Actions
 {
@@ -12,8 +9,6 @@ namespace ACE.Server.Network.GameAction.Actions
         public static void Handle(ClientMessage message, Session session)
         {
             ObjectGuid tradePartner = new ObjectGuid(message.Payload.ReadUInt32());
-
-            Console.WriteLine("GameAction Open Trade Negotiations Called. Partner GUID " + tradePartner);
 
             var targetsession = WorldManager.Find(tradePartner);
 

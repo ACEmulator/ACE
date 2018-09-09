@@ -1,10 +1,11 @@
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Numerics;
 using System.Threading;
+
+using log4net;
 
 using ACE.Database;
 using ACE.Database.Models.Shard;
@@ -14,17 +15,10 @@ using ACE.DatLoader.FileTypes;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
-using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
 using ACE.Server.Managers;
-using ACE.Server.Network.GameMessages;
-using ACE.Server.Network.GameMessages.Messages;
-using ACE.Server.Network.Motion;
-using ACE.Server.Network.Sequence;
 using ACE.Server.Physics.Common;
 using ACE.Server.WorldObjects;
-
-using log4net;
 
 using Position = ACE.Entity.Position;
 
@@ -36,7 +30,7 @@ namespace ACE.Server.Entity
     /// landblock goes from 0 to 192.  "indoor" (dungeon) landblocks have no
     /// functional limit as players can't freely roam in/out of them
     /// </summary>
-    public class Landblock : IActor
+    public class Landblock
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -47,53 +41,58 @@ namespace ACE.Server.Entity
         public static float MaxObjectRange { get; } = 192f;
         public static float MaxObjectGhostRange { get; } = 250f;
 
+
+        public LandblockId Id { get; }
+
+        /// <summary>
+        /// Flag indicates if this landblock is permanently loaded (for example, towns on high-traffic servers)
+        /// </summary>
+        public readonly bool Permaload = false;
+
+        public bool IsActive { get; private set; } = true;
+        private DateTime lastActiveTime;
+
+        public LandBlockStatus Status { get; } = new LandBlockStatus();
+
+        public bool AdjacenciesLoaded { get; internal set; }
+
+
+        public readonly Dictionary<ObjectGuid, WorldObject> worldObjects = new Dictionary<ObjectGuid, WorldObject>(); // TODO Make this private
+        private readonly Dictionary<Adjacency, Landblock> adjacencies = new Dictionary<Adjacency, Landblock>();
+
+
+        /// <summary>
+        /// Landblocks will be checked for activity every # seconds
+        /// </summary>
+        private static readonly TimeSpan heartbeatInterval = TimeSpan.FromSeconds(5);
+
+        private DateTime lastHeartBeat = DateTime.MinValue;
+
+        /// <summary>
+        /// Landblocks which have been inactive for this many seconds will be unloaded
+        /// </summary>
+        private static readonly TimeSpan unloadInterval = TimeSpan.FromMinutes(5);
+
+
         /// <summary>
         /// The clientlib backing store landblock
         /// Eventually these classes could be merged, but for now they are separate...
         /// </summary>
         public readonly Physics.Common.Landblock _landblock;
 
-        public readonly Dictionary<ObjectGuid, WorldObject> worldObjects = new Dictionary<ObjectGuid, WorldObject>();
-        private readonly Dictionary<Adjacency, Landblock> adjacencies = new Dictionary<Adjacency, Landblock>();
-
-        /// <summary>
-        /// Special needs-broadcast flag.  Cleared in broadcast, but set in other phases.
-        /// Must be treated exceptionally carefully to avoid races.  Don't touch unless you /really/ know what your doing
-        /// </summary>
-        private int broadcastQueued;
-
-        // Can be appended concurrently, will be sent serially
-        // NOTE: Broadcasts have read-only access to landblocks, and EnqueueSend is thread-safe within Session.
-        //    -- Therefore broadcasting between landblocks doesn't require locking O_o
-        private readonly ConcurrentQueue<Tuple<Position, float, GameMessage>> broadcastQueue = new ConcurrentQueue<Tuple<Position, float, GameMessage>>();
-
-        // private byte cellGridMaxX = 8; // todo: load from cell.dat
-        // private byte cellGridMaxY = 8; // todo: load from cell.dat
-
-        // not sure if a full object is necessary here.  I don't think a Landcell has any
-        // inherent functionality that needs to be modelled in an object.
-        // private Landcell[,] cellGrid; // todo: load from cell.dat
-
-        public LandBlockStatus Status = new LandBlockStatus();
-
-        private NestedActionQueue actionQueue;
-
-        public LandblockId Id { get; }
-
-        public CellLandblock CellLandblock;
-        public LandblockInfo LandblockInfo;
-
-        public bool AdjacenciesLoaded;
+        public CellLandblock CellLandblock { get; private set; }
+        public LandblockInfo LandblockInfo { get; private set; }
 
         /// <summary>
         /// The landblock static meshes for
         /// collision detection and physics simulation
         /// </summary>
-        public LandblockMesh LandblockMesh;
-        public List<ModelMesh> LandObjects;
-        public List<ModelMesh> Buildings;
-        public List<ModelMesh> WeenieMeshes;
-        public List<ModelMesh> Scenery;
+        public LandblockMesh LandblockMesh { get; private set; }
+        public List<ModelMesh> LandObjects { get; private set; }
+        public List<ModelMesh> Buildings { get; private set; }
+        public List<ModelMesh> WeenieMeshes { get; private set; }
+        public List<ModelMesh> Scenery { get; private set; }
+
 
         public Landblock(LandblockId id)
         {
@@ -113,8 +112,6 @@ namespace ACE.Server.Entity
             adjacencies.Add(Adjacency.NorthWest, null);
 
             UpdateStatus(LandBlockStatusFlag.IdleLoading);
-
-            actionQueue = new NestedActionQueue(WorldManager.LandblockActionQueue);
 
             // create world objects (monster locations, generators)
             var objects = DatabaseManager.World.GetCachedInstancesByLandblock(Id.Landblock);
@@ -141,18 +138,13 @@ namespace ACE.Server.Entity
 
             UpdateStatus(LandBlockStatusFlag.IdleLoaded);
 
-            // FIXME(ddevec): Goal: get rid of UseTime() function...
-            actionQueue.EnqueueAction(new ActionEventDelegate(() => UseTimeWrapper()));
-
-            LastActiveTime = Timer.CurrentTime;
-
-            QueueNextHeartBeat();
+            lastActiveTime = DateTime.UtcNow;
         }
 
         /// <summary>
         /// Spawns the semi-randomized monsters scattered around the outdoors
         /// </summary>
-        public void SpawnEncounters()
+        private void SpawnEncounters()
         {
             // get the encounter spawns for this landblock
             var encounters = DatabaseManager.World.GetCachedEncountersByLandblock(Id.Landblock);
@@ -183,7 +175,7 @@ namespace ACE.Server.Entity
         /// <summary>
         /// Loads the meshes for the landblock
         /// </summary>
-        public void LoadMeshes(List<LandblockInstance> objects)
+        private void LoadMeshes(List<LandblockInstance> objects)
         {
             CellLandblock = DatManager.CellDat.ReadFromDat<CellLandblock>(Id.Raw >> 16 | 0xFFFF);
             LandblockInfo = DatManager.CellDat.ReadFromDat<LandblockInfo>((uint)Id.Landblock << 16 | 0xFFFE);
@@ -199,7 +191,7 @@ namespace ACE.Server.Entity
         /// Loads the meshes for the static landblock objects,
         /// also known as obstacles
         /// </summary>
-        public void LoadLandObjects()
+        private void LoadLandObjects()
         {
             LandObjects = new List<ModelMesh>();
 
@@ -210,7 +202,7 @@ namespace ACE.Server.Entity
         /// <summary>
         /// Loads the meshes for the buildings on the landblock
         /// </summary>
-        public void LoadBuildings()
+        private void LoadBuildings()
         {
             Buildings = new List<ModelMesh>();
 
@@ -221,14 +213,15 @@ namespace ACE.Server.Entity
         /// <summary>
         /// Loads the meshes for the weenies on the landblock
         /// </summary>
-        public void LoadWeenies(List<LandblockInstance> objects)
+        private void LoadWeenies(List<LandblockInstance> objects)
         {
             WeenieMeshes = new List<ModelMesh>();
 
             foreach (var obj in objects)
             {
                 var weenie = DatabaseManager.World.GetCachedWeenie(obj.WeenieClassId);
-                WeenieMeshes.Add(new ModelMesh(weenie.GetProperty(PropertyDataId.Setup) ?? 0,
+                WeenieMeshes.Add(
+                    new ModelMesh(weenie.GetProperty(PropertyDataId.Setup) ?? 0,
                     new DatLoader.Entity.Frame(new Position(obj.ObjCellId, obj.OriginX, obj.OriginY, obj.OriginZ, obj.AnglesX, obj.AnglesY, obj.AnglesZ, obj.AnglesW))));
             }
         }
@@ -236,9 +229,43 @@ namespace ACE.Server.Entity
         /// <summary>
         /// Loads the meshes for the scenery on the landblock
         /// </summary>
-        public void LoadScenery()
+        private void LoadScenery()
         {
             Scenery = Entity.Scenery.Load(this);
+        }
+
+        public void Tick(double lastTickDuration, long currentTimeTick)
+        {
+            // Here we'd move server objects in motion (subject to landscape) and do physics collision detection
+            var allworldobj = worldObjects.Values;
+            var allplayers = allworldobj.OfType<Player>().ToList();
+
+            UpdateStatus(allplayers.Count);
+
+            if (IsActive)
+            {
+                var wos = worldObjects.Values.ToList();
+
+                foreach (var wo in wos)
+                    wo.Tick(lastTickDuration, currentTimeTick);
+            }
+
+            // Heartbeat
+            if (lastHeartBeat + heartbeatInterval <= DateTime.UtcNow)
+            {
+                if (IsActive)
+                {
+                    // tick decayable objects ?? Is this still needed now that we've migrated to the new Tick architecture?
+
+                    // tick items sold to vendors ?? Is this still needed now that we've migrated to the new Tick architecture?
+                }
+
+                // TODO: handle perma-loaded landblocks
+                if (!Permaload && lastActiveTime + unloadInterval < DateTime.UtcNow)
+                    LandblockManager.AddToDestructionQueue(this);
+
+                lastHeartBeat = DateTime.UtcNow;
+            }
         }
 
         public void SetAdjacency(Adjacency adjacency, Landblock landblock)
@@ -246,53 +273,14 @@ namespace ACE.Server.Entity
             adjacencies[adjacency] = landblock;
         }
 
-        public Landblock NorthAdjacency
-        {
-            get { return adjacencies[Adjacency.North]; }
-            set { adjacencies[Adjacency.North] = value; }
-        }
-
-        public Landblock NorthEastAdjacency
-        {
-            get { return adjacencies[Adjacency.NorthEast]; }
-            set { adjacencies[Adjacency.NorthEast] = value; }
-        }
-
-        public Landblock EastAdjacency
-        {
-            get { return adjacencies[Adjacency.East]; }
-            set { adjacencies[Adjacency.East] = value; }
-        }
-
-        public Landblock SouthEastAdjacency
-        {
-            get { return adjacencies[Adjacency.SouthEast]; }
-            set { adjacencies[Adjacency.SouthEast] = value; }
-        }
-
-        public Landblock SouthAdjacency
-        {
-            get { return adjacencies[Adjacency.South]; }
-            set { adjacencies[Adjacency.South] = value; }
-        }
-
-        public Landblock SouthWestAdjacency
-        {
-            get { return adjacencies[Adjacency.SouthWest]; }
-            set { adjacencies[Adjacency.SouthWest] = value; }
-        }
-
-        public Landblock WestAdjacency
-        {
-            get { return adjacencies[Adjacency.West]; }
-            set { adjacencies[Adjacency.West] = value; }
-        }
-
-        public Landblock NorthWestAdjacency
-        {
-            get { return adjacencies[Adjacency.NorthWest]; }
-            set { adjacencies[Adjacency.NorthWest] = value; }
-        }
+        private Landblock NorthAdjacency => adjacencies[Adjacency.North];
+        private Landblock NorthEastAdjacency => adjacencies[Adjacency.NorthEast];
+        private Landblock EastAdjacency => adjacencies[Adjacency.East];
+        private Landblock SouthEastAdjacency => adjacencies[Adjacency.SouthEast];
+        private Landblock SouthAdjacency => adjacencies[Adjacency.South];
+        private Landblock SouthWestAdjacency => adjacencies[Adjacency.SouthWest];
+        private Landblock WestAdjacency => adjacencies[Adjacency.West];
+        private Landblock NorthWestAdjacency => adjacencies[Adjacency.NorthWest];
 
         private void AddPlayerTracking(List<WorldObject> wolist, Player player)
         {
@@ -305,11 +293,6 @@ namespace ACE.Server.Entity
             AddWorldObjectInternal(wo);
         }
 
-        public ActionChain GetAddWorldObjectChain(WorldObject wo, Player noBroadcast = null)
-        {
-            return new ActionChain(this, () => AddWorldObjectInternal(wo));
-        }
-
         public void AddWorldObjectForPhysics(WorldObject wo)
         {
             AddWorldObjectInternal(wo);
@@ -317,12 +300,10 @@ namespace ACE.Server.Entity
 
         private void AddWorldObjectInternal(WorldObject wo)
         {
-            //Console.WriteLine($"AddWorldObjectInternal({wo.Name})");
-
             if (!worldObjects.ContainsKey(wo.Guid))
                 worldObjects[wo.Guid] = wo;
 
-            wo.SetParent(this);
+            wo.CurrentLandblock = this;
 
             if (wo.PhysicsObj == null)
                 wo.InitPhysicsObj();
@@ -332,7 +313,7 @@ namespace ACE.Server.Entity
                 var success = wo.AddPhysicsObj();
                 if (!success)
                 {
-                    Console.WriteLine($"AddWorldObjectInternal: couldn't spawn {wo.Name}");
+                    log.Warn($"AddWorldObjectInternal: couldn't spawn {wo.Name}");
                     return;
                 }
             }
@@ -351,24 +332,7 @@ namespace ACE.Server.Entity
 
         public void RemoveWorldObject(ObjectGuid objectId, bool adjacencyMove = false)
         {
-            ActionChain removeChain = GetRemoveWorldObjectChain(objectId, adjacencyMove);
-            if (removeChain != null)
-            {
-                removeChain.EnqueueChain();
-            }
-        }
-
-        public ActionChain GetRemoveWorldObjectChain(ObjectGuid objectId, bool adjacencyMove = false)
-        {
-            Landblock owner = GetOwner(objectId);
-
-            if (owner != null)
-            {
-                ActionChain chain = new ActionChain(owner, new ActionEventDelegate(() => RemoveWorldObjectInternal(objectId, adjacencyMove)));
-                return chain;
-            }
-
-            return null;
+            RemoveWorldObjectInternal(objectId, adjacencyMove);
         }
 
         /// <summary>
@@ -412,19 +376,13 @@ namespace ACE.Server.Entity
 
         private void RemoveWorldObjectInternal(ObjectGuid objectId, bool adjacencyMove = false)
         {
-            WorldObject wo = null;
+            //log.Debug($"LB {Id.Landblock:X}: removing {objectId.Full:X}");
 
-            Log($"removing {objectId.Full:X}");
-
-            if (worldObjects.ContainsKey(objectId))
-            {
-                wo = worldObjects[objectId];
-                worldObjects.Remove(objectId);
-            }
+            worldObjects.Remove(objectId, out var wo);
 
             if (wo == null) return;
 
-            wo.SetParent(null);
+            wo.CurrentLandblock = null;
 
             if (!adjacencyMove)
             {
@@ -451,44 +409,12 @@ namespace ACE.Server.Entity
             return false;
         }
 
-        // FIXME(ddevec): Hacky kludge -- trying to get rid of UseTime
-        private void UseTimeWrapper()
-        {
-            UseTime(WorldManager.PortalYearTicks);
-            actionQueue.EnqueueAction(new ActionEventDelegate(() => UseTimeWrapper()));
-        }
-
-        /// <summary>
-        /// Every game-loop iteration work.  Ideally this wouldn't exist, but we haven't finished
-        /// fully transitioning landblocks to an event-based system.
-        /// </summary>
-        public void UseTime(double tickTime)
-        {
-            // here we'd move server objects in motion (subject to landscape) and do physics collision detection
-            try
-            {
-                List<Player> allplayers = null;
-
-                var allworldobj = worldObjects.Values;
-                allplayers = allworldobj.OfType<Player>().ToList();
-
-                UpdateStatus(allplayers.Count);
-
-                // Handle broadcasts
-                SendBroadcasts();
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);   // FIXME: multithread
-            }
-        }
-
         /// <summary>
         /// Returns landblock objects with physics initialized
         /// </summary>
-        public IEnumerable<WorldObject> GetPhysicsWorldObjects()
+        public List<WorldObject> GetPhysicsWorldObjects()
         {
-            return worldObjects.Values.Where(wo => wo.PhysicsObj != null);
+            return worldObjects.Values.Where(wo => wo.PhysicsObj != null).ToList();
         }
 
         private void UpdateStatus(LandBlockStatusFlag flag)
@@ -499,10 +425,10 @@ namespace ACE.Server.Entity
             // Diagnostics.Diagnostics.SetLandBlockKey(id.LandblockX, id.LandblockY, Status);
         }
 
-        private void UpdateStatus(int pcount)
+        private void UpdateStatus(int playerCount)
         {
-            Status.PlayerCount = pcount;
-            if (pcount > 0)
+            Status.PlayerCount = playerCount;
+            if (playerCount > 0)
             {
                 Status.LandBlockStatusFlag = LandBlockStatusFlag.InUseLow;
                 // TODO: Diagnostics uses WinForms, which is not supported in .net standard/core.
@@ -544,182 +470,60 @@ namespace ACE.Server.Entity
             if (!highXInLandblock)
             {
                 if (EastAdjacency != null)
-                {
                     inRange.Add(EastAdjacency);
-                }
             }
 
             // North East
             if (!highXInLandblock && !highYInLandblock)
             {
                 if (NorthEastAdjacency != null)
-                {
                     inRange.Add(NorthEastAdjacency);
-                }
             }
 
             // North
             if (!highYInLandblock)
             {
                 if (NorthAdjacency != null)
-                {
                     inRange.Add(NorthAdjacency);
-                }
             }
 
             // North West
             if (!lowXInLandblock && !highYInLandblock)
             {
                 if (NorthWestAdjacency != null)
-                {
                     inRange.Add(NorthWestAdjacency);
-                }
             }
 
             // West
             if (!lowXInLandblock)
             {
                 if (WestAdjacency != null)
-                {
                     inRange.Add(WestAdjacency);
-                }
             }
 
             // South West
             if (!lowXInLandblock && !lowYInLandblock)
             {
                 if (SouthWestAdjacency != null)
-                {
                     inRange.Add(SouthWestAdjacency);
-                }
             }
 
             // South
             if (!lowYInLandblock)
             {
                 if (SouthAdjacency != null)
-                {
                     inRange.Add(SouthAdjacency);
-                }
             }
 
             // South East
             if (!highXInLandblock && !lowYInLandblock)
             {
                 if (SouthEastAdjacency != null)
-                {
                     inRange.Add(SouthEastAdjacency);
-                }
             }
 
             return inRange;
         }
-
-        /// <summary>
-        /// Convenience wrapper to EnqueueBroadcast to broadcast a motion.
-        /// </summary>
-        public void EnqueueBroadcastMotion(WorldObject wo, UniversalMotion motion)
-        {
-            wo.EnqueueBroadcast(new GameMessageUpdateMotion(wo.Guid,
-                wo.Sequences.GetCurrentSequence(SequenceType.ObjectInstance), wo.Sequences, motion));
-        }
-
-        /// <summary>
-        /// Convenience wrapper to EnqueueBroadcast to broadcast a sound.
-        /// </summary>
-        public void EnqueueBroadcastSound(WorldObject wo, Sound sound, float volume = 1.0f)
-        {
-            wo.EnqueueBroadcast(new GameMessageSound(wo.Guid, sound, volume));
-        }
-        
-        /// <summary>
-        /// Convenience wrapper to EnqueueBroadcast to broadcast local chat.
-        /// </summary>
-        public void EnqueueBroadcastSystemChat(WorldObject wo, string message, ChatMessageType type)
-        {
-            wo.EnqueueBroadcast(new GameMessageSystemChat(message, type));
-        }
-
-        /// <summary>
-        /// Convenience wrapper to EnqueueBroadcast to broadcast local chat.
-        /// </summary>
-        public void EnqueueBroadcastLocalChat(WorldObject wo, string message)
-        {
-            wo.EnqueueBroadcast(new GameMessageCreatureMessage(message, wo.Name, wo.Guid.Full, ChatMessageType.Speech));
-        }
-
-        /// <summary>
-        /// Convenience wrapper to EnqueueBroadcast to broadcast local chat emotes.
-        /// </summary>
-        public void EnqueueBroadcastLocalChatEmote(WorldObject wo, string emote)
-        {
-            wo.EnqueueBroadcast(new GameMessageEmoteText(wo.Guid.Full, wo.Name, emote));
-        }
-
-        /// <summary>
-        /// Convenience wrapper to EnqueueBroadcast to broadcast local soul emotes.
-        /// </summary>
-        public void EnqueueBroadcastLocalChatSoulEmote(WorldObject wo, string emote)
-        {
-            wo.EnqueueBroadcast(new GameMessageSoulEmote(wo.Guid.Full, wo.Name, emote));
-        }
-
-        /// <summary>
-        /// NOTE: Cannot be sent while objects are moving (the physics/motion portion of WorldManager)! depends on object positions not changing, and objects not moving between landblocks
-        /// </summary>
-        private void SendBroadcasts()
-        {
-            while (!broadcastQueue.IsEmpty)
-            {
-                bool success = broadcastQueue.TryDequeue(out var tuple);
-                if (!success)
-                {
-                    log.Error("Unexpected TryDequeue Failure!");
-                    break;
-                }
-                Position pos = tuple.Item1;
-                float distance = tuple.Item2;
-                GameMessage msg = tuple.Item3;
-
-                // NOTE: Doesn't need locking -- players cannot change while in "Act" SendBroadcasts is the last thing done in Act
-                // foreach player within range, do send
-
-                List<Landblock> landblocksInRange = GetLandblocksInRange(pos, distance);
-                foreach (Landblock lb in landblocksInRange)
-                {
-                    List<Player> allPlayers = lb.worldObjects.Values.OfType<Player>().ToList();
-                    foreach (Player p in allPlayers)
-                    {
-                        if (p.Location.SquaredDistanceTo(pos) < distance * distance)
-                        {
-                            p.Session.Network.EnqueueSend(msg);
-                        }
-                    }
-                }
-            }
-
-            // Sets broadcastQueued to 0, so we're ready to re-queue broadcasts later
-            broadcastQueued = 0;
-        }
-
-        // Wrappers so landblocks can be treated as actors and actions
-        // FIXME(ddevec): Once cludgy UseTime function removed, I can probably remove the action interface from landblock...?
-        public LinkedListNode<IAction> EnqueueAction(IAction actn)
-        {
-            // Ugh enqueue stuff...
-            return actionQueue.EnqueueAction(actn);
-        }
-
-        public void DequeueAction(LinkedListNode<IAction> node)
-        {
-            actionQueue.DequeueAction(node);
-        }
-
-        public void RunActions()
-        {
-            actionQueue.RunActions();
-        }
-        // End wrappers
 
         /// <summary>
         /// This will return null if the object was not found in the current or adjacent landblocks.
@@ -789,74 +593,12 @@ namespace ACE.Server.Entity
             return null;
         }
 
-        /*
-        public void ChainOnObject(ActionChain chain, ObjectGuid woGuid, Action<WorldObject> action)
-        {
-            WorldObject wo = GetObject(woGuid);
-            if (wo == null)
-            {
-                return;
-            }
-
-            chain.AddAction(wo, () => action(wo));
-        }
-        */
-
-        private void Log(string message)
-        {
-            log.Debug($"LB {Id.Landblock:X}: {message}");
-        }
-
         public void ResendObjectsInRange(WorldObject wo)
         {
             // this could need reworked a bit for consistency..
             wo.PhysicsObj.ObjMaint.RemoveAllObjects();
             wo.PhysicsObj.handle_visible_cells();
         }
-
-        /// <summary>
-        /// Landblocks will be checked for activity every # seconds
-        /// </summary>
-        public static readonly int HeartbeatInterval = 5;
-
-        public void QueueNextHeartBeat()
-        {
-            ActionChain nextHeartBeat = new ActionChain();
-            nextHeartBeat.AddDelaySeconds(HeartbeatInterval);
-            nextHeartBeat.AddAction(this, () => HeartBeat());
-            nextHeartBeat.EnqueueChain();
-        }
-
-        /// <summary>
-        /// Landblocks which have been inactive for this many seconds
-        /// will be unloaded
-        /// </summary>
-        public static readonly int UnloadInterval = 300;
-
-        /// <summary>
-        /// Flag indicates if this landblock is permanently loaded
-        /// (for example, towns on high-traffic servers)
-        /// </summary>
-        public bool Permaload = false;
-
-        public void HeartBeat()
-        {
-            if (IsActive)
-            {
-                // tick decayable objects
-
-                // tick items sold to vendors
-            }
-
-            // TODO: handle perma-loaded landblocks
-            if (!Permaload && LastActiveTime + UnloadInterval < Timer.CurrentTime)
-                LandblockManager.AddToDestructionQueue(this);
-            else
-                QueueNextHeartBeat();
-        }
-
-        public bool IsActive = true;
-        public double LastActiveTime;
 
         /*/// <summary>
         /// A landblock is active when it contains at least 1 player
@@ -883,22 +625,22 @@ namespace ACE.Server.Entity
         }*/
 
         /// <summary>
-        /// Sets a landblock to active state, with the current time
-        /// as the LastActiveTime
+        /// Sets a landblock to active state, with the current time as the LastActiveTime
         /// </summary>
         /// <param name="isAdjacent">Public calls to this function should always set isAdjacent to false</param>
         public void SetActive(bool isAdjacent = false)
         {
             IsActive = true;
-            LastActiveTime = Timer.CurrentTime;
+            lastActiveTime = DateTime.UtcNow;
 
             if (isAdjacent || _landblock.IsDungeon) return;
 
-            // for outdoor landblocks, recursively call 1 iteration
-            // to set adjacents to active
+            // for outdoor landblocks, recursively call 1 iteration to set adjacents to active
             foreach (var landblock in adjacencies.Values)
+            {
                 if (landblock != null)
                     landblock.SetActive(true);
+            }
         }
 
         /// <summary>
@@ -908,7 +650,9 @@ namespace ACE.Server.Entity
         public void Unload()
         {
             var landblockID = Id.Raw | 0xFFFF;
-            //Console.WriteLine($"Landblock.Unload({landblockID:X})");
+
+            log.Debug($"Landblock.Unload({landblockID:X})");
+
             SaveDB();
 
             // remove all objects
@@ -931,18 +675,18 @@ namespace ACE.Server.Entity
         /// <summary>
         /// Removes a neighbor landblock from the adjacencies list
         /// </summary>
-        public void UnloadAdjacent(Adjacency? adjacency, Landblock landblock)
+        private void UnloadAdjacent(Adjacency? adjacency, Landblock landblock)
         {
             if (adjacency == null || adjacencies[adjacency.Value] != landblock)
             {
-                Console.WriteLine($"Landblock({Id}).UnloadAdjacent({adjacency}, {landblock.Id}) couldn't find adjacent landblock");
+                log.Error($"Landblock({Id}).UnloadAdjacent({adjacency}, {landblock.Id}) couldn't find adjacent landblock");
                 return;
             }
             adjacencies[adjacency.Value] = null;
             AdjacenciesLoaded = false;
         }
 
-        public void SaveDB()
+        private void SaveDB()
         {
             var biotas = new Collection<(Biota biota, ReaderWriterLockSlim rwLock)>();
 

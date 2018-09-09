@@ -60,7 +60,7 @@ namespace ACE.Server.WorldObjects
             healer.CurrentMotionState = motion;
 
             var actionChain = new ActionChain();
-            actionChain.AddAction(healer, () => healer.DoMotion(motion));
+            actionChain.AddAction(healer, () => healer.EnqueueBroadcastMotion(motion));
             actionChain.AddDelaySeconds(animLength);
             actionChain.AddAction(healer, () =>
             {

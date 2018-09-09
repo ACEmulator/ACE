@@ -2106,7 +2106,13 @@ namespace ACE.Server.WorldObjects
         public double? HeartbeatInterval
         {
             get => GetProperty(PropertyFloat.HeartbeatInterval);
-            set { if (!value.HasValue) RemoveProperty(PropertyFloat.SellPrice); else SetProperty(PropertyFloat.HeartbeatInterval, value.Value); }
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.HeartbeatInterval); else SetProperty(PropertyFloat.HeartbeatInterval, value.Value); }
+        }
+
+        public double? HeartbeatTimestamp
+        {
+            get => GetProperty(PropertyFloat.HeartbeatTimestamp);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.HeartbeatTimestamp); else SetProperty(PropertyFloat.HeartbeatTimestamp, value.Value); }
         }
 
         public int? InitGeneratedObjects

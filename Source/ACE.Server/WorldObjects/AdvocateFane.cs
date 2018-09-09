@@ -5,7 +5,6 @@ using ACE.DatLoader.FileTypes;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
-using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
 using ACE.Server.Network.GameMessages.Messages;
@@ -83,9 +82,9 @@ namespace ACE.Server.WorldObjects
                     {
                         //error msg here
                         if (UseTargetFailureAnimation.HasValue)
-                            CurrentLandblock?.EnqueueBroadcastMotion(this, new UniversalMotion(MotionStance.NonCombat, new MotionItem((MotionCommand)UseTargetFailureAnimation)));
+                            EnqueueBroadcastMotion(new UniversalMotion(MotionStance.NonCombat, new MotionItem((MotionCommand)UseTargetFailureAnimation)));
                         else
-                            CurrentLandblock?.EnqueueBroadcastMotion(this, twitch2);
+                            EnqueueBroadcastMotion(twitch2);
 
                         player.SendUseDoneEvent();
                         return;
@@ -98,21 +97,21 @@ namespace ACE.Server.WorldObjects
                         var faneTimer = new ActionChain();
                         var turnToMotion = new UniversalMotion(MotionStance.NonCombat, Location, Guid);
                         turnToMotion.MovementTypes = MovementTypes.TurnToObject;
-                        faneTimer.AddAction(this, () => player.CurrentLandblock?.EnqueueBroadcastMotion(player, turnToMotion));
+                        faneTimer.AddAction(this, () => player.EnqueueBroadcastMotion(turnToMotion));
                         faneTimer.AddDelaySeconds(1);
                         faneTimer.AddAction(player, () =>
                         {
                             if (UseUserAnimation.HasValue)
-                                CurrentLandblock?.EnqueueBroadcastMotion(player, new UniversalMotion(MotionStance.NonCombat, new MotionItem((MotionCommand)UseUserAnimation)));
+                                player.EnqueueBroadcastMotion(new UniversalMotion(MotionStance.NonCombat, new MotionItem((MotionCommand)UseUserAnimation)));
                             else
-                                CurrentLandblock?.EnqueueBroadcastMotion(player, bowDeep);
+                                player.EnqueueBroadcastMotion(bowDeep);
                         });
                         faneTimer.AddAction(player, () =>
                         {
                             if (UseTargetSuccessAnimation.HasValue)
-                                CurrentLandblock?.EnqueueBroadcastMotion(this, new UniversalMotion(MotionStance.NonCombat, new MotionItem((MotionCommand)UseTargetSuccessAnimation)));
+                                EnqueueBroadcastMotion(new UniversalMotion(MotionStance.NonCombat, new MotionItem((MotionCommand)UseTargetSuccessAnimation)));
                             else
-                                CurrentLandblock?.EnqueueBroadcastMotion(this, twitch);
+                                EnqueueBroadcastMotion(twitch);
                         });
                         if (UseTargetSuccessAnimation.HasValue)
                             faneTimer.AddDelaySeconds(DatManager.PortalDat.ReadFromDat<MotionTable>(MotionTableId).GetAnimationLength((MotionCommand)UseTargetSuccessAnimation));
@@ -170,9 +169,9 @@ namespace ACE.Server.WorldObjects
                     else
                     {
                         if (UseTargetFailureAnimation.HasValue)
-                            CurrentLandblock?.EnqueueBroadcastMotion(this, new UniversalMotion(MotionStance.NonCombat, new MotionItem((MotionCommand)UseTargetFailureAnimation)));
+                            EnqueueBroadcastMotion(new UniversalMotion(MotionStance.NonCombat, new MotionItem((MotionCommand)UseTargetFailureAnimation)));
                         else
-                            CurrentLandblock?.EnqueueBroadcastMotion(this, twitch2);
+                            EnqueueBroadcastMotion(twitch2);
 
                         player.SendUseDoneEvent();
                     }

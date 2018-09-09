@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+
 using ACE.Database;
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
@@ -9,6 +10,7 @@ using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
 using ACE.Server.Factories;
+using ACE.Server.Network.GameMessages.Messages;
 
 namespace ACE.Server.WorldObjects
 {
@@ -175,7 +177,8 @@ namespace ACE.Server.WorldObjects
                 EncumbranceVal -= worldObject.EncumbranceVal;
                 Value -= worldObject.Value;
 
-                EnqueueActionBroadcast((Player p) => p.TrackObject(this));
+                //EnqueueActionBroadcast((Player p) => p.TrackObject(this));
+                EnqueueBroadcast(new GameMessagePickupEvent(worldObject));
 
                 return true;
             }
@@ -303,6 +306,7 @@ namespace ACE.Server.WorldObjects
 
             foreach (var item in WieldedTreasure)
             {
+                //var rng = Physics.Common.Random.RollDice(0f, 0f);
                 var rng = Physics.Common.Random.RollDice(0f, 1f);
 
                 if (rng < item.Probability)

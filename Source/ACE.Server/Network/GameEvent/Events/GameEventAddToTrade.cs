@@ -9,7 +9,8 @@ namespace ACE.Server.Network.GameEvent.Events
             : base(GameEventType.AddToTrade, GameMessageGroup.UIQueue, session)
         {
             Writer.WriteGuid(item);
-            Writer.Write((uint)tradeSide);
+            Writer.Write((uint)(tradeSide));
+            Writer.Align();
         }
     }
 }

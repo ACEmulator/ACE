@@ -9,7 +9,6 @@ using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
 using ACE.Server.Network.Motion;
-using ACE.Server.Network.GameMessages.Messages;
 
 namespace ACE.Server.WorldObjects
 {
@@ -102,14 +101,14 @@ namespace ACE.Server.WorldObjects
             var switchTimer = new ActionChain();
             var turnToMotion = new UniversalMotion(MotionStance.NonCombat, Location, Guid);
             turnToMotion.MovementTypes = MovementTypes.TurnToObject;
-            switchTimer.AddAction(this, () => worldObject.CurrentLandblock?.EnqueueBroadcastMotion(worldObject, turnToMotion));
+            switchTimer.AddAction(this, () => worldObject.EnqueueBroadcastMotion(turnToMotion));
             switchTimer.AddDelaySeconds(1);
             switchTimer.AddAction(worldObject, () =>
             {
                 if (UseTargetAnimation.HasValue)
-                    CurrentLandblock?.EnqueueBroadcastMotion(this, new UniversalMotion(MotionStance.NonCombat, new MotionItem((MotionCommand)UseTargetAnimation)));
+                    EnqueueBroadcastMotion(new UniversalMotion(MotionStance.NonCombat, new MotionItem((MotionCommand)UseTargetAnimation)));
                 else
-                    CurrentLandblock?.EnqueueBroadcastMotion(this, twitch);
+                    EnqueueBroadcastMotion(twitch);
             });
             if (UseTargetAnimation.HasValue)
                 switchTimer.AddDelaySeconds(DatManager.PortalDat.ReadFromDat<MotionTable>(MotionTableId).GetAnimationLength((MotionCommand)UseTargetAnimation));

@@ -1,6 +1,8 @@
 using System;
 using System.Threading;
+
 using ACE.Common;
+
 using log4net;
 
 namespace ACE.Server.Managers
@@ -81,11 +83,11 @@ namespace ACE.Server.Managers
                     // reset shutdown details
                     string shutdownText = $"The server has canceled the shutdown procedure @ {DateTime.UtcNow} UTC";
                     log.Warn(shutdownText);
+
                     // special text
                     foreach (var player in WorldManager.GetAll())
-                    {
                         player.WorldBroadcast(shutdownText);
-                    }
+
                     // break function
                     return;
                 }
@@ -106,11 +108,10 @@ namespace ACE.Server.Managers
 
             // disabled thread update loop and halt application
             WorldManager.StopWorld();
+
             // wait for world to end
             while (WorldManager.WorldActive)
-            {
-                // no nothing
-            }
+                ; // do nothing
 
             // write exit to console/log
             log.Warn($"Exiting at {DateTime.UtcNow}");
