@@ -92,7 +92,10 @@ namespace ACE.Server.WorldObjects
 
             var player = this as Player;
             if (player != null)
+            {
+                player.HandleActionTradeSwitchToCombatMode(player.Session);
                 player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.CombatMode, (int)CombatMode.Melee));
+            }
 
             //Console.WriteLine("HandleSwitchToMeleeCombatMode() - animLength: " + animLength);
             return animLength;
@@ -114,7 +117,10 @@ namespace ACE.Server.WorldObjects
 
             var player = this as Player;
             if (player != null)
+            {
+                player.HandleActionTradeSwitchToCombatMode(player.Session);
                 player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.CombatMode, (int)CombatMode.Magic));
+            }
 
             //Console.WriteLine("HandleSwitchToMagicCombatMode() - animLength: " + animLength);
             return animLength;
@@ -143,8 +149,10 @@ namespace ACE.Server.WorldObjects
 
             var player = this as Player;
             if (player != null)
+            {
+                player.HandleActionTradeSwitchToCombatMode(player.Session);
                 player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.CombatMode, (int)CombatMode.Missile));
-
+            }
             //Console.WriteLine("HandleSwitchToMissileCombatMode() - animLength: " + animLength);
             return animLength;
         }
