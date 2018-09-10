@@ -474,26 +474,16 @@ namespace ACE.Server.WorldObjects
 
  
         /// <summary>
-        /// Set the currently position of the character, to later save in the database.
-        /// </summary>
-        public void SetPhysicalCharacterPosition()
-        {
-            // Saves the current player position after converting from a Position Object, to a CharacterPosition object
-            SetCharacterPosition(PositionType.Location, Location);
-        }
-
-        /// <summary>
         /// Saves a CharacterPosition to the character position dictionary
         /// </summary>
         public void SetCharacterPosition(PositionType type, Position newPosition)
         {
+            // todo: is this really needed?
             // reset the landblock id
             if (newPosition.LandblockId.Landblock == 0 && newPosition.Cell > 0)
-            {
                 newPosition.LandblockId = new LandblockId(newPosition.Cell);
-            }
 
-            Positions[type] = newPosition;
+            SetPosition(type, newPosition);
         }
 
         /// <summary>

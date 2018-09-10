@@ -330,45 +330,48 @@ namespace ACE.Server.WorldObjects
         #endregion
 
 
-        //public Dictionary<PositionType, Position> Positions { get; set; } = new Dictionary<PositionType, Position>();
+        /// <summary>
+        /// Do not reference this directly.<para />
+        /// This should only be referenced by GetPosition, SetPosition, RemovePosition and SaveBiotaToDatabase.
+        /// </summary>
+        private readonly Dictionary<PositionType, Position> positionCache = new Dictionary<PositionType, Position>();
 
-        // this is just temp so code compiles, remove it later
-        // maybe this is a temp.. I haven't reviewed all of our position code yet. I don't know if we create a wrapper around the biota position table, or cache into a dictionary here
-        // maybe we also need ephemeral positions..
-        // What i want to avoid is duplicating data. If the biota is the authority, we can create a wrapper class like WorldObjectPosition that takes in the biota position record as a ctor (similar to CreatureAttribute, CreatureSkill, etc..)
-        public Dictionary<PositionType, Position> Positions = new Dictionary<PositionType, Position>();
-
-        public Position GetPosition(PositionType positionType) // { return Biota.GetPosition(positionType); }
+        public Position GetPosition(PositionType positionType)
         {
-            bool success = Positions.TryGetValue(positionType, out var ret);
+            bool success = positionCache.TryGetValue(positionType, out var ret);
 
             if (!success)
             {
                 var result = Biota.GetPosition(positionType, BiotaDatabaseLock);
 
                 if (result != null)
-                    Positions.TryAdd(positionType, result);
+                    positionCache.TryAdd(positionType, result);
 
                 return result;
             }
 
-            //if (!success)
-            //{
-            //    return null;
-            //}
             return ret;
         }
 
-        public void SetPosition(PositionType positionType, Position position) // { Biota.SetPosition(positionType, position); }
+        public Dictionary<PositionType, Position> GetPositions()
+        {
+            foreach (var position in Biota.GetPositions(BiotaDatabaseLock))
+            {
+                // We only add new positions. We don't overwrite existing cached positions
+                if (!positionCache.ContainsKey(position.Key))
+                    positionCache[position.Key] = position.Value;
+            }
+
+            return new Dictionary<PositionType, Position>(positionCache);
+        }
+
+        public void SetPosition(PositionType positionType, Position position)
         {
             if (position == null)
                 RemovePosition(positionType);
             else
             {
-                if (!Positions.ContainsKey(positionType))
-                    Positions.TryAdd(positionType, position);
-                else
-                    Positions[positionType] = position;
+                positionCache[positionType] = position;
 
                 Biota.SetPosition(positionType, position, BiotaDatabaseLock, out var biotaChanged);
                 if (biotaChanged)
@@ -378,7 +381,7 @@ namespace ACE.Server.WorldObjects
 
         public void RemovePosition(PositionType positionType)
         {
-            Positions.Remove(positionType);
+            positionCache.Remove(positionType);
 
             if (Biota.TryRemovePosition(positionType, out _, BiotaDatabaseLock))
                 ChangesDetected = true;
@@ -452,22 +455,6 @@ namespace ACE.Server.WorldObjects
         {
             get => (Placement?)GetProperty(PropertyInt.Placement);
             set { if (!value.HasValue) RemoveProperty(PropertyInt.Placement); else SetProperty(PropertyInt.Placement, (int)value.Value); }
-        }
-
-        public virtual Position Location
-        {
-            get => GetPosition(PositionType.Location);
-            set => SetPosition(PositionType.Location, value);
-            //set
-            //{
-            //    /*
-            //    log.Debug($"{Name} moved to {Position}");
-            //    Position = value;
-            //    */
-            //    if (GetPosition(PositionType.Location) != null)
-            //        LastUpdatedTicks = WorldManager.PortalYearTicks;
-            //    SetPosition(PositionType.Location, value);
-            //}
         }
 
         public float Height => PhysicsObj != null ? PhysicsObj.GetHeight() : 0.0f;
@@ -2180,61 +2167,53 @@ namespace ACE.Server.WorldObjects
         // ========================================
         //= ======== Position Properties ==========
         // ========================================
-        //public Position Location
-        //{
-        //    get { return GetPosition(PositionType.Location); }
-        //    set { SetPosition(PositionType.Location, value); }
-        //}
-
+        public virtual Position Location
+        {
+            get => GetPosition(PositionType.Location);
+            set => SetPosition(PositionType.Location, value);
+        }
 
         public Position Destination
         {
             get { return GetPosition(PositionType.Destination); }
             set { SetPosition(PositionType.Destination, value); }
         }
-
         
         public Position Instantiation
         {
             get { return GetPosition(PositionType.Instantiation); }
             set { SetPosition(PositionType.Instantiation, value); }
         }
-
-        
+       
         public Position Sanctuary
         {
             get { return GetPosition(PositionType.Sanctuary); }
             set { SetPosition(PositionType.Sanctuary, value); }
         }
-
         
         public Position Home
         {
             get { return GetPosition(PositionType.Home); }
             set { SetPosition(PositionType.Home, value); }
         }
-
         
         public Position ActivationMove
         {
             get { return GetPosition(PositionType.ActivationMove); }
             set { SetPosition(PositionType.ActivationMove, value); }
         }
-
         
         public Position Target
         {
             get { return GetPosition(PositionType.Target); }
             set { SetPosition(PositionType.Target, value); }
         }
-
         
         public Position LinkedPortalOne
         {
             get { return GetPosition(PositionType.LinkedPortalOne); }
             set { SetPosition(PositionType.LinkedPortalOne, value); }
         }
-
         
         public Position LastPortal
         {
@@ -2242,126 +2221,108 @@ namespace ACE.Server.WorldObjects
             set { SetPosition(PositionType.LastPortal, value); }
         }
 
-        
         public Position PortalStorm
         {
             get { return GetPosition(PositionType.PortalStorm); }
             set { SetPosition(PositionType.PortalStorm, value); }
         }
 
-        
         public Position CrashAndTurn
         {
             get { return GetPosition(PositionType.CrashAndTurn); }
             set { SetPosition(PositionType.CrashAndTurn, value); }
         }
 
-        
         public Position PortalSummonLoc
         {
             get { return GetPosition(PositionType.PortalSummonLoc); }
             set { SetPosition(PositionType.PortalSummonLoc, value); }
         }
 
-        
         public Position HouseBoot
         {
             get { return GetPosition(PositionType.HouseBoot); }
             set { SetPosition(PositionType.HouseBoot, value); }
         }
 
-        
         public Position LastOutsideDeath
         {
             get { return GetPosition(PositionType.LastOutsideDeath); }
             set { SetPosition(PositionType.LastOutsideDeath, value); }
         }
 
-        
         public Position LinkedLifestone
         {
             get { return GetPosition(PositionType.LinkedLifestone); }
             set { SetPosition(PositionType.LinkedLifestone, value); }
         }
 
-        
         public Position LinkedPortalTwo
         {
             get { return GetPosition(PositionType.LinkedPortalTwo); }
             set { SetPosition(PositionType.LinkedPortalTwo, value); }
         }
 
-        
         public Position Save1
         {
             get { return GetPosition(PositionType.Save1); }
             set { SetPosition(PositionType.Save1, value); }
         }
 
-        
         public Position Save2
         {
             get { return GetPosition(PositionType.Save2); }
             set { SetPosition(PositionType.Save2, value); }
         }
 
-        
         public Position Save3
         {
             get { return GetPosition(PositionType.Save3); }
             set { SetPosition(PositionType.Save3, value); }
         }
 
-        
         public Position Save4
         {
             get { return GetPosition(PositionType.Save4); }
             set { SetPosition(PositionType.Save4, value); }
         }
 
-        
         public Position Save5
         {
             get { return GetPosition(PositionType.Save5); }
             set { SetPosition(PositionType.Save5, value); }
         }
 
-        
         public Position Save6
         {
             get { return GetPosition(PositionType.Save6); }
             set { SetPosition(PositionType.Save6, value); }
         }
 
-        
         public Position Save7
         {
             get { return GetPosition(PositionType.Save7); }
             set { SetPosition(PositionType.Save7, value); }
         }
 
-        
         public Position Save8
         {
             get { return GetPosition(PositionType.Save8); }
             set { SetPosition(PositionType.Save8, value); }
         }
 
-        
         public Position Save9
         {
             get { return GetPosition(PositionType.Save9); }
             set { SetPosition(PositionType.Save9, value); }
         }
 
-        
         public Position RelativeDestination
         {
             get { return GetPosition(PositionType.RelativeDestination); }
             set { SetPosition(PositionType.RelativeDestination, value); }
         }
 
-        
         public Position TeleportedCharacter
         {
             get { return GetPosition(PositionType.TeleportedCharacter); }

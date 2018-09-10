@@ -667,7 +667,7 @@ namespace ACE.Server.WorldObjects
                         switch (spell.MetaSpellId)
                         {
                             case 2645: // Portal Recall
-                                if (!player.Positions.ContainsKey(PositionType.LastPortal))
+                                if (player.GetPosition(PositionType.LastPortal) == null)
                                 {
                                     // You must link to a portal to recall it!
                                     player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouMustLinkToPortalToRecall));
@@ -676,7 +676,7 @@ namespace ACE.Server.WorldObjects
                                     recall = PositionType.LastPortal;
                                 break;
                             case 1635: // Lifestone Recall
-                                if (!player.Positions.ContainsKey(PositionType.LinkedLifestone))
+                                if (player.GetPosition(PositionType.LinkedLifestone) == null)
                                 {
                                     // You must link to a lifestone to recall it!
                                     player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouMustLinkToLifestoneToRecall));
@@ -685,7 +685,7 @@ namespace ACE.Server.WorldObjects
                                     recall = PositionType.LinkedLifestone;
                                 break;
                             case 48: // Primary Portal Recall
-                                if (!player.Positions.ContainsKey(PositionType.LinkedPortalOne))
+                                if (player.GetPosition(PositionType.LinkedPortalOne) == null)
                                 {
                                     // You must link to a portal to recall it!
                                     player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouMustLinkToPortalToRecall));
@@ -694,7 +694,7 @@ namespace ACE.Server.WorldObjects
                                     recall = PositionType.LinkedPortalOne;
                                 break;
                             case 2647: // Secondary Portal Recall
-                                if (!player.Positions.ContainsKey(PositionType.LinkedPortalTwo))
+                                if (player.GetPosition(PositionType.LinkedPortalTwo) == null)
                                 {
                                     // You must link to a portal to recall it!
                                     player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouMustLinkToPortalToRecall));

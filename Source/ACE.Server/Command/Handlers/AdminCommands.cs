@@ -402,7 +402,8 @@ namespace ACE.Server.Command.Handlers
                 }
 
                 // If we have the position, teleport the player
-                if (session.Player.Positions.ContainsKey(positionType))
+                var position = session.Player.GetPosition(positionType);
+                if (position != null)
                 {
                     session.Player.TeleToPosition(positionType);
                     var positionMessage = new GameMessageSystemChat($"Recalling to {positionType}", ChatMessageType.Broadcast);
