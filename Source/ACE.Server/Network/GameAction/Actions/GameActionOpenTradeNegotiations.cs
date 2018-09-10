@@ -14,10 +14,10 @@ namespace ACE.Server.Network.GameAction.Actions
 
             if (targetsession != null)
             {
-                session.Player.HandleActionOpenTradeNegotiations(session, tradePartner);
-
                 //Open the trade window for the trade partner
-                targetsession.Player.HandleActionOpenTradeNegotiations(targetsession, session.Player.Guid);
+                if (session.Player.HandleActionOpenTradeNegotiations(session, tradePartner, true))
+                    //Trade partner met all criteria to initiate trade, open their window
+                    targetsession.Player.HandleActionOpenTradeNegotiations(targetsession, session.Player.Guid);
             }
         }
     }
