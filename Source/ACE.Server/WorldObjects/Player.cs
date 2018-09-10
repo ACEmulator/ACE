@@ -372,6 +372,9 @@ namespace ACE.Server.WorldObjects
 
         public override void OnCollideObject(WorldObject target)
         {
+            if (target.ReportCollisions == false)
+                return;
+
             if (target is Portal)
                 (target as Portal).OnCollideObject(this);
             else if (target is Hotspot)
