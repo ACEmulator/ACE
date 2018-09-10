@@ -793,7 +793,7 @@ namespace ACE.Server.WorldObjects
                             portal.SetupTableId = 33556212;
                             portal.RadarBehavior = ACE.Entity.Enum.RadarBehavior.ShowNever;
                             portal.Name = "Gateway";
-                            portal.Location = Location.InFrontOf((portal.UseRadius ?? 2) > 2 ? portal.UseRadius.Value : 2);
+                            portal.Location = Location.InFrontOf();
 
                             if (portalId == 1955)
                                 portal.Destination = linkedPortal;

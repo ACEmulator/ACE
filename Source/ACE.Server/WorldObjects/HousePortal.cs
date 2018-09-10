@@ -24,12 +24,25 @@ namespace ACE.Server.WorldObjects
             SetEphemeralValues();
         }
 
-        public override void OnCollideObject(Player player)
+        /// <summary>
+        /// House Portals are on Use activated, rather than collision based activation
+        /// The actual portal process is wrapped to the base portal class ActOnUse, after ACL check are performed
+        /// </summary>
+        /// <param name="worldObject"></param>
+        public override void ActOnUse(WorldObject worldObject)
         {
-            if (HouseOwner == player.Guid.Full) // TODO: Expand check to include guest ACL; currently only checking owner
-                base.OnCollideObject(player);
-            else
-                player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouMustBeHouseGuestToUsePortal));
+            if (worldObject is Player)
+            {
+                var player = worldObject as Player;
+
+                if (HouseOwner == player.Guid.Full) // TODO: Expand check to include guest ACL; currently only checking owner
+                    base.ActOnUse(player);
+                else
+                {
+                    player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouMustBeHouseGuestToUsePortal));
+                    player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session));
+                }
+            }
         }
     }
 }

@@ -10,17 +10,16 @@ namespace ACE.Server.WorldObjects
     partial class WorldObject
     {
         /// <summary>
-        /// This is used to determine how close you need to be to use an item.
-        /// NOTE: cheat factor (2) added for items with null use radius. Og II
+        /// Used to determine how close you need to be to use an item.
         /// </summary>
-        public float UseRadiusSquared => ((UseRadius ?? 2) + CSetup.Radius) * ((UseRadius ?? 2) + CSetup.Radius);
-
         public bool IsWithinUseRadiusOf(WorldObject wo)
         {
             var originDist = Vector3.Distance(Location.ToGlobal(), wo.Location.ToGlobal());
             var radSum = PhysicsObj.GetRadius() + wo.PhysicsObj.GetRadius();
             var radDist = originDist - radSum;
-            var useRadius = wo.UseRadius;
+            var useRadius = wo.UseRadius ?? 0;
+            if (wo is Creature)
+                useRadius = 0.6f;
 
             if (this is Player player)
                 player.Session.Network.EnqueueSend(new GameMessageSystemChat($"OriginDist: {originDist}, RadDist: {radDist}, MyRadius: {PhysicsObj.GetRadius()}, TargetRadius: {wo.PhysicsObj.GetRadius()}, MyUseRadius: {UseRadius ?? 0}, TargetUseRadius: {wo.UseRadius ?? 0}", ChatMessageType.System));

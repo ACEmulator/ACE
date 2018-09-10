@@ -123,8 +123,6 @@ namespace ACE.Server.WorldObjects
             MinLevel = MinLevel ?? 0;
             MaxLevel = MaxLevel ?? 0;
             PortalBitmask = PortalBitmask ?? 0;
-
-            // Ethereal = false;
         }
 
         public string AppraisalPortalDestination
@@ -177,7 +175,7 @@ namespace ACE.Server.WorldObjects
 
         public bool NoTie => NoRecall;
 
-        public virtual void OnCollideObject(Player player)
+        private void ActivatePortal(Player player)
         {
             string serverMessage;
 
@@ -316,6 +314,11 @@ namespace ACE.Server.WorldObjects
             }
         }
 
+        public virtual void OnCollideObject(Player player)
+        {
+            ActivatePortal(player);
+        }
+
         /// <summary>
         /// This is raised by Player.HandleActionUseItem.<para />
         /// The item does not exist in the players possession.<para />
@@ -324,10 +327,11 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public override void ActOnUse(WorldObject worldObject)
         {
-            if (worldObject is Player)
+            if (worldObject is Player player)
             {
-                var player = worldObject as Player;
-                player.Session.Network.EnqueueSend(new GameMessageSystemChat("Portal ActOnUse triggered", ChatMessageType.System));
+                if (ReportCollisions == false)
+                    ActivatePortal(player);
+
                 player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session));
             }
         }
