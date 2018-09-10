@@ -365,6 +365,14 @@ namespace ACE.Server.WorldObjects
             return new Dictionary<PositionType, Position>(positionCache);
         }
 
+        /// <summary>
+        /// !!! VERY IMPORTANT NOTE REGARDING SetPosition !!!<para />
+        /// Position objects are reference types. Lets say you want to create a new object and give it the location of a player,
+        /// If you do LandscapeItem.SetPosition(PositionType.Location, Player.Location), you've now set the Location position
+        /// for both the player and the LandscapeItem to the same exact object. Modifying one will affect the other.<para />
+        /// The proper way to would be: LandscapeItem.SetPosition(PositionType.Location, (Position)Player.Location.Clone())<para />
+        /// Any time you want to set a position of a different PositionType, or, positions between WorldObjects, you should use the above Clone method.
+        /// </summary>
         public void SetPosition(PositionType positionType, Position position)
         {
             if (position == null)
