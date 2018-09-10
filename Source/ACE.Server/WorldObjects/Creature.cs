@@ -220,9 +220,6 @@ namespace ACE.Server.WorldObjects
             if (target != null && target is Creature)
                 distanceFrom = 0.6f;
 
-            if (this is Player player)
-                player.Session.Network.EnqueueSend(new GameMessageSystemChat($"OnAutonomousMove - DistanceFrom: {distanceFrom}", ChatMessageType.Broadcast));
-
             UniversalMotion newMotion = new UniversalMotion(MotionStance.NonCombat, worldObjectPosition, targetGuid);
             newMotion.DistanceFrom = distanceFrom;
             newMotion.MovementTypes = movementType;
