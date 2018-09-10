@@ -433,18 +433,6 @@ namespace ACE.Server.WorldObjects
 
 
         // ========================================
-        // =========== Model Properties ===========
-        // ========================================
-        // used in SerializeModelData()
-        [Obsolete]
-        private readonly List<ModelPalette> modelPalettes = new List<ModelPalette>();
-        [Obsolete]
-        private readonly List<ModelTexture> modelTextures = new List<ModelTexture>();
-        [Obsolete]
-        private readonly List<Model> models = new List<Model>();
-
-
-        // ========================================
         // ======== Physics Desc Properties =======
         // ========================================
         // used in CalculatedPhysicsDescriptionFlag()
