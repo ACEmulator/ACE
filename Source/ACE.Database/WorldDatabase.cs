@@ -15,7 +15,7 @@ using ACE.Entity.Enum;
 
 namespace ACE.Database
 {
-    public class WorldDatabase 
+    public class WorldDatabase
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -247,6 +247,18 @@ namespace ACE.Database
 
                     GetWeenie(context, result.ClassId);
                 }
+            }
+        }
+
+        public String GetScrollBySpellID(uint spellID)
+        {
+            using (var context = new WorldDbContext())
+            {
+                var result = from weenie in context.Weenie
+                             join did in context.WeeniePropertiesDID on weenie.ClassId equals did.ObjectId
+                             where weenie.Type == 34 && did.Type == 28 && did.Value == spellID
+                             select weenie;
+                return result.FirstOrDefault().ClassName;
             }
         }
 
