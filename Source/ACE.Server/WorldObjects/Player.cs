@@ -474,19 +474,6 @@ namespace ACE.Server.WorldObjects
 
  
         /// <summary>
-        /// Saves a CharacterPosition to the character position dictionary
-        /// </summary>
-        public void SetCharacterPosition(PositionType type, Position newPosition)
-        {
-            // todo: is this really needed?
-            // reset the landblock id
-            if (newPosition.LandblockId.Landblock == 0 && newPosition.Cell > 0)
-                newPosition.LandblockId = new LandblockId(newPosition.Cell);
-
-            SetPosition(type, newPosition);
-        }
-
-        /// <summary>
         /// Returns false if the player has chosen to Appear Offline.  Otherwise it will return their actual online status.
         /// </summary>
         public bool GetVirtualOnlineStatus()

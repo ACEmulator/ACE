@@ -667,7 +667,7 @@ namespace ACE.Server.Command.Handlers
                         Position playerPosition = (Position)session.Player.Location.Clone();
 
                         // Save the position
-                        session.Player.SetCharacterPosition(positionType, playerPosition);
+                        session.Player.SetPosition(positionType, playerPosition);
 
                         // Report changes to client
                         var positionMessage = new GameMessageSystemChat($"Set: {positionType} to Loc: {playerPosition}", ChatMessageType.Broadcast);
