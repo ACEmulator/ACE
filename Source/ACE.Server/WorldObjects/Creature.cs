@@ -214,10 +214,13 @@ namespace ACE.Server.WorldObjects
         /// <param name="sequence">Sequence for the object getting the message.</param>
         /// <param name="movementType">What type of movement are we about to execute</param>
         /// <param name="targetGuid">Who are we moving or turning toward</param>
-        public void OnAutonomousMove(ACE.Entity.Position worldObjectPosition, SequenceManager sequence, MovementTypes movementType, ObjectGuid targetGuid)
+        public void OnAutonomousMove(ACE.Entity.Position worldObjectPosition, SequenceManager sequence, MovementTypes movementType, ObjectGuid targetGuid, float distanceFrom = 0.60f)
         {
+            if (this is Player player)
+                player.Session.Network.EnqueueSend(new GameMessageSystemChat($"OnAutonomousMove - DistanceFrom: {distanceFrom}", ChatMessageType.Broadcast));
+
             UniversalMotion newMotion = new UniversalMotion(MotionStance.NonCombat, worldObjectPosition, targetGuid);
-            newMotion.DistanceFrom = 0.60f;
+            newMotion.DistanceFrom = distanceFrom;
             newMotion.MovementTypes = movementType;
             EnqueueBroadcast(new GameMessageUpdatePosition(this));
             EnqueueBroadcastMotion(newMotion);

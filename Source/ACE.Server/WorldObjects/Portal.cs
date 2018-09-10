@@ -123,6 +123,8 @@ namespace ACE.Server.WorldObjects
             MinLevel = MinLevel ?? 0;
             MaxLevel = MaxLevel ?? 0;
             PortalBitmask = PortalBitmask ?? 0;
+
+            // Ethereal = false;
         }
 
         public string AppraisalPortalDestination
@@ -325,6 +327,7 @@ namespace ACE.Server.WorldObjects
             if (worldObject is Player)
             {
                 var player = worldObject as Player;
+                player.Session.Network.EnqueueSend(new GameMessageSystemChat("Portal ActOnUse triggered", ChatMessageType.System));
                 player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session));
             }
         }

@@ -69,9 +69,9 @@ namespace ACE.Server.WorldObjects
                 }
 
                 if (targetObject.WeenieType == WeenieType.Portal)
-                    OnAutonomousMove(targetObject.Location, Sequences, MovementTypes.MoveToPosition, target);
+                    OnAutonomousMove(targetObject.Location, Sequences, MovementTypes.MoveToPosition, target, (float)targetObject.UseRadius);
                 else
-                    OnAutonomousMove(targetObject.Location, Sequences, MovementTypes.MoveToObject, target);
+                    OnAutonomousMove(targetObject.Location, Sequences, MovementTypes.MoveToObject, target, (float)targetObject.UseRadius);
             });
 
             // poll for arrival every .1 seconds
@@ -118,9 +118,9 @@ namespace ACE.Server.WorldObjects
                 }
 
                 if (target.WeenieType == WeenieType.Portal)
-                    OnAutonomousMove(target.Location, Sequences, MovementTypes.MoveToPosition, target.Guid);
+                    OnAutonomousMove(target.Location, Sequences, MovementTypes.MoveToPosition, target.Guid, (float)target.UseRadius);
                 else
-                    OnAutonomousMove(target.Location, Sequences, MovementTypes.MoveToObject, target.Guid);
+                    OnAutonomousMove(target.Location, Sequences, MovementTypes.MoveToObject, target.Guid, (float)target.UseRadius);
             });
 
             // poll for arrival every .1 seconds

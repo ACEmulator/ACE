@@ -1,6 +1,7 @@
+using System.Numerics;
 
 using ACE.Entity.Enum;
-using ACE.Server.Entity.Actions;
+using ACE.Server.Entity;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 
@@ -16,7 +17,15 @@ namespace ACE.Server.WorldObjects
 
         public bool IsWithinUseRadiusOf(WorldObject wo)
         {
-            return Location.SquaredDistanceTo(wo.Location) <= wo.UseRadiusSquared;
+            var originDist = Vector3.Distance(Location.ToGlobal(), wo.Location.ToGlobal());
+            var radSum = PhysicsObj.GetRadius() + wo.PhysicsObj.GetRadius();
+            var radDist = originDist - radSum;
+            var useRadius = wo.UseRadius;
+
+            if (this is Player player)
+                player.Session.Network.EnqueueSend(new GameMessageSystemChat($"OriginDist: {originDist}, RadDist: {radDist}, MyRadius: {PhysicsObj.GetRadius()}, TargetRadius: {wo.PhysicsObj.GetRadius()}, MyUseRadius: {UseRadius ?? 0}, TargetUseRadius: {wo.UseRadius ?? 0}", ChatMessageType.System));
+
+            return radDist <= useRadius;
         }
 
         /// <summary>
