@@ -1,6 +1,8 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using ACE.Database;
+using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Server.Factories;
@@ -11,7 +13,10 @@ namespace ACE.Server.WorldObjects
     {
         public List<LandblockInstance> LinkedInstances = new List<LandblockInstance>();
 
-        public virtual void ActivateLinks(List<LandblockInstance> sourceObjects)
+        public WorldObject ParentLink;
+        public List<WorldObject> ChildLinks = new List<WorldObject>();
+
+        public void ActivateLinks(List<LandblockInstance> sourceObjects, List<Biota> biotas)
         {
             if (LinkedInstances.Count == 0) return;
 
@@ -23,12 +28,31 @@ namespace ACE.Server.WorldObjects
 
             foreach (var link in LinkedInstances)
             {
-                var wo = WorldObjectFactory.CreateWorldObject(DatabaseManager.World.GetCachedWeenie(link.WeenieClassId), new ObjectGuid(link.Guid));
+                WorldObject wo = null;
+                var biota = biotas.FirstOrDefault(b => b.Id == link.Guid);
+                if (biota == null)
+                    wo = WorldObjectFactory.CreateWorldObject(DatabaseManager.World.GetCachedWeenie(link.WeenieClassId), new ObjectGuid(link.Guid));
+                else
+                {
+                    wo = WorldObjectFactory.CreateWorldObject(biota);
+                    //Console.WriteLine("Loaded child biota " + wo.Name);
+
+                    var hook = wo as Hook;
+                    if (hook != null)
+                    {
+                        hook.IsOpen = false;
+                        hook.SetItem();
+                    }
+                }
+
                 if (wo == null) continue;
 
                 wo.Location = new Position(link.ObjCellId, link.OriginX, link.OriginY, link.OriginZ, link.AnglesX, link.AnglesY, link.AnglesZ, link.AnglesW);
-                wo.ActivationTarget = Guid.Full;
+                SetLinkProperties(wo);
                 CurrentLandblock?.AddWorldObject(wo);
+
+                wo.ParentLink = this;
+                ChildLinks.Add(wo);
 
                 // process nested links recursively
                 foreach (var subLink in link.LandblockInstanceLink)
@@ -40,8 +64,14 @@ namespace ACE.Server.WorldObjects
                 }
 
                 if (wo.LinkedInstances.Count > 0)
-                    wo.ActivateLinks(sourceObjects);
+                    wo.ActivateLinks(sourceObjects, biotas);
             }
+        }
+
+        public virtual void SetLinkProperties(WorldObject wo)
+        {
+            // empty base
+            Console.WriteLine($"{Name}.SetLinkProperties({wo.Name}) called for unknown parent type: {WeenieType}");
         }
     }
 }

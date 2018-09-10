@@ -505,6 +505,24 @@ namespace ACE.Server.Physics
                 return 0;
         }
 
+        public float GetPhysicsRadius()
+        {
+            if (State.HasFlag(PhysicsState.HasPhysicsBSP))
+                return 0.0f;
+
+            if (PartArray.GetNumCylsphere() > 0)
+            {
+                var cylSpheres = PartArray.GetCylSphere();
+                return cylSpheres[0].Radius * Scale;
+            }
+            if (PartArray.GetNumSphere() > 0)
+            {
+                var spheres = PartArray.GetSphere();
+                return spheres[0].Radius * Scale;
+            }
+            return 0.0f;
+        }
+
         public Sphere GetSelectionSphere(Sphere selectionSphere)
         {
             if (PartArray != null)

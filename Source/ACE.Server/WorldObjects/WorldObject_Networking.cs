@@ -836,12 +836,12 @@ namespace ACE.Server.WorldObjects
                 if (!AutowieldLeft.HasValue)
                     AutowieldLeft = true;
 
-            // TODO: More uncommentting and wiring up for other flags
+            // TODO: More uncommenting and wiring up for other flags
             ////None                   = 0x00000000,
             ////Openable               = 0x00000001,
-            if (WeenieType == WeenieType.Container || WeenieType == WeenieType.Corpse || WeenieType == WeenieType.Chest)
+            if (WeenieType == WeenieType.Container || WeenieType == WeenieType.Corpse || WeenieType == WeenieType.Chest || WeenieType == WeenieType.Hook)
             {
-                if (!(IsLocked ?? false) && !(IsOpen ?? false))
+                if (!(IsLocked ?? false) && !(IsOpen ?? false) || WeenieType == WeenieType.Hook)
                     flag |= ObjectDescriptionFlag.Openable;
                 else
                     flag &= ~ObjectDescriptionFlag.Openable;

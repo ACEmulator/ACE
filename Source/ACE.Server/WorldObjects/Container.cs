@@ -119,6 +119,10 @@ namespace ACE.Server.WorldObjects
                 EncumbranceVal += container.EncumbranceVal; // This value includes the containers burden itself + all child items
                 Value += container.Value; // This value includes the containers value itself + all child items
             }
+
+            var hook = this as Hook;
+            if (hook != null)
+                hook.OnAddItem();
         }
 
         /// <summary>
@@ -300,6 +304,14 @@ namespace ACE.Server.WorldObjects
                     container = null;
                     return false;
                 }
+            }
+
+            var oldContainer = CurrentLandblock?.GetObject(worldObject.ContainerId ?? 0);
+            if (oldContainer != null)
+            {
+                var hook = oldContainer as Hook;
+                if (hook != null)
+                    hook.OnRemoveItem();
             }
 
             worldObject.OwnerId = Guid.Full;
@@ -531,6 +543,22 @@ namespace ACE.Server.WorldObjects
 
                 TryAddToInventory(wo);
             }
+        }
+
+        /// <summary>
+        /// This event is raised when player adds item to container
+        /// </summary>
+        public virtual void OnAddItem()
+        {
+            // empty base
+        }
+
+        /// <summary>
+        /// This event is raised when player removes item from container
+        /// </summary>
+        public virtual void OnRemoveItem()
+        {
+            // empty base
         }
     }
 }

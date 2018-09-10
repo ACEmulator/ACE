@@ -148,5 +148,10 @@ namespace ACE.Server.WorldObjects
             });
             switchTimer.EnqueueChain();
         }
+
+        public override void SetLinkProperties(WorldObject wo)
+        {
+            wo.ActivationTarget = Guid.Full;
+        }
     }
 }

@@ -20,6 +20,12 @@ namespace ACE.Server.Network.Structure
         public List<HousePayment> Rent; // The list of items required for paying rent on a house
         public Position Position;       // House location
 
+        public HouseData()
+        {
+            Buy = new List<HousePayment>();
+            Rent = new List<HousePayment>();
+        }
+
         /// <summary>
         /// Sets the list of items required to purchase this dwelling
         /// </summary>

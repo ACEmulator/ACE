@@ -1,52 +1,66 @@
 using System;
 using System.Collections.Generic;
-using System.Text;
-using ACE.Server.Network.Structure;
+using System.Linq;
+using ACE.Common;
 using ACE.Database;
+using ACE.Database.Models.Shard;
+using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
-using ACE.Database.Models.World;
-using ACE.Server.Factories;
-using ACE.Common;
+using ACE.Server.Network.Structure;
 
 namespace ACE.Server.WorldObjects
 {
-    public class House
+    public class House: WorldObject
     {
-        public HouseData HouseData;
-        public SlumLord SlumLord;
-        public Player Player;
+        public SlumLord SlumLord { get => (SlumLord)ChildLinks.FirstOrDefault(l => l as SlumLord != null); }
+        public List<Hook> Hooks { get => (List<Hook>)ChildLinks.Where(l => l as Hook != null); }
 
-        public House() { }
-
-        public House(uint slumlord_id, Player player)
+        /// <summary>
+        /// A new biota be created taking all of its values from weenie.
+        /// </summary>
+        public House(Weenie weenie, ObjectGuid guid) : base(weenie, guid)
         {
-            Player = player;
+            SetEphemeralValues();
+        }
 
-            var house = new HouseData();
+        /// <summary>
+        /// Restore a WorldObject from the database.
+        /// </summary>
+        public House(Biota biota) : base(biota)
+        {
+            SetEphemeralValues();
+        }
 
-            var instance = DatabaseManager.World.GetLandblockInstanceByGuid(slumlord_id);
+        private void SetEphemeralValues()
+        {
+        }
 
-            if (instance == null)
-                return;
+        /// <summary>
+        /// Builds a HouseData structure for this house
+        /// </summary>
+        public HouseData GetHouseData(Player owner)
+        {
+            var houseData = new HouseData();
+            houseData.Position = Location;
+            houseData.Type = HouseType.Cottage;
 
-            house.Position = new Position(instance.ObjCellId, instance.OriginX, instance.OriginY, instance.OriginZ, instance.AnglesX, instance.AnglesY, instance.AnglesZ, instance.AnglesW);
-            house.Type = HouseType.Cottage;
-
-            var SlumLord = (SlumLord)WorldObjectFactory.CreateNewWorldObject(instance.WeenieClassId);
             if (SlumLord == null)
             {
-                Console.WriteLine($"House constructor({slumlord_id:X8}): couldn't build slumlord");
-                return;
+                Console.WriteLine($"No slumlord found for {Name} ({Guid})");
+            }
+            else
+            {
+                houseData.SetBuyItems(SlumLord.GetBuyItems());
+                houseData.SetRentItems(SlumLord.GetRentItems());
             }
 
-            house.SetBuyItems(SlumLord.GetBuyItems());
-            house.SetRentItems(SlumLord.GetRentItems());
-
-            house.BuyTime = (uint)(player.HousePurchaseTimestamp ?? 0);
-            house.RentTime = GetRentTimestamp();
-
-            HouseData = house;
+            if (owner != null)
+            {
+                houseData.BuyTime = (uint)(owner.HousePurchaseTimestamp ?? 0);
+                houseData.RentTime = GetRentTimestamp(owner);
+            }
+            return houseData;
         }
 
         /// <summary>
@@ -57,10 +71,10 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Returns the beginning of the current maintenance period
         /// </summary>
-        public uint GetRentTimestamp()
+        public uint GetRentTimestamp(Player owner)
         {
             // get the purchaseTime -> currentTime offset
-            var purchaseTime = (uint)(Player.HousePurchaseTimestamp ?? 0);
+            var purchaseTime = (uint)(owner.HousePurchaseTimestamp ?? 0);
 
             var currentTime = (uint)Time.GetUnixTime();
             var offset = currentTime - purchaseTime;
@@ -71,6 +85,15 @@ namespace ACE.Server.WorldObjects
 
             // return beginning of current period
             return purchaseTime + (rentIntervalSecs * periods);
+        }
+
+        public override void SetLinkProperties(WorldObject wo)
+        {
+            wo.HouseId = HouseId;
+            wo.HouseOwner = HouseOwner;
+            wo.HouseInstance = HouseInstance;
+
+            //Console.WriteLine($"{Name}.SetLinkProperties({wo.Name}) - houseID: {HouseId}, owner: {HouseOwner}, instance: {HouseInstance}");
         }
     }
 }

@@ -99,8 +99,12 @@ namespace ACE.Server.Factories
                     return new Hotspot(weenie, guid);
                 case WeenieType.ManaStone:
                     return new ManaStone(weenie, guid);
+                case WeenieType.House:
+                    return new House(weenie, guid);
                 case WeenieType.SlumLord:
                     return new SlumLord(weenie, guid);
+                case WeenieType.Hook:
+                    return new Hook(weenie, guid);
                 case WeenieType.HousePortal:
                     return new WorldObjects.HousePortal(weenie, guid);
                 default:
@@ -188,8 +192,12 @@ namespace ACE.Server.Factories
                     return new Hotspot(biota);
                 case WeenieType.ManaStone:
                     return new ManaStone(biota);
+                case WeenieType.House:
+                    return new House(biota);
                 case WeenieType.SlumLord:
                     return new SlumLord(biota);
+                case WeenieType.Hook:
+                    return new Hook(biota);
                 case WeenieType.HousePortal:
                     return new WorldObjects.HousePortal(biota);
                 default:
@@ -200,7 +208,7 @@ namespace ACE.Server.Factories
         /// <summary>
         /// This will create a list of WorldObjects, all with new GUIDs and for every position provided.
         /// </summary>
-        public static List<WorldObject> CreateNewWorldObjects(List<LandblockInstance> sourceObjects)
+        public static List<WorldObject> CreateNewWorldObjects(List<LandblockInstance> sourceObjects, List<Biota> biotas, uint? restrictGuid = null)
         {
             var results = new List<WorldObject>();
 
@@ -212,9 +220,21 @@ namespace ACE.Server.Factories
                 if (weenie == null)
                     continue;
 
+                if (restrictGuid != null && restrictGuid.Value != instance.Guid)
+                    continue;
+
                 var guid = new ObjectGuid(instance.Guid);
 
-                var worldObject = CreateWorldObject(weenie, guid);
+                WorldObject worldObject;
+
+                var biota = biotas.FirstOrDefault(b => b.Id == instance.Guid);
+                if (biota == null)
+                    worldObject = CreateWorldObject(weenie, guid);
+                else
+                {
+                    worldObject = CreateWorldObject(biota);
+                    //Console.WriteLine("Loaded biota " + worldObject.Name);
+                }
 
                 if (worldObject != null)
                 {

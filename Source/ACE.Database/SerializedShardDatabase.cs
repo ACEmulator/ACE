@@ -237,6 +237,21 @@ namespace ACE.Database
 
         }
 
+        public Biota GetObjectByGuid(uint guid)
+        {
+            return _wrappedDatabase.GetObjectByGuid(guid);
+        }
+
+        public List<Biota> GetObjectsByLandblock(ushort landblockId)
+        {
+            return _wrappedDatabase.GetObjectsByLandblockInParallel(landblockId);
+        }
+
+        public List<Biota> GetStaticObjectsByLandblock(ushort landblockId)
+        {
+            return _wrappedDatabase.GetStaticObjectsByLandblockInParallel(landblockId);
+        }
+
         public void GetObjectsByLandblock(ushort landblockId, Action<List<Biota>> callback)
         {
             _queue.Add(new Task(() =>
