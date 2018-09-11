@@ -95,6 +95,7 @@ namespace ACE.DatLoader
             }
             return thestring;
         }
+ 
         /// <summary>
         /// Returns a Vector3 object read out as 3 floats, x y z
         /// </summary>

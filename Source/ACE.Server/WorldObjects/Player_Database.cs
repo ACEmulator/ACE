@@ -96,18 +96,5 @@ namespace ACE.Server.WorldObjects
 
             DatabaseManager.Shard.SaveCharacter(Character, CharacterDatabaseLock, null);
         }
-
-        /// <summary>
-        /// This will set the LastRequestedDatabaseSave to UtcNow and ChangesDetected to false.<para />
-        /// If enqueueSave is set to true, DatabaseManager.Shard.SaveBiota() will be called for the biota.<para />
-        /// Set enqueueSave to false if you want to perform all the normal routines for a save but not the actual save. This is useful if you're going to collect biotas in bulk for bulk saving.
-        /// </summary>
-        public override void SaveBiotaToDatabase(bool enqueueSave = true)
-        {
-            // Save the current position to persistent storage, only during the server update interval
-            SetPhysicalCharacterPosition();
-
-            base.SaveBiotaToDatabase(enqueueSave);
-        }
     }
 }

@@ -402,7 +402,8 @@ namespace ACE.Server.Command.Handlers
                 }
 
                 // If we have the position, teleport the player
-                if (session.Player.Positions.ContainsKey(positionType))
+                var position = session.Player.GetPosition(positionType);
+                if (position != null)
                 {
                     session.Player.TeleToPosition(positionType);
                     var positionMessage = new GameMessageSystemChat($"Recalling to {positionType}", ChatMessageType.Broadcast);
@@ -597,7 +598,7 @@ namespace ACE.Server.Command.Handlers
                 }
 
                 // Save the position
-                session.Player.SetCharacterPosition(positionType, (Position)playerPosition.Clone());
+                session.Player.SetPosition(positionType, (Position)playerPosition.Clone());
                 // Report changes to client
                 var positionMessage = new GameMessageSystemChat($"Set: {positionType} to Loc: {playerPosition}", ChatMessageType.Broadcast);
                 session.Network.EnqueueSend(positionMessage);
