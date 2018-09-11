@@ -773,7 +773,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Persistent boolean value that tracks whether an equipped item is affecting (the item's spells are in effect and its mana is burning) or not.
         /// </summary>
-        public virtual bool? IsAffecting
+        public bool? IsAffecting
         {
             get => GetProperty(PropertyBool.IsAffecting);
             set
@@ -851,7 +851,7 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyInt.MaxStructure); else SetProperty(PropertyInt.MaxStructure, value.Value); }
         }
 
-        public virtual ushort? StackSize
+        public ushort? StackSize
         {
             get => (ushort?)GetProperty(PropertyInt.StackSize);
             set { if (!value.HasValue) RemoveProperty(PropertyInt.StackSize); else SetProperty(PropertyInt.StackSize, value.Value); }
@@ -1894,13 +1894,13 @@ namespace ACE.Server.WorldObjects
         //    set { SetProperty(PropertyInt.AvailableCharacter, value); }
         //}
 
-        public virtual int? StackUnitValue
+        public int? StackUnitValue
         {
             get => GetProperty(PropertyInt.StackUnitValue);
             set { if (!value.HasValue) RemoveProperty(PropertyInt.StackUnitValue); else SetProperty(PropertyInt.StackUnitValue, value.Value); }
         }
 
-        public virtual int? StackUnitEncumbrance
+        public int? StackUnitEncumbrance
         {
             get => GetProperty(PropertyInt.StackUnitEncumbrance);
             set { if (!value.HasValue) RemoveProperty(PropertyInt.StackUnitEncumbrance); else SetProperty(PropertyInt.StackUnitEncumbrance, value.Value); }
@@ -2163,7 +2163,7 @@ namespace ACE.Server.WorldObjects
         // ========================================
         //= ======== Position Properties ==========
         // ========================================
-        public virtual Position Location
+        public Position Location
         {
             get => GetPosition(PositionType.Location);
             set => SetPosition(PositionType.Location, value);
