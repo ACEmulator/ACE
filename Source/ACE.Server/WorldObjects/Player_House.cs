@@ -241,7 +241,7 @@ namespace ACE.Server.WorldObjects
             var houseGuid = HouseInstance.Value;
             var landblock = (ushort)((houseGuid >> 12) & 0xFFFF);
 
-            var biota = DatabaseManager.Shard.GetObjectByGuid(houseGuid);
+            var biota = DatabaseManager.Shard.GetBiota(houseGuid);
             var instances = DatabaseManager.World.GetCachedInstancesByLandblock(landblock);
 
             if (instances == null || instances.Count == 0 || biota == null)

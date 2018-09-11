@@ -387,15 +387,6 @@ namespace ACE.Database
             return wieldedItems.ToList();
         }
 
-        public Biota GetObjectByGuid(uint guid)
-        {
-            using (var context = new ShardDbContext())
-            {
-                context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
-                return context.Biota.FirstOrDefault(b => b.Id == guid);
-            }
-        }
-
         public List<Biota> GetObjectsByLandblockInParallel(ushort landblockId)
         {
             var decayables = new ConcurrentBag<Biota>();

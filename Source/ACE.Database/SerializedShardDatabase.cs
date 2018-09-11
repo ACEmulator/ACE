@@ -90,7 +90,12 @@ namespace ACE.Database
         }
 
 
-         public void GetBiota(uint id, Action<Biota> callback)
+        public Biota GetBiota(uint id)
+        {
+            return _wrappedDatabase.GetBiota(id);
+        }
+
+        public void GetBiota(uint id, Action<Biota> callback)
         {
             _queue.Add(new Task(() =>
             {
@@ -235,11 +240,6 @@ namespace ACE.Database
                 callback?.Invoke(c);
             }));
 
-        }
-
-        public Biota GetObjectByGuid(uint guid)
-        {
-            return _wrappedDatabase.GetObjectByGuid(guid);
         }
 
         public List<Biota> GetObjectsByLandblock(ushort landblockId)
