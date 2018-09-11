@@ -564,6 +564,9 @@ namespace ACE.Server.WorldObjects
                             else
                             {
                                 //We're not who has it open. Can't pick up something someone else is viewing!
+
+                                //TODO: These messages are what I remember of retail. I was unable to confirm or deny with PCAPs
+                                //TODO: This will likley need revisited at some point to align with retail
                                 Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(Session, WeenieErrorWithString.The_IsCurrentlyInUse, itemToPickup.Name));
                                 Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, WeenieError.Stuck));
                                 return;
