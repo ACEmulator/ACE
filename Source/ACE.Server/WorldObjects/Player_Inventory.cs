@@ -492,7 +492,7 @@ namespace ACE.Server.WorldObjects
             bool containerOwnedByPlayer = true;
 
             Container container;
-
+            
             if (containerGuid == Guid)
                 container = this; // Destination is main pack
             else
@@ -519,7 +519,7 @@ namespace ACE.Server.WorldObjects
             }
 
             var item = GetInventoryItem(itemGuid) ?? GetWieldedItem(itemGuid);
-
+                        
             if (item != null)
             {
                 IsAttuned(itemGuid, out bool isAttuned);
@@ -544,6 +544,37 @@ namespace ACE.Server.WorldObjects
             // Is this something I already have? If not, it has to be a pickup - do the pickup and out.
             if (item == null)
             {
+                var itemToPickup = CurrentLandblock?.GetObject(itemGuid);
+
+                if (itemToPickup != null)
+                {
+                    //Checking to see if item to pick is an container itself
+                    if (itemToPickup.WeenieType == WeenieType.Container)
+                    {
+                        //Check to see if the container is open
+                        if (itemToPickup.IsOpen ?? false)
+                        {
+                            var containerToPickup = CurrentLandblock?.GetObject(itemGuid) as Container;
+
+                            if (containerToPickup.Viewer == Session.Player.Guid.Full)
+                            {
+                                //We're the one that has it open. Close it before picking it up
+                                containerToPickup.Close(Session.Player);
+                            }
+                            else
+                            {
+                                //We're not who has it open. Can't pick up something someone else is viewing!
+
+                                //TODO: These messages are what I remember of retail. I was unable to confirm or deny with PCAPs
+                                //TODO: This will likley need revisited at some point to align with retail
+                                Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(Session, WeenieErrorWithString.The_IsCurrentlyInUse, itemToPickup.Name));
+                                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, WeenieError.Stuck));
+                                return;
+                            }
+                        }
+                    }
+                }
+
                 // This is a pickup into our main pack.
                 PickupItemWithNetworking(container, itemGuid, placement, PropertyInstanceId.Container);
                 return;
