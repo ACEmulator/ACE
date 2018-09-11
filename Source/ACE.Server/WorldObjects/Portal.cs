@@ -175,7 +175,7 @@ namespace ACE.Server.WorldObjects
 
         public bool NoTie => NoRecall;
 
-        public virtual void OnCollideObject(Player player)
+        private void ActivatePortal(Player player)
         {
             string serverMessage;
 
@@ -314,6 +314,11 @@ namespace ACE.Server.WorldObjects
             }
         }
 
+        public virtual void OnCollideObject(Player player)
+        {
+            ActivatePortal(player);
+        }
+
         /// <summary>
         /// This is raised by Player.HandleActionUseItem.<para />
         /// The item does not exist in the players possession.<para />
@@ -322,9 +327,11 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public override void ActOnUse(WorldObject worldObject)
         {
-            if (worldObject is Player)
+            if (worldObject is Player player)
             {
-                var player = worldObject as Player;
+                if (ReportCollisions == false)
+                    ActivatePortal(player);
+
                 player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session));
             }
         }

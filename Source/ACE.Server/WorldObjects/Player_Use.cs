@@ -28,7 +28,7 @@ namespace ACE.Server.WorldObjects
             Interlocked.Increment(ref moveToChainCounter);
         }
 
-        private ActionChain CreateMoveToChain(ObjectGuid target, float distance, out int thisMoveToChainNumber)
+        private ActionChain CreateMoveToChain(ObjectGuid target, out int thisMoveToChainNumber)
         {
             thisMoveToChainNumber = GetNextMoveToChainNumber();
 
@@ -69,9 +69,9 @@ namespace ACE.Server.WorldObjects
                 }
 
                 if (targetObject.WeenieType == WeenieType.Portal)
-                    OnAutonomousMove(targetObject.Location, Sequences, MovementTypes.MoveToPosition, target);
+                    OnAutonomousMove(targetObject.Location, Sequences, MovementTypes.MoveToPosition, target, (targetObject.UseRadius ?? 0));
                 else
-                    OnAutonomousMove(targetObject.Location, Sequences, MovementTypes.MoveToObject, target);
+                    OnAutonomousMove(targetObject.Location, Sequences, MovementTypes.MoveToObject, target, (targetObject.UseRadius ?? 0));
             });
 
             // poll for arrival every .1 seconds
@@ -103,7 +103,7 @@ namespace ACE.Server.WorldObjects
             return moveToChain;
         }
 
-        private ActionChain CreateMoveToChain(WorldObject target, float distance, out int thisMoveToChainNumber)
+        private ActionChain CreateMoveToChain(WorldObject target, out int thisMoveToChainNumber)
         {
             thisMoveToChainNumber = GetNextMoveToChainNumber();
 
@@ -118,9 +118,9 @@ namespace ACE.Server.WorldObjects
                 }
 
                 if (target.WeenieType == WeenieType.Portal)
-                    OnAutonomousMove(target.Location, Sequences, MovementTypes.MoveToPosition, target.Guid);
+                    OnAutonomousMove(target.Location, Sequences, MovementTypes.MoveToPosition, target.Guid, (target.UseRadius ?? 0));
                 else
-                    OnAutonomousMove(target.Location, Sequences, MovementTypes.MoveToObject, target.Guid);
+                    OnAutonomousMove(target.Location, Sequences, MovementTypes.MoveToObject, target.Guid, (target.UseRadius ?? 0));
             });
 
             // poll for arrival every .1 seconds
@@ -257,7 +257,7 @@ namespace ACE.Server.WorldObjects
 
                 if (!IsWithinUseRadiusOf(item))
                 {
-                    var moveToChain = CreateMoveToChain(item, item.UseRadiusSquared, out var thisMoveToChainNumber);
+                    var moveToChain = CreateMoveToChain(item, out var thisMoveToChainNumber);
 
                     actionChain.AddChain(moveToChain);
                     actionChain.AddDelaySeconds(0.50);

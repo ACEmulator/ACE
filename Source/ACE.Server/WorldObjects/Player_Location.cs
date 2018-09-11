@@ -1,4 +1,5 @@
 using System;
+
 using ACE.Database;
 using ACE.Database.Models.World;
 using ACE.DatLoader;
@@ -7,7 +8,6 @@ using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity.Actions;
-using ACE.Server.Managers;
 using ACE.Server.Network;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Motion;
@@ -21,14 +21,15 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Teleports the player to position
         /// </summary>
-        /// <param name="position">PositionType to be teleported to</param>
+        /// <param name="positionType">PositionType to be teleported to</param>
         /// <returns>true on success (position is set) false otherwise</returns>
-        public bool TeleToPosition(PositionType position)
+        public bool TeleToPosition(PositionType positionType)
         {
-            if (Positions.ContainsKey(position))
+            var position = GetPosition(positionType);
+
+            if (position != null)
             {
-                Position dest = Positions[position];
-                Teleport(dest);
+                Teleport(position);
                 return true;
             }
 

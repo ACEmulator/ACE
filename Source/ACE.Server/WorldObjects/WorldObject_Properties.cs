@@ -23,29 +23,29 @@ namespace ACE.Server.WorldObjects
     // todo: When we're confident a set of functions, or a group of properties are "final", we can wrap them in a region
     partial class WorldObject
     {
-        public Dictionary<PropertyBool, bool?> EphemeralPropertyBools = new Dictionary<PropertyBool, bool?>();
-        public Dictionary<PropertyDataId, uint?> EphemeralPropertyDataIds = new Dictionary<PropertyDataId, uint?>();
-        public Dictionary<PropertyFloat, double?> EphemeralPropertyFloats = new Dictionary<PropertyFloat, double?>();
-        public Dictionary<PropertyInstanceId, uint?> EphemeralPropertyInstanceIds = new Dictionary<PropertyInstanceId, uint?>();
-        public Dictionary<PropertyInt, int?> EphemeralPropertyInts = new Dictionary<PropertyInt, int?>();
-        public Dictionary<PropertyInt64, long?> EphemeralPropertyInt64s = new Dictionary<PropertyInt64, long?>();
-        public Dictionary<PropertyString, string> EphemeralPropertyStrings = new Dictionary<PropertyString, string>();
+        private readonly Dictionary<PropertyBool, bool?> ephemeralPropertyBools = new Dictionary<PropertyBool, bool?>();
+        private readonly Dictionary<PropertyDataId, uint?> ephemeralPropertyDataIds = new Dictionary<PropertyDataId, uint?>();
+        private readonly Dictionary<PropertyFloat, double?> ephemeralPropertyFloats = new Dictionary<PropertyFloat, double?>();
+        private readonly Dictionary<PropertyInstanceId, uint?> ephemeralPropertyInstanceIds = new Dictionary<PropertyInstanceId, uint?>();
+        private readonly Dictionary<PropertyInt, int?> ephemeralPropertyInts = new Dictionary<PropertyInt, int?>();
+        private readonly Dictionary<PropertyInt64, long?> ephemeralPropertyInt64s = new Dictionary<PropertyInt64, long?>();
+        private readonly Dictionary<PropertyString, string> ephemeralPropertyStrings = new Dictionary<PropertyString, string>();
 
         #region GetProperty Functions
-        public bool? GetProperty(PropertyBool property) { if (EphemeralPropertyBools.TryGetValue(property, out var value)) return value; return Biota.GetProperty(property, BiotaDatabaseLock); }
-        public uint? GetProperty(PropertyDataId property) { if (EphemeralPropertyDataIds.TryGetValue(property, out var value)) return value; return Biota.GetProperty(property, BiotaDatabaseLock); }
-        public double? GetProperty(PropertyFloat property) { if (EphemeralPropertyFloats.TryGetValue(property, out var value)) return value; return Biota.GetProperty(property, BiotaDatabaseLock); }
-        public uint? GetProperty(PropertyInstanceId property) { if (EphemeralPropertyInstanceIds.TryGetValue(property, out var value)) return value; return Biota.GetProperty(property, BiotaDatabaseLock); }
-        public int? GetProperty(PropertyInt property) { if (EphemeralPropertyInts.TryGetValue(property, out var value)) return value; return Biota.GetProperty(property, BiotaDatabaseLock); }
-        public long? GetProperty(PropertyInt64 property) { if (EphemeralPropertyInt64s.TryGetValue(property, out var value)) return value; return Biota.GetProperty(property, BiotaDatabaseLock); }
-        public string GetProperty(PropertyString property) { if (EphemeralPropertyStrings.TryGetValue(property, out var value)) return value; return Biota.GetProperty(property, BiotaDatabaseLock); }
+        public bool? GetProperty(PropertyBool property) { if (ephemeralPropertyBools.TryGetValue(property, out var value)) return value; return Biota.GetProperty(property, BiotaDatabaseLock); }
+        public uint? GetProperty(PropertyDataId property) { if (ephemeralPropertyDataIds.TryGetValue(property, out var value)) return value; return Biota.GetProperty(property, BiotaDatabaseLock); }
+        public double? GetProperty(PropertyFloat property) { if (ephemeralPropertyFloats.TryGetValue(property, out var value)) return value; return Biota.GetProperty(property, BiotaDatabaseLock); }
+        public uint? GetProperty(PropertyInstanceId property) { if (ephemeralPropertyInstanceIds.TryGetValue(property, out var value)) return value; return Biota.GetProperty(property, BiotaDatabaseLock); }
+        public int? GetProperty(PropertyInt property) { if (ephemeralPropertyInts.TryGetValue(property, out var value)) return value; return Biota.GetProperty(property, BiotaDatabaseLock); }
+        public long? GetProperty(PropertyInt64 property) { if (ephemeralPropertyInt64s.TryGetValue(property, out var value)) return value; return Biota.GetProperty(property, BiotaDatabaseLock); }
+        public string GetProperty(PropertyString property) { if (ephemeralPropertyStrings.TryGetValue(property, out var value)) return value; return Biota.GetProperty(property, BiotaDatabaseLock); }
         #endregion
 
         #region SetProperty Functions
         public void SetProperty(PropertyBool property, bool value)
         {
-            if (EphemeralPropertyBools.ContainsKey(property))
-                EphemeralPropertyBools[property] = value;
+            if (ephemeralPropertyBools.ContainsKey(property))
+                ephemeralPropertyBools[property] = value;
             else
             {
                 Biota.SetProperty(property, value, BiotaDatabaseLock, out var biotaChanged);
@@ -55,8 +55,8 @@ namespace ACE.Server.WorldObjects
         }
         public void SetProperty(PropertyDataId property, uint value)
         {
-            if (EphemeralPropertyDataIds.ContainsKey(property))
-                EphemeralPropertyDataIds[property] = value;
+            if (ephemeralPropertyDataIds.ContainsKey(property))
+                ephemeralPropertyDataIds[property] = value;
             else
             {
                 Biota.SetProperty(property, value, BiotaDatabaseLock, out var biotaChanged);
@@ -66,8 +66,8 @@ namespace ACE.Server.WorldObjects
         }
         public void SetProperty(PropertyFloat property, double value)
         {
-            if (EphemeralPropertyFloats.ContainsKey(property))
-                EphemeralPropertyFloats[property] = value;
+            if (ephemeralPropertyFloats.ContainsKey(property))
+                ephemeralPropertyFloats[property] = value;
             else
             {
                 Biota.SetProperty(property, value, BiotaDatabaseLock, out var biotaChanged);
@@ -77,8 +77,8 @@ namespace ACE.Server.WorldObjects
         }
         public void SetProperty(PropertyInstanceId property, uint value)
         {
-            if (EphemeralPropertyInstanceIds.ContainsKey(property))
-                EphemeralPropertyInstanceIds[property] = value;
+            if (ephemeralPropertyInstanceIds.ContainsKey(property))
+                ephemeralPropertyInstanceIds[property] = value;
             else
             {
                 Biota.SetProperty(property, value, BiotaDatabaseLock, out var biotaChanged);
@@ -88,8 +88,8 @@ namespace ACE.Server.WorldObjects
         }
         public void SetProperty(PropertyInt property, int value)
         {
-            if (EphemeralPropertyInts.ContainsKey(property))
-                EphemeralPropertyInts[property] = value;
+            if (ephemeralPropertyInts.ContainsKey(property))
+                ephemeralPropertyInts[property] = value;
             else
             {
                 Biota.SetProperty(property, value, BiotaDatabaseLock, out var biotaChanged);
@@ -99,8 +99,8 @@ namespace ACE.Server.WorldObjects
         }
         public void SetProperty(PropertyInt64 property, long value)
         {
-            if (EphemeralPropertyInt64s.ContainsKey(property))
-                EphemeralPropertyInt64s[property] = value;
+            if (ephemeralPropertyInt64s.ContainsKey(property))
+                ephemeralPropertyInt64s[property] = value;
             else
             {
                 Biota.SetProperty(property, value, BiotaDatabaseLock, out var biotaChanged);
@@ -110,8 +110,8 @@ namespace ACE.Server.WorldObjects
         }
         public void SetProperty(PropertyString property, string value)
         {
-            if (EphemeralPropertyStrings.ContainsKey(property))
-                EphemeralPropertyStrings[property] = value;
+            if (ephemeralPropertyStrings.ContainsKey(property))
+                ephemeralPropertyStrings[property] = value;
             else
             {
                 Biota.SetProperty(property, value, BiotaDatabaseLock, out var biotaChanged);
@@ -124,50 +124,50 @@ namespace ACE.Server.WorldObjects
         #region RemoveProperty Functions
         public void RemoveProperty(PropertyBool property)
         {
-            if (EphemeralPropertyBools.ContainsKey(property))
-                EphemeralPropertyBools[property] = null;
+            if (ephemeralPropertyBools.ContainsKey(property))
+                ephemeralPropertyBools[property] = null;
             else if (Biota.TryRemoveProperty(property, out _, BiotaDatabaseLock))
                 ChangesDetected = true;
         }
         public void RemoveProperty(PropertyDataId property)
         {
-            if (EphemeralPropertyDataIds.ContainsKey(property))
-                EphemeralPropertyDataIds[property] = null;
+            if (ephemeralPropertyDataIds.ContainsKey(property))
+                ephemeralPropertyDataIds[property] = null;
             else if (Biota.TryRemoveProperty(property, out _, BiotaDatabaseLock))
                 ChangesDetected = true;
         }
         public void RemoveProperty(PropertyFloat property)
         {
-            if (EphemeralPropertyFloats.ContainsKey(property))
-                EphemeralPropertyFloats[property] = null;
+            if (ephemeralPropertyFloats.ContainsKey(property))
+                ephemeralPropertyFloats[property] = null;
             else if (Biota.TryRemoveProperty(property, out _, BiotaDatabaseLock))
                 ChangesDetected = true;
         }
         public void RemoveProperty(PropertyInstanceId property)
         {
-            if (EphemeralPropertyInstanceIds.ContainsKey(property))
-                EphemeralPropertyInstanceIds[property] = null;
+            if (ephemeralPropertyInstanceIds.ContainsKey(property))
+                ephemeralPropertyInstanceIds[property] = null;
             else if (Biota.TryRemoveProperty(property, out _, BiotaDatabaseLock))
                 ChangesDetected = true;
         }
         public void RemoveProperty(PropertyInt property)
         {
-            if (EphemeralPropertyInts.ContainsKey(property))
-                EphemeralPropertyInts[property] = null;
+            if (ephemeralPropertyInts.ContainsKey(property))
+                ephemeralPropertyInts[property] = null;
             else if (Biota.TryRemoveProperty(property, out _, BiotaDatabaseLock))
                 ChangesDetected = true;
         }
         public void RemoveProperty(PropertyInt64 property)
         {
-            if (EphemeralPropertyInt64s.ContainsKey(property))
-                EphemeralPropertyInt64s[property] = null;
+            if (ephemeralPropertyInt64s.ContainsKey(property))
+                ephemeralPropertyInt64s[property] = null;
             else if (Biota.TryRemoveProperty(property, out _, BiotaDatabaseLock))
                 ChangesDetected = true;
         }
         public void RemoveProperty(PropertyString property)
         {
-            if (EphemeralPropertyStrings.ContainsKey(property))
-                EphemeralPropertyStrings[property] = null;
+            if (ephemeralPropertyStrings.ContainsKey(property))
+                ephemeralPropertyStrings[property] = null;
             else if (Biota.TryRemoveProperty(property, out _, BiotaDatabaseLock))
                 ChangesDetected = true;
         }
@@ -189,7 +189,7 @@ namespace ACE.Server.WorldObjects
                 BiotaDatabaseLock.ExitReadLock();
             }
 
-            foreach (var property in EphemeralPropertyBools)
+            foreach (var property in ephemeralPropertyBools)
                 if (property.Value.HasValue)
                     results[property.Key] = (bool)property.Value;
 
@@ -211,7 +211,7 @@ namespace ACE.Server.WorldObjects
                 BiotaDatabaseLock.ExitReadLock();
             }
 
-            foreach (var property in EphemeralPropertyDataIds)
+            foreach (var property in ephemeralPropertyDataIds)
                 if (property.Value.HasValue)
                     results[property.Key] = (uint)property.Value;
 
@@ -233,7 +233,7 @@ namespace ACE.Server.WorldObjects
                 BiotaDatabaseLock.ExitReadLock();
             }
 
-            foreach (var property in EphemeralPropertyFloats)
+            foreach (var property in ephemeralPropertyFloats)
                 if (property.Value.HasValue)
                     results[property.Key] = (double)property.Value;
 
@@ -255,7 +255,7 @@ namespace ACE.Server.WorldObjects
                 BiotaDatabaseLock.ExitReadLock();
             }
 
-            foreach (var property in EphemeralPropertyInstanceIds)
+            foreach (var property in ephemeralPropertyInstanceIds)
                 if (property.Value.HasValue)
                     results[property.Key] = (uint)property.Value;
 
@@ -277,7 +277,7 @@ namespace ACE.Server.WorldObjects
                 BiotaDatabaseLock.ExitReadLock();
             }
 
-            foreach (var property in EphemeralPropertyInts)
+            foreach (var property in ephemeralPropertyInts)
                 if (property.Value.HasValue)
                     results[property.Key] = (int)property.Value;
 
@@ -299,7 +299,7 @@ namespace ACE.Server.WorldObjects
                 BiotaDatabaseLock.ExitReadLock();
             }
 
-            foreach (var property in EphemeralPropertyInt64s)
+            foreach (var property in ephemeralPropertyInt64s)
                 if (property.Value.HasValue)
                     results[property.Key] = (long)property.Value;
 
@@ -321,7 +321,7 @@ namespace ACE.Server.WorldObjects
                 BiotaDatabaseLock.ExitReadLock();
             }
 
-            foreach (var property in EphemeralPropertyStrings)
+            foreach (var property in ephemeralPropertyStrings)
                 if (property.Value != null)
                     results[property.Key] = property.Value;
 
@@ -330,45 +330,56 @@ namespace ACE.Server.WorldObjects
         #endregion
 
 
-        //public Dictionary<PositionType, Position> Positions { get; set; } = new Dictionary<PositionType, Position>();
+        /// <summary>
+        /// Do not reference this directly.<para />
+        /// This should only be referenced by GetPosition, SetPosition, RemovePosition and SaveBiotaToDatabase.
+        /// </summary>
+        private readonly Dictionary<PositionType, Position> positionCache = new Dictionary<PositionType, Position>();
 
-        // this is just temp so code compiles, remove it later
-        // maybe this is a temp.. I haven't reviewed all of our position code yet. I don't know if we create a wrapper around the biota position table, or cache into a dictionary here
-        // maybe we also need ephemeral positions..
-        // What i want to avoid is duplicating data. If the biota is the authority, we can create a wrapper class like WorldObjectPosition that takes in the biota position record as a ctor (similar to CreatureAttribute, CreatureSkill, etc..)
-        public Dictionary<PositionType, Position> Positions = new Dictionary<PositionType, Position>();
-
-        public Position GetPosition(PositionType positionType) // { return Biota.GetPosition(positionType); }
+        public Position GetPosition(PositionType positionType)
         {
-            bool success = Positions.TryGetValue(positionType, out var ret);
+            bool success = positionCache.TryGetValue(positionType, out var ret);
 
             if (!success)
             {
                 var result = Biota.GetPosition(positionType, BiotaDatabaseLock);
 
                 if (result != null)
-                    Positions.TryAdd(positionType, result);
+                    positionCache.TryAdd(positionType, result);
 
                 return result;
             }
 
-            //if (!success)
-            //{
-            //    return null;
-            //}
             return ret;
         }
 
-        public void SetPosition(PositionType positionType, Position position) // { Biota.SetPosition(positionType, position); }
+        public Dictionary<PositionType, Position> GetPositions()
+        {
+            foreach (var position in Biota.GetPositions(BiotaDatabaseLock))
+            {
+                // We only add new positions. We don't overwrite existing cached positions
+                if (!positionCache.ContainsKey(position.Key))
+                    positionCache[position.Key] = position.Value;
+            }
+
+            return new Dictionary<PositionType, Position>(positionCache);
+        }
+
+        /// <summary>
+        /// !!! VERY IMPORTANT NOTE REGARDING SetPosition !!!<para />
+        /// Position objects are reference types. Lets say you want to create a new object and give it the location of a player,
+        /// If you do LandscapeItem.SetPosition(PositionType.Location, Player.Location), you've now set the Location position
+        /// for both the player and the LandscapeItem to the same exact object. Modifying one will affect the other.<para />
+        /// The proper way to would be: LandscapeItem.SetPosition(PositionType.Location, (Position)Player.Location.Clone())<para />
+        /// Any time you want to set a position of a different PositionType, or, positions between WorldObjects, you should use the above Clone method.
+        /// </summary>
+        public void SetPosition(PositionType positionType, Position position)
         {
             if (position == null)
                 RemovePosition(positionType);
             else
             {
-                if (!Positions.ContainsKey(positionType))
-                    Positions.TryAdd(positionType, position);
-                else
-                    Positions[positionType] = position;
+                positionCache[positionType] = position;
 
                 Biota.SetPosition(positionType, position, BiotaDatabaseLock, out var biotaChanged);
                 if (biotaChanged)
@@ -378,7 +389,7 @@ namespace ACE.Server.WorldObjects
 
         public void RemovePosition(PositionType positionType)
         {
-            Positions.Remove(positionType);
+            positionCache.Remove(positionType);
 
             if (Biota.TryRemovePosition(positionType, out _, BiotaDatabaseLock))
                 ChangesDetected = true;
@@ -430,18 +441,6 @@ namespace ACE.Server.WorldObjects
 
 
         // ========================================
-        // =========== Model Properties ===========
-        // ========================================
-        // used in SerializeModelData()
-        [Obsolete]
-        private readonly List<ModelPalette> modelPalettes = new List<ModelPalette>();
-        [Obsolete]
-        private readonly List<ModelTexture> modelTextures = new List<ModelTexture>();
-        [Obsolete]
-        private readonly List<Model> models = new List<Model>();
-
-
-        // ========================================
         // ======== Physics Desc Properties =======
         // ========================================
         // used in CalculatedPhysicsDescriptionFlag()
@@ -452,22 +451,6 @@ namespace ACE.Server.WorldObjects
         {
             get => (Placement?)GetProperty(PropertyInt.Placement);
             set { if (!value.HasValue) RemoveProperty(PropertyInt.Placement); else SetProperty(PropertyInt.Placement, (int)value.Value); }
-        }
-
-        public virtual Position Location
-        {
-            get => GetPosition(PositionType.Location);
-            set => SetPosition(PositionType.Location, value);
-            //set
-            //{
-            //    /*
-            //    log.Debug($"{Name} moved to {Position}");
-            //    Position = value;
-            //    */
-            //    if (GetPosition(PositionType.Location) != null)
-            //        LastUpdatedTicks = WorldManager.PortalYearTicks;
-            //    SetPosition(PositionType.Location, value);
-            //}
         }
 
         public float Height => PhysicsObj != null ? PhysicsObj.GetHeight() : 0.0f;
@@ -790,7 +773,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Persistent boolean value that tracks whether an equipped item is affecting (the item's spells are in effect and its mana is burning) or not.
         /// </summary>
-        public virtual bool? IsAffecting
+        public bool? IsAffecting
         {
             get => GetProperty(PropertyBool.IsAffecting);
             set
@@ -868,7 +851,7 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyInt.MaxStructure); else SetProperty(PropertyInt.MaxStructure, value.Value); }
         }
 
-        public virtual ushort? StackSize
+        public ushort? StackSize
         {
             get => (ushort?)GetProperty(PropertyInt.StackSize);
             set { if (!value.HasValue) RemoveProperty(PropertyInt.StackSize); else SetProperty(PropertyInt.StackSize, value.Value); }
@@ -1911,13 +1894,13 @@ namespace ACE.Server.WorldObjects
         //    set { SetProperty(PropertyInt.AvailableCharacter, value); }
         //}
 
-        public virtual int? StackUnitValue
+        public int? StackUnitValue
         {
             get => GetProperty(PropertyInt.StackUnitValue);
             set { if (!value.HasValue) RemoveProperty(PropertyInt.StackUnitValue); else SetProperty(PropertyInt.StackUnitValue, value.Value); }
         }
 
-        public virtual int? StackUnitEncumbrance
+        public int? StackUnitEncumbrance
         {
             get => GetProperty(PropertyInt.StackUnitEncumbrance);
             set { if (!value.HasValue) RemoveProperty(PropertyInt.StackUnitEncumbrance); else SetProperty(PropertyInt.StackUnitEncumbrance, value.Value); }
@@ -2180,61 +2163,53 @@ namespace ACE.Server.WorldObjects
         // ========================================
         //= ======== Position Properties ==========
         // ========================================
-        //public Position Location
-        //{
-        //    get { return GetPosition(PositionType.Location); }
-        //    set { SetPosition(PositionType.Location, value); }
-        //}
-
+        public Position Location
+        {
+            get => GetPosition(PositionType.Location);
+            set => SetPosition(PositionType.Location, value);
+        }
 
         public Position Destination
         {
             get { return GetPosition(PositionType.Destination); }
             set { SetPosition(PositionType.Destination, value); }
         }
-
         
         public Position Instantiation
         {
             get { return GetPosition(PositionType.Instantiation); }
             set { SetPosition(PositionType.Instantiation, value); }
         }
-
-        
+       
         public Position Sanctuary
         {
             get { return GetPosition(PositionType.Sanctuary); }
             set { SetPosition(PositionType.Sanctuary, value); }
         }
-
         
         public Position Home
         {
             get { return GetPosition(PositionType.Home); }
             set { SetPosition(PositionType.Home, value); }
         }
-
         
         public Position ActivationMove
         {
             get { return GetPosition(PositionType.ActivationMove); }
             set { SetPosition(PositionType.ActivationMove, value); }
         }
-
         
         public Position Target
         {
             get { return GetPosition(PositionType.Target); }
             set { SetPosition(PositionType.Target, value); }
         }
-
         
         public Position LinkedPortalOne
         {
             get { return GetPosition(PositionType.LinkedPortalOne); }
             set { SetPosition(PositionType.LinkedPortalOne, value); }
         }
-
         
         public Position LastPortal
         {
@@ -2242,126 +2217,108 @@ namespace ACE.Server.WorldObjects
             set { SetPosition(PositionType.LastPortal, value); }
         }
 
-        
         public Position PortalStorm
         {
             get { return GetPosition(PositionType.PortalStorm); }
             set { SetPosition(PositionType.PortalStorm, value); }
         }
 
-        
         public Position CrashAndTurn
         {
             get { return GetPosition(PositionType.CrashAndTurn); }
             set { SetPosition(PositionType.CrashAndTurn, value); }
         }
 
-        
         public Position PortalSummonLoc
         {
             get { return GetPosition(PositionType.PortalSummonLoc); }
             set { SetPosition(PositionType.PortalSummonLoc, value); }
         }
 
-        
         public Position HouseBoot
         {
             get { return GetPosition(PositionType.HouseBoot); }
             set { SetPosition(PositionType.HouseBoot, value); }
         }
 
-        
         public Position LastOutsideDeath
         {
             get { return GetPosition(PositionType.LastOutsideDeath); }
             set { SetPosition(PositionType.LastOutsideDeath, value); }
         }
 
-        
         public Position LinkedLifestone
         {
             get { return GetPosition(PositionType.LinkedLifestone); }
             set { SetPosition(PositionType.LinkedLifestone, value); }
         }
 
-        
         public Position LinkedPortalTwo
         {
             get { return GetPosition(PositionType.LinkedPortalTwo); }
             set { SetPosition(PositionType.LinkedPortalTwo, value); }
         }
 
-        
         public Position Save1
         {
             get { return GetPosition(PositionType.Save1); }
             set { SetPosition(PositionType.Save1, value); }
         }
 
-        
         public Position Save2
         {
             get { return GetPosition(PositionType.Save2); }
             set { SetPosition(PositionType.Save2, value); }
         }
 
-        
         public Position Save3
         {
             get { return GetPosition(PositionType.Save3); }
             set { SetPosition(PositionType.Save3, value); }
         }
 
-        
         public Position Save4
         {
             get { return GetPosition(PositionType.Save4); }
             set { SetPosition(PositionType.Save4, value); }
         }
 
-        
         public Position Save5
         {
             get { return GetPosition(PositionType.Save5); }
             set { SetPosition(PositionType.Save5, value); }
         }
 
-        
         public Position Save6
         {
             get { return GetPosition(PositionType.Save6); }
             set { SetPosition(PositionType.Save6, value); }
         }
 
-        
         public Position Save7
         {
             get { return GetPosition(PositionType.Save7); }
             set { SetPosition(PositionType.Save7, value); }
         }
 
-        
         public Position Save8
         {
             get { return GetPosition(PositionType.Save8); }
             set { SetPosition(PositionType.Save8, value); }
         }
 
-        
         public Position Save9
         {
             get { return GetPosition(PositionType.Save9); }
             set { SetPosition(PositionType.Save9, value); }
         }
 
-        
         public Position RelativeDestination
         {
             get { return GetPosition(PositionType.RelativeDestination); }
             set { SetPosition(PositionType.RelativeDestination, value); }
         }
 
-        
         public Position TeleportedCharacter
         {
             get { return GetPosition(PositionType.TeleportedCharacter); }

@@ -635,7 +635,7 @@ namespace ACE.Server.Command.Handlers
         [CommandHandler("listpositions", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Displays all available saved character positions from the database.", "@listpositions")]
         public static void HandleListPositions(Session session, params string[] parameters)
         {
-            var posDict = session.Player.Positions;
+            var posDict = session.Player.GetPositions();
             string message = "Saved character positions:\n";
 
             foreach (var posPair in posDict)
@@ -647,7 +647,7 @@ namespace ACE.Server.Command.Handlers
         }
 
         /// <summary>
-        /// Debug command to save the player's current location as sepecific position type.
+        /// Debug command to save the player's current location as specific position type.
         /// </summary>
         [CommandHandler("setposition", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Saves the supplied character position type to the database.", "uint 1-27\n" + "@setposition 1")]
         public static void HandleSetPosition(Session session, params string[] parameters)
@@ -667,7 +667,7 @@ namespace ACE.Server.Command.Handlers
                         Position playerPosition = (Position)session.Player.Location.Clone();
 
                         // Save the position
-                        session.Player.SetCharacterPosition(positionType, playerPosition);
+                        session.Player.SetPosition(positionType, playerPosition);
 
                         // Report changes to client
                         var positionMessage = new GameMessageSystemChat($"Set: {positionType} to Loc: {playerPosition}", ChatMessageType.Broadcast);

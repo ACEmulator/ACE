@@ -189,7 +189,7 @@ namespace ACE.Server.WorldObjects
             ActionChain pickUpItemChain = new ActionChain();
 
             // Move to the object
-            pickUpItemChain.AddChain(CreateMoveToChain(itemGuid, PickUpDistance, out var thisMoveToChainNumber));
+            pickUpItemChain.AddChain(CreateMoveToChain(itemGuid, out var thisMoveToChainNumber));
 
             // Pick up the object
             // Start pickup animation
@@ -1132,25 +1132,25 @@ namespace ACE.Server.WorldObjects
             // giver rotates to receiver
             var rotateDelay = Rotate(target);
 
-            var giveChain = new ActionChain();
-            giveChain.AddDelaySeconds(rotateDelay);
+            var actionChain = new ActionChain();
+            actionChain.AddChain(CreateMoveToChain(targetID, out var thisMoveToChainNumber));
 
             if (target is Player)
-            {
-                giveChain.AddAction(this, () => GiveObjecttoPlayer(target as Player, item, (ushort)amount));
-
-                giveChain.EnqueueChain();
-            }
+                actionChain.AddAction(this, () => GiveObjecttoPlayer(target as Player, item, (ushort)amount));
             else
             {
-                var receiveChain = new ActionChain();
-                receiveChain.AddDelaySeconds(rotateDelay);
+                actionChain.AddAction(this, () =>
+                {
+                    var giveChain = new ActionChain();
+                    var receiveChain = new ActionChain();
 
-                GiveObjecttoNPC(target, item, amount, giveChain, receiveChain);
+                    GiveObjecttoNPC(target, item, amount, giveChain, receiveChain);
 
-                giveChain.EnqueueChain();
-                receiveChain.EnqueueChain();
+                    giveChain.EnqueueChain();
+                    receiveChain.EnqueueChain();
+                });
             }
+            actionChain.EnqueueChain();
         }
 
         /// <summary>

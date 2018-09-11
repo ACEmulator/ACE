@@ -111,6 +111,28 @@ namespace ACE.Database.Models.Shard
             }
         }
 
+        public static Dictionary<PositionType, Position> GetPositions(this Biota biota, ReaderWriterLockSlim rwLock)
+        {
+            rwLock.EnterReadLock();
+            try
+            {
+                var results = new Dictionary<PositionType, Position>();
+
+                foreach (var value in biota.BiotaPropertiesPosition)
+                {
+                    var position = new Position(value.ObjCellId, value.OriginX, value.OriginY, value.OriginZ, value.AnglesX, value.AnglesY, value.AnglesZ, value.AnglesW);
+
+                    results.Add((PositionType)value.PositionType, position);
+                }
+
+                return results;
+            }
+            finally
+            {
+                rwLock.ExitReadLock();
+            }
+        }
+
         public static string GetProperty(this Biota biota, PropertyString property, ReaderWriterLockSlim rwLock)
         {
             rwLock.EnterReadLock();
