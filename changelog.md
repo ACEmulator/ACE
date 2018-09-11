@@ -4,6 +4,7 @@
  - Prevent players from picking up containers on the landscape that are being viewed by other players
  - Resolve bug where picking up an open pack caused it to remain locked and unusable
 
+ ### 2018-09-09
 [mcreedjr]
 * Revised pass at secure trade
   - Added motion commands for turn to and approach
