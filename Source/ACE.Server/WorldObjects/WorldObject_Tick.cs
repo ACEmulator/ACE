@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 
-using ACE.Common;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity.Actions;
 
@@ -10,20 +9,28 @@ namespace ACE.Server.WorldObjects
     {
         private readonly ActionQueue actionQueue = new ActionQueue();
 
-        private readonly int defaultHeartbeatInterval = 5;
+        private const int DefaultHeartbeatInterval = 5;
 
-        public virtual void Tick(double lastTickDuration)
+        private double? cachedHeartbeatTimestamp;
+        private double cachedHeartbeatInterval;
+
+        public virtual void Tick(double lastTickDuration, double currentUnixTime)
         {
             actionQueue.RunActions();
 
-            if (HeartbeatTimestamp == null || HeartbeatTimestamp + (HeartbeatInterval ?? defaultHeartbeatInterval) <= Time.GetUnixTime())
-                HeartBeat();
+            if (cachedHeartbeatTimestamp == null)
+            {
+                cachedHeartbeatInterval = HeartbeatInterval ?? DefaultHeartbeatInterval;
+                HeartBeat(currentUnixTime);
+            }
+            else if (cachedHeartbeatTimestamp + cachedHeartbeatInterval <= currentUnixTime)
+                HeartBeat(currentUnixTime);
         }
 
         /// <summary>
         /// Called every ~5 seconds for WorldObject base
         /// </summary>
-        public virtual void HeartBeat()
+        public virtual void HeartBeat(double currentUnixTime)
         {
             Generator_HeartBeat();
 
@@ -31,7 +38,8 @@ namespace ACE.Server.WorldObjects
 
             EnchantmentManager.HeartBeat();
 
-            SetProperty(PropertyFloat.HeartbeatTimestamp, Time.GetUnixTime());
+            cachedHeartbeatTimestamp = currentUnixTime;
+            SetProperty(PropertyFloat.HeartbeatTimestamp, currentUnixTime);
         }
 
         /// <summary>

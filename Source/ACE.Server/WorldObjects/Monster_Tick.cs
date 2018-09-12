@@ -11,7 +11,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Primary dispatch for monster think
         /// </summary>
-        private void Monster_Tick(double lastTickDuration)
+        private void Monster_Tick(double lastTickDuration, double currentUnixTime)
         {
             if (lastMonsterTick + monsterTickInterval > DateTime.UtcNow)
                 return;

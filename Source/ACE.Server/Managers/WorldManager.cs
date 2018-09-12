@@ -510,7 +510,7 @@ namespace ACE.Server.Managers
                 var activeLandblocks = LandblockManager.GetActiveLandblocks();
 
                 foreach (var landblock in activeLandblocks)
-                    landblock.Tick(lastTickDuration);
+                    landblock.Tick(lastTickDuration, Time.GetUnixTime());
 
                 // clean up inactive landblocks
                 LandblockManager.UnloadLandblocks();
