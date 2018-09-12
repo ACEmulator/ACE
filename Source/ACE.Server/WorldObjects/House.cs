@@ -15,6 +15,7 @@ namespace ACE.Server.WorldObjects
     {
         public SlumLord SlumLord { get => (SlumLord)ChildLinks.FirstOrDefault(l => l as SlumLord != null); }
         public List<Hook> Hooks { get => (List<Hook>)ChildLinks.Where(l => l as Hook != null); }
+        public List<Storage> Storage { get => (List<Storage>)ChildLinks.Where(l => l as Storage != null); }
 
         /// <summary>
         /// A new biota be created taking all of its values from weenie.

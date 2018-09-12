@@ -3,6 +3,7 @@ using System.Linq;
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.Entity;
+using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 
 namespace ACE.Server.WorldObjects
@@ -12,6 +13,8 @@ namespace ACE.Server.WorldObjects
     /// </summary>
     public class Hook : Container
     {
+        public House House { get => ParentLink as House; }
+
         /// <summary>
         /// Default hook profiles
         /// </summary>
@@ -47,6 +50,16 @@ namespace ACE.Server.WorldObjects
         public override void ActOnUse(WorldObject worldObject)
         {
             //Console.WriteLine($"Hook.ActOnUse({worldObject.Name})");
+            var player = worldObject as Player;
+            if (player == null) return;
+
+            // verify permissions to use hook
+            if (HouseOwner == null || HouseOwner.Value != player.Guid.Full)
+            {
+                player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, $"The {Name} is locked"));
+                player.SendUseDoneEvent();
+                return;
+            }
             base.ActOnUse(worldObject);
         }
 

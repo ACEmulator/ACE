@@ -36,13 +36,6 @@ namespace ACE.Server.WorldObjects
                 {
                     wo = WorldObjectFactory.CreateWorldObject(biota);
                     //Console.WriteLine("Loaded child biota " + wo.Name);
-
-                    var hook = wo as Hook;
-                    if (hook != null)
-                    {
-                        hook.IsOpen = false;
-                        hook.SetItem();
-                    }
                 }
 
                 if (wo == null) continue;

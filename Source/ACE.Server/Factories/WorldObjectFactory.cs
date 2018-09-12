@@ -103,6 +103,8 @@ namespace ACE.Server.Factories
                     return new House(weenie, guid);
                 case WeenieType.SlumLord:
                     return new SlumLord(weenie, guid);
+                case WeenieType.Storage:
+                    return new Storage(weenie, guid);
                 case WeenieType.Hook:
                     return new Hook(weenie, guid);
                 case WeenieType.HousePortal:
@@ -196,6 +198,8 @@ namespace ACE.Server.Factories
                     return new House(biota);
                 case WeenieType.SlumLord:
                     return new SlumLord(biota);
+                case WeenieType.Storage:
+                    return new Storage(biota);
                 case WeenieType.Hook:
                     return new Hook(biota);
                 case WeenieType.HousePortal:
