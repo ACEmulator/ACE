@@ -39,14 +39,14 @@ namespace ACE.Server.WorldObjects
         private double? ResetTimestamp
         {
             get { return resetTimestamp; }
-            set { resetTimestamp = Time.GetTimestamp(); }
+            set { resetTimestamp = Time.GetUnixTime(); }
         }
 
         private double? useTimestamp;
         private double? UseTimestamp
         {
             get { return useTimestamp; }
-            set { useTimestamp = Time.GetTimestamp(); }
+            set { useTimestamp = Time.GetUnixTime(); }
         }
 
         /// <summary>

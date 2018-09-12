@@ -4,22 +4,20 @@ namespace ACE.Common
 {
     public class Time
     {
-        public static ulong GetUnixTime() { return (ulong)(DateTime.UtcNow.Subtract(new DateTime(1970, 1, 1))).TotalSeconds; }
+        private static readonly DateTime unixEpoch = new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc);
 
-        public static double GetTimestamp()
+        public static double GetUnixTime()
         {
-            TimeSpan span = (DateTime.UtcNow - new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc));
-            double timestamp = span.TotalSeconds;
+            TimeSpan span = (DateTime.UtcNow - unixEpoch);
 
-            return timestamp;
+            return span.TotalSeconds;
         }
 
-        public static double GetFutureTimestamp(double seconds)
+        public static double GetFutureUnixTime(double seconds)
         {
-            TimeSpan span = (DateTime.UtcNow.AddSeconds(seconds) - new DateTime(1970, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc));
-            double timestamp = span.TotalSeconds;
+            TimeSpan span = (DateTime.UtcNow.AddSeconds(seconds) - unixEpoch);
 
-            return timestamp;
+            return span.TotalSeconds;
         }
     }
 }

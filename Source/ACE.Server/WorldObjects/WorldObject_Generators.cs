@@ -108,7 +108,7 @@ namespace ACE.Server.WorldObjects
                 if (GeneratorRegistry.Count < InitGeneratedObjects && (CurrentlyPoweringUp ?? false))
                 {
                     // initial spawn delay
-                    queue.SpawnTime = Time.GetFutureTimestamp(GeneratorInitialDelay ?? 0);
+                    queue.SpawnTime = Time.GetFutureUnixTime(GeneratorInitialDelay ?? 0);
                 }
                 else
                 {
@@ -120,7 +120,7 @@ namespace ACE.Server.WorldObjects
                     var regenTime = Physics.Common.Random.RollDice(minRegenTime, (float)maxRegenTime);
                     //Console.WriteLine($"QueueGenerator({Name}): RegenerationInterval: {regenInterval} - Delay: {delay} - RegenTime: {regenTime}");
 
-                    queue.SpawnTime = Time.GetFutureTimestamp(regenTime);
+                    queue.SpawnTime = Time.GetFutureUnixTime(regenTime);
                 }
 
                 // System.Diagnostics.Debug.WriteLine($"Adding {queue.Slot} @ {queue.When} to GeneratorQueue for {Guid.Full}");
@@ -137,7 +137,7 @@ namespace ACE.Server.WorldObjects
             var index = 0;
             while (index < GeneratorQueue.Count)
             {
-                var currentTime = Time.GetTimestamp();
+                var currentTime = Time.GetUnixTime();
                 if (currentTime < GeneratorQueue[index].SpawnTime)
                 {
                     // not time to spawn yet
@@ -158,7 +158,7 @@ namespace ACE.Server.WorldObjects
                 var rNode = new GeneratorRegistryNode();
 
                 rNode.WeenieClassId = profile.WeenieClassId;
-                rNode.Timestamp = Time.GetTimestamp();
+                rNode.Timestamp = Time.GetUnixTime();
                 rNode.Slot = GeneratorQueue[index].Slot;
 
                 var isTreasure = false;
@@ -446,7 +446,7 @@ namespace ACE.Server.WorldObjects
         {
             var currentState = GeneratorDisabled ?? false;
 
-            var now = (int)Time.GetTimestamp();
+            var now = (int)Time.GetUnixTime();
 
             GeneratorDisabled = !(now >= (GeneratorStartTime ?? 0) && (GeneratorEndTime ?? 0) >= now);
 

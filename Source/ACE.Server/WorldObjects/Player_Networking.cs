@@ -20,7 +20,7 @@ namespace ACE.Server.WorldObjects
             IsOnline = true;
 
             // Save the the LoginTimestamp
-            var lastLoginTimestamp = Time.GetTimestamp();
+            var lastLoginTimestamp = Time.GetUnixTime();
 
             SetProperty(PropertyFloat.LoginTimestamp, lastLoginTimestamp);
 

@@ -16,7 +16,7 @@ namespace ACE.Server.WorldObjects
         {
             actionQueue.RunActions();
 
-            if (HeartbeatTimestamp == null || HeartbeatTimestamp + (HeartbeatInterval ?? defaultHeartbeatInterval) <= Time.GetTimestamp())
+            if (HeartbeatTimestamp == null || HeartbeatTimestamp + (HeartbeatInterval ?? defaultHeartbeatInterval) <= Time.GetUnixTime())
                 HeartBeat();
         }
 
@@ -31,7 +31,7 @@ namespace ACE.Server.WorldObjects
 
             EnchantmentManager.HeartBeat();
 
-            SetProperty(PropertyFloat.HeartbeatTimestamp, Time.GetTimestamp());
+            SetProperty(PropertyFloat.HeartbeatTimestamp, Time.GetUnixTime());
         }
 
         /// <summary>

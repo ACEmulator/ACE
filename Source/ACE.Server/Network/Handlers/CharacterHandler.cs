@@ -361,7 +361,7 @@ namespace ACE.Server.Network.Handlers
 
             player.SetProperty(PropertyBool.Attackable, true);
 
-            player.SetProperty(PropertyFloat.CreationTimestamp, Time.GetTimestamp());
+            player.SetProperty(PropertyFloat.CreationTimestamp, Time.GetUnixTime());
             player.SetProperty(PropertyInt.CreationTimestamp, (int)player.GetProperty(PropertyFloat.CreationTimestamp));
             player.SetProperty(PropertyString.DateOfBirth, $"{DateTime.UtcNow:dd MMMM yyyy}");
 
@@ -591,7 +591,7 @@ namespace ACE.Server.Network.Handlers
 
             session.Network.EnqueueSend(new GameMessageCharacterDelete());
 
-            character.DeleteTime = Time.GetUnixTime() + 3600ul;
+            character.DeleteTime = (ulong)Time.GetUnixTime() + 3600ul;
             character.IsDeleted = false;
 
             DatabaseManager.Shard.SaveCharacter(character, new ReaderWriterLockSlim(), result =>
