@@ -98,42 +98,33 @@ namespace ACE.Server.WorldObjects
 
         public uint CalculateManaUsage(Creature caster, SpellBase spell, WorldObject target = null)
         {
-            var items = new List<WorldObject>();
+            uint mana_conversion_skill = caster.GetCreatureSkill(Skill.ManaConversion).Current;
+            uint difficulty = Math.Max(25, spell.Power);     // for mana conversion only?
 
-            if ((target as Player) != null)
-                items = (target as Player).GetAllWieldedItems();
+            double baseManaPercent = 1.0;
+            if (mana_conversion_skill > difficulty)
+                baseManaPercent = (double)difficulty / mana_conversion_skill;
 
-            CreatureSkill mc = caster.GetCreatureSkill(Skill.ManaConversion);
-            double z = mc.Current;
-            double baseManaPercent = 1;
-            if (z > spell.Power)
+            uint preCost = 0;
+
+            if ((spell.School == MagicSchool.ItemEnchantment) && (spell.MetaSpellType == SpellType.Enchantment))
             {
-                baseManaPercent = spell.Power / z;
-            }
-            double preCost = 0;
-            uint manaUsed = 0;
-            if ((int)Math.Floor(baseManaPercent) == 1)
-            {
-                preCost = spell.BaseMana;
-                manaUsed = (uint)preCost;
+                var targetPlayer = target as Player;
+
+                int numTargetItems = 1;
+                if (targetPlayer != null)
+                {
+                    var targetItems = targetPlayer.GetAllWieldedItems();
+                    numTargetItems = targetItems.Count;
+                }
+                preCost = (uint)Math.Round((spell.BaseMana + (spell.ManaMod * numTargetItems)) * baseManaPercent);
             }
             else
-            {
-                if ((spell.School == MagicSchool.ItemEnchantment) && (spell.MetaSpellType == SpellType.Enchantment))
-                {
-                    int count = 1;
-                    if ((target as Player) != null)
-                        count = items.Count;
+                preCost = (uint)Math.Round(spell.BaseMana * baseManaPercent);
 
-                    preCost = (spell.BaseMana + (spell.ManaMod * items.Count)) * baseManaPercent;
-                }
-                else
-                    preCost = spell.BaseMana * baseManaPercent;
-                if (preCost < 1)
-                    preCost = 1;
-                manaUsed = (uint)Physics.Common.Random.RollDice(1, (int)preCost);
-            }
+            if (preCost < 1) preCost = 1;
 
+            uint manaUsed = Physics.Common.Random.RollDice(1, preCost);
             return manaUsed;
         }
     }

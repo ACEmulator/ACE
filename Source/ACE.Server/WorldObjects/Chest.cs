@@ -137,9 +137,9 @@ namespace ACE.Server.WorldObjects
         /// Used for unlocking a chest via lockpick, so contains a skill check
         /// player.Skills[Skill.Lockpick].Current should be sent for the skill check
         /// </summary>
-        public UnlockResults Unlock(uint playerLockpickSkillLvl)
+        public UnlockResults Unlock(uint playerLockpickSkillLvl, ref int difficulty)
         {
-            return LockHelper.Unlock(this, playerLockpickSkillLvl);
+            return LockHelper.Unlock(this, playerLockpickSkillLvl, ref difficulty);
         }
 
         /// <summary>

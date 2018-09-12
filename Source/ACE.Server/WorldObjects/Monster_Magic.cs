@@ -150,7 +150,7 @@ namespace ACE.Server.WorldObjects
                 case MagicSchool.LifeMagic:
 
                     resisted = ResistSpell(target, spellBase);
-                    if (!targetSelf && (resisted == true))break;
+                    if (!targetSelf && (resisted == true)) break;
                     if (resisted == null)
                     {
                         log.Error("Something went wrong with the Magic resistance check");

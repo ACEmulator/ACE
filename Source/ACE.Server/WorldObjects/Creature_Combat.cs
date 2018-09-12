@@ -277,6 +277,21 @@ namespace ACE.Server.WorldObjects
                 return 1.0f;
         }
 
+        /// <summary>
+        /// Returns the pre-MoA skill for a non-player creature
+        /// </summary>
+        public virtual Skill GetCurrentWeaponSkill()
+        {
+            var weapon = GetEquippedWeapon();
+            if (weapon == null) return Skill.UnarmedCombat;
+
+            var skill = (Skill)(weapon.GetProperty(PropertyInt.WieldSkilltype) ?? 0);
+            //Console.WriteLine("Monster weapon skill: " + skill);
+
+            return skill == Skill.None ? Skill.UnarmedCombat : skill;
+        }
+
+
         private static double MinAttackSpeed = 0.5;
         private static double MaxAttackSpeed = 2.0;
 
@@ -296,6 +311,22 @@ namespace ACE.Server.WorldObjects
             var animSpeed = (float)Math.Clamp((1.0 / divisor), MinAttackSpeed, MaxAttackSpeed);
 
             return animSpeed;
+        }
+
+        /// <summary>
+        /// Called when a creature evades an attack
+        /// </summary>
+        public virtual void OnEvade(WorldObject attacker, AttackType attackType)
+        {
+            // empty base for non-player creatures?
+        }
+
+        /// <summary>
+        /// Called when a creature hits a target
+        /// </summary>
+        public virtual void OnDamageTarget(WorldObject target, AttackType attackType)
+        {
+            // empty base for non-player creatures?
         }
 
         /// <summary>
@@ -370,6 +401,10 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public float GetShieldMod(WorldObject attacker, DamageType damageType)
         {
+            // ensure combat stance
+            if (CombatMode == CombatMode.NonCombat)
+                return 1.0f;
+
             // does the player have a shield equipped?
             var shield = GetEquippedShield();
             if (shield == null) return 1.0f;

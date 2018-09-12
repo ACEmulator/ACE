@@ -4,6 +4,7 @@ using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
@@ -77,7 +78,8 @@ namespace ACE.Server.WorldObjects
             var targetName = healer == target ? "yourself" : target.Name;
 
             // skill check
-            var skillCheck = DoSkillCheck(healer, target);
+            var difficulty = 0;
+            var skillCheck = DoSkillCheck(healer, target, ref difficulty);
             if (!skillCheck)
             {
                 var failMsg = new GameMessageSystemChat($"You fail to heal {targetName}. {remainingMsg}", ChatMessageType.Broadcast);
@@ -95,6 +97,9 @@ namespace ACE.Server.WorldObjects
             healer.UpdateVitalDelta(healer.Stamina, (int)(-staminaCost));
             target.UpdateVitalDelta(target.Health, healAmount);
             target.DamageHistory.OnHeal(healAmount);
+
+            var healingSkill = healer.GetCreatureSkill(Skill.Healing);
+            Proficiency.OnSuccessUse(healer, healingSkill, (uint)difficulty);
 
             var updateHealth = new GameMessagePrivateUpdateAttribute2ndLevel(target, Vital.Health, target.Health.Current);
             var crit = critical ? "expertly " : "";
@@ -118,7 +123,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Determines if healer successfully heals target for attempt
         /// </summary>
-        public bool DoSkillCheck(Player healer, Player target)
+        public bool DoSkillCheck(Player healer, Player target, ref int difficulty)
         {
             // skill check:
             // (healing skill + healing kit boost) * trainedMod
@@ -129,7 +134,7 @@ namespace ACE.Server.WorldObjects
             var combatMod = healer.CombatMode == CombatMode.NonCombat ? 1.0f : 1.1f;
 
             var effectiveSkill = (int)Math.Round(healingSkill.Current + (Boost ?? 0) * trainedMod);
-            var difficulty = (int)Math.Round((target.Health.MaxValue - target.Health.Current) * 2 * combatMod);
+            difficulty = (int)Math.Round((target.Health.MaxValue - target.Health.Current) * 2 * combatMod);
 
             var skillCheck = SkillCheck.GetSkillChance(effectiveSkill, difficulty);
             return skillCheck >= Physics.Common.Random.RollDice(0.0f, 1.0f);
