@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+
+using ACE.Server.Entity;
 using ACE.Server.Physics.Common;
 
 namespace ACE.Server.Physics

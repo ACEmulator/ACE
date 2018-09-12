@@ -2,7 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+
 using ACE.Entity.Enum;
+using ACE.Server.Entity;
 using ACE.Server.Physics.Animation;
 using ACE.Server.Physics.Collision;
 using ACE.Server.Physics.Combat;
@@ -10,7 +12,10 @@ using ACE.Server.Physics.Common;
 using ACE.Server.Physics.Extensions;
 using ACE.Server.Physics.Hooks;
 using ACE.Server.WorldObjects;
+
 using log4net;
+
+using Landblock = ACE.Server.Physics.Common.Landblock;
 using ObjectGuid = ACE.Entity.ObjectGuid;
 
 namespace ACE.Server.Physics

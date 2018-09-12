@@ -119,7 +119,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void StartMove()
         {
-            LastMoveTime = Physics.Common.Timer.CurrentTime;
+            LastMoveTime = Timer.CurrentTime;
             IsMoving = true;
         }
 

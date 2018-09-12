@@ -1,4 +1,6 @@
 using System.Numerics;
+
+using ACE.Server.Entity;
 using ACE.Server.Physics.Common;
 
 namespace ACE.Server.Physics.Combat

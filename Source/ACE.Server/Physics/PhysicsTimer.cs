@@ -1,4 +1,4 @@
-using ACE.Server.Physics.Common;
+using ACE.Server.Entity;
 
 namespace ACE.Server.Physics
 {

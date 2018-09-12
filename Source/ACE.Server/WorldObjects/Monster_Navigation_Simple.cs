@@ -43,7 +43,7 @@ namespace ACE.Server.WorldObjects
             if (!IsRanged)
             {
                 UpdatePosition();
-                LastMoveTime = Physics.Common.Timer.CurrentTime;
+                LastMoveTime = Timer.CurrentTime;
             }
 
             if (IsAttackRange())
@@ -59,7 +59,7 @@ namespace ACE.Server.WorldObjects
         public void UpdatePositionSimple()
         {
             // determine the time interval for this movement
-            var deltaTime = (float)(Physics.Common.Timer.CurrentTime - LastMoveTime);
+            var deltaTime = (float)(Timer.CurrentTime - LastMoveTime);
             if (deltaTime > 2.0f) return;   // FIXME: state persist?
 
             var dir = Vector3.Normalize(AttackTarget.Location.ToGlobal() - Location.ToGlobal());

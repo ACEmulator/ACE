@@ -2,7 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
-using ACE.Server.Physics.Collision;
+
+using ACE.Server.Entity;
 using ACE.Server.Physics.Combat;
 using ACE.Server.Physics.Common;
 
