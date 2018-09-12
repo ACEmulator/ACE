@@ -80,7 +80,7 @@ namespace ACE.Server.Physics
         public bool CollidingWithEnvironment;
         public int[] UpdateTimes;
         public PhysicsObj ProjectileTarget;
-        public PhysicsTimer PhysicsTimer;
+        public double PhysicsTimer_CurrentTime;
         public bool DatObject = false;
 
         // server
@@ -135,7 +135,7 @@ namespace ACE.Server.Physics
             CellArray = new CellArray();
             UpdateTime = Timer.CurrentTime;
             UpdateTimes = new int[UpdateTimeLength];
-            PhysicsTimer = new PhysicsTimer();
+            PhysicsTimer_CurrentTime = Timer.CurrentTime;
             WeenieObj = new WeenieObject();
             ObjMaint = new ObjectMaint(this);
 
@@ -269,7 +269,7 @@ namespace ACE.Server.Physics
             }
             var upperBound = (float)delta;
             var randp = Common.Random.RollDice(0.0f, upperBound);
-            var hook = new FPHook(PhysicsHookType.Velocity | PhysicsHookType.MotionTable | PhysicsHookType.Setup, PhysicsTimer.CurrentTime, randp, 0.0f, 1.0f, pes);
+            var hook = new FPHook(PhysicsHookType.Velocity | PhysicsHookType.MotionTable | PhysicsHookType.Setup, PhysicsTimer_CurrentTime, randp, 0.0f, 1.0f, pes);
             Hooks.AddLast(hook);
         }
 
@@ -949,7 +949,7 @@ namespace ACE.Server.Physics
                     PartArray.SetLuminosityInternal(end);
                 return;
             }
-            var hook = new FPHook(PhysicsHookType.MotionTable | PhysicsHookType.Setup, PhysicsTimer.CurrentTime, delta, start, end, 0);
+            var hook = new FPHook(PhysicsHookType.MotionTable | PhysicsHookType.Setup, PhysicsTimer_CurrentTime, delta, start, end, 0);
             Hooks.AddLast(hook);
         }
 
@@ -983,7 +983,7 @@ namespace ACE.Server.Physics
                     PartArray.SetPartDiffusionInternal(part, end);
                 return;
             }
-            var hook = new FPHook(PhysicsHookType.Velocity | PhysicsHookType.MotionTable, PhysicsTimer.CurrentTime, delta, start, end, part);
+            var hook = new FPHook(PhysicsHookType.Velocity | PhysicsHookType.MotionTable, PhysicsTimer_CurrentTime, delta, start, end, part);
             Hooks.AddLast(hook);
         }
 
@@ -1003,7 +1003,7 @@ namespace ACE.Server.Physics
                     PartArray.SetPartLuminosityInternal(part, end);
                 return;
             }
-            var hook = new FPHook(PhysicsHookType.Velocity | PhysicsHookType.Setup, PhysicsTimer.CurrentTime, delta, start, end, part);
+            var hook = new FPHook(PhysicsHookType.Velocity | PhysicsHookType.Setup, PhysicsTimer_CurrentTime, delta, start, end, part);
             Hooks.AddLast(hook);
         }
 
@@ -1021,7 +1021,7 @@ namespace ACE.Server.Physics
                     PartArray.SetPartTranslucencyInternal(partIdx, endTrans);
                 return;
             }
-            var hook = new FPHook(PhysicsHookType.MotionTable, PhysicsTimer.CurrentTime, delta, startTrans, endTrans, partIdx);
+            var hook = new FPHook(PhysicsHookType.MotionTable, PhysicsTimer_CurrentTime, delta, startTrans, endTrans, partIdx);
             Hooks.AddLast(hook);
         }
 
@@ -1237,7 +1237,7 @@ namespace ACE.Server.Physics
                     PartArray.SetScaleInternal(new Vector3(scale, scale, scale));
                 return;
             }
-            var hook = new FPHook((PhysicsHookType)0, PhysicsTimer.CurrentTime, delta, Scale, scale, 0);
+            var hook = new FPHook((PhysicsHookType)0, PhysicsTimer_CurrentTime, delta, Scale, scale, 0);
             Hooks.AddLast(hook);
         }
 
@@ -1283,7 +1283,7 @@ namespace ACE.Server.Physics
                 if (PartArray != null) PartArray.SetTranslucencyInternal(Translucency);
                 return;
             }
-            var hook = new FPHook(PhysicsHookType.Setup, PhysicsTimer.CurrentTime, delta, 0.0f, translucency, 0);
+            var hook = new FPHook(PhysicsHookType.Setup, PhysicsTimer_CurrentTime, delta, 0.0f, translucency, 0);
             Hooks.AddLast(hook);
         }
 
@@ -1296,7 +1296,7 @@ namespace ACE.Server.Physics
                 if (PartArray != null) PartArray.SetTranslucencyInternal(startTrans);
                 return;
             }
-            var hook = new FPHook(PhysicsHookType.Setup, PhysicsTimer.CurrentTime, delta, startTrans, endTrans, 0);
+            var hook = new FPHook(PhysicsHookType.Setup, PhysicsTimer_CurrentTime, delta, startTrans, endTrans, 0);
             Hooks.AddLast(hook);
         }
 
@@ -1731,7 +1731,7 @@ namespace ACE.Server.Physics
         {
             if (CurCell == null) return;
 
-            PhysicsTimer.CurrentTime = Timer.CurrentTime;
+            PhysicsTimer_CurrentTime = Timer.CurrentTime;
             var deltaTime = Timer.CurrentTime - UpdateTime;
             if (deltaTime < PhysicsGlobals.MinQuantum) return;
             if (PartArray == null || deltaTime < PhysicsGlobals.EPSILON || deltaTime > PhysicsGlobals.MaxQuantum)
@@ -3688,7 +3688,7 @@ namespace ACE.Server.Physics
                     set_active(true);   // sets UpdateTime
             }*/
 
-            PhysicsTimer.CurrentTime = UpdateTime;
+            PhysicsTimer_CurrentTime = UpdateTime;
 
             var deltaTime = Timer.CurrentTime - UpdateTime;
 
@@ -3706,14 +3706,14 @@ namespace ACE.Server.Physics
 
             while (deltaTime > PhysicsGlobals.MaxQuantum)
             {
-                PhysicsTimer.CurrentTime += PhysicsGlobals.MaxQuantum;
+                PhysicsTimer_CurrentTime += PhysicsGlobals.MaxQuantum;
                 UpdateObjectInternal(PhysicsGlobals.MaxQuantum);
                 deltaTime -= PhysicsGlobals.MaxQuantum;
             }
 
             if (deltaTime > PhysicsGlobals.MinQuantum)
             {
-                PhysicsTimer.CurrentTime += deltaTime;
+                PhysicsTimer_CurrentTime += deltaTime;
                 UpdateObjectInternal(deltaTime);
             }
 
@@ -3733,7 +3733,7 @@ namespace ACE.Server.Physics
         public void update_position()
         {
             if (Parent != null) return;
-            PhysicsTimer.CurrentTime = Timer.CurrentTime;
+            PhysicsTimer_CurrentTime = Timer.CurrentTime;
             var deltaTime = Timer.CurrentTime - UpdateTime;
             if (deltaTime > PhysicsGlobals.EPSILON)
             {
