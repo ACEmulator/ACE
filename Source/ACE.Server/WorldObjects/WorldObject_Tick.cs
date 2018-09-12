@@ -12,7 +12,7 @@ namespace ACE.Server.WorldObjects
 
         private readonly int defaultHeartbeatInterval = 5;
 
-        public virtual void Tick(double lastTickDuration, long currentTimeTick)
+        public virtual void Tick(double lastTickDuration)
         {
             actionQueue.RunActions();
 

@@ -3,12 +3,12 @@ namespace ACE.Server.WorldObjects
 {
     partial class Container
     {
-        public override void Tick(double lastTickDuration, long currentTimeTick)
+        public override void Tick(double lastTickDuration)
         {
             foreach (var wo in Inventory.Values)
-                wo.Tick(lastTickDuration, currentTimeTick);
+                wo.Tick(lastTickDuration);
 
-            base.Tick(lastTickDuration, currentTimeTick);
+            base.Tick(lastTickDuration);
         }
     }
 }
