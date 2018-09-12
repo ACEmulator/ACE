@@ -76,7 +76,10 @@ namespace ACE.Server.WorldObjects
                         }
                     }
                     else
+                    {
                         targetPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"You evaded {sourceCreature.Name}!", ChatMessageType.CombatEnemy));
+                        Proficiency.OnSuccessUse(targetPlayer, targetPlayer.GetCreatureSkill(Skill.MissileDefense), sourceCreature.GetCreatureSkill(sourceCreature.GetCurrentAttackSkill()).Current);
+                    }
                 }
             }
 
