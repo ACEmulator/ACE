@@ -91,7 +91,7 @@ namespace ACE.Server.WorldObjects
         {
             Biota = weenie.CreateCopyAsBiota(guid.Full);
 
-            CreationTimestamp = Server.Entity.Timer.CurrentTime;
+            CreationTimestamp = Time.GetUnixTime();
 
             SetEphemeralValues();
         }
