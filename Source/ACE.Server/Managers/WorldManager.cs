@@ -536,7 +536,7 @@ namespace ACE.Server.Managers
 
                 Thread.Sleep(1);
 
-                lastTickDuration = (double)worldTickTimer.ElapsedTicks / Stopwatch.Frequency;
+                lastTickDuration = worldTickTimer.Elapsed.TotalSeconds;
                 PortalYearTicks += lastTickDuration;
             }
 
