@@ -444,15 +444,18 @@ namespace ACE.Server.Managers
         /// <summary>
         /// Manages updating all entities on the world.
         ///  - Server-side command-line commands are handled in their own thread.
-        ///  - Network commands come from their own listener threads, and are queued in world objects
+        ///  - Database I/O is handled in its own thread.
+        ///  - Network commands come from their own listener threads, and are queued for each sessions which are then processed here.
         ///  - This thread does the rest of the work!
         /// </summary>
         private static void UpdateWorld()
         {
             log.DebugFormat("Starting UpdateWorld thread");
+
             double lastTickDuration = 0d;
             WorldActive = true;
             var worldTickTimer = new Stopwatch();
+
             while (!pendingWorldStop)
             {
                 worldTickTimer.Restart();
