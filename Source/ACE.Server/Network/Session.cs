@@ -114,7 +114,7 @@ namespace ACE.Server.Network
         /// <summary>
         /// This is run in parallel from our main loop.
         /// </summary>
-        public void Tick(double lastTickDuration, long currentTimeTick)
+        public void Tick(double lastTickDuration)
         {
             if (Player != null)
                 InboundGameActionQueue.RunActions();
@@ -123,10 +123,10 @@ namespace ACE.Server.Network
         /// <summary>
         /// This is run in parallel from our main loop.
         /// </summary>
-        public void TickInParallel(double lastTickDuration, long currentTimeTick)
+        public void TickInParallel(double lastTickDuration)
         {
             // Checks if the session has stopped responding.
-            if (currentTimeTick >= Network.TimeoutTick)
+            if (DateTime.UtcNow.Ticks >= Network.TimeoutTick)
             {
                 // Change the state to show that the Session has reached a timeout.
                 State = SessionState.NetworkTimeout;
