@@ -368,11 +368,6 @@ namespace ACE.Server.WorldObjects
         }
 
 
-        /// <summary>
-        /// tick-stamp for the last time a movement update was sent
-        /// </summary>
-        public double LastMovementBroadcastTicks { get; set; }
-
         public void WriteUpdatePositionPayload(BinaryWriter writer, bool forcePos = false)
         {
             if (forcePos)
@@ -391,8 +386,6 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         protected virtual void SendUpdatePosition(bool forcePos = false)
         {
-            LastMovementBroadcastTicks = WorldManager.PortalYearTicks;
-
             EnqueueBroadcast(new GameMessageUpdatePosition(this, forcePos));
         }
 
