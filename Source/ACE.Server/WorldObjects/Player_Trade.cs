@@ -202,7 +202,7 @@ namespace ACE.Server.WorldObjects
 
         public void HandleActionTradeSwitchToCombatMode(Session session)
         {
-            if (session.Player.CombatMode != CombatMode.NonCombat)
+            if ((session.Player.CombatMode != CombatMode.NonCombat) && (session.Player.IsTrading))
             {
                 var targetsession = WorldManager.Find(session.Player.TradePartner);
 
