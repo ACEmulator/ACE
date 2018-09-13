@@ -1060,6 +1060,8 @@ namespace ACE.Server.WorldObjects
 
         public static double ProjectileTimeout = 30.0f;
 
+        private readonly double physicsCreationTime = PhysicsTimer.CurrentTime;
+
         public double LastPhysicsUpdate;
 
         public static double UpdateRate_Creature = 0.2f;
@@ -1093,7 +1095,7 @@ namespace ACE.Server.WorldObjects
 
             if (!runUpdate) return false;
 
-            if (isMissile && CreationTimestamp + ProjectileTimeout <= PhysicsTimer.CurrentTime)
+            if (isMissile && physicsCreationTime + ProjectileTimeout <= PhysicsTimer.CurrentTime)
             {
                 // only for projectiles?
                 //Console.WriteLine("Timeout reached - destroying " + Name);
