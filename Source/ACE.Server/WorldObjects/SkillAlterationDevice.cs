@@ -59,10 +59,41 @@ namespace ACE.Server.WorldObjects
             {
                 case SkillAlterationType.Specialize:
                     var currentSkill = player.GetCreatureSkill(SkillToBeAltered);
-                    if (currentSkill.AdvancementClass == SkillAdvancementClass.Specialized)
+
+                    if (currentSkill != null)
                     {
+                            //Check to see if the skill is ripe for specializing
+                            if (currentSkill.AdvancementClass == SkillAdvancementClass.Trained)
+                            {
+                                var currentSkillCost = currentSkill.Skill.GetCost();
+
+                                if (player.AvailableSkillCredits >= currentSkillCost.SpecializationCost)
+                                {
+                                    if (player.SpecializeSkill(currentSkill.Skill,currentSkillCost.SpecializationCost))
+                                    {
+                                    //Specialization was successful, notify the client
+                                    Console.WriteLine("Skill was specialized successfully");
+                                    player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.None));
+                                    break;
+                                    }
+                                }
+                                else
+                                {
+                                    player.Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(player.Session, WeenieErrorWithString.NotEnoughSkillCreditsToSpecialize, currentSkill.Skill.ToSentence()));
+                                    player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.YouFailToAlterSkill));
+                                    break;
+                                }
+                            }
+                            else
+                            {
+                                //Tried to use a specialization gem on a skill that is either already specialized, or untrained
+                                player.Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(player.Session, WeenieErrorWithString.Your_SkillMustBeTrained, currentSkill.Skill.ToSentence()));
+                                player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.YouFailToAlterSkill));
+                                break;
+                            }
 
                     }
+
                     break;
                 case SkillAlterationType.Lower:
 
