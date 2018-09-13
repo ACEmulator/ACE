@@ -133,9 +133,9 @@ namespace ACE.Server.Physics
             ShadowObjects = new Dictionary<uint, ShadowObj>();
             CollisionTable = new Dictionary<uint, CollisionRecord>();
             CellArray = new CellArray();
-            UpdateTime = Timer.CurrentTime;
+            UpdateTime = PhysicsTimer.CurrentTime;
             UpdateTimes = new int[UpdateTimeLength];
-            PhysicsTimer_CurrentTime = Timer.CurrentTime;
+            PhysicsTimer_CurrentTime = PhysicsTimer.CurrentTime;
             WeenieObj = new WeenieObject();
             ObjMaint = new ObjectMaint(this);
 
@@ -638,7 +638,7 @@ namespace ACE.Server.Physics
                 State &= ~PhysicsState.Static;
 
             TransientState &= ~TransientStateFlags.Active;
-            UpdateTime = Timer.CurrentTime;
+            UpdateTime = PhysicsTimer.CurrentTime;
 
             return true;
         }
@@ -768,7 +768,7 @@ namespace ACE.Server.Physics
             if (!State.HasFlag(PhysicsState.Static))
             {
                 if (!TransientState.HasFlag(TransientStateFlags.Active))
-                    UpdateTime = Timer.CurrentTime;
+                    UpdateTime = PhysicsTimer.CurrentTime;
 
                 TransientState |= TransientStateFlags.Active;
             }
@@ -783,7 +783,7 @@ namespace ACE.Server.Physics
             if (!State.HasFlag(PhysicsState.Static))
             {
                 if (!TransientState.HasFlag(TransientStateFlags.Active))
-                    UpdateTime = Timer.CurrentTime;
+                    UpdateTime = PhysicsTimer.CurrentTime;
 
                 TransientState |= TransientStateFlags.Active;
             }
@@ -849,7 +849,7 @@ namespace ACE.Server.Physics
                 if (!State.HasFlag(PhysicsState.Static))
                 {
                     if (!TransientState.HasFlag(TransientStateFlags.Active))
-                        UpdateTime = Timer.CurrentTime;
+                        UpdateTime = PhysicsTimer.CurrentTime;
 
                     TransientState &= ~TransientStateFlags.Active;
                 }
@@ -871,7 +871,7 @@ namespace ACE.Server.Physics
                 if (!State.HasFlag(PhysicsState.Static))
                 {
                     if (!TransientState.HasFlag(TransientStateFlags.Active))
-                        UpdateTime = Timer.CurrentTime;
+                        UpdateTime = PhysicsTimer.CurrentTime;
 
                     TransientState &= ~TransientStateFlags.Active;
                 }
@@ -1372,7 +1372,7 @@ namespace ACE.Server.Physics
                 if (!State.HasFlag(PhysicsState.Static))
                 {
                     if (!TransientState.HasFlag(TransientStateFlags.Active))
-                        UpdateTime = Timer.CurrentTime;
+                        UpdateTime = PhysicsTimer.CurrentTime;
 
                     TransientState &= ~TransientStateFlags.Active;
                 }
@@ -1402,7 +1402,7 @@ namespace ACE.Server.Physics
                 if (!State.HasFlag(PhysicsState.Static))
                 {
                     if (!TransientState.HasFlag(TransientStateFlags.Active))
-                        UpdateTime = Timer.CurrentTime;
+                        UpdateTime = PhysicsTimer.CurrentTime;
 
                     TransientState &= ~TransientStateFlags.Active;
                 }
@@ -1731,12 +1731,12 @@ namespace ACE.Server.Physics
         {
             if (CurCell == null) return;
 
-            PhysicsTimer_CurrentTime = Timer.CurrentTime;
-            var deltaTime = Timer.CurrentTime - UpdateTime;
+            PhysicsTimer_CurrentTime = PhysicsTimer.CurrentTime;
+            var deltaTime = PhysicsTimer.CurrentTime - UpdateTime;
             if (deltaTime < PhysicsGlobals.MinQuantum) return;
             if (PartArray == null || deltaTime < PhysicsGlobals.EPSILON || deltaTime > PhysicsGlobals.MaxQuantum)
             {
-                UpdateTime = Timer.CurrentTime;
+                UpdateTime = PhysicsTimer.CurrentTime;
                 return;
             }
             if (State.HasFlag(PhysicsState.HasDefaultAnim))
@@ -1754,7 +1754,7 @@ namespace ACE.Server.Physics
                 ParticleManager.UpdateParticles();
             }
             process_hooks();
-            UpdateTime = Timer.CurrentTime;
+            UpdateTime = PhysicsTimer.CurrentTime;
         }
 
         public void attack(AttackCone attackCone)
@@ -2089,7 +2089,7 @@ namespace ACE.Server.Physics
         {
             if (Parent != null) return false;
 
-            UpdateTime = Timer.CurrentTime;
+            UpdateTime = PhysicsTimer.CurrentTime;
 
             var setPos = new SetPosition();
             setPos.Pos = Position;
@@ -2220,7 +2220,7 @@ namespace ACE.Server.Physics
                     {
                         // loword = cmd, hiword = param
                         // refactor...
-                        UpdateTime = Timer.CurrentTime;
+                        UpdateTime = PhysicsTimer.CurrentTime;
                     }
                     TransientState |= TransientStateFlags.Active;
                 }
@@ -2675,7 +2675,7 @@ namespace ACE.Server.Physics
 
         public void prepare_to_enter_world()
         {
-            UpdateTime = Timer.CurrentTime;
+            UpdateTime = PhysicsTimer.CurrentTime;
 
             //ObjMaint.RemoveFromLostCell(this);
             ObjMaint.RemoveObjectToBeDestroyed(this);
@@ -2686,7 +2686,7 @@ namespace ACE.Server.Physics
             if (!State.HasFlag(PhysicsState.Static))
             {
                 if (!TransientState.HasFlag(TransientStateFlags.Active))
-                    UpdateTime = Timer.CurrentTime;     // hiword?
+                    UpdateTime = PhysicsTimer.CurrentTime;     // hiword?
 
                 TransientState |= TransientStateFlags.Active;
             }
@@ -2776,7 +2776,7 @@ namespace ACE.Server.Physics
 
             if (State.HasFlag(PhysicsState.Static)) return;
             if (!TransientState.HasFlag(TransientStateFlags.Active))
-                UpdateTime = Timer.CurrentTime;
+                UpdateTime = PhysicsTimer.CurrentTime;
 
             TransientState |= TransientStateFlags.Active;
         }
@@ -2863,7 +2863,7 @@ namespace ACE.Server.Physics
                 var collision_id = kvp.Key;
                 var collision = kvp.Value;
 
-                var deltaTime = Timer.CurrentTime - collision.TouchedTime;
+                var deltaTime = PhysicsTimer.CurrentTime - collision.TouchedTime;
 
                 if (deltaTime > 1.0f || collision.Ethereal && deltaTime > 0.0f || forceEnd)
                     ends.Add(collision_id);
@@ -2928,9 +2928,9 @@ namespace ACE.Server.Physics
                     collided = true;
 
                     if (!CollisionTable.ContainsKey(obj.ID))
-                        CollisionTable.Add(obj.ID, new CollisionRecord() { TouchedTime = Timer.CurrentTime });
+                        CollisionTable.Add(obj.ID, new CollisionRecord() { TouchedTime = PhysicsTimer.CurrentTime });
                     else
-                        CollisionTable[obj.ID] = new CollisionRecord() { TouchedTime = Timer.CurrentTime };
+                        CollisionTable[obj.ID] = new CollisionRecord() { TouchedTime = PhysicsTimer.CurrentTime };
                 }
 
                 if (State.HasFlag(PhysicsState.Missile))
@@ -2944,9 +2944,9 @@ namespace ACE.Server.Physics
                 collided = true;
 
                 if (!CollisionTable.ContainsKey(obj.ID))
-                    CollisionTable.Add(obj.ID, new CollisionRecord() { TouchedTime = Timer.CurrentTime });
+                    CollisionTable.Add(obj.ID, new CollisionRecord() { TouchedTime = PhysicsTimer.CurrentTime });
                 else
-                    CollisionTable[obj.ID] = new CollisionRecord() { TouchedTime = Timer.CurrentTime };
+                    CollisionTable[obj.ID] = new CollisionRecord() { TouchedTime = PhysicsTimer.CurrentTime };
             }
             return collided;
         }
@@ -2995,7 +2995,7 @@ namespace ACE.Server.Physics
                     return false;
 
                 if (TransientState.HasFlag(TransientStateFlags.Active))
-                    UpdateTime = Timer.CurrentTime;
+                    UpdateTime = PhysicsTimer.CurrentTime;
 
                 TransientState |= TransientStateFlags.Active;
                 return true;
@@ -3509,7 +3509,7 @@ namespace ACE.Server.Physics
             if (!State.HasFlag(PhysicsState.Static))
             {
                 if (!TransientState.HasFlag(TransientStateFlags.Active))
-                    UpdateTime = Timer.CurrentTime;
+                    UpdateTime = PhysicsTimer.CurrentTime;
 
                 TransientState |= TransientStateFlags.Active;
             }
@@ -3635,7 +3635,7 @@ namespace ACE.Server.Physics
             {
                 MovementManager = MovementManager.Create(this, WeenieObj);
                 if (!State.HasFlag(PhysicsState.Static) && TransientState.HasFlag(TransientStateFlags.Active))
-                    UpdateTime = Timer.CurrentTime;
+                    UpdateTime = PhysicsTimer.CurrentTime;
             }
             MovementManager.unpack_movement(addr, size);
         }
@@ -3659,7 +3659,7 @@ namespace ACE.Server.Physics
                     PartArray.SetNoDrawInternal(false);
             }
             Parent = null;
-            UpdateTime = Timer.CurrentTime;
+            UpdateTime = PhysicsTimer.CurrentTime;
             clear_transient_states();
         }
 
@@ -3690,7 +3690,7 @@ namespace ACE.Server.Physics
 
             PhysicsTimer_CurrentTime = UpdateTime;
 
-            var deltaTime = Timer.CurrentTime - UpdateTime;
+            var deltaTime = PhysicsTimer.CurrentTime - UpdateTime;
 
             if (deltaTime < TickRate)
                 return false;
@@ -3717,13 +3717,13 @@ namespace ACE.Server.Physics
                 UpdateObjectInternal(deltaTime);
             }
 
-            UpdateTime = Timer.CurrentTime;
+            UpdateTime = PhysicsTimer.CurrentTime;
             return true;
         }
 
         public void update_object_server(bool forcePos = true)
         {
-            var deltaTime = Timer.CurrentTime - UpdateTime;
+            var deltaTime = PhysicsTimer.CurrentTime - UpdateTime;
             UpdateObjectInternalServer(deltaTime);
 
             if (forcePos)
@@ -3733,8 +3733,8 @@ namespace ACE.Server.Physics
         public void update_position()
         {
             if (Parent != null) return;
-            PhysicsTimer_CurrentTime = Timer.CurrentTime;
-            var deltaTime = Timer.CurrentTime - UpdateTime;
+            PhysicsTimer_CurrentTime = PhysicsTimer.CurrentTime;
+            var deltaTime = PhysicsTimer.CurrentTime - UpdateTime;
             if (deltaTime > PhysicsGlobals.EPSILON)
             {
                 if (deltaTime < PhysicsGlobals.MinQuantum) return;
@@ -3750,10 +3750,10 @@ namespace ACE.Server.Physics
                     ParticleManager.UpdateParticles();
                 if (ScriptManager != null)
                     ScriptManager.UpdateScripts();
-                UpdateTime = Timer.CurrentTime;
+                UpdateTime = PhysicsTimer.CurrentTime;
             }
             else
-                UpdateTime = Timer.CurrentTime;
+                UpdateTime = PhysicsTimer.CurrentTime;
         }
 
         public void get_voyeurs()

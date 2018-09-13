@@ -111,10 +111,10 @@ namespace ACE.Server.Physics
 
         public void UseTime()
         {
-            var deltaTime = Timer.CurrentTime - LastUpdate;
+            var deltaTime = PhysicsTimer.CurrentTime - LastUpdate;
             if (deltaTime < 0.0f)
             {
-                LastUpdate = Timer.CurrentTime;
+                LastUpdate = PhysicsTimer.CurrentTime;
                 return;
             }
             if (deltaTime < PhysicsGlobals.MinQuantum) return;
@@ -128,7 +128,7 @@ namespace ACE.Server.Physics
             foreach (var obj in StaticAnimatingObjects)
                 obj.animate_static_object();
 
-            LastUpdate = Timer.CurrentTime;
+            LastUpdate = PhysicsTimer.CurrentTime;
         }
     }
 }

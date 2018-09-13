@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Numerics;
+
 using ACE.DatLoader;
 using ACE.DatLoader.Entity;
 using ACE.DatLoader.FileTypes;
@@ -18,6 +19,7 @@ using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Structure;
 using ACE.Server.Network.Sequence;
 using ACE.Server.Physics;
+using ACE.Server.Physics.Common;
 using ACE.Server.Physics.Extensions;
 
 namespace ACE.Server.WorldObjects
@@ -1083,15 +1085,15 @@ namespace ACE.Server.WorldObjects
 
             if (creature != null)
             {
-                if (LastPhysicsUpdate + UpdateRate_Creature <= Timer.CurrentTime)
-                    LastPhysicsUpdate = Timer.CurrentTime;
+                if (LastPhysicsUpdate + UpdateRate_Creature <= PhysicsTimer.CurrentTime)
+                    LastPhysicsUpdate = PhysicsTimer.CurrentTime;
                 else
                     runUpdate = false;
             }
 
             if (!runUpdate) return false;
 
-            if (isMissile && CreationTimestamp + ProjectileTimeout <= Timer.CurrentTime)
+            if (isMissile && CreationTimestamp + ProjectileTimeout <= PhysicsTimer.CurrentTime)
             {
                 // only for projectiles?
                 //Console.WriteLine("Timeout reached - destroying " + Name);

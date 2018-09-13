@@ -37,7 +37,7 @@ namespace ACE.Server.Physics.Combat
             ObjectID = objectID;
             Radius = radius;
             Quantum = quantum;
-            LastUpdateTime = Timer.CurrentTime;
+            LastUpdateTime = PhysicsTimer.CurrentTime;
         }
 
         /// <summary>

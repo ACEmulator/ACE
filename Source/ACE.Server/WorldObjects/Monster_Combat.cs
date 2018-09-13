@@ -1,13 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+
 using ACE.Database.Models.Shard;
 using ACE.DatLoader;
 using ACE.DatLoader.FileTypes;
-using ACE.DatLoader.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
-using ACE.Server.Entity;
 using ACE.Server.Network.GameMessages.Messages;
 
 namespace ACE.Server.WorldObjects
@@ -40,7 +39,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// The time when monster can perform its next attack
         /// </summary>
-        public double NextAttackTime;
+        public DateTime NextAttackTime;
 
         /// <summary>
         /// Returns true if monster is dead
@@ -141,7 +140,7 @@ namespace ACE.Server.WorldObjects
         /// <returns></returns>
         public bool AttackReady()
         {
-            return IsAttackRange() && Timer.CurrentTime >= NextAttackTime;
+            return IsAttackRange() && DateTime.UtcNow >= NextAttackTime;
         }
 
         /// <summary>

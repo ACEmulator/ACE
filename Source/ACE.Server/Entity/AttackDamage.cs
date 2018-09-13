@@ -1,5 +1,7 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
+
 using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Entity
@@ -11,7 +13,7 @@ namespace ACE.Server.Entity
     {
         public WorldObject Source;
         public uint Amount;
-        public double Time;
+        public DateTime Time;
         public bool IsCritical;
 
         /// <summary>
@@ -24,7 +26,7 @@ namespace ACE.Server.Entity
         {
             Source = source;
             Amount = amount;
-            Time = Timer.CurrentTime;
+            Time = DateTime.UtcNow;
             IsCritical = criticalHit;
         }
 

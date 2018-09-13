@@ -9,6 +9,7 @@ using ACE.Server.Factories;
 using ACE.Server.Network.Enum;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Physics.Animation;
+using ACE.Server.Physics.Common;
 using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Managers
@@ -690,14 +691,14 @@ namespace ACE.Server.Managers
 
         public void ExecuteSet(EmoteSet emoteSet, WorldObject target)
         {
-            if (EndTime < Timer.CurrentTime)
-                EndTime = Timer.CurrentTime;
+            if (EndTime < PhysicsTimer.CurrentTime)
+                EndTime = PhysicsTimer.CurrentTime;
 
             double queueTime = 0.0;
             foreach (var emote in emoteSet.Emotes)
             {
                 queueTime += emote.Delay;
-                EmoteQueue.Enqueue(new QueuedEmote(emote, target, Timer.CurrentTime + queueTime));
+                EmoteQueue.Enqueue(new QueuedEmote(emote, target, PhysicsTimer.CurrentTime + queueTime));
             }
         }
 
@@ -775,7 +776,7 @@ namespace ACE.Server.Managers
         {
             if (EmoteQueue.Count == 0) return;
             var emote = EmoteQueue.Peek();
-            emote.ExecuteTime = Timer.CurrentTime + emote.Data.Delay;
+            emote.ExecuteTime = PhysicsTimer.CurrentTime + emote.Data.Delay;
         }
 
         /// <summary>
@@ -787,7 +788,7 @@ namespace ACE.Server.Managers
             {
                 var emote = EmoteQueue.Peek();
 
-                if (emote.ExecuteTime > Timer.CurrentTime || WorldObject.IsBusy || WorldObject.IsMovingTo)
+                if (emote.ExecuteTime > PhysicsTimer.CurrentTime || WorldObject.IsBusy || WorldObject.IsMovingTo)
                     break;
 
                 EmoteQueue.Dequeue();

@@ -161,7 +161,7 @@ namespace ACE.Server.Physics.Common
         /// </summary>
         public bool AddObjectToBeDestroyed(PhysicsObj obj)
         {
-            var time = Timer.CurrentTime + DestructionTime;
+            var time = PhysicsTimer.CurrentTime + DestructionTime;
             if (!DestructionQueue.ContainsKey(obj))
             {
                 DestructionQueue.Add(obj, time);
@@ -192,7 +192,7 @@ namespace ACE.Server.Physics.Common
         /// </summary>
         public List<PhysicsObj> GetCulledObjects(List<PhysicsObj> visibleObjects)
         {
-            var culledObjects = DestructionQueue.Where(kvp => kvp.Value > Timer.CurrentTime).ToDictionary(kvp => kvp.Key, kvp => kvp.Value).Keys.ToList();
+            var culledObjects = DestructionQueue.Where(kvp => kvp.Value > PhysicsTimer.CurrentTime).ToDictionary(kvp => kvp.Key, kvp => kvp.Value).Keys.ToList();
             return culledObjects;
         }
 
@@ -202,7 +202,7 @@ namespace ACE.Server.Physics.Common
         /// </summary>
         public List<PhysicsObj> GetDestroyedObjects()
         {
-            var destroyedObjects = DestructionQueue.Where(kvp => kvp.Value <= Timer.CurrentTime).ToDictionary(kvp => kvp.Key, kvp => kvp.Value).Keys.ToList();
+            var destroyedObjects = DestructionQueue.Where(kvp => kvp.Value <= PhysicsTimer.CurrentTime).ToDictionary(kvp => kvp.Key, kvp => kvp.Value).Keys.ToList();
             return destroyedObjects;
         }
 
@@ -320,7 +320,7 @@ namespace ACE.Server.Physics.Common
         {
             double time = -1;
             DestructionQueue.TryGetValue(obj, out time);
-            if (time != -1 && time > Timer.CurrentTime)
+            if (time != -1 && time > PhysicsTimer.CurrentTime)
             {
                 DestructionQueue.Remove(obj);
                 return true;
@@ -346,7 +346,7 @@ namespace ACE.Server.Physics.Common
         public List<PhysicsObj> DestroyObjects()
         {
             // find the list of objects that have been in the destruction queue > 25s
-            var expiredObjs = DestructionQueue.Where(kvp => kvp.Value <= Timer.CurrentTime).ToDictionary(kvp => kvp.Key, kvp => kvp.Value).Keys.ToList();
+            var expiredObjs = DestructionQueue.Where(kvp => kvp.Value <= PhysicsTimer.CurrentTime).ToDictionary(kvp => kvp.Key, kvp => kvp.Value).Keys.ToList();
 
             // remove expired objects from all lists
             foreach (var expiredObj in expiredObjs)

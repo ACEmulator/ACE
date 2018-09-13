@@ -1,12 +1,12 @@
 using System;
 using System.Linq;
+
 using ACE.Database;
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.DatLoader;
 using ACE.DatLoader.Entity;
 using ACE.Entity.Enum;
-using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Motion;
@@ -106,7 +106,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void MagicAttack()
         {
-            NextAttackTime = Timer.CurrentTime + MagicDelay;
+            NextAttackTime = DateTime.UtcNow.AddSeconds(MagicDelay);
 
             var spellBase = GetCurrentSpellBase();
             var spell = GetCurrentSpell();

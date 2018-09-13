@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+
 using ACE.Database.Models.Shard;
 using ACE.DatLoader.Entity;
 using ACE.Entity.Enum;
@@ -24,7 +25,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public bool MeleeReady()
         {
-            return IsMeleeRange() && Timer.CurrentTime >= NextAttackTime;
+            return IsMeleeRange() && DateTime.UtcNow >= NextAttackTime;
         }
 
         /// <summary>
@@ -66,7 +67,7 @@ namespace ACE.Server.WorldObjects
             actionChain.EnqueueChain();
 
             // TODO: figure out exact speed / delay formula
-            NextAttackTime = Timer.CurrentTime + animLength + MeleeDelay;
+            NextAttackTime = DateTime.UtcNow.AddSeconds(animLength + MeleeDelay);
             return animLength;
         }
 

@@ -1,12 +1,11 @@
 using System;
 using System.Numerics;
+
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Server.Entity;
-using ACE.Server.Entity.Actions;
 using ACE.Server.Managers;
 using ACE.Server.Physics.Animation;
-using ACE.Server.Physics.Common;
 
 namespace ACE.Server.WorldObjects
 {
@@ -52,7 +51,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// The last time a movement tick was processed
         /// </summary>
-        public double LastMoveTime;
+        public DateTime LastMoveTime;
 
         public bool DebugMove;
 
@@ -119,7 +118,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void StartMove()
         {
-            LastMoveTime = Timer.CurrentTime;
+            LastMoveTime = DateTime.UtcNow;
             IsMoving = true;
         }
 

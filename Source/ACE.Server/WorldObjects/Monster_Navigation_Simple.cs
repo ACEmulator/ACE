@@ -1,11 +1,12 @@
 using System;
+using System.Numerics;
+
+using ACE.Entity;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
+using ACE.Server.Managers;
 using ACE.Server.Physics.Common;
 using ACE.Server.Physics.Util;
-using System.Numerics;
-using ACE.Entity;
-using ACE.Server.Managers;
 
 namespace ACE.Server.WorldObjects
 {
@@ -43,7 +44,7 @@ namespace ACE.Server.WorldObjects
             if (!IsRanged)
             {
                 UpdatePosition();
-                LastMoveTime = Timer.CurrentTime;
+                LastMoveTime = DateTime.UtcNow;
             }
 
             if (IsAttackRange())
@@ -59,11 +60,11 @@ namespace ACE.Server.WorldObjects
         public void UpdatePositionSimple()
         {
             // determine the time interval for this movement
-            var deltaTime = (float)(Timer.CurrentTime - LastMoveTime);
-            if (deltaTime > 2.0f) return;   // FIXME: state persist?
+            var deltaTime = (DateTime.UtcNow - LastMoveTime);
+            if (deltaTime > TimeSpan.FromSeconds(2)) return;   // FIXME: state persist?
 
             var dir = Vector3.Normalize(AttackTarget.Location.ToGlobal() - Location.ToGlobal());
-            var movement = dir * deltaTime * MoveSpeed;
+            var movement = dir * (float)deltaTime.TotalSeconds * MoveSpeed;
             var newPos = Location.Pos + movement;
 
             // stop at destination
@@ -75,7 +76,7 @@ namespace ACE.Server.WorldObjects
             UpdatePosition_PhysicsInner(newPos, dir);
 
             // set cached velocity
-            var velocity = movement / deltaTime;
+            var velocity = movement / (float)deltaTime.TotalSeconds;
             PhysicsObj.CachedVelocity = velocity;
 
             SendUpdatePosition(ForcePos);

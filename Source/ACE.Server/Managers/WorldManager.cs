@@ -566,7 +566,7 @@ namespace ACE.Server.Managers
         {
             ConcurrentQueue<WorldObject> movedObjects = new ConcurrentQueue<WorldObject>();
 
-            if (Entity.Timer.CurrentTime < LastPhysicsUpdate + PhysicsRate)
+            if (Server.Physics.Common.PhysicsTimer.CurrentTime < LastPhysicsUpdate + PhysicsRate)
                 return movedObjects;
 
             try
@@ -593,7 +593,7 @@ namespace ACE.Server.Managers
                 log.Error(e);
             }
 
-            LastPhysicsUpdate = Entity.Timer.CurrentTime;
+            LastPhysicsUpdate = Server.Physics.Common.PhysicsTimer.CurrentTime;
 
             return movedObjects;
         }

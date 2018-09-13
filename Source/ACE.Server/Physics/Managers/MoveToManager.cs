@@ -70,8 +70,8 @@ namespace ACE.Server.Physics.Animation
             MovementParams.DistanceToObject = 0;
             MovementParams.ContextID = 0;
 
-            PreviousDistanceTime = Timer.CurrentTime;
-            OriginalDistanceTime = Timer.CurrentTime;
+            PreviousDistanceTime = PhysicsTimer.CurrentTime;
+            OriginalDistanceTime = PhysicsTimer.CurrentTime;
 
             PreviousHeading = 0.0f;
 
@@ -397,9 +397,9 @@ namespace ACE.Server.Physics.Animation
             MovingAway = moveAway;
             MovementParams.HoldKeyToApply = holdKey;
             PreviousDistance = dist;
-            PreviousDistanceTime = Timer.CurrentTime;
+            PreviousDistanceTime = PhysicsTimer.CurrentTime;
             OriginalDistance = dist;
-            OriginalDistanceTime = Timer.CurrentTime;
+            OriginalDistanceTime = PhysicsTimer.CurrentTime;
         }
 
         /// <summary>
@@ -627,9 +627,9 @@ namespace ACE.Server.Physics.Animation
                         SoughtPosition = new Position(targetInfo.InterpolatedPosition);
                         CurrentTargetPosition = new Position(targetInfo.TargetPosition);
                         PreviousDistance = float.MaxValue;
-                        PreviousDistanceTime = Timer.CurrentTime;
+                        PreviousDistanceTime = PhysicsTimer.CurrentTime;
                         OriginalDistance = float.MaxValue;
-                        OriginalDistanceTime = Timer.CurrentTime;
+                        OriginalDistanceTime = PhysicsTimer.CurrentTime;
                     }
                 }
                 else
@@ -654,7 +654,7 @@ namespace ACE.Server.Physics.Animation
 
         public bool CheckProgressMade(float currDistance)
         {
-            var deltaTime = Timer.CurrentTime - PreviousDistanceTime;
+            var deltaTime = PhysicsTimer.CurrentTime - PreviousDistanceTime;
 
             if (deltaTime > 1.0f)
             {
@@ -664,11 +664,11 @@ namespace ACE.Server.Physics.Animation
                     return false;
 
                 PreviousDistance = currDistance;
-                PreviousDistanceTime = Timer.CurrentTime;
+                PreviousDistanceTime = PhysicsTimer.CurrentTime;
 
                 var dOrigDist = MovingAway ? currDistance - OriginalDistance : OriginalDistance - currDistance;
 
-                if (dOrigDist / (Timer.CurrentTime - OriginalDistanceTime) < 0.25f)
+                if (dOrigDist / (PhysicsTimer.CurrentTime - OriginalDistanceTime) < 0.25f)
                     return false;
             }
             return true;

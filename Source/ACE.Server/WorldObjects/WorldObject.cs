@@ -5,7 +5,6 @@ using System.Text;
 
 using log4net;
 
-using ACE.Common;
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.Entity;
@@ -91,7 +90,7 @@ namespace ACE.Server.WorldObjects
         {
             Biota = weenie.CreateCopyAsBiota(guid.Full);
 
-            CreationTimestamp = Server.Entity.Timer.CurrentTime;
+            CreationTimestamp = PhysicsTimer.CurrentTime;
 
             SetEphemeralValues();
         }

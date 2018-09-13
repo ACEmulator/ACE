@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+
 using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Entity
@@ -149,7 +150,11 @@ namespace ACE.Server.Entity
         /// <summary>
         /// The last time the log was pruned
         /// </summary>
-        public static double LastPruneTime = Timer.CurrentTime;
+        public static DateTime LastPruneTime = DateTime.UtcNow;
+
+        private static readonly TimeSpan minimumPruneInverval = TimeSpan.FromSeconds(30);
+
+        private static readonly TimeSpan maximumTimeToRetain = TimeSpan.FromMinutes(3);
 
         /// <summary>
         /// The number of minutes to keep a history for
@@ -161,8 +166,7 @@ namespace ACE.Server.Entity
         /// </summary>
         public void TryPrune()
         {
-            // minimum prune interval: 30 seconds
-            if (LastPruneTime + 30 < Timer.CurrentTime)
+            if (LastPruneTime + minimumPruneInverval < DateTime.UtcNow)
                 Prune();
         }
 
@@ -173,12 +177,9 @@ namespace ACE.Server.Entity
         {
             var entriesToRemove = 0;
 
-            // convert minutes to seconds
-            var pruneTime = HistoryMinutes * 60;    
-
             foreach (var entry in Log)
             {
-                if (entry.Time + pruneTime < Timer.CurrentTime)
+                if (entry.Time + maximumTimeToRetain < DateTime.UtcNow)
                     entriesToRemove++;
                 else
                     break;
@@ -191,7 +192,7 @@ namespace ACE.Server.Entity
                 //Console.WriteLine($"DamageHistory.Prune() - {entriesToRemove} entries removed");
             }
 
-            LastPruneTime = Timer.CurrentTime;
+            LastPruneTime = DateTime.UtcNow;
         }
 
         /// <summary>
