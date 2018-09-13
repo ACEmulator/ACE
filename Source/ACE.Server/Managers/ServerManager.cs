@@ -35,7 +35,7 @@ namespace ACE.Server.Managers
         /// <param name="interval">postive value representing seconds</param>
         public static void SetShutdownInterval(uint interval)
         {
-            log.Warn($"Server shutdown interval reset: {interval}");
+            log.Info($"Server shutdown interval reset: {interval}");
             ShutdownInterval = interval;
         }
 
@@ -53,6 +53,7 @@ namespace ACE.Server.Managers
         public static void BeginShutdown()
         {
             ShutdownInitiated = true;
+
             var shutdownThread = new Thread(ShutdownServer);
             shutdownThread.Name = "Shutdown Server";
             shutdownThread.Start();
@@ -82,7 +83,7 @@ namespace ACE.Server.Managers
                 {
                     // reset shutdown details
                     string shutdownText = $"The server has canceled the shutdown procedure @ {DateTime.UtcNow} UTC";
-                    log.Warn(shutdownText);
+                    log.Info(shutdownText);
 
                     // special text
                     foreach (var player in WorldManager.GetAll())
@@ -91,6 +92,8 @@ namespace ACE.Server.Managers
                     // break function
                     return;
                 }
+
+                Thread.Sleep(1);
             }
 
             // logout each player
@@ -114,7 +117,8 @@ namespace ACE.Server.Managers
                 ; // do nothing
 
             // write exit to console/log
-            log.Warn($"Exiting at {DateTime.UtcNow}");
+            log.Info($"Exiting at {DateTime.UtcNow}");
+
             // system exit
             Environment.Exit(Environment.ExitCode);
         }
