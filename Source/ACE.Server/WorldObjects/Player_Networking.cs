@@ -22,7 +22,7 @@ namespace ACE.Server.WorldObjects
             // Save the the LoginTimestamp
             var lastLoginTimestamp = Time.GetUnixTime();
 
-            SetProperty(PropertyFloat.LoginTimestamp, lastLoginTimestamp);
+            SetProperty(PropertyInt.LoginTimestamp, (int)lastLoginTimestamp);
 
             Character.LastLoginTimestamp = lastLoginTimestamp;
             Character.TotalLogins++;
