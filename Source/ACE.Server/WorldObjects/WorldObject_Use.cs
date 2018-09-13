@@ -34,8 +34,9 @@ namespace ACE.Server.WorldObjects
         public virtual void UseItem(Player player)
         {
             // Do Nothing by default
+
 #if DEBUG
-            var message = $"Default UseItem reached, this object ({Name}) not programmed yet.";
+            var message = $"Default UseItem reached, this object ({Name}) of type ({WeenieType}) not programmed yet."; 
             player.Session.Network.EnqueueSend(new GameMessageSystemChat(message, ChatMessageType.System));
             log.Error(message);
 #endif
