@@ -45,8 +45,8 @@ namespace ACE.Server.WorldObjects
             //    //Ethereal = true;
             //}
 
-            ContainerCapacity = 10;
-            ItemCapacity = 120;
+            ContainerCapacity = ContainerCapacity ?? 10;
+            ItemCapacity = ItemCapacity ?? 120;
 
             CurrentMotionState = motionClosed; // What chest defaults to open?
 
@@ -54,8 +54,8 @@ namespace ACE.Server.WorldObjects
                 UseRadius = 2; // Until DoMoveTo (Physics, Indoor/Outside range variance) is smarter, use 2 is safest.
         }
 
-        private static readonly UniversalMotion motionOpen = new UniversalMotion(MotionStance.NonCombat, new MotionItem(MotionCommand.On));
-        private static readonly UniversalMotion motionClosed = new UniversalMotion(MotionStance.NonCombat, new MotionItem(MotionCommand.Off));
+        protected static readonly UniversalMotion motionOpen = new UniversalMotion(MotionStance.NonCombat, new MotionItem(MotionCommand.On));
+        protected static readonly UniversalMotion motionClosed = new UniversalMotion(MotionStance.NonCombat, new MotionItem(MotionCommand.Off));
 
         //private static readonly MotionState motionStateOpen = new UniversalMotion(MotionStance.NonCombat, new MotionItem(MotionCommand.On));
         //private static readonly MotionState motionStateClosed = new UniversalMotion(MotionStance.NonCombat, new MotionItem(MotionCommand.Off));

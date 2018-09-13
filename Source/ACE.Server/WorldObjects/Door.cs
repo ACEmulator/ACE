@@ -271,5 +271,10 @@ namespace ACE.Server.WorldObjects
         {
             return LockHelper.Unlock(this, keyCode);
         }
+
+        public override void SetLinkProperties(WorldObject wo)
+        {
+            wo.ActivationTarget = Guid.Full;
+        }
     }
 }

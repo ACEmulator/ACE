@@ -13,6 +13,11 @@ namespace ACE.Server.WorldObjects
     public class SlumLord : WorldObject
     {
         /// <summary>
+        /// The house this slumlord is linked to
+        /// </summary>
+        public WorldObject House { get => ParentLink; }
+
+        /// <summary>
         /// A new biota be created taking all of its values from weenie.
         /// </summary>
         public SlumLord(Weenie weenie, ObjectGuid guid) : base(weenie, guid)

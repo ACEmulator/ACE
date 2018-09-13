@@ -84,6 +84,8 @@ namespace ACE.Server.WorldObjects
 
         public bool IsDestroyed = false;
 
+        public WorldObject() { }
+
         /// <summary>
         /// A new biota will be created taking all of its values from weenie.
         /// </summary>

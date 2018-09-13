@@ -115,20 +115,19 @@ namespace ACE.Server.Entity
 
             // create world objects (monster locations, generators)
             var objects = DatabaseManager.World.GetCachedInstancesByLandblock(Id.Landblock);
-            var factoryObjects = WorldObjectFactory.CreateNewWorldObjects(objects);
+            var shardObjects = DatabaseManager.Shard.GetStaticObjectsByLandblock(Id.Landblock);
+            var factoryObjects = WorldObjectFactory.CreateNewWorldObjects(objects, shardObjects);
             foreach (var fo in factoryObjects)
             {
                 AddWorldObject(fo);
-                fo.ActivateLinks(objects);
+                fo.ActivateLinks(objects, shardObjects);
             }
 
-            // create shard objects (corpses after unloading)
-            DatabaseManager.Shard.GetObjectsByLandblock(Id.Landblock, ((List<Biota> biotas) =>
-            {
-                var shardObjects = (WorldObjectFactory.CreateWorldObjects(biotas));
-                foreach (var so in shardObjects)
-                    AddWorldObject(so);
-            }));
+            // create dynamic shard objects (corpses)
+            var corpses = DatabaseManager.Shard.GetObjectsByLandblock(Id.Landblock);
+            var factoryShardObjects = WorldObjectFactory.CreateWorldObjects(corpses);
+            foreach (var fso in factoryShardObjects)
+                AddWorldObject(fso);
 
             _landblock = LScape.get_landblock(Id.Raw);
 

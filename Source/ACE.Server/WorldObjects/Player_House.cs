@@ -1,17 +1,19 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using ACE.Entity;
-using ACE.Entity.Enum;
-using ACE.Server.Network.Structure;
-using ACE.Server.Network.GameEvent.Events;
 using ACE.Common;
+using ACE.Database;
+using ACE.Database.Models.Shard;
+using ACE.Entity;
+using ACE.Server.Factories;
+using ACE.Server.Network.GameEvent.Events;
 
 namespace ACE.Server.WorldObjects
 {
     partial class Player
     {
+        public House House;
+
         /// <summary>
         /// Called when player clicks the 'Buy house' button,
         /// after adding the items required
@@ -47,11 +49,18 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void SetHouseOwner(SlumLord slumlord)
         {
-            // set this player as house owner
-            Console.WriteLine($"Setting {Name} as owner of {slumlord.Name}");
+            var house = slumlord.House;
 
-            HouseId = slumlord.Guid.Full;
+            Console.WriteLine($"Setting {Name} as owner of {house.Name}");
+
+            // set player properties
+            HouseId = house.HouseId;
+            HouseInstance = house.Guid.Full;
             HousePurchaseTimestamp = (int)Time.GetUnixTime();
+
+            // set house properties
+            house.HouseOwner = Guid.Full;
+            house.SaveBiotaToDatabase();
 
             // notify client w/ HouseID
 
@@ -206,17 +215,58 @@ namespace ACE.Server.WorldObjects
         public void HandleActionQueryHouse()
         {
             // no house owned - send 0x226 HouseStatus?
-            if (HouseId == null)
+            if (HouseInstance == null)
             {
                 Session.Network.EnqueueSend(new GameEventHouseStatus(Session));
                 return;
             }
 
             // house owned - send 0x225 HouseData?
-            Console.WriteLine($"House ID: {HouseId.Value:X8} ({HouseId.Value})");
-            var house = new House(HouseId.Value, this);
+            var house = LoadHouse();
+            if (house == null)
+            {
+                Session.Network.EnqueueSend(new GameEventHouseStatus(Session));
+                return;
+            }
 
-            Session.Network.EnqueueSend(new GameEventHouseData(Session, house.HouseData));
+            var houseData = house.GetHouseData(this);
+            Session.Network.EnqueueSend(new GameEventHouseData(Session, houseData));
+        }
+
+        public House LoadHouse(bool forceLoad = false)
+        {
+            if (House != null && !forceLoad)
+                return House;
+
+            var houseGuid = HouseInstance.Value;
+            var landblock = (ushort)((houseGuid >> 12) & 0xFFFF);
+
+            var biota = DatabaseManager.Shard.GetBiota(houseGuid);
+            var instances = DatabaseManager.World.GetCachedInstancesByLandblock(landblock);
+
+            if (instances == null || instances.Count == 0 || biota == null)
+            {
+                Console.WriteLine($"{Name} sent HouseInstance={HouseInstance:X8}, instances={instances}, biota={biota}");
+                return null;
+            }
+
+            var objects = WorldObjectFactory.CreateNewWorldObjects(instances, new List<Biota>() { biota }, houseGuid);
+            if (objects.Count == 0)
+            {
+                Console.WriteLine($"{Name} sent HouseInstance={HouseInstance:X8}, found instances and biota, but object count=0");
+                return null;
+            }
+
+            var house = objects[0] as House;
+            if (house == null)
+            {
+                Console.WriteLine($"{Name} sent HouseInstance={HouseInstance:X8}, found instances and biota, but type {objects[0].WeenieType}");
+                return null;
+            }
+
+            house.ActivateLinks(instances, new List<Biota>() { biota });
+            House = house;
+            return house;
         }
     }
 }

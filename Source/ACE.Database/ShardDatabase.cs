@@ -411,6 +411,26 @@ namespace ACE.Database
             return decayables.ToList();
         }
 
+        public List<Biota> GetStaticObjectsByLandblockInParallel(ushort landblockId)
+        {
+            var staticObjects = new ConcurrentBag<Biota>();
+
+            var staticLandblockId = 0x70000 | landblockId;
+
+            using (var context = new ShardDbContext())
+            {
+                context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
+
+                var results = context.Biota.Where(b => b.Id >> 12 == staticLandblockId).ToList();
+
+                Parallel.ForEach(results, result =>
+                {
+                    var biota = GetBiota(result.Id);
+                    staticObjects.Add(biota);
+                });
+            }
+            return staticObjects.ToList();
+        }
 
         public bool IsCharacterNameAvailable(string name)
         {

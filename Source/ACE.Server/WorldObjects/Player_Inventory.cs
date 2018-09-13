@@ -245,6 +245,10 @@ namespace ACE.Server.WorldObjects
                         log.Error("Player_Inventory PickupItemWithNetworking picking up items from world containers side pack WIP");
                         return;
                     }
+
+                    var lastUsedHook = lastUsedContainer as Hook;
+                    if (lastUsedHook != null)
+                        lastUsedHook.OnRemoveItem();
                 }
             }
 
@@ -592,6 +596,8 @@ namespace ACE.Server.WorldObjects
 
             // if were are still here, this needs to do a pack pack or main pack move.
             MoveItemWithNetworking(item, container, placement);
+
+            container.OnAddItem();
         }
 
         /// <summary>

@@ -950,6 +950,12 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyDataId.HouseId); else SetProperty(PropertyDataId.HouseId, value.Value); }
         }
 
+        public uint? HouseInstance
+        {
+            get => GetProperty(PropertyInstanceId.House);
+            set { if (!value.HasValue) RemoveProperty(PropertyInstanceId.House); else SetProperty(PropertyInstanceId.House, value.Value); }
+        }
+
         /// <summary>
         /// Housing links to another packet, that needs sent.. The HouseRestrictions ACL Control list that contains all the housing data
         /// </summary>
