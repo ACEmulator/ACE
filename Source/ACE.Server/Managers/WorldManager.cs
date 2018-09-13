@@ -516,9 +516,13 @@ namespace ACE.Server.Managers
                 LandblockManager.UnloadLandblocks();
 
                 // Session Maintenance
+                int sessionCount;
+
                 sessionLock.EnterUpgradeableReadLock();
                 try
                 {
+                    sessionCount = sessions.Count;
+
                     // The session tick processes all inbound GameAction messages
                     foreach (var s in sessions)
                         s.Tick(lastTickDuration);
@@ -537,7 +541,7 @@ namespace ACE.Server.Managers
                     sessionLock.ExitUpgradeableReadLock();
                 }
 
-                Thread.Sleep(1);
+                Thread.Sleep(sessionCount == 0 ? 10 : 1); // Relax the CPU if no sessions are connected
 
                 lastTickDuration = worldTickTimer.Elapsed.TotalSeconds;
                 PortalYearTicks += lastTickDuration;
@@ -566,7 +570,7 @@ namespace ACE.Server.Managers
         {
             ConcurrentQueue<WorldObject> movedObjects = new ConcurrentQueue<WorldObject>();
 
-            if (Server.Physics.Common.PhysicsTimer.CurrentTime < LastPhysicsUpdate + PhysicsRate)
+            if (PhysicsTimer.CurrentTime < LastPhysicsUpdate + PhysicsRate)
                 return movedObjects;
 
             try
@@ -593,7 +597,7 @@ namespace ACE.Server.Managers
                 log.Error(e);
             }
 
-            LastPhysicsUpdate = Server.Physics.Common.PhysicsTimer.CurrentTime;
+            LastPhysicsUpdate = PhysicsTimer.CurrentTime;
 
             return movedObjects;
         }

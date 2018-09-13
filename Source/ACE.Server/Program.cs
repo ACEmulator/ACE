@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Runtime.InteropServices;
 
 using log4net;
 using log4net.Config;
@@ -15,6 +16,21 @@ namespace ACE.Server
 {
     class Program
     {
+        /// <summary>
+        /// The timeBeginPeriod function sets the minimum timer resolution for an application or device driver. Used to manipulate the timer frequency.
+        /// https://docs.microsoft.com/en-us/windows/desktop/api/timeapi/nf-timeapi-timebeginperiod
+        /// Important note: This function affects a global Windows setting. Windows uses the lowest value (that is, highest resolution) requested by any process.
+        /// </summary>
+        [DllImport("winmm.dll", EntryPoint="timeBeginPeriod")]
+        public static extern uint MM_BeginPeriod(uint uMilliseconds);
+
+        /// <summary>
+        /// The timeEndPeriod function clears a previously set minimum timer resolution
+        /// https://docs.microsoft.com/en-us/windows/desktop/api/timeapi/nf-timeapi-timeendperiod
+        /// </summary>
+        [DllImport("winmm.dll", EntryPoint = "timeEndPeriod")]
+        public static extern uint MM_EndPeriod(uint uMilliseconds);
+
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         public static void Main(string[] args)
@@ -26,6 +42,20 @@ namespace ACE.Server
 
             var logRepository = LogManager.GetRepository(System.Reflection.Assembly.GetEntryAssembly());
             XmlConfigurator.Configure(logRepository, new FileInfo("log4net.config"));
+
+            // Do system specific initializations here
+            try
+            {
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    // On many windows systems, the default resolution for Thread.Sleep is 15.6ms. This allows us to command a tighter resolution
+                    MM_BeginPeriod(1);
+                }
+            }
+            catch (Exception ex)
+            {
+                log.Error(ex.ToString());
+            }
 
             log.Info("Starting ACEmulator...");
             Console.Title = @"ACEmulator";
@@ -72,6 +102,19 @@ namespace ACE.Server
         {
             PropertyManager.StopUpdating();
             DatabaseManager.Stop();
+
+            // Do system specific cleanup here
+            try
+            {
+                if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                {
+                    MM_EndPeriod(1);
+                }
+            }
+            catch (Exception ex)
+            {
+                log.Error(ex.ToString());
+            }
         }
     }
 }
