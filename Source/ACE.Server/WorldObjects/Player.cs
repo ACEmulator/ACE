@@ -57,6 +57,10 @@ namespace ACE.Server.WorldObjects
             AvailableExperience = AvailableExperience ?? 0;
             TotalExperience = TotalExperience ?? 0;
 
+            Attackable = true;
+
+            SetProperty(PropertyString.DateOfBirth, $"{DateTime.UtcNow:dd MMMM yyyy}");
+
             SetEphemeralValues();
         }
 

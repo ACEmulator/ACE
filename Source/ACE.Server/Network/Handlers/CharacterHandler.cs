@@ -356,10 +356,6 @@ namespace ACE.Server.Network.Handlers
             player.Character.Name = player.Name;
             //player.SetProperty(PropertyString.DisplayName, characterCreateInfo.Name); // unsure
 
-            player.SetProperty(PropertyBool.Attackable, true);
-
-            player.SetProperty(PropertyString.DateOfBirth, $"{DateTime.UtcNow:dd MMMM yyyy}");
-
             DatabaseManager.Shard.IsCharacterNameAvailable(characterCreateInfo.Name, isAvailable =>
             {
                 if (!isAvailable)
