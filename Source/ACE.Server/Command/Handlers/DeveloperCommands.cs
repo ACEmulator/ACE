@@ -381,7 +381,7 @@ namespace ACE.Server.Command.Handlers
             string message = "";
             uint playerCounter = 0;
 
-            foreach (Session playerSession in WorldManager.GetAll(false))
+            foreach (Session playerSession in WorldManager.GetAll())
             {
                 message += $"{playerSession.Player.Name} : {playerSession.Id}\n";
                 playerCounter++;

@@ -97,10 +97,8 @@ namespace ACE.Server.Managers
             }
 
             // logout each player
-            foreach (var player in WorldManager.GetAll(false))
-            {
+            foreach (var player in WorldManager.GetAll())
                 player.LogOffPlayer();
-            }
 
             // wait 6 seconds for log-off
             Thread.Sleep(6000);

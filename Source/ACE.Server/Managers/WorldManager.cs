@@ -347,10 +347,10 @@ namespace ACE.Server.Managers
         }
 
         /// <summary>
-        /// Returns a list of all players currently online
+        /// Returns a list of all sessions currently connected
         /// </summary>
         /// <param name="isOnlineRequired">false returns all players (offline or online)</param>
-        /// <returns>List of all online players on the server</returns>
+        /// <returns>List of all active sessions to the server</returns>
         public static List<Session> GetAll(bool isOnlineRequired = true)
         {
             sessionLock.EnterReadLock();
@@ -359,7 +359,7 @@ namespace ACE.Server.Managers
                 if (isOnlineRequired)
                     return sessions.Where(s => s.Player != null && s.Player.IsOnline).ToList();
 
-                return sessions.Where(s => s.Player != null).ToList();
+                return sessions.ToList();
             }
             finally
             {
