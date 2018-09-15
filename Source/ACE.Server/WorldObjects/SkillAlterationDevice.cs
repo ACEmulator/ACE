@@ -3,12 +3,9 @@ using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
-using ACE.Server.Entity.Actions;
-using ACE.Server.Network;
+using ACE.Server.Factories;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
-using ACE.Server.Network.Motion;
-using System;
 
 namespace ACE.Server.WorldObjects
 {
@@ -53,60 +50,201 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public override void UseItem(Player player)
         {
-            Console.WriteLine("In SkillAlterationDevice.UseItem()");
+            var currentSkill = player.GetCreatureSkill(SkillToBeAltered);
+
+            //Check to make sure we got a valid skill back
+            if (currentSkill == null)
+            {
+                player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.YouFailToAlterSkill));
+                return;
+            }
+
+            //Gather costs associated with manipulating currently selected skill
+            var currentSkillCost = currentSkill.Skill.GetCost();
 
             switch (TypeOfAlteration)
             {
                 case SkillAlterationType.Specialize:
-                    var currentSkill = player.GetCreatureSkill(SkillToBeAltered);
-
-                    if (currentSkill != null)
+                    //Check to make sure player won't exceed limit of 70 specialized credits after operation
+                    if (currentSkillCost.SpecializationCost + GetTotalSpecializedCredits(player) > 70)
                     {
-                            //Check to see if the skill is ripe for specializing
-                            if (currentSkill.AdvancementClass == SkillAdvancementClass.Trained)
-                            {
-                                var currentSkillCost = currentSkill.Skill.GetCost();
+                        player.Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(player.Session, WeenieErrorWithString.TooManyCreditsInSpecializedSkills, currentSkill.Skill.ToSentence()));
+                        player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.YouFailToAlterSkill));
+                        break;
+                    }
 
-                                if (player.AvailableSkillCredits >= currentSkillCost.SpecializationCost)
-                                {
-                                    if (player.SpecializeSkill(currentSkill.Skill,currentSkillCost.SpecializationCost))
-                                    {
-                                    //Specialization was successful, notify the client
-                                    Console.WriteLine("Skill was specialized successfully");
-                                    player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.None));
-                                    break;
-                                    }
-                                }
-                                else
-                                {
-                                    player.Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(player.Session, WeenieErrorWithString.NotEnoughSkillCreditsToSpecialize, currentSkill.Skill.ToSentence()));
-                                    player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.YouFailToAlterSkill));
-                                    break;
-                                }
+                    //Check to see if the skill is ripe for specializing
+                    if (currentSkill.AdvancementClass == SkillAdvancementClass.Trained)
+                    {
+                        if (player.AvailableSkillCredits >= currentSkillCost.SpecializationCost)
+                        {
+                            if (player.SpecializeSkill(currentSkill.Skill, currentSkillCost.SpecializationCost))
+                            {
+                                //Specialization was successful, notify the client
+                                player.Session.Network.EnqueueSend(new GameMessagePrivateUpdateSkill(player, currentSkill.Skill, SkillAdvancementClass.Specialized, 0, 0, 0));
+                                player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(player, PropertyInt.AvailableSkillCredits, player.AvailableSkillCredits ?? 0));
+                                player.Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(player.Session, WeenieErrorWithString.YouHaveSucceededSpecializing_Skill, currentSkill.Skill.ToSentence()));
+                                player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.None));
+
+                                //Destroy the gem we used successfully
+                                Destroy();
+                                player.Session.Network.EnqueueSend(new GameEventInventoryRemoveObject(player.Session, this));
+
+                                break;
+                            }
+                        }
+                        else
+                        {
+                            player.Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(player.Session, WeenieErrorWithString.NotEnoughSkillCreditsToSpecialize, currentSkill.Skill.ToSentence()));
+                            player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.YouFailToAlterSkill));
+                            break;
+                        }
+                    }
+
+                    //Tried to use a specialization gem on a skill that is either already specialized, or untrained
+                    player.Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(player.Session, WeenieErrorWithString.Your_SkillMustBeTrained, currentSkill.Skill.ToSentence()));
+                    player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.YouFailToAlterSkill));
+                    break;
+                case SkillAlterationType.Lower:
+                    //We're using a Gem of Forgetfullness
+
+                    //Check for equipped items that have requirements in the skill we're lowering
+                    if (CheckWieldedItems(player))
+                    {
+                        //Items are wielded which might be affected by a lowering operation
+                        player.Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(player.Session, WeenieErrorWithString.CannotLowerSkillWhileWieldingItem, currentSkill.Skill.ToSentence()));
+                        player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.YouFailToAlterSkill));
+                        break;
+                    }
+
+                    if (currentSkill.AdvancementClass == SkillAdvancementClass.Specialized)
+                    {
+                        if (player.UnspecializeSkill(currentSkill.Skill, currentSkillCost.SpecializationCost))
+                        {
+                            //Unspecialization was successful, notify the client
+                            player.Session.Network.EnqueueSend(new GameMessagePrivateUpdateSkill(player, currentSkill.Skill, SkillAdvancementClass.Trained, 0, 0, 0));
+                            player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(player, PropertyInt.AvailableSkillCredits, player.AvailableSkillCredits ?? 0));
+                            player.Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(player.Session, WeenieErrorWithString.YouHaveSucceededUnspecializing_Skill, currentSkill.Skill.ToSentence()));
+                            player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.None));
+
+                            //Destroy the gem we used successfully
+                            Destroy();
+                            player.Session.Network.EnqueueSend(new GameEventInventoryRemoveObject(player.Session, this));
+
+                            break;
+                        }
+                    }
+                    else if (currentSkill.AdvancementClass == SkillAdvancementClass.Trained)
+                    {
+                        bool isHeritageSkill = false;
+
+                        //Check to see if we're lowering a heritage skill
+                        if (CheckHeritageSkill(player))
+                        {
+                            isHeritageSkill = true;
+                        }
+
+                        if (player.UntrainSkill(currentSkill.Skill, currentSkillCost.TrainingCost, isHeritageSkill))
+                        {
+                            //Unspecialization was successful, notify the client
+                            if (!isHeritageSkill)
+                            {
+                                player.Session.Network.EnqueueSend(new GameMessagePrivateUpdateSkill(player, currentSkill.Skill, SkillAdvancementClass.Untrained, 0, 0, 0));
+                                player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(player, PropertyInt.AvailableSkillCredits, player.AvailableSkillCredits ?? 0));
+                                player.Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(player.Session, WeenieErrorWithString.YouHaveSucceededUntraining_Skill, currentSkill.Skill.ToSentence()));
+                                player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.None));
                             }
                             else
                             {
-                                //Tried to use a specialization gem on a skill that is either already specialized, or untrained
-                                player.Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(player.Session, WeenieErrorWithString.Your_SkillMustBeTrained, currentSkill.Skill.ToSentence()));
-                                player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.YouFailToAlterSkill));
-                                break;
+                                player.Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(player.Session, WeenieErrorWithString.CannotUntrain_SkillButRecoveredXP, currentSkill.Skill.ToSentence()));
+                                player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.None));
                             }
 
+                            //Destroy the gem we used successfully
+                            Destroy();
+                            player.Session.Network.EnqueueSend(new GameEventInventoryRemoveObject(player.Session, this));
+
+                            break;
+                        }
                     }
-
-                    break;
-                case SkillAlterationType.Lower:
-
+                    else
+                    {
+                        player.Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(player.Session, WeenieErrorWithString.Your_SkillIsAlreadyUntrained, currentSkill.Skill.ToSentence()));
+                        player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.YouFailToAlterSkill));
+                        break;
+                    }
                     break;
                 default:
-#if DEBUG
-                    Console.WriteLine("Undefined or unspecified TypeOfAlteration reached");
-#endif
-
                     player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.YouFailToAlterSkill));
                     break;
             }
+        }
 
+        /// <summary>
+        /// Calculates and returns the current total number of specialized credits
+        /// </summary>
+        private int GetTotalSpecializedCredits(Player player)
+        {
+            var specializedCreditsTotal = 0;
+
+            foreach (var skill in player.Skills.Keys)
+            {
+                var skillCost = skill.GetCost();
+                var currentSkill = player.GetCreatureSkill(skill);
+
+                if (currentSkill != null)
+                {
+                    if (currentSkill.AdvancementClass == SkillAdvancementClass.Specialized)
+                    {
+                        specializedCreditsTotal += skillCost.SpecializationCost;
+                    }
+
+                }
+            }
+
+            return specializedCreditsTotal;
+        }
+
+        /// <summary>
+        /// Checks wielded items and their requirements to see if they'd be violated by an impending skill lowering operation
+        /// </summary>
+        private bool CheckWieldedItems(Player player)
+        {
+            foreach (var equippedItem in player.EquippedObjects.Values)
+            {
+                var itemWieldReq = (WieldRequirement)(equippedItem.GetProperty(PropertyInt.WieldRequirements) ?? 0);
+
+                if (itemWieldReq == WieldRequirement.RawSkill || itemWieldReq == WieldRequirement.Skill)
+                {
+                    // Check WieldDifficulty property against player's Skill level, defined by item's WieldSkilltype property
+                    var itemSkillReq = player.ConvertToMoASkill((Skill)(equippedItem.GetProperty(PropertyInt.WieldSkilltype) ?? 0));
+
+                    if (itemSkillReq == SkillToBeAltered)
+                    {
+                        return true;
+                    }
+                }
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// Checks to see if a skill was a heritage skill
+        /// </summary>
+        private bool CheckHeritageSkill(Player player)
+        {
+            var starterGearConfig = StarterGearFactory.GetStarterGearConfiguration();
+
+            foreach (var starterSkill in starterGearConfig.Skills)
+            {
+                var currentStarterSkill = player.Skills[(Skill)starterSkill.SkillId];
+
+                if (currentStarterSkill.AdvancementClass == SkillAdvancementClass.Trained || currentStarterSkill.AdvancementClass == SkillAdvancementClass.Specialized)
+                {
+                    return true;
+                }
+            }
+            return false;
         }
     }
 }

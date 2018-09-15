@@ -112,9 +112,14 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Sets the skill to untrained status
         /// </summary>
-        public bool UntrainSkill(Skill skill, int creditsSpent)
+        public bool UntrainSkill(Skill skill, int creditsSpent, bool skillIsHeritageSkill = false)
         {
             var cs = GetCreatureSkill(skill);
+
+            if (cs == null)
+            {
+                return false;
+            }
 
             if (cs.AdvancementClass != SkillAdvancementClass.Trained && cs.AdvancementClass != SkillAdvancementClass.Specialized)
             {
@@ -124,12 +129,47 @@ namespace ACE.Server.WorldObjects
                 return true;
             }
 
-            if (cs.AdvancementClass == SkillAdvancementClass.Trained)
+            if (cs.AdvancementClass == SkillAdvancementClass.Trained) 
             {
-                cs.AdvancementClass = SkillAdvancementClass.Untrained;
+                //Perform refund of XP and credits
+                RefundXP(cs.ExperienceSpent);
+
+                if (!skillIsHeritageSkill)
+                {
+                    cs.AdvancementClass = SkillAdvancementClass.Untrained;
+                    AvailableSkillCredits += creditsSpent;
+                }
+                
                 cs.Ranks = 0;
                 cs.ExperienceSpent = 0;
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Lowers skill from Specialized to Trained and returns both skill credits and invested XP
+        /// </summary>
+        public bool UnspecializeSkill(Skill skill, int creditsSpent)
+        {
+            var cs = GetCreatureSkill(skill);
+
+            if(cs == null)
+            {
+                return false;
+            }
+
+            if (cs.AdvancementClass == SkillAdvancementClass.Specialized)
+            {
+                //Perform refund of XP and credits
+                RefundXP(cs.ExperienceSpent);
                 AvailableSkillCredits += creditsSpent;
+
+                cs.AdvancementClass = SkillAdvancementClass.Trained;
+                cs.ExperienceSpent = 0;
+                cs.Ranks = 0;
+
                 return true;
             }
 
