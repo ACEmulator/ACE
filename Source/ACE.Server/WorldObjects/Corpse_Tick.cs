@@ -13,7 +13,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Handles corpse decay and removal
         /// </summary>
-        public override void HeartBeat()
+        public override void HeartBeat(double currentUnixTime)
         {
             if (rotCompleted)
                 return;
@@ -36,7 +36,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            base.HeartBeat();
+            base.HeartBeat(currentUnixTime);
         }
     }
 }

@@ -1,6 +1,4 @@
 using System;
-using ACE.Entity.Enum;
-using ACE.Server.Entity;
 
 namespace ACE.Server.WorldObjects
 {
@@ -44,7 +42,7 @@ namespace ACE.Server.WorldObjects
             IsAwake = true;
             var stanceTime = DoAttackStance();
             //Console.WriteLine("StanceTime: " + stanceTime);
-            NextAttackTime = Timer.CurrentTime + stanceTime + 1.0f;
+            NextAttackTime = DateTime.UtcNow.AddSeconds(stanceTime + 1.0f);
         }
 
         /// <summary>

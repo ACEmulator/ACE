@@ -2,9 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
-using ACE.Server.Physics.Animation;
+
+using ACE.Server.Entity;
 using ACE.Server.Physics.Common;
-using ACE.Server.Physics.Extensions;
 
 namespace ACE.Server.Physics.Combat
 {
@@ -59,7 +59,7 @@ namespace ACE.Server.Physics.Combat
         {
             if (PhysicsObj == null) return;
 
-            if (Timer.CurrentTime - LastUpdateTime < 0.5f) return;
+            if (PhysicsTimer.CurrentTime - LastUpdateTime < 0.5f) return;
 
             if (TargetInfo != null && TargetInfo.TargetPosition == null)
             {
@@ -67,7 +67,7 @@ namespace ACE.Server.Physics.Combat
                 return;
             }
 
-            if (TargetInfo != null && TargetInfo.Status == TargetStatus.Undefined && TargetInfo.LastUpdateTime + 10.0f < Timer.CurrentTime)
+            if (TargetInfo != null && TargetInfo.Status == TargetStatus.Undefined && TargetInfo.LastUpdateTime + 10.0f < PhysicsTimer.CurrentTime)
             {
                 TargetInfo.Status = TargetStatus.TimedOut;
                 PhysicsObj.HandleUpdateTarget(new TargetInfo(TargetInfo));  // ref?
@@ -77,7 +77,7 @@ namespace ACE.Server.Physics.Combat
                 foreach (var voyeur in VoyeurTable.Values.ToList())
                     CheckAndUpdateVoyeur(voyeur);
 
-            LastUpdateTime = Timer.CurrentTime;
+            LastUpdateTime = PhysicsTimer.CurrentTime;
         }
 
         public void CheckAndUpdateVoyeur(TargettedVoyeurInfo voyeur)
@@ -125,7 +125,7 @@ namespace ACE.Server.Physics.Combat
             if (PhysicsObj == null || TargetInfo == null || TargetInfo.ObjectID != update.ObjectID) return;
 
             TargetInfo = new TargetInfo(update);    // ref?
-            TargetInfo.LastUpdateTime = Timer.CurrentTime;
+            TargetInfo.LastUpdateTime = PhysicsTimer.CurrentTime;
             TargetInfo.InterpolatedHeading = PhysicsObj.Position.GetOffset(TargetInfo.InterpolatedPosition);
 
             if (Vec.NormalizeCheckSmall(ref TargetInfo.InterpolatedHeading))

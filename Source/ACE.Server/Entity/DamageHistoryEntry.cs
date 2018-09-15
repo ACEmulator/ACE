@@ -1,3 +1,5 @@
+using System;
+
 using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Entity
@@ -9,7 +11,7 @@ namespace ACE.Server.Entity
         public int Amount;
         public uint CurrentHealth;
         public uint MaxHealth;
-        public double Time;
+        public DateTime Time;
 
         /// <summary>
         /// Constructs a new entry for the DamageHistory
@@ -24,7 +26,7 @@ namespace ACE.Server.Entity
             Amount = amount;
             CurrentHealth = creature.Health.Current;
             MaxHealth = creature.Health.MaxValue;
-            Time = Timer.CurrentTime;
+            Time = DateTime.UtcNow;
         }
     }
 }

@@ -1706,10 +1706,13 @@ namespace ACE.Server.WorldObjects
         //}
 
 
-        public double? CreationTimestamp
+        /// <summary>
+        /// Unix time this object was created
+        /// </summary>
+        public int? CreationTimestamp
         {
-            get => GetProperty(PropertyFloat.CreationTimestamp);
-            set { if (!value.HasValue) RemoveProperty(PropertyFloat.CreationTimestamp); else SetProperty(PropertyFloat.CreationTimestamp, value.Value); }
+            get => GetProperty(PropertyInt.CreationTimestamp);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.CreationTimestamp); else SetProperty(PropertyInt.CreationTimestamp, value.Value); }
         }
 
 

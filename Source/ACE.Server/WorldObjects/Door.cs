@@ -92,21 +92,21 @@ namespace ACE.Server.WorldObjects
         private double? ResetTimestamp
         {
             get { return resetTimestamp; }
-            set { resetTimestamp = Time.GetTimestamp(); }
+            set { resetTimestamp = Time.GetUnixTime(); }
         }
 
         private double? useTimestamp;
         private double? UseTimestamp
         {
             get { return useTimestamp; }
-            set { useTimestamp = Time.GetTimestamp(); }
+            set { useTimestamp = Time.GetUnixTime(); }
         }
 
         private double? useLockTimestamp;
         private double? UseLockTimestamp
         {
             get { return useLockTimestamp; }
-            set { useLockTimestamp = Time.GetTimestamp(); }
+            set { useLockTimestamp = Time.GetUnixTime(); }
         }
 
         private uint? LastUnlocker
@@ -235,7 +235,7 @@ namespace ACE.Server.WorldObjects
 
         private void Reset()
         {
-            if ((Time.GetTimestamp() - UseTimestamp) < ResetInterval)
+            if ((Time.GetUnixTime() - UseTimestamp) < ResetInterval)
                 return;
 
             if (!DefaultOpen)

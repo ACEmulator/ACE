@@ -1,8 +1,8 @@
 using System;
+
 using ACE.Entity.Enum;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
-using ACE.Server.Factories;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Physics.Animation;
 
@@ -103,7 +103,7 @@ namespace ACE.Server.WorldObjects
             if (timeOffset < MissileDelay)
                 timeOffset = MissileDelay;
 
-            NextAttackTime = Timer.CurrentTime + timeOffset;
+            NextAttackTime = DateTime.UtcNow.AddSeconds(timeOffset);
         }
 
         /// <summary>

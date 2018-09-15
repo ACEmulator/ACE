@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+
 using ACE.Database.Models.Shard;
 using ACE.DatLoader;
 using ACE.Entity;
@@ -15,7 +16,9 @@ using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Motion;
 using ACE.Server.WorldObjects;
+
 using log4net;
+
 using Position = ACE.Entity.Position;
 
 namespace ACE.Server.Managers
@@ -25,7 +28,7 @@ namespace ACE.Server.Managers
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         public WorldObject WorldObject;
-        public double EndTime;
+        public DateTime EndTime;
         public Queue<QueuedEmote> EmoteQueue;
 
         public EmoteManager(WorldObject worldObject)

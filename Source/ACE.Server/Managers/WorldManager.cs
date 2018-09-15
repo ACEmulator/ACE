@@ -347,10 +347,10 @@ namespace ACE.Server.Managers
         }
 
         /// <summary>
-        /// Returns a list of all players currently online
+        /// Returns a list of all sessions currently connected
         /// </summary>
         /// <param name="isOnlineRequired">false returns all players (offline or online)</param>
-        /// <returns>List of all online players on the server</returns>
+        /// <returns>List of all active sessions to the server</returns>
         public static List<Session> GetAll(bool isOnlineRequired = true)
         {
             sessionLock.EnterReadLock();
@@ -359,7 +359,7 @@ namespace ACE.Server.Managers
                 if (isOnlineRequired)
                     return sessions.Where(s => s.Player != null && s.Player.IsOnline).ToList();
 
-                return sessions.Where(s => s.Player != null).ToList();
+                return sessions.ToList();
             }
             finally
             {
@@ -444,15 +444,18 @@ namespace ACE.Server.Managers
         /// <summary>
         /// Manages updating all entities on the world.
         ///  - Server-side command-line commands are handled in their own thread.
-        ///  - Network commands come from their own listener threads, and are queued in world objects
+        ///  - Database I/O is handled in its own thread.
+        ///  - Network commands come from their own listener threads, and are queued for each sessions which are then processed here.
         ///  - This thread does the rest of the work!
         /// </summary>
         private static void UpdateWorld()
         {
             log.DebugFormat("Starting UpdateWorld thread");
+
             double lastTickDuration = 0d;
             WorldActive = true;
             var worldTickTimer = new Stopwatch();
+
             while (!pendingWorldStop)
             {
                 worldTickTimer.Restart();
@@ -507,21 +510,25 @@ namespace ACE.Server.Managers
                 var activeLandblocks = LandblockManager.GetActiveLandblocks();
 
                 foreach (var landblock in activeLandblocks)
-                    landblock.Tick(lastTickDuration, DateTime.UtcNow.Ticks);
+                    landblock.Tick(lastTickDuration, Time.GetUnixTime());
 
                 // clean up inactive landblocks
                 LandblockManager.UnloadLandblocks();
 
                 // Session Maintenance
+                int sessionCount;
+
                 sessionLock.EnterUpgradeableReadLock();
                 try
                 {
+                    sessionCount = sessions.Count;
+
                     // The session tick processes all inbound GameAction messages
                     foreach (var s in sessions)
-                        s.Tick(lastTickDuration, DateTime.UtcNow.Ticks);
+                        s.Tick(lastTickDuration);
 
                     // Send the current time ticks to allow sessions to declare themselves bad
-                    Parallel.ForEach(sessions, s => s.TickInParallel(lastTickDuration, DateTime.UtcNow.Ticks));
+                    Parallel.ForEach(sessions, s => s.TickInParallel(lastTickDuration));
 
                     // Removes sessions in the NetworkTimeout state, incuding sessions that have reached a timeout limit.
                     var deadSessions = sessions.FindAll(s => s.State == Network.Enum.SessionState.NetworkTimeout);
@@ -534,9 +541,9 @@ namespace ACE.Server.Managers
                     sessionLock.ExitUpgradeableReadLock();
                 }
 
-                Thread.Sleep(1);
+                Thread.Sleep(sessionCount == 0 ? 10 : 1); // Relax the CPU if no sessions are connected
 
-                lastTickDuration = (double)worldTickTimer.ElapsedTicks / Stopwatch.Frequency;
+                lastTickDuration = worldTickTimer.Elapsed.TotalSeconds;
                 PortalYearTicks += lastTickDuration;
             }
 
@@ -563,7 +570,7 @@ namespace ACE.Server.Managers
         {
             ConcurrentQueue<WorldObject> movedObjects = new ConcurrentQueue<WorldObject>();
 
-            if (Server.Physics.Common.Timer.CurrentTime < LastPhysicsUpdate + PhysicsRate)
+            if (PhysicsTimer.CurrentTime < LastPhysicsUpdate + PhysicsRate)
                 return movedObjects;
 
             try
@@ -590,7 +597,7 @@ namespace ACE.Server.Managers
                 log.Error(e);
             }
 
-            LastPhysicsUpdate = Server.Physics.Common.Timer.CurrentTime;
+            LastPhysicsUpdate = PhysicsTimer.CurrentTime;
 
             return movedObjects;
         }

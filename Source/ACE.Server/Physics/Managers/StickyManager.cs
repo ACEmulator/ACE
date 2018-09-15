@@ -2,7 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
-using ACE.Server.Physics.Collision;
+
+using ACE.Server.Entity;
 using ACE.Server.Physics.Combat;
 using ACE.Server.Physics.Common;
 
@@ -92,7 +93,7 @@ namespace ACE.Server.Physics.Animation
             TargetID = objectID;
             Initialized = false;
             TargetRadius = targetRadius;
-            StickyTimeoutTime = Timer.CurrentTime + StickyTime;
+            StickyTimeoutTime = PhysicsTimer.CurrentTime + StickyTime;
             PhysicsObj.set_target(0, objectID, 0.5f, 0.5f);
 
             foreach (var stickyCallback in StickyCallbacks.ToList())
@@ -101,7 +102,7 @@ namespace ACE.Server.Physics.Animation
 
         public void UseTime()
         {
-            if (Timer.CurrentTime > StickyTimeoutTime)
+            if (PhysicsTimer.CurrentTime > StickyTimeoutTime)
                 ClearTarget();
         }
 

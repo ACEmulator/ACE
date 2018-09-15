@@ -12,7 +12,7 @@ namespace ACE.Server.WorldObjects
 
         private DateTime lastSendAgeIntUpdateTime;
 
-        public override void Tick(double lastTickDuration, long currentTimeTick)
+        public override void Tick(double lastTickDuration, double currentUnixTime)
         {
             if (initialAgeTime == DateTime.MinValue)
             {
@@ -31,13 +31,13 @@ namespace ACE.Server.WorldObjects
                 lastSendAgeIntUpdateTime = DateTime.UtcNow;
             }
 
-            base.Tick(lastTickDuration, currentTimeTick);
+            base.Tick(lastTickDuration, currentUnixTime);
         }
 
         /// <summary>
         /// Called every ~5 seconds for Players
         /// </summary>
-        public override void HeartBeat()
+        public override void HeartBeat(double currentUnixTime)
         {
             NotifyLandblocks();
 
@@ -52,7 +52,7 @@ namespace ACE.Server.WorldObjects
             if (LastRequestedDatabaseSave + PlayerSaveInterval <= DateTime.UtcNow)
                 SavePlayer();
 
-            base.HeartBeat();
+            base.HeartBeat(currentUnixTime);
         }
     }
 }

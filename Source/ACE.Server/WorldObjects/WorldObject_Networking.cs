@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Numerics;
+
 using ACE.DatLoader;
 using ACE.DatLoader.Entity;
 using ACE.DatLoader.FileTypes;
@@ -18,6 +19,7 @@ using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Structure;
 using ACE.Server.Network.Sequence;
 using ACE.Server.Physics;
+using ACE.Server.Physics.Common;
 using ACE.Server.Physics.Extensions;
 
 namespace ACE.Server.WorldObjects
@@ -368,11 +370,6 @@ namespace ACE.Server.WorldObjects
         }
 
 
-        /// <summary>
-        /// tick-stamp for the last time a movement update was sent
-        /// </summary>
-        public double LastMovementBroadcastTicks { get; set; }
-
         public void WriteUpdatePositionPayload(BinaryWriter writer, bool forcePos = false)
         {
             if (forcePos)
@@ -391,8 +388,6 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         protected virtual void SendUpdatePosition(bool forcePos = false)
         {
-            LastMovementBroadcastTicks = WorldManager.PortalYearTicks;
-
             EnqueueBroadcast(new GameMessageUpdatePosition(this, forcePos));
         }
 
@@ -1065,6 +1060,8 @@ namespace ACE.Server.WorldObjects
 
         public static double ProjectileTimeout = 30.0f;
 
+        private readonly double physicsCreationTime = PhysicsTimer.CurrentTime;
+
         public double LastPhysicsUpdate;
 
         public static double UpdateRate_Creature = 0.2f;
@@ -1090,15 +1087,15 @@ namespace ACE.Server.WorldObjects
 
             if (creature != null)
             {
-                if (LastPhysicsUpdate + UpdateRate_Creature <= Timer.CurrentTime)
-                    LastPhysicsUpdate = Timer.CurrentTime;
+                if (LastPhysicsUpdate + UpdateRate_Creature <= PhysicsTimer.CurrentTime)
+                    LastPhysicsUpdate = PhysicsTimer.CurrentTime;
                 else
                     runUpdate = false;
             }
 
             if (!runUpdate) return false;
 
-            if (isMissile && CreationTimestamp + ProjectileTimeout <= Timer.CurrentTime)
+            if (isMissile && physicsCreationTime + ProjectileTimeout <= PhysicsTimer.CurrentTime)
             {
                 // only for projectiles?
                 //Console.WriteLine("Timeout reached - destroying " + Name);

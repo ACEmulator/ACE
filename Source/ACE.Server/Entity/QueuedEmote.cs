@@ -1,3 +1,5 @@
+using System;
+
 using ACE.Entity;
 using ACE.Server.WorldObjects;
 
@@ -7,11 +9,11 @@ namespace ACE.Server.Entity
     {
         public Emote Data;
         public WorldObject Target;
-        public double ExecuteTime;
+        public DateTime ExecuteTime;
 
         public QueuedEmote() { }
 
-        public QueuedEmote(Emote data, WorldObject target, double executeTime)
+        public QueuedEmote(Emote data, WorldObject target, DateTime executeTime)
         {
             Data = data;
             Target = target;

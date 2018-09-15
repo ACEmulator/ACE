@@ -356,15 +356,6 @@ namespace ACE.Server.Network.Handlers
             player.Character.Name = player.Name;
             //player.SetProperty(PropertyString.DisplayName, characterCreateInfo.Name); // unsure
 
-            // Index used to determine the starting location
-            uint startArea = characterCreateInfo.StartArea;
-
-            player.SetProperty(PropertyBool.Attackable, true);
-
-            player.SetProperty(PropertyFloat.CreationTimestamp, Time.GetTimestamp());
-            player.SetProperty(PropertyInt.CreationTimestamp, (int)player.GetProperty(PropertyFloat.CreationTimestamp));
-            player.SetProperty(PropertyString.DateOfBirth, $"{DateTime.UtcNow:dd MMMM yyyy}");
-
             DatabaseManager.Shard.IsCharacterNameAvailable(characterCreateInfo.Name, isAvailable =>
             {
                 if (!isAvailable)
@@ -376,6 +367,9 @@ namespace ACE.Server.Network.Handlers
                 // player.SetProperty(PropertyInstanceId.Account, (int)session.Id);
 
                 CharacterCreateSetDefaultCharacterOptions(player);
+
+                // Index used to determine the starting location
+                var startArea = characterCreateInfo.StartArea;
 
                 player.Location = new Position(cg.StarterAreas[(int)startArea].Locations[0].ObjCellID,
                     cg.StarterAreas[(int)startArea].Locations[0].Frame.Origin.X, cg.StarterAreas[(int)startArea].Locations[0].Frame.Origin.Y, cg.StarterAreas[(int)startArea].Locations[0].Frame.Origin.Z,
@@ -591,7 +585,7 @@ namespace ACE.Server.Network.Handlers
 
             session.Network.EnqueueSend(new GameMessageCharacterDelete());
 
-            character.DeleteTime = Time.GetUnixTime() + 3600ul;
+            character.DeleteTime = (ulong)Time.GetUnixTime() + 3600ul;
             character.IsDeleted = false;
 
             DatabaseManager.Shard.SaveCharacter(character, new ReaderWriterLockSlim(), result =>
