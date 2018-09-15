@@ -162,6 +162,10 @@ namespace ACE.Server.Managers
                 if (session != null)
                     session.ProcessPacket(packet);
             }
+            else if (packet.Header.Id == 0 && packet.Header.HasFlag(PacketHeaderFlags.CICMDCommand))
+            {
+                // TODO: Not sure what to do with these packets yet
+            }
             else if (sessionMap.Length > packet.Header.Id && loggedInClients.Contains(endPoint))
             {
                 var session = sessionMap[packet.Header.Id];
