@@ -1224,6 +1224,60 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyInt.Level); else SetProperty(PropertyInt.Level, value.Value); }
         }
 
+        public double? ArmorModVsSlash
+        {
+            get => GetProperty(PropertyFloat.ArmorModVsSlash);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.ArmorModVsSlash); else SetProperty(PropertyFloat.ArmorModVsSlash, value.Value); }
+        }
+        public double? ArmorModVsPierce
+        {
+            get => GetProperty(PropertyFloat.ArmorModVsPierce);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.ArmorModVsPierce); else SetProperty(PropertyFloat.ArmorModVsPierce, value.Value); }
+        }
+        public double? ArmorModVsBludgeon
+        {
+            get => GetProperty(PropertyFloat.ArmorModVsBludgeon);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.ArmorModVsBludgeon); else SetProperty(PropertyFloat.ArmorModVsBludgeon, value.Value); }
+        }
+        public double? ArmorModVsCold
+        {
+            get => GetProperty(PropertyFloat.ArmorModVsCold);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.ArmorModVsCold); else SetProperty(PropertyFloat.ArmorModVsCold, value.Value); }
+        }
+        public double? ArmorModVsFire
+        {
+            get => GetProperty(PropertyFloat.ArmorModVsFire);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.ArmorModVsFire); else SetProperty(PropertyFloat.ArmorModVsFire, value.Value); }
+        }
+        public double? ArmorModVsAcid
+        {
+            get => GetProperty(PropertyFloat.ArmorModVsAcid);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.ArmorModVsAcid); else SetProperty(PropertyFloat.ArmorModVsAcid, value.Value); }
+        }
+        public double? ArmorModVsElectric
+        {
+            get => GetProperty(PropertyFloat.ArmorModVsElectric);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.ArmorModVsElectric); else SetProperty(PropertyFloat.ArmorModVsElectric, value.Value); }
+        }
+
+        public double? ArmorModVsNether
+        {
+            get => GetProperty(PropertyFloat.ArmorModVsNether);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.ArmorModVsNether); else SetProperty(PropertyFloat.ArmorModVsNether, value.Value); }
+        }
+
+        public int? ArmorType
+        {
+            get => GetProperty(PropertyInt.ArmorType);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.ArmorType); else SetProperty(PropertyInt.ArmorType, value.Value); }
+        }
+
+        public int? ArmorLevel
+        {
+            get => GetProperty(PropertyInt.ArmorLevel);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.ArmorLevel); else SetProperty(PropertyInt.ArmorLevel, value.Value); }
+        }
+
 
 
         //public uint? SetupDID
