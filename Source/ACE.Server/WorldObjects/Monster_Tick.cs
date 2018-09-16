@@ -73,9 +73,9 @@ namespace ACE.Server.WorldObjects
 
             if (CurrentAttack != AttackType.Missile)
             {
-                if (targetDist > MaxRange)
+                if (targetDist > MaxRange || !IsFacing(AttackTarget))
                 {
-                    // move towards
+                    // turn / move towards
                     if (!IsTurning && !IsMoving)
                         StartTurn();
                     else

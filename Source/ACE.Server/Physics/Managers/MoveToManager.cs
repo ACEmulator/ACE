@@ -222,8 +222,9 @@ namespace ACE.Server.Physics.Animation
             MovementType = MovementType.MoveToPosition;
 
             MovementParams = new MovementParameters(movementParams);
-            var flags = (MovementParamFlags)0xFFFFFF7F;     // ???
-            MovementParams.Flags = MovementParams.Flags & flags;
+            //var flags = (MovementParamFlags)0xFFFFFF7F;     // unset Sticky?
+            //MovementParams.Flags = MovementParams.Flags & flags;
+            MovementParams.Sticky = false;
 
             BeginNextNode();
         }
@@ -418,10 +419,9 @@ namespace ACE.Server.Physics.Animation
             var curPos = new Position(PhysicsObj.Position);
 
             var movementParams = new MovementParameters();
+            movementParams.CancelMoveTo = false;
+
             movementParams.Speed = MovementParams.Speed;
-            //movementParams.Speed = 1.0f;    // commented out?
-            var flags = (MovementParamFlags)0xFFFF7FFF;
-            movementParams.Flags = movementParams.Flags & flags;    // ??
             movementParams.HoldKeyToApply = MovementParams.HoldKeyToApply;
 
             if (!PhysicsObj.motions_pending())
@@ -536,8 +536,8 @@ namespace ACE.Server.Physics.Animation
 
             var movementParams = new MovementParameters();
             movementParams.CancelMoveTo = false;
-            movementParams.Speed = MovementParams.Speed;
-            //movementParams.Speed = 1.0f;    // commented out?
+            //movementParams.Speed = MovementParams.Speed;    // only for turning, too fast?
+            movementParams.Speed = 1.0f;    // commented out before?
             movementParams.HoldKeyToApply = MovementParams.HoldKeyToApply;
 
             var result = _DoMotion(motionID, movementParams);

@@ -86,7 +86,9 @@ namespace ACE.Server.WorldObjects
                 return 0.0f;
 
             var critical = false;
-            var damage = CalculateDamage(target, damageSource, ref critical);
+            var sneakAttack = false;
+
+            var damage = CalculateDamage(target, damageSource, ref critical, ref sneakAttack);
             if (damage > 0.0f)
                 target.TakeDamage(this, damage, critical);
             else
@@ -94,16 +96,20 @@ namespace ACE.Server.WorldObjects
 
             if (damage > 0.0f && target.Health.Current > 0)
             {
+                var attackConditions = new AttackConditions();
+                if (sneakAttack)
+                    attackConditions |= AttackConditions.SneakAttack;
+
                 // notify attacker
                 var intDamage = (uint)Math.Round(damage);
                 if (damageSource?.ItemType == ItemType.MissileWeapon)
                 {
                     var damageType = (DamageType)damageSource.GetProperty(PropertyInt.DamageType);
-                    Session.Network.EnqueueSend(new GameEventAttackerNotification(Session, target.Name, damageType, (float)intDamage / target.Health.MaxValue, intDamage, critical, new AttackConditions()));
+                    Session.Network.EnqueueSend(new GameEventAttackerNotification(Session, target.Name, damageType, (float)intDamage / target.Health.MaxValue, intDamage, critical, attackConditions));
                 }
                 else
                 {
-                    Session.Network.EnqueueSend(new GameEventAttackerNotification(Session, target.Name, GetDamageType(), (float)intDamage / target.Health.MaxValue, intDamage, critical, new AttackConditions()));
+                    Session.Network.EnqueueSend(new GameEventAttackerNotification(Session, target.Name, GetDamageType(), (float)intDamage / target.Health.MaxValue, intDamage, critical, attackConditions));
                 }
 
                 // splatter effects
@@ -197,7 +203,7 @@ namespace ACE.Server.WorldObjects
             return damageSource != null ? damageSource.GetDamageMod(this) : new Range(1, 5);
         }
 
-        public float CalculateDamage(WorldObject target, WorldObject damageSource, ref bool criticalHit)
+        public float CalculateDamage(WorldObject target, WorldObject damageSource, ref bool criticalHit, ref bool sneakAttack)
         {
             var creature = target as Creature;
 
@@ -214,14 +220,16 @@ namespace ACE.Server.WorldObjects
             var attackType = GetAttackType();
             var attributeMod = GetAttributeMod(attackType);
             var powerAccuracyMod = GetPowerAccuracyMod();
+            var sneakAttackMod = GetSneakAttackMod(target);
+            sneakAttack = sneakAttackMod > 1.0f;
 
-            var damage = baseDamage * attributeMod * powerAccuracyMod;
+            var damage = baseDamage * attributeMod * powerAccuracyMod * sneakAttackMod;
 
             // critical hit
             var critical = GetWeaponPhysicalCritFrequencyModifier(this);
             if (Physics.Common.Random.RollDice(0.0f, 1.0f) < critical)
             {
-                damage = baseDamageRange.Max * attributeMod * powerAccuracyMod * (2.0f + GetWeaponCritMultiplierModifier(this));
+                damage = baseDamageRange.Max * attributeMod * powerAccuracyMod * sneakAttackMod * (2.0f + GetWeaponCritMultiplierModifier(this));
                 criticalHit = true;
             }
 
