@@ -10,17 +10,21 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public float GetPositiveRating(int rating)
         {
+            if (rating < 0) return GetNegativeRating(rating);
+
             // formula: (100 + rating) / 100 = 1.xx modifier
             var ratingMod = (100 + rating) / 100.0f;
             return ratingMod;
         }
 
         /// <summary>
-        /// Returns a 0xx rating modifier
+        /// Returns a 0.xx rating modifier
         /// </summary>
         public float GetNegativeRating(int rating)
         {
-            // formula: 100 / (100 + rating) = 0.xxx modifier
+            if (rating < 0) return GetPositiveRating(rating);
+
+            // formula: 100 / (100 + rating) = 0.xx modifier
             var ratingMod = 100.0f / (100 + rating);
             return ratingMod;
         }
