@@ -277,6 +277,19 @@ namespace ACE.Server.WorldObjects
                 return 1.0f;
         }
 
+        /// <summary>
+        /// Returns the pre-MoA skill for a non-player creature
+        /// </summary>
+        public virtual Skill GetCurrentWeaponSkill()
+        {
+            var weapon = GetEquippedWeapon();
+            if (weapon == null) return Skill.UnarmedCombat;
+
+            var skill = (Skill)(weapon.GetProperty(PropertyInt.WeaponSkill) ?? 0);
+            return skill == Skill.None ? Skill.UnarmedCombat : skill;
+        }
+
+
         private static double MinAttackSpeed = 0.5;
         private static double MaxAttackSpeed = 2.0;
 
@@ -419,5 +432,26 @@ namespace ACE.Server.WorldObjects
             //Console.WriteLine("ShieldMod: " + shieldMod);
             return shieldMod;
         }
+
+        /// <summary>
+        /// Returns the total applicable Recklessness modifier,
+        /// taking into account both attacker and defender players
+        /// </summary>
+        public float GetRecklessnessMod(Creature attacker, Creature defender)
+        {
+            var playerAttacker = attacker as Player;
+            var playerDefender = defender as Player;
+
+            var recklessnessMod = 1.0f;
+
+            // multiplicative or additive?
+            if (playerAttacker != null)
+                recklessnessMod *= playerAttacker.GetRecklessnessMod();     
+            if (playerDefender != null)
+                recklessnessMod *= playerDefender.GetRecklessnessMod();
+
+            return recklessnessMod;
+        }
+
     }
 }
