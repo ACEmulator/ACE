@@ -196,7 +196,7 @@ namespace ACE.Server.Managers
                         {
                             if (sessionMap[i] == null)
                             {
-                                log.InfoFormat("Creating new session for {0} with id {1}", endPoint, i);
+                                log.DebugFormat("Creating new session for {0} with id {1}", endPoint, i);
                                 session = new Session(endPoint, i, ServerId);
                                 sessions.Add(session);
                                 sessionMap[i] = session;
@@ -235,7 +235,7 @@ namespace ACE.Server.Managers
             sessionLock.EnterWriteLock();
             try
             {
-                log.InfoFormat("Removing session for {0} with id {1}", session.EndPoint, session.Network.ClientId);
+                log.DebugFormat("Removing session for {0} with id {1}", session.EndPoint, session.Network.ClientId);
                 if (sessions.Contains(session))
                     sessions.Remove(session);
                 if (sessionMap[session.Network.ClientId] == session)
@@ -534,7 +534,10 @@ namespace ACE.Server.Managers
                     var deadSessions = sessions.FindAll(s => s.State == Network.Enum.SessionState.NetworkTimeout);
 
                     foreach (var session in deadSessions)
+                    {
+                        log.Info($"client {session.Account} dropped");
                         RemoveSession(session);
+                    }
                 }
                 finally
                 {
