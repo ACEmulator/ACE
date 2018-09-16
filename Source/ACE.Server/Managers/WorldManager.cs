@@ -155,12 +155,20 @@ namespace ACE.Server.Managers
 
         public static void ProcessPacket(ClientPacket packet, IPEndPoint endPoint)
         {
-            if (packet.Header.HasFlag(PacketHeaderFlags.LoginRequest) && !loggedInClients.Contains(endPoint) && loggedInClients.Count < ConfigManager.Config.Server.Network.MaximumAllowedSessions)
+            if (packet.Header.HasFlag(PacketHeaderFlags.LoginRequest))
             {
-                log.DebugFormat("Login Request from {0}", endPoint);
-                var session = FindOrCreateSession(endPoint);
-                if (session != null)
-                    session.ProcessPacket(packet);
+                if (!loggedInClients.Contains(endPoint) && loggedInClients.Count >= ConfigManager.Config.Server.Network.MaximumAllowedSessions)
+                {
+                    log.InfoFormat("Login Request from {0} rejected. Server full.", endPoint);
+                    // TODO can we send a message back to the client indicating we're full?
+                }
+                else
+                {
+                    log.DebugFormat("Login Request from {0}", endPoint);
+                    var session = FindOrCreateSession(endPoint);
+                    if (session != null)
+                        session.ProcessPacket(packet);
+                }
             }
             else if (packet.Header.Id == 0 && packet.Header.HasFlag(PacketHeaderFlags.CICMDCommand))
             {
