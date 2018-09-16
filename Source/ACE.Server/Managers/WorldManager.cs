@@ -162,6 +162,10 @@ namespace ACE.Server.Managers
                 if (session != null)
                     session.ProcessPacket(packet);
             }
+            else if (packet.Header.Id == 0 && packet.Header.HasFlag(PacketHeaderFlags.CICMDCommand))
+            {
+                // TODO: Not sure what to do with these packets yet
+            }
             else if (sessionMap.Length > packet.Header.Id && loggedInClients.Contains(endPoint))
             {
                 var session = sessionMap[packet.Header.Id];
@@ -170,11 +174,11 @@ namespace ACE.Server.Managers
                     if (session.EndPoint.Equals(endPoint))
                         session.ProcessPacket(packet);
                     else
-                        log.DebugFormat("Session for Id {0} has IP {1} but packet has IP {2}", packet.Header.Id, session.EndPoint, endPoint);
+                        log.WarnFormat("Session for Id {0} has IP {1} but packet has IP {2}", packet.Header.Id, session.EndPoint, endPoint);
                 }
                 else
                 {
-                    log.DebugFormat("Null Session for Id {0}", packet.Header.Id);
+                    log.WarnFormat("Null Session for Id {0}", packet.Header.Id);
                 }
             }
         }
