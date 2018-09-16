@@ -445,8 +445,12 @@ namespace ACE.Server.WorldObjects
             var recklessnessMod = 1.0f;
 
             // multiplicative or additive?
+            // defender is a negative Damage Reduction Rating
+            // 20 DR combined with 20 DRR = 1.2 * 0.8333... = 1.0
+            // 20 DR combined with -20 DRR = 1.2 * 1.2 = 1.44
             if (playerAttacker != null)
-                recklessnessMod *= playerAttacker.GetRecklessnessMod();     
+                recklessnessMod *= playerAttacker.GetRecklessnessMod();
+
             if (playerDefender != null)
                 recklessnessMod *= playerDefender.GetRecklessnessMod();
 
