@@ -55,12 +55,12 @@ namespace ACE.Server.Network.Handlers
 
             try
             {
-                log.Info($"new client connected: {loginRequest.Account}. setting session properties");
+                log.Debug($"new client connected: {loginRequest.Account}. setting session properties");
                 AccountSelectCallback(account, session, loginRequest);
             }
             catch (Exception ex)
             {
-                log.Info("Error in HandleLoginRequest trying to find the account.", ex);
+                log.Error("Error in HandleLoginRequest trying to find the account.", ex);
                 AccountSelectCallback(null, session, null);
             }
         }
