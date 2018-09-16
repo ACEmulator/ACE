@@ -90,7 +90,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Sets the skill to specialized status
         /// </summary>
-        public bool SpecializeSkill(Skill skill, int creditsSpent)
+        public bool SpecializeSkill(Skill skill, int creditsSpent, bool resetSkill = true)
         {
             var cs = GetCreatureSkill(skill);
 
@@ -98,9 +98,13 @@ namespace ACE.Server.WorldObjects
             {
                 if (AvailableSkillCredits >= creditsSpent)
                 {
+                    if (resetSkill)
+                    {
+                        cs.Ranks = 0;
+                        cs.ExperienceSpent = 0;
+                    }
+
                     cs.AdvancementClass = SkillAdvancementClass.Specialized;
-                    cs.Ranks = 0;
-                    cs.ExperienceSpent = 0;
                     AvailableSkillCredits -= creditsSpent;
                     return true;
                 }

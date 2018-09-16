@@ -78,10 +78,10 @@ namespace ACE.Server.WorldObjects
                     {
                         if (player.AvailableSkillCredits >= currentSkillCost.SpecializationCost)
                         {
-                            if (player.SpecializeSkill(currentSkill.Skill, currentSkillCost.SpecializationCost))
+                            if (player.SpecializeSkill(currentSkill.Skill, currentSkillCost.SpecializationCost, false))
                             {
                                 //Specialization was successful, notify the client
-                                player.Session.Network.EnqueueSend(new GameMessagePrivateUpdateSkill(player, currentSkill.Skill, SkillAdvancementClass.Specialized, 0, 0, 0));
+                                player.Session.Network.EnqueueSend(new GameMessagePrivateUpdateSkill(player, currentSkill.Skill, SkillAdvancementClass.Specialized, currentSkill.Ranks, 10, currentSkill.ExperienceSpent));
                                 player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(player, PropertyInt.AvailableSkillCredits, player.AvailableSkillCredits ?? 0));
                                 player.Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(player.Session, WeenieErrorWithString.YouHaveSucceededSpecializing_Skill, currentSkill.Skill.ToSentence()));
                                 player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.None));
