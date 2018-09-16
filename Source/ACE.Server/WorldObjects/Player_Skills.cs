@@ -39,6 +39,7 @@ namespace ACE.Server.WorldObjects
                     cs.AdvancementClass = SkillAdvancementClass.Trained;
                     cs.Ranks = 0;
                     cs.ExperienceSpent = 0;
+                    cs.InitLevel += 5;
                     AvailableSkillCredits -= creditsSpent;
                     return true;
                 }
@@ -73,7 +74,8 @@ namespace ACE.Server.WorldObjects
                 if (trainNewSkill)
                 {
                     // replace the trainSkillUpdate message with the correct skill assignment:
-                    trainSkillUpdate = new GameMessagePrivateUpdateSkill(this, skill, SkillAdvancementClass.Trained, 0, 0, 0);
+                    var creatureSkill = GetCreatureSkill(skill);
+                    trainSkillUpdate = new GameMessagePrivateUpdateSkill(this, creatureSkill);
                     trainSkillMessageText = $"{skill.ToSentence()} trained. You now have {AvailableSkillCredits} credits available.";
                 }
                 else
@@ -104,6 +106,7 @@ namespace ACE.Server.WorldObjects
                         cs.ExperienceSpent = 0;
                     }
 
+                    cs.InitLevel += 5;
                     cs.AdvancementClass = SkillAdvancementClass.Specialized;
                     AvailableSkillCredits -= creditsSpent;
                     return true;
@@ -121,13 +124,13 @@ namespace ACE.Server.WorldObjects
             var cs = GetCreatureSkill(skill);
 
             if (cs == null)
-            {
                 return false;
-            }
 
             if (cs.AdvancementClass != SkillAdvancementClass.Trained && cs.AdvancementClass != SkillAdvancementClass.Specialized)
             {
+                // only used to initialize untrained skills for character creation?
                 cs.AdvancementClass = SkillAdvancementClass.Untrained;
+                cs.InitLevel = 0;
                 cs.Ranks = 0;
                 cs.ExperienceSpent = 0;
                 return true;
@@ -143,7 +146,8 @@ namespace ACE.Server.WorldObjects
                     cs.AdvancementClass = SkillAdvancementClass.Untrained;
                     AvailableSkillCredits += creditsSpent;
                 }
-                
+
+                cs.InitLevel -= 5;
                 cs.Ranks = 0;
                 cs.ExperienceSpent = 0;
                 return true;
@@ -159,10 +163,8 @@ namespace ACE.Server.WorldObjects
         {
             var cs = GetCreatureSkill(skill);
 
-            if(cs == null)
-            {
+            if (cs == null)
                 return false;
-            }
 
             if (cs.AdvancementClass == SkillAdvancementClass.Specialized)
             {
@@ -171,6 +173,7 @@ namespace ACE.Server.WorldObjects
                 AvailableSkillCredits += creditsSpent;
 
                 cs.AdvancementClass = SkillAdvancementClass.Trained;
+                cs.InitLevel -= 5;
                 cs.ExperienceSpent = 0;
                 cs.Ranks = 0;
 
@@ -229,14 +232,14 @@ namespace ACE.Server.WorldObjects
                 {
                     messageText = $"Your base {skill.ToSentence()} is now {creatureSkill.Base}!";
                 }
-                Session.Network.EnqueueSend(new GameMessagePrivateUpdateSkill(this, skill, creatureSkill.AdvancementClass, creatureSkill.Ranks, creatureSkill.InitLevel, result));
+                Session.Network.EnqueueSend(new GameMessagePrivateUpdateSkill(this, creatureSkill));
                 Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.RaiseTrait, 1f));
                 Session.Network.EnqueueSend(new GameMessageSystemChat(messageText, ChatMessageType.Advancement));
             }
             else if (prevXP != creatureSkill.ExperienceSpent)
             {
                 // skill usage
-                Session.Network.EnqueueSend(new GameMessagePrivateUpdateSkill(this, skill, creatureSkill.AdvancementClass, creatureSkill.Ranks, creatureSkill.InitLevel, result));
+                Session.Network.EnqueueSend(new GameMessagePrivateUpdateSkill(this, creatureSkill));
             }
             else
             {
