@@ -25,9 +25,13 @@ namespace ACE.Server.Command.Handlers
             var accessLevel = defaultAccessLevel;
 
             if (parameters.Length > 2)
+            {
                 if (Enum.TryParse(parameters[2], true, out accessLevel))
+                {
                     if (!Enum.IsDefined(typeof(AccessLevel), accessLevel))
                         accessLevel = defaultAccessLevel;
+                }
+            }
 
             string articleAorAN = "a";
             if (accessLevel == AccessLevel.Advocate || accessLevel == AccessLevel.Admin || accessLevel == AccessLevel.Envoy)
@@ -49,7 +53,7 @@ namespace ACE.Server.Command.Handlers
 
                     message = ("Account successfully created for " + account.AccountName + " (" + account.AccountId + ") with access rights as " + articleAorAN + " " + Enum.GetName(typeof(AccessLevel), accessLevel) + ".");
                 }
-                catch// (MySqlException) Uncomment this after we remove the MySql.Data reference
+                catch
                 {
                     message = "Account already exists. Try a new name.";
                 }
