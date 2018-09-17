@@ -29,9 +29,9 @@ namespace ACE.Server.WorldObjects
             Awake
         };
 
-        public void EquipWieldedTreasure()
+        public void EquipWieldedTreasure(bool weaponsOnly = false)
         {
-            var items = SelectWieldedTreasure();
+            var items = weaponsOnly ? SelectWieldedWeapons() : SelectWieldedTreasure();
             if (items != null)
             {
                 foreach (var item in items)

@@ -301,34 +301,51 @@ namespace ACE.Server.WorldObjects
 
         public void GenerateWieldedTreasure()
         {
-            if (WieldedTreasure is null)
-                return;
+            if (WieldedTreasure == null) return;
 
-            foreach (var item in WieldedTreasure)
+            var table = new TreasureWieldedTable(WieldedTreasure);
+
+            foreach (var set in table.Sets)
+                GenerateWieldedTreasureSet(set);
+        }
+
+        public void GenerateWieldedTreasureSet(TreasureWieldedSet set)
+        {
+            var rng = Physics.Common.Random.RollDice(0.0f, set.TotalProbability);
+            var probability = 0.0f;
+
+            foreach (var item in set.Items)
             {
-                //var rng = Physics.Common.Random.RollDice(0f, 0f);
-                var rng = Physics.Common.Random.RollDice(0f, 1f);
+                probability += item.Item.Probability;
+                if (rng > probability) continue;
 
-                if (rng < item.Probability)
-                {
-                    var wo = WorldObjectFactory.CreateNewWorldObject(item.WeenieClassId);
+                // item roll successful, spawn item in creature inventory
+                var success = CreateWieldedTreasure(item.Item);
+                if (!success) continue;
 
-                    if (wo != null)
-                    {
-                        if (item.PaletteId > 0)
-                            wo.PaletteTemplate = (int)item.PaletteId;
+                // traverse into possible subsets
+                if (item.Subset != null)
+                    GenerateWieldedTreasureSet(item.Subset);
 
-                        if (item.Shade > 0)
-                            wo.Shade = item.Shade;
-
-                        if (item.StackSize > 0)
-                            wo.StackSize = (ushort)item.StackSize;
-
-                        TryAddToInventory(wo);
-                        //TryEquipObject(wo, (int)wo.ValidLocations);
-                    }
-                }
+                break;
             }
+        }
+
+        public bool CreateWieldedTreasure(TreasureWielded item)
+        {
+            var wo = WorldObjectFactory.CreateNewWorldObject(item.WeenieClassId);
+            if (wo == null) return false;
+
+            if (item.PaletteId > 0)
+                wo.PaletteTemplate = (int)item.PaletteId;
+
+            if (item.Shade > 0)
+                wo.Shade = item.Shade;
+
+            if (item.StackSize > 0)
+                wo.StackSize = (ushort)item.StackSize; // todo: stack_Size_Variance rng
+
+            return TryAddToInventory(wo);
         }
     }
 }
