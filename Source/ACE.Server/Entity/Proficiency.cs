@@ -27,7 +27,7 @@ namespace ACE.Server.Entity
             var last_difficulty = skill.BiotaPropertiesSkill.ResistanceAtLastCheck;
             var last_used_time = skill.BiotaPropertiesSkill.LastUsedTime;
 
-            var currentTime = Time.GetTimestamp();
+            var currentTime = Time.GetUnixTime();
 
             var timeDiff = currentTime - last_used_time;
 
