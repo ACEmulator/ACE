@@ -27,7 +27,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public bool IsDualWieldAttack { get => CurrentMotionState?.Stance == MotionStance.DualWieldCombat; }
 
-        public Skill GetCurrentWeaponSkill()
+        public override Skill GetCurrentWeaponSkill()
         {
             var weapon = GetEquippedWeapon();
 
@@ -88,7 +88,12 @@ namespace ACE.Server.WorldObjects
             var critical = false;
             var damage = CalculateDamage(target, damageSource, ref critical);
             if (damage > 0.0f)
+            {
+                var attackType = GetAttackType();
+                OnDamageTarget(target, attackType);
+
                 target.TakeDamage(this, damage, critical);
+            }
             else
                 Session.Network.EnqueueSend(new GameMessageSystemChat($"{target.Name} evaded your attack.", ChatMessageType.CombatSelf));
 
@@ -123,10 +128,19 @@ namespace ACE.Server.WorldObjects
             return damage;
         }
 
-        public float GetEvadeChance(WorldObject target)
+        /// <summary>
+        /// Called when a player hits a target
+        /// </summary>
+        public override void OnDamageTarget(WorldObject target, AttackType attackType)
         {
-            // get player attack skill
-            var creature = target as Creature;
+            var attackSkill = GetCreatureSkill(GetCurrentWeaponSkill());
+            var difficulty = GetTargetEffectiveDefenseSkill(target);
+
+            Proficiency.OnSuccessUse(this, attackSkill, difficulty);
+        }
+
+        public uint GetEffectiveAttackSkill()
+        {
             var attackType = GetAttackType();
             var attackSkill = GetCreatureSkill(GetCurrentWeaponSkill()).Current;
             var offenseMod = GetWeaponOffenseModifier(this);
@@ -136,28 +150,46 @@ namespace ACE.Server.WorldObjects
             if (IsExhausted)
                 attackSkill = GetExhaustedSkill(attackSkill);
 
-            // get target defense skill
+            //var baseStr = offenseMod != 1.0f ? $" (base: {GetCreatureSkill(GetCurrentWeaponSkill()).Current})" : "";
+            //Console.WriteLine("Attack skill: " + attackSkill + baseStr);
+
+            return attackSkill;
+        }
+
+        public uint GetTargetEffectiveDefenseSkill(WorldObject target)
+        {
+            var creature = target as Creature;
+            if (creature == null) return 0;
+
+            var attackType = GetAttackType();
             var defenseSkill = attackType == AttackType.Missile ? Skill.MissileDefense : Skill.MeleeDefense;
             var defenseMod = defenseSkill == Skill.MeleeDefense ? GetWeaponMeleeDefenseModifier(creature) : 1.0f;
-            var difficulty = (uint)Math.Round(creature.GetCreatureSkill(defenseSkill).Current * defenseMod);
+            var effectiveDefense = (uint)Math.Round(creature.GetCreatureSkill(defenseSkill).Current * defenseMod);
 
-            if (creature.IsExhausted) difficulty = 0;
+            if (creature.IsExhausted) effectiveDefense = 0;
 
-            /*var baseStr = offenseMod != 1.0f ? $" (base: {GetCreatureSkill(GetCurrentWeaponSkill()).Current})" : "";
-            Console.WriteLine("Attack skill: " + attackSkill + baseStr);
+            //var baseStr = defenseMod != 1.0f ? $" (base: {creature.GetCreatureSkill(defenseSkill).Current})" : "";
+            //Console.WriteLine("Defense skill: " + effectiveDefense + baseStr);
 
-            baseStr = defenseMod != 1.0f ? $" (base: {creature.GetCreatureSkill(defenseSkill).Current})" : "";
-            Console.WriteLine("Defense skill: " + difficulty + baseStr);*/
+            return effectiveDefense;
+        }
+
+        public float GetEvadeChance(WorldObject target)
+        {
+            // get player attack skill
+            var attackSkill = GetEffectiveAttackSkill();
+
+            // get target defense skill
+            var difficulty = GetTargetEffectiveDefenseSkill(target);
 
             var evadeChance = 1.0f - SkillCheck.GetSkillChance((int)attackSkill, (int)difficulty);
             return (float)evadeChance;
         }
 
-
         /// <summary>
         /// Called when player successfully avoids an attack
         /// </summary>
-        public void OnEvade(WorldObject attacker, AttackType attackType)
+        public override void OnEvade(WorldObject attacker, AttackType attackType)
         {
             // http://asheron.wikia.com/wiki/Attributes
 
@@ -166,10 +198,11 @@ namespace ACE.Server.WorldObjects
             // in order for this specific ability to work. This benefit is tied to Endurance only, and it caps out at around a 75% chance
             // to avoid losing a point of stamina per successful evasion.
 
+            var defenseSkillType = attackType == AttackType.Missile ? Skill.MissileDefense : Skill.MeleeDefense;
+            var defenseSkill = GetCreatureSkill(defenseSkillType);
+
             if (CombatMode != CombatMode.NonCombat)
             {
-                var defenseSkillType = attackType == AttackType.Missile ? Skill.MissileDefense : Skill.MeleeDefense;
-                var defenseSkill = GetCreatureSkill(defenseSkillType);
                 if (defenseSkill.AdvancementClass >= SkillAdvancementClass.Trained)
                 {
                     var enduranceBase = Endurance.Base;
@@ -187,6 +220,13 @@ namespace ACE.Server.WorldObjects
                 UpdateVitalDelta(Stamina, -1);
 
             Session.Network.EnqueueSend(new GameMessageSystemChat($"You evaded {attacker.Name}!", ChatMessageType.CombatEnemy));
+
+            var creature = attacker as Creature;
+            if (creature == null) return;
+
+            var difficulty = creature.GetCreatureSkill(creature.GetCurrentWeaponSkill()).Current;
+            // attackMod?
+            Proficiency.OnSuccessUse(this, defenseSkill, difficulty);
         }
 
         public override Range GetBaseDamage()

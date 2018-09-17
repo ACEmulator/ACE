@@ -506,9 +506,18 @@ namespace ACE.Server.WorldObjects
             float scale = SpellAttributes(player.Session.Account, spellId, out float castingDelay, out MotionCommand windUpMotion, out MotionCommand spellGesture);
             var formula = SpellTable.GetSpellFormula(spellTable, spellId, player.Session.Account);
 
-            if ((Physics.Common.Random.RollDice(0.0f, 1.0f) > (1.0f - SkillCheck.GetMagicSkillChance((int)magicSkill, (int)spell.Power)))
-                            && (magicSkill >= (int)spell.Power - 50) && (magicSkill > 0))
-                castingPreCheckStatus = CastingPreCheckStatus.Success;
+            var difficulty = spell.Power;
+            var difficultyMod = Math.Max(difficulty, 25);   // fix difficulty for level 1 spells?
+
+            if (magicSkill > 0 && magicSkill >= (int)difficulty - 50)
+            {
+                var chance = 1.0f - SkillCheck.GetMagicSkillChance((int)magicSkill, (int)difficulty);
+                var rng = Physics.Common.Random.RollDice(0.0f, 1.0f);
+                if (chance < rng)
+                    castingPreCheckStatus = CastingPreCheckStatus.Success;
+                else
+                    castingPreCheckStatus = CastingPreCheckStatus.CastFailed;
+            }
             else
                 castingPreCheckStatus = CastingPreCheckStatus.CastFailed;
 
@@ -536,7 +545,10 @@ namespace ACE.Server.WorldObjects
             else if (manaUsed > player.Mana.Current)
                 castingPreCheckStatus = CastingPreCheckStatus.OutOfMana;
             else
-                player.UpdateVital(player.Mana, player.Mana.Current - manaUsed);
+            {
+                Proficiency.OnSuccessUse(player, player.GetCreatureSkill(Skill.ManaConversion), difficultyMod);
+                player.UpdateVitalDelta(player.Mana, -(int)manaUsed);
+            }
             #endregion
 
             var checkPKStatusVsTarget = CheckPKStatusVsTarget(player, (target as Player), spell);
@@ -618,6 +630,12 @@ namespace ACE.Server.WorldObjects
                                 enchantmentStatus = CreatureMagic(target, spell, spellStatMod);
                                 if (enchantmentStatus.message != null)
                                     player.Session.Network.EnqueueSend(enchantmentStatus.message);
+
+                                if (IsSpellHarmful(spell))
+                                    Proficiency.OnSuccessUse(player, player.GetCreatureSkill(Skill.CreatureEnchantment), (target as Creature).GetCreatureSkill(Skill.MagicDefense).Current);
+                                else
+                                    Proficiency.OnSuccessUse(player, player.GetCreatureSkill(Skill.CreatureEnchantment), difficultyMod);
+
                                 break;
 
                             case MagicSchool.LifeMagic:
@@ -642,6 +660,14 @@ namespace ACE.Server.WorldObjects
 
                                 EnqueueBroadcast(new GameMessageScript(target.Guid, (PlayScript)spell.TargetEffect, scale));
                                 targetDeath = LifeMagic(target, spell, spellStatMod, out uint damage, out bool critical, out enchantmentStatus);
+
+                                if (spell.MetaSpellType != SpellType.LifeProjectile)
+                                {
+                                    if (IsSpellHarmful(spell))
+                                        Proficiency.OnSuccessUse(player, player.GetCreatureSkill(Skill.LifeMagic), (target as Creature).GetCreatureSkill(Skill.MagicDefense).Current);
+                                    else
+                                        Proficiency.OnSuccessUse(player, player.GetCreatureSkill(Skill.LifeMagic), difficultyMod);
+                                }
 
                                 if (targetDeath == true)
                                 {
@@ -706,6 +732,7 @@ namespace ACE.Server.WorldObjects
                                         }
                                     }
                                 }
+                                Proficiency.OnSuccessUse(player, player.GetCreatureSkill(Skill.ItemEnchantment), difficultyMod);
                                 break;
                             default:
                                 break;
@@ -795,7 +822,7 @@ namespace ACE.Server.WorldObjects
 
             SpellBase spell = spellTable.Spells[spellId];
 
-            Database.Models.World.Spell spellStatMod = DatabaseManager.World.GetCachedSpell(spellId);
+            Spell spellStatMod = DatabaseManager.World.GetCachedSpell(spellId);
             if (spellStatMod == null)
             {
                 Session.Network.EnqueueSend(new GameMessageSystemChat($"{spell.Name} spell not implemented, yet!", ChatMessageType.System));

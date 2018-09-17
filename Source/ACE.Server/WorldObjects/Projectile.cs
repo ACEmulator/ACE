@@ -62,12 +62,24 @@ namespace ACE.Server.WorldObjects
 
                     var critical = false;
                     var damageType = DamageType.Undef;
-                    var damage = sourceCreature.CalculateDamage(ref damageType, null, bodyPart, ref critical);
+                    var shieldMod = 1.0f;
+                    var damage = sourceCreature.CalculateDamage(ref damageType, null, bodyPart, ref critical, ref shieldMod);
 
                     if (damage > 0.0f)
+                    {
                         targetPlayer.TakeDamage(sourceCreature, damageType, damage, bodyPart, critical);
+
+                        if (shieldMod != 1.0f)
+                        {
+                            var shieldSkill = targetPlayer.GetCreatureSkill(Skill.Shield);
+                            Proficiency.OnSuccessUse(targetPlayer, shieldSkill, shieldSkill.Current);   // ??
+                        }
+                    }
                     else
+                    {
                         targetPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"You evaded {sourceCreature.Name}!", ChatMessageType.CombatEnemy));
+                        Proficiency.OnSuccessUse(targetPlayer, targetPlayer.GetCreatureSkill(Skill.MissileDefense), sourceCreature.GetCreatureSkill(sourceCreature.GetCurrentAttackSkill()).Current);
+                    }
                 }
             }
 

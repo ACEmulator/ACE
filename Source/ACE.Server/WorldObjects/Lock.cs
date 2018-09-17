@@ -21,7 +21,7 @@ namespace ACE.Server.WorldObjects
     public interface Lock
     {
         UnlockResults Unlock(string keyCode);
-        UnlockResults Unlock(uint playerLockpickSkillLvl);
+        UnlockResults Unlock(uint playerLockpickSkillLvl, ref int difficulty);
     }
     public class UnlockerHelper
     {
@@ -51,8 +51,9 @@ namespace ACE.Server.WorldObjects
                 if (target is Lock @lock)
                 {
                     UnlockResults result = UnlockResults.IncorrectKey;
+                    var difficulty = 0;
                     if (unlocker.WeenieType == WeenieType.Lockpick)
-                        result = @lock.Unlock(player.Skills[Skill.Lockpick].Current);
+                        result = @lock.Unlock(player.Skills[Skill.Lockpick].Current, ref difficulty);
                     else if (unlocker is Key woKey)
                     {
                         if (target is Door woDoor)
@@ -69,11 +70,18 @@ namespace ACE.Server.WorldObjects
                     switch (result)
                     {
                         case UnlockResults.UnlockSuccess:
+
                             if (unlocker.WeenieType == WeenieType.Lockpick)
                                 player.HandleActionApplySoundEffect(Sound.Lockpicking);// Sound.Lockpicking doesn't work via EnqueueBroadcastSound for some reason.
+
                             player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You have successfully picked the lock! It is now unlocked.", ChatMessageType.Craft));
+
+                            var lockpickSkill = player.GetCreatureSkill(Skill.Lockpick);
+                            Proficiency.OnSuccessUse(player, lockpickSkill, (uint)difficulty);
+
                             ConsumeUnlocker(player, unlocker);
                             break;
+
                         case UnlockResults.Open:
                             player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.YouCannotLockWhatIsOpen));
                             break;
@@ -142,12 +150,14 @@ namespace ACE.Server.WorldObjects
             }
             return UnlockResults.IncorrectKey;
         }
-        public static UnlockResults Unlock(WorldObject target, uint playerLockpickSkillLvl)
+        public static UnlockResults Unlock(WorldObject target, uint playerLockpickSkillLvl, ref int difficulty)
         {
             int? myResistLockpick = GetResistLockpick(target);
 
             if (!myResistLockpick.HasValue || myResistLockpick < 1)
                 return UnlockResults.CannotBePicked;
+
+            difficulty = myResistLockpick.Value;
 
             if (target.IsOpen ?? false)
                 return UnlockResults.Open;
