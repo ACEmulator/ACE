@@ -126,13 +126,13 @@ namespace ACE.Server.WorldObjects
             {
                 //Perform refund of XP and credits
                 RefundXP(cs.ExperienceSpent);
-
-                if (!skillIsHeritageSkill)
+                // temple untraining heritage skills:
+                // heritage skills cannot be untrained, but skill XP can be recovered
+                if (IsSkillUntrainable(skill))
                 {
                     cs.AdvancementClass = SkillAdvancementClass.Untrained;
-                    AvailableSkillCredits += creditsSpent;
+                    cs.InitLevel -= 5;
                 }
-
                 cs.InitLevel -= 5;
                 cs.Ranks = 0;
                 cs.ExperienceSpent = 0;

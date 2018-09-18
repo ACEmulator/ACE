@@ -134,29 +134,22 @@ namespace ACE.Server.WorldObjects
                     }
                     else if (currentSkill.AdvancementClass == SkillAdvancementClass.Trained)
                     {
-                        bool isHeritageSkill = false;
+                        var untrainable = Player.IsSkillUntrainable(currentSkill.Skill);
 
-                        //Check to see if we're lowering a heritage skill
-                        if (CheckHeritageSkill(player))
+                        if (player.UntrainSkill(currentSkill.Skill, currentSkillCost.TrainingCost))
                         {
-                            isHeritageSkill = true;
-                        }
-
-                        if (player.UntrainSkill(currentSkill.Skill, currentSkillCost.TrainingCost, isHeritageSkill))
-                        {
-                            //Unspecialization was successful, notify the client
-                            if (!isHeritageSkill)
+                            //Untraining was successful, notify the client
+                            player.Session.Network.EnqueueSend(new GameMessagePrivateUpdateSkill(player, currentSkill));
+                            if (untrainable)
                             {
-                                player.Session.Network.EnqueueSend(new GameMessagePrivateUpdateSkill(player, currentSkill));
                                 player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(player, PropertyInt.AvailableSkillCredits, player.AvailableSkillCredits ?? 0));
                                 player.Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(player.Session, WeenieErrorWithString.YouHaveSucceededUntraining_Skill, currentSkill.Skill.ToSentence()));
-                                player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.None));
                             }
                             else
                             {
                                 player.Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(player.Session, WeenieErrorWithString.CannotUntrain_SkillButRecoveredXP, currentSkill.Skill.ToSentence()));
-                                player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.None));
                             }
+                            player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.None));
 
                             //Destroy the gem we used successfully
                             player.TryRemoveItemFromInventoryWithNetworking(this, 1);
@@ -230,6 +223,20 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         private bool CheckHeritageSkill(Player player)
         {
+            // broken method:
+            // starter gear does not contain heritage skills
+            // it contains the starter gear based on which skills the player has chosen,
+            // with some heritage variations (ie. aluvian archer vs. sho archer start with slightly different starter bows)
+
+            // heritages seem to receive racial skill bonuses, ie. +5 Damage Rating for certain skills,
+            // but i am still able to not train these skills during character creation
+
+            // there are also 'untrainable skills' which every character has,
+            // and these do not seem to vary by heritage:
+            // arcane lore, jump, loyalty, magic defense, run, and salving
+            // are all enforced to be trained during character creation, regardless of heritage
+            // (although the text does not list arcane lore...)
+
             var starterGearConfig = StarterGearFactory.GetStarterGearConfiguration();
 
             foreach (var starterSkill in starterGearConfig.Skills)
