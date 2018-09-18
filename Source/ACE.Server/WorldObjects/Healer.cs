@@ -152,7 +152,10 @@ namespace ACE.Server.WorldObjects
             // todo: determine applicable range from pcaps
             var healMin = healBase * 0.2f;      // ??
             var healMax = healBase * 0.5f;
-            var healAmount = (uint)Math.Round(Physics.Common.Random.RollDice(healMin, healMax));
+            var healAmount = Physics.Common.Random.RollDice(healMin, healMax);
+
+            // verify this scales healing amount, and not difficulty
+            healAmount *= target.EnchantmentManager.GetHealingResistRatingMod();
 
             // chance for critical healing
             criticalHeal = Physics.Common.Random.RollDice(0.0f, 1.0f) < 0.1f;
@@ -173,7 +176,7 @@ namespace ACE.Server.WorldObjects
                 staminaCost = healer.Stamina.Current;
                 healAmount = staminaCost * 5;
             }
-            return healAmount;
+            return (uint)Math.Round(healAmount);
         }
     }
 }

@@ -1,13 +1,14 @@
 using System;
-using System.Linq;
 using System.Numerics;
-using ACE.Entity;
+using ACE.Common.Extensions;
+using ACE.DatLoader;
+using ACE.DatLoader.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
-using ACE.Server.Entity.Actions;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Motion;
+using ACE.Server.Network.Structure;
 using ACE.Server.Physics.Animation;
 using ACE.Server.Physics.Extensions;
 
@@ -340,9 +341,10 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Returns the splatter height for the current attack height
         /// </summary>
-        /// <returns></returns>
         public string GetSplatterHeight()
         {
+            if (AttackHeight == null) return "Mid";
+
             switch (AttackHeight.Value)
             {
                 case ACE.Entity.Enum.AttackHeight.Low: return "Low";
@@ -453,6 +455,153 @@ namespace ACE.Server.WorldObjects
             var shieldMod = SkillFormula.CalcArmorMod(effectiveLevel);
             //Console.WriteLine("ShieldMod: " + shieldMod);
             return shieldMod;
+        }
+
+        public void FightDirty(WorldObject target)
+        {
+            // Skill description:
+            // Your melee and missile attacks have a chance to weaken your opponent.
+            // - Low attacks can reduce the defense skills of the opponent.
+            // - Medium attacks can cause small amounts of bleeding damage.
+            // - High attacks can reduce opponents' attack and healing skills
+
+            // Effects:
+            // Low: reduces the defense skills of the opponent by -10
+            // Medium: bleed ticks for 60 damage per 20 seconds
+            // High: reduces the attack skills of the opponent by -10, and
+            //       the healing effects of the opponent by -15 rating
+            //
+            // these damage #s are doubled for dirty fighting specialized.
+
+            // Notes:
+            // - Dirty fighting works for melee and missile attacks.
+            // - Has a 25% chance to activate on any melee of missile attack.
+            //   - This activation is reduced proportionally if Dirty Fighting is lower
+            //     than your active weapon skill as determined by your equipped weapon.
+            // - All activate effects last 20 seconds.
+            // - Although a specific effect won't stack with itself,
+            //   you can stack all 3 effects on the opponent at the same time. This means
+            //   when a skill activates at one attack height, you can move to another attack height
+            //   to try to land an additional effect.
+            // - Successfully landing a Dirty Fighting effect is mentioned in chat. Additionally,
+            //   the medium height effect results in 'floating glyphs' around the target:
+
+            //   "Dirty Fighting! <Player> delivers a Bleeding Assault to <target>!"
+            //   "Dirty Fighting! <Player> delivers a Traumatic Assault to <target>!"
+
+            // dirty fighting skill must be at least trained
+            var dirtySkill = GetCreatureSkill(Skill.DirtyFighting);
+            if (dirtySkill.AdvancementClass < SkillAdvancementClass.Trained)
+                return;
+
+            // ensure creature target
+            var creatureTarget = target as Creature;
+            if (creatureTarget == null)
+                return;
+
+            var chance = 0.25f;
+
+            var attackSkill = GetCreatureSkill(GetCurrentWeaponSkill());
+            if (dirtySkill.Current < attackSkill.Current)
+            {
+                chance *= (float)dirtySkill.Current / attackSkill.Current;
+            }
+
+            var rng = Physics.Common.Random.RollDice(0.0f, 1.0f);
+            if (rng > chance)
+                return;
+
+            switch (AttackHeight)
+            {
+                case ACE.Entity.Enum.AttackHeight.Low:
+                    FightDirty_ApplyLowAttack(creatureTarget);
+                    break;
+                case ACE.Entity.Enum.AttackHeight.Medium:
+                    FightDirty_ApplyMediumAttack(creatureTarget);
+                    break;
+                case ACE.Entity.Enum.AttackHeight.High:
+                    FightDirty_ApplyHighAttack(creatureTarget);
+                    break;
+            }
+        }
+
+        /// <summary>
+        /// Reduces the defense skills of the opponent by
+        /// -10 if trained, or -20 if specialized
+        /// </summary>
+        public void FightDirty_ApplyLowAttack(Creature target)
+        {
+            var spellID = GetCreatureSkill(Skill.DirtyFighting).AdvancementClass == SkillAdvancementClass.Specialized ?
+                Network.Enum.Spell.DF_Specialized_DefenseDebuff : Network.Enum.Spell.DF_Trained_DefenseDebuff;
+
+            var spellBase = DatManager.PortalDat.SpellTable.Spells[(uint)spellID];
+            var enchantment = new Enchantment(target, Guid, (uint)spellID, 20, 1, (uint)EnchantmentMask.CreatureSpells);
+
+            target.EnchantmentManager.Add(enchantment, this);
+
+            FightDirty_SendMessage(target, spellBase);
+        }
+
+        /// <summary>
+        /// Applies bleed ticks for 60 damage per 20 seconds if trained,
+        /// 120 damage per 20 seconds if specialized
+        /// </summary>
+        /// <returns></returns>
+        public void FightDirty_ApplyMediumAttack(Creature target)
+        {
+            var spellID = GetCreatureSkill(Skill.DirtyFighting).AdvancementClass == SkillAdvancementClass.Specialized ?
+                Network.Enum.Spell.DF_Specialized_Bleed : Network.Enum.Spell.DF_Trained_Bleed;
+
+            var spellBase = DatManager.PortalDat.SpellTable.Spells[(uint)spellID];
+            var enchantment = new Enchantment(target, Guid, (uint)spellID, 20, 1, (uint)EnchantmentMask.CreatureSpells);
+
+            target.EnchantmentManager.Add(enchantment, this);
+
+            FightDirty_SendMessage(target, spellBase);
+        }
+
+        /// <summary>
+        /// Reduces the attack skills and healing rating for opponent
+        /// by -10 if trained, or -20 if specialized
+        /// </summary>
+        public void FightDirty_ApplyHighAttack(Creature target)
+        {
+            // attack debuff
+            var spellID = GetCreatureSkill(Skill.DirtyFighting).AdvancementClass == SkillAdvancementClass.Specialized ?
+                Network.Enum.Spell.DF_Specialized_AttackDebuff : Network.Enum.Spell.DF_Trained_AttackDebuff;
+
+            var spellBase = DatManager.PortalDat.SpellTable.Spells[(uint)spellID];
+            var enchantment = new Enchantment(target, Guid, (uint)spellID, 20, 1, (uint)EnchantmentMask.CreatureSpells);
+
+            target.EnchantmentManager.Add(enchantment, this);
+
+            FightDirty_SendMessage(target, spellBase);
+
+            // healing resistance rating
+            spellID = GetCreatureSkill(Skill.DirtyFighting).AdvancementClass == SkillAdvancementClass.Specialized ?
+                Network.Enum.Spell.DF_Specialized_HealingDebuff : Network.Enum.Spell.DF_Trained_HealingDebuff;
+
+            spellBase = DatManager.PortalDat.SpellTable.Spells[(uint)spellID];
+            enchantment = new Enchantment(target, Guid, (uint)spellID, 20, 1, (uint)EnchantmentMask.CreatureSpells);
+
+            target.EnchantmentManager.Add(enchantment, this);
+
+            FightDirty_SendMessage(target, spellBase);
+        }
+
+        public void FightDirty_SendMessage(Creature target, SpellBase spellBase)
+        {
+            // Dirty Fighting! <Player> delivers a <sic> Unbalancing Blow to <target>!
+            //var article = spellBase.Name.StartsWithVowel() ? "an" : "a";
+
+            var msg = new GameMessageSystemChat($"Dirty Fighting! {Name} delivers a {spellBase.Name} to {target.Name}!", ChatMessageType.Combat);
+
+            var playerSource = this as Player;
+            var playerTarget = target as Player;
+            if (playerSource != null)
+                playerSource.Session.Network.EnqueueSend(msg);
+            if (playerTarget != null)
+                playerTarget.Session.Network.EnqueueSend(msg);
         }
     }
 }

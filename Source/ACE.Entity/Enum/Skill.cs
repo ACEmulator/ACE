@@ -291,4 +291,41 @@ namespace ACE.Entity.Enum
             return new string(skill.ToString().ToCharArray().SelectMany((c, i) => i > 0 && char.IsUpper(c) ? new char[] { ' ', c } : new char[] { c }).ToArray());
         }
     }
+
+    public static class SkillHelper
+    {
+        public static HashSet<Skill> AttackSkills = new HashSet<Skill>
+        {
+            Skill.Axe,
+            Skill.Bow,
+            Skill.Crossbow,
+            Skill.Dagger,
+            Skill.Mace,
+            Skill.Sling,
+            Skill.Spear,
+            Skill.Staff,
+            Skill.Sword,
+            Skill.ThrownWeapon,
+            Skill.UnarmedCombat,
+            Skill.FinesseWeapons,
+            Skill.HeavyWeapons,
+            Skill.LightWeapons,
+            Skill.MissileWeapons,
+            Skill.TwoHandedCombat,
+            Skill.WarMagic,
+            Skill.LifeMagic,
+            Skill.VoidMagic,
+            Skill.DualWield,
+            Skill.Recklessness,
+            Skill.DirtyFighting,
+            Skill.SneakAttack
+        };
+
+        public static HashSet<Skill> DefenseSkills = new HashSet<Skill>()
+        {
+            Skill.MeleeDefense,
+            Skill.MissileDefense,
+            Skill.MagicDefense
+        };
+    }
 }
