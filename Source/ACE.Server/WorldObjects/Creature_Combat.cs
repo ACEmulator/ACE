@@ -1,6 +1,5 @@
 using System;
 using System.Numerics;
-using ACE.Common.Extensions;
 using ACE.DatLoader;
 using ACE.DatLoader.Entity;
 using ACE.Entity.Enum;
@@ -538,6 +537,7 @@ namespace ACE.Server.WorldObjects
             var enchantment = new Enchantment(target, Guid, (uint)spellID, 20, 1, (uint)EnchantmentMask.CreatureSpells);
 
             target.EnchantmentManager.Add(enchantment, this);
+            target.EnqueueBroadcast(new GameMessageScript(target.Guid, ACE.Entity.Enum.PlayScript.DirtyFightingDefenseDebuff));
 
             FightDirty_SendMessage(target, spellBase);
         }
@@ -557,6 +557,9 @@ namespace ACE.Server.WorldObjects
 
             target.EnchantmentManager.Add(enchantment, this);
 
+            // only send if not already applied?
+            target.EnqueueBroadcast(new GameMessageScript(target.Guid, ACE.Entity.Enum.PlayScript.DirtyFightingDamageOverTime));
+
             FightDirty_SendMessage(target, spellBase);
         }
 
@@ -574,6 +577,7 @@ namespace ACE.Server.WorldObjects
             var enchantment = new Enchantment(target, Guid, (uint)spellID, 20, 1, (uint)EnchantmentMask.CreatureSpells);
 
             target.EnchantmentManager.Add(enchantment, this);
+            target.EnqueueBroadcast(new GameMessageScript(target.Guid, ACE.Entity.Enum.PlayScript.DirtyFightingAttackDebuff));
 
             FightDirty_SendMessage(target, spellBase);
 
@@ -585,6 +589,7 @@ namespace ACE.Server.WorldObjects
             enchantment = new Enchantment(target, Guid, (uint)spellID, 20, 1, (uint)EnchantmentMask.CreatureSpells);
 
             target.EnchantmentManager.Add(enchantment, this);
+            target.EnqueueBroadcast(new GameMessageScript(target.Guid, ACE.Entity.Enum.PlayScript.DirtyFightingHealDebuff));
 
             FightDirty_SendMessage(target, spellBase);
         }

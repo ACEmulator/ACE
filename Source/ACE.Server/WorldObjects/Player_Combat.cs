@@ -410,7 +410,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public override void TakeDamageOverTime(WorldObject source, float _amount)
         {
-            if (Invincible ?? false) return;
+            if (Invincible ?? false || IsDead) return;
 
             var amount = (uint)Math.Round(_amount);
             var percent = (float)amount / Health.MaxValue;
@@ -426,8 +426,9 @@ namespace ACE.Server.WorldObjects
             var creature = source as Creature;
 
             var text = new GameMessageSystemChat($"You receive {amount} points of periodic damage.", ChatMessageType.Combat);
-            var splatter = new GameMessageScript(Guid, (PlayScript)Enum.Parse(typeof(PlayScript), "Splatter" + creature.GetSplatterHeight() + creature.GetSplatterDir(this)));  // not sent in retail, but great visual indicator?
-            Session.Network.EnqueueSend(text, splatter);    // fixme: broadcast splatter
+            //var splatter = new GameMessageScript(Guid, (PlayScript)Enum.Parse(typeof(PlayScript), "Splatter" + creature.GetSplatterHeight() + creature.GetSplatterDir(this)));  // not sent in retail, but great visual indicator?
+            //Session.Network.EnqueueSend(text, splatter);    // fixme: broadcast splatter
+            EnqueueBroadcast(new GameMessageScript(Guid, ACE.Entity.Enum.PlayScript.DirtyFightingDamageOverTime));
 
             var playerSource = source as Player;
             if (playerSource != null)

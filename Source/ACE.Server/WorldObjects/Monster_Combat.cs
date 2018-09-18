@@ -198,6 +198,8 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public virtual void TakeDamageOverTime(WorldObject source, float amount)
         {
+            if (IsDead) return;
+
             TakeDamage(source, amount);
 
             // splatter effects
@@ -205,8 +207,9 @@ namespace ACE.Server.WorldObjects
             var playerSource = source as Player;
             if (playerSource != null)
             {
-                var splatter = (PlayScript)Enum.Parse(typeof(PlayScript), "Splatter" + playerSource.GetSplatterHeight() + playerSource.GetSplatterDir(this));
-                EnqueueBroadcast(new GameMessageScript(Guid, splatter));
+                //var splatter = (PlayScript)Enum.Parse(typeof(PlayScript), "Splatter" + playerSource.GetSplatterHeight() + playerSource.GetSplatterDir(this));
+                //EnqueueBroadcast(new GameMessageScript(Guid, splatter));
+                EnqueueBroadcast(new GameMessageScript(Guid, ACE.Entity.Enum.PlayScript.DirtyFightingDamageOverTime));
 
                 playerSource.Session.Network.EnqueueSend(new GameEventUpdateHealth(playerSource.Session, Guid.Full, (float)Health.Current / Health.MaxValue));
             }
