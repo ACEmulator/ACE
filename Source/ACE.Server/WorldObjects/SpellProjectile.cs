@@ -338,9 +338,10 @@ namespace ACE.Server.WorldObjects
                     var sneakMsg = sneakAttackMod > 1.0f ? "Sneak Attack! " : "";
                     if (player != null)
                     {
-                        // is percent for the vital, or always based on health?
                         var attackerMsg = new GameMessageSystemChat($"{critMsg}{sneakMsg}You {verb} {target.Name} for {amount} points of {type} damage!", ChatMessageType.Magic);
-                        player.Session.Network.EnqueueSend(attackerMsg, new GameEventUpdateHealth(player.Session, target.Guid.Full, (float)target.Health.Current / target.Health.MaxValue));
+                        var updateHealth = new GameEventUpdateHealth(player.Session, target.Guid.Full, (float)target.Health.Current / target.Health.MaxValue);
+
+                        player.Session.Network.EnqueueSend(attackerMsg, updateHealth);
                     }
 
                     if (targetPlayer != null)
