@@ -285,7 +285,7 @@ namespace ACE.Server.WorldObjects
             var weapon = GetEquippedWeapon();
             if (weapon == null) return Skill.UnarmedCombat;
 
-            var skill = (Skill)(weapon.GetProperty(PropertyInt.WieldSkilltype) ?? 0);
+            var skill = (Skill)(weapon.GetProperty(PropertyInt.WeaponSkill) ?? 0);
             //Console.WriteLine("Monster weapon skill: " + skill);
 
             return skill == Skill.None ? Skill.UnarmedCombat : skill;
@@ -454,5 +454,30 @@ namespace ACE.Server.WorldObjects
             //Console.WriteLine("ShieldMod: " + shieldMod);
             return shieldMod;
         }
+
+        /// <summary>
+        /// Returns the total applicable Recklessness modifier,
+        /// taking into account both attacker and defender players
+        /// </summary>
+        public float GetRecklessnessMod(Creature attacker, Creature defender)
+        {
+            var playerAttacker = attacker as Player;
+            var playerDefender = defender as Player;
+
+            var recklessnessMod = 1.0f;
+
+            // multiplicative or additive?
+            // defender is a negative Damage Reduction Rating
+            // 20 DR combined with 20 DRR = 1.2 * 0.8333... = 1.0
+            // 20 DR combined with -20 DRR = 1.2 * 1.2 = 1.44
+            if (playerAttacker != null)
+                recklessnessMod *= playerAttacker.GetRecklessnessMod();
+
+            if (playerDefender != null)
+                recklessnessMod *= playerDefender.GetRecklessnessMod();
+
+            return recklessnessMod;
+        }
+
     }
 }

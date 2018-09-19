@@ -368,6 +368,15 @@ namespace ACE.Server.WorldObjects
                 wo = CurrentLandblock?.GetObject(examinationId);
                 if (wo != null)
                     wo.Examine(Session);
+                else
+                {
+                    // search creature equipped weapons on nearby landblocks
+                    wo = CurrentLandblock?.GetWieldedObject(examinationId);
+                    if (wo != null)
+                        wo.Examine(Session);
+                    else
+                        Console.WriteLine("${Name} tried to appraise object {examinationId:X8}, couldn't find it");
+                }
             }
 
             RequestedAppraisalTarget = examinationId.Full;
