@@ -194,7 +194,7 @@ namespace ACE.Server.WorldObjects
                 // skill usage
                 Session.Network.EnqueueSend(new GameMessagePrivateUpdateSkill(this, skill, creatureSkill.AdvancementClass, creatureSkill.Ranks, creatureSkill.InitLevel, result));
             }
-            else
+            else if (!usage)
             {
                 messageText = $"Your attempt to raise {skill} has failed!";
                 Session.Network.EnqueueSend(new GameMessageSystemChat(messageText, ChatMessageType.Advancement));

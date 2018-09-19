@@ -155,12 +155,24 @@ namespace ACE.Server.Managers
 
         public static void ProcessPacket(ClientPacket packet, IPEndPoint endPoint)
         {
-            if (packet.Header.HasFlag(PacketHeaderFlags.LoginRequest) && !loggedInClients.Contains(endPoint) && loggedInClients.Count < ConfigManager.Config.Server.Network.MaximumAllowedSessions)
+            if (packet.Header.HasFlag(PacketHeaderFlags.LoginRequest))
             {
-                log.DebugFormat("Login Request from {0}", endPoint);
-                var session = FindOrCreateSession(endPoint);
-                if (session != null)
-                    session.ProcessPacket(packet);
+                if (!loggedInClients.Contains(endPoint) && loggedInClients.Count >= ConfigManager.Config.Server.Network.MaximumAllowedSessions)
+                {
+                    log.InfoFormat("Login Request from {0} rejected. Server full.", endPoint);
+                    // TODO can we send a message back to the client indicating we're full?
+                }
+                else
+                {
+                    log.DebugFormat("Login Request from {0}", endPoint);
+                    var session = FindOrCreateSession(endPoint);
+                    if (session != null)
+                        session.ProcessPacket(packet);
+                }
+            }
+            else if (packet.Header.Id == 0 && packet.Header.HasFlag(PacketHeaderFlags.CICMDCommand))
+            {
+                // TODO: Not sure what to do with these packets yet
             }
             else if (sessionMap.Length > packet.Header.Id && loggedInClients.Contains(endPoint))
             {
@@ -170,11 +182,11 @@ namespace ACE.Server.Managers
                     if (session.EndPoint.Equals(endPoint))
                         session.ProcessPacket(packet);
                     else
-                        log.DebugFormat("Session for Id {0} has IP {1} but packet has IP {2}", packet.Header.Id, session.EndPoint, endPoint);
+                        log.WarnFormat("Session for Id {0} has IP {1} but packet has IP {2}", packet.Header.Id, session.EndPoint, endPoint);
                 }
                 else
                 {
-                    log.DebugFormat("Null Session for Id {0}", packet.Header.Id);
+                    log.WarnFormat("Null Session for Id {0}", packet.Header.Id);
                 }
             }
         }
@@ -196,7 +208,7 @@ namespace ACE.Server.Managers
                         {
                             if (sessionMap[i] == null)
                             {
-                                log.InfoFormat("Creating new session for {0} with id {1}", endPoint, i);
+                                log.DebugFormat("Creating new session for {0} with id {1}", endPoint, i);
                                 session = new Session(endPoint, i, ServerId);
                                 sessions.Add(session);
                                 sessionMap[i] = session;
@@ -235,7 +247,7 @@ namespace ACE.Server.Managers
             sessionLock.EnterWriteLock();
             try
             {
-                log.InfoFormat("Removing session for {0} with id {1}", session.EndPoint, session.Network.ClientId);
+                log.DebugFormat("Removing session for {0} with id {1}", session.EndPoint, session.Network.ClientId);
                 if (sessions.Contains(session))
                     sessions.Remove(session);
                 if (sessionMap[session.Network.ClientId] == session)
@@ -534,7 +546,10 @@ namespace ACE.Server.Managers
                     var deadSessions = sessions.FindAll(s => s.State == Network.Enum.SessionState.NetworkTimeout);
 
                     foreach (var session in deadSessions)
+                    {
+                        log.Info($"client {session.Account} dropped");
                         RemoveSession(session);
+                    }
                 }
                 finally
                 {
