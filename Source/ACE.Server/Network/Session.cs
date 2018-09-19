@@ -89,6 +89,8 @@ namespace ACE.Server.Network
                 Player.HandleActionLogout(true);
             }
 
+            log.Info($"client {Account} disconnected");
+
             WorldManager.RemoveSession(this);
         }
 

@@ -9,7 +9,6 @@ using ACE.Common.Cryptography;
 using ACE.Database;
 using ACE.Database.Models.Auth;
 using ACE.Entity.Enum;
-using ACE.Server.Command.Handlers;
 using ACE.Server.Managers;
 using ACE.Server.Network.Enum;
 using ACE.Server.Network.GameMessages.Messages;
@@ -44,23 +43,27 @@ namespace ACE.Server.Network.Handlers
                 {
                     if (ConfigManager.Config.Server.Accounts.AllowAutoAccountCreation)
                     {
-                        log.Info($"Auto creating account for: {loginRequest.Account}");
                         // no account, dynamically create one
-                        string[] parameters = new string[] { loginRequest.Account, loginRequest.Password };
-                        AccountCommands.HandleAccountCreate(session, parameters);
-                        account = DatabaseManager.Authentication.GetAccountByName(loginRequest.Account);
+                        log.Info($"Auto creating account for: {loginRequest.Account}");
+
+                        var accessLevel = (AccessLevel)ConfigManager.Config.Server.Accounts.DefaultAccessLevel;
+
+                        if (!System.Enum.IsDefined(typeof(AccessLevel), accessLevel))
+                            accessLevel = AccessLevel.Player;
+
+                        account = DatabaseManager.Authentication.CreateAccount(loginRequest.Account.ToLower(), loginRequest.Password, accessLevel);
                     }
                 }
             }
 
             try
             {
-                log.Info($"new client connected: {loginRequest.Account}. setting session properties");
+                log.Debug($"new client connected: {loginRequest.Account}. setting session properties");
                 AccountSelectCallback(account, session, loginRequest);
             }
             catch (Exception ex)
             {
-                log.Info("Error in HandleLoginRequest trying to find the account.", ex);
+                log.Error("Error in HandleLoginRequest trying to find the account.", ex);
                 AccountSelectCallback(null, session, null);
             }
         }

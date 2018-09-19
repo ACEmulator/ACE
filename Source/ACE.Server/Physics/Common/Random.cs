@@ -59,5 +59,10 @@ namespace ACE.Server.Physics.Common
         {
             return LazyRandom.Instance.RNG.Next(min, max + 1);
         }
+
+        public static uint RollDice(uint min, uint max)
+        {
+            return (uint)LazyRandom.Instance.RNG.Next((int)min, (int)(max + 1));
+        }
     }
 }

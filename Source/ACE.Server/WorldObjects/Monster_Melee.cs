@@ -57,10 +57,19 @@ namespace ACE.Server.WorldObjects
 
                 var critical = false;
                 var damageType = DamageType.Undef;
-                var damage = CalculateDamage(ref damageType, maneuver, bodyPart, ref critical);
+                var shieldMod = 1.0f;
+                var damage = CalculateDamage(ref damageType, maneuver, bodyPart, ref critical, ref shieldMod);
 
                 if (damage > 0.0f)
+                {
                     player.TakeDamage(this, damageType, damage, bodyPart, critical);
+
+                    if (shieldMod != 1.0f)
+                    {
+                        var shieldSkill = player.GetCreatureSkill(Skill.Shield);
+                        Proficiency.OnSuccessUse(player, shieldSkill, shieldSkill.Current); // ?
+                    }
+                }
                 else
                     player.OnEvade(this, AttackType.Melee);
             });
@@ -195,15 +204,8 @@ namespace ACE.Server.WorldObjects
             var weapon = GetEquippedWeapon();
             if (weapon == null) return Skill.UnarmedCombat;
 
-            var combatStyle = weapon.DefaultCombatStyle;
-            switch (combatStyle)
-            {
-                case CombatStyle.Bow: return Skill.Bow;
-                case CombatStyle.Crossbow: return Skill.Crossbow;
-
-                // TODO: weapon skills
-                default: return Skill.UnarmedCombat;
-            }
+            var skill = (Skill)(weapon.GetProperty(PropertyInt.WeaponSkill) ?? 0);
+            return skill == Skill.None ? Skill.UnarmedCombat : skill;
         }
 
         /// <summary>
@@ -242,7 +244,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         /// <param name="bodyPart">The player body part the monster is targeting</param>
         /// <param name="criticalHit">Is TRUE if monster rolls a critical hit</param>
-        public float CalculateDamage(ref DamageType damageType, CombatManeuver maneuver, BodyPart bodyPart, ref bool criticalHit)
+        public float CalculateDamage(ref DamageType damageType, CombatManeuver maneuver, BodyPart bodyPart, ref bool criticalHit, ref float shieldMod)
         {
             // evasion chance
             var evadeChance = GetEvadeChance();
@@ -254,6 +256,9 @@ namespace ACE.Server.WorldObjects
             damageType = GetDamageType(attackPart);
             var damageRange = GetBaseDamage(attackPart);
             var baseDamage = Physics.Common.Random.RollDice(damageRange.Min, damageRange.Max);
+
+            var player = AttackTarget as Player;
+            var recklessnessMod = player != null ? player.GetRecklessnessMod() : 1.0f;
 
             // monster weapon / attributes
             var weapon = GetEquippedWeapon();
@@ -277,12 +282,15 @@ namespace ACE.Server.WorldObjects
 
             // get shield modifier
             var attackTarget = AttackTarget as Creature;
-            var shieldMod = attackTarget.GetShieldMod(this, damageType);
+            shieldMod = attackTarget.GetShieldMod(this, damageType);
 
             // scale damage by modifiers
             var damage = baseDamage * attributeMod * armorMod * shieldMod * resistanceMod;
 
-            if (criticalHit) damage *= 2;
+            if (!criticalHit)
+                damage *= recklessnessMod;
+            else
+                damage *= 2;
 
             return damage;
         }

@@ -338,7 +338,7 @@ namespace ACE.Server.Network
             // In our current implimenation we handle all roles in this one server.
             if (packet.Header.HasFlag(PacketHeaderFlags.LoginRequest))
             {
-                packetLog.Info($"[{session.LoggingIdentifier}] LoginRequest");
+                packetLog.Debug($"[{session.LoggingIdentifier}] LoginRequest");
                 AuthenticationHandler.HandleLoginRequest(packet, session);
                 return;
             }

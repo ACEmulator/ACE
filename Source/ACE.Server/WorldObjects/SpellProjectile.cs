@@ -334,6 +334,9 @@ namespace ACE.Server.WorldObjects
                         targetPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"{ProjectileSource.Name} {plural} you for {amount} points of {type} damage!", ChatMessageType.Magic));
                         //targetPlayer.Session.Network.EnqueueSend(new GameEventDefenderNotification(targetPlayer.Session, projectileCaster.Name, damageType, percent, amount, DamageLocation.Chest, critical, new AttackConditions()));    // damageLocation?
                 }
+
+                if (player != null)
+                    Proficiency.OnSuccessUse(player, player.GetCreatureSkill(spell.School), Math.Max(25, spell.Power));
             }
             else
             {
@@ -346,8 +349,10 @@ namespace ACE.Server.WorldObjects
                     player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{target.Name} resists {spell.Name}", ChatMessageType.Magic));
 
                 if (targetPlayer != null)
+                {
+                    Proficiency.OnSuccessUse(targetPlayer, targetPlayer.GetCreatureSkill(Skill.MagicDefense), (ProjectileSource as Creature).GetCreatureSkill(spell.School).Current);
                     targetPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"You resist {ProjectileSource.Name}'s {spell.Name}", ChatMessageType.Magic));
-
+                }
             }
 
             // also called on resist

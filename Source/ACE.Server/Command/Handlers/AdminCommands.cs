@@ -1091,7 +1091,8 @@ namespace ACE.Server.Command.Handlers
                     }
                     else if (resistLockpick.HasValue && resistLockpick > 0)
                     {
-                        res = @lock.Unlock((uint)(resistLockpick * 2));
+                        var difficulty = 0;
+                        res = @lock.Unlock((uint)(resistLockpick * 2), ref difficulty);
                         ChatPacket.SendServerMessage(session, $"Crack {wo.WeenieType} with skill {resistLockpick}*2 result: {res}.{opening}", ChatMessageType.Broadcast);
                     }
                     else

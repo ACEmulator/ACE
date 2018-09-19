@@ -295,52 +295,46 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Test if target resists the spell cast
+        /// Performs the magic defense checks for spell attacks
         /// </summary>
-        /// <param name="target"></param>
-        /// <param name="spell"></param>
-        /// <returns></returns>
         public bool? ResistSpell(WorldObject target, SpellBase spell)
         {
-            if (this is Creature caster)
+            // only creatures can resist spells
+            var caster = this as Creature;
+            if (caster == null) return null;
+
+            var player = caster as Player;
+            var targetPlayer = target as Player;
+
+            // Retrieve caster's skill level in the Magic School
+            var magicSkill = caster.GetCreatureSkill(spell.School).Current;
+
+            // Retrieve target's Magic Defense Skill
+            var creature = target as Creature;
+            var targetMagicDefenseSkill = creature.GetCreatureSkill(Skill.MagicDefense).Current;
+
+            bool resisted = MagicDefenseCheck(magicSkill, targetMagicDefenseSkill);
+
+            if (targetPlayer != null && targetPlayer.Invincible == true)
+                resisted = true;
+
+            if (resisted)
             {
-                var player = caster as Player;
-                var targetPlayer = target as Player;
-
-                // Retrieve creature's skill level in the Magic School
-                var creatureMagicSkill = caster.GetCreatureSkill(spell.School).Current;
-
-                // Retrieve target's Magic Defense Skill
-                Creature creature = target as Creature;
-                var targetMagicDefenseSkill = creature.GetCreatureSkill(Skill.MagicDefense).Current;
-
-                bool resisted = MagicDefenseCheck(creatureMagicSkill, targetMagicDefenseSkill);
-
-                if (targetPlayer != null)
-                    resisted |= targetPlayer.Invincible == true;
-
-                if (resisted)
+                if (player != null)
                 {
-                    if (player != null)
-                    {
-                        player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{creature.Name} resists {spell.Name}", ChatMessageType.Magic));
-                        player.Session.Network.EnqueueSend(new GameMessageSound(player.Guid, Sound.ResistSpell, 1.0f));
-                    }
-                    else
-                    {
-                        if (targetPlayer != null)
-                        {
-                            targetPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"You resist the spell cast by {caster.Name}", ChatMessageType.Magic));
-                            targetPlayer.Session.Network.EnqueueSend(new GameMessageSound(targetPlayer.Guid, Sound.ResistSpell, 1.0f));
-                        }
-                    }
+                    player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{creature.Name} resists {spell.Name}", ChatMessageType.Magic));
+                    player.Session.Network.EnqueueSend(new GameMessageSound(player.Guid, Sound.ResistSpell, 1.0f));
+                }
+                if (targetPlayer != null)
+                {
+                    targetPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"You resist the spell cast by {caster.Name}", ChatMessageType.Magic));
+                    targetPlayer.Session.Network.EnqueueSend(new GameMessageSound(targetPlayer.Guid, Sound.ResistSpell, 1.0f));
 
-                    return resisted;
+                    Proficiency.OnSuccessUse(targetPlayer, targetPlayer.GetCreatureSkill(Skill.MagicDefense), magicSkill);
                 }
                 return resisted;
             }
-
-            return null;
+            return resisted;
         }
 
         /// <summary>

@@ -277,6 +277,21 @@ namespace ACE.Server.WorldObjects
                 return 1.0f;
         }
 
+        /// <summary>
+        /// Returns the pre-MoA skill for a non-player creature
+        /// </summary>
+        public virtual Skill GetCurrentWeaponSkill()
+        {
+            var weapon = GetEquippedWeapon();
+            if (weapon == null) return Skill.UnarmedCombat;
+
+            var skill = (Skill)(weapon.GetProperty(PropertyInt.WeaponSkill) ?? 0);
+            //Console.WriteLine("Monster weapon skill: " + skill);
+
+            return skill == Skill.None ? Skill.UnarmedCombat : skill;
+        }
+
+
         private static double MinAttackSpeed = 0.5;
         private static double MaxAttackSpeed = 2.0;
 
@@ -296,6 +311,22 @@ namespace ACE.Server.WorldObjects
             var animSpeed = (float)Math.Clamp((1.0 / divisor), MinAttackSpeed, MaxAttackSpeed);
 
             return animSpeed;
+        }
+
+        /// <summary>
+        /// Called when a creature evades an attack
+        /// </summary>
+        public virtual void OnEvade(WorldObject attacker, AttackType attackType)
+        {
+            // empty base for non-player creatures?
+        }
+
+        /// <summary>
+        /// Called when a creature hits a target
+        /// </summary>
+        public virtual void OnDamageTarget(WorldObject target, AttackType attackType)
+        {
+            // empty base for non-player creatures?
         }
 
         /// <summary>
@@ -370,6 +401,10 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public float GetShieldMod(WorldObject attacker, DamageType damageType)
         {
+            // ensure combat stance
+            if (CombatMode == CombatMode.NonCombat)
+                return 1.0f;
+
             // does the player have a shield equipped?
             var shield = GetEquippedShield();
             if (shield == null) return 1.0f;
@@ -418,6 +453,30 @@ namespace ACE.Server.WorldObjects
             var shieldMod = SkillFormula.CalcArmorMod(effectiveLevel);
             //Console.WriteLine("ShieldMod: " + shieldMod);
             return shieldMod;
+        }
+
+        /// <summary>
+        /// Returns the total applicable Recklessness modifier,
+        /// taking into account both attacker and defender players
+        /// </summary>
+        public float GetRecklessnessMod(Creature attacker, Creature defender)
+        {
+            var playerAttacker = attacker as Player;
+            var playerDefender = defender as Player;
+
+            var recklessnessMod = 1.0f;
+
+            // multiplicative or additive?
+            // defender is a negative Damage Reduction Rating
+            // 20 DR combined with 20 DRR = 1.2 * 0.8333... = 1.0
+            // 20 DR combined with -20 DRR = 1.2 * 1.2 = 1.44
+            if (playerAttacker != null)
+                recklessnessMod *= playerAttacker.GetRecklessnessMod();
+
+            if (playerDefender != null)
+                recklessnessMod *= playerDefender.GetRecklessnessMod();
+
+            return recklessnessMod;
         }
 
         public float GetSneakAttackMod(WorldObject target)
