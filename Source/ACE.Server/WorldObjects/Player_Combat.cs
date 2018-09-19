@@ -538,6 +538,10 @@ namespace ACE.Server.WorldObjects
         /// <param name="powerAccuracyBar">The 0.0 - 1.0 power/accurary bar</param>
         public float GetRecklessnessMod(/*float powerAccuracyBar*/)
         {
+            // ensure melee or missile combat mode
+            if (CombatMode != CombatMode.Melee && CombatMode != CombatMode.Missile)
+                return 1.0f;
+
             var skill = GetCreatureSkill(Skill.Recklessness);
 
             // recklessness skill must be either trained or specialized to use
