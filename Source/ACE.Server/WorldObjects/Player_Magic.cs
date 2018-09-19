@@ -34,7 +34,7 @@ namespace ACE.Server.WorldObjects
         /// The last spell projectile launched by this player
         /// to successfully collided with a target
         /// </summary>
-        public Spell LastHitSpellProjectile;
+        public SpellBase LastHitSpellProjectile;
 
         /// <summary>
         /// Returns the magic skill associated with the magic school
@@ -45,7 +45,7 @@ namespace ACE.Server.WorldObjects
             if (LastHitSpellProjectile == null)
                 return Skill.WarMagic;  // this should never happen, but just in case
 
-            switch ((MagicSchool)LastHitSpellProjectile.School)
+            switch (LastHitSpellProjectile.School)
             {
                 case MagicSchool.WarMagic:
                 default:

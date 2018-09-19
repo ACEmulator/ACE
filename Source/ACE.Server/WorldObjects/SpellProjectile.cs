@@ -252,7 +252,7 @@ namespace ACE.Server.WorldObjects
             var player = ProjectileSource as Player;
 
             if (player != null)
-                player.LastHitSpellProjectile = spellStatMod;
+                player.LastHitSpellProjectile = spell;
 
             // ensure valid creature target
             // non-target objects will be excluded beforehand from collision detection
