@@ -278,6 +278,15 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
+        /// Returns the current attack skill for this monster,
+        /// given their stance and wielded weapon
+        /// </summary>
+        public virtual Skill GetCurrentAttackSkill()
+        {
+            return GetCurrentWeaponSkill();
+        }
+
+        /// <summary>
         /// Returns the pre-MoA skill for a non-player creature
         /// </summary>
         public virtual Skill GetCurrentWeaponSkill()

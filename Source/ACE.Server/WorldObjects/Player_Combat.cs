@@ -27,6 +27,20 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public bool IsDualWieldAttack { get => CurrentMotionState?.Stance == MotionStance.DualWieldCombat; }
 
+        /// <summary>
+        /// Returns the current attack skill for the player
+        /// </summary>
+        public override Skill GetCurrentAttackSkill()
+        {
+            if (CombatMode == CombatMode.Magic)
+                return GetCurrentMagicSkill();
+            else
+                return GetCurrentWeaponSkill();
+        }
+
+        /// <summary>
+        /// Returns the current weapon skill for the player
+        /// </summary>
         public override Skill GetCurrentWeaponSkill()
         {
             var weapon = GetEquippedWeapon();
