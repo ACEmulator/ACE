@@ -217,38 +217,5 @@ namespace ACE.Server.WorldObjects
             }
             return false;
         }
-
-        /// <summary>
-        /// Checks to see if a skill was a heritage skill
-        /// </summary>
-        private bool CheckHeritageSkill(Player player)
-        {
-            // broken method:
-            // starter gear does not contain heritage skills
-            // it contains the starter gear based on which skills the player has chosen,
-            // with some heritage variations (ie. aluvian archer vs. sho archer start with slightly different starter bows)
-
-            // heritages seem to receive racial skill bonuses, ie. +5 Damage Rating for certain skills,
-            // but i am still able to not train these skills during character creation
-
-            // there are also 'untrainable skills' which every character has,
-            // and these do not seem to vary by heritage:
-            // arcane lore, jump, loyalty, magic defense, run, and salving
-            // are all enforced to be trained during character creation, regardless of heritage
-            // (although the text does not list arcane lore...)
-
-            var starterGearConfig = StarterGearFactory.GetStarterGearConfiguration();
-
-            foreach (var starterSkill in starterGearConfig.Skills)
-            {
-                var currentStarterSkill = player.Skills[(Skill)starterSkill.SkillId];
-
-                if (currentStarterSkill.AdvancementClass == SkillAdvancementClass.Trained || currentStarterSkill.AdvancementClass == SkillAdvancementClass.Specialized)
-                {
-                    return true;
-                }
-            }
-            return false;
-        }
     }
 }
