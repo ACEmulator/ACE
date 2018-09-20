@@ -374,7 +374,9 @@ namespace ACE.Server.Managers
         /// <param name="enchantment">The damage over time (DoT) spell</param>
         public void ApplyDamageTick(BiotaPropertiesEnchantmentRegistry enchantment)
         {
-            var amount = enchantment.StatModValue;
+            var totalAmount = enchantment.StatModValue;
+            var totalTicks = (int)Math.Ceiling(enchantment.Duration / (WorldObject.HeartbeatInterval ?? 5));
+            var tickAmount = totalAmount / totalTicks;
 
             var creature = WorldObject as Creature;
             if (creature == null) return;
@@ -385,7 +387,7 @@ namespace ACE.Server.Managers
                 Console.WriteLine($"{WorldObject.Name}.ApplyDamageTick() - couldn't find damager {enchantment.CasterObjectId}");
                 return;
             }
-            creature.TakeDamageOverTime(damager, amount);
+            creature.TakeDamageOverTime(damager, tickAmount);
         }
 
         /// <summary>
