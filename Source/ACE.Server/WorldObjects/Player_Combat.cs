@@ -27,6 +27,20 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public bool IsDualWieldAttack { get => CurrentMotionState?.Stance == MotionStance.DualWieldCombat; }
 
+        /// <summary>
+        /// Returns the current attack skill for the player
+        /// </summary>
+        public override Skill GetCurrentAttackSkill()
+        {
+            if (CombatMode == CombatMode.Magic)
+                return GetCurrentMagicSkill();
+            else
+                return GetCurrentWeaponSkill();
+        }
+
+        /// <summary>
+        /// Returns the current weapon skill for the player
+        /// </summary>
         public override Skill GetCurrentWeaponSkill()
         {
             var weapon = GetEquippedWeapon();
@@ -86,7 +100,9 @@ namespace ACE.Server.WorldObjects
                 return 0.0f;
 
             var critical = false;
-            var damage = CalculateDamage(target, damageSource, ref critical);
+            var sneakAttack = false;
+
+            var damage = CalculateDamage(target, damageSource, ref critical, ref sneakAttack);
             if (damage > 0.0f)
             {
                 var attackType = GetAttackType();
@@ -104,6 +120,8 @@ namespace ACE.Server.WorldObjects
                 var attackConditions = new AttackConditions();
                 if (recklessnessMod > 1.0f)
                     attackConditions |= AttackConditions.Recklessness;
+                if (sneakAttack)
+                    attackConditions |= AttackConditions.SneakAttack;
 
                 // notify attacker
                 var intDamage = (uint)Math.Round(damage);
@@ -243,7 +261,7 @@ namespace ACE.Server.WorldObjects
             return damageSource != null ? damageSource.GetDamageMod(this) : new Range(1, 5);
         }
 
-        public float CalculateDamage(WorldObject target, WorldObject damageSource, ref bool criticalHit)
+        public float CalculateDamage(WorldObject target, WorldObject damageSource, ref bool criticalHit, ref bool sneakAttack)
         {
             var creature = target as Creature;
 
@@ -261,14 +279,18 @@ namespace ACE.Server.WorldObjects
             var attributeMod = GetAttributeMod(attackType);
             var powerAccuracyMod = GetPowerAccuracyMod();
             var recklessnessMod = GetRecklessnessMod(this, creature);
+            var sneakAttackMod = GetSneakAttackMod(target);
+            sneakAttack = sneakAttackMod > 1.0f;
 
-            var damage = baseDamage * attributeMod * powerAccuracyMod * recklessnessMod;
+            var damageRatingMod = AdditiveCombine(recklessnessMod, sneakAttackMod);
+
+            var damage = baseDamage * attributeMod * powerAccuracyMod * damageRatingMod;
 
             // critical hit
             var critical = GetWeaponPhysicalCritFrequencyModifier(this);
             if (Physics.Common.Random.RollDice(0.0f, 1.0f) < critical)
             {
-                damage = baseDamageRange.Max * attributeMod * powerAccuracyMod * (2.0f + GetWeaponCritMultiplierModifier(this));
+                damage = baseDamageRange.Max * attributeMod * powerAccuracyMod * sneakAttackMod * (2.0f + GetWeaponCritMultiplierModifier(this));
                 criticalHit = true;
             }
 

@@ -278,6 +278,15 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
+        /// Returns the current attack skill for this monster,
+        /// given their stance and wielded weapon
+        /// </summary>
+        public virtual Skill GetCurrentAttackSkill()
+        {
+            return GetCurrentWeaponSkill();
+        }
+
+        /// <summary>
         /// Returns the pre-MoA skill for a non-player creature
         /// </summary>
         public virtual Skill GetCurrentWeaponSkill()
@@ -479,5 +488,90 @@ namespace ACE.Server.WorldObjects
             return recklessnessMod;
         }
 
+        public float GetSneakAttackMod(WorldObject target)
+        {
+            // ensure trained
+            var sneakAttack = GetCreatureSkill(Skill.SneakAttack);
+            if (sneakAttack.AdvancementClass < SkillAdvancementClass.Trained)
+                return 1.0f;
+
+            // ensure creature target
+            var creatureTarget = target as Creature;
+            if (creatureTarget == null)
+                return 1.0f;
+
+            // Effects:
+            // General Sneak Attack effects:
+            //   - 100% chance to sneak attack from behind an opponent.
+            //   - Deception trained: 10% chance to sneak attack from the front of an opponent
+            //   - Deception specialized: 15% chance to sneak attack from the front of an opponent
+            var angle = creatureTarget.GetAngle(this);
+            var behind = Math.Abs(angle) > 90.0f;
+            var chance = 0.0f;
+            if (behind)
+            {
+                chance = 1.0f;
+            }
+            else
+            {
+                var deception = GetCreatureSkill(Skill.Deception);
+                if (deception.AdvancementClass == SkillAdvancementClass.Trained)
+                    chance = 0.1f;
+                else if (deception.AdvancementClass == SkillAdvancementClass.Specialized)
+                    chance = 0.15f;
+
+                // if Deception is below 306 skill, these chances are reduced proportionately.
+                // this is in addition to proprtional reduction if your Sneak Attack skill is below your attack skill.
+                var deceptionCap = 306;
+                if (deception.Current < deceptionCap)
+                    chance *= Math.Min((float)deception.Current / deceptionCap, 1.0f);
+            }
+            //Console.WriteLine($"Sneak attack {(behind ? "behind" : "front")}, chance {Math.Round(chance * 100)}%");
+
+            var rng = Physics.Common.Random.RollDice(0.0f, 1.0f);
+            if (rng > chance)
+                return 1.0f;
+
+            // Damage Rating:
+            // Sneak Attack Trained:
+            //   + 10 Damage Rating when Sneak Attack activates
+            // Sneak Attack Specialized:
+            //   + 20 Damage Rating when Sneak Attack activates
+            var damageRating = sneakAttack.AdvancementClass == SkillAdvancementClass.Specialized ? 20.0f : 10.0f;
+
+            // Sneak Attack works for melee, missile, and magic attacks.
+
+            // if the Sneak Attack skill is lower than your attack skill (as determined by your equipped weapon)
+            // then the damage rating is reduced proportionately. Because the damage rating caps at 10 for trained
+            // and 20 for specialized, there is no reason to raise the skill above your attack skill
+            var attackSkill = GetCreatureSkill(GetCurrentAttackSkill());
+            if (sneakAttack.Current < attackSkill.Current)
+            {
+                if (attackSkill.Current > 0)
+                    damageRating *= (float)sneakAttack.Current / attackSkill.Current;
+                else
+                    damageRating = 0;
+            }
+
+            // if the defender has Assess Person, they reduce the extra Sneak Attack damage Deception can add
+            // from the front by up to 100%.
+            // this percent is reduced proportionately if your buffed Assess Person skill is below the deception cap.
+            // this reduction does not apply to attacks from behind.
+            if (!behind)
+            {
+                // compare to assess person or deception??
+                // wiki info is confusing here, it says 'your buffed Assess Person'
+                // which sounds like its scaling sourceAssess / targetAssess,
+                // but i think it should be targetAssess / deceptionCap?
+                var targetAssess = creatureTarget.GetCreatureSkill(Skill.AssessPerson).Current;
+
+                var deceptionCap = 306;
+                damageRating *= 1.0f - Math.Min((float)targetAssess / deceptionCap, 1.0f);
+            }
+
+            var sneakAttackMod = (100 + damageRating) / 100.0f;
+            //Console.WriteLine("SneakAttackMod: " + sneakAttackMod);
+            return sneakAttackMod;
+        }
     }
 }

@@ -81,8 +81,8 @@ namespace ACE.Server.WorldObjects
             IsTurning = false;
             IsMoving = true;
 
-            //var mvp = GetMovementParameters();
-            var mvp = new MovementParameters();
+            var mvp = GetMovementParameters();
+            //var mvp = new MovementParameters();
 
             if (IsRanged)
                 PhysicsObj.TurnToObject(AttackTarget.PhysicsObj.ID, mvp);
@@ -127,8 +127,8 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void OnMoveComplete()
         {
-            //if (DebugMove)
-                //Console.WriteLine($"{Name} ({Guid}) - OnMoveComplete");
+            if (DebugMove)
+                Console.WriteLine($"{Name} ({Guid}) - OnMoveComplete");
 
             PhysicsObj.CachedVelocity = Vector3.Zero;
             IsMoving = false;
@@ -261,7 +261,7 @@ namespace ACE.Server.WorldObjects
             var dist = GetDistanceToTarget();
             var angle = GetAngle(AttackTarget);
             Console.WriteLine("Dist: " + dist);
-            //Console.WriteLine("Angle: " + angle);
+            Console.WriteLine("Angle: " + angle);
         }
 
         public void GetMovementSpeed()
@@ -328,22 +328,13 @@ namespace ACE.Server.WorldObjects
         {
             var mvp = new MovementParameters();
 
-            mvp.CanWalk = false;
-            mvp.CanRun = true;
-            mvp.CanSidestep = false;
-            mvp.CanWalkBackwards = false;
-            mvp.MoveAway = true;
-            mvp.CanCharge = true;
-            mvp.FailWalk = true;
-            mvp.UseFinalHeading = true;
-            mvp.Sticky = true;
+            // set non-defualt params for monster movement
+            mvp.Flags |= MovementParamFlags.FailWalk | MovementParamFlags.UseFinalHeading | MovementParamFlags.Sticky | MovementParamFlags.MoveAway;
+            mvp.HoldKeyToApply = HoldKey.Run;
 
+            // only found in pcaps for 1 mob, verify for all
             mvp.MinDistance = 0.1f;
             mvp.DistanceToObject = 0.5f;
-            mvp.Speed = 1.0f;
-
-            mvp.SetHoldKey = true;
-            mvp.HoldKeyToApply = HoldKey.Run;
 
             return mvp;
         }

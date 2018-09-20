@@ -1,3 +1,5 @@
+using System;
+
 namespace ACE.Server.WorldObjects
 {
     partial class Creature
@@ -5,10 +7,20 @@ namespace ACE.Server.WorldObjects
         // Ratings:
         // http://asheron.wikia.com/wiki/Rating
 
+        public static float GetRatingMod(int rating)
+        {
+            if (rating == 0) return 1.0f;
+
+            if (rating >= 0)
+                return GetPositiveRating(rating);
+            else
+                return GetNegativeRating(-rating);
+        }
+
         /// <summary>
         /// Returns a 1.xx rating modifier
         /// </summary>
-        public float GetPositiveRating(int rating)
+        public static float GetPositiveRating(int rating)
         {
             if (rating < 0) return GetNegativeRating(rating);
 
@@ -20,7 +32,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Returns a 0.xx rating modifier
         /// </summary>
-        public float GetNegativeRating(int rating)
+        public static float GetNegativeRating(int rating)
         {
             if (rating < 0) return GetPositiveRating(rating);
 
@@ -132,6 +144,32 @@ namespace ACE.Server.WorldObjects
         public float GetPKDamageResistanceRating(int pkDamageResistRating)
         {
             return GetNegativeRating(pkDamageResistRating);
+        }
+
+        /// <summary>
+        /// Converts a 1.xx modifier to a +x rating,
+        /// or a 0.xx modifier to a -x rating.
+        /// </summary>
+        public static int ModToRating(float mod)
+        {
+            if (mod >= 1.0f)
+                return (int)Math.Round(mod * 100 - 100);
+            else
+                return (int)Math.Round(-100 / mod + 100);
+        }
+
+        /// <summary>
+        /// Combines rating modifiers additively
+        /// </summary>
+        /// <param name="mods">A list of rating modifiers</param>
+        public static float AdditiveCombine(params float[] mods)
+        {
+            int totalRating = 0;
+
+            foreach (var mod in mods)
+                totalRating += ModToRating(mod);
+
+            return GetRatingMod(totalRating);
         }
     }
 }

@@ -251,6 +251,9 @@ namespace ACE.Server.WorldObjects
 
             var player = ProjectileSource as Player;
 
+            if (player != null)
+                player.LastHitSpellProjectile = spell;
+
             // ensure valid creature target
             // non-target objects will be excluded beforehand from collision detection
             var target = _target as Creature;
@@ -282,6 +285,7 @@ namespace ACE.Server.WorldObjects
             {
                 uint amount;
                 var percent = 0.0f;
+                var sneakAttackMod = 1.0f;
 
                 if (spell.School == MagicSchool.LifeMagic && (spell.Name.Contains("Blight") || spell.Name.Contains("Tenacity")))
                 {
@@ -298,6 +302,16 @@ namespace ACE.Server.WorldObjects
                 }
                 else
                 {
+                    // for possibly applying sneak attack to magic projectiles,
+                    // only do this for health-damaging projectiles?
+                    if (player != null)
+                    {
+                        // TODO: use target direction vs. projectile position, instead of player position
+                        sneakAttackMod = player.GetSneakAttackMod(target);
+                        //Console.WriteLine("Magic sneak attack:  + sneakAttackMod);
+                        damage *= sneakAttackMod;
+                    }
+
                     percent = (float)damage / target.Health.MaxValue;
                     amount = (uint)-target.UpdateVitalDelta(target.Health, (int)-Math.Round(damage.Value));
                     target.DamageHistory.Add(ProjectileSource, amount);
@@ -323,16 +337,18 @@ namespace ACE.Server.WorldObjects
                 }
                 else
                 {
+                    var critMsg = critical ? "Critical hit!  " : "";
+                    var sneakMsg = sneakAttackMod > 1.0f ? "Sneak Attack! " : "";
                     if (player != null)
                     {
-                        // is percent for the vital, or always based on health?
-                        var attackerMsg = new GameEventAttackerNotification(player.Session, target.Name, damageType, percent, amount, critical, new AttackConditions());
-                        player.Session.Network.EnqueueSend(attackerMsg, new GameEventUpdateHealth(player.Session, target.Guid.Full, (float)target.Health.Current / target.Health.MaxValue));
+                        var attackerMsg = new GameMessageSystemChat($"{critMsg}{sneakMsg}You {verb} {target.Name} for {amount} points of {type} damage!", ChatMessageType.Magic);
+                        var updateHealth = new GameEventUpdateHealth(player.Session, target.Guid.Full, (float)target.Health.Current / target.Health.MaxValue);
+
+                        player.Session.Network.EnqueueSend(attackerMsg, updateHealth);
                     }
 
                     if (targetPlayer != null)
-                        targetPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"{ProjectileSource.Name} {plural} you for {amount} points of {type} damage!", ChatMessageType.Magic));
-                        //targetPlayer.Session.Network.EnqueueSend(new GameEventDefenderNotification(targetPlayer.Session, projectileCaster.Name, damageType, percent, amount, DamageLocation.Chest, critical, new AttackConditions()));    // damageLocation?
+                        targetPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"{critMsg}{sneakMsg}{ProjectileSource.Name} {plural} you for {amount} points of {type} damage!", ChatMessageType.Magic));
                 }
 
                 if (player != null)

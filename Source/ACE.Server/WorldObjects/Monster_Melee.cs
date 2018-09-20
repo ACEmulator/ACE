@@ -196,19 +196,6 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Returns the current attack skill for this monster,
-        /// given their stance and wielded weapon
-        /// </summary>
-        public Skill GetCurrentAttackSkill()
-        {
-            var weapon = GetEquippedWeapon();
-            if (weapon == null) return Skill.UnarmedCombat;
-
-            var skill = (Skill)(weapon.GetProperty(PropertyInt.WeaponSkill) ?? 0);
-            return skill == Skill.None ? Skill.UnarmedCombat : skill;
-        }
-
-        /// <summary>
         /// Returns the chance for player to avoid monster attack
         /// </summary>
         public float GetEvadeChance()

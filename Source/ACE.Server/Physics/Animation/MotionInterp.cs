@@ -116,7 +116,9 @@ namespace ACE.Server.Physics.Animation
                 return WeenieError.NoPhysicsObject;
 
             // movementparams ref?
-            var currentParams = new MovementParameters(movementParams);
+            var currentParams = new MovementParameters();
+            currentParams.CopySome(movementParams);
+
             var currentMotion = motion;
 
             if (movementParams.CancelMoveTo)
@@ -367,7 +369,8 @@ namespace ACE.Server.Physics.Animation
                 PhysicsObj.cancel_moveto();
 
             var currentMotion = motion;
-            var currentParams = new MovementParameters(movementParams);
+            var currentParams = new MovementParameters();
+            currentParams.CopySome(movementParams);
 
             adjust_motion(ref currentMotion, ref currentParams.Speed, movementParams.HoldKeyToApply);
 
