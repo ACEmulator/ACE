@@ -84,10 +84,23 @@ namespace ACE.Server.Physics.Animation
         }
 
         /// <summary>
-        /// Copy constructor for some fields
+        /// Copy construtor
         /// </summary>
-        public MovementParameters(MovementParameters mvp)
+        public MovementParameters(MovementParameters mvp, bool onlyBits = false)
         {
+            Flags = mvp.Flags;
+
+            if (!onlyBits)
+                CopyNonFlag(mvp);
+        }
+
+        /// <summary>
+        /// Only copies some fields from input movement params
+        /// </summary>
+        public void CopySome(MovementParameters mvp)
+        {
+            // TODO: should this really be only copying some fields?? review
+
             CanWalk = mvp.CanWalk;
             CanRun = mvp.CanRun;
             CanSidestep = mvp.CanSidestep;
@@ -121,6 +134,8 @@ namespace ACE.Server.Physics.Animation
 
         public void CopyNonFlag(MovementParameters mvp)
         {
+            // TODO: review again, take bitflags into consideration
+
             DistanceToObject = mvp.DistanceToObject;
             FailDistance = mvp.FailDistance;
             DesiredHeading = mvp.DesiredHeading;

@@ -31,6 +31,37 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
+        /// The last spell projectile launched by this player
+        /// to successfully collided with a target
+        /// </summary>
+        public SpellBase LastHitSpellProjectile;
+
+        /// <summary>
+        /// Returns the magic skill associated with the magic school
+        /// for the last collided spell projectile
+        /// </summary>
+        public Skill GetCurrentMagicSkill()
+        {
+            if (LastHitSpellProjectile == null)
+                return Skill.WarMagic;  // this should never happen, but just in case
+
+            switch (LastHitSpellProjectile.School)
+            {
+                case MagicSchool.WarMagic:
+                default:
+                    return Skill.WarMagic;
+                case MagicSchool.LifeMagic:
+                    return Skill.LifeMagic;
+                case MagicSchool.CreatureEnchantment:
+                    return Skill.CreatureEnchantment;
+                case MagicSchool.ItemEnchantment:
+                    return Skill.ItemEnchantment;
+                case MagicSchool.VoidMagic:
+                    return Skill.VoidMagic;
+            }
+        }
+
+        /// <summary>
         /// Handles player targeted casting message
         /// </summary>
         public void HandleActionCastTargetedSpell(ObjectGuid guidTarget, uint spellId)

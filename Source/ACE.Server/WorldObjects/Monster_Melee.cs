@@ -196,26 +196,6 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Returns the current attack skill for this monster,
-        /// given their stance and wielded weapon
-        /// </summary>
-        public Skill GetCurrentAttackSkill()
-        {
-            var weapon = GetEquippedWeapon();
-            if (weapon == null) return Skill.UnarmedCombat;
-
-            var combatStyle = weapon.DefaultCombatStyle;
-            switch (combatStyle)
-            {
-                case CombatStyle.Bow: return Skill.Bow;
-                case CombatStyle.Crossbow: return Skill.Crossbow;
-
-                // TODO: weapon skills
-                default: return Skill.UnarmedCombat;
-            }
-        }
-
-        /// <summary>
         /// Returns the chance for player to avoid monster attack
         /// </summary>
         public float GetEvadeChance()
@@ -264,6 +244,9 @@ namespace ACE.Server.WorldObjects
             var damageRange = GetBaseDamage(attackPart);
             var baseDamage = Physics.Common.Random.RollDice(damageRange.Min, damageRange.Max);
 
+            var player = AttackTarget as Player;
+            var recklessnessMod = player != null ? player.GetRecklessnessMod() : 1.0f;
+
             // monster weapon / attributes
             var weapon = GetEquippedWeapon();
 
@@ -291,7 +274,10 @@ namespace ACE.Server.WorldObjects
             // scale damage by modifiers
             var damage = baseDamage * attributeMod * armorMod * shieldMod * resistanceMod;
 
-            if (criticalHit) damage *= 2;
+            if (!criticalHit)
+                damage *= recklessnessMod;
+            else
+                damage *= 2;
 
             return damage;
         }

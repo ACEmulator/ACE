@@ -27,6 +27,20 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public bool IsDualWieldAttack { get => CurrentMotionState?.Stance == MotionStance.DualWieldCombat; }
 
+        /// <summary>
+        /// Returns the current attack skill for the player
+        /// </summary>
+        public override Skill GetCurrentAttackSkill()
+        {
+            if (CombatMode == CombatMode.Magic)
+                return GetCurrentMagicSkill();
+            else
+                return GetCurrentWeaponSkill();
+        }
+
+        /// <summary>
+        /// Returns the current weapon skill for the player
+        /// </summary>
         public override Skill GetCurrentWeaponSkill()
         {
             var weapon = GetEquippedWeapon();
@@ -86,7 +100,9 @@ namespace ACE.Server.WorldObjects
                 return 0.0f;
 
             var critical = false;
-            var damage = CalculateDamage(target, damageSource, ref critical);
+            var sneakAttack = false;
+
+            var damage = CalculateDamage(target, damageSource, ref critical, ref sneakAttack);
             if (damage > 0.0f)
             {
                 var attackType = GetAttackType();
@@ -99,16 +115,24 @@ namespace ACE.Server.WorldObjects
 
             if (damage > 0.0f && target.Health.Current > 0)
             {
+                var recklessnessMod = critical ? 1.0f : GetRecklessnessMod();
+
+                var attackConditions = new AttackConditions();
+                if (recklessnessMod > 1.0f)
+                    attackConditions |= AttackConditions.Recklessness;
+                if (sneakAttack)
+                    attackConditions |= AttackConditions.SneakAttack;
+
                 // notify attacker
                 var intDamage = (uint)Math.Round(damage);
                 if (damageSource?.ItemType == ItemType.MissileWeapon)
                 {
                     var damageType = (DamageType)damageSource.GetProperty(PropertyInt.DamageType);
-                    Session.Network.EnqueueSend(new GameEventAttackerNotification(Session, target.Name, damageType, (float)intDamage / target.Health.MaxValue, intDamage, critical, new AttackConditions()));
+                    Session.Network.EnqueueSend(new GameEventAttackerNotification(Session, target.Name, damageType, (float)intDamage / target.Health.MaxValue, intDamage, critical, attackConditions));
                 }
                 else
                 {
-                    Session.Network.EnqueueSend(new GameEventAttackerNotification(Session, target.Name, GetDamageType(), (float)intDamage / target.Health.MaxValue, intDamage, critical, new AttackConditions()));
+                    Session.Network.EnqueueSend(new GameEventAttackerNotification(Session, target.Name, GetDamageType(), (float)intDamage / target.Health.MaxValue, intDamage, critical, attackConditions));
                 }
 
                 // splatter effects
@@ -241,7 +265,7 @@ namespace ACE.Server.WorldObjects
             return damageSource != null ? damageSource.GetDamageMod(this) : new Range(1, 5);
         }
 
-        public float CalculateDamage(WorldObject target, WorldObject damageSource, ref bool criticalHit)
+        public float CalculateDamage(WorldObject target, WorldObject damageSource, ref bool criticalHit, ref bool sneakAttack)
         {
             var creature = target as Creature;
 
@@ -258,14 +282,19 @@ namespace ACE.Server.WorldObjects
             var attackType = GetAttackType();
             var attributeMod = GetAttributeMod(attackType);
             var powerAccuracyMod = GetPowerAccuracyMod();
+            var recklessnessMod = GetRecklessnessMod(this, creature);
+            var sneakAttackMod = GetSneakAttackMod(target);
+            sneakAttack = sneakAttackMod > 1.0f;
 
-            var damage = baseDamage * attributeMod * powerAccuracyMod;
+            var damageRatingMod = AdditiveCombine(recklessnessMod, sneakAttackMod);
+
+            var damage = baseDamage * attributeMod * powerAccuracyMod * damageRatingMod;
 
             // critical hit
             var critical = GetWeaponPhysicalCritFrequencyModifier(this);
             if (Physics.Common.Random.RollDice(0.0f, 1.0f) < critical)
             {
-                damage = baseDamageRange.Max * attributeMod * powerAccuracyMod * (2.0f + GetWeaponCritMultiplierModifier(this));
+                damage = baseDamageRange.Max * attributeMod * powerAccuracyMod * sneakAttackMod * (2.0f + GetWeaponCritMultiplierModifier(this));
                 criticalHit = true;
             }
 
@@ -306,6 +335,11 @@ namespace ACE.Server.WorldObjects
                 return AccuracyLevel + 0.6f;
             else
                 return 1.0f;
+        }
+
+        public float GetPowerAccuracyBar()
+        {
+            return GetAttackType() == AttackType.Missile ? AccuracyLevel : PowerLevel;
         }
 
         public double GetLifeResistance(DamageType damageType)
@@ -567,6 +601,55 @@ namespace ACE.Server.WorldObjects
             //Console.WriteLine($"GetAttackStamina({powerAccuracy}) - burden: {burden}, baseCost: {baseCost}, staminaMod: {staminaMod}, staminaCost: {staminaCost}");
 
             return (int)Math.Round(staminaCost);
+        }
+
+        /// <summary>
+        /// Returns the damage rating modifier for an applicable Recklessness attack
+        /// </summary>
+        /// <param name="powerAccuracyBar">The 0.0 - 1.0 power/accurary bar</param>
+        public float GetRecklessnessMod(/*float powerAccuracyBar*/)
+        {
+            // ensure melee or missile combat mode
+            if (CombatMode != CombatMode.Melee && CombatMode != CombatMode.Missile)
+                return 1.0f;
+
+            var skill = GetCreatureSkill(Skill.Recklessness);
+
+            // recklessness skill must be either trained or specialized to use
+            if (skill.AdvancementClass < SkillAdvancementClass.Trained)
+                return 1.0f;
+
+            // recklessness is active when attack bar is between 20% and 80% (according to wiki)
+            // client attack bar range seems to indicate this might have been updated, between 10% and 90%?
+            var powerAccuracyBar = GetPowerAccuracyBar();
+            //if (powerAccuracyBar < 0.2f || powerAccuracyBar > 0.8f)
+            if (powerAccuracyBar < 0.1f || powerAccuracyBar > 0.9f)
+                return 1.0f;
+
+            // recklessness only applies to non-critical hits,
+            // which is handled outside of this method.
+
+            // damage rating is increased by 20 for specialized, and 10 for trained.
+            // incoming non-critical damage from all sources is increased by the same.
+            var damageRating = skill.AdvancementClass == SkillAdvancementClass.Specialized ? 20 : 10;
+
+            // if recklessness skill is lower than current attack skill (as determined by your equipped weapon)
+            // then the damage rating is reduced proportionately. The damage rating caps at 10 for trained
+            // and 20 for specialized, so there is no reason to raise the skill above your attack skill.
+            var attackSkill = GetCreatureSkill(GetCurrentAttackSkill());
+
+            if (skill.Current < attackSkill.Current)
+            {
+                var scale = (float)skill.Current / attackSkill.Current;
+                damageRating = (int)Math.Round(damageRating * scale);
+            }
+
+            // The damage rating adjustment for incoming damage is also adjusted proportinally if your Recklessness skill
+            // is lower than your active attack skill
+
+            var recklessnessMod = GetDamageRating(damageRating);    // trained DR 1.10 = 10% additional damage
+                                                                    // specialized DR 1.20 = 20% additional damage
+            return recklessnessMod;
         }
     }
 }
