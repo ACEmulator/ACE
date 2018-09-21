@@ -146,6 +146,10 @@ namespace ACE.Server.WorldObjects
                 Session.Network.EnqueueSend(new GameMessageScript(target.Guid, splatter));
 
                 Session.Network.EnqueueSend(new GameEventUpdateHealth(Session, target.Guid.Full, (float)target.Health.Current / target.Health.MaxValue));
+
+                // handle Dirty Fighting
+                if (GetCreatureSkill(Skill.DirtyFighting).AdvancementClass >= SkillAdvancementClass.Trained)
+                    FightDirty(target);
             }
 
             OnAttackMonster(target);
@@ -435,6 +439,51 @@ namespace ACE.Server.WorldObjects
             return Sound.HitFlesh1;
         }
 
+        /// <summary>
+        /// Simplified player take damage function, only called for DoTs currently
+        /// </summary>
+        public override void TakeDamageOverTime(WorldObject source, float _amount)
+        {
+            if (Invincible ?? false || IsDead) return;
+
+            var amount = (uint)Math.Round(_amount);
+            var percent = (float)amount / Health.MaxValue;
+
+            // update health
+            var damageTaken = (uint)-UpdateVitalDelta(Health, (int)-amount);
+            DamageHistory.Add(source, damageTaken);
+
+            // update stamina
+            UpdateVitalDelta(Stamina, -1);
+
+            // send network messages
+            var creature = source as Creature;
+
+            var text = new GameMessageSystemChat($"You receive {amount} points of periodic damage.", ChatMessageType.Combat);
+            //var splatter = new GameMessageScript(Guid, (PlayScript)Enum.Parse(typeof(PlayScript), "Splatter" + creature.GetSplatterHeight() + creature.GetSplatterDir(this)));  // not sent in retail, but great visual indicator?
+            //Session.Network.EnqueueSend(text, splatter);    // fixme: broadcast splatter
+            EnqueueBroadcast(new GameMessageScript(Guid, ACE.Entity.Enum.PlayScript.DirtyFightingDamageOverTime));
+
+            var playerSource = source as Player;
+            if (playerSource != null)
+            {
+                // send message to attacker?
+                text = new GameMessageSystemChat($"You bleed {Name} for {amount} points of periodic damage!", ChatMessageType.CombatSelf);
+                playerSource.Session.Network.EnqueueSend(text);
+            }
+            if (Health.Current == 0)
+            {
+                Die();
+                return;
+            }
+
+            if (percent >= 0.1f)
+            {
+                var wound = new GameMessageSound(Guid, Sound.Wound1, 1.0f);
+                Session.Network.EnqueueSend(wound);     // fixme: broadcast wound sound
+            }
+        }
+
         public void TakeDamage(WorldObject source, DamageType damageType, float _amount, BodyPart bodyPart, bool crit = false)
         {
             if (Invincible ?? false) return;
@@ -465,7 +514,7 @@ namespace ACE.Server.WorldObjects
                 var hitSound = new GameMessageSound(Guid, GetHitSound(source, bodyPart), 1.0f);
                 var splatter = new GameMessageScript(Guid, (PlayScript)Enum.Parse(typeof(PlayScript), "Splatter" + creature.GetSplatterHeight() + creature.GetSplatterDir(this)));
                 var text = new GameEventDefenderNotification(Session, creature.Name, damageType, percent, amount, damageLocation, crit, AttackConditions.None);
-                Session.Network.EnqueueSend(text, hitSound, splatter);
+                Session.Network.EnqueueSend(text, hitSound, splatter);  // fixme: broadcast hit sound / splatter
             }
             else if (hotspot != null)
             {

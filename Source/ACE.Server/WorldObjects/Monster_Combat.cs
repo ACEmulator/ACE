@@ -7,6 +7,7 @@ using ACE.DatLoader;
 using ACE.DatLoader.FileTypes;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 
 namespace ACE.Server.WorldObjects
@@ -193,6 +194,44 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
+        /// Simplified player take damage function, only called for DoTs currently
+        /// </summary>
+        public virtual void TakeDamageOverTime(WorldObject source, float amount)
+        {
+            if (IsDead) return;
+
+            TakeDamage(source, amount);
+
+            // splatter effects
+            EnqueueBroadcast(new GameMessageSound(Guid, Sound.HitFlesh1, 0.5f));
+            var playerSource = source as Player;
+            if (playerSource != null)
+            {
+                //var splatter = (PlayScript)Enum.Parse(typeof(PlayScript), "Splatter" + playerSource.GetSplatterHeight() + playerSource.GetSplatterDir(this));
+                //EnqueueBroadcast(new GameMessageScript(Guid, splatter));
+                EnqueueBroadcast(new GameMessageScript(Guid, ACE.Entity.Enum.PlayScript.DirtyFightingDamageOverTime));
+
+                playerSource.Session.Network.EnqueueSend(new GameEventUpdateHealth(playerSource.Session, Guid.Full, (float)Health.Current / Health.MaxValue));
+            }
+
+            if (Health.Current > 0)
+            {
+                if (amount >= Health.MaxValue * 0.25f)
+                {
+                    var painSound = (Sound)Enum.Parse(typeof(Sound), "Wound" + Physics.Common.Random.RollDice(1, 3), true);
+                    EnqueueBroadcast(new GameMessageSound(Guid, painSound, 1.0f));
+                }
+
+                // notify player attacker?
+                if (playerSource != null)
+                {
+                    var text = new GameMessageSystemChat($"You bleed {Name} for {amount} points of periodic damage!", ChatMessageType.CombatSelf);
+                    playerSource.Session.Network.EnqueueSend(text);
+                }
+            }
+        }
+
+        /// <summary>
         /// Applies some amount of damage to this monster from source
         /// </summary>
         /// <param name="source">The attacker / source of damage</param>
@@ -201,6 +240,8 @@ namespace ACE.Server.WorldObjects
         {
             var tryDamage = (uint)Math.Round(amount);
             var damage = (uint)-UpdateVitalDelta(Health, (int)-tryDamage);
+
+            // TODO: update monster stamina?
 
             DamageHistory.Add(source, damage);
 
@@ -214,7 +255,7 @@ namespace ACE.Server.WorldObjects
                 {
                     var deathMessage = GetDeathMessage(source, crit);
                     player.Session.Network.EnqueueSend(new GameMessageSystemChat(string.Format(deathMessage, Name), ChatMessageType.Broadcast));
-                    player.EarnXP((long)XpOverride);
+                    player.EarnXP((long)XpOverride);    // TODO: split xp between players in damage history?
                 }
             }
         }

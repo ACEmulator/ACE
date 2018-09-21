@@ -358,10 +358,36 @@ namespace ACE.Server.Managers
                 // StartTime ticks backwards to -Duration
                 if (enchantment.Duration > 0 && enchantment.StartTime <= -enchantment.Duration)
                     expired.Add(enchantment);
+
+                // apply damage over time (DoTs)
+                if (enchantment.StatModKey == (int)PropertyInt.DamageOverTime)
+                    ApplyDamageTick(enchantment);
             }
 
             foreach (var enchantment in expired)
                 Remove(enchantment);
+        }
+
+        /// <summary>
+        /// Applies 1 tick of damage from a DoT spell
+        /// </summary>
+        /// <param name="enchantment">The damage over time (DoT) spell</param>
+        public void ApplyDamageTick(BiotaPropertiesEnchantmentRegistry enchantment)
+        {
+            var totalAmount = enchantment.StatModValue;
+            var totalTicks = (int)Math.Ceiling(enchantment.Duration / (WorldObject.HeartbeatInterval ?? 5));
+            var tickAmount = totalAmount / totalTicks;
+
+            var creature = WorldObject as Creature;
+            if (creature == null) return;
+
+            var damager = WorldObject.CurrentLandblock?.GetObject(enchantment.CasterObjectId);
+            if (damager == null)
+            {
+                Console.WriteLine($"{WorldObject.Name}.ApplyDamageTick() - couldn't find damager {enchantment.CasterObjectId}");
+                return;
+            }
+            creature.TakeDamageOverTime(damager, tickAmount);
         }
 
         /// <summary>
@@ -480,6 +506,12 @@ namespace ACE.Server.Managers
             var skillMod = 0;
             foreach (var enchantment in enchantments)
                 skillMod += (int)enchantment.StatModValue;
+
+            if (SkillHelper.DefenseSkills.Contains(skill))
+                skillMod += GetDefenseDebuffMod();
+
+            if (SkillHelper.AttackSkills.Contains(skill))
+                skillMod += GetAttackDebuffMod();
 
             return skillMod;
         }
@@ -794,6 +826,79 @@ namespace ACE.Server.Managers
                 modifier += enchantment.StatModValue;
 
             return modifier;
+        }
+
+        /// <summary>
+        /// Returns the sum of the enchantment statmod values
+        /// </summary>
+        public float GetAdditiveMod(List<BiotaPropertiesEnchantmentRegistry> enchantments)
+        {
+            var modifier = 0.0f;
+            foreach (var enchantment in enchantments)
+                modifier += enchantment.StatModValue;
+
+            return modifier;
+        }
+
+        /// <summary>
+        /// Returns the defense skill debuffs for Dirty Fighting
+        /// </summary>
+        /// <returns></returns>
+        public int GetDefenseDebuffMod()
+        {
+            var typeFlags = EnchantmentTypeFlags.Skill | EnchantmentTypeFlags.Additive | EnchantmentTypeFlags.DefenseSkills;
+            var enchantments = GetEnchantments(typeFlags, 0);
+
+            // additive
+            return (int)Math.Round(GetAdditiveMod(enchantments));
+        }
+
+        /// <summary>
+        /// Returns the attack skill debuffs for Dirty Fighting
+        /// </summary>
+        /// <returns></returns>
+        public int GetAttackDebuffMod()
+        {
+            var typeFlags = EnchantmentTypeFlags.Skill | EnchantmentTypeFlags.Additive | EnchantmentTypeFlags.AttackSkills;
+            var enchantments = GetEnchantments(typeFlags, 0);
+
+            // additive
+            return (int)Math.Round(GetAdditiveMod(enchantments));
+        }
+
+        /// <summary>
+        /// Returns a rating enchantment modifier
+        /// </summary>
+        /// <param name="property">The rating to return an enchantment modifier</param>
+        public int GetRatingMod(PropertyInt property)
+        {
+            var typeFlags = EnchantmentTypeFlags.Int | EnchantmentTypeFlags.SingleStat | EnchantmentTypeFlags.Additive;
+            var enchantments = GetEnchantments(typeFlags, (uint)property);
+
+            return (int)Math.Round(GetAdditiveMod(enchantments));
+        }
+
+        /// <summary>
+        /// Returns the healing resistance rating enchantment modifier
+        /// </summary>
+        public float GetHealingResistRatingMod()
+        {
+            var rating = GetRatingMod(PropertyInt.HealingResistRating);
+
+            // return as rating mod
+            return 100.0f / (100 + rating);
+        }
+
+        /// <summary>
+        ///  Returns the damage over time (DoT) enchantment mod
+        /// </summary>
+        public float GetDamageOverTimeMod()
+        {
+            var typeFlags = EnchantmentTypeFlags.Int | EnchantmentTypeFlags.SingleStat | EnchantmentTypeFlags.Additive;
+            var enchantments = GetEnchantments(typeFlags, (uint)PropertyInt.DamageOverTime);
+
+            // additive float
+            return GetAdditiveMod(enchantments);
         }
 
         /// <summary>
