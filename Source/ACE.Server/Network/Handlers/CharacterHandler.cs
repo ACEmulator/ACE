@@ -259,12 +259,10 @@ namespace ACE.Server.Network.Handlers
                 {
                     player.TrainSkill(skill, skillCost.TrainingCost);
                     player.SpecializeSkill(skill, skillCost.SpecializationCost);
-                    player.GetCreatureSkill(skill).InitLevel = 10;
                 }
                 else if (sac == SkillAdvancementClass.Trained)
                 {
                     player.TrainSkill(skill, skillCost.TrainingCost);
-                    player.GetCreatureSkill(skill).InitLevel = 5;
                 }
                 else if (skillCost != null && sac == SkillAdvancementClass.Untrained)
                     player.UntrainSkill(skill, skillCost.TrainingCost);

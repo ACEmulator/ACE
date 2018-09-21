@@ -1,11 +1,9 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-
 using ACE.DatLoader;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
-using ACE.Server.Network.GameMessages;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.WorldObjects.Entity;
 
@@ -13,18 +11,6 @@ namespace ACE.Server.WorldObjects
 {
     partial class Player
     {
-        //public int TotalSkillCredits
-        //{
-        //    get => GetProperty(PropertyInt.TotalSkillCredits) ?? 0;
-        //    set => SetProperty(PropertyInt.TotalSkillCredits, value);
-        //}
-
-        //public int AvailableSkillCredits
-        //{
-        //    get => GetProperty(PropertyInt.AvailableSkillCredits) ?? 0;
-        //    set => SetProperty(PropertyInt.AvailableSkillCredits, value);
-        //}
-
         /// <summary>
         /// Sets the skill to trained status for a character
         /// </summary>
@@ -39,6 +25,7 @@ namespace ACE.Server.WorldObjects
                     cs.AdvancementClass = SkillAdvancementClass.Trained;
                     cs.Ranks = 0;
                     cs.ExperienceSpent = 0;
+                    cs.InitLevel += 5;
                     AvailableSkillCredits -= creditsSpent;
                     return true;
                 }
@@ -73,7 +60,8 @@ namespace ACE.Server.WorldObjects
                 if (trainNewSkill)
                 {
                     // replace the trainSkillUpdate message with the correct skill assignment:
-                    trainSkillUpdate = new GameMessagePrivateUpdateSkill(this, skill, SkillAdvancementClass.Trained, 0, 0, 0);
+                    var creatureSkill = GetCreatureSkill(skill);
+                    trainSkillUpdate = new GameMessagePrivateUpdateSkill(this, creatureSkill);
                     trainSkillMessageText = $"{skill.ToSentence()} trained. You now have {AvailableSkillCredits} credits available.";
                 }
                 else
@@ -90,7 +78,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Sets the skill to specialized status
         /// </summary>
-        public bool SpecializeSkill(Skill skill, int creditsSpent)
+        public bool SpecializeSkill(Skill skill, int creditsSpent, bool resetSkill = true)
         {
             var cs = GetCreatureSkill(skill);
 
@@ -98,9 +86,14 @@ namespace ACE.Server.WorldObjects
             {
                 if (AvailableSkillCredits >= creditsSpent)
                 {
+                    if (resetSkill)
+                    {
+                        cs.Ranks = 0;
+                        cs.ExperienceSpent = 0;
+                    }
+
+                    cs.InitLevel += 5;
                     cs.AdvancementClass = SkillAdvancementClass.Specialized;
-                    cs.Ranks = 0;
-                    cs.ExperienceSpent = 0;
                     AvailableSkillCredits -= creditsSpent;
                     return true;
                 }
@@ -116,20 +109,61 @@ namespace ACE.Server.WorldObjects
         {
             var cs = GetCreatureSkill(skill);
 
+            if (cs == null)
+                return false;
+
             if (cs.AdvancementClass != SkillAdvancementClass.Trained && cs.AdvancementClass != SkillAdvancementClass.Specialized)
             {
+                // only used to initialize untrained skills for character creation?
                 cs.AdvancementClass = SkillAdvancementClass.Untrained;
+                cs.InitLevel = 0;
                 cs.Ranks = 0;
                 cs.ExperienceSpent = 0;
                 return true;
             }
 
-            if (cs.AdvancementClass == SkillAdvancementClass.Trained)
+            if (cs.AdvancementClass == SkillAdvancementClass.Trained) 
             {
-                cs.AdvancementClass = SkillAdvancementClass.Untrained;
+                //Perform refund of XP and credits
+                RefundXP(cs.ExperienceSpent);
+
+                // temple untraining heritage skills:
+                // heritage skills cannot be untrained, but skill XP can be recovered
+                if (IsSkillUntrainable(skill))
+                {
+                    cs.AdvancementClass = SkillAdvancementClass.Untrained;
+                    cs.InitLevel -= 5;
+                }
+
                 cs.Ranks = 0;
                 cs.ExperienceSpent = 0;
+                return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Lowers skill from Specialized to Trained and returns both skill credits and invested XP
+        /// </summary>
+        public bool UnspecializeSkill(Skill skill, int creditsSpent)
+        {
+            var cs = GetCreatureSkill(skill);
+
+            if (cs == null)
+                return false;
+
+            if (cs.AdvancementClass == SkillAdvancementClass.Specialized)
+            {
+                //Perform refund of XP and credits
+                RefundXP(cs.ExperienceSpent);
                 AvailableSkillCredits += creditsSpent;
+
+                cs.AdvancementClass = SkillAdvancementClass.Trained;
+                cs.InitLevel -= 5;
+                cs.ExperienceSpent = 0;
+                cs.Ranks = 0;
+
                 return true;
             }
 
@@ -185,14 +219,14 @@ namespace ACE.Server.WorldObjects
                 {
                     messageText = $"Your base {skill.ToSentence()} is now {creatureSkill.Base}!";
                 }
-                Session.Network.EnqueueSend(new GameMessagePrivateUpdateSkill(this, skill, creatureSkill.AdvancementClass, creatureSkill.Ranks, creatureSkill.InitLevel, result));
+                Session.Network.EnqueueSend(new GameMessagePrivateUpdateSkill(this, creatureSkill));
                 Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.RaiseTrait, 1f));
                 Session.Network.EnqueueSend(new GameMessageSystemChat(messageText, ChatMessageType.Advancement));
             }
             else if (prevXP != creatureSkill.ExperienceSpent)
             {
                 // skill usage
-                Session.Network.EnqueueSend(new GameMessagePrivateUpdateSkill(this, skill, creatureSkill.AdvancementClass, creatureSkill.Ranks, creatureSkill.InitLevel, result));
+                Session.Network.EnqueueSend(new GameMessagePrivateUpdateSkill(this, creatureSkill));
             }
             else if (!usage)
             {
@@ -221,7 +255,6 @@ namespace ACE.Server.WorldObjects
                 return result;
 
             ushort rankUps = 0;
-            //uint currentRankXp = xpList[Convert.ToInt32(skill.Ranks)];
             uint currentRankXp = skill.ExperienceSpent;
             uint rank1 = xpList[Convert.ToInt32(skill.Ranks) + 1] - currentRankXp;
             uint rank10;
@@ -376,6 +409,39 @@ namespace ACE.Server.WorldObjects
                 Session.Network.EnqueueSend(new GameMessageSystemChat(message, ChatMessageType.Advancement));
                 Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.RaiseTrait, 1f));
             }
+        }
+
+        public static List<Skill> AlwaysTrained = new List<Skill>()
+        {
+            Skill.ArcaneLore,
+            Skill.Jump,
+            Skill.Loyalty,
+            Skill.MagicDefense,
+            Skill.Run,
+            Skill.Salvaging
+        };
+
+        public static Dictionary<HeritageGroup, List<Skill>> HeritageBonuses = new Dictionary<HeritageGroup, List<Skill>>()
+        {
+            // contains a bunch of outdated skills, according to heritage select screen description?
+            { ACE.Entity.Enum.HeritageGroup.Aluvian, new List<Skill>() { Skill.Dagger, Skill.Bow } },
+            { ACE.Entity.Enum.HeritageGroup.Gharundim, new List<Skill>() { Skill.Staff, Skill.WarMagic } }, // magic spells?
+            { ACE.Entity.Enum.HeritageGroup.Sho, new List<Skill>() { Skill.UnarmedCombat, Skill.Bow } },
+            { ACE.Entity.Enum.HeritageGroup.Viamontian, new List<Skill>() { Skill.Sword, Skill.Crossbow } },
+            { ACE.Entity.Enum.HeritageGroup.Shadowbound, new List<Skill>() { Skill.UnarmedCombat, Skill.Crossbow } }, // umbraen?
+            { ACE.Entity.Enum.HeritageGroup.Penumbraen, new List<Skill>() { Skill.UnarmedCombat, Skill.Crossbow } },
+            { ACE.Entity.Enum.HeritageGroup.Gearknight, new List<Skill>() { Skill.Mace, Skill.Crossbow } },
+            { ACE.Entity.Enum.HeritageGroup.Undead, new List<Skill>() { Skill.Axe, Skill.ThrownWeapon } },
+            { ACE.Entity.Enum.HeritageGroup.Empyrean, new List<Skill>() { Skill.Sword, Skill.WarMagic } },  // magic?
+            { ACE.Entity.Enum.HeritageGroup.Tumerok, new List<Skill>() { Skill.Spear, Skill.ThrownWeapon } },
+            { ACE.Entity.Enum.HeritageGroup.Lugian, new List<Skill>() { Skill.Axe, Skill.ThrownWeapon } },
+            { ACE.Entity.Enum.HeritageGroup.Olthoi, new List<Skill>() },    // natural claws and pincers?
+            { ACE.Entity.Enum.HeritageGroup.OlthoiAcid, new List<Skill>() }    // olthoi spitters acidic spit?
+        };
+
+        public static bool IsSkillUntrainable(Skill skill)
+        {
+            return !AlwaysTrained.Contains(skill);
         }
     }
 }

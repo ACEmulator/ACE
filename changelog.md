@@ -1,4 +1,11 @@
 # ACEmulator Change Log
+### 2018-09-15
+[mcreedjr]
+* Implemented skill redistribution functionality
+  - Added the ability for characters to use Gems of Forgetfulness and Gems of Enlightenment
+  - Included check when specializing to make sure too many credits aren't already specialized
+  - Included check to make sure a lower operation wouldn't violate the wield reqs of a currently wielded item
+  - Included check to prevent heritage skills from being untrained
 
 ### 2018-09-11
 [mcreedjr]
