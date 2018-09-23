@@ -389,13 +389,7 @@ namespace ACE.Server.Command.Handlers
 
             message += $"Total connected Players: {playerCounter}\n";
 
-            if (session != null)
-            {
-                var listPlayersMessage = new GameMessageSystemChat(message, ChatMessageType.Broadcast);
-                session.Network.EnqueueSend(listPlayersMessage);
-            }
-            else
-                Console.WriteLine(message);
+            CommandHandlerHelper.WriteOutputInfo(session, message, ChatMessageType.Broadcast);
         }
 
         /// <summary>
@@ -415,8 +409,7 @@ namespace ACE.Server.Command.Handlers
         [CommandHandler("loadalllandblocks", AccessLevel.Developer, CommandHandlerFlag.None, "Loads all Landblocks. This is VERY crude. Do NOT use it on a live server!!! It will likely crash the server.")]
         public static void HandleLoadAllLandblocks(Session session, params string[] parameters)
         {
-            if (session != null)
-                session.Network.EnqueueSend(new GameMessageSystemChat("Loading landblocks... This will likely crash the server...", ChatMessageType.System));
+            CommandHandlerHelper.WriteOutputInfo(session, "Loading landblocks... This will likely crash the server...");
 
             Task.Run(() =>
             {
@@ -428,7 +421,7 @@ namespace ACE.Server.Command.Handlers
                         Stopwatch sw = Stopwatch.StartNew();
                         LandblockManager.ForceLoadLandBlock(blockid);
                         sw.Stop();
-                        log.DebugFormat("Loaded Landblock {0:X4} in {1} milliseconds ", blockid.Landblock, sw.ElapsedMilliseconds);
+                        CommandHandlerHelper.WriteOutputDebug(session, $"Loaded Landblock {blockid.Landblock:X4} in {sw.ElapsedMilliseconds} milliseconds");
                     }
                 }
             });
@@ -437,7 +430,7 @@ namespace ACE.Server.Command.Handlers
         [CommandHandler("cacheallweenies", AccessLevel.Developer, CommandHandlerFlag.None, "Loads and caches all Weenies. This may take 10+ minutes and is very heavy on the database.")]
         public static void HandleCacheAllWeenies(Session session, params string[] parameters)
         {
-            session.Network.EnqueueSend(new GameMessageSystemChat("Caching Weenies... This may take more than 10 minutes...", ChatMessageType.System));
+            CommandHandlerHelper.WriteOutputInfo(session, "Caching Weenies... This may take more than 10 minutes...");
 
             Task.Run(() => DatabaseManager.World.CacheAllWeenies());
         }
@@ -546,20 +539,14 @@ namespace ACE.Server.Command.Handlers
                             break;
                     }
 
-                    if (session == null)
-                        Console.WriteLine(debugOutput.Replace(", ", " | "));
-                    else
-                        session.Network.EnqueueSend(new GameMessageSystemChat(debugOutput, ChatMessageType.System));
+                    CommandHandlerHelper.WriteOutputInfo(session, debugOutput);
                 }
             }
             catch (Exception)
             {
                 string debugOutput = "Exception Error, check input and try again";
 
-                if (session == null)
-                    Console.WriteLine(debugOutput.Replace(", ", " | "));
-                else
-                    session.Network.EnqueueSend(new GameMessageSystemChat(debugOutput, ChatMessageType.System));
+                CommandHandlerHelper.WriteOutputInfo(session, debugOutput);
             }
         }
 
@@ -759,7 +746,7 @@ namespace ACE.Server.Command.Handlers
         // Vitals
         // ==================================
 
-        [CommandHandler("setvital", AccessLevel.Developer, CommandHandlerFlag.None, 2,
+        [CommandHandler("setvital", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 2,
             "Sets the specified vital to a specified value",
             "Usage: @setvital <vital> <value>\n" +
             "<vital> is one of the following strings:\n" +
@@ -1003,13 +990,10 @@ namespace ACE.Server.Command.Handlers
 
             for (int i = 0; i < formula.Count; i++)
             {
-                if (comps.SpellComponents.ContainsKey(formula[i])) {
+                if (comps.SpellComponents.ContainsKey(formula[i]))
                     Console.WriteLine("Comp " + i + ": " + comps.SpellComponents[formula[i]].Name);
-                }
                 else
-                {
-                    Console.WriteLine("Comp " + i + " : Unknown Component " + formula[i].ToString());
-                }
+                    Console.WriteLine("Comp " + i + " : Unknown Component " + formula[i]);
             }
 
             Console.WriteLine();
@@ -1033,14 +1017,15 @@ namespace ACE.Server.Command.Handlers
             foreach (KeyValuePair<uint, DatLoader.Entity.SpellBase> entry in spellTable.Spells)
             {
                 uint spellid = entry.Key;
-                Console.WriteLine("Formula for " + spellTable.Spells[spellid].Name + " (" + spellid.ToString() + ")");
+                Console.WriteLine("Formula for " + spellTable.Spells[spellid].Name + " (" + spellid + ")");
+
                 var formula = SpellTable.GetSpellFormula(DatManager.PortalDat.SpellTable, spellid, parameters[0]);
+
                 for (int i = 0; i < formula.Count; i++)
                     Console.WriteLine("Comp " + i + ": " + comps.SpellComponents[formula[i]].Name);
 
                 Console.WriteLine();
             }
-
         }
 
         /// <summary>
@@ -1135,7 +1120,7 @@ namespace ACE.Server.Command.Handlers
             var obj = player.CurrentLandblock?.GetObject(guid);
             if (obj == null)
             {
-                Console.WriteLine("Couldn't find " + guid);
+                ChatPacket.SendServerMessage(session, "Couldn't find " + guid, ChatMessageType.System);
                 return;
             }
 
@@ -1150,20 +1135,20 @@ namespace ACE.Server.Command.Handlers
             var targetID = session.Player.CurrentAppraisalTarget;
             if (targetID == null)
             {
-                Console.WriteLine("ERROR: no appraisal target");
+                ChatPacket.SendServerMessage(session, "ERROR: no appraisal target", ChatMessageType.System);
                 return;
             }
             var targetGuid = new ObjectGuid(targetID.Value);
             var target = session.Player.CurrentLandblock?.GetObject(targetGuid);
             if (target == null)
             {
-                Console.WriteLine("Couldn't find " + targetGuid);
+                ChatPacket.SendServerMessage(session, "Couldn't find " + targetGuid, ChatMessageType.System);
                 return;
             }
             var creature = target as Creature;
             if (creature == null)
             {
-                Console.WriteLine(target.Name + " is not a creature / monster");
+                ChatPacket.SendServerMessage(session, target.Name + " is not a creature / monster", ChatMessageType.System);
                 return;
             }
 
@@ -1181,7 +1166,7 @@ namespace ACE.Server.Command.Handlers
             if (parameters.Length > 0 && parameters[0].Equals("off"))
                 enabled = false;
 
-            Console.WriteLine("Setting forcepos to " + enabled);
+            CommandHandlerHelper.WriteOutputInfo(session, "Setting forcepos to " + enabled);
 
             Creature.ForcePos = enabled;
         }
@@ -1193,14 +1178,14 @@ namespace ACE.Server.Command.Handlers
             var targetID = session.Player.CurrentAppraisalTarget;
             if (targetID == null)
             {
-                Console.WriteLine("ERROR: no appraisal target");
+                CommandHandlerHelper.WriteOutputInfo(session, "ERROR: no appraisal target");
                 return;
             }
             var targetGuid = new ObjectGuid(targetID.Value);
             var target = session.Player.CurrentLandblock?.GetObject(targetGuid);
             if (target == null)
             {
-                Console.WriteLine("ERROR: couldn't find " + targetGuid);
+                CommandHandlerHelper.WriteOutputInfo(session, "ERROR: couldn't find " + targetGuid);
                 return;
             }
             var actionChain = new ActionChain();
@@ -1222,7 +1207,7 @@ namespace ACE.Server.Command.Handlers
             action.OriginZ = newPos.PositionZ;
             action.ObjCellId = newPos.Cell;
 
-            Console.WriteLine($"Moving {target.Name} from {target.Location.LandblockId} {currentPos.Pos} to {newPos.LandblockId} {newPos.Pos}");
+            CommandHandlerHelper.WriteOutputInfo(session, $"Moving {target.Name} from {target.Location.LandblockId} {currentPos.Pos} to {newPos.LandblockId} {newPos.Pos}");
 
             target.EmoteManager.ExecuteEmote(emote, action, actionChain, target, target);
         }

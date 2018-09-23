@@ -165,7 +165,7 @@ namespace ACE.Server.WorldObjects
             {
                 if (!UnwieldItemWithNetworking(this, item))
                 {
-                    Console.WriteLine($"Player_Inventory.TryRemoveItemWithNetworking: couldn't unwield item from {Name} ({item.Name})");
+                    log.Warn($"Player_Inventory.TryRemoveItemWithNetworking: couldn't unwield item from {Name} ({item.Name})");
                     return false;
                 }
             }
