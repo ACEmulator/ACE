@@ -82,8 +82,6 @@ namespace ACE.Server.WorldObjects
 
             if (attackable && monster.MonsterState == State.Idle && tolerance == Tolerance.None)
             {
-                Console.WriteLine("Waking up " + monster.Name);
-
                 monster.AttackTarget = this;
                 monster.WakeUp();
                 return true;
