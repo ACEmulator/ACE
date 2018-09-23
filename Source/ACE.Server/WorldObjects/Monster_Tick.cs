@@ -20,16 +20,32 @@ namespace ACE.Server.WorldObjects
 
             if (!IsAwake || IsDead) return;
 
+            if (AttackTarget == null) return;
+
             IsMonster = true;
 
-            if (AttackTarget != null && AttackTarget.IsDestroyed)
+            if (AttackTarget.Guid.Full == PetOwner)
             {
+                //Pet's shouldn't attack their owners
                 Sleep();
                 return;
             }
 
-            if (!AttackTarget.IsVisible(this))
+            if (AttackTarget.IsDestroyed)
             {
+                Sleep();
+
+                if (IsPet)
+                {
+                    //We're a pet, find a new target
+                    PetFindTarget();
+                }
+                return;
+            }
+
+            if (!AttackTarget.IsVisible(this) && !(AttackTarget.WeenieClassId == 49114) && !(WeenieClassId == 49114))
+            {
+                Console.WriteLine("Target is not visible");
                 Sleep();
                 return;
             }

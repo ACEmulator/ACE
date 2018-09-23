@@ -1,19 +1,15 @@
-using ACE.Common;
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.Entity;
+using ACE.Server.Entity;
 using ACE.Entity.Enum;
-using ACE.Server.Entity.Actions;
-using ACE.Server.Network.GameEvent.Events;
-using ACE.Server.Network.GameMessages.Messages;
-using ACE.Server.Network.Motion;
-using System;
+using ACE.Server.Factories;
+using System.Collections.Generic;
 
 namespace ACE.Server.WorldObjects
 {
-    public class PetDevice : Creature
+    public class PetDevice : WorldObject
     {
-        
         /// <summary>
         /// A new biota be created taking all of its values from weenie.
         /// </summary>
@@ -42,14 +38,33 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public override void UseItem(Player player)
         {
-                var pet = this as PetDevice;
+            Creature pet;
 
-                Console.WriteLine ("In PetDevice ActOnUse()");
+            PetDeviceToPetMapping.TryGetValue(this.WeenieClassId, out uint petWCID);
 
-                CurrentLandblock?.AddWorldObject(pet);
+            pet = WorldObjectFactory.CreateNewWorldObject(petWCID) as Creature;
 
-                //Session.Network.EnqueueSend(new GameMessageUpdateObject(item));
-                EnqueueBroadcast(new GameMessageUpdatePosition(pet));
+            if (pet !=null)
+            {
+                pet.NoCorpse = true;
+                pet.IsPet = true;
+                pet.Location = ((Position)player.Location.Clone()).InFrontOf(5f);
+                pet.Name = player.Name + "'s " + pet.Name;
+                pet.PetOwner = player.Guid.Full;
+                pet.SetCombatMode(CombatMode.Melee);
+                pet.CombatTableDID = 0x30000001;
+                pet.EnterWorld();
+                pet.UpdateObjectPhysics();
+                pet.PetFindTarget();
+
+                player.SendUseDoneEvent();
+            }
         }
+
+        public static Dictionary<uint, uint> PetDeviceToPetMapping = new Dictionary<uint, uint>()
+        {
+            // Maps an Essence to a WCID to be spawned
+            {49344, 49114}, // Blistering Moar Essence > Moar
+        };
     }
 }

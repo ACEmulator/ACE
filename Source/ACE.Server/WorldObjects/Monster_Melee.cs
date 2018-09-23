@@ -34,8 +34,11 @@ namespace ACE.Server.WorldObjects
         /// <returns>The length in seconds for the attack animation</returns>
         public float MeleeAttack()
         {
-            var player = AttackTarget as Player;
-            if (player.Health.Current <= 0) return 0.0f;
+            var target = AttackTarget as Creature;
+            var targetPlayer = AttackTarget as Player;
+            var pet = target != null && target.IsPet;
+
+            if (target.Health.Current <= 0) return 0.0f;
 
             // choose a random combat maneuver
             var maneuver = GetCombatManeuver();
@@ -62,16 +65,30 @@ namespace ACE.Server.WorldObjects
 
                 if (damage > 0.0f)
                 {
-                    player.TakeDamage(this, damageType, damage, bodyPart, critical);
-
-                    if (shieldMod != 1.0f)
+                    if (pet)
                     {
-                        var shieldSkill = player.GetCreatureSkill(Skill.Shield);
-                        Proficiency.OnSuccessUse(player, shieldSkill, shieldSkill.Current); // ?
+                        //This should be a pet receiving damage
+                        target.TakeDamage(this, damage);
+                    }
+                    else if (!pet && targetPlayer == null)
+                    {
+                        //This should be a pet inflicting damage on another creature
+                        target.TakeDamage(this, damage);
+                    }
+                    else if (!pet && targetPlayer != null)
+                    {
+                        //This should be a player receiving damage
+                        targetPlayer.TakeDamage(this, damageType, damage, bodyPart, critical);
+
+                        if (shieldMod != 1.0f)
+                        {
+                            var shieldSkill = targetPlayer.GetCreatureSkill(Skill.Shield);
+                            Proficiency.OnSuccessUse(targetPlayer, shieldSkill, shieldSkill.Current); // ?
+                        }
                     }
                 }
                 else
-                    player.OnEvade(this, AttackType.Melee);
+                    target.OnEvade(this, AttackType.Melee);
             });
             actionChain.EnqueueChain();
 
@@ -196,12 +213,12 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Returns the chance for player to avoid monster attack
+        /// Returns the chance for creature to avoid monster attack
         /// </summary>
         public float GetEvadeChance()
         {
             // get monster attack skill
-            var player = AttackTarget as Player;
+            var target= AttackTarget as Creature;
             var attackSkill = GetCreatureSkill(GetCurrentAttackSkill()).Current;
             var offenseMod = GetWeaponOffenseModifier(this);
             attackSkill = (uint)Math.Round(attackSkill * offenseMod);
@@ -209,12 +226,12 @@ namespace ACE.Server.WorldObjects
             if (IsExhausted)
                 attackSkill = GetExhaustedSkill(attackSkill);
 
-            // get player defense skill
+            // get creature defense skill
             var defenseSkill = CurrentAttack == AttackType.Missile ? Skill.MissileDefense : Skill.MeleeDefense;
             var defenseMod = defenseSkill == Skill.MeleeDefense ? GetWeaponMeleeDefenseModifier(AttackTarget as Creature) : 1.0f;
-            var difficulty = (uint)Math.Round(player.GetCreatureSkill(defenseSkill).Current * defenseMod);
+            var difficulty = (uint)Math.Round(target.GetCreatureSkill(defenseSkill).Current * defenseMod);
 
-            if (player.IsExhausted) difficulty = 0;
+            if (target.IsExhausted) difficulty = 0;
 
             /*var baseStr = offenseMod != 1.0f ? $" (base: {GetCreatureSkill(GetCurrentAttackSkill()).Current})" : "";
             Console.WriteLine("Attack skill: " + attackSkill + baseStr);
@@ -227,9 +244,9 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Calculates the player damage for a physical monster attack
+        /// Calculates the creature damage for a physical monster attack
         /// </summary>
-        /// <param name="bodyPart">The player body part the monster is targeting</param>
+        /// <param name="bodyPart">The creature body part the monster is targeting</param>
         /// <param name="criticalHit">Is TRUE if monster rolls a critical hit</param>
         public float CalculateDamage(ref DamageType damageType, CombatManeuver maneuver, BodyPart bodyPart, ref bool criticalHit, ref float shieldMod)
         {
@@ -244,8 +261,15 @@ namespace ACE.Server.WorldObjects
             var damageRange = GetBaseDamage(attackPart);
             var baseDamage = Physics.Common.Random.RollDice(damageRange.Min, damageRange.Max);
 
-            var player = AttackTarget as Player;
-            var recklessnessMod = player != null ? player.GetRecklessnessMod() : 1.0f;
+            var target = AttackTarget as Creature;
+            var targetPlayer = AttackTarget as Player;
+            var pet = target != null && target.IsPet;
+            float recklessnessMod;
+
+            if (pet)
+                recklessnessMod = 1.0f;
+            else
+                recklessnessMod = targetPlayer != null ? targetPlayer.GetRecklessnessMod() : 1.0f;
 
             // monster weapon / attributes
             var weapon = GetEquippedWeapon();
@@ -283,18 +307,18 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Returns the player armor for a body part
+        /// Returns the creature armor for a body part
         /// </summary>
         public List<WorldObject> GetArmor(BodyPart bodyPart)
         {
-            var player = AttackTarget as Player;
+            var target = AttackTarget as Creature;
 
             //Console.WriteLine("BodyPart: " + bodyPart);
             //Console.WriteLine("===");
 
             var bodyLocation = BodyParts.GetFlags(BodyParts.GetEquipMask(bodyPart));
 
-            var equipped = player.EquippedObjects.Values.Where(e => e is Clothing && BodyParts.HasAny(e.CurrentWieldedLocation, bodyLocation)).ToList();
+            var equipped = target.EquippedObjects.Values.Where(e => e is Clothing && BodyParts.HasAny(e.CurrentWieldedLocation, bodyLocation)).ToList();
 
             return equipped;
         }
@@ -342,7 +366,7 @@ namespace ACE.Server.WorldObjects
             Console.WriteLine("Base RL: " + resistance);*/
 
             // armor level additives
-            var player = AttackTarget as Player;
+            var target = AttackTarget as Creature;
             var armorMod = armor.EnchantmentManager.GetArmorMod();
             // Console.WriteLine("Impen: " + armorMod);
             var effectiveAL = baseArmor + armorMod;

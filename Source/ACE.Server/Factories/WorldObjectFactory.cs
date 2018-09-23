@@ -111,6 +111,8 @@ namespace ACE.Server.Factories
                     return new WorldObjects.HousePortal(weenie, guid);
                 case WeenieType.PetDevice:
                     return new WorldObjects.PetDevice(weenie, guid);
+                case WeenieType.Pet:
+                    return new WorldObjects.Creature(weenie, guid);
                 default:
                     return new GenericObject(weenie, guid);
             }
@@ -208,6 +210,8 @@ namespace ACE.Server.Factories
                     return new WorldObjects.HousePortal(biota);
                 case WeenieType.PetDevice:
                     return new WorldObjects.PetDevice(biota);
+                case WeenieType.Pet:
+                    return new WorldObjects.Creature(biota);
                 default:
                     return new GenericObject(biota);
             }
