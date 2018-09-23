@@ -154,7 +154,7 @@ namespace ACE.Database.SQLFormatters
                 case PropertyInt.SlayerCreatureType:
                     return ((CreatureType)value).ToString();
                 case PropertyInt.TargetType:
-                    return ((ItemType)value).ToString();
+                    return ((CreatureType)value).ToString();
                 case PropertyInt.UiEffects:
                     return ((UiEffects)value).ToString();
                 case PropertyInt.ValidLocations:
