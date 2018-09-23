@@ -6,6 +6,10 @@ using ACE.Entity.Enum;
 using ACE.Server.Factories;
 using System.Collections.Generic;
 using System;
+using ACE.Server.Network.Structure;
+using ACE.DatLoader;
+using ACE.Database;
+using ACE.Server.Network.GameEvent.Events;
 
 namespace ACE.Server.WorldObjects
 {
@@ -45,8 +49,12 @@ namespace ACE.Server.WorldObjects
 
             pet = WorldObjectFactory.CreateNewWorldObject(petWCID) as Creature;
 
+            //Good PCAP example of using a PetDevice to summon a pet:
+            //Asherons-Call-packets-includes-3-towers\pkt_2017-1-30_1485823896_log.pcap lines 27837 - 27843
+
             if (pet !=null)
             {
+                pet.SuppressGenerateEffect = true;
                 pet.NoCorpse = true;
                 pet.IsPet = true;
                 pet.petCreationTime = DateTime.UtcNow;
@@ -58,6 +66,20 @@ namespace ACE.Server.WorldObjects
                 pet.EnterWorld();
                 pet.UpdateObjectPhysics();
                 pet.PetFindTarget();
+
+                /*var spellBase = DatManager.PortalDat.SpellTable.Spells[32981];
+                var spell = DatabaseManager.World.GetCachedSpell(32981);
+
+                if (spell != null && spellBase != null)
+                {
+                    var enchantment = new Enchantment(this, player.Guid, spellBase, spellBase.Duration, 1, (uint)EnchantmentMask.Cooldown, spell.StatModType);
+                    player.Session.Network.EnqueueSend(new GameEventMagicUpdateEnchantment(player.Session, enchantment));
+                }
+                else
+                {
+                    Console.WriteLine("Cooldown spell or spellBase were null");
+                }
+                */
 
                 player.SendUseDoneEvent();
             }
