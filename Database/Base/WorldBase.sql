@@ -1,13 +1,13 @@
--- MySQL dump 10.13  Distrib 5.7.20, for Win64 (x86_64)
+-- MySQL dump 10.13  Distrib 8.0.12, for Win64 (x86_64)
 --
 -- Host: localhost    Database: ace_world
 -- ------------------------------------------------------
--- Server version	5.7.20-log
+-- Server version	8.0.12
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
 /*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-/*!40101 SET NAMES utf8 */;
+ SET NAMES utf8mb4 ;
 /*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
 /*!40103 SET TIME_ZONE='+00:00' */;
 /*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
@@ -31,7 +31,7 @@ USE `ace_world`;
 
 DROP TABLE IF EXISTS `cook_book`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+ SET character_set_client = utf8mb4 ;
 CREATE TABLE `cook_book` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this cook book instance',
   `recipe_Id` int(10) unsigned NOT NULL COMMENT 'Unique Id of Recipe',
@@ -41,7 +41,7 @@ CREATE TABLE `cook_book` (
   UNIQUE KEY `recipe_source_target_uidx` (`recipe_Id`,`source_W_C_I_D`,`target_W_C_I_D`),
   KEY `source_idx` (`source_W_C_I_D`),
   KEY `target_idx` (`target_W_C_I_D`),
-  CONSTRAINT `cookbook_recipe` FOREIGN KEY (`recipe_Id`) REFERENCES `recipe` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
+  CONSTRAINT `cookbook_recipe` FOREIGN KEY (`recipe_Id`) REFERENCES `recipe` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Cook Book for Recipes';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -51,7 +51,7 @@ CREATE TABLE `cook_book` (
 
 DROP TABLE IF EXISTS `encounter`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+ SET character_set_client = utf8mb4 ;
 CREATE TABLE `encounter` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Encounter',
   `landblock` int(5) NOT NULL COMMENT 'Landblock for this Encounter',
@@ -70,7 +70,7 @@ CREATE TABLE `encounter` (
 
 DROP TABLE IF EXISTS `event`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+ SET character_set_client = utf8mb4 ;
 CREATE TABLE `event` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Event',
   `name` varchar(255) NOT NULL COMMENT 'Unique Event of Quest',
@@ -88,7 +88,7 @@ CREATE TABLE `event` (
 
 DROP TABLE IF EXISTS `house_portal`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+ SET character_set_client = utf8mb4 ;
 CREATE TABLE `house_portal` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this House Portal',
   `house_Id` int(10) unsigned NOT NULL COMMENT 'Unique Id of House',
@@ -111,7 +111,7 @@ CREATE TABLE `house_portal` (
 
 DROP TABLE IF EXISTS `landblock_instance`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+ SET character_set_client = utf8mb4 ;
 CREATE TABLE `landblock_instance` (
   `guid` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Instance',
   `landblock` int(5) GENERATED ALWAYS AS ((`obj_Cell_Id` >> 16)) VIRTUAL,
@@ -128,7 +128,7 @@ CREATE TABLE `landblock_instance` (
   PRIMARY KEY (`guid`),
   KEY `wcid_instance` (`weenie_Class_Id`),
   KEY `instance_landblock_idx` (`landblock`),
-  CONSTRAINT `wcid_instance` FOREIGN KEY (`weenie_Class_Id`) REFERENCES `weenie` (`class_Id`) ON DELETE CASCADE ON UPDATE NO ACTION
+  CONSTRAINT `wcid_instance` FOREIGN KEY (`weenie_Class_Id`) REFERENCES `weenie` (`class_id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Weenie Instances for each Landblock';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -138,14 +138,14 @@ CREATE TABLE `landblock_instance` (
 
 DROP TABLE IF EXISTS `landblock_instance_link`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+ SET character_set_client = utf8mb4 ;
 CREATE TABLE `landblock_instance_link` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Instance Link',
   `parent_GUID` int(10) unsigned NOT NULL COMMENT 'GUID of parent instance',
   `child_GUID` int(10) unsigned NOT NULL COMMENT 'GUID of child instance',
   PRIMARY KEY (`id`),
   UNIQUE KEY `parent_child_guuidx` (`parent_GUID`,`child_GUID`),
-  CONSTRAINT `instance_link` FOREIGN KEY (`parent_GUID`) REFERENCES `landblock_instance` (`guid`) ON DELETE CASCADE ON UPDATE NO ACTION
+  CONSTRAINT `instance_link` FOREIGN KEY (`parent_GUID`) REFERENCES `landblock_instance` (`guid`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Weenie Instance Links';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -155,7 +155,7 @@ CREATE TABLE `landblock_instance_link` (
 
 DROP TABLE IF EXISTS `points_of_interest`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+ SET character_set_client = utf8mb4 ;
 CREATE TABLE `points_of_interest` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this POI',
   `name` text NOT NULL COMMENT 'Name for POI',
@@ -163,7 +163,7 @@ CREATE TABLE `points_of_interest` (
   PRIMARY KEY (`id`),
   UNIQUE KEY `name_UNIQUE` (`name`(100)),
   KEY `wcid_poi` (`weenie_Class_Id`),
-  CONSTRAINT `wcid_poi` FOREIGN KEY (`weenie_Class_Id`) REFERENCES `weenie` (`class_Id`) ON DELETE CASCADE ON UPDATE NO ACTION
+  CONSTRAINT `wcid_poi` FOREIGN KEY (`weenie_Class_Id`) REFERENCES `weenie` (`class_id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Points of Interest for @telepoi command';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -173,7 +173,7 @@ CREATE TABLE `points_of_interest` (
 
 DROP TABLE IF EXISTS `quest`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+ SET character_set_client = utf8mb4 ;
 CREATE TABLE `quest` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Quest',
   `name` varchar(255) NOT NULL COMMENT 'Unique Name of Quest',
@@ -191,7 +191,7 @@ CREATE TABLE `quest` (
 
 DROP TABLE IF EXISTS `recipe`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+ SET character_set_client = utf8mb4 ;
 CREATE TABLE `recipe` (
   `id` int(10) unsigned NOT NULL COMMENT 'Unique Id of this Recipe',
   `unknown_1` int(10) unsigned NOT NULL,
@@ -227,7 +227,7 @@ CREATE TABLE `recipe` (
 
 DROP TABLE IF EXISTS `recipe_mod`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+ SET character_set_client = utf8mb4 ;
 CREATE TABLE `recipe_mod` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Recipe Mod instance',
   `recipe_Id` int(10) unsigned NOT NULL COMMENT 'Unique Id of Recipe',
@@ -241,7 +241,7 @@ CREATE TABLE `recipe_mod` (
   `instance_Id` int(10) NOT NULL,
   PRIMARY KEY (`id`),
   KEY `recipeId_Mod` (`recipe_Id`),
-  CONSTRAINT `recipeId_Mod` FOREIGN KEY (`recipe_Id`) REFERENCES `recipe` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
+  CONSTRAINT `recipeId_Mod` FOREIGN KEY (`recipe_Id`) REFERENCES `recipe` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Recipe Mods';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -251,7 +251,7 @@ CREATE TABLE `recipe_mod` (
 
 DROP TABLE IF EXISTS `recipe_mods_bool`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+ SET character_set_client = utf8mb4 ;
 CREATE TABLE `recipe_mods_bool` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Recipe Mod instance',
   `recipe_Mod_Id` int(10) unsigned NOT NULL COMMENT 'Unique Id of Recipe Mod',
@@ -261,7 +261,7 @@ CREATE TABLE `recipe_mods_bool` (
   `unknown_1` int(10) NOT NULL,
   PRIMARY KEY (`id`),
   KEY `recipeId_mod_bool` (`recipe_Mod_Id`),
-  CONSTRAINT `recipeId_mod_bool` FOREIGN KEY (`recipe_Mod_Id`) REFERENCES `recipe_mod` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
+  CONSTRAINT `recipeId_mod_bool` FOREIGN KEY (`recipe_Mod_Id`) REFERENCES `recipe_mod` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Recipe Bool Mods';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -271,7 +271,7 @@ CREATE TABLE `recipe_mods_bool` (
 
 DROP TABLE IF EXISTS `recipe_mods_d_i_d`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+ SET character_set_client = utf8mb4 ;
 CREATE TABLE `recipe_mods_d_i_d` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Recipe Mod instance',
   `recipe_Mod_Id` int(10) unsigned NOT NULL COMMENT 'Unique Id of Recipe Mod',
@@ -281,7 +281,7 @@ CREATE TABLE `recipe_mods_d_i_d` (
   `unknown_1` int(10) NOT NULL,
   PRIMARY KEY (`id`),
   KEY `recipeId_mod_did` (`recipe_Mod_Id`),
-  CONSTRAINT `recipeId_mod_did` FOREIGN KEY (`recipe_Mod_Id`) REFERENCES `recipe_mod` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
+  CONSTRAINT `recipeId_mod_did` FOREIGN KEY (`recipe_Mod_Id`) REFERENCES `recipe_mod` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Recipe DID Mods';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -291,7 +291,7 @@ CREATE TABLE `recipe_mods_d_i_d` (
 
 DROP TABLE IF EXISTS `recipe_mods_float`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+ SET character_set_client = utf8mb4 ;
 CREATE TABLE `recipe_mods_float` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Recipe Mod instance',
   `recipe_Mod_Id` int(10) unsigned NOT NULL COMMENT 'Unique Id of Recipe Mod',
@@ -301,7 +301,7 @@ CREATE TABLE `recipe_mods_float` (
   `unknown_1` int(10) NOT NULL,
   PRIMARY KEY (`id`),
   KEY `recipeId_mod_float` (`recipe_Mod_Id`),
-  CONSTRAINT `recipeId_mod_float` FOREIGN KEY (`recipe_Mod_Id`) REFERENCES `recipe_mod` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
+  CONSTRAINT `recipeId_mod_float` FOREIGN KEY (`recipe_Mod_Id`) REFERENCES `recipe_mod` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Recipe Float Mods';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -311,7 +311,7 @@ CREATE TABLE `recipe_mods_float` (
 
 DROP TABLE IF EXISTS `recipe_mods_i_i_d`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+ SET character_set_client = utf8mb4 ;
 CREATE TABLE `recipe_mods_i_i_d` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Recipe Mod instance',
   `recipe_Mod_Id` int(10) unsigned NOT NULL COMMENT 'Unique Id of Recipe Mod',
@@ -321,7 +321,7 @@ CREATE TABLE `recipe_mods_i_i_d` (
   `unknown_1` int(10) NOT NULL,
   PRIMARY KEY (`id`),
   KEY `recipeId_mod_iid` (`recipe_Mod_Id`),
-  CONSTRAINT `recipeId_mod_iid` FOREIGN KEY (`recipe_Mod_Id`) REFERENCES `recipe_mod` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
+  CONSTRAINT `recipeId_mod_iid` FOREIGN KEY (`recipe_Mod_Id`) REFERENCES `recipe_mod` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Recipe IID Mods';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -331,7 +331,7 @@ CREATE TABLE `recipe_mods_i_i_d` (
 
 DROP TABLE IF EXISTS `recipe_mods_int`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+ SET character_set_client = utf8mb4 ;
 CREATE TABLE `recipe_mods_int` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Recipe Mod instance',
   `recipe_Mod_Id` int(10) unsigned NOT NULL COMMENT 'Unique Id of Recipe Mod',
@@ -341,7 +341,7 @@ CREATE TABLE `recipe_mods_int` (
   `unknown_1` int(10) NOT NULL,
   PRIMARY KEY (`id`),
   KEY `recipeId_mod_int` (`recipe_Mod_Id`),
-  CONSTRAINT `recipeId_mod_int` FOREIGN KEY (`recipe_Mod_Id`) REFERENCES `recipe_mod` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
+  CONSTRAINT `recipeId_mod_int` FOREIGN KEY (`recipe_Mod_Id`) REFERENCES `recipe_mod` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Recipe Int Mods';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -351,7 +351,7 @@ CREATE TABLE `recipe_mods_int` (
 
 DROP TABLE IF EXISTS `recipe_mods_string`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+ SET character_set_client = utf8mb4 ;
 CREATE TABLE `recipe_mods_string` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Recipe Mod instance',
   `recipe_Mod_Id` int(10) unsigned NOT NULL COMMENT 'Unique Id of Recipe Mod',
@@ -361,7 +361,7 @@ CREATE TABLE `recipe_mods_string` (
   `unknown_1` int(10) NOT NULL,
   PRIMARY KEY (`id`),
   KEY `recipeId_mod_string` (`recipe_Mod_Id`),
-  CONSTRAINT `recipeId_mod_string` FOREIGN KEY (`recipe_Mod_Id`) REFERENCES `recipe_mod` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
+  CONSTRAINT `recipeId_mod_string` FOREIGN KEY (`recipe_Mod_Id`) REFERENCES `recipe_mod` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Recipe String Mods';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -371,7 +371,7 @@ CREATE TABLE `recipe_mods_string` (
 
 DROP TABLE IF EXISTS `recipe_requirements_bool`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+ SET character_set_client = utf8mb4 ;
 CREATE TABLE `recipe_requirements_bool` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Recipe Requirement instance',
   `recipe_Id` int(10) unsigned NOT NULL COMMENT 'Unique Id of Recipe',
@@ -381,7 +381,7 @@ CREATE TABLE `recipe_requirements_bool` (
   `message` text,
   PRIMARY KEY (`id`),
   KEY `recipeId_req_bool` (`recipe_Id`),
-  CONSTRAINT `recipeId_req_bool` FOREIGN KEY (`recipe_Id`) REFERENCES `recipe` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
+  CONSTRAINT `recipeId_req_bool` FOREIGN KEY (`recipe_Id`) REFERENCES `recipe` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Recipe Bool Requirments';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -391,7 +391,7 @@ CREATE TABLE `recipe_requirements_bool` (
 
 DROP TABLE IF EXISTS `recipe_requirements_d_i_d`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+ SET character_set_client = utf8mb4 ;
 CREATE TABLE `recipe_requirements_d_i_d` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Recipe Requirement instance',
   `recipe_Id` int(10) unsigned NOT NULL COMMENT 'Unique Id of Recipe',
@@ -401,7 +401,7 @@ CREATE TABLE `recipe_requirements_d_i_d` (
   `message` text,
   PRIMARY KEY (`id`),
   KEY `recipeId_req_did` (`recipe_Id`),
-  CONSTRAINT `recipeId_req_did` FOREIGN KEY (`recipe_Id`) REFERENCES `recipe` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
+  CONSTRAINT `recipeId_req_did` FOREIGN KEY (`recipe_Id`) REFERENCES `recipe` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Recipe DID Requirments';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -411,7 +411,7 @@ CREATE TABLE `recipe_requirements_d_i_d` (
 
 DROP TABLE IF EXISTS `recipe_requirements_float`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+ SET character_set_client = utf8mb4 ;
 CREATE TABLE `recipe_requirements_float` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Recipe Requirement instance',
   `recipe_Id` int(10) unsigned NOT NULL COMMENT 'Unique Id of Recipe',
@@ -421,7 +421,7 @@ CREATE TABLE `recipe_requirements_float` (
   `message` text,
   PRIMARY KEY (`id`),
   KEY `recipeId_req_float` (`recipe_Id`),
-  CONSTRAINT `recipeId_req_float` FOREIGN KEY (`recipe_Id`) REFERENCES `recipe` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
+  CONSTRAINT `recipeId_req_float` FOREIGN KEY (`recipe_Id`) REFERENCES `recipe` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Recipe Float Requirments';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -431,7 +431,7 @@ CREATE TABLE `recipe_requirements_float` (
 
 DROP TABLE IF EXISTS `recipe_requirements_i_i_d`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+ SET character_set_client = utf8mb4 ;
 CREATE TABLE `recipe_requirements_i_i_d` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Recipe Requirement instance',
   `recipe_Id` int(10) unsigned NOT NULL COMMENT 'Unique Id of Recipe',
@@ -441,7 +441,7 @@ CREATE TABLE `recipe_requirements_i_i_d` (
   `message` text,
   PRIMARY KEY (`id`),
   KEY `recipeId_req_iid` (`recipe_Id`),
-  CONSTRAINT `recipeId_req_iid` FOREIGN KEY (`recipe_Id`) REFERENCES `recipe` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
+  CONSTRAINT `recipeId_req_iid` FOREIGN KEY (`recipe_Id`) REFERENCES `recipe` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Recipe IID Requirments';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -451,7 +451,7 @@ CREATE TABLE `recipe_requirements_i_i_d` (
 
 DROP TABLE IF EXISTS `recipe_requirements_int`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+ SET character_set_client = utf8mb4 ;
 CREATE TABLE `recipe_requirements_int` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Recipe Requirement instance',
   `recipe_Id` int(10) unsigned NOT NULL COMMENT 'Unique Id of Recipe',
@@ -461,7 +461,7 @@ CREATE TABLE `recipe_requirements_int` (
   `message` text,
   PRIMARY KEY (`id`),
   KEY `recipeId_req_int` (`recipe_Id`),
-  CONSTRAINT `recipeId_req_int` FOREIGN KEY (`recipe_Id`) REFERENCES `recipe` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
+  CONSTRAINT `recipeId_req_int` FOREIGN KEY (`recipe_Id`) REFERENCES `recipe` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Recipe Int Requirments';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -471,7 +471,7 @@ CREATE TABLE `recipe_requirements_int` (
 
 DROP TABLE IF EXISTS `recipe_requirements_string`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+ SET character_set_client = utf8mb4 ;
 CREATE TABLE `recipe_requirements_string` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Recipe Requirement instance',
   `recipe_Id` int(10) unsigned NOT NULL COMMENT 'Unique Id of Recipe',
@@ -481,7 +481,7 @@ CREATE TABLE `recipe_requirements_string` (
   `message` text,
   PRIMARY KEY (`id`),
   KEY `recipeId_req_string` (`recipe_Id`),
-  CONSTRAINT `recipeId_req_string` FOREIGN KEY (`recipe_Id`) REFERENCES `recipe` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
+  CONSTRAINT `recipeId_req_string` FOREIGN KEY (`recipe_Id`) REFERENCES `recipe` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Recipe String Requirments';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -491,7 +491,7 @@ CREATE TABLE `recipe_requirements_string` (
 
 DROP TABLE IF EXISTS `spell`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+ SET character_set_client = utf8mb4 ;
 CREATE TABLE `spell` (
   `id` int(10) unsigned NOT NULL COMMENT 'Unique Id of this Spell',
   `name` text NOT NULL,
@@ -602,7 +602,7 @@ CREATE TABLE `spell` (
 
 DROP TABLE IF EXISTS `treasure_death`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+ SET character_set_client = utf8mb4 ;
 CREATE TABLE `treasure_death` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Treasure',
   `treasure_Type` int(10) unsigned NOT NULL COMMENT 'Type of Treasure for this instance',
@@ -632,7 +632,7 @@ CREATE TABLE `treasure_death` (
 
 DROP TABLE IF EXISTS `treasure_wielded`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+ SET character_set_client = utf8mb4 ;
 CREATE TABLE `treasure_wielded` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Treasure',
   `treasure_Type` int(10) unsigned NOT NULL COMMENT 'Type of Treasure for this instance',
@@ -664,7 +664,7 @@ CREATE TABLE `treasure_wielded` (
 
 DROP TABLE IF EXISTS `weenie`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+ SET character_set_client = utf8mb4 ;
 CREATE TABLE `weenie` (
   `class_Id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Weenie Class Id (wcid) / (WCID) / (weenieClassId)',
   `class_Name` varchar(100) NOT NULL COMMENT 'Weenie Class Name (W_????_CLASS)',
@@ -680,7 +680,7 @@ CREATE TABLE `weenie` (
 
 DROP TABLE IF EXISTS `weenie_properties_anim_part`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+ SET character_set_client = utf8mb4 ;
 CREATE TABLE `weenie_properties_anim_part` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Property',
   `object_Id` int(10) unsigned NOT NULL COMMENT 'Id of the object this property belongs to',
@@ -688,7 +688,7 @@ CREATE TABLE `weenie_properties_anim_part` (
   `animation_Id` int(10) unsigned NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `object_Id_index_uidx` (`object_Id`,`index`),
-  CONSTRAINT `wcid_animpart` FOREIGN KEY (`object_Id`) REFERENCES `weenie` (`class_Id`) ON DELETE CASCADE ON UPDATE NO ACTION
+  CONSTRAINT `wcid_animpart` FOREIGN KEY (`object_Id`) REFERENCES `weenie` (`class_id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Animation Part Changes (from PCAPs) of Weenies';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -698,7 +698,7 @@ CREATE TABLE `weenie_properties_anim_part` (
 
 DROP TABLE IF EXISTS `weenie_properties_attribute`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+ SET character_set_client = utf8mb4 ;
 CREATE TABLE `weenie_properties_attribute` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Property',
   `object_Id` int(10) unsigned NOT NULL COMMENT 'Id of the object this property belongs to',
@@ -708,7 +708,7 @@ CREATE TABLE `weenie_properties_attribute` (
   `c_P_Spent` int(10) unsigned NOT NULL COMMENT 'XP spent on this attribute',
   PRIMARY KEY (`id`),
   UNIQUE KEY `wcid_attribute_type_uidx` (`object_Id`,`type`),
-  CONSTRAINT `wcid_attribute` FOREIGN KEY (`object_Id`) REFERENCES `weenie` (`class_Id`) ON DELETE CASCADE ON UPDATE NO ACTION
+  CONSTRAINT `wcid_attribute` FOREIGN KEY (`object_Id`) REFERENCES `weenie` (`class_id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Attribute Properties of Weenies';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -718,7 +718,7 @@ CREATE TABLE `weenie_properties_attribute` (
 
 DROP TABLE IF EXISTS `weenie_properties_attribute_2nd`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+ SET character_set_client = utf8mb4 ;
 CREATE TABLE `weenie_properties_attribute_2nd` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Property',
   `object_Id` int(10) unsigned NOT NULL COMMENT 'Id of the object this property belongs to',
@@ -729,7 +729,7 @@ CREATE TABLE `weenie_properties_attribute_2nd` (
   `current_Level` int(10) unsigned NOT NULL COMMENT 'current value of the vital',
   PRIMARY KEY (`id`),
   UNIQUE KEY `wcid_attribute2nd_type_uidx` (`object_Id`,`type`),
-  CONSTRAINT `wcid_attribute2nd` FOREIGN KEY (`object_Id`) REFERENCES `weenie` (`class_Id`) ON DELETE CASCADE ON UPDATE NO ACTION
+  CONSTRAINT `wcid_attribute2nd` FOREIGN KEY (`object_Id`) REFERENCES `weenie` (`class_id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Attribute2nd (Vital) Properties of Weenies';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -739,7 +739,7 @@ CREATE TABLE `weenie_properties_attribute_2nd` (
 
 DROP TABLE IF EXISTS `weenie_properties_body_part`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+ SET character_set_client = utf8mb4 ;
 CREATE TABLE `weenie_properties_body_part` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Property',
   `object_Id` int(10) unsigned NOT NULL COMMENT 'Id of the object this property belongs to',
@@ -771,7 +771,7 @@ CREATE TABLE `weenie_properties_body_part` (
   `l_r_b` float NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `wcid_bodypart_type_uidx` (`object_Id`,`key`),
-  CONSTRAINT `wcid_bodypart` FOREIGN KEY (`object_Id`) REFERENCES `weenie` (`class_Id`) ON DELETE CASCADE ON UPDATE NO ACTION
+  CONSTRAINT `wcid_bodypart` FOREIGN KEY (`object_Id`) REFERENCES `weenie` (`class_id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Body Part Properties of Weenies';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -781,7 +781,7 @@ CREATE TABLE `weenie_properties_body_part` (
 
 DROP TABLE IF EXISTS `weenie_properties_book`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+ SET character_set_client = utf8mb4 ;
 CREATE TABLE `weenie_properties_book` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Property',
   `object_Id` int(10) unsigned NOT NULL COMMENT 'Id of the object this property belongs to',
@@ -789,7 +789,7 @@ CREATE TABLE `weenie_properties_book` (
   `max_Num_Chars_Per_Page` int(10) NOT NULL DEFAULT '1000' COMMENT 'Maximum number of characters per page',
   PRIMARY KEY (`id`),
   UNIQUE KEY `wcid_bookdata_uidx` (`object_Id`),
-  CONSTRAINT `wcid_bookdata` FOREIGN KEY (`object_Id`) REFERENCES `weenie` (`class_Id`) ON DELETE CASCADE ON UPDATE NO ACTION
+  CONSTRAINT `wcid_bookdata` FOREIGN KEY (`object_Id`) REFERENCES `weenie` (`class_id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Book Properties of Weenies';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -799,7 +799,7 @@ CREATE TABLE `weenie_properties_book` (
 
 DROP TABLE IF EXISTS `weenie_properties_book_page_data`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+ SET character_set_client = utf8mb4 ;
 CREATE TABLE `weenie_properties_book_page_data` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Property',
   `object_Id` int(10) unsigned NOT NULL COMMENT 'Id of the Book object this page belongs to',
@@ -811,7 +811,7 @@ CREATE TABLE `weenie_properties_book_page_data` (
   `page_Text` text NOT NULL COMMENT 'Text of the Page',
   PRIMARY KEY (`id`),
   UNIQUE KEY `wcid_pageid_uidx` (`object_Id`,`page_Id`),
-  CONSTRAINT `wcid_pagedata` FOREIGN KEY (`object_Id`) REFERENCES `weenie` (`class_Id`) ON DELETE CASCADE ON UPDATE NO ACTION
+  CONSTRAINT `wcid_pagedata` FOREIGN KEY (`object_Id`) REFERENCES `weenie` (`class_id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Page Properties of Weenies';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -821,7 +821,7 @@ CREATE TABLE `weenie_properties_book_page_data` (
 
 DROP TABLE IF EXISTS `weenie_properties_bool`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+ SET character_set_client = utf8mb4 ;
 CREATE TABLE `weenie_properties_bool` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Property',
   `object_Id` int(10) unsigned NOT NULL COMMENT 'Id of the object this property belongs to',
@@ -829,7 +829,7 @@ CREATE TABLE `weenie_properties_bool` (
   `value` bit(1) NOT NULL COMMENT 'Value of this Property',
   PRIMARY KEY (`id`),
   UNIQUE KEY `wcid_bool_type_uidx` (`object_Id`,`type`),
-  CONSTRAINT `wcid_bool` FOREIGN KEY (`object_Id`) REFERENCES `weenie` (`class_Id`) ON DELETE CASCADE ON UPDATE NO ACTION
+  CONSTRAINT `wcid_bool` FOREIGN KEY (`object_Id`) REFERENCES `weenie` (`class_id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Bool Properties of Weenies';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -839,7 +839,7 @@ CREATE TABLE `weenie_properties_bool` (
 
 DROP TABLE IF EXISTS `weenie_properties_create_list`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+ SET character_set_client = utf8mb4 ;
 CREATE TABLE `weenie_properties_create_list` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Property',
   `object_Id` int(10) unsigned NOT NULL COMMENT 'Id of the object this property belongs to',
@@ -851,7 +851,7 @@ CREATE TABLE `weenie_properties_create_list` (
   `try_To_Bond` bit(1) NOT NULL COMMENT 'Unused?',
   PRIMARY KEY (`id`),
   KEY `wcid_createlist` (`object_Id`),
-  CONSTRAINT `wcid_createlist` FOREIGN KEY (`object_Id`) REFERENCES `weenie` (`class_Id`) ON DELETE CASCADE ON UPDATE NO ACTION
+  CONSTRAINT `wcid_createlist` FOREIGN KEY (`object_Id`) REFERENCES `weenie` (`class_id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='CreateList Properties of Weenies';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -861,7 +861,7 @@ CREATE TABLE `weenie_properties_create_list` (
 
 DROP TABLE IF EXISTS `weenie_properties_d_i_d`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+ SET character_set_client = utf8mb4 ;
 CREATE TABLE `weenie_properties_d_i_d` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Property',
   `object_Id` int(10) unsigned NOT NULL COMMENT 'Id of the object this property belongs to',
@@ -869,7 +869,7 @@ CREATE TABLE `weenie_properties_d_i_d` (
   `value` int(10) unsigned NOT NULL COMMENT 'Value of this Property',
   PRIMARY KEY (`id`),
   UNIQUE KEY `wcid_did_type_uidx` (`object_Id`,`type`),
-  CONSTRAINT `wcid_did` FOREIGN KEY (`object_Id`) REFERENCES `weenie` (`class_Id`) ON DELETE CASCADE ON UPDATE NO ACTION
+  CONSTRAINT `wcid_did` FOREIGN KEY (`object_Id`) REFERENCES `weenie` (`class_id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='DataID Properties of Weenies';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -879,7 +879,7 @@ CREATE TABLE `weenie_properties_d_i_d` (
 
 DROP TABLE IF EXISTS `weenie_properties_emote`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+ SET character_set_client = utf8mb4 ;
 CREATE TABLE `weenie_properties_emote` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Property',
   `object_Id` int(10) unsigned NOT NULL COMMENT 'Id of the object this property belongs to',
@@ -894,7 +894,7 @@ CREATE TABLE `weenie_properties_emote` (
   `max_Health` float DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `wcid_emote` (`object_Id`),
-  CONSTRAINT `wcid_emote` FOREIGN KEY (`object_Id`) REFERENCES `weenie` (`class_Id`) ON DELETE CASCADE ON UPDATE NO ACTION
+  CONSTRAINT `wcid_emote` FOREIGN KEY (`object_Id`) REFERENCES `weenie` (`class_id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Emote Properties of Weenies';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -904,7 +904,7 @@ CREATE TABLE `weenie_properties_emote` (
 
 DROP TABLE IF EXISTS `weenie_properties_emote_action`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+ SET character_set_client = utf8mb4 ;
 CREATE TABLE `weenie_properties_emote_action` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Property',
   `emote_Id` int(10) unsigned NOT NULL COMMENT 'Id of the emote this property belongs to',
@@ -949,7 +949,7 @@ CREATE TABLE `weenie_properties_emote_action` (
   `angles_Z` float DEFAULT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `emoteid_order_uidx` (`emote_Id`,`order`),
-  CONSTRAINT `emoteid_emoteaction` FOREIGN KEY (`emote_Id`) REFERENCES `weenie_properties_emote` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION
+  CONSTRAINT `emoteid_emoteaction` FOREIGN KEY (`emote_Id`) REFERENCES `weenie_properties_emote` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='EmoteAction Properties of Weenies';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -959,14 +959,14 @@ CREATE TABLE `weenie_properties_emote_action` (
 
 DROP TABLE IF EXISTS `weenie_properties_event_filter`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+ SET character_set_client = utf8mb4 ;
 CREATE TABLE `weenie_properties_event_filter` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Property',
   `object_Id` int(10) unsigned NOT NULL COMMENT 'Id of the object this property belongs to',
   `event` int(10) NOT NULL COMMENT 'Id of Event to filter',
   PRIMARY KEY (`id`),
   UNIQUE KEY `wcid_eventfilter_type_uidx` (`object_Id`,`event`),
-  CONSTRAINT `wcid_eventfilter` FOREIGN KEY (`object_Id`) REFERENCES `weenie` (`class_Id`) ON DELETE CASCADE ON UPDATE NO ACTION
+  CONSTRAINT `wcid_eventfilter` FOREIGN KEY (`object_Id`) REFERENCES `weenie` (`class_id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='EventFilter Properties of Weenies';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -976,7 +976,7 @@ CREATE TABLE `weenie_properties_event_filter` (
 
 DROP TABLE IF EXISTS `weenie_properties_float`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+ SET character_set_client = utf8mb4 ;
 CREATE TABLE `weenie_properties_float` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Property',
   `object_Id` int(10) unsigned NOT NULL COMMENT 'Id of the object this property belongs to',
@@ -984,7 +984,7 @@ CREATE TABLE `weenie_properties_float` (
   `value` double NOT NULL COMMENT 'Value of this Property',
   PRIMARY KEY (`id`),
   UNIQUE KEY `wcid_float_type_uidx` (`object_Id`,`type`),
-  CONSTRAINT `wcid_float` FOREIGN KEY (`object_Id`) REFERENCES `weenie` (`class_Id`) ON DELETE CASCADE ON UPDATE NO ACTION
+  CONSTRAINT `wcid_float` FOREIGN KEY (`object_Id`) REFERENCES `weenie` (`class_id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Float Properties of Weenies';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -994,7 +994,7 @@ CREATE TABLE `weenie_properties_float` (
 
 DROP TABLE IF EXISTS `weenie_properties_generator`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+ SET character_set_client = utf8mb4 ;
 CREATE TABLE `weenie_properties_generator` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Property',
   `object_Id` int(10) unsigned NOT NULL COMMENT 'Id of the object this property belongs to',
@@ -1018,7 +1018,7 @@ CREATE TABLE `weenie_properties_generator` (
   `angles_Z` float DEFAULT NULL,
   PRIMARY KEY (`id`),
   KEY `wcid_generator` (`object_Id`),
-  CONSTRAINT `wcid_generator` FOREIGN KEY (`object_Id`) REFERENCES `weenie` (`class_Id`) ON DELETE CASCADE ON UPDATE NO ACTION
+  CONSTRAINT `wcid_generator` FOREIGN KEY (`object_Id`) REFERENCES `weenie` (`class_id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Generator Properties of Weenies';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -1028,7 +1028,7 @@ CREATE TABLE `weenie_properties_generator` (
 
 DROP TABLE IF EXISTS `weenie_properties_i_i_d`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+ SET character_set_client = utf8mb4 ;
 CREATE TABLE `weenie_properties_i_i_d` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Property',
   `object_Id` int(10) unsigned NOT NULL COMMENT 'Id of the object this property belongs to',
@@ -1036,7 +1036,7 @@ CREATE TABLE `weenie_properties_i_i_d` (
   `value` int(10) unsigned NOT NULL COMMENT 'Value of this Property',
   PRIMARY KEY (`id`),
   UNIQUE KEY `wcid_iid_type_uidx` (`object_Id`,`type`),
-  CONSTRAINT `wcid_iid` FOREIGN KEY (`object_Id`) REFERENCES `weenie` (`class_Id`) ON DELETE CASCADE ON UPDATE NO ACTION
+  CONSTRAINT `wcid_iid` FOREIGN KEY (`object_Id`) REFERENCES `weenie` (`class_id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='InstanceID Properties of Weenies';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -1046,7 +1046,7 @@ CREATE TABLE `weenie_properties_i_i_d` (
 
 DROP TABLE IF EXISTS `weenie_properties_int`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+ SET character_set_client = utf8mb4 ;
 CREATE TABLE `weenie_properties_int` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Property',
   `object_Id` int(10) unsigned NOT NULL COMMENT 'Id of the object this property belongs to',
@@ -1054,7 +1054,7 @@ CREATE TABLE `weenie_properties_int` (
   `value` int(10) NOT NULL COMMENT 'Value of this Property',
   PRIMARY KEY (`id`),
   UNIQUE KEY `wcid_int_type_uidx` (`object_Id`,`type`),
-  CONSTRAINT `wcid_int` FOREIGN KEY (`object_Id`) REFERENCES `weenie` (`class_Id`) ON DELETE CASCADE ON UPDATE NO ACTION
+  CONSTRAINT `wcid_int` FOREIGN KEY (`object_Id`) REFERENCES `weenie` (`class_id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Int Properties of Weenies';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -1064,7 +1064,7 @@ CREATE TABLE `weenie_properties_int` (
 
 DROP TABLE IF EXISTS `weenie_properties_int64`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+ SET character_set_client = utf8mb4 ;
 CREATE TABLE `weenie_properties_int64` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Property',
   `object_Id` int(10) unsigned NOT NULL COMMENT 'Id of the object this property belongs to',
@@ -1072,7 +1072,7 @@ CREATE TABLE `weenie_properties_int64` (
   `value` bigint(10) NOT NULL COMMENT 'Value of this Property',
   PRIMARY KEY (`id`),
   UNIQUE KEY `wcid_int64_type_uidx` (`object_Id`,`type`),
-  CONSTRAINT `wcid_int64` FOREIGN KEY (`object_Id`) REFERENCES `weenie` (`class_Id`) ON DELETE CASCADE ON UPDATE NO ACTION
+  CONSTRAINT `wcid_int64` FOREIGN KEY (`object_Id`) REFERENCES `weenie` (`class_id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Int64 Properties of Weenies';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -1082,7 +1082,7 @@ CREATE TABLE `weenie_properties_int64` (
 
 DROP TABLE IF EXISTS `weenie_properties_palette`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+ SET character_set_client = utf8mb4 ;
 CREATE TABLE `weenie_properties_palette` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Property',
   `object_Id` int(10) unsigned NOT NULL COMMENT 'Id of the object this property belongs to',
@@ -1091,7 +1091,7 @@ CREATE TABLE `weenie_properties_palette` (
   `length` smallint(5) unsigned NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `object_Id_subPaletteId_offset_length_uidx` (`object_Id`,`sub_Palette_Id`,`offset`,`length`),
-  CONSTRAINT `wcid_palette` FOREIGN KEY (`object_Id`) REFERENCES `weenie` (`class_Id`) ON DELETE CASCADE ON UPDATE NO ACTION
+  CONSTRAINT `wcid_palette` FOREIGN KEY (`object_Id`) REFERENCES `weenie` (`class_id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Palette Changes (from PCAPs) of Weenies';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -1101,7 +1101,7 @@ CREATE TABLE `weenie_properties_palette` (
 
 DROP TABLE IF EXISTS `weenie_properties_position`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+ SET character_set_client = utf8mb4 ;
 CREATE TABLE `weenie_properties_position` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Position',
   `object_Id` int(10) unsigned NOT NULL COMMENT 'Id of the object this property belongs to',
@@ -1116,7 +1116,7 @@ CREATE TABLE `weenie_properties_position` (
   `angles_Z` float NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `wcid_position_type_uidx` (`object_Id`,`position_Type`),
-  CONSTRAINT `wcid_position` FOREIGN KEY (`object_Id`) REFERENCES `weenie` (`class_Id`) ON DELETE CASCADE ON UPDATE NO ACTION
+  CONSTRAINT `wcid_position` FOREIGN KEY (`object_Id`) REFERENCES `weenie` (`class_id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Position Properties of Weenies';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -1126,7 +1126,7 @@ CREATE TABLE `weenie_properties_position` (
 
 DROP TABLE IF EXISTS `weenie_properties_skill`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+ SET character_set_client = utf8mb4 ;
 CREATE TABLE `weenie_properties_skill` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Property',
   `object_Id` int(10) unsigned NOT NULL COMMENT 'Id of the object this property belongs to',
@@ -1139,7 +1139,7 @@ CREATE TABLE `weenie_properties_skill` (
   `last_Used_Time` double NOT NULL COMMENT 'time skill was last used',
   PRIMARY KEY (`id`),
   UNIQUE KEY `wcid_skill_type_uidx` (`object_Id`,`type`),
-  CONSTRAINT `wcid_skill` FOREIGN KEY (`object_Id`) REFERENCES `weenie` (`class_Id`) ON DELETE CASCADE ON UPDATE NO ACTION
+  CONSTRAINT `wcid_skill` FOREIGN KEY (`object_Id`) REFERENCES `weenie` (`class_id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Skill Properties of Weenies';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -1149,7 +1149,7 @@ CREATE TABLE `weenie_properties_skill` (
 
 DROP TABLE IF EXISTS `weenie_properties_spell_book`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+ SET character_set_client = utf8mb4 ;
 CREATE TABLE `weenie_properties_spell_book` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Property',
   `object_Id` int(10) unsigned NOT NULL COMMENT 'Id of the object this property belongs to',
@@ -1157,7 +1157,7 @@ CREATE TABLE `weenie_properties_spell_book` (
   `probability` float NOT NULL DEFAULT '2' COMMENT 'Chance to cast this spell',
   PRIMARY KEY (`id`),
   UNIQUE KEY `wcid_spellbook_type_uidx` (`object_Id`,`spell`),
-  CONSTRAINT `wcid_spellbook` FOREIGN KEY (`object_Id`) REFERENCES `weenie` (`class_Id`) ON DELETE CASCADE ON UPDATE NO ACTION
+  CONSTRAINT `wcid_spellbook` FOREIGN KEY (`object_Id`) REFERENCES `weenie` (`class_id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='SpellBook Properties of Weenies';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -1167,7 +1167,7 @@ CREATE TABLE `weenie_properties_spell_book` (
 
 DROP TABLE IF EXISTS `weenie_properties_string`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+ SET character_set_client = utf8mb4 ;
 CREATE TABLE `weenie_properties_string` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Property',
   `object_Id` int(10) unsigned NOT NULL COMMENT 'Id of the object this property belongs to',
@@ -1175,7 +1175,7 @@ CREATE TABLE `weenie_properties_string` (
   `value` text NOT NULL COMMENT 'Value of this Property',
   PRIMARY KEY (`id`),
   UNIQUE KEY `wcid_string_type_uidx` (`object_Id`,`type`),
-  CONSTRAINT `wcid_string` FOREIGN KEY (`object_Id`) REFERENCES `weenie` (`class_Id`) ON DELETE CASCADE ON UPDATE NO ACTION
+  CONSTRAINT `wcid_string` FOREIGN KEY (`object_Id`) REFERENCES `weenie` (`class_id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='String Properties of Weenies';
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -1185,7 +1185,7 @@ CREATE TABLE `weenie_properties_string` (
 
 DROP TABLE IF EXISTS `weenie_properties_texture_map`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+ SET character_set_client = utf8mb4 ;
 CREATE TABLE `weenie_properties_texture_map` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT COMMENT 'Unique Id of this Property',
   `object_Id` int(10) unsigned NOT NULL COMMENT 'Id of the object this property belongs to',
@@ -1194,7 +1194,7 @@ CREATE TABLE `weenie_properties_texture_map` (
   `new_Id` int(10) unsigned NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `object_Id_index_oldId_uidx` (`object_Id`,`index`,`old_Id`),
-  CONSTRAINT `wcid_texturemap` FOREIGN KEY (`object_Id`) REFERENCES `weenie` (`class_Id`) ON DELETE CASCADE ON UPDATE NO ACTION
+  CONSTRAINT `wcid_texturemap` FOREIGN KEY (`object_Id`) REFERENCES `weenie` (`class_id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Texture Map Changes (from PCAPs) of Weenies';
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -1207,4 +1207,4 @@ CREATE TABLE `weenie_properties_texture_map` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2018-08-11 15:10:17
+-- Dump completed on 2018-09-23 14:44:37
