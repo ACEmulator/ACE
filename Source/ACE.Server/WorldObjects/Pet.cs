@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 
 namespace ACE.Server.WorldObjects
@@ -8,6 +9,7 @@ namespace ACE.Server.WorldObjects
     partial class Creature
     {
         public bool IsPet = false;
+        public DateTime petCreationTime;
 
         public void PetFindTarget(float range = RadiusAwareness)
         {

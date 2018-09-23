@@ -137,8 +137,7 @@ namespace ACE.Server.WorldObjects
             var targetSelf = (spellBase.Bitfield & (uint)SpellBitfield.SelfTargeted) == 1;
             var target = targetSelf ? this : AttackTarget;
 
-            var player = AttackTarget as Player;
-            var scale = SpellAttributes(player.Session.Account, spell.Id, out float castingDelay, out MotionCommand windUpMotion, out MotionCommand spellGesture);
+            var scale = SpellAttributes(null, spell.Id, out float castingDelay, out MotionCommand windUpMotion, out MotionCommand spellGesture);
 
             switch (spellBase.School)
             {

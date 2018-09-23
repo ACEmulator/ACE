@@ -5,6 +5,7 @@ using ACE.Server.Entity;
 using ACE.Entity.Enum;
 using ACE.Server.Factories;
 using System.Collections.Generic;
+using System;
 
 namespace ACE.Server.WorldObjects
 {
@@ -48,6 +49,7 @@ namespace ACE.Server.WorldObjects
             {
                 pet.NoCorpse = true;
                 pet.IsPet = true;
+                pet.petCreationTime = DateTime.UtcNow;
                 pet.Location = ((Position)player.Location.Clone()).InFrontOf(5f);
                 pet.Name = player.Name + "'s " + pet.Name;
                 pet.PetOwner = player.Guid.Full;

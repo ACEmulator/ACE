@@ -24,6 +24,14 @@ namespace ACE.Server.WorldObjects
 
             IsMonster = true;
 
+            if (IsPet && (DateTime.UtcNow >= (petCreationTime + (new TimeSpan(0,0,45)))))
+            {
+                //Pet has expired
+                this.Sleep();
+                this.Destroy();
+                return;
+            }
+
             if (AttackTarget.Guid.Full == PetOwner)
             {
                 //Pet's shouldn't attack their owners
