@@ -419,12 +419,10 @@ namespace ACE.Server.Managers
         }
 
         /// <summary>
-        /// Returns the top layers in each spell category for a StatMod type
+        /// Returns the top layers in each spell category
         /// </summary>
-        public List<BiotaPropertiesEnchantmentRegistry> GetEnchantments(EnchantmentTypeFlags statModType)
+        public List<BiotaPropertiesEnchantmentRegistry> GetEnchantments_TopLayer(List<BiotaPropertiesEnchantmentRegistry> enchantments)
         {
-            var enchantments = WorldObject.Biota.GetEnchantmentsByStatModType((uint)statModType, WorldObject.BiotaDatabaseLock);
-
             var results = from e in enchantments
                 group e by e.SpellCategory
                 into categories
@@ -434,19 +432,19 @@ namespace ACE.Server.Managers
         }
 
         /// <summary>
+        /// Returns the top layers in each spell category for a StatMod type
+        /// </summary>
+        public List<BiotaPropertiesEnchantmentRegistry> GetEnchantments(EnchantmentTypeFlags statModType)
+        {
+            return GetEnchantments_TopLayer(WorldObject.Biota.GetEnchantmentsByStatModType((uint)statModType, WorldObject.BiotaDatabaseLock));
+        }
+
+        /// <summary>
         /// Returns the top layers in each spell category for a StatMod type + key
         /// </summary>
         public List<BiotaPropertiesEnchantmentRegistry> GetEnchantments(EnchantmentTypeFlags statModType, uint statModKey)
         {
-            var enchantments = WorldObject.Biota.GetEnchantmentsByStatModType((uint)statModType, WorldObject.BiotaDatabaseLock);
-
-            var results = from e in enchantments
-                where (e.StatModKey == statModKey)
-                group e by e.SpellCategory
-                into categories
-                select categories.OrderByDescending(c => c.LayerId).First();
-
-            return results.ToList();
+            return GetEnchantments_TopLayer(WorldObject.Biota.GetEnchantmentsByStatModType((uint)statModType, WorldObject.BiotaDatabaseLock).Where(e => e.StatModKey == statModKey).ToList());
         }
 
         /// <summary>
@@ -905,7 +903,11 @@ namespace ACE.Server.Managers
         public List<BiotaPropertiesEnchantmentRegistry> GetEnchantments(MagicSchool magicSchool)
         {
             var spells = new List<BiotaPropertiesEnchantmentRegistry>();
-            var enchantments = WorldObject.Biota.GetEnchantments(WorldObject.BiotaDatabaseLock);
+
+            var enchantments = from e in WorldObject.Biota.GetEnchantments(WorldObject.BiotaDatabaseLock)
+                group e by e.SpellCategory
+                into categories
+                select categories.OrderByDescending(c => c.LayerId).First();
 
             foreach (var enchantment in enchantments)
             {
@@ -926,9 +928,7 @@ namespace ACE.Server.Managers
             var expired = new List<BiotaPropertiesEnchantmentRegistry>();
 
             var enchantments = WorldObject.Biota.GetEnchantments(WorldObject.BiotaDatabaseLock);
-
-            var dots = new List<BiotaPropertiesEnchantmentRegistry>();
-            var netherDots = new List<BiotaPropertiesEnchantmentRegistry>();
+            HeartBeat_DamageOverTime(GetEnchantments_TopLayer(enchantments));
 
             foreach (var enchantment in enchantments)
             {
@@ -937,7 +937,23 @@ namespace ACE.Server.Managers
                 // StartTime ticks backwards to -Duration
                 if (enchantment.Duration > 0 && enchantment.StartTime <= -enchantment.Duration)
                     expired.Add(enchantment);
+            }
 
+            foreach (var enchantment in expired)
+                Remove(enchantment);
+        }
+
+        /// <summary>
+        /// Applies damage from DoTs every ~5 seconds
+        /// </summary>
+        /// <param name="enchantments">A list of active enchantments at the top layers</param>
+        public void HeartBeat_DamageOverTime(List<BiotaPropertiesEnchantmentRegistry> enchantments)
+        {
+            var dots = new List<BiotaPropertiesEnchantmentRegistry>();
+            var netherDots = new List<BiotaPropertiesEnchantmentRegistry>();
+
+            foreach (var enchantment in enchantments)
+            {
                 // combine DoTs from multiple sources
                 if (enchantment.StatModKey == (int)PropertyInt.DamageOverTime)
                     dots.Add(enchantment);
@@ -952,9 +968,6 @@ namespace ACE.Server.Managers
 
             if (netherDots.Count > 0)
                 ApplyDamageTick(netherDots, DamageType.Nether);
-
-            foreach (var enchantment in expired)
-                Remove(enchantment);
         }
 
         /// <summary>
