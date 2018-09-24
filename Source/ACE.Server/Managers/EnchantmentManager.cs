@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
-
+using ACE.Common.Extensions;
 using ACE.Database;
 using ACE.Database.Models.Shard;
 using ACE.DatLoader;
@@ -54,7 +54,7 @@ namespace ACE.Server.Managers
             Player = obj as Player;
         }
 
-        public Database.Models.World.Spell Surpass; // retval
+        public Entity.Spell Surpass; // retval
 
         /// <summary>
         /// Add/update zero or more enchantments in this object's registry
@@ -74,7 +74,7 @@ namespace ACE.Server.Managers
             StackType result = StackType.Undef;
 
             // check for existing spell in this category
-            var entries = GetCategory(enchantment.SpellBase.Category);
+            var entries = GetCategory(enchantment.Spell.Category);
 
             // if none, add new record
             if (entries.Count == 0)
@@ -91,10 +91,10 @@ namespace ACE.Server.Managers
             // Check for existing spells in registry that are superior
             foreach (var entry in entries)
             {
-                if (enchantment.SpellBase.Power < entry.PowerLevel)
+                if (enchantment.Spell.Power < entry.PowerLevel)
                 {
                     // superior existing spell
-                    Surpass = DatabaseManager.World.GetCachedSpell((uint)entry.SpellId);
+                    Surpass = new Entity.Spell(entry.SpellId);
 
                     result = StackType.Surpassed;
                 }
@@ -105,7 +105,7 @@ namespace ACE.Server.Managers
                 // Check for existing spells in registry that are equal to
                 foreach (var entry in entries)
                 {
-                    if (enchantment.SpellBase.Power == entry.PowerLevel)
+                    if (enchantment.Spell.Power == entry.PowerLevel)
                     {
                         if (entry.Duration == -1)
                         {
@@ -143,10 +143,10 @@ namespace ACE.Server.Managers
                     // Check for highest existing spell in registry that is inferior
                     foreach (var entry in entries)
                     {
-                        if (enchantment.SpellBase.Power > entry.PowerLevel)
+                        if (enchantment.Spell.Power > entry.PowerLevel)
                         {
                             // surpass existing spell
-                            Surpass = DatabaseManager.World.GetCachedSpell((uint)entry.SpellId);
+                            Surpass = new Entity.Spell((uint)entry.SpellId);
                             layerBuffer = entry.LayerId;
                         }
                     }
@@ -303,24 +303,25 @@ namespace ACE.Server.Managers
         /// </summary>
         public BiotaPropertiesEnchantmentRegistry BuildEntry(uint spellID, WorldObject caster = null)
         {
-            var spellBase = DatManager.PortalDat.SpellTable.Spells[spellID];
-            var spell = DatabaseManager.World.GetCachedSpell(spellID);
+            var spell = new Entity.Spell(spellID);
 
             var entry = new BiotaPropertiesEnchantmentRegistry();
 
-            entry.EnchantmentCategory = (uint)spellBase.MetaSpellType;
+            entry.EnchantmentCategory = (uint)spell.MetaSpellType;
             entry.ObjectId = WorldObject.Guid.Full;
             entry.Object = WorldObject.Biota;
             entry.SpellId = (int)spell.Id;
-            entry.SpellCategory = (ushort)spellBase.Category;
-            entry.PowerLevel = spellBase.Power;
+            entry.SpellCategory = (ushort)spell.Category;
+            entry.PowerLevel = spell.Power;
 
+            // should default duration be 0 or -1 here?
+            // changed from spellBase -> spell for void..
             if (caster is Creature)
-                entry.Duration = spellBase.Duration;
+                entry.Duration = spell.Duration;
             else
             {
                 if (caster?.WeenieType == WeenieType.Gem)
-                    entry.Duration = spellBase.Duration;
+                    entry.Duration = spell.Duration;
                 else
                 {
                     entry.Duration = -1.0;
@@ -333,61 +334,13 @@ namespace ACE.Server.Managers
             else
                 entry.CasterObjectId = caster.Guid.Full;
 
-            entry.DegradeModifier = spellBase.DegradeModifier;
-            entry.DegradeLimit = spellBase.DegradeLimit;
-            entry.StatModType = spell.StatModType ?? 0;
-            entry.StatModKey = spell.StatModKey ?? 0;
-            entry.StatModValue = spell.StatModVal ?? 0.0f;
+            entry.DegradeModifier = spell.DegradeModifier;
+            entry.DegradeLimit = spell.DegradeLimit;
+            entry.StatModType = (uint)spell.StatModType;
+            entry.StatModKey = spell.StatModKey;
+            entry.StatModValue = spell.StatModVal;
 
             return entry;
-        }
-
-        /// <summary>
-        /// Called every ~5 seconds for active object
-        /// </summary>
-        public void HeartBeat()
-        {
-            var expired = new List<BiotaPropertiesEnchantmentRegistry>();
-
-            var enchantments = WorldObject.Biota.GetEnchantments(WorldObject.BiotaDatabaseLock);
-
-            foreach (var enchantment in enchantments)
-            {
-                enchantment.StartTime -= WorldObject.HeartbeatInterval ?? 5;
-
-                // StartTime ticks backwards to -Duration
-                if (enchantment.Duration > 0 && enchantment.StartTime <= -enchantment.Duration)
-                    expired.Add(enchantment);
-
-                // apply damage over time (DoTs)
-                if (enchantment.StatModKey == (int)PropertyInt.DamageOverTime)
-                    ApplyDamageTick(enchantment);
-            }
-
-            foreach (var enchantment in expired)
-                Remove(enchantment);
-        }
-
-        /// <summary>
-        /// Applies 1 tick of damage from a DoT spell
-        /// </summary>
-        /// <param name="enchantment">The damage over time (DoT) spell</param>
-        public void ApplyDamageTick(BiotaPropertiesEnchantmentRegistry enchantment)
-        {
-            var totalAmount = enchantment.StatModValue;
-            var totalTicks = (int)Math.Ceiling(enchantment.Duration / (WorldObject.HeartbeatInterval ?? 5));
-            var tickAmount = totalAmount / totalTicks;
-
-            var creature = WorldObject as Creature;
-            if (creature == null) return;
-
-            var damager = WorldObject.CurrentLandblock?.GetObject(enchantment.CasterObjectId);
-            if (damager == null)
-            {
-                Console.WriteLine($"{WorldObject.Name}.ApplyDamageTick() - couldn't find damager {enchantment.CasterObjectId}");
-                return;
-            }
-            creature.TakeDamageOverTime(damager, tickAmount);
         }
 
         /// <summary>
@@ -397,7 +350,7 @@ namespace ACE.Server.Managers
         public void Remove(BiotaPropertiesEnchantmentRegistry entry, bool sound = true)
         {
             var spellID = entry.SpellId;
-            var spell = DatabaseManager.World.GetCachedSpell((uint)spellID);
+            var spell = new Entity.Spell(spellID);
 
             if (WorldObject.Biota.TryRemoveEnchantment(spellID, out _, WorldObject.BiotaDatabaseLock))
                 WorldObject.ChangesDetected = true;
@@ -870,7 +823,7 @@ namespace ACE.Server.Managers
         /// Returns a rating enchantment modifier
         /// </summary>
         /// <param name="property">The rating to return an enchantment modifier</param>
-        public int GetRatingMod(PropertyInt property)
+        public int GetRating(PropertyInt property)
         {
             var typeFlags = EnchantmentTypeFlags.Int | EnchantmentTypeFlags.SingleStat | EnchantmentTypeFlags.Additive;
             var enchantments = GetEnchantments(typeFlags, (uint)property);
@@ -879,11 +832,56 @@ namespace ACE.Server.Managers
         }
 
         /// <summary>
+        /// Returns the damage rating modifier from enchantments
+        /// as an int rating (additive)
+        /// </summary>
+        public int GetDamageRating()
+        {
+            var damageRating = GetRating(PropertyInt.DamageRating);
+
+            // weakness as negative damage rating?
+            var weaknessRating = GetRating(PropertyInt.WeaknessRating);
+
+            return damageRating - weaknessRating;
+        }
+
+        public int GetDamageResistRating()
+        {
+            var damageResistanceRating = GetRating(PropertyInt.DamageResistRating);
+
+            // nether DoTs as negative DRR?
+            var netherDotDamageRating = GetNetherDotDamageRating();
+
+            return damageResistanceRating - netherDotDamageRating;
+        }
+
+        public int GetNetherDotDamageRating()
+        {
+            var type = EnchantmentTypeFlags.Int | EnchantmentTypeFlags.SingleStat | EnchantmentTypeFlags.Additive;
+            var netherDots = GetEnchantments(type, (uint)PropertyInt.NetherOverTime);
+
+            var totalRating = 0.0f;
+            foreach (var netherDot in netherDots)
+            {
+                var spell = new Entity.Spell(netherDot.SpellId);
+
+                var baseDamage = Math.Max(0.5f, spell.Formula.Level - 1);
+
+                // destructive curse / corruption
+                if (netherDot.SpellCategory == 636 || netherDot.SpellCategory == 638)
+                    totalRating += baseDamage;
+                else if (netherDot.SpellCategory == 637)    // corrosion
+                    totalRating += Math.Max(baseDamage * 2 - 1, 2);
+            }
+            return totalRating.Round();
+        }
+
+        /// <summary>
         /// Returns the healing resistance rating enchantment modifier
         /// </summary>
         public float GetHealingResistRatingMod()
         {
-            var rating = GetRatingMod(PropertyInt.HealingResistRating);
+            var rating = GetRating(PropertyInt.HealingResistRating);
 
             // return as rating mod
             return 100.0f / (100 + rating);
@@ -911,13 +909,116 @@ namespace ACE.Server.Managers
 
             foreach (var enchantment in enchantments)
             {
-                var spellBase = DatManager.PortalDat.SpellTable.Spells[(uint)enchantment.SpellId];
+                var spell = new Entity.Spell(enchantment.SpellId);
 
-                if (spellBase.School == magicSchool)
+                if (spell.School == magicSchool)
                     spells.Add(enchantment);
             }
 
             return spells;
+        }
+
+        /// <summary>
+        /// Called every ~5 seconds for active object
+        /// </summary>
+        public void HeartBeat()
+        {
+            var expired = new List<BiotaPropertiesEnchantmentRegistry>();
+
+            var enchantments = WorldObject.Biota.GetEnchantments(WorldObject.BiotaDatabaseLock);
+
+            var dots = new List<BiotaPropertiesEnchantmentRegistry>();
+            var netherDots = new List<BiotaPropertiesEnchantmentRegistry>();
+
+            foreach (var enchantment in enchantments)
+            {
+                enchantment.StartTime -= WorldObject.HeartbeatInterval ?? 5;
+
+                // StartTime ticks backwards to -Duration
+                if (enchantment.Duration > 0 && enchantment.StartTime <= -enchantment.Duration)
+                    expired.Add(enchantment);
+
+                // combine DoTs from multiple sources
+                if (enchantment.StatModKey == (int)PropertyInt.DamageOverTime)
+                    dots.Add(enchantment);
+
+                if (enchantment.StatModKey == (int)PropertyInt.NetherOverTime)
+                    netherDots.Add(enchantment);
+            }
+
+            // apply damage over time (DoTs)
+            if (dots.Count > 0)
+                ApplyDamageTick(dots, DamageType.Undef);
+
+            if (netherDots.Count > 0)
+                ApplyDamageTick(netherDots, DamageType.Nether);
+
+            foreach (var enchantment in expired)
+                Remove(enchantment);
+        }
+
+        /// <summary>
+        /// Applies 1 tick of damage from a DoT spell
+        /// </summary>
+        /// <param name="enchantment">The damage over time (DoT) spell</param>
+        public void ApplyDamageTick(List<BiotaPropertiesEnchantmentRegistry> enchantments, DamageType damageType)
+        {
+            var creature = WorldObject as Creature;
+            if (creature == null) return;
+
+            var damagers = new Dictionary<WorldObject, float>();
+
+            // get the total tick amount
+            var tickAmountTotal = 0.0f;
+            foreach (var enchantment in enchantments)
+            {
+                var totalAmount = enchantment.StatModValue;
+                var totalTicks = (int)Math.Ceiling(enchantment.Duration / (WorldObject.HeartbeatInterval ?? 5));
+                var tickAmount = totalAmount / totalTicks;
+
+                // run tick amount through damage calculation functions?
+                // it appears retail might have done an initial damage calc,
+                // and then applied that to the enchantment StatModVal beforehand
+                // for each damage tick, this pre-calc would then be multiplied
+                // against the realtime resistances
+
+                var damager = WorldObject.CurrentLandblock?.GetObject(enchantment.CasterObjectId);
+                if (damager == null)
+                {
+                    Console.WriteLine($"{WorldObject.Name}.ApplyDamageTick() - couldn't find damager {enchantment.CasterObjectId:X8}");
+                    continue;
+                }
+
+                // get damage / damage resistance rating here for now?
+                var damageRatingMod = Creature.GetRatingMod(damager.EnchantmentManager.GetDamageRating());
+                var damageResistRatingMod = Creature.GetNegativeRatingMod(GetDamageResistRating());
+                //Console.WriteLine("DR: " + Creature.ModToRating(damageRatingMod));
+                //Console.WriteLine("DRR: " + Creature.NegativeModToRating(damageResistRatingMod));
+                tickAmount *= damageRatingMod * damageResistRatingMod;
+
+                if (damagers.ContainsKey(damager))
+                    damagers[damager] += tickAmount;
+                else
+                    damagers.Add(damager, tickAmount);
+
+                creature.DamageHistory.Add(damager, damageType, (uint)Math.Round(tickAmount));
+
+                tickAmountTotal += tickAmount;
+            }
+
+            creature.TakeDamageOverTime(tickAmountTotal, damageType);
+
+            if (!creature.IsAlive) return;
+
+            foreach (var kvp in damagers)
+            {
+                var damager = kvp.Key;
+                var amount = kvp.Value;
+
+                var damageSourcePlayer = damager as Player;
+                if (damageSourcePlayer != null)
+                    creature.TakeDamageOverTime_NotifySource(damageSourcePlayer, damageType, amount);
+            }
         }
     }
 }

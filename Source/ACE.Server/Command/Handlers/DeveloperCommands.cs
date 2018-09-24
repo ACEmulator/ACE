@@ -964,13 +964,13 @@ namespace ACE.Server.Command.Handlers
         [CommandHandler("addallspells", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Adds all known spells to your own spellbook.")]
         public static void HandleAddAllSpells(Session session, params string[] parameters)
         {
-            foreach (WorldObject.SpellLevel powerLevel in Enum.GetValues(typeof(WorldObject.SpellLevel)))
+            for (uint spellLevel = 1; spellLevel <= 8; spellLevel++)
             {
-                session.Player.LearnSpellsInBulk((uint)MagicSchool.CreatureEnchantment, (uint)powerLevel);
-                session.Player.LearnSpellsInBulk((uint)MagicSchool.ItemEnchantment, (uint)powerLevel);
-                session.Player.LearnSpellsInBulk((uint)MagicSchool.LifeMagic, (uint)powerLevel);
-                session.Player.LearnSpellsInBulk((uint)MagicSchool.VoidMagic, (uint)powerLevel);
-                session.Player.LearnSpellsInBulk((uint)MagicSchool.WarMagic, (uint)powerLevel);
+                session.Player.LearnSpellsInBulk(MagicSchool.CreatureEnchantment, spellLevel);
+                session.Player.LearnSpellsInBulk(MagicSchool.ItemEnchantment, spellLevel);
+                session.Player.LearnSpellsInBulk(MagicSchool.LifeMagic, spellLevel);
+                session.Player.LearnSpellsInBulk(MagicSchool.VoidMagic, spellLevel);
+                session.Player.LearnSpellsInBulk(MagicSchool.WarMagic, spellLevel);
             }
         }
 

@@ -152,7 +152,7 @@ namespace ACE.Server.WorldObjects
                 writer.Write((ushort)(EncumbranceVal ?? 0));
 
             if ((weenieFlags & WeenieHeaderFlag.Spell) != 0)
-                writer.Write((ushort?)Spell ?? 0);
+                writer.Write((ushort?)SpellDID ?? 0);
 
             if ((weenieFlags & WeenieHeaderFlag.HouseOwner) != 0)
                 writer.Write(HouseOwner ?? 0);
@@ -743,7 +743,7 @@ namespace ACE.Server.WorldObjects
             if (EncumbranceVal != 0)
                 weenieHeaderFlag |= WeenieHeaderFlag.Burden;
 
-            if ((Spell != null) && (Spell != 0))
+            if ((SpellDID != null) && (SpellDID != 0))
                 weenieHeaderFlag |= WeenieHeaderFlag.Spell;
 
             if (HouseOwner != null)
@@ -1144,11 +1144,12 @@ namespace ACE.Server.WorldObjects
             //var dist = Vector3.Distance(ProjectileTarget.Location.Pos, newPos);
             //Console.WriteLine("Dist: " + dist);
             //Console.WriteLine("Velocity: " + PhysicsObj.Velocity);
+
             var spellProjectile = this as SpellProjectile;
             if (spellProjectile != null && spellProjectile.SpellType == SpellProjectile.ProjectileSpellType.Ring)
             {
                 var dist = Vector3.Distance(spellProjectile.SpawnPos.ToGlobal(), Location.ToGlobal());
-                var maxRange = spellProjectile.SpellBase.BaseRangeConstant;
+                var maxRange = spellProjectile.Spell.BaseRangeConstant;
                 //Console.WriteLine("Max range: " + maxRange);
                 if (dist > maxRange)
                 {

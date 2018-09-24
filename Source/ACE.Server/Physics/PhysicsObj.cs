@@ -2353,7 +2353,12 @@ namespace ACE.Server.Physics
                 if (apply_bounce && collisions.CollisionNormalValid)
                 {
                     if (State.HasFlag(PhysicsState.Inelastic))
+                    {
                         Velocity = Vector3.Zero;
+
+                        // custom for spell projectiles: explode on server
+                        report_environment_collision(prev_has_contact);
+                    }
                     else
                     {
                         var collisionAngle = Vector3.Dot(Velocity, collisions.CollisionNormal);

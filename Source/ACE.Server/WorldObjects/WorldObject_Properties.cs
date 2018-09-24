@@ -935,12 +935,6 @@ namespace ACE.Server.WorldObjects
             }
         }
 
-        public Spell? Spell
-        {
-            get => (Spell?)GetProperty(PropertyDataId.Spell);
-            set { if (!value.HasValue) RemoveProperty(PropertyDataId.Spell); else SetProperty(PropertyDataId.Spell, (uint)value.Value); }
-        }
-
         /// <summary>
         /// The house owned by this player
         /// </summary>

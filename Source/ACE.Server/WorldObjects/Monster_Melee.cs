@@ -244,6 +244,8 @@ namespace ACE.Server.WorldObjects
             var damageRange = GetBaseDamage(attackPart);
             var baseDamage = Physics.Common.Random.RollDice(damageRange.Min, damageRange.Max);
 
+            var damageRatingMod = GetRatingMod(EnchantmentManager.GetDamageRating());
+
             var player = AttackTarget as Player;
             var recklessnessMod = player != null ? player.GetRecklessnessMod() : 1.0f;
 
@@ -267,17 +269,19 @@ namespace ACE.Server.WorldObjects
             // get resistance modifiers (protect/vuln)
             var resistanceMod = AttackTarget.EnchantmentManager.GetResistanceMod(damageType);
 
+            var damageResistRatingMod = GetNegativeRatingMod(AttackTarget.EnchantmentManager.GetDamageResistRating());
+
             // get shield modifier
             var attackTarget = AttackTarget as Creature;
             shieldMod = attackTarget.GetShieldMod(this, damageType);
 
             // scale damage by modifiers
-            var damage = baseDamage * attributeMod * armorMod * shieldMod * resistanceMod;
+            var damage = baseDamage * damageRatingMod * attributeMod * armorMod * shieldMod * resistanceMod * damageResistRatingMod;
 
             if (!criticalHit)
                 damage *= recklessnessMod;
             else
-                damage *= 2;
+                damage *= 2;    // fixme: target recklessness mod still in effect?
 
             return damage;
         }

@@ -1,6 +1,7 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
+using ACE.Database.Models.World.Internal;
 
 namespace ACE.Database.Models.World
 {

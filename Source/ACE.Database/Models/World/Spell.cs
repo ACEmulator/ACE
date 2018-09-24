@@ -1,7 +1,7 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
-namespace ACE.Database.Models.World
+namespace ACE.Database.Models.World.Internal
 {
     public partial class Spell
     {

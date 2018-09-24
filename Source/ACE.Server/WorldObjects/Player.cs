@@ -890,10 +890,12 @@ namespace ACE.Server.WorldObjects
                 if (spellId != 0)
                     result = CreateSingleSpell(spellId);
 
+                var spell = new Server.Entity.Spell(spellId);
+
                 if (!result)
                     buffMessage = new GameMessageSystemChat($"Consuming {consumableName} attempted to apply a spell not yet fully implemented.", ChatMessageType.System);
                 else
-                    buffMessage = new GameMessageSystemChat($"{consumableName} applies {DatManager.PortalDat.SpellTable.Spells[spellId].Name} on you.", ChatMessageType.Craft);
+                    buffMessage = new GameMessageSystemChat($"{consumableName} applies {spell.Name} on you.", ChatMessageType.Craft);
             }
             else
             {
