@@ -56,8 +56,7 @@ namespace ACE.Server.Entity
         /// <summary>
         /// The base maximum distance for casting the spell
         /// </summary>
-        //public float BaseRangeConstant { get => _spellBase.BaseRangeConstant; }
-        public float BaseRangeConstant { get => _spell.RangeConstant; }     // temp. changed for void destructive curse
+        public float BaseRangeConstant { get => _spellBase.BaseRangeConstant; }
 
         /// <summary>
         /// An additive multiplier to BaseRangeConstant
