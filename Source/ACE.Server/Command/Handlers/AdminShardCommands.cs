@@ -1,4 +1,7 @@
 using System;
+
+using log4net;
+
 using ACE.Entity.Enum;
 using ACE.Server.Managers;
 using ACE.Server.Network;
@@ -8,13 +11,15 @@ namespace ACE.Server.Command.Handlers
 {
     public static class AdminShardCommands
     {
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         // // commandname parameters
         // [CommandHandler("commandname", AccessLevel.Admin, CommandHandlerFlag.RequiresWorld, 0)]
         // public static void HandleHelp(Session session, params string[] parameters)
         // {
         //     //TODO: output
         // }
-   
+
         /// <summary>
         /// Cancels an in-progress shutdown event.
         /// </summary>
@@ -48,11 +53,11 @@ namespace ACE.Server.Command.Handlers
                     ServerManager.SetShutdownInterval(Convert.ToUInt32(newShutdownInterval));
 
                     // message the admin
-                    ChatPacket.SendServerMessage(session, $"Shutdown Interval (seconds to shutdown server) has been set to {ServerManager.ShutdownInterval}.", ChatMessageType.Broadcast);
+                    CommandHandlerHelper.WriteOutputInfo(session, $"Shutdown Interval (seconds to shutdown server) has been set to {ServerManager.ShutdownInterval}.", ChatMessageType.Broadcast);
                     return;
                 }
             }
-            ChatPacket.SendServerMessage(session, "Usage: /change-shutdown-interval <00000>", ChatMessageType.Broadcast);
+            CommandHandlerHelper.WriteOutputInfo(session, "Usage: /change-shutdown-interval <00000>", ChatMessageType.Broadcast);
         }
 
         /// <summary>
@@ -100,11 +105,11 @@ namespace ACE.Server.Command.Handlers
             shutdownText += $"{shutdownInitiator} initiated a complete server shutdown @ {DateTime.UtcNow} UTC";
 
             // output to console (log in the future)
-            Console.WriteLine(shutdownText);
-            Console.WriteLine(timeRemaining);
+            log.Info(shutdownText);
+            log.Info(timeRemaining);
 
             if (adminShutdownText.Length > 0)
-                Console.WriteLine("Admin message: " + adminShutdownText);
+                log.Info("Admin message: " + adminShutdownText);
 
             // send a message to each player that the server will go down in x interval
             foreach (var player in WorldManager.GetAll())

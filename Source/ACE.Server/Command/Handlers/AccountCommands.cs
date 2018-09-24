@@ -3,7 +3,6 @@ using System;
 using ACE.Database;
 using ACE.Entity.Enum;
 using ACE.Server.Network;
-using ACE.Server.Network.GameMessages.Messages;
 
 namespace ACE.Server.Command.Handlers
 {
@@ -59,13 +58,7 @@ namespace ACE.Server.Command.Handlers
                 }
             }
 
-            if (session == null)
-                Console.WriteLine(message);
-            else
-            {
-                var sysChatMsg = new GameMessageSystemChat(message, ChatMessageType.WorldBroadcast);
-                session.Network.EnqueueSend(sysChatMsg);
-            }
+            CommandHandlerHelper.WriteOutputInfo(session, message, ChatMessageType.WorldBroadcast);
         }
   
         [CommandHandler("accountget", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, 1,
@@ -91,19 +84,20 @@ namespace ACE.Server.Command.Handlers
 
             if (accountId == 0)
             {
-                if (session == null)
-                    Console.WriteLine("Account " + accountName + " does not exist.");
-                else
-                    ChatPacket.SendServerMessage(session, "Account " + accountName + " does not exist.", ChatMessageType.Broadcast);
+                CommandHandlerHelper.WriteOutputInfo(session, "Account " + accountName + " does not exist.", ChatMessageType.Broadcast);
                 return;
             }
 
             AccessLevel accessLevel = AccessLevel.Player;
 
             if (parameters.Length > 1)
+            {
                 if (Enum.TryParse(parameters[1], true, out accessLevel))
+                {
                     if (!Enum.IsDefined(typeof(AccessLevel), accessLevel))
                         accessLevel = AccessLevel.Player;
+                }
+            }
 
             string articleAorAN = "a";
             if (accessLevel == AccessLevel.Advocate || accessLevel == AccessLevel.Admin || accessLevel == AccessLevel.Envoy)
@@ -111,19 +105,13 @@ namespace ACE.Server.Command.Handlers
 
             if (accountId == 0)
             {
-                if (session == null)
-                    Console.WriteLine("Account " + accountName + " does not exist.");
-                else
-                    ChatPacket.SendServerMessage(session, "Account " + accountName + " does not exist.", ChatMessageType.Broadcast);
+                CommandHandlerHelper.WriteOutputInfo(session, "Account " + accountName + " does not exist.", ChatMessageType.Broadcast);
                 return;
             }
 
             DatabaseManager.Authentication.UpdateAccountAccessLevel(accountId, accessLevel);
 
-            if (session == null)
-                Console.WriteLine("Account " + accountName + " updated with access rights set as " + articleAorAN + " " + Enum.GetName(typeof(AccessLevel), accessLevel) + ".");
-            else
-                ChatPacket.SendServerMessage(session, "Account " + accountName + " updated with access rights set as " + articleAorAN + " " + Enum.GetName(typeof(AccessLevel), accessLevel) + ".", ChatMessageType.Broadcast);
+            CommandHandlerHelper.WriteOutputInfo(session, "Account " + accountName + " updated with access rights set as " + articleAorAN + " " + Enum.GetName(typeof(AccessLevel), accessLevel) + ".", ChatMessageType.Broadcast);
         }
     }
 }
