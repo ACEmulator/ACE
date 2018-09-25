@@ -12,11 +12,6 @@ namespace ACE.Server.Entity
     public partial class Spell
     {
         /// <summary>
-        /// Returns TRUE if spell is missing from either the client DAT or the server spell db
-        /// </summary>
-        public bool NotFound { get => _spellBase == null || _spell == null; }
-
-        /// <summary>
         /// The spell information from the client DAT
         /// </summary>
         public SpellBase _spellBase;
@@ -27,6 +22,11 @@ namespace ACE.Server.Entity
         public Database.Models.World.Internal.Spell _spell;
 
         /// <summary>
+        /// Returns TRUE if spell is missing from either the client DAT or the server spell db
+        /// </summary>
+        public bool NotFound { get => _spellBase == null || _spell == null; }
+
+        /// <summary>
         /// The components required to cast the spell
         /// </summary>
         public SpellFormula Formula;
@@ -34,34 +34,37 @@ namespace ACE.Server.Entity
         /// <summary>
         /// Constructs a Spell from a spell ID
         /// </summary>
-        public Spell(uint spellID)
+        /// <param name="loadDB">If FALSE, only loads the DAT info (faster)</param>
+        public Spell(uint spellID, bool loadDB = true)
         {
-            Init(spellID);
+            Init(spellID, loadDB);
         }
 
         /// <summary>
         /// Constructs a Spell from a spell ID
         /// </summary>
-        public Spell(int spellID)
+        public Spell(int spellID, bool loadDB = true)
         {
-            Init((uint)spellID);
+            Init((uint)spellID, loadDB);
         }
 
         /// <summary>
         /// Constructs a Spell from a Spell enum
         /// </summary>
-        public Spell(Network.Enum.Spell spell)
+        public Spell(Network.Enum.Spell spell, bool loadDB = true)
         {
-            Init((uint)spell);
+            Init((uint)spell, loadDB);
         }
 
         /// <summary>
         /// Default initializer
         /// </summary>
-        public void Init(uint spellID)
+        public void Init(uint spellID, bool loadDB = true)
         {
             DatManager.PortalDat.SpellTable.Spells.TryGetValue(spellID, out _spellBase);
-            _spell = DatabaseManager.World.GetCachedSpell(spellID);
+
+            if (loadDB)
+                _spell = DatabaseManager.World.GetCachedSpell(spellID);
 
             if (_spellBase != null)
                 Formula = new SpellFormula(this, _formula);
