@@ -531,11 +531,7 @@ namespace ACE.Server.WorldObjects
 
         public uint? DefaultScriptId
         {
-            get
-            {
-                var defaultScriptId = GetProperty(PropertyDataId.PhysicsScript);
-                return defaultScriptId == null ? null : defaultScriptId + 1;    // bug in data?
-            }
+            get => GetProperty(PropertyDataId.PhysicsScript);
             set { if (!value.HasValue) RemoveProperty(PropertyDataId.PhysicsScript); else SetProperty(PropertyDataId.PhysicsScript, value.Value); }
         }
 
