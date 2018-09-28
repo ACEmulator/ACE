@@ -15,6 +15,7 @@ using ACE.Database.Entity;
 using ACE.Database.Models.Shard;
 using ACE.Entity;
 using ACE.Entity.Enum;
+using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.WorldObjects;
 using ACE.Server.Network;
@@ -53,10 +54,6 @@ namespace ACE.Server.Managers
         public static bool Concurrency = false;
 
         private static readonly PhysicsEngine Physics;
-
-        public static DateTime WorldStartTime { get; } = DateTime.UtcNow;
-        public static DerethDateTime WorldStartFromTime { get; } = new DerethDateTime().UTCNowToLoreTime;
-        public static double PortalYearTicks { get; private set; } = WorldStartFromTime.Ticks;
 
         public static bool WorldActive { get; private set; }
         private static volatile bool pendingWorldStop;
@@ -149,7 +146,7 @@ namespace ACE.Server.Managers
             var thread = new Thread(UpdateWorld);
             thread.Name = "World Manager";
             thread.Start();
-            log.DebugFormat("ServerTime initialized to {0}", WorldStartFromTime);
+            log.DebugFormat("ServerTime initialized to {0}", Timers.WorldStartLoreTime);
             log.DebugFormat($"Current maximum allowed sessions: {ConfigManager.Config.Server.Network.MaximumAllowedSessions}");
         }
 
@@ -506,7 +503,7 @@ namespace ACE.Server.Managers
                 DelayManager.RunActions();
 
                 // update positions through physics engine
-                var movedObjects = HandlePhysics(PortalYearTicks);
+                var movedObjects = HandlePhysics(Timers.PortalYearTicks);
 
                 // iterate through objects that have changed landblocks
                 foreach (var movedObject in movedObjects)
@@ -537,12 +534,12 @@ namespace ACE.Server.Managers
 
                     // The session tick processes all inbound GameAction messages
                     foreach (var s in sessions)
-                        s.Tick(lastTickDuration);
+                        s.Tick();
 
-                    // Send the current time ticks to allow sessions to declare themselves bad
-                    Parallel.ForEach(sessions, s => s.TickInParallel(lastTickDuration));
+                    // The session TickInParallel processes pending actions and handles outgoing messages
+                    Parallel.ForEach(sessions, s => s.TickInParallel());
 
-                    // Removes sessions in the NetworkTimeout state, incuding sessions that have reached a timeout limit.
+                    // Removes sessions in the NetworkTimeout state, including sessions that have reached a timeout limit.
                     var deadSessions = sessions.FindAll(s => s.State == Network.Enum.SessionState.NetworkTimeout);
 
                     foreach (var session in deadSessions)
@@ -559,7 +556,7 @@ namespace ACE.Server.Managers
                 Thread.Sleep(sessionCount == 0 ? 10 : 1); // Relax the CPU if no sessions are connected
 
                 lastTickDuration = worldTickTimer.Elapsed.TotalSeconds;
-                PortalYearTicks += lastTickDuration;
+                Timers.PortalYearTicks += lastTickDuration;
             }
 
             // World has finished operations and concedes the thread to garbage collection

@@ -790,9 +790,8 @@ namespace ACE.Server.Command.Handlers
         {
             // @time - Displays the server's current game time.
 
-            DerethDateTime currentPYtime = new DerethDateTime(WorldManager.PortalYearTicks);
             String messageUTC = "The current server time in UtcNow is: " + DateTime.UtcNow;
-            String messagePY = "The current server time in DerethDateTime is: " + currentPYtime;
+            String messagePY = "The current server time in DerethDateTime is: " + Timers.CurrentLoreTime;
 
             CommandHandlerHelper.WriteOutputInfo(session, messageUTC, ChatMessageType.Broadcast);
             CommandHandlerHelper.WriteOutputInfo(session, messagePY, ChatMessageType.WorldBroadcast);

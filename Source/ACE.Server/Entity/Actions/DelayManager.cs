@@ -2,8 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-using ACE.Server.Managers;
-
 using log4net;
 
 namespace ACE.Server.Entity.Actions
@@ -33,7 +31,7 @@ namespace ACE.Server.Entity.Actions
                         var min = delayHeap.Min();
 
                         // If they wanted to run before or at now
-                        if (min.EndTime <= WorldManager.PortalYearTicks)
+                        if (min.EndTime <= Timers.PortalYearTicks)
                         {
                             toAct.Add(min);
 
