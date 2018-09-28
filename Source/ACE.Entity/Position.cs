@@ -118,13 +118,14 @@ namespace ACE.Entity
             var dy = Convert.ToSingle(Math.Cos(heading) * distanceInFront);
 
             // move the Z slightly up and let gravity pull it down.  just makes things easier.
+            var bumpHeight = 0.0f;
             if (rotate180)
             {
                 var rotate = new Quaternion(0, 0, qz, qw) * Quaternion.CreateFromYawPitchRoll(0, 0, (float)Math.PI);
-                return new Position(LandblockId.Raw, PositionX + dx, PositionY + dy, PositionZ + 0.5f, 0f, 0f, rotate.Z, rotate.W);
+                return new Position(LandblockId.Raw, PositionX + dx, PositionY + dy, PositionZ + bumpHeight, 0f, 0f, rotate.Z, rotate.W);
             }
             else
-                return new Position(LandblockId.Raw, PositionX + dx, PositionY + dy, PositionZ + 0.5f, 0f, 0f, qz, qw);
+                return new Position(LandblockId.Raw, PositionX + dx, PositionY + dy, PositionZ + bumpHeight, 0f, 0f, qz, qw);
         }
 
         /// <summary>

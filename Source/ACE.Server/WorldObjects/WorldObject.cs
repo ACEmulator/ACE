@@ -2,9 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-
 using log4net;
-
 using ACE.Common;
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
@@ -20,6 +18,7 @@ using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Motion;
 using ACE.Server.Network.Sequence;
 using ACE.Server.Physics;
+using ACE.Server.Physics.Animation;
 using ACE.Server.Physics.Common;
 using ACE.Server.Physics.Util;
 
@@ -345,6 +344,10 @@ namespace ACE.Server.WorldObjects
             return true;
         }
 
+        /// <summary>
+        /// Returns TRUE if this object has the input object in its PVS
+        /// Note that this is NOT a direct line of sight test!
+        /// </summary>
         public bool IsVisible(WorldObject wo)
         {
             if (PhysicsObj == null || wo.PhysicsObj == null)
@@ -353,6 +356,29 @@ namespace ACE.Server.WorldObjects
             // note: visibility lists are actively maintained only for players
             return PhysicsObj.ObjMaint.VisibleObjectTable.ContainsKey(wo.PhysicsObj.ID);
         }
+
+        /// <summary>
+        /// Returns TRUE if this object has direct line-of-sight visibility to input object
+        /// </summary>
+        public bool IsDirectVisible(WorldObject wo)
+        {
+            if (PhysicsObj == null || wo.PhysicsObj == null)
+                return false;
+
+            var curPos = PhysicsObj.Position;
+            var targetPos = wo.PhysicsObj.Position;
+
+            // TODO: use smaller dummy object
+            var transition = PhysicsObj.transition(curPos, targetPos, false);
+
+            // check for collisions, or if target pos was reached?
+            var collided = transition.CollisionInfo.CollidedWithEnvironment || transition.CollisionInfo.CollideObject.Count > 0;
+
+            // shouldn't this be reversed??
+            return collided;
+        }
+
+
 
 
 
@@ -898,6 +924,53 @@ namespace ACE.Server.WorldObjects
         public override int GetHashCode()
         {
             return Guid.Full.GetHashCode();
+        }
+
+        /// <summary>
+        /// Returns TRUE if this object has a non-zero velocity,
+        /// or if it has non-cyclic animations in progress
+        /// </summary>
+        public bool IsMoving { get => PhysicsObj != null && (PhysicsObj.Velocity.X != 0 || PhysicsObj.Velocity.Y != 0 || PhysicsObj.Velocity.Z != 0 ||
+                PhysicsObj.MovementManager != null && PhysicsObj.MovementManager.motions_pending()); }
+
+        /// <summary>
+        /// Executes a motion/animation for this object
+        /// adds to the physics animation system, and broadcasts to nearby players
+        /// </summary>
+        /// <returns>The amount it takes to execute the motion</returns>
+        public float ExecuteMotion(UniversalMotion motion, bool sendClient = true)
+        {
+            var motionCommand = MotionCommand.Invalid;
+
+            if (motion.Commands != null && motion.Commands.Count > 0)
+                motionCommand = motion.Commands[0].Motion;
+            else if (motion.MovementData != null && motion.MovementData.CurrentStyle != 0)
+                motionCommand = (MotionCommand)motion.MovementData.CurrentStyle;
+
+            // run motion command on server through physics animation system
+            if (PhysicsObj != null && motionCommand != MotionCommand.Invalid)
+            {
+                var motionInterp = PhysicsObj.get_minterp();
+
+                var rawState = new RawMotionState();
+                rawState.ForwardCommand = 0;    // always 0? must be this for monster sleep animations (skeletons, golems)
+                                                // else the monster will immediately wake back up..
+                rawState.CurrentHoldKey = HoldKey.Run;
+                rawState.CurrentStyle = (uint)motionCommand;
+
+                motionInterp.RawState = rawState;
+                motionInterp.apply_raw_movement(true, true);
+            }
+
+            // hardcoded ready?
+            var animLength = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, MotionCommand.Ready, motionCommand);
+            CurrentMotionState = motion;
+
+            // broadcast to nearby players
+            if (sendClient)
+                EnqueueBroadcastMotion(motion);
+
+            return animLength;
         }
     }
 }

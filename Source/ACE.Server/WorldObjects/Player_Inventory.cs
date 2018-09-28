@@ -416,11 +416,10 @@ namespace ACE.Server.WorldObjects
                 new GameEventItemServerSaysContainId(Session, item, container),
                 new GameMessageObjDescEvent(this));
 
-            if ((oldLocation != EquipMask.MissileWeapon && oldLocation != EquipMask.Held && oldLocation != EquipMask.MeleeWeapon) || ((CombatMode & CombatMode.CombatCombat) == 0))
+            if (CombatMode == CombatMode.NonCombat || (oldLocation != EquipMask.MeleeWeapon && oldLocation != EquipMask.MissileWeapon && oldLocation != EquipMask.Held && oldLocation != EquipMask.Shield))
                 return true;
 
-            HandleSwitchToPeaceMode();
-            HandleSwitchToMeleeCombatMode();
+            SetCombatMode(CombatMode.Melee);
             return true;
         }
 
@@ -526,6 +525,8 @@ namespace ACE.Server.WorldObjects
                         
             if (item != null)
             {
+                //Console.WriteLine($"HandleActionPutItemInContainer({item.Name})");
+
                 IsAttuned(itemGuid, out bool isAttuned);
                 if (isAttuned == true && containerOwnedByPlayer == false)
                 {
@@ -730,6 +731,8 @@ namespace ACE.Server.WorldObjects
             var item = GetInventoryItem(itemGuid);
             if (item != null)
             {
+                //Console.WriteLine($"HandleActionGetAndWieldItem({item.Name})");
+
                 var result = TryWieldItem(item, wieldLocation);
                 return;
             }
@@ -804,6 +807,7 @@ namespace ACE.Server.WorldObjects
 
                 SetChild(item, wieldLocation, out var placementId, out var childLocation);
 
+                // TODO: wait for HandleQueueStance() here?
                 EnqueueBroadcast(new GameMessageParentEvent(this, item, childLocation, placementId), msgWieldItem, sound, updateContainer, updateWielder, updateWieldLoc);
 
                 if (CombatMode == CombatMode.NonCombat || CombatMode == CombatMode.Undef)

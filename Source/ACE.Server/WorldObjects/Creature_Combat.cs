@@ -1,8 +1,10 @@
 using System;
 using System.Numerics;
+using ACE.Common;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
+using ACE.Server.Entity.Actions;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Motion;
 using ACE.Server.Network.Structure;
@@ -18,11 +20,26 @@ namespace ACE.Server.WorldObjects
         public DamageHistory DamageHistory;
 
         /// <summary>
+        /// Handles queueing up multiple animation sequences between packets
+        /// ie., when a player switches from bow to sword combat,
+        /// the client will send an unwield item packet for the bow first,
+        /// queueing up a switch to peace mode, and then unarmed combat mode.
+        /// next the client will send a wield item packet for the sword,
+        /// queueing up the switch from unarmed combat -> peace mode -> bow combat
+        /// </summary>
+        public double LastWeaponSwap;
+
+        /// <summary>
         /// Switches a player or creature to a new combat stance
         /// </summary>
         public float SetCombatMode(CombatMode combatMode)
         {
-            //Console.WriteLine($"Changing combat mode for {Name} to {combatMode}");
+            //Console.WriteLine($"SetCombatMode({combatMode})");
+
+            // check if combat stance actually needs switching
+            var combatStance = GetCombatStance();
+            if (combatMode != CombatMode.NonCombat && CurrentMotionState.Stance == combatStance)
+                return 0.0f;
 
             if (CombatMode == CombatMode.Missile)
                 HideAmmo();
@@ -49,7 +66,10 @@ namespace ACE.Server.WorldObjects
                     log.InfoFormat($"Unknown combat mode {CombatMode} for {Name}");
                     break;
             }
-            return animLength;
+
+            var queueTime = HandleStanceQueue(animLength);
+            //Console.WriteLine($"SetCombatMode(): queueTime({queueTime}) + animLength({animLength})");
+            return queueTime + animLength;
         }
 
         /// <summary>
@@ -57,11 +77,11 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public float HandleSwitchToPeaceMode()
         {
-            var animLength = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, MotionCommand.NonCombat, MotionCommand.Ready);
+            var animLength = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, MotionCommand.Ready, MotionCommand.NonCombat);
 
             var motion = new UniversalMotion(MotionStance.NonCombat);
             motion.MovementData.CurrentStyle = (uint)MotionStance.NonCombat;
-            SetMotionState(this, motion);
+            ExecuteMotion(motion);
 
             var player = this as Player;
             if (player != null)
@@ -75,6 +95,34 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
+        /// Handles switching between combat stances:
+        /// old style -> peace mode -> hand combat (weapon swap) -> peace mode -> new style
+        /// </summary>
+        public float SwitchCombatStyles()
+        {
+            if (CurrentMotionState.Stance == MotionStance.NonCombat)
+                return 0.0f;
+
+            var combatStance = GetCombatStance();
+
+            float peace1 = 0.0f, unarmed = 0.0f, peace2 = 0.0f;
+
+            peace1 = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, MotionCommand.Ready, MotionCommand.NonCombat);
+            if (CurrentMotionState.Stance != MotionStance.HandCombat && combatStance != MotionStance.HandCombat)
+            {
+                unarmed = MotionTable.GetAnimationLength(MotionTableId, MotionStance.NonCombat, MotionCommand.Ready, MotionCommand.HandCombat);
+                peace2 = MotionTable.GetAnimationLength(MotionTableId, MotionStance.HandCombat, MotionCommand.Ready, MotionCommand.NonCombat);
+            }
+
+            CurrentMotionState = new UniversalMotion(MotionStance.NonCombat);
+
+            //Console.WriteLine($"SwitchCombatStyle() - animLength: {animLength}");
+            //Console.WriteLine($"SwitchCombatStyle() - peace1({peace1}) + unarmed({unarmed}) + peace2({peace2})");
+            var animLength = peace1 + unarmed + peace2;
+            return animLength;
+        }
+
+        /// <summary>
         /// Switches a player or creature to melee attack stance
         /// </summary>
         public float HandleSwitchToMeleeCombatMode()
@@ -82,11 +130,12 @@ namespace ACE.Server.WorldObjects
             // get appropriate combat stance for currently wielded items
             var combatStance = GetCombatStance();
 
-            var animLength = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, (MotionCommand)combatStance, MotionCommand.Ready);
+            var animLength = SwitchCombatStyles();
+            animLength += MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, MotionCommand.Ready, (MotionCommand)combatStance);
 
             var motion = new UniversalMotion(combatStance);
             motion.MovementData.CurrentStyle = (uint)combatStance;
-            SetMotionState(this, motion);
+            ExecuteMotion(motion);
 
             var player = this as Player;
             if (player != null)
@@ -107,11 +156,12 @@ namespace ACE.Server.WorldObjects
             var wand = GetEquippedWand();
             if (wand == null) return 0.0f;
 
-            var animLength = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, MotionCommand.Magic, MotionCommand.Ready);
+            var animLength = SwitchCombatStyles();
+            animLength += MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, MotionCommand.Ready, MotionCommand.Magic);
 
             var motion = new UniversalMotion(MotionStance.Magic);
             motion.MovementData.CurrentStyle = (uint)MotionStance.Magic;
-            SetMotionState(this, motion);
+            ExecuteMotion(motion);
 
             var player = this as Player;
             if (player != null)
@@ -135,15 +185,29 @@ namespace ACE.Server.WorldObjects
 
             var combatStance = GetCombatStance();
 
-            var animLength = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, (MotionCommand)combatStance, MotionCommand.Ready);
+            var swapTime = SwitchCombatStyles();
 
             var motion = new UniversalMotion(combatStance);
             motion.MovementData.CurrentStyle = (uint)combatStance;
-            SetMotionState(this, motion);
+            var stanceTime = ExecuteMotion(motion);
 
             var ammo = GetEquippedAmmo();
+            var reloadTime = 0.0f;
             if (ammo != null && weapon.IsAmmoLauncher)
-                animLength += ReloadMissileAmmo();
+            {
+                // bug for bow-wielding skeletons starting from decomposed state:
+                // sleep -> wakeup anim time must be passed in here
+                var actionChain = new ActionChain();
+
+                var currentTime = Time.GetUnixTime();
+                var queueTime = 0.0f;
+                if (currentTime < LastWeaponSwap)
+                    queueTime += (float)(LastWeaponSwap - currentTime);
+
+                actionChain.AddDelaySeconds(queueTime + swapTime + stanceTime);
+                reloadTime = ReloadMissileAmmo(actionChain);
+                actionChain.EnqueueChain();
+            }
 
             var player = this as Player;
             if (player != null)
@@ -152,7 +216,7 @@ namespace ACE.Server.WorldObjects
                 player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.CombatMode, (int)CombatMode.Missile));
             }
             //Console.WriteLine("HandleSwitchToMissileCombatMode() - animLength: " + animLength);
-            return animLength;
+            return swapTime + stanceTime + reloadTime;
         }
 
         /// <summary>
@@ -170,9 +234,13 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public MotionStance GetCombatStance()
         {
+            var caster = GetEquippedWand();
+
+            if (caster != null)
+                return MotionStance.Magic;
+
             var weapon = GetEquippedWeapon();
             var dualWield = GetDualWieldWeapon();
-
             var shield = GetEquippedShield();
 
             var combatStance = MotionStance.HandCombat;
@@ -259,6 +327,24 @@ namespace ACE.Server.WorldObjects
                     break;
             }
             return combatStance;
+        }
+
+        /// <summary>
+        /// Adds queued weapon swaps to the current animation time
+        /// </summary>
+        public float HandleStanceQueue(float animLength)
+        {
+            var currentTime = Time.GetUnixTime();
+            if (currentTime >= LastWeaponSwap)
+            {
+                LastWeaponSwap = currentTime + animLength;
+                return 0.0f;
+            }
+            else
+            {
+                LastWeaponSwap += animLength;
+                return (float)(LastWeaponSwap - currentTime);
+            }
         }
 
         /// <summary>

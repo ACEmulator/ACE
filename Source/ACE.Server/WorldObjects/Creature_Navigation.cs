@@ -193,8 +193,11 @@ namespace ACE.Server.WorldObjects
         /// It is mostly a duplicate of Rotate(), and should be refactored eventually...
         /// It sets CurrentMotionState and AttackTarget here
         /// </summary>
-        public float TurnTo(WorldObject target)
+        public float TurnTo(WorldObject target, bool debug = false)
         {
+            if (DebugMove)
+                Console.WriteLine($"{Name}.TurnTo({target.Name})");
+
             if (this is Player) return 0.0f;
 
             var turnToMotion = new UniversalMotion(CurrentMotionState.Stance, target.Location, target.Guid);
@@ -205,7 +208,8 @@ namespace ACE.Server.WorldObjects
 
             AttackTarget = target;
             var rotateDelay = EstimateTurnTo();
-            //Console.WriteLine("TurnTime = " + turnTime);
+            if (debug)
+                Console.WriteLine("TurnTime = " + rotateDelay);
             var actionChain = new ActionChain();
             actionChain.AddDelaySeconds(rotateDelay);
             actionChain.AddAction(this, () =>
@@ -213,7 +217,8 @@ namespace ACE.Server.WorldObjects
                 // fix me: in progress turn
                 //var targetDir = GetDirection(Location.ToGlobal(), target.Location.ToGlobal());
                 //Location.Rotate(targetDir);
-                //Console.WriteLine("Finished turning - " + turnTime + "s");
+                if (debug)
+                    Console.WriteLine("Finished turning - " + rotateDelay + "s");
             });
             actionChain.EnqueueChain();
             return rotateDelay;
@@ -224,6 +229,9 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void MoveTo(WorldObject target, float runRate = 1.0f)
         {
+            if (DebugMove)
+                Console.WriteLine($"{Name}.MoveTo({target.Name}, {runRate})");
+
             if (this is Player) return;
 
             var motion = new UniversalMotion(CurrentMotionState.Stance, target.Location, target.Guid);

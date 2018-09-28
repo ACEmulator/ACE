@@ -80,7 +80,7 @@ namespace ACE.Server.WorldObjects
                 GenerateWieldList();
                 GenerateWieldedTreasure();
 
-                EquipWieldedTreasure();
+                EquipInventoryItems();
             }
 
             Value = null; // Creatures don't have value. By setting this to null, it effectively disables the Value property. (Adding/Subtracting from null results in null)

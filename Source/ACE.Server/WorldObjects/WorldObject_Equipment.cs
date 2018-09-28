@@ -16,6 +16,12 @@ namespace ACE.Server.WorldObjects
             {
                 var wo = WorldObjectFactory.CreateNewWorldObject(item.WeenieClassId);
 
+                if (item.Palette > 0)
+                    wo.PaletteTemplate = item.Palette;
+
+                if (item.Shade > 0)
+                    wo.Shade = item.Shade;
+
                 if (item.StackSize > 0)
                     wo.StackSize = (ushort)item.StackSize;
 
