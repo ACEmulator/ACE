@@ -536,8 +536,8 @@ namespace ACE.Server.Managers
                     foreach (var s in sessions)
                         s.Tick();
 
-                    // Send the current time ticks to allow sessions to declare themselves bad
-                    Parallel.ForEach(sessions, s => s.TickInParallel(lastTickDuration));
+                    // The session TickInParallel processes pending actions and handles outgoing messages
+                    Parallel.ForEach(sessions, s => s.TickInParallel());
 
                     // Removes sessions in the NetworkTimeout state, including sessions that have reached a timeout limit.
                     var deadSessions = sessions.FindAll(s => s.State == Network.Enum.SessionState.NetworkTimeout);

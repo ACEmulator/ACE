@@ -125,7 +125,7 @@ namespace ACE.Server.Network
         /// <summary>
         /// This is run in parallel from our main loop.
         /// </summary>
-        public void TickInParallel(double lastTickDuration)
+        public void TickInParallel()
         {
             // Checks if the session has stopped responding.
             if (DateTime.UtcNow.Ticks >= Network.TimeoutTick)
@@ -134,7 +134,7 @@ namespace ACE.Server.Network
                 State = SessionState.NetworkTimeout;
             }
 
-            Network.Update(lastTickDuration);
+            Network.Update();
 
             // Live server seemed to take about 6 seconds. 4 seconds is nice because it has smooth animation, and saves the user 2 seconds every logoff
             // This could be made 0 for instant logoffs.

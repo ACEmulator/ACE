@@ -134,11 +134,8 @@ namespace ACE.Server.Network
         /// <summary>
         /// Checks if we should send the current bundle and then flushes all pending packets.
         /// </summary>
-        /// <param name="lastTickDuration">Amount of time that has passed for the last cycle.</param>
-        public void Update(double lastTickDuration)
+        public void Update()
         {
-            ConnectionData.ServerTime += lastTickDuration;
-
             currentBundles.Keys.ToList().ForEach(group =>
             {
                 var currentBundleLock = currentBundleLocks[group];

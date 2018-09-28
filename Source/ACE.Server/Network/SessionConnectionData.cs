@@ -11,14 +11,17 @@ namespace ACE.Server.Network
         public ISAAC IssacClient { get; }
         public ISAAC IssacServer { get; }
 
-        public double ServerTime { get; set; }
+        /// <summary>
+        /// This is just a wrapper around Timers.PortalYearTicks.<para />
+        /// In the future, we may want to consider removing this and referencing Timers.PortalYearTicks directly.
+        /// </summary>
+        public double ServerTime => Timers.PortalYearTicks;
 
         public SessionConnectionData()
         {
             IssacClient = new ISAAC(ISAAC.ClientSeed);
             IssacServer = new ISAAC(ISAAC.ServerSeed);
             PacketSequence = new UIntSequence(false);
-            ServerTime = Timers.PortalYearTicks;
         }
     }
 }
