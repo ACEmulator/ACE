@@ -95,7 +95,9 @@ namespace ACE.Server.WorldObjects
             UpdateVitalDelta(Stamina, -staminaCost);
 
             // TODO: Send correct damage source (weapon or self?)
-            DamageTarget(creature, null);
+            var weapon = GetEquippedMeleeWeapon();
+            if (weapon == null) return;
+            DamageTarget(creature, weapon);
 
             if (creature.Health.Current > 0 && GetCharacterOption(CharacterOption.AutoRepeatAttacks))
             {

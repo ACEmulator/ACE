@@ -750,11 +750,11 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Returns a randomized death message based on damage type
         /// </summary>
-        public virtual string GetDeathMessage(WorldObject killer, bool criticalHit = false)
+        public virtual string GetDeathMessage(WorldObject killer, DamageType damageType, bool criticalHit = false)
         {
             if (!criticalHit)
             {
-                var damageType = killer.GetDamageType();
+                //var damageType = killer.GetDamageType();
                 Strings.DeathMessages.TryGetValue(damageType, out var messages);
                 var idx = Physics.Common.Random.RollDice(0, messages.Count - 1);
                 return messages[idx];

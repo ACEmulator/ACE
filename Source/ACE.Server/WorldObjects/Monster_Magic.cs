@@ -1,12 +1,8 @@
 using System;
 using System.Linq;
-
-using ACE.Database;
 using ACE.Database.Models.Shard;
-using ACE.Database.Models.World;
-using ACE.DatLoader;
-using ACE.DatLoader.Entity;
 using ACE.Entity.Enum;
+using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Motion;
@@ -108,9 +104,7 @@ namespace ACE.Server.WorldObjects
         {
             NextAttackTime = DateTime.UtcNow.AddSeconds(MagicDelay);
 
-            var spellBase = GetCurrentSpellBase();
             var spell = GetCurrentSpell();
-
             //Console.WriteLine(spell.Name);
 
             var actionChain = new ActionChain();
@@ -131,46 +125,44 @@ namespace ACE.Server.WorldObjects
             if (AttackTarget == null) return;
 
             bool? resisted;
-            var spellBase = GetCurrentSpellBase();
             var spell = GetCurrentSpell();
 
-            var targetSelf = (spellBase.Bitfield & (uint)SpellBitfield.SelfTargeted) == 1;
+            var targetSelf = spell.Flags.HasFlag(SpellFlags.SelfTargeted);
             var target = targetSelf ? this : AttackTarget;
 
             var player = AttackTarget as Player;
-            var scale = SpellAttributes(player.Session.Account, spell.Id, out float castingDelay, out MotionCommand windUpMotion, out MotionCommand spellGesture);
 
-            switch (spellBase.School)
+            switch (spell.School)
             {
                 case MagicSchool.WarMagic:
 
-                    WarMagic(AttackTarget, spellBase, spell);
+                    WarMagic(AttackTarget, spell);
                     break;
 
                 case MagicSchool.LifeMagic:
 
-                    resisted = ResistSpell(target, spellBase);
+                    resisted = ResistSpell(target, spell);
                     if (!targetSelf && (resisted == true)) break;
                     if (resisted == null)
                     {
                         log.Error("Something went wrong with the Magic resistance check");
                         break;
                     }
-                    LifeMagic(target, spellBase, spell, out uint damage, out bool critical, out var msg);
-                    EnqueueBroadcast(new GameMessageScript(target.Guid, (PlayScript)spellBase.TargetEffect, scale));
+                    LifeMagic(target, spell, out uint damage, out bool critical, out var msg);
+                    EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
                     break;
 
                 case MagicSchool.CreatureEnchantment:
 
-                    resisted = ResistSpell(target, spellBase);
+                    resisted = ResistSpell(target, spell);
                     if (!targetSelf && (resisted == true)) break;
                     if (resisted == null)
                     {
                         log.Error("Something went wrong with the Magic resistance check");
                         break;
                     }
-                    CreatureMagic(target, spellBase, spell);
-                    EnqueueBroadcast(new GameMessageScript(target.Guid, (PlayScript)spellBase.TargetEffect, scale));
+                    CreatureMagic(target, spell);
+                    EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
                     break;
             }
         }
@@ -200,7 +192,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public float GetSpellMaxRange()
         {
-            var spell = GetCurrentSpellBase();
+            var spell = GetCurrentSpell();
             var skill = GetMagicSkillForRangeCheck();
 
             var maxRange = spell.BaseRangeConstant + skill * spell.BaseRangeMod;
@@ -215,15 +207,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public Spell GetCurrentSpell()
         {
-            return DatabaseManager.World.GetCachedSpell((uint)CurrentSpell.Spell);
-        }
-
-        /// <summary>
-        /// Returns the current SpellBase for the monster
-        /// </summary>
-        public SpellBase GetCurrentSpellBase()
-        {
-            return DatManager.PortalDat.SpellTable.Spells[(uint)CurrentSpell.Spell];
+            return new Spell(CurrentSpell.Spell);
         }
     }
 }

@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-
 using ACE.Database.Models.Shard;
 using ACE.DatLoader;
 using ACE.DatLoader.FileTypes;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Server.Entity;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 
@@ -196,39 +196,50 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Simplified player take damage function, only called for DoTs currently
         /// </summary>
-        public virtual void TakeDamageOverTime(WorldObject source, float amount)
+        public virtual void TakeDamageOverTime(float amount, DamageType damageType)
         {
             if (IsDead) return;
 
-            TakeDamage(source, amount);
+            TakeDamage(null, damageType, amount);
 
             // splatter effects
-            EnqueueBroadcast(new GameMessageSound(Guid, Sound.HitFlesh1, 0.5f));
-            var playerSource = source as Player;
-            if (playerSource != null)
+            var hitSound = new GameMessageSound(Guid, Sound.HitFlesh1, 0.5f);
+            //var splatter = (PlayScript)Enum.Parse(typeof(PlayScript), "Splatter" + playerSource.GetSplatterHeight() + playerSource.GetSplatterDir(this));
+            var splatter = new GameMessageScript(Guid, damageType == DamageType.Nether ? ACE.Entity.Enum.PlayScript.HealthDownVoid : ACE.Entity.Enum.PlayScript.DirtyFightingDamageOverTime);
+            EnqueueBroadcast(hitSound, splatter);
+
+            if (Health.Current <= 0) return;
+
+            if (amount >= Health.MaxValue * 0.25f)
             {
-                //var splatter = (PlayScript)Enum.Parse(typeof(PlayScript), "Splatter" + playerSource.GetSplatterHeight() + playerSource.GetSplatterDir(this));
-                //EnqueueBroadcast(new GameMessageScript(Guid, splatter));
-                EnqueueBroadcast(new GameMessageScript(Guid, ACE.Entity.Enum.PlayScript.DirtyFightingDamageOverTime));
-
-                playerSource.Session.Network.EnqueueSend(new GameEventUpdateHealth(playerSource.Session, Guid.Full, (float)Health.Current / Health.MaxValue));
+                var painSound = (Sound)Enum.Parse(typeof(Sound), "Wound" + Physics.Common.Random.RollDice(1, 3), true);
+                EnqueueBroadcast(new GameMessageSound(Guid, painSound, 1.0f));
             }
+        }
 
-            if (Health.Current > 0)
+        /// <summary>
+        /// Notifies the damage over time (DoT) source player of the tick damage amount
+        /// </summary>
+        public void TakeDamageOverTime_NotifySource(Player source, DamageType damageType, float amount)
+        {
+            var iAmount = (uint)Math.Round(amount);
+
+            // damage text notification
+            GameMessageSystemChat text = null;
+
+            if (damageType == DamageType.Nether)
             {
-                if (amount >= Health.MaxValue * 0.25f)
-                {
-                    var painSound = (Sound)Enum.Parse(typeof(Sound), "Wound" + Physics.Common.Random.RollDice(1, 3), true);
-                    EnqueueBroadcast(new GameMessageSound(Guid, painSound, 1.0f));
-                }
-
-                // notify player attacker?
-                if (playerSource != null)
-                {
-                    var text = new GameMessageSystemChat($"You bleed {Name} for {amount} points of periodic damage!", ChatMessageType.CombatSelf);
-                    playerSource.Session.Network.EnqueueSend(text);
-                }
+                string verb = null, plural = null;
+                var percent = amount / Health.MaxValue;
+                Strings.GetAttackVerb(damageType, percent, ref verb, ref plural);
+                text = new GameMessageSystemChat($"You {verb} {Name} for {iAmount} points of periodic nether damage!", ChatMessageType.Magic);
             }
+            else
+                text = new GameMessageSystemChat($"You bleed {Name} for {iAmount} points of periodic damage!", ChatMessageType.CombatSelf);
+
+            var updateHealth = new GameEventUpdateHealth(source.Session, Guid.Full, (float)Health.Current / Health.MaxValue);
+
+            source.Session.Network.EnqueueSend(text, updateHealth);
         }
 
         /// <summary>
@@ -236,26 +247,43 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         /// <param name="source">The attacker / source of damage</param>
         /// <param name="amount">The amount of damage rounded</param>
-        public virtual void TakeDamage(WorldObject source, float amount, bool crit = false)
+        public virtual void TakeDamage(WorldObject source, DamageType damageType, float amount, bool crit = false)
         {
             var tryDamage = (uint)Math.Round(amount);
             var damage = (uint)-UpdateVitalDelta(Health, (int)-tryDamage);
 
             // TODO: update monster stamina?
 
-            DamageHistory.Add(source, damage);
+            // source should only be null for combined DoT ticks from multiple sources
+            if (source != null)
+                DamageHistory.Add(source, damageType, damage);
 
             if (Health.Current <= 0)
             {
                 OnDeath();
                 Die();
 
-                var player = source as Player;
-                if (player != null)
+                // this should only probably go to the last damager
+                var lastDamager = DamageHistory.LastDamager as Player;
+                if (lastDamager != null)
                 {
-                    var deathMessage = GetDeathMessage(source, crit);
-                    player.Session.Network.EnqueueSend(new GameMessageSystemChat(string.Format(deathMessage, Name), ChatMessageType.Broadcast));
-                    player.EarnXP((long)XpOverride);    // TODO: split xp between players in damage history?
+                    var deathMessage = GetDeathMessage(lastDamager, damageType, crit);
+                    lastDamager.Session.Network.EnqueueSend(new GameMessageSystemChat(string.Format(deathMessage, Name), ChatMessageType.Broadcast));
+                }
+
+                // split xp between players in damage history?
+                foreach (var kvp in DamageHistory.TotalDamage)
+                {
+                    var damager = kvp.Key;
+                    var totalDamage = kvp.Value;
+
+                    var playerDamager = damager as Player;
+                    if (playerDamager == null) continue;
+
+                    var damagePercent = totalDamage / Health.MaxValue;
+                    var totalXP = (XpOverride ?? 0) * damagePercent;
+
+                    playerDamager.EarnXP((long)Math.Round(totalXP));
                 }
             }
         }

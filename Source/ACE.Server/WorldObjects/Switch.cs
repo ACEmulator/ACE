@@ -130,16 +130,13 @@ namespace ACE.Server.WorldObjects
                 if (worldObject is Player)
                 {
                     var player = worldObject as Player;
-                    if (Usable.HasValue && Usable == ACE.Entity.Enum.Usable.ViewedRemote && Spell.HasValue && SpellDID.HasValue)
+                    if (Usable.HasValue && Usable == ACE.Entity.Enum.Usable.ViewedRemote && SpellDID.HasValue)
                     {
                         //taken from Gem.UseItem
-                        var spellTable = DatManager.PortalDat.SpellTable;
-                        if (!spellTable.Spells.ContainsKey((uint)SpellDID)) return;
-                        var spellBase = DatManager.PortalDat.SpellTable.Spells[(uint)SpellDID];
-                        var spell = DatabaseManager.World.GetCachedSpell((uint)SpellDID);
+                        var spell = new Server.Entity.Spell((uint)SpellDID);
                         EnchantmentStatus enchantmentStatus = default(EnchantmentStatus);
-                        player.PlayParticleEffect((PlayScript)spellBase.TargetEffect, player.Guid);
-                        LifeMagic(player, spellBase, spell, out uint damage, out bool critical, out enchantmentStatus);
+                        player.PlayParticleEffect(spell.TargetEffect, player.Guid);
+                        LifeMagic(player, spell, out uint damage, out bool critical, out enchantmentStatus);
                         //player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session));
                         player.SendUseDoneEvent();
                         return;

@@ -61,13 +61,7 @@ namespace ACE.Server.WorldObjects
         {
             if (UseCreateContractId == null)
             {
-                var spellTable = DatManager.PortalDat.SpellTable;
-                if (!spellTable.Spells.ContainsKey((uint)SpellDID))
-                    return;
-
-                var spellBase = DatManager.PortalDat.SpellTable.Spells[(uint)SpellDID];
-                var spell = DatabaseManager.World.GetCachedSpell((uint)SpellDID);
-
+                //var spell = new Spell((uint)SpellDID);
 /*
                 ////These if statements are to catch spells with an apostrophe in the dat file which throws off the client in reading it from the dat.
                 if (spell.MetaSpellId == 3810)
@@ -79,7 +73,6 @@ namespace ACE.Server.WorldObjects
                 if (spell.MetaSpellId == 4024)
                     castMessage = "The gem casts Asheron's Lesser Benediction on you";
 */
-
                 player.CreateItemSpell(Guid, (uint)SpellDID);
 
                 ////session.Player.HandleActionRemoveItemFromInventory(Guid.Full, (uint)ContainerId, 1); This is commented out to aid in testing. Will be uncommented later.
@@ -138,7 +131,7 @@ namespace ACE.Server.WorldObjects
                 //const uint spellCategory = 0x8000; // FIXME: Not sure where we get this from
                 var spellBase = new SpellBase(0, CooldownDuration.Value, 0, -666);
                 // cooldown not being used in network packet?
-                var gem = new Enchantment(player, player.Guid, spellBase, spellBase.Duration, layer, /*CooldownId.Value,*/ (uint)EnchantmentTypeFlags.Cooldown);
+                var gem = new Enchantment(player, player.Guid, spellBase, spellBase.Duration, layer, /*CooldownId.Value,*/ EnchantmentMask.Cooldown);
                 player.Session.Network.EnqueueSend(new GameEventMagicUpdateEnchantment(player.Session, gem));
 
                 // Ok this was not known to us, so we used the contract - now remove it from inventory.

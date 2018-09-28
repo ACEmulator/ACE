@@ -1,7 +1,5 @@
 using System;
 using System.Numerics;
-using ACE.DatLoader;
-using ACE.DatLoader.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
@@ -652,13 +650,14 @@ namespace ACE.Server.WorldObjects
             var spellID = GetCreatureSkill(Skill.DirtyFighting).AdvancementClass == SkillAdvancementClass.Specialized ?
                 Network.Enum.Spell.DF_Specialized_DefenseDebuff : Network.Enum.Spell.DF_Trained_DefenseDebuff;
 
-            var spellBase = DatManager.PortalDat.SpellTable.Spells[(uint)spellID];
-            var enchantment = new Enchantment(target, Guid, (uint)spellID, 20, 1, (uint)EnchantmentMask.CreatureSpells);
+            var spell = new Spell(spellID);
+
+            var enchantment = new Enchantment(target, Guid, (uint)spellID, 20, 1, EnchantmentMask.CreatureSpells);
 
             target.EnchantmentManager.Add(enchantment, this);
             target.EnqueueBroadcast(new GameMessageScript(target.Guid, ACE.Entity.Enum.PlayScript.DirtyFightingDefenseDebuff));
 
-            FightDirty_SendMessage(target, spellBase);
+            FightDirty_SendMessage(target, spell);
         }
 
         /// <summary>
@@ -671,15 +670,15 @@ namespace ACE.Server.WorldObjects
             var spellID = GetCreatureSkill(Skill.DirtyFighting).AdvancementClass == SkillAdvancementClass.Specialized ?
                 Network.Enum.Spell.DF_Specialized_Bleed : Network.Enum.Spell.DF_Trained_Bleed;
 
-            var spellBase = DatManager.PortalDat.SpellTable.Spells[(uint)spellID];
-            var enchantment = new Enchantment(target, Guid, (uint)spellID, 20, 1, (uint)EnchantmentMask.CreatureSpells);
+            var spell = new Spell(spellID);
+            var enchantment = new Enchantment(target, Guid, (uint)spellID, 20, 1, EnchantmentMask.CreatureSpells);
 
             target.EnchantmentManager.Add(enchantment, this);
 
             // only send if not already applied?
             target.EnqueueBroadcast(new GameMessageScript(target.Guid, ACE.Entity.Enum.PlayScript.DirtyFightingDamageOverTime));
 
-            FightDirty_SendMessage(target, spellBase);
+            FightDirty_SendMessage(target, spell);
         }
 
         /// <summary>
@@ -692,33 +691,33 @@ namespace ACE.Server.WorldObjects
             var spellID = GetCreatureSkill(Skill.DirtyFighting).AdvancementClass == SkillAdvancementClass.Specialized ?
                 Network.Enum.Spell.DF_Specialized_AttackDebuff : Network.Enum.Spell.DF_Trained_AttackDebuff;
 
-            var spellBase = DatManager.PortalDat.SpellTable.Spells[(uint)spellID];
-            var enchantment = new Enchantment(target, Guid, (uint)spellID, 20, 1, (uint)EnchantmentMask.CreatureSpells);
+            var spell = new Spell(spellID);
+            var enchantment = new Enchantment(target, Guid, (uint)spellID, 20, 1, EnchantmentMask.CreatureSpells);
 
             target.EnchantmentManager.Add(enchantment, this);
             target.EnqueueBroadcast(new GameMessageScript(target.Guid, ACE.Entity.Enum.PlayScript.DirtyFightingAttackDebuff));
 
-            FightDirty_SendMessage(target, spellBase);
+            FightDirty_SendMessage(target, spell);
 
             // healing resistance rating
             spellID = GetCreatureSkill(Skill.DirtyFighting).AdvancementClass == SkillAdvancementClass.Specialized ?
                 Network.Enum.Spell.DF_Specialized_HealingDebuff : Network.Enum.Spell.DF_Trained_HealingDebuff;
 
-            spellBase = DatManager.PortalDat.SpellTable.Spells[(uint)spellID];
-            enchantment = new Enchantment(target, Guid, (uint)spellID, 20, 1, (uint)EnchantmentMask.CreatureSpells);
+            spell = new Spell(spellID);
+            enchantment = new Enchantment(target, Guid, (uint)spellID, 20, 1, EnchantmentMask.CreatureSpells);
 
             target.EnchantmentManager.Add(enchantment, this);
             target.EnqueueBroadcast(new GameMessageScript(target.Guid, ACE.Entity.Enum.PlayScript.DirtyFightingHealDebuff));
 
-            FightDirty_SendMessage(target, spellBase);
+            FightDirty_SendMessage(target, spell);
         }
 
-        public void FightDirty_SendMessage(Creature target, SpellBase spellBase)
+        public void FightDirty_SendMessage(Creature target, Spell spell)
         {
             // Dirty Fighting! <Player> delivers a <sic> Unbalancing Blow to <target>!
             //var article = spellBase.Name.StartsWithVowel() ? "an" : "a";
 
-            var msg = new GameMessageSystemChat($"Dirty Fighting! {Name} delivers a {spellBase.Name} to {target.Name}!", ChatMessageType.Combat);
+            var msg = new GameMessageSystemChat($"Dirty Fighting! {Name} delivers a {spell.Name} to {target.Name}!", ChatMessageType.Combat);
 
             var playerSource = this as Player;
             var playerTarget = target as Player;

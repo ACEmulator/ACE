@@ -1,37 +1,24 @@
 using System;
-using System.Numerics;
-using ACE.Database;
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
-using ACE.DatLoader;
-using ACE.DatLoader.FileTypes;
-using ACE.DatLoader.Entity;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
-using ACE.Server.Network.Enum;
+using ACE.Server.Managers;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
-using ACE.Server.Managers;
-
-using Spell = ACE.Database.Models.World.Spell;
 
 namespace ACE.Server.WorldObjects
 {
     public class SpellProjectile : WorldObject
     {
-        private uint spellId;
-        private uint lifeProjectileDamage;
-
-        public float DistanceToTarget { get; set; }
-        public uint SpellId { get => spellId; private set => spellId = value; }
-        public uint LifeProjectileDamage { get => lifeProjectileDamage; set => lifeProjectileDamage = value; }
-        public float PlayscriptIntensity { get; set; }
+        public Spell Spell;
         public ProjectileSpellType SpellType { get; set; }
 
-        public ACE.Entity.Position SpawnPos;
-        public SpellBase SpellBase;
+        public Position SpawnPos;
+        public float DistanceToTarget { get; set; }
+        public uint LifeProjectileDamage { get; set; }
 
         /// <summary>
         /// A new biota be created taking all of its values from weenie.
@@ -62,12 +49,10 @@ namespace ACE.Server.WorldObjects
         /// <param name="spellId"></param>
         public void Setup(uint spellId)
         {
-            InitPhysicsObj();
-
-            SpellId = spellId;
-
+            Spell = new Spell(spellId);
             SpellType = GetProjectileSpellType(spellId);
-            SpellBase = DatManager.PortalDat.SpellTable.Spells[SpellId];
+
+            InitPhysicsObj();
 
             // Runtime changes to default state
             ReportCollisions = true;
@@ -83,8 +68,6 @@ namespace ACE.Server.WorldObjects
             {
                 PhysicsObj.DefaultScript = ACE.Entity.Enum.PlayScript.ProjectileCollision;
                 PhysicsObj.DefaultScriptIntensity = 1.0f;
-                var spellLevel = CalculateSpellLevel(SpellBase);
-                PlayscriptIntensity = GetProjectileScriptIntensity(SpellType, spellLevel);
             }
 
             // Some wall spells don't have scripted collisions
@@ -99,11 +82,7 @@ namespace ACE.Server.WorldObjects
                 ObjScale = null;
 
             if (SpellType == ProjectileSpellType.Ring)
-            {
                 ScriptedCollision = false;
-                var spellLevel = CalculateSpellLevel(SpellBase);
-                PlayscriptIntensity = GetProjectileScriptIntensity(SpellType, spellLevel);
-            }
 
             // Whirling Blade spells get omega values and "align path" turned off which
             // creates the nice swirling animation
@@ -126,37 +105,37 @@ namespace ACE.Server.WorldObjects
             Wall
         }
 
-        public static ProjectileSpellType GetProjectileSpellType(uint SpellId)
+        public static ProjectileSpellType GetProjectileSpellType(uint spellID)
         {
-            var WeenieClassId = DatabaseManager.World.GetCachedSpell(SpellId).Wcid;
-            if (WeenieClassId == null)
+            var spell = new Spell(spellID);
+
+            if (spell.Wcid == 0)
                 return ProjectileSpellType.Undef;
 
-            if (WeenieClassId >= 7262 && WeenieClassId <= 7268)
+            // TODO: improve readability
+            if ((spell.Wcid >= 7262 && spell.Wcid <= 7268) || (spellID >= 5345 && spellID <= 5348) || (spellID >= 5357 && spellID <= 5360))
             {
                 return ProjectileSpellType.Streak;
             }
-            else if (WeenieClassId >= 7269 && WeenieClassId <= 7275)
+            else if (spell.Wcid >= 7269 && spell.Wcid <= 7275 || spell.Wcid == 43233 || spellID == 6320)
             {
                 return ProjectileSpellType.Ring;
             }
-            else if (WeenieClassId >= 7276 && WeenieClassId <= 7282 || WeenieClassId == 23144)
+            else if (spell.Wcid >= 7276 && spell.Wcid <= 7282 || spell.Wcid == 23144)
             {
                 return ProjectileSpellType.Wall;
             }
-            else if (WeenieClassId >= 20973 && WeenieClassId <= 20979)
+            else if ((spell.Wcid >= 20973 && spell.Wcid <= 20979) || (spellID >= 5362 && spellID <= 5369))
             {
                 return ProjectileSpellType.Arc;
             }
-            else if (WeenieClassId == 1499 || WeenieClassId == 1503 || (WeenieClassId >= 1633 && WeenieClassId <= 1667))
+            else if (spell.Wcid == 1499 || spell.Wcid == 1503 || (spell.Wcid >= 1633 && spell.Wcid <= 1667) || (spellID >= 5395 && spellID <= 5402) || (spellID >= 5544 && spellID <= 5551))
             {
-                var spreadAngle = DatabaseManager.World.GetCachedSpell(SpellId).SpreadAngle;
-                var dimsOriginX = DatabaseManager.World.GetCachedSpell(SpellId).DimsOriginX;
-                if (spreadAngle > 0)
+                if (spell.SpreadAngle > 0)
                 {
                     return ProjectileSpellType.Blast;
                 }
-                else if (dimsOriginX > 1)
+                else if (spell.DimsOrigin.X > 1)
                 {
                     return ProjectileSpellType.Volley;
                 }
@@ -166,10 +145,13 @@ namespace ACE.Server.WorldObjects
                 }
             }
 
+            if (spell.School == MagicSchool.VoidMagic)
+                return ProjectileSpellType.Bolt;
+
             return ProjectileSpellType.Undef;
         }
 
-        private float GetProjectileScriptIntensity(ProjectileSpellType spellType, SpellLevel spellLevel)
+        public float GetProjectileScriptIntensity(ProjectileSpellType spellType)
         {
             if (spellType == ProjectileSpellType.Wall)
             {
@@ -177,28 +159,30 @@ namespace ACE.Server.WorldObjects
             }
             if (spellType == ProjectileSpellType.Ring)
             {
-                if (spellLevel == SpellLevel.Six)
+                if (Spell.Level == 6)
                     return 0.4f;
-                if (spellLevel == SpellLevel.Seven)
+                if (Spell.Level == 7)
                     return 1.0f;
             }
 
             // Bolt, Blast, Volley, Streak and Arc all seem to use this scale
-            switch (spellLevel)
+            // TODO: should this be based on spell level, or power of first scarab?
+            // ie. can this use Spell.Formula.ScarabScale?
+            switch (Spell.Level)
             {
-                case SpellLevel.One:
+                case 1:
                     return 0f;
-                case SpellLevel.Two:
+                case 2:
                     return 0.2f;
-                case SpellLevel.Three:
+                case 3:
                     return 0.4f;
-                case SpellLevel.Four:
+                case 4:
                     return 0.6f;
-                case SpellLevel.Five:
+                case 5:
                     return 0.8f;
-                case SpellLevel.Six:
-                case SpellLevel.Seven:
-                case SpellLevel.Eight:
+                case 6:
+                case 7:
+                case 8:
                     return 1.0f;
                 default:
                     return 0f;
@@ -207,8 +191,7 @@ namespace ACE.Server.WorldObjects
 
         public void ProjectileImpact()
         {
-            SpellTable spellTable = DatManager.PortalDat.SpellTable;
-            SpellBase spell = spellTable.Spells[spellId];
+            //Console.WriteLine($"{Name}.ProjectileImpact()");
 
             ActionChain selfDestructChain = new ActionChain();
             selfDestructChain.AddAction(this, () =>
@@ -223,7 +206,7 @@ namespace ACE.Server.WorldObjects
                 PhysicsObj.set_active(false);
 
                 EnqueueBroadcastPhysicsState();
-                EnqueueBroadcast(new GameMessageScript(Guid, ACE.Entity.Enum.PlayScript.Explode, PlayscriptIntensity));
+                EnqueueBroadcast(new GameMessageScript(Guid, ACE.Entity.Enum.PlayScript.Explode, GetProjectileScriptIntensity(SpellType)));
             });
             selfDestructChain.AddDelaySeconds(5.0);
             selfDestructChain.AddAction(this, () => LandblockManager.RemoveObject(this));
@@ -236,23 +219,18 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public override void OnCollideEnvironment()
         {
-            //Console.WriteLine("SpellProjectile.OnCollideEnvironment()");
+            //Console.WriteLine($"{Name}.OnCollideEnvironment()");
             ProjectileImpact();
         }
 
         public override void OnCollideObject(WorldObject _target)
         {
-            //Console.WriteLine("SpellProjectile.OnCollideObject(" + _target.Name + ")");
-
-            SpellTable spellTable = DatManager.PortalDat.SpellTable;
-            SpellBase spell = spellTable.Spells[spellId];
-
-            Spell spellStatMod = DatabaseManager.World.GetCachedSpell(spellId);
+            //Console.WriteLine($"{Name}.OnCollideObject({_target.Name})");
 
             var player = ProjectileSource as Player;
 
             if (player != null)
-                player.LastHitSpellProjectile = spell;
+                player.LastHitSpellProjectile = Spell;
 
             // ensure valid creature target
             // non-target objects will be excluded beforehand from collision detection
@@ -265,31 +243,150 @@ namespace ACE.Server.WorldObjects
 
             ProjectileImpact();
 
-            var checkPKStatusVsTarget = CheckPKStatusVsTarget(player, (target as Player), spell);
-            if (checkPKStatusVsTarget != null)
+            // if player target, ensure matching PK status
+            var targetPlayer = target as Player;
+
+            var checkPKStatusVsTarget = CheckPKStatusVsTarget(player, targetPlayer, Spell);
+            if (checkPKStatusVsTarget != null && checkPKStatusVsTarget == false)
             {
-                if (checkPKStatusVsTarget == false)
-                {
-                    player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.InvalidPkStatus));
-                    return;
-                }
+                player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.InvalidPkStatus));
+                return;
             }
 
             var critical = false;
-            var damage = MagicDamageTarget(ProjectileSource as Creature, target, spell, spellStatMod, out DamageType damageType, ref critical, LifeProjectileDamage);
-
-            var targetPlayer = target as Player;
+            var damage = CalculateDamage(ProjectileSource, target, ref critical);
 
             // null damage -> target resisted; damage of -1 -> target already dead
-            if (damage != null && damage != -1)
+            if (damage == null || damage == -1) return;
+
+            // handle void magic DoTs:
+            // instead of instant damage, add DoT to target's enchantment registry
+            if (Spell.School == MagicSchool.VoidMagic && Spell.Duration > 0)
+            {
+                var dot = ProjectileSource.CreateEnchantment(target, ProjectileSource, Spell);
+                if (dot.message != null && player != null)
+                    player.Session.Network.EnqueueSend(dot.message);
+
+                // corruption / corrosion playscript?
+                //target.EnqueueBroadcast(new GameMessageScript(target.Guid, ACE.Entity.Enum.PlayScript.HealthDownVoid));
+                //target.EnqueueBroadcast(new GameMessageScript(target.Guid, ACE.Entity.Enum.PlayScript.DirtyFightingDefenseDebuff));
+            }
+            else
+            {
+                DamageTarget(target, damage, critical);
+            }
+
+            if (player != null)
+                Proficiency.OnSuccessUse(player, player.GetCreatureSkill(Spell.School), Spell.PowerMod);
+
+            if (player != null && targetPlayer == null)
+                player.OnAttackMonster(target);
+        }
+
+        /// <summary>
+        /// Calculates the damage for a spell projectile
+        /// Used by war magic, void magic, and life magic projectiles
+        /// </summary>
+        public double? CalculateDamage(WorldObject _source, Creature target, ref bool criticalHit)
+        {
+            var source = _source as Creature;
+            var sourcePlayer = source as Player;
+            var targetPlayer = target as Player;
+
+            if (source == null || targetPlayer != null && targetPlayer.Invincible == true)
+                return null;
+
+            // target already dead?
+            if (target.Health.Current <= 0)
+                return -1;
+
+            double damageBonus = 0.0f, warSkillBonus = 0.0f, finalDamage = 0.0f;
+
+            var resistanceType = GetResistanceType(Spell.DamageType);
+
+            var resisted = source.ResistSpell(target, Spell);
+            if (resisted != null && resisted == true)
+                return null;
+
+            // critical hit
+            var critical = GetWeaponMagicCritFrequencyModifier(source);
+            if (Physics.Common.Random.RollDice(0.0f, 1.0f) < critical)
+                criticalHit = true;
+
+            bool isPVP = sourcePlayer != null && targetPlayer != null;
+
+            var elementalDmgBonus = GetCasterElementalDamageModifier(source, target, Spell.DamageType);
+
+            // Possible 2x + damage bonus for the slayer property
+            var slayerBonus = GetWeaponCreatureSlayerModifier(source, target);
+
+            // life magic projectiles: ie., martyr's hecatomb
+            if (Spell.School == MagicSchool.LifeMagic)
+            {
+                var lifeMagicDamage = LifeProjectileDamage * Spell.DamageRatio;
+
+                // could life magic projectiles crit?
+                // if so, did they use the same 1.5x formula as war magic, instead of 2.0x?
+                if (criticalHit)
+                    damageBonus = lifeMagicDamage * 0.5f * GetWeaponCritMultiplierModifier(source);
+
+                finalDamage = (lifeMagicDamage + damageBonus) * elementalDmgBonus * slayerBonus;
+                return finalDamage;
+            }
+            // war magic projectiles (and void currently)
+            else
+            {
+                if (criticalHit)
+                {
+                    if (isPVP) // PvP: 50% of the MIN damage added to normal damage roll
+                        damageBonus = Spell.MinDamage * 0.5f;
+                    else   // PvE: 50% of the MAX damage added to normal damage roll
+                        damageBonus = Spell.MaxDamage * 0.5f;
+
+                    damageBonus *= GetWeaponCritMultiplierModifier(source);
+                }
+
+                /* War Magic skill-based damage bonus
+                 * http://acpedia.org/wiki/Announcements_-_2002/08_-_Atonement#Letter_to_the_Players
+                 */
+                if (sourcePlayer != null && Spell.School == MagicSchool.WarMagic)
+                {
+                    var warSkill = source.GetCreatureSkill(Spell.School).Current;
+                    if (warSkill > Spell.Power)
+                    {
+                        // Bonus clamped to a maximum of 50%
+                        var percentageBonus = Math.Clamp((warSkill - Spell.Power) / 100.0f, 0.0f, 0.5f);
+                        warSkillBonus = Spell.MinDamage * percentageBonus;
+                    }
+                }
+                var baseDamage = Physics.Common.Random.RollDice(Spell.MinDamage, Spell.MaxDamage);
+
+                finalDamage = baseDamage + damageBonus + warSkillBonus;
+                finalDamage *= target.GetNaturalResistance(resistanceType, GetWeaponResistanceModifier(source, Spell.DamageType));
+
+                return finalDamage;
+            }
+        }
+
+        /// <summary>
+        /// Called for a spell projectile to damage its target
+        /// </summary>
+        public void DamageTarget(WorldObject _target, double? damage, bool critical)
+        {
+            var player = ProjectileSource as Player;
+
+            var target = _target as Creature;
+            var targetPlayer = _target as Player;
+
             {
                 uint amount;
                 var percent = 0.0f;
                 var sneakAttackMod = 1.0f;
 
-                if (spell.School == MagicSchool.LifeMagic && (spell.Name.Contains("Blight") || spell.Name.Contains("Tenacity")))
+                // handle life projectiles for stamina / mana
+                if (Spell.School == MagicSchool.LifeMagic && (Spell.Name.Contains("Blight") || Spell.Name.Contains("Tenacity")))
                 {
-                    if (spell.Name.Contains("Blight"))
+                    if (Spell.Name.Contains("Blight"))
                     {
                         percent = (float)damage / targetPlayer.Mana.MaxValue;
                         amount = (uint)-target.UpdateVitalDelta(target.Mana, (int)-Math.Round(damage.Value));
@@ -307,20 +404,26 @@ namespace ACE.Server.WorldObjects
                     if (player != null)
                     {
                         // TODO: use target direction vs. projectile position, instead of player position
+                        // could sneak attack be applied to void DoTs?
                         sneakAttackMod = player.GetSneakAttackMod(target);
                         //Console.WriteLine("Magic sneak attack:  + sneakAttackMod);
                         damage *= sneakAttackMod;
                     }
 
+                    // DR / DRR applies for magic too?
+                    var damageRatingMod = Creature.GetRatingMod(ProjectileSource.EnchantmentManager.GetDamageRating());
+                    var damageResistRatingMod = Creature.GetNegativeRatingMod(target.EnchantmentManager.GetDamageResistRating());
+                    damage *= damageRatingMod * damageResistRatingMod;
+
                     percent = (float)damage / target.Health.MaxValue;
                     amount = (uint)-target.UpdateVitalDelta(target.Health, (int)-Math.Round(damage.Value));
-                    target.DamageHistory.Add(ProjectileSource, amount);
+                    target.DamageHistory.Add(ProjectileSource, Spell.DamageType, amount);
                 }
 
                 string verb = null, plural = null;
-                Strings.DeathMessages.TryGetValue(damageType, out var messages);
-                Strings.GetAttackVerb(damageType, percent, ref verb, ref plural);
-                var type = damageType.GetName().ToLower();
+                Strings.DeathMessages.TryGetValue(Spell.DamageType, out var messages);
+                Strings.GetAttackVerb(Spell.DamageType, percent, ref verb, ref plural);
+                var type = Spell.DamageType.GetName().ToLower();
 
                 amount = (uint)Math.Round(damage.Value);    // full amount for debugging
 
@@ -350,32 +453,39 @@ namespace ACE.Server.WorldObjects
                     if (targetPlayer != null)
                         targetPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"{critMsg}{sneakMsg}{ProjectileSource.Name} {plural} you for {amount} points of {type} damage!", ChatMessageType.Magic));
                 }
-
-                if (player != null)
-                    Proficiency.OnSuccessUse(player, player.GetCreatureSkill(spell.School), Math.Max(25, spell.Power));
             }
-            else
-            {
-                if (damage == -1)
-                    return;
-
-                ProjectileSource.EnqueueBroadcast(new GameMessageSound(ProjectileSource.Guid, Sound.ResistSpell, 1.0f));
-
-                if (player != null)
-                    player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{target.Name} resists {spell.Name}", ChatMessageType.Magic));
-
-                if (targetPlayer != null)
-                {
-                    Proficiency.OnSuccessUse(targetPlayer, targetPlayer.GetCreatureSkill(Skill.MagicDefense), (ProjectileSource as Creature).GetCreatureSkill(spell.School).Current);
-                    targetPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"You resist {ProjectileSource.Name}'s {spell.Name}", ChatMessageType.Magic));
-                }
-            }
-
-            // also called on resist
-            if (player != null && targetPlayer == null)
-                player.OnAttackMonster(target);
         }
 
+        private static ResistanceType GetResistanceType(DamageType damageType)
+        {
+            switch (damageType)
+            {
+                case DamageType.Slash:
+                    return ResistanceType.Slash;
+                case DamageType.Pierce:
+                    return ResistanceType.Pierce;
+                case DamageType.Bludgeon:
+                    return ResistanceType.Bludgeon;
+                case DamageType.Fire:
+                    return ResistanceType.Fire;
+                case DamageType.Cold:
+                    return ResistanceType.Cold;
+                case DamageType.Acid:
+                    return ResistanceType.Acid;
+                case DamageType.Electric:
+                    return ResistanceType.Electric;
+                case DamageType.Nether:
+                    return ResistanceType.Nether;
+                case DamageType.Health:
+                    return ResistanceType.HealthDrain;
+                case DamageType.Stamina:
+                    return ResistanceType.StaminaDrain;
+                case DamageType.Mana:
+                    return ResistanceType.ManaDrain;
+                default:
+                    return ResistanceType.Undef;
+            }
+        }
 
         /// <summary>
         /// Sets the physics state for a launched projectile

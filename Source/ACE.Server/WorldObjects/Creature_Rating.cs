@@ -18,6 +18,14 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
+        /// For implicitly negative ratings, ie. damage resistance
+        /// </summary>
+        public static float GetNegativeRatingMod(int rating)
+        {
+            return GetRatingMod(-rating);
+        }
+
+        /// <summary>
         /// Returns a 1.xx rating modifier
         /// </summary>
         public static float GetPositiveRating(int rating)
@@ -156,6 +164,14 @@ namespace ACE.Server.WorldObjects
                 return (int)Math.Round(mod * 100 - 100);
             else
                 return (int)Math.Round(-100 / mod + 100);
+        }
+
+        /// <summary>
+        /// Returns a modifier to an implicitly negative rating (ie. damage resistance)
+        /// </summary>
+        public static int NegativeModToRating(float mod)
+        {
+            return -ModToRating(mod);
         }
 
         /// <summary>
