@@ -379,8 +379,10 @@ namespace ACE.Server.WorldObjects
             var radsum = PhysicsObj.GetPhysicsRadius() + SightObj.GetPhysicsRadius();
             startPos.Frame.Origin += dir * radsum;
 
-            // perform line of sight test
             SightObj.CurCell = PhysicsObj.CurCell;
+            SightObj.ProjectileTarget = wo.PhysicsObj;
+
+            // perform line of sight test
             var transition = SightObj.transition(startPos, targetPos, false);
             if (transition == null) return false;
 
@@ -678,9 +680,14 @@ namespace ACE.Server.WorldObjects
             proj.OnCollideEnvironment();
         }
 
-        public void EnqueueBroadcastMotion(UniversalMotion motion)
+        public void EnqueueBroadcastMotion(UniversalMotion motion, float? maxRange = null)
         {
-            EnqueueBroadcast(new GameMessageUpdateMotion(Guid, Sequences.GetCurrentSequence(SequenceType.ObjectInstance), Sequences, motion));
+            var msg = new GameMessageUpdateMotion(Guid, Sequences.GetCurrentSequence(SequenceType.ObjectInstance), Sequences, motion);
+
+            if (maxRange == null)
+                EnqueueBroadcast(msg);
+            else
+                EnqueueBroadcast(msg, maxRange.Value);
         }
 
         public void ApplyVisualEffects(PlayScript effect)
@@ -949,7 +956,7 @@ namespace ACE.Server.WorldObjects
         /// adds to the physics animation system, and broadcasts to nearby players
         /// </summary>
         /// <returns>The amount it takes to execute the motion</returns>
-        public float ExecuteMotion(UniversalMotion motion, bool sendClient = true)
+        public float ExecuteMotion(UniversalMotion motion, bool sendClient = true, float? maxRange = null)
         {
             var motionCommand = MotionCommand.Invalid;
 
@@ -979,7 +986,7 @@ namespace ACE.Server.WorldObjects
 
             // broadcast to nearby players
             if (sendClient)
-                EnqueueBroadcastMotion(motion);
+                EnqueueBroadcastMotion(motion, maxRange);
 
             return animLength;
         }

@@ -100,7 +100,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public float SwitchCombatStyles()
         {
-            if (CurrentMotionState.Stance == MotionStance.NonCombat)
+            if (CurrentMotionState.Stance == MotionStance.NonCombat || CurrentMotionState.Stance == MotionStance.Invalid)
                 return 0.0f;
 
             var combatStance = GetCombatStance();

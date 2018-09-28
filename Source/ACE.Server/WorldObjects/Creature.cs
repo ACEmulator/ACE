@@ -85,8 +85,11 @@ namespace ACE.Server.WorldObjects
 
             Value = null; // Creatures don't have value. By setting this to null, it effectively disables the Value property. (Adding/Subtracting from null results in null)
 
-            CurrentMotionState = new UniversalMotion(MotionStance.NonCombat);
+            //CurrentMotionState = new UniversalMotion(MotionStance.NonCombat);     // breaks emotes?
             //CurrentMotionState.MovementData.ForwardCommand = (uint)MotionCommand.Ready;   // already the default?
+
+            //CurrentMotionState = new UniversalMotion(MotionStance.NonCombat, new MotionItem(MotionCommand.Ready));
+            CurrentMotionState = new UniversalMotion(MotionStance.Invalid, new MotionItem(MotionCommand.Invalid));
         }
 
         public void GenerateNewFace()

@@ -554,7 +554,12 @@ namespace ACE.Server.Managers
                                 actionChain.AddAction(sourceObject, () =>
                                 {
                                     //Console.WriteLine($"{sourceObject.Name} running motion {(MotionStance)emote.Style}, {(MotionCommand)emoteAction.Motion}");
-                                    sourceObject.ExecuteMotion(motion);
+
+                                    float? maxRange = ClientMaxAnimRange;
+                                    if (MotionQueue.Contains((MotionCommand)emoteAction.Motion))
+                                        maxRange = null;
+
+                                    sourceObject.ExecuteMotion(motion, true, maxRange);
                                 });
                                 actionChain.AddDelaySeconds(DatManager.PortalDat.ReadFromDat<DatLoader.FileTypes.MotionTable>(sourceObject.MotionTableId).GetAnimationLength((MotionCommand)emoteAction.Motion));
                                 if (motion.Commands[0].Motion != MotionCommand.Sleeping && motion.Commands[0].Motion != MotionCommand.Sitting) // this feels like it can be handled better, somehow?
@@ -936,6 +941,22 @@ namespace ACE.Server.Managers
                     break;
             }
         }
+
+        /// <summary>
+        /// The maximum animation range of the client
+        /// Motions broadcast outside of this range will be automatically queued by client
+        /// </summary>
+        public static float ClientMaxAnimRange = 96.0f;
+
+        /// <summary>
+        /// The client automatically queues animations that are broadcast outside of 96.0f range
+        /// Normally we exclude these emotes from being broadcast outside this range,
+        /// but for certain emotes (like monsters going to sleep) we want to always broadcast / enqueue
+        /// </summary>
+        public static HashSet<MotionCommand> MotionQueue = new HashSet<MotionCommand>()
+        {
+            MotionCommand.Sleeping
+        };
 
         public void InqCategory(EmoteCategory categoryId, BiotaPropertiesEmoteAction emoteAction, WorldObject sourceObject, WorldObject targetObject, ActionChain actionChain, bool useRNG = false)
         {
