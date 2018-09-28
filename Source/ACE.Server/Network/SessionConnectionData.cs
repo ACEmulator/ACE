@@ -1,5 +1,5 @@
-﻿using ACE.Common.Cryptography;
-using ACE.Server.Managers;
+using ACE.Common.Cryptography;
+using ACE.Server.Entity;
 using ACE.Server.Network.Sequence;
 
 namespace ACE.Server.Network
@@ -18,7 +18,7 @@ namespace ACE.Server.Network
             IssacClient = new ISAAC(ISAAC.ClientSeed);
             IssacServer = new ISAAC(ISAAC.ServerSeed);
             PacketSequence = new UIntSequence(false);
-            ServerTime = WorldManager.PortalYearTicks;
+            ServerTime = Timers.PortalYearTicks;
         }
     }
 }

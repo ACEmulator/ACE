@@ -1,11 +1,9 @@
 using System;
 
-using ACE.Server.Managers;
-
 namespace ACE.Server.Entity.Actions
 {
     /// <summary>
-    /// Action that will not return until WorldManager.PortalTickYears >= EndTime
+    /// Action that will not return until Timer.PortalYearTicks >= EndTime
     /// must only be inserted into DelayManager actor
     /// </summary>
     public class DelayAction : ActionEventBase, IComparable<DelayAction>
@@ -17,15 +15,15 @@ namespace ACE.Server.Entity.Actions
         private readonly long sequence;
         private static volatile uint glblSequence;
 
-        public DelayAction(double waitTimePortalTickYears)
+        public DelayAction(double waitTimePortalYearTicks)
         {
-            WaitTime = waitTimePortalTickYears;
+            WaitTime = waitTimePortalYearTicks;
             sequence = glblSequence++;
         }
 
         public void Start()
         {
-            EndTime = WorldManager.PortalYearTicks + WaitTime;
+            EndTime = Timers.PortalYearTicks + WaitTime;
         }
 
         public int CompareTo(DelayAction rhs)
