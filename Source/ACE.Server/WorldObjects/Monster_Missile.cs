@@ -60,11 +60,11 @@ namespace ACE.Server.WorldObjects
             if (ammo == null) return;
 
             // ensure direct line of sight
-            /*if (!IsDirectVisible(AttackTarget))
+            if (!IsDirectVisible(AttackTarget))
             {
                 NextAttackTime = DateTime.UtcNow.AddSeconds(1.0f);
                 return;
-            }*/
+            }
 
             // should this be called each launch?
             AttackHeight = ChooseAttackHeight();

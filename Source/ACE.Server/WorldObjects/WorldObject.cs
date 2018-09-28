@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 using log4net;
 using ACE.Common;
@@ -357,6 +358,8 @@ namespace ACE.Server.WorldObjects
             return PhysicsObj.ObjMaint.VisibleObjectTable.ContainsKey(wo.PhysicsObj.ID);
         }
 
+        public static PhysicsObj SightObj = PhysicsObj.makeObject(0x02000124, 0, false);     // arrow
+
         /// <summary>
         /// Returns TRUE if this object has direct line-of-sight visibility to input object
         /// </summary>
@@ -365,17 +368,25 @@ namespace ACE.Server.WorldObjects
             if (PhysicsObj == null || wo.PhysicsObj == null)
                 return false;
 
-            var curPos = PhysicsObj.Position;
-            var targetPos = wo.PhysicsObj.Position;
+            var startPos = new Physics.Common.Position(PhysicsObj.Position);
+            var targetPos = new Physics.Common.Position(wo.PhysicsObj.Position);
 
-            // TODO: use smaller dummy object
-            var transition = PhysicsObj.transition(curPos, targetPos, false);
+            // set to eye level
+            startPos.Frame.Origin.Z += PhysicsObj.GetHeight() - SightObj.GetHeight();
+            targetPos.Frame.Origin.Z += wo.PhysicsObj.GetHeight() - SightObj.GetHeight();
 
-            // check for collisions, or if target pos was reached?
-            var collided = transition.CollisionInfo.CollidedWithEnvironment || transition.CollisionInfo.CollideObject.Count > 0;
+            var dir = Vector3.Normalize(targetPos.Frame.Origin - startPos.Frame.Origin);
+            var radsum = PhysicsObj.GetPhysicsRadius() + SightObj.GetPhysicsRadius();
+            startPos.Frame.Origin += dir * radsum;
 
-            // shouldn't this be reversed??
-            return collided;
+            // perform line of sight test
+            SightObj.CurCell = PhysicsObj.CurCell;
+            var transition = SightObj.transition(startPos, targetPos, false);
+            if (transition == null) return false;
+
+            // check if target object was reached
+            var isVisible = transition.CollisionInfo.CollideObject.FirstOrDefault(c => c.ID == wo.PhysicsObj.ID) != null;
+            return isVisible;
         }
 
 

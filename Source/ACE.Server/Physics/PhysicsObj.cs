@@ -3752,6 +3752,9 @@ namespace ACE.Server.Physics
             if (forcePos)
                 set_current_pos(RequestPos);
 
+            // temp for players
+            CachedVelocity = Vector3.Zero;
+
             UpdateTime = PhysicsTimer.CurrentTime;
         }
 
