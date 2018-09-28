@@ -534,12 +534,12 @@ namespace ACE.Server.Managers
 
                     // The session tick processes all inbound GameAction messages
                     foreach (var s in sessions)
-                        s.Tick(lastTickDuration);
+                        s.Tick();
 
                     // Send the current time ticks to allow sessions to declare themselves bad
                     Parallel.ForEach(sessions, s => s.TickInParallel(lastTickDuration));
 
-                    // Removes sessions in the NetworkTimeout state, incuding sessions that have reached a timeout limit.
+                    // Removes sessions in the NetworkTimeout state, including sessions that have reached a timeout limit.
                     var deadSessions = sessions.FindAll(s => s.State == Network.Enum.SessionState.NetworkTimeout);
 
                     foreach (var session in deadSessions)

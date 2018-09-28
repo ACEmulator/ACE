@@ -114,9 +114,9 @@ namespace ACE.Server.Network
 
 
         /// <summary>
-        /// This is run in parallel from our main loop.
+        /// This is run in series from our main loop.
         /// </summary>
-        public void Tick(double lastTickDuration)
+        public void Tick()
         {
             if (Player != null)
                 InboundGameActionQueue.RunActions();
