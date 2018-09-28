@@ -24,14 +24,14 @@ namespace ACE.Server.Entity
 
 
         /// <summary>
-        /// DerethDateTime.UTCNowToLoreTime at the time the server started.
+        /// DerethDateTime.UtcNowToLoreTime at the time the server started.
         /// </summary>
-        public static DerethDateTime WorldStartLoreTime { get; } = DerethDateTime.UTCNowToLoreTime;
+        public static DerethDateTime WorldStartLoreTime { get; } = DerethDateTime.UtcNowToLoreTime;
 
         /// <summary>
-        /// Returns DerethDateTime.UTCNowToLoreTime
+        /// Returns DerethDateTime.UtcNowToLoreTime
         /// </summary>
-        public static DerethDateTime CurrentLoreTime => DerethDateTime.UTCNowToLoreTime;
+        public static DerethDateTime CurrentLoreTime => DerethDateTime.UtcNowToLoreTime;
 
 
         /// <summary>

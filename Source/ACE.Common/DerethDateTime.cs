@@ -1049,6 +1049,6 @@ namespace ACE.Common
         /// <summary>
         /// Converts the <see cref="DateTime.UtcNow"/> object to a new <see cref="DerethDateTime"/> object set to Lore Time.
         /// </summary>
-        public static DerethDateTime UTCNowToLoreTime => ConvertRealWorldToLoreDateTime(DateTime.UtcNow);
+        public static DerethDateTime UtcNowToLoreTime => ConvertRealWorldToLoreDateTime(DateTime.UtcNow);
     }
 }
