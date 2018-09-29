@@ -391,7 +391,7 @@ namespace ACE.Server.Factories
 
         /// <summary>
         /// 100 Strength/Cord/Quick
-        /// trained Creature/Item/Life/Mana Conversion
+        /// trained Creature/Item/Life/Mana Conversion todo remove creature/item/life because it adds foci. Add it after the player is created. Augmentations will take care of the foci requirements
         /// trained Magic/Melee Defense
         /// </summary>
         private static readonly byte[] baseGearKnight1 =
@@ -438,6 +438,8 @@ namespace ACE.Server.Factories
 
             LevelUpPlayer(player);
 
+            // todo add the creature/item/life skills here and remove them from the above base array once we have augmentations added in LevelUpPlayer()
+
             // Specialize Heavy Weapon specific skills
             player.TrainSkill(Skill.HeavyWeapons, 6);
             player.SpecializeSkill(Skill.HeavyWeapons, 6);
@@ -453,11 +455,15 @@ namespace ACE.Server.Factories
 
             // todo 0 skill points. When we add the 4 skill points in LevelUpPlayer, we can spend them here
 
-            // todo aug endurance
-
             player.SpendAllXp(false);
 
+            // todo aug endurancea
+
             // todo Give the character some armor + weapons
+
+            // todo learn all spells
+
+            // todo buffs
 
             return player;
         }
@@ -474,6 +480,8 @@ namespace ACE.Server.Factories
 
             // todo add Hunting Aun Ralirea quest flag + skill credit
             // todo add Chasing Oswald quest flag + skill credit
+
+            // todo add all augmentations except the element protection and attribute raising ones
 
             // todo add Luminance quest flags + 2 luminance quest flags + skill credits
         }
