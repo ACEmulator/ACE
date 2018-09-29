@@ -43,15 +43,13 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// A new biota be created taking all of its values from weenie.
         /// </summary>
-        public Player(Weenie weenie, ObjectGuid guid, Session session) : base(weenie, guid)
+        public Player(Weenie weenie, ObjectGuid guid, uint accountId) : base(weenie, guid)
         {
             Character = new Character();
             Character.Id = guid.Full;
-            Character.AccountId = session.Id;
+            Character.AccountId = accountId;
             Character.Name = GetProperty(PropertyString.Name);
             CharacterChangesDetected = true;
-
-            Session = session;
 
             // Make sure properties this WorldObject requires are not null.
             AvailableExperience = AvailableExperience ?? 0;
@@ -109,7 +107,7 @@ namespace ACE.Server.WorldObjects
             // radius for object updates
             ListeningRadius = 5f;
 
-            if (Common.ConfigManager.Config.Server.Accounts.OverrideCharacterPermissions)
+            if (Session != null && Common.ConfigManager.Config.Server.Accounts.OverrideCharacterPermissions)
             {
                 if (Session.AccessLevel == AccessLevel.Admin)
                     IsAdmin = true;
@@ -126,7 +124,7 @@ namespace ACE.Server.WorldObjects
 
             ContainerCapacity = 7;
 
-            if ((AdvocateQuest ?? false) && IsAdvocate) // Advocate permissions are per character regardless of override
+            if (Session != null && (AdvocateQuest ?? false) && IsAdvocate) // Advocate permissions are per character regardless of override
             {
                 if (Session.AccessLevel == AccessLevel.Player)
                     Session.SetAccessLevel(AccessLevel.Advocate); // Elevate to Advocate permissions
@@ -136,7 +134,7 @@ namespace ACE.Server.WorldObjects
 
             UpdateCoinValue(false);
 
-            if (Session.IsOnline)
+            if (Session != null && Session.IsOnline)
                 AllegianceManager.LoadPlayer(this);
 
             QuestManager = new QuestManager(this);
