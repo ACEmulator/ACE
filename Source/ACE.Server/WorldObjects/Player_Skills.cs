@@ -243,11 +243,11 @@ namespace ACE.Server.WorldObjects
         ///         1. Earned XP usage in ranks besides 1 or 10 need to be accounted for.
         /// </remarks>
         /// <returns>0 if it failed, total skill experience if successful</returns>
-        private uint SpendSkillXp(CreatureSkill skill, uint amount, bool usage = false)
+        private uint SpendSkillXp(CreatureSkill skill, uint amount, bool usage = false, bool sendNetworkPropertyUpdate = true)
         {
             uint result = 0u;
 
-            List<uint> xpList = GetXPTable(skill.AdvancementClass);
+            var xpList = GetXPTable(skill.AdvancementClass);
             if (xpList == null) return result;
 
             // do not advance if we cannot spend xp to rank up our skill by 1 point
@@ -285,12 +285,25 @@ namespace ACE.Server.WorldObjects
                 skill.Ranks += rankUps;
 
             if (!usage)
-                SpendXP(amount);
-
-            skill.ExperienceSpent += amount;
-            result = skill.ExperienceSpent;
+            {
+                if (SpendXP(amount, sendNetworkPropertyUpdate))
+                {
+                    skill.ExperienceSpent += amount;
+                    result = skill.ExperienceSpent;
+                }
+            }
+            else
+            {
+                skill.ExperienceSpent += amount;
+                result = skill.ExperienceSpent;
+            }
 
             return result;
+        }
+
+        public void SpendAllAvailableSkillXp(CreatureSkill skill, bool sendNetworkPropertyUpdate = true)
+        {
+            SpendSkillXp(skill, uint.MaxValue, false, false);
         }
 
         /// <summary>

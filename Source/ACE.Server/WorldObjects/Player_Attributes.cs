@@ -66,7 +66,7 @@ namespace ACE.Server.WorldObjects
         /// spends the xp on this ability.
         /// </summary>
         /// <returns>0 if it failed, total investment of the next rank if successful</returns>
-        private uint SpendAttributeXp(CreatureAttribute ability, uint amount)
+        private uint SpendAttributeXp(CreatureAttribute ability, uint amount, bool sendNetworkPropertyUpdate = true)
         {
             uint result = 0;
 
@@ -104,15 +104,39 @@ namespace ACE.Server.WorldObjects
 
             if (rankUps > 0)
             {
-                // FIXME(ddevec):
-                // Really AddRank() should probably be a method of CreatureAbility/CreatureVital
-                ability.Ranks += rankUps;
-                ability.ExperienceSpent += amount;
-                SpendXP(amount);
-                result = ability.ExperienceSpent;
+                if (SpendXP(amount, sendNetworkPropertyUpdate))
+                {
+                    ability.Ranks += rankUps;
+                    ability.ExperienceSpent += amount;
+                    result = ability.ExperienceSpent;
+                }
             }
 
             return result;
+        }
+
+        public void SpendAllAvailableAttributeXp(CreatureAttribute ability, bool sendNetworkPropertyUpdate = true)
+        {
+            var xpList = DatManager.PortalDat.XpTable.AbilityXpList;
+
+            while (true)
+            {
+                uint currentRankXp = xpList[Convert.ToInt32(ability.Ranks)];
+                uint rank10;
+
+                if (ability.Ranks + 10 >= (xpList.Count))
+                {
+                    var rank10Offset = 10 - (Convert.ToInt32(ability.Ranks + 10) - (xpList.Count - 1));
+                    rank10 = xpList[Convert.ToInt32(ability.Ranks) + rank10Offset] - currentRankXp;
+                }
+                else
+                {
+                    rank10 = xpList[Convert.ToInt32(ability.Ranks) + 10] - currentRankXp;
+                }
+
+                if (SpendAttributeXp(ability, rank10, sendNetworkPropertyUpdate) == 0)
+                    break;
+            }
         }
 
         /// <summary>

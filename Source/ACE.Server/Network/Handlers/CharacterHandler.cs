@@ -9,10 +9,8 @@ using ACE.Common.Extensions;
 using ACE.Database;
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
-using ACE.DatLoader;
 using ACE.Entity;
 using ACE.Entity.Enum;
-using ACE.Server.WorldObjects;
 using ACE.Server.Factories;
 using ACE.Server.Managers;
 using ACE.Server.Network.Enum;
@@ -58,8 +56,6 @@ namespace ACE.Server.Network.Handlers
                 SendCharacterCreateResponse(session, CharacterGenerationVerificationResponse.Pending);
                 return;
             }
-
-            var cg = DatManager.PortalDat.CharGen;
 
             var isAdmin = characterCreateInfo.IsAdmin && (session.AccessLevel >= AccessLevel.Developer);
             var isEnvoy = characterCreateInfo.IsEnvoy && (session.AccessLevel >= AccessLevel.Sentinel);

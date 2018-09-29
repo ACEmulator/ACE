@@ -217,19 +217,42 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Spends the amount of XP specified, deducting it from available experience
         /// </summary>
-        public bool SpendXP(long amount)
+        public bool SpendXP(long amount, bool sendNetworkPropertyUpdate = true)
         {
             if (AvailableExperience >= amount)
             {
                 AvailableExperience -= amount;
 
-                var xpUpdate = new GameMessagePrivateUpdatePropertyInt64(this, PropertyInt64.AvailableExperience, AvailableExperience ?? 0);
-                Session.Network.EnqueueSend(xpUpdate);
+                if (sendNetworkPropertyUpdate)
+                {
+                    var xpUpdate = new GameMessagePrivateUpdatePropertyInt64(this, PropertyInt64.AvailableExperience, AvailableExperience ?? 0);
+                    Session.Network.EnqueueSend(xpUpdate);
+                }
 
                 return true;
             }
 
             return false;
+        }
+
+        /// <summary>
+        /// Tries to spend all of the players Xp into Attributes, Vitals and Skills
+        /// </summary>
+        public void SpendAllXp(bool sendNetworkPropertyUpdate = true)
+        {
+            SpendAllAvailableAttributeXp(Strength, sendNetworkPropertyUpdate);
+            SpendAllAvailableAttributeXp(Endurance, sendNetworkPropertyUpdate);
+            SpendAllAvailableAttributeXp(Coordination, sendNetworkPropertyUpdate);
+            SpendAllAvailableAttributeXp(Quickness, sendNetworkPropertyUpdate);
+            SpendAllAvailableAttributeXp(Focus, sendNetworkPropertyUpdate);
+            SpendAllAvailableAttributeXp(Self, sendNetworkPropertyUpdate);
+
+            SpendAllAvailableVitalXp(Health, sendNetworkPropertyUpdate);
+            SpendAllAvailableVitalXp(Stamina, sendNetworkPropertyUpdate);
+            SpendAllAvailableVitalXp(Mana, sendNetworkPropertyUpdate);
+
+            foreach (var skill in Skills)
+                SpendAllAvailableSkillXp(skill.Value, sendNetworkPropertyUpdate);
         }
 
         /// <summary>
@@ -278,8 +301,7 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Raise the available XP by a percentage of the current level XP
-        /// or a maximum
+        /// Raise the available XP by a percentage of the current level XP or a maximum
         /// </summary>
         public void GrantLevelProportionalXp(double percent, ulong max)
         {

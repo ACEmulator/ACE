@@ -27,7 +27,7 @@ namespace ACE.Entity
 
         public List<SkillAdvancementClass> SkillAdvancementClasses = new List<SkillAdvancementClass>();
 
-        public string Name { get; private set; }
+        public string Name { get; set; }
 
         public uint StartArea { get; private set; }
 
