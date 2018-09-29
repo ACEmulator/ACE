@@ -4,6 +4,7 @@ using System.Diagnostics;
 using ACE.DatLoader;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Server.Network.Enum;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.WorldObjects.Entity;
 
@@ -442,6 +443,47 @@ namespace ACE.Server.WorldObjects
         public static bool IsSkillUntrainable(Skill skill)
         {
             return !AlwaysTrained.Contains(skill);
+        }
+
+        /// <summary>
+        /// Called on player login
+        /// If a player has any skills trained that require updates from ACE-World-16-Patches,
+        /// ensure these updates are installed, and if they aren't, send a helpful message to player with instructions for installation
+        /// </summary>
+        public void HandleDBUpdates()
+        {
+            // dirty fighting
+            var dfSkill = GetCreatureSkill(Skill.DirtyFighting);
+            if (dfSkill.AdvancementClass >= SkillAdvancementClass.Trained)
+            {
+                foreach (var spellID in SpellExtensions.DirtyFightingSpells)
+                {
+                    var spell = new Server.Entity.Spell(spellID);
+                    if (spell.NotFound)
+                    {
+
+                        Session.Network.EnqueueSend(this, 3.0f, new GameMessageSystemChat("To install Dirty Fighting, please apply the latest patches from https://github.com/ACEmulator/ACE-World-16PY-Patches", ChatMessageType.Broadcast));
+                        break;
+                    }
+                    break;  // performance improvement: only check first spell
+                }
+            }
+
+            // void magic
+            var voidSkill = GetCreatureSkill(Skill.VoidMagic);
+            if (voidSkill.AdvancementClass >= SkillAdvancementClass.Trained)
+            {
+                foreach (var spellID in SpellExtensions.VoidMagicSpells)
+                {
+                    var spell = new Server.Entity.Spell(spellID);
+                    if (spell.NotFound)
+                    {
+                        Session.Network.EnqueueSend(this, 3.0f, new GameMessageSystemChat("To install Void Magic, please apply the latest patches from https://github.com/ACEmulator/ACE-World-16PY-Patches", ChatMessageType.Broadcast));
+                        break;
+                    }
+                    break;  // performance improvement: only check first spell (measured 102ms to check 75 uncached void spells)
+                }
+            }
         }
     }
 }
