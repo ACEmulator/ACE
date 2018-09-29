@@ -827,7 +827,17 @@ namespace ACE.Server.WorldObjects
                 }
             }
             else
+            {
                 Session.Network.EnqueueSend(msgWieldItem, sound);
+
+                // new ammo becomes visible
+                // FIXME: can't get this to work without breaking client
+                // existing functionality also broken while swapping multiple arrows in missile combat mode
+                /*if (CombatMode == CombatMode.Missile)
+                {
+                    EnqueueBroadcast(new GameMessageParentEvent(this, item, (int)ACE.Entity.Enum.ParentLocation.RightHand, (int)ACE.Entity.Enum.Placement.RightHandCombat));
+                }*/
+            }
 
             return true;
         }

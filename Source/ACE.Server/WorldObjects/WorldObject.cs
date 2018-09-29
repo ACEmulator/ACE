@@ -864,6 +864,11 @@ namespace ACE.Server.WorldObjects
         public virtual DamageType GetDamageType(bool multiple = false)
         {
             var creature = this as Creature;
+            if (creature == null)
+            {
+                Console.WriteLine("WorldObject.GetDamageType(): null creature");
+                return DamageType.Undef;
+            }
 
             var weapon = creature.GetEquippedWeapon();
             var ammo = creature.GetEquippedAmmo();
@@ -874,9 +879,9 @@ namespace ACE.Server.WorldObjects
             DamageType damageTypes;
             var attackType = creature.GetAttackType();
             if (attackType == AttackType.Melee || ammo == null || !weapon.IsAmmoLauncher)
-                damageTypes = (DamageType)weapon.GetProperty(PropertyInt.DamageType);
+                damageTypes = (DamageType)(weapon.GetProperty(PropertyInt.DamageType) ?? 0);
             else
-                damageTypes = (DamageType)ammo.GetProperty(PropertyInt.DamageType);
+                damageTypes = (DamageType)(ammo.GetProperty(PropertyInt.DamageType) ?? 0);
 
             // returning multiple damage types
             if (multiple) return damageTypes;
