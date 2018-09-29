@@ -1,13 +1,13 @@
--- MySQL dump 10.13  Distrib 5.7.20, for Win64 (x86_64)
+-- MySQL dump 10.13  Distrib 8.0.12, for Win64 (x86_64)
 --
 -- Host: localhost    Database: ace_auth
 -- ------------------------------------------------------
--- Server version	5.7.20-log
+-- Server version	8.0.12
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
 /*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-/*!40101 SET NAMES utf8 */;
+ SET NAMES utf8mb4 ;
 /*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
 /*!40103 SET TIME_ZONE='+00:00' */;
 /*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
@@ -31,7 +31,7 @@ USE `ace_auth`;
 
 DROP TABLE IF EXISTS `accesslevel`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+ SET character_set_client = utf8mb4 ;
 CREATE TABLE `accesslevel` (
   `level` int(10) unsigned NOT NULL DEFAULT '0',
   `name` varchar(45) NOT NULL,
@@ -47,7 +47,7 @@ CREATE TABLE `accesslevel` (
 
 DROP TABLE IF EXISTS `account`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!40101 SET character_set_client = utf8 */;
+ SET character_set_client = utf8mb4 ;
 CREATE TABLE `account` (
   `accountId` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `accountName` varchar(50) NOT NULL,
@@ -57,7 +57,7 @@ CREATE TABLE `account` (
   PRIMARY KEY (`accountId`),
   UNIQUE KEY `accountName_uidx` (`accountName`),
   KEY `accesslevel_idx` (`accessLevel`),
-  CONSTRAINT `fk_accesslevel` FOREIGN KEY (`accessLevel`) REFERENCES `accesslevel` (`level`) ON DELETE NO ACTION ON UPDATE NO ACTION
+  CONSTRAINT `fk_accesslevel` FOREIGN KEY (`accessLevel`) REFERENCES `accesslevel` (`level`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 /*!40101 SET character_set_client = @saved_cs_client */;
 /*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
@@ -70,7 +70,7 @@ CREATE TABLE `account` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2018-02-18 23:59:48
+-- Dump completed on 2018-09-23 14:43:29
  
 /*
 -- Query: SELECT * FROM ace_auth.accesslevel
