@@ -461,7 +461,6 @@ namespace ACE.Server.WorldObjects
                     var spell = new Server.Entity.Spell(spellID);
                     if (spell.NotFound)
                     {
-
                         Session.Network.EnqueueSend(this, 3.0f, new GameMessageSystemChat("To install Dirty Fighting, please apply the latest patches from https://github.com/ACEmulator/ACE-World-16PY-Patches", ChatMessageType.Broadcast));
                         break;
                     }
