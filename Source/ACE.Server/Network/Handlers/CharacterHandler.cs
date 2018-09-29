@@ -119,7 +119,7 @@ namespace ACE.Server.Network.Handlers
 
             var result = PlayerFactory.Create(characterCreateInfo, weenie, guid, session.Id, out var player);
 
-            if (result == PlayerFactory.CreateResult.TooManySkillCreditsUsed)
+            if (result != PlayerFactory.CreateResult.Success || player == null)
             {
                 SendCharacterCreateResponse(session, CharacterGenerationVerificationResponse.Corrupt);
                 return;
