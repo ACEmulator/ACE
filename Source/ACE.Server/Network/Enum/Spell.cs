@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace ACE.Server.Network.Enum
 {
     public enum Spell : uint
@@ -6344,5 +6346,105 @@ namespace ACE.Server.Network.Enum
         GauntletVitalityII,
         GauntletVitalityIII,
         NumSpells = 8192
+    }
+
+    public static class SpellExtensions
+    {
+        /// <summary>
+        /// A list of spells used by the Dirty Fighting skill
+        /// </summary>
+        public static HashSet<Spell> DirtyFightingSpells = new HashSet<Spell>()
+        {
+            Spell.DF_Specialized_AttackDebuff,
+            Spell.DF_Specialized_Bleed,
+            Spell.DF_Specialized_DefenseDebuff,
+            Spell.DF_Specialized_HealingDebuff,
+            Spell.DF_Trained_AttackDebuff,
+            Spell.DF_Trained_Bleed,
+            Spell.DF_Trained_DefenseDebuff,
+            Spell.DF_Trained_HealingDebuff,
+        };
+
+        /// <summary>
+        /// A list of spells used by the Void Magic skill
+        /// </summary>
+        public static HashSet<Spell> VoidMagicSpells = new HashSet<Spell>()
+        {
+            Spell.Corrosion1,
+            Spell.Corrosion2,
+            Spell.Corrosion3,
+            Spell.Corrosion4,
+            Spell.Corrosion5,
+            Spell.Corrosion6,
+            Spell.Corrosion7,
+            Spell.Corrosion8,
+            Spell.Corruption1,
+            Spell.Corruption2,
+            Spell.Corruption3,
+            Spell.Corruption4,
+            Spell.Corruption5,
+            Spell.Corruption6,
+            Spell.Corruption7,
+            Spell.Corruption8,
+            Spell.CurseDestructionOther1,
+            Spell.CurseDestructionOther2,
+            Spell.CurseDestructionOther3,
+            Spell.CurseDestructionOther4,
+            Spell.CurseDestructionOther5,
+            Spell.CurseDestructionOther6,
+            Spell.CurseDestructionOther7,
+            Spell.CurseDestructionOther8,
+            Spell.CurseFestering1,
+            Spell.CurseFestering2,
+            Spell.CurseFestering3,
+            Spell.CurseFestering4,
+            Spell.CurseFestering5,
+            Spell.CurseFestering6,
+            Spell.CurseFestering7,
+            Spell.CurseFestering8,
+            Spell.NetherArc1,
+            Spell.NetherArc2,
+            Spell.NetherArc3,
+            Spell.NetherArc4,
+            Spell.NetherArc5,
+            Spell.NetherArc6,
+            Spell.NetherArc7,
+            Spell.NetherArc8,
+            Spell.NetherBlast1,
+            Spell.NetherBlast2,
+            Spell.NetherBlast3,
+            Spell.NetherBlast4,
+            Spell.NetherBlast5,
+            Spell.NetherBlast6,
+            Spell.NetherBlast7,
+            Spell.NetherBlast8,
+            Spell.netherbolt1,
+            Spell.netherbolt2,
+            Spell.netherbolt3,
+            Spell.netherbolt4,
+            Spell.netherbolt5,
+            Spell.netherbolt6,
+            Spell.netherbolt7,
+            Spell.netherbolt8,
+            Spell.netherring,
+            Spell.CloudedSoulII,
+            Spell.RingOfSkullsII,
+            Spell.netherstreak1,
+            Spell.netherstreak2,
+            Spell.netherstreak3,
+            Spell.netherstreak4,
+            Spell.netherstreak5,
+            Spell.netherstreak6,
+            Spell.netherstreak7,
+            Spell.netherstreak8,
+            Spell.CurseWeakness1,
+            Spell.CurseWeakness2,
+            Spell.CurseWeakness3,
+            Spell.CurseWeakness4,
+            Spell.CurseWeakness5,
+            Spell.CurseWeakness6,
+            Spell.CurseWeakness7,
+            Spell.CurseWeakness8,
+        };
     }
 }

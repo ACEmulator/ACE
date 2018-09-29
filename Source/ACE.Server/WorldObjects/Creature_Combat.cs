@@ -651,6 +651,7 @@ namespace ACE.Server.WorldObjects
                 Network.Enum.Spell.DF_Specialized_DefenseDebuff : Network.Enum.Spell.DF_Trained_DefenseDebuff;
 
             var spell = new Spell(spellID);
+            if (spell.NotFound) return;  // TODO: friendly message to install DF patch
 
             var enchantment = new Enchantment(target, Guid, (uint)spellID, 20, 1, EnchantmentMask.CreatureSpells);
 
@@ -671,6 +672,8 @@ namespace ACE.Server.WorldObjects
                 Network.Enum.Spell.DF_Specialized_Bleed : Network.Enum.Spell.DF_Trained_Bleed;
 
             var spell = new Spell(spellID);
+            if (spell.NotFound) return;  // TODO: friendly message to install DF patch
+
             var enchantment = new Enchantment(target, Guid, (uint)spellID, 20, 1, EnchantmentMask.CreatureSpells);
 
             target.EnchantmentManager.Add(enchantment, this);
@@ -692,6 +695,8 @@ namespace ACE.Server.WorldObjects
                 Network.Enum.Spell.DF_Specialized_AttackDebuff : Network.Enum.Spell.DF_Trained_AttackDebuff;
 
             var spell = new Spell(spellID);
+            if (spell.NotFound) return;  // TODO: friendly message to install DF patch
+
             var enchantment = new Enchantment(target, Guid, (uint)spellID, 20, 1, EnchantmentMask.CreatureSpells);
 
             target.EnchantmentManager.Add(enchantment, this);
@@ -704,6 +709,8 @@ namespace ACE.Server.WorldObjects
                 Network.Enum.Spell.DF_Specialized_HealingDebuff : Network.Enum.Spell.DF_Trained_HealingDebuff;
 
             spell = new Spell(spellID);
+            if (spell.NotFound) return;  // TODO: friendly message to install DF patch
+
             enchantment = new Enchantment(target, Guid, (uint)spellID, 20, 1, EnchantmentMask.CreatureSpells);
 
             target.EnchantmentManager.Add(enchantment, this);
