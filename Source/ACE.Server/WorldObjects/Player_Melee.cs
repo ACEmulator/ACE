@@ -120,7 +120,7 @@ namespace ACE.Server.WorldObjects
             var animSpeed = baseSpeed * animSpeedMod;
 
             var swingAnimation = new MotionItem(GetSwingAnimation(), animSpeed);
-            animLength = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, swingAnimation.Motion, null, animSpeed);
+            animLength = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, swingAnimation.Motion, animSpeed);
 
             var motion = new UniversalMotion(CurrentMotionState.Stance, swingAnimation);
             motion.MovementData.CurrentStyle = (uint)CurrentMotionState.Stance;

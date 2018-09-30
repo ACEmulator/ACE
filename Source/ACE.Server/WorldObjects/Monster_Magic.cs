@@ -28,7 +28,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// The delay after casting a magic spell
         /// </summary>
-        public static readonly float MagicDelay = 4.0f;
+        public static readonly float MagicDelay = 2.0f;
 
         /// <summary>
         /// Returns the monster's current magic skill
@@ -79,12 +79,34 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Perform the monster spell casting animation
+        /// Perform the first part of monster spell casting animation - spreading arms out
         /// </summary>
-        public void DoCastMotion(WorldObject target, out float animLength)
+        public float PreCastMotion(WorldObject target)
         {
+            // todo: monster spellcasting anim speed?
             var castMotion = new MotionItem(MotionCommand.CastSpell, 1.5f);
-            animLength = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, MotionCommand.CastSpell, null, 1.5f);
+            var animLength = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, MotionCommand.CastSpell, 1.5f);
+
+            var motion = new UniversalMotion(CurrentMotionState.Stance, castMotion);
+            motion.MovementData.CurrentStyle = (uint)CurrentMotionState.Stance;
+            motion.MovementData.TurnSpeed = 2.25f;
+            //motion.HasTarget = true;
+            //motion.TargetGuid = target.Guid;
+            CurrentMotionState = motion;
+
+            EnqueueBroadcastMotion(motion);
+
+            return animLength;
+        }
+
+        /// <summary>
+        /// Perform the animations after casting a spell,
+        /// ie. moving arms back in, returning to previous stance
+        /// </summary>
+        public void PostCastMotion()
+        {
+            // todo: monster spellcasting anim speed?
+            var castMotion = new MotionItem(MotionCommand.Ready, 1.5f);
 
             var motion = new UniversalMotion(CurrentMotionState.Stance, castMotion);
             motion.MovementData.CurrentStyle = (uint)CurrentMotionState.Stance;
@@ -102,19 +124,26 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void MagicAttack()
         {
-            NextAttackTime = DateTime.UtcNow.AddSeconds(MagicDelay);
-
             var spell = GetCurrentSpell();
             //Console.WriteLine(spell.Name);
 
+            var preCastTime = PreCastMotion(AttackTarget);
+
             var actionChain = new ActionChain();
-
-            DoCastMotion(AttackTarget, out var animLength);
-            actionChain.AddDelaySeconds(animLength);
-            actionChain.AddAction(this, () => CastSpell());
-            actionChain.AddAction(this, () => DoAttackStance());
-
+            actionChain.AddDelaySeconds(preCastTime);
+            actionChain.AddAction(this, () =>
+            {
+                CastSpell();
+                PostCastMotion();
+            });
             actionChain.EnqueueChain();
+
+            var postCastTime = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, MotionCommand.CastSpell, MotionCommand.Ready, 1.5f);
+            var animTime = preCastTime + postCastTime;
+
+            //Console.WriteLine($"{Name}.MagicAttack(): preCastTime({preCastTime}), postCastTime({postCastTime})");
+
+            NextAttackTime = DateTime.UtcNow.AddSeconds(animTime + MagicDelay);
         }
 
         /// <summary>

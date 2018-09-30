@@ -107,11 +107,13 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Switch to attack stance
         /// </summary>
-        public float DoAttackStance()
+        public void DoAttackStance()
         {
             var combatMode = IsRanged ? CombatMode.Missile : CombatMode.Melee;
 
-            return SetCombatMode(combatMode);
+            var stanceTime = SetCombatMode(combatMode);
+
+            NextAttackTime = DateTime.UtcNow.AddSeconds(stanceTime + 1.0f);
         }
 
         public float GetMaxRange()

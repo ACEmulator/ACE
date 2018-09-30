@@ -1108,24 +1108,30 @@ namespace ACE.Server.Command.Handlers
         // Monster movement
         // ==================================
 
-        [CommandHandler("turnto", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Turns the input object to the player", "turnto <object_id>")]
+        [CommandHandler("turnto", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Turns the last appraised object to the player", "turnto")]
         public static void HandleRequestTurnTo(Session session, params string[] parameters)
         {
-            if (parameters.Length < 1) return;
-
-            var objectID = Convert.ToUInt32(parameters[0], 16);
-            var guid = new ObjectGuid(objectID);
-            var player = session.Player;
-
-            var obj = player.CurrentLandblock?.GetObject(guid);
-            if (obj == null)
+            // get the last appraised object
+            var targetID = session.Player.CurrentAppraisalTarget;
+            if (targetID == null)
             {
-                ChatPacket.SendServerMessage(session, "Couldn't find " + guid, ChatMessageType.System);
+                Console.WriteLine("ERROR: no appraisal target");
                 return;
             }
-
-            var creature = obj as Creature;
-            creature.TurnTo(player);
+            var targetGuid = new ObjectGuid(targetID.Value);
+            var target = session.Player.CurrentLandblock?.GetObject(targetGuid);
+            if (target == null)
+            {
+                Console.WriteLine("Couldn't find " + targetGuid);
+                return;
+            }
+            var creature = target as Creature;
+            if (creature == null)
+            {
+                Console.WriteLine(target.Name + " is not a creature / monster");
+                return;
+            }
+            creature.TurnTo(session.Player, true);
         }
 
         [CommandHandler("debugmove", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Toggles movement debugging for the last appraised monster", "debugmove <on/off>")]
@@ -1171,6 +1177,47 @@ namespace ACE.Server.Command.Handlers
             Creature.ForcePos = enabled;
         }
 
+        [CommandHandler("lostest", AccessLevel.Developer, CommandHandlerFlag.None, 0, "Tests for direct visibilty with latest appraised object", "lostest")]
+        public static void HandleVisible(Session session, params string[] parameters)
+        {
+            // get the last appraised object
+            var targetID = session.Player.CurrentAppraisalTarget;
+            if (targetID == null)
+            {
+                Console.WriteLine("ERROR: no appraisal target");
+                return;
+            }
+            var targetGuid = new ObjectGuid(targetID.Value);
+            var target = session.Player.CurrentLandblock?.GetObject(targetGuid);
+            if (target == null)
+            {
+                Console.WriteLine("Couldn't find " + targetGuid);
+                return;
+            }
+
+            var visible = session.Player.IsDirectVisible(target);
+            Console.WriteLine("Visible: " + visible);
+        }
+
+        public static WorldObject GetLastAppraisedObject(Session session)
+        {
+            // get the wo emotemanager for the last appraised object
+            var targetID = session.Player.CurrentAppraisalTarget;
+            if (targetID == null)
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, "ERROR: no appraisal target");
+                return null;
+            }
+            var targetGuid = new ObjectGuid(targetID.Value);
+            var target = session.Player.CurrentLandblock?.GetObject(targetGuid);
+            if (target == null)
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, "ERROR: couldn't find " + targetGuid);
+                return null;
+            }
+            return target;
+        }
+
         [CommandHandler("debugemote", AccessLevel.Developer, CommandHandlerFlag.None, 0, "Debugs a hardcoded emote for the last appraised object", "debugemote")]
         public static void HandleDebugEmote(Session session, params string[] parameters)
         {
@@ -1210,6 +1257,25 @@ namespace ACE.Server.Command.Handlers
             CommandHandlerHelper.WriteOutputInfo(session, $"Moving {target.Name} from {target.Location.LandblockId} {currentPos.Pos} to {newPos.LandblockId} {newPos.Pos}");
 
             target.EmoteManager.ExecuteEmote(emote, action, actionChain, target, target);
+        }
+
+        /// <summary>
+        /// Returns the distance to the last appraised object
+        /// </summary>
+        [CommandHandler("dist", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Returns the distance to the last appraised object")]
+        public static void HandleTeleportDist(Session session, params string[] parameters)
+        {
+            var obj = GetLastAppraisedObject(session);
+            if (obj == null) return;
+
+            var sourcePos = session.Player.Location.ToGlobal();
+            var targetPos = obj.Location.ToGlobal();
+
+            var dist = Vector3.Distance(sourcePos, targetPos);
+            var dist2d = Vector2.Distance(new Vector2(sourcePos.X, sourcePos.Y), new Vector2(targetPos.X, targetPos.Y));
+
+            Console.WriteLine("Dist: " + dist);
+            Console.WriteLine("2D Dist: " + dist2d);
         }
     }
 }

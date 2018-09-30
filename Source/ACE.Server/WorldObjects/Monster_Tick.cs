@@ -42,14 +42,14 @@ namespace ACE.Server.WorldObjects
                 if (ammo == null)
                 {
                     TryDequipObject(weapon.Guid);
-                    EquipWieldedTreasure(true);
+                    EquipInventoryItems(true);
                     DoAttackStance();
                     CurrentAttack = null;
                 }
             }
             if (weapon == null && CurrentAttack != null && CurrentAttack == AttackType.Missile)
             {
-                EquipWieldedTreasure(true);
+                EquipInventoryItems(true);
                 DoAttackStance();
                 CurrentAttack = null;
             }

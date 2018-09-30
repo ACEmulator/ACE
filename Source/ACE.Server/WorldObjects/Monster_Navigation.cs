@@ -64,7 +64,7 @@ namespace ACE.Server.WorldObjects
         public void StartTurn()
         {
             if (DebugMove)
-                Console.WriteLine($"{Name} ({Guid}) - StartTurn");
+                Console.WriteLine($"{Name} ({Guid}) - StartTurn, ranged={IsRanged}");
 
             if (MoveSpeed == 0.0f)
                 GetMovementSpeed();
@@ -82,17 +82,15 @@ namespace ACE.Server.WorldObjects
             IsMoving = true;
 
             var mvp = GetMovementParameters();
-            //var mvp = new MovementParameters();
-
             if (IsRanged)
                 PhysicsObj.TurnToObject(AttackTarget.PhysicsObj.ID, mvp);
             else
                 PhysicsObj.MoveToObject(AttackTarget.PhysicsObj, mvp);
 
-            PhysicsObj.add_moveto_listener(OnMoveComplete);
-
             if (!InitSticky)
             {
+                PhysicsObj.add_moveto_listener(OnMoveComplete);
+
                 PhysicsObj.add_sticky_listener(OnSticky);
                 PhysicsObj.add_unsticky_listener(OnUnsticky);
                 InitSticky = true;
@@ -130,7 +128,7 @@ namespace ACE.Server.WorldObjects
             if (DebugMove)
                 Console.WriteLine($"{Name} ({Guid}) - OnMoveComplete");
 
-            PhysicsObj.CachedVelocity = Vector3.Zero;
+            PhysicsObj.CachedVelocity = Vector3.Zero;   // ??
             IsMoving = false;
         }
 
@@ -216,7 +214,7 @@ namespace ACE.Server.WorldObjects
             SendUpdatePosition(ForcePos);
 
             if (DebugMove)
-                Console.WriteLine($"{Name} ({Guid}) - UpdatePosition");
+                Console.WriteLine($"{Name} ({Guid}) - UpdatePosition (velocity: {PhysicsObj.CachedVelocity.Length()})");
         }
 
         /// <summary>
@@ -260,8 +258,8 @@ namespace ACE.Server.WorldObjects
         {
             var dist = GetDistanceToTarget();
             var angle = GetAngle(AttackTarget);
-            Console.WriteLine("Dist: " + dist);
-            Console.WriteLine("Angle: " + angle);
+            //Console.WriteLine("Dist: " + dist);
+            //Console.WriteLine("Angle: " + angle);
         }
 
         public void GetMovementSpeed()
@@ -308,9 +306,6 @@ namespace ACE.Server.WorldObjects
             var angle = GetAngle(target);
             var dist = Math.Max(0, GetDistanceToTarget());
 
-            //Console.WriteLine("Angle: " + angle);
-            //Console.WriteLine("Dist: " + dist);
-
             // rotation accuracy?
             var threshold = 5.0f;
 
@@ -319,7 +314,8 @@ namespace ACE.Server.WorldObjects
             if (dist < minDist)
                 threshold += (minDist - dist) * 1.5f;
 
-            //Console.WriteLine("Threshold: " + threshold);
+            //if (DebugMove)
+                //Console.WriteLine($"{Name}.IsFacing({target.Name}): Angle={angle}, Dist={dist}, Threshold={threshold}, {angle < threshold}");
 
             return angle < threshold;
         }
@@ -329,12 +325,9 @@ namespace ACE.Server.WorldObjects
             var mvp = new MovementParameters();
 
             // set non-defualt params for monster movement
-            mvp.Flags |= MovementParamFlags.FailWalk | MovementParamFlags.UseFinalHeading | MovementParamFlags.Sticky | MovementParamFlags.MoveAway;
-            mvp.HoldKeyToApply = HoldKey.Run;
-
-            // only found in pcaps for 1 mob, verify for all
-            mvp.MinDistance = 0.1f;
-            mvp.DistanceToObject = 0.5f;
+            mvp.Flags &= ~MovementParamFlags.CanWalk;
+            if (!IsRanged)
+                mvp.Flags |= MovementParamFlags.FailWalk | MovementParamFlags.UseFinalHeading | MovementParamFlags.Sticky | MovementParamFlags.MoveAway;
 
             return mvp;
         }

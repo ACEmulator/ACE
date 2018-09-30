@@ -17,96 +17,38 @@ namespace ACE.Server.WorldObjects
 {
     partial class Creature
     {
-        public float ReloadMissileAmmo()
+        public float ReloadMissileAmmo(ActionChain actionChain = null)
         {
             var weapon = GetEquippedMissileWeapon();
             var ammo = GetEquippedAmmo();
 
             if (weapon == null || ammo == null) return 0.0f;
 
-            var actionChain = new ActionChain();
+            var newChain = actionChain == null;
+            if (newChain)
+                actionChain = new ActionChain();
 
             var animLength = 0.0f;
             if (weapon.IsBow)
             {
-                EnqueueMotion(actionChain, MotionCommand.Reload);   // start pulling out next arrow
+                animLength = EnqueueMotion(actionChain, MotionCommand.Reload);   // start pulling out next arrow
                 EnqueueMotion(actionChain, MotionCommand.Ready);    // finish reloading
-
-                animLength = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, MotionCommand.Reload, MotionCommand.Ready);
-                actionChain.AddDelaySeconds(animLength);
             }
 
             // ensure ammo visibility for players
             actionChain.AddAction(this, () =>
             {
+                EnqueueActionBroadcast((Player p) => p.TrackEquippedObject(this, ammo));
                 EnqueueBroadcast(new GameMessageParentEvent(this, ammo, (int)ACE.Entity.Enum.ParentLocation.RightHand, (int)ACE.Entity.Enum.Placement.RightHandCombat));
-                EnqueueActionBroadcast((Player p) => p.TrackObject(this));
             });
 
-            actionChain.EnqueueChain();
+            if (newChain)
+                actionChain.EnqueueChain();
 
-            var animLength2 = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, MotionCommand.Ready, MotionCommand.Reload);
+            var animLength2 = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, MotionCommand.Reload, MotionCommand.Ready);
             //Console.WriteLine($"AnimLength: {animLength} + {animLength2}");
 
             return animLength + animLength2;
-        }
-
-        /// <summary>
-        /// TODO: deprecated
-        /// </summary>
-        public float ReloadMotion()
-        {
-            var weapon = GetEquippedMissileWeapon();
-            if (weapon == null) return 0.0f;
-
-            var ammo = weapon.IsBow ? GetEquippedAmmo() : weapon;
-
-            var actionChain = new ActionChain();
-            var animLength = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, MotionCommand.Reload);
-
-            var motion = new UniversalMotion(CurrentMotionState.Stance);
-            motion.MovementData.CurrentStyle = (uint)CurrentMotionState.Stance;
-            motion.MovementData.ForwardCommand = (uint)MotionCommand.Reload;
-            motion.MovementData.TurnSpeed = 2.25f;
-            //motion.HasTarget = true;
-            //motion.TargetGuid = target.Guid;
-            CurrentMotionState = motion;
-
-            actionChain.AddAction(this, () => EnqueueBroadcastMotion(motion));
-            actionChain.AddDelaySeconds(animLength);
-
-            actionChain.AddAction(this, () =>
-            {
-                motion.MovementData.ForwardCommand = (uint)MotionCommand.Invalid;
-                EnqueueBroadcastMotion(motion);
-                CurrentMotionState = motion;
-            });
-
-            actionChain.AddAction(this, () => EnqueueBroadcast(
-                new GameMessageParentEvent(this, ammo, (int)ACE.Entity.Enum.ParentLocation.RightHand,
-                    (int)ACE.Entity.Enum.Placement.RightHandCombat)));
-
-            actionChain.AddDelaySeconds(animLength);
-
-            var player = this as Player;
-            if (player != null)
-            {
-                actionChain.AddAction(this, () => player.Session.Network.EnqueueSend(new GameEventAttackDone(player.Session)));
-                actionChain.AddAction(this, () => player.Session.Network.EnqueueSend(new GameEventCombatCommmenceAttack(player.Session)));
-                // TODO: This gets rid of the hourglass but doesn't seem to be sent in retail pcaps...
-                actionChain.AddAction(this, () => player.Session.Network.EnqueueSend(new GameEventAttackDone(player.Session)));
-            }
-            actionChain.EnqueueChain();
-
-            switch (weapon.DefaultCombatStyle)
-            {
-                case CombatStyle.Bow:
-                    return animLength * 1.6f;
-                case CombatStyle.Crossbow:
-                    return animLength * 3.2f;
-                default:
-                    return animLength * 1.0f;
-            }
         }
 
         public Vector3 GetDir2D(Vector3 source, Vector3 dest)
@@ -166,7 +108,9 @@ namespace ACE.Server.WorldObjects
         /// <param name="ammo">The equipped missile ammo object</param>
         public void UpdateAmmoAfterLaunch(WorldObject ammo)
         {
-            if (ammo.StackSize == 1)
+            ammo.StackSize--;
+
+            if (ammo.StackSize == 0)
             {
                 TryDequipObject(ammo.Guid);
                 EnqueueActionBroadcast(p => p.RemoveTrackedObject(ammo, true));
@@ -174,7 +118,6 @@ namespace ACE.Server.WorldObjects
             }
             else
             {
-                ammo.StackSize--;
                 EnqueueBroadcast(new GameMessagePickupEvent(ammo), new GameMessageSetStackSize(ammo));
             }
         }

@@ -109,12 +109,24 @@ namespace ACE.Server.WorldObjects
                 UpdateAmmoAfterLaunch(ammo);
             });
 
+            // ammo remaining?
+            if (ammo.StackSize == 1)
+            {
+                actionChain.AddAction(this, () =>
+                {
+                    SetCombatMode(CombatMode.NonCombat);
+                });
+
+                actionChain.EnqueueChain();
+                return;
+            }
+
             // reload animation
             var reloadTime = EnqueueMotion(actionChain, MotionCommand.Reload);
 
             // reset for next projectile
             EnqueueMotion(actionChain, MotionCommand.Ready);
-            var linkTime = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, MotionCommand.Ready, MotionCommand.Reload);
+            var linkTime = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, MotionCommand.Reload, MotionCommand.Ready);
             //var cycleTime = MotionTable.GetCycleLength(MotionTableId, CurrentMotionState.Stance, MotionCommand.Ready);
 
             actionChain.AddAction(this, () => EnqueueBroadcast(new GameMessageParentEvent(this, ammo, (int)ACE.Entity.Enum.ParentLocation.RightHand,
@@ -144,6 +156,11 @@ namespace ACE.Server.WorldObjects
 
             actionChain.EnqueueChain();
         }
+
+        // TODO: the damage pipeline currently uses the creature ammo instead of the projectile
+        // for calculating damage. when the last arrow is launched, the player ammo will be null
+        // give projectiles an owner, and have the damage pipeline take the actual damage source object
+        // (ie. the arrow-in-flight, or a melee weapon)
 
         public override float GetAimHeight(WorldObject target)
         {

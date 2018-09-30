@@ -4,7 +4,6 @@ using System.Linq;
 using ACE.Database;
 using ACE.Database.Models.World;
 using ACE.Entity.Enum;
-using ACE.Server.Factories;
 using ACE.Server.Physics.Extensions;
 
 namespace ACE.Server.WorldObjects
@@ -148,6 +147,8 @@ namespace ACE.Server.WorldObjects
 
         public List<WorldObject> SelectWieldedWeapons()
         {
+            //Console.WriteLine($"{Name}.SelectWieldedWeapons()");
+
             var meleeWeapons = GetInventoryItemsOfTypeWeenieType(WeenieType.MeleeWeapon);
             var missileWeapons = GetInventoryItemsOfTypeWeenieType(WeenieType.MissileLauncher);
             var missiles = GetInventoryItemsOfTypeWeenieType(WeenieType.Missile);
@@ -155,6 +156,7 @@ namespace ACE.Server.WorldObjects
             var ammo = GetInventoryItemsOfTypeWeenieType(WeenieType.Ammunition);
 
             var allWeapons = meleeWeapons.Concat(missileWeapons).ToList();
+            //var allWeapons = missileWeapons;
 
             if (allWeapons.Count == 0) return new List<WorldObject>();
 
