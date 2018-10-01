@@ -148,6 +148,7 @@ namespace ACE.Server.Network.Handlers
                         return;
                     }
 
+                    WorldManager.AddPlayer(player.Character);
                     session.Characters.Add(player.Character);
 
                     SendCharacterCreateResponse(session, CharacterGenerationVerificationResponse.Ok, player.Guid, characterCreateInfo.Name);
