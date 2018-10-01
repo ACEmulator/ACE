@@ -199,7 +199,7 @@ namespace ACE.Server.WorldObjects
                     int boost = Physics.Common.Random.RollDice(minBoostValue, maxBoostValue);
                     damage = boost < 0 ? (uint)Math.Abs(boost) : 0;
 
-                    switch (spell.DamageType2)
+                    switch (spell.VitalDamageType)
                     {
                         case DamageType.Mana:
                             newSpellTargetVital = (int)Math.Min(spellTarget.Mana.Current + boost, spellTarget.Mana.MaxValue);
