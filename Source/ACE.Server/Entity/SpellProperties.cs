@@ -305,7 +305,7 @@ namespace ACE.Server.Entity
         /// <summary>
         /// DamageType used by LifeMagic spells that specifies Health, Mana, or Stamina for the Boost type spells
         /// </summary>
-        public DamageType DamageType2 { get => (DamageType)(_spell.DamageType ?? 0); }
+        public DamageType VitalDamageType { get => (DamageType)(_spell.DamageType ?? 0); }
 
         /// <summary>
         /// The minimum amount of vital boost from a life spell
