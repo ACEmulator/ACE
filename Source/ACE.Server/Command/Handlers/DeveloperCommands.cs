@@ -437,6 +437,34 @@ namespace ACE.Server.Command.Handlers
 
 
         // ==================================
+        // World Object Properties
+        // ==================================
+
+        [CommandHandler("propertydump", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, "Lists all properties for the last world object you examined.")]
+        public static void HandlePropertyDump(Session session, params string[] parameters)
+        {
+            var targetID = session.Player.CurrentAppraisalTarget;
+            if (targetID == null)
+            {
+                ChatPacket.SendServerMessage(session, "ERROR: no examined history", ChatMessageType.System);
+                return;
+            }
+            var targetGuid = new ObjectGuid(targetID.Value);
+            var target = session.Player.GetInventoryItem(targetGuid);
+            if (target == null)
+                target = session.Player.CurrentLandblock?.GetObject(targetGuid);
+            if (target == null)
+            {
+                ChatPacket.SendServerMessage(session, "ERROR: couldn't find " + targetGuid, ChatMessageType.System);
+                return;
+            }
+
+            session.Network.EnqueueSend(new GameMessageSystemChat("", ChatMessageType.System));
+            session.Network.EnqueueSend(new GameMessageSystemChat($"{target.DebugOutputString(target)}", ChatMessageType.System));
+        }
+
+
+        // ==================================
         // Player Properties
         // ==================================
 
