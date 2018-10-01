@@ -303,7 +303,7 @@ namespace ACE.Server.Entity
         public float DamageRatio { get => _spell.DamageRatio ?? 1.0f; }
 
         /// <summary>
-        /// TODO: how is this different from EType?
+        /// DamageType used by LifeMagic spells that specifies Health, Mana, or Stamina for the Boost type spells
         /// </summary>
         public DamageType DamageType2 { get => (DamageType)(_spell.DamageType ?? 0); }
 
