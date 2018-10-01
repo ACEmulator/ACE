@@ -2,6 +2,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Diagnostics;
 
 using log4net;
 
@@ -59,23 +60,27 @@ namespace ACE.Server.Managers
         }
 
         /// <summary>
-        /// This should only be used for debugging/development purposes.
+        /// Loads the specified list of landblocks and optionally their adjacents.
         /// </summary>
-        public static void ForceLoadLandBlock(LandblockId blockid)
+        public static void ForceLoadLandBlock(LandblockId blockid, bool propagate = false)
         {
-            GetLandblock(blockid, false);
+            GetLandblock(blockid, propagate, true);
         }
 
         /// <summary>
         /// gets the landblock specified, creating it if it is not already loaded.  will create all
         /// adjacent landblocks if propagate is true (outdoor world roaming).
         /// </summary>
-        private static Landblock GetLandblock(LandblockId landblockId, bool propagate)
+        private static Landblock GetLandblock(LandblockId landblockId, bool propagate, bool permaload = false)
         {
             lock (landblockMutex)
             {
                 var landblock = landblocks[landblockId.LandblockX, landblockId.LandblockY];
                 var autoLoad = propagate && landblockId.MapScope == MapScope.Outdoors;
+
+                // Set Permaload flag, as required, for an already loaded landblock
+                if (landblock != null)
+                    landblock.Permaload = permaload;
 
                 // standard check/lock/recheck pattern
                 if (landblock == null || autoLoad && !landblock.AdjacenciesLoaded)
@@ -87,6 +92,9 @@ namespace ACE.Server.Managers
                         {
                             // load up this landblock
                             landblock = landblocks[landblockId.LandblockX, landblockId.LandblockY] = new Landblock(landblockId);
+
+                            // Set Permaload flag, as required, for new landblock to be loaded
+                            landblock.Permaload = permaload;
 
                             if (!activeLandblocks.Add(landblock))
                             {
@@ -212,5 +220,27 @@ namespace ACE.Server.Managers
                 }
             }
         }
+
+        public static void Initialize()
+        {
+            var landBlockIdList = new List<LandblockId>();
+
+            for (uint x = 0; x < RawLandblockId.Length; x++)
+            {
+                var landBlockId = new LandblockId(RawLandblockId[x]);
+                landBlockIdList.Add(landBlockId);
+            }
+
+            foreach (var landBlockId in landBlockIdList)
+            {
+                Stopwatch sw = Stopwatch.StartNew();
+                ForceLoadLandBlock(landBlockId, true);
+                sw.Stop();
+                log.DebugFormat("Landblock {0:X4} preloaded in {1} milliseconds", landBlockId.Landblock, sw.ElapsedMilliseconds);
+            }
+        }
+
+        private static readonly uint[] RawLandblockId = { 0xa9b4ffff, 0xabb2ffff, 0xaab3ffff, 0x7d64ffff, 0x7e64ffff, 0xe64effff, 0xe74effff, 0xda55ffff, 0xdb54ffff,
+                                                          0xd955ffff, 0xd956ffff, 0xdb56ffff, 0xce94ffff, 0xbb9fffff, 0xbc9fffff, 0xc6a9ffff, 0x0007ffff };
     }
 }
