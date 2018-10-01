@@ -455,15 +455,16 @@ namespace ACE.Server.Factories
 
             // todo 0 skill points. When we add the 4 skill points in LevelUpPlayer, we can spend them here
 
-            player.SpendAllXp(false);
+            // todo aug endurance
 
-            // todo aug endurancea
+            SpendAllXp(player);
 
-            // todo Give the character some armor + weapons
+            AddCommonEquipment(player);
+            AddCommonInventory(player);
 
-            // todo learn all spells
+            // todo Give the character skill appropriate weapons
 
-            // todo buffs
+            AddAllSpells(player);
 
             return player;
         }
@@ -484,6 +485,71 @@ namespace ACE.Server.Factories
             // todo add all augmentations except the element protection and attribute raising ones
 
             // todo add Luminance quest flags + 2 luminance quest flags + skill credits
+        }
+
+        private static void SpendAllXp(Player player)
+        {
+            player.SpendAllXp(false);
+
+            player.Health.Current = player.Health.MaxValue;
+            player.Stamina.Current = player.Stamina.MaxValue;
+            player.Mana.Current = player.Mana.MaxValue;
+        }
+
+        private static void AddCommonEquipment(Player player)
+        {
+            // todo Armor that covers everything + has all spells
+        }
+
+        private static void AddCommonInventory(Player player)
+        {
+            // MMD
+            AddWeeniesToInventory(player, new HashSet<uint> { 20630 });
+
+            // Spell Components
+            AddWeeniesToInventory(player, new HashSet<uint> { 691, 689, 686, 688, 687, 690, 8897, 7299, 37155, 20631 });
+
+            // Focusing Stone
+            AddWeeniesToInventory(player, new HashSet<uint> { 8904 });
+
+            // todo Drudge Scrying Orb
+
+            // todo Buffing wand that has all defenses maxed
+        }
+
+        private static void AddWeeniesToInventory(Player player, HashSet<uint> weenieIds, ushort? stackSize = null)
+        {
+            foreach (uint weenieId in weenieIds)
+            {
+                var loot = WorldObjectFactory.CreateNewWorldObject(weenieId);
+
+                if (loot == null) // weenie doesn't exist
+                    continue;
+
+                if (stackSize == null)
+                    stackSize = loot.MaxStackSize;
+
+                if (stackSize > 1)
+                {
+                    loot.StackSize = stackSize;
+                    loot.EncumbranceVal = (loot.StackUnitEncumbrance ?? 0) * (stackSize ?? 1);
+                    loot.Value = (loot.StackUnitValue ?? 0) * (stackSize ?? 1);
+                }
+
+                player.TryAddToInventory(loot);
+            }
+        }
+
+        private static void AddAllSpells( Player player)
+        {
+            for (uint spellLevel = 1; spellLevel <= 8; spellLevel++)
+            {
+                player.LearnSpellsInBulk(MagicSchool.CreatureEnchantment, spellLevel, false);
+                player.LearnSpellsInBulk(MagicSchool.ItemEnchantment, spellLevel, false);
+                player.LearnSpellsInBulk(MagicSchool.LifeMagic, spellLevel, false);
+                player.LearnSpellsInBulk(MagicSchool.VoidMagic, spellLevel, false);
+                player.LearnSpellsInBulk(MagicSchool.WarMagic, spellLevel, false);
+            }
         }
     }
 }

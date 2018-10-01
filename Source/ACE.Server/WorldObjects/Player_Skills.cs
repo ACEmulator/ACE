@@ -280,20 +280,22 @@ namespace ACE.Server.WorldObjects
             else if (amount >= rank1)
                 rankUps = 1;
             
-
-            if (rankUps > 0)
-                skill.Ranks += rankUps;
-
             if (!usage)
             {
                 if (SpendXP(amount, sendNetworkPropertyUpdate))
                 {
+                    if (rankUps > 0)
+                        skill.Ranks += rankUps;
+
                     skill.ExperienceSpent += amount;
                     result = skill.ExperienceSpent;
                 }
             }
             else
             {
+                if (rankUps > 0)
+                    skill.Ranks += rankUps;
+
                 skill.ExperienceSpent += amount;
                 result = skill.ExperienceSpent;
             }
@@ -303,7 +305,29 @@ namespace ACE.Server.WorldObjects
 
         public void SpendAllAvailableSkillXp(CreatureSkill skill, bool sendNetworkPropertyUpdate = true)
         {
-            SpendSkillXp(skill, uint.MaxValue, false, false);
+            var xpList = GetXPTable(skill.AdvancementClass);
+
+            if (xpList == null)
+                return;
+
+            while (true)
+            {
+                uint currentRankXp = xpList[Convert.ToInt32(skill.Ranks)];
+                uint rank10;
+
+                if (skill.Ranks + 10 >= (xpList.Count))
+                {
+                    var rank10Offset = 10 - (Convert.ToInt32(skill.Ranks + 10) - (xpList.Count - 1));
+                    rank10 = xpList[Convert.ToInt32(skill.Ranks) + rank10Offset] - currentRankXp;
+                }
+                else
+                {
+                    rank10 = xpList[Convert.ToInt32(skill.Ranks) + 10] - currentRankXp;
+                }
+
+                if (SpendSkillXp(skill, rank10, false, sendNetworkPropertyUpdate) == 0)
+                    break;
+            }
         }
 
         /// <summary>
@@ -341,10 +365,9 @@ namespace ACE.Server.WorldObjects
             var xpTable = DatManager.PortalDat.XpTable;
             if (status == SkillAdvancementClass.Trained)
                 return xpTable.TrainedSkillXpList;
-            else if (status == SkillAdvancementClass.Specialized)
+            if (status == SkillAdvancementClass.Specialized)
                 return xpTable.SpecializedSkillXpList;
-            else
-                return null;
+            return null;
         }
 
         /// <summary>

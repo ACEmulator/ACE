@@ -126,7 +126,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         ///  Learns spells in bulk, without notification, filtered by school and level
         /// </summary>
-        public void LearnSpellsInBulk(MagicSchool school, uint spellLevel)
+        public void LearnSpellsInBulk(MagicSchool school, uint spellLevel, bool withNetworking = true)
         {
             var spellTable = DatManager.PortalDat.SpellTable;
 
@@ -139,7 +139,12 @@ namespace ACE.Server.WorldObjects
                 }
                 var spell = new Spell(spellID, false);
                 if (spell.School == school && spell.Formula.Level == spellLevel)
-                    LearnSpellWithNetworking(spell.Id, false);
+                {
+                    if (withNetworking)
+                        LearnSpellWithNetworking(spell.Id, false);
+                    else
+                        AddKnownSpell(spell.Id);
+                }
             }
         }
 
