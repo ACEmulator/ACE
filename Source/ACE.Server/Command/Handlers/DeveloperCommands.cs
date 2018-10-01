@@ -769,6 +769,14 @@ namespace ACE.Server.Command.Handlers
             ChatPacket.SendServerMessage(session, "Usage: /grantxp [name] 1234 (max 999999999999)", ChatMessageType.Broadcast);
         }
 
+        [CommandHandler("spendallxp", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Spend all available XP on Attributes, Vitals and Skills.")]
+        public static void HandleSpendAllXp(Session session, params string[] parameters)
+        {
+            session.Player.SpendAllXp();
+
+            ChatPacket.SendServerMessage(session, "All available xp has been spent. You must now log out for the updated values to take effect.", ChatMessageType.Broadcast);
+        }
+
 
         // ==================================
         // Vitals
