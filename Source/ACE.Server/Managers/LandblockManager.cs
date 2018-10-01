@@ -240,6 +240,7 @@ namespace ACE.Server.Managers
             }
         }
 
+        // TODO: Change the RawLandblockId list used for preloading defined landblocks to some other, more easily-modified format, rather than a compiled uint array
         private static readonly uint[] RawLandblockId = { 0xa9b4ffff, 0xabb2ffff, 0xaab3ffff, 0x7d64ffff, 0x7e64ffff, 0xe64effff, 0xe74effff, 0xda55ffff, 0xdb54ffff,
                                                           0xd955ffff, 0xd956ffff, 0xdb56ffff, 0xce94ffff, 0xbb9fffff, 0xbc9fffff, 0xc6a9ffff, 0x0007ffff };
     }
