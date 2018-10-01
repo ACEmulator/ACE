@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using System.Text;
+
 using log4net;
+
 using ACE.Common;
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
@@ -467,11 +469,6 @@ namespace ACE.Server.WorldObjects
             var success = true;
             GameEventIdentifyObjectResponse identifyResponse = new GameEventIdentifyObjectResponse(examiner, this, success);
             examiner.Network.EnqueueSend(identifyResponse);
-
-#if DEBUG
-            examiner.Network.EnqueueSend(new GameMessageSystemChat("", ChatMessageType.System));
-            examiner.Network.EnqueueSend(new GameMessageSystemChat($"{DebugOutputString(GetType(), this)}", ChatMessageType.System));
-#endif
         }
 
         public void ReadBookPage(Session reader, uint pageNum)
@@ -492,12 +489,12 @@ namespace ACE.Server.WorldObjects
         }
 
  
-        private string DebugOutputString(Type type, WorldObject obj)
+        public string DebugOutputString(WorldObject obj)
         {
             var sb = new StringBuilder();
 
             sb.AppendLine("ACE Debug Output:");
-            sb.AppendLine("ACE Class File: " + type.Name + ".cs");
+            sb.AppendLine("ACE Class File: " + GetType().Name + ".cs");
             sb.AppendLine("Guid: " + obj.Guid.Full + " (0x" + obj.Guid.Full.ToString("X") + ")");
 
             sb.AppendLine("----- Private Fields -----");
