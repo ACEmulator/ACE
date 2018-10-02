@@ -49,7 +49,6 @@ namespace ACE.Server.WorldObjects
             Character.Id = guid.Full;
             Character.AccountId = accountId;
             Character.Name = GetProperty(PropertyString.Name);
-            Character.IsPlussed = true;
             CharacterChangesDetected = true;
 
             // Make sure properties this WorldObject requires are not null.
@@ -59,6 +58,8 @@ namespace ACE.Server.WorldObjects
             Attackable = true;
 
             SetProperty(PropertyString.DateOfBirth, $"{DateTime.UtcNow:dd MMMM yyyy}");
+
+            SetEphemeralValues();
         }
 
         /// <summary>
