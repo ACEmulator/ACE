@@ -504,18 +504,17 @@ namespace ACE.Server.Managers
                 DelayManager.RunActions();
 
                 var worldUpdated = UpdateGameWorld(lastGameTickDuration);
+                if (worldUpdated)
+                    lastTickDuration = 0;
 
                 int sessionCount = ProcessInboundQueue();
 
                 Thread.Sleep(sessionCount == 0 ? 10 : 1); // Relax the CPU if no sessions are connected
 
                 lastTickDuration = worldTickTimer.Elapsed.TotalSeconds;
-                Timers.PortalYearTicks += lastTickDuration;
 
-                if (worldUpdated)
-                    lastGameTickDuration = lastTickDuration;
-                else
-                    lastGameTickDuration += lastTickDuration;
+                lastGameTickDuration += lastTickDuration;
+                Timers.PortalYearTicks += lastTickDuration;
             }
 
             // World has finished operations and concedes the thread to garbage collection

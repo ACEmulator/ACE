@@ -104,7 +104,7 @@ namespace ACE.Server.Entity
         /// Enqueues 1 or multiple objects from this generator profile
         /// adds these items to the spawn queue
         /// </summary>
-        public void Enqueue(int numObjects = 1)
+        public void Enqueue(int numObjects = 1, bool initialSpawn = true)
         {
             for (var i = 0; i < numObjects; i++)
             {
@@ -114,7 +114,8 @@ namespace ACE.Server.Entity
                     break;
                 }
                 SpawnQueue.Add(GetSpawnTime());
-                _generator.CurrentCreate++;
+                if (initialSpawn)
+                    _generator.CurrentCreate++;
             }
         }
 
@@ -152,8 +153,6 @@ namespace ACE.Server.Entity
 
                         Spawned.Add(obj.Guid.Full, registry);
                     }
-                    else
-                        _generator.CurrentCreate--;
                 }
                 else
                 {
@@ -295,7 +294,7 @@ namespace ACE.Server.Entity
             if (item != null)
             {
                 Spawned.Remove(target.Full);
-                Enqueue();
+                Enqueue(1, false);
             }
         }
     }
