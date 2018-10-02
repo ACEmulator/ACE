@@ -516,8 +516,6 @@ namespace ACE.Server.Managers
                     lastGameTickDuration = lastTickDuration;
                 else
                     lastGameTickDuration += lastTickDuration;
-
-                PerfTimer.DoTimers();
             }
 
             // World has finished operations and concedes the thread to garbage collection
