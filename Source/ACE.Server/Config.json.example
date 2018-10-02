@@ -14,7 +14,8 @@
       "AllowAutoAccountCreation": true
     },
     "DatFilesDirectory": "c:\\ACE\\",
-    "ShutdownInterval": "60"
+    "ShutdownInterval": "60",
+    "LandblockPreloading": false
   },
   "MySql": {
     "Authentication": {

@@ -47,7 +47,7 @@ namespace ACE.Server.Entity
         /// <summary>
         /// Flag indicates if this landblock is permanently loaded (for example, towns on high-traffic servers)
         /// </summary>
-        public readonly bool Permaload = false;
+        public bool Permaload = false;
 
         public bool IsActive { get; private set; } = true;
         private DateTime lastActiveTime;

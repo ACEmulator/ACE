@@ -419,7 +419,7 @@ namespace ACE.Server.Command.Handlers
                     {
                         var blockid = new LandblockId((byte)x, (byte)y);
                         Stopwatch sw = Stopwatch.StartNew();
-                        LandblockManager.ForceLoadLandBlock(blockid);
+                        LandblockManager.ForceLoadLandBlock(blockid, false, false);
                         sw.Stop();
                         CommandHandlerHelper.WriteOutputDebug(session, $"Loaded Landblock {blockid.Landblock:X4} in {sw.ElapsedMilliseconds} milliseconds");
                     }
