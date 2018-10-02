@@ -257,28 +257,30 @@ namespace ACE.Server.WorldObjects
             var damage = CalculateDamage(ProjectileSource, target, ref critical);
 
             // null damage -> target resisted; damage of -1 -> target already dead
-            if (damage == null || damage == -1) return;
-
-            // handle void magic DoTs:
-            // instead of instant damage, add DoT to target's enchantment registry
-            if (Spell.School == MagicSchool.VoidMagic && Spell.Duration > 0)
+            if (damage != null && damage != -1)
             {
-                var dot = ProjectileSource.CreateEnchantment(target, ProjectileSource, Spell);
-                if (dot.message != null && player != null)
-                    player.Session.Network.EnqueueSend(dot.message);
+                // handle void magic DoTs:
+                // instead of instant damage, add DoT to target's enchantment registry
+                if (Spell.School == MagicSchool.VoidMagic && Spell.Duration > 0)
+                {
+                    var dot = ProjectileSource.CreateEnchantment(target, ProjectileSource, Spell);
+                    if (dot.message != null && player != null)
+                        player.Session.Network.EnqueueSend(dot.message);
 
-                // corruption / corrosion playscript?
-                //target.EnqueueBroadcast(new GameMessageScript(target.Guid, ACE.Entity.Enum.PlayScript.HealthDownVoid));
-                //target.EnqueueBroadcast(new GameMessageScript(target.Guid, ACE.Entity.Enum.PlayScript.DirtyFightingDefenseDebuff));
+                    // corruption / corrosion playscript?
+                    //target.EnqueueBroadcast(new GameMessageScript(target.Guid, ACE.Entity.Enum.PlayScript.HealthDownVoid));
+                    //target.EnqueueBroadcast(new GameMessageScript(target.Guid, ACE.Entity.Enum.PlayScript.DirtyFightingDefenseDebuff));
+                }
+                else
+                {
+                    DamageTarget(target, damage, critical);
+                }
+
+                if (player != null)
+                    Proficiency.OnSuccessUse(player, player.GetCreatureSkill(Spell.School), Spell.PowerMod);
             }
-            else
-            {
-                DamageTarget(target, damage, critical);
-            }
 
-            if (player != null)
-                Proficiency.OnSuccessUse(player, player.GetCreatureSkill(Spell.School), Spell.PowerMod);
-
+            // also called on resist
             if (player != null && targetPlayer == null)
                 player.OnAttackMonster(target);
         }

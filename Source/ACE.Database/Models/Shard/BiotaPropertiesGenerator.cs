@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace ACE.Database.Models.Shard
@@ -10,8 +10,8 @@ namespace ACE.Database.Models.Shard
         public float Probability { get; set; }
         public uint WeenieClassId { get; set; }
         public float? Delay { get; set; }
-        public uint InitCreate { get; set; }
-        public uint MaxCreate { get; set; }
+        public int InitCreate { get; set; }
+        public int MaxCreate { get; set; }
         public uint WhenCreate { get; set; }
         public uint WhereCreate { get; set; }
         public int? StackSize { get; set; }

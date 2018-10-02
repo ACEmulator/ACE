@@ -236,10 +236,12 @@ namespace ACE.Server.Entity
         public void Tick(double lastTickDuration, double currentUnixTime)
         {
             // Here we'd move server objects in motion (subject to landscape) and do physics collision detection
-            var allworldobj = worldObjects.Values;
-            var allplayers = allworldobj.OfType<Player>().ToList();
 
-            UpdateStatus(allplayers.Count);
+            // TODO: remove these legacy functions
+            //var allworldobj = worldObjects.Values;
+            //var allplayers = allworldobj.OfType<Player>().ToList();
+
+            //UpdateStatus(allplayers.Count);
 
             if (IsActive)
             {

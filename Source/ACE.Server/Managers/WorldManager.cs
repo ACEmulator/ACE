@@ -462,13 +462,12 @@ namespace ACE.Server.Managers
             log.DebugFormat("Starting UpdateWorld thread");
 
             double lastTickDuration = 0d;
+            double lastGameTickDuration = 0d;
             WorldActive = true;
             var worldTickTimer = new Stopwatch();
 
             while (!pendingWorldStop)
             {
-                worldTickTimer.Restart();
-
                 /*
                 When it comes to thread safety for Landblocks and WorldObjects, ACE makes the following assumptions:
 
@@ -496,71 +495,120 @@ namespace ACE.Server.Managers
                  * TODO: We need a thread safe way to handle object transitions between distant landblocks
                 */
 
+                worldTickTimer.Restart();
+
                 InboundClientMessageQueue.RunActions();
 
                 playerEnterWorldQueue.RunActions();
 
                 DelayManager.RunActions();
 
-                // update positions through physics engine
-                var movedObjects = HandlePhysics(Timers.PortalYearTicks);
+                var worldUpdated = UpdateGameWorld(lastGameTickDuration);
 
-                // iterate through objects that have changed landblocks
-                foreach (var movedObject in movedObjects)
-                {
-                    // NOTE: The object's Location can now be null, if a player logs out, or an item is picked up
-                    if (movedObject.Location == null) continue;
-
-                    // assume adjacency move here?
-                    LandblockManager.RelocateObjectForPhysics(movedObject, true);
-                }
-
-                // Tick all of our Landblocks and WorldObjects
-                var activeLandblocks = LandblockManager.GetActiveLandblocks();
-
-                foreach (var landblock in activeLandblocks)
-                    landblock.Tick(lastTickDuration, Time.GetUnixTime());
-
-                // clean up inactive landblocks
-                LandblockManager.UnloadLandblocks();
-
-                // Session Maintenance
-                int sessionCount;
-
-                sessionLock.EnterUpgradeableReadLock();
-                try
-                {
-                    sessionCount = sessions.Count;
-
-                    // The session tick processes all inbound GameAction messages
-                    foreach (var s in sessions)
-                        s.Tick();
-
-                    // The session TickInParallel processes pending actions and handles outgoing messages
-                    Parallel.ForEach(sessions, s => s.TickInParallel());
-
-                    // Removes sessions in the NetworkTimeout state, including sessions that have reached a timeout limit.
-                    var deadSessions = sessions.FindAll(s => s.State == Network.Enum.SessionState.NetworkTimeout);
-
-                    foreach (var session in deadSessions)
-                    {
-                        log.Info($"client {session.Account} dropped");
-                        RemoveSession(session);
-                    }
-                }
-                finally
-                {
-                    sessionLock.ExitUpgradeableReadLock();
-                }
+                int sessionCount = ProcessInboundQueue();
 
                 Thread.Sleep(sessionCount == 0 ? 10 : 1); // Relax the CPU if no sessions are connected
 
                 lastTickDuration = worldTickTimer.Elapsed.TotalSeconds;
                 Timers.PortalYearTicks += lastTickDuration;
+
+                if (worldUpdated)
+                    lastGameTickDuration = lastTickDuration;
+                else
+                    lastGameTickDuration += lastTickDuration;
+
+                PerfTimer.DoTimers();
             }
 
             // World has finished operations and concedes the thread to garbage collection
             WorldActive = false;
+        }
+
+        /// <summary>
+        /// Processes all inbound GameAction messages
+        /// </summary>
+        /// <returns></returns>
+        public static int ProcessInboundQueue()
+        {
+            int sessionCount;
+
+            sessionLock.EnterUpgradeableReadLock();
+            try
+            {
+                sessionCount = sessions.Count;
+
+                // The session tick processes all inbound GameAction messages
+                foreach (var s in sessions)
+                    s.Tick();
+
+                // The session TickInParallel processes pending actions and handles outgoing messages
+
+                // TODO: figure out how many sessions are required for this not to be a performance degradation
+                //Parallel.ForEach(sessions, s => s.TickInParallel());
+
+                foreach (var s in sessions)
+                    s.TickInParallel();
+
+                // Removes sessions in the NetworkTimeout state, including sessions that have reached a timeout limit.
+                var deadSessions = sessions.FindAll(s => s.State == Network.Enum.SessionState.NetworkTimeout);
+
+                foreach (var session in deadSessions)
+                {
+                    log.Info($"client {session.Account} dropped");
+                    RemoveSession(session);
+                }
+            }
+            finally
+            {
+                sessionLock.ExitUpgradeableReadLock();
+            }
+            return sessionCount;
+        }
+
+        /// <summary>
+        /// The number of times per second gameplay updates are processed (inverted)
+        /// </summary>
+        public static double GameUpdateRate = 1.0f / 60.0f;
+
+        public static double LastGameUpdate;
+
+        /// <summary>
+        /// Projected to run at a reasonable rate for gameplay (30-60fps)
+        /// </summary>
+        public static bool UpdateGameWorld(double lastGameTickDuration)
+        {
+            if (PhysicsTimer.CurrentTime < LastGameUpdate + GameUpdateRate)
+                return false;
+
+            LastGameUpdate = PhysicsTimer.CurrentTime;
+
+            // update positions through physics engine
+            PerfTimer.StartTimer("HandlePhysics");
+            var movedObjects = HandlePhysics(Timers.PortalYearTicks);
+
+            // iterate through objects that have changed landblocks
+            foreach (var movedObject in movedObjects)
+            {
+                // NOTE: The object's Location can now be null, if a player logs out, or an item is picked up
+                if (movedObject.Location == null) continue;
+
+                // assume adjacency move here?
+                LandblockManager.RelocateObjectForPhysics(movedObject, true);
+            }
+            PerfTimer.StopTimer("HandlePhysics");
+
+            // Tick all of our Landblocks and WorldObjects
+            PerfTimer.StartTimer("ActiveLandblocks");
+            var activeLandblocks = LandblockManager.GetActiveLandblocks();
+
+            foreach (var landblock in activeLandblocks)
+                landblock.Tick(lastGameTickDuration, Time.GetUnixTime());
+
+            // clean up inactive landblocks
+            LandblockManager.UnloadLandblocks();
+            PerfTimer.StopTimer("ActiveLandblocks");
+
+            return true;
         }
 
         /// <summary>
@@ -569,22 +617,11 @@ namespace ACE.Server.Managers
         public static void StopWorld() { pendingWorldStop = true; }
 
         /// <summary>
-        /// The number of times per second physics updates are processed (inverted)
-        /// </summary>
-        public static double PhysicsRate = 1.0f / 60.0f;
-
-        public static double LastPhysicsUpdate;
-
-        /// <summary>
         /// Processes physics objects in all active landblocks for updating
         /// </summary>
         private static IEnumerable<WorldObject> HandlePhysics(double timeTick)
         {
             ConcurrentQueue<WorldObject> movedObjects = new ConcurrentQueue<WorldObject>();
-
-            if (PhysicsTimer.CurrentTime < LastPhysicsUpdate + PhysicsRate)
-                return movedObjects;
-
             try
             {
                 var activeLandblocks = LandblockManager.GetActiveLandblocks();
@@ -608,9 +645,6 @@ namespace ACE.Server.Managers
             {
                 log.Error(e);
             }
-
-            LastPhysicsUpdate = PhysicsTimer.CurrentTime;
-
             return movedObjects;
         }
 
