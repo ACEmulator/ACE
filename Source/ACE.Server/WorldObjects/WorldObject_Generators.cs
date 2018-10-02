@@ -273,6 +273,13 @@ namespace ACE.Server.WorldObjects
                 GeneratorRegistry.Add(wo.Guid.Full, rNode);
                 GeneratorCache.Add(wo.Guid.Full, wo);
 
+                if (wo.Location == null || wo.Location.Landblock != Location.Landblock)
+                {
+                    //Console.WriteLine($"*** WARNING *** {Name} spawned {wo.Name} in landblock {wo.Location.Landblock:X4} from {Location.Landblock:X4} @ {(RegenLocationType)profile.WhereCreate}");
+                    GeneratorQueue.RemoveAt(index);
+                    continue;
+                }
+
                 // System.Diagnostics.Debug.WriteLine($"Spawning {GeneratorQueue[index].Slot} in GeneratorQueue for {Guid.Full}");
                 wo.EnterWorld();
 
