@@ -1,7 +1,7 @@
 using System;
 using System.IO;
 
-using ACE.Database.Models.World.Internal;
+using ACE.Database.Models.World;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 

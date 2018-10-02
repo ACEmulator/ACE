@@ -13,7 +13,7 @@ namespace ACE.Server.WorldObjects
 {
     public class SpellProjectile : WorldObject
     {
-        public Spell Spell;
+        public Server.Entity.Spell Spell;
         public ProjectileSpellType SpellType { get; set; }
 
         public Position SpawnPos;
@@ -49,7 +49,7 @@ namespace ACE.Server.WorldObjects
         /// <param name="spellId"></param>
         public void Setup(uint spellId)
         {
-            Spell = new Spell(spellId);
+            Spell = new Server.Entity.Spell(spellId);
             SpellType = GetProjectileSpellType(spellId);
 
             InitPhysicsObj();
@@ -107,7 +107,7 @@ namespace ACE.Server.WorldObjects
 
         public static ProjectileSpellType GetProjectileSpellType(uint spellID)
         {
-            var spell = new Spell(spellID);
+            var spell = new Server.Entity.Spell(spellID);
 
             if (spell.Wcid == 0)
                 return ProjectileSpellType.Undef;

@@ -11,7 +11,6 @@ using Microsoft.EntityFrameworkCore.Storage;
 using log4net;
 
 using ACE.Database.Models.World;
-using ACE.Database.Models.World.Internal;
 using ACE.Entity.Enum;
 
 namespace ACE.Database
