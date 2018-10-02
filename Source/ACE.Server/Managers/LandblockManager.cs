@@ -233,15 +233,34 @@ namespace ACE.Server.Managers
 
             foreach (var landBlockId in landBlockIdList)
             {
-                Stopwatch sw = Stopwatch.StartNew();
                 ForceLoadLandBlock(landBlockId, true);
-                sw.Stop();
-                log.DebugFormat("Landblock {0:X4} preloaded in {1} milliseconds", landBlockId.Landblock, sw.ElapsedMilliseconds);
+                log.DebugFormat("Landblock {0:X4} preloaded", landBlockId.Landblock);
             }
         }
 
         // TODO: Change the RawLandblockId list used for preloading defined landblocks to some other, more easily-modified format, rather than a compiled uint array
-        private static readonly uint[] RawLandblockId = { 0xa9b4ffff, 0xabb2ffff, 0xaab3ffff, 0x7d64ffff, 0x7e64ffff, 0xe64effff, 0xe74effff, 0xda55ffff, 0xdb54ffff,
-                                                          0xd955ffff, 0xd956ffff, 0xdb56ffff, 0xce94ffff, 0xbb9fffff, 0xbc9fffff, 0xc6a9ffff, 0x0007ffff };
+        private static readonly uint[] RawLandblockId = {   0x0007ffff,	// Town Network
+                                                            0xce94ffff,	// Eastham
+                                                            0xda55ffff,	// Shoushi
+                                                            0xdb54ffff,	// Shoushi
+                                                            0xa9b4ffff,	// Holtburg
+                                                            0xabb2ffff,	// Holtburg
+                                                            0xaab3ffff,	// Holtburg
+                                                            0x7d64ffff,	// Yaraq
+                                                            0x7e64ffff,	// Yaraq
+                                                            0xe64effff,	// Hebian-to
+                                                            0xe74effff,	// Hebian-to
+                                                            0xbb9fffff,	// Cragstone
+                                                            0xbc9fffff,	// Cragstone
+                                                            0xc6a9ffff,	// Arwic
+                                                            0xe63effff,	// Nanto
+                                                            0xe632ffff,	// Mayoi
+                                                            0xc341ffff,	// Baishi
+                                                            0xc98cffff,	// Rithwic
+                                                            0x977bffff,	// Samsur
+                                                            0x8f58ffff,	// Al-Arqas
+                                                            0x33d9ffff,	// Sanamar
+                                                            0x17b2ffff	// Redspire
+                                                            };
     }
 }
