@@ -583,7 +583,6 @@ namespace ACE.Server.Managers
             LastGameUpdate = PhysicsTimer.CurrentTime;
 
             // update positions through physics engine
-            PerfTimer.StartTimer("HandlePhysics");
             var movedObjects = HandlePhysics(Timers.PortalYearTicks);
 
             // iterate through objects that have changed landblocks
@@ -595,10 +594,8 @@ namespace ACE.Server.Managers
                 // assume adjacency move here?
                 LandblockManager.RelocateObjectForPhysics(movedObject, true);
             }
-            PerfTimer.StopTimer("HandlePhysics");
 
             // Tick all of our Landblocks and WorldObjects
-            PerfTimer.StartTimer("ActiveLandblocks");
             var activeLandblocks = LandblockManager.GetActiveLandblocks();
 
             foreach (var landblock in activeLandblocks)
@@ -606,7 +603,6 @@ namespace ACE.Server.Managers
 
             // clean up inactive landblocks
             LandblockManager.UnloadLandblocks();
-            PerfTimer.StopTimer("ActiveLandblocks");
 
             return true;
         }
