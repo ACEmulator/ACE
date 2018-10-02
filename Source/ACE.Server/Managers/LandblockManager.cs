@@ -27,6 +27,48 @@ namespace ACE.Server.Managers
         /// </summary>
         private static readonly ConcurrentBag<Landblock> destructionQueue = new ConcurrentBag<Landblock>();
 
+        public static void Initialize()
+        {
+            var landBlockIdList = new List<LandblockId>();
+
+            for (uint x = 0; x < RawLandblockId.Length; x++)
+            {
+                var landBlockId = new LandblockId(RawLandblockId[x]);
+                landBlockIdList.Add(landBlockId);
+            }
+
+            foreach (var landBlockId in landBlockIdList)
+            {
+                ForceLoadLandBlock(landBlockId, true);
+                log.DebugFormat("Landblock {0:X4} preloaded", landBlockId.Landblock);
+            }
+        }
+
+        // TODO: Change the RawLandblockId list used for preloading defined landblocks to some other, more easily-modified format, rather than a compiled uint array
+        private static readonly uint[] RawLandblockId = {   0x0007ffff,	// Town Network
+                                                            0xce94ffff,	// Eastham
+                                                            0xda55ffff,	// Shoushi
+                                                            0xdb54ffff,	// Shoushi
+                                                            0xa9b4ffff,	// Holtburg
+                                                            0xabb2ffff,	// Holtburg
+                                                            0xaab3ffff,	// Holtburg
+                                                            0x7d64ffff,	// Yaraq
+                                                            0x7e64ffff,	// Yaraq
+                                                            0xe64effff,	// Hebian-to
+                                                            0xe74effff,	// Hebian-to
+                                                            0xbb9fffff,	// Cragstone
+                                                            0xbc9fffff,	// Cragstone
+                                                            0xc6a9ffff,	// Arwic
+                                                            0xe63effff,	// Nanto
+                                                            0xe632ffff,	// Mayoi
+                                                            0xc341ffff,	// Baishi
+                                                            0xc98cffff,	// Rithwic
+                                                            0x977bffff,	// Samsur
+                                                            0x8f58ffff,	// Al-Arqas
+                                                            0x33d9ffff,	// Sanamar
+                                                            0x17b2ffff	// Redspire
+                                                            };
+
         public static void AddObject(WorldObject worldObject, bool propegate = false)
         {
             var block = GetLandblock(worldObject.Location.LandblockId, propegate);
@@ -77,10 +119,6 @@ namespace ACE.Server.Managers
             {
                 var landblock = landblocks[landblockId.LandblockX, landblockId.LandblockY];
                 var autoLoad = propagate && landblockId.MapScope == MapScope.Outdoors;
-
-                // Set Permaload flag, as required, for an already loaded landblock
-                if (landblock != null)
-                    landblock.Permaload = permaload;
 
                 // standard check/lock/recheck pattern
                 if (landblock == null || autoLoad && !landblock.AdjacenciesLoaded)
@@ -220,47 +258,5 @@ namespace ACE.Server.Managers
                 }
             }
         }
-
-        public static void Initialize()
-        {
-            var landBlockIdList = new List<LandblockId>();
-
-            for (uint x = 0; x < RawLandblockId.Length; x++)
-            {
-                var landBlockId = new LandblockId(RawLandblockId[x]);
-                landBlockIdList.Add(landBlockId);
-            }
-
-            foreach (var landBlockId in landBlockIdList)
-            {
-                ForceLoadLandBlock(landBlockId, true);
-                log.DebugFormat("Landblock {0:X4} preloaded", landBlockId.Landblock);
-            }
-        }
-
-        // TODO: Change the RawLandblockId list used for preloading defined landblocks to some other, more easily-modified format, rather than a compiled uint array
-        private static readonly uint[] RawLandblockId = {   0x0007ffff,	// Town Network
-                                                            0xce94ffff,	// Eastham
-                                                            0xda55ffff,	// Shoushi
-                                                            0xdb54ffff,	// Shoushi
-                                                            0xa9b4ffff,	// Holtburg
-                                                            0xabb2ffff,	// Holtburg
-                                                            0xaab3ffff,	// Holtburg
-                                                            0x7d64ffff,	// Yaraq
-                                                            0x7e64ffff,	// Yaraq
-                                                            0xe64effff,	// Hebian-to
-                                                            0xe74effff,	// Hebian-to
-                                                            0xbb9fffff,	// Cragstone
-                                                            0xbc9fffff,	// Cragstone
-                                                            0xc6a9ffff,	// Arwic
-                                                            0xe63effff,	// Nanto
-                                                            0xe632ffff,	// Mayoi
-                                                            0xc341ffff,	// Baishi
-                                                            0xc98cffff,	// Rithwic
-                                                            0x977bffff,	// Samsur
-                                                            0x8f58ffff,	// Al-Arqas
-                                                            0x33d9ffff,	// Sanamar
-                                                            0x17b2ffff	// Redspire
-                                                            };
     }
 }
