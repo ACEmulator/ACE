@@ -524,7 +524,6 @@ namespace ACE.Server.Managers
         /// <summary>
         /// Processes all inbound GameAction messages
         /// </summary>
-        /// <returns></returns>
         public static int ProcessInboundQueue()
         {
             int sessionCount;

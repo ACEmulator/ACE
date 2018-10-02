@@ -499,7 +499,7 @@ namespace ACE.Server.WorldObjects
 
                 GeneratorEnteredWorld = true;
             }
-            else
+            else if (!GeneratorDisabled)
                 SelectProfilesMax();
 
             foreach (var generator in GeneratorProfiles)
