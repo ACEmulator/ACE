@@ -39,13 +39,17 @@ namespace ACE.Server.Managers
 
             foreach (var landBlockId in landBlockIdList)
             {
-                ForceLoadLandBlock(landBlockId, true);
+                ForceLoadLandBlock(landBlockId, true, true);
                 log.DebugFormat("Landblock {0:X4} preloaded", landBlockId.Landblock);
             }
         }
 
         // TODO: Change the RawLandblockId list used for preloading defined landblocks to some other, more easily-modified format, rather than a compiled uint array
-        private static readonly uint[] RawLandblockId = {   0x0007ffff,	// Town Network
+        private static readonly uint[] RawLandblockId = {   0x8603ffff, // Training Academy - Holtburg Starting Location
+                                                            0x8c04ffff, // Training Academy - Yaraq Starting Location
+                                                            0x7f03ffff, // Training Academy - Shoushi Starting Location
+                                                            0x7203ffff, // Training Academy - Sanamar Starting Location
+                                                            0x0007ffff,	// Town Network
                                                             0xce94ffff,	// Eastham
                                                             0xda55ffff,	// Shoushi
                                                             0xdb54ffff,	// Shoushi
@@ -104,9 +108,12 @@ namespace ACE.Server.Managers
         /// <summary>
         /// Loads the specified list of landblocks and optionally their adjacents.
         /// </summary>
-        public static void ForceLoadLandBlock(LandblockId blockid, bool propagate = false)
+        /// <param name="blockid"></param>
+        /// <param name="propagate"></param>
+        /// <param name="permaload"></param>
+        public static void ForceLoadLandBlock(LandblockId blockid, bool propagate, bool permaload)
         {
-            GetLandblock(blockid, propagate, true);
+            GetLandblock(blockid, propagate, permaload);
         }
 
         /// <summary>

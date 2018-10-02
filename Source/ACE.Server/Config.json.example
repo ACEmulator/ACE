@@ -15,7 +15,7 @@
     },
     "DatFilesDirectory": "c:\\ACE\\",
     "ShutdownInterval": "60",
-	"LandblockPreloading": false
+    "LandblockPreloading": false
   },
   "MySql": {
     "Authentication": {
