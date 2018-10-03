@@ -1247,11 +1247,28 @@ namespace ACE.Server.Command.Handlers
             var targetGuid = new ObjectGuid(targetID.Value);
             var target = session.Player.CurrentLandblock?.GetObject(targetGuid);
             if (target == null)
+                target = session.Player.CurrentLandblock?.GetWieldedObject(targetGuid);
+
+            if (target == null)
             {
                 CommandHandlerHelper.WriteOutputInfo(session, "ERROR: couldn't find " + targetGuid);
                 return null;
             }
             return target;
+        }
+
+        [CommandHandler("givemana", AccessLevel.Developer, CommandHandlerFlag.None, 0, "Gives mana to the last appraised object", "givemana <amount>")]
+        public static void HandleGiveMana(Session session, params string[] parameters)
+        {
+            if (parameters.Length == 0) return;
+            var amount = Int32.Parse(parameters[0]);
+
+            var obj = GetLastAppraisedObject(session);
+            if (obj == null) return;
+
+            amount = Math.Min(amount, obj.ItemMaxMana ?? 0);
+            obj.ItemCurMana += amount;
+            session.Network.EnqueueSend(new GameMessageSystemChat($"You give {amount} points of mana to the {obj.Name}.", ChatMessageType.Magic));
         }
 
         [CommandHandler("debugemote", AccessLevel.Developer, CommandHandlerFlag.None, 0, "Debugs a hardcoded emote for the last appraised object", "debugemote")]
