@@ -136,7 +136,7 @@ namespace ACE.Server.WorldObjects
                 {
                     DamageTarget(creature, weapon);
 
-                    if (weapon.IsCleaving)
+                    if (weapon != null && weapon.IsCleaving)
                     {
                         var cleave = GetCleaveTarget(creature, weapon);
                         foreach (var cleaveHit in cleave)
