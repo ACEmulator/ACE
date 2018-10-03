@@ -1,4 +1,5 @@
 using ACE.Entity;
+using System;
 using System.Numerics;
 using ACE.Server.Physics.Common;
 using ACE.Server.Physics.Extensions;
@@ -123,6 +124,45 @@ namespace ACE.Server.Entity
                 return envCell.Value;
             else
                 return p.Cell;
+        }
+
+        /// <summary>
+        /// Returns the greatest single-dimension square distance between 2 positions
+        /// </summary>
+        public static uint CellDist(this Position p1, Position p2)
+        {
+            if (!p1.Indoors && !p2.Indoors)
+            {
+                return Math.Max(p1.GlobalCellX, p1.GlobalCellY);
+            }
+
+            // handle dungeons
+            /*var block1 = LScape.get_landblock(p1.LandblockId.Raw);
+            var block2 = LScape.get_landblock(p2.LandblockId.Raw);
+            if (block1.IsDungeon || block2.IsDungeon)
+            {
+                // 2 separate dungeons = infinite distance
+                if (block1.ID != block2.ID)
+                    return uint.MaxValue;
+
+                return GetDungeonCellDist(p1, p2);
+            }*/
+
+            var _p1 = new Position(p1);
+            var _p2 = new Position(p2);
+
+            if (_p1.Indoors)
+                _p1.LandblockId = new LandblockId(_p1.GetOutdoorCell());
+            if (_p2.Indoors)
+                _p2.LandblockId = new LandblockId(_p2.GetIndoorCell());
+
+            return Math.Max(_p1.GlobalCellX, _p2.GlobalCellY);
+        }
+
+        public static uint GetDungeonCellDist(Position p1, Position p2)
+        {
+            // not implemented yet
+            return uint.MaxValue;
         }
     }
 }

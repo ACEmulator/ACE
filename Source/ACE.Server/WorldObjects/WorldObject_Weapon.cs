@@ -6,6 +6,26 @@ namespace ACE.Server.WorldObjects
 {
     partial class WorldObject
     {
+        /// <summary>
+        /// Returns TRUE if this weapon cleaves
+        /// </summary>
+        public bool IsCleaving { get => GetProperty(PropertyInt.Cleaving) != null;  }
+
+        /// <summary>
+        /// Returns the number of cleave targets for this weapon
+        /// If cleaving weapon, this is PropertyInt.Cleaving - 1
+        /// </summary>
+        public int CleaveTargets
+        {
+            get
+            {
+                if (!IsCleaving)
+                    return 0;
+
+                return GetProperty(PropertyInt.Cleaving).Value - 1;
+            }
+        }
+
         const float defaultPhysicalCritFrequency = 0.10f;
         const float defaultMagicCritFrequency = 0.02f;
         const float defaultCritMultiplier = 0.0f;

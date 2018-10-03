@@ -96,6 +96,18 @@ namespace ACE.Server.WorldObjects
             var critical = false;
             var sneakAttack = false;
 
+            // check PK status
+            var targetPlayer = target as Player;
+            if (targetPlayer != null)
+            {
+                var pkStatus = CheckPKStatusVsTarget(this, targetPlayer, null);
+                if (pkStatus != null && pkStatus == false)
+                {
+                    Session.Network.EnqueueSend(new GameMessageSystemChat($"You fail to affect {targetPlayer.Name} because you are not a player killer!", ChatMessageType.Magic));
+                    return 0.0f;
+                }
+            }
+
             var damage = CalculateDamage(target, damageSource, ref critical, ref sneakAttack);
             var damageType = GetDamageType();
 

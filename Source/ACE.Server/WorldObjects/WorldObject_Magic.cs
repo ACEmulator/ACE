@@ -36,7 +36,7 @@ namespace ACE.Server.WorldObjects
             if (player == null || target == null)
                 return null;
 
-            if (spell.IsHarmful)
+            if (spell == null || spell.IsHarmful)
             {
                 // Ensure that a non-PK cannot cast harmful spells on another player
                 if (player.PlayerKillerStatus == PlayerKillerStatus.NPK)
