@@ -362,8 +362,8 @@ namespace ACE.Database.Models.World
                     Probability = value.Probability,
                     WeenieClassId = value.WeenieClassId,
                     Delay = value.Delay,
-                    InitCreate = (int)value.InitCreate,     // FIXME in SQL generator: should be int?
-                    MaxCreate = (int)value.MaxCreate,
+                    InitCreate = value.InitCreate,
+                    MaxCreate = value.MaxCreate,
                     WhenCreate = value.WhenCreate,
                     WhereCreate = value.WhereCreate,
                     StackSize = value.StackSize,
