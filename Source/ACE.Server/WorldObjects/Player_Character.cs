@@ -317,7 +317,7 @@ namespace ACE.Server.WorldObjects
                 sendMsg = true;
             }
 
-            if (sendMsg && FirstEnterWorldDone != null && FirstEnterWorldDone.Value)
+            if (sendMsg && FirstEnterWorldDone)
             {
                 Session.Network.EnqueueSend(new GameEventUpdateTitle(Session, titleId, setAsDisplayTitle));
 

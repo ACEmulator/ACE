@@ -1161,6 +1161,8 @@ namespace ACE.Server.WorldObjects
 
             var isDungeon = CurrentLandblock._landblock.IsDungeon;
 
+            var rangeSquared = range * range;
+
             foreach (var player in PhysicsObj.ObjMaint.VoyeurTable.Values.Select(v => v.WeenieObj.WorldObject as Player))
             {
                 if (isDungeon && Location.Landblock != player.Location.Landblock)
@@ -1169,8 +1171,9 @@ namespace ACE.Server.WorldObjects
                 if ((Visibility ?? false) && !player.Adminvision)
                     continue;
 
-                var dist = Vector3.Distance(Location.ToGlobal(), player.Location.ToGlobal());
-                if (dist <= range)
+                //var dist = Vector3.Distance(Location.ToGlobal(), player.Location.ToGlobal());
+                var distSquared = Vector3.DistanceSquared(Location.ToGlobal(), player.Location.ToGlobal());
+                if (distSquared <= rangeSquared)
                     player.Session.Network.EnqueueSend(msg);
             }
         }

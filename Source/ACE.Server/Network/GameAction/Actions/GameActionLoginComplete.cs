@@ -11,7 +11,7 @@ namespace ACE.Server.Network.GameAction.Actions
         {
             session.Player.OnTeleportComplete();
 
-            if (!session.Player.FirstEnterWorldDone.Value)
+            if (!session.Player.FirstEnterWorldDone)
                 session.Player.FirstEnterWorldDone = true;
         }
     }

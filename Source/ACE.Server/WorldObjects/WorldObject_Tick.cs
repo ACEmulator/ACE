@@ -28,10 +28,22 @@ namespace ACE.Server.WorldObjects
             if (cachedHeartbeatTimestamp == null)
             {
                 cachedHeartbeatInterval = HeartbeatInterval ?? DefaultHeartbeatInterval;
-                HeartBeat(currentUnixTime);
+                QueueFirstHeartbeat(currentUnixTime);
             }
             else if (cachedHeartbeatTimestamp + cachedHeartbeatInterval <= currentUnixTime)
                 HeartBeat(currentUnixTime);
+        }
+
+        /// <summary>
+        /// Enqueues the first heartbeat on a staggered 0-5s delay
+        /// </summary>
+        public void QueueFirstHeartbeat(double currentUnixTime)
+        {
+            var delay = Physics.Common.Random.RollDice(0.0f, DefaultHeartbeatInterval);
+
+            var firstHeartbeat = currentUnixTime + delay;
+
+            cachedHeartbeatTimestamp = firstHeartbeat - cachedHeartbeatInterval;
         }
 
         /// <summary>

@@ -309,7 +309,10 @@ namespace ACE.Server.WorldObjects
             foreach (var x in Biota.BiotaPropertiesString.Where(i => EphemeralProperties.PropertiesString.Contains(i.Type)).ToList())
                 ephemeralPropertyStrings[(PropertyString)x.Type] = x.Value;
 
-            GeneratorProfiles = Biota.BiotaPropertiesGenerator.ToList();
+            AddGeneratorProfiles();
+
+            if (IsGenerator && RegenerationInterval > 5)
+                HeartbeatInterval = RegenerationInterval;
 
             BaseDescriptionFlags = ObjectDescriptionFlag.Attackable;
 

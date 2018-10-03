@@ -1,9 +1,6 @@
-using System;
 using System.Collections.Generic;
-using System.Text;
 using ACE.Database.Models.World;
 using ACE.Entity.Enum;
-using ACE.Server.Entity;
 using log4net;
 
 namespace ACE.Server.Managers
@@ -35,10 +32,8 @@ namespace ACE.Server.Managers
         {
             e = e.ToLower();
 
-            if (!Events.ContainsKey(e))
+            if (!Events.TryGetValue(e, out Event evnt))
                 return false;
-
-            var evnt = Events[e];
 
             var state = (GameEventState)evnt.State;
 
@@ -50,7 +45,6 @@ namespace ACE.Server.Managers
                 evnt.State = (int)GameEventState.On;
                 //evnt.StartTime = DateTime.UtcNow.Ticks;
 
-                Events[e] = evnt;
                 return true;
             }
 
@@ -61,10 +55,8 @@ namespace ACE.Server.Managers
         {
             e = e.ToLower();
 
-            if (!Events.ContainsKey(e))
+            if (!Events.TryGetValue(e, out Event evnt))
                 return false;
-
-            var evnt = Events[e];
 
             var state = (GameEventState)evnt.State;
 
@@ -76,7 +68,6 @@ namespace ACE.Server.Managers
                 evnt.State = (int)GameEventState.Off;
                 //evnt.StartTime = DateTime.UtcNow.Ticks;
 
-                Events[e] = evnt;
                 return true;
             }
 
@@ -87,40 +78,35 @@ namespace ACE.Server.Managers
         {
             e = e.ToLower();
 
-            if (!Events.ContainsKey(e))
+            if (!Events.TryGetValue(e, out Event evnt))
                 return false;
 
-            return Events[e].State == (int)GameEventState.On;
+            return evnt.State == (int)GameEventState.On;
         }
 
         public static bool IsEventEnabled(string e)
         {
             e = e.ToLower();
 
-            if (!Events.ContainsKey(e))
+            if (!Events.TryGetValue(e, out Event evnt))
                 return false;
 
-            return Events[e].State == (int)GameEventState.Enabled || Events[e].State == (int)GameEventState.On || Events[e].State == (int)GameEventState.Off;
+            return evnt.State == (int)GameEventState.Enabled || evnt.State == (int)GameEventState.On || evnt.State == (int)GameEventState.Off;
         }
 
         public static bool IsEventAvailable(string e)
         {
-            e = e.ToLower();
-
-            if (!Events.ContainsKey(e))
-                return false;
-
-            return true;
+            return Events.ContainsKey(e.ToLower());
         }
 
         public static GameEventState GetEventStatus(string e)
         {
             e = e.ToLower();
 
-            if (!Events.ContainsKey(e))
+            if (!Events.TryGetValue(e, out Event evnt))
                 return GameEventState.Undef;
 
-            return (GameEventState)Events[e].State;
+            return (GameEventState)evnt.State;
         }
     }
 }
