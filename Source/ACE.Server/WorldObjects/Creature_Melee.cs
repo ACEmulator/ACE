@@ -114,14 +114,19 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Performs a cleaving attack for two-handed weapons
         /// </summary>
-        /// <returns>The nearest non-target attackable WorldObject within cleaving distance in front of player</returns>
-        public Creature GetCleaveTarget(Creature target)
+        /// <returns>The list of cleave targets to hit with this attack</returns>
+        public List<Creature> GetCleaveTarget(Creature target, WorldObject weapon)
         {
+            if (!weapon.IsCleaving) return null;
+
             _globalPos = Location.ToGlobal();
 
             // sort visible objects by ascending distance
             var visible = PhysicsObj.ObjMaint.VisibleObjectTable.Values.ToList();
             visible.Sort(DistanceComparator);
+
+            var cleaveTargets = new List<Creature>();
+            var totalCleaves = weapon.CleaveTargets;
 
             foreach (var obj in visible)
             {
@@ -137,7 +142,7 @@ namespace ACE.Server.WorldObjects
                 // no objects in cleave range
                 var distSquared = Vector3.DistanceSquared(_globalPos, creature.Location.ToGlobal());
                 if (distSquared > CleaveRangeSq)
-                    return null;
+                    return cleaveTargets;
 
                 // only cleave in front of attacker
                 var angle = GetAngle(creature);
@@ -145,10 +150,11 @@ namespace ACE.Server.WorldObjects
                     continue;
 
                 // found cleavable object
-                return creature;
+                cleaveTargets.Add(creature);
+                if (cleaveTargets.Count == totalCleaves)
+                    break;
             }
-            // no cleavable objects found
-            return null;
+            return cleaveTargets;
         }
     }
 }
