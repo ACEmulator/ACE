@@ -22,11 +22,6 @@ namespace ACE.Server.WorldObjects
     partial class Player
     {
         /// <summary>
-        /// Returns TRUE if player is currently performing a dual wield attack
-        /// </summary>
-        public bool IsDualWieldAttack { get => CurrentMotionState?.Stance == MotionStance.DualWieldCombat; }
-
-        /// <summary>
         /// Returns the current attack skill for the player
         /// </summary>
         public override Skill GetCurrentAttackSkill()
