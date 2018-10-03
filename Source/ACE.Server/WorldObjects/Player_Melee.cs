@@ -1,17 +1,27 @@
+using System;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Server.Entity.Actions;
-using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.Motion;
+using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Physics.Animation;
-using System;
+using MAttackType = ACE.Entity.Enum.AttackType;
 
 namespace ACE.Server.WorldObjects
 {
+    /// <summary>
+    /// Player melee attack
+    /// </summary>
     partial class Player
     {
+        /// <summary>
+        /// The target this player is currently performing a melee attack on
+        /// </summary>
         public WorldObject MeleeTarget;
 
+        /// <summary>
+        /// The power bar level, a value between 0-1
+        /// </summary>
         public float PowerLevel;
 
         public override PowerAccuracy GetPowerRange()
@@ -24,6 +34,9 @@ namespace ACE.Server.WorldObjects
                 return PowerAccuracy.High;
         }
 
+        /// <summary>
+        /// Called when a player first initiates a melee attack
+        /// </summary>
         public void HandleActionTargetedMeleeAttack(ObjectGuid guid, uint attackHeight, float powerLevel)
         {
             /*Console.WriteLine("HandleActionTargetedMeleeAttack");
@@ -73,6 +86,9 @@ namespace ACE.Server.WorldObjects
             Attack(target);
         }
 
+        /// <summary>
+        /// called when client sends the 'Cancel attack' network message
+        /// </summary>
         public void HandleActionCancelAttack()
         {
             //Console.WriteLine("HandleActionCancelAttack");
@@ -81,47 +97,90 @@ namespace ACE.Server.WorldObjects
             MissileTarget = null;
         }
 
+        /// <summary>
+        /// Performs a player melee attack against a target
+        /// </summary>
         public void Attack(WorldObject target)
         {
-            if (MeleeTarget == null || !IsAlive)
+            if (CombatMode != CombatMode.Melee || MeleeTarget == null || !IsAlive)
                 return;
 
             var creature = target as Creature;
-            var actionChain = DoSwingMotion(target, out float animLength);
+            if (creature == null || !creature.IsAlive)
+                return;
+
+            var animLength = DoSwingMotion(target);
+            if (animLength == 0)
+                return;
+
+            var weapon = GetEquippedMeleeWeapon();
+            var attackType = GetWeaponAttackType(weapon);
+            var numStrikes = GetNumStrikes(attackType);
+            var swingTime = animLength / numStrikes / 1.5f;
+
+            var actionChain = new ActionChain();
 
             // stamina usage
             // TODO: ensure enough stamina for attack
             var staminaCost = GetAttackStamina(GetPowerRange());
             UpdateVitalDelta(Stamina, -staminaCost);
 
-            // TODO: Send correct damage source (weapon or self?)
-            var weapon = GetEquippedMeleeWeapon();
-            if (weapon == null) return;
-            DamageTarget(creature, weapon);
-
-            if (creature.Health.Current > 0 && GetCharacterOption(CharacterOption.AutoRepeatAttacks))
+            for (var i = 0; i < numStrikes; i++)
             {
-                // powerbar refill timing
-                var refillMod = IsDualWieldAttack ? 0.8f : 1.0f;    // dual wield powerbar refills 20% faster
-                actionChain.AddDelaySeconds(PowerLevel * refillMod);
-                actionChain.AddAction(this, () => Attack(target));
+                // are there animation hooks for damage frames?
+                if (numStrikes > 1 && !TwoHandedCombat)
+                    actionChain.AddDelaySeconds(swingTime);
+
+                actionChain.AddAction(this, () =>
+                {
+                    DamageTarget(creature, weapon);
+                });
+
+                if (numStrikes == 1 || TwoHandedCombat)
+                    actionChain.AddDelaySeconds(swingTime);
             }
-            else
-                MeleeTarget = null;
+
+            actionChain.AddDelaySeconds(animLength - swingTime * numStrikes);
+
+            actionChain.AddAction(this, () =>
+            {
+                Session.Network.EnqueueSend(new GameEventAttackDone(Session));
+
+                if (creature.IsAlive && GetCharacterOption(CharacterOption.AutoRepeatAttacks))
+                {
+                    Session.Network.EnqueueSend(new GameEventCombatCommenceAttack(Session));
+                    Session.Network.EnqueueSend(new GameEventAttackDone(Session));
+
+                    // powerbar refill timing
+                    var refillMod = IsDualWieldAttack ? 0.8f : 1.0f;    // dual wield powerbar refills 20% faster
+                    actionChain.AddDelaySeconds(PowerLevel * refillMod);
+                    actionChain.AddAction(this, () =>
+                    {
+                        Attack(target);
+                    });
+                }
+                else
+                    MeleeTarget = null;
+            });
 
             actionChain.EnqueueChain();
         }
 
-        public ActionChain DoSwingMotion(WorldObject target, out float animLength)
+        /// <summary>
+        /// Performs the player melee swing animation
+        /// </summary>
+        public float DoSwingMotion(WorldObject target)
         {
-            // FIXME: proper swing animation speeds
+            // get the proper animation speed for this attack,
+            // based on weapon speed and player quickness
             var baseSpeed = GetAnimSpeed();
             var animSpeedMod = IsDualWieldAttack ? 1.2f : 1.0f;     // dual wield swing animation 20% faster
             var animSpeed = baseSpeed * animSpeedMod;
 
             var swingAnimation = new MotionItem(GetSwingAnimation(), animSpeed);
-            animLength = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, swingAnimation.Motion, animSpeed);
+            var animLength = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, swingAnimation.Motion, animSpeed);
 
+            // broadcast player swing animation to clients
             var motion = new UniversalMotion(CurrentMotionState.Stance, swingAnimation);
             motion.MovementData.CurrentStyle = (uint)CurrentMotionState.Stance;
             motion.MovementData.TurnSpeed = 2.25f;
@@ -129,17 +188,13 @@ namespace ACE.Server.WorldObjects
             motion.TargetGuid = target.Guid;
             CurrentMotionState = motion;
 
-            var actionChain = new ActionChain();
-            actionChain.AddAction(this, () => EnqueueBroadcastMotion(motion));
-            actionChain.AddDelaySeconds(animLength);
-            actionChain.AddAction(this, () => Session.Network.EnqueueSend(new GameEventAttackDone(Session)));
-            actionChain.AddAction(this, () => Session.Network.EnqueueSend(new GameEventCombatCommmenceAttack(Session)));
-            actionChain.AddAction(this, () => Session.Network.EnqueueSend(new GameEventAttackDone(Session)));
-            return actionChain;
+            EnqueueBroadcastMotion(motion);
+            return animLength;
         }
 
-        public bool DualWieldAlternate;
-
+        /// <summary>
+        /// Returns the melee swing animation, based on current stance and weapon
+        /// </summary>
         public override MotionCommand GetSwingAnimation()
         {
             MotionCommand motion = new MotionCommand();
@@ -152,14 +207,31 @@ namespace ACE.Server.WorldObjects
                 case MotionStance.TwoHandedStaffCombat:
                 case MotionStance.DualWieldCombat:
                     {
-                        // thrust for all of these?
-                        var action = PowerLevel < 0.33f ? "Thrust" : "Slash";
-                        if (CurrentMotionState.Stance == MotionStance.DualWieldCombat)
-                        {
-                            if (DualWieldAlternate)
-                                action = "Offhand" + action;
+                        // handle dual wielding weapon alternating
+                        if (IsDualWieldAttack) DualWieldAlternate = !DualWieldAlternate;
 
-                            DualWieldAlternate = !DualWieldAlternate;
+                        var weapon = GetEquippedMeleeWeapon();
+                        var attackType = GetWeaponAttackType(weapon);
+
+                        var action = PowerLevel < 0.33f && attackType.HasFlag(MAttackType.Thrust) ? "Thrust" : "Slash";
+
+                        // handle multistrike weapons
+                        action = MultiStrike(attackType, action);
+
+                        if (IsDualWieldAttack && !DualWieldAlternate)
+                            action = "Offhand" + action;
+
+                        // this is very strange:
+                        // sword + no shield has slash, but not thrust
+                        // sword + shield has thrust, but not slash...
+                        if (CurrentMotionState.Stance == MotionStance.SwordCombat)
+                        {
+                            if (action.Contains("Double") || action.Contains("Triple"))
+                                action = action.Replace("Thrust", "Slash");
+                        } else if (CurrentMotionState.Stance == MotionStance.SwordShieldCombat)
+                        {
+                            if (action.Contains("Double") || action.Contains("Triple"))
+                                action = action.Replace("Slash", "Thrust");
                         }
 
                         Enum.TryParse(action + GetAttackHeight(), out motion);
@@ -169,7 +241,7 @@ namespace ACE.Server.WorldObjects
                 default:
                     {
                         // is the player holding a weapon?
-                        var weapon = GetEquippedWeapon();
+                        var weapon = GetEquippedMeleeWeapon();
 
                         // no weapon: power range 1-3
                         // unarmed weapon: power range 1-2
