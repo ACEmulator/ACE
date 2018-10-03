@@ -19,7 +19,7 @@ namespace ACE.Server.Entity
         /// <summary>
         /// The spell information from the server DB
         /// </summary>
-        public Database.Models.World.Internal.Spell _spell;
+        public Database.Models.World.Spell _spell;
 
         /// <summary>
         /// Returns TRUE if spell is missing from either the client DAT or the server spell db
