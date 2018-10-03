@@ -134,6 +134,13 @@ namespace ACE.Server.WorldObjects
                 actionChain.AddAction(this, () =>
                 {
                     DamageTarget(creature, weapon);
+
+                    if (TwoHandedCombat)
+                    {
+                        var cleave = GetCleaveTarget(creature);
+                        if (cleave != null)
+                            DamageTarget(cleave, weapon);
+                    }
                 });
 
                 if (numStrikes == 1 || TwoHandedCombat)

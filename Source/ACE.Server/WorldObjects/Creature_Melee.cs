@@ -1,5 +1,11 @@
+using System;
+using System.Collections.Generic;
+using System.Numerics;
+using System.Linq;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Server.Entity;
+using ACE.Server.Physics;
 using MAttackType = ACE.Entity.Enum.AttackType;
 
 namespace ACE.Server.WorldObjects
@@ -85,6 +91,64 @@ namespace ACE.Server.WorldObjects
                 return 2;
             else
                 return 1;
+        }
+
+        private static Vector3 _globalPos;
+
+        public int DistanceComparator(PhysicsObj a, PhysicsObj b)
+        {
+            // use square distance to make things a bit faster
+            var globPos1 = a.WeenieObj.WorldObject.Location.ToGlobal();
+            var globPos2 = b.WeenieObj.WorldObject.Location.ToGlobal();
+
+            var dist1 = Vector3.DistanceSquared(_globalPos, globPos1);
+            var dist2 = Vector3.DistanceSquared(_globalPos, globPos2);
+
+            return dist1.CompareTo(dist2);
+        }
+
+        public static float CleaveRange = 5.0f;
+        public static float CleaveRangeSq = CleaveRange * CleaveRange;
+        public static float CleaveAngle = 180.0f;
+
+        /// <summary>
+        /// Performs a cleaving attack for two-handed weapons
+        /// </summary>
+        /// <returns>The nearest non-target attackable WorldObject within cleaving distance in front of player</returns>
+        public Creature GetCleaveTarget(Creature target)
+        {
+            _globalPos = Location.ToGlobal();
+
+            // sort visible objects by ascending distance
+            var visible = PhysicsObj.ObjMaint.VisibleObjectTable.Values.ToList();
+            visible.Sort(DistanceComparator);
+
+            foreach (var obj in visible)
+            {
+                // cleaving skips original target
+                if (obj.ID == target.PhysicsObj.ID)
+                    continue;
+
+                // only cleave creatures
+                var creature = obj.WeenieObj.WorldObject as Creature;
+                if (creature == null)
+                    continue;
+
+                // no objects in cleave range
+                var distSquared = Vector3.DistanceSquared(_globalPos, creature.Location.ToGlobal());
+                if (distSquared > CleaveRangeSq)
+                    return null;
+
+                // only cleave in front of attacker
+                var angle = GetAngle(creature);
+                if (Math.Abs(angle) > CleaveAngle / 2.0f)
+                    continue;
+
+                // found cleavable object
+                return creature;
+            }
+            // no cleavable objects found
+            return null;
         }
     }
 }
