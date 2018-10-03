@@ -140,7 +140,7 @@ namespace ACE.Server.WorldObjects
 
                 if (creature.IsAlive && GetCharacterOption(CharacterOption.AutoRepeatAttacks))
                 {
-                    Session.Network.EnqueueSend(new GameEventCombatCommmenceAttack(Session));
+                    Session.Network.EnqueueSend(new GameEventCombatCommenceAttack(Session));
                     Session.Network.EnqueueSend(new GameEventAttackDone(Session));
 
                     var nextAttack = new ActionChain();

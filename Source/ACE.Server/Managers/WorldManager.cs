@@ -103,6 +103,19 @@ namespace ACE.Server.Managers
         }
 
         /// <summary>
+        /// Adds a newly created character to the list of all players on the server
+        /// </summary>
+        public static void AddPlayer(Character character)
+        {
+            DatabaseManager.Shard.GetPlayerBiotas(character.Id, biotas =>
+            {
+                var session = new Session();
+                var player = new Player(biotas.Player, biotas.Inventory, biotas.WieldedItems, character, session);
+                AllPlayers.Add(player);
+            });
+        }
+
+        /// <summary>
         /// Returns an offline player record from the AllPlayers list
         /// </summary>
         /// <param name="playerGuid"></param>

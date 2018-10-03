@@ -1001,8 +1001,8 @@ CREATE TABLE `weenie_properties_generator` (
   `probability` float NOT NULL DEFAULT '1',
   `weenie_Class_Id` int(10) unsigned NOT NULL COMMENT 'Weenie Class Id of object to generate',
   `delay` float DEFAULT NULL COMMENT 'Amount of delay before generation',
-  `init_Create` int(10) unsigned NOT NULL DEFAULT '1' COMMENT 'Number of object to generate initially',
-  `max_Create` int(10) unsigned NOT NULL DEFAULT '1' COMMENT 'Maximum amount of objects to generate',
+  `init_Create` int(10) NOT NULL DEFAULT '1' COMMENT 'Number of object to generate initially',
+  `max_Create` int(10) NOT NULL DEFAULT '1' COMMENT 'Maximum amount of objects to generate',
   `when_Create` int(10) unsigned NOT NULL DEFAULT '2' COMMENT 'When to generate the weenie object',
   `where_Create` int(10) unsigned NOT NULL DEFAULT '4' COMMENT 'Where to generate the weenie object',
   `stack_Size` int(10) DEFAULT NULL COMMENT 'StackSize of object generated',
@@ -1207,4 +1207,4 @@ CREATE TABLE `weenie_properties_texture_map` (
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2018-09-23 14:44:37
+-- Dump completed on 2018-10-02 13:44:57
