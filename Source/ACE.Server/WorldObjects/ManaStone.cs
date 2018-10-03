@@ -1,14 +1,13 @@
+using System;
+using System.Linq;
+
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
-using ACE.DatLoader;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace ACE.Server.WorldObjects
 {
@@ -69,7 +68,7 @@ namespace ACE.Server.WorldObjects
                         var sourceMana = target.ItemCurMana.Value;
                         if (!player.TryRemoveItemWithNetworking(target)) throw new Exception($"Failed to remove {target.Name} from player inventory.");
                         ItemCurMana = (int)Math.Round(Efficiency.Value * target.ItemCurMana.Value);
-                        player.Session.Network.EnqueueSend(new GameMessageSystemChat($"The {Name} drains {ItemCurMana} points of mana from the {target.Name}.\nThe {target.Name} is destroyed.", ChatMessageType.Broadcast));
+                        player.Session.Network.EnqueueSend(new GameMessageSystemChat($"The {Name} drains {ItemCurMana.Value.ToString("N0")} points of mana from the {target.Name}.\nThe {target.Name} is destroyed.", ChatMessageType.Broadcast));
                         SetUiEffect(player, ACE.Entity.Enum.UiEffects.Magical);
                     }
                 }
@@ -114,8 +113,8 @@ namespace ACE.Server.WorldObjects
                         {
                             var itemsNeedingMana = origItemsNeedingMana.Where(k => k.Value.ItemCurMana.Value + k.Value.ManaGiven < k.Value.ItemMaxMana.Value).ToList();
                             var additionalManaNeeded = itemsNeedingMana.Sum(k => k.Value.ItemMaxMana.Value - k.Value.ItemCurMana.Value - k.Value.ManaGiven);
-                            var additionalManaText = (additionalManaNeeded > 0) ? $"\nYou need {additionalManaNeeded} more mana to fully charge your items." : string.Empty;
-                            var msg = $"The {Name} gives {itemsGivenMana.Sum(k => k.Value.ManaGiven).ToString("n0")} points of mana to the following items: {itemsGivenMana.Select(c => c.Value.Name).Aggregate((a, b) => a + ", " + b)}{additionalManaText}";
+                            var additionalManaText = (additionalManaNeeded > 0) ? $"\nYou need {additionalManaNeeded.ToString("N0")} more mana to fully charge your items." : string.Empty;
+                            var msg = $"The {Name} gives {itemsGivenMana.Sum(k => k.Value.ManaGiven).ToString("N0")} points of mana to the following items: {itemsGivenMana.Select(c => c.Value.Name).Aggregate((a, b) => a + ", " + b)}.{additionalManaText}";
                             itemsGivenMana.ForEach(k => k.Value.ItemCurMana += k.Value.ManaGiven);
                             player.Session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
                             if (!Destroy(player))
@@ -139,8 +138,8 @@ namespace ACE.Server.WorldObjects
                         var manaToPour = Math.Min(targetManaNeeded, ItemCurMana.Value);
                         target.ItemCurMana += manaToPour;
                         var additionalManaNeeded = targetManaNeeded - manaToPour;
-                        var additionalManaText = (additionalManaNeeded > 0) ? $"\nYou need {additionalManaNeeded} more mana to fully charge your {target.Name}." : string.Empty;
-                        var msg = $"The {Name} gives {manaToPour} points of mana to the {target.Name}.{additionalManaText}";
+                        var additionalManaText = (additionalManaNeeded > 0) ? $"\nYou need {additionalManaNeeded.ToString("N0")} more mana to fully charge your {target.Name}." : string.Empty;
+                        var msg = $"The {Name} gives {manaToPour.ToString("N0")} points of mana to the {target.Name}.{additionalManaText}";
                         player.Session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
                         if (!Destroy(player))
                         {
