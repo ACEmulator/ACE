@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
+
 using ACE.Entity;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
@@ -21,7 +22,7 @@ namespace ACE.Server.WorldObjects
         private double? cachedHeartbeatTimestamp;
         private double cachedHeartbeatInterval;
 
-        public virtual void Tick(double lastTickDuration, double currentUnixTime)
+        public virtual void Tick(double currentUnixTime)
         {
             actionQueue.RunActions();
 

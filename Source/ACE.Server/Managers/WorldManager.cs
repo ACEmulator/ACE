@@ -474,8 +474,6 @@ namespace ACE.Server.Managers
         {
             log.DebugFormat("Starting UpdateWorld thread");
 
-            double lastTickDuration = 0d;
-            double lastGameTickDuration = 0d;
             WorldActive = true;
             var worldTickTimer = new Stopwatch();
 
@@ -516,18 +514,13 @@ namespace ACE.Server.Managers
 
                 DelayManager.RunActions();
 
-                var worldUpdated = UpdateGameWorld(lastGameTickDuration);
-                if (worldUpdated)
-                    lastTickDuration = 0;
+                UpdateGameWorld();
 
-                int sessionCount = ProcessInboundQueue();
+                int sessionCount = DoSessionWork();
 
                 Thread.Sleep(sessionCount == 0 ? 10 : 1); // Relax the CPU if no sessions are connected
 
-                lastTickDuration = worldTickTimer.Elapsed.TotalSeconds;
-
-                lastGameTickDuration += lastTickDuration;
-                Timers.PortalYearTicks += lastTickDuration;
+                Timers.PortalYearTicks += worldTickTimer.Elapsed.TotalSeconds;
             }
 
             // World has finished operations and concedes the thread to garbage collection
@@ -535,9 +528,11 @@ namespace ACE.Server.Managers
         }
 
         /// <summary>
-        /// Processes all inbound GameAction messages
+        /// Processes all inbound GameAction messages.<para />
+        /// Dispatches all outgoing messages.<para />
+        /// Removes dead sessions.
         /// </summary>
-        public static int ProcessInboundQueue()
+        public static int DoSessionWork()
         {
             int sessionCount;
 
@@ -564,7 +559,7 @@ namespace ACE.Server.Managers
                 foreach (var session in deadSessions)
                 {
                     log.Info($"client {session.Account} dropped");
-                    RemoveSession(session);
+                    RemoveSession(session); // This will temporarily upgrade our ReadLock to a WriteLock
                 }
             }
             finally
@@ -584,10 +579,10 @@ namespace ACE.Server.Managers
         /// <summary>
         /// Projected to run at a reasonable rate for gameplay (30-60fps)
         /// </summary>
-        public static bool UpdateGameWorld(double lastGameTickDuration)
+        public static void UpdateGameWorld()
         {
             if (PhysicsTimer.CurrentTime < LastGameUpdate + GameUpdateRate)
-                return false;
+                return;
 
             LastGameUpdate = PhysicsTimer.CurrentTime;
 
@@ -608,12 +603,10 @@ namespace ACE.Server.Managers
             var activeLandblocks = LandblockManager.GetActiveLandblocks();
 
             foreach (var landblock in activeLandblocks)
-                landblock.Tick(lastGameTickDuration, Time.GetUnixTime());
+                landblock.Tick(Time.GetUnixTime());
 
             // clean up inactive landblocks
             LandblockManager.UnloadLandblocks();
-
-            return true;
         }
 
         /// <summary>
