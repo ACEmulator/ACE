@@ -123,7 +123,8 @@ namespace ACE.Server.Network
         }
 
         /// <summary>
-        /// This is run in parallel from our main loop.
+        /// This is run in parallel from our main loop.<para />
+        /// This will send outgoing packets as well as the final logoff message.
         /// </summary>
         public void TickInParallel()
         {
