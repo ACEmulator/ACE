@@ -13,7 +13,7 @@ namespace ACE.Common
 
         public RateLimiter(int maxNumberOfEvents, TimeSpan overPeriod)
         {
-            if (maxNumberOfEvents < 1)
+            if (maxNumberOfEvents <= 0)
                 throw new ArgumentOutOfRangeException(nameof(maxNumberOfEvents), $"{nameof(maxNumberOfEvents)} must be greater than 0");
 
             if (overPeriod <= TimeSpan.Zero)
