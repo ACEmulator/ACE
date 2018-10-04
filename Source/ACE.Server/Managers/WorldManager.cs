@@ -552,12 +552,18 @@ namespace ACE.Server.Managers
                     s.Tick();
 
                 // The session TickInParallel processes pending actions and handles outgoing messages
+                // It typically takes .1 to .3 ms to process. However, it can spike to 15ms depending on the clients load/activity or the host system.
+                // The overhead for Parallel.ForEach is typically 1ms to 2ms.
+                if (sessionCount >= 5)
+                {
+                    Parallel.ForEach(sessions, s => s.TickInParallel());
+                }
+                else
+                {
+                    foreach (var s in sessions)
+                        s.TickInParallel();
+                }
 
-                // TODO: figure out how many sessions are required for this not to be a performance degradation
-                //Parallel.ForEach(sessions, s => s.TickInParallel());
-
-                foreach (var s in sessions)
-                    s.TickInParallel();
 
                 // Removes sessions in the NetworkTimeout state, including sessions that have reached a timeout limit.
                 var deadSessions = sessions.FindAll(s => s.State == Network.Enum.SessionState.NetworkTimeout);
