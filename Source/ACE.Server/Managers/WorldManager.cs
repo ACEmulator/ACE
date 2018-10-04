@@ -463,6 +463,8 @@ namespace ACE.Server.Managers
             session.Network.EnqueueSend(new GameMessageSystemChat(motdString, ChatMessageType.Broadcast));
         }
 
+        private static readonly RateLimiter updateGameWorldRateLimiter = new RateLimiter(60, TimeSpan.FromSeconds(1));
+
         /// <summary>
         /// Manages updating all entities on the world.
         ///  - Server-side command-line commands are handled in their own thread.
@@ -514,11 +516,15 @@ namespace ACE.Server.Managers
 
                 DelayManager.RunActions();
 
-                UpdateGameWorld();
+                var gameWorldUpdated = UpdateGameWorld();
 
                 int sessionCount = DoSessionWork();
 
-                Thread.Sleep(sessionCount == 0 ? 10 : 1); // Relax the CPU if no sessions are connected
+                // We only relax the CPU if our game world is able to update at the target rate.
+                // We do not sleep if our game world just updated. This is to prevent the scenario where our game world can't keep up. We don't want to add further delays.
+                // If our game world is able to keep up, it will not be updated on most ticks. It's on those ticks (between updates) that we will relax the CPU.
+                if (!gameWorldUpdated)
+                    Thread.Sleep(sessionCount == 0 ? 10 : 1); // Relax the CPU more if no sessions are connected
 
                 Timers.PortalYearTicks += worldTickTimer.Elapsed.TotalSeconds;
             }
@@ -570,21 +576,14 @@ namespace ACE.Server.Managers
         }
 
         /// <summary>
-        /// The number of times per second gameplay updates are processed (inverted)
-        /// </summary>
-        public static double GameUpdateRate = 1.0f / 60.0f;
-
-        public static double LastGameUpdate;
-
-        /// <summary>
         /// Projected to run at a reasonable rate for gameplay (30-60fps)
         /// </summary>
-        public static void UpdateGameWorld()
+        public static bool UpdateGameWorld()
         {
-            if (PhysicsTimer.CurrentTime < LastGameUpdate + GameUpdateRate)
-                return;
+            if (updateGameWorldRateLimiter.GetSecondsToWaitBeforeNextEvent() > 0)
+                return false;
 
-            LastGameUpdate = PhysicsTimer.CurrentTime;
+            updateGameWorldRateLimiter.RegisterEvent();
 
             // update positions through physics engine
             var movedObjects = HandlePhysics(Timers.PortalYearTicks);
@@ -607,6 +606,8 @@ namespace ACE.Server.Managers
 
             // clean up inactive landblocks
             LandblockManager.UnloadLandblocks();
+
+            return true;
         }
 
         /// <summary>
