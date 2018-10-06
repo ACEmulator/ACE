@@ -186,17 +186,6 @@ namespace ACE.Server.WorldObjects
             // IsAlive = true;
         }
 
-
-        /// <summary>
-        /// Called every ~5 secs for inventory item enchantments
-        /// </summary>
-        public void ItemEnchantmentTick()
-        {
-            var allItems = GetAllPossessions();
-            foreach (var item in allItems)
-                item.EnchantmentManager.HeartBeat();
-        }
-
         /// <summary>
         /// Called every ~5 secs for equipped mana consuming items
         /// </summary>

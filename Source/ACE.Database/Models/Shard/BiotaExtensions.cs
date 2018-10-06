@@ -775,7 +775,7 @@ namespace ACE.Database.Models.Shard
             rwLock.EnterWriteLock();
             try
             {
-               var enchantments = biota.BiotaPropertiesEnchantmentRegistry.Where(e => !spellsToExclude.Contains(e.SpellId));
+               var enchantments = biota.BiotaPropertiesEnchantmentRegistry.Where(e => !spellsToExclude.Contains(e.SpellId)).ToList();
 
                 foreach (var enchantment in enchantments)
                     biota.BiotaPropertiesEnchantmentRegistry.Remove(enchantment);

@@ -27,9 +27,9 @@ namespace ACE.Server.WorldObjects
         /// Determine Player's PK status and whether it matches the target Player
         /// </summary>
         /// <returns>
-        /// A null return signifies either player or target are not Player World objects, so check does not apply
-        /// A true return value indicates that the Player passed the PK status check
-        /// A false return value indicates that the Player failed the PK status check
+        /// Returns NULL if either player are target are null
+        /// Returns TRUE if player should be allowed to cast the spell on target player
+        /// Returns FALSE if player shouldn't be allowed to cast the spell on target player
         /// </returns>
         protected bool? CheckPKStatusVsTarget(Player player, Player target, Spell spell)
         {
@@ -166,28 +166,18 @@ namespace ACE.Server.WorldObjects
             enchantmentStatus.stackType = StackType.None;
             GameMessageSystemChat targetMsg = null;
 
-            Player player = null;
-            Creature creature = null;
-            if (this is Player)
-                player = this as Player;
-            else if (this is Creature)
-                creature = this as Creature;
+            var player = this as Player;
+            var creature = this as Creature;
 
-            Creature spellTarget;
-            if (spell.BaseRangeConstant > 0)
-                spellTarget = target as Creature;
-            else
-                spellTarget = this as Creature;
+            var spellTarget = spell.BaseRangeConstant > 0 ? target as Creature : creature;
 
-            // Target already dead
-            if (spellTarget.Health.Current <= 0)
+            if (!spellTarget.IsAlive)
             {
                 enchantmentStatus.message = null;
                 damage = 0;
                 return false;
             }
 
-            int newSpellTargetVital;
             switch (spell.MetaSpellType)
             {
                 case SpellType.Boost:
@@ -196,30 +186,23 @@ namespace ACE.Server.WorldObjects
                     int minBoostValue = Math.Min(spell.Boost, spell.MaxBoost);
                     int maxBoostValue = Math.Max(spell.Boost, spell.MaxBoost);
 
-                    int boost = Physics.Common.Random.RollDice(minBoostValue, maxBoostValue);
-                    damage = boost < 0 ? (uint)Math.Abs(boost) : 0;
+                    int tryBoost = Physics.Common.Random.RollDice(minBoostValue, maxBoostValue);
+                    int boost = tryBoost;
+                    damage = tryBoost < 0 ? (uint)Math.Abs(tryBoost) : 0;
 
                     switch (spell.VitalDamageType)
                     {
                         case DamageType.Mana:
-                            newSpellTargetVital = (int)Math.Min(spellTarget.Mana.Current + boost, spellTarget.Mana.MaxValue);
+                            boost = spellTarget.UpdateVitalDelta(spellTarget.Mana, tryBoost);
                             srcVital = "mana";
-                            spellTarget.UpdateVital(spellTarget.Mana, (uint)newSpellTargetVital);
                             break;
                         case DamageType.Stamina:
-                            newSpellTargetVital = (int)Math.Min(spellTarget.Stamina.Current + boost, spellTarget.Stamina.MaxValue);
+                            boost = spellTarget.UpdateVitalDelta(spellTarget.Stamina, tryBoost);
                             srcVital = "stamina";
-                            spellTarget.UpdateVital(spellTarget.Stamina, (uint)newSpellTargetVital);
                             break;
                         default:   // Health
+                            boost = spellTarget.UpdateVitalDelta(spellTarget.Health, tryBoost);
                             srcVital = "health";
-                            if (spellTarget.Health.Current <= 0 && boost < 0)
-                            {
-                                boost = 0;
-                                break;
-                            }
-                            newSpellTargetVital = (int)Math.Min(spellTarget.Health.Current + boost, spellTarget.Health.MaxValue);
-                            spellTarget.UpdateVital(spellTarget.Health, (uint)newSpellTargetVital);
 
                             if (boost >= 0)
                                 spellTarget.DamageHistory.OnHeal((uint)boost);
@@ -228,24 +211,27 @@ namespace ACE.Server.WorldObjects
                             break;
                     }
 
-                    if (this is Player)
+                    if (player != null)
                     {
                         if (spell.BaseRangeConstant > 0)
                         {
                             string msg;
-                            if (boost <= 0)
+                            if (spell.IsBeneficial)
                             {
-                                msg = $"You drain {Math.Abs(boost).ToString()} points of {srcVital} from {spellTarget.Name}";
-                                enchantmentStatus.message = new GameMessageSystemChat(msg, ChatMessageType.Combat);
+                                msg = $"You cast {spell.Name} and restore {boost} points of {srcVital} to {spellTarget.Name}.";
+                                enchantmentStatus.message = new GameMessageSystemChat(msg, ChatMessageType.Magic);
                             }
                             else
                             {
-                                msg = $"You restore {Math.Abs(boost).ToString()} points of {srcVital} to {spellTarget.Name}";
-                                enchantmentStatus.message = new GameMessageSystemChat(msg, ChatMessageType.Magic);
+                                msg = $"You cast {spell.Name} and drain {Math.Abs(boost)} points of {srcVital} from {spellTarget.Name}.";
+                                enchantmentStatus.message = new GameMessageSystemChat(msg, ChatMessageType.Combat);
                             }
                         }
                         else
-                            enchantmentStatus.message = new GameMessageSystemChat($"You restore {Math.Abs(boost).ToString()} {srcVital}", ChatMessageType.Magic);
+                        {
+                            var verb = spell.IsBeneficial ? "restore" : "drain";
+                            enchantmentStatus.message = new GameMessageSystemChat($"You cast {spell.Name} and {verb} {Math.Abs(boost)} points of your {srcVital}.", ChatMessageType.Magic);
+                        }
                     }
                     else
                         enchantmentStatus.message = null;
@@ -253,15 +239,15 @@ namespace ACE.Server.WorldObjects
                     if (target is Player && spell.BaseRangeConstant > 0)
                     {
                         string msg;
-                        if (boost <= 0)
+                        if (spell.IsBeneficial)
                         {
-                            msg = $"{Name} casts {spell.Name} and drains {Math.Abs(boost).ToString()} points of your {srcVital}";
-                            targetMsg = new GameMessageSystemChat(msg, ChatMessageType.Combat);
+                            msg = $"{Name} casts {spell.Name} and restores {boost} points of your {srcVital}.";
+                            targetMsg = new GameMessageSystemChat(msg, ChatMessageType.Magic);
                         }
                         else
                         {
-                            msg = $"{Name} casts {spell.Name} and restores {Math.Abs(boost).ToString()} points of your {srcVital}";
-                            targetMsg = new GameMessageSystemChat(msg, ChatMessageType.Magic);
+                            msg = $"{Name} casts {spell.Name} and drains {Math.Abs(boost)} points of your {srcVital}.";
+                            targetMsg = new GameMessageSystemChat(msg, ChatMessageType.Combat);
                         }
                     }
 
@@ -272,86 +258,105 @@ namespace ACE.Server.WorldObjects
 
                 case SpellType.Transfer:
 
-                    // Calculate the change in vitals of the target
-                    Creature caster;
-                    if (spell.BaseRangeConstant == 0 && spell.BaseRangeMod == 1)
-                        caster = spellTarget;
-                    else
-                        caster = (Creature)this;
-                    uint vitalChange, casterVitalChange;
+                    // source and destination can be the same creature, or different creatures
+                    var caster = this as Creature;
+                    var source = spell.TransferFlags.HasFlag(TransferFlags.CasterSource) ? caster : spellTarget;
+                    var destination = spell.TransferFlags.HasFlag(TransferFlags.CasterDestination) ? caster : spellTarget;
+
+                    // Calculate vital changes
+                    uint srcVitalChange, destVitalChange;
                     ResistanceType resistanceDrain, resistanceBoost;
-                    if (spell.Source == PropertyAttribute2nd.Mana)
-                        resistanceDrain = ResistanceType.ManaDrain;
-                    else if (spell.Source == PropertyAttribute2nd.Stamina)
-                        resistanceDrain = ResistanceType.StaminaDrain;
-                    else
-                        resistanceDrain = ResistanceType.HealthDrain;
-                    vitalChange = (uint)((spellTarget.GetCurrentCreatureVital(spell.Source) * spell.Proportion) * spellTarget.GetNaturalResistance(resistanceDrain));
+                    resistanceDrain = GetDrainResistanceType(spell.Source);
+
+                    // should drain resistance be taken into account here,
+                    // or only after the destVitalChange calc?
+                    srcVitalChange = (uint)Math.Round(source.GetCurrentCreatureVital(spell.Source) * spell.Proportion * source.GetNaturalResistance(resistanceDrain));
+
                     if (spell.TransferCap != 0)
                     {
-                        if (vitalChange > spell.TransferCap)
-                            vitalChange = (uint)spell.TransferCap;
+                        if (srcVitalChange > spell.TransferCap)
+                            srcVitalChange = (uint)spell.TransferCap;
                     }
-                    if (spell.Destination == PropertyAttribute2nd.Mana)
-                        resistanceBoost = ResistanceType.ManaDrain;
-                    else if (spell.Source == PropertyAttribute2nd.Stamina)
-                        resistanceBoost = ResistanceType.StaminaDrain;
-                    else
-                        resistanceBoost = ResistanceType.HealthDrain;
-                    casterVitalChange = (uint)((vitalChange * (1.0f - spell.LossPercent)) * spellTarget.GetNaturalResistance(resistanceBoost));
-                    vitalChange = (uint)(casterVitalChange / (1.0f - spell.LossPercent));
+                    resistanceBoost = GetBoostResistanceType(spell.Destination);
+                    destVitalChange = (uint)Math.Round(srcVitalChange * (1.0f - spell.LossPercent) * destination.GetNaturalResistance(resistanceBoost));
 
-                    // Apply the change in vitals to the target
+                    // scale srcVitalChange to destVitalChange?
+
+                    // Apply the change in vitals to the source
                     switch (spell.Source)
                     {
                         case PropertyAttribute2nd.Mana:
                             srcVital = "mana";
-                            vitalChange = (uint)-spellTarget.UpdateVitalDelta(spellTarget.Mana, -(int)vitalChange);
+                            srcVitalChange = (uint)-source.UpdateVitalDelta(source.Mana, -(int)srcVitalChange);
                             break;
                         case PropertyAttribute2nd.Stamina:
                             srcVital = "stamina";
-                            vitalChange = (uint)-spellTarget.UpdateVitalDelta(spellTarget.Stamina, -(int)vitalChange);
+                            srcVitalChange = (uint)-source.UpdateVitalDelta(source.Stamina, -(int)srcVitalChange);
                             break;
                         default:   // Health
                             srcVital = "health";
-                            vitalChange = (uint)-spellTarget.UpdateVitalDelta(spellTarget.Health, -(int)vitalChange);
-                            spellTarget.DamageHistory.Add(this, DamageType.Health, vitalChange);
+                            srcVitalChange = (uint)-source.UpdateVitalDelta(source.Health, -(int)srcVitalChange);
+
+                            source.DamageHistory.Add(this, DamageType.Health, srcVitalChange);
                             break;
                     }
-                    damage = vitalChange;
+                    damage = srcVitalChange;
 
                     // Apply the scaled change in vitals to the caster
                     switch (spell.Destination)
                     {
                         case PropertyAttribute2nd.Mana:
                             destVital = "mana";
-                            casterVitalChange = (uint)caster.UpdateVitalDelta(caster.Mana, casterVitalChange);
+                            destVitalChange = (uint)destination.UpdateVitalDelta(destination.Mana, destVitalChange);
                             break;
                         case PropertyAttribute2nd.Stamina:
                             destVital = "stamina";
-                            casterVitalChange = (uint)caster.UpdateVitalDelta(caster.Stamina, casterVitalChange);
+                            destVitalChange = (uint)destination.UpdateVitalDelta(destination.Stamina, destVitalChange);
                             break;
                         default:   // Health
                             destVital = "health";
-                            casterVitalChange = (uint)caster.UpdateVitalDelta(caster.Health, casterVitalChange);
-                            caster.DamageHistory.OnHeal(casterVitalChange);
+                            destVitalChange = (uint)destination.UpdateVitalDelta(destination.Health, destVitalChange);
+
+                            destination.DamageHistory.OnHeal(destVitalChange);
                             break;
                     }
 
-                    if (this is Player)
+                    // You gain 52 points of health due to casting Drain Health Other I on Olthoi Warrior
+                    // You lose 22 points of mana due to casting Incantation of Infuse Mana Other on High-Voltage VI
+                    // You lose 12 points of mana due to Zofrit Zefir casting Drain Mana Other II on you
+
+                    // You cast Stamina to Mana Self I on yourself and lose 50 points of stamina and also gain 45 points of mana
+                    // You cast Stamina to Health Self VI on yourself and fail to affect your  stamina and also gain 1 point of health
+
+                    // unverified:
+                    // You gain X points of vital due to caster casting spell on you
+                    // You lose X points of vital due to caster casting spell on you
+
+                    var playerSource = source is Player;
+                    var playerDestination = destination is Player;
+
+                    if (playerSource && playerDestination && source.Guid == destination.Guid)
                     {
-                        if (target.Guid == player.Guid)
-                        {
-                            enchantmentStatus.message = new GameMessageSystemChat($"You drain {vitalChange} points of {srcVital} and apply {casterVitalChange} points of {destVital} to yourself", ChatMessageType.Magic);
-                        }
-                        else
-                            enchantmentStatus.message = new GameMessageSystemChat($"You drain {vitalChange} points of {srcVital} from {spellTarget.Name} and apply {casterVitalChange} to yourself", ChatMessageType.Combat);
+                        enchantmentStatus.message = new GameMessageSystemChat($"You cast {spell.Name} on yourself and lose {srcVitalChange} points of {srcVital} and also gain {destVitalChange} points of {destVital}", ChatMessageType.Magic);
                     }
                     else
-                        enchantmentStatus.message = null;
+                    {
+                        if (playerSource)
+                        {
+                            if (source == this)
+                                enchantmentStatus.message = new GameMessageSystemChat($"You lose {srcVitalChange} points of {srcVital} due to casting {spell.Name} on {spellTarget.Name}", ChatMessageType.Magic);
+                            else
+                                targetMsg = new GameMessageSystemChat($"You lose {srcVitalChange} points of {srcVital} due to {caster.Name} casting {spell.Name} on you", ChatMessageType.Magic);
+                        }
 
-                    if (target is Player && target != this)
-                        targetMsg = new GameMessageSystemChat($"You lose {vitalChange} points of {srcVital} due to {Name} casting {spell.Name} on you", ChatMessageType.Combat);
+                        if (playerDestination)
+                        {
+                            if (destination == this)
+                                enchantmentStatus.message = new GameMessageSystemChat($"You gain {destVitalChange} points of {destVital} due to casting {spell.Name} on {spellTarget.Name}", ChatMessageType.Magic);
+                            else
+                                targetMsg = new GameMessageSystemChat($"You gain {destVitalChange} points of {destVital} due to {caster.Name} casting {spell.Name} on you", ChatMessageType.Magic);
+                        }
+                    }
 
                     if (player != null && srcVital != null && srcVital.Equals("health"))
                         player.Session.Network.EnqueueSend(new GameEventUpdateHealth(player.Session, target.Guid.Full, (float)spellTarget.Health.Current / spellTarget.Health.MaxValue));
@@ -360,21 +365,21 @@ namespace ACE.Server.WorldObjects
 
                 case SpellType.LifeProjectile:
 
-                    caster = (Creature)this;
+                    caster = this as Creature;
 
                     if (spell.Name.Contains("Blight"))
                     {
-                        var tryDamage = (int)Math.Round(caster.GetCurrentCreatureVital(PropertyAttribute2nd.Mana) * caster.GetNaturalResistance(ResistanceType.ManaDrain));
+                        var tryDamage = (int)Math.Round(caster.GetCurrentCreatureVital(PropertyAttribute2nd.Mana) * spell.DrainPercentage / caster.GetNaturalResistance(ResistanceType.ManaDrain));
                         damage = (uint)-caster.UpdateVitalDelta(caster.Mana, -tryDamage);
                     }
                     else if (spell.Name.Contains("Tenacity"))
                     {
-                        var tryDamage = (int)Math.Round(spellTarget.GetCurrentCreatureVital(PropertyAttribute2nd.Stamina) * spellTarget.GetNaturalResistance(ResistanceType.StaminaDrain));
+                        var tryDamage = (int)Math.Round(caster.GetCurrentCreatureVital(PropertyAttribute2nd.Stamina) * spell.DrainPercentage / caster.GetNaturalResistance(ResistanceType.StaminaDrain));
                         damage = (uint)-caster.UpdateVitalDelta(caster.Stamina, -tryDamage);
                     }
                     else
                     {
-                        var tryDamage = (int)Math.Round(spellTarget.GetCurrentCreatureVital(PropertyAttribute2nd.Stamina) * spellTarget.GetNaturalResistance(ResistanceType.HealthDrain));
+                        var tryDamage = (int)Math.Round(caster.GetCurrentCreatureVital(PropertyAttribute2nd.Health) * spell.DrainPercentage / caster.GetNaturalResistance(ResistanceType.HealthDrain));
                         damage = (uint)-caster.UpdateVitalDelta(caster.Health, -tryDamage);
                         caster.DamageHistory.Add(this, DamageType.Health, damage);
                     }
@@ -1292,6 +1297,32 @@ namespace ACE.Server.WorldObjects
             Trajectory.solve_ballistic_arc_lateral(origin, speed, dest, targetVelocity, gravity, out Vector3 velocity, out time, out var impactPoint);
 
             return new AceVector3(velocity.X, velocity.Y, velocity.Z);
+        }
+
+        /// <summary>
+        /// Returns the drain resistance type for a vital
+        /// </summary>
+        private static ResistanceType GetDrainResistanceType(PropertyAttribute2nd vital)
+        {
+            if (vital == PropertyAttribute2nd.Mana)
+                return ResistanceType.ManaDrain;
+            else if (vital == PropertyAttribute2nd.Stamina)
+                return ResistanceType.StaminaDrain;
+            else
+                return ResistanceType.HealthDrain;
+        }
+
+        /// <summary>
+        /// Returns the boost resistance type for a vital
+        /// </summary>
+        private static ResistanceType GetBoostResistanceType(PropertyAttribute2nd vital)
+        {
+            if (vital == PropertyAttribute2nd.Mana)
+                return ResistanceType.ManaBoost;
+            else if (vital == PropertyAttribute2nd.Stamina)
+                return ResistanceType.StaminaBoost;
+            else
+                return ResistanceType.HealthBoost;
         }
     }
 }
