@@ -196,7 +196,7 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Simplified player take damage function, only called for DoTs currently
+        /// Simplified monster take damage over time function, only called for DoTs currently
         /// </summary>
         public virtual void TakeDamageOverTime(float amount, DamageType damageType)
         {
