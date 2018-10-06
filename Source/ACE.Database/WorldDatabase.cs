@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
@@ -230,7 +231,7 @@ namespace ACE.Database
 
         /// <summary>
         /// This will make sure every weenie in the database has been read and cached.<para />
-        /// This function may take 10+ minutes to complete.
+        /// This function may take 15+ minutes to complete.
         /// </summary>
         public void CacheAllWeenies()
         {
@@ -247,6 +248,26 @@ namespace ACE.Database
 
                     GetWeenie(context, result.ClassId);
                 }
+            }
+        }
+
+        /// <summary>
+        /// This will make sure every weenie in the database has been read and cached.<para />
+        /// This function may take 2+ minutes to complete.
+        /// </summary>
+        public void CacheAllWeeniesInParallel()
+        {
+            using (var context = new WorldDbContext())
+            {
+                var results = context.Weenie
+                    .AsNoTracking()
+                    .ToList();
+
+                Parallel.ForEach(results, result =>
+                {
+                    if (!weenieCache.ContainsKey(result.ClassId))
+                        GetWeenie(result.ClassId);
+                });
             }
         }
 
