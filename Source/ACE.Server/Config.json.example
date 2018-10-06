@@ -15,6 +15,7 @@
     },
     "DatFilesDirectory": "c:\\ACE\\",
     "ShutdownInterval": "60",
+    "WeeniePrecaching": false,
     "LandblockPreloading": false
   },
   "MySql": {

@@ -81,6 +81,14 @@ namespace ACE.Server
             log.Info("Initializing GuidManager...");
             GuidManager.Initialize();
 
+            if (ConfigManager.Config.Server.WeeniePrecaching)
+            {
+                log.Info("Precaching Weenies...");
+                DatabaseManager.World.CacheAllWeeniesInParallel();
+            }
+            else
+                log.Info("No Weenie Precaching Performed...");
+
             log.Info("Initializing InboundMessageManager...");
             InboundMessageManager.Initialize();
 

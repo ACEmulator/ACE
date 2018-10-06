@@ -18,6 +18,10 @@ namespace ACE.Common
 
         [System.ComponentModel.DefaultValue(false)]
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
+        public bool WeeniePrecaching { get; set; }
+
+        [System.ComponentModel.DefaultValue(false)]
+        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
         public bool LandblockPreloading { get; set; }
 
         /// <summary>
