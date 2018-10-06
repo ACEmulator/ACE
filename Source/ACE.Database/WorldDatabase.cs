@@ -149,7 +149,7 @@ namespace ACE.Database
         }
 
         /// <summary>
-        /// This will populate all sub collections except the followign: LandblockInstances, PointsOfInterest<para />
+        /// This will populate all sub collections except the following: LandblockInstances, PointsOfInterest<para />
         /// This will also update the weenie cache.
         /// </summary>
         public Weenie GetWeenie(uint weenieClassId)
@@ -174,7 +174,7 @@ namespace ACE.Database
         }
 
         /// <summary>
-        /// This will populate all sub collections except the followign: LandblockInstances, PointsOfInterest<para />
+        /// This will populate all sub collections except the following: LandblockInstances, PointsOfInterest<para />
         /// This will also update the weenie cache.
         /// </summary>
         public Weenie GetWeenie(string weenieClassName)
@@ -199,7 +199,7 @@ namespace ACE.Database
         }
 
         /// <summary>
-        /// Weenies will have all their collections populated except the followign: LandblockInstances, PointsOfInterest
+        /// Weenies will have all their collections populated except the following: LandblockInstances, PointsOfInterest
         /// </summary>
         public Weenie GetCachedWeenie(uint weenieClassId)
         {
@@ -213,7 +213,7 @@ namespace ACE.Database
         }
 
         /// <summary>
-        /// Weenies will have all their collections populated except the followign: LandblockInstances, PointsOfInterest
+        /// Weenies will have all their collections populated except the following: LandblockInstances, PointsOfInterest
         /// </summary>
         public Weenie GetCachedWeenie(string weenieClassName)
         {
@@ -277,7 +277,7 @@ namespace ACE.Database
         }
 
         /// <summary>
-        /// Weenies will have all their collections populated except the followign: LandblockInstances, PointsOfInterest
+        /// Weenies will have all their collections populated except the following: LandblockInstances, PointsOfInterest
         /// </summary>
         public Dictionary<Weenie, List<LandblockInstance>> GetCachedWeenieInstancesByLandblock(ushort landblock)
         {
