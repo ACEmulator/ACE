@@ -89,7 +89,7 @@ namespace ACE.Server.Entity
         /// <summary>
         /// The burn rate for casting the spell
         /// </summary>
-        public uint ComponentLoss { get => _spellBase.ComponentLoss; }
+        public float ComponentLoss { get => _spellBase.ComponentLoss; }
 
         /// <summary>
         /// A subtype for the spell
@@ -357,10 +357,9 @@ namespace ACE.Server.Entity
         public int MaxBoostAllowed { get => _spell.MaxBoostAllowed ?? 0; }
 
         /// <summary>
-        /// TODO: decode into proper enum
-        /// for life magic transfer spells
+        /// Indicates the source and destination for life magic transfer spells
         /// </summary>
-        public uint TransferBitfield { get => _spell.TransferBitfield ?? 0; }
+        public TransferFlags TransferFlags { get => (TransferFlags)(_spell.TransferBitfield ?? 0); }
 
         /// <summary>
         /// Unknown index?
@@ -378,27 +377,30 @@ namespace ACE.Server.Entity
         public Position Position { get => new Position(_spell.PositionObjCellId ?? 0, new Vector3(_spell.PositionOriginX ?? 0.0f, _spell.PositionOriginY ?? 0.0f, _spell.PositionOriginZ ?? 0.0f), new Quaternion(_spell.PositionAnglesX ?? 0.0f, _spell.PositionAnglesY ?? 0.0f, _spell.PositionAnglesZ ?? 0.0f, _spell.PositionAnglesW ?? 0.0f)); }
 
         /// <summary>
-        /// The minimum power to cast the spell
+        /// The minimum spell power to dispel (unused?)
         /// </summary>
         public int MinPower { get => _spell.MinPower ?? 0;  }
 
         /// <summary>
-        /// The maximum power to cast the spell
+        /// The maximum spell power to dispel
         /// </summary>
         public int MaxPower { get => _spell.MaxPower ?? 0; }
 
         /// <summary>
-        /// Unknown alignment?
+        /// The type of spells to dispel
+        /// 0 = all spells
+        /// 1 = positive
+        /// 2 = negative
         /// </summary>
         public int Align { get => _spell.Align ?? 0; }
 
         /// <summary>
-        /// Unknown number field?
+        /// The maximum # of spells to dispel
         /// </summary>
         public int Number { get =>_spell.Number ?? 0; }
 
         /// <summary>
-        /// Unknown number variance?
+        /// Number * NumberVariance = the minimum # of spells to dispel
         /// </summary>
         public float NumberVariance { get => _spell.NumberVariance ?? 0; }
     }

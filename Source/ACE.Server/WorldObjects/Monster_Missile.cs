@@ -31,6 +31,14 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void RangeAttack()
         {
+            var target = AttackTarget as Creature;
+
+            if (target == null || !target.IsAlive)
+            {
+                Sleep();
+                return;
+            }
+
             var weapon = GetEquippedMissileWeapon();
             var ammo = GetEquippedAmmo();
 

@@ -22,13 +22,8 @@ namespace ACE.Server.WorldObjects
 
             IsMonster = true;
 
-            if (AttackTarget != null && AttackTarget.IsDestroyed)
-            {
-                Sleep();
-                return;
-            }
-
-            if (!AttackTarget.IsVisible(this))
+            var creatureTarget = AttackTarget as Creature;
+            if (creatureTarget != null && (creatureTarget.IsDead || !creatureTarget.IsVisible(this)))
             {
                 Sleep();
                 return;

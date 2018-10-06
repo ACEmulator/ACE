@@ -124,6 +124,14 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void MagicAttack()
         {
+            var target = AttackTarget as Creature;
+
+            if (target == null || !target.IsAlive)
+            {
+                Sleep();
+                return;
+            }
+
             var spell = GetCurrentSpell();
             //Console.WriteLine(spell.Name);
 

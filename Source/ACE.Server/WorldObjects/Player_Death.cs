@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-using ACE.Database;
 using ACE.DatLoader;
 using ACE.DatLoader.FileTypes;
 using ACE.Entity.Enum;
@@ -19,6 +18,34 @@ namespace ACE.Server.WorldObjects
 {
     partial class Player
     {
+        /// <summary>
+        /// Called when a player dies, in conjunction with Die()
+        /// </summary>
+        /// <param name="lastDamager">The last damager that landed the death blow</param>
+        /// <param name="damageType">The damage type for the death message</param>
+        public override DeathMessage OnDeath(WorldObject lastDamager, DamageType damageType, bool criticalHit = false)
+        {
+            var deathMessage = base.OnDeath(lastDamager, damageType, criticalHit);
+
+            var playerMsg = string.Format(deathMessage.Victim, Name, lastDamager.Name);
+            var msgYourDeath = new GameEventYourDeath(Session, playerMsg);
+            Session.Network.EnqueueSend(msgYourDeath);
+
+            // broadcast to nearby players
+
+            // if the player's lifestone is in a different landblock, also broadcast their demise to that landblock
+            if (Sanctuary != null && Location.Landblock != Sanctuary.Landblock && lastDamager != null)
+            {
+                var broadcastMsg = string.Format(deathMessage.Broadcast, Name, lastDamager.Name);
+                ActionBroadcastKill(broadcastMsg, Guid, lastDamager.Guid);
+            }
+
+            // reset damage history for this player
+            DamageHistory.Reset();
+
+            return deathMessage;
+        }
+
         /// <summary>
         /// Broadcasts the player death animation, updates vitae, and sends network messages for player death
         /// Queues the action to call TeleportOnDeath and enter portal space soon
@@ -47,7 +74,6 @@ namespace ACE.Server.WorldObjects
 
             // TODO: death sounds? seems to play automatically in client
             // var msgDeathSound = new GameMessageSound(Guid, Sound.Death1, 1.0f);
-            var msgYourDeath = new GameEventYourDeath(Session, $"You have {currentDeathMessage}");
             var msgNumDeaths = new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.NumDeaths, NumDeaths ?? 0);
             var msgDeathLevel = new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.DeathLevel, DeathLevel ?? 0);
             var msgVitaeCpPool = new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.VitaeCpPool, VitaeCpPool.Value);
@@ -62,7 +88,7 @@ namespace ACE.Server.WorldObjects
             var msgVitaeEnchantment = new GameEventMagicUpdateEnchantment(Session, vitaeEnchantment);
 
             // send network messages for player death
-            Session.Network.EnqueueSend(msgHealthUpdate, msgYourDeath, msgNumDeaths, msgDeathLevel, msgVitaeCpPool, msgPurgeEnchantments, msgVitaeEnchantment);
+            Session.Network.EnqueueSend(msgHealthUpdate, msgNumDeaths, msgDeathLevel, msgVitaeCpPool, msgPurgeEnchantments, msgVitaeEnchantment);
 
             // wait for the death animation to finish
             var dieChain = new ActionChain();
@@ -73,14 +99,6 @@ namespace ACE.Server.WorldObjects
             dieChain.AddAction(this, CreateCorpse);
             dieChain.AddAction(this, TeleportOnDeath);
             dieChain.EnqueueChain();
-
-            // if the player's lifestone is in a different landblock, also broadcast their demise to that landblock
-            if (Sanctuary != null && Location.Landblock != Sanctuary.Landblock)
-            {
-                var killerGuid = lastDamager != null ? lastDamager.Guid : Guid;
-                ActionBroadcastKill($"{Name} has {currentDeathMessage}", Guid, killerGuid);
-            }
-            DamageHistory.Reset();
         }
 
         /// <summary>

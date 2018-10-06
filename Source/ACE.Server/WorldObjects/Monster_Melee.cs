@@ -37,8 +37,13 @@ namespace ACE.Server.WorldObjects
         /// <returns>The length in seconds for the attack animation</returns>
         public float MeleeAttack()
         {
-            var player = AttackTarget as Player;
-            if (player.Health.Current <= 0) return 0.0f;
+            var target = AttackTarget as Creature;
+
+            if (target == null || !target.IsAlive)
+            {
+                Sleep();
+                return 0.0f;
+            }
 
             // choose a random combat maneuver
             var maneuver = GetCombatManeuver();
@@ -66,6 +71,8 @@ namespace ACE.Server.WorldObjects
                 var damageType = DamageType.Undef;
                 var shieldMod = 1.0f;
                 var damage = CalculateDamage(ref damageType, maneuver, bodyPart, ref critical, ref shieldMod);
+
+                var player = AttackTarget as Player;
 
                 if (damage > 0.0f)
                 {

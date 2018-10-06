@@ -890,6 +890,8 @@ namespace ACE.Server.Command.Handlers
             // TODO: output
         }
 
+        public static Position LastSpawnPos;
+
         public const uint WEENIE_MAX = 199999;
         // create wclassid (number)
         [CommandHandler("create", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
@@ -958,44 +960,6 @@ namespace ACE.Server.Command.Handlers
             //inventoryItem.PhysicsDescriptionFlag |= PhysicsDescriptionFlag.Position;
             //LandblockManager.AddObject(loot);
             loot.EnterWorld();
-        }
-
-        public static Position LastSpawnPos;
-
-        /// <summary>
-        /// Teleport object culling precision test
-        /// </summary>
-        [CommandHandler("teledist", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Teleports a some distance ahead of the last object spawned", "/teletest <distance>")]
-        public static void HandleTeleportDist(Session session, params string[] parameters)
-        {
-            if (parameters.Length < 1)
-                return;
-
-            var distance = float.Parse(parameters[0]);
-
-            var newPos = new Position();
-            newPos.LandblockId = new LandblockId(LastSpawnPos.LandblockId.Raw);
-            newPos.Pos = LastSpawnPos.Pos;
-            newPos.Rotation = session.Player.Location.Rotation;
-
-            var dir = Vector3.Normalize(Vector3.Transform(Vector3.UnitY, newPos.Rotation));
-            var offset = dir * distance;
-
-            newPos.SetPosition(newPos.Pos + offset);
-
-            session.Player.Teleport(newPos);
-
-            var globLastSpawnPos = LastSpawnPos.ToGlobal();
-            var globNewPos = newPos.ToGlobal();
-
-            var totalDist = Vector3.Distance(globLastSpawnPos, globNewPos);
-
-            var totalDist2d = Vector2.Distance(new Vector2(globLastSpawnPos.X, globLastSpawnPos.Y), new Vector2(globNewPos.X, globNewPos.Y));
-
-            ChatPacket.SendServerMessage(session, $"Teleporting player to {newPos.Cell:X8} @ {newPos.Pos}", ChatMessageType.System);
-
-            ChatPacket.SendServerMessage(session, "2D Distance: " + totalDist2d, ChatMessageType.System);
-            ChatPacket.SendServerMessage(session, "3D Distance: " + totalDist, ChatMessageType.System);
         }
 
         // ci wclassid (number)
@@ -1108,13 +1072,16 @@ namespace ACE.Server.Command.Handlers
             // TODO: output
         }
 
-        // deathxp
-        [CommandHandler("deathxp", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0)]
+        /// <summary>
+        /// Displays how much experience the last appraised creature is worth when killed.
+        /// </summary>
+        [CommandHandler("deathxp", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Displays how much experience the last appraised creature iw worth when killed.")]
         public static void HandleDeathxp(Session session, params string[] parameters)
         {
-            // @deathxp - Displays how much experience this creature is worth when killed.
+            var creature = CommandHandlerHelper.GetLastAppraisedObject(session);
+            if (creature == null) return;
 
-            // TODO: output
+            CommandHandlerHelper.WriteOutputInfo(session, $"{creature.Name} XP: {creature.XpOverride}");
         }
 
         // de_n name, text
@@ -1176,17 +1143,6 @@ namespace ACE.Server.Command.Handlers
             // usage: @direct_emote_select text
             // Sends text to selected player, formatted exactly as entered, with no prefix of any kind.
             // @direct_emote_select - Sends text to selected player, formatted exactly as entered.
-
-            // TODO: output
-        }
-
-        // dispel
-        [CommandHandler("dispel", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0)]
-        public static void HandleDispel(Session session, params string[] parameters)
-        {
-            // usage: @dispel
-            // This command removes all enchantments from you, or the object you have selected.
-            // @dispel - Dispels all enchantments from you (or the selected object).
 
             // TODO: output
         }
@@ -1291,9 +1247,9 @@ namespace ACE.Server.Command.Handlers
 
             // TODO: When buffs are implemented, we'll need to revisit this command to make sure it takes those into account and restores vitals to 100%
 
-            session.Player.Health.Current = session.Player.Health.Base;
-            session.Player.Stamina.Current = session.Player.Stamina.Base;
-            session.Player.Mana.Current = session.Player.Mana.Base;
+            session.Player.Health.Current = session.Player.Health.MaxValue;
+            session.Player.Stamina.Current = session.Player.Stamina.MaxValue;
+            session.Player.Mana.Current = session.Player.Mana.MaxValue;
 
             var updatePlayersHealth = new GameMessagePrivateUpdateAttribute2ndLevel(session.Player, Vital.Health, session.Player.Health.Current);
             var updatePlayersStamina = new GameMessagePrivateUpdateAttribute2ndLevel(session.Player, Vital.Stamina, session.Player.Stamina.Current);
@@ -1567,15 +1523,20 @@ namespace ACE.Server.Command.Handlers
             HandleGamecast(session, parameters);
         }
 
-        // sticky { on | off }
-        [CommandHandler("sticky", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1)]
+        /// <summary>
+        /// Sets whether you lose items should you die.
+        /// </summary>
+        [CommandHandler("sticky", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0)]
         public static void HandleSticky(Session session, params string[] parameters)
         {
-            // usage: @sticky {on,off}
-            // This command sets whether you loose any items should you die.When set to 'on', you will be complete protected from item-loss rules.
-            // @sticky - Sets whether you loose items should you die.
+            bool sticky = !(parameters.Length > 0 && parameters[0] == "off");
 
-            // TODO: output
+            if (sticky)
+                CommandHandlerHelper.WriteOutputInfo(session, "You will no longer drop any items on death.");
+            else
+                CommandHandlerHelper.WriteOutputInfo(session, "You will now drop items on death normally.");
+
+            session.Player.NoCorpse = sticky;
         }
 
         // userlimit { num }
