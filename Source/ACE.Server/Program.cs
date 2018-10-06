@@ -90,10 +90,10 @@ namespace ACE.Server
             log.Info("Initializing WorldManager...");
             WorldManager.Initialize();
 
-            if (ConfigManager.Config.Server.LandblockPreloading == true)
+            if (ConfigManager.Config.Server.LandblockPreloading)
             {
                 log.Info("Preloading Landblocks...");
-                LandblockManager.Initialize();
+                LandblockManager.PreloadCommonLandblocks();
             }
             else
                 log.Info("No Landblock Preloading Performed...");
