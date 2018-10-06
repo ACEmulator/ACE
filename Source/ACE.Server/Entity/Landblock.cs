@@ -233,7 +233,7 @@ namespace ACE.Server.Entity
             Scenery = Entity.Scenery.Load(this);
         }
 
-        public void Tick(double lastTickDuration, double currentUnixTime)
+        public void Tick(double currentUnixTime)
         {
             // Here we'd move server objects in motion (subject to landscape) and do physics collision detection
 
@@ -248,7 +248,7 @@ namespace ACE.Server.Entity
                 var wos = worldObjects.Values.ToList();
 
                 foreach (var wo in wos)
-                    wo.Tick(lastTickDuration, currentUnixTime);
+                    wo.Tick(currentUnixTime);
             }
 
             // Heartbeat
