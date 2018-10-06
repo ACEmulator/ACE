@@ -11,7 +11,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Primary dispatch for monster think
         /// </summary>
-        private void Monster_Tick(double lastTickDuration, double currentUnixTime)
+        private void Monster_Tick(double currentUnixTime)
         {
             if (lastMonsterTick + monsterTickInterval > DateTime.UtcNow)
                 return;
@@ -22,13 +22,7 @@ namespace ACE.Server.WorldObjects
 
             IsMonster = true;
 
-            if (AttackTarget != null && AttackTarget.IsDestroyed)
-            {
-                Sleep();
-                return;
-            }
-
-            if (!AttackTarget.IsVisible(this))
+            if (AttackTarget != null && (AttackTarget.IsDestroyed || !AttackTarget.IsVisible(this)))
             {
                 Sleep();
                 return;
