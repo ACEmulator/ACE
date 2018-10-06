@@ -12,7 +12,7 @@ namespace ACE.Server.WorldObjects
 
         private DateTime lastSendAgeIntUpdateTime;
 
-        public override void Tick(double lastTickDuration, double currentUnixTime)
+        public override void Tick(double currentUnixTime)
         {
             if (initialAgeTime == DateTime.MinValue)
             {
@@ -31,7 +31,7 @@ namespace ACE.Server.WorldObjects
                 lastSendAgeIntUpdateTime = DateTime.UtcNow;
             }
 
-            base.Tick(lastTickDuration, currentUnixTime);
+            base.Tick(currentUnixTime);
         }
 
         /// <summary>

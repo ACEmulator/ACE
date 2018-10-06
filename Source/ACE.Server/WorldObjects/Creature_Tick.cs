@@ -3,14 +3,14 @@ namespace ACE.Server.WorldObjects
 {
     partial class Creature
     {
-        public override void Tick(double lastTickDuration, double currentUnixTime)
+        public override void Tick(double currentUnixTime)
         {
             foreach (var wo in EquippedObjects.Values)
-                wo.Tick(lastTickDuration, currentUnixTime);
+                wo.Tick(currentUnixTime);
 
-            Monster_Tick(lastTickDuration, currentUnixTime);
+            Monster_Tick(currentUnixTime);
 
-            base.Tick(lastTickDuration, currentUnixTime);
+            base.Tick(currentUnixTime);
         }
 
         /// <summary>
