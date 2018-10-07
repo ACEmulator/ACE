@@ -1,14 +1,15 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-
 using ACE.DatLoader;
 using ACE.DatLoader.FileTypes;
+using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
+using ACE.Server.Managers;
 using ACE.Server.Network.Structure;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
@@ -32,12 +33,25 @@ namespace ACE.Server.WorldObjects
             Session.Network.EnqueueSend(msgYourDeath);
 
             // broadcast to nearby players
+            var nearbyMsg = string.Format(deathMessage.Broadcast, Name, lastDamager.Name);
+            var broadcastMsg = new GameMessageSystemChat(nearbyMsg, ChatMessageType.Broadcast);
+            var nearbyPlayers = EnqueueBroadcast(false, broadcastMsg);
+
+            var excludePlayers = nearbyPlayers.ToList();
+            excludePlayers.Add(this);   // exclude self
 
             // if the player's lifestone is in a different landblock, also broadcast their demise to that landblock
-            if (Sanctuary != null && Location.Landblock != Sanctuary.Landblock && lastDamager != null)
+            if (Sanctuary != null && Location.Landblock != Sanctuary.Landblock)
             {
-                var broadcastMsg = string.Format(deathMessage.Broadcast, Name, lastDamager.Name);
-                ActionBroadcastKill(broadcastMsg, Guid, lastDamager.Guid);
+                // ActionBroadcastKill might not work if other players around lifestone aren't aware of this player yet...
+                // this existing broadcast method is also based on the current visible objects to the player,
+                // and the player hasn't entered portal space or teleported back to the lifestone yet, so this doesn't work
+                //ActionBroadcastKill(nearbyMsg, Guid, lastDamager.Guid);
+
+                // instead, we get all of the players in the lifestone landblock + adjacent landblocks,
+                // and possibly limit that to some radius around the landblock?
+                var lifestoneBlock = LandblockManager.GetLandblock(new LandblockId(Sanctuary.Landblock << 16 | 0xFFFF), true);
+                lifestoneBlock.EnqueueBroadcast(excludePlayers, true, broadcastMsg);
             }
 
             // reset damage history for this player

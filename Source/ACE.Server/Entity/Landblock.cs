@@ -18,6 +18,7 @@ using ACE.Entity.Enum.Properties;
 using ACE.Server.Factories;
 using ACE.Server.Managers;
 using ACE.Server.Physics.Common;
+using ACE.Server.Network.GameMessages;
 using ACE.Server.WorldObjects;
 
 using Position = ACE.Entity.Position;
@@ -699,6 +700,33 @@ namespace ACE.Server.Entity
             }
 
             DatabaseManager.Shard.SaveBiotas(biotas, result => { });
+        }
+
+        /// <summary>
+        /// This is only used for very specific instances, such as broadcasting player deaths to the destination lifestone block
+        /// This is a rarely used method to broadcast network messages to all of the players within a landblock,
+        /// and possibly the adjacent landblocks.
+        /// </summary>
+        public void EnqueueBroadcast(IEnumerable<Player> excludeList, bool adjacents, params GameMessage[] msgs)
+        {
+            // todo: benchmark - is this double cast slower than just iterating and doing 1 cast?
+            var players = worldObjects.Values.Where(wo => wo is Player).Select(wo => wo as Player);
+
+            // for landblock death broadcasts:
+            // exclude players that have already been broadcast to within range of the death
+            if (excludeList != null)
+                players = players.Except(excludeList);
+
+            // broadcast messages to player in this landblock
+            foreach (var player in players)
+                player.Session.Network.EnqueueSend(msgs);
+
+            // if applicable, iterate into adjacent landblocks
+            if (adjacents)
+            {
+                foreach (var adjacent in adjacencies.Values.Where(adj => adj != null))
+                    adjacent.EnqueueBroadcast(excludeList, false, msgs);
+            }
         }
     }
 }
