@@ -75,12 +75,12 @@ namespace ACE.Server.WorldObjects
                     if (pet)
                     {
                         //This should be a pet receiving damage
-                        target.TakeDamage(this, damage);
+                        target.TakeDamage(this, damageType, damage);
                     }
                     else if (!pet && targetPlayer == null)
                     {
                         //This should be a pet inflicting damage on another creature
-                        target.TakeDamage(this, damage);
+                        target.TakeDamage(this, damageType, damage);
                     }
                     else if (!pet && targetPlayer != null)
                     {
@@ -291,7 +291,6 @@ namespace ACE.Server.WorldObjects
             var target = AttackTarget as Creature;
             var targetPlayer = AttackTarget as Player;
             var pet = target != null && target.IsPet;
-            float recklessnessMod;
 
             if (pet)
                 recklessnessMod = 1.0f;

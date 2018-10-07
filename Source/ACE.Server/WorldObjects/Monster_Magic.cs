@@ -160,8 +160,7 @@ namespace ACE.Server.WorldObjects
             var target = targetSelf ? this : AttackTarget;
 
             var player = AttackTarget as Player;
-            var scale = SpellAttributes(null, spell.Id, out float castingDelay, out MotionCommand windUpMotion, out MotionCommand spellGesture);
-
+ 
             switch (spell.School)
             {
                 case MagicSchool.WarMagic:
