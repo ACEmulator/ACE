@@ -10,7 +10,8 @@ namespace ACE.Server.Network.Motion
 {
     public class UniversalMotion : MotionState
     {
-        public MovementParams Flag { get; set; } = (MovementParams)0x0041EE0F;
+        //public MovementParams Flag { get; set; } = (MovementParams)0x0041EE0F;  // ?? unknown bit 23 set?
+        public MovementParams Flag { get; set; } = MovementParamsExtensions.Default;
 
         public float MinimumDistance { get; set; } = 0.00f;
 

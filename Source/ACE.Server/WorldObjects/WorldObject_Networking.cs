@@ -836,7 +836,7 @@ namespace ACE.Server.WorldObjects
             ////Openable               = 0x00000001,
             if (WeenieType == WeenieType.Container || WeenieType == WeenieType.Corpse || WeenieType == WeenieType.Chest || WeenieType == WeenieType.Hook || WeenieType == WeenieType.Storage)
             {
-                if (!(IsLocked ?? false) && !(IsOpen ?? false) || (WeenieType == WeenieType.Hook || WeenieType == WeenieType.Storage))
+                if ((!IsLocked && !IsOpen) || (WeenieType == WeenieType.Hook || WeenieType == WeenieType.Storage))
                     flag |= ObjectDescriptionFlag.Openable;
                 else
                     flag &= ~ObjectDescriptionFlag.Openable;

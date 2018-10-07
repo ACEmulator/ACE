@@ -188,12 +188,22 @@ namespace ACE.Server.WorldObjects
         {
             ActionChain pickUpItemChain = new ActionChain();
 
-            // Move to the object
-            pickUpItemChain.AddChain(CreateMoveToChain(itemGuid, out var thisMoveToChainNumber));
+            var targetLocation = FindItemLocation(itemGuid);
+            if (targetLocation == null) return;
 
-            // Pick up the object
-            // Start pickup animation
+            // Move to the object
+            // TODO: only do this if not within use distance
+            pickUpItemChain.AddChain(CreateMoveToChain(targetLocation, out var thisMoveToChainNumber));
+
             var thisMoveToChainNumberCopy = thisMoveToChainNumber;
+
+            // rotate towards object
+            // TODO: should rotating be added directly to moveto chain?
+
+            /*pickUpItemChain.AddAction(this, () => Rotate(targetLocation));
+            var angle = GetAngle(targetLocation);
+            var rotateTime = GetRotateDelay(angle);
+            pickUpItemChain.AddDelaySeconds(rotateTime);*/
 
             pickUpItemChain.AddAction(this, () =>
             {
@@ -205,7 +215,8 @@ namespace ACE.Server.WorldObjects
                     return;
                 }*/
 
-                var motion = new UniversalMotion(MotionStance.NonCombat);
+                // Pick up the object
+                var motion = new UniversalMotion(CurrentMotionState.Stance);
                 motion.MovementData.ForwardCommand = (uint)MotionCommand.Pickup;
                 EnqueueBroadcast(new GameMessageUpdatePosition(this),
                     new GameMessageUpdateMotion(Guid, Sequences.GetCurrentSequence(SequenceType.ObjectInstance), Sequences, motion));
@@ -213,7 +224,7 @@ namespace ACE.Server.WorldObjects
 
             // Wait for animation to progress
             var motionTable = DatManager.PortalDat.ReadFromDat<MotionTable>(MotionTableId);
-            var pickupAnimationLength = motionTable.GetAnimationLength(MotionCommand.Pickup);
+            var pickupAnimationLength = motionTable.GetAnimationLength(CurrentMotionState.Stance, MotionCommand.Pickup, MotionCommand.Ready);
             pickUpItemChain.AddDelaySeconds(pickupAnimationLength);
 
             // Grab a reference to the item before its removed from the CurrentLandblock
@@ -335,7 +346,10 @@ namespace ACE.Server.WorldObjects
                 if (item.WeenieType == WeenieType.Coin)
                     UpdateCoinValue();
 
-                var motion = new UniversalMotion(MotionStance.NonCombat);
+                //var motion = new UniversalMotion(MotionStance.NonCombat);
+                Console.WriteLine("Broadcasting stance: " + CurrentMotionState.Stance);
+                var motion = new UniversalMotion(CurrentMotionState.Stance);
+                motion.MovementData.CurrentStyle = (uint)CurrentMotionState.Stance;
 
                 EnqueueBroadcast(new GameMessageUpdateMotion(Guid, Sequences.GetCurrentSequence(SequenceType.ObjectInstance), Sequences, motion),
                     new GameMessagePickupEvent(item));
@@ -557,7 +571,7 @@ namespace ACE.Server.WorldObjects
                     if (itemToPickup.WeenieType == WeenieType.Container)
                     {
                         //Check to see if the container is open
-                        if (itemToPickup.IsOpen ?? false)
+                        if (itemToPickup.IsOpen)
                         {
                             var containerToPickup = CurrentLandblock?.GetObject(itemGuid) as Container;
 
@@ -647,7 +661,8 @@ namespace ACE.Server.WorldObjects
             // We want to avoid the scenario where the server crashes and a player has too many items.
             item.SaveBiotaToDatabase();
 
-            var motion = new UniversalMotion(MotionStance.NonCombat);
+            //var motion = new UniversalMotion(MotionStance.NonCombat);
+            var motion = new UniversalMotion(CurrentMotionState.Stance);
             motion.MovementData.ForwardCommand = (uint)MotionCommand.Pickup;
             Session.Network.EnqueueSend(new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Container, new ObjectGuid(0)));
 
@@ -659,15 +674,19 @@ namespace ACE.Server.WorldObjects
 
             // Wait for drop animation
             var motionTable = DatManager.PortalDat.ReadFromDat<MotionTable>(MotionTableId);
-            var pickupAnimationLength = motionTable.GetAnimationLength(MotionCommand.Pickup);
+            var pickupAnimationLength = motionTable.GetAnimationLength(CurrentMotionState.Stance, MotionCommand.Pickup, MotionCommand.Ready);
             dropChain.AddDelaySeconds(pickupAnimationLength);
 
             // Play drop sound
             // Put item on landblock
             dropChain.AddAction(this, () =>
             {
-                EnqueueBroadcastMotion(new UniversalMotion(MotionStance.NonCombat));
+                var returnStance = new UniversalMotion(CurrentMotionState.Stance);
+                returnStance.MovementData.CurrentStyle = (uint)CurrentMotionState.Stance;
+                EnqueueBroadcastMotion(returnStance);
+
                 EnqueueBroadcast(new GameMessageSound(Guid, Sound.DropItem, (float)1.0));
+
                 Session.Network.EnqueueSend(
                     new GameEventItemServerSaysMoveItem(Session, item),
                     new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Container, new ObjectGuid(0)),
@@ -1569,7 +1588,8 @@ namespace ACE.Server.WorldObjects
                 Value -= newStack.Value;
             }
 
-            var motion = new UniversalMotion(MotionStance.NonCombat);
+            //var motion = new UniversalMotion(MotionStance.NonCombat);
+            var motion = new UniversalMotion(CurrentMotionState.Stance);
             motion.MovementData.ForwardCommand = (uint)MotionCommand.Pickup;
 
             // Set drop motion
@@ -1580,7 +1600,7 @@ namespace ACE.Server.WorldObjects
 
             // Wait for drop animation
             var motionTable = DatManager.PortalDat.ReadFromDat<MotionTable>(MotionTableId);
-            var pickupAnimationLength = motionTable.GetAnimationLength(MotionCommand.Pickup);
+            var pickupAnimationLength = motionTable.GetAnimationLength(CurrentMotionState.Stance, MotionCommand.Pickup, MotionCommand.Ready);
             dropChain.AddDelaySeconds(pickupAnimationLength);
 
             // Play drop sound
@@ -1591,7 +1611,10 @@ namespace ACE.Server.WorldObjects
                     Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(container, PropertyInt.EncumbranceVal, container.EncumbranceVal ?? 0));
                 Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
 
-                EnqueueBroadcastMotion(new UniversalMotion(MotionStance.NonCombat));
+                var returnStance = new UniversalMotion(CurrentMotionState.Stance);
+                returnStance.MovementData.CurrentStyle = (uint)CurrentMotionState.Stance;
+                EnqueueBroadcastMotion(returnStance);
+
                 EnqueueBroadcast(new GameMessageSound(Guid, Sound.DropItem, 1.0f));
 
                 Session.Network.EnqueueSend(new GameMessageSetStackSize(stack));

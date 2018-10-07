@@ -222,11 +222,27 @@ namespace ACE.Server.WorldObjects
         {
             var target = CurrentLandblock.GetObject(targetGuid);
             if (target != null && target is Creature)
-                distanceFrom = 0.6f;
+                distanceFrom = 0.6f;    // todo: use correct distancefrom for object
 
-            UniversalMotion newMotion = new UniversalMotion(MotionStance.NonCombat, worldObjectPosition, targetGuid);
+            // TODO: determine threshold for walking/running
+
+            UniversalMotion newMotion = new UniversalMotion(CurrentMotionState.Stance, worldObjectPosition, targetGuid);
             newMotion.DistanceFrom = distanceFrom;
             newMotion.MovementTypes = movementType;
+
+            // TODO: find the correct runrate here
+            // the default runrate / charge seems much too fast...
+            newMotion.RunRate = GetRunRate() / 4.0f;
+
+            // TODO: get correct flags from pcaps
+            // 'CanCharge' is the only flag that seems to let the player run instead of walk
+            // CanWalk and CanRun are already set by default
+
+            // also, the default 'WalkRunThreshold' of 15 in UniversalMotion does not seem to be used automatically by client
+            // maybe we have to check if above or below the WalkRunThreshold distance to target on server,
+            // and send the CanCharge flag accordingly?
+            newMotion.Flag |= MovementParams.CanCharge;
+
             EnqueueBroadcast(new GameMessageUpdatePosition(this));
             EnqueueBroadcastMotion(newMotion);
         }

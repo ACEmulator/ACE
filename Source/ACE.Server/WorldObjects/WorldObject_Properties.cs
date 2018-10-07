@@ -1036,16 +1036,16 @@ namespace ACE.Server.WorldObjects
         // ======== Description Properties ========
         // ========================================
         // used in CalculatedDescriptionFlag()
-        public bool? IsOpen
+        public bool IsOpen
         {
-            get => GetProperty(PropertyBool.Open);
-            set { if (!value.HasValue) RemoveProperty(PropertyBool.Open); else SetProperty(PropertyBool.Open, value.Value); }
+            get => GetProperty(PropertyBool.Open) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.Open); else SetProperty(PropertyBool.Open, value); }
         }
 
-        public bool? IsLocked
+        public bool IsLocked
         {
-            get => GetProperty(PropertyBool.Locked);
-            set { if (!value.HasValue) RemoveProperty(PropertyBool.Locked); else SetProperty(PropertyBool.Locked, value.Value); }
+            get => GetProperty(PropertyBool.Locked) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.Locked); else SetProperty(PropertyBool.Locked, value); }
         }
 
         public bool? Inscribable
