@@ -65,11 +65,10 @@ namespace ACE.Server.WorldObjects
             var player = wo as Player;
             if (player == null) return;
 
-            //LoadInventory();
-
-            var rotateTime = player.Rotate(this);
+            LoadInventory();
 
             var actionChain = new ActionChain();
+            var rotateTime = Rotate(player);    // vendor rotates towards player
             actionChain.AddDelaySeconds(rotateTime);
             actionChain.AddAction(this, () => ApproachVendor(player));
             actionChain.EnqueueChain();
