@@ -347,7 +347,6 @@ namespace ACE.Server.WorldObjects
                     UpdateCoinValue();
 
                 //var motion = new UniversalMotion(MotionStance.NonCombat);
-                Console.WriteLine("Broadcasting stance: " + CurrentMotionState.Stance);
                 var motion = new UniversalMotion(CurrentMotionState.Stance);
                 motion.MovementData.CurrentStyle = (uint)CurrentMotionState.Stance;
 
