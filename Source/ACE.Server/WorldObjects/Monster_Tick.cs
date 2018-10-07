@@ -27,8 +27,8 @@ namespace ACE.Server.WorldObjects
             if (IsPet && (DateTime.UtcNow >= (petCreationTime + (new TimeSpan(0,0,45)))))
             {
                 //Pet has expired
-                this.Sleep();
-                this.Destroy();
+                Sleep();
+                Destroy();
                 return;
             }
 

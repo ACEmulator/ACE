@@ -10,7 +10,6 @@ using ACE.Server.Managers;
 using ACE.Server.Physics;
 using ACE.Server.Physics.Common;
 using ACE.Server.Physics.Extensions;
-
 namespace ACE.Server.WorldObjects
 {
     partial class WorldObject
@@ -176,6 +175,7 @@ namespace ACE.Server.WorldObjects
             // monsters have separate physics updates
             var creature = this as Creature;
             var monster = creature != null && creature.IsMonster;
+            var pet = creature != null && creature.IsPet;
 
             // determine if updates should be run for object
             //var runUpdate = !monster && (isMissile || !PhysicsObj.IsGrounded);
@@ -188,6 +188,11 @@ namespace ACE.Server.WorldObjects
                     LastPhysicsUpdate = PhysicsTimer.CurrentTime;
                 else
                     runUpdate = false;
+            }
+
+            if (pet)
+            {
+                creature.PetCheckMonsters();
             }
 
             if (!runUpdate) return false;
