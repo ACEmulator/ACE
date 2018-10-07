@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 
@@ -1787,10 +1787,12 @@ namespace ACE.Database.Models.World
 
                 entity.Property(e => e.InitCreate)
                     .HasColumnName("init_Create")
+                    .HasColumnType("int(10)")
                     .HasDefaultValueSql("'1'");
 
                 entity.Property(e => e.MaxCreate)
                     .HasColumnName("max_Create")
+                    .HasColumnType("int(10)")
                     .HasDefaultValueSql("'1'");
 
                 entity.Property(e => e.ObjCellId).HasColumnName("obj_Cell_Id");

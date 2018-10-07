@@ -1,5 +1,4 @@
 using System;
-
 using ACE.Entity.Enum;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
@@ -13,7 +12,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// The delay between missile attacks (todo: find actual value)
         /// </summary>
-        public static readonly float MissileDelay = 2.0f;
+        public static readonly float MissileDelay = 1.0f;
 
         /// <summary>
         /// Returns TRUE if monster has physical ranged attacks
@@ -39,8 +38,8 @@ namespace ACE.Server.WorldObjects
 
             // simulate accuracy bar / allow client rotate to fully complete
             var actionChain = new ActionChain();
-            IsTurning = true;
-            actionChain.AddDelaySeconds(0.5f);
+            //IsTurning = true;
+            //actionChain.AddDelaySeconds(0.5f);
 
             // do missile attack
             actionChain.AddAction(this, LaunchMissile);
@@ -52,13 +51,20 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void LaunchMissile()
         {
-            IsTurning = false;
+            //IsTurning = false;
 
             var weapon = GetEquippedMissileWeapon();
             if (weapon == null || AttackTarget == null) return;
 
             var ammo = weapon.IsAmmoLauncher ? GetEquippedAmmo() : weapon;
             if (ammo == null) return;
+
+            // ensure direct line of sight
+            if (!IsDirectVisible(AttackTarget))
+            {
+                NextAttackTime = DateTime.UtcNow.AddSeconds(1.0f);
+                return;
+            }
 
             // should this be called each launch?
             AttackHeight = ChooseAttackHeight();
@@ -84,13 +90,21 @@ namespace ACE.Server.WorldObjects
                 UpdateAmmoAfterLaunch(ammo);
             });
 
+            // will ammo be depleted?
+            if (ammo.StackSize == 1)
+            {
+                actionChain.EnqueueChain();
+                NextAttackTime = DateTime.UtcNow.AddSeconds(launchTime + MissileDelay);
+                return;
+            }
+
             // reload animation
             var reloadTime = EnqueueMotion(actionChain, MotionCommand.Reload);
             //Console.WriteLine("ReloadTime: " + reloadTime);
 
             // reset for next projectile
             EnqueueMotion(actionChain, MotionCommand.Ready);
-            var linkTime = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, MotionCommand.Ready, MotionCommand.Reload);
+            var linkTime = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, MotionCommand.Reload, MotionCommand.Ready);
             //Console.WriteLine("LinkTime: " + linkTime);
 
             actionChain.AddAction(this, () => EnqueueBroadcast(new GameMessageParentEvent(this, ammo, (int)ACE.Entity.Enum.ParentLocation.RightHand,
@@ -100,10 +114,7 @@ namespace ACE.Server.WorldObjects
 
             var timeOffset = launchTime + reloadTime + linkTime;
 
-            if (timeOffset < MissileDelay)
-                timeOffset = MissileDelay;
-
-            NextAttackTime = DateTime.UtcNow.AddSeconds(timeOffset);
+            NextAttackTime = DateTime.UtcNow.AddSeconds(timeOffset + MissileDelay);
         }
 
         /// <summary>

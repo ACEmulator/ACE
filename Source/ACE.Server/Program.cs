@@ -90,6 +90,14 @@ namespace ACE.Server
             log.Info("Initializing WorldManager...");
             WorldManager.Initialize();
 
+            if (ConfigManager.Config.Server.LandblockPreloading == true)
+            {
+                log.Info("Preloading Landblocks...");
+                LandblockManager.Initialize();
+            }
+            else
+                log.Info("No Landblock Preloading Performed...");
+
             log.Info("Initializing EventManager...");
             EventManager.Initialize();
 

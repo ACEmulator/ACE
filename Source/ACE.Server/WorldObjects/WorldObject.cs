@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using System.Text;
 
 using log4net;
@@ -20,6 +21,7 @@ using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Motion;
 using ACE.Server.Network.Sequence;
 using ACE.Server.Physics;
+using ACE.Server.Physics.Animation;
 using ACE.Server.Physics.Common;
 using ACE.Server.Physics.Util;
 
@@ -307,7 +309,10 @@ namespace ACE.Server.WorldObjects
             foreach (var x in Biota.BiotaPropertiesString.Where(i => EphemeralProperties.PropertiesString.Contains(i.Type)).ToList())
                 ephemeralPropertyStrings[(PropertyString)x.Type] = x.Value;
 
-            GeneratorProfiles = Biota.BiotaPropertiesGenerator.ToList();
+            AddGeneratorProfiles();
+
+            if (IsGenerator && RegenerationInterval > 5)
+                HeartbeatInterval = RegenerationInterval;
 
             BaseDescriptionFlags = ObjectDescriptionFlag.Attackable;
 
@@ -345,6 +350,10 @@ namespace ACE.Server.WorldObjects
             return true;
         }
 
+        /// <summary>
+        /// Returns TRUE if this object has the input object in its PVS
+        /// Note that this is NOT a direct line of sight test!
+        /// </summary>
         public bool IsVisible(WorldObject wo)
         {
             if (PhysicsObj == null || wo.PhysicsObj == null)
@@ -353,6 +362,41 @@ namespace ACE.Server.WorldObjects
             // note: visibility lists are actively maintained only for players
             return PhysicsObj.ObjMaint.VisibleObjectTable.ContainsKey(wo.PhysicsObj.ID);
         }
+
+        public static PhysicsObj SightObj = PhysicsObj.makeObject(0x02000124, 0, false);     // arrow
+
+        /// <summary>
+        /// Returns TRUE if this object has direct line-of-sight visibility to input object
+        /// </summary>
+        public bool IsDirectVisible(WorldObject wo)
+        {
+            if (PhysicsObj == null || wo.PhysicsObj == null)
+                return false;
+
+            var startPos = new Physics.Common.Position(PhysicsObj.Position);
+            var targetPos = new Physics.Common.Position(wo.PhysicsObj.Position);
+
+            // set to eye level
+            startPos.Frame.Origin.Z += PhysicsObj.GetHeight() - SightObj.GetHeight();
+            targetPos.Frame.Origin.Z += wo.PhysicsObj.GetHeight() - SightObj.GetHeight();
+
+            var dir = Vector3.Normalize(targetPos.Frame.Origin - startPos.Frame.Origin);
+            var radsum = PhysicsObj.GetPhysicsRadius() + SightObj.GetPhysicsRadius();
+            startPos.Frame.Origin += dir * radsum;
+
+            SightObj.CurCell = PhysicsObj.CurCell;
+            SightObj.ProjectileTarget = wo.PhysicsObj;
+
+            // perform line of sight test
+            var transition = SightObj.transition(startPos, targetPos, false);
+            if (transition == null) return false;
+
+            // check if target object was reached
+            var isVisible = transition.CollisionInfo.CollideObject.FirstOrDefault(c => c.ID == wo.PhysicsObj.ID) != null;
+            return isVisible;
+        }
+
+
 
 
 
@@ -428,11 +472,6 @@ namespace ACE.Server.WorldObjects
             var success = true;
             GameEventIdentifyObjectResponse identifyResponse = new GameEventIdentifyObjectResponse(examiner, this, success);
             examiner.Network.EnqueueSend(identifyResponse);
-
-#if DEBUG
-            examiner.Network.EnqueueSend(new GameMessageSystemChat("", ChatMessageType.System));
-            examiner.Network.EnqueueSend(new GameMessageSystemChat($"{DebugOutputString(GetType(), this)}", ChatMessageType.System));
-#endif
         }
 
         public void ReadBookPage(Session reader, uint pageNum)
@@ -453,12 +492,12 @@ namespace ACE.Server.WorldObjects
         }
 
  
-        private string DebugOutputString(Type type, WorldObject obj)
+        public string DebugOutputString(WorldObject obj)
         {
             var sb = new StringBuilder();
 
             sb.AppendLine("ACE Debug Output:");
-            sb.AppendLine("ACE Class File: " + type.Name + ".cs");
+            sb.AppendLine("ACE Class File: " + GetType().Name + ".cs");
             sb.AppendLine("Guid: " + obj.Guid.Full + " (0x" + obj.Guid.Full.ToString("X") + ")");
 
             sb.AppendLine("----- Private Fields -----");
@@ -641,9 +680,14 @@ namespace ACE.Server.WorldObjects
             proj.OnCollideEnvironment();
         }
 
-        public void EnqueueBroadcastMotion(UniversalMotion motion)
+        public void EnqueueBroadcastMotion(UniversalMotion motion, float? maxRange = null)
         {
-            EnqueueBroadcast(new GameMessageUpdateMotion(Guid, Sequences.GetCurrentSequence(SequenceType.ObjectInstance), Sequences, motion));
+            var msg = new GameMessageUpdateMotion(Guid, Sequences.GetCurrentSequence(SequenceType.ObjectInstance), Sequences, motion);
+
+            if (maxRange == null)
+                EnqueueBroadcast(msg);
+            else
+                EnqueueBroadcast(msg, maxRange.Value);
         }
 
         public void ApplyVisualEffects(PlayScript effect)
@@ -750,11 +794,11 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Returns a randomized death message based on damage type
         /// </summary>
-        public virtual string GetDeathMessage(WorldObject killer, bool criticalHit = false)
+        public virtual string GetDeathMessage(WorldObject killer, DamageType damageType, bool criticalHit = false)
         {
             if (!criticalHit)
             {
-                var damageType = killer.GetDamageType();
+                //var damageType = killer.GetDamageType();
                 Strings.DeathMessages.TryGetValue(damageType, out var messages);
                 var idx = Physics.Common.Random.RollDice(0, messages.Count - 1);
                 return messages[idx];
@@ -820,6 +864,11 @@ namespace ACE.Server.WorldObjects
         public virtual DamageType GetDamageType(bool multiple = false)
         {
             var creature = this as Creature;
+            if (creature == null)
+            {
+                Console.WriteLine("WorldObject.GetDamageType(): null creature");
+                return DamageType.Undef;
+            }
 
             var weapon = creature.GetEquippedWeapon();
             var ammo = creature.GetEquippedAmmo();
@@ -830,9 +879,9 @@ namespace ACE.Server.WorldObjects
             DamageType damageTypes;
             var attackType = creature.GetAttackType();
             if (attackType == AttackType.Melee || ammo == null || !weapon.IsAmmoLauncher)
-                damageTypes = (DamageType)weapon.GetProperty(PropertyInt.DamageType);
+                damageTypes = (DamageType)(weapon.GetProperty(PropertyInt.DamageType) ?? 0);
             else
-                damageTypes = (DamageType)ammo.GetProperty(PropertyInt.DamageType);
+                damageTypes = (DamageType)(ammo.GetProperty(PropertyInt.DamageType) ?? 0);
 
             // returning multiple damage types
             if (multiple) return damageTypes;
@@ -898,6 +947,53 @@ namespace ACE.Server.WorldObjects
         public override int GetHashCode()
         {
             return Guid.Full.GetHashCode();
+        }
+
+        /// <summary>
+        /// Returns TRUE if this object has a non-zero velocity,
+        /// or if it has non-cyclic animations in progress
+        /// </summary>
+        public bool IsMoving { get => PhysicsObj != null && (PhysicsObj.Velocity.X != 0 || PhysicsObj.Velocity.Y != 0 || PhysicsObj.Velocity.Z != 0 ||
+                PhysicsObj.MovementManager != null && PhysicsObj.MovementManager.motions_pending()); }
+
+        /// <summary>
+        /// Executes a motion/animation for this object
+        /// adds to the physics animation system, and broadcasts to nearby players
+        /// </summary>
+        /// <returns>The amount it takes to execute the motion</returns>
+        public float ExecuteMotion(UniversalMotion motion, bool sendClient = true, float? maxRange = null)
+        {
+            var motionCommand = MotionCommand.Invalid;
+
+            if (motion.Commands != null && motion.Commands.Count > 0)
+                motionCommand = motion.Commands[0].Motion;
+            else if (motion.MovementData != null && motion.MovementData.CurrentStyle != 0)
+                motionCommand = (MotionCommand)motion.MovementData.CurrentStyle;
+
+            // run motion command on server through physics animation system
+            if (PhysicsObj != null && motionCommand != MotionCommand.Invalid)
+            {
+                var motionInterp = PhysicsObj.get_minterp();
+
+                var rawState = new RawMotionState();
+                rawState.ForwardCommand = 0;    // always 0? must be this for monster sleep animations (skeletons, golems)
+                                                // else the monster will immediately wake back up..
+                rawState.CurrentHoldKey = HoldKey.Run;
+                rawState.CurrentStyle = (uint)motionCommand;
+
+                motionInterp.RawState = rawState;
+                motionInterp.apply_raw_movement(true, true);
+            }
+
+            // hardcoded ready?
+            var animLength = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, MotionCommand.Ready, motionCommand);
+            CurrentMotionState = motion;
+
+            // broadcast to nearby players
+            if (sendClient)
+                EnqueueBroadcastMotion(motion, maxRange);
+
+            return animLength;
         }
     }
 }

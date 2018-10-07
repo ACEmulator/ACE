@@ -357,6 +357,8 @@ namespace ACE.Server.Physics.Animation
 
         public void BeginMoveForward()
         {
+            //Console.WriteLine("BeginMoveForward");
+
             if (PhysicsObj == null)
             {
                 CancelMoveTo(WeenieError.NoPhysicsObject);
@@ -536,8 +538,8 @@ namespace ACE.Server.Physics.Animation
 
             var movementParams = new MovementParameters();
             movementParams.CancelMoveTo = false;
-            //movementParams.Speed = MovementParams.Speed;    // only for turning, too fast?
-            movementParams.Speed = 1.0f;    // commented out before?
+            movementParams.Speed = MovementParams.Speed;    // only for turning, too fast?
+            //movementParams.Speed = 1.0f;    // commented out before?
             movementParams.HoldKeyToApply = MovementParams.HoldKeyToApply;
 
             var result = _DoMotion(motionID, movementParams);

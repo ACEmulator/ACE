@@ -432,7 +432,10 @@ namespace ACE.Server.Managers
                 PropertyManager.ModifyString(item.Key, item.Value);
         }
 
-        public static readonly ReadOnlyDictionary<string, bool> DefaultBooleanProperties = DictOf<string, bool>();
+        public static readonly ReadOnlyDictionary<string, bool> DefaultBooleanProperties =
+            DictOf(
+                ("alwaysshowwelcome", false)
+                );
 
         public static readonly ReadOnlyDictionary<string, long> DefaultLongProperties = DictOf<string, long>();
 

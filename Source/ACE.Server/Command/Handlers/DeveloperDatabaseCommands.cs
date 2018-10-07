@@ -11,11 +11,11 @@ namespace ACE.Server.Command.Handlers
         [CommandHandler("databasequeueinfo", AccessLevel.Developer, CommandHandlerFlag.None, 0, "Show database queue information.")]
         public static void HandleDatabaseQueueInfo(Session session, params string[] parameters)
         {
-            ChatPacket.SendServerMessage(session, $"Current database queue count: {DatabaseManager.Shard.QueueCount}", ChatMessageType.System);
+            CommandHandlerHelper.WriteOutputInfo(session, $"Current database queue count: {DatabaseManager.Shard.QueueCount}");
 
             DatabaseManager.Shard.GetCurrentQueueWaitTime(result =>
             {
-                ChatPacket.SendServerMessage(session, $"Current database queue wait time: {result.TotalMilliseconds:N0} ms", ChatMessageType.System);
+                CommandHandlerHelper.WriteOutputInfo(session, $"Current database queue wait time: {result.TotalMilliseconds:N0} ms");
             });
         }
 

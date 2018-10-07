@@ -38,7 +38,7 @@ namespace ACE.Server.Command.Handlers.Processors
 
         private void Run(Session session, int biotasPerTest)
         {
-            ChatPacket.SendServerMessage(session, $"Starting Shard Database Performance Tests.\nBiotas per test: {biotasPerTest}\nThis may take several minutes to complete...\nCurrent database queue count: {DatabaseManager.Shard.QueueCount}", ChatMessageType.System);
+            CommandHandlerHelper.WriteOutputInfo(session, $"Starting Shard Database Performance Tests.\nBiotas per test: {biotasPerTest}\nThis may take several minutes to complete...\nCurrent database queue count: {DatabaseManager.Shard.QueueCount}");
 
 
             // Get the current queue wait time
@@ -46,7 +46,7 @@ namespace ACE.Server.Command.Handlers.Processors
 
             DatabaseManager.Shard.GetCurrentQueueWaitTime(result =>
             {
-                ChatPacket.SendServerMessage(session, $"Current database queue wait time: {result.TotalMilliseconds:N0} ms", ChatMessageType.System);
+                CommandHandlerHelper.WriteOutputInfo(session, $"Current database queue wait time: {result.TotalMilliseconds:N0} ms");
                 responseReceived = true;
             });
 
@@ -95,7 +95,7 @@ namespace ACE.Server.Command.Handlers.Processors
 
 
             // Update biotasPerTest biotas individually
-            if (SessionIsStillInWorld(session))
+            if (session == null || SessionIsStillInWorld(session))
             {
                 ModifyBiotas(biotas);
 
@@ -161,7 +161,7 @@ namespace ACE.Server.Command.Handlers.Processors
             ReportResult(session, "individual remove", biotasPerTest, (endTime - startTime), initialQueueWaitTime, totalQueryExecutionTime, trueResults, falseResults);
 
 
-            if (!SessionIsStillInWorld(session))
+            if (session != null && !SessionIsStillInWorld(session))
                 return;
 
             // Generate Bulk WorldObjects
@@ -203,7 +203,7 @@ namespace ACE.Server.Command.Handlers.Processors
 
 
             // Update biotasPerTest biotas in bulk
-            if (SessionIsStillInWorld(session))
+            if (session == null || SessionIsStillInWorld(session))
             {
                 ModifyBiotas(biotas);
 
@@ -263,10 +263,10 @@ namespace ACE.Server.Command.Handlers.Processors
             ReportResult(session, "bulk remove", biotasPerTest, (endTime - startTime), initialQueueWaitTime, totalQueryExecutionTime, trueResults, falseResults);
 
 
-            if (!SessionIsStillInWorld(session))
+            if (session != null && !SessionIsStillInWorld(session))
                 return;
 
-            ChatPacket.SendServerMessage(session, "Database Performance Tests Completed", ChatMessageType.System);
+            CommandHandlerHelper.WriteOutputInfo(session, "Database Performance Tests Completed");
         }
 
         private static void ModifyBiotas(ICollection<(Biota biota, ReaderWriterLockSlim rwLock)> biotas)
@@ -340,10 +340,10 @@ namespace ACE.Server.Command.Handlers.Processors
 
         private static void ReportResult(Session session, string testDescription, int biotasPerTest, TimeSpan duration, TimeSpan queueWaitTime, TimeSpan totalQueryExecutionTime, long trueResults, long falseResults)
         {
-            if (!SessionIsStillInWorld(session))
+            if (session != null && !SessionIsStillInWorld(session))
                 return;
 
-            ChatPacket.SendServerMessage(session, $"{biotasPerTest} {testDescription.PadRight(17)} Duration: {duration.TotalSeconds.ToString("N1").PadLeft(5)} s. Queue Wait Time: {queueWaitTime.TotalMilliseconds.ToString("N0").PadLeft(3)} ms. Average Execution Time: {(totalQueryExecutionTime.TotalMilliseconds / biotasPerTest).ToString("N0").PadLeft(3)} ms. Success/Fail: {trueResults}/{falseResults}.", ChatMessageType.System);
+            CommandHandlerHelper.WriteOutputInfo(session, $"{biotasPerTest} {testDescription.PadRight(17)} Duration: {duration.TotalSeconds.ToString("N1").PadLeft(5)} s. Queue Wait Time: {queueWaitTime.TotalMilliseconds.ToString("N0").PadLeft(3)} ms. Average Execution Time: {(totalQueryExecutionTime.TotalMilliseconds / biotasPerTest).ToString("N0").PadLeft(3)} ms. Success/Fail: {trueResults}/{falseResults}.", ChatMessageType.System);
         }
     }
 }

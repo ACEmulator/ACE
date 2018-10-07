@@ -531,11 +531,7 @@ namespace ACE.Server.WorldObjects
 
         public uint? DefaultScriptId
         {
-            get
-            {
-                var defaultScriptId = GetProperty(PropertyDataId.PhysicsScript);
-                return defaultScriptId == null ? null : defaultScriptId + 1;    // bug in data?
-            }
+            get => GetProperty(PropertyDataId.PhysicsScript);
             set { if (!value.HasValue) RemoveProperty(PropertyDataId.PhysicsScript); else SetProperty(PropertyDataId.PhysicsScript, value.Value); }
         }
 
@@ -933,12 +929,6 @@ namespace ACE.Server.WorldObjects
                 else
                     ItemWorkmanship = Convert.ToInt32(value);
             }
-        }
-
-        public Spell? Spell
-        {
-            get => (Spell?)GetProperty(PropertyDataId.Spell);
-            set { if (!value.HasValue) RemoveProperty(PropertyDataId.Spell); else SetProperty(PropertyDataId.Spell, (uint)value.Value); }
         }
 
         /// <summary>
@@ -2179,28 +2169,40 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyFloat.HeartbeatTimestamp); else SetProperty(PropertyFloat.HeartbeatTimestamp, value.Value); }
         }
 
-        public int? InitGeneratedObjects
+        public int InitGeneratedObjects
         {
-            get => GetProperty(PropertyInt.InitGeneratedObjects);
-            set { if (!value.HasValue) RemoveProperty(PropertyInt.InitGeneratedObjects); else SetProperty(PropertyInt.InitGeneratedObjects, value.Value); }
+            get => GetProperty(PropertyInt.InitGeneratedObjects) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.InitGeneratedObjects); else SetProperty(PropertyInt.InitGeneratedObjects, value); }
         }
 
-        public int? MaxGeneratedObjects
+        public int InitCreate
         {
-            get => GetProperty(PropertyInt.MaxGeneratedObjects);
-            set { if (!value.HasValue) RemoveProperty(PropertyInt.MaxGeneratedObjects); else SetProperty(PropertyInt.MaxGeneratedObjects, value.Value); }
+            get => InitGeneratedObjects;
+            set => InitGeneratedObjects = value;
         }
 
-        public double? RegenerationInterval
+        public int MaxGeneratedObjects
         {
-            get => GetProperty(PropertyFloat.RegenerationInterval);
-            set { if (!value.HasValue) RemoveProperty(PropertyFloat.RegenerationInterval); else SetProperty(PropertyFloat.RegenerationInterval, value.Value); }
+            get => GetProperty(PropertyInt.MaxGeneratedObjects) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.MaxGeneratedObjects); else SetProperty(PropertyInt.MaxGeneratedObjects, value); }
         }
 
-        public bool? GeneratorEnteredWorld
+        public int MaxCreate
         {
-            get => GetProperty(PropertyBool.GeneratorEnteredWorld);
-            set { if (!value.HasValue) RemoveProperty(PropertyBool.GeneratorEnteredWorld); else SetProperty(PropertyBool.GeneratorEnteredWorld, value.Value); }
+            get => MaxGeneratedObjects;
+            set => MaxGeneratedObjects = value;
+        }
+
+        public double RegenerationInterval
+        {
+            get => GetProperty(PropertyFloat.RegenerationInterval) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyFloat.RegenerationInterval); else SetProperty(PropertyFloat.RegenerationInterval, value); }
+        }
+
+        public bool GeneratorEnteredWorld
+        {
+            get => GetProperty(PropertyBool.GeneratorEnteredWorld) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.GeneratorEnteredWorld); else SetProperty(PropertyBool.GeneratorEnteredWorld, value); }
         }
 
         public bool? Visibility
@@ -2491,10 +2493,13 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyInt.XpOverride); else SetProperty(PropertyInt.XpOverride, value.Value); }
         }
 
-        public bool? FirstEnterWorldDone
+        /// <summary>
+        /// Currently used by Generators and Players
+        /// </summary>
+        public bool FirstEnterWorldDone
         {
             get => GetProperty(PropertyBool.FirstEnterWorldDone) ?? false;
-            set { if (!value.HasValue) RemoveProperty(PropertyBool.FirstEnterWorldDone); else SetProperty(PropertyBool.FirstEnterWorldDone, value.Value); }
+            set { if (!value) RemoveProperty(PropertyBool.FirstEnterWorldDone); else SetProperty(PropertyBool.FirstEnterWorldDone, value); }
         }
 
         public uint? OwnerId
@@ -2519,6 +2524,79 @@ namespace ACE.Server.WorldObjects
         {
             get => GetProperty(PropertyInstanceId.AllowedActivator);
             set { if (!value.HasValue) RemoveProperty(PropertyInstanceId.AllowedActivator); else SetProperty(PropertyInstanceId.AllowedActivator, value.Value); }
+        }
+
+        // generator properties
+        public bool CurrentlyPoweringUp
+        {
+            get => GetProperty(PropertyBool.CurrentlyPoweringUp) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.CurrentlyPoweringUp); else SetProperty(PropertyBool.CurrentlyPoweringUp, value); }
+        }
+
+        public bool GeneratorDisabled
+        {
+            get => GetProperty(PropertyBool.GeneratorDisabled) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.GeneratorDisabled); else SetProperty(PropertyBool.GeneratorDisabled, value); }
+        }
+
+        public bool GeneratorStatus
+        {
+            get => GetProperty(PropertyBool.GeneratorStatus) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.GeneratorStatus); else SetProperty(PropertyBool.GeneratorStatus, value); }
+        }
+
+        public bool GeneratorAutomaticDestruction
+        {
+            get => GetProperty(PropertyBool.GeneratorAutomaticDestruction) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.GeneratorAutomaticDestruction); else SetProperty(PropertyBool.GeneratorAutomaticDestruction, value); }
+        }
+
+        public string GeneratorEvent
+        {
+            get => GetProperty(PropertyString.GeneratorEvent);
+            set { if (value == null) RemoveProperty(PropertyString.GeneratorEvent); else SetProperty(PropertyString.GeneratorEvent, value); }
+        }
+
+        public GeneratorTimeType GeneratorTimeType
+        {
+            get => (GeneratorTimeType)(GetProperty(PropertyInt.GeneratorTimeType) ?? 0);
+            set { if (value == GeneratorTimeType.Undef) RemoveProperty(PropertyInt.GeneratorTimeType); else SetProperty(PropertyInt.GeneratorTimeType, (int)value); }
+        }
+
+        public GeneratorDestruct GeneratorDestructionType
+        {
+            get => (GeneratorDestruct)(GetProperty(PropertyInt.GeneratorDestructionType) ?? 0);
+            set { if (value == GeneratorDestruct.Undef) RemoveProperty(PropertyInt.GeneratorDestructionType); else SetProperty(PropertyInt.GeneratorDestructionType, (int)value); }
+        }
+
+        public GeneratorDestruct GeneratorEndDestructionType
+        {
+            get => (GeneratorDestruct)(GetProperty(PropertyInt.GeneratorEndDestructionType) ?? 0);
+            set { if (value == GeneratorDestruct.Undef) RemoveProperty(PropertyInt.GeneratorEndDestructionType); else SetProperty(PropertyInt.GeneratorEndDestructionType, (int)value); }
+        }
+
+        public GeneratorType GeneratorType
+        {
+            get => (GeneratorType)(GetProperty(PropertyInt.GeneratorType) ?? 0);
+            set { if (value == GeneratorType.Undef) RemoveProperty(PropertyInt.GeneratorType); else SetProperty(PropertyInt.GeneratorType, (int)value); }
+        }
+
+        public int GeneratorStartTime
+        {
+            get => GetProperty(PropertyInt.GeneratorStartTime) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.GeneratorStartTime); else SetProperty(PropertyInt.GeneratorStartTime, value); }
+        }
+
+        public int GeneratorEndTime
+        {
+            get => GetProperty(PropertyInt.GeneratorEndTime) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.GeneratorEndTime); else SetProperty(PropertyInt.GeneratorEndTime, value); }
+        }
+
+        public double GeneratorInitialDelay
+        {
+            get => GetProperty(PropertyFloat.GeneratorInitialDelay) ?? 0d;
+            set { if (value == 0d) RemoveProperty(PropertyFloat.GeneratorInitialDelay); else SetProperty(PropertyFloat.GeneratorInitialDelay, value); }
         }
     }
 }

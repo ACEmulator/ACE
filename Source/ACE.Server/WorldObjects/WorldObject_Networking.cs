@@ -152,7 +152,7 @@ namespace ACE.Server.WorldObjects
                 writer.Write((ushort)(EncumbranceVal ?? 0));
 
             if ((weenieFlags & WeenieHeaderFlag.Spell) != 0)
-                writer.Write((ushort?)Spell ?? 0);
+                writer.Write((ushort?)SpellDID ?? 0);
 
             if ((weenieFlags & WeenieHeaderFlag.HouseOwner) != 0)
                 writer.Write(HouseOwner ?? 0);
@@ -743,7 +743,7 @@ namespace ACE.Server.WorldObjects
             if (EncumbranceVal != 0)
                 weenieHeaderFlag |= WeenieHeaderFlag.Burden;
 
-            if ((Spell != null) && (Spell != 0))
+            if ((SpellDID != null) && (SpellDID != 0))
                 weenieHeaderFlag |= WeenieHeaderFlag.Spell;
 
             if (HouseOwner != null)
@@ -1133,39 +1133,6 @@ namespace ACE.Server.WorldObjects
                 return false;
             }
 
-            var landblockUpdate = (cellBefore >> 16) != (curCell.ID >> 16);
-            if (isMoved)
-            {
-                if (curCell.ID != cellBefore)
-                    Location.LandblockId = new LandblockId(curCell.ID);
-
-                Location.Pos = newPos;
-                //if (landblockUpdate)
-                    //WorldManager.UpdateLandblock.Add(this);
-            }
-
-            if (PhysicsObj.IsGrounded)
-                SendUpdatePosition(true);
-
-            //var dist = Vector3.Distance(ProjectileTarget.Location.Pos, newPos);
-            //Console.WriteLine("Dist: " + dist);
-            //Console.WriteLine("Velocity: " + PhysicsObj.Velocity);
-            var spellProjectile = this as SpellProjectile;
-            if (spellProjectile != null && spellProjectile.SpellType == SpellProjectile.ProjectileSpellType.Ring)
-            {
-                var dist = Vector3.Distance(spellProjectile.SpawnPos.ToGlobal(), Location.ToGlobal());
-                var maxRange = spellProjectile.SpellBase.BaseRangeConstant;
-                //Console.WriteLine("Max range: " + maxRange);
-                if (dist > maxRange)
-                {
-                    PhysicsObj.set_active(false);
-                    spellProjectile.ProjectileImpact();
-                    return false;
-                }
-            }
-            return landblockUpdate;
-        }
-
         public bool? IgnoreCloIcons
         {
             get => GetProperty(PropertyBool.IgnoreCloIcons);
@@ -1307,6 +1274,23 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
+        /// Traverses the owner list for the input item,
+        /// and returns the object in the current landblock
+        /// </summary>
+        public WorldObject GetParentLandblock(WorldObject item)
+        {
+            var iterator = item;
+            while (iterator.CurrentLandblock == null)
+            {
+                if (iterator.OwnerId == null)
+                    break;
+
+                iterator = CurrentLandblock.GetObject(iterator.OwnerId.Value);
+            }
+            return iterator.CurrentLandblock == null ? null : iterator;
+        }
+
+        /// <summary>
         /// Sends network messages to all Players who currently know about this object
         /// within a maximum range
         /// </summary>
@@ -1320,6 +1304,8 @@ namespace ACE.Server.WorldObjects
 
             var isDungeon = CurrentLandblock._landblock.IsDungeon;
 
+            var rangeSquared = range * range;
+
             foreach (var player in PhysicsObj.ObjMaint.VoyeurTable.Values.Select(v => v.WeenieObj.WorldObject as Player))
             {
                 if (isDungeon && Location.Landblock != player.Location.Landblock)
@@ -1328,8 +1314,9 @@ namespace ACE.Server.WorldObjects
                 if ((Visibility ?? false) && !player.Adminvision)
                     continue;
 
-                var dist = Vector3.Distance(Location.ToGlobal(), player.Location.ToGlobal());
-                if (dist <= range)
+                //var dist = Vector3.Distance(Location.ToGlobal(), player.Location.ToGlobal());
+                var distSquared = Vector3.DistanceSquared(Location.ToGlobal(), player.Location.ToGlobal());
+                if (distSquared <= rangeSquared)
                     player.Session.Network.EnqueueSend(msg);
             }
         }

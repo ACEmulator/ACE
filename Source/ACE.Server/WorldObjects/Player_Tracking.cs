@@ -103,22 +103,26 @@ namespace ACE.Server.WorldObjects
         public void TrackEquippedObjects(Creature creature, bool remove = false)
         {
             foreach (var wieldedItem in creature.EquippedObjects.Values)
-            {
-                var selectable = (wieldedItem.ValidLocations.Value & EquipMask.Selectable) != 0;
-                var missileCombat = creature.CombatMode == CombatMode.Missile && (wieldedItem.ValidLocations.Value & EquipMask.MissileAmmo) != 0;
+                TrackEquippedObject(creature, wieldedItem, remove);
+        }
 
-                if (!selectable && !missileCombat)
-                    continue;
+        public void TrackEquippedObject(Creature creature, WorldObject wieldedItem, bool remove = false)
+        {
+            //Console.WriteLine($"TrackEquippedObject({wieldedItem.Name})");
 
-                if (creature.Location == null || creature.Placement == null || creature.ParentLocation == null)
-                    creature.SetChild(wieldedItem, (int)wieldedItem.CurrentWieldedLocation, out var placementId, out var parentLocation);
+            var selectable = (wieldedItem.ValidLocations.Value & EquipMask.Selectable) != 0;
+            var missileCombat = creature.CombatMode == CombatMode.Missile && (wieldedItem.ValidLocations.Value & EquipMask.MissileAmmo) != 0;
 
-                //Console.WriteLine($"TrackEquippedObject({wieldedItem.Name})")
-                if (!remove)
-                    Session.Network.EnqueueSend(new GameMessageCreateObject(wieldedItem));
-                else
-                    Session.Network.EnqueueSend(new GameMessageDeleteObject(wieldedItem));
-            }
+            if (!selectable && !missileCombat)
+                return;
+
+            if (creature.Location == null || creature.Placement == null || creature.ParentLocation == null)
+                creature.SetChild(wieldedItem, (int)wieldedItem.CurrentWieldedLocation, out var placementId, out var parentLocation);
+
+            if (!remove)
+                Session.Network.EnqueueSend(new GameMessageCreateObject(wieldedItem));
+            else
+                Session.Network.EnqueueSend(new GameMessageDeleteObject(wieldedItem));
         }
 
         public bool AddTrackedObject(WorldObject worldObject)

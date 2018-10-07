@@ -1,21 +1,162 @@
 # ACEmulator Change Log
 
+### 2018-09-30
+[gmriggs]
+* Improved monster timing / server animation sync
+* Added direct visibility / line-of-sight test
+* Added ExecuteMotion, which plays the animation on both the client and server
+ - EmoteManager - EmoteType.Motion now goes through ExecuteMotion, so animations like monsters going to sleep (skeletons/golems) will now be simulated properly on the server. This fixes the bug where monsters would start moving while they were still transitioning from sleep->wakeup
+* Added more robust logic for animation timing while switching combat stances, for both players and creatures
+* Added randomized stack size variances to mob projectiles, based on WieldedTreasure tables
+* Improved timing for all monster animation transitions (combat stance, missile launches, spellcasting)
+* Added randomized variance to monster melee attack delay (0.5-2s)
+* Fixed a bug where monsters selected combat maneuvers that didn't exist in their motion table
+* Fixed a bug where monsters would sometimes walk instead of run, when re-chasing targets
+* Fixed a bug where CreateObject network messages would be re-sent when monsters swapped inventory items
+
+### 2018-09-29
+[Ripley]
+* Updated SQL scripts
+ - Rebased and updated for MySQL 8.0 + backwards compatibility
+
+* Updated DownloadACEWorld.bat with latest ACE-World-16PY release
+
+[gmriggs]
+* Added detection for post-PY16 skills, installation instructions on player login
+
+### 2018-09-28
+[gmriggs]
+* Added complete Void Magic system w/ all spells
+* Major refactoring to game code that uses SpellBase and Spell:
+ - a new Spell class has been added for gameplay code, wrapping SpellBase and the database Spell class. All game code that deals with Spells is much easier to write, with significantly less to manage
+* Added both server and client formulas for determining spell levels
+* Added proper spellcasting wind-up animations based on spell formula scarabs
+* Improved the spellcasting wind-up animations to use the exact animation timings
+* Improved the damage over time system
+* Added Damage Rating and Damage Resistance Rating to all damage formulas (physical and magic combat)
+* Fixed a bug where projectiles wouldn't trigger environment collisions for some objects
+
+Note: this patch requires the DB to be updated with Spells and Weenies from ACEmulator/ACE-World-16PY-Patches#4
+
+Thanks to everyone on the ACE development team, and in the Discord development channel for helping with this patch!
+
+[Mag-nus]
+* Centralized ACE timing mechanisms
+
+### 2018-09-24
+[Mag-nus]
+* Added CommandHandlerHelper class
+
+### 2018-09-21
+[gmriggs]
+* Added Dirty Fighting skill to combat
+
+### 2018-09-20
+[gmriggs]
+* Added Sneak Attack skill for player combat
+
+### 2018-09-18
+[gmriggs]
+* Added Recklessness combat skill
+
+### 2018-09-17
+[gmriggs]
+* Added proficiency points / character points, and skills increasing through usage
+* Added TreasureWielded randomized armor/clothing for monsters
+
+### 2018-09-16
+[Mag-nus]
+* Fix connection failures on initial account auto create session
+* Removed warnings on CICMDCommand packets
+* Session connecting log level improvements
+
+### 2018-09-15
+[mcreedjr]
+* Implemented skill redistribution functionality
+  - Added the ability for characters to use Gems of Forgetfulness and Gems of Enlightenment
+  - Included check when specializing to make sure too many credits aren't already specialized
+  - Included check to make sure a lower operation wouldn't violate the wield reqs of a currently wielded item
+  - Included check to prevent heritage skills from being untrained
+
+[Mag-nus]
+* Usage of DateTime/PhysicsTimer cleaned up across the board
+
+### 2018-09-13
+[mcreedjr]
+* Fixed a bug where player's trade status was not evaluated properly when entering combat
+
+[gmriggs]
+* Player housing updates:
+ - Adding the ability to place and save items on floor/wall/ceiling hooks
+ - Adding housing storage chests
+
 ### 2018-09-11
 [mcreedjr]
 * Resolve issue 866
  - Prevent players from picking up containers on the landscape that are being viewed by other players
  - Resolve bug where picking up an open pack caused it to remain locked and unusable
 
+### 2018-09-10
+[Mag-nus]
+* Refactoring and cleanup for GetPosition / SetPosition properties
+
 ### 2018-09-09
+[gmriggs]
+* Added the ability for players to buy houses
+
+[Jyrus]
+* Added house portals
+
+[Jyrus + gmriggs]
+* Fixed the MoveToChain to stop within accurate UseRadius for all objects
+
 [mcreedjr]
 * Revised pass at secure trade
   - Added motion commands for turn to and approach
   - Added check for in progress trade session
   - Matched interactions more closely with retail PCAPs
 
+### 2018-09-06
+[gmriggs]
+* Added network packet structure for player housing system
+* Fixed a bug with indoor scatter generators not getting the new cell
+
+[gmriggs + slushnas]
+* Added weapon speed modifiers
+
+### 2018-09-04
+[gmriggs]
+* Added accuracy modifier for missile weapons
+
+[Jyrus]
+* Added missile launcher Elemental damage modifier
+
+[slushnas]
+* Fixed serialization of the critical hit field
+
+[Riaf]
+* Additional chat channels added (admin, advocate, sentinel, fellow, patron, vassals, allegiance)
+
 ### 2018-09-03
 [mcreedjr]
-* Initial pass at secure trade
+* Added secure trade system for players
+
+[gmriggs]
+* Improved monster animations / timers for ranged attacks (xbow)
+
+[Mag-nus]
+* First round of updates toward new threading model, and less ActionChain usage
+
+### 2018-09-02
+[Mag-nus]
+* UpdateWorld refactoring
+* Improved landblock multithreading
+
+### 2018-09-01
+[Mag-nus]
+* Fixed a bug with player options not persisting on login
+* Removed LandblockBroadcastQueue and LandblockMotionQueue (legacy / unused)
+* Removed many unused ActionChains
 
 ### 2018-08-30
 [gmriggs]

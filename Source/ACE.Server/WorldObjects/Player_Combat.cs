@@ -1,5 +1,4 @@
 using System;
-
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
@@ -22,11 +21,6 @@ namespace ACE.Server.WorldObjects
     /// </summary>
     partial class Player
     {
-        /// <summary>
-        /// Returns TRUE if player is currently performing a dual wield attack
-        /// </summary>
-        public bool IsDualWieldAttack { get => CurrentMotionState?.Stance == MotionStance.DualWieldCombat; }
-
         /// <summary>
         /// Returns the current attack skill for the player
         /// </summary>
@@ -102,13 +96,27 @@ namespace ACE.Server.WorldObjects
             var critical = false;
             var sneakAttack = false;
 
+            // check PK status
+            var targetPlayer = target as Player;
+            if (targetPlayer != null)
+            {
+                var pkStatus = CheckPKStatusVsTarget(this, targetPlayer, null);
+                if (pkStatus != null && pkStatus == false)
+                {
+                    Session.Network.EnqueueSend(new GameMessageSystemChat($"You fail to affect {targetPlayer.Name} because you are not a player killer!", ChatMessageType.Magic));
+                    return 0.0f;
+                }
+            }
+
             var damage = CalculateDamage(target, damageSource, ref critical, ref sneakAttack);
+            var damageType = GetDamageType();
+
             if (damage > 0.0f)
             {
                 var attackType = GetAttackType();
                 OnDamageTarget(target, attackType);
 
-                target.TakeDamage(this, damage, critical);
+                target.TakeDamage(this, damageType, damage, critical);
             }
             else
                 Session.Network.EnqueueSend(new GameMessageSystemChat($"{target.Name} evaded your attack.", ChatMessageType.CombatSelf));
@@ -127,7 +135,6 @@ namespace ACE.Server.WorldObjects
                 var intDamage = (uint)Math.Round(damage);
                 if (damageSource?.ItemType == ItemType.MissileWeapon)
                 {
-                    var damageType = (DamageType)damageSource.GetProperty(PropertyInt.DamageType);
                     Session.Network.EnqueueSend(new GameEventAttackerNotification(Session, target.Name, damageType, (float)intDamage / target.Health.MaxValue, intDamage, critical, attackConditions));
                 }
                 else
@@ -146,6 +153,10 @@ namespace ACE.Server.WorldObjects
                 Session.Network.EnqueueSend(new GameMessageScript(target.Guid, splatter));
 
                 Session.Network.EnqueueSend(new GameEventUpdateHealth(Session, target.Guid.Full, (float)target.Health.Current / target.Health.MaxValue));
+
+                // handle Dirty Fighting
+                if (GetCreatureSkill(Skill.DirtyFighting).AdvancementClass >= SkillAdvancementClass.Trained)
+                    FightDirty(target);
             }
 
             OnAttackMonster(target);
@@ -282,7 +293,8 @@ namespace ACE.Server.WorldObjects
             var sneakAttackMod = GetSneakAttackMod(target);
             sneakAttack = sneakAttackMod > 1.0f;
 
-            var damageRatingMod = AdditiveCombine(recklessnessMod, sneakAttackMod);
+            var damageRatingMod = AdditiveCombine(recklessnessMod, sneakAttackMod, GetRatingMod(EnchantmentManager.GetDamageRating()));
+            //Console.WriteLine("Damage rating: " + ModToRating(damageRatingMod));
 
             var damage = baseDamage * attributeMod * powerAccuracyMod * damageRatingMod;
 
@@ -313,13 +325,17 @@ namespace ACE.Server.WorldObjects
             creaturePart.WeaponResistanceMod = GetWeaponResistanceModifier(this, damageType);
             var resistance = GetResistance(creaturePart, damageType);
 
+            // ratings
+            var damageResistRatingMod = GetNegativeRatingMod(creature.EnchantmentManager.GetDamageResistRating());
+            //Console.WriteLine("Damage resistance rating: " + NegativeModToRating(damageResistRatingMod));
+
             // scale damage for armor and shield
             var armorMod = SkillFormula.CalcArmorMod(resistance);
             var shieldMod = creature.GetShieldMod(this, damageType);
 
             var slayerMod = GetWeaponCreatureSlayerModifier(this, target as Creature);
             var elementalDamageMod = GetMissileElementalDamageModifier(this, target as Creature, damageType);
-            return (damage + elementalDamageMod) * armorMod * shieldMod * slayerMod;
+            return (damage + elementalDamageMod) * armorMod * shieldMod * slayerMod * damageResistRatingMod;
         }
 
         public float GetPowerAccuracyMod()
@@ -435,6 +451,46 @@ namespace ACE.Server.WorldObjects
             return Sound.HitFlesh1;
         }
 
+        /// <summary>
+        /// Simplified player take damage function, only called for DoTs currently
+        /// </summary>
+        public override void TakeDamageOverTime(float _amount, DamageType damageType)
+        {
+            if (Invincible ?? false || IsDead) return;
+
+            var amount = (uint)Math.Round(_amount);
+            var percent = (float)amount / Health.MaxValue;
+
+            // update health
+            var damageTaken = (uint)-UpdateVitalDelta(Health, (int)-amount);
+
+            // update stamina
+            UpdateVitalDelta(Stamina, -1);
+
+            // send damage text message
+            var nether = damageType == DamageType.Nether ? "nether " : "";
+            var text = new GameMessageSystemChat($"You receive {amount} points of periodic {nether}damage.", ChatMessageType.Combat);
+            Session.Network.EnqueueSend(text);
+
+            // splatter effects
+            //var splatter = new GameMessageScript(Guid, (PlayScript)Enum.Parse(typeof(PlayScript), "Splatter" + creature.GetSplatterHeight() + creature.GetSplatterDir(this)));  // not sent in retail, but great visual indicator?
+            var splatter = new GameMessageScript(Guid, damageType == DamageType.Nether ? ACE.Entity.Enum.PlayScript.HealthDownVoid : ACE.Entity.Enum.PlayScript.DirtyFightingDamageOverTime);
+            EnqueueBroadcast(splatter);
+
+            if (Health.Current <= 0)
+            {
+                // todo: send death messages
+                Die();
+                return;
+            }
+
+            if (percent >= 0.1f)
+                EnqueueBroadcast(new GameMessageSound(Guid, Sound.Wound1, 1.0f));
+        }
+
+        /// <summary>
+        /// Applies damages to a player from a physical damage source
+        /// </summary>
         public void TakeDamage(WorldObject source, DamageType damageType, float _amount, BodyPart bodyPart, bool crit = false)
         {
             if (Invincible ?? false) return;
@@ -444,7 +500,7 @@ namespace ACE.Server.WorldObjects
 
             // update health
             var damageTaken = (uint)-UpdateVitalDelta(Health, (int)-amount);
-            DamageHistory.Add(source, damageTaken);
+            DamageHistory.Add(source, damageType, damageTaken);
 
             if (Health.Current == 0)
             {
@@ -462,10 +518,12 @@ namespace ACE.Server.WorldObjects
             var hotspot = source as Hotspot;
             if (creature != null)
             {
+                var text = new GameEventDefenderNotification(Session, creature.Name, damageType, percent, amount, damageLocation, crit, AttackConditions.None);
+                Session.Network.EnqueueSend(text);
+
                 var hitSound = new GameMessageSound(Guid, GetHitSound(source, bodyPart), 1.0f);
                 var splatter = new GameMessageScript(Guid, (PlayScript)Enum.Parse(typeof(PlayScript), "Splatter" + creature.GetSplatterHeight() + creature.GetSplatterDir(this)));
-                var text = new GameEventDefenderNotification(Session, creature.Name, damageType, percent, amount, damageLocation, crit, AttackConditions.None);
-                Session.Network.EnqueueSend(text, hitSound, splatter);
+                EnqueueBroadcast(hitSound, splatter);
             }
             else if (hotspot != null)
             {
@@ -476,10 +534,7 @@ namespace ACE.Server.WorldObjects
             }
 
             if (percent >= 0.1f)
-            {
-                var wound = new GameMessageSound(Guid, Sound.Wound1, 1.0f);
-                Session.Network.EnqueueSend(wound);
-            }
+                EnqueueBroadcast(new GameMessageSound(Guid, Sound.Wound1, 1.0f));
         }
 
         public string GetArmorType(BodyPart bodyPart)

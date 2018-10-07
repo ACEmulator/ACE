@@ -15,6 +15,7 @@ using ACE.Database.Entity;
 using ACE.Database.Models.Shard;
 using ACE.Entity;
 using ACE.Entity.Enum;
+using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.WorldObjects;
 using ACE.Server.Network;
@@ -53,10 +54,6 @@ namespace ACE.Server.Managers
         public static bool Concurrency = false;
 
         private static readonly PhysicsEngine Physics;
-
-        public static DateTime WorldStartTime { get; } = DateTime.UtcNow;
-        public static DerethDateTime WorldStartFromTime { get; } = new DerethDateTime().UTCNowToLoreTime;
-        public static double PortalYearTicks { get; private set; } = WorldStartFromTime.Ticks;
 
         public static bool WorldActive { get; private set; }
         private static volatile bool pendingWorldStop;
@@ -106,6 +103,19 @@ namespace ACE.Server.Managers
         }
 
         /// <summary>
+        /// Adds a newly created character to the list of all players on the server
+        /// </summary>
+        public static void AddPlayer(Character character)
+        {
+            DatabaseManager.Shard.GetPlayerBiotas(character.Id, biotas =>
+            {
+                var session = new Session();
+                var player = new Player(biotas.Player, biotas.Inventory, biotas.WieldedItems, character, session);
+                AllPlayers.Add(player);
+            });
+        }
+
+        /// <summary>
         /// Returns an offline player record from the AllPlayers list
         /// </summary>
         /// <param name="playerGuid"></param>
@@ -149,7 +159,7 @@ namespace ACE.Server.Managers
             var thread = new Thread(UpdateWorld);
             thread.Name = "World Manager";
             thread.Start();
-            log.DebugFormat("ServerTime initialized to {0}", WorldStartFromTime);
+            log.DebugFormat("ServerTime initialized to {0}", Timers.WorldStartLoreTime);
             log.DebugFormat($"Current maximum allowed sessions: {ConfigManager.Config.Server.Network.MaximumAllowedSessions}");
         }
 
@@ -453,6 +463,8 @@ namespace ACE.Server.Managers
             session.Network.EnqueueSend(new GameMessageSystemChat(motdString, ChatMessageType.Broadcast));
         }
 
+        private static readonly RateLimiter updateGameWorldRateLimiter = new RateLimiter(60, TimeSpan.FromSeconds(1));
+
         /// <summary>
         /// Manages updating all entities on the world.
         ///  - Server-side command-line commands are handled in their own thread.
@@ -464,14 +476,11 @@ namespace ACE.Server.Managers
         {
             log.DebugFormat("Starting UpdateWorld thread");
 
-            double lastTickDuration = 0d;
             WorldActive = true;
             var worldTickTimer = new Stopwatch();
 
             while (!pendingWorldStop)
             {
-                worldTickTimer.Restart();
-
                 /*
                 When it comes to thread safety for Landblocks and WorldObjects, ACE makes the following assumptions:
 
@@ -499,71 +508,112 @@ namespace ACE.Server.Managers
                  * TODO: We need a thread safe way to handle object transitions between distant landblocks
                 */
 
+                worldTickTimer.Restart();
+
                 InboundClientMessageQueue.RunActions();
 
                 playerEnterWorldQueue.RunActions();
 
                 DelayManager.RunActions();
 
-                // update positions through physics engine
-                var movedObjects = HandlePhysics(PortalYearTicks);
+                var gameWorldUpdated = UpdateGameWorld();
 
-                // iterate through objects that have changed landblocks
-                foreach (var movedObject in movedObjects)
-                {
-                    // NOTE: The object's Location can now be null, if a player logs out, or an item is picked up
-                    if (movedObject.Location == null) continue;
+                int sessionCount = DoSessionWork();
 
-                    // assume adjacency move here?
-                    LandblockManager.RelocateObjectForPhysics(movedObject, true);
-                }
+                // We only relax the CPU if our game world is able to update at the target rate.
+                // We do not sleep if our game world just updated. This is to prevent the scenario where our game world can't keep up. We don't want to add further delays.
+                // If our game world is able to keep up, it will not be updated on most ticks. It's on those ticks (between updates) that we will relax the CPU.
+                if (!gameWorldUpdated)
+                    Thread.Sleep(sessionCount == 0 ? 10 : 1); // Relax the CPU more if no sessions are connected
 
-                // Tick all of our Landblocks and WorldObjects
-                var activeLandblocks = LandblockManager.GetActiveLandblocks();
-
-                foreach (var landblock in activeLandblocks)
-                    landblock.Tick(lastTickDuration, Time.GetUnixTime());
-
-                // clean up inactive landblocks
-                LandblockManager.UnloadLandblocks();
-
-                // Session Maintenance
-                int sessionCount;
-
-                sessionLock.EnterUpgradeableReadLock();
-                try
-                {
-                    sessionCount = sessions.Count;
-
-                    // The session tick processes all inbound GameAction messages
-                    foreach (var s in sessions)
-                        s.Tick(lastTickDuration);
-
-                    // Send the current time ticks to allow sessions to declare themselves bad
-                    Parallel.ForEach(sessions, s => s.TickInParallel(lastTickDuration));
-
-                    // Removes sessions in the NetworkTimeout state, incuding sessions that have reached a timeout limit.
-                    var deadSessions = sessions.FindAll(s => s.State == Network.Enum.SessionState.NetworkTimeout);
-
-                    foreach (var session in deadSessions)
-                    {
-                        log.Info($"client {session.Account} dropped");
-                        RemoveSession(session);
-                    }
-                }
-                finally
-                {
-                    sessionLock.ExitUpgradeableReadLock();
-                }
-
-                Thread.Sleep(sessionCount == 0 ? 10 : 1); // Relax the CPU if no sessions are connected
-
-                lastTickDuration = worldTickTimer.Elapsed.TotalSeconds;
-                PortalYearTicks += lastTickDuration;
+                Timers.PortalYearTicks += worldTickTimer.Elapsed.TotalSeconds;
             }
 
             // World has finished operations and concedes the thread to garbage collection
             WorldActive = false;
+        }
+
+        /// <summary>
+        /// Processes all inbound GameAction messages.<para />
+        /// Dispatches all outgoing messages.<para />
+        /// Removes dead sessions.
+        /// </summary>
+        public static int DoSessionWork()
+        {
+            int sessionCount;
+
+            sessionLock.EnterUpgradeableReadLock();
+            try
+            {
+                sessionCount = sessions.Count;
+
+                // The session tick processes all inbound GameAction messages
+                foreach (var s in sessions)
+                    s.Tick();
+
+                // The session TickInParallel processes pending actions and handles outgoing messages
+                // It typically takes .1 to .3 ms to process. However, it can spike to 15ms depending on the clients load/activity or the host system.
+                // The overhead for Parallel.ForEach is typically 1ms to 2ms.
+                if (sessionCount >= 5)
+                {
+                    Parallel.ForEach(sessions, s => s.TickInParallel());
+                }
+                else
+                {
+                    foreach (var s in sessions)
+                        s.TickInParallel();
+                }
+
+
+                // Removes sessions in the NetworkTimeout state, including sessions that have reached a timeout limit.
+                var deadSessions = sessions.FindAll(s => s.State == Network.Enum.SessionState.NetworkTimeout);
+
+                foreach (var session in deadSessions)
+                {
+                    log.Info($"client {session.Account} dropped");
+                    RemoveSession(session); // This will temporarily upgrade our ReadLock to a WriteLock
+                }
+            }
+            finally
+            {
+                sessionLock.ExitUpgradeableReadLock();
+            }
+            return sessionCount;
+        }
+
+        /// <summary>
+        /// Projected to run at a reasonable rate for gameplay (30-60fps)
+        /// </summary>
+        public static bool UpdateGameWorld()
+        {
+            if (updateGameWorldRateLimiter.GetSecondsToWaitBeforeNextEvent() > 0)
+                return false;
+
+            updateGameWorldRateLimiter.RegisterEvent();
+
+            // update positions through physics engine
+            var movedObjects = HandlePhysics(Timers.PortalYearTicks);
+
+            // iterate through objects that have changed landblocks
+            foreach (var movedObject in movedObjects)
+            {
+                // NOTE: The object's Location can now be null, if a player logs out, or an item is picked up
+                if (movedObject.Location == null) continue;
+
+                // assume adjacency move here?
+                LandblockManager.RelocateObjectForPhysics(movedObject, true);
+            }
+
+            // Tick all of our Landblocks and WorldObjects
+            var activeLandblocks = LandblockManager.GetActiveLandblocks();
+
+            foreach (var landblock in activeLandblocks)
+                landblock.Tick(Time.GetUnixTime());
+
+            // clean up inactive landblocks
+            LandblockManager.UnloadLandblocks();
+
+            return true;
         }
 
         /// <summary>
@@ -572,22 +622,11 @@ namespace ACE.Server.Managers
         public static void StopWorld() { pendingWorldStop = true; }
 
         /// <summary>
-        /// The number of times per second physics updates are processed (inverted)
-        /// </summary>
-        public static double PhysicsRate = 1.0f / 60.0f;
-
-        public static double LastPhysicsUpdate;
-
-        /// <summary>
         /// Processes physics objects in all active landblocks for updating
         /// </summary>
         private static IEnumerable<WorldObject> HandlePhysics(double timeTick)
         {
             ConcurrentQueue<WorldObject> movedObjects = new ConcurrentQueue<WorldObject>();
-
-            if (PhysicsTimer.CurrentTime < LastPhysicsUpdate + PhysicsRate)
-                return movedObjects;
-
             try
             {
                 var activeLandblocks = LandblockManager.GetActiveLandblocks();
@@ -611,9 +650,6 @@ namespace ACE.Server.Managers
             {
                 log.Error(e);
             }
-
-            LastPhysicsUpdate = PhysicsTimer.CurrentTime;
-
             return movedObjects;
         }
 

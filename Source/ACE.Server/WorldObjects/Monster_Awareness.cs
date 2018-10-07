@@ -40,9 +40,7 @@ namespace ACE.Server.WorldObjects
         {
             MonsterState = State.Awake;
             IsAwake = true;
-            var stanceTime = DoAttackStance();
-            //Console.WriteLine("StanceTime: " + stanceTime);
-            NextAttackTime = DateTime.UtcNow.AddSeconds(stanceTime + 1.0f);
+            DoAttackStance();
         }
 
         /// <summary>

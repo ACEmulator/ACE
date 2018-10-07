@@ -109,6 +109,8 @@ namespace ACE.Server.Factories
                     return new Hook(weenie, guid);
                 case WeenieType.HousePortal:
                     return new WorldObjects.HousePortal(weenie, guid);
+                case WeenieType.SkillAlterationDevice:
+                    return new SkillAlterationDevice(weenie, guid);
                 case WeenieType.PetDevice:
                     return new WorldObjects.PetDevice(weenie, guid);
                 case WeenieType.Pet:
@@ -208,10 +210,6 @@ namespace ACE.Server.Factories
                     return new Hook(biota);
                 case WeenieType.HousePortal:
                     return new WorldObjects.HousePortal(biota);
-                case WeenieType.PetDevice:
-                    return new WorldObjects.PetDevice(biota);
-                case WeenieType.Pet:
-                    return new WorldObjects.Creature(biota);
                 default:
                     return new GenericObject(biota);
             }

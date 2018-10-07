@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
+using ACE.Entity.Enum;
 using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Entity
@@ -50,13 +51,13 @@ namespace ACE.Server.Entity
         /// </summary>
         /// <param name="source">The attacker or source of damage</param>
         /// <param name="amount">The amount of damage hit for</param>
-        public void Add(WorldObject damager, uint amount)
+        public void Add(WorldObject damager, DamageType damageType, uint amount)
         {
             //Console.WriteLine($"DamageHistory.Add({Creature.Name}, {amount})");
 
             if (amount == 0) return;
 
-            var entry = new DamageHistoryEntry(Creature, damager, -(int)amount);
+            var entry = new DamageHistoryEntry(Creature, damager, damageType, -(int)amount);
             Log.Add(entry);
 
             AddInternal(damager, amount);
@@ -83,7 +84,7 @@ namespace ACE.Server.Entity
         {
             //Console.WriteLine($"DamageHistory.OnHeal({Creature.Name}, {healAmount})");
 
-            Log.Add(new DamageHistoryEntry(Creature, null, (int)healAmount));
+            Log.Add(new DamageHistoryEntry(Creature, null, DamageType.Undef, (int)healAmount));
 
             // calculate previous missingHealth
             OnHealInternal(healAmount, Creature.Health.Current, Creature.Health.MaxValue);

@@ -1,5 +1,8 @@
 using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 using log4net;
@@ -8,7 +11,9 @@ using ACE.Common;
 using ACE.Common.Cryptography;
 using ACE.Database;
 using ACE.Database.Models.Auth;
+using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
+using ACE.Server.Factories;
 using ACE.Server.Managers;
 using ACE.Server.Network.Enum;
 using ACE.Server.Network.GameMessages.Messages;
@@ -141,18 +146,25 @@ namespace ACE.Server.Network.Handlers
 
             DatabaseManager.Shard.GetCharacters(session.Id, false, result =>
             {
-                result = result.OrderByDescending(o => o.LastLoginTimestamp).ToList(); // The client highlights the first character in the list. We sort so the first character sent is the one we last logged in
-                session.UpdateCharacters(result);
+                // If you want to create default characters for accounts that have none, here is where you would do it.
 
-                GameMessageCharacterList characterListMessage = new GameMessageCharacterList(session.Characters, session);
-                GameMessageServerName serverNameMessage = new GameMessageServerName(ConfigManager.Config.Server.WorldName, WorldManager.GetAll().Count, (int)ConfigManager.Config.Server.Network.MaximumAllowedSessions);
-                GameMessageDDDInterrogation dddInterrogation = new GameMessageDDDInterrogation();
-
-                session.Network.EnqueueSend(characterListMessage, serverNameMessage);
-                session.Network.EnqueueSend(dddInterrogation);
-
-                session.State = SessionState.AuthConnected;
+                SendConnectResponse(session, result);
             });
+        }
+
+        private static void SendConnectResponse(Session session, List<Character> characters)
+        {
+            characters = characters.OrderByDescending(o => o.LastLoginTimestamp).ToList(); // The client highlights the first character in the list. We sort so the first character sent is the one we last logged in
+            session.UpdateCharacters(characters);
+
+            GameMessageCharacterList characterListMessage = new GameMessageCharacterList(session.Characters, session);
+            GameMessageServerName serverNameMessage = new GameMessageServerName(ConfigManager.Config.Server.WorldName, WorldManager.GetAll().Count, (int)ConfigManager.Config.Server.Network.MaximumAllowedSessions);
+            GameMessageDDDInterrogation dddInterrogation = new GameMessageDDDInterrogation();
+
+            session.Network.EnqueueSend(characterListMessage, serverNameMessage);
+            session.Network.EnqueueSend(dddInterrogation);
+
+            session.State = SessionState.AuthConnected;
         }
     }
 }

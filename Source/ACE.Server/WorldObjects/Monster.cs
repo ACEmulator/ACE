@@ -1,10 +1,4 @@
 using System;
-using ACE.Database;
-using ACE.Database.Models.World;
-using ACE.Entity;
-using ACE.Entity.Enum;
-using ACE.Entity.Enum.Properties;
-using ACE.Server.Factories;
 
 namespace ACE.Server.WorldObjects
 {
@@ -29,7 +23,7 @@ namespace ACE.Server.WorldObjects
             Awake
         };
 
-        public void EquipWieldedTreasure(bool weaponsOnly = false)
+        public void EquipInventoryItems(bool weaponsOnly = false)
         {
             var items = weaponsOnly ? SelectWieldedWeapons() : SelectWieldedTreasure();
             if (items != null)

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Diagnostics;
 
 using log4net;
 
@@ -25,6 +26,52 @@ namespace ACE.Server.Managers
         /// DestructionQueue is concurrent because it can be added to by multiple threads at once, publicly via AddToDestructionQueue()
         /// </summary>
         private static readonly ConcurrentBag<Landblock> destructionQueue = new ConcurrentBag<Landblock>();
+
+        public static void Initialize()
+        {
+            var landBlockIdList = new List<LandblockId>();
+
+            for (uint x = 0; x < RawLandblockId.Length; x++)
+            {
+                var landBlockId = new LandblockId(RawLandblockId[x]);
+                landBlockIdList.Add(landBlockId);
+            }
+
+            foreach (var landBlockId in landBlockIdList)
+            {
+                ForceLoadLandBlock(landBlockId, true, true);
+                log.DebugFormat("Landblock {0:X4} preloaded", landBlockId.Landblock);
+            }
+        }
+
+        // TODO: Change the RawLandblockId list used for preloading defined landblocks to some other, more easily-modified format, rather than a compiled uint array
+        private static readonly uint[] RawLandblockId = {   0x8603ffff, // Training Academy - Holtburg Starting Location
+                                                            0x8c04ffff, // Training Academy - Yaraq Starting Location
+                                                            0x7f03ffff, // Training Academy - Shoushi Starting Location
+                                                            0x7203ffff, // Training Academy - Sanamar Starting Location
+                                                            0x0007ffff,	// Town Network
+                                                            0xce94ffff,	// Eastham
+                                                            0xda55ffff,	// Shoushi
+                                                            0xdb54ffff,	// Shoushi
+                                                            0xa9b4ffff,	// Holtburg
+                                                            0xabb2ffff,	// Holtburg
+                                                            0xaab3ffff,	// Holtburg
+                                                            0x7d64ffff,	// Yaraq
+                                                            0x7e64ffff,	// Yaraq
+                                                            0xe64effff,	// Hebian-to
+                                                            0xe74effff,	// Hebian-to
+                                                            0xbb9fffff,	// Cragstone
+                                                            0xbc9fffff,	// Cragstone
+                                                            0xc6a9ffff,	// Arwic
+                                                            0xe63effff,	// Nanto
+                                                            0xe632ffff,	// Mayoi
+                                                            0xc341ffff,	// Baishi
+                                                            0xc98cffff,	// Rithwic
+                                                            0x977bffff,	// Samsur
+                                                            0x8f58ffff,	// Al-Arqas
+                                                            0x33d9ffff,	// Sanamar
+                                                            0x17b2ffff	// Redspire
+                                                            };
 
         public static void AddObject(WorldObject worldObject, bool propegate = false)
         {
@@ -59,18 +106,21 @@ namespace ACE.Server.Managers
         }
 
         /// <summary>
-        /// This should only be used for debugging/development purposes.
+        /// Loads the specified list of landblocks and optionally their adjacents.
         /// </summary>
-        public static void ForceLoadLandBlock(LandblockId blockid)
+        /// <param name="blockid"></param>
+        /// <param name="propagate"></param>
+        /// <param name="permaload"></param>
+        public static void ForceLoadLandBlock(LandblockId blockid, bool propagate, bool permaload)
         {
-            GetLandblock(blockid, false);
+            GetLandblock(blockid, propagate, permaload);
         }
 
         /// <summary>
         /// gets the landblock specified, creating it if it is not already loaded.  will create all
         /// adjacent landblocks if propagate is true (outdoor world roaming).
         /// </summary>
-        private static Landblock GetLandblock(LandblockId landblockId, bool propagate)
+        private static Landblock GetLandblock(LandblockId landblockId, bool propagate, bool permaload = false)
         {
             lock (landblockMutex)
             {
@@ -87,6 +137,9 @@ namespace ACE.Server.Managers
                         {
                             // load up this landblock
                             landblock = landblocks[landblockId.LandblockX, landblockId.LandblockY] = new Landblock(landblockId);
+
+                            // Set Permaload flag, as required, for new landblock to be loaded
+                            landblock.Permaload = permaload;
 
                             if (!activeLandblocks.Add(landblock))
                             {

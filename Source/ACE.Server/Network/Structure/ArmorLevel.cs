@@ -51,7 +51,7 @@ namespace ACE.Server.Network.Structure
                 var baseAL = layer.GetProperty(PropertyInt.ArmorLevel) ?? 0;
 
                 // impen / brittlemail
-                var modAL = creature.EnchantmentManager.GetArmorMod();
+                var modAL = layer.EnchantmentManager.GetArmorMod();
 
                 totalAL += baseAL + modAL;
             }

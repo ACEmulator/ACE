@@ -605,6 +605,8 @@ namespace ACE.Server.Physics.Common
 
             envcells = new List<EnvCell>();
 
+            if (Info == null) return envcells;
+
             var startCell = ID & 0xFFFF0000 | 0x100;
             var cellID = startCell;
             for (var i = 0; i < Info.NumCells; i++)

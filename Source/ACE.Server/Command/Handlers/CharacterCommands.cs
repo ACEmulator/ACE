@@ -1,4 +1,5 @@
-﻿using System;
+using System;
+
 using ACE.Database;
 using ACE.Entity.Enum;
 using ACE.Server.Network;
@@ -31,17 +32,11 @@ namespace ACE.Server.Command.Handlers
                     if (accessLevel == AccessLevel.Advocate || accessLevel == AccessLevel.Admin || accessLevel == AccessLevel.Envoy)
                         articleAorAN = "an";
 
-                    if (session == null)
-                        Console.WriteLine("Character " + characterName + " has been made " + articleAorAN + " " + Enum.GetName(typeof(AccessLevel), accessLevel) + ".");
-                    else
-                        ChatPacket.SendServerMessage(session, "Character " + characterName + " has been made " + articleAorAN + " " + Enum.GetName(typeof(AccessLevel), accessLevel) + ".", ChatMessageType.Broadcast);
+                    CommandHandlerHelper.WriteOutputInfo(session, "Character " + characterName + " has been made " + articleAorAN + " " + Enum.GetName(typeof(AccessLevel), accessLevel) + ".", ChatMessageType.Broadcast);
                 }
                 else
                 {
-                    if (session == null)
-                        Console.WriteLine("There is no character by the name of " + characterName + " found in the database. Has it been deleted?");
-                    else
-                        ChatPacket.SendServerMessage(session, "There is no character by the name of " + characterName + " found in the database. Has it been deleted?", ChatMessageType.Broadcast);
+                    CommandHandlerHelper.WriteOutputInfo(session, "There is no character by the name of " + characterName + " found in the database. Has it been deleted?", ChatMessageType.Broadcast);
                 }
             }));
         }

@@ -57,9 +57,8 @@ namespace ACE.Server.WorldObjects
             var vitae = EnchantmentManager.UpdateVitae();
 
             var spellID = (uint)Network.Enum.Spell.Vitae;
-            var spellBase = DatManager.PortalDat.SpellTable.Spells[spellID];
-            var spell = DatabaseManager.World.GetCachedSpell(spellID);
-            var vitaeEnchantment = new Enchantment(this, Guid, spellID, (double)spell.Duration, 0, spell.StatModType, vitae);
+            var spell = new Spell(spellID);
+            var vitaeEnchantment = new Enchantment(this, Guid, spellID, spell.Duration, 0, (EnchantmentMask)spell.StatModType, vitae);
             var msgVitaeEnchantment = new GameEventMagicUpdateEnchantment(Session, vitaeEnchantment);
 
             // send network messages for player death

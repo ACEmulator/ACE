@@ -11,7 +11,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Primary dispatch for monster think
         /// </summary>
-        private void Monster_Tick(double lastTickDuration, double currentUnixTime)
+        private void Monster_Tick(double currentUnixTime)
         {
             if (lastMonsterTick + monsterTickInterval > DateTime.UtcNow)
                 return;
@@ -66,14 +66,14 @@ namespace ACE.Server.WorldObjects
                 if (ammo == null)
                 {
                     TryDequipObject(weapon.Guid);
-                    EquipWieldedTreasure(true);
+                    EquipInventoryItems(true);
                     DoAttackStance();
                     CurrentAttack = null;
                 }
             }
             if (weapon == null && CurrentAttack != null && CurrentAttack == AttackType.Missile)
             {
-                EquipWieldedTreasure(true);
+                EquipInventoryItems(true);
                 DoAttackStance();
                 CurrentAttack = null;
             }

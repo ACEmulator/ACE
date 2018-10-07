@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 using ACE.Database.Models.Shard;
+using ACE.DatLoader;
 using ACE.DatLoader.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
@@ -18,7 +19,9 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// The delay between melee attacks (todo: find actual value)
         /// </summary>
-        public static readonly float MeleeDelay = 2.0f;
+        public static readonly float MeleeDelay = 1.5f;
+        public static readonly float MeleeDelayMin = 0.5f;
+        public static readonly float MeleeDelayMax = 2.0f;
 
         /// <summary>
         /// Returns TRUE if creature can perform a melee attack
@@ -42,7 +45,11 @@ namespace ACE.Server.WorldObjects
 
             // choose a random combat maneuver
             var maneuver = GetCombatManeuver();
-            if (maneuver == null) return 0.0f;
+            if (maneuver == null)
+            {
+                Console.WriteLine($"Combat maneuver null! Stance {CurrentMotionState.Stance}, MotionTable {MotionTableId:X8}");
+                return 0.0f;
+            }
 
             AttackHeight = maneuver.AttackHeight;
 
@@ -53,7 +60,7 @@ namespace ACE.Server.WorldObjects
             PhysicsObj.stick_to_object(AttackTarget.PhysicsObj.ID);
 
             var actionChain = new ActionChain();
-            actionChain.AddDelaySeconds(animLength / 2.0f);
+            actionChain.AddDelaySeconds(animLength / 3.0f);     // TODO: get attack frame?
             actionChain.AddAction(this, () =>
             {
                 if (AttackTarget == null) return;
@@ -93,7 +100,8 @@ namespace ACE.Server.WorldObjects
             actionChain.EnqueueChain();
 
             // TODO: figure out exact speed / delay formula
-            NextAttackTime = DateTime.UtcNow.AddSeconds(animLength + MeleeDelay);
+            var meleeDelay = Physics.Common.Random.RollDice(MeleeDelayMin, MeleeDelayMax);
+            NextAttackTime = DateTime.UtcNow.AddSeconds(animLength + meleeDelay);
             return animLength;
         }
 
@@ -104,15 +112,36 @@ namespace ACE.Server.WorldObjects
         {
             //ShowCombatTable();
 
+            // for some reason, the combat maneuvers table can return stance motions that don't exist in the motion table
+            // ie. skeletons (combat maneuvers table 0x30000000, motion table 0x09000025)
+            // for sword combat, they have double and triple strikes (dagger / two-handed only?)
+
             var stanceManeuvers = CombatTable.CMT.Where(m => m.Style == (MotionCommand)CurrentMotionState.Stance).ToList();
 
             if (stanceManeuvers.Count == 0)
                 return null;
 
-            var rng = Physics.Common.Random.RollDice(0, stanceManeuvers.Count - 1);
-            //Console.WriteLine("Selecting combat maneuver #" + rng);
+            var motionTable = DatManager.PortalDat.ReadFromDat<DatLoader.FileTypes.MotionTable>(MotionTableId);
+            if (motionTable == null)
+                return null;
 
-            return stanceManeuvers[rng];
+            var stanceKey = (uint)CurrentMotionState.Stance << 16 | ((uint)MotionCommand.Ready & 0xFFFFF);
+            motionTable.Links.TryGetValue(stanceKey, out var motions);
+            if (motions == null)
+                return null;
+
+            while (true)    // limiter?
+            {
+                var rng = Physics.Common.Random.RollDice(0, stanceManeuvers.Count - 1);
+                //Console.WriteLine("Selecting combat maneuver #" + rng);
+
+                var combatManeuver = stanceManeuvers[rng];
+
+                // ensure combat maneuver exists for this monster's motion table
+                motions.TryGetValue((uint)combatManeuver.Motion, out var motionData);
+                if (motionData != null)
+                    return combatManeuver;
+            };
         }
 
         /// <summary>
@@ -131,12 +160,12 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Perform the melee attack swing animation
         /// </summary>
-        public ActionChain DoSwingMotion(WorldObject target, CombatManeuver maneuver, out float animLength)
+        public void DoSwingMotion(WorldObject target, CombatManeuver maneuver, out float animLength)
         {
             var animSpeed = GetAnimSpeed();
 
             var swingAnimation = new MotionItem(maneuver.Motion, animSpeed);
-            animLength = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, maneuver.Motion, null, animSpeed);
+            animLength = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, maneuver.Motion, animSpeed);
 
             var motion = new UniversalMotion(CurrentMotionState.Stance, swingAnimation);
             motion.MovementData.CurrentStyle = (uint)CurrentMotionState.Stance;
@@ -146,12 +175,6 @@ namespace ACE.Server.WorldObjects
             CurrentMotionState = motion;
 
             EnqueueBroadcastMotion(motion);
-
-            // play default script? (special attack)
-            //if (MotionTable.HasDefaultScript(MotionTableId, maneuver.Motion, maneuver.Style))
-            //EnqueueBroadcast(new GameMessageScript(Guid, (PlayScript)DefaultScriptId));
-
-            return null;
         }
 
         /// <summary>
@@ -261,6 +284,10 @@ namespace ACE.Server.WorldObjects
             var damageRange = GetBaseDamage(attackPart);
             var baseDamage = Physics.Common.Random.RollDice(damageRange.Min, damageRange.Max);
 
+            var damageRatingMod = GetRatingMod(EnchantmentManager.GetDamageRating());
+
+            var player = AttackTarget as Player;
+            var recklessnessMod = player != null ? player.GetRecklessnessMod() : 1.0f;
             var target = AttackTarget as Creature;
             var targetPlayer = AttackTarget as Player;
             var pet = target != null && target.IsPet;
@@ -291,17 +318,19 @@ namespace ACE.Server.WorldObjects
             // get resistance modifiers (protect/vuln)
             var resistanceMod = AttackTarget.EnchantmentManager.GetResistanceMod(damageType);
 
+            var damageResistRatingMod = GetNegativeRatingMod(AttackTarget.EnchantmentManager.GetDamageResistRating());
+
             // get shield modifier
             var attackTarget = AttackTarget as Creature;
             shieldMod = attackTarget.GetShieldMod(this, damageType);
 
             // scale damage by modifiers
-            var damage = baseDamage * attributeMod * armorMod * shieldMod * resistanceMod;
+            var damage = baseDamage * damageRatingMod * attributeMod * armorMod * shieldMod * resistanceMod * damageResistRatingMod;
 
             if (!criticalHit)
                 damage *= recklessnessMod;
             else
-                damage *= 2;
+                damage *= 2;    // fixme: target recklessness mod still in effect?
 
             return damage;
         }

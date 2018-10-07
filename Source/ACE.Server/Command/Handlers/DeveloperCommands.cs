@@ -389,13 +389,7 @@ namespace ACE.Server.Command.Handlers
 
             message += $"Total connected Players: {playerCounter}\n";
 
-            if (session != null)
-            {
-                var listPlayersMessage = new GameMessageSystemChat(message, ChatMessageType.Broadcast);
-                session.Network.EnqueueSend(listPlayersMessage);
-            }
-            else
-                Console.WriteLine(message);
+            CommandHandlerHelper.WriteOutputInfo(session, message, ChatMessageType.Broadcast);
         }
 
         /// <summary>
@@ -415,8 +409,7 @@ namespace ACE.Server.Command.Handlers
         [CommandHandler("loadalllandblocks", AccessLevel.Developer, CommandHandlerFlag.None, "Loads all Landblocks. This is VERY crude. Do NOT use it on a live server!!! It will likely crash the server.")]
         public static void HandleLoadAllLandblocks(Session session, params string[] parameters)
         {
-            if (session != null)
-                session.Network.EnqueueSend(new GameMessageSystemChat("Loading landblocks... This will likely crash the server...", ChatMessageType.System));
+            CommandHandlerHelper.WriteOutputInfo(session, "Loading landblocks... This will likely crash the server...");
 
             Task.Run(() =>
             {
@@ -426,9 +419,9 @@ namespace ACE.Server.Command.Handlers
                     {
                         var blockid = new LandblockId((byte)x, (byte)y);
                         Stopwatch sw = Stopwatch.StartNew();
-                        LandblockManager.ForceLoadLandBlock(blockid);
+                        LandblockManager.ForceLoadLandBlock(blockid, false, false);
                         sw.Stop();
-                        log.DebugFormat("Loaded Landblock {0:X4} in {1} milliseconds ", blockid.Landblock, sw.ElapsedMilliseconds);
+                        CommandHandlerHelper.WriteOutputDebug(session, $"Loaded Landblock {blockid.Landblock:X4} in {sw.ElapsedMilliseconds} milliseconds");
                     }
                 }
             });
@@ -437,9 +430,37 @@ namespace ACE.Server.Command.Handlers
         [CommandHandler("cacheallweenies", AccessLevel.Developer, CommandHandlerFlag.None, "Loads and caches all Weenies. This may take 10+ minutes and is very heavy on the database.")]
         public static void HandleCacheAllWeenies(Session session, params string[] parameters)
         {
-            session.Network.EnqueueSend(new GameMessageSystemChat("Caching Weenies... This may take more than 10 minutes...", ChatMessageType.System));
+            CommandHandlerHelper.WriteOutputInfo(session, "Caching Weenies... This may take more than 10 minutes...");
 
             Task.Run(() => DatabaseManager.World.CacheAllWeenies());
+        }
+
+
+        // ==================================
+        // World Object Properties
+        // ==================================
+
+        [CommandHandler("propertydump", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, "Lists all properties for the last world object you examined.")]
+        public static void HandlePropertyDump(Session session, params string[] parameters)
+        {
+            var targetID = session.Player.CurrentAppraisalTarget;
+            if (targetID == null)
+            {
+                ChatPacket.SendServerMessage(session, "ERROR: no examined history", ChatMessageType.System);
+                return;
+            }
+            var targetGuid = new ObjectGuid(targetID.Value);
+            var target = session.Player.GetInventoryItem(targetGuid);
+            if (target == null)
+                target = session.Player.CurrentLandblock?.GetObject(targetGuid);
+            if (target == null)
+            {
+                ChatPacket.SendServerMessage(session, "ERROR: couldn't find " + targetGuid, ChatMessageType.System);
+                return;
+            }
+
+            session.Network.EnqueueSend(new GameMessageSystemChat("", ChatMessageType.System));
+            session.Network.EnqueueSend(new GameMessageSystemChat($"{target.DebugOutputString(target)}", ChatMessageType.System));
         }
 
 
@@ -546,20 +567,14 @@ namespace ACE.Server.Command.Handlers
                             break;
                     }
 
-                    if (session == null)
-                        Console.WriteLine(debugOutput.Replace(", ", " | "));
-                    else
-                        session.Network.EnqueueSend(new GameMessageSystemChat(debugOutput, ChatMessageType.System));
+                    CommandHandlerHelper.WriteOutputInfo(session, debugOutput);
                 }
             }
             catch (Exception)
             {
                 string debugOutput = "Exception Error, check input and try again";
 
-                if (session == null)
-                    Console.WriteLine(debugOutput.Replace(", ", " | "));
-                else
-                    session.Network.EnqueueSend(new GameMessageSystemChat(debugOutput, ChatMessageType.System));
+                CommandHandlerHelper.WriteOutputInfo(session, debugOutput);
             }
         }
 
@@ -754,12 +769,20 @@ namespace ACE.Server.Command.Handlers
             ChatPacket.SendServerMessage(session, "Usage: /grantxp [name] 1234 (max 999999999999)", ChatMessageType.Broadcast);
         }
 
+        [CommandHandler("spendallxp", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Spend all available XP on Attributes, Vitals and Skills.")]
+        public static void HandleSpendAllXp(Session session, params string[] parameters)
+        {
+            session.Player.SpendAllXp();
+
+            ChatPacket.SendServerMessage(session, "All available xp has been spent. You must now log out for the updated values to take effect.", ChatMessageType.Broadcast);
+        }
+
 
         // ==================================
         // Vitals
         // ==================================
 
-        [CommandHandler("setvital", AccessLevel.Developer, CommandHandlerFlag.None, 2,
+        [CommandHandler("setvital", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 2,
             "Sets the specified vital to a specified value",
             "Usage: @setvital <vital> <value>\n" +
             "<vital> is one of the following strings:\n" +
@@ -964,13 +987,13 @@ namespace ACE.Server.Command.Handlers
         [CommandHandler("addallspells", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Adds all known spells to your own spellbook.")]
         public static void HandleAddAllSpells(Session session, params string[] parameters)
         {
-            foreach (WorldObject.SpellLevel powerLevel in Enum.GetValues(typeof(WorldObject.SpellLevel)))
+            for (uint spellLevel = 1; spellLevel <= 8; spellLevel++)
             {
-                session.Player.LearnSpellsInBulk((uint)MagicSchool.CreatureEnchantment, (uint)powerLevel);
-                session.Player.LearnSpellsInBulk((uint)MagicSchool.ItemEnchantment, (uint)powerLevel);
-                session.Player.LearnSpellsInBulk((uint)MagicSchool.LifeMagic, (uint)powerLevel);
-                session.Player.LearnSpellsInBulk((uint)MagicSchool.VoidMagic, (uint)powerLevel);
-                session.Player.LearnSpellsInBulk((uint)MagicSchool.WarMagic, (uint)powerLevel);
+                session.Player.LearnSpellsInBulk(MagicSchool.CreatureEnchantment, spellLevel);
+                session.Player.LearnSpellsInBulk(MagicSchool.ItemEnchantment, spellLevel);
+                session.Player.LearnSpellsInBulk(MagicSchool.LifeMagic, spellLevel);
+                session.Player.LearnSpellsInBulk(MagicSchool.VoidMagic, spellLevel);
+                session.Player.LearnSpellsInBulk(MagicSchool.WarMagic, spellLevel);
             }
         }
 
@@ -1003,13 +1026,10 @@ namespace ACE.Server.Command.Handlers
 
             for (int i = 0; i < formula.Count; i++)
             {
-                if (comps.SpellComponents.ContainsKey(formula[i])) {
+                if (comps.SpellComponents.ContainsKey(formula[i]))
                     Console.WriteLine("Comp " + i + ": " + comps.SpellComponents[formula[i]].Name);
-                }
                 else
-                {
-                    Console.WriteLine("Comp " + i + " : Unknown Component " + formula[i].ToString());
-                }
+                    Console.WriteLine("Comp " + i + " : Unknown Component " + formula[i]);
             }
 
             Console.WriteLine();
@@ -1033,14 +1053,15 @@ namespace ACE.Server.Command.Handlers
             foreach (KeyValuePair<uint, DatLoader.Entity.SpellBase> entry in spellTable.Spells)
             {
                 uint spellid = entry.Key;
-                Console.WriteLine("Formula for " + spellTable.Spells[spellid].Name + " (" + spellid.ToString() + ")");
+                Console.WriteLine("Formula for " + spellTable.Spells[spellid].Name + " (" + spellid + ")");
+
                 var formula = SpellTable.GetSpellFormula(DatManager.PortalDat.SpellTable, spellid, parameters[0]);
+
                 for (int i = 0; i < formula.Count; i++)
                     Console.WriteLine("Comp " + i + ": " + comps.SpellComponents[formula[i]].Name);
 
                 Console.WriteLine();
             }
-
         }
 
         /// <summary>
@@ -1123,28 +1144,8 @@ namespace ACE.Server.Command.Handlers
         // Monster movement
         // ==================================
 
-        [CommandHandler("turnto", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Turns the input object to the player", "turnto <object_id>")]
+        [CommandHandler("turnto", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Turns the last appraised object to the player", "turnto")]
         public static void HandleRequestTurnTo(Session session, params string[] parameters)
-        {
-            if (parameters.Length < 1) return;
-
-            var objectID = Convert.ToUInt32(parameters[0], 16);
-            var guid = new ObjectGuid(objectID);
-            var player = session.Player;
-
-            var obj = player.CurrentLandblock?.GetObject(guid);
-            if (obj == null)
-            {
-                Console.WriteLine("Couldn't find " + guid);
-                return;
-            }
-
-            var creature = obj as Creature;
-            creature.TurnTo(player);
-        }
-
-        [CommandHandler("debugmove", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Toggles movement debugging for the last appraised monster", "debugmove <on/off>")]
-        public static void ToggleMovementDebug(Session session, params string[] parameters)
         {
             // get the last appraised object
             var targetID = session.Player.CurrentAppraisalTarget;
@@ -1166,6 +1167,32 @@ namespace ACE.Server.Command.Handlers
                 Console.WriteLine(target.Name + " is not a creature / monster");
                 return;
             }
+            creature.TurnTo(session.Player, true);
+        }
+
+        [CommandHandler("debugmove", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Toggles movement debugging for the last appraised monster", "debugmove <on/off>")]
+        public static void ToggleMovementDebug(Session session, params string[] parameters)
+        {
+            // get the last appraised object
+            var targetID = session.Player.CurrentAppraisalTarget;
+            if (targetID == null)
+            {
+                ChatPacket.SendServerMessage(session, "ERROR: no appraisal target", ChatMessageType.System);
+                return;
+            }
+            var targetGuid = new ObjectGuid(targetID.Value);
+            var target = session.Player.CurrentLandblock?.GetObject(targetGuid);
+            if (target == null)
+            {
+                ChatPacket.SendServerMessage(session, "Couldn't find " + targetGuid, ChatMessageType.System);
+                return;
+            }
+            var creature = target as Creature;
+            if (creature == null)
+            {
+                ChatPacket.SendServerMessage(session, target.Name + " is not a creature / monster", ChatMessageType.System);
+                return;
+            }
 
             bool enabled = true;
             if (parameters.Length > 0 && parameters[0].Equals("off"))
@@ -1181,15 +1208,15 @@ namespace ACE.Server.Command.Handlers
             if (parameters.Length > 0 && parameters[0].Equals("off"))
                 enabled = false;
 
-            Console.WriteLine("Setting forcepos to " + enabled);
+            CommandHandlerHelper.WriteOutputInfo(session, "Setting forcepos to " + enabled);
 
             Creature.ForcePos = enabled;
         }
 
-        [CommandHandler("debugemote", AccessLevel.Developer, CommandHandlerFlag.None, 0, "Debugs a hardcoded emote for the last appraised object", "debugemote")]
-        public static void HandleDebugEmote(Session session, params string[] parameters)
+        [CommandHandler("lostest", AccessLevel.Developer, CommandHandlerFlag.None, 0, "Tests for direct visibilty with latest appraised object", "lostest")]
+        public static void HandleVisible(Session session, params string[] parameters)
         {
-            // get the wo emotemanager for the last appraised object
+            // get the last appraised object
             var targetID = session.Player.CurrentAppraisalTarget;
             if (targetID == null)
             {
@@ -1200,7 +1227,65 @@ namespace ACE.Server.Command.Handlers
             var target = session.Player.CurrentLandblock?.GetObject(targetGuid);
             if (target == null)
             {
-                Console.WriteLine("ERROR: couldn't find " + targetGuid);
+                Console.WriteLine("Couldn't find " + targetGuid);
+                return;
+            }
+
+            var visible = session.Player.IsDirectVisible(target);
+            Console.WriteLine("Visible: " + visible);
+        }
+
+        public static WorldObject GetLastAppraisedObject(Session session)
+        {
+            // get the wo emotemanager for the last appraised object
+            var targetID = session.Player.CurrentAppraisalTarget;
+            if (targetID == null)
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, "ERROR: no appraisal target");
+                return null;
+            }
+            var targetGuid = new ObjectGuid(targetID.Value);
+            var target = session.Player.CurrentLandblock?.GetObject(targetGuid);
+            if (target == null)
+                target = session.Player.CurrentLandblock?.GetWieldedObject(targetGuid);
+
+            if (target == null)
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, "ERROR: couldn't find " + targetGuid);
+                return null;
+            }
+            return target;
+        }
+
+        [CommandHandler("givemana", AccessLevel.Developer, CommandHandlerFlag.None, 0, "Gives mana to the last appraised object", "givemana <amount>")]
+        public static void HandleGiveMana(Session session, params string[] parameters)
+        {
+            if (parameters.Length == 0) return;
+            var amount = Int32.Parse(parameters[0]);
+
+            var obj = GetLastAppraisedObject(session);
+            if (obj == null) return;
+
+            amount = Math.Min(amount, obj.ItemMaxMana ?? 0);
+            obj.ItemCurMana += amount;
+            session.Network.EnqueueSend(new GameMessageSystemChat($"You give {amount} points of mana to the {obj.Name}.", ChatMessageType.Magic));
+        }
+
+        [CommandHandler("debugemote", AccessLevel.Developer, CommandHandlerFlag.None, 0, "Debugs a hardcoded emote for the last appraised object", "debugemote")]
+        public static void HandleDebugEmote(Session session, params string[] parameters)
+        {
+            // get the wo emotemanager for the last appraised object
+            var targetID = session.Player.CurrentAppraisalTarget;
+            if (targetID == null)
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, "ERROR: no appraisal target");
+                return;
+            }
+            var targetGuid = new ObjectGuid(targetID.Value);
+            var target = session.Player.CurrentLandblock?.GetObject(targetGuid);
+            if (target == null)
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, "ERROR: couldn't find " + targetGuid);
                 return;
             }
             var actionChain = new ActionChain();
@@ -1222,9 +1307,28 @@ namespace ACE.Server.Command.Handlers
             action.OriginZ = newPos.PositionZ;
             action.ObjCellId = newPos.Cell;
 
-            Console.WriteLine($"Moving {target.Name} from {target.Location.LandblockId} {currentPos.Pos} to {newPos.LandblockId} {newPos.Pos}");
+            CommandHandlerHelper.WriteOutputInfo(session, $"Moving {target.Name} from {target.Location.LandblockId} {currentPos.Pos} to {newPos.LandblockId} {newPos.Pos}");
 
             target.EmoteManager.ExecuteEmote(emote, action, actionChain, target, target);
+        }
+
+        /// <summary>
+        /// Returns the distance to the last appraised object
+        /// </summary>
+        [CommandHandler("dist", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Returns the distance to the last appraised object")]
+        public static void HandleTeleportDist(Session session, params string[] parameters)
+        {
+            var obj = GetLastAppraisedObject(session);
+            if (obj == null) return;
+
+            var sourcePos = session.Player.Location.ToGlobal();
+            var targetPos = obj.Location.ToGlobal();
+
+            var dist = Vector3.Distance(sourcePos, targetPos);
+            var dist2d = Vector2.Distance(new Vector2(sourcePos.X, sourcePos.Y), new Vector2(targetPos.X, targetPos.Y));
+
+            Console.WriteLine("Dist: " + dist);
+            Console.WriteLine("2D Dist: " + dist2d);
         }
     }
 }

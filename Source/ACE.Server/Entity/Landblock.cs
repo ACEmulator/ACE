@@ -47,7 +47,7 @@ namespace ACE.Server.Entity
         /// <summary>
         /// Flag indicates if this landblock is permanently loaded (for example, towns on high-traffic servers)
         /// </summary>
-        public readonly bool Permaload = false;
+        public bool Permaload = false;
 
         public bool IsActive { get; private set; } = true;
         private DateTime lastActiveTime;
@@ -233,20 +233,22 @@ namespace ACE.Server.Entity
             Scenery = Entity.Scenery.Load(this);
         }
 
-        public void Tick(double lastTickDuration, double currentUnixTime)
+        public void Tick(double currentUnixTime)
         {
             // Here we'd move server objects in motion (subject to landscape) and do physics collision detection
-            var allworldobj = worldObjects.Values;
-            var allplayers = allworldobj.OfType<Player>().ToList();
 
-            UpdateStatus(allplayers.Count);
+            // TODO: remove these legacy functions
+            //var allworldobj = worldObjects.Values;
+            //var allplayers = allworldobj.OfType<Player>().ToList();
+
+            //UpdateStatus(allplayers.Count);
 
             if (IsActive)
             {
                 var wos = worldObjects.Values.ToList();
 
                 foreach (var wo in wos)
-                    wo.Tick(lastTickDuration, currentUnixTime);
+                    wo.Tick(currentUnixTime);
             }
 
             // Heartbeat

@@ -43,15 +43,13 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// A new biota be created taking all of its values from weenie.
         /// </summary>
-        public Player(Weenie weenie, ObjectGuid guid, Session session) : base(weenie, guid)
+        public Player(Weenie weenie, ObjectGuid guid, uint accountId) : base(weenie, guid)
         {
             Character = new Character();
             Character.Id = guid.Full;
-            Character.AccountId = session.Id;
+            Character.AccountId = accountId;
             Character.Name = GetProperty(PropertyString.Name);
             CharacterChangesDetected = true;
-
-            Session = session;
 
             // Make sure properties this WorldObject requires are not null.
             AvailableExperience = AvailableExperience ?? 0;
@@ -109,7 +107,7 @@ namespace ACE.Server.WorldObjects
             // radius for object updates
             ListeningRadius = 5f;
 
-            if (Common.ConfigManager.Config.Server.Accounts.OverrideCharacterPermissions)
+            if (Session != null && Common.ConfigManager.Config.Server.Accounts.OverrideCharacterPermissions)
             {
                 if (Session.AccessLevel == AccessLevel.Admin)
                     IsAdmin = true;
@@ -126,7 +124,7 @@ namespace ACE.Server.WorldObjects
 
             ContainerCapacity = 7;
 
-            if ((AdvocateQuest ?? false) && IsAdvocate) // Advocate permissions are per character regardless of override
+            if (Session != null && (AdvocateQuest ?? false) && IsAdvocate) // Advocate permissions are per character regardless of override
             {
                 if (Session.AccessLevel == AccessLevel.Player)
                     Session.SetAccessLevel(AccessLevel.Advocate); // Elevate to Advocate permissions
@@ -136,7 +134,7 @@ namespace ACE.Server.WorldObjects
 
             UpdateCoinValue(false);
 
-            if (Session.IsOnline)
+            if (Session != null && Session.IsOnline)
                 AllegianceManager.LoadPlayer(this);
 
             QuestManager = new QuestManager(this);
@@ -240,16 +238,27 @@ namespace ACE.Server.WorldObjects
                         if (item.ItemCurMana < 1 || item.ItemCurMana == null)
                         {
                             item.IsAffecting = false;
-                            Session.Network.EnqueueSend(new GameMessageSystemChat($"Your {item.Name} is out of mana.", ChatMessageType.Magic));
+                            var msg = new GameMessageSystemChat($"Your {item.Name} is out of Mana.", ChatMessageType.Magic);
+                            var sound = new GameMessageSound(Guid, Sound.ItemManaDepleted);
+                            Session.Network.EnqueueSend(msg, sound);
                             if (item.WielderId != null)
                             {
                                 if (item.Biota.BiotaPropertiesSpellBook != null)
                                 {
-                                    for (int i = 0; i < item.Biota.BiotaPropertiesSpellBook.Count; i++)
+                                    // unsure if these messages / sounds were ever sent in retail,
+                                    // or if it just purged the enchantments invisibly
+                                    // doing a delay here to prevent 'SpellExpired' sounds from overlapping with 'ItemManaDepleted'
+                                    var actionChain = new ActionChain();
+                                    actionChain.AddDelaySeconds(2.0f);
+                                    actionChain.AddAction(this, () =>
                                     {
-                                        // TODO: layering
-                                        RemoveItemSpell(item.Guid, (uint)item.Biota.BiotaPropertiesSpellBook.ElementAt(i).Spell);
-                                    }
+                                        for (int i = 0; i < item.Biota.BiotaPropertiesSpellBook.Count; i++)
+                                        {
+                                            // TODO: layering
+                                            RemoveItemSpell(item.Guid, (uint)item.Biota.BiotaPropertiesSpellBook.ElementAt(i).Spell);
+                                        }
+                                    });
+                                    actionChain.EnqueueChain();
                                 }
                             }
                         }
@@ -257,10 +266,10 @@ namespace ACE.Server.WorldObjects
                         {
                             // get time until empty
                             var secondsUntilEmpty = ((item.ItemCurMana - deltaExtra) * timePerBurn);
-                            if (secondsUntilEmpty <= 30 && (!item.ItemManaDepletionMessageTimestamp.HasValue || (DateTime.Now - item.ItemManaDepletionMessageTimestamp.Value).TotalSeconds > 30))
+                            if (secondsUntilEmpty <= 120 && (!item.ItemManaDepletionMessageTimestamp.HasValue || (DateTime.Now - item.ItemManaDepletionMessageTimestamp.Value).TotalSeconds > 120))
                             {
                                 item.ItemManaDepletionMessageTimestamp = DateTime.Now;
-                                Session.Network.EnqueueSend(new GameMessageSystemChat($"Your {item.Name} is almost out of mana.", ChatMessageType.Magic));
+                                Session.Network.EnqueueSend(new GameMessageSystemChat($"Your {item.Name} is low on Mana.", ChatMessageType.Magic));
                             }
                         }
                     }
@@ -375,7 +384,7 @@ namespace ACE.Server.WorldObjects
                     if (wo != null)
                         wo.Examine(Session);
                     else
-                        Console.WriteLine("${Name} tried to appraise object {examinationId:X8}, couldn't find it");
+                        log.Warn("${Name} tried to appraise object {examinationId:X8}, couldn't find it");
                 }
             }
 
@@ -890,10 +899,12 @@ namespace ACE.Server.WorldObjects
                 if (spellId != 0)
                     result = CreateSingleSpell(spellId);
 
+                var spell = new Server.Entity.Spell(spellId);
+
                 if (!result)
                     buffMessage = new GameMessageSystemChat($"Consuming {consumableName} attempted to apply a spell not yet fully implemented.", ChatMessageType.System);
                 else
-                    buffMessage = new GameMessageSystemChat($"{consumableName} applies {DatManager.PortalDat.SpellTable.Spells[spellId].Name} on you.", ChatMessageType.Craft);
+                    buffMessage = new GameMessageSystemChat($"{consumableName} applies {spell.Name} on you.", ChatMessageType.Craft);
             }
             else
             {

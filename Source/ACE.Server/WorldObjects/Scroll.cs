@@ -137,7 +137,7 @@ namespace ACE.Server.WorldObjects
             set;
         }*/
 
-        private uint SpellId => (uint)Spell.Value;
+        private uint SpellId => SpellDID.Value;
 
         // Minimum Skill Level for 50% fizzle rate
         private uint Power

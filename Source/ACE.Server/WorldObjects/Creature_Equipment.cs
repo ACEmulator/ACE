@@ -69,11 +69,15 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Returns the currently equipped primary melee weapon
+        /// Returns the current equipped active melee weapon
+        /// This will normally be the primary melee weapon, but if dual wielding, this will be the weapon for the next attack
         /// </summary>
         public WorldObject GetEquippedMeleeWeapon()
         {
-            return EquippedObjects.Values.FirstOrDefault(e => e.ParentLocation == ACE.Entity.Enum.ParentLocation.RightHand && (e.CurrentWieldedLocation == EquipMask.MeleeWeapon || e.CurrentWieldedLocation == EquipMask.TwoHanded));
+            if (!IsDualWieldAttack || DualWieldAlternate)
+                return EquippedObjects.Values.FirstOrDefault(e => e.ParentLocation == ACE.Entity.Enum.ParentLocation.RightHand && (e.CurrentWieldedLocation == EquipMask.MeleeWeapon || e.CurrentWieldedLocation == EquipMask.TwoHanded));
+            else
+                return GetDualWieldWeapon();
         }
 
         /// <summary>
@@ -261,10 +265,9 @@ namespace ACE.Server.WorldObjects
             item.Location = Location;
         }
 
-
         public void GenerateWieldList()
         {
-            foreach (var item in Biota.BiotaPropertiesCreateList.Where(x => x.DestinationType == (int)DestinationType.Wield || x.DestinationType == (int)DestinationType.WieldTreasure))
+            foreach (var item in Biota.BiotaPropertiesCreateList.Where(x => x.DestinationType == (int) DestinationType.Wield || x.DestinationType == (int) DestinationType.WieldTreasure))
             {
                 var wo = WorldObjectFactory.CreateNewWorldObject(item.WeenieClassId);
 
@@ -277,7 +280,7 @@ namespace ACE.Server.WorldObjects
                         wo.Shade = item.Shade;
 
                     if (wo.ValidLocations != null)
-                        TryEquipObject(wo, (int)wo.ValidLocations.Value);
+                        TryEquipObject(wo, (int) wo.ValidLocations.Value);
                 }
             }
         }
@@ -343,7 +346,18 @@ namespace ACE.Server.WorldObjects
                 wo.Shade = item.Shade;
 
             if (item.StackSize > 0)
-                wo.StackSize = (ushort)item.StackSize; // todo: stack_Size_Variance rng
+            {
+                var stackSize = item.StackSize;
+
+                var hasVariance = item.StackSizeVariance > 0;
+                if (hasVariance)
+                {
+                    var minStack = (int)Math.Round(item.StackSize * item.StackSizeVariance);
+                    var maxStack = item.StackSize;
+                    stackSize = Physics.Common.Random.RollDice(minStack, maxStack);
+                }
+                wo.StackSize = (ushort)stackSize;
+            }
 
             return TryAddToInventory(wo);
         }

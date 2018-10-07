@@ -16,7 +16,17 @@ namespace ACE.Entity
         }
 
         public uint Landblock { get => landblockId.Raw >> 16; }
+
+        // FIXME: this is returning landblock + cell
         public uint Cell { get => landblockId.Raw; }
+
+        public uint CellX { get => landblockId.Raw >> 8 & 0xFF; }
+        public uint CellY { get => landblockId.Raw & 0xFF; }
+
+        public uint LandblockX { get => landblockId.Raw >> 24 & 0xFF; }
+        public uint LandblockY { get => landblockId.Raw >> 16 & 0xFF; }
+        public uint GlobalCellX { get => LandblockX * 8 + CellX; }
+        public uint GlobalCellY { get => LandblockY * 8 + CellY; }
 
         public Vector3 Pos
         {
@@ -118,13 +128,14 @@ namespace ACE.Entity
             var dy = Convert.ToSingle(Math.Cos(heading) * distanceInFront);
 
             // move the Z slightly up and let gravity pull it down.  just makes things easier.
+            var bumpHeight = 0.0f;
             if (rotate180)
             {
                 var rotate = new Quaternion(0, 0, qz, qw) * Quaternion.CreateFromYawPitchRoll(0, 0, (float)Math.PI);
-                return new Position(LandblockId.Raw, PositionX + dx, PositionY + dy, PositionZ + 0.5f, 0f, 0f, rotate.Z, rotate.W);
+                return new Position(LandblockId.Raw, PositionX + dx, PositionY + dy, PositionZ + bumpHeight, 0f, 0f, rotate.Z, rotate.W);
             }
             else
-                return new Position(LandblockId.Raw, PositionX + dx, PositionY + dy, PositionZ + 0.5f, 0f, 0f, qz, qw);
+                return new Position(LandblockId.Raw, PositionX + dx, PositionY + dy, PositionZ + bumpHeight, 0f, 0f, qz, qw);
         }
 
         /// <summary>

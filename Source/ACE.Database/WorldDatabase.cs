@@ -149,7 +149,7 @@ namespace ACE.Database
         }
 
         /// <summary>
-        /// This will populate all sub collections except the followign: LandblockInstances, PointsOfInterest<para />
+        /// This will populate all sub collections except the following: LandblockInstances, PointsOfInterest<para />
         /// This will also update the weenie cache.
         /// </summary>
         public Weenie GetWeenie(uint weenieClassId)

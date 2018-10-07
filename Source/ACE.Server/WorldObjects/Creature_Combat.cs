@@ -1,13 +1,13 @@
 using System;
-using System.Linq;
 using System.Numerics;
-using ACE.Entity;
+using ACE.Common;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Motion;
+using ACE.Server.Network.Structure;
 using ACE.Server.Physics.Animation;
 using ACE.Server.Physics.Extensions;
 
@@ -20,11 +20,26 @@ namespace ACE.Server.WorldObjects
         public DamageHistory DamageHistory;
 
         /// <summary>
+        /// Handles queueing up multiple animation sequences between packets
+        /// ie., when a player switches from bow to sword combat,
+        /// the client will send an unwield item packet for the bow first,
+        /// queueing up a switch to peace mode, and then unarmed combat mode.
+        /// next the client will send a wield item packet for the sword,
+        /// queueing up the switch from unarmed combat -> peace mode -> bow combat
+        /// </summary>
+        public double LastWeaponSwap;
+
+        /// <summary>
         /// Switches a player or creature to a new combat stance
         /// </summary>
         public float SetCombatMode(CombatMode combatMode)
         {
-            //Console.WriteLine($"Changing combat mode for {Name} to {combatMode}");
+            //Console.WriteLine($"SetCombatMode({combatMode})");
+
+            // check if combat stance actually needs switching
+            var combatStance = GetCombatStance();
+            if (combatMode != CombatMode.NonCombat && CurrentMotionState.Stance == combatStance)
+                return 0.0f;
 
             if (CombatMode == CombatMode.Missile)
                 HideAmmo();
@@ -51,7 +66,10 @@ namespace ACE.Server.WorldObjects
                     log.InfoFormat($"Unknown combat mode {CombatMode} for {Name}");
                     break;
             }
-            return animLength;
+
+            var queueTime = HandleStanceQueue(animLength);
+            //Console.WriteLine($"SetCombatMode(): queueTime({queueTime}) + animLength({animLength})");
+            return queueTime + animLength;
         }
 
         /// <summary>
@@ -59,11 +77,11 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public float HandleSwitchToPeaceMode()
         {
-            var animLength = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, MotionCommand.NonCombat, MotionCommand.Ready);
+            var animLength = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, MotionCommand.Ready, MotionCommand.NonCombat);
 
             var motion = new UniversalMotion(MotionStance.NonCombat);
             motion.MovementData.CurrentStyle = (uint)MotionStance.NonCombat;
-            SetMotionState(this, motion);
+            ExecuteMotion(motion);
 
             var player = this as Player;
             if (player != null)
@@ -77,6 +95,34 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
+        /// Handles switching between combat stances:
+        /// old style -> peace mode -> hand combat (weapon swap) -> peace mode -> new style
+        /// </summary>
+        public float SwitchCombatStyles()
+        {
+            if (CurrentMotionState.Stance == MotionStance.NonCombat || CurrentMotionState.Stance == MotionStance.Invalid)
+                return 0.0f;
+
+            var combatStance = GetCombatStance();
+
+            float peace1 = 0.0f, unarmed = 0.0f, peace2 = 0.0f;
+
+            peace1 = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, MotionCommand.Ready, MotionCommand.NonCombat);
+            if (CurrentMotionState.Stance != MotionStance.HandCombat && combatStance != MotionStance.HandCombat)
+            {
+                unarmed = MotionTable.GetAnimationLength(MotionTableId, MotionStance.NonCombat, MotionCommand.Ready, MotionCommand.HandCombat);
+                peace2 = MotionTable.GetAnimationLength(MotionTableId, MotionStance.HandCombat, MotionCommand.Ready, MotionCommand.NonCombat);
+            }
+
+            CurrentMotionState = new UniversalMotion(MotionStance.NonCombat);
+
+            //Console.WriteLine($"SwitchCombatStyle() - animLength: {animLength}");
+            //Console.WriteLine($"SwitchCombatStyle() - peace1({peace1}) + unarmed({unarmed}) + peace2({peace2})");
+            var animLength = peace1 + unarmed + peace2;
+            return animLength;
+        }
+
+        /// <summary>
         /// Switches a player or creature to melee attack stance
         /// </summary>
         public float HandleSwitchToMeleeCombatMode()
@@ -84,11 +130,12 @@ namespace ACE.Server.WorldObjects
             // get appropriate combat stance for currently wielded items
             var combatStance = GetCombatStance();
 
-            var animLength = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, (MotionCommand)combatStance, MotionCommand.Ready);
+            var animLength = SwitchCombatStyles();
+            animLength += MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, MotionCommand.Ready, (MotionCommand)combatStance);
 
             var motion = new UniversalMotion(combatStance);
             motion.MovementData.CurrentStyle = (uint)combatStance;
-            SetMotionState(this, motion);
+            ExecuteMotion(motion);
 
             var player = this as Player;
             if (player != null)
@@ -109,11 +156,12 @@ namespace ACE.Server.WorldObjects
             var wand = GetEquippedWand();
             if (wand == null) return 0.0f;
 
-            var animLength = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, MotionCommand.Magic, MotionCommand.Ready);
+            var animLength = SwitchCombatStyles();
+            animLength += MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, MotionCommand.Ready, MotionCommand.Magic);
 
             var motion = new UniversalMotion(MotionStance.Magic);
             motion.MovementData.CurrentStyle = (uint)MotionStance.Magic;
-            SetMotionState(this, motion);
+            ExecuteMotion(motion);
 
             var player = this as Player;
             if (player != null)
@@ -137,15 +185,29 @@ namespace ACE.Server.WorldObjects
 
             var combatStance = GetCombatStance();
 
-            var animLength = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, (MotionCommand)combatStance, MotionCommand.Ready);
+            var swapTime = SwitchCombatStyles();
 
             var motion = new UniversalMotion(combatStance);
             motion.MovementData.CurrentStyle = (uint)combatStance;
-            SetMotionState(this, motion);
+            var stanceTime = ExecuteMotion(motion);
 
             var ammo = GetEquippedAmmo();
+            var reloadTime = 0.0f;
             if (ammo != null && weapon.IsAmmoLauncher)
-                animLength += ReloadMissileAmmo();
+            {
+                // bug for bow-wielding skeletons starting from decomposed state:
+                // sleep -> wakeup anim time must be passed in here
+                var actionChain = new ActionChain();
+
+                var currentTime = Time.GetUnixTime();
+                var queueTime = 0.0f;
+                if (currentTime < LastWeaponSwap)
+                    queueTime += (float)(LastWeaponSwap - currentTime);
+
+                actionChain.AddDelaySeconds(queueTime + swapTime + stanceTime);
+                reloadTime = ReloadMissileAmmo(actionChain);
+                actionChain.EnqueueChain();
+            }
 
             var player = this as Player;
             if (player != null)
@@ -154,7 +216,7 @@ namespace ACE.Server.WorldObjects
                 player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.CombatMode, (int)CombatMode.Missile));
             }
             //Console.WriteLine("HandleSwitchToMissileCombatMode() - animLength: " + animLength);
-            return animLength;
+            return swapTime + stanceTime + reloadTime;
         }
 
         /// <summary>
@@ -172,9 +234,13 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public MotionStance GetCombatStance()
         {
+            var caster = GetEquippedWand();
+
+            if (caster != null)
+                return MotionStance.Magic;
+
             var weapon = GetEquippedWeapon();
             var dualWield = GetDualWieldWeapon();
-
             var shield = GetEquippedShield();
 
             var combatStance = MotionStance.HandCombat;
@@ -264,6 +330,24 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
+        /// Adds queued weapon swaps to the current animation time
+        /// </summary>
+        public float HandleStanceQueue(float animLength)
+        {
+            var currentTime = Time.GetUnixTime();
+            if (currentTime >= LastWeaponSwap)
+            {
+                LastWeaponSwap = currentTime + animLength;
+                return 0.0f;
+            }
+            else
+            {
+                LastWeaponSwap += animLength;
+                return (float)(LastWeaponSwap - currentTime);
+            }
+        }
+
+        /// <summary>
         /// Returns the attribute damage bonus for a physical attack
         /// </summary>
         /// <param name="attackType">Uses strength for melee, coordination for missile</param>
@@ -349,9 +433,10 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Returns the splatter height for the current attack height
         /// </summary>
-        /// <returns></returns>
         public string GetSplatterHeight()
         {
+            if (AttackHeight == null) return "Mid";
+
             switch (AttackHeight.Value)
             {
                 case ACE.Entity.Enum.AttackHeight.Low: return "Low";
@@ -572,6 +657,167 @@ namespace ACE.Server.WorldObjects
             var sneakAttackMod = (100 + damageRating) / 100.0f;
             //Console.WriteLine("SneakAttackMod: " + sneakAttackMod);
             return sneakAttackMod;
+        }
+
+        public void FightDirty(WorldObject target)
+        {
+            // Skill description:
+            // Your melee and missile attacks have a chance to weaken your opponent.
+            // - Low attacks can reduce the defense skills of the opponent.
+            // - Medium attacks can cause small amounts of bleeding damage.
+            // - High attacks can reduce opponents' attack and healing skills
+
+            // Effects:
+            // Low: reduces the defense skills of the opponent by -10
+            // Medium: bleed ticks for 60 damage per 20 seconds
+            // High: reduces the attack skills of the opponent by -10, and
+            //       the healing effects of the opponent by -15 rating
+            //
+            // these damage #s are doubled for dirty fighting specialized.
+
+            // Notes:
+            // - Dirty fighting works for melee and missile attacks.
+            // - Has a 25% chance to activate on any melee of missile attack.
+            //   - This activation is reduced proportionally if Dirty Fighting is lower
+            //     than your active weapon skill as determined by your equipped weapon.
+            // - All activate effects last 20 seconds.
+            // - Although a specific effect won't stack with itself,
+            //   you can stack all 3 effects on the opponent at the same time. This means
+            //   when a skill activates at one attack height, you can move to another attack height
+            //   to try to land an additional effect.
+            // - Successfully landing a Dirty Fighting effect is mentioned in chat. Additionally,
+            //   the medium height effect results in 'floating glyphs' around the target:
+
+            //   "Dirty Fighting! <Player> delivers a Bleeding Assault to <target>!"
+            //   "Dirty Fighting! <Player> delivers a Traumatic Assault to <target>!"
+
+            // dirty fighting skill must be at least trained
+            var dirtySkill = GetCreatureSkill(Skill.DirtyFighting);
+            if (dirtySkill.AdvancementClass < SkillAdvancementClass.Trained)
+                return;
+
+            // ensure creature target
+            var creatureTarget = target as Creature;
+            if (creatureTarget == null)
+                return;
+
+            var chance = 0.25f;
+
+            var attackSkill = GetCreatureSkill(GetCurrentWeaponSkill());
+            if (dirtySkill.Current < attackSkill.Current)
+            {
+                chance *= (float)dirtySkill.Current / attackSkill.Current;
+            }
+
+            var rng = Physics.Common.Random.RollDice(0.0f, 1.0f);
+            if (rng > chance)
+                return;
+
+            switch (AttackHeight)
+            {
+                case ACE.Entity.Enum.AttackHeight.Low:
+                    FightDirty_ApplyLowAttack(creatureTarget);
+                    break;
+                case ACE.Entity.Enum.AttackHeight.Medium:
+                    FightDirty_ApplyMediumAttack(creatureTarget);
+                    break;
+                case ACE.Entity.Enum.AttackHeight.High:
+                    FightDirty_ApplyHighAttack(creatureTarget);
+                    break;
+            }
+        }
+
+        /// <summary>
+        /// Reduces the defense skills of the opponent by
+        /// -10 if trained, or -20 if specialized
+        /// </summary>
+        public void FightDirty_ApplyLowAttack(Creature target)
+        {
+            var spellID = GetCreatureSkill(Skill.DirtyFighting).AdvancementClass == SkillAdvancementClass.Specialized ?
+                Network.Enum.Spell.DF_Specialized_DefenseDebuff : Network.Enum.Spell.DF_Trained_DefenseDebuff;
+
+            var spell = new Spell(spellID);
+            if (spell.NotFound) return;  // TODO: friendly message to install DF patch
+
+            var enchantment = new Enchantment(target, Guid, (uint)spellID, 20, 1, EnchantmentMask.CreatureSpells);
+
+            target.EnchantmentManager.Add(enchantment, this);
+            target.EnqueueBroadcast(new GameMessageScript(target.Guid, ACE.Entity.Enum.PlayScript.DirtyFightingDefenseDebuff));
+
+            FightDirty_SendMessage(target, spell);
+        }
+
+        /// <summary>
+        /// Applies bleed ticks for 60 damage per 20 seconds if trained,
+        /// 120 damage per 20 seconds if specialized
+        /// </summary>
+        /// <returns></returns>
+        public void FightDirty_ApplyMediumAttack(Creature target)
+        {
+            var spellID = GetCreatureSkill(Skill.DirtyFighting).AdvancementClass == SkillAdvancementClass.Specialized ?
+                Network.Enum.Spell.DF_Specialized_Bleed : Network.Enum.Spell.DF_Trained_Bleed;
+
+            var spell = new Spell(spellID);
+            if (spell.NotFound) return;  // TODO: friendly message to install DF patch
+
+            var enchantment = new Enchantment(target, Guid, (uint)spellID, 20, 1, EnchantmentMask.CreatureSpells);
+
+            target.EnchantmentManager.Add(enchantment, this);
+
+            // only send if not already applied?
+            target.EnqueueBroadcast(new GameMessageScript(target.Guid, ACE.Entity.Enum.PlayScript.DirtyFightingDamageOverTime));
+
+            FightDirty_SendMessage(target, spell);
+        }
+
+        /// <summary>
+        /// Reduces the attack skills and healing rating for opponent
+        /// by -10 if trained, or -20 if specialized
+        /// </summary>
+        public void FightDirty_ApplyHighAttack(Creature target)
+        {
+            // attack debuff
+            var spellID = GetCreatureSkill(Skill.DirtyFighting).AdvancementClass == SkillAdvancementClass.Specialized ?
+                Network.Enum.Spell.DF_Specialized_AttackDebuff : Network.Enum.Spell.DF_Trained_AttackDebuff;
+
+            var spell = new Spell(spellID);
+            if (spell.NotFound) return;  // TODO: friendly message to install DF patch
+
+            var enchantment = new Enchantment(target, Guid, (uint)spellID, 20, 1, EnchantmentMask.CreatureSpells);
+
+            target.EnchantmentManager.Add(enchantment, this);
+            target.EnqueueBroadcast(new GameMessageScript(target.Guid, ACE.Entity.Enum.PlayScript.DirtyFightingAttackDebuff));
+
+            FightDirty_SendMessage(target, spell);
+
+            // healing resistance rating
+            spellID = GetCreatureSkill(Skill.DirtyFighting).AdvancementClass == SkillAdvancementClass.Specialized ?
+                Network.Enum.Spell.DF_Specialized_HealingDebuff : Network.Enum.Spell.DF_Trained_HealingDebuff;
+
+            spell = new Spell(spellID);
+            if (spell.NotFound) return;  // TODO: friendly message to install DF patch
+
+            enchantment = new Enchantment(target, Guid, (uint)spellID, 20, 1, EnchantmentMask.CreatureSpells);
+
+            target.EnchantmentManager.Add(enchantment, this);
+            target.EnqueueBroadcast(new GameMessageScript(target.Guid, ACE.Entity.Enum.PlayScript.DirtyFightingHealDebuff));
+
+            FightDirty_SendMessage(target, spell);
+        }
+
+        public void FightDirty_SendMessage(Creature target, Spell spell)
+        {
+            // Dirty Fighting! <Player> delivers a <sic> Unbalancing Blow to <target>!
+            //var article = spellBase.Name.StartsWithVowel() ? "an" : "a";
+
+            var msg = new GameMessageSystemChat($"Dirty Fighting! {Name} delivers a {spell.Name} to {target.Name}!", ChatMessageType.Combat);
+
+            var playerSource = this as Player;
+            var playerTarget = target as Player;
+            if (playerSource != null)
+                playerSource.Session.Network.EnqueueSend(msg);
+            if (playerTarget != null)
+                playerTarget.Session.Network.EnqueueSend(msg);
         }
     }
 }

@@ -2353,7 +2353,12 @@ namespace ACE.Server.Physics
                 if (apply_bounce && collisions.CollisionNormalValid)
                 {
                     if (State.HasFlag(PhysicsState.Inelastic))
+                    {
                         Velocity = Vector3.Zero;
+
+                        // custom for spell projectiles: explode on server
+                        report_environment_collision(prev_has_contact);
+                    }
                     else
                     {
                         var collisionAngle = Vector3.Dot(Velocity, collisions.CollisionNormal);
@@ -3716,11 +3721,11 @@ namespace ACE.Server.Physics
             //Console.WriteLine("deltaTime: " + deltaTime);
 
             // commented out for debugging
-            /*if (deltaTime > PhysicsGlobals.HugeQuantum)
+            if (deltaTime > PhysicsGlobals.HugeQuantum)
             {
-                UpdateTime = Timer.CurrentTime;   // consume time?
+                UpdateTime = PhysicsTimer.CurrentTime;   // consume time?
                 return false;
-            }*/
+            }
 
             while (deltaTime > PhysicsGlobals.MaxQuantum)
             {
@@ -3746,6 +3751,11 @@ namespace ACE.Server.Physics
 
             if (forcePos)
                 set_current_pos(RequestPos);
+
+            // temp for players
+            CachedVelocity = Vector3.Zero;
+
+            UpdateTime = PhysicsTimer.CurrentTime;
         }
 
         public void update_position()
