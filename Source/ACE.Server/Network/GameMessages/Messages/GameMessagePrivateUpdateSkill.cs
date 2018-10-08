@@ -108,6 +108,9 @@ namespace ACE.Server.Network.GameMessages.Messages
                 case Skill.ArmorTinkering:
                     Writer.Write(worldObject.Sequences.GetNextSequence(Sequence.SequenceType.PrivateUpdateSkillArmorAppraisal));
                     break;
+                case Skill.ItemTinkering:
+                    Writer.Write(worldObject.Sequences.GetNextSequence(Sequence.SequenceType.PrivateUpdateSkillItemAppraisal));
+                    break;
                 case Skill.MagicItemTinkering:
                     Writer.Write(worldObject.Sequences.GetNextSequence(Sequence.SequenceType.PrivateUpdateSkillMagicItemAppraisal));
                     break;

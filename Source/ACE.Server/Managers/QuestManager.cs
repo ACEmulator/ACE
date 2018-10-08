@@ -1,7 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using ACE.Common;
+using ACE.Common.Extensions;
+using ACE.Database;
 using ACE.Database.Models.Shard;
+using ACE.Entity.Enum;
+using ACE.Server.Network.GameEvent.Events;
+using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Managers
@@ -20,40 +26,98 @@ namespace ACE.Server.Managers
         }
 
         /// <summary>
-        /// Add a new quest to this Player's registry
+        /// Returns TRUE if a player has started a particular quest
         /// </summary>
-        public void Add(string questName)
+        public bool HasQuest(String questName)
         {
-            var inProgress = Quests.FirstOrDefault(q => q.QuestName == questName);
-            if (inProgress != null)
-            {
-                //Console.WriteLine("QuestManager.Add: quest already in progress!");
-                inProgress.NumTimesCompleted++;  // ??
-                return;
-            }
-            var quest = new CharacterPropertiesQuestRegistry
-            {
-                QuestName = questName,
-                CharacterId = Player.Guid.Full,
-                LastTimeCompleted = 0,  // TODO: get accurate server time?
-                NumTimesCompleted = 1   // ??
-            };
-            //Console.WriteLine("QuestManager.Add: Adding quest to DB");
-            Quests.Add(quest);
+            return GetQuest(questName) != null;
         }
 
         /// <summary>
-        /// Update an existing quest in this Player's registry
+        /// Returns an active or completed quest for this player
         /// </summary>
-        public void Update(string questName)
+        public CharacterPropertiesQuestRegistry GetQuest(string questName)
         {
-            var inProgress = Quests.FirstOrDefault(q => q.QuestName == questName);
-            if (inProgress == null)
+            return Quests.FirstOrDefault(q => q.QuestName.Equals(questName));
+        }
+
+        /// <summary>
+        /// Adds or updates a quest completion to the player's registry
+        /// </summary>
+        public void AddSolve(string questName)
+        {
+            var existing = Quests.FirstOrDefault(q => q.QuestName == questName);
+
+            if (existing == null)
             {
-                //Console.WriteLine("QuestManager.Update: quest doesn't exist!");
-                return;
+                // add new quest entry
+                var quest = new CharacterPropertiesQuestRegistry
+                {
+                    QuestName = questName,
+                    CharacterId = Player.Guid.Full,
+                    LastTimeCompleted = (uint)Time.GetUnixTime(),
+                    NumTimesCompleted = 1   // initial add / first solve
+                };
+                Quests.Add(quest);
             }
-            inProgress.NumTimesCompleted++;     // only called for completion?
+            else
+            {
+                // update existing quest
+                existing.LastTimeCompleted = (uint)Time.GetUnixTime();
+                existing.NumTimesCompleted++;
+            }
+        }
+
+        /// <summary>
+        /// Returns TRUE if player can solve this quest now
+        /// </summary>
+        public bool CanSolve(string questName)
+        {
+            // verify max solves / quest timer
+            var nextSolveTime = GetNextSolveTime(questName);
+
+            return nextSolveTime == TimeSpan.MinValue;
+        }
+
+        /// <summary>
+        /// Returns TRUE if player has reached the maximum # of solves for this quest
+        /// </summary>
+        public bool IsMaxSolves(string questName)
+        {
+            var quest = DatabaseManager.World.GetCachedQuest(questName);
+            if (quest == null) return false;
+
+            var playerQuest = GetQuest(questName);
+            if (playerQuest == null) return false;  // player hasn't completed this quest yet
+
+            // return TRUE if quest has solve limit, and it has been reached
+            return quest.MaxSolves > -1 && playerQuest.NumTimesCompleted >= quest.MaxSolves;
+        }
+
+        /// <summary>
+        /// Returns the time remaining until the player can solve this quest again
+        /// </summary>
+        public TimeSpan GetNextSolveTime(string questName)
+        {
+            var quest = DatabaseManager.World.GetCachedQuest(questName);
+            if (quest == null)
+                return TimeSpan.MaxValue;   // world quest not found - cannot solve it
+
+            var playerQuest = GetQuest(questName);
+            if (playerQuest == null)
+                return TimeSpan.MinValue;   // player hasn't completed this quest yet - can solve immediately
+
+            if (quest.MaxSolves > -1 && playerQuest.NumTimesCompleted >= quest.MaxSolves)
+                return TimeSpan.MaxValue;   // cannot solve this quest again - max solves reached / exceeded
+
+            var currentTime = (uint)Time.GetUnixTime();
+            var nextSolveTime = playerQuest.LastTimeCompleted + quest.MinDelta;
+
+            if (currentTime >= nextSolveTime)
+                return TimeSpan.MinValue;   // can solve again now - next solve time expired
+
+            // return the time remaining on the player's quest timer
+            return TimeSpan.FromSeconds(nextSolveTime - currentTime);
         }
 
         /// <summary>
@@ -61,13 +125,8 @@ namespace ACE.Server.Managers
         /// </summary>
         public void Increment(string questName)
         {
-            var quest = Quests.FirstOrDefault(q => q.QuestName == questName);
-            if (quest == null)
-            {
-                //Console.WriteLine("QuestManager.Increment: You do not have this quest.");
-                return;
-            }
-            quest.NumTimesCompleted++;
+            // kill task / append # to quest name?
+            AddSolve(questName);
         }
 
         /// <summary>
@@ -105,16 +164,29 @@ namespace ACE.Server.Managers
             }
         }
 
-        /// <summary>
-        /// Searches for a particular quest in progress for a player
-        /// </summary>
-        public bool HasQuest(String questName)
+        public void Stamp(string questName)
         {
-            var quests = Quests.Where(q => q.QuestName.Equals(questName)).ToList();
+            // ?
+            AddSolve(questName);
+        }
 
-            var hasQuest = quests.Count > 0;
-            //Console.WriteLine($"QuestManager.HasQuest - checking if {Player.Name} has quest {questName} ({hasQuest})");
-            return hasQuest;
+        public void SendNetworkMessage(string questName)
+        {
+            if (IsMaxSolves(questName))
+            {
+                var error = new GameEventInventoryServerSaveFailed(Player.Session, WeenieError.YouHaveSolvedThisQuestTooManyTimes);
+                var text = new GameMessageSystemChat("You have solved this quest too many times!", ChatMessageType.Broadcast);
+                Player.Session.Network.EnqueueSend(text, error);
+            }
+            else
+            {
+                var error = new GameEventInventoryServerSaveFailed(Player.Session, WeenieError.YouHaveSolvedThisQuestTooRecently);
+                var text = new GameMessageSystemChat("You have solved this quest too recently!", ChatMessageType.Broadcast);
+
+                var remainStr = GetNextSolveTime(questName).GetFriendlyString();
+                var remain = new GameMessageSystemChat($"You may complete this quest again in {remainStr}.", ChatMessageType.Broadcast);
+                Player.Session.Network.EnqueueSend(text, remain, error);
+            }
         }
     }
 }

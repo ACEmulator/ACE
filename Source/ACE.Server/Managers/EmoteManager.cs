@@ -297,7 +297,7 @@ namespace ACE.Server.Managers
                 case EmoteType.IncrementQuest:
 
                     if (player != null)
-                        player.QuestManager.Increment(emoteAction.Message);
+                        player.QuestManager.Increment(emoteAction.Message);     // kill task?
                     break;
 
                 case EmoteType.InflictVitaePenalty:
@@ -789,7 +789,7 @@ namespace ACE.Server.Managers
 
                     // work needs to be done here
                     if (player != null)
-                        player.QuestManager.Add(emoteAction.Message);
+                        player.QuestManager.Stamp(emoteAction.Message);
                     break;
 
                 case EmoteType.StartBarber:
@@ -913,13 +913,15 @@ namespace ACE.Server.Managers
                     break;
                 case EmoteType.UpdateQuest:
 
+                    // is this only for solving??
+
                     // only delay seems to be with test NPC here
                     // still, unsafe to use any emotes directly outside of a chain,
                     // as they could be executed out-of-order
                     if (player != null)
                     {
                         var questName = emoteAction.Message;
-                        player.QuestManager.Add(questName);
+                        player.QuestManager.AddSolve(questName);
                         var hasQuest = player.QuestManager.HasQuest(questName);
                         InqCategory(hasQuest ? EmoteCategory.QuestSuccess : EmoteCategory.QuestFailure, emoteAction, sourceObject, targetObject, actionChain);
                     }

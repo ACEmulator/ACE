@@ -252,7 +252,7 @@ namespace ACE.Server.WorldObjects
                 }
             }
             if (targetObject == null)
-                log.Error($"Player_Use.FindItemLocation({targetGuid}): couldn't find item location on landblock"); ;
+                log.Error($"{Name}.FindItemLocation({targetGuid}): couldn't find item location on landblock"); ;
 
             return targetObject;
         }

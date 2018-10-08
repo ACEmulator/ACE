@@ -76,7 +76,7 @@ namespace ACE.Database
         private readonly ConcurrentDictionary<uint, byte> weeniesNotFound = new ConcurrentDictionary<uint, byte>();
 
         /// <summary>
-        /// This will populate all sub collections except the followign: LandblockInstances, PointsOfInterest<para />
+        /// This will populate all sub collections except the following: LandblockInstances, PointsOfInterest<para />
         /// This will also update the weenie cache.
         /// </summary>
         private Weenie GetWeenie(WorldDbContext context, uint weenieClassId)
@@ -199,7 +199,7 @@ namespace ACE.Database
         }
 
         /// <summary>
-        /// Weenies will have all their collections populated except the followign: LandblockInstances, PointsOfInterest
+        /// Weenies will have all their collections populated except the following: LandblockInstances, PointsOfInterest
         /// </summary>
         public Weenie GetCachedWeenie(uint weenieClassId)
         {
@@ -213,7 +213,7 @@ namespace ACE.Database
         }
 
         /// <summary>
-        /// Weenies will have all their collections populated except the followign: LandblockInstances, PointsOfInterest
+        /// Weenies will have all their collections populated except the following: LandblockInstances, PointsOfInterest
         /// </summary>
         public Weenie GetCachedWeenie(string weenieClassName)
         {
@@ -277,7 +277,7 @@ namespace ACE.Database
         }
 
         /// <summary>
-        /// Weenies will have all their collections populated except the followign: LandblockInstances, PointsOfInterest
+        /// Weenies will have all their collections populated except the following: LandblockInstances, PointsOfInterest
         /// </summary>
         public Dictionary<Weenie, List<LandblockInstance>> GetCachedWeenieInstancesByLandblock(ushort landblock)
         {
@@ -614,6 +614,22 @@ namespace ACE.Database
 
                 cachedWieldedTreasure[dataId] = results;
                 return results;
+            }
+        }
+
+        private readonly ConcurrentDictionary<string, Quest> cachedQuest = new ConcurrentDictionary<string, Quest>();
+
+        public Quest GetCachedQuest(string questName)
+        {
+            if (cachedQuest.TryGetValue(questName, out var quest))
+                return quest;
+
+            using (var context = new WorldDbContext())
+            {
+                quest = context.Quest.FirstOrDefault(q => q.Name.Equals(questName));
+                cachedQuest[questName] = quest;
+
+                return quest;
             }
         }
     }

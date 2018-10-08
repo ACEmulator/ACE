@@ -2598,5 +2598,13 @@ namespace ACE.Server.WorldObjects
             get => GetProperty(PropertyFloat.GeneratorInitialDelay) ?? 0d;
             set { if (value == 0d) RemoveProperty(PropertyFloat.GeneratorInitialDelay); else SetProperty(PropertyFloat.GeneratorInitialDelay, value); }
         }
+
+        /* quest properties */
+
+        public string Quest
+        {
+            get => GetProperty(PropertyString.Quest);
+            set { if (value == null) RemoveProperty(PropertyString.Quest); else SetProperty(PropertyString.Quest, value); }
+        }
     }
 }

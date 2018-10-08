@@ -25,6 +25,14 @@ namespace ACE.Server.Managers
 
         public static void UseObjectOnTarget(Player player, WorldObject source, WorldObject target)
         {
+            if (source == target)
+            {
+                var message = new GameMessageSystemChat($"The {source.Name} cannot be combined with itself.", ChatMessageType.Craft);
+                player.Session.Network.EnqueueSend(message);
+                player.SendUseDoneEvent();
+                return;
+            }
+
             var recipe = DatabaseManager.World.GetCachedCookbook(source.WeenieClassId, target.WeenieClassId);
 
             if (recipe == null)
@@ -50,11 +58,11 @@ namespace ACE.Server.Managers
             {
                 if (recipe.Recipe.Skill > 0 && recipe.Recipe.Difficulty > 0)
                 {
-                        // there's a skill associated with this
-                        Skill skillId = (Skill)recipe.Recipe.Skill;
+                    // there's a skill associated with this
+                    Skill skillId = (Skill)recipe.Recipe.Skill;
 
-                        // this shouldn't happen, but sanity check for unexpected nulls
-                        skill = player.GetCreatureSkill(skillId);
+                    // this shouldn't happen, but sanity check for unexpected nulls
+                    skill = player.GetCreatureSkill(skillId);
 
                     if (skill == null)
                     {
@@ -63,12 +71,22 @@ namespace ACE.Server.Managers
                         return;
                     }
 
+                    //Console.WriteLine("Skill difficulty: " + recipe.Recipe.Difficulty);
+
                     percentSuccess = skill.GetPercentSuccess(recipe.Recipe.Difficulty); //FIXME: Pretty certain this is broken
                 }
 
                 if (skill != null)
                 {
-                    if (skill.AdvancementClass == SkillAdvancementClass.Untrained)
+                    // check for pre-MoA skill
+                    // convert into appropriate post-MoA skill
+                    // pre-MoA melee weapons: get highest melee weapons skill
+                    var newSkill = player.ConvertToMoASkill(skill.Skill);
+                    skill = player.GetCreatureSkill(newSkill);
+
+                    //Console.WriteLine("Required skill: " + skill.Skill);
+
+                    if (skill.AdvancementClass <= SkillAdvancementClass.Untrained)
                     {
                         var message = new GameEventWeenieError(player.Session, WeenieError.YouAreNotTrainedInThatTradeSkill);
                         player.Session.Network.EnqueueSend(message);
