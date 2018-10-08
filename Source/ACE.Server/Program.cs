@@ -81,13 +81,25 @@ namespace ACE.Server
             log.Info("Initializing GuidManager...");
             GuidManager.Initialize();
 
-            if (ConfigManager.Config.Server.WeeniePrecaching)
+            if (ConfigManager.Config.Server.WorldDatabasePrecaching)
             {
                 log.Info("Precaching Weenies...");
                 DatabaseManager.World.CacheAllWeeniesInParallel();
+                log.Info("Precaching Points Of Interest...");
+                DatabaseManager.World.CacheAllPointsOfInterest();
+                log.Info("Precaching Cookbooks...");
+                DatabaseManager.World.CacheAllCookbooksInParallel();
+                log.Info("Precaching Spells...");
+                DatabaseManager.World.CacheAllSpells();
+                log.Info("Precaching Events...");
+                DatabaseManager.World.GetAllEvents();
+                log.Info("Precaching Death Treasures...");
+                DatabaseManager.World.CacheAllDeathTresures();
+                log.Info("Precaching Wielded Treasures...");
+                DatabaseManager.World.CacheAllWieldedTresuresInParallel();
             }
             else
-                log.Info("No Weenie Precaching Performed...");
+                log.Info("No World Database Precaching Performed...");
 
             log.Info("Initializing InboundMessageManager...");
             InboundMessageManager.Initialize();

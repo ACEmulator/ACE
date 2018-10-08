@@ -18,7 +18,7 @@ namespace ACE.Common
 
         [System.ComponentModel.DefaultValue(false)]
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
-        public bool WeeniePrecaching { get; set; }
+        public bool WorldDatabasePrecaching { get; set; }
 
         [System.ComponentModel.DefaultValue(false)]
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]

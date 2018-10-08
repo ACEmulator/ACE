@@ -95,7 +95,7 @@ namespace ACE.Database
 
             if (weenie == null)
             {
-                weenieCache.TryAdd(weenieClassId, null);
+                weenieCache[weenieClassId] = null;
                 return null;
             }
 
@@ -141,7 +141,7 @@ namespace ACE.Database
             weenie.WeeniePropertiesTextureMap = context.WeeniePropertiesTextureMap.Where(r => r.ObjectId == weenie.ClassId).ToList();
 
             // If the weenie doesn't exist in the cache, we'll add it.
-            weenieCache.TryAdd(weenieClassId, weenie);
+            weenieCache[weenieClassId] = weenie;
 
             return weenie;
         }
@@ -213,7 +213,7 @@ namespace ACE.Database
         {
             foreach (var weenie in weenieCache.Values)
             {
-                if (weenie.ClassName == weenieClassName)
+                if (weenie != null && weenie.ClassName == weenieClassName)
                     return weenie;
             }
 
@@ -394,10 +394,26 @@ namespace ACE.Database
             }
         }
 
+        /// <summary>
+        /// This takes under 1 second to complete.
+        /// </summary>
+        public void CacheAllPointsOfInterest()
+        {
+            using (var context = new WorldDbContext())
+            {
+                var results = context.PointsOfInterest
+                    .AsNoTracking()
+                    .ToList();
+
+                foreach (var result in results)
+                    cachedPointsOfInterest[result.Name.ToLower()] = result;
+            }
+        }
+
         private readonly Dictionary<uint, Dictionary<uint, CookBook>> cookbookCache = new Dictionary<uint, Dictionary<uint, CookBook>>();
 
         /// <summary>
-        /// Returns the number of Recipies currently cached.
+        /// Returns the number of Cookbooks currently cached.
         /// </summary>
         public int GetCookbookCacheCount()
         {
@@ -458,6 +474,24 @@ namespace ACE.Database
             }
         }
 
+        /// <summary>
+        /// This can take 1-2 minutes to complete.
+        /// </summary>
+        public void CacheAllCookbooksInParallel()
+        {
+            using (var context = new WorldDbContext())
+            {
+                var results = context.CookBook
+                    .AsNoTracking()
+                    .ToList();
+
+                Parallel.ForEach(results, result =>
+                {
+                    GetCachedCookbook(result.SourceWCID, result.TargetWCID);
+                });
+            }
+        }
+
         private readonly ConcurrentDictionary<uint, Spell> spellCache = new ConcurrentDictionary<uint, Spell>();
 
         /// <summary>
@@ -481,6 +515,22 @@ namespace ACE.Database
 
                 spellCache[spellId] = result;
                 return result;
+            }
+        }
+
+        /// <summary>
+        /// This takes under 1 second to complete.
+        /// </summary>
+        public void CacheAllSpells()
+        {
+            using (var context = new WorldDbContext())
+            {
+                var results = context.Spell
+                    .AsNoTracking()
+                    .ToList();
+
+                foreach (var result in results)
+                    spellCache[result.Id] = result;
             }
         }
 
@@ -540,6 +590,9 @@ namespace ACE.Database
             }
         }
 
+        /// <summary>
+        /// This takes under 1 second to complete.
+        /// </summary>
         public List<Event> GetAllEvents()
         {
             using (var context = new WorldDbContext())
@@ -581,6 +634,22 @@ namespace ACE.Database
             }
         }
 
+        /// <summary>
+        /// This takes under 1 second to complete.
+        /// </summary>
+        public void CacheAllDeathTresures()
+        {
+            using (var context = new WorldDbContext())
+            {
+                var results = context.TreasureDeath
+                    .AsNoTracking()
+                    .ToList();
+
+                foreach (var result in results)
+                    cachedDeathTreasure[result.TreasureType] = result;
+            }
+        }
+
         private readonly ConcurrentDictionary<uint, List<TreasureWielded>> cachedWieldedTreasure = new ConcurrentDictionary<uint, List<TreasureWielded>>();
 
         /// <summary>
@@ -605,6 +674,23 @@ namespace ACE.Database
 
                 cachedWieldedTreasure[dataId] = results;
                 return results;
+            }
+        }
+
+        /// <summary>
+        /// This takes under 1 second to complete.
+        /// </summary>
+        public void CacheAllWieldedTresuresInParallel()
+        {
+            using (var context = new WorldDbContext())
+            {
+                var results = context.TreasureWielded
+                    .AsNoTracking()
+                    .GroupBy(r => r.TreasureType)
+                    .ToList();
+
+                foreach (var result in results)
+                    cachedWieldedTreasure[result.Key] = result.ToList();
             }
         }
     }
