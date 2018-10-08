@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Numerics;
 using log4net;
 
 using ACE.Database.Models.World;
@@ -232,7 +233,9 @@ namespace ACE.Server.WorldObjects
 
             // TODO: find the correct runrate here
             // the default runrate / charge seems much too fast...
-            newMotion.RunRate = GetRunRate() / 4.0f;
+            newMotion.RunRate = GetRunRate();
+            if (CurrentMotionState.Stance == MotionStance.NonCombat)
+                newMotion.RunRate /= 4.0f;
 
             // TODO: get correct flags from pcaps
             // 'CanCharge' is the only flag that seems to let the player run instead of walk
@@ -241,7 +244,9 @@ namespace ACE.Server.WorldObjects
             // also, the default 'WalkRunThreshold' of 15 in UniversalMotion does not seem to be used automatically by client
             // maybe we have to check if above or below the WalkRunThreshold distance to target on server,
             // and send the CanCharge flag accordingly?
-            newMotion.Flag |= MovementParams.CanCharge;
+            var dist = Vector3.Distance(Location.ToGlobal(), worldObjectPosition.ToGlobal());
+            if (dist >= 8.0f)   // arbitrary, the default seems too far, esp. with the weird in-combat walking motion?
+                newMotion.Flag |= MovementParams.CanCharge;
 
             EnqueueBroadcast(new GameMessageUpdatePosition(this));
             EnqueueBroadcastMotion(newMotion);
