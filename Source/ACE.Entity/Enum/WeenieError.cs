@@ -9,6 +9,9 @@ namespace ACE.Entity.Enum
     /// The enum is used in handling 0x028A and 0x028B messages and also some other messages like UseDone.<para/>
     /// We split the enum up into 2 enums because each function uses only a specific set of the enum values.<para/>
     /// There are cases where the value was used by multiple messages e.g. 0x0036 ActionCancelled.
+    ///
+    /// Client error messages:
+    /// http://ac.yotesfan.com/client/errors.php
     /// </summary>
     public enum WeenieError
     {

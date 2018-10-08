@@ -39,14 +39,16 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Cleans up state on monster death
+        /// Called on monster death, before Die()
         /// </summary>
         public void OnDeath()
         {
             IsTurning = false;
             IsMoving = false;
 
-            //SetFinalPosition();
+            // handle summoning portals on creature death
+            if (LinkedPortalOneDID != null)
+                SummonPortal(LinkedPortalOneDID.Value);
         }
     }
 }

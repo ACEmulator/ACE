@@ -44,7 +44,7 @@ namespace ACE.Server.Managers
         /// <summary>
         /// Adds or updates a quest completion to the player's registry
         /// </summary>
-        public void AddSolve(string questName)
+        public void Update(string questName)
         {
             var existing = Quests.FirstOrDefault(q => q.QuestName == questName);
 
@@ -126,7 +126,7 @@ namespace ACE.Server.Managers
         public void Increment(string questName)
         {
             // kill task / append # to quest name?
-            AddSolve(questName);
+            Update(questName);
         }
 
         /// <summary>
@@ -167,7 +167,7 @@ namespace ACE.Server.Managers
         public void Stamp(string questName)
         {
             // ?
-            AddSolve(questName);
+            Update(questName);
         }
 
         public void SendNetworkMessage(string questName)
@@ -186,6 +186,22 @@ namespace ACE.Server.Managers
                 var remainStr = GetNextSolveTime(questName).GetFriendlyString();
                 var remain = new GameMessageSystemChat($"You may complete this quest again in {remainStr}.", ChatMessageType.Broadcast);
                 Player.Session.Network.EnqueueSend(text, remain, error);
+            }
+        }
+
+        public void SendNetworkMessageNoQuest(WorldObject wo)
+        {
+            if (wo is Portal)
+            {
+                var error = new GameEventInventoryServerSaveFailed(Player.Session, WeenieError.YouMustCompleteQuestToUsePortal);
+                var text = new GameMessageSystemChat("You must complete a quest to interact with that portal.", ChatMessageType.Broadcast);
+                Player.Session.Network.EnqueueSend(text, error);
+            }
+            else
+            {
+                var error = new GameEventInventoryServerSaveFailed(Player.Session, WeenieError.ItemRequiresQuestToBePickedUp);
+                var text = new GameMessageSystemChat("This item requires you to complete a specific quest before you can pick it up!", ChatMessageType.Broadcast);
+                Player.Session.Network.EnqueueSend(text, error);
             }
         }
     }

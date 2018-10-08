@@ -921,7 +921,7 @@ namespace ACE.Server.Managers
                     if (player != null)
                     {
                         var questName = emoteAction.Message;
-                        player.QuestManager.AddSolve(questName);
+                        player.QuestManager.Update(questName);
                         var hasQuest = player.QuestManager.HasQuest(questName);
                         InqCategory(hasQuest ? EmoteCategory.QuestSuccess : EmoteCategory.QuestFailure, emoteAction, sourceObject, targetObject, actionChain);
                     }

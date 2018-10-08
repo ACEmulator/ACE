@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
+using ACE.Database;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
@@ -546,9 +547,8 @@ namespace ACE.Server.WorldObjects
                         }
                         break;
                     case SpellType.PortalSummon:
-
                         uint portalId = 0;
-                        Position linkedPortal = null;
+                        Position destination = null;
 
                         if (itemCaster != null)
                             portalId = itemCaster.GetProperty(PropertyDataId.LinkedPortalOne) ?? 0;
@@ -556,41 +556,23 @@ namespace ACE.Server.WorldObjects
                         {
                             if (spell.Name.Contains("Summon Primary"))
                             {
-                                linkedPortal = GetPosition(PositionType.LinkedPortalOne);
+                                destination = GetPosition(PositionType.LinkedPortalOne);
                             }
                             if (spell.Name.Contains("Summon Secondary"))
                             {
-                                linkedPortal = GetPosition(PositionType.LinkedPortalTwo);
+                                destination = GetPosition(PositionType.LinkedPortalTwo);
                             }
 
-                            if (linkedPortal != null)
+                            if (destination != null)
                                 portalId = 1955;
                         }
 
                         if (portalId != 0)
-                        {
-                            var portal = WorldObjectFactory.CreateNewWorldObject(portalId);
-                            portal.SetupTableId = 33556212;
-                            portal.RadarBehavior = ACE.Entity.Enum.RadarBehavior.ShowNever;
-                            portal.Name = "Gateway";
-                            portal.Location = Location.InFrontOf();
-
-                            if (portalId == 1955)
-                                portal.Destination = linkedPortal;
-
-                            portal.EnterWorld();
-
-                            // Create portal decay
-                            ActionChain despawnChain = new ActionChain();
-                            despawnChain.AddDelaySeconds(spell.PortalLifetime);
-                            despawnChain.AddAction(portal, () => portal.CurrentLandblock?.RemoveWorldObject(portal.Guid, false));
-                            despawnChain.EnqueueChain();
-                        }
+                            SummonPortal(portalId, destination, spell.PortalLifetime);
                         else
-                        {
                             // You must link to a portal to summon it!
                             player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouMustLinkToPortalToSummonIt));
-                        }
+
                         break;
                     case SpellType.FellowPortalSending:
                         if (targetPlayer != null)
@@ -607,6 +589,51 @@ namespace ACE.Server.WorldObjects
             }
 
             return enchantmentStatus;
+        }
+
+        /// <summary>
+        /// Spawns a player-summoned portal from item magic or gems
+        /// </summary>
+        protected void SummonPortal(uint portalId, Position destination, double portalLifetime)
+        {
+            var portal = WorldObjectFactory.CreateNewWorldObject(portalId);
+            portal.SetupTableId = 33556212;
+            portal.RadarBehavior = ACE.Entity.Enum.RadarBehavior.ShowNever;
+            portal.Name = "Gateway";
+            portal.Location = Location.InFrontOf();
+
+            if (portalId == 1955)
+                portal.Destination = destination;
+
+            portal.EnterWorld();
+
+            // Create portal decay
+            ActionChain despawnChain = new ActionChain();
+            despawnChain.AddDelaySeconds(portalLifetime);
+            despawnChain.AddAction(portal, () => portal.CurrentLandblock?.RemoveWorldObject(portal.Guid, false));
+            despawnChain.EnqueueChain();
+        }
+
+        /// <summary>
+        /// Spawns a time-based portal from a portal weenie id
+        /// </summary>
+        protected void SummonPortal(uint wcid)
+        {
+            var weenie = DatabaseManager.World.GetCachedWeenie(wcid);
+            var portal = WorldObjectFactory.CreateNewWorldObject(weenie);
+            if (portal == null) return;
+
+            portal.Location = new Position(Location);
+
+            portal.EnterWorld();
+
+            // queue for destruction
+            var despawnChain = new ActionChain();
+            var portalLifetime = 60.0f;    // ??
+            despawnChain.AddDelaySeconds(portalLifetime);
+            //despawnChain.AddAction(portal, () => portal.Destroy());     // smooth fade-out doesn't work for portals?
+            despawnChain.AddAction(portal, () => portal.CurrentLandblock?.RemoveWorldObject(portal.Guid, false));
+            despawnChain.EnqueueChain();
         }
 
         /// <summary>

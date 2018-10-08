@@ -372,7 +372,7 @@ namespace ACE.Server.WorldObjects
                     EnqueueBroadcast(new GameMessageObjDescEvent(this));
 
                 if (questSolve)
-                    QuestManager.AddSolve(item.Quest);
+                    QuestManager.Update(item.Quest);
 
                 item.SaveBiotaToDatabase();
             });

@@ -175,143 +175,159 @@ namespace ACE.Server.WorldObjects
 
         public bool NoTie => NoRecall;
 
+        private void AdjustPortalDestination(Player player, Position portalDest)
+        {
+            switch (WeenieClassId)
+            {
+                // Setup correct racial portal destination for the Central Courtyard in the Training Academy
+                case (ushort)SpecialPortalWCID.CentralCourtyard:
+                    {
+                        uint playerLandblockId = player.Location.LandblockId.Raw;
+                        switch (playerLandblockId)
+                        {
+                            case (uint)SpecialPortalLandblockID.ShoushiCCLaunch:    // Shoushi
+                                {
+                                    portalDest.LandblockId = new LandblockId((uint)SpecialPortalLandblockID.ShoushiCCLanding);
+                                    break;
+                                }
+                            case (uint)SpecialPortalLandblockID.YaraqCCLaunch:    // Yaraq
+                                {
+                                    portalDest.LandblockId = new LandblockId((uint)SpecialPortalLandblockID.YaraqCCLanding);
+                                    break;
+                                }
+                            case (uint)SpecialPortalLandblockID.SanamarCCLaunch:    // Sanamar
+                                {
+                                    portalDest.LandblockId = new LandblockId((uint)SpecialPortalLandblockID.SanamarCCLanding);
+                                    break;
+                                }
+                            default:            // Holtburg
+                                {
+                                    portalDest.LandblockId = new LandblockId((uint)SpecialPortalLandblockID.HoltburgCCLanding);
+                                    break;
+                                }
+                        }
+
+                        portalDest.PositionX = Destination.PositionX;
+                        portalDest.PositionY = Destination.PositionY;
+                        portalDest.PositionZ = Destination.PositionZ;
+                        portalDest.RotationX = Destination.RotationX;
+                        portalDest.RotationY = Destination.RotationY;
+                        portalDest.RotationZ = Destination.RotationZ;
+                        portalDest.RotationW = Destination.RotationW;
+                        break;
+                    }
+                // Setup correct racial portal destination for the Outer Courtyard in the Training Academy
+                case (ushort)SpecialPortalWCID.OuterCourtyard:
+                    {
+                        uint playerLandblockId = player.Location.LandblockId.Raw;
+                        switch (playerLandblockId)
+                        {
+                            case (uint)SpecialPortalLandblockID.ShoushiOCLaunch:    // Shoushi
+                                {
+                                    portalDest.LandblockId = new LandblockId((uint)SpecialPortalLandblockID.ShoushiOCLanding);
+                                    break;
+                                }
+                            case (uint)SpecialPortalLandblockID.YaraqOCLaunch:    // Yaraq
+                                {
+                                    portalDest.LandblockId = new LandblockId((uint)SpecialPortalLandblockID.YaraqOCLanding);
+                                    break;
+                                }
+                            case (uint)SpecialPortalLandblockID.SanamarOCLaunch:    // Sanamar
+                                {
+                                    portalDest.LandblockId = new LandblockId((uint)SpecialPortalLandblockID.SanamarOCLanding);
+                                    break;
+                                }
+                            default:            // Holtburg
+                                {
+                                    portalDest.LandblockId = new LandblockId((uint)SpecialPortalLandblockID.HoltburgOCLanding);
+                                    break;
+                                }
+                        }
+
+                        portalDest.PositionX = Destination.PositionX;
+                        portalDest.PositionY = Destination.PositionY;
+                        portalDest.PositionZ = Destination.PositionZ;
+                        portalDest.RotationX = Destination.RotationX;
+                        portalDest.RotationY = Destination.RotationY;
+                        portalDest.RotationZ = Destination.RotationZ;
+                        portalDest.RotationW = Destination.RotationW;
+                        break;
+                    }
+            }
+        }
+
         private void ActivatePortal(Player player)
         {
-            string serverMessage;
-
             if (player.Teleporting)
                 return;
 
-            player.Teleporting = true;
+            player.Teleporting = false;
 
-            if (Destination != null)
+            if (Destination == null)
+            {
+                var msg = new GameMessageSystemChat($"Portal destination for portal ID {WeenieClassId} not yet implemented!", ChatMessageType.System);
+                player.Session.Network.EnqueueSend(msg);
+                return;
+            }
+
+            if (!player.IgnorePortalRestrictions)
             {
 #if DEBUG
-                serverMessage = "Checking requirements for " + this.Name;
-                var usePortalMessage = new GameMessageSystemChat(serverMessage, ChatMessageType.System);
-                player.Session.Network.EnqueueSend(usePortalMessage);
+                player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Checking requirements for {Name}", ChatMessageType.System));
 #endif
-                // Check player level -- requires remote query to player (ugh)...
-                if ((player.Level >= MinLevel) && ((player.Level <= MaxLevel) || (MaxLevel == 0)) || (player.IgnorePortalRestrictions ?? false))
-                {
-                    Position portalDest = Destination;
-                    switch (WeenieClassId)
-                    {
-                        // Setup correct racial portal destination for the Central Courtyard in the Training Academy
-                        case (ushort)SpecialPortalWCID.CentralCourtyard:
-                            {
-                                uint playerLandblockId = player.Location.LandblockId.Raw;
-                                switch (playerLandblockId)
-                                {
-                                    case (uint)SpecialPortalLandblockID.ShoushiCCLaunch:    // Shoushi
-                                        {
-                                            portalDest.LandblockId = new LandblockId((uint)SpecialPortalLandblockID.ShoushiCCLanding);
-                                            break;
-                                        }
-                                    case (uint)SpecialPortalLandblockID.YaraqCCLaunch:    // Yaraq
-                                        {
-                                            portalDest.LandblockId = new LandblockId((uint)SpecialPortalLandblockID.YaraqCCLanding);
-                                            break;
-                                        }
-                                    case (uint)SpecialPortalLandblockID.SanamarCCLaunch:    // Sanamar
-                                        {
-                                            portalDest.LandblockId = new LandblockId((uint)SpecialPortalLandblockID.SanamarCCLanding);
-                                            break;
-                                        }
-                                    default:            // Holtburg
-                                        {
-                                            portalDest.LandblockId = new LandblockId((uint)SpecialPortalLandblockID.HoltburgCCLanding);
-                                            break;
-                                        }
-                                }
 
-                                portalDest.PositionX = Destination.PositionX;
-                                portalDest.PositionY = Destination.PositionY;
-                                portalDest.PositionZ = Destination.PositionZ;
-                                portalDest.RotationX = Destination.RotationX;
-                                portalDest.RotationY = Destination.RotationY;
-                                portalDest.RotationZ = Destination.RotationZ;
-                                portalDest.RotationW = Destination.RotationW;
-                                break;
-                            }
-                        // Setup correct racial portal destination for the Outer Courtyard in the Training Academy
-                        case (ushort)SpecialPortalWCID.OuterCourtyard:
-                            {
-                                uint playerLandblockId = player.Location.LandblockId.Raw;
-                                switch (playerLandblockId)
-                                {
-                                    case (uint)SpecialPortalLandblockID.ShoushiOCLaunch:    // Shoushi
-                                        {
-                                            portalDest.LandblockId = new LandblockId((uint)SpecialPortalLandblockID.ShoushiOCLanding);
-                                            break;
-                                        }
-                                    case (uint)SpecialPortalLandblockID.YaraqOCLaunch:    // Yaraq
-                                        {
-                                            portalDest.LandblockId = new LandblockId((uint)SpecialPortalLandblockID.YaraqOCLanding);
-                                            break;
-                                        }
-                                    case (uint)SpecialPortalLandblockID.SanamarOCLaunch:    // Sanamar
-                                        {
-                                            portalDest.LandblockId = new LandblockId((uint)SpecialPortalLandblockID.SanamarOCLanding);
-                                            break;
-                                        }
-                                    default:            // Holtburg
-                                        {
-                                            portalDest.LandblockId = new LandblockId((uint)SpecialPortalLandblockID.HoltburgOCLanding);
-                                            break;
-                                        }
-                                }
-
-                                portalDest.PositionX = Destination.PositionX;
-                                portalDest.PositionY = Destination.PositionY;
-                                portalDest.PositionZ = Destination.PositionZ;
-                                portalDest.RotationX = Destination.RotationX;
-                                portalDest.RotationY = Destination.RotationY;
-                                portalDest.RotationZ = Destination.RotationZ;
-                                portalDest.RotationW = Destination.RotationW;
-                                break;
-                            }
-                        // All other portals don't need adjustments.
-                        default:
-                            {
-                                break;
-                            }
-                    }
-                    player.AdjustDungeon(portalDest);
-
-#if DEBUG
-                    serverMessage = "Portal sending player to destination";
-                    usePortalMessage = new GameMessageSystemChat(serverMessage, ChatMessageType.System);
-                    player.Session.Network.EnqueueSend(usePortalMessage);
-#endif
-                    player.Teleport(portalDest);
-                    // If the portal just used is able to be recalled to,
-                    // save the destination coordinates to the LastPortal character position save table
-                    if (!NoRecall)
-                        player.LastPortal = portalDest;
-                }
-                else if ((player.Level > MaxLevel) && (MaxLevel != 0))
-                {
-                    // You are too powerful to interact with that portal!
-                    var failedUsePortalMessage = new GameEventWeenieError(player.Session, WeenieError.YouAreTooPowerfulToUsePortal);
-                    player.Session.Network.EnqueueSend(failedUsePortalMessage);
-                    player.Teleporting = false;
-                }
-                else
+                if (player.Level < MinLevel)
                 {
                     // You are not powerful enough to interact with that portal!
                     var failedUsePortalMessage = new GameEventWeenieError(player.Session, WeenieError.YouAreNotPowerfulEnoughToUsePortal);
                     player.Session.Network.EnqueueSend(failedUsePortalMessage);
-                    player.Teleporting = false;
+                    return;
+                }
+
+                if (player.Level > MaxLevel && MaxLevel != 0)
+                {
+                    // You are too powerful to interact with that portal!
+                    var failedUsePortalMessage = new GameEventWeenieError(player.Session, WeenieError.YouAreTooPowerfulToUsePortal);
+                    player.Session.Network.EnqueueSend(failedUsePortalMessage);
+                    return;
+                }
+
+                // handle quest requirements
+                if (Quest != null)
+                {
+                    if (player.QuestManager.CanSolve(Quest))
+                    {
+                        player.QuestManager.Update(Quest);
+                    }
+                    else
+                    {
+                        player.QuestManager.SendNetworkMessage(Quest);
+                        return;
+                    }
+                }
+                if (QuestRestriction != null && !player.QuestManager.HasQuest(QuestRestriction))
+                {
+                    player.QuestManager.SendNetworkMessageNoQuest(this);
+                    return;
                 }
             }
-            else
-            {
-                serverMessage = "Portal destination for portal ID " + this.WeenieClassId + " not yet implemented!";
-                var failedUsePortalMessage = new GameMessageSystemChat(serverMessage, ChatMessageType.System);
-                player.Session.Network.EnqueueSend(failedUsePortalMessage);
-                player.Teleporting = false;
-            }
+
+#if DEBUG
+            player.Session.Network.EnqueueSend(new GameMessageSystemChat("Portal sending player to destination", ChatMessageType.System));
+#endif
+            // everything looks good, teleport
+            player.Teleporting = true;
+
+            var portalDest = new Position(Destination);
+            player.AdjustDungeon(portalDest);
+            AdjustPortalDestination(player, portalDest);
+
+            player.Teleport(portalDest);
+
+            // If the portal just used is able to be recalled to,
+            // save the destination coordinates to the LastPortal character position save table
+            if (!NoRecall)
+                player.LastPortal = portalDest;
         }
 
         public virtual void OnCollideObject(Player player)
