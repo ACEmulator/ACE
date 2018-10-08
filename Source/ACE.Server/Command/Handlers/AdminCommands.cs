@@ -1181,7 +1181,7 @@ namespace ACE.Server.Command.Handlers
         }
 
         // dispel
-        [CommandHandler("dispel", AccessLevel.Developer, CommandHandlerFlag.None, 0, "Removes all enchantments from the player", "dispel")]
+        [CommandHandler("dispel", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Removes all enchantments from the player", "/dispel")]
         public static void HandleDispel(Session session, params string[] parameters)
         {
             session.Player.EnchantmentManager.DispelAllEnchantments();
