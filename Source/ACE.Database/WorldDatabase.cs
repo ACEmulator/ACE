@@ -74,10 +74,9 @@ namespace ACE.Database
 
 
         private readonly ConcurrentDictionary<uint, Weenie> weenieCache = new ConcurrentDictionary<uint, Weenie>();
-        private readonly ConcurrentDictionary<uint, byte> weeniesNotFound = new ConcurrentDictionary<uint, byte>();
 
         /// <summary>
-        /// This will populate all sub collections except the followign: LandblockInstances, PointsOfInterest<para />
+        /// This will populate all sub collections except the following: LandblockInstances, PointsOfInterest<para />
         /// This will also update the weenie cache.
         /// </summary>
         private Weenie GetWeenie(WorldDbContext context, uint weenieClassId)
@@ -96,8 +95,7 @@ namespace ACE.Database
 
             if (weenie == null)
             {
-                weenieCache.TryRemove(weenieClassId, out _);
-                weeniesNotFound.TryAdd(weenieClassId, 0);
+                weenieCache.TryAdd(weenieClassId, null);
                 return null;
             }
 
@@ -144,7 +142,6 @@ namespace ACE.Database
 
             // If the weenie doesn't exist in the cache, we'll add it.
             weenieCache.TryAdd(weenieClassId, weenie);
-            weeniesNotFound.TryRemove(weenieClassId, out _);
 
             return weenie;
         }
@@ -190,13 +187,12 @@ namespace ACE.Database
         /// </summary>
         public int GetWeenieCacheCount()
         {
-            return weenieCache.Count;
+            return weenieCache.Count(r => r.Value != null);
         }
 
         public void ClearWeenieCache()
         {
             weenieCache.Clear();
-            weeniesNotFound.Clear();
         }
 
         /// <summary>
@@ -206,9 +202,6 @@ namespace ACE.Database
         {
             if (weenieCache.TryGetValue(weenieClassId, out var value))
                 return value;
-
-            if (weeniesNotFound.ContainsKey(weenieClassId))
-                return null;
 
             return GetWeenie(weenieClassId); // This will add the result into the weenieCache
         }
@@ -337,7 +330,7 @@ namespace ACE.Database
         /// </summary>
         public int GetLandblockInstancesCacheCount()
         {
-            return cachedLandblockInstances.Count;
+            return cachedLandblockInstances.Count(r => r.Value != null);
         }
 
         /// <summary>
@@ -380,28 +373,25 @@ namespace ACE.Database
         /// </summary>
         public int GetPointsOfInterestCacheCount()
         {
-            return cachedPointsOfInterest.Count;
+            return cachedPointsOfInterest.Count(r => r.Value != null);
         }
 
         public PointsOfInterest GetCachedPointOfInterest(string name)
         {
-            if (cachedPointsOfInterest.TryGetValue(name.ToLower(), out var value))
+            var nameToLower = name.ToLower();
+
+            if (cachedPointsOfInterest.TryGetValue(nameToLower, out var value))
                 return value;
 
             using (var context = new WorldDbContext())
             {
                 var result = context.PointsOfInterest
                     .AsNoTracking()
-                    .FirstOrDefault(r => r.Name.ToLower() == name.ToLower());
+                    .FirstOrDefault(r => r.Name.ToLower() == nameToLower);
 
-                if (result != null)
-                {
-                    cachedPointsOfInterest[name.ToLower()] = result;
-                    return result;
-                }
+                cachedPointsOfInterest[nameToLower] = result;
+                return result;
             }
-
-            return null;
         }
 
         private readonly Dictionary<uint, Dictionary<uint, CookBook>> cookbookCache = new Dictionary<uint, Dictionary<uint, CookBook>>();
@@ -412,7 +402,7 @@ namespace ACE.Database
         public int GetCookbookCacheCount()
         {
             lock (cookbookCache)
-                return cookbookCache.Count;
+                return cookbookCache.Count(r => r.Value != null);
         }
 
         public CookBook GetCachedCookbook(uint sourceWeenieClassid, uint targetWeenieClassId)
@@ -475,7 +465,7 @@ namespace ACE.Database
         /// </summary>
         public int GetSpellCacheCount()
         {
-            return spellCache.Count;
+            return spellCache.Count(r => r.Value != null);
         }
 
         public Spell GetCachedSpell(uint spellId)
@@ -489,14 +479,9 @@ namespace ACE.Database
                     .AsNoTracking()
                     .FirstOrDefault(r => r.Id == spellId);
 
-                if (result != null)
-                {
-                    spellCache[spellId] = result;
-                    return result;
-                }
+                spellCache[spellId] = result;
+                return result;
             }
-
-            return null;
         }
 
 
@@ -507,7 +492,7 @@ namespace ACE.Database
         /// </summary>
         public int GetEncounterCacheCount()
         {
-            return cachedEncounters.Count;
+            return cachedEncounters.Count(r => r.Value != null);
         }
 
         public List<Encounter> GetCachedEncountersByLandblock(ushort landblock)
@@ -522,10 +507,9 @@ namespace ACE.Database
                     .Where(r => r.Landblock == landblock)
                     .ToList();
 
-                cachedEncounters.TryAdd(landblock, results.ToList());
+                cachedEncounters.TryAdd(landblock, results);
+                return results;
             }
-
-            return cachedEncounters[landblock];
         }
 
         private readonly ConcurrentDictionary<string, Event> cachedEvents = new ConcurrentDictionary<string, Event>();
@@ -535,28 +519,25 @@ namespace ACE.Database
         /// </summary>
         public int GetEventsCacheCount()
         {
-            return cachedEvents.Count;
+            return cachedEvents.Count(r => r.Value != null);
         }
 
         public Event GetCachedEvent(string name)
         {
-            if (cachedEvents.TryGetValue(name.ToLower(), out var value))
+            var nameToLower = name.ToLower();
+
+            if (cachedEvents.TryGetValue(nameToLower, out var value))
                 return value;
 
             using (var context = new WorldDbContext())
             {
                 var result = context.Event
                     .AsNoTracking()
-                    .FirstOrDefault(r => r.Name.ToLower() == name.ToLower());
+                    .FirstOrDefault(r => r.Name.ToLower() == nameToLower);
 
-                if (result != null)
-                {
-                    cachedEvents[name.ToLower()] = result;
-                    return result;
-                }
+                cachedEvents[nameToLower] = result;
+                return result;
             }
-
-            return null;
         }
 
         public List<Event> GetAllEvents()
@@ -564,20 +545,14 @@ namespace ACE.Database
             using (var context = new WorldDbContext())
             {
                 var results = context.Event
-                    .AsNoTracking();
+                    .AsNoTracking()
+                    .ToList();
 
-                if (results != null)
-                {
-                    foreach(var result in results)
-                    {
-                        cachedEvents[result.Name.ToLower()] = result;
-                    }
+                foreach (var result in results)
+                    cachedEvents[result.Name.ToLower()] = result;
 
-                    return results.ToList();
-                }
+                return results;
             }
-
-            return null;
         }
 
         private readonly ConcurrentDictionary<uint, TreasureDeath> cachedDeathTreasure = new ConcurrentDictionary<uint, TreasureDeath>();
@@ -587,7 +562,7 @@ namespace ACE.Database
         /// </summary>
         public int GetDeathTreasureCacheCount()
         {
-            return cachedDeathTreasure.Count;
+            return cachedDeathTreasure.Count(r => r.Value != null);
         }
 
         public TreasureDeath GetCachedDeathTreasure(uint dataId)
@@ -601,14 +576,9 @@ namespace ACE.Database
                     .AsNoTracking()
                     .FirstOrDefault(r => r.TreasureType == dataId);
 
-                if (result != null)
-                {
-                    cachedDeathTreasure[dataId] = result;
-                    return result;
-                }
+                cachedDeathTreasure[dataId] = result;
+                return result;
             }
-
-            return null;
         }
 
         private readonly ConcurrentDictionary<uint, List<TreasureWielded>> cachedWieldedTreasure = new ConcurrentDictionary<uint, List<TreasureWielded>>();
@@ -618,7 +588,7 @@ namespace ACE.Database
         /// </summary>
         public int GetWieldedTreasureCacheCount()
         {
-            return cachedWieldedTreasure.Count;
+            return cachedWieldedTreasure.Count(r => r.Value != null);
         }
 
         public List<TreasureWielded> GetCachedWieldedTreasure(uint dataId)
