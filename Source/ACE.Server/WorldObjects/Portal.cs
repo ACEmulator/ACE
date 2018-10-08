@@ -301,13 +301,13 @@ namespace ACE.Server.WorldObjects
                     }
                     else
                     {
-                        player.QuestManager.SendNetworkMessage(Quest);
+                        player.QuestManager.HandleSolveError(Quest);
                         return;
                     }
                 }
                 if (QuestRestriction != null && !player.QuestManager.HasQuest(QuestRestriction))
                 {
-                    player.QuestManager.SendNetworkMessageNoQuest(this);
+                    player.QuestManager.HandleNoQuestError(this);
                     return;
                 }
             }

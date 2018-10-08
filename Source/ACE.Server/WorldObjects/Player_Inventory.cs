@@ -257,7 +257,7 @@ namespace ACE.Server.WorldObjects
                 {
                     if (!QuestManager.CanSolve(item.Quest))
                     {
-                        QuestManager.SendNetworkMessage(item.Quest);
+                        QuestManager.HandleSolveError(item.Quest);
                         return;
                     }
                     else

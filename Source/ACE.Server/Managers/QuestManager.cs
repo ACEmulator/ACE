@@ -170,7 +170,29 @@ namespace ACE.Server.Managers
             Update(questName);
         }
 
-        public void SendNetworkMessage(string questName)
+        /// <summary>
+        /// Called when a player hasn't started a quest yet
+        /// </summary>
+        public void HandleNoQuestError(WorldObject wo)
+        {
+            if (wo is Portal)
+            {
+                var error = new GameEventInventoryServerSaveFailed(Player.Session, WeenieError.YouMustCompleteQuestToUsePortal);
+                var text = new GameMessageSystemChat("You must complete a quest to interact with that portal.", ChatMessageType.Broadcast);
+                Player.Session.Network.EnqueueSend(text, error);
+            }
+            else
+            {
+                var error = new GameEventInventoryServerSaveFailed(Player.Session, WeenieError.ItemRequiresQuestToBePickedUp);
+                var text = new GameMessageSystemChat("This item requires you to complete a specific quest before you can pick it up!", ChatMessageType.Broadcast);
+                Player.Session.Network.EnqueueSend(text, error);
+            }
+        }
+
+        /// <summary>
+        /// Called when either the player has completed the quest too recently, or max solves has been reached.
+        /// </summary>
+        public void HandleSolveError(string questName)
         {
             if (IsMaxSolves(questName))
             {
@@ -189,20 +211,5 @@ namespace ACE.Server.Managers
             }
         }
 
-        public void SendNetworkMessageNoQuest(WorldObject wo)
-        {
-            if (wo is Portal)
-            {
-                var error = new GameEventInventoryServerSaveFailed(Player.Session, WeenieError.YouMustCompleteQuestToUsePortal);
-                var text = new GameMessageSystemChat("You must complete a quest to interact with that portal.", ChatMessageType.Broadcast);
-                Player.Session.Network.EnqueueSend(text, error);
-            }
-            else
-            {
-                var error = new GameEventInventoryServerSaveFailed(Player.Session, WeenieError.ItemRequiresQuestToBePickedUp);
-                var text = new GameMessageSystemChat("This item requires you to complete a specific quest before you can pick it up!", ChatMessageType.Broadcast);
-                Player.Session.Network.EnqueueSend(text, error);
-            }
-        }
     }
 }
