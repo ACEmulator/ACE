@@ -13,7 +13,6 @@ using ACE.Database.Models.World;
 using ACE.DatLoader;
 using ACE.DatLoader.FileTypes;
 using ACE.Entity;
-using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Factories;
 using ACE.Server.Managers;
@@ -51,8 +50,6 @@ namespace ACE.Server.Entity
 
         public bool IsActive { get; private set; } = true;
         private DateTime lastActiveTime;
-
-        public LandBlockStatus Status { get; } = new LandBlockStatus();
 
         public bool AdjacenciesLoaded { get; internal set; }
 
@@ -99,8 +96,6 @@ namespace ACE.Server.Entity
             Id = id;
             //Console.WriteLine("Landblock constructor(" + (id.Raw | 0xFFFF).ToString("X8") + ")");
 
-            UpdateStatus(LandBlockStatusFlag.IdleUnloaded);
-
             // initialize adjacency array
             adjacencies.Add(Adjacency.North, null);
             adjacencies.Add(Adjacency.NorthEast, null);
@@ -110,8 +105,6 @@ namespace ACE.Server.Entity
             adjacencies.Add(Adjacency.SouthWest, null);
             adjacencies.Add(Adjacency.West, null);
             adjacencies.Add(Adjacency.NorthWest, null);
-
-            UpdateStatus(LandBlockStatusFlag.IdleLoading);
 
             // create world objects (monster locations, generators)
             var objects = DatabaseManager.World.GetCachedInstancesByLandblock(Id.Landblock);
@@ -134,8 +127,6 @@ namespace ACE.Server.Entity
             //LoadMeshes(objects);
 
             SpawnEncounters();
-
-            UpdateStatus(LandBlockStatusFlag.IdleLoaded);
 
             lastActiveTime = DateTime.UtcNow;
         }
@@ -416,31 +407,6 @@ namespace ACE.Server.Entity
         public List<WorldObject> GetPhysicsWorldObjects()
         {
             return worldObjects.Values.Where(wo => wo.PhysicsObj != null).ToList();
-        }
-
-        private void UpdateStatus(LandBlockStatusFlag flag)
-        {
-            Status.LandBlockStatusFlag = flag;
-            // TODO: Diagnostics uses WinForms, which is not supported in .net standard/core.
-            // TODO: We need a better way to expose diagnostic information moving forward.
-            // Diagnostics.Diagnostics.SetLandBlockKey(id.LandblockX, id.LandblockY, Status);
-        }
-
-        private void UpdateStatus(int playerCount)
-        {
-            Status.PlayerCount = playerCount;
-            if (playerCount > 0)
-            {
-                Status.LandBlockStatusFlag = LandBlockStatusFlag.InUseLow;
-                // TODO: Diagnostics uses WinForms, which is not supported in .net standard/core.
-                // TODO: We need a better way to expose diagnostic information moving forward.
-                // Diagnostics.Diagnostics.SetLandBlockKey(id.LandblockX, id.LandblockY, Status);
-            }
-            else
-            {
-                Status.LandBlockStatusFlag = LandBlockStatusFlag.IdleLoaded;
-                UpdateStatus(Status.LandBlockStatusFlag);
-            }
         }
 
         /// <summary>
