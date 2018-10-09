@@ -185,9 +185,7 @@ namespace ACE.Server.WorldObjects
             if (Destination != null)
             {
 #if DEBUG
-                serverMessage = "Checking requirements for " + this.Name;
-                var usePortalMessage = new GameMessageSystemChat(serverMessage, ChatMessageType.System);
-                player.Session.Network.EnqueueSend(usePortalMessage);
+                player.Session.Network.EnqueueSend(new GameMessageSystemChat("Checking requirements for " + Name, ChatMessageType.System));
 #endif
                 // Check player level -- requires remote query to player (ugh)...
                 if ((player.Level >= MinLevel) && ((player.Level <= MaxLevel) || (MaxLevel == 0)) || (player.IgnorePortalRestrictions ?? false))
@@ -278,9 +276,7 @@ namespace ACE.Server.WorldObjects
                     player.AdjustDungeon(portalDest);
 
 #if DEBUG
-                    serverMessage = "Portal sending player to destination";
-                    usePortalMessage = new GameMessageSystemChat(serverMessage, ChatMessageType.System);
-                    player.Session.Network.EnqueueSend(usePortalMessage);
+                    player.Session.Network.EnqueueSend(new GameMessageSystemChat("Portal sending player to destination", ChatMessageType.System));
 #endif
                     player.Teleport(portalDest);
                     // If the portal just used is able to be recalled to,
