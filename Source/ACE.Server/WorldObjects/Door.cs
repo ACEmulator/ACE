@@ -51,7 +51,6 @@ namespace ACE.Server.WorldObjects
                 //Ethereal = true;
             }
 
-            IsLocked = IsLocked ?? false;
             ResetInterval = ResetInterval ?? 30.0f;
             ResistLockpick = ResistLockpick ?? 0;
             LockCode = LockCode ?? "";
@@ -63,7 +62,7 @@ namespace ACE.Server.WorldObjects
             ////    IsLocked = false;
 
             // But since we don't know what doors were DefaultLocked, let's assume for now that any door that starts Locked should default as such.
-            if (IsLocked ?? false)
+            if (IsLocked)
                 DefaultLocked = true;
 
             if (UseRadius < 2)
@@ -164,9 +163,9 @@ namespace ACE.Server.WorldObjects
 
             checkDoorChain.AddAction(this, () =>
             {
-                if (!IsLocked ?? false)
+                if (!IsLocked)
                 {
-                    if (!IsOpen ?? false)
+                    if (!IsOpen)
                     {
                         Open(worldObject.Guid);
                     }
@@ -244,7 +243,7 @@ namespace ACE.Server.WorldObjects
                 if (DefaultLocked)
                 {
                     IsLocked = true;
-                    var updateProperty = new GameMessagePublicUpdatePropertyBool(this, PropertyBool.Locked, IsLocked ?? true);
+                    var updateProperty = new GameMessagePublicUpdatePropertyBool(this, PropertyBool.Locked, IsLocked);
                     var sound = new GameMessageSound(Guid, Sound.OpenFailDueToLock, 1.0f); // TODO: This should probably come 1.5 seconds after the door closes so that sounds don't overlap
                     EnqueueBroadcast(updateProperty, sound);
                 }

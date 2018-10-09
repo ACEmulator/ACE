@@ -52,6 +52,7 @@ namespace ACE.Server.WorldObjects
                 {
                     // this should be handled by a different thing, probably a function that forces player into peacemode
                     var updateCombatMode = new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.CombatMode, (int)CombatMode.NonCombat);
+                    SetCombatMode(CombatMode.NonCombat);
                     Session.Network.EnqueueSend(updateCombatMode);
                 }
 

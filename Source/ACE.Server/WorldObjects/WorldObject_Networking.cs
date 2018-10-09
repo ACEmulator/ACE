@@ -12,15 +12,13 @@ using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
-using ACE.Server.Managers;
 using ACE.Server.Network;
 using ACE.Server.Network.GameMessages;
 using ACE.Server.Network.GameMessages.Messages;
+using ACE.Server.Network.Motion;
 using ACE.Server.Network.Structure;
 using ACE.Server.Network.Sequence;
 using ACE.Server.Physics;
-using ACE.Server.Physics.Common;
-using ACE.Server.Physics.Extensions;
 
 namespace ACE.Server.WorldObjects
 {
@@ -836,7 +834,7 @@ namespace ACE.Server.WorldObjects
             ////Openable               = 0x00000001,
             if (WeenieType == WeenieType.Container || WeenieType == WeenieType.Corpse || WeenieType == WeenieType.Chest || WeenieType == WeenieType.Hook || WeenieType == WeenieType.Storage)
             {
-                if (!(IsLocked ?? false) && !(IsOpen ?? false) || (WeenieType == WeenieType.Hook || WeenieType == WeenieType.Storage))
+                if ((!IsLocked && !IsOpen) || (WeenieType == WeenieType.Hook || WeenieType == WeenieType.Storage))
                     flag |= ObjectDescriptionFlag.Openable;
                 else
                     flag &= ~ObjectDescriptionFlag.Openable;
@@ -1145,6 +1143,27 @@ namespace ACE.Server.WorldObjects
                 iterator = CurrentLandblock.GetObject(iterator.OwnerId.Value);
             }
             return iterator.CurrentLandblock == null ? null : iterator;
+        }
+
+        public float EnqueueMotion(ActionChain actionChain, MotionCommand motionCommand, float speed = 1.0f, bool useStance = true)
+        {
+            var stance = CurrentMotionState != null && useStance ? CurrentMotionState.Stance : MotionStance.NonCombat;
+
+            var motion = new UniversalMotion(stance);
+            motion.MovementData.CurrentStyle = (uint)stance;
+            motion.MovementData.ForwardCommand = (uint)motionCommand;
+            motion.MovementData.TurnSpeed = 2.25f;  // ??
+
+            var animLength = Physics.Animation.MotionTable.GetAnimationLength(MotionTableId, stance, motionCommand);
+
+            actionChain.AddAction(this, () =>
+            {
+                CurrentMotionState = motion;
+                EnqueueBroadcastMotion(motion);
+            });
+
+            actionChain.AddDelaySeconds(animLength);
+            return animLength;
         }
 
         /// <summary>

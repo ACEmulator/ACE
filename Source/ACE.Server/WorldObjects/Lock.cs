@@ -134,16 +134,16 @@ namespace ACE.Server.WorldObjects
             string myLockCode = GetLockCode(target);
             if (myLockCode == null) return UnlockResults.IncorrectKey;
 
-            if (target.IsOpen ?? false)
+            if (target.IsOpen)
                 return UnlockResults.Open;
 
             if (keyCode == myLockCode)
             {
-                if (!target.IsLocked ?? false)
+                if (!target.IsLocked)
                     return UnlockResults.AlreadyUnlocked;
 
                 target.IsLocked = false;
-                var updateProperty = new GameMessagePublicUpdatePropertyBool(target, PropertyBool.Locked, target.IsLocked ?? false);
+                var updateProperty = new GameMessagePublicUpdatePropertyBool(target, PropertyBool.Locked, target.IsLocked);
                 var sound = new GameMessageSound(target.Guid, Sound.LockSuccess, 1.0f);
                 target.EnqueueBroadcast(updateProperty, sound);
                 return UnlockResults.UnlockSuccess;
@@ -159,10 +159,10 @@ namespace ACE.Server.WorldObjects
 
             difficulty = myResistLockpick.Value;
 
-            if (target.IsOpen ?? false)
+            if (target.IsOpen)
                 return UnlockResults.Open;
 
-            if (!target.IsLocked ?? false)
+            if (!target.IsLocked)
                 return UnlockResults.AlreadyUnlocked;
 
             var pickChance = SkillCheck.GetSkillChance((int)playerLockpickSkillLvl, (int)myResistLockpick);
@@ -176,7 +176,7 @@ namespace ACE.Server.WorldObjects
                 return UnlockResults.PickLockFailed;
 
             target.IsLocked = false;
-            target.EnqueueBroadcast(new GameMessagePublicUpdatePropertyBool(target, PropertyBool.Locked, target.IsLocked ?? false));
+            target.EnqueueBroadcast(new GameMessagePublicUpdatePropertyBool(target, PropertyBool.Locked, target.IsLocked));
             //target.CurrentLandblock?.EnqueueBroadcastSound(target, Sound.Lockpicking);
             return UnlockResults.UnlockSuccess;
         }
