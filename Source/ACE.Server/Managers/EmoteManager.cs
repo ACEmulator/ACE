@@ -72,8 +72,8 @@ namespace ACE.Server.Managers
                 case EmoteType.AddCharacterTitle:
 
                     // emoteAction.Stat == null for all EmoteType.AddCharacterTitle entries in current db?
-                    if (player != null)
-                        player.AddTitle((CharacterTitle)emoteAction.Stat);
+                    if (player != null && emoteAction.Amount != 0)
+                        player.AddTitle((CharacterTitle)emoteAction.Amount);
                     break;
 
                 case EmoteType.AddContract:
@@ -116,7 +116,7 @@ namespace ACE.Server.Managers
                         if (player != null)
                         {
                             player.EarnXP((long)emoteAction.Amount64);
-                            player.Session.Network.EnqueueSend(new GameMessageSystemChat("You've earned " + emoteAction.Amount64 + " experience.", ChatMessageType.Broadcast));
+                            player.Session.Network.EnqueueSend(new GameMessageSystemChat("You've earned " + emoteAction.Amount64.Value.ToString("N0") + " experience.", ChatMessageType.Broadcast));
                         }
                     });
                     break;
@@ -147,7 +147,7 @@ namespace ACE.Server.Managers
                         if (player != null)
                         {
                             player.EarnXP((long)emoteAction.Amount64);
-                            player.Session.Network.EnqueueSend(new GameMessageSystemChat("You've earned " + emoteAction.Amount64 + " experience.", ChatMessageType.Broadcast));
+                            player.Session.Network.EnqueueSend(new GameMessageSystemChat("You've earned " + emoteAction.Amount64.Value.ToString("N0") + " experience.", ChatMessageType.Broadcast));
                         }
                     });
                     break;
@@ -507,16 +507,19 @@ namespace ACE.Server.Managers
                     break;
 
                 case EmoteType.LocalBroadcast:
+
+                    message = Replace(emoteAction.Message, sourceObject, targetObject);
+
                     if (actionChain != null)
                     {
                         actionChain.AddDelaySeconds(emoteAction.Delay);
                         actionChain.AddAction(sourceObject, () =>
                         {
-                            sourceObject?.EnqueueBroadcast(new GameMessageCreatureMessage(emoteAction.Message, sourceObject.Name, sourceObject.Guid.Full, ChatMessageType.Broadcast));
+                            sourceObject?.EnqueueBroadcast(new GameMessageCreatureMessage(message, sourceObject.Name, sourceObject.Guid.Full, ChatMessageType.Broadcast));
                         });
                     }
                     else
-                        sourceObject.EnqueueBroadcast(new GameMessageCreatureMessage(emoteAction.Message, sourceObject.Name, sourceObject.Guid.Full, ChatMessageType.Broadcast));
+                        sourceObject.EnqueueBroadcast(new GameMessageCreatureMessage(message, sourceObject.Name, sourceObject.Guid.Full, ChatMessageType.Broadcast));
                     break;
 
                 case EmoteType.LocalSignal:
