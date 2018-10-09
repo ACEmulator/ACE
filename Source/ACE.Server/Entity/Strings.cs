@@ -101,6 +101,7 @@ namespace ACE.Server.Entity
             DeathMessages.Add(DamageType.Electric, Lightning);
             DeathMessages.Add(DamageType.Nether, Void);
             DeathMessages.Add(DamageType.Base, General);
+            DeathMessages.Add(DamageType.Health, General);
         }
 
         public static bool GetAttackVerb(DamageType damageType, float percent, ref string single, ref string plural)

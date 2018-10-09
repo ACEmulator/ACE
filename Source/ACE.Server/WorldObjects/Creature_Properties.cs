@@ -107,7 +107,7 @@ namespace ACE.Server.WorldObjects
             var spellProt = EnchantmentManager.GetProtectionResistanceMod(damageType);
 
             if (bonusMultiplier > spellVuln)
-                return (double)bonusMultiplier * spellProt;
+                return bonusMultiplier * spellProt;
 
             return spellVuln * spellProt;
         }

@@ -20,7 +20,7 @@ namespace ACE.DatLoader.Entity
         public uint Power { get; private set; } // Used to determine which spell in the catgory is the strongest.
         public float SpellEconomyMod { get; private set; } // A legacy of a bygone era
         public uint FormulaVersion { get; private set; }
-        public uint ComponentLoss { get; private set; } // Burn rate
+        public float ComponentLoss { get; private set; } // Burn rate
         public SpellType MetaSpellType { get; private set; }
         public uint MetaSpellId { get; private set; } // Just the spell id again
         
@@ -73,7 +73,7 @@ namespace ACE.DatLoader.Entity
             Power = reader.ReadUInt32();
             SpellEconomyMod = reader.ReadSingle();
             FormulaVersion = reader.ReadUInt32();
-            ComponentLoss = reader.ReadUInt32();
+            ComponentLoss = reader.ReadSingle();
             MetaSpellType = (SpellType)reader.ReadUInt32();
             MetaSpellId = reader.ReadUInt32();
 

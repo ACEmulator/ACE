@@ -1181,14 +1181,14 @@ namespace ACE.Server.Command.Handlers
         }
 
         // dispel
-        [CommandHandler("dispel", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0)]
+        [CommandHandler("dispel", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Removes all enchantments from the player", "/dispel")]
         public static void HandleDispel(Session session, params string[] parameters)
         {
-            // usage: @dispel
-            // This command removes all enchantments from you, or the object you have selected.
-            // @dispel - Dispels all enchantments from you (or the selected object).
+            session.Player.EnchantmentManager.DispelAllEnchantments();
 
-            // TODO: output
+            // remove all enchantments from equipped items for now
+            foreach (var item in session.Player.EquippedObjects.Values)
+                item.EnchantmentManager.DispelAllEnchantments();
         }
 
         // event

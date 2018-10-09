@@ -397,6 +397,25 @@ namespace ACE.Server.Managers
         }
 
         /// <summary>
+        /// Removes all enchantments from the player on server,
+        /// and sends network messages to silently dispel the enchantments
+        /// </summary>
+        public void DispelAllEnchantments(bool showMsg = false)
+        {
+            var enchantments = WorldObject.Biota.BiotaPropertiesEnchantmentRegistry.ToList();
+
+            foreach (var enchantment in enchantments)
+            {
+                if (showMsg)
+                {
+                    var spell = new Entity.Spell(enchantment.SpellId, false);
+                    Console.WriteLine("Removing " + spell.Name);
+                }
+                Dispel(enchantment);
+            }
+        }
+
+        /// <summary>
         /// Returns the minimum vitae for a player level
         /// </summary>
         public float GetMinVitae(uint level)
@@ -713,9 +732,17 @@ namespace ACE.Server.Managers
         /// </summary>
         public int GetDamageMod()
         {
+            // BD8 seems to be the only one with aura in db?
+            var aura = GetAdditiveMod(PropertyInt.WeaponAuraDamage);
+            if (aura != 0) return aura;
+
             return GetAdditiveMod(PropertyInt.Damage);
         }
 
+        /// <summary>
+        /// Returns the DamageMod for bow / crossbow
+        /// </summary>
+        /// <returns></returns>
         public float GetDamageModifier()
         {
             return GetMultiplicativeMod(PropertyFloat.DamageMod);
@@ -726,6 +753,9 @@ namespace ACE.Server.Managers
         /// </summary>
         public float GetAttackMod()
         {
+            var aura = GetAdditiveMod(PropertyFloat.WeaponAuraOffense);
+            if (aura != 0) return aura;
+
             return GetAdditiveMod(PropertyFloat.WeaponOffense);
         }
 
@@ -734,6 +764,9 @@ namespace ACE.Server.Managers
         /// </summary>
         public int GetWeaponSpeedMod()
         {
+            var aura = GetAdditiveMod(PropertyInt.WeaponAuraSpeed);
+            if (aura != 0) return aura;
+
             return GetAdditiveMod(PropertyInt.WeaponTime);
         }
 
@@ -742,6 +775,9 @@ namespace ACE.Server.Managers
         /// </summary>
         public float GetDefenseMod()
         {
+            var aura = GetAdditiveMod(PropertyFloat.WeaponAuraDefense);
+            if (aura != 0) return aura;
+
             return GetAdditiveMod(PropertyFloat.WeaponDefense);
         }
 

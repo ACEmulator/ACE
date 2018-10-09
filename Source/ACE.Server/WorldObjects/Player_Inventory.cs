@@ -225,6 +225,14 @@ namespace ACE.Server.WorldObjects
 
             var thisMoveToChainNumberCopy = thisMoveToChainNumber;
 
+            // rotate towards object
+            // TODO: should rotating be added directly to moveto chain?
+
+            /*pickUpItemChain.AddAction(this, () => Rotate(targetLocation));
+            var angle = GetAngle(targetLocation);
+            var rotateTime = GetRotateDelay(angle);
+            pickUpItemChain.AddDelaySeconds(rotateTime);*/
+
             pickUpItemChain.AddAction(this, () =>
             {
                 /*if (thisMoveToChainNumberCopy != moveToChainCounter)
