@@ -174,7 +174,7 @@ namespace ACE.Server.Network
                             nextAck = DateTime.UtcNow.AddMilliseconds(timeBetweenAck);
                         }
 
-                        if (currentBundle.NeedsSending && DateTime.UtcNow > nextSend)
+                        if (currentBundle.NeedsSending && DateTime.UtcNow >= nextSend)
                         {
                             packetLog.DebugFormat("[{0}] Swaping bundle", session.LoggingIdentifier);
                             // Swap out bundle so we can process it
@@ -184,7 +184,7 @@ namespace ACE.Server.Network
                     }
                     else
                     {
-                        if (currentBundle.NeedsSending && DateTime.UtcNow > nextSend)
+                        if (currentBundle.NeedsSending && DateTime.UtcNow >= nextSend)
                         {
                             packetLog.DebugFormat("[{0}] Swaping bundle", session.LoggingIdentifier);
                             // Swap out bundle so we can process it
