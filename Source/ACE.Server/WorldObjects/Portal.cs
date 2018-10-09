@@ -182,8 +182,6 @@ namespace ACE.Server.WorldObjects
             if (player.Teleporting)
                 return;
 
-            player.Teleporting = true;
-
             if (Destination != null)
             {
 #if DEBUG
@@ -295,14 +293,12 @@ namespace ACE.Server.WorldObjects
                     // You are too powerful to interact with that portal!
                     var failedUsePortalMessage = new GameEventWeenieError(player.Session, WeenieError.YouAreTooPowerfulToUsePortal);
                     player.Session.Network.EnqueueSend(failedUsePortalMessage);
-                    player.Teleporting = false;
                 }
                 else
                 {
                     // You are not powerful enough to interact with that portal!
                     var failedUsePortalMessage = new GameEventWeenieError(player.Session, WeenieError.YouAreNotPowerfulEnoughToUsePortal);
                     player.Session.Network.EnqueueSend(failedUsePortalMessage);
-                    player.Teleporting = false;
                 }
             }
             else
@@ -310,7 +306,6 @@ namespace ACE.Server.WorldObjects
                 serverMessage = "Portal destination for portal ID " + this.WeenieClassId + " not yet implemented!";
                 var failedUsePortalMessage = new GameMessageSystemChat(serverMessage, ChatMessageType.System);
                 player.Session.Network.EnqueueSend(failedUsePortalMessage);
-                player.Teleporting = false;
             }
         }
 
