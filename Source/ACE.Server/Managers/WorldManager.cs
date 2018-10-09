@@ -534,54 +534,6 @@ namespace ACE.Server.Managers
         }
 
         /// <summary>
-        /// Processes all inbound GameAction messages.<para />
-        /// Dispatches all outgoing messages.<para />
-        /// Removes dead sessions.
-        /// </summary>
-        public static int DoSessionWork()
-        {
-            int sessionCount;
-
-            sessionLock.EnterUpgradeableReadLock();
-            try
-            {
-                sessionCount = sessions.Count;
-
-                // The session tick processes all inbound GameAction messages
-                foreach (var s in sessions)
-                    s.Tick();
-
-                // The session TickInParallel processes pending actions and handles outgoing messages
-                // It typically takes .1 to .3 ms to process. However, it can spike to 15ms depending on the clients load/activity or the host system.
-                // The overhead for Parallel.ForEach is typically 1ms to 2ms.
-                if (sessionCount >= 5)
-                {
-                    Parallel.ForEach(sessions, s => s.TickInParallel());
-                }
-                else
-                {
-                    foreach (var s in sessions)
-                        s.TickInParallel();
-                }
-
-
-                // Removes sessions in the NetworkTimeout state, including sessions that have reached a timeout limit.
-                var deadSessions = sessions.FindAll(s => s.State == Network.Enum.SessionState.NetworkTimeout);
-
-                foreach (var session in deadSessions)
-                {
-                    log.Info($"client {session.Account} dropped");
-                    RemoveSession(session); // This will temporarily upgrade our ReadLock to a WriteLock
-                }
-            }
-            finally
-            {
-                sessionLock.ExitUpgradeableReadLock();
-            }
-            return sessionCount;
-        }
-
-        /// <summary>
         /// Projected to run at a reasonable rate for gameplay (30-60fps)
         /// </summary>
         public static bool UpdateGameWorld()
@@ -699,6 +651,54 @@ namespace ACE.Server.Managers
                 player.ClearRequestedPositions();
 
             return newPosition;
+        }
+
+        /// <summary>
+        /// Processes all inbound GameAction messages.<para />
+        /// Dispatches all outgoing messages.<para />
+        /// Removes dead sessions.
+        /// </summary>
+        public static int DoSessionWork()
+        {
+            int sessionCount;
+
+            sessionLock.EnterUpgradeableReadLock();
+            try
+            {
+                sessionCount = sessions.Count;
+
+                // The session tick processes all inbound GameAction messages
+                foreach (var s in sessions)
+                    s.Tick();
+
+                // The session TickInParallel processes pending actions and handles outgoing messages
+                // It typically takes .1 to .3 ms to process. However, it can spike to 15ms depending on the clients load/activity or the host system.
+                // The overhead for Parallel.ForEach is typically 1ms to 2ms.
+                if (sessionCount >= 5)
+                {
+                    Parallel.ForEach(sessions, s => s.TickInParallel());
+                }
+                else
+                {
+                    foreach (var s in sessions)
+                        s.TickInParallel();
+                }
+
+
+                // Removes sessions in the NetworkTimeout state, including sessions that have reached a timeout limit.
+                var deadSessions = sessions.FindAll(s => s.State == Network.Enum.SessionState.NetworkTimeout);
+
+                foreach (var session in deadSessions)
+                {
+                    log.Info($"client {session.Account} dropped");
+                    RemoveSession(session); // This will temporarily upgrade our ReadLock to a WriteLock
+                }
+            }
+            finally
+            {
+                sessionLock.ExitUpgradeableReadLock();
+            }
+            return sessionCount;
         }
     }
 }

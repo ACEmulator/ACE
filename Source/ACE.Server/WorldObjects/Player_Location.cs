@@ -102,6 +102,9 @@ namespace ACE.Server.WorldObjects
             if (!InWorld)
                 return;
 
+            InWorld = false;
+            Teleporting = true;
+
             Session.Network.EnqueueSend(new GameMessagePlayerTeleport(this));
 
             // load quickly, but player can load into landblock before server is finished loading
@@ -114,9 +117,6 @@ namespace ACE.Server.WorldObjects
             IgnoreCollisions = true;
             ReportCollisions = false;
             EnqueueBroadcastPhysicsState();
-
-            InWorld = false;
-            Teleporting = true;
         }
 
         public void OnTeleportComplete()

@@ -143,7 +143,6 @@ namespace ACE.Server.Network
             }
         }
 
-        // It is assumed that this will only be called from a single thread.WorldManager.UpdateWorld()->Session.Update(lastTick)->This
         /// <summary>
         /// Checks if we should send the current bundle and then flushes all pending packets.
         /// </summary>
@@ -174,7 +173,7 @@ namespace ACE.Server.Network
                             nextAck = DateTime.UtcNow.AddMilliseconds(timeBetweenAck);
                         }
 
-                        if (currentBundle.NeedsSending && DateTime.UtcNow > nextSend)
+                        if (currentBundle.NeedsSending && DateTime.UtcNow >= nextSend)
                         {
                             packetLog.DebugFormat("[{0}] Swaping bundle", session.LoggingIdentifier);
                             // Swap out bundle so we can process it
@@ -184,7 +183,7 @@ namespace ACE.Server.Network
                     }
                     else
                     {
-                        if (currentBundle.NeedsSending && DateTime.UtcNow > nextSend)
+                        if (currentBundle.NeedsSending && DateTime.UtcNow >= nextSend)
                         {
                             packetLog.DebugFormat("[{0}] Swaping bundle", session.LoggingIdentifier);
                             // Swap out bundle so we can process it
