@@ -143,7 +143,6 @@ namespace ACE.Server.Network
             }
         }
 
-        // It is assumed that this will only be called from a single thread.WorldManager.UpdateWorld()->Session.Update(lastTick)->This
         /// <summary>
         /// Checks if we should send the current bundle and then flushes all pending packets.
         /// </summary>
