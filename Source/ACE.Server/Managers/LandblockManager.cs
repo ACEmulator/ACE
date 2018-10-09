@@ -2,7 +2,6 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Diagnostics;
 
 using log4net;
 
@@ -27,25 +26,18 @@ namespace ACE.Server.Managers
         /// </summary>
         private static readonly ConcurrentBag<Landblock> destructionQueue = new ConcurrentBag<Landblock>();
 
-        public static void Initialize()
+        public static void PreloadCommonLandblocks()
         {
-            var landBlockIdList = new List<LandblockId>();
-
-            for (uint x = 0; x < RawLandblockId.Length; x++)
+            foreach (var rawLandblockId in rawLandblockIds)
             {
-                var landBlockId = new LandblockId(RawLandblockId[x]);
-                landBlockIdList.Add(landBlockId);
-            }
-
-            foreach (var landBlockId in landBlockIdList)
-            {
+                var landBlockId = new LandblockId(rawLandblockId);
                 ForceLoadLandBlock(landBlockId, true, true);
                 log.DebugFormat("Landblock {0:X4} preloaded", landBlockId.Landblock);
             }
         }
 
         // TODO: Change the RawLandblockId list used for preloading defined landblocks to some other, more easily-modified format, rather than a compiled uint array
-        private static readonly uint[] RawLandblockId = {   0x8603ffff, // Training Academy - Holtburg Starting Location
+        private static readonly uint[] rawLandblockIds = {   0x8603ffff, // Training Academy - Holtburg Starting Location
                                                             0x8c04ffff, // Training Academy - Yaraq Starting Location
                                                             0x7f03ffff, // Training Academy - Shoushi Starting Location
                                                             0x7203ffff, // Training Academy - Sanamar Starting Location
@@ -108,9 +100,6 @@ namespace ACE.Server.Managers
         /// <summary>
         /// Loads the specified list of landblocks and optionally their adjacents.
         /// </summary>
-        /// <param name="blockid"></param>
-        /// <param name="propagate"></param>
-        /// <param name="permaload"></param>
         public static void ForceLoadLandBlock(LandblockId blockid, bool propagate, bool permaload)
         {
             GetLandblock(blockid, propagate, permaload);

@@ -428,10 +428,10 @@ namespace ACE.Server.Command.Handlers
             });
         }
 
-        [CommandHandler("cacheallweenies", AccessLevel.Developer, CommandHandlerFlag.None, "Loads and caches all Weenies. This may take 10+ minutes and is very heavy on the database.")]
+        [CommandHandler("cacheallweenies", AccessLevel.Developer, CommandHandlerFlag.None, "Loads and caches all Weenies. This may take 15+ minutes and is very heavy on the database.")]
         public static void HandleCacheAllWeenies(Session session, params string[] parameters)
         {
-            CommandHandlerHelper.WriteOutputInfo(session, "Caching Weenies... This may take more than 10 minutes...");
+            CommandHandlerHelper.WriteOutputInfo(session, "Caching Weenies... This may take more than 15 minutes...");
 
             Task.Run(() => DatabaseManager.World.CacheAllWeenies());
         }
