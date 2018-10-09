@@ -48,7 +48,6 @@ namespace ACE.Server.Entity
         /// </summary>
         public bool Permaload = false;
 
-        public bool IsActive { get; private set; } = true;
         private DateTime lastActiveTime;
 
         public bool AdjacenciesLoaded { get; internal set; }
@@ -234,24 +233,14 @@ namespace ACE.Server.Entity
 
             //UpdateStatus(allplayers.Count);
 
-            if (IsActive)
-            {
-                var wos = worldObjects.Values.ToList();
+            var wos = worldObjects.Values.ToList();
 
-                foreach (var wo in wos)
-                    wo.Tick(currentUnixTime);
-            }
+            foreach (var wo in wos)
+                wo.Tick(currentUnixTime);
 
             // Heartbeat
             if (lastHeartBeat + heartbeatInterval <= DateTime.UtcNow)
             {
-                if (IsActive)
-                {
-                    // tick decayable objects ?? Is this still needed now that we've migrated to the new Tick architecture?
-
-                    // tick items sold to vendors ?? Is this still needed now that we've migrated to the new Tick architecture?
-                }
-
                 // TODO: handle perma-loaded landblocks
                 if (!Permaload && lastActiveTime + unloadInterval < DateTime.UtcNow)
                     LandblockManager.AddToDestructionQueue(this);
@@ -597,7 +586,6 @@ namespace ACE.Server.Entity
         /// <param name="isAdjacent">Public calls to this function should always set isAdjacent to false</param>
         public void SetActive(bool isAdjacent = false)
         {
-            IsActive = true;
             lastActiveTime = DateTime.UtcNow;
 
             if (isAdjacent || _landblock.IsDungeon) return;
