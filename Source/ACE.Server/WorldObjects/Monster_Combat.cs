@@ -196,7 +196,7 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Simplified player take damage function, only called for DoTs currently
+        /// Simplified monster take damage over time function, only called for DoTs currently
         /// </summary>
         public virtual void TakeDamageOverTime(float amount, DamageType damageType)
         {
@@ -262,15 +262,15 @@ namespace ACE.Server.WorldObjects
 
             if (Health.Current <= 0)
             {
-                OnDeath();
+                //OnDeath();
                 Die();
 
                 // this should only probably go to the last damager
                 var lastDamager = DamageHistory.LastDamager as Player;
                 if (lastDamager != null)
                 {
-                    var deathMessage = GetDeathMessage(lastDamager, damageType, crit);
-                    lastDamager.Session.Network.EnqueueSend(new GameMessageSystemChat(string.Format(deathMessage, Name), ChatMessageType.Broadcast));
+                    var deathMessage = Strings.GetDeathMessage(damageType, crit);
+                    lastDamager.Session.Network.EnqueueSend(new GameMessageSystemChat(string.Format(deathMessage.Killer, Name), ChatMessageType.Broadcast));
                 }
 
                 // split xp between players in damage history?

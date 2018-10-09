@@ -5,18 +5,6 @@ namespace ACE.Server.WorldObjects
 {
     partial class Creature
     {
-        public bool? NoCorpse
-        {
-            get => GetProperty(PropertyBool.NoCorpse);
-            set { if (!value.HasValue) RemoveProperty(PropertyBool.NoCorpse); else SetProperty(PropertyBool.NoCorpse, value.Value); }
-        }
-
-        public uint? Killer
-        {
-            get => GetProperty(PropertyInstanceId.Killer);
-            set { if (!value.HasValue) RemoveProperty(PropertyInstanceId.Killer); else SetProperty(PropertyInstanceId.Killer, value.Value); }
-        }
-
         public double? ResistSlash
         {
             get => GetProperty(PropertyFloat.ResistSlash);
@@ -177,5 +165,22 @@ namespace ACE.Server.WorldObjects
         public double ResistManaDrainMod => (ResistManaDrain ?? 1.0) * EnchantmentManager.GetResistanceMod(DamageType.Mana);
         public double ResistManaBoostMod => (ResistManaBoost ?? 1.0) * EnchantmentManager.GetResistanceMod(DamageType.Mana);
 
+        public bool NoCorpse
+        {
+            get => GetProperty(PropertyBool.NoCorpse) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.NoCorpse); else SetProperty(PropertyBool.NoCorpse, value); }
+        }
+
+        public uint? Killer
+        {
+            get => GetProperty(PropertyInstanceId.Killer);
+            set { if (!value.HasValue) RemoveProperty(PropertyInstanceId.Killer); else SetProperty(PropertyInstanceId.Killer, value.Value); }
+        }
+
+        public uint? DeathTreasureType
+        {
+            get => GetProperty(PropertyDataId.DeathTreasureType);
+            set { if (!value.HasValue) RemoveProperty(PropertyDataId.DeathTreasureType); else SetProperty(PropertyDataId.DeathTreasureType, value.Value); }
+        }
     }
 }

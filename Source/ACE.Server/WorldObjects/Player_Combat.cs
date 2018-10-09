@@ -479,8 +479,11 @@ namespace ACE.Server.WorldObjects
 
             if (Health.Current <= 0)
             {
-                // todo: send death messages
+                // since damage over time is possibly combined from multiple sources,
+                // sending a message to the last damager here could be tricky..
+                OnDeath(null, damageType, false);
                 Die();
+
                 return;
             }
 
@@ -504,6 +507,7 @@ namespace ACE.Server.WorldObjects
 
             if (Health.Current == 0)
             {
+                OnDeath(source, damageType, crit);
                 Die();
                 return;
             }

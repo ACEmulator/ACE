@@ -1,15 +1,15 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-
-using ACE.Database;
 using ACE.DatLoader;
 using ACE.DatLoader.FileTypes;
+using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
+using ACE.Server.Managers;
 using ACE.Server.Network.Structure;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
@@ -19,6 +19,47 @@ namespace ACE.Server.WorldObjects
 {
     partial class Player
     {
+        /// <summary>
+        /// Called when a player dies, in conjunction with Die()
+        /// </summary>
+        /// <param name="lastDamager">The last damager that landed the death blow</param>
+        /// <param name="damageType">The damage type for the death message</param>
+        public override DeathMessage OnDeath(WorldObject lastDamager, DamageType damageType, bool criticalHit = false)
+        {
+            var deathMessage = base.OnDeath(lastDamager, damageType, criticalHit);
+
+            var playerMsg = string.Format(deathMessage.Victim, Name, lastDamager.Name);
+            var msgYourDeath = new GameEventYourDeath(Session, playerMsg);
+            Session.Network.EnqueueSend(msgYourDeath);
+
+            // broadcast to nearby players
+            var nearbyMsg = string.Format(deathMessage.Broadcast, Name, lastDamager.Name);
+            var broadcastMsg = new GameMessageSystemChat(nearbyMsg, ChatMessageType.Broadcast);
+            var nearbyPlayers = EnqueueBroadcast(false, broadcastMsg);
+
+            var excludePlayers = nearbyPlayers.ToList();
+            excludePlayers.Add(this);   // exclude self
+
+            // if the player's lifestone is in a different landblock, also broadcast their demise to that landblock
+            if (Sanctuary != null && Location.Landblock != Sanctuary.Landblock)
+            {
+                // ActionBroadcastKill might not work if other players around lifestone aren't aware of this player yet...
+                // this existing broadcast method is also based on the current visible objects to the player,
+                // and the player hasn't entered portal space or teleported back to the lifestone yet, so this doesn't work
+                //ActionBroadcastKill(nearbyMsg, Guid, lastDamager.Guid);
+
+                // instead, we get all of the players in the lifestone landblock + adjacent landblocks,
+                // and possibly limit that to some radius around the landblock?
+                var lifestoneBlock = LandblockManager.GetLandblock(new LandblockId(Sanctuary.Landblock << 16 | 0xFFFF), true);
+                lifestoneBlock.EnqueueBroadcast(excludePlayers, true, broadcastMsg);
+            }
+
+            // reset damage history for this player
+            DamageHistory.Reset();
+
+            return deathMessage;
+        }
+
         /// <summary>
         /// Broadcasts the player death animation, updates vitae, and sends network messages for player death
         /// Queues the action to call TeleportOnDeath and enter portal space soon
@@ -47,7 +88,6 @@ namespace ACE.Server.WorldObjects
 
             // TODO: death sounds? seems to play automatically in client
             // var msgDeathSound = new GameMessageSound(Guid, Sound.Death1, 1.0f);
-            var msgYourDeath = new GameEventYourDeath(Session, $"You have {currentDeathMessage}");
             var msgNumDeaths = new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.NumDeaths, NumDeaths ?? 0);
             var msgDeathLevel = new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.DeathLevel, DeathLevel ?? 0);
             var msgVitaeCpPool = new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.VitaeCpPool, VitaeCpPool.Value);
@@ -62,7 +102,7 @@ namespace ACE.Server.WorldObjects
             var msgVitaeEnchantment = new GameEventMagicUpdateEnchantment(Session, vitaeEnchantment);
 
             // send network messages for player death
-            Session.Network.EnqueueSend(msgHealthUpdate, msgYourDeath, msgNumDeaths, msgDeathLevel, msgVitaeCpPool, msgPurgeEnchantments, msgVitaeEnchantment);
+            Session.Network.EnqueueSend(msgHealthUpdate, msgNumDeaths, msgDeathLevel, msgVitaeCpPool, msgPurgeEnchantments, msgVitaeEnchantment);
 
             // wait for the death animation to finish
             var dieChain = new ActionChain();
@@ -73,14 +113,6 @@ namespace ACE.Server.WorldObjects
             dieChain.AddAction(this, CreateCorpse);
             dieChain.AddAction(this, TeleportOnDeath);
             dieChain.EnqueueChain();
-
-            // if the player's lifestone is in a different landblock, also broadcast their demise to that landblock
-            if (Sanctuary != null && Location.Landblock != Sanctuary.Landblock)
-            {
-                var killerGuid = lastDamager != null ? lastDamager.Guid : Guid;
-                ActionBroadcastKill($"{Name} has {currentDeathMessage}", Guid, killerGuid);
-            }
-            DamageHistory.Reset();
         }
 
         /// <summary>

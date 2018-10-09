@@ -1,6 +1,5 @@
 using System;
 using System.Linq;
-
 using ACE.Database;
 using ACE.Database.Models.World;
 using ACE.DatLoader;
@@ -8,30 +7,45 @@ using ACE.DatLoader.FileTypes;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
 using ACE.Server.Managers;
 using ACE.Server.Network.Motion;
+using ACE.Server.Network.GameMessages.Messages;
 
 namespace ACE.Server.WorldObjects
 {
     partial class Creature
     {
-        public uint? DeathTreasureType
-        {
-            get => GetProperty(PropertyDataId.DeathTreasureType);
-            set { if (!value.HasValue) RemoveProperty(PropertyDataId.DeathTreasureType); else SetProperty(PropertyDataId.DeathTreasureType, value.Value); }
-        }
+        public TreasureDeath DeathTreasure { get => DeathTreasureType.HasValue ? DatabaseManager.World.GetCachedDeathTreasure(DeathTreasureType.Value) : null; }
 
-        public TreasureDeath DeathTreasure
+        /// <summary>
+        /// Called when a monster or player dies, in conjunction with Die()
+        /// </summary>
+        /// <param name="lastDamager">The last damager that landed the death blow</param>
+        /// <param name="damageType">The damage type for the death message</param>
+        /// <param name="criticalHit">True if the death blow was a critical hit, generates a critical death message</param>
+        public virtual DeathMessage OnDeath(WorldObject lastDamager, DamageType damageType, bool criticalHit = false)
         {
-            get
+            IsTurning = false;
+            IsMoving = false;
+
+            //SetFinalPosition();
+
+            var deathMessage = Strings.GetDeathMessage(damageType, criticalHit);
+
+            // if killed by a player, send them a message
+            var playerKiller = lastDamager as Player;
+            if (playerKiller != null)
             {
-                if (DeathTreasureType.HasValue)
-                    return DatabaseManager.World.GetCachedDeathTreasure(DeathTreasureType.Value);
-                else
-                    return null;
+                var killerMsg = string.Format(deathMessage.Killer, Name);
+
+                // todo: verify message type
+                playerKiller.Session.Network.EnqueueSend(new GameMessageSystemChat(killerMsg, ChatMessageType.Broadcast));
             }
+
+            return deathMessage;
         }
 
         /// <summary>
@@ -86,8 +100,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         protected void CreateCorpse()
         {
-            if (NoCorpse ?? false)
-                return;
+            if (NoCorpse) return;
 
             var corpse = WorldObjectFactory.CreateNewWorldObject(DatabaseManager.World.GetCachedWeenie("corpse")) as Corpse;
 

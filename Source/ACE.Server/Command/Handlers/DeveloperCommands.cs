@@ -1308,7 +1308,7 @@ namespace ACE.Server.Command.Handlers
             if (parameters.Length == 0) return;
             var amount = Int32.Parse(parameters[0]);
 
-            var obj = GetLastAppraisedObject(session);
+            var obj = CommandHandlerHelper.GetLastAppraisedObject(session);
             if (obj == null) return;
 
             amount = Math.Min(amount, obj.ItemMaxMana ?? 0);
@@ -1361,9 +1361,9 @@ namespace ACE.Server.Command.Handlers
         /// Returns the distance to the last appraised object
         /// </summary>
         [CommandHandler("dist", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Returns the distance to the last appraised object")]
-        public static void HandleTeleportDist(Session session, params string[] parameters)
+        public static void HandleDist(Session session, params string[] parameters)
         {
-            var obj = GetLastAppraisedObject(session);
+            var obj = CommandHandlerHelper.GetLastAppraisedObject(session);
             if (obj == null) return;
 
             var sourcePos = session.Player.Location.ToGlobal();
@@ -1374,6 +1374,106 @@ namespace ACE.Server.Command.Handlers
 
             Console.WriteLine("Dist: " + dist);
             Console.WriteLine("2D Dist: " + dist2d);
+        }
+
+        /// <summary>
+        /// Teleport object culling precision test
+        /// </summary>
+        [CommandHandler("teledist", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Teleports a some distance ahead of the last object spawned", "/teletest <distance>")]
+        public static void HandleTeleportDist(Session session, params string[] parameters)
+        {
+            if (parameters.Length < 1)
+                return;
+
+            var lastSpawnPos = AdminCommands.LastSpawnPos;
+
+            var distance = float.Parse(parameters[0]);
+
+            var newPos = new Position();
+            newPos.LandblockId = new LandblockId(lastSpawnPos.LandblockId.Raw);
+            newPos.Pos = lastSpawnPos.Pos;
+            newPos.Rotation = session.Player.Location.Rotation;
+
+            var dir = Vector3.Normalize(Vector3.Transform(Vector3.UnitY, newPos.Rotation));
+            var offset = dir * distance;
+
+            newPos.SetPosition(newPos.Pos + offset);
+
+            session.Player.Teleport(newPos);
+
+            var globLastSpawnPos = lastSpawnPos.ToGlobal();
+            var globNewPos = newPos.ToGlobal();
+
+            var totalDist = Vector3.Distance(globLastSpawnPos, globNewPos);
+
+            var totalDist2d = Vector2.Distance(new Vector2(globLastSpawnPos.X, globLastSpawnPos.Y), new Vector2(globNewPos.X, globNewPos.Y));
+
+            ChatPacket.SendServerMessage(session, $"Teleporting player to {newPos.Cell:X8} @ {newPos.Pos}", ChatMessageType.System);
+
+            ChatPacket.SendServerMessage(session, "2D Distance: " + totalDist2d, ChatMessageType.System);
+            ChatPacket.SendServerMessage(session, "3D Distance: " + totalDist, ChatMessageType.System);
+        }
+
+        /// <summary>
+        /// Shows the list of objects known to this player
+        /// </summary>
+        [CommandHandler("knownobjs", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Shows the list of objects known to this player", "/knownobjs")]
+        public static void HandleKnownObjs(Session session, params string[] parameters)
+        {
+            Console.WriteLine($"\nKnown objects to {session.Player.Name}: {session.Player.PhysicsObj.ObjMaint.ObjectTable.Count}");
+
+            foreach (var obj in session.Player.PhysicsObj.ObjMaint.ObjectTable.Values)
+                Console.WriteLine($"{obj.Name} ({obj.ID:X8})");
+        }
+
+        /// <summary>
+        /// Shows the list of objects visible to this player
+        /// </summary>
+        [CommandHandler("visibleobjs", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Shows the list of objects known to this player", "/visibleobjs")]
+        public static void HandleVisibleObjs(Session session, params string[] parameters)
+        {
+            Console.WriteLine($"\nVisible objects to {session.Player.Name}: {session.Player.PhysicsObj.ObjMaint.VisibleObjectTable.Count}");
+
+            foreach (var obj in session.Player.PhysicsObj.ObjMaint.VisibleObjectTable.Values)
+                Console.WriteLine($"{obj.Name} ({obj.ID:X8})");
+        }
+
+        /// <summary>
+        /// Shows the list of players known to this player
+        /// </summary>
+        [CommandHandler("knownplayers", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Shows the list of players known to this player", "/knownplayers")]
+        public static void HandleKnownPlayers(Session session, params string[] parameters)
+        {
+            Console.WriteLine($"\nKnown players to {session.Player.Name}: {session.Player.PhysicsObj.ObjMaint.ObjectTable.Values.Where(o => o.IsPlayer).Count()}");
+
+            foreach (var obj in session.Player.PhysicsObj.ObjMaint.ObjectTable.Values.Where(o => o.IsPlayer))
+                Console.WriteLine($"{obj.Name} ({obj.ID:X8})");
+        }
+
+        /// <summary>
+        /// Shows the list of players visible to this player
+        /// </summary>
+        [CommandHandler("visibleplayers", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Shows the list of players visible to this player", "/visibleplayers")]
+        public static void HandleVisiblePlayers(Session session, params string[] parameters)
+        {
+            Console.WriteLine($"\nVisible players to {session.Player.Name}: {session.Player.PhysicsObj.ObjMaint.VisibleObjectTable.Values.Where(o => o.IsPlayer).Count()}");
+
+            foreach (var obj in session.Player.PhysicsObj.ObjMaint.VisibleObjectTable.Values.Where(o => o.IsPlayer))
+                Console.WriteLine($"{obj.Name} ({obj.ID:X8})");
+        }
+
+        /// <summary>
+        /// Shows the list of previously visible objects queued for destruction for this player
+        /// </summary>
+        [CommandHandler("destructionqueue", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Shows the list of previously visible objects queued for destruction for this player", "/destructionqueue")]
+        public static void HandleDestructionQueue(Session session, params string[] parameters)
+        {
+            Console.WriteLine($"\nDestruction queue for {session.Player.Name}: {session.Player.PhysicsObj.ObjMaint.DestructionQueue.Count}");
+
+            var currentTime = Physics.Common.PhysicsTimer.CurrentTime;
+
+            foreach (var obj in session.Player.PhysicsObj.ObjMaint.DestructionQueue)
+                Console.WriteLine($"{obj.Key.Name} ({obj.Key.ID:X8}): {obj.Value - currentTime}");
         }
     }
 }
