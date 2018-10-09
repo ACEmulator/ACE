@@ -4,7 +4,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Numerics;
 using System.Threading;
-
+using System.Threading.Tasks;
 using log4net;
 
 using ACE.Database;
@@ -14,6 +14,7 @@ using ACE.DatLoader;
 using ACE.DatLoader.FileTypes;
 using ACE.Entity;
 using ACE.Entity.Enum.Properties;
+using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
 using ACE.Server.Managers;
 using ACE.Server.Physics.Common;
@@ -57,6 +58,8 @@ namespace ACE.Server.Entity
         private readonly Dictionary<Adjacency, Landblock> adjacencies = new Dictionary<Adjacency, Landblock>();
 
 
+        private readonly ActionQueue actionQueue = new ActionQueue();
+
         /// <summary>
         /// Landblocks will be checked for activity every # seconds
         /// </summary>
@@ -93,7 +96,6 @@ namespace ACE.Server.Entity
         public Landblock(LandblockId id)
         {
             Id = id;
-            //Console.WriteLine("Landblock constructor(" + (id.Raw | 0xFFFF).ToString("X8") + ")");
 
             // initialize adjacency array
             adjacencies.Add(Adjacency.North, null);
@@ -105,33 +107,58 @@ namespace ACE.Server.Entity
             adjacencies.Add(Adjacency.West, null);
             adjacencies.Add(Adjacency.NorthWest, null);
 
-            // create world objects (monster locations, generators)
-            var objects = DatabaseManager.World.GetCachedInstancesByLandblock(Id.Landblock);
-            var shardObjects = DatabaseManager.Shard.GetStaticObjectsByLandblock(Id.Landblock);
-            var factoryObjects = WorldObjectFactory.CreateNewWorldObjects(objects, shardObjects);
-            foreach (var fo in factoryObjects)
-            {
-                AddWorldObject(fo);
-                fo.ActivateLinks(objects, shardObjects);
-            }
-
-            // create dynamic shard objects (corpses)
-            var corpses = DatabaseManager.Shard.GetObjectsByLandblock(Id.Landblock);
-            var factoryShardObjects = WorldObjectFactory.CreateWorldObjects(corpses);
-            foreach (var fso in factoryShardObjects)
-                AddWorldObject(fso);
-
             _landblock = LScape.get_landblock(Id.Raw);
 
-            //LoadMeshes(objects);
-
-            SpawnEncounters();
-
             lastActiveTime = DateTime.UtcNow;
+
+            Task.Run(() => CreateWorldObjects());
+
+            Task.Run(() => SpawnDynamicShardObjects());
+
+            Task.Run(() => SpawnEncounters());
+
+            //LoadMeshes(objects);
         }
 
         /// <summary>
-        /// Spawns the semi-randomized monsters scattered around the outdoors
+        /// Monster Locations, Generators<para />
+        /// This will be called from a separate task from our constructor. Use thread safety when interacting with this landblock.
+        /// </summary>
+        private void CreateWorldObjects()
+        {
+            var objects = DatabaseManager.World.GetCachedInstancesByLandblock(Id.Landblock);
+            var shardObjects = DatabaseManager.Shard.GetStaticObjectsByLandblock(Id.Landblock);
+            var factoryObjects = WorldObjectFactory.CreateNewWorldObjects(objects, shardObjects);
+
+            actionQueue.EnqueueAction(new ActionEventDelegate(() =>
+            {
+                foreach (var fo in factoryObjects)
+                {
+                    AddWorldObject(fo);
+                    fo.ActivateLinks(objects, shardObjects);
+                }
+            }));
+        }
+
+        /// <summary>
+        /// Corpses<para />
+        /// This will be called from a separate task from our constructor. Use thread safety when interacting with this landblock.
+        /// </summary>
+        private void SpawnDynamicShardObjects()
+        {
+            var corpses = DatabaseManager.Shard.GetObjectsByLandblock(Id.Landblock);
+            var factoryShardObjects = WorldObjectFactory.CreateWorldObjects(corpses);
+
+            actionQueue.EnqueueAction(new ActionEventDelegate(() =>
+            {
+                foreach (var fso in factoryShardObjects)
+                    AddWorldObject(fso);
+            }));
+        }
+
+        /// <summary>
+        /// Spawns the semi-randomized monsters scattered around the outdoors<para />
+        /// This will be called from a separate task from our constructor. Use thread safety when interacting with this landblock.
         /// </summary>
         private void SpawnEncounters()
         {
@@ -156,8 +183,11 @@ namespace ACE.Server.Entity
 
                 wo.Location = new Position(pos.ObjCellID, pos.Frame.Origin, pos.Frame.Orientation);
 
-                if (!worldObjects.ContainsKey(wo.Guid))
-                    AddWorldObject(wo);
+                actionQueue.EnqueueAction(new ActionEventDelegate(() =>
+                {
+                    if (!worldObjects.ContainsKey(wo.Guid))
+                        AddWorldObject(wo);
+                }));
             }
         }
 
@@ -225,13 +255,7 @@ namespace ACE.Server.Entity
 
         public void Tick(double currentUnixTime)
         {
-            // Here we'd move server objects in motion (subject to landscape) and do physics collision detection
-
-            // TODO: remove these legacy functions
-            //var allworldobj = worldObjects.Values;
-            //var allplayers = allworldobj.OfType<Player>().ToList();
-
-            //UpdateStatus(allplayers.Count);
+            actionQueue.RunActions();
 
             var wos = worldObjects.Values.ToList();
 
