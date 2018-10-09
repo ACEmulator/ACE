@@ -109,7 +109,7 @@ namespace ACE.Server.Managers
         /// gets the landblock specified, creating it if it is not already loaded.  will create all
         /// adjacent landblocks if propagate is true (outdoor world roaming).
         /// </summary>
-        private static Landblock GetLandblock(LandblockId landblockId, bool propagate, bool permaload = false)
+        public static Landblock GetLandblock(LandblockId landblockId, bool propagate, bool permaload = false)
         {
             lock (landblockMutex)
             {

@@ -1,96 +1,238 @@
 using System.Collections.Generic;
 using ACE.Entity.Enum;
+using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Entity
 {
     public class Strings
     {
-        public static Dictionary<DamageType, List<string>> DeathMessages;
+        public static Dictionary<DamageType, List<DeathMessage>> DeathMessages;
 
-        public static List<string> Slashing = new List<string>()
+        // all verified in retail pcaps
+        // 0 = victim
+        // 1 = killer
+
+        public static List<DeathMessage> Slashing = new List<DeathMessage>()
         {
-            "You split {0} apart!",
-            "You cleave {0} in twain!",
-            "{0} is torn to ribbons by your assault!",
-            "Your killing blow nearly turns {0} inside-out!",
+            new DeathMessage(
+                "You split {0} apart!",
+                "{1} splits you apart!",
+                "{1} splits {0} apart!"),
+
+            new DeathMessage(
+                "You cleave {0} in twain!",
+                "{1} cleaves you in twain!",
+                "{1} cleaves {0} in twain!"),
+
+            new DeathMessage(
+                "{0} is torn to ribbons by your assault!",
+                "You are torn to ribbons by {1}'s assault!",
+                "{0} is torn to ribbons by {0]'s assault!"),
+
+            new DeathMessage(
+                "Your killing blow nearly turns {0} inside-out!",
+                "{1}'s killing blow nearly turns you inside-out!",
+                "{1}'s killing blow nearly turns {0} inside-out!")
         };
 
-        public static List<string> Piercing = new List<string>()
+        public static List<DeathMessage> Piercing = new List<DeathMessage>()
         {
-            "You run {0} through!",
-            "{0}'s death is preceded by a sharp, stabbing pain!",
-            "{0} is fatally punctured!",
-            "{0}'s perforated corpse falls before you!"
+            new DeathMessage(
+                "You run {0} through!",
+                "{1} runs you through!",
+                "{1} runs {0} through!"),
+
+            new DeathMessage(
+                "{0} is fatally punctured!",
+                "You are fatally punctured by {1}!",
+                "{0} is fatally punctured by {1}!"),
+
+            new DeathMessage(
+                "{0}'s perforated corpse falls before you!",
+                "Your perforated corpse falls before {1}!",
+                "{0}'s perforated corpse falls before {1}!"),
+
+            new DeathMessage(
+                "{0}'s death is preceded by a sharp, stabbing pain!",
+                "Your death is preceded by a sharp, stabbing pain, courtesy of {1}!",
+                "{0}'s death is preceded by a sharp, stabbing pain, courtesy of {1}!")
         };
 
-        public static List<string> Bludgeoning = new List<string>()
+        public static List<DeathMessage> Bludgeoning = new List<DeathMessage>()
         {
-            "You beat {0} to a lifeless pulp!",
-            "{0} is shattered by your assault!",
-            "You flatten {0}'s body with the force of your assault!",
-            "The thunder of crushing {0} is followed by the deafening silence of death!",
+            new DeathMessage(
+                "You beat {0} to a lifeless pulp!",
+                "{1} beats you to a lifeless pulp!",
+                "{1} beats {0} to a lifeless pulp!"),
+
+            new DeathMessage(
+                "{0} is shattered by your assault!",
+                "Your body is shattered by {1}'s attack!",
+                "{0}'s body is shattered by {1}'s attack!"),
+
+            new DeathMessage(
+                "You flatten {0}'s body with the force of your assault!",
+                "The force of {1}'s assault flattens you!",
+                "The force of {1}'s assault flattens {0}!"),
+
+            new DeathMessage(
+                "The thunder of crushing {0} is followed by the deafening silence of death!",
+                "The thunder of {1} crushing {0} is followed by the deafening silence of your death!",
+                "The thunder of {1} crushing {0} is followed by the deafening silence of death!")
         };
 
-        public static List<string> Fire = new List<string>()
+        public static List<DeathMessage> Fire = new List<DeathMessage>()
         {
-            "You bring {0} to a fiery end!",
-            "{0} is reduced to cinders!",
-            "{0}'s seared corpse smolders before you!",
-            "{0} is incinerated by your assault!"
+            new DeathMessage(
+                "You bring {0} to a fiery end!",
+                "{1} brings you to a fiery end!",
+                "{1} brings {0} to a fiery end!"),
+
+            new DeathMessage(
+                "{0} is reduced to cinders!",
+                "You are reduced to cinders by {1}!",
+                "{1} reduced {0} to cinders!"),
+
+            new DeathMessage(
+                "{0} is incinerated by your assault!",
+                "You are incinerated by {1}'s assault!",
+                "{0} is incinerated by {1}'s assault!"),
+
+            new DeathMessage(
+                "{0}'s seared corpse smolders before you!",
+                "Your seared corpse smolders before {1}!",
+                "{0}'s seared corpse smolders before {1}!")
         };
 
-        public static List<string> Ice = new List<string>()
+        public static List<DeathMessage> Ice = new List<DeathMessage>()
         {
-            "Your attack stops {0} cold!",
-            "Your assault sends {0} to an icy death!",
-            "{0} suffers a frozen fate!"
+            new DeathMessage(
+                "Your attack stops {0} cold!",
+                "{1}'s attack stops you cold!",
+                "{1}'s attack stops {0} cold!"),
+
+            new DeathMessage(
+                "Your assault sends {0} to an icy death!",
+                "{1}'s assault sends you to an icy death!",
+                "{1}'s assault sends {0} to an icy death!"),
+
+            new DeathMessage(
+                "{0} suffers a frozen fate!",
+                "You suffer a frozen fate at the hands of {1}!",
+                "{0} suffers a frozen fate at the hands of {1}!")
         };
 
-        public static List<string> Acid = new List<string>()
+        public static List<DeathMessage> Acid = new List<DeathMessage>()
         {
-            "{0}'s last strength dissolves before you!",
-            "{0} is liquified by your attack!",
-            "You reduce {0} to a sizzling, oozing mass!",
+            new DeathMessage(
+                "{0} is liquified by your attack!",
+                "You are liquified by {1}'s attack!",
+                "{0} is liquified by {1}'s attack!"),
+
+            new DeathMessage(
+                "{0}'s last strength dissolves before you!",
+                "Your last strength dissolves before {1}!",
+                "{0}'s last strength dissolves before {1}!"),
+
+            new DeathMessage(
+                "You reduce {0} to a sizzling, oozing mass!",
+                "{1} reduces you to a sizzling, oozing mass!",
+                "{1} reduces {0} to a sizzling, oozing mass!")
         };
 
-        public static List<string> Lightning = new List<string>()
+        public static List<DeathMessage> Lightning = new List<DeathMessage>()
         {
-            "Blistered by lightning, {0} falls!",
-            "Electricity tears {0} apart!",
-            "Your lightning coruscates over {0}'s mortal remains!",
+            new DeathMessage(
+                "Electricity tears {0} apart!",
+                "{1}'s electricity tears you apart!",
+                "{1}'s electricity tears {0} apart!"),
+
+            new DeathMessage(
+                "Blistered by lightning, {0} falls!",
+                "Blistered by {1}'s lightning, you die!",
+                "Blistered by {1}'s lightning, {0} dies!"),
+
+            new DeathMessage(
+                "Your lightning coruscates over {0}'s mortal remains!",
+                "{1}'s lightning coruscates over your mortal remains!",
+                "{1}'s lightning coruscates over {0}'s mortal remains!")
         };
 
-        public static List<string> Void = new List<string>()
+        public static List<DeathMessage> Void = new List<DeathMessage>()
         {
-            "{0} is dessicated by your attack!",
-            "{0}'s last strength withers before you!",
-            "You reduce {0} to a drained, twisted corpse!"
+            new DeathMessage(
+                "{0} is dessicated by your attack!",
+                "You are dessicated by {1}'s attack!",
+                "{0} is dessicated by {1}'s attack!"),
+
+            new DeathMessage(
+                "{0}'s last strength withers before you!",
+                "Your last strength withers before {1}!",
+                "{0}'s last strength withers before {1}!"),
+
+            new DeathMessage(
+                "You reduce {0} to a drained, twisted corpse!",
+                "{1} reduces you to a drained, twisted corpse!",
+                "{1} reduces {0} to a drained, twisted corpse!")
         };
 
-        public static List<string> Critical = new List<string>()
+        public static List<DeathMessage> Critical = new List<DeathMessage>()
         {
-            "{0} catches your attack, with dire consequences!",
-            "You obliterate {0}!",
-            "{0} is utterly destroyed by your attack!",
-            "You knock {0} into next Morningthaw!",
-            "You slay {0} viciously enough to impart death several times over!",
-            "The deadly force of your attack is so strong that {0}'s ancestors feel it!",
-            "You smite {0} mightily!",
+            new DeathMessage(
+                "You obliterate {0}!",
+                "{1} obliterates you!",
+                "{1} obliterates {0}!"),
+
+            new DeathMessage(
+                "You smite {0} mightily!",
+                "{1} smites you mightily!",
+                "{1} smites {0} mightily!"),
+
+            new DeathMessage(
+                "You knock {0} into next Morningthaw!",
+                "{1} knocks you into next Morningthaw!",
+                "{1} knocks {0} into next Morningthaw!"),
+
+            new DeathMessage(
+                "{0} is utterly destroyed by your attack!",
+                "You are utterly destroyed by {1}'s attack!",
+                "{0} is utterly destroyed by {1}'s attack!"),
+
+            new DeathMessage(
+                "{0} catches your attack, with dire consequences!",
+                "You catch {1}'s attack, with dire consequences!",
+                "{0} catches {1}'s attack, with dire consequences!"),
+
+            new DeathMessage(
+                "You slay {0} viciously enough to impart death several times over!",
+                "{1} slays you viciously enough to impart death several times over!",
+                "{1} slays {0} viciously enough to impart death several times over!"),
+
+            new DeathMessage(
+                "The deadly force of your attack is so strong that {0}'s ancestors feel it!",
+                "The deadly force of {1}'s attack is so strong that your ancestors feel it!",
+                "The deadly force of {1}'s attack is so strong that {0}'s ancestors feel it!")
         };
 
-        public static List<string> PKCritical = new List<string>()
+        public static List<DeathMessage> PKCritical = new List<DeathMessage>()
         {
-            "You send {0} to death so violently that even the lifestone flinches!"
+            new DeathMessage(
+                "You send {0} to death so violently that even the lifestone flinches!",
+                "{1} sends you to your death so violently that even the lifestone flinches!",
+                "{1} sends {0} to death so violently that even the lifestone flinches!")
         };
 
-        public static List<string> General = new List<string>()
+        public static List<DeathMessage> General = new List<DeathMessage>()
         {
-            "You killed {0}!",
+            new DeathMessage(
+                "You killed {0}!",
+                "You were killed by {1}!",
+                "{0} was killed by {1}!")
         };
 
         static Strings()
         {
-            DeathMessages = new Dictionary<DamageType, List<string>>();
+            DeathMessages = new Dictionary<DamageType, List<DeathMessage>>();
             DeathMessages.Add(DamageType.Undef, General);
             DeathMessages.Add(DamageType.Slash, Slashing);
             DeathMessages.Add(DamageType.Pierce, Piercing);
@@ -331,6 +473,26 @@ namespace ACE.Server.Entity
                         plural = "drains";
                     }
                     return true;
+            }
+        }
+
+        /// <summary>
+        /// Returns a randomized death message based on damage type
+        /// </summary>
+        public static DeathMessage GetDeathMessage(DamageType damageType, bool criticalHit = false)
+        {
+            if (!criticalHit)
+            {
+                //var damageType = killer.GetDamageType();
+                DeathMessages.TryGetValue(damageType, out var messages);
+                var idx = Physics.Common.Random.RollDice(0, messages.Count - 1);
+                return messages[idx];
+            }
+            else
+            {
+                var messages = Critical;
+                var idx = Physics.Common.Random.RollDice(0, messages.Count - 1);
+                return messages[idx];
             }
         }
     }

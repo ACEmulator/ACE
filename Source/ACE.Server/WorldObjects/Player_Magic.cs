@@ -684,7 +684,7 @@ namespace ACE.Server.WorldObjects
                                     }
                                 }
 
-                                EnqueueBroadcast(new GameMessageScript(target.Guid, (PlayScript)spell.TargetEffect, spell.Formula.Scale));
+                                EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
                                 targetDeath = LifeMagic(target, spell, out uint damage, out bool critical, out enchantmentStatus);
 
                                 if (spell.MetaSpellType != SpellType.LifeProjectile)
@@ -697,11 +697,10 @@ namespace ACE.Server.WorldObjects
 
                                 if (targetDeath == true)
                                 {
+                                    creatureTarget.OnDeath(this, DamageType.Health, false); 
                                     creatureTarget.Die();
 
-                                    Strings.DeathMessages.TryGetValue(DamageType.Base, out var messages);
-                                    player.Session.Network.EnqueueSend(new GameMessageSystemChat(string.Format(messages[0], target.Name), ChatMessageType.Broadcast));
-
+                                    // TODO: refactor to common Creature.OnDeath()
                                     if ((creatureTarget as Player) == null)
                                         player.EarnXP((long)target.XpOverride, true);
                                 }

@@ -230,5 +230,21 @@ namespace ACE.Server.WorldObjects
 
             return totalSum - totalProduct;
         }
+
+        public void EquipInventoryItems(bool weaponsOnly = false)
+        {
+            var items = weaponsOnly ? SelectWieldedWeapons() : SelectWieldedTreasure();
+            if (items != null)
+            {
+                foreach (var item in items)
+                {
+                    //Console.WriteLine($"{Name} equipping {item.Name}");
+
+                    if (item.ValidLocations != null)
+                        TryEquipObject(item, (int)item.ValidLocations);
+                }
+            }
+        }
+
     }
 }

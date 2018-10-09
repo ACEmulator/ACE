@@ -367,29 +367,37 @@ namespace ACE.Server.WorldObjects
                 case SpellType.LifeProjectile:
 
                     caster = this as Creature;
+                    var damageType = DamageType.Undef;
 
                     if (spell.Name.Contains("Blight"))
                     {
                         var tryDamage = (int)Math.Round(caster.GetCurrentCreatureVital(PropertyAttribute2nd.Mana) * spell.DrainPercentage / caster.GetNaturalResistance(ResistanceType.ManaDrain));
                         damage = (uint)-caster.UpdateVitalDelta(caster.Mana, -tryDamage);
+                        damageType = DamageType.Mana;
                     }
                     else if (spell.Name.Contains("Tenacity"))
                     {
                         var tryDamage = (int)Math.Round(caster.GetCurrentCreatureVital(PropertyAttribute2nd.Stamina) * spell.DrainPercentage / caster.GetNaturalResistance(ResistanceType.StaminaDrain));
                         damage = (uint)-caster.UpdateVitalDelta(caster.Stamina, -tryDamage);
+                        damageType = DamageType.Stamina;
                     }
                     else
                     {
                         var tryDamage = (int)Math.Round(caster.GetCurrentCreatureVital(PropertyAttribute2nd.Health) * spell.DrainPercentage / caster.GetNaturalResistance(ResistanceType.HealthDrain));
                         damage = (uint)-caster.UpdateVitalDelta(caster.Health, -tryDamage);
                         caster.DamageHistory.Add(this, DamageType.Health, damage);
+                        damageType = DamageType.Health;
                     }
 
                     var sp = CreateSpellProjectile(spell, target, damage);
                     LaunchSpellProjectile(sp);
 
                     if (caster.Health.Current <= 0)
+                    {
+                        // should this be possible?
+                        caster.OnDeath(caster, damageType, false);
                         caster.Die();
+                    }
 
                     enchantmentStatus.message = null;
                     break;

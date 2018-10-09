@@ -1200,21 +1200,31 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Sends network messages to all Players who currently know about this object
         /// </summary>
-        public void EnqueueBroadcast(params GameMessage[] msgs)
+        public IEnumerable<Player> EnqueueBroadcast(params GameMessage[] msgs)
         {
-            if (PhysicsObj == null) return;
+            return EnqueueBroadcast(true, msgs);
+        }
 
-            var self = this as Player;
-            if (self != null)
-                self.Session.Network.EnqueueSend(msgs);
+        public IEnumerable<Player> EnqueueBroadcast(bool sendSelf = true, params GameMessage[] msgs)
+        {
+            if (PhysicsObj == null) return null;
 
-            foreach (var player in PhysicsObj.ObjMaint.VoyeurTable.Values.Select(v => v.WeenieObj.WorldObject as Player))
+            if (sendSelf)
+            {
+                var self = this as Player;
+                if (self != null)
+                    self.Session.Network.EnqueueSend(msgs);
+            }
+
+            var nearbyPlayers = PhysicsObj.ObjMaint.VoyeurTable.Values.Select(v => v.WeenieObj.WorldObject as Player);
+            foreach (var player in nearbyPlayers)
             {
                 if ((Visibility ?? false) && !player.Adminvision)
                     continue;
 
                 player.Session.Network.EnqueueSend(msgs);
             }
+            return nearbyPlayers;
         }
 
         /// <summary>
