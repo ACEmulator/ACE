@@ -28,9 +28,33 @@ namespace ACE.Server.Managers
         /// <summary>
         /// Returns TRUE if a player has started a particular quest
         /// </summary>
-        public bool HasQuest(String questName)
+        public bool HasQuest(string questName)
         {
             return GetQuest(questName) != null;
+        }
+
+        public bool HasQuestCompletes(string questName)
+        {
+            if (!questName.Contains("@"))
+                return HasQuest(questName);
+
+            var pieces = questName.Split('@');
+            if (pieces.Length != 2)
+            {
+                Console.WriteLine($"{Player.Name}.QuestManager.HasQuestCompletes({questName}): error parsing quest name");
+                return false;
+            }
+            var name = pieces[0];
+            if (!Int32.TryParse(pieces[1], out var numCompletes))
+            {
+                Console.WriteLine($"{Player.Name}.QuestManager.HasQuestCompletes({questName}): error parsing quest name");
+                return false;
+            }
+            var quest = GetQuest(name);
+            if (quest == null)
+                return false;
+
+            return quest.NumTimesCompleted == numCompletes;     // minimum or exact?
         }
 
         /// <summary>

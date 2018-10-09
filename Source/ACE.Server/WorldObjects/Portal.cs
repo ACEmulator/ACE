@@ -291,25 +291,25 @@ namespace ACE.Server.WorldObjects
                     player.Session.Network.EnqueueSend(failedUsePortalMessage);
                     return;
                 }
+            }
 
-                // handle quest requirements
-                if (Quest != null)
+            // handle quest requirements
+            if (Quest != null)
+            {
+                if (player.QuestManager.CanSolve(Quest))
                 {
-                    if (player.QuestManager.CanSolve(Quest))
-                    {
-                        player.QuestManager.Update(Quest);
-                    }
-                    else
-                    {
-                        player.QuestManager.HandleSolveError(Quest);
-                        return;
-                    }
+                    player.QuestManager.Update(Quest);
                 }
-                if (QuestRestriction != null && !player.QuestManager.HasQuest(QuestRestriction))
+                else
                 {
-                    player.QuestManager.HandleNoQuestError(this);
+                    player.QuestManager.HandleSolveError(Quest);
                     return;
                 }
+            }
+            if (QuestRestriction != null && !player.QuestManager.HasQuest(QuestRestriction))
+            {
+                player.QuestManager.HandleNoQuestError(this);
+                return;
             }
 
 #if DEBUG

@@ -395,7 +395,12 @@ namespace ACE.Server.Managers
 
                     if (player != null)
                     {
-                        var hasQuest = player.QuestManager.HasQuest(emoteAction.Message);
+                        bool hasQuest = false;
+                        if (emoteAction.Message.Contains("@"))
+                            hasQuest = player.QuestManager.HasQuestCompletes(emoteAction.Message);
+                        else
+                            hasQuest = player.QuestManager.HasQuest(emoteAction.Message);
+
                         InqCategory(hasQuest ? EmoteCategory.QuestSuccess : EmoteCategory.QuestFailure, emoteAction, sourceObject, targetObject, actionChain);
                     }
                     break;
