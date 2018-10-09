@@ -17,6 +17,9 @@ namespace ACE.Server.Managers
         public Player Player { get; }
         public ICollection<CharacterPropertiesQuestRegistry> Quests { get => Player.Character.CharacterPropertiesQuestRegistry; }
 
+        public static bool Debug = false;
+
+
         /// <summary>
         /// Constructs a new QuestManager for a Player
         /// </summary>
@@ -30,11 +33,15 @@ namespace ACE.Server.Managers
         /// </summary>
         public bool HasQuest(string questName)
         {
-            return GetQuest(questName) != null;
+            var hasQuest = GetQuest(questName) != null;
+            if (Debug) Console.WriteLine($"{Player.Name}.HasQuest({questName}): {hasQuest}");
+            return hasQuest;
         }
 
         public bool HasQuestCompletes(string questName)
         {
+            if (Debug) Console.WriteLine($"{Player.Name}.HasQuestCompletes({questName})");
+
             if (!questName.Contains("@"))
                 return HasQuest(questName);
 
@@ -54,7 +61,9 @@ namespace ACE.Server.Managers
             if (quest == null)
                 return false;
 
-            return quest.NumTimesCompleted == numCompletes;     // minimum or exact?
+            var success = quest.NumTimesCompleted == numCompletes;     // minimum or exact?
+            if (Debug) Console.WriteLine(success);
+            return success;
         }
 
         /// <summary>
@@ -82,6 +91,7 @@ namespace ACE.Server.Managers
                     LastTimeCompleted = (uint)Time.GetUnixTime(),
                     NumTimesCompleted = 1   // initial add / first solve
                 };
+                if (Debug) Console.WriteLine($"{Player.Name}.QuestManager.Update({questName}): added quest");
                 Quests.Add(quest);
             }
             else
@@ -89,6 +99,7 @@ namespace ACE.Server.Managers
                 // update existing quest
                 existing.LastTimeCompleted = (uint)Time.GetUnixTime();
                 existing.NumTimesCompleted++;
+                if (Debug) Console.WriteLine($"{Player.Name}.QuestManager.Update({questName}): updated quest ({existing.NumTimesCompleted})");
             }
         }
 
@@ -100,7 +111,9 @@ namespace ACE.Server.Managers
             // verify max solves / quest timer
             var nextSolveTime = GetNextSolveTime(questName);
 
-            return nextSolveTime == TimeSpan.MinValue;
+            var canSolve = nextSolveTime == TimeSpan.MinValue;
+            if (Debug) Console.WriteLine($"{Player.Name}.CanSolve({questName}): {canSolve}");
+            return canSolve;
         }
 
         /// <summary>

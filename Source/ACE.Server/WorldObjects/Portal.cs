@@ -293,7 +293,7 @@ namespace ACE.Server.WorldObjects
             // handle quest requirements
             if (Quest != null)
             {
-                if (player.QuestManager.CanSolve(Quest))
+                /*if (player.QuestManager.CanSolve(Quest))
                 {
                     player.QuestManager.Update(Quest);
                 }
@@ -301,7 +301,11 @@ namespace ACE.Server.WorldObjects
                 {
                     player.QuestManager.HandleSolveError(Quest);
                     return;
-                }
+                }*/
+
+                // only for initial flagging?
+                if (!player.QuestManager.HasQuest(Quest))
+                    player.QuestManager.Update(Quest);
             }
             if (QuestRestriction != null && !player.QuestManager.HasQuest(QuestRestriction))
             {
@@ -310,6 +314,8 @@ namespace ACE.Server.WorldObjects
             }
 
             // everything looks good, teleport
+            EmoteManager.OnUse();
+
 #if DEBUG
             player.Session.Network.EnqueueSend(new GameMessageSystemChat("Portal sending player to destination", ChatMessageType.System));
 #endif

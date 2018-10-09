@@ -1079,23 +1079,39 @@ namespace ACE.Server.Managers
             return result;
         }
 
-        public void HeartBeat()
+        public void Execute(EmoteCategory category, WorldObject targetObject = null)
         {
             var emoteChain = new ActionChain();
 
             var rng = Physics.Common.Random.RollDice(0.0f, 1.0f);
 
-            foreach (var emote in Emotes(EmoteCategory.HeartBeat))
+            foreach (var emote in Emotes(category))
             {
                 if (rng < emote.Probability)
                 {
                     foreach (var action in emote.BiotaPropertiesEmoteAction)
-                        ExecuteEmote(emote, action, emoteChain, WorldObject);
+                        ExecuteEmote(emote, action, emoteChain, WorldObject, targetObject);
 
                     break;
                 }
             }
             emoteChain.EnqueueChain();
+        }
+
+        public void HeartBeat()
+        {
+            Execute(EmoteCategory.HeartBeat);
+        }
+
+        public void OnUse()
+        {
+            Execute(EmoteCategory.Use);
+        }
+
+        public void OnDeath(DamageHistory damageHistory)
+        {
+            foreach (var damager in damageHistory.Damagers)
+                Execute(EmoteCategory.Death, damager);
         }
     }
 }

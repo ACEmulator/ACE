@@ -20,7 +20,7 @@ namespace ACE.Server.WorldObjects
         /// Determines if a monster is within melee range of target
         /// </summary>
         //public static readonly float MaxMeleeRange = 0.5f;
-        public static readonly float MaxMeleeRange = 1.5f;
+        public static readonly float MaxMeleeRange = 1.5f + 0.6f + 0.1f;    // max melee range + distance from + buffer
 
         /// <summary>
         /// The maximum range for a monster missile attack
@@ -178,6 +178,12 @@ namespace ACE.Server.WorldObjects
         public float GetDistanceToTarget()
         {
             var dist = (AttackTarget.Location.ToGlobal() - Location.ToGlobal()).Length();
+            if (DebugMove)
+            {
+                Console.WriteLine($"Raw distance: {dist}");
+                Console.WriteLine($"Player radius: {AttackTarget.PhysicsObj.GetRadius()} ({AttackTarget.PhysicsObj.GetPhysicsRadius()})");
+                Console.WriteLine($"Monster radius: {PhysicsObj.GetRadius()} ({PhysicsObj.GetPhysicsRadius()})");
+            }
             dist -= AttackTarget.PhysicsObj.GetRadius() + PhysicsObj.GetRadius();
             return dist;
         }

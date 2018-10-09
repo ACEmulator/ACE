@@ -31,6 +31,8 @@ namespace ACE.Server.WorldObjects
             IsTurning = false;
             IsMoving = false;
 
+            EmoteManager.OnDeath(DamageHistory);
+
             // handle summoning portals on creature death
             if (LinkedPortalOneDID != null)
                 SummonPortal(LinkedPortalOneDID.Value);
