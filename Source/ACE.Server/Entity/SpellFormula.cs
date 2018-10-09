@@ -100,7 +100,7 @@ namespace ACE.Server.Entity
             { 5, 200 },
             { 6, 250 },
             { 7, 300 },
-            { 8, 350 }
+            { 8, 400 }
         };
 
         /// <summary>
@@ -253,10 +253,10 @@ namespace ACE.Server.Entity
             { Scarab.Silver,   0.5f },
             { Scarab.Gold,     0.6f },
             { Scarab.Pyreal,   1.0f },
-            { Scarab.Diamond,  0.4f },  // verify onward
-            { Scarab.Platinum, 0.6f },
+            { Scarab.Diamond,  1.0f },  // verify onward
+            { Scarab.Platinum, 1.0f },
             { Scarab.Dark,     1.0f },
-            { Scarab.Mana,     0.6f }
+            { Scarab.Mana,     1.0f }
         };
 
         public Scarab FirstScarab { get => Scarabs.First(); }

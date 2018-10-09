@@ -428,10 +428,10 @@ namespace ACE.Server.Command.Handlers
             });
         }
 
-        [CommandHandler("cacheallweenies", AccessLevel.Developer, CommandHandlerFlag.None, "Loads and caches all Weenies. This may take 10+ minutes and is very heavy on the database.")]
+        [CommandHandler("cacheallweenies", AccessLevel.Developer, CommandHandlerFlag.None, "Loads and caches all Weenies. This may take 15+ minutes and is very heavy on the database.")]
         public static void HandleCacheAllWeenies(Session session, params string[] parameters)
         {
-            CommandHandlerHelper.WriteOutputInfo(session, "Caching Weenies... This may take more than 10 minutes...");
+            CommandHandlerHelper.WriteOutputInfo(session, "Caching Weenies... This may take more than 15 minutes...");
 
             Task.Run(() => DatabaseManager.World.CacheAllWeenies());
         }
@@ -1256,6 +1256,50 @@ namespace ACE.Server.Command.Handlers
                 return null;
             }
             return target;
+        }
+
+        [CommandHandler("showstats", AccessLevel.Developer, CommandHandlerFlag.None, 0, "Shows a list of player's current attribute/skill levels in console window", "showstats")]
+        public static void HandleShowStats(Session session, params string[] parameters)
+        {
+            var player = session.Player;
+
+            Console.WriteLine("Strength: " + player.Strength.Current);
+            Console.WriteLine("Endurance: " + player.Endurance.Current);
+            Console.WriteLine("Coordination: " + player.Coordination.Current);
+            Console.WriteLine("Quickness: " + player.Quickness.Current);
+            Console.WriteLine("Focus: " + player.Focus.Current);
+            Console.WriteLine("Self: " + player.Self.Current);
+
+            Console.WriteLine();
+
+            Console.WriteLine("Health: " + player.Health.Current + "/" + player.Health.MaxValue);
+            Console.WriteLine("Stamina: " + player.Stamina.Current + "/" + player.Stamina.MaxValue);
+            Console.WriteLine("Mana: " + player.Mana.Current + "/" + player.Mana.MaxValue);
+
+            Console.WriteLine();
+
+            var specialized = player.Skills.Values.Where(s => s.AdvancementClass == SkillAdvancementClass.Specialized).OrderBy(s => s.Skill.ToString());
+            var trained = player.Skills.Values.Where(s => s.AdvancementClass == SkillAdvancementClass.Trained).OrderBy(s => s.Skill.ToString());
+            var untrained = player.Skills.Values.Where(s => s.AdvancementClass == SkillAdvancementClass.Untrained).OrderBy(s => s.Skill.ToString());
+            var unusable = player.Skills.Values.Where(s => s.AdvancementClass == SkillAdvancementClass.Inactive).OrderBy(s => s.Skill.ToString());
+
+            foreach (var skill in specialized)
+                Console.WriteLine(skill.Skill + ": " + skill.Current);
+            Console.WriteLine("===");
+
+            foreach (var skill in trained)
+                Console.WriteLine(skill.Skill + ": " + skill.Current);
+            Console.WriteLine("===");
+
+            foreach (var skill in untrained)
+                Console.WriteLine(skill.Skill + ": " + skill.Current);
+            Console.WriteLine("===");
+
+            // FIXME: 'unusable' skills as they are called in the client
+            // i assume these should be in the 'Inactive' list on the server,
+            // but they are showing up in the untrained list...
+            foreach (var skill in unusable)
+                Console.WriteLine(skill.Skill + ": " + skill.Current);
         }
 
         [CommandHandler("givemana", AccessLevel.Developer, CommandHandlerFlag.None, 0, "Gives mana to the last appraised object", "givemana <amount>")]

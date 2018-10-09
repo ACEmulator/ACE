@@ -192,24 +192,5 @@ namespace ACE.Server.WorldObjects
             var creatureProfile = new CreatureProfile(creature, success);
             writer.Write(creatureProfile);
         }
-
-        public float EnqueueMotion(ActionChain actionChain, MotionCommand motionCommand, float speed = 1.0f)
-        {
-            var motion = new UniversalMotion(CurrentMotionState.Stance);
-            motion.MovementData.CurrentStyle = (uint)CurrentMotionState.Stance;
-            motion.MovementData.ForwardCommand = (uint)motionCommand;
-            motion.MovementData.TurnSpeed = 2.25f;  // ??
-
-            var animLength = Physics.Animation.MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, motionCommand);
-
-            actionChain.AddAction(this, () =>
-            {
-                CurrentMotionState = motion;
-                EnqueueBroadcastMotion(motion);
-            });
-
-            actionChain.AddDelaySeconds(animLength);
-            return animLength;
-        }
     }
 }

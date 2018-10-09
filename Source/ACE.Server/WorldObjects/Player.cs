@@ -186,17 +186,6 @@ namespace ACE.Server.WorldObjects
             // IsAlive = true;
         }
 
-
-        /// <summary>
-        /// Called every ~5 secs for inventory item enchantments
-        /// </summary>
-        public void ItemEnchantmentTick()
-        {
-            var allItems = GetAllPossessions();
-            foreach (var item in allItems)
-                item.EnchantmentManager.HeartBeat();
-        }
-
         /// <summary>
         /// Called every ~5 secs for equipped mana consuming items
         /// </summary>
@@ -876,11 +865,8 @@ namespace ACE.Server.WorldObjects
         /// <param name="buffType">ConsumableBuffType.Spell,ConsumableBuffType.Health,ConsumableBuffType.Stamina,ConsumableBuffType.Mana</param>
         /// <param name="boostAmount">Amount the Vital is boosted by; can be null, if buffType = ConsumableBuffType.Spell</param>
         /// <param name="spellDID">Id of the spell cast by the consumable; can be null, if buffType != ConsumableBuffType.Spell</param>
-        public void ApplyComsumable(string consumableName, Sound sound, ConsumableBuffType buffType, uint? boostAmount, uint? spellDID)
+        public void ApplyConsumable(string consumableName, Sound sound, ConsumableBuffType buffType, uint? boostAmount, uint? spellDID)
         {
-            uint spellId = spellDID ?? 0;
-
-            GameMessageSystemChat buffMessage;
             MotionCommand motionCommand;
 
             if (sound == Sound.Eat1)
@@ -888,65 +874,78 @@ namespace ACE.Server.WorldObjects
             else
                 motionCommand = MotionCommand.Drink;
 
-            var soundEvent = new GameMessageSound(Guid, sound, 1.0f);
+            // start the eat/drink motion
             var motion = new UniversalMotion(MotionStance.NonCombat, new MotionItem(motionCommand));
-
             EnqueueBroadcastMotion(motion);
 
-            if (buffType == ConsumableBuffType.Spell)
+            var motionTable = DatManager.PortalDat.ReadFromDat<MotionTable>(MotionTableId);
+            var animTime = motionTable.GetAnimationLength(CurrentMotionState.Stance, motionCommand, MotionCommand.Ready);
+
+            var actionChain = new ActionChain();
+            actionChain.AddDelaySeconds(animTime);
+
+            actionChain.AddAction(this, () =>
             {
-                bool result = false;
-                if (spellId != 0)
-                    result = CreateSingleSpell(spellId);
+                GameMessageSystemChat buffMessage;
 
-                var spell = new Server.Entity.Spell(spellId);
-
-                if (!result)
-                    buffMessage = new GameMessageSystemChat($"Consuming {consumableName} attempted to apply a spell not yet fully implemented.", ChatMessageType.System);
-                else
-                    buffMessage = new GameMessageSystemChat($"{consumableName} applies {spell.Name} on you.", ChatMessageType.Craft);
-            }
-            else
-            {
-                CreatureVital creatureVital;
-                string vitalName;
-
-                // Null check for safety
-                if (boostAmount == null)
-                    boostAmount = 0;
-
-                switch (buffType)
+                if (buffType == ConsumableBuffType.Spell)
                 {
-                    case ConsumableBuffType.Health:
-                        creatureVital = Health;
-                        vitalName = "Health";
-                        break;
-                    case ConsumableBuffType.Mana:
-                        creatureVital = Mana;
-                        vitalName = "Mana";
-                        break;
-                    default:
-                        creatureVital = Stamina;
-                        vitalName = "Stamina";
-                        break;
+                    bool result = false;
+
+                    uint spellId = spellDID ?? 0;
+
+                    if (spellId != 0)
+                        result = CreateSingleSpell(spellId);
+
+                    if (result)
+                    {
+                        var spell = new Server.Entity.Spell(spellId);
+                        buffMessage = new GameMessageSystemChat($"{consumableName} applies {spell.Name} on you.", ChatMessageType.Craft);
+                    }
+                    else
+                        buffMessage = new GameMessageSystemChat($"Consuming {consumableName} attempted to apply a spell not yet fully implemented.", ChatMessageType.System);
+                }
+                else
+                {
+                    CreatureVital creatureVital;
+                    string vitalName;
+
+                    // Null check for safety
+                    if (boostAmount == null)
+                        boostAmount = 0;
+
+                    switch (buffType)
+                    {
+                        case ConsumableBuffType.Health:
+                            creatureVital = Health;
+                            vitalName = "Health";
+                            break;
+                        case ConsumableBuffType.Mana:
+                            creatureVital = Mana;
+                            vitalName = "Mana";
+                            break;
+                        default:
+                            creatureVital = Stamina;
+                            vitalName = "Stamina";
+                            break;
+                    }
+
+                    var vitalChange = UpdateVitalDelta(creatureVital, (uint)boostAmount);
+
+                    buffMessage = new GameMessageSystemChat($"You regain {vitalChange} {vitalName}.", ChatMessageType.Craft);
                 }
 
-                var vitalChange = UpdateVitalDelta(creatureVital, (uint)boostAmount);
+                var soundEvent = new GameMessageSound(Guid, sound, 1.0f);
+                Session.Network.EnqueueSend(soundEvent, buffMessage);
 
-                buffMessage = new GameMessageSystemChat($"You regain {vitalChange} {vitalName}.", ChatMessageType.Craft);
-            }
+                // return to original stance
+                var returnStance = new UniversalMotion(CurrentMotionState.Stance);
+                returnStance.MovementData.CurrentStyle = (uint)CurrentMotionState.Stance;
 
-            Session.Network.EnqueueSend(soundEvent, buffMessage);
+                EnqueueBroadcastMotion(returnStance);
+            });
 
-            // Wait for animation
-            var motionChain = new ActionChain();
-            var motionTable = DatManager.PortalDat.ReadFromDat<MotionTable>((uint)MotionTableId);
-            var motionAnimationLength = motionTable.GetAnimationLength(MotionCommand.Eat);
-            motionChain.AddDelaySeconds(motionAnimationLength);
-
-            // Return to standing position after the animation delay
-            motionChain.AddAction(this, () => EnqueueBroadcastMotion(new UniversalMotion(MotionStance.NonCombat)));
-            motionChain.EnqueueChain();
+           actionChain.EnqueueChain();
         }
 
         public bool Adminvision;

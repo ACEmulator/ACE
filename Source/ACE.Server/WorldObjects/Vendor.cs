@@ -60,26 +60,18 @@ namespace ACE.Server.WorldObjects
         /// If the item was outside of range, the player will have been commanded to move using DoMoveTo before ActOnUse is called.<para />
         /// When this is called, it should be assumed that the player is within range.
         /// </summary>
-        public override void ActOnUse(WorldObject worldObject)
+        public override void ActOnUse(WorldObject wo)
         {
-            if (worldObject is Player)
-            {
-                var player = worldObject as Player;
-                //LoadInventory();
+            var player = wo as Player;
+            if (player == null) return;
 
-                var turnToMotion = new UniversalMotion(MotionStance.NonCombat, Location, Guid);
-                turnToMotion.MovementTypes = MovementTypes.TurnToObject;
+            LoadInventory();
 
-                ActionChain turnToTimer = new ActionChain();
-                turnToTimer.AddAction(this, () => LoadInventory());
-                turnToTimer.AddAction(player, () => player.EnqueueBroadcastMotion(turnToMotion));
-                turnToTimer.AddDelaySeconds(1);
-                turnToTimer.AddAction(this, () => ApproachVendor(player));
-
-                turnToTimer.EnqueueChain();
-
-                //ApproachVendor(player);
-            }
+            var actionChain = new ActionChain();
+            var rotateTime = Rotate(player);    // vendor rotates towards player
+            actionChain.AddDelaySeconds(rotateTime);
+            actionChain.AddAction(this, () => ApproachVendor(player));
+            actionChain.EnqueueChain();
         }
 
         /// <summary>

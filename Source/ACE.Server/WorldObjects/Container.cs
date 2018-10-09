@@ -433,25 +433,22 @@ namespace ACE.Server.WorldObjects
         /// If the item was outside of range, the player will have been commanded to move using DoMoveTo before ActOnUse is called.<para />
         /// When this is called, it should be assumed that the player is within range.
         /// </summary>
-        public override void ActOnUse(WorldObject worldObject)
+        public override void ActOnUse(WorldObject wo)
         {
-            if (worldObject is Player)
+            var player = wo as Player;
+            if (player == null) return;
+
+            if (!IsOpen)
             {
-                var player = worldObject as Player;
-                if (!(IsOpen ?? false))
-                {
-                    var turnToMotion = new UniversalMotion(MotionStance.NonCombat, Location, Guid);
-                    turnToMotion.MovementTypes = MovementTypes.TurnToObject;
+                var rotateTime = player.Rotate(this);
 
-                    var turnToTimer = new ActionChain();
-                    turnToTimer.AddAction(this, () => player.EnqueueBroadcastMotion(turnToMotion));
-                    turnToTimer.AddDelaySeconds(1);
-                    turnToTimer.AddAction(this, () => Open(player));
-                    turnToTimer.EnqueueChain();
-
-                    return;
-                }
-
+                var actionChain = new ActionChain();
+                actionChain.AddDelaySeconds(rotateTime);
+                actionChain.AddAction(this, () => Open(player));
+                actionChain.EnqueueChain();
+            }
+            else
+            {
                 if (Viewer == player.Guid.Full)
                     Close(player);
 
@@ -463,8 +460,7 @@ namespace ACE.Server.WorldObjects
 
         public virtual void Open(Player player)
         {
-            if (IsOpen ?? false)
-                return;
+            if (IsOpen) return;
 
             IsOpen = true;
 
@@ -480,6 +476,7 @@ namespace ACE.Server.WorldObjects
 
             foreach (var item in Inventory.Values)
             {
+                // FIXME: only send messages for unknown objects
                 itemsToSend.Add(new GameMessageCreateObject(item));
                 woToExamine.Add(item);
             }
@@ -496,8 +493,7 @@ namespace ACE.Server.WorldObjects
 
         public void Close(Player player)
         {
-            if (!(IsOpen ?? false))
-                return;
+            if (!IsOpen) return;
 
             player.Session.Network.EnqueueSend(new GameEventCloseGroundContainer(player.Session, this));
 
@@ -511,7 +507,7 @@ namespace ACE.Server.WorldObjects
 
             DoOnCloseMotionChanges();
 
-            Viewer = null;
+            Viewer = 0;
 
             IsOpen = false;
         }

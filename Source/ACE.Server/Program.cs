@@ -81,6 +81,26 @@ namespace ACE.Server
             log.Info("Initializing GuidManager...");
             GuidManager.Initialize();
 
+            if (ConfigManager.Config.Server.WorldDatabasePrecaching)
+            {
+                log.Info("Precaching Weenies...");
+                DatabaseManager.World.CacheAllWeeniesInParallel();
+                log.Info("Precaching Points Of Interest...");
+                DatabaseManager.World.CacheAllPointsOfInterest();
+                log.Info("Precaching Cookbooks...");
+                DatabaseManager.World.CacheAllCookbooksInParallel();
+                log.Info("Precaching Spells...");
+                DatabaseManager.World.CacheAllSpells();
+                log.Info("Precaching Events...");
+                DatabaseManager.World.GetAllEvents();
+                log.Info("Precaching Death Treasures...");
+                DatabaseManager.World.CacheAllDeathTresures();
+                log.Info("Precaching Wielded Treasures...");
+                DatabaseManager.World.CacheAllWieldedTresuresInParallel();
+            }
+            else
+                log.Info("No World Database Precaching Performed...");
+
             log.Info("Initializing InboundMessageManager...");
             InboundMessageManager.Initialize();
 
@@ -90,10 +110,10 @@ namespace ACE.Server
             log.Info("Initializing WorldManager...");
             WorldManager.Initialize();
 
-            if (ConfigManager.Config.Server.LandblockPreloading == true)
+            if (ConfigManager.Config.Server.LandblockPreloading)
             {
                 log.Info("Preloading Landblocks...");
-                LandblockManager.Initialize();
+                LandblockManager.PreloadCommonLandblocks();
             }
             else
                 log.Info("No Landblock Preloading Performed...");

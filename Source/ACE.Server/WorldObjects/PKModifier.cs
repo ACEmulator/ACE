@@ -91,15 +91,15 @@ namespace ACE.Server.WorldObjects
                     {
                         AllowedActivator = ObjectGuid.Invalid.Full;
 
+                        var rotateTime = player.Rotate(this);
+
                         var switchTimer = new ActionChain();
-                        var turnToMotion = new UniversalMotion(MotionStance.NonCombat, Location, Guid);
-                        turnToMotion.MovementTypes = MovementTypes.TurnToObject;
-                        switchTimer.AddAction(this, () => player.EnqueueBroadcastMotion(turnToMotion));
-                        switchTimer.AddDelaySeconds(1);
+                        switchTimer.AddDelaySeconds(rotateTime);
                         switchTimer.AddAction(player, () =>
                         {
                             if (UseTargetSuccessAnimation.HasValue)
-                                EnqueueBroadcastMotion(new UniversalMotion(MotionStance.NonCombat, new MotionItem((MotionCommand)UseTargetSuccessAnimation)));
+                                //EnqueueBroadcastMotion(new UniversalMotion(MotionStance.NonCombat, new MotionItem((MotionCommand)UseTargetSuccessAnimation)));
+                                EnqueueBroadcastMotion(new UniversalMotion(CurrentMotionState.Stance, new MotionItem((MotionCommand)UseTargetSuccessAnimation)));
                             else
                                 EnqueueBroadcastMotion(twitch);
                         });
@@ -128,7 +128,8 @@ namespace ACE.Server.WorldObjects
                     else
                     {
                         if (UseTargetFailureAnimation.HasValue)
-                            EnqueueBroadcastMotion(new UniversalMotion(MotionStance.NonCombat, new MotionItem((MotionCommand)UseTargetFailureAnimation)));
+                            //EnqueueBroadcastMotion(new UniversalMotion(MotionStance.NonCombat, new MotionItem((MotionCommand)UseTargetFailureAnimation)));
+                            EnqueueBroadcastMotion(new UniversalMotion(CurrentMotionState.Stance, new MotionItem((MotionCommand)UseTargetFailureAnimation)));
                         player.Session.Network.EnqueueSend(new GameMessageSystemChat(GetProperty(PropertyString.ActivationFailure), ChatMessageType.Broadcast));
                         player.SendUseDoneEvent();
                     }

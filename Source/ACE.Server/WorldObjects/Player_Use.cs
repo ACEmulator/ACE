@@ -15,7 +15,6 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         private ObjectGuid lastUsedContainerId;
 
-
         private int moveToChainCounter;
 
         private int GetNextMoveToChainNumber()
@@ -27,137 +26,6 @@ namespace ACE.Server.WorldObjects
         {
             Interlocked.Increment(ref moveToChainCounter);
         }
-
-        private ActionChain CreateMoveToChain(ObjectGuid target, out int thisMoveToChainNumber)
-        {
-            thisMoveToChainNumber = GetNextMoveToChainNumber();
-
-            ActionChain moveToChain = new ActionChain();
-
-            moveToChain.AddAction(this, () =>
-            {
-                var targetObject = CurrentLandblock?.GetObject(target);
-
-                if (targetObject == null)
-                {
-                    // Is the item we're trying to move to in the container we have open?
-                    var lastUsedContainer = CurrentLandblock?.GetObject(lastUsedContainerId) as Container;
-
-                    if (lastUsedContainer != null)
-                    {
-                        if (lastUsedContainer.Inventory.ContainsKey(target))
-                            targetObject = lastUsedContainer;
-                        else
-                        {
-                            // could be a child container of this container
-                            log.Error("Player_Use CreateMoveToChain container inception not finished");
-                            return;
-                        }
-                    }
-                }
-
-                if (targetObject == null)
-                {
-                    log.Error("Player_Use CreateMoveToChain targetObject null");
-                    return;
-                }
-
-                if (targetObject.Location == null)
-                {
-                    log.Error("Player_Use CreateMoveToChain targetObject.Location null");
-                    return;
-                }
-
-                if (targetObject.WeenieType == WeenieType.Portal)
-                    OnAutonomousMove(targetObject.Location, Sequences, MovementTypes.MoveToPosition, target, (targetObject.UseRadius ?? 0));
-                else
-                    OnAutonomousMove(targetObject.Location, Sequences, MovementTypes.MoveToObject, target, (targetObject.UseRadius ?? 0));
-            });
-
-            // poll for arrival every .1 seconds
-            ActionChain moveToBody = new ActionChain();
-            moveToBody.AddDelaySeconds(.1);
-
-            var thisMoveToChainNumberCopy = thisMoveToChainNumber;
-
-            moveToChain.AddLoop(this, () =>
-            {
-                if (thisMoveToChainNumberCopy != moveToChainCounter)
-                    return false;
-
-                // Break loop if CurrentLandblock == null (we portaled or logged out)
-                if (CurrentLandblock == null)
-                    return false;
-
-                // Are we within use radius?
-                var valid = false;
-                bool ret = CurrentLandblock != null ? !CurrentLandblock.WithinUseRadius(this, target, out valid) : false;
-
-                // If one of the items isn't on a landblock
-                if (!valid)
-                    ret = false;
-
-                return ret;
-            }, moveToBody);
-
-            return moveToChain;
-        }
-
-        private ActionChain CreateMoveToChain(WorldObject target, out int thisMoveToChainNumber)
-        {
-            thisMoveToChainNumber = GetNextMoveToChainNumber();
-
-            ActionChain moveToChain = new ActionChain();
-
-            moveToChain.AddAction(this, () =>
-            {
-                if (target.Location == null)
-                {
-                    log.Error("Player_Use CreateMoveToChain targetObject.Location null");
-                    return;
-                }
-
-                if (target.WeenieType == WeenieType.Portal)
-                    OnAutonomousMove(target.Location, Sequences, MovementTypes.MoveToPosition, target.Guid, (target.UseRadius ?? 0));
-                else
-                    OnAutonomousMove(target.Location, Sequences, MovementTypes.MoveToObject, target.Guid, (target.UseRadius ?? 0));
-            });
-
-            // poll for arrival every .1 seconds
-            ActionChain moveToBody = new ActionChain();
-            moveToBody.AddDelaySeconds(.1);
-
-            var thisMoveToChainNumberCopy = thisMoveToChainNumber;
-
-            moveToChain.AddLoop(this, () =>
-            {
-                if (thisMoveToChainNumberCopy != moveToChainCounter)
-                    return false;
-
-                // Break loop if CurrentLandblock == null (we portaled or logged out)
-                if (CurrentLandblock == null)
-                    return false;
-
-                // Are we within use radius?
-                var valid = false;
-                bool ret = CurrentLandblock != null ? !CurrentLandblock.WithinUseRadius(this, target.Guid, out valid) : false;
-
-                // If one of the items isn't on a landblock
-                if (!valid)
-                    ret = false;
-
-                return ret;
-            }, moveToBody);
-
-            return moveToChain;
-        }
-
-
-        public void SendUseDoneEvent(WeenieError errorType = WeenieError.None)
-        {
-            Session.Network.EnqueueSend(new GameEventUseDone(Session, errorType));
-        }
-
 
         // ===============================
         // Game Action Handlers - Use Item
@@ -250,33 +118,148 @@ namespace ACE.Server.WorldObjects
                     return;
                 }
 
-                if (item is Container)
+                var moveTo = true;
+                var container = item as Container;
+                if (container != null)
+                {
                     lastUsedContainerId = usedItemId;
 
-                var actionChain = new ActionChain();
-
-                if (!IsWithinUseRadiusOf(item))
-                {
-                    var moveToChain = CreateMoveToChain(item, out var thisMoveToChainNumber);
-
-                    actionChain.AddChain(moveToChain);
-                    actionChain.AddDelaySeconds(0.50);
-
-                    // Make sure that after we've executed our MoveToChain, and waited our delay, we're still within use radius.
-                    actionChain.AddAction(this, () =>
+                    // if the container is already open by this player,
+                    // this packet indicates to close the container.
+                    if (container.IsOpen && container.Viewer == Guid.Full)
                     {
-                        if (IsWithinUseRadiusOf(item) && thisMoveToChainNumber == moveToChainCounter)
-                            actionChain.AddAction(item, () => item.ActOnUse(this));
-                        else
-                                // Action is cancelled
-                                Session.Network.EnqueueSend(new GameEventUseDone(Session));
-                    });
+                        // closing the container does not require moving towards it
+                        moveTo = false;
+                    }
                 }
-                else
-                    actionChain.AddAction(item, () => item.ActOnUse(this));
 
+                // already there?
+                if (!moveTo || IsWithinUseRadiusOf(item))
+                {
+                    item.ActOnUse(this);
+                    return;
+                }
+
+                // if required, move to
+                var moveToChain = CreateMoveToChain(item, out var thisMoveToChainNumber);
+
+                var actionChain = new ActionChain();
+                actionChain.AddChain(moveToChain);
+                actionChain.AddAction(item, () =>
+                {
+                    if (thisMoveToChainNumber == moveToChainCounter)
+                    {
+                        item.ActOnUse(this);
+                    }
+                    else
+                    {
+                        // Action is cancelled
+                        // this needs to happen much earlier,
+                        // when a player event happens that actually cancels an existing moveto chain
+                        // as it currently stands, the player will get a perpetual hourglass
+                        // if they legitimately cancel a moveto event in progress...
+
+                        Session.Network.EnqueueSend(new GameEventUseDone(Session));
+                    }
+                }); 
                 actionChain.EnqueueChain();
             }
+        }
+
+        // TODO: refactor movetochainnumber, this is a confusing and patchwork concept
+        // TODO: add proper hooks for canceling an existing moveto event
+        // TODO: add reasonable max move time
+        private ActionChain CreateMoveToChain(WorldObject target, out int thisMoveToChainNumber)
+        {
+            thisMoveToChainNumber = GetNextMoveToChainNumber();
+
+            ActionChain moveToChain = new ActionChain();
+
+            moveToChain.AddAction(this, () =>
+            {
+                if (target.Location == null)
+                {
+                    log.Error($"{Name}.CreateMoveToChain({target.Name}): target.Location is null");
+                    return;
+                }
+
+                if (target.WeenieType == WeenieType.Portal)
+                    OnAutonomousMove(target.Location, Sequences, MovementTypes.MoveToPosition, target.Guid, (target.UseRadius ?? 0));
+                else
+                    OnAutonomousMove(target.Location, Sequences, MovementTypes.MoveToObject, target.Guid, (target.UseRadius ?? 0));
+            });
+
+            // poll for arrival every .1 seconds
+            ActionChain moveToBody = new ActionChain();
+            moveToBody.AddDelaySeconds(.1);
+
+            var thisMoveToChainNumberCopy = thisMoveToChainNumber;
+
+            moveToChain.AddLoop(this, () =>
+            {
+                if (thisMoveToChainNumberCopy != moveToChainCounter)
+                    return false;
+
+                // Break loop if CurrentLandblock == null (we portaled or logged out)
+                if (CurrentLandblock == null)
+                    return false;
+
+                // Are we within use radius?
+                var valid = false;
+                bool ret = CurrentLandblock != null ? !CurrentLandblock.WithinUseRadius(this, target.Guid, out valid) : false;
+
+                // If one of the items isn't on a landblock
+                if (!valid)
+                    ret = false;
+
+                return ret;
+            }, moveToBody);
+
+            return moveToChain;
+        }
+
+        // TODO: deprecate this
+        // it is not the responsibility of Player_Use to convert ObjectGuids into WorldObjects
+        // this should be done much earlier, at the beginning of the HandleAction methods
+        private ActionChain CreateMoveToChain(ObjectGuid targetGuid, out int thisMoveToChainNumber)
+        {
+            var targetObject = FindItemLocation(targetGuid);
+            if (targetObject == null)
+            {
+                thisMoveToChainNumber = moveToChainCounter;
+                return null;
+            }
+            return CreateMoveToChain(targetObject, out thisMoveToChainNumber);
+        }
+
+        /// <summary>
+        /// Finds the location of an item in the world
+        /// If item is within a container or corpse, returns the location of the parent
+        /// </summary>
+        private WorldObject FindItemLocation(ObjectGuid targetGuid)
+        {
+            var targetObject = CurrentLandblock?.GetObject(targetGuid);
+
+            if (targetObject == null)
+            {
+                // Is the item we're trying to move to in the container we have open?
+                var lastUsedContainer = CurrentLandblock?.GetObject(lastUsedContainerId) as Container;
+
+                if (lastUsedContainer != null)
+                {
+                    if (lastUsedContainer.Inventory.ContainsKey(targetGuid))
+                        targetObject = lastUsedContainer;
+                }
+            }
+            if (targetObject == null)
+                log.Error($"Player_Use.FindItemLocation({targetGuid}): couldn't find item location on landblock"); ;
+
+            return targetObject;
+        }
+
+        public void SendUseDoneEvent(WeenieError errorType = WeenieError.None)
+        {
+            Session.Network.EnqueueSend(new GameEventUseDone(Session, errorType));
         }
     }
 }

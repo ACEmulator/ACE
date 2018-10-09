@@ -66,47 +66,45 @@ namespace ACE.Server.WorldObjects
         /// If the item was outside of range, the player will have been commanded to move using DoMoveTo before ActOnUse is called.<para />
         /// When this is called, it should be assumed that the player is within range.
         /// </summary>
-        public override void ActOnUse(WorldObject worldObject)
+        public override void ActOnUse(WorldObject wo)
         {
-            if (worldObject is Player)
+            var player = wo as Player;
+            if (player == null) return;
+
+            ////if (playerDistanceTo >= 2500)
+            ////{
+            ////    var sendTooFarMsg = new GameEventDisplayStatusMessage(player.Session, StatusMessageType1.Enum_0037);
+            ////    player.Session.Network.EnqueueSend(sendTooFarMsg, sendUseDoneEvent);
+            ////    return;
+            ////}
+
+            if (!IsLocked)
             {
-                var player = worldObject as Player;
-                ////if (playerDistanceTo >= 2500)
-                ////{
-                ////    var sendTooFarMsg = new GameEventDisplayStatusMessage(player.Session, StatusMessageType1.Enum_0037);
-                ////    player.Session.Network.EnqueueSend(sendTooFarMsg, sendUseDoneEvent);
-                ////    return;
-                ////}
-
-                if (!(IsLocked ?? false))
+                if (!IsOpen)
                 {
-                    if (!(IsOpen ?? false))
-                    {
-                        var turnToMotion = new UniversalMotion(MotionStance.NonCombat, Location, Guid);
-                        turnToMotion.MovementTypes = MovementTypes.TurnToObject;
+                    var rotateTime = player.Rotate(this);
 
-                        ActionChain turnToTimer = new ActionChain();
-                        turnToTimer.AddAction(this, () => player.EnqueueBroadcastMotion(turnToMotion));
-                        turnToTimer.AddDelaySeconds(1);
-                        turnToTimer.AddAction(this, () => Open(player));
-                        turnToTimer.EnqueueChain();
-
-                        return;
-                    }
-
+                    var actionChain = new ActionChain();
+                    actionChain.AddDelaySeconds(rotateTime);
+                    actionChain.AddAction(this, () => Open(player));
+                    actionChain.EnqueueChain();
+                    return;
+                }
+                else
+                {
                     if (Viewer == player.Guid.Full)
                         Close(player);
 
                     // else error msg?
                 }
-                else
-                {
-                    player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, $"The {Name} is locked!"));
-                    EnqueueBroadcast(new GameMessageSound(Guid, Sound.OpenFailDueToLock, 1.0f));
-                }
-
-                player.SendUseDoneEvent();
             }
+            else
+            {
+                player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, $"The {Name} is locked!"));
+                EnqueueBroadcast(new GameMessageSound(Guid, Sound.OpenFailDueToLock, 1.0f));
+            }
+
+            player.SendUseDoneEvent();
         }
 
         protected override void DoOnOpenMotionChanges()

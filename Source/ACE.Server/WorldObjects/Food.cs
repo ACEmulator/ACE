@@ -64,7 +64,7 @@ namespace ACE.Server.WorldObjects
             //else
             //    buffType = WorldObjects.Player.ConsumableBuffType.Spell;
 
-            player.ApplyComsumable(Name, GetSoundDid(), buffType, (uint)Boost, SpellDID);
+            player.ApplyConsumable(Name, GetSoundDid(), buffType, (uint)Boost, SpellDID);
 
             player.TryRemoveItemFromInventoryWithNetworking(this, 1);
 

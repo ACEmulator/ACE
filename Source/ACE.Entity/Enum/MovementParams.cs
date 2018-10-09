@@ -24,4 +24,12 @@ namespace ACE.Entity.Enum
         StopCompletely          = (1 << 16),
         DisableJumpDuringLink   = (1 << 17)
     }
+
+    public static class MovementParamsExtensions
+    {
+        public static MovementParams Default =
+            MovementParams.CanWalk | MovementParams.CanRun | MovementParams.CanSideStep | MovementParams.CanWalkBackwards |
+            MovementParams.MoveTowards | MovementParams.UseSpheres | MovementParams.SetHoldKey |
+            MovementParams.ModifyRawState | MovementParams.ModifyInterpretedState | MovementParams.CancelMoveTo;
+    }
 }
