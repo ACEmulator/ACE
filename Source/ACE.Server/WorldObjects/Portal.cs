@@ -258,10 +258,7 @@ namespace ACE.Server.WorldObjects
 
         private void ActivatePortal(Player player)
         {
-            if (player.Teleporting)
-                return;
-
-            player.Teleporting = false;
+            if (player.Teleporting) return;
 
             if (Destination == null)
             {
@@ -312,12 +309,10 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
+            // everything looks good, teleport
 #if DEBUG
             player.Session.Network.EnqueueSend(new GameMessageSystemChat("Portal sending player to destination", ChatMessageType.System));
 #endif
-            // everything looks good, teleport
-            player.Teleporting = true;
-
             var portalDest = new Position(Destination);
             player.AdjustDungeon(portalDest);
             AdjustPortalDestination(player, portalDest);

@@ -373,7 +373,7 @@ namespace ACE.Server.WorldObjects
                     if (wo != null)
                         wo.Examine(Session);
                     else
-                        log.Warn("${Name} tried to appraise object {examinationId:X8}, couldn't find it");
+                        log.Warn($"{Name} tried to appraise object {examinationId.Full:X8}, couldn't find it");
                 }
             }
 
