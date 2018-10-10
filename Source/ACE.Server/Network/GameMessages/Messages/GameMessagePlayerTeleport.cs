@@ -7,11 +7,8 @@ namespace ACE.Server.Network.GameMessages.Messages
         public GameMessagePlayerTeleport(Player player)
             : base(GameMessageOpcode.PlayerTeleport, GameMessageGroup.SmartboxQueue)
         {
+            Writer.Write((ushort)0);
             Writer.Write(player.Sequences.GetNextSequence(Sequence.SequenceType.ObjectTeleport));
-            // Don't see these in traces or protocol spec:
-            // Writer.Write(0u);
-            // Writer.Write(0u);
-            // Writer.Write((ushort)0);
         }
     }
 }
