@@ -33,7 +33,8 @@ namespace ACE.Server.WorldObjects
             }
 
             // originally was using spell.RangeConstant, bug?
-            bool targetSelf = false || (int)Math.Floor(spell.BaseRangeConstant) == 0;
+            // is this floor required?
+            bool targetSelf = Math.Floor(spell.BaseRangeConstant) == 0;
             var target = targetSelf ? this : CurrentLandblock?.GetObject(guidTarget);
 
             switch (spell.School)

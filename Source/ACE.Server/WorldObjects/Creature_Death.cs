@@ -92,6 +92,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void Smite(WorldObject smiter)
         {
+            // deal remaining damage?
             OnDeath();
             Die(smiter, smiter);
         }

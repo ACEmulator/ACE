@@ -184,9 +184,9 @@ namespace ACE.Server.WorldObjects
                 }
 
                 if (target.WeenieType == WeenieType.Portal)
-                    OnAutonomousMove(target.Location, Sequences, MovementTypes.MoveToPosition, target.Guid, (target.UseRadius ?? 0));
+                    OnAutonomousMove(target.Location, Sequences, MovementTypes.MoveToPosition, target.Guid, (target.UseRadius ?? 0.6f));
                 else
-                    OnAutonomousMove(target.Location, Sequences, MovementTypes.MoveToObject, target.Guid, (target.UseRadius ?? 0));
+                    OnAutonomousMove(target.Location, Sequences, MovementTypes.MoveToObject, target.Guid, (target.UseRadius ?? 0.6f));
             });
 
             // poll for arrival every .1 seconds

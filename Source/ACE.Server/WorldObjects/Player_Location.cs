@@ -117,6 +117,9 @@ namespace ACE.Server.WorldObjects
             IgnoreCollisions = true;
             ReportCollisions = false;
             EnqueueBroadcastPhysicsState();
+
+            // force out of hotspots
+            PhysicsObj.report_collision_end(true);
         }
 
         public void OnTeleportComplete()

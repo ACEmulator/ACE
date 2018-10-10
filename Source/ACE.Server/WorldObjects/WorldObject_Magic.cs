@@ -450,8 +450,8 @@ namespace ACE.Server.WorldObjects
             enchantmentStatus.message = null;
             enchantmentStatus.stackType = StackType.None;
 
-            Player player = CurrentLandblock?.GetObject(Guid) as Player;
-            if (player == null && ((this as Player) != null)) player = this as Player;
+            var creature = this as Creature;
+            var player = this as Player;
 
             if ((spell.MetaSpellType == SpellType.PortalLink)
                 || (spell.MetaSpellType == SpellType.PortalRecall)
@@ -563,8 +563,10 @@ namespace ACE.Server.WorldObjects
                         uint portalId = 0;
                         Position destination = null;
 
-                        if (itemCaster != null)
-                            portalId = itemCaster.GetProperty(PropertyDataId.LinkedPortalOne) ?? 0;
+                        if (player == null)
+                            portalId = LinkedPortalOneDID ?? 0;
+                        else if (itemCaster != null)
+                            portalId = itemCaster.LinkedPortalOneDID ?? 0;
                         else
                         {
                             if (spell.Name.Contains("Summon Primary"))
@@ -580,11 +582,17 @@ namespace ACE.Server.WorldObjects
                                 portalId = 1955;
                         }
 
-                        if (portalId != 0)
-                            SummonPortal(portalId, destination, spell.PortalLifetime);
-                        else
+                        if (portalId == 0)
+                        {
                             // You must link to a portal to summon it!
                             player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouMustLinkToPortalToSummonIt));
+                            break;
+                        }
+
+                        if (destination != null)
+                            SummonPortal(portalId, destination, spell.PortalLifetime);
+                        else
+                            SummonPortal(portalId, spell.PortalLifetime);
 
                         break;
                     case SpellType.FellowPortalSending:
@@ -630,7 +638,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Spawns a time-based portal from a portal weenie id
         /// </summary>
-        protected void SummonPortal(uint wcid)
+        protected void SummonPortal(uint wcid, double portalLifetime = 60.0f)   // default?
         {
             var weenie = DatabaseManager.World.GetCachedWeenie(wcid);
             var portal = WorldObjectFactory.CreateNewWorldObject(weenie);
@@ -642,7 +650,6 @@ namespace ACE.Server.WorldObjects
 
             // queue for destruction
             var despawnChain = new ActionChain();
-            var portalLifetime = 60.0f;    // ??
             despawnChain.AddDelaySeconds(portalLifetime);
             //despawnChain.AddAction(portal, () => portal.Destroy());     // smooth fade-out doesn't work for portals?
             despawnChain.AddAction(portal, () => portal.CurrentLandblock?.RemoveWorldObject(portal.Guid, false));

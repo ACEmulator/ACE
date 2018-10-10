@@ -219,7 +219,7 @@ namespace ACE.Server.WorldObjects
         /// <param name="sequence">Sequence for the object getting the message.</param>
         /// <param name="movementType">What type of movement are we about to execute</param>
         /// <param name="targetGuid">Who are we moving or turning toward</param>
-        public void OnAutonomousMove(ACE.Entity.Position worldObjectPosition, SequenceManager sequence, MovementTypes movementType, ObjectGuid targetGuid, float distanceFrom = 0.60f)
+        public void OnAutonomousMove(ACE.Entity.Position worldObjectPosition, SequenceManager sequence, MovementTypes movementType, ObjectGuid targetGuid, float distanceFrom = 0.6f)
         {
             var target = CurrentLandblock.GetObject(targetGuid);
             if (target != null && target is Creature)

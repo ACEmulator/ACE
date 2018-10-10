@@ -595,9 +595,9 @@ namespace ACE.Server.Managers
 
                     // what is the difference between this and MoveToPos?
                     // using MoveToPos logic for now...
-                    if (targetCreature != null)
+                    if (creature != null)
                     {
-                        var currentPos = targetCreature.Location;
+                        var currentPos = creature.Location;
 
                         var newPos = new Position();
                         newPos.LandblockId = new LandblockId(currentPos.LandblockId.Raw);
@@ -611,22 +611,22 @@ namespace ACE.Server.Managers
                         if (emoteAction.ObjCellId != null)
                             newPos.LandblockId = new LandblockId(emoteAction.ObjCellId.Value);
 
-                        targetCreature.MoveTo(newPos, targetCreature.GetRunRate());
+                        creature.MoveTo(newPos, creature.GetRunRate());
                     }
                     break;
 
                 case EmoteType.MoveHome:
 
                     // TODO: call MoveToManager on server
-                    if (targetCreature != null)
-                        targetCreature.MoveTo(targetCreature.Home, targetCreature.GetRunRate());
+                    if (creature != null && creature.Home != null)      // home seems to be null for creatures?
+                        creature.MoveTo(creature.Home, creature.GetRunRate());
                     break;
 
                 case EmoteType.MoveToPos:
 
-                    if (targetCreature != null)
+                    if (creature != null)
                     {
-                        var currentPos = targetCreature.Location;
+                        var currentPos = creature.Location;
 
                         var newPos = new Position();
                         newPos.LandblockId = new LandblockId(currentPos.LandblockId.Raw);
@@ -640,7 +640,7 @@ namespace ACE.Server.Managers
                         if (emoteAction.ObjCellId != null)
                             newPos.LandblockId = new LandblockId(emoteAction.ObjCellId.Value);
 
-                        targetCreature.MoveTo(newPos, targetCreature.GetRunRate());
+                        creature.MoveTo(newPos, creature.GetRunRate());
                     }
                     break;
 

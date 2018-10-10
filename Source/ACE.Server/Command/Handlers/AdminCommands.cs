@@ -649,7 +649,7 @@ namespace ACE.Server.Command.Handlers
                         if (wo is Player) // I don't recall if @smite all would kill players in range, assuming it didn't
                             continue;
 
-                        if (wo is Creature creature)
+                        if (wo is Creature creature && creature.IsAttackable())
                             creature.Smite(session.Player);
                     }
                 }
