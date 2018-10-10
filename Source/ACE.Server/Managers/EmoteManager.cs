@@ -207,7 +207,7 @@ namespace ACE.Server.Managers
                 case EmoteType.DirectBroadcast:
                     text = Replace(emoteAction.Message, WorldObject, targetObject);
                     if (player != null)
-                        player.Session.Network.EnqueueSend(new GameMessageSystemChat(text, ChatMessageType.Broadcast));
+                        player.Session.Network.EnqueueSend(new GameMessageSystemChat(text, ChatMessageType.Broadcast));     // CreatureMessage / HearDirectSpeech?
                     break;
 
                 case EmoteType.EraseMyQuest:
@@ -517,11 +517,11 @@ namespace ACE.Server.Managers
                         actionChain.AddDelaySeconds(emoteAction.Delay);
                         actionChain.AddAction(sourceObject, () =>
                         {
-                            sourceObject?.EnqueueBroadcast(new GameMessageCreatureMessage(message, sourceObject.Name, sourceObject.Guid.Full, ChatMessageType.Broadcast));
+                            sourceObject?.EnqueueBroadcast(new GameMessageSystemChat(message, ChatMessageType.Broadcast));
                         });
                     }
                     else
-                        sourceObject.EnqueueBroadcast(new GameMessageCreatureMessage(message, sourceObject.Name, sourceObject.Guid.Full, ChatMessageType.Broadcast));
+                        sourceObject?.EnqueueBroadcast(new GameMessageSystemChat(message, ChatMessageType.Broadcast));
                     break;
 
                 case EmoteType.LocalSignal:
@@ -939,14 +939,17 @@ namespace ACE.Server.Managers
                     break;
 
                 case EmoteType.WorldBroadcast:
-                    if (player != null)
+
+                    actionChain.AddDelaySeconds(emoteAction.Delay);
+                    actionChain.AddAction(sourceObject, () =>
                     {
-                        actionChain.AddDelaySeconds(emoteAction.Delay);
-                        actionChain.AddAction(sourceObject, () =>
-                        {
-                            player.Session.Network.EnqueueSend(new GameMessageHearDirectSpeech(sourceObject, emoteAction.Message, player, ChatMessageType.WorldBroadcast));
-                        });
-                    }
+                        message = Replace(text, sourceObject, targetObject);
+
+                        var onlinePlayers = WorldManager.GetAll();
+
+                        foreach (var session in onlinePlayers)
+                            session.Network.EnqueueSend(new GameMessageSystemChat(message, ChatMessageType.WorldBroadcast));
+                    });
                     break;
 
                 default:
