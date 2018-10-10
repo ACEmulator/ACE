@@ -395,13 +395,7 @@ namespace ACE.Server.Managers
 
                     if (player != null)
                     {
-                        bool hasQuest = false;
-                        var questName = emoteAction.Message;
-                        var idx = emoteAction.Message.IndexOf('@');     // comment?
-                        if (idx != -1)
-                            questName = emoteAction.Message.Substring(0, idx);
-                        hasQuest = player.QuestManager.HasQuest(questName);
-                        //hasQuest = player.QuestManager.HasQuestCompletes(emoteAction.Message);
+                        var hasQuest = player.QuestManager.HasQuest(emoteAction.Message);
 
                         InqCategory(hasQuest ? EmoteCategory.QuestSuccess : EmoteCategory.QuestFailure, emoteAction, sourceObject, targetObject, actionChain);
                     }
@@ -413,11 +407,11 @@ namespace ACE.Server.Managers
                     break;
                 case EmoteType.InqQuestSolves:
 
-                    // should this be different from InqQuest?
                     if (player != null)
                     {
-                        var hasQuest = player.QuestManager.HasQuest(emoteAction.Message);
-                        InqCategory(hasQuest ? EmoteCategory.QuestSuccess : EmoteCategory.QuestFailure, emoteAction, sourceObject, targetObject, actionChain);
+                        var questSolves = player.QuestManager.HasQuestSolves(emoteAction.Message, emoteAction.Min, emoteAction.Max);
+
+                        InqCategory(questSolves ? EmoteCategory.QuestSuccess : EmoteCategory.QuestFailure, emoteAction, sourceObject, targetObject, actionChain);
                     }
                     break;
 

@@ -31,10 +31,14 @@ namespace ACE.Server.Managers
         /// <summary>
         /// Returns TRUE if a player has started a particular quest
         /// </summary>
-        public bool HasQuest(string questName)
+        public bool HasQuest(string questFormat)
         {
+            var questName = GetQuestName(questFormat);
             var hasQuest = GetQuest(questName) != null;
-            if (Debug) Console.WriteLine($"{Player.Name}.HasQuest({questName}): {hasQuest}");
+
+            if (Debug)
+                Console.WriteLine($"{Player.Name}.HasQuest({questFormat}): {hasQuest}");
+
             return hasQuest;
         }
 
@@ -54,8 +58,8 @@ namespace ACE.Server.Managers
             var name = pieces[0];
             if (!Int32.TryParse(pieces[1], out var numCompletes))
             {
-                Console.WriteLine($"{Player.Name}.QuestManager.HasQuestCompletes({questName}): error parsing quest name");
-                return false;
+                Console.WriteLine($"{Player.Name}.QuestManager.HasQuestCompletes({questName}): unknown quest format");
+                return HasQuest(questName);
             }
             var quest = GetQuest(name);
             if (quest == null)
@@ -77,29 +81,31 @@ namespace ACE.Server.Managers
         /// <summary>
         /// Adds or updates a quest completion to the player's registry
         /// </summary>
-        public void Update(string questName)
+        public void Update(string quest)
         {
+            var questName = GetQuestName(quest);
+
             var existing = Quests.FirstOrDefault(q => q.QuestName == questName);
 
             if (existing == null)
             {
                 // add new quest entry
-                var quest = new CharacterPropertiesQuestRegistry
+                var info = new CharacterPropertiesQuestRegistry
                 {
                     QuestName = questName,
                     CharacterId = Player.Guid.Full,
                     LastTimeCompleted = (uint)Time.GetUnixTime(),
                     NumTimesCompleted = 1   // initial add / first solve
                 };
-                if (Debug) Console.WriteLine($"{Player.Name}.QuestManager.Update({questName}): added quest");
-                Quests.Add(quest);
+                if (Debug) Console.WriteLine($"{Player.Name}.QuestManager.Update({quest}): added quest");
+                Quests.Add(info);
             }
             else
             {
                 // update existing quest
                 existing.LastTimeCompleted = (uint)Time.GetUnixTime();
                 existing.NumTimesCompleted++;
-                if (Debug) Console.WriteLine($"{Player.Name}.QuestManager.Update({questName}): updated quest ({existing.NumTimesCompleted})");
+                if (Debug) Console.WriteLine($"{Player.Name}.QuestManager.Update({quest}): updated quest ({existing.NumTimesCompleted})");
             }
         }
 
@@ -208,6 +214,40 @@ namespace ACE.Server.Managers
         }
 
         /// <summary>
+        /// Returns the quest name without the @ comment
+        /// </summary>
+        /// <param name="questFormat">A quest name with an optional @comment on the end</param>
+        public static string GetQuestName(string questFormat)
+        {
+            var idx = questFormat.IndexOf('@');     // strip comment
+            if (idx == -1)
+                return questFormat;
+
+            var questName = questFormat.Substring(0, idx);
+            return questName;
+        }
+
+        /// <summary>
+        /// Returns TRUE if player has solved this quest between min-max times
+        /// </summary>
+        public bool HasQuestSolves(string questFormat, int? _min, int? _max)
+        {
+            var questName = GetQuestName(questFormat);    // strip optional @comment
+
+            var quest = GetQuest(questName);
+            var numSolves = quest != null ? quest.NumTimesCompleted : 0;
+
+            int min = _min ?? 0;    // use defaults?
+            int max = _max ?? 0;
+
+            var hasQuestSolves = numSolves >= min && numSolves <= max;    // verify: can either of these be -1?
+            if (Debug)
+                Console.WriteLine($"{Player.Name}.HasQuestSolves({questFormat}, {_min}, {_max}): {hasQuestSolves}");
+
+            return hasQuestSolves;
+        }
+
+        /// <summary>
         /// Called when a player hasn't started a quest yet
         /// </summary>
         public void HandleNoQuestError(WorldObject wo)
@@ -247,6 +287,5 @@ namespace ACE.Server.Managers
                 Player.Session.Network.EnqueueSend(text, remain, error);
             }
         }
-
     }
 }
