@@ -136,7 +136,7 @@ namespace ACE.Server.Managers
                 case EmoteType.AwardTrainingCredits:
 
                     if (player != null)
-                        player.AddSkillCredits((int)emoteAction.Amount, true);
+                        player.AddSkillCredits((int)emoteAction.Amount, false);
                     break;
 
                 case EmoteType.AwardXP:
@@ -396,10 +396,12 @@ namespace ACE.Server.Managers
                     if (player != null)
                     {
                         bool hasQuest = false;
-                        if (emoteAction.Message.Contains("@"))
-                            hasQuest = player.QuestManager.HasQuestCompletes(emoteAction.Message);
-                        else
-                            hasQuest = player.QuestManager.HasQuest(emoteAction.Message);
+                        var questName = emoteAction.Message;
+                        var idx = emoteAction.Message.IndexOf('@');     // comment?
+                        if (idx != -1)
+                            questName = emoteAction.Message.Substring(0, idx);
+                        hasQuest = player.QuestManager.HasQuest(questName);
+                        //hasQuest = player.QuestManager.HasQuestCompletes(emoteAction.Message);
 
                         InqCategory(hasQuest ? EmoteCategory.QuestSuccess : EmoteCategory.QuestFailure, emoteAction, sourceObject, targetObject, actionChain);
                     }
@@ -1108,8 +1110,15 @@ namespace ACE.Server.Managers
             Execute(EmoteCategory.Use);
         }
 
+        public void OnAttack()
+        {
+            Execute(EmoteCategory.NewEnemy);
+        }
+
         public void OnDeath(DamageHistory damageHistory)
         {
+            Execute(EmoteCategory.KillTaunt, damageHistory.TopDamager);
+
             foreach (var damager in damageHistory.Damagers)
                 Execute(EmoteCategory.Death, damager);
         }
