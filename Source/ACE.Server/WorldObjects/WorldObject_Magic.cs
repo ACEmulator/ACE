@@ -659,7 +659,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Launches a War Magic spell projectile (untargeted)
         /// </summary>
-        protected void WarMagic(Spell spell)
+        public void WarMagic(Spell spell)
         {
             var spellType = SpellProjectile.GetProjectileSpellType(spell.Id);
 
@@ -1238,7 +1238,15 @@ namespace ACE.Server.WorldObjects
             var xPadding = (spell.Wcid == 7280) ? 0.1f : 0f;
             var topRowZOffset = defaultZOffset + zPadding;
 
-            if (isTuskerFists)
+            if (spell.Name.Equals("Rolling Death"))
+            {
+                offsetList = new List<Vector3>()
+                {
+                    //new Vector3(0, 0.0f, 1.828333f)
+                    new Vector3(0, 0.0f, Height)
+                };
+            }
+            else if (isTuskerFists)
             {
                 offsetList = new List<Vector3>
                 {
@@ -1298,6 +1306,10 @@ namespace ACE.Server.WorldObjects
         {
             // The Slithering Flames spell does in fact slither slower than other wall spells
             var velocity = (spell.Id == 1841) ? new Vector3(0, 3f, 0) : new Vector3(0, 4f, 0);
+
+            if (spell.Name.Equals("Rolling Death"))
+                velocity = new Vector3(0, 2, 0);
+
             velocity = Vector3.Transform(velocity, Location.Rotation);
 
             return new AceVector3(velocity.X, velocity.Y, velocity.Z);

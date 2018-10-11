@@ -168,14 +168,16 @@ namespace ACE.Server.Managers
 
                 case EmoteType.CastSpellInstant:
 
-                    var spellTable = DatManager.PortalDat.SpellTable;
-                    var spell = spellTable.Spells[(uint)emoteAction.SpellId];
+                    var spell = new Entity.Spell((uint)emoteAction.SpellId);
                     actionChain.AddAction(sourceObject, () =>
                     {
                         if (spell.TargetEffect > 0)
                             creature.CreateCreatureSpell(targetObject.Guid, (uint)emoteAction.SpellId);
                         else
+                        {
                             creature.CreateCreatureSpell((uint)emoteAction.SpellId);
+                            creature.WarMagic(spell);   // only war magic?
+                        }
                     });
                     break;
 

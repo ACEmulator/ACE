@@ -145,6 +145,9 @@ namespace ACE.Server.WorldObjects
                 }
             }
 
+            if (spell.Name.Equals("Rolling Death"))
+                return ProjectileSpellType.Wall;    // ??
+
             if (spell.School == MagicSchool.VoidMagic)
                 return ProjectileSpellType.Bolt;
 
