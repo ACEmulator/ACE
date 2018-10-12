@@ -85,12 +85,16 @@ namespace ACE.Server.WorldObjects
         /// <param name="vital">The vital stat to update (health/stamina/mana)</param>
         public void VitalTick(CreatureVital vital)
         {
-            if (vital.Current == vital.MaxValue)
+            // Current and MaxValue are properties and include overhead in getting their values. We cache them so we only hit the overhead once.
+            var vitalCurrent = vital.Current;
+            var vitalMax = vital.MaxValue;
+
+            if (vitalCurrent == vitalMax)
                 return;
 
-            if (vital.Current > vital.MaxValue)
+            if (vitalCurrent > vitalMax)
             {
-                UpdateVital(vital, vital.MaxValue);
+                UpdateVital(vital, vitalMax);
                 return;
             }
 
