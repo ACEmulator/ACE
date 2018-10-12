@@ -71,14 +71,11 @@ namespace ACE.Server.WorldObjects
         {
             if (IsDead) return;
 
-            if (Health.Current != Health.MaxValue)
-                VitalTick(Health);
+            VitalTick(Health);
 
-            if (Stamina.Current != Stamina.MaxValue)
-                VitalTick(Stamina);
+            VitalTick(Stamina);
 
-            if (Mana.Current != Mana.MaxValue)
-                VitalTick(Mana);
+            VitalTick(Mana);
         }
 
         /// <summary>
