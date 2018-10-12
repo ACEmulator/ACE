@@ -107,6 +107,7 @@ namespace ACE.Server.WorldObjects.Entity
                 total += (uint)skillMod;    // can be negative?
 
                 // TODO: include augs + any other modifiers
+
                 if (creature is Player player)
                 {
                     var vitae = player.Vitae;

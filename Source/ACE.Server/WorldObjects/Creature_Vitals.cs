@@ -69,7 +69,8 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void VitalTick()
         {
-            if (IsDead) return;
+            if (IsDead)
+                return;
 
             VitalTick(Health);
 
