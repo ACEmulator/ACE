@@ -112,8 +112,10 @@ namespace ACE.Server.Managers
         /// <summary>
         /// Returns TRUE if player can solve this quest now
         /// </summary>
-        public bool CanSolve(string questName)
+        public bool CanSolve(string questFormat)
         {
+            var questName = GetQuestName(questFormat);
+
             // verify max solves / quest timer
             var nextSolveTime = GetNextSolveTime(questName);
 
@@ -140,8 +142,10 @@ namespace ACE.Server.Managers
         /// <summary>
         /// Returns the time remaining until the player can solve this quest again
         /// </summary>
-        public TimeSpan GetNextSolveTime(string questName)
+        public TimeSpan GetNextSolveTime(string questFormat)
         {
+            var questName = GetQuestName(questFormat);
+
             var quest = DatabaseManager.World.GetCachedQuest(questName);
             if (quest == null)
                 return TimeSpan.MaxValue;   // world quest not found - cannot solve it

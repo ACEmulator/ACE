@@ -417,4 +417,15 @@ namespace ACE.Entity.Enum
         OffhandPunchSlowLow                   = 0x1000019a,
         WoahDuplicate2                        = 0x1000019b, // Appears to be the same as Motion_Woah except it starts with 0x10 instead of 0x13
     }
+
+    public static class MotionCommandHelper
+    {
+        public static MotionCommand GetMotion(int motionCommand)
+        {
+            if (motionCommand == 0x10000162)
+                return MotionCommand.Fishing;
+
+            return (MotionCommand)motionCommand;
+        }
+    }
 }

@@ -153,6 +153,8 @@ namespace ACE.Server.WorldObjects
 
             EnqueueActionBroadcast((Player p) => p.TrackObject(this));
 
+            worldObject.EmoteManager.OnWield(this);
+
             return true;
         }
 
@@ -183,6 +185,8 @@ namespace ACE.Server.WorldObjects
 
                 //EnqueueActionBroadcast((Player p) => p.TrackObject(this));
                 EnqueueBroadcast(new GameMessagePickupEvent(worldObject));
+
+                worldObject.EmoteManager.OnUnwield(this);
 
                 return true;
             }
