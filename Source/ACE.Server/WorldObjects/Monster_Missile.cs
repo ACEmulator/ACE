@@ -94,8 +94,11 @@ namespace ACE.Server.WorldObjects
 
                 // TODO: monster stamina usage
 
-                var projectile = LaunchProjectile(ammo, AttackTarget, out targetTime);
-                UpdateAmmoAfterLaunch(ammo);
+                if (AttackTarget != null)
+                {
+                    var projectile = LaunchProjectile(ammo, AttackTarget, out targetTime);
+                    UpdateAmmoAfterLaunch(ammo);
+                }
             });
 
             // will ammo be depleted?
