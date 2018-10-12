@@ -18,7 +18,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public override void HeartBeat(double currentUnixTime)
         {
-            VitalTick();
+            VitalHeartBeat();
 
             // item enchantment ticks?
 

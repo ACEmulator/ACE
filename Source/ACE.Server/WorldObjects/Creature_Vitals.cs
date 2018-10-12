@@ -67,23 +67,23 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Called every ~5 secs to regenerate vitals
         /// </summary>
-        public void VitalTick()
+        public void VitalHeartBeat()
         {
             if (IsDead)
                 return;
 
-            VitalTick(Health);
+            VitalHeartBeat(Health);
 
-            VitalTick(Stamina);
+            VitalHeartBeat(Stamina);
 
-            VitalTick(Mana);
+            VitalHeartBeat(Mana);
         }
 
         /// <summary>
         /// Updates a particular vital according to regeneration rate
         /// </summary>
         /// <param name="vital">The vital stat to update (health/stamina/mana)</param>
-        public void VitalTick(CreatureVital vital)
+        public void VitalHeartBeat(CreatureVital vital)
         {
             // Current and MaxValue are properties and include overhead in getting their values. We cache them so we only hit the overhead once.
             var vitalCurrent = vital.Current;
