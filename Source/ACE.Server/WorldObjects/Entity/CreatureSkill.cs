@@ -107,12 +107,12 @@ namespace ACE.Server.WorldObjects.Entity
                 total += (uint)skillMod;    // can be negative?
 
                 // TODO: include augs + any other modifiers
-                if (creature is Player)
+                if (creature is Player player)
                 {
-                    var player = creature as Player;
+                    var vitae = player.Vitae;
 
-                    if (player.HasVitae)
-                        total = (uint)Math.Round(total * player.Vitae);
+                    if (vitae != 1.0f)
+                        total = (uint)Math.Round(total * vitae);
                 }
 
                 return total;
