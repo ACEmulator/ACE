@@ -162,22 +162,20 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyInt.VitaeCpPool); else SetProperty(PropertyInt.VitaeCpPool, value.Value); }
         }
 
-        public bool HasVitae
-        {
-            get
-            {
-                return EnchantmentManager.HasVitae;
-            }
-        }
+        public bool HasVitae => EnchantmentManager.HasVitae;
 
+        /// <summary>
+        /// Will return 1.0f if no vitae exists.
+        /// </summary>
         public float Vitae
         {
             get
             {
-                if (!HasVitae)
+                var vitae = EnchantmentManager.GetVitae();
+
+                if (vitae == null)
                     return 1.0f;
 
-                var vitae = EnchantmentManager.GetVitae();
                 return vitae.StatModValue;
             }
         }

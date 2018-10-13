@@ -50,7 +50,9 @@ namespace ACE.Server.WorldObjects
                 var xpAvailUpdate = new GameMessagePrivateUpdatePropertyInt64(this, PropertyInt64.AvailableExperience, AvailableExperience ?? 0);
                 Session.Network.EnqueueSend(xpTotalUpdate, xpAvailUpdate);
             }
-            if (HasVitae) UpdateXpVitae(amount);
+
+            if (HasVitae)
+                UpdateXpVitae(amount);
         }
 
         /// <summary>
