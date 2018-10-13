@@ -113,11 +113,14 @@ namespace ACE.Server.Entity
 
             lastActiveTime = DateTime.UtcNow;
 
-            Task.Run(() => CreateWorldObjects());
+            Task.Run(() =>
+            {
+                CreateWorldObjects();
 
-            Task.Run(() => SpawnDynamicShardObjects());
+                SpawnDynamicShardObjects();
 
-            Task.Run(() => SpawnEncounters());
+                SpawnEncounters();
+            });
 
             //LoadMeshes(objects);
         }
