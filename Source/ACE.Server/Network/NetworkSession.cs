@@ -379,7 +379,9 @@ namespace ACE.Server.Network
         private void ProcessFragment(ClientPacketFragment fragment)
         {
             packetLog.DebugFormat("[{0}] Processing fragment {1}", session.LoggingIdentifier, fragment.Header.Sequence);
+
             ClientMessage message = null;
+
             // Check if this fragment is split
             if (fragment.Header.Count != 1)
             {
@@ -516,6 +518,7 @@ namespace ACE.Server.Network
             while (packetQueue.Count > 0)
             {
                 packetLog.DebugFormat("[{0}] Flushing packets, count {1}", session.LoggingIdentifier, packetQueue.Count);
+
                 ServerPacket packet = packetQueue.Dequeue();
 
                 if (packet.Header.HasFlag(PacketHeaderFlags.EncryptedChecksum) && ConnectionData.PacketSequence.CurrentValue == 0)
@@ -540,6 +543,7 @@ namespace ACE.Server.Network
         private void SendPacket(ServerPacket packet)
         {
             packetLog.DebugFormat("[{0}] Sending packet {1}", session.LoggingIdentifier, packet.GetHashCode());
+
             if (packet.Header.HasFlag(PacketHeaderFlags.EncryptedChecksum))
             {
                 uint issacXor = session.GetIssacValue(PacketDirection.Server);
@@ -579,6 +583,7 @@ namespace ACE.Server.Network
         private void SendBundle(NetworkBundle bundle, GameMessageGroup group)
         {
             packetLog.DebugFormat("[{0}] Sending Bundle", session.LoggingIdentifier);
+
             bool writeOptionalHeaders = true;
 
             List<MessageFragment> fragments = new List<MessageFragment>();
@@ -680,6 +685,7 @@ namespace ACE.Server.Network
         private void WriteOptionalHeaders(NetworkBundle bundle, ServerPacket packet)
         {
             PacketHeader packetHeader = packet.Header;
+
             if (bundle.SendAck) // 0x4000
             {
                 packetHeader.Flags |= PacketHeaderFlags.AckSequence;
