@@ -181,7 +181,7 @@ namespace ACE.Server.Command.Handlers.Processors
             initialQueueWaitTime = TimeSpan.Zero;
             totalQueryExecutionTime = TimeSpan.Zero;
 
-            DatabaseManager.Shard.SaveBiotas(biotas, result =>
+            DatabaseManager.Shard.SaveBiotasInParallel(biotas, result =>
             {
                 if (result)
                     Interlocked.Increment(ref trueResults);
@@ -213,7 +213,7 @@ namespace ACE.Server.Command.Handlers.Processors
                 initialQueueWaitTime = TimeSpan.Zero;
                 totalQueryExecutionTime = TimeSpan.Zero;
 
-                DatabaseManager.Shard.SaveBiotas(biotas, result =>
+                DatabaseManager.Shard.SaveBiotasInParallel(biotas, result =>
                 {
                     if (result)
                         Interlocked.Increment(ref trueResults);
@@ -242,7 +242,7 @@ namespace ACE.Server.Command.Handlers.Processors
             initialQueueWaitTime = TimeSpan.Zero;
             totalQueryExecutionTime = TimeSpan.Zero;
 
-            DatabaseManager.Shard.RemoveBiotas(biotas, result =>
+            DatabaseManager.Shard.RemoveBiotasInParallel(biotas, result =>
             {
                 if (result)
                     Interlocked.Increment(ref trueResults);

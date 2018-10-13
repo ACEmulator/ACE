@@ -92,7 +92,7 @@ namespace ACE.Server.Managers
             {
                 foreach (var character in characters)
                 {
-                    DatabaseManager.Shard.GetPlayerBiotas(character.Id, biotas =>
+                    DatabaseManager.Shard.GetPlayerBiotasInParallel(character.Id, biotas =>
                     {
                         var session = new Session();
                         var player = new Player(biotas.Player, biotas.Inventory, biotas.WieldedItems, character, session);
@@ -107,7 +107,7 @@ namespace ACE.Server.Managers
         /// </summary>
         public static void AddPlayer(Character character)
         {
-            DatabaseManager.Shard.GetPlayerBiotas(character.Id, biotas =>
+            DatabaseManager.Shard.GetPlayerBiotasInParallel(character.Id, biotas =>
             {
                 var session = new Session();
                 var player = new Player(biotas.Player, biotas.Inventory, biotas.WieldedItems, character, session);
@@ -426,7 +426,7 @@ namespace ACE.Server.Managers
         public static void PlayerEnterWorld(Session session, Character character)
         {
             var start = DateTime.UtcNow;
-            DatabaseManager.Shard.GetPlayerBiotas(character.Id, biotas =>
+            DatabaseManager.Shard.GetPlayerBiotasInParallel(character.Id, biotas =>
             {
                 log.Debug($"GetPlayerBiotas for {character.Name} took {(DateTime.UtcNow - start).TotalMilliseconds:N0} ms");
 

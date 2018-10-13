@@ -1419,7 +1419,7 @@ namespace ACE.Server.Command.Handlers
             foreach (var possession in possessions)
                 possessedBiotas.Add((possession.Biota, possession.BiotaDatabaseLock));
 
-            DatabaseManager.Shard.AddCharacter(player.Biota, player.BiotaDatabaseLock, possessedBiotas, player.Character, player.CharacterDatabaseLock, null);
+            DatabaseManager.Shard.AddCharacterInParallel(player.Biota, player.BiotaDatabaseLock, possessedBiotas, player.Character, player.CharacterDatabaseLock, null);
 
             session.LogOffPlayer();
         }
