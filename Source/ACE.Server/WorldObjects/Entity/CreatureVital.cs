@@ -116,11 +116,12 @@ namespace ACE.Server.WorldObjects.Entity
                 // TODO: include all buffs
                 total += (uint)Math.Round(creature.EnchantmentManager.GetVitalMod(this));
 
-                var player = creature as Player;
-                if (player != null)
+                if (creature is Player player)
                 {
-                    if (player.HasVitae)
-                        total = (uint)Math.Round(total * player.Vitae);
+                    var vitae = player.Vitae;
+
+                    if (vitae != 1.0f)
+                        total = (uint)Math.Round(total * vitae);
                 }
                 return total;
             }
