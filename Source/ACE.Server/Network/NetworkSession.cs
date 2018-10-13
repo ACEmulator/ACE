@@ -27,10 +27,8 @@ namespace ACE.Server.Network
 
         private readonly Session session;
 
-        //private readonly Object currentBundleLock = new Object();
         private ConcurrentDictionary<GameMessageGroup, Object> currentBundleLocks = new ConcurrentDictionary<GameMessageGroup, Object>();
         private ConcurrentDictionary<GameMessageGroup, NetworkBundle> currentBundles = new ConcurrentDictionary<GameMessageGroup, NetworkBundle>();
-        //private NetworkBundle currentBundle = new NetworkBundle();
 
         private ConcurrentDictionary<uint, ClientPacket> outOfOrderPackets = new ConcurrentDictionary<uint, ClientPacket>();
         private ConcurrentDictionary<uint, MessageBuffer> partialFragments = new ConcurrentDictionary<uint, MessageBuffer>();
@@ -216,6 +214,7 @@ namespace ACE.Server.Network
         public void ProcessPacket(ClientPacket packet)
         {
             packetLog.DebugFormat("[{0}] Processing packet {1}", session.LoggingIdentifier, packet.Header.Sequence);
+
             // Check if this packet's sequence is a sequence which we have already processed.
             // There are some exceptions:
             // Sequence 0 as we have several Seq 0 packets during connect.  This also cathes a case where it seems CICMDCommand arrives at any point with 0 sequence value too.
@@ -233,6 +232,7 @@ namespace ACE.Server.Network
             if (packet.Header.Sequence > desiredSeq)
             {
                 packetLog.WarnFormat("[{0}] Packet {1} received out of order", session.LoggingIdentifier, packet.Header.Sequence);
+
                 if (!outOfOrderPackets.ContainsKey(packet.Header.Sequence))
                     outOfOrderPackets.TryAdd(packet.Header.Sequence, packet);
 
@@ -289,7 +289,6 @@ namespace ACE.Server.Network
         private void HandlePacket(ClientPacket packet)
         {
             packetLog.DebugFormat("[{0}] Handling packet {1}", session.LoggingIdentifier, packet.Header.Sequence);
-
 
             // Upon a client's request of packet retransmit the session CRC salt/offset becomes out of sync somehow.
             // This hack recovers the correct offset and makes WAN client sessions at least reliable enough to test with.
@@ -531,7 +530,6 @@ namespace ACE.Server.Network
                 packet.Header.Iteration = 0x14;
                 packet.Header.Time = (ushort)ConnectionData.ServerTime;
 
-
                 if (packet.Header.Sequence >= 2u)
                     cachedPackets.TryAdd(packet.Header.Sequence, packet);
 
@@ -568,6 +566,7 @@ namespace ACE.Server.Network
                 sb.AppendLine(payload.BuildPacketString());
                 packetLog.Debug(sb.ToString());
             }
+
             socket.SendTo(payload, session.EndPoint);
         }
 
