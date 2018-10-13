@@ -148,7 +148,9 @@ namespace ACE.Server.Network
         /// </summary>
         public void Update()
         {
-            currentBundles.Keys.ToList().ForEach(group =>
+            var groups = currentBundles.Keys.ToList();
+
+            foreach (var group in groups)
             {
                 var currentBundleLock = currentBundleLocks[group];
                 var currentBundle = currentBundles[group];
@@ -201,7 +203,8 @@ namespace ACE.Server.Network
                     SendBundle(bundleToSend, group);
                     nextSend = DateTime.UtcNow.AddMilliseconds(minimumTimeBetweenBundles);
                 }
-            });
+            }
+
             FlushPackets();
         }
 
