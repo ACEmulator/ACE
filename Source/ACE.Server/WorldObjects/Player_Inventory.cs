@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Diagnostics;
-
+using ACE.Common.Extensions;
 using ACE.DatLoader;
 using ACE.DatLoader.FileTypes;
 using ACE.Entity;
@@ -173,6 +173,32 @@ namespace ACE.Server.WorldObjects
         }
 
 
+        /// <summary>
+        /// Returns an item from the landblock, or the lastUsedContainer
+        /// </summary>
+        private WorldObject GetPickupItem(ObjectGuid itemGuid, out bool itemWasRestingOnLandblock)
+        {
+            // Grab a reference to the item before its removed from the CurrentLandblock
+            var item = CurrentLandblock?.GetObject(itemGuid);
+            itemWasRestingOnLandblock = false;
+
+            if (item != null)
+            {
+                itemWasRestingOnLandblock = true;
+                return item;
+            }
+
+            var lastUsedContainer = CurrentLandblock?.GetObject(lastUsedContainerId) as Container;
+
+            if (lastUsedContainer != null)
+                lastUsedContainer.Inventory.TryGetValue(itemGuid, out item);
+
+            if (item == null)
+                log.Error($"{Name}.GetPickupItem({itemGuid}) - couldn't find item");
+
+            return item;
+        }
+
         // =====================================
         // Helper Functions - Inventory Movement
         // =====================================
@@ -186,13 +212,15 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         private void PickupItemWithNetworking(Container container, ObjectGuid itemGuid, int placementPosition, PropertyInstanceId iidPropertyId)
         {
-            ActionChain pickUpItemChain = new ActionChain();
+            var item = GetPickupItem(itemGuid, out bool itemWasRestingOnLandblock);
+            if (item == null) return;
 
             var targetLocation = FindItemLocation(itemGuid);
             if (targetLocation == null) return;
 
-            // Move to the object
+            // rotate / move towards object
             // TODO: only do this if not within use distance
+            ActionChain pickUpItemChain = new ActionChain();
             pickUpItemChain.AddChain(CreateMoveToChain(targetLocation, out var thisMoveToChainNumber));
 
             var thisMoveToChainNumberCopy = thisMoveToChainNumber;
@@ -215,7 +243,7 @@ namespace ACE.Server.WorldObjects
                     return;
                 }*/
 
-                // Pick up the object
+                // start picking up item animation
                 var motion = new UniversalMotion(CurrentMotionState.Stance);
                 motion.MovementData.ForwardCommand = (uint)MotionCommand.Pickup;
                 EnqueueBroadcast(new GameMessageUpdatePosition(this),
@@ -227,25 +255,31 @@ namespace ACE.Server.WorldObjects
             var pickupAnimationLength = motionTable.GetAnimationLength(CurrentMotionState.Stance, MotionCommand.Pickup, MotionCommand.Ready);
             pickUpItemChain.AddDelaySeconds(pickupAnimationLength);
 
-            // Grab a reference to the item before its removed from the CurrentLandblock
-            var item = CurrentLandblock?.GetObject(itemGuid);
-            var itemWasRestingOnLandblock = false;
-
-            if (item != null)
+            // pick up item
+            pickUpItemChain.AddAction(this, () =>
             {
-                itemWasRestingOnLandblock = true;
-                pickUpItemChain.AddAction(this, () =>
+                // handle quest items
+                var questSolve = false;
+
+                if (item.Quest != null)
+                {
+                    if (!QuestManager.CanSolve(item.Quest))
+                    {
+                        QuestManager.HandleSolveError(item.Quest);
+                        return;
+                    }
+                    else
+                        questSolve = true;
+                }
+
+                if (itemWasRestingOnLandblock)
                 {
                     if (CurrentLandblock != null && CurrentLandblock.RemoveWorldObjectFromPickup(itemGuid))
                         item.NotifyOfEvent(RegenerationType.PickUp);
-                });
-            }
-            else
-            {
-                var lastUsedContainer = CurrentLandblock?.GetObject(lastUsedContainerId) as Container;
-
-                if (lastUsedContainer != null)
+                }
+                else
                 {
+                    var lastUsedContainer = CurrentLandblock?.GetObject(lastUsedContainerId) as Container;
                     if (lastUsedContainer.TryRemoveFromInventory(itemGuid, out item))
                     {
                         item.NotifyOfEvent(RegenerationType.PickUp);
@@ -253,28 +287,21 @@ namespace ACE.Server.WorldObjects
                     else
                     {
                         // Item is in the container which we should have open
-                        log.Error("Player_Inventory PickupItemWithNetworking picking up items from world containers side pack WIP");
+                        log.Error($"{Name}.PickUpItemWithNetworking({itemGuid}): picking up items from world containers side pack WIP");
                         return;
                     }
+
+                    var containerInventory = lastUsedContainer.Inventory;
 
                     var lastUsedHook = lastUsedContainer as Hook;
                     if (lastUsedHook != null)
                         lastUsedHook.OnRemoveItem();
                 }
-            }
 
-            if (item == null)
-            {
-                log.Error("Player_Inventory PickupItemWithNetworking item == null");
-                return;
-            }
-
-            // Finish pickup animation
-            pickUpItemChain.AddAction(this, () =>
-            {
                 // If the item still has a location, CurrentLandblock failed to remove it
                 if (item.Location != null)
                 {
+                    Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, WeenieError.NoObject));
                     log.Error("Player_Inventory PickupItemWithNetworking item.Location != null");
                     return;
                 }
@@ -283,6 +310,7 @@ namespace ACE.Server.WorldObjects
                 if (itemWasRestingOnLandblock && item.ContainerId != null && item.ContainerId != 0)
                 {
                     log.Error("Player_Inventory PickupItemWithNetworking item.ContainerId != 0");
+                    Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, WeenieError.ObjectGone));
                     return;
                 }
 
@@ -294,6 +322,7 @@ namespace ACE.Server.WorldObjects
                 {
                     if (!container.TryAddToInventory(item, placementPosition, true))
                     {
+                        Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, WeenieError.NoObject));
                         log.Error("Player_Inventory PickupItemWithNetworking TryAddToInventory failed");
                         return;
                     }
@@ -323,6 +352,7 @@ namespace ACE.Server.WorldObjects
                 {
                     if (!TryEquipObject(item, placementPosition))
                     {
+                        Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, WeenieError.NoObject));
                         log.Error("Player_Inventory PickupItemWithNetworking TryEquipObject failed");
                         return;
                     }
@@ -341,37 +371,29 @@ namespace ACE.Server.WorldObjects
                         new GameMessagePublicUpdatePropertyInt(item, PropertyInt.CurrentWieldedLocation, (int)(item.CurrentWieldedLocation ?? 0)));
                 }
 
-                Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
+                Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0), new GameMessagePickupEvent(item));
 
                 if (item.WeenieType == WeenieType.Coin)
                     UpdateCoinValue();
 
-                //var motion = new UniversalMotion(MotionStance.NonCombat);
-                var motion = new UniversalMotion(CurrentMotionState.Stance);
-                motion.MovementData.CurrentStyle = (uint)CurrentMotionState.Stance;
-
-                EnqueueBroadcast(new GameMessageUpdateMotion(Guid, Sequences.GetCurrentSequence(SequenceType.ObjectInstance), Sequences, motion),
-                    new GameMessagePickupEvent(item));
-
                 if (iidPropertyId == PropertyInstanceId.Wielder)
                     EnqueueBroadcast(new GameMessageObjDescEvent(this));
 
-                // TODO: Og II - check this later to see if it is still required.
-                //Session.Network.EnqueueSend(new GameMessageUpdateObject(item));
-
-                // Was Item controlled by a generator?
-                // TODO: Should this be happening this way? Should the landblock notify the object of pickup or the generator...
-                /*if (item.GeneratorId > 0)
-                {
-                    WorldObject generator = GetObject(new ObjectGuid((uint)item.GeneratorId));
-
-                    item.GeneratorId = null;
-
-                    generator.NotifyGeneratorOfPickup(item.Guid.Full);
-                }*/
+                if (questSolve)
+                    QuestManager.Update(item.Quest);
 
                 item.SaveBiotaToDatabase();
             });
+
+            // return to previous stance
+            pickUpItemChain.AddAction(this, () =>
+            {
+                var motion = new UniversalMotion(CurrentMotionState.Stance);
+                motion.MovementData.CurrentStyle = (uint)CurrentMotionState.Stance;
+
+                EnqueueBroadcast(new GameMessageUpdateMotion(Guid, Sequences.GetCurrentSequence(SequenceType.ObjectInstance), Sequences, motion));
+            });
+
             // Set chain to run
             pickUpItemChain.EnqueueChain();
         }

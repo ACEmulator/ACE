@@ -110,6 +110,11 @@ namespace ACE.Server.Entity
         }
 
         /// <summary>
+        /// Returns the list of players or creatures who inflicted damage
+        /// </summary>
+        public List<WorldObject> Damagers { get => Log.Select(l => l.DamageSource).Distinct().ToList(); }
+
+        /// <summary>
         /// Returns the WorldObject that last damaged this WorldObject
         /// </summary>
         public WorldObject LastDamager

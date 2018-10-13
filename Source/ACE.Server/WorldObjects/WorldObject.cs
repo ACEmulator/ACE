@@ -118,7 +118,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public virtual void InitPhysicsObj()
         {
-            //Console.WriteLine($"InitPhysicsObj({Name} - {Guid.Full})");
+            //Console.WriteLine($"InitPhysicsObj({Name} - {Guid})");
 
             var defaultState = CalculatedPhysicsState();
 
@@ -141,6 +141,11 @@ namespace ACE.Server.WorldObjects
             PhysicsObj.SetMotionTableID(MotionTableId);
 
             PhysicsObj.SetScaleStatic(ObjScale ?? 1.0f);
+
+            // gaerlan rolling balls of death
+            if (Name.Equals("Rolling Death"))
+                PhysicsObj.SetScaleStatic(1.0f);
+
             PhysicsObj.State = defaultState;
 
             if (creature != null) AllowEdgeSlide = true;
@@ -170,7 +175,7 @@ namespace ACE.Server.WorldObjects
                 //Console.WriteLine($"AddPhysicsObj: failure: {Name} @ {cell.ID.ToString("X8")} - {Location.Pos} - {Location.Rotation} - SetupID: {SetupTableId.ToString("X8")}, MTableID: {MotionTableId.ToString("X8")}");
                 return false;
             }
-            //Console.WriteLine($"AddPhysicsObj: success: {Name}");
+            //Console.WriteLine($"AddPhysicsObj: success: {Name} ({Guid})");
             Location.LandblockId = new LandblockId(PhysicsObj.Position.ObjCellID);
             Location.Pos = PhysicsObj.Position.Frame.Origin;
             Location.Rotation = PhysicsObj.Position.Frame.Orientation;
@@ -313,6 +318,10 @@ namespace ACE.Server.WorldObjects
 
             if (IsGenerator && RegenerationInterval > 5)
                 HeartbeatInterval = RegenerationInterval;
+
+            // invisible NPC caster
+            if (Name.Equals("A Rolling Ball of Death"))
+                HeartbeatInterval = 30; // ??
 
             BaseDescriptionFlags = ObjectDescriptionFlag.Attackable;
 

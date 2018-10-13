@@ -262,7 +262,7 @@ namespace ACE.Server.WorldObjects
 
             if (Health.Current <= 0)
             {
-                //OnDeath();
+                OnDeath();
                 Die();
 
                 // this should only probably go to the last damager

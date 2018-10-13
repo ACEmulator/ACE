@@ -85,6 +85,9 @@ namespace ACE.Server.Entity
             if (_generator.CurrentlyPoweringUp)
             {
                 // initial spawn delay
+                if (_generator.GeneratorInitialDelay == 6000)   // spawn repair golem immediately?
+                    _generator.GeneratorInitialDelay = 0;
+
                 return DateTime.UtcNow.AddSeconds(_generator.GeneratorInitialDelay);
             }
             else
@@ -152,6 +155,10 @@ namespace ACE.Server.Entity
                         obj.GeneratorId = _generator.Guid.Full;
 
                         Spawned.Add(obj.Guid.Full, registry);
+                    }
+                    else
+                    {
+                        //_generator.CurrentCreate--;
                     }
                 }
                 else

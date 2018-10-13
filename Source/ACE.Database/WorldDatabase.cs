@@ -637,7 +637,7 @@ namespace ACE.Database
         /// <summary>
         /// This takes under 1 second to complete.
         /// </summary>
-        public void CacheAllDeathTresures()
+        public void CacheAllDeathTreasures()
         {
             using (var context = new WorldDbContext())
             {
@@ -680,7 +680,7 @@ namespace ACE.Database
         /// <summary>
         /// This takes under 1 second to complete.
         /// </summary>
-        public void CacheAllWieldedTresuresInParallel()
+        public void CacheAllWieldedTreasuresInParallel()
         {
             using (var context = new WorldDbContext())
             {
@@ -691,6 +691,22 @@ namespace ACE.Database
 
                 foreach (var result in results)
                     cachedWieldedTreasure[result.Key] = result.ToList();
+            }
+        }
+
+        private readonly ConcurrentDictionary<string, Quest> cachedQuest = new ConcurrentDictionary<string, Quest>();
+
+        public Quest GetCachedQuest(string questName)
+        {
+            if (cachedQuest.TryGetValue(questName, out var quest))
+                return quest;
+
+            using (var context = new WorldDbContext())
+            {
+                quest = context.Quest.FirstOrDefault(q => q.Name.Equals(questName));
+                cachedQuest[questName] = quest;
+
+                return quest;
             }
         }
     }

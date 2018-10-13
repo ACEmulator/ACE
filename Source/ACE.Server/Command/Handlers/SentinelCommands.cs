@@ -143,7 +143,7 @@ namespace ACE.Server.Command.Handlers
         {
             // @portal_bypass - Toggles the ability to bypass portal restrictions.
 
-            var param = session.Player.IgnorePortalRestrictions ?? false;
+            var param = session.Player.IgnorePortalRestrictions;
 
             switch (param)
             {

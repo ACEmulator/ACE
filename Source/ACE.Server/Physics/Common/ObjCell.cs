@@ -120,7 +120,14 @@ namespace ACE.Server.Physics.Common
 
                 var state = obj.FindObjCollisions(transition);
                 if (state != TransitionState.OK)
+                {
+                    // custom: fix hellfire spawn colliding with volcano heat, and possibly other placements
+                    if (path.InsertType == InsertType.Placement && obj.State.HasFlag(PhysicsState.Ethereal))
+                        continue;
+
                     return state;
+                }
+                    
             }
             return TransitionState.OK;
         }

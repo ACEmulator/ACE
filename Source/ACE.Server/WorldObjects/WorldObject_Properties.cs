@@ -2275,7 +2275,19 @@ namespace ACE.Server.WorldObjects
             get { return GetPosition(PositionType.LinkedPortalOne); }
             set { SetPosition(PositionType.LinkedPortalOne, value); }
         }
-        
+
+        public uint? LinkedPortalOneDID
+        {
+            get => GetProperty(PropertyDataId.LinkedPortalOne);
+            set { if (!value.HasValue) RemoveProperty(PropertyDataId.LinkedPortalOne); else SetProperty(PropertyDataId.LinkedPortalOne, value.Value); }
+        }
+
+        public uint? LinkedPortalTwoDID
+        {
+            get => GetProperty(PropertyDataId.LinkedPortalTwo);
+            set { if (!value.HasValue) RemoveProperty(PropertyDataId.LinkedPortalTwo); else SetProperty(PropertyDataId.LinkedPortalTwo, value.Value); }
+        }
+
         public Position LastPortal
         {
             get { return GetPosition(PositionType.LastPortal); }
@@ -2475,10 +2487,10 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyInt.CloakStatus); else SetProperty(PropertyInt.CloakStatus, (int)value.Value); }
         }
 
-        public bool? IgnorePortalRestrictions
+        public bool IgnorePortalRestrictions
         {
-            get => GetProperty(PropertyBool.IgnorePortalRestrictions);
-            set { if (!value.HasValue) RemoveProperty(PropertyBool.IgnorePortalRestrictions); else SetProperty(PropertyBool.IgnorePortalRestrictions, value.Value); }
+            get => GetProperty(PropertyBool.IgnorePortalRestrictions) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.IgnorePortalRestrictions); else SetProperty(PropertyBool.IgnorePortalRestrictions, value); }
         }
 
         public bool? Invincible
@@ -2597,6 +2609,20 @@ namespace ACE.Server.WorldObjects
         {
             get => GetProperty(PropertyFloat.GeneratorInitialDelay) ?? 0d;
             set { if (value == 0d) RemoveProperty(PropertyFloat.GeneratorInitialDelay); else SetProperty(PropertyFloat.GeneratorInitialDelay, value); }
+        }
+
+        /* quest properties */
+
+        public string Quest
+        {
+            get => GetProperty(PropertyString.Quest);
+            set { if (value == null) RemoveProperty(PropertyString.Quest); else SetProperty(PropertyString.Quest, value); }
+        }
+
+        public string QuestRestriction
+        {
+            get => GetProperty(PropertyString.QuestRestriction);
+            set { if (value == null) RemoveProperty(PropertyString.QuestRestriction); else SetProperty(PropertyString.QuestRestriction, value); }
         }
     }
 }

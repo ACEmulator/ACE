@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using ACE.Database.Models.World;
 using ACE.Entity.Enum;
@@ -11,6 +12,8 @@ namespace ACE.Server.Managers
 
         public static Dictionary<string, Event> Events;
 
+        public static bool Debug = false;
+
         static EventManager()
         {
             Events = new Dictionary<string, Event>();
@@ -23,6 +26,9 @@ namespace ACE.Server.Managers
             foreach(var evnt in events)
             {
                 Events.Add(evnt.Name.ToLower(), evnt);
+
+                if (evnt.State == (int)GameEventState.On)
+                    StartEvent(evnt.Name);
             }
 
             log.DebugFormat("EventManager Initalized.");
@@ -44,6 +50,9 @@ namespace ACE.Server.Managers
             {
                 evnt.State = (int)GameEventState.On;
                 //evnt.StartTime = DateTime.UtcNow.Ticks;
+
+                if (Debug)
+                    Console.WriteLine($"Starting event {evnt.Name}");
 
                 return true;
             }
@@ -67,6 +76,9 @@ namespace ACE.Server.Managers
             {
                 evnt.State = (int)GameEventState.Off;
                 //evnt.StartTime = DateTime.UtcNow.Ticks;
+
+                if (Debug)
+                    Console.WriteLine($"Stopping event {evnt.Name}");
 
                 return true;
             }

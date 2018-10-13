@@ -72,8 +72,8 @@ namespace ACE.Server.Managers
                 case EmoteType.AddCharacterTitle:
 
                     // emoteAction.Stat == null for all EmoteType.AddCharacterTitle entries in current db?
-                    if (player != null)
-                        player.AddTitle((CharacterTitle)emoteAction.Stat);
+                    if (player != null && emoteAction.Amount != 0)
+                        player.AddTitle((CharacterTitle)emoteAction.Amount);
                     break;
 
                 case EmoteType.AddContract:
@@ -116,7 +116,7 @@ namespace ACE.Server.Managers
                         if (player != null)
                         {
                             player.EarnXP((long)emoteAction.Amount64);
-                            player.Session.Network.EnqueueSend(new GameMessageSystemChat("You've earned " + emoteAction.Amount64 + " experience.", ChatMessageType.Broadcast));
+                            player.Session.Network.EnqueueSend(new GameMessageSystemChat("You've earned " + emoteAction.Amount64.Value.ToString("N0") + " experience.", ChatMessageType.Broadcast));
                         }
                     });
                     break;
@@ -136,7 +136,7 @@ namespace ACE.Server.Managers
                 case EmoteType.AwardTrainingCredits:
 
                     if (player != null)
-                        player.AddSkillCredits((int)emoteAction.Amount, true);
+                        player.AddSkillCredits((int)emoteAction.Amount, false);
                     break;
 
                 case EmoteType.AwardXP:
@@ -147,7 +147,7 @@ namespace ACE.Server.Managers
                         if (player != null)
                         {
                             player.EarnXP((long)emoteAction.Amount64);
-                            player.Session.Network.EnqueueSend(new GameMessageSystemChat("You've earned " + emoteAction.Amount64 + " experience.", ChatMessageType.Broadcast));
+                            player.Session.Network.EnqueueSend(new GameMessageSystemChat("You've earned " + emoteAction.Amount64.Value.ToString("N0") + " experience.", ChatMessageType.Broadcast));
                         }
                     });
                     break;
@@ -168,14 +168,16 @@ namespace ACE.Server.Managers
 
                 case EmoteType.CastSpellInstant:
 
-                    var spellTable = DatManager.PortalDat.SpellTable;
-                    var spell = spellTable.Spells[(uint)emoteAction.SpellId];
+                    var spell = new Entity.Spell((uint)emoteAction.SpellId);
                     actionChain.AddAction(sourceObject, () =>
                     {
                         if (spell.TargetEffect > 0)
                             creature.CreateCreatureSpell(targetObject.Guid, (uint)emoteAction.SpellId);
                         else
+                        {
                             creature.CreateCreatureSpell((uint)emoteAction.SpellId);
+                            creature.WarMagic(spell);   // only war magic?
+                        }
                     });
                     break;
 
@@ -207,7 +209,7 @@ namespace ACE.Server.Managers
                 case EmoteType.DirectBroadcast:
                     text = Replace(emoteAction.Message, WorldObject, targetObject);
                     if (player != null)
-                        player.Session.Network.EnqueueSend(new GameMessageSystemChat(text, ChatMessageType.Broadcast));
+                        player.Session.Network.EnqueueSend(new GameMessageSystemChat(text, ChatMessageType.Broadcast));     // CreatureMessage / HearDirectSpeech?
                     break;
 
                 case EmoteType.EraseMyQuest:
@@ -297,7 +299,7 @@ namespace ACE.Server.Managers
                 case EmoteType.IncrementQuest:
 
                     if (player != null)
-                        player.QuestManager.Increment(emoteAction.Message);
+                        player.QuestManager.Increment(emoteAction.Message);     // kill task?
                     break;
 
                 case EmoteType.InflictVitaePenalty:
@@ -396,6 +398,7 @@ namespace ACE.Server.Managers
                     if (player != null)
                     {
                         var hasQuest = player.QuestManager.HasQuest(emoteAction.Message);
+
                         InqCategory(hasQuest ? EmoteCategory.QuestSuccess : EmoteCategory.QuestFailure, emoteAction, sourceObject, targetObject, actionChain);
                     }
                     break;
@@ -406,11 +409,11 @@ namespace ACE.Server.Managers
                     break;
                 case EmoteType.InqQuestSolves:
 
-                    // should this be different from InqQuest?
                     if (player != null)
                     {
-                        var hasQuest = player.QuestManager.HasQuest(emoteAction.Message);
-                        InqCategory(hasQuest ? EmoteCategory.QuestSuccess : EmoteCategory.QuestFailure, emoteAction, sourceObject, targetObject, actionChain);
+                        var questSolves = player.QuestManager.HasQuestSolves(emoteAction.Message, emoteAction.Min, emoteAction.Max);
+
+                        InqCategory(questSolves ? EmoteCategory.QuestSuccess : EmoteCategory.QuestFailure, emoteAction, sourceObject, targetObject, actionChain);
                     }
                     break;
 
@@ -502,16 +505,19 @@ namespace ACE.Server.Managers
                     break;
 
                 case EmoteType.LocalBroadcast:
+
+                    message = Replace(emoteAction.Message, sourceObject, targetObject);
+
                     if (actionChain != null)
                     {
                         actionChain.AddDelaySeconds(emoteAction.Delay);
                         actionChain.AddAction(sourceObject, () =>
                         {
-                            sourceObject?.EnqueueBroadcast(new GameMessageCreatureMessage(emoteAction.Message, sourceObject.Name, sourceObject.Guid.Full, ChatMessageType.Broadcast));
+                            sourceObject?.EnqueueBroadcast(new GameMessageSystemChat(message, ChatMessageType.Broadcast));
                         });
                     }
                     else
-                        sourceObject.EnqueueBroadcast(new GameMessageCreatureMessage(emoteAction.Message, sourceObject.Name, sourceObject.Guid.Full, ChatMessageType.Broadcast));
+                        sourceObject?.EnqueueBroadcast(new GameMessageSystemChat(message, ChatMessageType.Broadcast));
                     break;
 
                 case EmoteType.LocalSignal:
@@ -591,9 +597,9 @@ namespace ACE.Server.Managers
 
                     // what is the difference between this and MoveToPos?
                     // using MoveToPos logic for now...
-                    if (targetCreature != null)
+                    if (creature != null)
                     {
-                        var currentPos = targetCreature.Location;
+                        var currentPos = creature.Location;
 
                         var newPos = new Position();
                         newPos.LandblockId = new LandblockId(currentPos.LandblockId.Raw);
@@ -607,22 +613,22 @@ namespace ACE.Server.Managers
                         if (emoteAction.ObjCellId != null)
                             newPos.LandblockId = new LandblockId(emoteAction.ObjCellId.Value);
 
-                        targetCreature.MoveTo(newPos, targetCreature.GetRunRate());
+                        creature.MoveTo(newPos, creature.GetRunRate());
                     }
                     break;
 
                 case EmoteType.MoveHome:
 
                     // TODO: call MoveToManager on server
-                    if (targetCreature != null)
-                        targetCreature.MoveTo(targetCreature.Home, targetCreature.GetRunRate());
+                    if (creature != null && creature.Home != null)      // home seems to be null for creatures?
+                        creature.MoveTo(creature.Home, creature.GetRunRate());
                     break;
 
                 case EmoteType.MoveToPos:
 
-                    if (targetCreature != null)
+                    if (creature != null)
                     {
-                        var currentPos = targetCreature.Location;
+                        var currentPos = creature.Location;
 
                         var newPos = new Position();
                         newPos.LandblockId = new LandblockId(currentPos.LandblockId.Raw);
@@ -636,7 +642,7 @@ namespace ACE.Server.Managers
                         if (emoteAction.ObjCellId != null)
                             newPos.LandblockId = new LandblockId(emoteAction.ObjCellId.Value);
 
-                        targetCreature.MoveTo(newPos, targetCreature.GetRunRate());
+                        creature.MoveTo(newPos, creature.GetRunRate());
                     }
                     break;
 
@@ -789,7 +795,7 @@ namespace ACE.Server.Managers
 
                     // work needs to be done here
                     if (player != null)
-                        player.QuestManager.Add(emoteAction.Message);
+                        player.QuestManager.Stamp(emoteAction.Message);
                     break;
 
                 case EmoteType.StartBarber:
@@ -914,27 +920,32 @@ namespace ACE.Server.Managers
                     break;
                 case EmoteType.UpdateQuest:
 
+                    // is this only for solving??
+
                     // only delay seems to be with test NPC here
                     // still, unsafe to use any emotes directly outside of a chain,
                     // as they could be executed out-of-order
                     if (player != null)
                     {
                         var questName = emoteAction.Message;
-                        player.QuestManager.Add(questName);
+                        player.QuestManager.Update(questName);
                         var hasQuest = player.QuestManager.HasQuest(questName);
                         InqCategory(hasQuest ? EmoteCategory.QuestSuccess : EmoteCategory.QuestFailure, emoteAction, sourceObject, targetObject, actionChain);
                     }
                     break;
 
                 case EmoteType.WorldBroadcast:
-                    if (player != null)
+
+                    actionChain.AddDelaySeconds(emoteAction.Delay);
+                    actionChain.AddAction(sourceObject, () =>
                     {
-                        actionChain.AddDelaySeconds(emoteAction.Delay);
-                        actionChain.AddAction(sourceObject, () =>
-                        {
-                            player.Session.Network.EnqueueSend(new GameMessageHearDirectSpeech(sourceObject, emoteAction.Message, player, ChatMessageType.WorldBroadcast));
-                        });
-                    }
+                        message = Replace(text, sourceObject, targetObject);
+
+                        var onlinePlayers = WorldManager.GetAll();
+
+                        foreach (var session in onlinePlayers)
+                            session.Network.EnqueueSend(new GameMessageSystemChat(message, ChatMessageType.WorldBroadcast));
+                    });
                     break;
 
                 default:
@@ -1069,23 +1080,46 @@ namespace ACE.Server.Managers
             return result;
         }
 
-        public void HeartBeat()
+        public void Execute(EmoteCategory category, WorldObject targetObject = null)
         {
             var emoteChain = new ActionChain();
 
             var rng = Physics.Common.Random.RollDice(0.0f, 1.0f);
 
-            foreach (var emote in Emotes(EmoteCategory.HeartBeat))
+            foreach (var emote in Emotes(category))
             {
                 if (rng < emote.Probability)
                 {
                     foreach (var action in emote.BiotaPropertiesEmoteAction)
-                        ExecuteEmote(emote, action, emoteChain, WorldObject);
+                        ExecuteEmote(emote, action, emoteChain, WorldObject, targetObject);
 
                     break;
                 }
             }
             emoteChain.EnqueueChain();
+        }
+
+        public void HeartBeat()
+        {
+            Execute(EmoteCategory.HeartBeat);
+        }
+
+        public void OnUse()
+        {
+            Execute(EmoteCategory.Use);
+        }
+
+        public void OnAttack()
+        {
+            Execute(EmoteCategory.NewEnemy);
+        }
+
+        public void OnDeath(DamageHistory damageHistory)
+        {
+            Execute(EmoteCategory.KillTaunt, damageHistory.TopDamager);
+
+            foreach (var damager in damageHistory.Damagers)
+                Execute(EmoteCategory.Death, damager);
         }
     }
 }

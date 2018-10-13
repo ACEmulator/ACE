@@ -94,9 +94,9 @@ namespace ACE.Server
                 log.Info("Precaching Events...");
                 DatabaseManager.World.GetAllEvents();
                 log.Info("Precaching Death Treasures...");
-                DatabaseManager.World.CacheAllDeathTresures();
+                DatabaseManager.World.CacheAllDeathTreasures();
                 log.Info("Precaching Wielded Treasures...");
-                DatabaseManager.World.CacheAllWieldedTresuresInParallel();
+                DatabaseManager.World.CacheAllWieldedTreasuresInParallel();
             }
             else
                 log.Info("No World Database Precaching Performed...");

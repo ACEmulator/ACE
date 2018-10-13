@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
+using ACE.Database;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
@@ -449,8 +450,8 @@ namespace ACE.Server.WorldObjects
             enchantmentStatus.message = null;
             enchantmentStatus.stackType = StackType.None;
 
-            Player player = CurrentLandblock?.GetObject(Guid) as Player;
-            if (player == null && ((this as Player) != null)) player = this as Player;
+            var creature = this as Creature;
+            var player = this as Player;
 
             if ((spell.MetaSpellType == SpellType.PortalLink)
                 || (spell.MetaSpellType == SpellType.PortalRecall)
@@ -559,51 +560,40 @@ namespace ACE.Server.WorldObjects
                         }
                         break;
                     case SpellType.PortalSummon:
-
                         uint portalId = 0;
-                        Position linkedPortal = null;
+                        Position destination = null;
 
-                        if (itemCaster != null)
-                            portalId = itemCaster.GetProperty(PropertyDataId.LinkedPortalOne) ?? 0;
+                        if (player == null)
+                            portalId = LinkedPortalOneDID ?? 0;
+                        else if (itemCaster != null)
+                            portalId = itemCaster.LinkedPortalOneDID ?? 0;
                         else
                         {
                             if (spell.Name.Contains("Summon Primary"))
                             {
-                                linkedPortal = GetPosition(PositionType.LinkedPortalOne);
+                                destination = GetPosition(PositionType.LinkedPortalOne);
                             }
                             if (spell.Name.Contains("Summon Secondary"))
                             {
-                                linkedPortal = GetPosition(PositionType.LinkedPortalTwo);
+                                destination = GetPosition(PositionType.LinkedPortalTwo);
                             }
 
-                            if (linkedPortal != null)
+                            if (destination != null)
                                 portalId = 1955;
                         }
 
-                        if (portalId != 0)
-                        {
-                            var portal = WorldObjectFactory.CreateNewWorldObject(portalId);
-                            portal.SetupTableId = 33556212;
-                            portal.RadarBehavior = ACE.Entity.Enum.RadarBehavior.ShowNever;
-                            portal.Name = "Gateway";
-                            portal.Location = Location.InFrontOf();
-
-                            if (portalId == 1955)
-                                portal.Destination = linkedPortal;
-
-                            portal.EnterWorld();
-
-                            // Create portal decay
-                            ActionChain despawnChain = new ActionChain();
-                            despawnChain.AddDelaySeconds(spell.PortalLifetime);
-                            despawnChain.AddAction(portal, () => portal.CurrentLandblock?.RemoveWorldObject(portal.Guid, false));
-                            despawnChain.EnqueueChain();
-                        }
-                        else
+                        if (portalId == 0)
                         {
                             // You must link to a portal to summon it!
                             player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouMustLinkToPortalToSummonIt));
+                            break;
                         }
+
+                        if (destination != null)
+                            SummonPortal(portalId, destination, spell.PortalLifetime);
+                        else
+                            SummonPortal(portalId, spell.PortalLifetime);
+
                         break;
                     case SpellType.FellowPortalSending:
                         if (targetPlayer != null)
@@ -623,9 +613,53 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
+        /// Spawns a player-summoned portal from item magic or gems
+        /// </summary>
+        protected void SummonPortal(uint portalId, Position destination, double portalLifetime)
+        {
+            var portal = WorldObjectFactory.CreateNewWorldObject(portalId);
+            portal.SetupTableId = 33556212;
+            portal.RadarBehavior = ACE.Entity.Enum.RadarBehavior.ShowNever;
+            portal.Name = "Gateway";
+            portal.Location = Location.InFrontOf();
+
+            if (portalId == 1955)
+                portal.Destination = destination;
+
+            portal.EnterWorld();
+
+            // Create portal decay
+            ActionChain despawnChain = new ActionChain();
+            despawnChain.AddDelaySeconds(portalLifetime);
+            despawnChain.AddAction(portal, () => portal.CurrentLandblock?.RemoveWorldObject(portal.Guid, false));
+            despawnChain.EnqueueChain();
+        }
+
+        /// <summary>
+        /// Spawns a time-based portal from a portal weenie id
+        /// </summary>
+        protected void SummonPortal(uint wcid, double portalLifetime = 60.0f)   // default?
+        {
+            var weenie = DatabaseManager.World.GetCachedWeenie(wcid);
+            var portal = WorldObjectFactory.CreateNewWorldObject(weenie);
+            if (portal == null) return;
+
+            portal.Location = new Position(Location);
+
+            portal.EnterWorld();
+
+            // queue for destruction
+            var despawnChain = new ActionChain();
+            despawnChain.AddDelaySeconds(portalLifetime);
+            //despawnChain.AddAction(portal, () => portal.Destroy());     // smooth fade-out doesn't work for portals?
+            despawnChain.AddAction(portal, () => portal.CurrentLandblock?.RemoveWorldObject(portal.Guid, false));
+            despawnChain.EnqueueChain();
+        }
+
+        /// <summary>
         /// Launches a War Magic spell projectile (untargeted)
         /// </summary>
-        protected void WarMagic(Spell spell)
+        public void WarMagic(Spell spell)
         {
             var spellType = SpellProjectile.GetProjectileSpellType(spell.Id);
 
@@ -1204,7 +1238,15 @@ namespace ACE.Server.WorldObjects
             var xPadding = (spell.Wcid == 7280) ? 0.1f : 0f;
             var topRowZOffset = defaultZOffset + zPadding;
 
-            if (isTuskerFists)
+            if (spell.Name.Equals("Rolling Death"))
+            {
+                offsetList = new List<Vector3>()
+                {
+                    //new Vector3(0, 0.0f, 1.828333f)
+                    new Vector3(0, 0.0f, Height)
+                };
+            }
+            else if (isTuskerFists)
             {
                 offsetList = new List<Vector3>
                 {
@@ -1264,6 +1306,10 @@ namespace ACE.Server.WorldObjects
         {
             // The Slithering Flames spell does in fact slither slower than other wall spells
             var velocity = (spell.Id == 1841) ? new Vector3(0, 3f, 0) : new Vector3(0, 4f, 0);
+
+            if (spell.Name.Equals("Rolling Death"))
+                velocity = new Vector3(0, 2, 0);
+
             velocity = Vector3.Transform(velocity, Location.Rotation);
 
             return new AceVector3(velocity.X, velocity.Y, velocity.Z);

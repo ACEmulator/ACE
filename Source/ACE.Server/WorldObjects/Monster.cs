@@ -1,4 +1,5 @@
 using System;
+using ACE.Entity.Enum.Properties;
 
 namespace ACE.Server.WorldObjects
 {
@@ -22,5 +23,31 @@ namespace ACE.Server.WorldObjects
             Idle,
             Awake
         };
+
+        /// <summary>
+        /// Returns TRUE if this is an attackable monster
+        /// </summary>
+        public bool IsAttackable()
+        {
+            var attackable = GetProperty(PropertyBool.Attackable) ?? false;
+            var tolerance = (Tolerance)(GetProperty(PropertyInt.Tolerance) ?? 0);
+
+            return attackable && !tolerance.HasFlag(Tolerance.NoAttack);
+        }
+
+        /// <summary>
+        /// Called on monster death, before Die()
+        /// </summary>
+        public void OnDeath()
+        {
+            IsTurning = false;
+            IsMoving = false;
+
+            EmoteManager.OnDeath(DamageHistory);
+
+            // handle summoning portals on creature death
+            if (LinkedPortalOneDID != null)
+                SummonPortal(LinkedPortalOneDID.Value);
+        }
     }
 }
