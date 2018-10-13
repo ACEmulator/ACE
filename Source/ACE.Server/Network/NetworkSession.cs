@@ -27,8 +27,8 @@ namespace ACE.Server.Network
 
         private readonly Session session;
 
-        private ConcurrentDictionary<GameMessageGroup, Object> currentBundleLocks = new ConcurrentDictionary<GameMessageGroup, Object>();
-        private ConcurrentDictionary<GameMessageGroup, NetworkBundle> currentBundles = new ConcurrentDictionary<GameMessageGroup, NetworkBundle>();
+        private readonly Object[] currentBundleLocks = new Object[(int)GameMessageGroup.QueueMax];
+        private readonly NetworkBundle[] currentBundles = new NetworkBundle[(int)GameMessageGroup.QueueMax];
 
         private ConcurrentDictionary<uint, ClientPacket> outOfOrderPackets = new ConcurrentDictionary<uint, ClientPacket>();
         private ConcurrentDictionary<uint, MessageBuffer> partialFragments = new ConcurrentDictionary<uint, MessageBuffer>();
@@ -81,11 +81,10 @@ namespace ACE.Server.Network
             // New network auth session timeouts will always be low.
             TimeoutTick = DateTime.UtcNow.AddSeconds(AuthenticationHandler.DefaultAuthTimeout).Ticks;
 
-            foreach (var gmg in System.Enum.GetValues(typeof(GameMessageGroup)))
+            for (int i = 0 ; i < currentBundles.Length; i++)
             {
-                var group = (GameMessageGroup)gmg;
-                currentBundleLocks[group] = new object();
-                currentBundles[group] = new NetworkBundle();
+                currentBundleLocks[i] = new object();
+                currentBundles[i] = new NetworkBundle();
             }
         }
 
@@ -99,12 +98,13 @@ namespace ACE.Server.Network
             messages.GroupBy(k => k.Group).ToList().ForEach(k =>
             {
                 var grp = k.First().Group;
-                var currentBundleLock = currentBundleLocks[grp];
+                var currentBundleLock = currentBundleLocks[(int)grp];
                 lock (currentBundleLock)
                 {
+                    var currentBundle = currentBundles[(int)grp];
+
                     foreach (var msg in k)
                     {
-                        var currentBundle = currentBundles[msg.Group];
                         currentBundle.EncryptedChecksum = true;
                         packetLog.DebugFormat("[{0}] Enqueuing Message {1}", session.LoggingIdentifier, msg.Opcode);
                         currentBundle.Enqueue(msg);
@@ -146,16 +146,17 @@ namespace ACE.Server.Network
         /// </summary>
         public void Update()
         {
-            var groups = currentBundles.Keys.ToList();
-
-            foreach (var group in groups)
+            for (int i = 0 ; i < currentBundles.Length; i++)
             {
-                var currentBundleLock = currentBundleLocks[group];
-                var currentBundle = currentBundles[group];
-
                 NetworkBundle bundleToSend = null;
+
+                var group = (GameMessageGroup)i;
+
+                var currentBundleLock = currentBundleLocks[i];
                 lock (currentBundleLock)
                 {
+                    var currentBundle = currentBundles[i];
+
                     if (group == GameMessageGroup.InvalidQueue)
                     {
                         if (sendResync && !currentBundle.TimeSync && DateTime.UtcNow > nextResync)
@@ -178,7 +179,7 @@ namespace ACE.Server.Network
                             packetLog.DebugFormat("[{0}] Swaping bundle", session.LoggingIdentifier);
                             // Swap out bundle so we can process it
                             bundleToSend = currentBundle;
-                            currentBundles[group] = new NetworkBundle();
+                            currentBundles[i] = new NetworkBundle();
                         }
                     }
                     else
@@ -188,7 +189,7 @@ namespace ACE.Server.Network
                             packetLog.DebugFormat("[{0}] Swaping bundle", session.LoggingIdentifier);
                             // Swap out bundle so we can process it
                             bundleToSend = currentBundle;
-                            currentBundles[group] = new NetworkBundle();
+                            currentBundles[i] = new NetworkBundle();
                         }
                     }
                 }
@@ -474,9 +475,11 @@ namespace ACE.Server.Network
         //is this special channel
         private void FlagEcho(float clientTime)
         {
-            var currentBundle = currentBundles[GameMessageGroup.InvalidQueue];
-            lock (currentBundle)
+            var currentBundleLock = currentBundleLocks[(int)GameMessageGroup.InvalidQueue];
+            lock (currentBundleLock)
             {
+                var currentBundle = currentBundles[(int)GameMessageGroup.InvalidQueue];
+
                 // Debug.Assert(clientTime == -1f, "Multiple EchoRequests before Flush, potential issue with network logic!");
                 currentBundle.ClientTime = clientTime;
                 currentBundle.EncryptedChecksum = true;
