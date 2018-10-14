@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 using System.Numerics;
 using log4net;
 
@@ -265,47 +264,27 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public override void ActOnUse(WorldObject worldObject)
         {
-            if (worldObject is Player)
-            {
-                var player = worldObject as Player;
+            var player = worldObject as Player;
+            if (player == null) return;
 
-                var actionChain = new ActionChain();
-                actionChain.AddDelaySeconds(player.Rotate(this));
-                if (Biota.BiotaPropertiesEmote.Count > 0)
-                {
-                    var emoteSets = Biota.BiotaPropertiesEmote.Where(x => x.Category == (int)EmoteCategory.Use).ToList();
+            var rotateTime = player.Rotate(this);
 
-                    if (emoteSets.Count > 0)
-                    {
-                        var selectedEmoteSet = emoteSets.FirstOrDefault(x => x.Probability == 1);
+            var actionChain = new ActionChain();
+            actionChain.AddDelaySeconds(rotateTime);
 
-                        if (selectedEmoteSet == null)
-                        {
-                            var rng = Physics.Common.Random.RollDice(0.0f, 1.0f);
+            EmoteManager.ExecuteEmoteSet(EmoteCategory.Use, null, player, actionChain, true);
+            actionChain.EnqueueChain();
 
-                            selectedEmoteSet = emoteSets.FirstOrDefault(x => x.Probability >= rng);
-                        }
+            player.SendUseDoneEvent();
+        }
 
-                        if (selectedEmoteSet == null)
-                        {
-                            player.SendUseDoneEvent();
-                            return;
-                        }
+        public override void OnCollideObject(WorldObject target)
+        {
+            if (target.ReportCollisions == false)
+                return;
 
-                        foreach (var action in selectedEmoteSet.BiotaPropertiesEmoteAction)
-                        {
-                            EmoteManager.ExecuteEmote(selectedEmoteSet, action, actionChain, this, player);
-                        }
-                        actionChain.EnqueueChain();
-                    }
-                    
-                    player.SendUseDoneEvent();
-                }
-                else
-                {
-                    player.SendUseDoneEvent();
-                }
-            }
+            if (target is Door door)
+                door.OnCollideObject(this);
         }
     }
 }

@@ -370,8 +370,8 @@ namespace ACE.Server.WorldObjects
         /// Position objects are reference types. Lets say you want to create a new object and give it the location of a player,
         /// If you do LandscapeItem.SetPosition(PositionType.Location, Player.Location), you've now set the Location position
         /// for both the player and the LandscapeItem to the same exact object. Modifying one will affect the other.<para />
-        /// The proper way to would be: LandscapeItem.SetPosition(PositionType.Location, (Position)Player.Location.Clone())<para />
-        /// Any time you want to set a position of a different PositionType, or, positions between WorldObjects, you should use the above Clone method.
+        /// The proper way to would be: LandscapeItem.SetPosition(PositionType.Location, new Position(Player.Location))<para />
+        /// Any time you want to set a position of a different PositionType, or, positions between WorldObjects, you should use the Position copy constructor.
         /// </summary>
         public void SetPosition(PositionType positionType, Position position)
         {
@@ -2205,10 +2205,13 @@ namespace ACE.Server.WorldObjects
             set { if (!value) RemoveProperty(PropertyBool.GeneratorEnteredWorld); else SetProperty(PropertyBool.GeneratorEnteredWorld, value); }
         }
 
-        public bool? Visibility
+        /// <summary>
+        /// If TRUE, this is an admin-only visible object, only seen with /adminvision
+        /// </summary>
+        public bool Visibility
         {
-            get => GetProperty(PropertyBool.Visibility);
-            set { if (!value.HasValue) RemoveProperty(PropertyBool.Visibility); else SetProperty(PropertyBool.Visibility, value.Value); }
+            get => GetProperty(PropertyBool.Visibility) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.Visibility); else SetProperty(PropertyBool.Visibility, value); }
         }
 
         public int? PaletteTemplate
@@ -2520,10 +2523,10 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyInstanceId.Owner); else SetProperty(PropertyInstanceId.Owner, value.Value); }
         }
 
-        public uint? ActivationTarget
+        public uint ActivationTarget
         {
-            get => GetProperty(PropertyInstanceId.ActivationTarget);
-            set { if (!value.HasValue) RemoveProperty(PropertyInstanceId.ActivationTarget); else SetProperty(PropertyInstanceId.ActivationTarget, value.Value); }
+            get => GetProperty(PropertyInstanceId.ActivationTarget) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInstanceId.ActivationTarget); else SetProperty(PropertyInstanceId.ActivationTarget, value); }
         }
 
         public double? TimeToRot

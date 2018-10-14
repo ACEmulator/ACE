@@ -19,7 +19,6 @@ namespace ACE.Server.Managers
 
         public static bool Debug = false;
 
-
         /// <summary>
         /// Constructs a new QuestManager for a Player
         /// </summary>
@@ -112,8 +111,10 @@ namespace ACE.Server.Managers
         /// <summary>
         /// Returns TRUE if player can solve this quest now
         /// </summary>
-        public bool CanSolve(string questName)
+        public bool CanSolve(string questFormat)
         {
+            var questName = GetQuestName(questFormat);
+
             // verify max solves / quest timer
             var nextSolveTime = GetNextSolveTime(questName);
 
@@ -140,8 +141,10 @@ namespace ACE.Server.Managers
         /// <summary>
         /// Returns the time remaining until the player can solve this quest again
         /// </summary>
-        public TimeSpan GetNextSolveTime(string questName)
+        public TimeSpan GetNextSolveTime(string questFormat)
         {
+            var questName = GetQuestName(questFormat);
+
             var quest = DatabaseManager.World.GetCachedQuest(questName);
             if (quest == null)
                 return TimeSpan.MaxValue;   // world quest not found - cannot solve it
@@ -175,9 +178,12 @@ namespace ACE.Server.Managers
         /// <summary>
         /// Removes an existing quest from the Player's registry
         /// </summary>
-        public void Erase(string questName)
+        public void Erase(string questFormat)
         {
-            //Console.WriteLine("QuestManager.Erase: " + questName);
+            if (Debug)
+                Console.WriteLine($"{Player.Name}.QuestManager.Erase({questFormat})");
+
+            var questName = GetQuestName(questFormat);
 
             var quests = Quests.Where(q => q.QuestName.Equals(questName)).ToList();
             foreach (var quest in quests)
@@ -207,10 +213,10 @@ namespace ACE.Server.Managers
             }
         }
 
-        public void Stamp(string questName)
+        public void Stamp(string questFormat)
         {
-            // ?
-            Update(questName);
+            var questName = GetQuestName(questFormat);
+            Update(questName);  // ??
         }
 
         /// <summary>

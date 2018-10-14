@@ -594,7 +594,7 @@ namespace ACE.Server.Command.Handlers
                 }
 
                 // Save the position
-                session.Player.SetPosition(positionType, (Position)playerPosition.Clone());
+                session.Player.SetPosition(positionType, new Position(playerPosition));
                 // Report changes to client
                 var positionMessage = new GameMessageSystemChat($"Set: {positionType} to Loc: {playerPosition}", ChatMessageType.Broadcast);
                 session.Network.EnqueueSend(positionMessage);
@@ -1434,6 +1434,31 @@ namespace ACE.Server.Command.Handlers
             // @qst erase fellow < quest flag > -Erase a fellowship quest flag.
             // @qst bestow < quest flag > -Stamps the specific quest flag on the targeted player.If this fails, it's probably because you spelled the quest flag wrong.
             // @qst - Query, stamp, and erase quests on the targeted player.
+            if (parameters.Length == 0)
+            {
+                // todo: display help screen
+                return;
+            }
+
+            if (parameters[0].Equals("erase"))
+            {
+                if (parameters.Length < 2)
+                {
+                    // delete all quests?
+                    // seems unsafe, maybe a confirmation?
+                    return;
+                }
+                var questName = parameters[1];
+                var player = session.Player;
+                if (!player.QuestManager.HasQuest(questName))
+                {
+                    player.SendMessage($"{questName} not found");
+                    return;
+                }
+                player.QuestManager.Erase(questName);
+                player.SendMessage($"{questName} erased");
+                return;
+            }
 
             // TODO: output
         }

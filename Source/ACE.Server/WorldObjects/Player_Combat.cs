@@ -152,12 +152,13 @@ namespace ACE.Server.WorldObjects
                 var splatter = (PlayScript)Enum.Parse(typeof(PlayScript), "Splatter" + GetSplatterHeight() + GetSplatterDir(target));
                 Session.Network.EnqueueSend(new GameMessageScript(target.Guid, splatter));
 
-                Session.Network.EnqueueSend(new GameEventUpdateHealth(Session, target.Guid.Full, (float)target.Health.Current / target.Health.MaxValue));
-
                 // handle Dirty Fighting
                 if (GetCreatureSkill(Skill.DirtyFighting).AdvancementClass >= SkillAdvancementClass.Trained)
                     FightDirty(target);
             }
+
+            if (damage > 0.0f)
+                Session.Network.EnqueueSend(new GameEventUpdateHealth(Session, target.Guid.Full, (float)target.Health.Current / target.Health.MaxValue));
 
             OnAttackMonster(target);
             return damage;
@@ -533,7 +534,7 @@ namespace ACE.Server.WorldObjects
             {
                 if (!string.IsNullOrWhiteSpace(hotspot.ActivationTalkString))
                     Session.Network.EnqueueSend(new GameMessageSystemChat(hotspot.ActivationTalkString.Replace("%i", amount.ToString()), ChatMessageType.Craft));
-                if (!(hotspot.Visibility ?? false))
+                if (!hotspot.Visibility)
                     hotspot.EnqueueBroadcast(new GameMessageSound(hotspot.Guid, Sound.TriggerActivated, 1.0f));
             }
 

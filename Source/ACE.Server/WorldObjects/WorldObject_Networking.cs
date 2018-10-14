@@ -1121,7 +1121,7 @@ namespace ACE.Server.WorldObjects
 
             foreach (var player in PhysicsObj.ObjMaint.VoyeurTable.Values.Select(v => v.WeenieObj.WorldObject as Player))
             {
-                if ((Visibility ?? false) && !player.Adminvision)
+                if (Visibility && !player.Adminvision)
                     continue;
 
                 player.EnqueueAction(new ActionEventDelegate(() => delegateAction(player)));
@@ -1187,7 +1187,7 @@ namespace ACE.Server.WorldObjects
                 if (isDungeon && Location.Landblock != player.Location.Landblock)
                     continue;
 
-                if ((Visibility ?? false) && !player.Adminvision)
+                if (Visibility && !player.Adminvision)
                     continue;
 
                 //var dist = Vector3.Distance(Location.ToGlobal(), player.Location.ToGlobal());
@@ -1219,7 +1219,7 @@ namespace ACE.Server.WorldObjects
             var nearbyPlayers = PhysicsObj.ObjMaint.VoyeurTable.Values.Select(v => v.WeenieObj.WorldObject as Player);
             foreach (var player in nearbyPlayers)
             {
-                if ((Visibility ?? false) && !player.Adminvision)
+                if (Visibility && !player.Adminvision)
                     continue;
 
                 player.Session.Network.EnqueueSend(msgs);

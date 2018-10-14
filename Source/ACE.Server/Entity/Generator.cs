@@ -45,6 +45,11 @@ namespace ACE.Server.Entity
         public int MaxCreate { get => Biota.MaxCreate > -1 ? Biota.MaxCreate : _generator.MaxCreate; }
 
         /// <summary>
+        /// Returns TRUE if the initial # of objects have been spawned
+        /// </summary>
+        public bool InitObjectsSpawned { get => CurrentCreate >= Biota.InitCreate; }
+
+        /// <summary>
         /// Returns TRUE if the maximum # of objects have been spawned
         /// </summary>
         public bool MaxObjectsSpawned { get => CurrentCreate >= MaxCreate; }
@@ -87,6 +92,16 @@ namespace ACE.Server.Entity
                 // initial spawn delay
                 if (_generator.GeneratorInitialDelay == 6000)   // spawn repair golem immediately?
                     _generator.GeneratorInitialDelay = 0;
+
+                if (_generator.GeneratorInitialDelay == 900)    // spawn menhir drummers immmediately for testing
+                    _generator.GeneratorInitialDelay = 0;
+
+                if (_generator.GeneratorInitialDelay == 1800)   // spawn queen early
+                    _generator.GeneratorInitialDelay = 0;
+
+                if (_generator.GeneratorInitialDelay > 300)     // max spawn time: 5 mins
+                    _generator.GeneratorInitialDelay = 300;
+
 
                 return DateTime.UtcNow.AddSeconds(_generator.GeneratorInitialDelay);
             }
@@ -304,5 +319,12 @@ namespace ACE.Server.Entity
                 Enqueue(1, false);
             }
         }
+
+        /// <summary>
+        /// Returns TRUE if this profile is a placeholder object
+        /// Placeholder objects are used for linkable generators,
+        /// and are used as a template for the real items contained in the links.
+        /// </summary>
+        public bool IsPlaceholder { get => Biota.WeenieClassId == 3666; }
     }
 }

@@ -180,6 +180,8 @@ namespace ACE.Server.WorldObjects
             Location.Pos = PhysicsObj.Position.Frame.Origin;
             Location.Rotation = PhysicsObj.Position.Frame.Orientation;
 
+            SetPosition(PositionType.Home, new Position(Location));
+
             return true;
         }
 
@@ -316,12 +318,8 @@ namespace ACE.Server.WorldObjects
 
             AddGeneratorProfiles();
 
-            if (IsGenerator && RegenerationInterval > 5)
+            if (IsGenerator)
                 HeartbeatInterval = RegenerationInterval;
-
-            // invisible NPC caster
-            if (Name.Equals("A Rolling Ball of Death"))
-                HeartbeatInterval = 30; // ??
 
             BaseDescriptionFlags = ObjectDescriptionFlag.Attackable;
 
@@ -341,21 +339,13 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public bool Teleporting { get; set; } = false;
 
-        public bool HandleNPCReceiveItem(WorldObject item, WorldObject receiver, WorldObject giver, ActionChain chain)
+        public bool HandleNPCReceiveItem(WorldObject item, WorldObject giver, ActionChain actionChain)
         {
-            if (chain == null) chain = new ActionChain();
-
-            var rng = Physics.Common.Random.RollDice(0.0f, 1.0f);
-            // last/first?
-            var emote = Biota.BiotaPropertiesEmote.FirstOrDefault(e => e.WeenieClassId == item.WeenieClassId && rng < e.Probability);
-            if (emote == null)
-                emote = Biota.BiotaPropertiesEmote.FirstOrDefault(e => e.WeenieClassId == item.WeenieClassId);
-            if (emote == null)
+            var emoteSet = EmoteManager.GetEmoteSet(EmoteCategory.Give, null, null, item.WeenieClassId);
+            if (emoteSet == null)
                 return false;
 
-            foreach (var action in emote.BiotaPropertiesEmoteAction)
-                EmoteManager.ExecuteEmote(emote, action, chain, receiver, giver);
-
+            EmoteManager.ExecuteEmoteSet(emoteSet, giver, actionChain, true);
             return true;
         }
 

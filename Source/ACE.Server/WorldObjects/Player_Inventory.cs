@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Diagnostics;
-using ACE.Common.Extensions;
 using ACE.DatLoader;
 using ACE.DatLoader.FileTypes;
 using ACE.Entity;
@@ -1196,25 +1195,21 @@ namespace ACE.Server.WorldObjects
             // giver rotates to receiver
             var rotateDelay = Rotate(target);
 
-            var actionChain = new ActionChain();
-            actionChain.AddChain(CreateMoveToChain(targetID, out var thisMoveToChainNumber));
+            var giveChain = new ActionChain();
+            giveChain.AddChain(CreateMoveToChain(targetID, out var thisMoveToChainNumber));
 
             if (target is Player)
-                actionChain.AddAction(this, () => GiveObjecttoPlayer(target as Player, item, (ushort)amount));
+                giveChain.AddAction(this, () => GiveObjecttoPlayer(target as Player, item, (ushort)amount));
             else
             {
-                actionChain.AddAction(this, () =>
+                var receiveChain = new ActionChain();
+                giveChain.AddAction(this, () =>
                 {
-                    var giveChain = new ActionChain();
-                    var receiveChain = new ActionChain();
-
                     GiveObjecttoNPC(target, item, amount, giveChain, receiveChain);
-
-                    giveChain.EnqueueChain();
-                    receiveChain.EnqueueChain();
+                    giveChain.AddChain(receiveChain);
                 });
             }
-            actionChain.EnqueueChain();
+            giveChain.EnqueueChain();
         }
 
         /// <summary>
@@ -1303,7 +1298,15 @@ namespace ACE.Server.WorldObjects
         {
             if (target == null || item == null) return;
 
-            if (target.GetProperty(PropertyBool.AiAcceptEverything) ?? false)
+            if (target.EmoteManager.IsBusy)
+            {
+                giveChain.AddAction(this, () =>
+                {
+                    Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(Session, WeenieErrorWithString._IsTooBusyToAcceptGifts, target.Name));
+                    Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, this));
+                });
+            }
+            else if (target.GetProperty(PropertyBool.AiAcceptEverything) ?? false)
             {
                 // NPC accepts any item
                 giveChain.AddAction(this, () => ItemAccepted(item, amount, target));
@@ -1329,7 +1332,7 @@ namespace ACE.Server.WorldObjects
             {
                 var result = target.Biota.BiotaPropertiesEmote.Where(emote => emote.WeenieClassId == item.WeenieClassId);
                 WorldObject player = this;
-                if (target.HandleNPCReceiveItem(item, target, player, receiveChain))
+                if (target.HandleNPCReceiveItem(item, player, receiveChain))
                 {
                     if (result.ElementAt(0).Category == (uint)EmoteCategory.Give)
                     {

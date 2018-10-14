@@ -107,6 +107,8 @@ namespace ACE.Server.Factories
                     return new Storage(weenie, guid);
                 case WeenieType.Hook:
                     return new Hook(weenie, guid);
+                case WeenieType.Hooker:
+                    return new Hooker(weenie, guid);
                 case WeenieType.HousePortal:
                     return new WorldObjects.HousePortal(weenie, guid);
                 case WeenieType.SkillAlterationDevice:
@@ -204,6 +206,8 @@ namespace ACE.Server.Factories
                     return new Storage(biota);
                 case WeenieType.Hook:
                     return new Hook(biota);
+                case WeenieType.Hooker:
+                    return new Hooker(biota);
                 case WeenieType.HousePortal:
                     return new WorldObjects.HousePortal(biota);
                 case WeenieType.SkillAlterationDevice:
