@@ -387,7 +387,31 @@ namespace ACE.Database
             return wieldedItems.ToList();
         }
 
-        public List<Biota> GetObjectsByLandblockInParallel(ushort landblockId)
+        public List<Biota> GetDecayableObjectsByLandblock(ushort landblockId)
+        {
+            var decayables = new List<Biota>();
+
+            using (var context = new ShardDbContext())
+            {
+                context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
+
+                var results = context.BiotaPropertiesPosition
+                    .Where(p => p.ObjCellId >> 16 == landblockId)
+                    .ToList();
+
+                foreach (var result in results)
+                {
+                    var biota = GetBiota(context, result.ObjectId);
+
+                    if (biota != null && biota.WeenieType == (int)WeenieType.Corpse)
+                        decayables.Add(biota);
+                }
+            }
+
+            return decayables;
+        }
+
+        public List<Biota> GetDecayableObjectsByLandblockInParallel(ushort landblockId)
         {
             var decayables = new ConcurrentBag<Biota>();
 
@@ -411,6 +435,28 @@ namespace ACE.Database
             return decayables.ToList();
         }
 
+        public List<Biota> GetStaticObjectsByLandblock(ushort landblockId)
+        {
+            var staticObjects = new List<Biota>();
+
+            var staticLandblockId = 0x70000 | landblockId;
+
+            using (var context = new ShardDbContext())
+            {
+                context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
+
+                var results = context.Biota.Where(b => b.Id >> 12 == staticLandblockId).ToList();
+
+                foreach (var result in results)
+                {
+                    var biota = GetBiota(context, result.Id);
+                    staticObjects.Add(biota);
+                }
+            }
+
+            return staticObjects;
+        }
+
         public List<Biota> GetStaticObjectsByLandblockInParallel(ushort landblockId)
         {
             var staticObjects = new ConcurrentBag<Biota>();
@@ -429,6 +475,7 @@ namespace ACE.Database
                     staticObjects.Add(biota);
                 });
             }
+
             return staticObjects.ToList();
         }
 

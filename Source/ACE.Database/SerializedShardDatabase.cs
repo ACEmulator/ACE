@@ -242,23 +242,24 @@ namespace ACE.Database
 
         }
 
-        public List<Biota> GetObjectsByLandblockInParallel(ushort landblockId)
+        public List<Biota> GetDecayableObjectsByLandblock(ushort landblockId)
         {
-            return _wrappedDatabase.GetObjectsByLandblockInParallel(landblockId);
+            return _wrappedDatabase.GetDecayableObjectsByLandblock(landblockId);
+        }
+
+        public List<Biota> GetDecayableObjectsByLandblockInParallel(ushort landblockId)
+        {
+            return _wrappedDatabase.GetDecayableObjectsByLandblockInParallel(landblockId);
+        }
+
+        public List<Biota> GetStaticObjectsByLandblock(ushort landblockId)
+        {
+            return _wrappedDatabase.GetStaticObjectsByLandblock(landblockId);
         }
 
         public List<Biota> GetStaticObjectsByLandblockInParallel(ushort landblockId)
         {
             return _wrappedDatabase.GetStaticObjectsByLandblockInParallel(landblockId);
-        }
-
-        public void GetObjectsByLandblockInParallel(ushort landblockId, Action<List<Biota>> callback)
-        {
-            _queue.Add(new Task(() =>
-            {
-                var c = _wrappedDatabase.GetObjectsByLandblockInParallel(landblockId);
-                callback?.Invoke(c);
-            }));
         }
 
 

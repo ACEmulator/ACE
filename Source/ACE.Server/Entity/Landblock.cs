@@ -132,7 +132,7 @@ namespace ACE.Server.Entity
         private void CreateWorldObjects()
         {
             var objects = DatabaseManager.World.GetCachedInstancesByLandblock(Id.Landblock);
-            var shardObjects = DatabaseManager.Shard.GetStaticObjectsByLandblockInParallel(Id.Landblock);
+            var shardObjects = DatabaseManager.Shard.GetStaticObjectsByLandblock(Id.Landblock);
             var factoryObjects = WorldObjectFactory.CreateNewWorldObjects(objects, shardObjects);
 
             actionQueue.EnqueueAction(new ActionEventDelegate(() =>
@@ -151,7 +151,7 @@ namespace ACE.Server.Entity
         /// </summary>
         private void SpawnDynamicShardObjects()
         {
-            var corpses = DatabaseManager.Shard.GetObjectsByLandblockInParallel(Id.Landblock);
+            var corpses = DatabaseManager.Shard.GetDecayableObjectsByLandblock(Id.Landblock);
             var factoryShardObjects = WorldObjectFactory.CreateWorldObjects(corpses);
 
             actionQueue.EnqueueAction(new ActionEventDelegate(() =>
