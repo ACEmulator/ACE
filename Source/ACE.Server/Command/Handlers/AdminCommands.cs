@@ -727,16 +727,33 @@ namespace ACE.Server.Command.Handlers
         // telepoi location
         [CommandHandler("telepoi", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
             "Teleport yourself to a named Point of Interest",
-            "[POI]\n" +
-            "@telepoi Arwic")]
+            "[POI|list]\n" +
+            "@telepoi Arwic\n"+
+            "Get the list of POIs\n" +
+            "@telepoi list")]
         public static void HandleTeleportPoi(Session session, params string[] parameters)
         {
             var poi = String.Join(" ", parameters);
-            var teleportPOI = DatabaseManager.World.GetCachedPointOfInterest(poi);
-            if (teleportPOI == null)
-                return;
-            var weenie = DatabaseManager.World.GetCachedWeenie(teleportPOI.WeenieClassId);
-            session.Player.Teleport(weenie.GetPosition(PositionType.Destination));
+
+            if (poi.ToLower() == "list")
+            {
+                var duration = DatabaseManager.World.CacheAllPointsOfInterest(); // 57 entries cached in 00:00:00.0057937
+                var pois = DatabaseManager.World.GetPointsOfInterestCache();
+                var list = pois
+                    .Select(k => k.Key)
+                    .OrderBy(k => k)
+                    .DefaultIfEmpty()
+                    .Aggregate((a, b) => a + ", " + b);
+                session.Network.EnqueueSend(new GameMessageSystemChat($"All POIs: {list}", ChatMessageType.Broadcast));
+            }
+            else
+            {
+                var teleportPOI = DatabaseManager.World.GetCachedPointOfInterest(poi);
+                if (teleportPOI == null)
+                    return;
+                var weenie = DatabaseManager.World.GetCachedWeenie(teleportPOI.WeenieClassId);
+                session.Player.Teleport(weenie.GetPosition(PositionType.Destination));
+            }
         }
 
         // teleloc cell x y z [qx qy qz qw]

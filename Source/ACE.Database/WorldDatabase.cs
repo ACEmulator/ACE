@@ -13,6 +13,7 @@ using log4net;
 
 using ACE.Database.Models.World;
 using ACE.Entity.Enum;
+using System.Diagnostics;
 
 namespace ACE.Database
 {
@@ -376,6 +377,14 @@ namespace ACE.Database
             return cachedPointsOfInterest.Count(r => r.Value != null);
         }
 
+        /// <summary>
+        /// Returns the PointsOfInterest cache.
+        /// </summary>
+        public ConcurrentDictionary<string, PointsOfInterest> GetPointsOfInterestCache()
+        {
+            return cachedPointsOfInterest;
+        }
+
         public PointsOfInterest GetCachedPointOfInterest(string name)
         {
             var nameToLower = name.ToLower();
@@ -395,10 +404,12 @@ namespace ACE.Database
         }
 
         /// <summary>
-        /// This takes under 1 second to complete.
+        /// Retrieves all points of interest from the database and adds/updates the points of interest cache entries with every point of interest retrieved.
         /// </summary>
-        public void CacheAllPointsOfInterest()
+        /// <returns>time used</returns>
+        public TimeSpan CacheAllPointsOfInterest()
         {
+            Stopwatch sw1 = Stopwatch.StartNew();
             using (var context = new WorldDbContext())
             {
                 var results = context.PointsOfInterest
@@ -408,6 +419,7 @@ namespace ACE.Database
                 foreach (var result in results)
                     cachedPointsOfInterest[result.Name.ToLower()] = result;
             }
+            return sw1.Elapsed;
         }
 
         private readonly Dictionary<uint, Dictionary<uint, CookBook>> cookbookCache = new Dictionary<uint, Dictionary<uint, CookBook>>();
