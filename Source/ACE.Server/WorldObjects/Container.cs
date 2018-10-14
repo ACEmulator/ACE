@@ -57,7 +57,9 @@ namespace ACE.Server.WorldObjects
             if (UseRadius < 2)
                 UseRadius = 2; // Until DoMoveTo (Physics, Indoor/Outside range variance) is smarter, use 2 is safest.
 
-            GenerateContainList();
+            var creature = this as Creature;
+            if (creature == null)
+                GenerateContainList();
         }
 
 

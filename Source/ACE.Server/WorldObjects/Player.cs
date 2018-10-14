@@ -973,8 +973,14 @@ namespace ACE.Server.WorldObjects
                     break;
             }
 
-            if (Adminvision)
-                CurrentLandblock?.ResendObjectsInRange(this);
+            // send CO network messages for admin objects
+            if (Adminvision && oldState != Adminvision)
+            {
+                var adminObjs = PhysicsObj.ObjMaint.ObjectTable.Values.Where(o => o.WeenieObj.WorldObject.Visibility);
+                PhysicsObj.enqueue_objs(adminObjs);
+
+                // sending DO network messages for /adminvision off here doesn't work in client unfortunately?
+            }
 
             string state = Adminvision ? "enabled" : "disabled";
             Session.Network.EnqueueSend(new GameMessageSystemChat($"Admin Vision is {state}.", ChatMessageType.Broadcast));

@@ -28,7 +28,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Returns TRUE if generator is linked
         /// </summary>
-        public bool IsLinked { get => InitCreate == 0 && MaxCreate == 0; }
+        public bool IsLinked;
 
         //public List<string> History = new List<string>();
 
@@ -79,7 +79,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Returns TRUE if all generator profiles are at init objects created
         /// </summary>
-        public bool AllProfilesInitted { get => GeneratorProfiles.Where(i => i.CurrentCreate >= i.Biota.InitCreate).Count() == GeneratorProfiles.Count; }
+        public bool AllProfilesInitted { get => GeneratorProfiles.Where(i => i.InitObjectsSpawned).Count() == GeneratorProfiles.Count; }
 
         /// <summary>
         /// Retunrs TRUE if all generator profiles are at max objects created
@@ -275,7 +275,7 @@ namespace ACE.Server.WorldObjects
             var numObjects = profile.Biota.InitCreate;
             var leftObjects = InitCreate - CurrentCreate;
 
-            if (numObjects > leftObjects && InitCreate != 0)
+            if (numObjects > leftObjects && InitCreate != 0 && !IsLinked)
                 numObjects = leftObjects;
 
             return numObjects;
@@ -290,11 +290,12 @@ namespace ACE.Server.WorldObjects
             {
                 if (CurrentCreate >= InitCreate && !IsLinked)
                 {
-                    if (CurrentCreate > InitCreate && !IsLinked)
+                    if (CurrentCreate > InitCreate)
                         Console.WriteLine($"{Name}.StopConditionsInit(): CurrentCreate({CurrentCreate}) > InitCreate({InitCreate})");
 
                     return true;
                 }
+
                 return AllProfilesInitted || AllProfilesMaxed;
             }
         }
@@ -306,7 +307,7 @@ namespace ACE.Server.WorldObjects
         {
             get
             {
-                if (CurrentCreate >= MaxCreate && MaxCreate != 0)
+                if (CurrentCreate >= MaxCreate && MaxCreate != 0 && !IsLinked)
                 {
                     if (CurrentCreate > MaxCreate && MaxCreate != 0)
                         Console.WriteLine($"{Name}.StopConditionsMax(): CurrentCreate({CurrentCreate}) > MaxCreate({MaxCreate})");
@@ -476,6 +477,8 @@ namespace ACE.Server.WorldObjects
 
                 GeneratorProfiles.Add(new Generator(this, profile));
             }
+
+            IsLinked = true;
         }
 
         /// <summary>
