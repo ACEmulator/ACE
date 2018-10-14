@@ -114,20 +114,6 @@ namespace ACE.Server.Network
         }
 
         /// <summary>
-        /// Enqueues sending of messages with a time delay
-        /// </summary>
-        public void EnqueueSend(IActor actor, float delay, params GameMessage[] messages)
-        {
-            var actionChain = new ActionChain();
-            actionChain.AddDelaySeconds(delay);
-            actionChain.AddAction(actor, () =>
-            {
-                EnqueueSend(messages);
-            });
-            actionChain.EnqueueChain();
-        }
-
-        /// <summary>
         /// Enqueues a ServerPacket for sending to this client.
         /// Currently this is only used publicly once during login.  If that changes it's thread safety should be re
         /// </summary>
