@@ -9,7 +9,7 @@ namespace ACE.Entity.Enum
         Use         = 0x2,
         Animate     = 0x4,
         Talk        = 0x10,
-        Unk800      = 0x800,
+        Emote       = 0x800,
         CastSpell   = 0x1000,
         Generate    = 0x10000
     }

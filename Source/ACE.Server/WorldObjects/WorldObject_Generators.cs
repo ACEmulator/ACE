@@ -295,9 +295,6 @@ namespace ACE.Server.WorldObjects
 
                     return true;
                 }
-                var allProfilesInitted = AllProfilesInitted;
-                var allProfielsMaxed = AllProfilesMaxed;
-
                 return AllProfilesInitted || AllProfilesMaxed;
             }
         }
@@ -316,7 +313,6 @@ namespace ACE.Server.WorldObjects
 
                     return true;
                 }
-
                 return AllProfilesMaxed;
             }
         }

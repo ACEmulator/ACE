@@ -76,7 +76,7 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Sends a network message to create for CreateObject, if applicable
+        /// Sends a network message to player for CreateObject, if applicable
         /// </summary>
         public void TrackObject(WorldObject worldObject)
         {
