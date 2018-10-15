@@ -2205,10 +2205,13 @@ namespace ACE.Server.WorldObjects
             set { if (!value) RemoveProperty(PropertyBool.GeneratorEnteredWorld); else SetProperty(PropertyBool.GeneratorEnteredWorld, value); }
         }
 
-        public bool? Visibility
+        /// <summary>
+        /// If TRUE, this is an admin-only visible object, only seen with /adminvision
+        /// </summary>
+        public bool Visibility
         {
-            get => GetProperty(PropertyBool.Visibility);
-            set { if (!value.HasValue) RemoveProperty(PropertyBool.Visibility); else SetProperty(PropertyBool.Visibility, value.Value); }
+            get => GetProperty(PropertyBool.Visibility) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.Visibility); else SetProperty(PropertyBool.Visibility, value); }
         }
 
         public int? PaletteTemplate

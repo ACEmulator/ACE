@@ -34,6 +34,13 @@ namespace ACE.Server.Entity
         public List<DateTime> SpawnQueue;
 
         /// <summary>
+        /// Returns TRUE if this profile is a placeholder object
+        /// Placeholder objects are used for linkable generators,
+        /// and are used as a template for the real items contained in the links.
+        /// </summary>
+        public bool IsPlaceholder { get => Biota.WeenieClassId == 3666; }
+
+        /// <summary>
         /// The total # of active spawned objects + awaiting spawning
         /// </summary>
         public int CurrentCreate { get => Spawned.Count + SpawnQueue.Count; }
@@ -43,6 +50,11 @@ namespace ACE.Server.Entity
         /// If set to -1 in the database, use MaxCreate from generator
         /// </summary>
         public int MaxCreate { get => Biota.MaxCreate > -1 ? Biota.MaxCreate : _generator.MaxCreate; }
+
+        /// <summary>
+        /// Returns TRUE if the initial # of objects have been spawned
+        /// </summary>
+        public bool InitObjectsSpawned { get => CurrentCreate >= Biota.InitCreate; }
 
         /// <summary>
         /// Returns TRUE if the maximum # of objects have been spawned

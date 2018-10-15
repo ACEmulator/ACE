@@ -426,9 +426,9 @@ namespace ACE.Server.Physics
             }
             else if (PartArray != null)
             {
-                var collisions = PartArray.FindObjCollisions(transition);
-                transition.SpherePath.ObstructionEthereal = false;
-                return collisions;
+                var collided = PartArray.FindObjCollisions(transition);
+                if (collided != TransitionState.OK)
+                    return FindObjCollisions_Inner(transition, collided, ethereal, isCreature);
             }
 
             transition.SpherePath.ObstructionEthereal = false;
@@ -444,12 +444,14 @@ namespace ACE.Server.Physics
                     if (!transition.ObjectInfo.State.HasFlag(ObjectInfoState.Contact))
                         transition.CollisionInfo.CollidedWithEnvironment = true;
                 }
-                else
+                else if (ethereal || isCreature && transition.ObjectInfo.State.HasFlag(ObjectInfoState.IgnoreCreatures))
                 {
-                    if (ethereal || isCreature && transition.ObjectInfo.State.HasFlag(ObjectInfoState.IgnoreCreatures))
-                        transition.CollisionInfo.CollisionNormalValid = false;
+                    result = TransitionState.OK;
+                    transition.CollisionInfo.CollisionNormalValid = false;
                     transition.CollisionInfo.AddObject(this, TransitionState.OK);
                 }
+                else
+                    transition.CollisionInfo.AddObject(this, result);
             }
             transition.SpherePath.ObstructionEthereal = false;
             return result;
@@ -873,8 +875,8 @@ namespace ACE.Server.Physics
                 }
             }
 
-            var height = PartArray != null ? PartArray.GetHeight() : 0;
-            var radius = PartArray != null ? PartArray.GetRadius() : 0;
+            var height = obj.PartArray != null ? obj.PartArray.GetHeight() : 0;
+            var radius = obj.PartArray != null ? obj.PartArray.GetRadius() : 0;
             var parent = obj.Parent != null ? obj.Parent : obj;
 
             MoveToObject_Internal(obj, parent.ID, radius, height, movementParams);
@@ -2030,7 +2032,7 @@ namespace ACE.Server.Physics
             ParticleManager = null;
         }
 
-        public void enqueue_objs(List<PhysicsObj> newlyVisible)
+        public void enqueue_objs(IEnumerable<PhysicsObj> newlyVisible)
         {
             var player = WeenieObj.WorldObject as Player;
             if (player == null) return;
@@ -3604,7 +3606,7 @@ namespace ACE.Server.Physics
 
         public bool track_object_collision(PhysicsObj obj, bool prev_has_contact)
         {
-            if (State.HasFlag(PhysicsState.Static))
+            if (obj.State.HasFlag(PhysicsState.Static))
                 return report_environment_collision(prev_has_contact);
 
             if (CollisionTable == null)

@@ -577,9 +577,10 @@ namespace ACE.Server.Entity
 
         public void ResendObjectsInRange(WorldObject wo)
         {
-            // this could need reworked a bit for consistency..
             wo.PhysicsObj.ObjMaint.RemoveAllObjects();
-            wo.PhysicsObj.handle_visible_cells();
+
+            var visibleObjs = wo.PhysicsObj.handle_visible_cells();
+            wo.PhysicsObj.enqueue_objs(visibleObjs);
         }
 
         /*/// <summary>

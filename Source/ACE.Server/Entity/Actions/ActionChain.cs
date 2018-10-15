@@ -79,7 +79,7 @@ namespace ACE.Server.Entity.Actions
 
         public ActionChain AddChain(ActionChain chain)
         {
-            if (chain != null)
+            if (chain != null && chain.FirstElement != null)
             {
                 // If we have a chain of our own
                 if (lastElement != null)

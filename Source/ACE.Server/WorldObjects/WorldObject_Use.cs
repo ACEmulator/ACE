@@ -17,9 +17,7 @@ namespace ACE.Server.WorldObjects
             var originDist = Vector3.Distance(Location.ToGlobal(), wo.Location.ToGlobal());
             var radSum = PhysicsObj.GetRadius() + wo.PhysicsObj.GetRadius();
             var radDist = originDist - radSum;
-            var useRadius = wo.UseRadius ?? 0;
-            if (wo is Creature)
-                useRadius = 0.6f;
+            var useRadius = wo.UseRadius ?? 0.6f;
 
             // if (this is Player player)
             //    player.Session.Network.EnqueueSend(new GameMessageSystemChat($"OriginDist: {originDist}, RadDist: {radDist}, MyRadius: {PhysicsObj.GetRadius()}, TargetRadius: {wo.PhysicsObj.GetRadius()}, MyUseRadius: {UseRadius ?? 0}, TargetUseRadius: {wo.UseRadius ?? 0}", ChatMessageType.System));

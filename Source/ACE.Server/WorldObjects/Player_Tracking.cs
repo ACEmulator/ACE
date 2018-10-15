@@ -76,7 +76,7 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// forces either an update or a create object to be sent to the client
+        /// Sends a network message to player for CreateObject, if applicable
         /// </summary>
         public void TrackObject(WorldObject worldObject)
         {
@@ -86,15 +86,15 @@ namespace ACE.Server.WorldObjects
                 return;
 
             // If Visibility is true, do not send object to client, object is meant for server side only, unless Adminvision is true.
-            if ((worldObject.Visibility ?? false) && !Adminvision)
+            if (worldObject.Visibility && !Adminvision)
                 return;
 
             //Console.WriteLine($"TrackObject({worldObject.Name})");
             Session.Network.EnqueueSend(new GameMessageCreateObject(worldObject));
 
             // add creature equipped objects / wielded items
-            if (worldObject is Creature)
-                TrackEquippedObjects(worldObject as Creature);
+            if (worldObject is Creature creature)
+                TrackEquippedObjects(creature);
         }
 
         /// <summary>
