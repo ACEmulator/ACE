@@ -687,10 +687,9 @@ namespace ACE.Server.Entity
         /// This is a rarely used method to broadcast network messages to all of the players within a landblock,
         /// and possibly the adjacent landblocks.
         /// </summary>
-        public void EnqueueBroadcast(IEnumerable<Player> excludeList, bool adjacents, params GameMessage[] msgs)
+        public void EnqueueBroadcast(ICollection<Player> excludeList, bool adjacents, params GameMessage[] msgs)
         {
-            // todo: benchmark - is this double cast slower than just iterating and doing 1 cast?
-            var players = worldObjects.Values.Where(wo => wo is Player).Select(wo => wo as Player);
+            var players = worldObjects.Values.OfType<Player>();
 
             // for landblock death broadcasts:
             // exclude players that have already been broadcast to within range of the death
