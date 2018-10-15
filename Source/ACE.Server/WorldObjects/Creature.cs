@@ -222,8 +222,8 @@ namespace ACE.Server.WorldObjects
         public void OnAutonomousMove(ACE.Entity.Position worldObjectPosition, SequenceManager sequence, MovementTypes movementType, ObjectGuid targetGuid, float distanceFrom = 0.6f)
         {
             var target = CurrentLandblock.GetObject(targetGuid);
-            if (target != null && target is Creature)
-                distanceFrom = 0.6f;    // todo: use correct distancefrom for object
+            //if (target != null && target is Creature)
+                //distanceFrom = 0.6f;    // todo: use correct distancefrom for object
 
             // TODO: determine threshold for walking/running
 
@@ -233,9 +233,7 @@ namespace ACE.Server.WorldObjects
 
             // TODO: find the correct runrate here
             // the default runrate / charge seems much too fast...
-            newMotion.RunRate = GetRunRate();
-            if (CurrentMotionState.Stance == MotionStance.NonCombat)
-                newMotion.RunRate /= 4.0f;
+            newMotion.RunRate = GetRunRate() / 4.0f;
 
             // TODO: get correct flags from pcaps
             // 'CanCharge' is the only flag that seems to let the player run instead of walk
@@ -245,7 +243,7 @@ namespace ACE.Server.WorldObjects
             // maybe we have to check if above or below the WalkRunThreshold distance to target on server,
             // and send the CanCharge flag accordingly?
             var dist = Vector3.Distance(Location.ToGlobal(), worldObjectPosition.ToGlobal());
-            if (dist >= 8.0f)   // arbitrary, the default seems too far, esp. with the weird in-combat walking motion?
+            if (dist >= newMotion.WalkRunThreshold / 2.0f)   // arbitrary, the default seems too far, esp. with the weird in-combat walking motion?
                 newMotion.Flag |= MovementParams.CanCharge;
 
             EnqueueBroadcast(new GameMessageUpdatePosition(this));
