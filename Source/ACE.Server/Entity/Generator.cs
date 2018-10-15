@@ -100,6 +100,16 @@ namespace ACE.Server.Entity
                 if (_generator.GeneratorInitialDelay == 6000)   // spawn repair golem immediately?
                     _generator.GeneratorInitialDelay = 0;
 
+                if (_generator.GeneratorInitialDelay == 900)    // spawn menhir drummers immmediately for testing
+                    _generator.GeneratorInitialDelay = 0;
+
+                if (_generator.GeneratorInitialDelay == 1800)   // spawn queen early
+                    _generator.GeneratorInitialDelay = 0;
+
+                if (_generator.GeneratorInitialDelay > 300)     // max spawn time: 5 mins
+                    _generator.GeneratorInitialDelay = 300;
+
+
                 return DateTime.UtcNow.AddSeconds(_generator.GeneratorInitialDelay);
             }
             else

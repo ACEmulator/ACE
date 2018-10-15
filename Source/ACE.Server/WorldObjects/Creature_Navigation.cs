@@ -153,6 +153,12 @@ namespace ACE.Server.WorldObjects
             // send network message to start turning creature
             var turnToMotion = new UniversalMotion(CurrentMotionState.Stance, position);
             turnToMotion.MovementTypes = MovementTypes.TurnToHeading;
+
+            var frame = new AFrame(position.Pos, position.Rotation);
+            var heading = frame.get_heading();
+
+            turnToMotion.DesiredHeading = heading;
+
             EnqueueBroadcastMotion(turnToMotion);
 
             var angle = GetAngle(position);

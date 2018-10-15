@@ -1354,7 +1354,8 @@ namespace ACE.Server.Command.Handlers
 
             CommandHandlerHelper.WriteOutputInfo(session, $"Moving {target.Name} from {target.Location.LandblockId} {currentPos.Pos} to {newPos.LandblockId} {newPos.Pos}");
 
-            target.EmoteManager.ExecuteEmote(emote, action, actionChain, target, target);
+            target.EmoteManager.ExecuteEmote(emote, action, target, actionChain);
+            actionChain.EnqueueChain();
         }
 
         /// <summary>

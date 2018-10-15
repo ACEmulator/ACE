@@ -386,10 +386,10 @@ namespace ACE.Server.WorldObjects
             if (target.ReportCollisions == false)
                 return;
 
-            if (target is Portal)
-                (target as Portal).OnCollideObject(this);
-            else if (target is Hotspot)
-                (target as Hotspot).OnCollideObject(this);
+            if (target is Portal portal)
+                portal.OnCollideObject(this);
+            else if (target is Hotspot hotspot)
+                hotspot.OnCollideObject(this);
         }
 
         public override void OnCollideObjectEnd(WorldObject target)
@@ -989,6 +989,11 @@ namespace ACE.Server.WorldObjects
             {
                 Session.Network.EnqueueSend(new GameMessageSystemChat("Note that you will need to log out and back in before the visible items become invisible again.", ChatMessageType.Broadcast));
             }
+        }
+
+        public void SendMessage(string msg)
+        {
+            Session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
         }
     }
 }

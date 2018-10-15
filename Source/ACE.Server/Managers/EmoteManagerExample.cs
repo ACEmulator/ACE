@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 using ACE.Entity;
@@ -15,6 +16,9 @@ namespace ACE.Server.Managers
 {
     public partial class EmoteManager
     {
+        public DateTime EndTime;
+        public Queue<QueuedEmote> EmoteQueue;
+
         /// <summary>
         /// Example code for implementing EmoteTypes
         /// For actual implementation, please place working and verified code in EmoteManager.ExecuteEmote()

@@ -164,7 +164,7 @@ namespace ACE.Server.Network.Motion
                     {
                         writer.Write((uint)Flag);
                         writer.Write(Speed);
-                        writer.Write(Heading);
+                        writer.Write(DesiredHeading);
                         break;
                     }
             }

@@ -112,7 +112,7 @@ namespace ACE.Server.WorldObjects
                 // switch activates target
                 if (ActivationTarget > 0)
                 {
-                    var target = CurrentLandblock?.GetObject(new ObjectGuid(ActivationTarget.Value));
+                    var target = CurrentLandblock?.GetObject(new ObjectGuid(ActivationTarget));
 
                     target.ActOnUse(creature);
                 }

@@ -314,7 +314,7 @@ namespace ACE.Server.WorldObjects
             }
 
             // everything looks good, teleport
-            EmoteManager.OnUse();
+            EmoteManager.OnUse(player);
 
 #if DEBUG
             player.Session.Network.EnqueueSend(new GameMessageSystemChat("Portal sending player to destination", ChatMessageType.System));
