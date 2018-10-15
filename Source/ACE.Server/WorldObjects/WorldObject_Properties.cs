@@ -2073,6 +2073,12 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyDataId.Spell); else SetProperty(PropertyDataId.Spell, value.Value); }
         }
 
+        public int ItemSpellcraft
+        {
+            get => GetProperty(PropertyInt.ItemSpellcraft) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.ItemSpellcraft); else SetProperty(PropertyInt.ItemSpellcraft, value); }
+        }
+
         public int? BoostEnum
         {
             get => GetProperty(PropertyInt.BoosterEnum);

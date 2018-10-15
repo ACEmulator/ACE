@@ -215,20 +215,26 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public bool? ResistSpell(WorldObject target, Spell spell)
         {
-            // only creatures can resist spells
+            uint magicSkill = 0;
             var caster = this as Creature;
-            if (caster == null) return null;
+            if (caster != null)
+                // Retrieve caster's skill level in the Magic School
+                magicSkill = caster.GetCreatureSkill(spell.School).Current;
+            else
+                // Retrieve casting item's spellcraft
+                magicSkill = (uint)ItemSpellcraft;
 
             var player = caster as Player;
             var targetPlayer = target as Player;
 
-            // Retrieve caster's skill level in the Magic School
-            var magicSkill = caster.GetCreatureSkill(spell.School).Current;
+            // only creatures can resist spells?
+            var creature = target as Creature;
+            if (creature == null) return null;
 
             // Retrieve target's Magic Defense Skill
-            var creature = target as Creature;
             var targetMagicDefenseSkill = creature.GetCreatureSkill(Skill.MagicDefense).Current;
 
+            //Console.WriteLine($"{target.Name}.ResistSpell({Name}, {spell.Name}): magicSkill: {magicSkill}, difficulty: {targetMagicDefenseSkill}");
             bool resisted = MagicDefenseCheck(magicSkill, targetMagicDefenseSkill);
 
             if (targetPlayer != null && targetPlayer.Invincible == true)
