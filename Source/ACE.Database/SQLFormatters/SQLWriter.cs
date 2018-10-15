@@ -119,6 +119,8 @@ namespace ACE.Database.SQLFormatters
                         return propertyValueDescription;
                     }
                     break;
+                case PropertyInt.ActivationResponse:
+                    return ((ActivationResponse)value).ToString();
                 case PropertyInt.AetheriaBitfield:
                     return ((AetheriaBitfield)value).ToString();
                 case PropertyInt.AiAllowedCombatStyle:
