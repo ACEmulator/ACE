@@ -131,6 +131,9 @@ namespace ACE.Server.WorldObjects
             if (player == null || target == null)
                 return null;
 
+            if (player == target)
+                return true;
+
             if (spell == null || spell.IsHarmful)
             {
                 // Ensure that a non-PK cannot cast harmful spells on another player
@@ -576,6 +579,13 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         protected EnchantmentStatus CreatureMagic(WorldObject target, Spell spell, WorldObject itemCaster = null)
         {
+            // redirect creature dispels to life magic
+            if (spell.MetaSpellType == SpellType.Dispel)
+            {
+                LifeMagic(target, spell, out uint damage, out bool critical, out EnchantmentStatus enchantmentStatus);
+                return enchantmentStatus;
+            }
+
             if (itemCaster != null)
                 return CreateEnchantment(target, itemCaster, spell);
 
@@ -590,6 +600,13 @@ namespace ACE.Server.WorldObjects
             EnchantmentStatus enchantmentStatus = default(EnchantmentStatus);
             enchantmentStatus.message = null;
             enchantmentStatus.stackType = StackType.None;
+
+            // redirect item dispels to life magic
+            if (spell.MetaSpellType == SpellType.Dispel)
+            {
+                LifeMagic(target, spell, out uint damage, out bool critical, out enchantmentStatus);
+                return enchantmentStatus;
+            }
 
             var creature = this as Creature;
             var player = this as Player;
