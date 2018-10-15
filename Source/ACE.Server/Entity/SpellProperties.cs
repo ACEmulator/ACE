@@ -387,12 +387,22 @@ namespace ACE.Server.Entity
         public int MaxPower { get => _spell.MaxPower ?? 0; }
 
         /// <summary>
+        /// Possible RNG for spell power to dispel (unused?)
+        /// </summary>
+        public float PowerVariance { get => _spell.PowerVariance ?? 0.0f; }
+
+        /// <summary>
+        /// The magic school to dispel, or undefined for all schools
+        /// </summary>
+        public MagicSchool DispelSchool { get => (MagicSchool)(_spell.DispelSchool ?? 0); }
+
+        /// <summary>
         /// The type of spells to dispel
         /// 0 = all spells
         /// 1 = positive
         /// 2 = negative
         /// </summary>
-        public int Align { get => _spell.Align ?? 0; }
+        public DispelType Align { get => (DispelType)(_spell.Align ?? 0); }
 
         /// <summary>
         /// The maximum # of spells to dispel

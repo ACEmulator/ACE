@@ -162,7 +162,7 @@ namespace ACE.Server.WorldObjects
             {
                 if (!IsOpen)
                     Open(worldObject.Guid);
-                else
+                else if (!(worldObject is PressurePlate))
                     Close(worldObject.Guid);
 
                 // Create Door auto close timer

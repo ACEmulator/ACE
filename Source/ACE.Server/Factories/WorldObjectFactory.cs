@@ -113,6 +113,8 @@ namespace ACE.Server.Factories
                     return new WorldObjects.HousePortal(weenie, guid);
                 case WeenieType.SkillAlterationDevice:
                     return new SkillAlterationDevice(weenie, guid);
+                case WeenieType.PressurePlate:
+                    return new PressurePlate(weenie, guid);
                 default:
                     return new GenericObject(weenie, guid);
             }
@@ -212,6 +214,8 @@ namespace ACE.Server.Factories
                     return new WorldObjects.HousePortal(biota);
                 case WeenieType.SkillAlterationDevice:
                     return new SkillAlterationDevice(biota);
+                case WeenieType.PressurePlate:
+                    return new PressurePlate(biota);
                 default:
                     return new GenericObject(biota);
             }

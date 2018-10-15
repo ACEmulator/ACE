@@ -2627,5 +2627,52 @@ namespace ACE.Server.WorldObjects
             get => GetProperty(PropertyString.QuestRestriction);
             set { if (value == null) RemoveProperty(PropertyString.QuestRestriction); else SetProperty(PropertyString.QuestRestriction, value); }
         }
+
+        /* pressure plates */
+
+        /// <summary>
+        /// Returns TRUE if this object can be activated (default)
+        /// </summary>
+        public bool Active
+        {
+            get => (GetProperty(PropertyInt.Active) ?? 1) == 1;
+            set { if (value) RemoveProperty(PropertyInt.Active); else SetProperty(PropertyInt.Active, 0); }
+        }
+
+        /// <summary>
+        /// The type of action to perform
+        /// </summary>
+        public ActivationResponse ActivationResponse
+        {
+            get => (ActivationResponse)(GetProperty(PropertyInt.ActivationResponse) ?? 2);
+            set { if (value == ActivationResponse.Use) RemoveProperty(PropertyInt.ActivationResponse); else SetProperty(PropertyInt.ActivationResponse, (int)value); }
+        }
+
+        /// <summary>
+        /// The MotionCommand to perform when ActivationResponse = Animate
+        /// </summary>
+        public MotionCommand ActivationAnimation
+        {
+            get => (MotionCommand)(GetProperty(PropertyDataId.ActivationAnimation) ?? 0);
+            set { if (value == 0) RemoveProperty(PropertyDataId.ActivationAnimation); else SetProperty(PropertyDataId.ActivationAnimation, (uint)value); }
+        }
+
+        /// <summary>
+        /// The string that is sent to the player when ActivationResponse = Talk
+        /// </summary>
+        public string ActivationTalk
+        {
+            get => GetProperty(PropertyString.ActivationTalk);
+            set { if (value == null) RemoveProperty(PropertyString.ActivationTalk); else SetProperty(PropertyString.ActivationTalk, value); }
+        }
+
+        /// <summary>
+        /// The sound played when pressure plate is activated
+        /// </summary>
+        public uint UseSound
+        {
+            get => GetProperty(PropertyDataId.UseSound) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyDataId.UseSound); else SetProperty(PropertyDataId.UseSound, value); }
+        }
     }
 }

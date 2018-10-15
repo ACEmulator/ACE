@@ -91,7 +91,7 @@ namespace ACE.Server.WorldObjects
             var msgNumDeaths = new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.NumDeaths, NumDeaths ?? 0);
             var msgDeathLevel = new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.DeathLevel, DeathLevel ?? 0);
             var msgVitaeCpPool = new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.VitaeCpPool, VitaeCpPool.Value);
-            var msgPurgeEnchantments = new GameEventPurgeAllEnchantments(Session);
+            var msgPurgeEnchantments = new GameEventMagicPurgeEnchantments(Session);
 
             // update vitae
             var vitae = EnchantmentManager.UpdateVitae();

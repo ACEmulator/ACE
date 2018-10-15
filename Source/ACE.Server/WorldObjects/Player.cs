@@ -388,6 +388,8 @@ namespace ACE.Server.WorldObjects
 
             if (target is Portal portal)
                 portal.OnCollideObject(this);
+            else if (target is PressurePlate pressurePlate)
+                pressurePlate.OnCollideObject(this);
             else if (target is Hotspot hotspot)
                 hotspot.OnCollideObject(this);
         }

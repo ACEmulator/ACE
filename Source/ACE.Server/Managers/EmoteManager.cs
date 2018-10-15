@@ -1157,6 +1157,11 @@ namespace ACE.Server.Managers
             ExecuteEmoteSet(EmoteCategory.Use, null, activator);
         }
 
+        public void OnActivation(Creature activator)
+        {
+            ExecuteEmoteSet(EmoteCategory.Activation, null, activator);
+        }
+
         public void OnWield(Creature wielder)
         {
             ExecuteEmoteSet(EmoteCategory.Wield, null, wielder);
@@ -1167,9 +1172,9 @@ namespace ACE.Server.Managers
             ExecuteEmoteSet(EmoteCategory.UnWield, null, wielder);
         }
 
-        public void OnAttack()
+        public void OnAttack(Creature attacker)
         {
-            ExecuteEmoteSet(EmoteCategory.NewEnemy);
+            ExecuteEmoteSet(EmoteCategory.NewEnemy, null, attacker);
         }
 
         public void OnDeath(DamageHistory damageHistory)

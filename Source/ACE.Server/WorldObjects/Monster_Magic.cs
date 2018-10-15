@@ -201,6 +201,23 @@ namespace ACE.Server.WorldObjects
                     CreatureMagic(target, spell);
                     EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
                     break;
+
+                case MagicSchool.VoidMagic:
+
+                    if (spell.NumProjectiles == 0)
+                    {
+                        resisted = ResistSpell(target, spell);
+                        if (!targetSelf && (resisted == true)) break;
+                        if (resisted == null)
+                        {
+                            log.Error("Something went wrong with the Magic resistance check");
+                            break;
+                        }
+                    }
+                    VoidMagic(AttackTarget, spell);
+                    if (spell.NumProjectiles == 0)
+                        EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
+                    break;
             }
         }
 
