@@ -484,10 +484,6 @@ namespace ACE.Server.WorldObjects
                 Value += item.Value;
             }
 
-            // If we're putting the item into a container not on our person, we should save the changes to the db
-            if (container != this && container.ContainerId != Guid.Full)
-                item.SaveBiotaToDatabase();
-
             Session.Network.EnqueueSend(
                 new GameEventItemServerSaysContainId(Session, item, container),
                 new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Container, container.Guid));
@@ -674,10 +670,6 @@ namespace ACE.Server.WorldObjects
             }
 
             item.SetPropertiesForWorld(this);
-
-            // It's important that we save an item after it's been removed from inventory.
-            // We want to avoid the scenario where the server crashes and a player has too many items.
-            item.SaveBiotaToDatabase();
 
             //var motion = new UniversalMotion(MotionStance.NonCombat);
             var motion = new UniversalMotion(CurrentMotionState.Stance);
