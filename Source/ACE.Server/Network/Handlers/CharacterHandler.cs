@@ -140,7 +140,7 @@ namespace ACE.Server.Network.Handlers
                     possessedBiotas.Add((possession.Biota, possession.BiotaDatabaseLock));
 
                 // We must await here -- 
-                DatabaseManager.Shard.AddCharacter(player.Biota, player.BiotaDatabaseLock, possessedBiotas, player.Character, player.CharacterDatabaseLock, saveSuccess =>
+                DatabaseManager.Shard.AddCharacterInParallel(player.Biota, player.BiotaDatabaseLock, possessedBiotas, player.Character, player.CharacterDatabaseLock, saveSuccess =>
                 {
                     if (!saveSuccess)
                     {

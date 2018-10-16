@@ -114,19 +114,18 @@ namespace ACE.Server.Network
 
 
         /// <summary>
-        /// This is run in series from our main loop.
+        /// This will process all inbound GameActions.
         /// </summary>
-        public void Tick()
+        public void TickInbound()
         {
             if (Player != null)
                 InboundGameActionQueue.RunActions();
         }
 
         /// <summary>
-        /// This is run in parallel from our main loop.<para />
         /// This will send outgoing packets as well as the final logoff message.
         /// </summary>
-        public void TickInParallel()
+        public void TickOutbound()
         {
             // Checks if the session has stopped responding.
             if (DateTime.UtcNow.Ticks >= Network.TimeoutTick)

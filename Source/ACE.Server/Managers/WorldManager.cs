@@ -92,7 +92,7 @@ namespace ACE.Server.Managers
             {
                 foreach (var character in characters)
                 {
-                    DatabaseManager.Shard.GetPlayerBiotas(character.Id, biotas =>
+                    DatabaseManager.Shard.GetPlayerBiotasInParallel(character.Id, biotas =>
                     {
                         var session = new Session();
                         var player = new Player(biotas.Player, biotas.Inventory, biotas.WieldedItems, character, session);
@@ -107,7 +107,7 @@ namespace ACE.Server.Managers
         /// </summary>
         public static void AddPlayer(Character character)
         {
-            DatabaseManager.Shard.GetPlayerBiotas(character.Id, biotas =>
+            DatabaseManager.Shard.GetPlayerBiotasInParallel(character.Id, biotas =>
             {
                 var session = new Session();
                 var player = new Player(biotas.Player, biotas.Inventory, biotas.WieldedItems, character, session);
@@ -426,7 +426,7 @@ namespace ACE.Server.Managers
         public static void PlayerEnterWorld(Session session, Character character)
         {
             var start = DateTime.UtcNow;
-            DatabaseManager.Shard.GetPlayerBiotas(character.Id, biotas =>
+            DatabaseManager.Shard.GetPlayerBiotasInParallel(character.Id, biotas =>
             {
                 log.Debug($"GetPlayerBiotas for {character.Name} took {(DateTime.UtcNow - start).TotalMilliseconds:N0} ms");
 
@@ -667,23 +667,15 @@ namespace ACE.Server.Managers
             {
                 sessionCount = sessions.Count;
 
-                // The session tick processes all inbound GameAction messages
+                // The session tick inbound processes all inbound GameAction messages
                 foreach (var s in sessions)
-                    s.Tick();
+                    s.TickInbound();
 
-                // The session TickInParallel processes pending actions and handles outgoing messages
-                // It typically takes .1 to .3 ms to process. However, it can spike to 15ms depending on the clients load/activity or the host system.
-                // The overhead for Parallel.ForEach is typically 1ms to 2ms.
-                if (sessionCount >= 5)
-                {
-                    Parallel.ForEach(sessions, s => s.TickInParallel());
-                }
-                else
-                {
-                    foreach (var s in sessions)
-                        s.TickInParallel();
-                }
+                // Do not combine the above and below loops. All inbound messages should be processed first and then all outbound messages should be processed second.
 
+                // The session tick outbound processes pending actions and handles outgoing messages
+                foreach (var s in sessions)
+                    s.TickOutbound();
 
                 // Removes sessions in the NetworkTimeout state, including sessions that have reached a timeout limit.
                 var deadSessions = sessions.FindAll(s => s.State == Network.Enum.SessionState.NetworkTimeout);

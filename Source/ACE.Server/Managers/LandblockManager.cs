@@ -116,30 +116,25 @@ namespace ACE.Server.Managers
                 var landblock = landblocks[landblockId.LandblockX, landblockId.LandblockY];
                 var autoLoad = propagate && landblockId.MapScope == MapScope.Outdoors;
 
-                // standard check/lock/recheck pattern
                 if (landblock == null || autoLoad && !landblock.AdjacenciesLoaded)
                 {
-                    landblock = landblocks[landblockId.LandblockX, landblockId.LandblockY];
-                    if (landblock == null || autoLoad && !landblock.AdjacenciesLoaded)
+                    if (landblock == null)
                     {
-                        if (landblock == null)
+                        // load up this landblock
+                        landblock = landblocks[landblockId.LandblockX, landblockId.LandblockY] = new Landblock(landblockId);
+
+                        // Set Permaload flag, as required, for new landblock to be loaded
+                        landblock.Permaload = permaload;
+
+                        if (!activeLandblocks.Add(landblock))
                         {
-                            // load up this landblock
-                            landblock = landblocks[landblockId.LandblockX, landblockId.LandblockY] = new Landblock(landblockId);
-
-                            // Set Permaload flag, as required, for new landblock to be loaded
-                            landblock.Permaload = permaload;
-
-                            if (!activeLandblocks.Add(landblock))
-                            {
-                                log.Error("LandblockManager: failed to add " + (landblock.Id.Raw | 0xFFFF).ToString("X8") + " to active landblocks!");
-                                return landblock;
-                            }
+                            log.Error("LandblockManager: failed to add " + (landblock.Id.Raw | 0xFFFF).ToString("X8") + " to active landblocks!");
+                            return landblock;
                         }
-                        SetAdjacencies(landblockId, autoLoad);
-                        if (autoLoad)
-                            landblock.AdjacenciesLoaded = true;
                     }
+                    SetAdjacencies(landblockId, autoLoad);
+                    if (autoLoad)
+                        landblock.AdjacenciesLoaded = true;
                 }
 
                 return landblock;

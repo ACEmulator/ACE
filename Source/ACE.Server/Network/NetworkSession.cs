@@ -6,7 +6,6 @@ using System.Linq;
 using System.Net.Sockets;
 using System.Text;
 
-using ACE.Server.Entity.Actions;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameMessages;
 using ACE.Server.Network.Handlers;
@@ -27,10 +26,8 @@ namespace ACE.Server.Network
 
         private readonly Session session;
 
-        //private readonly Object currentBundleLock = new Object();
-        private ConcurrentDictionary<GameMessageGroup, Object> currentBundleLocks = new ConcurrentDictionary<GameMessageGroup, Object>();
-        private ConcurrentDictionary<GameMessageGroup, NetworkBundle> currentBundles = new ConcurrentDictionary<GameMessageGroup, NetworkBundle>();
-        //private NetworkBundle currentBundle = new NetworkBundle();
+        private readonly Object[] currentBundleLocks = new Object[(int)GameMessageGroup.QueueMax];
+        private readonly NetworkBundle[] currentBundles = new NetworkBundle[(int)GameMessageGroup.QueueMax];
 
         private ConcurrentDictionary<uint, ClientPacket> outOfOrderPackets = new ConcurrentDictionary<uint, ClientPacket>();
         private ConcurrentDictionary<uint, MessageBuffer> partialFragments = new ConcurrentDictionary<uint, MessageBuffer>();
@@ -83,11 +80,10 @@ namespace ACE.Server.Network
             // New network auth session timeouts will always be low.
             TimeoutTick = DateTime.UtcNow.AddSeconds(AuthenticationHandler.DefaultAuthTimeout).Ticks;
 
-            foreach (var gmg in System.Enum.GetValues(typeof(GameMessageGroup)))
+            for (int i = 0 ; i < currentBundles.Length; i++)
             {
-                var group = (GameMessageGroup)gmg;
-                currentBundleLocks[group] = new object();
-                currentBundles[group] = new NetworkBundle();
+                currentBundleLocks[i] = new object();
+                currentBundles[i] = new NetworkBundle();
             }
         }
 
@@ -101,32 +97,19 @@ namespace ACE.Server.Network
             messages.GroupBy(k => k.Group).ToList().ForEach(k =>
             {
                 var grp = k.First().Group;
-                var currentBundleLock = currentBundleLocks[grp];
+                var currentBundleLock = currentBundleLocks[(int)grp];
                 lock (currentBundleLock)
                 {
+                    var currentBundle = currentBundles[(int)grp];
+
                     foreach (var msg in k)
                     {
-                        var currentBundle = currentBundles[msg.Group];
                         currentBundle.EncryptedChecksum = true;
                         packetLog.DebugFormat("[{0}] Enqueuing Message {1}", session.LoggingIdentifier, msg.Opcode);
                         currentBundle.Enqueue(msg);
                     }
                 }
             });
-        }
-
-        /// <summary>
-        /// Enqueues sending of messages with a time delay
-        /// </summary>
-        public void EnqueueSend(IActor actor, float delay, params GameMessage[] messages)
-        {
-            var actionChain = new ActionChain();
-            actionChain.AddDelaySeconds(delay);
-            actionChain.AddAction(actor, () =>
-            {
-                EnqueueSend(messages);
-            });
-            actionChain.EnqueueChain();
         }
 
         /// <summary>
@@ -148,14 +131,17 @@ namespace ACE.Server.Network
         /// </summary>
         public void Update()
         {
-            currentBundles.Keys.ToList().ForEach(group =>
+            for (int i = 0 ; i < currentBundles.Length; i++)
             {
-                var currentBundleLock = currentBundleLocks[group];
-                var currentBundle = currentBundles[group];
-
                 NetworkBundle bundleToSend = null;
+
+                var group = (GameMessageGroup)i;
+
+                var currentBundleLock = currentBundleLocks[i];
                 lock (currentBundleLock)
                 {
+                    var currentBundle = currentBundles[i];
+
                     if (group == GameMessageGroup.InvalidQueue)
                     {
                         if (sendResync && !currentBundle.TimeSync && DateTime.UtcNow > nextResync)
@@ -178,7 +164,7 @@ namespace ACE.Server.Network
                             packetLog.DebugFormat("[{0}] Swaping bundle", session.LoggingIdentifier);
                             // Swap out bundle so we can process it
                             bundleToSend = currentBundle;
-                            currentBundles[group] = new NetworkBundle();
+                            currentBundles[i] = new NetworkBundle();
                         }
                     }
                     else
@@ -188,7 +174,7 @@ namespace ACE.Server.Network
                             packetLog.DebugFormat("[{0}] Swaping bundle", session.LoggingIdentifier);
                             // Swap out bundle so we can process it
                             bundleToSend = currentBundle;
-                            currentBundles[group] = new NetworkBundle();
+                            currentBundles[i] = new NetworkBundle();
                         }
                     }
                 }
@@ -201,7 +187,8 @@ namespace ACE.Server.Network
                     SendBundle(bundleToSend, group);
                     nextSend = DateTime.UtcNow.AddMilliseconds(minimumTimeBetweenBundles);
                 }
-            });
+            }
+
             FlushPackets();
         }
 
@@ -213,6 +200,7 @@ namespace ACE.Server.Network
         public void ProcessPacket(ClientPacket packet)
         {
             packetLog.DebugFormat("[{0}] Processing packet {1}", session.LoggingIdentifier, packet.Header.Sequence);
+
             // Check if this packet's sequence is a sequence which we have already processed.
             // There are some exceptions:
             // Sequence 0 as we have several Seq 0 packets during connect.  This also cathes a case where it seems CICMDCommand arrives at any point with 0 sequence value too.
@@ -230,6 +218,7 @@ namespace ACE.Server.Network
             if (packet.Header.Sequence > desiredSeq)
             {
                 packetLog.WarnFormat("[{0}] Packet {1} received out of order", session.LoggingIdentifier, packet.Header.Sequence);
+
                 if (!outOfOrderPackets.ContainsKey(packet.Header.Sequence))
                     outOfOrderPackets.TryAdd(packet.Header.Sequence, packet);
 
@@ -286,7 +275,6 @@ namespace ACE.Server.Network
         private void HandlePacket(ClientPacket packet)
         {
             packetLog.DebugFormat("[{0}] Handling packet {1}", session.LoggingIdentifier, packet.Header.Sequence);
-
 
             // Upon a client's request of packet retransmit the session CRC salt/offset becomes out of sync somehow.
             // This hack recovers the correct offset and makes WAN client sessions at least reliable enough to test with.
@@ -377,7 +365,9 @@ namespace ACE.Server.Network
         private void ProcessFragment(ClientPacketFragment fragment)
         {
             packetLog.DebugFormat("[{0}] Processing fragment {1}", session.LoggingIdentifier, fragment.Header.Sequence);
+
             ClientMessage message = null;
+
             // Check if this fragment is split
             if (fragment.Header.Count != 1)
             {
@@ -470,9 +460,11 @@ namespace ACE.Server.Network
         //is this special channel
         private void FlagEcho(float clientTime)
         {
-            var currentBundle = currentBundles[GameMessageGroup.InvalidQueue];
-            lock (currentBundle)
+            var currentBundleLock = currentBundleLocks[(int)GameMessageGroup.InvalidQueue];
+            lock (currentBundleLock)
             {
+                var currentBundle = currentBundles[(int)GameMessageGroup.InvalidQueue];
+
                 // Debug.Assert(clientTime == -1f, "Multiple EchoRequests before Flush, potential issue with network logic!");
                 currentBundle.ClientTime = clientTime;
                 currentBundle.EncryptedChecksum = true;
@@ -514,6 +506,7 @@ namespace ACE.Server.Network
             while (packetQueue.Count > 0)
             {
                 packetLog.DebugFormat("[{0}] Flushing packets, count {1}", session.LoggingIdentifier, packetQueue.Count);
+
                 ServerPacket packet = packetQueue.Dequeue();
 
                 if (packet.Header.HasFlag(PacketHeaderFlags.EncryptedChecksum) && ConnectionData.PacketSequence.CurrentValue == 0)
@@ -528,7 +521,6 @@ namespace ACE.Server.Network
                 packet.Header.Iteration = 0x14;
                 packet.Header.Time = (ushort)ConnectionData.ServerTime;
 
-
                 if (packet.Header.Sequence >= 2u)
                     cachedPackets.TryAdd(packet.Header.Sequence, packet);
 
@@ -539,6 +531,7 @@ namespace ACE.Server.Network
         private void SendPacket(ServerPacket packet)
         {
             packetLog.DebugFormat("[{0}] Sending packet {1}", session.LoggingIdentifier, packet.GetHashCode());
+
             if (packet.Header.HasFlag(PacketHeaderFlags.EncryptedChecksum))
             {
                 uint issacXor = session.GetIssacValue(PacketDirection.Server);
@@ -565,6 +558,7 @@ namespace ACE.Server.Network
                 sb.AppendLine(payload.BuildPacketString());
                 packetLog.Debug(sb.ToString());
             }
+
             socket.SendTo(payload, session.EndPoint);
         }
 
@@ -577,6 +571,7 @@ namespace ACE.Server.Network
         private void SendBundle(NetworkBundle bundle, GameMessageGroup group)
         {
             packetLog.DebugFormat("[{0}] Sending Bundle", session.LoggingIdentifier);
+
             bool writeOptionalHeaders = true;
 
             List<MessageFragment> fragments = new List<MessageFragment>();
@@ -678,6 +673,7 @@ namespace ACE.Server.Network
         private void WriteOptionalHeaders(NetworkBundle bundle, ServerPacket packet)
         {
             PacketHeader packetHeader = packet.Header;
+
             if (bundle.SendAck) // 0x4000
             {
                 packetHeader.Flags |= PacketHeaderFlags.AckSequence;
