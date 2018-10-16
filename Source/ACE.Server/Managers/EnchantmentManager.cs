@@ -4,9 +4,7 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using ACE.Common.Extensions;
-using ACE.Database;
 using ACE.Database.Models.Shard;
-using ACE.DatLoader;
 using ACE.Server.Entity.Actions;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
@@ -15,8 +13,10 @@ using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.Structure;
 using ACE.Server.Physics;
+using ACE.Server.Physics.Extensions;
 using ACE.Server.WorldObjects;
 using ACE.Server.WorldObjects.Entity;
+using SpellEnchantment = ACE.Server.Entity.SpellEnchantment;
 
 namespace ACE.Server.Managers
 {
@@ -382,8 +382,8 @@ namespace ACE.Server.Managers
         }
 
         /// <summary>
-        /// Removes a spell from the enchantment registry, and
-        /// sends the relevant network messages for spell removal
+        /// Silently removes a spell from the enchantment registry,
+        /// and sends the relevant network message for dispel
         /// </summary>
         public void Dispel(BiotaPropertiesEnchantmentRegistry entry)
         {
@@ -394,6 +394,22 @@ namespace ACE.Server.Managers
 
             if (Player != null)
                 Player.Session.Network.EnqueueSend(new GameEventMagicDispelEnchantment(Player.Session, (ushort)entry.SpellId, entry.LayerId));
+        }
+
+        /// <summary>
+        /// Silently removes multiple spells from the enchantment registry,
+        /// and sends the relevent network messages for dispel
+        /// </summary>
+        public void Dispel(List<BiotaPropertiesEnchantmentRegistry> entries)
+        {
+            foreach (var entry in entries)
+            {
+                if (WorldObject.Biota.TryRemoveEnchantment(entry.SpellId, out _, WorldObject.BiotaDatabaseLock))
+                    WorldObject.ChangesDetected = true;
+            }
+
+            if (Player != null)
+                Player.Session.Network.EnqueueSend(new GameEventMagicDispelMultipleEnchantments(Player.Session, entries));
         }
 
         /// <summary>
@@ -1068,6 +1084,78 @@ namespace ACE.Server.Managers
                 if (damageSourcePlayer != null)
                     creature.TakeDamageOverTime_NotifySource(damageSourcePlayer, damageType, amount);
             }
+        }
+
+        /// <summary>
+        /// Selects a list of spells to dispel
+        /// </summary>
+        /// <param name="spell">The dispel spell</param>
+        public List<SpellEnchantment> SelectDispel(Entity.Spell spell)
+        {
+            // NOTE: in the default 16PY db,
+            // there are a lot of dispels where the actual #s do not match up with the spell descriptions...
+            // ie. the description will say it dispels 3-6 spells, and it will only dispel 2-4 etc.
+
+            // dispel factors:
+            // min_power - the minimum power level of spell to dispel (unused?)
+            // max_power - the maximum power level of spell to dispel
+            // power_variance - rng for power level, unused?
+            // dispel_school - the magic school to dispel, 0 if all
+            // align - type of spells to dispel: positive, negative, or all
+            // number - the maximum # of spells to dispel
+            // number_variance - number * number_variance = the minum # of spells to dispel
+            var minPower = spell.MinPower;
+            var maxPower = spell.MaxPower;
+            var powerVariance = spell.PowerVariance;
+            var dispelSchool = spell.DispelSchool;
+            var align = spell.Align;
+            var number = spell.Number;
+            var numberVariance = spell.NumberVariance;
+
+            var enchantments = GetEnchantments_TopLayer(WorldObject.Biota.GetEnchantments(WorldObject.BiotaDatabaseLock));
+
+            var filtered = enchantments.Where(e => e.PowerLevel <= maxPower);
+
+            // for dispelSchool and align,
+            // we probably could do some calculations to figure out these values directly from the enchantments
+            // but it would be far easier and more reliable to just do them through the spells
+            // since dispels are not a time-critical function, this should still be fine
+            var spells = new List<SpellEnchantment>();
+            foreach (var filter in filtered)
+                spells.Add(new SpellEnchantment(filter));
+
+            var filterSpells = spells;
+            if (dispelSchool != MagicSchool.None)
+                filterSpells = filterSpells.Where(s => s.Spell.School == dispelSchool).ToList();
+
+            if (align != DispelType.All)
+            {
+                if (align == DispelType.Positive)
+                    filterSpells = filterSpells.Where(s => s.Spell.IsBeneficial).ToList();
+                else if (align == DispelType.Negative)
+                    filterSpells = filterSpells.Where(s => s.Spell.IsHarmful).ToList();
+            }
+
+            // dispel all
+            if (number == -1)
+                return filterSpells;
+
+            // get number of spells to dispel
+            var dispelNum = number;
+            if (numberVariance != 1.0f)
+            {
+                var maxDispelNum = dispelNum;
+                var minDispelNum = (int)Math.Round(dispelNum * numberVariance);
+
+                // factor in rng variance
+                dispelNum = Physics.Common.Random.RollDice(minDispelNum, maxDispelNum);
+            }
+
+            // randomize the filtered spell list
+            filterSpells.Shuffle();
+
+            // select the required # of spells
+            return filterSpells.Take(dispelNum).ToList();
         }
     }
 }
