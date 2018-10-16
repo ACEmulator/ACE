@@ -108,7 +108,7 @@ namespace ACE.Server.Managers
             log.Info("Waiting for all players to log off...");
 
             // wait 10 seconds for log-off
-            //Thread.Sleep(10000);
+            Thread.Sleep(10000);
 
             log.Debug("Adding all landblocks to destruction queue...");
 

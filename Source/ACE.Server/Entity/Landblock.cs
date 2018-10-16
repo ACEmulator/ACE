@@ -73,7 +73,7 @@ namespace ACE.Server.Entity
         /// <summary>
         /// Landblock items will be saved to the database every 5 minutes
         /// </summary>
-        private static readonly TimeSpan databaseSaveInterval = TimeSpan.FromMinutes(2);
+        private static readonly TimeSpan databaseSaveInterval = TimeSpan.FromMinutes(5);
 
         private DateTime lastDatabaseSave = DateTime.MinValue;
 
@@ -313,9 +313,21 @@ namespace ACE.Server.Entity
                 player.AddTrackedObject(wo);
         }
 
-        public void AddWorldObject(WorldObject wo)
+        /// <summary>
+        /// This will fail if the wo doesn't have a valid location.
+        /// </summary>
+        /// <param name="wo"></param>
+        public bool AddWorldObject(WorldObject wo)
         {
+            if (wo.Location == null)
+            {
+                log.DebugFormat("Landblock 0x{0} failed to add 0x{1:X8} {2}. Invalid Location", Id, wo.Biota.Id, wo.Name);
+                return false;
+            }
+
             AddWorldObjectInternal(wo);
+
+            return true;
         }
 
         public void AddWorldObjectForPhysics(WorldObject wo)
@@ -755,7 +767,7 @@ namespace ACE.Server.Entity
 
         private void AddWorldObjectToBiotasSaveCollection(WorldObject wo, Collection<(Biota biota, ReaderWriterLockSlim rwLock)> biotas)
         {
-            log.DebugFormat("Landblock 0x{0} saving item 0x{1:X8} {2} {3} {4} {5}", Id, wo.Biota.Id, wo.Name, wo.WeenieClassId, wo.WeenieClassName, wo.GetType());
+            log.DebugFormat("Landblock 0x{0} saving item 0x{1:X8} {2}", Id, wo.Biota.Id, wo.Name);
 
             wo.SaveBiotaToDatabase(false);
             biotas.Add((wo.Biota, wo.BiotaDatabaseLock));
