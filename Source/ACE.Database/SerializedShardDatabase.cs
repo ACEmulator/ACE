@@ -63,6 +63,10 @@ namespace ACE.Database
                 {
                     // _queue is empty and CompleteForAdding has been called -- we're done here
                 }
+                catch (OperationCanceledException)
+                {
+                    // Application is exiting
+                }
             }
         }
 
