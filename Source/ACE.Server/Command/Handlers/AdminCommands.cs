@@ -737,7 +737,7 @@ namespace ACE.Server.Command.Handlers
 
             if (poi.ToLower() == "list")
             {
-                var duration = DatabaseManager.World.CacheAllPointsOfInterest(); // 57 entries cached in 00:00:00.0057937
+                DatabaseManager.World.CacheAllPointsOfInterest();
                 var pois = DatabaseManager.World.GetPointsOfInterestCache();
                 var list = pois
                     .Select(k => k.Key)

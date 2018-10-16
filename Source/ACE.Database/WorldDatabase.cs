@@ -382,7 +382,7 @@ namespace ACE.Database
         /// </summary>
         public ConcurrentDictionary<string, PointsOfInterest> GetPointsOfInterestCache()
         {
-            return cachedPointsOfInterest;
+            return new ConcurrentDictionary<string, PointsOfInterest>(cachedPointsOfInterest);
         }
 
         public PointsOfInterest GetCachedPointOfInterest(string name)
@@ -405,11 +405,10 @@ namespace ACE.Database
 
         /// <summary>
         /// Retrieves all points of interest from the database and adds/updates the points of interest cache entries with every point of interest retrieved.
+        /// 57 entries cached in 00:00:00.0057937
         /// </summary>
-        /// <returns>time used</returns>
-        public TimeSpan CacheAllPointsOfInterest()
+        public void CacheAllPointsOfInterest()
         {
-            Stopwatch sw1 = Stopwatch.StartNew();
             using (var context = new WorldDbContext())
             {
                 var results = context.PointsOfInterest
@@ -419,7 +418,6 @@ namespace ACE.Database
                 foreach (var result in results)
                     cachedPointsOfInterest[result.Name.ToLower()] = result;
             }
-            return sw1.Elapsed;
         }
 
         private readonly Dictionary<uint, Dictionary<uint, CookBook>> cookbookCache = new Dictionary<uint, Dictionary<uint, CookBook>>();
