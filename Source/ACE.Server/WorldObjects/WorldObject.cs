@@ -180,7 +180,8 @@ namespace ACE.Server.WorldObjects
             Location.Pos = PhysicsObj.Position.Frame.Origin;
             Location.Rotation = PhysicsObj.Position.Frame.Orientation;
 
-            SetPosition(PositionType.Home, new Position(Location));
+            if (this is Creature && !(this is Player))
+                SetPosition(PositionType.Home, new Position(Location));
 
             return true;
         }
