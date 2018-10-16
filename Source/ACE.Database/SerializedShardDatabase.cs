@@ -249,14 +249,14 @@ namespace ACE.Database
 
         }
 
-        public List<Biota> GetDecayableObjectsByLandblock(ushort landblockId)
+        public List<Biota> GetDynamicObjectsByLandblock(ushort landblockId)
         {
-            return _wrappedDatabase.GetDecayableObjectsByLandblock(landblockId);
+            return _wrappedDatabase.GetDynamicObjectsByLandblock(landblockId);
         }
 
-        public List<Biota> GetDecayableObjectsByLandblockInParallel(ushort landblockId)
+        public List<Biota> GetDynamicObjectsByLandblockInParallel(ushort landblockId)
         {
-            return _wrappedDatabase.GetDecayableObjectsByLandblockInParallel(landblockId);
+            return _wrappedDatabase.GetDynamicObjectsByLandblockInParallel(landblockId);
         }
 
         public List<Biota> GetStaticObjectsByLandblock(ushort landblockId)

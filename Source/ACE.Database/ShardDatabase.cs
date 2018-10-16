@@ -387,52 +387,48 @@ namespace ACE.Database
             return wieldedItems.ToList();
         }
 
-        public List<Biota> GetDecayableObjectsByLandblock(ushort landblockId)
+        public List<Biota> GetDynamicObjectsByLandblock(ushort landblockId)
         {
-            var decayables = new List<Biota>();
+            var dynamics = new List<Biota>();
 
             using (var context = new ShardDbContext())
             {
                 context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
 
                 var results = context.BiotaPropertiesPosition
-                    .Where(p => p.ObjCellId >> 16 == landblockId)
+                    .Where(p => p.ObjCellId >> 16 == landblockId && p.Id >= 0x80000000)
                     .ToList();
 
                 foreach (var result in results)
                 {
                     var biota = GetBiota(context, result.ObjectId);
-
-                    if (biota != null && biota.WeenieType == (int)WeenieType.Corpse)
-                        decayables.Add(biota);
+                    dynamics.Add(biota);
                 }
             }
 
-            return decayables;
+            return dynamics;
         }
 
-        public List<Biota> GetDecayableObjectsByLandblockInParallel(ushort landblockId)
+        public List<Biota> GetDynamicObjectsByLandblockInParallel(ushort landblockId)
         {
-            var decayables = new ConcurrentBag<Biota>();
+            var dynamics = new ConcurrentBag<Biota>();
 
             using (var context = new ShardDbContext())
             {
                 context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
 
                 var results = context.BiotaPropertiesPosition
-                    .Where(p => p.ObjCellId >> 16 == landblockId)
+                    .Where(p => p.ObjCellId >> 16 == landblockId && p.Id >= 0x80000000)
                     .ToList();
 
                 Parallel.ForEach(results, result =>
                 {
                     var biota = GetBiota(result.ObjectId);
-
-                    if (biota != null && biota.WeenieType == (int)WeenieType.Corpse)
-                        decayables.Add(biota);
+                    dynamics.Add(biota);
                 });
             }
 
-            return decayables.ToList();
+            return dynamics.ToList();
         }
 
         public List<Biota> GetStaticObjectsByLandblock(ushort landblockId)
