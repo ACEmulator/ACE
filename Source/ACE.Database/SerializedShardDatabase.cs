@@ -244,16 +244,6 @@ namespace ACE.Database
 
         }
 
-        public List<Biota> GetDynamicObjectsByLandblock(ushort landblockId)
-        {
-            return _wrappedDatabase.GetDynamicObjectsByLandblock(landblockId);
-        }
-
-        public List<Biota> GetDynamicObjectsByLandblockInParallel(ushort landblockId)
-        {
-            return _wrappedDatabase.GetDynamicObjectsByLandblockInParallel(landblockId);
-        }
-
         public List<Biota> GetStaticObjectsByLandblock(ushort landblockId)
         {
             return _wrappedDatabase.GetStaticObjectsByLandblock(landblockId);
@@ -262,6 +252,16 @@ namespace ACE.Database
         public List<Biota> GetStaticObjectsByLandblockInParallel(ushort landblockId)
         {
             return _wrappedDatabase.GetStaticObjectsByLandblockInParallel(landblockId);
+        }
+
+        public List<Biota> GetDynamicObjectsByLandblock(ushort landblockId)
+        {
+            return _wrappedDatabase.GetDynamicObjectsByLandblock(landblockId);
+        }
+
+        public List<Biota> GetDynamicObjectsByLandblockInParallel(ushort landblockId)
+        {
+            return _wrappedDatabase.GetDynamicObjectsByLandblockInParallel(landblockId);
         }
 
 

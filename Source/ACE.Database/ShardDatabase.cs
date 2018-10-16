@@ -387,6 +387,50 @@ namespace ACE.Database
             return wieldedItems.ToList();
         }
 
+        public List<Biota> GetStaticObjectsByLandblock(ushort landblockId)
+        {
+            var staticObjects = new List<Biota>();
+
+            var staticLandblockId = 0x70000 | landblockId;
+
+            using (var context = new ShardDbContext())
+            {
+                context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
+
+                var results = context.Biota.Where(b => b.Id >> 12 == staticLandblockId).ToList();
+
+                foreach (var result in results)
+                {
+                    var biota = GetBiota(result.Id);
+                    staticObjects.Add(biota);
+                }
+            }
+
+            return staticObjects;
+        }
+
+        public List<Biota> GetStaticObjectsByLandblockInParallel(ushort landblockId)
+        {
+            var staticObjects = new ConcurrentBag<Biota>();
+
+            var staticLandblockId = 0x70000 | landblockId;
+
+            using (var context = new ShardDbContext())
+            {
+                context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
+
+                var results = context.Biota.Where(b => b.Id >> 12 == staticLandblockId).ToList();
+
+                Parallel.ForEach(results, result =>
+                {
+                    var biota = GetBiota(result.Id);
+                    staticObjects.Add(biota);
+                });
+            }
+
+            return staticObjects.ToList();
+        }
+
         public List<Biota> GetDynamicObjectsByLandblock(ushort landblockId)
         {
             var dynamics = new List<Biota>();
@@ -431,49 +475,6 @@ namespace ACE.Database
             return dynamics.ToList();
         }
 
-        public List<Biota> GetStaticObjectsByLandblock(ushort landblockId)
-        {
-            var staticObjects = new List<Biota>();
-
-            var staticLandblockId = 0x70000 | landblockId;
-
-            using (var context = new ShardDbContext())
-            {
-                context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
-
-                var results = context.Biota.Where(b => b.Id >> 12 == staticLandblockId).ToList();
-
-                foreach (var result in results)
-                {
-                    var biota = GetBiota(result.Id);
-                    staticObjects.Add(biota);
-                }
-            }
-
-            return staticObjects;
-        }
-
-        public List<Biota> GetStaticObjectsByLandblockInParallel(ushort landblockId)
-        {
-            var staticObjects = new ConcurrentBag<Biota>();
-
-            var staticLandblockId = 0x70000 | landblockId;
-
-            using (var context = new ShardDbContext())
-            {
-                context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
-
-                var results = context.Biota.Where(b => b.Id >> 12 == staticLandblockId).ToList();
-
-                Parallel.ForEach(results, result =>
-                {
-                    var biota = GetBiota(result.Id);
-                    staticObjects.Add(biota);
-                });
-            }
-
-            return staticObjects.ToList();
-        }
 
         public bool IsCharacterNameAvailable(string name)
         {
