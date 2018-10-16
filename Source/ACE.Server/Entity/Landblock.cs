@@ -750,8 +750,7 @@ namespace ACE.Server.Entity
                     AddWorldObjectToBiotasSaveCollection(wo, biotas);
             }
 
-<<<<<<< HEAD
-            //DatabaseManager.Shard.SaveBiotas(biotas, result => { });
+            //DatabaseManager.Shard.SaveBiotasInParallel(biotas, result => { });
         }
 
         private void AddWorldObjectToBiotasSaveCollection(WorldObject wo, Collection<(Biota biota, ReaderWriterLockSlim rwLock)> biotas)
@@ -760,9 +759,7 @@ namespace ACE.Server.Entity
 
             wo.SaveBiotaToDatabase(false);
             biotas.Add((wo.Biota, wo.BiotaDatabaseLock));
-=======
-            DatabaseManager.Shard.SaveBiotasInParallel(biotas, result => { });
->>>>>>> master
+   
         }
 
         /// <summary>
