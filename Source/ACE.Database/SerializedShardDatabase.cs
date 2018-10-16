@@ -58,14 +58,17 @@ namespace ACE.Database
                 catch (ObjectDisposedException)
                 {
                     // the _queue has been disposed, we're good
+                    break;
                 }
                 catch (InvalidOperationException)
                 {
                     // _queue is empty and CompleteForAdding has been called -- we're done here
+                    break;
                 }
                 catch (OperationCanceledException)
                 {
                     // Application is exiting
+                    break;
                 }
             }
         }
