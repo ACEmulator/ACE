@@ -9,7 +9,7 @@ using ACE.Database;
 namespace ACE.Server.Managers
 {
     /// <summary>
-    /// Servermanager handles unloading the server application properly.
+    /// ServerManager handles unloading the server application properly.
     /// </summary>
     /// <remarks>
     ///   Possibly useful for:
@@ -20,6 +20,8 @@ namespace ACE.Server.Managers
     /// </remarks>
     public static class ServerManager
     {
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         /// <summary>
         /// Indicates advanced warning if the applcation will unload.
         /// </summary>
@@ -45,8 +47,6 @@ namespace ACE.Server.Managers
             // Loads the configuration for ShutdownInterval from the settings file.
             ShutdownInterval = ConfigManager.Config.Server.ShutdownInterval;
         }
-
-        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         /// <summary>
         /// Starts the shutdown wait thread.
@@ -74,7 +74,7 @@ namespace ACE.Server.Managers
         /// </summary>
         private static void ShutdownServer()
         {
-            DateTime shutdownTime = DateTime.UtcNow.AddSeconds(ShutdownInterval);
+            var shutdownTime = DateTime.UtcNow.AddSeconds(ShutdownInterval);
 
             // wait for shutdown interval to expire
             while (shutdownTime != DateTime.MinValue && shutdownTime >= DateTime.UtcNow)
@@ -97,35 +97,51 @@ namespace ACE.Server.Managers
                 Thread.Sleep(10);
             }
 
+            PropertyManager.StopUpdating();
+
+            log.Debug("Logging off all players...");
+
             // logout each player
             foreach (var player in WorldManager.GetAll())
                 player.LogOffPlayer();
 
+            log.Info("Waiting for all players to log off...");
+
             // wait 10 seconds for log-off
-            Thread.Sleep(10000);
+            //Thread.Sleep(10000);
+
+            log.Debug("Adding all landblocks to destruction queue...");
 
             // Queue unloading of all the landblocks
             // The actual unloading will happen in WorldManager.UpdateGameWorld
             LandblockManager.AddAllActiveLandblocksToDestructionQueue();
 
+            log.Info("Waiting for all active landblocks to unload...");
+
             while (LandblockManager.GetActiveLandblocks().Count > 0)
                 Thread.Sleep(10);
 
-            // disabled thread update loop
+            log.Debug("Stopping world...");
+
+            // Disabled thread update loop
             WorldManager.StopWorld();
 
-            // wait for world to end
+            log.Info("Waiting for world to stop...");
+
+            // Wait for world to end
             while (WorldManager.WorldActive)
                 Thread.Sleep(10);
 
-            // wait for the database queue to empty
+            log.Info("Waiting for database queue to empty...");
+
+            // Wait for the database queue to empty
             while (DatabaseManager.Shard.QueueCount > 0)
                 Thread.Sleep(10);
 
-            // write exit to console/log
+            // Write exit to console/log
             log.Info($"Exiting at {DateTime.UtcNow}");
 
-            // system exit
+            // System exit
             Environment.Exit(Environment.ExitCode);
         }
     }
