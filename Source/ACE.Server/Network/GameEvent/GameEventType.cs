@@ -95,7 +95,7 @@ namespace ACE.Server.Network.GameEvent
         MagicRemoveEnchantment                 = 0x02C3,
         MagicUpdateMultipleEnchantments        = 0x02C4,
         MagicRemoveMultipleEnchantments        = 0x02C5,
-        PurgeAllEnchantments                   = 0x02C6, // Silent upon death
+        MagicPurgeEnchantments                 = 0x02C6,
         MagicDispelEnchantment                 = 0x02C7,
         MagicDispelMultipleEnchantments        = 0x02C8,
         MiscPortalStormBrewing                 = 0x02C9,

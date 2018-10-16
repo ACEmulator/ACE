@@ -121,11 +121,14 @@ namespace ACE.Server.Entity
 
             lastActiveTime = DateTime.UtcNow;
 
-            Task.Run(() => CreateWorldObjects());
+            Task.Run(() =>
+            {
+                CreateWorldObjects();
 
-            Task.Run(() => SpawnDynamicShardObjects());
+                SpawnDynamicShardObjects();
 
-            Task.Run(() => SpawnEncounters());
+                SpawnEncounters();
+            });
 
             //LoadMeshes(objects);
         }
@@ -156,7 +159,7 @@ namespace ACE.Server.Entity
         /// </summary>
         private void SpawnDynamicShardObjects()
         {
-            var corpses = DatabaseManager.Shard.GetObjectsByLandblock(Id.Landblock);
+            var corpses = DatabaseManager.Shard.GetDecayableObjectsByLandblock(Id.Landblock);
             var factoryShardObjects = WorldObjectFactory.CreateWorldObjects(corpses);
 
             actionQueue.EnqueueAction(new ActionEventDelegate(() =>
@@ -747,6 +750,7 @@ namespace ACE.Server.Entity
                     AddWorldObjectToBiotasSaveCollection(wo, biotas);
             }
 
+<<<<<<< HEAD
             //DatabaseManager.Shard.SaveBiotas(biotas, result => { });
         }
 
@@ -756,6 +760,9 @@ namespace ACE.Server.Entity
 
             wo.SaveBiotaToDatabase(false);
             biotas.Add((wo.Biota, wo.BiotaDatabaseLock));
+=======
+            DatabaseManager.Shard.SaveBiotasInParallel(biotas, result => { });
+>>>>>>> master
         }
 
         /// <summary>

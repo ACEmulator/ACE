@@ -370,8 +370,8 @@ namespace ACE.Server.WorldObjects
         /// Position objects are reference types. Lets say you want to create a new object and give it the location of a player,
         /// If you do LandscapeItem.SetPosition(PositionType.Location, Player.Location), you've now set the Location position
         /// for both the player and the LandscapeItem to the same exact object. Modifying one will affect the other.<para />
-        /// The proper way to would be: LandscapeItem.SetPosition(PositionType.Location, (Position)Player.Location.Clone())<para />
-        /// Any time you want to set a position of a different PositionType, or, positions between WorldObjects, you should use the above Clone method.
+        /// The proper way to would be: LandscapeItem.SetPosition(PositionType.Location, new Position(Player.Location))<para />
+        /// Any time you want to set a position of a different PositionType, or, positions between WorldObjects, you should use the Position copy constructor.
         /// </summary>
         public void SetPosition(PositionType positionType, Position position)
         {
@@ -2073,6 +2073,12 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyDataId.Spell); else SetProperty(PropertyDataId.Spell, value.Value); }
         }
 
+        public int ItemSpellcraft
+        {
+            get => GetProperty(PropertyInt.ItemSpellcraft) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.ItemSpellcraft); else SetProperty(PropertyInt.ItemSpellcraft, value); }
+        }
+
         public int? BoostEnum
         {
             get => GetProperty(PropertyInt.BoosterEnum);
@@ -2523,10 +2529,10 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyInstanceId.Owner); else SetProperty(PropertyInstanceId.Owner, value.Value); }
         }
 
-        public uint? ActivationTarget
+        public uint ActivationTarget
         {
-            get => GetProperty(PropertyInstanceId.ActivationTarget);
-            set { if (!value.HasValue) RemoveProperty(PropertyInstanceId.ActivationTarget); else SetProperty(PropertyInstanceId.ActivationTarget, value.Value); }
+            get => GetProperty(PropertyInstanceId.ActivationTarget) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInstanceId.ActivationTarget); else SetProperty(PropertyInstanceId.ActivationTarget, value); }
         }
 
         public double? TimeToRot
@@ -2626,6 +2632,53 @@ namespace ACE.Server.WorldObjects
         {
             get => GetProperty(PropertyString.QuestRestriction);
             set { if (value == null) RemoveProperty(PropertyString.QuestRestriction); else SetProperty(PropertyString.QuestRestriction, value); }
+        }
+
+        /* pressure plates */
+
+        /// <summary>
+        /// Returns TRUE if this object can be activated (default)
+        /// </summary>
+        public bool Active
+        {
+            get => (GetProperty(PropertyInt.Active) ?? 1) == 1;
+            set { if (value) RemoveProperty(PropertyInt.Active); else SetProperty(PropertyInt.Active, 0); }
+        }
+
+        /// <summary>
+        /// The type of action to perform
+        /// </summary>
+        public ActivationResponse ActivationResponse
+        {
+            get => (ActivationResponse)(GetProperty(PropertyInt.ActivationResponse) ?? 2);
+            set { if (value == ActivationResponse.Use) RemoveProperty(PropertyInt.ActivationResponse); else SetProperty(PropertyInt.ActivationResponse, (int)value); }
+        }
+
+        /// <summary>
+        /// The MotionCommand to perform when ActivationResponse = Animate
+        /// </summary>
+        public MotionCommand ActivationAnimation
+        {
+            get => (MotionCommand)(GetProperty(PropertyDataId.ActivationAnimation) ?? 0);
+            set { if (value == 0) RemoveProperty(PropertyDataId.ActivationAnimation); else SetProperty(PropertyDataId.ActivationAnimation, (uint)value); }
+        }
+
+        /// <summary>
+        /// The string that is sent to the player when ActivationResponse = Talk
+        /// </summary>
+        public string ActivationTalk
+        {
+            get => GetProperty(PropertyString.ActivationTalk);
+            set { if (value == null) RemoveProperty(PropertyString.ActivationTalk); else SetProperty(PropertyString.ActivationTalk, value); }
+        }
+
+        /// <summary>
+        /// The sound played when pressure plate is activated
+        /// </summary>
+        public uint UseSound
+        {
+            get => GetProperty(PropertyDataId.UseSound) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyDataId.UseSound); else SetProperty(PropertyDataId.UseSound, value); }
         }
     }
 }

@@ -41,8 +41,7 @@ namespace ACE.Server.WorldObjects
             MonsterState = State.Awake;
             IsAwake = true;
             DoAttackStance();
-
-            EmoteManager.OnAttack();
+            EmoteManager.OnAttack(AttackTarget as Creature);
         }
 
         /// <summary>

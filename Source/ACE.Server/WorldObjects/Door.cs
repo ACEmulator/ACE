@@ -1,12 +1,11 @@
+using System;
 using ACE.Common;
-using ACE.Database;
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity.Actions;
-using ACE.Server.Factories;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Motion;
@@ -159,47 +158,36 @@ namespace ACE.Server.WorldObjects
             ////    return;
             ////}
 
-            ActionChain checkDoorChain = new ActionChain();
-
-            checkDoorChain.AddAction(this, () =>
+            if (!IsLocked)
             {
-                if (!IsLocked)
-                {
-                    if (!IsOpen)
-                    {
-                        Open(worldObject.Guid);
-                    }
-                    else
-                    {
-                        Close(worldObject.Guid);
-                    }
+                if (!IsOpen)
+                    Open(worldObject.Guid);
+                else if (!(worldObject is Switch) && !(worldObject is PressurePlate))
+                    Close(worldObject.Guid);
 
-                    // Create Door auto close timer
-                    ActionChain autoCloseTimer = new ActionChain();
-                    autoCloseTimer.AddDelaySeconds(ResetInterval ?? 0);
-                    autoCloseTimer.AddAction(this, () => Reset());
-                    autoCloseTimer.EnqueueChain();
-                }
-                else
-                {
-                    if (worldObject is Player)
-                    {
-                        var player = worldObject as Player;
-                        var doorIsLocked = new GameEventCommunicationTransientString(player.Session, "The door is locked!");
-                        player.Session.Network.EnqueueSend(doorIsLocked);
-                        EnqueueBroadcast(new GameMessageSound(Guid, Sound.OpenFailDueToLock, 1.0f));
-                    }
-                }
-
+                // Create Door auto close timer
+                ActionChain autoCloseTimer = new ActionChain();
+                autoCloseTimer.AddDelaySeconds(ResetInterval ?? 0);
+                autoCloseTimer.AddAction(this, () => Reset());
+                autoCloseTimer.EnqueueChain();
+            }
+            else
+            {
                 if (worldObject is Player)
                 {
                     var player = worldObject as Player;
-                    var sendUseDoneEvent = new GameEventUseDone(player.Session);
-                    player.Session.Network.EnqueueSend(sendUseDoneEvent);
+                    var doorIsLocked = new GameEventCommunicationTransientString(player.Session, "The door is locked!");
+                    player.Session.Network.EnqueueSend(doorIsLocked);
+                    EnqueueBroadcast(new GameMessageSound(Guid, Sound.OpenFailDueToLock, 1.0f));
                 }
-            });
+            }
 
-            checkDoorChain.EnqueueChain();
+            if (worldObject is Player)
+            {
+                var player = worldObject as Player;
+                var sendUseDoneEvent = new GameEventUseDone(player.Session);
+                player.Session.Network.EnqueueSend(sendUseDoneEvent);
+            }
         }
 
         public void Open(ObjectGuid opener = new ObjectGuid())
@@ -274,6 +262,19 @@ namespace ACE.Server.WorldObjects
         public override void SetLinkProperties(WorldObject wo)
         {
             wo.ActivationTarget = Guid.Full;
+        }
+
+        public override void OnCollideObject(WorldObject target)
+        {
+            if (IsOpen) return;
+
+            // currently the only AI options appear to be 0 or 1,
+            // 1 meaning able to open doors?
+            var creature = target as Creature;
+            if (creature == null || creature.AiOptions == 0)
+                return;
+
+            ActOnUse(target);
         }
     }
 }

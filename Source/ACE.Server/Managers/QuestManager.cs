@@ -19,7 +19,6 @@ namespace ACE.Server.Managers
 
         public static bool Debug = false;
 
-
         /// <summary>
         /// Constructs a new QuestManager for a Player
         /// </summary>
@@ -179,9 +178,12 @@ namespace ACE.Server.Managers
         /// <summary>
         /// Removes an existing quest from the Player's registry
         /// </summary>
-        public void Erase(string questName)
+        public void Erase(string questFormat)
         {
-            //Console.WriteLine("QuestManager.Erase: " + questName);
+            if (Debug)
+                Console.WriteLine($"{Player.Name}.QuestManager.Erase({questFormat})");
+
+            var questName = GetQuestName(questFormat);
 
             var quests = Quests.Where(q => q.QuestName.Equals(questName)).ToList();
             foreach (var quest in quests)
@@ -211,10 +213,10 @@ namespace ACE.Server.Managers
             }
         }
 
-        public void Stamp(string questName)
+        public void Stamp(string questFormat)
         {
-            // ?
-            Update(questName);
+            var questName = GetQuestName(questFormat);
+            Update(questName);  // ??
         }
 
         /// <summary>

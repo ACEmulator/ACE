@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
+using System.Text;
 using ACE.Database;
 using ACE.Entity;
 using ACE.Entity.Enum;
@@ -25,6 +27,98 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
+        /// Instantly casts a spell for a WorldObject (ie. spell traps)
+        /// </summary>
+        public void TryCastSpell(Spell spell, WorldObject target)
+        {
+            // spells only castable on creatures?
+            var targetCreature = target as Creature;
+            if (targetCreature == null)
+                return;
+
+            // perform resistance check, if applicable
+            var resisted = TryResistSpell(spell, target);
+            if (resisted)
+                return;
+
+            // if not resisted, cast spell
+            var status = default(EnchantmentStatus);
+            switch (spell.School)
+            {
+                case MagicSchool.WarMagic:
+                    WarMagic(target, spell);
+                    break;
+                case MagicSchool.LifeMagic:
+                    LifeMagic(target, spell, out uint damage, out bool critical, out status);
+                    break;
+                case MagicSchool.CreatureEnchantment:
+                    status = CreatureMagic(target, spell);
+                    break;
+                case MagicSchool.ItemEnchantment:
+                    status = ItemMagic(target, spell);
+                    break;
+                case MagicSchool.VoidMagic:
+                    VoidMagic(target, spell);
+                    break;
+            }
+
+            // send message to player, if applicable
+            var player = this as Player;
+            if (player != null && status.message != null)
+                player.Session.Network.EnqueueSend(status.message);
+
+            // for invisible spell traps,
+            // their effects won't be seen if they broadcast from themselves
+            if (spell.TargetEffect != 0)
+                target.EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
+        }
+
+        /// <summary>
+        /// If this spell has a chance to be resisted, rolls for a chance
+        /// Returns TRUE if spell is resistable and was resisted for this attempt
+        /// </summary>
+        public bool TryResistSpell(Spell spell, WorldObject target)
+        {
+            if (spell.IsBeneficial)
+                return false;
+
+            // todo: verify this flag exists for all resistable spells
+            //if (!spell.Flags.HasFlag(SpellFlags.Resistable))
+                //return false;
+
+            var targetSelf = spell.Flags.HasFlag(SpellFlags.SelfTargeted);
+            if (targetSelf) return false;
+
+            switch (spell.School)
+            {
+                case MagicSchool.WarMagic:
+                    // war magic projectiles do the resistance check on projectile collision
+                    break;
+                case MagicSchool.LifeMagic:
+                case MagicSchool.CreatureEnchantment:
+                    if (spell.NumProjectiles == 0)  // life magic projectiles
+                    {
+                        bool? resisted = ResistSpell(target, spell);
+                        if (resisted != null && resisted == true)
+                            return true;
+                    }
+                    break;
+                case MagicSchool.ItemEnchantment:
+                    // ??
+                    break;
+                case MagicSchool.VoidMagic:
+                    if (spell.NumProjectiles == 0)  // void magic projectiles
+                    {
+                        bool? resisted = ResistSpell(target, spell);
+                        if (resisted != null && resisted == true)
+                            return true;
+                    }
+                    break;
+            }
+            return false;
+        }
+
+        /// <summary>
         /// Determine Player's PK status and whether it matches the target Player
         /// </summary>
         /// <returns>
@@ -36,6 +130,9 @@ namespace ACE.Server.WorldObjects
         {
             if (player == null || target == null)
                 return null;
+
+            if (player == target)
+                return true;
 
             if (spell == null || spell.IsHarmful)
             {
@@ -118,20 +215,26 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public bool? ResistSpell(WorldObject target, Spell spell)
         {
-            // only creatures can resist spells
+            uint magicSkill = 0;
             var caster = this as Creature;
-            if (caster == null) return null;
+            if (caster != null)
+                // Retrieve caster's skill level in the Magic School
+                magicSkill = caster.GetCreatureSkill(spell.School).Current;
+            else
+                // Retrieve casting item's spellcraft
+                magicSkill = (uint)ItemSpellcraft;
 
             var player = caster as Player;
             var targetPlayer = target as Player;
 
-            // Retrieve caster's skill level in the Magic School
-            var magicSkill = caster.GetCreatureSkill(spell.School).Current;
+            // only creatures can resist spells?
+            var creature = target as Creature;
+            if (creature == null) return null;
 
             // Retrieve target's Magic Defense Skill
-            var creature = target as Creature;
             var targetMagicDefenseSkill = creature.GetCreatureSkill(Skill.MagicDefense).Current;
 
+            //Console.WriteLine($"{target.Name}.ResistSpell({Name}, {spell.Name}): magicSkill: {magicSkill}, difficulty: {targetMagicDefenseSkill}");
             bool resisted = MagicDefenseCheck(magicSkill, targetMagicDefenseSkill);
 
             if (targetPlayer != null && targetPlayer.Invincible == true)
@@ -403,8 +506,32 @@ namespace ACE.Server.WorldObjects
                     break;
 
                 case SpellType.Dispel:
+
+                    var removeSpells = target.EnchantmentManager.SelectDispel(spell);
+
+                    // dispel on server and client
+                    target.EnchantmentManager.Dispel(removeSpells.Select(s => s.Enchantment).ToList());
+
+                    var spellList = BuildSpellList(removeSpells);
+                    var suffix = "";
+                    if (removeSpells.Count > 0)
+                        suffix = $" and dispel: {spellList}.";
+                    else
+                        suffix = ", but the dispel fails.";
+
                     damage = 0;
-                    enchantmentStatus.message = new GameMessageSystemChat("Spell not implemented, yet!", ChatMessageType.Magic);
+                    if (player != null)
+                    {
+                        if (player == target)
+                            enchantmentStatus.message = new GameMessageSystemChat($"You cast {spell.Name} on yourself{suffix}", ChatMessageType.Magic);
+                        else
+                            enchantmentStatus.message = new GameMessageSystemChat($"You cast {spell.Name} on {target.Name}{suffix}", ChatMessageType.Magic);
+                    }
+                    var targetPlayer = target as Player;
+                    if (targetPlayer != null && targetPlayer != player)
+                    {
+                        targetMsg = new GameMessageSystemChat($"{Name} casts {spell.Name} on you{suffix.Replace("and dispel", "and dispels")}", ChatMessageType.Magic);
+                    }
                     break;
 
                 case SpellType.Enchantment:
@@ -431,10 +558,40 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
+        /// Returns a string with the spell list format as:
+        /// Spell Name 1, Spell Name 2, and Spell Name 3
+        /// </summary>
+        public string BuildSpellList(List<SpellEnchantment> spells)
+        {
+            var sb = new StringBuilder();
+            for (var i = 0; i < spells.Count; i++)
+            {
+                var spell = spells[i];
+
+                if (i > 0)
+                {
+                    sb.Append(", ");
+                    if (i == spells.Count - 1)
+                        sb.Append("and ");
+                }
+
+                sb.Append(spell.Spell.Name);
+            }
+            return sb.ToString();
+        }
+
+        /// <summary>
         /// Wrapper around CreateEnchantment for Creature Magic
         /// </summary>
         protected EnchantmentStatus CreatureMagic(WorldObject target, Spell spell, WorldObject itemCaster = null)
         {
+            // redirect creature dispels to life magic
+            if (spell.MetaSpellType == SpellType.Dispel)
+            {
+                LifeMagic(target, spell, out uint damage, out bool critical, out EnchantmentStatus enchantmentStatus);
+                return enchantmentStatus;
+            }
+
             if (itemCaster != null)
                 return CreateEnchantment(target, itemCaster, spell);
 
@@ -449,6 +606,13 @@ namespace ACE.Server.WorldObjects
             EnchantmentStatus enchantmentStatus = default(EnchantmentStatus);
             enchantmentStatus.message = null;
             enchantmentStatus.stackType = StackType.None;
+
+            // redirect item dispels to life magic
+            if (spell.MetaSpellType == SpellType.Dispel)
+            {
+                LifeMagic(target, spell, out uint damage, out bool critical, out enchantmentStatus);
+                return enchantmentStatus;
+            }
 
             var creature = this as Creature;
             var player = this as Player;
