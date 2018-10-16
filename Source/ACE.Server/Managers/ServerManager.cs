@@ -94,7 +94,7 @@ namespace ACE.Server.Managers
                     return;
                 }
 
-                Thread.Sleep(1);
+                Thread.Sleep(10);
             }
 
             // logout each player
@@ -104,22 +104,23 @@ namespace ACE.Server.Managers
             // wait 10 seconds for log-off
             Thread.Sleep(10000);
 
-            // Unload all the landblocks
+            // Queue unloading of all the landblocks
+            // The actual unloading will happen in WorldManager.UpdateGameWorld
             LandblockManager.AddAllActiveLandblocksToDestructionQueue();
 
             while (LandblockManager.GetActiveLandblocks().Count > 0)
-                ; // do nothing
+                Thread.Sleep(10);
 
-            // disabled thread update loop and halt application
+            // disabled thread update loop
             WorldManager.StopWorld();
 
             // wait for world to end
             while (WorldManager.WorldActive)
-                ; // do nothing
+                Thread.Sleep(10);
 
             // wait for the database queue to empty
             while (DatabaseManager.Shard.QueueCount > 0)
-                ; // do nothing
+                Thread.Sleep(10);
 
             // write exit to console/log
             log.Info($"Exiting at {DateTime.UtcNow}");
