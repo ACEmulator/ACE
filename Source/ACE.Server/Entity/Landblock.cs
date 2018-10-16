@@ -159,8 +159,8 @@ namespace ACE.Server.Entity
         /// </summary>
         private void SpawnDynamicShardObjects()
         {
-            var corpses = DatabaseManager.Shard.GetDynamicObjectsByLandblock(Id.Landblock);
-            var factoryShardObjects = WorldObjectFactory.CreateWorldObjects(corpses);
+            var dynamics = DatabaseManager.Shard.GetDynamicObjectsByLandblock(Id.Landblock);
+            var factoryShardObjects = WorldObjectFactory.CreateWorldObjects(dynamics);
 
             actionQueue.EnqueueAction(new ActionEventDelegate(() =>
             {
@@ -755,7 +755,7 @@ namespace ACE.Server.Entity
 
         private void AddWorldObjectToBiotasSaveCollection(WorldObject wo, Collection<(Biota biota, ReaderWriterLockSlim rwLock)> biotas)
         {
-            log.DebugFormat("Landblock 0x{0} saving item {1} {2} {3} {4} {5}", Id, wo.Biota.Id, wo.Name, wo.WeenieClassId, wo.WeenieClassName, wo.GetType());
+            log.DebugFormat("Landblock 0x{0} saving item 0x{1:X8} {2} {3} {4} {5}", Id, wo.Biota.Id, wo.Name, wo.WeenieClassId, wo.WeenieClassName, wo.GetType());
 
             wo.SaveBiotaToDatabase(false);
             biotas.Add((wo.Biota, wo.BiotaDatabaseLock));

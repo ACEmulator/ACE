@@ -401,7 +401,7 @@ namespace ACE.Database
 
                 foreach (var result in results)
                 {
-                    var biota = GetBiota(context, result.ObjectId);
+                    var biota = GetBiota(result.ObjectId);
                     dynamics.Add(biota);
                 }
             }
@@ -445,7 +445,7 @@ namespace ACE.Database
 
                 foreach (var result in results)
                 {
-                    var biota = GetBiota(context, result.Id);
+                    var biota = GetBiota(result.Id);
                     staticObjects.Add(biota);
                 }
             }
