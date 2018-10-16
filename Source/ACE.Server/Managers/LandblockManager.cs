@@ -249,5 +249,17 @@ namespace ACE.Server.Managers
                 }
             }
         }
+
+        /// <summary>
+        /// Used on server shutdown
+        /// </summary>
+        public static void AddAllActiveLandblocksToDestructionQueue()
+        {
+            lock (landblockMutex)
+            {
+                foreach (var landblock in activeLandblocks)
+                    AddToDestructionQueue(landblock);
+            }
+        }
     }
 }

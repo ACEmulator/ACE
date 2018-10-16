@@ -755,7 +755,7 @@ namespace ACE.Server.Entity
 
         private void AddWorldObjectToBiotasSaveCollection(WorldObject wo, Collection<(Biota biota, ReaderWriterLockSlim rwLock)> biotas)
         {
-            log.DebugFormat("Landblock 0x{0} saving item {1} {2} {3} {4} {5} {6}", Id, wo.Biota.Id, wo.Name, wo.WeenieClassId, wo.WeenieClassName, wo.GetType(), wo.IsLinked);
+            log.DebugFormat("Landblock 0x{0} saving item {1} {2} {3} {4} {5}", Id, wo.Biota.Id, wo.Name, wo.WeenieClassId, wo.WeenieClassName, wo.GetType());
 
             wo.SaveBiotaToDatabase(false);
             biotas.Add((wo.Biota, wo.BiotaDatabaseLock));

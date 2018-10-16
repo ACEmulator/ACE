@@ -1,9 +1,10 @@
 using System;
 using System.Threading;
 
-using ACE.Common;
-
 using log4net;
+
+using ACE.Common;
+using ACE.Database;
 
 namespace ACE.Server.Managers
 {
@@ -100,18 +101,24 @@ namespace ACE.Server.Managers
             foreach (var player in WorldManager.GetAll())
                 player.LogOffPlayer();
 
-            // wait 6 seconds for log-off
-            Thread.Sleep(6000);
+            // wait 10 seconds for log-off
+            Thread.Sleep(10000);
 
-            // TODO: Make sure that the landblocks unloads properly.
+            // Unload all the landblocks
+            LandblockManager.AddAllActiveLandblocksToDestructionQueue();
 
-            // TODO: Make sure that the databasemanager unloads properly.
+            while (LandblockManager.GetActiveLandblocks().Count > 0)
+                ; // do nothing
 
             // disabled thread update loop and halt application
             WorldManager.StopWorld();
 
             // wait for world to end
             while (WorldManager.WorldActive)
+                ; // do nothing
+
+            // wait for the database queue to empty
+            while (DatabaseManager.Shard.QueueCount > 0)
                 ; // do nothing
 
             // write exit to console/log
