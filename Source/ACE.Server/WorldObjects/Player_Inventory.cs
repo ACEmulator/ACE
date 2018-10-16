@@ -380,8 +380,6 @@ namespace ACE.Server.WorldObjects
 
                 if (questSolve)
                     QuestManager.Update(item.Quest);
-
-                item.SaveBiotaToDatabase();
             });
 
             // return to previous stance
