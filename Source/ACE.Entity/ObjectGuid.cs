@@ -57,6 +57,11 @@ namespace ACE.Entity
             return Type == GuidType.Player;
         }
 
+        public bool IsDynamic()
+        {
+            return Type == GuidType.Dynamic;
+        }
+
         public static bool operator ==(ObjectGuid g1, ObjectGuid g2)
         {
             return g1.Full == g2.Full;
