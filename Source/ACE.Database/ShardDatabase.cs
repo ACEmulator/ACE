@@ -440,7 +440,7 @@ namespace ACE.Database
                 context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
 
                 var results = context.BiotaPropertiesPosition
-                    .Where(p => p.ObjCellId >> 16 == landblockId && p.ObjectId >= 0x80000000)
+                    .Where(p => p.PositionType == 1 && p.ObjCellId >> 16 == landblockId && p.ObjectId >= 0x80000000)
                     .ToList();
 
                 foreach (var result in results)
@@ -462,7 +462,7 @@ namespace ACE.Database
                 context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
 
                 var results = context.BiotaPropertiesPosition
-                    .Where(p => p.ObjCellId >> 16 == landblockId && p.ObjectId >= 0x80000000)
+                    .Where(p => p.PositionType == 1 && p.ObjCellId >> 16 == landblockId && p.ObjectId >= 0x80000000)
                     .ToList();
 
                 Parallel.ForEach(results, result =>
