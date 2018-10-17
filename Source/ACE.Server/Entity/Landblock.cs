@@ -704,7 +704,7 @@ namespace ACE.Server.Entity
 
             foreach (var wo in worldObjects.Values)
             {
-                if (wo.IsStaticThatShouldPersistToShard() || wo.IsDecayable())
+                if (wo.IsStaticThatShouldPersistToShard() || wo.IsDecayableThatShouldPersistToShard())
                     AddWorldObjectToBiotasSaveCollection(wo, biotas);
             }
 

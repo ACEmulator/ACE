@@ -107,7 +107,8 @@ namespace ACE.Server.WorldObjects
 
         /// <summary>
         /// A decayable object is one that would be saved to the database if it exists on a landblock, and, would also decay (rot) over time.
-        /// When it rots, it would be destroyed, and removed from the database.
+        /// When it rots, it would be destroyed, and removed from the database.<para />
+        /// In most cases, these should be player dropped items or player corpses.
         /// </summary>
         public bool IsDecayable()
         {
@@ -125,10 +126,6 @@ namespace ACE.Server.WorldObjects
             if (WeenieType == WeenieType.Creature || WeenieType == WeenieType.HotSpot || WeenieType == WeenieType.Portal || this is GenericObject)
                 return false;
 
-            var missile = Missile;
-            if (missile.HasValue && missile.Value)
-                return false;
-
             if (this is Container container)
             {
                 if (this is Corpse corpse && !corpse.IsMonster) // Player corpses
@@ -141,6 +138,27 @@ namespace ACE.Server.WorldObjects
             }
 
             // Player dropped non-container item
+            return true;
+        }
+
+        /// <summary>
+        /// This will filter out missiles that haven't been saved to the shard yet.<para />
+        /// If the world object originated from the database or has been saved to the database, this will also return true.
+        /// </summary>
+        /// <returns></returns>
+        public bool IsDecayableThatShouldPersistToShard()
+        {
+            if (!IsDecayable())
+                return false;
+
+            if (biotaOriginatedFromDatabase || LastRequestedDatabaseSave != DateTime.MinValue)
+                return true;
+
+            // Missiles are unique. The only missiles that are decayable are ones that already exist in the database.
+            var missile = Missile;
+            if (missile.HasValue && missile.Value)
+                return false;
+
             return true;
         }
     }
