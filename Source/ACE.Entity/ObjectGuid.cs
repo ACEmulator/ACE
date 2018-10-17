@@ -57,6 +57,11 @@ namespace ACE.Entity
             return Type == GuidType.Player;
         }
 
+        public bool IsStatic()
+        {
+            return Type == GuidType.Static;
+        }
+
         public bool IsDynamic()
         {
             return Type == GuidType.Dynamic;
