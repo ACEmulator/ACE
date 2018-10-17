@@ -83,10 +83,8 @@ namespace ACE.Server.WorldObjects
             if (biotaOriginatedFromDatabase)
                 return true;
 
-            // todo is this a house?
-            // todo is this a housing hook?
-            // todo is this a housing chest?
-            // todo is this a slumlord?
+            if (WeenieType == WeenieType.SlumLord || WeenieType == WeenieType.House || WeenieType == WeenieType.Hook || WeenieType == WeenieType.Storage)
+                return true;
 
             return false;
         }
