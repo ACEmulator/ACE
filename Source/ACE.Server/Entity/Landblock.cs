@@ -704,7 +704,7 @@ namespace ACE.Server.Entity
 
             foreach (var wo in worldObjects.Values)
             {
-                if (wo.IsStaticThatPersistsToShard() || wo.IsDecayable())
+                if (wo.IsStaticThatShouldPersistToShard() || wo.IsDecayable())
                     AddWorldObjectToBiotasSaveCollection(wo, biotas);
             }
 
@@ -715,6 +715,7 @@ namespace ACE.Server.Entity
         {
             if (wo.ChangesDetected)
             {
+                // This can be removed once we're confident the system is saving the correct items
                 log.DebugFormat("Landblock 0x{0} saving item 0x{1:X8} {2}", Id, wo.Biota.Id, wo.Name);
 
                 wo.SaveBiotaToDatabase(false);

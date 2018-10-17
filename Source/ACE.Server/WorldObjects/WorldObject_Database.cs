@@ -73,18 +73,34 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// A static that persists to the shard may be a hook with an item, or a house that's been purchased, or a housing chest, etc...
+        /// A static that should persist to the shard may be a hook with an item, or a house that's been purchased, or a housing chest that isn't empty, etc...<para />
+        /// If the world object originated from the database or has been saved to the database, this will also return true.
         /// </summary>
-        public bool IsStaticThatPersistsToShard()
+        public bool IsStaticThatShouldPersistToShard()
         {
             if (!Guid.IsStatic())
                 return false;
 
-            if (biotaOriginatedFromDatabase)
+            if (biotaOriginatedFromDatabase || LastRequestedDatabaseSave != DateTime.MinValue)
                 return true;
 
-            if (WeenieType == WeenieType.SlumLord || WeenieType == WeenieType.House || WeenieType == WeenieType.Hook || WeenieType == WeenieType.Storage)
-                return true;
+            if (WeenieType == WeenieType.SlumLord && this is SlumLord slumlord)
+            {
+                if (slumlord.House != null && slumlord.House.HouseOwner.HasValue && slumlord.House.HouseOwner != 0)
+                    return true;
+            }
+
+            if (WeenieType == WeenieType.House && this is House house)
+            {
+                if (house.HouseOwner.HasValue && house.HouseOwner != 0)
+                    return true;
+            }
+
+            if ((WeenieType == WeenieType.Hook || WeenieType == WeenieType.Storage) && this is Container container)
+            {
+                if (container.Inventory.Count > 0)
+                    return true;
+            }
 
             return false;
         }
