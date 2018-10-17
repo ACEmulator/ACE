@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 using log4net;
 
@@ -10,7 +11,6 @@ using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Server.Managers;
 using ACE.Server.WorldObjects;
-using System.Linq;
 
 namespace ACE.Server.Factories
 {
@@ -245,17 +245,18 @@ namespace ACE.Server.Factories
 
                 var biota = biotas.FirstOrDefault(b => b.Id == instance.Guid);
                 if (biota == null)
+                {
                     worldObject = CreateWorldObject(weenie, guid);
+
+                    worldObject.Location = new Position(instance.ObjCellId, instance.OriginX, instance.OriginY, instance.OriginZ, instance.AnglesX, instance.AnglesY, instance.AnglesZ, instance.AnglesW);
+                }
                 else
                 {
                     worldObject = CreateWorldObject(biota);
-                    //Console.WriteLine("Loaded biota " + worldObject.Name);
                 }
 
                 if (worldObject != null)
                 {
-                    worldObject.Location = new Position(instance.ObjCellId, instance.OriginX, instance.OriginY, instance.OriginZ, instance.AnglesX, instance.AnglesY, instance.AnglesZ, instance.AnglesW);
-
                     // queue linked child objects
                     foreach (var link in instance.LandblockInstanceLink)
                     {
