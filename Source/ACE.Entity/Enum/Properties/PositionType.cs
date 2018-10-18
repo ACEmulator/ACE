@@ -1,10 +1,10 @@
-﻿// --------------------------------------------------------------------------------------------------------------------
+// --------------------------------------------------------------------------------------------------------------------
 // <summary>
 //   Defines the Positions types that we need to track.
 // </summary>
 // --------------------------------------------------------------------------------------------------------------------
 
-namespace ACE.Entity.Enum
+namespace ACE.Entity.Enum.Properties
 {
     /// <summary>
     /// The enumerations for the different positions we want to track.  This code provided by Ripley via pastebin
