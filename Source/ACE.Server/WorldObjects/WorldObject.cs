@@ -180,8 +180,7 @@ namespace ACE.Server.WorldObjects
             Location.Pos = PhysicsObj.Position.Frame.Origin;
             Location.Rotation = PhysicsObj.Position.Frame.Orientation;
 
-            if (this is Creature && !(this is Player))
-                SetPosition(PositionType.Home, new Position(Location));
+            SetPosition(PositionType.Home, new Position(Location));
 
             return true;
         }
@@ -316,6 +315,12 @@ namespace ACE.Server.WorldObjects
                 ephemeralPropertyInt64s[(PropertyInt64)x.Type] = x.Value;
             foreach (var x in Biota.BiotaPropertiesString.Where(i => EphemeralProperties.PropertiesString.Contains(i.Type)).ToList())
                 ephemeralPropertyStrings[(PropertyString)x.Type] = x.Value;
+
+            foreach (var x in EphemeralProperties.PositionTypes.ToList())
+                ephemeralPositions.TryAdd((PositionType)x, null);
+
+            foreach (var x in Biota.BiotaPropertiesPosition.Where(i => EphemeralProperties.PositionTypes.Contains(i.PositionType)).ToList())
+                ephemeralPositions[(PositionType)x.PositionType] = new Position(x.ObjCellId, x.OriginX, x.OriginY, x.OriginZ, x.AnglesX, x.AnglesY, x.AnglesZ, x.AnglesW);
 
             AddGeneratorProfiles();
 

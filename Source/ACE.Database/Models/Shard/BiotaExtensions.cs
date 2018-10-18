@@ -3,7 +3,6 @@ using System.Linq;
 using System.Threading;
 
 using ACE.Entity;
-using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 
 namespace ACE.Database.Models.Shard

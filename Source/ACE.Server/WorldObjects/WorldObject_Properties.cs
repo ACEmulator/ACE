@@ -9,7 +9,6 @@ using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
-using ACE.Server.Network.Enum;
 using ACE.Server.Network.Motion;
 
 namespace ACE.Server.WorldObjects
@@ -330,6 +329,8 @@ namespace ACE.Server.WorldObjects
         #endregion
 
 
+        private readonly Dictionary<PositionType, Position> ephemeralPositions = new Dictionary<PositionType, Position>();
+
         /// <summary>
         /// Do not reference this directly.<para />
         /// This should only be referenced by GetPosition, SetPosition, RemovePosition and SaveBiotaToDatabase.
@@ -338,6 +339,9 @@ namespace ACE.Server.WorldObjects
 
         public Position GetPosition(PositionType positionType)
         {
+            if (ephemeralPositions.TryGetValue(positionType, out var value))
+                return value;
+
             bool success = positionCache.TryGetValue(positionType, out var ret);
 
             if (!success)
@@ -362,7 +366,13 @@ namespace ACE.Server.WorldObjects
                     positionCache[position.Key] = position.Value;
             }
 
-            return new Dictionary<PositionType, Position>(positionCache);
+            var result = new Dictionary<PositionType, Position>(positionCache);
+
+            // Add the ephemeral positions over the cached positions
+            foreach (var kvp in ephemeralPositions)
+                result[kvp.Key] = kvp.Value;
+
+            return result;
         }
 
         /// <summary>
@@ -375,24 +385,34 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void SetPosition(PositionType positionType, Position position)
         {
-            if (position == null)
-                RemovePosition(positionType);
+            if (ephemeralPositions.ContainsKey(positionType))
+                ephemeralPositions[positionType] = position;
             else
             {
-                positionCache[positionType] = position;
+                if (position == null)
+                    RemovePosition(positionType);
+                else
+                {
+                    positionCache[positionType] = position;
 
-                Biota.SetPosition(positionType, position, BiotaDatabaseLock, out var biotaChanged);
-                if (biotaChanged)
-                    ChangesDetected = true;
+                    Biota.SetPosition(positionType, position, BiotaDatabaseLock, out var biotaChanged);
+                    if (biotaChanged)
+                        ChangesDetected = true;
+                }
             }
         }
 
         public void RemovePosition(PositionType positionType)
         {
-            positionCache.Remove(positionType);
+            if (ephemeralPositions.ContainsKey(positionType))
+                ephemeralPositions[positionType] = null;
+            else
+            {
+                positionCache.Remove(positionType);
 
-            if (Biota.TryRemovePosition(positionType, out _, BiotaDatabaseLock))
-                ChangesDetected = true;
+                if (Biota.TryRemovePosition(positionType, out _, BiotaDatabaseLock))
+                    ChangesDetected = true;
+            }
         }
 
 
