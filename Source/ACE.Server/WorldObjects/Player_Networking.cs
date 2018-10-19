@@ -184,7 +184,7 @@ namespace ACE.Server.WorldObjects
             EnqueueBroadcast(movementEvent);    // shouldn't need to go to originating player?
 
             // TODO: use real motion / animation system from physics
-            CurrentMotionCommand = state.ForwardCommand;
+            CurrentMotionCommand = movementData.Invalid.State.ForwardCommand;
         }
     }
 }
