@@ -13,6 +13,7 @@ using log4net;
 
 using ACE.Database.Models.World;
 using ACE.Entity.Enum;
+using System.Diagnostics;
 
 namespace ACE.Database
 {
@@ -376,6 +377,14 @@ namespace ACE.Database
             return cachedPointsOfInterest.Count(r => r.Value != null);
         }
 
+        /// <summary>
+        /// Returns the PointsOfInterest cache.
+        /// </summary>
+        public ConcurrentDictionary<string, PointsOfInterest> GetPointsOfInterestCache()
+        {
+            return new ConcurrentDictionary<string, PointsOfInterest>(cachedPointsOfInterest);
+        }
+
         public PointsOfInterest GetCachedPointOfInterest(string name)
         {
             var nameToLower = name.ToLower();
@@ -395,7 +404,8 @@ namespace ACE.Database
         }
 
         /// <summary>
-        /// This takes under 1 second to complete.
+        /// Retrieves all points of interest from the database and adds/updates the points of interest cache entries with every point of interest retrieved.
+        /// 57 entries cached in 00:00:00.0057937
         /// </summary>
         public void CacheAllPointsOfInterest()
         {
