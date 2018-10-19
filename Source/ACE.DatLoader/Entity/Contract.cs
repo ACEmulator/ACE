@@ -1,4 +1,5 @@
 using System.IO;
+using ACE.DatLoader.Entity.Internal;
 
 namespace ACE.DatLoader.Entity
 {

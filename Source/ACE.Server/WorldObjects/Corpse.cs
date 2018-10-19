@@ -4,10 +4,10 @@ using System.Linq;
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.Entity;
+using ACE.Server.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Network.GameMessages.Messages;
-using ACE.Server.Network.Motion;
 
 namespace ACE.Server.WorldObjects
 {
@@ -45,7 +45,7 @@ namespace ACE.Server.WorldObjects
         {
             BaseDescriptionFlags |= ObjectDescriptionFlag.Corpse;
 
-            CurrentMotionState = new UniversalMotion(MotionStance.NonCombat, new MotionItem(MotionCommand.Dead));
+            CurrentMotionState = new Motion(MotionStance.NonCombat, MotionCommand.Dead);
 
             ContainerCapacity = 10;
             ItemCapacity = 120;

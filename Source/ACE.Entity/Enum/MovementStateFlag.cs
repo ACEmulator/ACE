@@ -1,20 +1,21 @@
-﻿namespace ACE.Entity.Enum
-{
-    using System;
+using System;
 
+namespace ACE.Entity.Enum
+{
     /// <summary>
-    /// used for building a set of flags to send to be used in GameMessageMotion
+    /// The current movement state for an object
+    /// This is sent as part of the InterpretedMotionState network structure
     /// </summary>
     [Flags]
     public enum MovementStateFlag : uint
     {
-        NoMotionState = 0x0,
-        CurrentStyle = 0x1,
-        ForwardCommand = 0x2,
-        ForwardSpeed = 0x4,
+        Invalid         = 0x0,
+        CurrentStyle    = 0x1,
+        ForwardCommand  = 0x2,
+        ForwardSpeed    = 0x4,
         SideStepCommand = 0x8,
-        SideStepSpeed = 0x10,
-        TurnCommand = 0x20,
-        TurnSpeed = 0x40
+        SideStepSpeed   = 0x10,
+        TurnCommand     = 0x20,
+        TurnSpeed       = 0x40
     }
 }

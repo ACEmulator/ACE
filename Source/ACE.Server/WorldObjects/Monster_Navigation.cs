@@ -224,7 +224,8 @@ namespace ACE.Server.WorldObjects
             PhysicsObj.update_object();
             UpdatePosition_SyncLocation();
 
-            SendUpdatePosition(ForcePos);
+            //SendUpdatePosition(ForcePos);
+            SendUpdatePosition();
 
             if (DebugMove)
                 Console.WriteLine($"{Name} ({Guid}) - UpdatePosition (velocity: {PhysicsObj.CachedVelocity.Length()})");

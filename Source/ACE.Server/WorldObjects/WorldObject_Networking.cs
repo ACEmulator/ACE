@@ -15,7 +15,6 @@ using ACE.Server.Entity.Actions;
 using ACE.Server.Network;
 using ACE.Server.Network.GameMessages;
 using ACE.Server.Network.GameMessages.Messages;
-using ACE.Server.Network.Motion;
 using ACE.Server.Network.Structure;
 using ACE.Server.Network.Sequence;
 using ACE.Server.Physics;
@@ -245,15 +244,12 @@ namespace ACE.Server.WorldObjects
                 return PhysicsGlobals.DefaultState;
         }
 
-        // todo: return bytes of data for network write ? ?
+        /// <summary>
+        /// Sent as part of the CreateObject message, PhysicsDesc in protocol docs
+        /// </summary>
         private void SerializePhysicsData(BinaryWriter writer)
         {
             var physicsDescriptionFlag = CalculatedPhysicsDescriptionFlag();
-
-            // PhysicsDescriptionFlag.Movement takes priority over PhysicsDescription.FlagAnimationFrame
-            // If both are set, only Movement is written.
-            if (physicsDescriptionFlag.HasFlag(PhysicsDescriptionFlag.Movement) && physicsDescriptionFlag.HasFlag(PhysicsDescriptionFlag.AnimationFrame))
-                physicsDescriptionFlag &= ~PhysicsDescriptionFlag.AnimationFrame;
 
             writer.Write((uint)physicsDescriptionFlag);
 
@@ -263,27 +259,14 @@ namespace ACE.Server.WorldObjects
 
             if ((physicsDescriptionFlag & PhysicsDescriptionFlag.Movement) != 0)
             {
-                if (CurrentMotionState != null)
+                var movementData = new MovementData(this, CurrentMotionState).Serialize();
+
+                writer.Write((uint)movementData.Length);
+
+                if (movementData.Length > 0)
                 {
-                    var movementData = CurrentMotionState.GetPayload(Guid, Sequences);
-                    if (movementData.Length > 0)
-                    {
-                        writer.Write((uint)movementData.Length); // May not need this cast from int to uint, but the protocol says uint Og II
-                        writer.Write(movementData);
-                        uint autonomous = CurrentMotionState.IsAutonomous ? (ushort)1 : (ushort)0;
-                        writer.Write(autonomous);
-                    }
-                    else
-                    {
-                        // Adding these debug lines - don't think we can hit these, but want to make sure. Og II
-                        log.Debug($"Our flag is set but we have no data length. {Guid.Full:X}");
-                        writer.Write(0u);
-                    }
-                }
-                else
-                {
-                    log.Debug($"Our flag is set but our current motion state is null. {Guid.Full:X}");
-                    writer.Write(0u);
+                    writer.Write(movementData);
+                    writer.Write(Convert.ToUInt32(CurrentMotionState.IsAutonomous));
                 }
             }
             else if ((physicsDescriptionFlag & PhysicsDescriptionFlag.AnimationFrame) != 0)
@@ -367,28 +350,13 @@ namespace ACE.Server.WorldObjects
             writer.Align();
         }
 
-
-        public void WriteUpdatePositionPayload(BinaryWriter writer, bool forcePos = false)
-        {
-            if (forcePos)
-                PositionFlag |= UpdatePositionFlag.Contact;
-
-            writer.WriteGuid(Guid);
-            Location.Serialize(writer, PositionFlag, (int)(Placement ?? ACE.Entity.Enum.Placement.Default));
-            writer.Write(Sequences.GetCurrentSequence(SequenceType.ObjectInstance));
-            writer.Write(Sequences.GetNextSequence(SequenceType.ObjectPosition));
-            writer.Write(Sequences.GetCurrentSequence(SequenceType.ObjectTeleport));
-            writer.Write(Sequences.GetCurrentSequence(SequenceType.ObjectForcePosition));
-        }
-
         /// <summary>
-        /// Alerts clients of change in position
+        /// Broadcast position updates to players within range
         /// </summary>
-        protected virtual void SendUpdatePosition(bool forcePos = false)
+        protected void SendUpdatePosition()
         {
-            EnqueueBroadcast(new GameMessageUpdatePosition(this, forcePos));
+            EnqueueBroadcast(new GameMessageUpdatePosition(this));
         }
-
 
         public virtual void SendPartialUpdates(Session targetSession, List<GenericPropertyId> properties)
         {
@@ -408,16 +376,17 @@ namespace ACE.Server.WorldObjects
             }
         }
 
+        /// <summary>
+        /// Calculates the PhysicsDesc flags from the current object state
+        /// </summary>
         protected PhysicsDescriptionFlag CalculatedPhysicsDescriptionFlag()
         {
             var physicsDescriptionFlag = PhysicsDescriptionFlag.None;
 
-            var movementData = CurrentMotionState?.GetPayload(Guid, Sequences);
-
-            if (movementData != null && movementData.Length > 0)
+            if (CurrentMotionState != null)
                 physicsDescriptionFlag |= PhysicsDescriptionFlag.Movement;
 
-            if (Placement != null)
+            else if (Placement != null)
                 physicsDescriptionFlag |= PhysicsDescriptionFlag.AnimationFrame;
 
             if (Location != null)
@@ -968,15 +937,6 @@ namespace ACE.Server.WorldObjects
             return flag;
         }
 
-        /// <summary>
-        /// Records where the client thinks we are, for use by physics engine later
-        /// </summary>
-        /// <param name="newPosition"></param>
-        protected void PrepUpdatePosition(ACE.Entity.Position newPosition)
-        {
-            RequestedLocation = newPosition;
-        }
-
         public void ClearRequestedPositions()
         {
             ForcedLocation = null;
@@ -1149,10 +1109,8 @@ namespace ACE.Server.WorldObjects
         {
             var stance = CurrentMotionState != null && useStance ? CurrentMotionState.Stance : MotionStance.NonCombat;
 
-            var motion = new UniversalMotion(stance);
-            motion.MovementData.CurrentStyle = (uint)stance;
-            motion.MovementData.ForwardCommand = (uint)motionCommand;
-            motion.MovementData.TurnSpeed = 2.25f;  // ??
+            var motion = new Motion(stance, motionCommand, speed);
+            motion.MotionState.TurnSpeed = 2.25f;  // ??
 
             var animLength = Physics.Animation.MotionTable.GetAnimationLength(MotionTableId, stance, motionCommand);
 

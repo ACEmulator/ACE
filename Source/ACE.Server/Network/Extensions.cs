@@ -49,9 +49,16 @@ namespace ACE.Server.Network
 
         public static void Pad(this BinaryWriter writer, uint pad) { writer.Write(new byte[pad]); }
 
+        public static void Pad(this BinaryReader reader, uint pad) { reader.ReadBytes((int)pad); }
+
         public static void Align(this BinaryWriter writer)
         {
             writer.Pad(CalculatePadMultiple((uint)writer.BaseStream.Length, 4u));
+        }
+
+        public static void Align(this BinaryReader reader)
+        {
+            reader.Pad(CalculatePadMultiple((uint)reader.BaseStream.Length, 4u));
         }
 
         public static string BuildPacketString(this byte[] bytes, int startPosition = 0, int bytesToOutput = 9999)

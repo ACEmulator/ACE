@@ -21,7 +21,6 @@ using ACE.Server.Managers;
 using ACE.Server.Network;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
-using ACE.Server.Network.Motion;
 using ACE.Server.WorldObjects;
 using ACE.Server.WorldObjects.Entity;
 
@@ -313,32 +312,22 @@ namespace ACE.Server.Command.Handlers
                 return;
             }
 
-            UniversalMotion motion = new UniversalMotion(MotionStance.NonCombat, new MotionItem((MotionCommand)animationId));
-            session.Player.EnqueueBroadcastMotion(motion);
+            session.Player.EnqueueBroadcastMotion(new Motion(session.Player, (MotionCommand)animationId));
         }
 
         /// <summary>
         /// This function is just used to exercise the ability to have player movement without animation.   Once we are solid on this it can be removed.   Og II
         /// </summary>
-        [CommandHandler("movement", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Movement testing command, to be removed soon")]
+        [CommandHandler("movement", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Movement testing command, to be removed soon")]
         public static void Movement(Session session, params string[] parameters)
         {
-            ushort forwardCommand = 24;
+            var forwardCommand = (MotionCommand)Convert.ToInt16(parameters[0]);
 
-            if ((parameters?.Length > 0))
-                forwardCommand = (ushort)Convert.ToInt16(parameters[0]);
+            var movement = new Motion(session.Player, forwardCommand);
+            session.Network.EnqueueSend(new GameMessageUpdateMotion(session.Player, movement));
 
-            var movement = new UniversalMotion(MotionStance.NonCombat);
-            movement.MovementData.ForwardCommand = forwardCommand;
-            session.Network.EnqueueSend(new GameMessageUpdateMotion(session.Player.Guid,
-                                                                    session.Player.Sequences.GetCurrentSequence(Network.Sequence.SequenceType.ObjectInstance),
-                                                                    session.Player.Sequences,
-                                                                    movement));
-            movement = new UniversalMotion(MotionStance.NonCombat);
-            session.Network.EnqueueSend(new GameMessageUpdateMotion(session.Player.Guid,
-                                                                    session.Player.Sequences.GetCurrentSequence(Network.Sequence.SequenceType.ObjectInstance),
-                                                                    session.Player.Sequences,
-                                                                    movement));
+            movement = new Motion(session.Player, MotionCommand.Ready);
+            session.Network.EnqueueSend(new GameMessageUpdateMotion(session.Player, movement));
         }
 
         /// <summary>
@@ -509,7 +498,7 @@ namespace ACE.Server.Command.Handlers
                             debugOutput = $"{weenieHdr2.GetType().Name} = {weenieHdr2.ToString()}" + " (" + (uint)weenieHdr2 + ")";
                             break;
                         case "positionflag":
-                            var posFlag = (UpdatePositionFlag)Convert.ToUInt32(parameters[1]);
+                            var posFlag = (PositionFlags)Convert.ToUInt32(parameters[1]);
 
                             debugOutput = $"{posFlag.GetType().Name} = {posFlag.ToString()}" + " (" + (uint)posFlag + ")";
                             break;
@@ -680,7 +669,7 @@ namespace ACE.Server.Command.Handlers
                     if (positionType != PositionType.Undef)
                     {
                         // Create a new position from the current player location
-                        Position playerPosition = (Position)session.Player.Location.Clone();
+                        var playerPosition = new Position(session.Player.Location);
 
                         // Save the position
                         session.Player.SetPosition(positionType, playerPosition);

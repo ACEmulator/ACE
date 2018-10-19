@@ -3,33 +3,40 @@ using System;
 namespace ACE.Entity.Enum
 {
     [Flags]
-    public enum MovementParams
+    public enum MovementParams: uint
     {
-        CanWalk                 = (1 << 0),
-        CanRun                  = (1 << 1),
-        CanSideStep             = (1 << 2),
-        CanWalkBackwards        = (1 << 3),
-        CanCharge               = (1 << 4),
-        FailWalk                = (1 << 5),
-        UseFinalHeading         = (1 << 6),
-        Sticky                  = (1 << 7),
-        MoveAway                = (1 << 8),
-        MoveTowards             = (1 << 9),
-        UseSpheres              = (1 << 10),
-        SetHoldKey              = (1 << 11),
-        Autonomous              = (1 << 12),
-        ModifyRawState          = (1 << 13),
-        ModifyInterpretedState  = (1 << 14),
-        CancelMoveTo            = (1 << 15),
-        StopCompletely          = (1 << 16),
-        DisableJumpDuringLink   = (1 << 17)
+        CanWalk                 = 0x1,
+        CanRun                  = 0x2,
+        CanSideStep             = 0x4,
+        CanWalkBackwards        = 0x8,
+        CanCharge               = 0x10,
+        FailWalk                = 0x20,
+        UseFinalHeading         = 0x40,
+        Sticky                  = 0x80,
+        MoveAway                = 0x100,
+        MoveTowards             = 0x200,
+        UseSpheres              = 0x400,
+        SetHoldKey              = 0x800,
+        Autonomous              = 0x1000,
+        ModifyRawState          = 0x2000,
+        ModifyInterpretedState  = 0x4000,
+        CancelMoveTo            = 0x8000,
+        StopCompletely          = 0x10000,
+        DisableJumpDuringLink   = 0x20000
     }
 
     public static class MovementParamsExtensions
     {
         public static MovementParams Default =
-            MovementParams.CanWalk | MovementParams.CanRun | MovementParams.CanSideStep | MovementParams.CanWalkBackwards |
-            MovementParams.MoveTowards | MovementParams.UseSpheres | MovementParams.SetHoldKey |
-            MovementParams.ModifyRawState | MovementParams.ModifyInterpretedState | MovementParams.CancelMoveTo;
+            MovementParams.CanWalk |
+            MovementParams.CanRun |
+            MovementParams.CanSideStep |
+            MovementParams.CanWalkBackwards |
+            MovementParams.MoveTowards |
+            MovementParams.UseSpheres |
+            MovementParams.SetHoldKey |
+            MovementParams.ModifyRawState |
+            MovementParams.ModifyInterpretedState |
+            MovementParams.CancelMoveTo;
     }
 }

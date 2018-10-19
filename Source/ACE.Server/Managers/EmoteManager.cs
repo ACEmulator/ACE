@@ -14,7 +14,6 @@ using ACE.Server.Factories;
 using ACE.Server.Network.Enum;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
-using ACE.Server.Network.Motion;
 using ACE.Server.WorldObjects;
 
 using log4net;
@@ -580,8 +579,7 @@ namespace ACE.Server.Managers
                 case EmoteType.ForceMotion:
 
                     var motionCommand = MotionCommandHelper.GetMotion(emote.Motion.Value);
-                    var motion = new UniversalMotion(targetObject.CurrentMotionState.Stance, new MotionItem(motionCommand, emote.Extent));
-                    motion.MovementData.ForwardCommand = (uint)motionCommand;
+                    var motion = new Motion(targetObject, motionCommand, emote.Extent);
                     targetObject.EnqueueBroadcastMotion(motion);
                     break;
 
@@ -594,8 +592,8 @@ namespace ACE.Server.Managers
 
                     if (emoteSet.Category != (uint)EmoteCategory.Vendor && emoteSet.Style != null)
                     {
-                        var startingMotion = new UniversalMotion((MotionStance)emoteSet.Style, new MotionItem((MotionCommand)emoteSet.Substyle));
-                        motion = new UniversalMotion((MotionStance)emoteSet.Style, new MotionItem((MotionCommand)emote.Motion, emote.Extent));
+                        var startingMotion = new Motion((MotionStance)emoteSet.Style, (MotionCommand)emoteSet.Substyle);
+                        motion = new Motion((MotionStance)emoteSet.Style, (MotionCommand)emote.Motion, emote.Extent);
 
                         if (WorldObject.CurrentMotionState.Stance != startingMotion.Stance)
                         {
@@ -609,7 +607,7 @@ namespace ACE.Server.Managers
                         }
                         else
                         {
-                            if (WorldObject.CurrentMotionState.Commands.Count > 0 && WorldObject.CurrentMotionState.Commands[0].Motion == startingMotion.Commands[0].Motion)
+                            if (WorldObject.CurrentMotionState.MotionState.ForwardCommand == startingMotion.MotionState.ForwardCommand)
                             {
                                 if (debug)
                                     Console.WriteLine($"{WorldObject.Name} running motion {(MotionStance)emoteSet.Style}, {(MotionCommand)emote.Motion}");
@@ -635,7 +633,7 @@ namespace ACE.Server.Managers
                                         MotionCommand.SnowAngelState
                                     };
 
-                                    if (!cycles.Contains(motion.Commands[0].Motion))
+                                    if (!cycles.Contains(motion.MotionState.ForwardCommand))
                                     {
                                         if (debug)
                                             Console.WriteLine($"{WorldObject.Name} running starting motion again {(MotionStance)emoteSet.Style}, {(MotionCommand)emoteSet.Substyle}");
@@ -654,7 +652,7 @@ namespace ACE.Server.Managers
                     }
                     else
                     {
-                        motion = new UniversalMotion(MotionStance.NonCombat, new MotionItem((MotionCommand)emote.Motion, emote.Extent));
+                        motion = new Motion(MotionStance.NonCombat, (MotionCommand)emote.Motion, emote.Extent);
 
                         if (debug)
                             Console.WriteLine($"{WorldObject.Name} running motion (block 2) {MotionStance.NonCombat}, {(MotionCommand)(emote.Motion ?? 0)}");

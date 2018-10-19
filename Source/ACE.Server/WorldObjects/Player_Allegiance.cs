@@ -5,7 +5,6 @@ using ACE.Server.Entity;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
-using ACE.Server.Network.Motion;
 
 namespace ACE.Server.WorldObjects
 {
@@ -47,8 +46,7 @@ namespace ACE.Server.WorldObjects
             // Motion_Kneel
             Session.Network.EnqueueSend(new GameMessageSystemChat($"{patron.Name} has accepted your oath of Allegiance!", ChatMessageType.Broadcast));
 
-            var motion = new UniversalMotion(CurrentMotionState.Stance, new MotionItem(MotionCommand.Kneel));
-            EnqueueBroadcastMotion(motion);
+            EnqueueBroadcastMotion(new Motion(MotionStance.NonCombat, MotionCommand.Kneel));
 
             // rebuild allegiance tree structure
             AllegianceManager.OnSwearAllegiance(this);

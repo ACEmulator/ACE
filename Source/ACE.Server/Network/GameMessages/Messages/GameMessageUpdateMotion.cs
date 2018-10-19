@@ -1,27 +1,29 @@
-﻿using ACE.Entity;
-using ACE.Server.Network.Motion;
+using ACE.Server.Entity;
 using ACE.Server.Network.Sequence;
+using ACE.Server.WorldObjects;
+using ACE.Server.Network.Structure;
 
 namespace ACE.Server.Network.GameMessages.Messages
 {
     public class GameMessageUpdateMotion : GameMessage
     {
-        public GameMessageUpdateMotion(ObjectGuid animationTargetGuid, byte[] instance_timestamp, SequenceManager sequence, MotionState newState)
-             : base(GameMessageOpcode.Motion, GameMessageGroup.SmartboxQueue)
+        public GameMessageUpdateMotion(WorldObject wo, MovementData movementData)
+            : base(GameMessageOpcode.Motion, GameMessageGroup.SmartboxQueue)
         {
-            Writer.WriteGuid(animationTargetGuid);
-            // who is getting the message - the rest of the sequences are the target objects sequences -may be the same
-            Writer.Write(instance_timestamp);
-            Writer.Write(sequence.GetNextSequence(SequenceType.ObjectMovement));
-            ushort autonomous = newState.IsAutonomous ? (ushort)1 : (ushort)0;
-            if (autonomous == 0)
-                Writer.Write(sequence.GetNextSequence(SequenceType.ObjectServerControl));
-            else
-                Writer.Write(sequence.GetCurrentSequence(SequenceType.ObjectServerControl));
-            Writer.Write(autonomous);
-            var movementData = newState.GetPayload(animationTargetGuid, sequence);
+            Send(wo, movementData);
+        }
+
+        public GameMessageUpdateMotion(WorldObject wo, Motion motion)
+            : base(GameMessageOpcode.Motion, GameMessageGroup.SmartboxQueue)
+        {
+            Send(wo, new MovementData(wo, motion));
+        }
+
+        public void Send(WorldObject wo, MovementData movementData)
+        {
+            Writer.WriteGuid(wo.Guid);
+            Writer.Write(wo.Sequences.GetCurrentSequence(SequenceType.ObjectInstance));
             Writer.Write(movementData);
-            Writer.Align();
         }
     }
 }

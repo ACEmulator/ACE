@@ -1,6 +1,6 @@
 using System.IO;
 
-namespace ACE.DatLoader.Entity
+namespace ACE.DatLoader.Entity.Internal
 {
     /// <summary>
     /// Position consists of a CellID + a Frame (Origin + Orientation)

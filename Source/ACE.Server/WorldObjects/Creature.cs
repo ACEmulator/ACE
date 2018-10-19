@@ -11,9 +11,6 @@ using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity.Actions;
 using ACE.Database.Models.Shard;
-using ACE.Server.Network.GameMessages.Messages;
-using ACE.Server.Network.Motion;
-using ACE.Server.Network.Sequence;
 using ACE.Server.Entity;
 using ACE.Server.WorldObjects.Entity;
 
@@ -85,11 +82,11 @@ namespace ACE.Server.WorldObjects
 
             Value = null; // Creatures don't have value. By setting this to null, it effectively disables the Value property. (Adding/Subtracting from null results in null)
 
-            //CurrentMotionState = new UniversalMotion(MotionStance.NonCombat);     // breaks emotes?
+            //CurrentMotionState = new Motion(MotionStance.NonCombat);     // breaks emotes?
             //CurrentMotionState.MovementData.ForwardCommand = (uint)MotionCommand.Ready;   // already the default?
 
-            //CurrentMotionState = new UniversalMotion(MotionStance.NonCombat, new MotionItem(MotionCommand.Ready));
-            CurrentMotionState = new UniversalMotion(MotionStance.Invalid, new MotionItem(MotionCommand.Invalid));
+            //CurrentMotionState = new Motion(MotionStance.NonCombat, new MotionItem(MotionCommand.Ready));
+            CurrentMotionState = new Motion(MotionStance.Invalid, MotionCommand.Invalid);
         }
 
         public void GenerateNewFace()
@@ -201,52 +198,49 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public bool IsAlive { get => Health.Current > 0; }
 
-        public void SetMotionState(WorldObject obj, UniversalMotion motionState)
+        /// <summary>
+        /// Sends the network commands to move a player towards an object
+        /// </summary>
+        public void MoveToObject(WorldObject target)
         {
-            CurrentMotionState = motionState;
-            motionState.IsAutonomous = false;
-            GameMessageUpdateMotion updateMotion = new GameMessageUpdateMotion(Guid, Sequences.GetCurrentSequence(SequenceType.ObjectInstance), obj.Sequences, motionState);
-            EnqueueBroadcast(updateMotion);
+            var distanceToObject = target.UseRadius ?? 0.6f;
+
+            var moveToObject = new Motion(this, target, MovementType.MoveToObject);
+            moveToObject.MoveToParameters.DistanceToObject = distanceToObject;
+
+            SetWalkRunThreshold(moveToObject, target.Location);
+
+            EnqueueBroadcastMotion(moveToObject);
         }
 
         /// <summary>
-        /// This signature services MoveToObject and TurnToObject
-        /// Update Position prior to start, start them moving or turning, set statemachine to moving.
-        /// Moved from player - we need to be able to move creatures as well.   Og II
+        /// Sends the network commands to move a player towards a position
         /// </summary>
-        /// <param name="worldObjectPosition">Position in the world</param>
-        /// <param name="sequence">Sequence for the object getting the message.</param>
-        /// <param name="movementType">What type of movement are we about to execute</param>
-        /// <param name="targetGuid">Who are we moving or turning toward</param>
-        public void OnAutonomousMove(ACE.Entity.Position worldObjectPosition, SequenceManager sequence, MovementTypes movementType, ObjectGuid targetGuid, float distanceFrom = 0.6f)
+        public void MoveToPosition(Position position)
         {
-            var target = CurrentLandblock.GetObject(targetGuid);
-            //if (target != null && target is Creature)
-                //distanceFrom = 0.6f;    // todo: use correct distancefrom for object
+            var moveToPosition = new Motion(this, position);
+            moveToPosition.MoveToParameters.DistanceToObject = 0.0f;
 
-            // TODO: determine threshold for walking/running
+            SetWalkRunThreshold(moveToPosition, position);
 
-            UniversalMotion newMotion = new UniversalMotion(CurrentMotionState.Stance, worldObjectPosition, targetGuid);
-            newMotion.DistanceFrom = distanceFrom;
-            newMotion.MovementTypes = movementType;
+            EnqueueBroadcastMotion(moveToPosition);
+        }
 
-            // TODO: find the correct runrate here
-            // the default runrate / charge seems much too fast...
-            newMotion.RunRate = GetRunRate() / 4.0f;
+        public void SetWalkRunThreshold(Motion motion, Position targetLocation)
+        {
+            // FIXME: WalkRunThreshold (default 15 distance) seems to not be used automatically by client
+            // player will always walk instead of run, and if MovementParams.CanCharge is sent, they will always charge
+            // to remedy this, we manually calculate a threshold based on WalkRunThreshold
 
-            // TODO: get correct flags from pcaps
-            // 'CanCharge' is the only flag that seems to let the player run instead of walk
-            // CanWalk and CanRun are already set by default
+            var dist = Vector3.Distance(Location.ToGlobal(), targetLocation.ToGlobal());
+            if (dist >= motion.MoveToParameters.WalkRunThreshold / 2.0f)     // default 15 distance seems too far, especially with weird in-combat walking animation?
+            {
+                motion.MoveToParameters.MovementParameters |= MovementParams.CanCharge;
 
-            // also, the default 'WalkRunThreshold' of 15 in UniversalMotion does not seem to be used automatically by client
-            // maybe we have to check if above or below the WalkRunThreshold distance to target on server,
-            // and send the CanCharge flag accordingly?
-            var dist = Vector3.Distance(Location.ToGlobal(), worldObjectPosition.ToGlobal());
-            if (dist >= newMotion.WalkRunThreshold / 2.0f)   // arbitrary, the default seems too far, esp. with the weird in-combat walking motion?
-                newMotion.Flag |= MovementParams.CanCharge;
-
-            EnqueueBroadcast(new GameMessageUpdatePosition(this));
-            EnqueueBroadcastMotion(newMotion);
+                // TODO: find the correct runrate here
+                // the default runrate / charge seems much too fast...
+                motion.RunRate = GetRunRate() / 4.0f;
+            }
         }
 
         /// <summary>

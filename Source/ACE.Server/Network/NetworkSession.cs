@@ -8,6 +8,7 @@ using System.Text;
 
 using ACE.Server.Managers;
 using ACE.Server.Network.GameMessages;
+using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Handlers;
 using ACE.Server.Network.Managers;
 

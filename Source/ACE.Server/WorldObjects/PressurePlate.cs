@@ -3,8 +3,8 @@ using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
+using ACE.Server.Entity;
 using ACE.Server.Network.GameMessages.Messages;
-using ACE.Server.Network.Motion;
 
 namespace ACE.Server.WorldObjects
 {
@@ -97,8 +97,7 @@ namespace ACE.Server.WorldObjects
             // perform motion animation - rarely used (only 4 instances in PY16 db)
             if (target.ActivationResponse.HasFlag(ActivationResponse.Animate))
             {
-                var motion = new UniversalMotion(target.CurrentMotionState.Stance, new MotionItem(ActivationAnimation));
-                motion.MovementData.ForwardCommand = (uint)ActivationAnimation;
+                var motion = new Motion(target, ActivationAnimation);
                 target.EnqueueBroadcastMotion(motion);
             }
 

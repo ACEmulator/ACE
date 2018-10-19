@@ -4,10 +4,10 @@ using ACE.Database;
 using ACE.DatLoader;
 using ACE.DatLoader.FileTypes;
 using ACE.Entity.Enum;
+using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.WorldObjects;
 using ACE.Server.Network.GameMessages.Messages;
-using ACE.Server.Network.Motion;
 using ACE.Server.WorldObjects.Entity;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Factories;
@@ -48,7 +48,7 @@ namespace ACE.Server.Managers
             bool skillSuccess = true; // assume success, unless there's a skill check
             double percentSuccess = 1;
 
-            UniversalMotion motion = new UniversalMotion(MotionStance.NonCombat, new MotionItem(MotionCommand.ClapHands));
+            var motion = new Motion(MotionStance.NonCombat, MotionCommand.ClapHands);
             craftChain.AddAction(player, () => player.EnqueueBroadcastMotion(motion));
             var motionTable = DatManager.PortalDat.ReadFromDat<MotionTable>(player.MotionTableId);
             var craftAnimationLength = motionTable.GetAnimationLength(MotionCommand.ClapHands);

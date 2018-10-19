@@ -180,7 +180,7 @@ namespace ACE.Server.WorldObjects
             // determine if updates should be run for object
             //var runUpdate = !monster && (isMissile || !PhysicsObj.IsGrounded);
             //var runUpdate = isMissile;
-            var runUpdate = !monster && (isMissile || IsMoving);
+            var runUpdate = !monster && (isMissile || IsMoving || IsAnimating);
 
             if (creature != null)
             {
@@ -235,8 +235,8 @@ namespace ACE.Server.WorldObjects
                 //WorldManager.UpdateLandblock.Add(this);
             }
 
-            if (PhysicsObj.IsGrounded)
-                SendUpdatePosition(true);
+            /*if (PhysicsObj.IsGrounded)
+                SendUpdatePosition();*/
 
             //var dist = Vector3.Distance(ProjectileTarget.Location.Pos, newPos);
             //Console.WriteLine("Dist: " + dist);
