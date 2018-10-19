@@ -277,11 +277,19 @@ namespace ACE.Server.Entity
             // Heartbeat
             if (lastHeartBeat + heartbeatInterval <= DateTime.UtcNow)
             {
-                // TODO: handle perma-loaded landblocks
-                if (!Permaload && lastActiveTime + unloadInterval < DateTime.UtcNow)
+                var thisHeartBeat = DateTime.UtcNow;
+
+                // Decay world objects
+                foreach (var wo in wos)
+                {
+                    if (wo.IsDecayable())
+                        wo.Decay(thisHeartBeat - lastHeartBeat);
+                }
+
+                if (!Permaload && lastActiveTime + unloadInterval < thisHeartBeat)
                     LandblockManager.AddToDestructionQueue(this);
 
-                lastHeartBeat = DateTime.UtcNow;
+                lastHeartBeat = thisHeartBeat;
             }
 
             // Database Save
@@ -315,7 +323,6 @@ namespace ACE.Server.Entity
         /// <summary>
         /// This will fail if the wo doesn't have a valid location.
         /// </summary>
-        /// <param name="wo"></param>
         public bool AddWorldObject(WorldObject wo)
         {
             if (wo.Location == null)
@@ -419,6 +426,7 @@ namespace ACE.Server.Entity
             if (wo == null) return;
 
             wo.CurrentLandblock = null;
+            wo.TimeToRot = null;
 
             if (!adjacencyMove)
             {
@@ -714,9 +722,6 @@ namespace ACE.Server.Entity
         {
             if (wo.ChangesDetected)
             {
-                // This can be removed once we're confident the system is saving the correct items
-                log.DebugFormat("Landblock 0x{0} saving item 0x{1:X8} {2}", Id, wo.Biota.Id, wo.Name);
-
                 wo.SaveBiotaToDatabase(false);
                 biotas.Add((wo.Biota, wo.BiotaDatabaseLock));
             }

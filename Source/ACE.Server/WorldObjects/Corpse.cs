@@ -14,11 +14,6 @@ namespace ACE.Server.WorldObjects
     public partial class Corpse : Container
     {
         /// <summary>
-        /// The default number of seconds for a corpse to disappear
-        /// </summary>
-        public static readonly double DefaultDecayTime = 120.0;
-
-        /// <summary>
         /// Flag indicates if a corpse is from a monster or a player
         /// </summary>
         public bool IsMonster = false;
@@ -28,7 +23,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public Corpse(Weenie weenie, ObjectGuid guid) : base(weenie, guid)
         {
-            TimeToRot = DefaultDecayTime;
+            TimeToRot = DefaultTimeToRot.TotalSeconds;
 
             SetEphemeralValues();
         }
@@ -83,8 +78,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void SetDecayTime(Player player)
         {
-            // a player corpse decays after 5 mins * playerLevel
-            // with a minimum of 1 hour
+            // a player corpse decays after 5 mins * playerLevel with a minimum of 1 hour
             TimeToRot = Math.Max(3600, (player.Level ?? 1) * 300);
         }
 

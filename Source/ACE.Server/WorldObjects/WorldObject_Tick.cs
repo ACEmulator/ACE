@@ -35,6 +35,32 @@ namespace ACE.Server.WorldObjects
                 HeartBeat(currentUnixTime);
         }
 
+
+        /// <summary>
+        /// Runs all actions pending on this WorldObject
+        /// </summary>
+        void IActor.RunActions()
+        {
+            actionQueue.RunActions();
+        }
+
+        /// <summary>
+        /// Prepare new action to run on this object
+        /// </summary>
+        public LinkedListNode<IAction> EnqueueAction(IAction action)
+        {
+            return actionQueue.EnqueueAction(action);
+        }
+
+        /// <summary>
+        /// Satisfies action interface
+        /// </summary>
+        void IActor.DequeueAction(LinkedListNode<IAction> node)
+        {
+            actionQueue.DequeueAction(node);
+        }
+
+
         /// <summary>
         /// Enqueues the first heartbeat on a staggered 0-5s delay
         /// </summary>
@@ -62,29 +88,6 @@ namespace ACE.Server.WorldObjects
             SetProperty(PropertyFloat.HeartbeatTimestamp, currentUnixTime);
         }
 
-        /// <summary>
-        /// Runs all actions pending on this WorldObject
-        /// </summary>
-        void IActor.RunActions()
-        {
-            actionQueue.RunActions();
-        }
-
-        /// <summary>
-        /// Prepare new action to run on this object
-        /// </summary>
-        public LinkedListNode<IAction> EnqueueAction(IAction action)
-        {
-            return actionQueue.EnqueueAction(action);
-        }
-
-        /// <summary>
-        /// Satisfies action interface
-        /// </summary>
-        void IActor.DequeueAction(LinkedListNode<IAction> node)
-        {
-            actionQueue.DequeueAction(node);
-        }
 
         public uint prevCell;
         public bool InUpdate;
