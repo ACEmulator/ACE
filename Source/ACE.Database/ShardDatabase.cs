@@ -446,6 +446,15 @@ namespace ACE.Database
                 foreach (var result in results)
                 {
                     var biota = GetBiota(result.ObjectId);
+
+                    // Filter out objects that are in a container
+                    if (biota.BiotaPropertiesIID.FirstOrDefault(r => r.Type == 2 && r.Value != 0) != null)
+                        continue;
+
+                    // Filter out wielded objects
+                    if (biota.BiotaPropertiesIID.FirstOrDefault(r => r.Type == 3 && r.Value != 0) != null)
+                        continue;
+
                     dynamics.Add(biota);
                 }
             }
@@ -468,6 +477,15 @@ namespace ACE.Database
                 Parallel.ForEach(results, result =>
                 {
                     var biota = GetBiota(result.ObjectId);
+
+                    // Filter out objects that are in a container
+                    if (biota.BiotaPropertiesIID.FirstOrDefault(r => r.Type == 2 && r.Value != 0) != null)
+                        return;
+
+                    // Filter out wielded objects
+                    if (biota.BiotaPropertiesIID.FirstOrDefault(r => r.Type == 3 && r.Value != 0) != null)
+                        return;
+
                     dynamics.Add(biota);
                 });
             }
