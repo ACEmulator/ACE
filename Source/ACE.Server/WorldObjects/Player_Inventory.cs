@@ -144,10 +144,6 @@ namespace ACE.Server.WorldObjects
                         UpdateCoinValue();
                 }
 
-                // todo: we shouldn't be calling this here. Instead, we should be calling wo.Destroy() and letting the destroy method handle the work for us.
-                // todo: re-examine this whole process for inventory movements/combining/destruction.. Mag-nus 2018-09-03
-                worldObject.RemoveBiotaFromDatabase();
-
                 return true;
             }
 
