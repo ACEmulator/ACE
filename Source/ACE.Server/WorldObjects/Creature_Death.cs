@@ -166,9 +166,8 @@ namespace ACE.Server.WorldObjects
             if (player != null)
             {
                 corpse.SetPosition(PositionType.Location, corpse.Location);
-                corpse.SetDecayTime(player);
-
                 player.CalculateDeathItems(corpse);
+                corpse.RecalculateDecayTime(player);
             }
             else
             {

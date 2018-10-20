@@ -8,7 +8,7 @@ namespace ACE.Server.WorldObjects
         /// The default number of seconds for a object on a landblock to disappear<para />
         /// Current default is 5 minutes
         /// </summary>
-        protected virtual TimeSpan DefaultTimeToRot { get; set; } = TimeSpan.FromMinutes(5);
+        protected TimeSpan DefaultTimeToRot { get; set; } = TimeSpan.FromMinutes(5);
 
         /// <summary>
         /// A decayable object is one that, when it exists on a landblock, would decay (rot) over time.<para />
@@ -35,7 +35,7 @@ namespace ACE.Server.WorldObjects
 
         private bool decayCompleted;
 
-        public virtual void Decay(TimeSpan elapsed)
+        public void Decay(TimeSpan elapsed)
         {
             if (decayCompleted)
                 return;
@@ -52,10 +52,17 @@ namespace ACE.Server.WorldObjects
             if (TimeToRot > 0)
                 return;
 
+            TimeToRot = 0; // We force it to 0 to make sure it doesn't end up at -1. -1 indicates no rot.
+
+            if (this is Container container && container.IsOpen)
+            {
+                // If you wanted to add a grace period to the container to give Player B more time to open it after Player A closes it, it would go here.
+
+                return;
+            }
+
             // Time to rot has elapsed, time to disappear...
             decayCompleted = true;
-
-            TimeToRot = 0; // We force it to 0 to make sure it doesn't end up at -1. -1 indicates no rot.
 
             // TODO: if items are left on corpse,
             // create these items in the world
