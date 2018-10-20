@@ -889,8 +889,23 @@ namespace ACE.Server.WorldObjects
             return damageTypes;
         }
 
+        /// <summary>
+        /// If this is a container or a creature, all of the inventory and/or equipped objects will also be destroyed.
+        /// </summary>
         public virtual void Destroy()
         {
+            if (this is Container container)
+            {
+                foreach (var item in container.Inventory.Values)
+                    item.Destroy();
+            }
+
+            if (this is Creature creature)
+            {
+                foreach (var item in creature.EquippedObjects.Values)
+                    item.Destroy();
+            }
+
             if (Location != null)
             {
                 ActionChain destroyChain = new ActionChain();
