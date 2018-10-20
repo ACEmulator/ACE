@@ -69,6 +69,12 @@ namespace ACE.Server.WorldObjects
             if (MoveSpeed == 0.0f)
                 GetMovementSpeed();
 
+            if (IsAnimating)
+            {
+                PhysicsObj.update_object();
+                return;
+            }
+
             IsTurning = true;
 
             // send network actions
