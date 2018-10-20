@@ -261,6 +261,8 @@ namespace ACE.Database
         {
             if (BiotaContexts.TryGetValue(biota, out var cachedContext))
             {
+                BiotaContexts.Remove(biota);
+
                 rwLock.EnterWriteLock();
                 try
                 {
