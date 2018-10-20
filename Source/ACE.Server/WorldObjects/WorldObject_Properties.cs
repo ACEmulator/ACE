@@ -2555,6 +2555,11 @@ namespace ACE.Server.WorldObjects
             set { if (value == 0) RemoveProperty(PropertyInstanceId.ActivationTarget); else SetProperty(PropertyInstanceId.ActivationTarget, value); }
         }
 
+        /// <summary>
+        /// The number of seconds before this object can exist on an active landblock before it expires and should be destroyed.
+        /// A value of -1 indicates that the item does not rot.<para />
+        /// A value of 0, or less than 0 but not -1 indicates that the item has expired and should be destroyed.
+        /// </summary>
         public double? TimeToRot
         {
             get => GetProperty(PropertyFloat.TimeToRot);
