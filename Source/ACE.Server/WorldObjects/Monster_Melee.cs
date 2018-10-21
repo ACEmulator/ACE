@@ -26,7 +26,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public bool MeleeReady()
         {
-            return IsMeleeRange() && DateTime.UtcNow >= NextAttackTime;
+            return IsMeleeRange() && Timers.RunningTime >= NextAttackTime;
         }
 
         /// <summary>
@@ -89,7 +89,7 @@ namespace ACE.Server.WorldObjects
 
             // TODO: figure out exact speed / delay formula
             var meleeDelay = Physics.Common.Random.RollDice(MeleeDelayMin, MeleeDelayMax);
-            NextAttackTime = DateTime.UtcNow.AddSeconds(animLength + meleeDelay);
+            NextAttackTime = Timers.RunningTime + animLength + meleeDelay;;
             return animLength;
         }
 

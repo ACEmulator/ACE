@@ -586,7 +586,11 @@ namespace ACE.Server.Managers
                 /* plays an animation on the source object */
                 case EmoteType.Motion:
 
-                    var debug = WorldObject.WeenieClassId == 11202;
+                    // are there players within emote range?
+                    if (!WorldObject.PlayersInRange(ClientMaxAnimRange))
+                        return;
+
+                    var debug = WorldObject.WeenieClassId == 7;
 
                     if (WorldObject == null || WorldObject.CurrentMotionState == null) break;
 
@@ -633,7 +637,7 @@ namespace ACE.Server.Managers
                                         MotionCommand.SnowAngelState
                                     };
 
-                                    if (!cycles.Contains(motion.MotionState.ForwardCommand))
+                                    if (!cycles.Contains(WorldObject.CurrentMotionState.MotionState.ForwardCommand))
                                     {
                                         if (debug)
                                             Console.WriteLine($"{WorldObject.Name} running starting motion again {(MotionStance)emoteSet.Style}, {(MotionCommand)emoteSet.Substyle}");

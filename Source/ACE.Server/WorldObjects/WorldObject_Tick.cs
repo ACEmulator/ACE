@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Numerics;
 
 using ACE.Entity;
+using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
@@ -173,6 +174,8 @@ namespace ACE.Server.WorldObjects
             // arrows / spell projectiles
             var isMissile = Missile.HasValue && Missile.Value;
 
+            //var contactPlane = (PhysicsObj.State & PhysicsState.Gravity) != 0 && MotionTableId != 0 && (PhysicsObj.TransientState & TransientStateFlags.Contact) == 0;
+
             // monsters have separate physics updates
             var creature = this as Creature;
             var monster = creature != null && creature.IsMonster;
@@ -180,7 +183,7 @@ namespace ACE.Server.WorldObjects
             // determine if updates should be run for object
             //var runUpdate = !monster && (isMissile || !PhysicsObj.IsGrounded);
             //var runUpdate = isMissile;
-            var runUpdate = !monster && (isMissile || IsMoving || IsAnimating);
+            var runUpdate = !monster && (isMissile || /*IsMoving ||*/ IsAnimating /*|| contactPlane*/);
 
             if (creature != null)
             {
@@ -206,6 +209,7 @@ namespace ACE.Server.WorldObjects
             var prevPos = new Vector3(pos.X, pos.Y, pos.Z);
             var cellBefore = PhysicsObj.CurCell != null ? PhysicsObj.CurCell.ID : 0;
 
+            //Console.WriteLine($"{Name} - ticking physics");
             var updated = PhysicsObj.update_object();
 
             // get position after

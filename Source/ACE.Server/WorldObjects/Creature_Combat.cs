@@ -98,13 +98,14 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public float SwitchCombatStyles()
         {
-            if (CurrentMotionState.Stance == MotionStance.NonCombat || CurrentMotionState.Stance == MotionStance.Invalid)
+            if (CurrentMotionState.Stance == MotionStance.NonCombat || CurrentMotionState.Stance == MotionStance.Invalid || IsMonster)
                 return 0.0f;
 
             var combatStance = GetCombatStance();
 
             float peace1 = 0.0f, unarmed = 0.0f, peace2 = 0.0f;
 
+            // FIXME: just call generic method to switch to HandCombat first
             peace1 = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, MotionCommand.Ready, MotionCommand.NonCombat);
             if (CurrentMotionState.Stance != MotionStance.HandCombat && combatStance != MotionStance.HandCombat)
             {

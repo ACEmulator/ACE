@@ -40,7 +40,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// The time when monster can perform its next attack
         /// </summary>
-        public DateTime NextAttackTime;
+        public double NextAttackTime;
 
         /// <summary>
         /// Returns true if monster is dead
@@ -113,7 +113,13 @@ namespace ACE.Server.WorldObjects
 
             var stanceTime = SetCombatMode(combatMode);
 
-            NextAttackTime = DateTime.UtcNow.AddSeconds(stanceTime + 1.0f);
+            NextMoveTime = NextAttackTime = Timers.RunningTime + stanceTime;
+
+            if (IsRanged)
+                NextAttackTime += 1.0f;
+
+            //Console.WriteLine($"[{Timers.RunningTime}] - {Name} ({Guid}) - stanceTime: {stanceTime}, isAnimating: {IsAnimating}");
+            PhysicsObj.StartTimer();
         }
 
         public float GetMaxRange()
@@ -143,7 +149,7 @@ namespace ACE.Server.WorldObjects
         /// <returns></returns>
         public bool AttackReady()
         {
-            return IsAttackRange() && DateTime.UtcNow >= NextAttackTime;
+            return IsAttackRange() && Timers.RunningTime >= NextAttackTime;
         }
 
         /// <summary>

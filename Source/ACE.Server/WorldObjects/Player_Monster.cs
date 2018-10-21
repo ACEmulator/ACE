@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using ACE.Server.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 
@@ -82,8 +83,7 @@ namespace ACE.Server.WorldObjects
 
             if (attackable && monster.MonsterState == State.Idle && tolerance == Tolerance.None)
             {
-                //Console.WriteLine("Waking up " + monster.Name);
-
+                //Console.WriteLine($"[{Timers.RunningTime}] - {monster.Name} ({monster.Guid}) - waking up");
                 monster.AttackTarget = this;
                 monster.WakeUp();
                 return true;

@@ -144,7 +144,7 @@ namespace ACE.Server.WorldObjects
 
             //Console.WriteLine($"{Name}.MagicAttack(): preCastTime({preCastTime}), postCastTime({postCastTime})");
 
-            NextAttackTime = DateTime.UtcNow.AddSeconds(animTime + MagicDelay);
+            NextAttackTime = Timers.RunningTime + animTime + MagicDelay;;
         }
 
         /// <summary>

@@ -70,7 +70,7 @@ namespace ACE.Server.WorldObjects
             // ensure direct line of sight
             if (!IsDirectVisible(AttackTarget))
             {
-                NextAttackTime = DateTime.UtcNow.AddSeconds(1.0f);
+                NextAttackTime = Timers.RunningTime + 1.0f;;
                 return;
             }
 
@@ -105,7 +105,7 @@ namespace ACE.Server.WorldObjects
             if (ammo.StackSize == 1)
             {
                 actionChain.EnqueueChain();
-                NextAttackTime = DateTime.UtcNow.AddSeconds(launchTime + MissileDelay);
+                NextAttackTime = Timers.RunningTime + launchTime + MissileDelay;;
                 return;
             }
 
@@ -125,7 +125,7 @@ namespace ACE.Server.WorldObjects
 
             var timeOffset = launchTime + reloadTime + linkTime;
 
-            NextAttackTime = DateTime.UtcNow.AddSeconds(timeOffset + MissileDelay);
+            NextAttackTime = Timers.RunningTime + timeOffset + MissileDelay;
         }
 
         /// <summary>
