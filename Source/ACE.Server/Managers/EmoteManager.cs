@@ -590,7 +590,8 @@ namespace ACE.Server.Managers
                     if (!WorldObject.PlayersInRange(ClientMaxAnimRange))
                         return;
 
-                    var debug = WorldObject.WeenieClassId == 7;
+                    //var debug = WorldObject.WeenieClassId == 7;
+                    var debug = false;
 
                     if (WorldObject == null || WorldObject.CurrentMotionState == null) break;
 
