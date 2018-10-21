@@ -14,6 +14,8 @@ using ACE.Database.Models.Shard;
 using ACE.Server.Entity;
 using ACE.Server.WorldObjects.Entity;
 
+using Position = ACE.Entity.Position;
+
 namespace ACE.Server.WorldObjects
 {
     public partial class Creature : Container

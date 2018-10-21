@@ -586,7 +586,8 @@ namespace ACE.Server.Managers
                 /* plays an animation on the source object */
                 case EmoteType.Motion:
 
-                    var debug = WorldObject.WeenieClassId == 11202;
+                    //var debug = WorldObject.WeenieClassId == 11202;
+                    var debug = false;
 
                     if (WorldObject == null || WorldObject.CurrentMotionState == null) break;
 
