@@ -253,6 +253,11 @@ namespace ACE.Server.WorldObjects
             motion.MoveToParameters.WalkRunThreshold = 1.0f;
             motion.RunRate = runRate;
 
+            // always use final heading?
+            var frame = new AFrame(position.Pos, position.Rotation);
+            motion.MoveToParameters.DesiredHeading = frame.get_heading();
+            motion.MoveToParameters.MovementParameters |= MovementParams.UseFinalHeading;
+
             // todo: use better movement system
             Location = position;
 
