@@ -790,7 +790,7 @@ namespace ACE.Server.WorldObjects
             // return to magic combat stance
             spellChain.AddAction(this, () =>
             {
-                var returnStance = new Motion(MotionStance.Magic, MotionCommand.Invalid, castSpeed);
+                var returnStance = new Motion(MotionStance.Magic, MotionCommand.Ready, 1.0f);
                 EnqueueBroadcastMotion(returnStance);
             });
 
@@ -916,7 +916,7 @@ namespace ACE.Server.WorldObjects
             // return to magic combat stance
             spellChain.AddAction(this, () =>
             {
-                var returnStance = new Motion(MotionStance.Magic, MotionCommand.Invalid, castSpeed);
+                var returnStance = new Motion(MotionStance.Magic, MotionCommand.Ready, 1.0f);
                 EnqueueBroadcastMotion(returnStance);
             });
 
