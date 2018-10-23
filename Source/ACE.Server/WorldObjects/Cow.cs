@@ -3,16 +3,14 @@ using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
+using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Network.GameEvent.Events;
-using ACE.Server.Network.Motion;
 
 namespace ACE.Server.WorldObjects
 {
     public class Cow : Creature
     {
-        private static readonly UniversalMotion motionTipRight = new UniversalMotion(MotionStance.NonCombat, new MotionItem(MotionCommand.TippedRight));
-
         /// <summary>
         /// A new biota be created taking all of its values from weenie.
         /// </summary>
@@ -81,7 +79,8 @@ namespace ACE.Server.WorldObjects
         {       
             AllowedActivator = activator.Full;
 
-            EnqueueBroadcastMotion(motionTipRight);
+            // FIXME: tip in direction
+            EnqueueBroadcastMotion(new Motion(MotionStance.NonCombat, MotionCommand.TippedRight));
             
             // Stamp Cow tipping quest here;
 

@@ -1,3 +1,5 @@
+using ACE.Entity.Enum;
+
 namespace ACE.Server.Physics.Animation
 {
     public class MovementNode

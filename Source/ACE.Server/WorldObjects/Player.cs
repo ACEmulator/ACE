@@ -2,9 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
-
 using log4net;
-
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.DatLoader;
@@ -17,16 +15,13 @@ using ACE.Server.Managers;
 using ACE.Server.Network;
 using ACE.Server.Network.Enum;
 using ACE.Server.Network.GameEvent.Events;
-using ACE.Server.Network.GameMessages;
 using ACE.Server.Network.GameMessages.Messages;
-using ACE.Server.Network.Motion;
 using ACE.Server.Network.Structure;
 using ACE.Server.WorldObjects.Entity;
 using ACE.Server.Physics.Animation;
 using ACE.Server.Physics.Common;
 
 using MotionTable = ACE.DatLoader.FileTypes.MotionTable;
-using Position = ACE.Entity.Position;
 
 namespace ACE.Server.WorldObjects
 {
@@ -100,9 +95,10 @@ namespace ACE.Server.WorldObjects
             BaseDescriptionFlags |= ObjectDescriptionFlag.Player;
 
             // This is the default send upon log in and the most common. Anything with a velocity will need to add that flag.
-            PositionFlag |= UpdatePositionFlag.ZeroQx | UpdatePositionFlag.ZeroQy | UpdatePositionFlag.Contact | UpdatePositionFlag.Placement;
+            // This should be handled automatically...
+            //PositionFlags |= PositionFlags.OrientationHasNoX | PositionFlags.OrientationHasNoY | PositionFlags.IsGrounded | PositionFlags.HasPlacementID;
 
-            CurrentMotionState = new UniversalMotion(MotionStance.NonCombat);
+            SetStance(MotionStance.NonCombat, false);
 
             // radius for object updates
             ListeningRadius = 5f;
@@ -124,7 +120,7 @@ namespace ACE.Server.WorldObjects
 
             ContainerCapacity = 7;
 
-            if (Session != null && (AdvocateQuest ?? false) && IsAdvocate) // Advocate permissions are per character regardless of override
+            if (Session != null && AdvocateQuest && IsAdvocate) // Advocate permissions are per character regardless of override
             {
                 if (Session.AccessLevel == AccessLevel.Player)
                     Session.SetAccessLevel(AccessLevel.Advocate); // Elevate to Advocate permissions
@@ -543,7 +539,7 @@ namespace ACE.Server.WorldObjects
 
             if (!clientSessionTerminatedAbruptly)
             {
-                var logout = new UniversalMotion(MotionStance.NonCombat, new MotionItem(MotionCommand.LogOut));
+                var logout = new Motion(MotionStance.NonCombat, MotionCommand.LogOut);
                 EnqueueBroadcastMotion(logout);
 
                 EnqueueBroadcastPhysicsState();
@@ -668,14 +664,6 @@ namespace ACE.Server.WorldObjects
             else
                 log.Debug($"HandleActionForceObjDescSend() - couldn't find inventory item {item}");
         }
-
-        protected override void SendUpdatePosition(bool forcePos = false)
-        {
-            GameMessage msg = new GameMessageUpdatePosition(this, forcePos);
-            Session.Network.EnqueueSend(msg);
-            base.SendUpdatePosition();
-        }
-
 
 
         /// <summary>
@@ -834,6 +822,23 @@ namespace ACE.Server.WorldObjects
 
             // TODO: ensure player has enough stamina to jump
             UpdateVitalDelta(Stamina, -staminaCost);
+
+            //Console.WriteLine($"Jump velocity: {jump.Velocity}");
+
+            // set jump velocity
+            PhysicsObj.set_velocity(jump.Velocity, true);
+
+            // this shouldn't be needed, but without sending this update motion / simulated movement event beforehand,
+            // running forward and then performing a charged jump does an uncharged shallow arc jump instead
+            // this hack fixes that...
+            var movementData = new MovementData(this);
+            movementData.IsAutonomous = true;
+            movementData.MovementType = MovementType.Invalid;
+            movementData.Invalid = new MovementInvalid(movementData);
+            EnqueueBroadcast(new GameMessageUpdateMotion(this, movementData));
+
+            // broadcast jump
+            EnqueueBroadcast(new GameMessageVectorUpdate(this));
         }
 
         /// <summary>
@@ -842,17 +847,15 @@ namespace ACE.Server.WorldObjects
         public void OnExhausted()
         {
             // adjust player speed if running
-            if (CurrentMotionCommand == (uint)MotionCommand.RunForward)
+            if (CurrentMotionCommand == MotionCommand.RunForward)
             {
-                var motion = new UniversalMotion(CurrentMotionState.Stance);
-                // this should be autonomous, like retail, but if it's set to autonomous here, the desired effect doesn't happen
+                // verify - forced commands from server should be non-autonomous, but could have been sent as autonomous in retail?
+                // if set to autonomous here, the desired effect doesn't happen
                 // motion.IsAutonomous = true;
-                motion.MovementData = new MovementData()
-                {
-                    CurrentStyle = (uint)CurrentMotionState.Stance,
-                    ForwardCommand = (uint)MotionCommand.RunForward
-                };
+                var motion = new Motion(this, MotionCommand.RunForward);
+
                 CurrentMotionState = motion;
+
                 if (CurrentLandblock != null)
                     EnqueueBroadcastMotion(motion);
             }
@@ -877,7 +880,7 @@ namespace ACE.Server.WorldObjects
                 motionCommand = MotionCommand.Drink;
 
             // start the eat/drink motion
-            var motion = new UniversalMotion(MotionStance.NonCombat, new MotionItem(motionCommand));
+            var motion = new Motion(MotionStance.NonCombat, motionCommand);
             EnqueueBroadcastMotion(motion);
 
             var motionTable = DatManager.PortalDat.ReadFromDat<MotionTable>(MotionTableId);
@@ -941,9 +944,7 @@ namespace ACE.Server.WorldObjects
                 Session.Network.EnqueueSend(soundEvent, buffMessage);
 
                 // return to original stance
-                var returnStance = new UniversalMotion(CurrentMotionState.Stance);
-                returnStance.MovementData.CurrentStyle = (uint)CurrentMotionState.Stance;
-
+                var returnStance = new Motion(CurrentMotionState.Stance);
                 EnqueueBroadcastMotion(returnStance);
             });
 

@@ -7,21 +7,18 @@ using ACE.DatLoader.FileTypes;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
 using ACE.Server.Network;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
-using ACE.Server.Network.Motion;
 using ACE.Server.Network.Sequence;
 
 namespace ACE.Server.WorldObjects
 {
     partial class Player
     {
-        private static readonly float PickUpDistance = .75f;
-
-
         /// <summary>
         /// Returns all inventory, side slot items, items in side containers, and all wielded items.
         /// </summary>
@@ -239,10 +236,8 @@ namespace ACE.Server.WorldObjects
                 }*/
 
                 // start picking up item animation
-                var motion = new UniversalMotion(CurrentMotionState.Stance);
-                motion.MovementData.ForwardCommand = (uint)MotionCommand.Pickup;
-                EnqueueBroadcast(new GameMessageUpdatePosition(this),
-                    new GameMessageUpdateMotion(Guid, Sequences.GetCurrentSequence(SequenceType.ObjectInstance), Sequences, motion));
+                var motion = new Motion(CurrentMotionState.Stance, MotionCommand.Pickup);
+                EnqueueBroadcast(new GameMessageUpdatePosition(this), new GameMessageUpdateMotion(this, motion));
             });
 
             // Wait for animation to progress
@@ -340,39 +335,33 @@ namespace ACE.Server.WorldObjects
                     Session.Network.EnqueueSend(
                         new GameMessageSound(Guid, Sound.PickUpItem, 1.0f),
                         new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Container, container.Guid),
-                        new GameMessageCreateObject(item),
                         new GameEventItemServerSaysContainId(Session, item, container));
                 }
                 else if (iidPropertyId == PropertyInstanceId.Wielder)
                 {
+                    // wield requirements check
+                    var canWield = CheckWieldRequirement(item);
+                    if (canWield != WeenieError.None)
+                    {
+                        Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, canWield));
+                        return;
+                    }
                     if (!TryEquipObject(item, placementPosition))
                     {
                         Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, WeenieError.NoObject));
-                        log.Error("Player_Inventory PickupItemWithNetworking TryEquipObject failed");
                         return;
                     }
-
-                    if (((EquipMask)placementPosition & EquipMask.Selectable) != 0)
-                        SetChild(item, placementPosition, out _, out _);
-
-                    // todo I think we need to recalc our SetupModel here. see CalculateObjDesc()
-
-                    Session.Network.EnqueueSend(
-                        new GameMessageSound(Guid, Sound.WieldObject, (float)1.0),
-                        //new GameMessageObjDescEvent(this),
-                        new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Wielder, container.Guid),
-                        new GameEventWieldItem(Session, itemGuid.Full, placementPosition),
-                        new GameMessageCreateObject(item),
-                        new GameMessagePublicUpdatePropertyInt(item, PropertyInt.CurrentWieldedLocation, (int)(item.CurrentWieldedLocation ?? 0)));
                 }
 
-                Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0), new GameMessagePickupEvent(item));
+                EnqueueBroadcast(new GameMessagePickupEvent(item));
+
+                Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
 
                 if (item.WeenieType == WeenieType.Coin)
                     UpdateCoinValue();
 
                 if (iidPropertyId == PropertyInstanceId.Wielder)
-                    EnqueueBroadcast(new GameMessageObjDescEvent(this));
+                    TryWieldItem(item, placementPosition);
 
                 if (questSolve)
                     QuestManager.Update(item.Quest);
@@ -381,10 +370,8 @@ namespace ACE.Server.WorldObjects
             // return to previous stance
             pickUpItemChain.AddAction(this, () =>
             {
-                var motion = new UniversalMotion(CurrentMotionState.Stance);
-                motion.MovementData.CurrentStyle = (uint)CurrentMotionState.Stance;
-
-                EnqueueBroadcast(new GameMessageUpdateMotion(Guid, Sequences.GetCurrentSequence(SequenceType.ObjectInstance), Sequences, motion));
+                var motion = new Motion(CurrentMotionState.Stance);
+                EnqueueBroadcastMotion(motion);
             });
 
             // Set chain to run
@@ -667,9 +654,8 @@ namespace ACE.Server.WorldObjects
 
             item.SetPropertiesForWorld(this, 1.1f);
 
-            //var motion = new UniversalMotion(MotionStance.NonCombat);
-            var motion = new UniversalMotion(CurrentMotionState.Stance);
-            motion.MovementData.ForwardCommand = (uint)MotionCommand.Pickup;
+            //var motion = new Motion(MotionStance.NonCombat);
+            var motion = new Motion(this, MotionCommand.Pickup);
             Session.Network.EnqueueSend(new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Container, new ObjectGuid(0)));
 
             // Set drop motion
@@ -687,8 +673,7 @@ namespace ACE.Server.WorldObjects
             // Put item on landblock
             dropChain.AddAction(this, () =>
             {
-                var returnStance = new UniversalMotion(CurrentMotionState.Stance);
-                returnStance.MovementData.CurrentStyle = (uint)CurrentMotionState.Stance;
+                var returnStance = new Motion(CurrentMotionState.Stance);
                 EnqueueBroadcastMotion(returnStance);
 
                 EnqueueBroadcast(new GameMessageSound(Guid, Sound.DropItem, (float)1.0));
@@ -776,7 +761,7 @@ namespace ACE.Server.WorldObjects
             PickupItemWithNetworking(this, itemGuid, wieldLocation, PropertyInstanceId.Wielder);
         }
 
-        public bool TryWieldItem(WorldObject item, int wieldLocation)
+        public bool TryWieldItem(WorldObject item, int wieldLocation, bool preCheck = false)
         {
             //Console.WriteLine($"TryWieldItem({item.Name}, {(EquipMask)wieldLocation})");
 
@@ -1598,9 +1583,7 @@ namespace ACE.Server.WorldObjects
                 Value -= newStack.Value;
             }
 
-            //var motion = new UniversalMotion(MotionStance.NonCombat);
-            var motion = new UniversalMotion(CurrentMotionState.Stance);
-            motion.MovementData.ForwardCommand = (uint)MotionCommand.Pickup;
+            var motion = new Motion(this, MotionCommand.Pickup);
 
             // Set drop motion
             EnqueueBroadcastMotion(motion);
@@ -1621,8 +1604,7 @@ namespace ACE.Server.WorldObjects
                     Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(container, PropertyInt.EncumbranceVal, container.EncumbranceVal ?? 0));
                 Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
 
-                var returnStance = new UniversalMotion(CurrentMotionState.Stance);
-                returnStance.MovementData.CurrentStyle = (uint)CurrentMotionState.Stance;
+                var returnStance = new Motion(CurrentMotionState.Stance);
                 EnqueueBroadcastMotion(returnStance);
 
                 EnqueueBroadcast(new GameMessageSound(Guid, Sound.DropItem, 1.0f));

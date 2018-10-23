@@ -6,7 +6,6 @@ using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Network.GameMessages.Messages;
-using ACE.Server.Network.Motion;
 using ACE.Server.Network.Structure;
 using ACE.Server.Physics.Animation;
 using ACE.Server.Physics.Extensions;
@@ -79,8 +78,7 @@ namespace ACE.Server.WorldObjects
         {
             var animLength = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, MotionCommand.Ready, MotionCommand.NonCombat);
 
-            var motion = new UniversalMotion(MotionStance.NonCombat);
-            motion.MovementData.CurrentStyle = (uint)MotionStance.NonCombat;
+            var motion = new Motion(MotionStance.NonCombat);
             ExecuteMotion(motion);
 
             var player = this as Player;
@@ -100,13 +98,14 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public float SwitchCombatStyles()
         {
-            if (CurrentMotionState.Stance == MotionStance.NonCombat || CurrentMotionState.Stance == MotionStance.Invalid)
+            if (CurrentMotionState.Stance == MotionStance.NonCombat || CurrentMotionState.Stance == MotionStance.Invalid || IsMonster)
                 return 0.0f;
 
             var combatStance = GetCombatStance();
 
             float peace1 = 0.0f, unarmed = 0.0f, peace2 = 0.0f;
 
+            // FIXME: just call generic method to switch to HandCombat first
             peace1 = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, MotionCommand.Ready, MotionCommand.NonCombat);
             if (CurrentMotionState.Stance != MotionStance.HandCombat && combatStance != MotionStance.HandCombat)
             {
@@ -114,7 +113,7 @@ namespace ACE.Server.WorldObjects
                 peace2 = MotionTable.GetAnimationLength(MotionTableId, MotionStance.HandCombat, MotionCommand.Ready, MotionCommand.NonCombat);
             }
 
-            CurrentMotionState = new UniversalMotion(MotionStance.NonCombat);
+            SetStance(MotionStance.NonCombat, false);
 
             //Console.WriteLine($"SwitchCombatStyle() - animLength: {animLength}");
             //Console.WriteLine($"SwitchCombatStyle() - peace1({peace1}) + unarmed({unarmed}) + peace2({peace2})");
@@ -133,8 +132,7 @@ namespace ACE.Server.WorldObjects
             var animLength = SwitchCombatStyles();
             animLength += MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, MotionCommand.Ready, (MotionCommand)combatStance);
 
-            var motion = new UniversalMotion(combatStance);
-            motion.MovementData.CurrentStyle = (uint)combatStance;
+            var motion = new Motion(combatStance);
             ExecuteMotion(motion);
 
             var player = this as Player;
@@ -159,8 +157,7 @@ namespace ACE.Server.WorldObjects
             var animLength = SwitchCombatStyles();
             animLength += MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, MotionCommand.Ready, MotionCommand.Magic);
 
-            var motion = new UniversalMotion(MotionStance.Magic);
-            motion.MovementData.CurrentStyle = (uint)MotionStance.Magic;
+            var motion = new Motion(MotionStance.Magic);
             ExecuteMotion(motion);
 
             var player = this as Player;
@@ -187,8 +184,7 @@ namespace ACE.Server.WorldObjects
 
             var swapTime = SwitchCombatStyles();
 
-            var motion = new UniversalMotion(combatStance);
-            motion.MovementData.CurrentStyle = (uint)combatStance;
+            var motion = new Motion(combatStance);
             var stanceTime = ExecuteMotion(motion);
 
             var ammo = GetEquippedAmmo();

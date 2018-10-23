@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.Entity;
@@ -9,7 +8,6 @@ using ACE.Entity.Enum;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
-using ACE.Server.Network.Motion;
 
 using log4net;
 
@@ -154,13 +152,14 @@ namespace ACE.Server.WorldObjects
             foreach (KeyValuePair<ObjectGuid, WorldObject> wo in defaultItemsForSale)
                 vendorlist.Add(wo.Value);
 
-            // unique inventory - itmes sold by other players
+            // unique inventory - items sold by other players
             foreach (KeyValuePair<ObjectGuid, WorldObject> wo in uniqueItemsForSale)
                 vendorlist.Add(wo.Value);
 
             player.TrackInteractiveObjects(vendorlist);
             player.ApproachVendor(this, vendorlist);
-            OnAutonomousMove(player.Location, Sequences, MovementTypes.TurnToObject, player.Guid);
+
+            var rotateTime = Rotate(player); // vendor rotates to player
             DoVendorEmote(VendorType.Open, player);
         }
 

@@ -11,7 +11,6 @@ using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
 using ACE.Server.Managers;
-using ACE.Server.Network.Motion;
 using ACE.Server.Network.GameMessages.Messages;
 
 namespace ACE.Server.WorldObjects
@@ -67,7 +66,7 @@ namespace ACE.Server.WorldObjects
                 Killer = topDamager.Guid.Full;
 
             // broadcast death animation
-            var motionDeath = new UniversalMotion(MotionStance.NonCombat, new MotionItem(MotionCommand.Dead));
+            var motionDeath = new Motion(MotionStance.NonCombat, MotionCommand.Dead);
             EnqueueBroadcastMotion(motionDeath);
 
             var dieChain = new ActionChain();

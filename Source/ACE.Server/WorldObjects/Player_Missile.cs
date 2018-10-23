@@ -1,14 +1,9 @@
 using System;
-using System.Numerics;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Server.Entity.Actions;
-using ACE.Server.Factories;
-using ACE.Server.Managers;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
-using ACE.Server.Network.Motion;
-using ACE.Server.Physics;
 using ACE.Server.Physics.Animation;
 
 namespace ACE.Server.WorldObjects

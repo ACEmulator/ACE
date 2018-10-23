@@ -1,9 +1,8 @@
 namespace ACE.Entity.Enum
 {
     /// <summary>
-    /// Different commands or styles of stance.
-    /// Items that are listed as Unused are included for completeness, but are not found in PCAPS Og II
-    /// Comments are the MotionStyle Enum as listed in the client
+    /// The list of stances for players and creatures
+    /// This is a subset of MotionCommand
     /// </summary>
     public enum MotionStance : uint
     {

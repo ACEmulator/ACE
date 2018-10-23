@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2018-10-14
+[fartwhif]
+* added command verb "list" to developer command /telepoi that (re)caches and lists all POIs.
+
 ### 2018-09-30
 [gmriggs]
 * Improved monster timing / server animation sync

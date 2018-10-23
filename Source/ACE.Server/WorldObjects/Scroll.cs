@@ -1,25 +1,19 @@
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.DatLoader;
 using ACE.Entity;
 using ACE.Entity.Enum;
-using ACE.Entity.Enum.Properties;
+using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
-using ACE.Server.Network;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
-using ACE.Server.Network.Motion;
 
 namespace ACE.Server.WorldObjects
 {
     public class Scroll : WorldObject
     {
-        private static readonly UniversalMotion motionReading = new UniversalMotion(MotionStance.NonCombat, new MotionItem(MotionCommand.Reading));
-        private static readonly UniversalMotion motionReady = new UniversalMotion(MotionStance.NonCombat, new MotionItem(MotionCommand.Ready));
+        private static readonly Motion motionReading = new Motion(MotionStance.NonCombat, MotionCommand.Reading);
+        private static readonly Motion motionReady = new Motion(MotionStance.NonCombat, MotionCommand.Ready);
 
         private const uint spellLevel1 = 0;
         private const uint spellLevel2 = 50;

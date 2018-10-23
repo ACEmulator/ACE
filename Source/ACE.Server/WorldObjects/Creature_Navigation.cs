@@ -1,11 +1,9 @@
 using System;
 using System.Numerics;
-
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
-using ACE.Server.Network.Motion;
 using ACE.Server.Physics.Animation;
 using ACE.Server.Physics.Extensions;
 
@@ -94,8 +92,7 @@ namespace ACE.Server.WorldObjects
         public virtual float Rotate(WorldObject target)
         {
             // send network message to start turning creature
-            var turnToMotion = new UniversalMotion(CurrentMotionState.Stance, target.Location, target.Guid);
-            turnToMotion.MovementTypes = MovementTypes.TurnToObject;
+            var turnToMotion = new Motion(this, target, MovementType.TurnToObject);
             EnqueueBroadcastMotion(turnToMotion);
 
             var angle = GetAngle(target);
@@ -150,15 +147,11 @@ namespace ACE.Server.WorldObjects
         /// <returns>The amount of time in seconds for the rotation to complete</returns>
         public float TurnTo(Position position)
         {
-            // send network message to start turning creature
-            var turnToMotion = new UniversalMotion(CurrentMotionState.Stance, position);
-            turnToMotion.MovementTypes = MovementTypes.TurnToHeading;
-
             var frame = new AFrame(position.Pos, position.Rotation);
             var heading = frame.get_heading();
 
-            turnToMotion.DesiredHeading = heading;
-
+            // send network message to start turning creature
+            var turnToMotion = new Motion(this, position, heading);
             EnqueueBroadcastMotion(turnToMotion);
 
             var angle = GetAngle(position);
@@ -206,8 +199,7 @@ namespace ACE.Server.WorldObjects
 
             if (this is Player) return 0.0f;
 
-            var turnToMotion = new UniversalMotion(CurrentMotionState.Stance, target.Location, target.Guid);
-            turnToMotion.MovementTypes = MovementTypes.TurnToObject;
+            var turnToMotion = new Motion(this, target, MovementType.TurnToObject);
             EnqueueBroadcastMotion(turnToMotion);
 
             CurrentMotionState = turnToMotion;
@@ -240,10 +232,9 @@ namespace ACE.Server.WorldObjects
 
             if (this is Player) return;
 
-            var motion = new UniversalMotion(CurrentMotionState.Stance, target.Location, target.Guid);
-            motion.MovementTypes = MovementTypes.MoveToObject;
-            motion.Flag |= MovementParams.CanCharge | MovementParams.FailWalk | MovementParams.UseFinalHeading | MovementParams.Sticky | MovementParams.MoveAway;
-            motion.WalkRunThreshold = 1.0f;
+            var motion = new Motion(this, target, MovementType.MoveToObject);
+            motion.MoveToParameters.MovementParameters |= MovementParams.CanCharge | MovementParams.FailWalk | MovementParams.UseFinalHeading | MovementParams.Sticky | MovementParams.MoveAway;
+            motion.MoveToParameters.WalkRunThreshold = 1.0f;
             motion.RunRate = runRate;
 
             CurrentMotionState = motion;
@@ -256,11 +247,16 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void MoveTo(Position position, float runRate = 1.0f)
         {
-            var motion = new UniversalMotion(CurrentMotionState.Stance, position);
-            motion.MovementTypes = MovementTypes.MoveToPosition;
+            var motion = new Motion(this, position);
+            motion.MovementType = MovementType.MoveToPosition;
             //motion.Flag |= MovementParams.CanCharge | MovementParams.FailWalk | MovementParams.UseFinalHeading | MovementParams.MoveAway;
-            motion.WalkRunThreshold = 1.0f;
+            motion.MoveToParameters.WalkRunThreshold = 1.0f;
             motion.RunRate = runRate;
+
+            // always use final heading?
+            var frame = new AFrame(position.Pos, position.Rotation);
+            motion.MoveToParameters.DesiredHeading = frame.get_heading();
+            motion.MoveToParameters.MovementParameters |= MovementParams.UseFinalHeading;
 
             // todo: use better movement system
             Location = position;

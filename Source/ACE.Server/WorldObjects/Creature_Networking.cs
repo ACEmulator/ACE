@@ -9,9 +9,7 @@ using ACE.Entity.Enum;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameMessages.Messages;
-using ACE.Server.Network.Motion;
 using ACE.Server.Network.Structure;
-using ACE.Server.Physics.Animation;
 
 namespace ACE.Server.WorldObjects
 {

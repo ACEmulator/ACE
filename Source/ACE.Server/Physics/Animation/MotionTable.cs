@@ -4,7 +4,7 @@ using System.Numerics;
 using ACE.DatLoader;
 using ACE.DatLoader.Entity;
 using ACE.Entity.Enum;
-using ACE.Server.Network.Motion;
+using ACE.Server.Physics.Animation.Internal;
 
 namespace ACE.Server.Physics.Animation
 {
@@ -461,7 +461,16 @@ namespace ACE.Server.Physics.Animation
         public static float GetAnimationLength(uint motionTableId, MotionStance stance, MotionCommand currentMotion, MotionCommand motion, float speed = 1.0f)
         {
             var motionTable = DatManager.PortalDat.ReadFromDat<DatLoader.FileTypes.MotionTable>(motionTableId);
-            return motionTable.GetAnimationLength(stance, motion, currentMotion) / speed;
+
+            var animLength = 0.0f;
+            if (((uint)motion & (uint)CommandMask.Style) != 0 && currentMotion != MotionCommand.Ready)
+            {
+                animLength += motionTable.GetAnimationLength(stance, MotionCommand.Ready, currentMotion) / speed;
+                currentMotion = MotionCommand.Ready;
+            }
+
+            animLength += motionTable.GetAnimationLength(stance, motion, currentMotion) / speed;
+            return animLength;
         }
 
         public static float GetCycleLength(uint motionTableId, MotionStance stance, MotionCommand motion, float speed = 1.0f)

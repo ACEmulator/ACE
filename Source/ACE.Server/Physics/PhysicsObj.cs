@@ -3742,8 +3742,20 @@ namespace ACE.Server.Physics
                 UpdateObjectInternal(deltaTime);
             }
 
-            UpdateTime = PhysicsTimer.CurrentTime;
+            UpdateTime = PhysicsTimer_CurrentTime;
             return true;
+        }
+
+        public void StartTimer(double delta = 0)
+        {
+            UpdateTime = PhysicsTimer.CurrentTime - delta;
+        }
+
+        public void ShowPendingMotions()
+        {
+            Console.WriteLine($"{Name} pending motions:");
+            foreach (var motion in MovementManager.MotionInterpreter.PendingMotions)
+                Console.WriteLine($"{(MotionCommand)motion.Motion}");
         }
 
         public void update_object_server(bool forcePos = true)

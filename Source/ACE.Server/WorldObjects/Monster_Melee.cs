@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-
 using ACE.Database.Models.Shard;
 using ACE.DatLoader;
 using ACE.DatLoader.Entity;
@@ -9,7 +8,6 @@ using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
-using ACE.Server.Network.Motion;
 using ACE.Server.Physics.Animation;
 
 namespace ACE.Server.WorldObjects
@@ -28,7 +26,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public bool MeleeReady()
         {
-            return IsMeleeRange() && DateTime.UtcNow >= NextAttackTime;
+            return IsMeleeRange() && Timers.RunningTime >= NextAttackTime;
         }
 
         /// <summary>
@@ -91,7 +89,7 @@ namespace ACE.Server.WorldObjects
 
             // TODO: figure out exact speed / delay formula
             var meleeDelay = Physics.Common.Random.RollDice(MeleeDelayMin, MeleeDelayMax);
-            NextAttackTime = DateTime.UtcNow.AddSeconds(animLength + meleeDelay);
+            NextAttackTime = Timers.RunningTime + animLength + meleeDelay;;
             return animLength;
         }
 
@@ -153,14 +151,11 @@ namespace ACE.Server.WorldObjects
         public void DoSwingMotion(WorldObject target, CombatManeuver maneuver, out float animLength)
         {
             var animSpeed = GetAnimSpeed();
-
-            var swingAnimation = new MotionItem(maneuver.Motion, animSpeed);
             animLength = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, maneuver.Motion, animSpeed);
 
-            var motion = new UniversalMotion(CurrentMotionState.Stance, swingAnimation);
-            motion.MovementData.CurrentStyle = (uint)CurrentMotionState.Stance;
-            motion.MovementData.TurnSpeed = 2.25f;
-            motion.HasTarget = true;
+            var motion = new Motion(this, maneuver.Motion, animSpeed);
+            motion.MotionState.TurnSpeed = 2.25f;
+            motion.MotionFlags |= MotionFlags.StickToObject;
             motion.TargetGuid = target.Guid;
             CurrentMotionState = motion;
 

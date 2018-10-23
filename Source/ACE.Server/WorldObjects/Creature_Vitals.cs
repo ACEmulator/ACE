@@ -169,7 +169,7 @@ namespace ACE.Server.WorldObjects
             if (vital.Vital == PropertyAttribute2nd.MaxMana) return 1.0f;
 
             // combat mode / running
-            if (CombatMode != CombatMode.NonCombat || CurrentMotionCommand == (uint)MotionCommand.RunForward)
+            if (CombatMode != CombatMode.NonCombat || CurrentMotionCommand == MotionCommand.RunForward)
                 return 0.5f;
 
             switch (CurrentMotionCommand)
@@ -177,11 +177,11 @@ namespace ACE.Server.WorldObjects
                 // TODO: verify multipliers
                 default:
                     return 1.0f;
-                case 0x12:  // MotionCommand.Crouch
+                case MotionCommand.Crouch:
                     return 2.0f;
-                case 0x13:  // MotionCommand.Sitting
+                case MotionCommand.Sitting:
                     return 2.5f;
-                case 0x14:  // MotionCommand.Sleeping
+                case MotionCommand.Sleeping:
                     return 3.0f;
             }
         }
