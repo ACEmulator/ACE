@@ -80,6 +80,9 @@ namespace ACE.Server.WorldObjects
             var dist = GetDistanceToTarget();
             //Console.WriteLine("RangeAttack: " + dist);
 
+            if (DebugMove)
+                Console.WriteLine($"[{Timers.RunningTime}] - {Name} ({Guid}) - LaunchMissile");
+
             // launch animation
             var actionChain = new ActionChain();
             var launchTime = EnqueueMotion(actionChain, MotionCommand.AimLevel);
@@ -105,7 +108,7 @@ namespace ACE.Server.WorldObjects
             if (ammo.StackSize == 1)
             {
                 actionChain.EnqueueChain();
-                NextAttackTime = Timers.RunningTime + launchTime + MissileDelay;;
+                NextMoveTime = NextAttackTime = Timers.RunningTime + launchTime + MissileDelay;
                 return;
             }
 
@@ -125,7 +128,11 @@ namespace ACE.Server.WorldObjects
 
             var timeOffset = launchTime + reloadTime + linkTime;
 
-            NextAttackTime = Timers.RunningTime + timeOffset + MissileDelay;
+            var missileDelay = MissileDelay;
+            if (!weapon.IsAmmoLauncher)
+                missileDelay *= 1.5f;
+
+            NextMoveTime = NextAttackTime = Timers.RunningTime + timeOffset + missileDelay;
         }
 
         /// <summary>
@@ -133,6 +140,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public Range GetMissileDamage()
         {
+            // FIXME: use actual projectile, instead of currently equipped ammo
             var ammo = GetMissileAmmo();
 
             return ammo.GetDamageMod(this);
