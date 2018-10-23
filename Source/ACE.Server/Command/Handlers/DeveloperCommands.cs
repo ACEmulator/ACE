@@ -8,14 +8,12 @@ using System.Numerics;
 using log4net;
 
 using ACE.Database;
-using ACE.Database.Models.Shard;
 using ACE.DatLoader;
 using ACE.DatLoader.FileTypes;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
-using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
 using ACE.Server.Managers;
 using ACE.Server.Network;
@@ -1305,48 +1303,6 @@ namespace ACE.Server.Command.Handlers
             session.Network.EnqueueSend(new GameMessageSystemChat($"You give {amount} points of mana to the {obj.Name}.", ChatMessageType.Magic));
         }
 
-        [CommandHandler("debugemote", AccessLevel.Developer, CommandHandlerFlag.None, 0, "Debugs a hardcoded emote for the last appraised object", "debugemote")]
-        public static void HandleDebugEmote(Session session, params string[] parameters)
-        {
-            // get the wo emotemanager for the last appraised object
-            var targetID = session.Player.CurrentAppraisalTarget;
-            if (targetID == null)
-            {
-                CommandHandlerHelper.WriteOutputInfo(session, "ERROR: no appraisal target");
-                return;
-            }
-            var targetGuid = new ObjectGuid(targetID.Value);
-            var target = session.Player.CurrentLandblock?.GetObject(targetGuid);
-            if (target == null)
-            {
-                CommandHandlerHelper.WriteOutputInfo(session, "ERROR: couldn't find " + targetGuid);
-                return;
-            }
-            var actionChain = new ActionChain();
-
-            // build the emote
-            var emote = new BiotaPropertiesEmote();
-
-            var action = new BiotaPropertiesEmoteAction();
-            action.Type = (uint)EmoteType.MoveToPos;
-
-            // get current position
-            var currentPos = target.Location;
-
-            var newPos = new Position();
-            newPos.LandblockId = new LandblockId(currentPos.Cell);
-            newPos.Pos = new Vector3(currentPos.PositionX - 10, currentPos.PositionY, currentPos.PositionZ);
-            action.OriginX = newPos.PositionX;
-            action.OriginY = newPos.PositionY;
-            action.OriginZ = newPos.PositionZ;
-            action.ObjCellId = newPos.Cell;
-
-            CommandHandlerHelper.WriteOutputInfo(session, $"Moving {target.Name} from {target.Location.LandblockId} {currentPos.Pos} to {newPos.LandblockId} {newPos.Pos}");
-
-            target.EmoteManager.ExecuteEmote(emote, action, target, actionChain);
-            actionChain.EnqueueChain();
-        }
-
         /// <summary>
         /// Returns the distance to the last appraised object
         /// </summary>
@@ -1464,6 +1420,20 @@ namespace ACE.Server.Command.Handlers
 
             foreach (var obj in session.Player.PhysicsObj.ObjMaint.DestructionQueue)
                 Console.WriteLine($"{obj.Key.Name} ({obj.Key.ID:X8}): {obj.Value - currentTime}");
+        }
+
+        /// <summary>
+        /// Enables emote debugging for the last appraised object
+        /// </summary>
+        [CommandHandler("debugemote", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Enables emote debugging for the last appraised object", "/debugemote")]
+        public static void HandleDebugEmote(Session session, params string[] parameters)
+        {
+            var obj = CommandHandlerHelper.GetLastAppraisedObject(session);
+            if (obj != null)
+            {
+                Console.WriteLine($"Showing emotes for {obj.Name}");
+                obj.EmoteManager.Debug = true;
+            }
         }
     }
 }

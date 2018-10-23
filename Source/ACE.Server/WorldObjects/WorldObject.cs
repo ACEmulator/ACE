@@ -963,7 +963,7 @@ namespace ACE.Server.WorldObjects
             }
 
             // hardcoded ready?
-            var animLength = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, MotionCommand.Ready, motionCommand);
+            var animLength = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, CurrentMotionState.MotionState.ForwardCommand, motionCommand);
             CurrentMotionState = motion;
 
             // broadcast to nearby players

@@ -57,8 +57,8 @@ namespace ACE.Server.Managers
 
             var emoteType = (EmoteType)emote.Type;
 
-            //if (emoteType != EmoteType.Motion && emoteType != EmoteType.Turn && emoteType != EmoteType.Move)
-            //Console.WriteLine($"{WorldObject.Name}.ExecuteEmote({emoteType})");
+            if (Debug)
+                Console.WriteLine($"{WorldObject.Name}.ExecuteEmote({emoteType})");
 
             var text = emote.Message;
 
@@ -586,8 +586,9 @@ namespace ACE.Server.Managers
                 /* plays an animation on the source object */
                 case EmoteType.Motion:
 
-                    //var debug = WorldObject.WeenieClassId == 11202;
-                    var debug = false;
+                    // are there players within emote range?
+                    if (!WorldObject.PlayersInRange(ClientMaxAnimRange))
+                        return;
 
                     if (WorldObject == null || WorldObject.CurrentMotionState == null) break;
 
@@ -600,7 +601,7 @@ namespace ACE.Server.Managers
                         {
                             if (WorldObject.CurrentMotionState.Stance == MotionStance.Invalid)
                             {
-                                if (debug)
+                                if (Debug)
                                     Console.WriteLine($"{WorldObject.Name} running starting motion {(MotionStance)emoteSet.Style}, {(MotionCommand)emoteSet.Substyle}");
 
                                 WorldObject.ExecuteMotion(startingMotion);
@@ -610,7 +611,7 @@ namespace ACE.Server.Managers
                         {
                             if (WorldObject.CurrentMotionState.MotionState.ForwardCommand == startingMotion.MotionState.ForwardCommand)
                             {
-                                if (debug)
+                                if (Debug)
                                     Console.WriteLine($"{WorldObject.Name} running motion {(MotionStance)emoteSet.Style}, {(MotionCommand)emote.Motion}");
 
                                 float? maxRange = ClientMaxAnimRange;
@@ -634,9 +635,9 @@ namespace ACE.Server.Managers
                                         MotionCommand.SnowAngelState
                                     };
 
-                                    if (!cycles.Contains(motion.MotionState.ForwardCommand))
+                                    if (!cycles.Contains(WorldObject.CurrentMotionState.MotionState.ForwardCommand))
                                     {
-                                        if (debug)
+                                        if (Debug)
                                             Console.WriteLine($"{WorldObject.Name} running starting motion again {(MotionStance)emoteSet.Style}, {(MotionCommand)emoteSet.Substyle}");
 
                                         WorldObject.ExecuteMotion(startingMotion);
@@ -646,7 +647,7 @@ namespace ACE.Server.Managers
 
                                 // append time to current chain
                                 NextAvailable += TimeSpan.FromSeconds(animLength);
-                                if (debug)
+                                if (Debug)
                                     Console.WriteLine($"{WorldObject.Name} appending time to existing chain: " + animLength);
                             }
                         }
@@ -655,7 +656,7 @@ namespace ACE.Server.Managers
                     {
                         motion = new Motion(MotionStance.NonCombat, (MotionCommand)emote.Motion, emote.Extent);
 
-                        if (debug)
+                        if (Debug)
                             Console.WriteLine($"{WorldObject.Name} running motion (block 2) {MotionStance.NonCombat}, {(MotionCommand)(emote.Motion ?? 0)}");
 
                         WorldObject.ExecuteMotion(motion);
@@ -663,31 +664,29 @@ namespace ACE.Server.Managers
 
                     break;
 
+                /* move to position relative to home */
                 case EmoteType.Move:
 
-                    // what is the difference between this and MoveToPos?
-                    // using MoveToPos logic for now...
                     if (creature != null)
                     {
-                        var currentPos = creature.Location;
+                        var newPos = new Position(creature.Home);
+                        newPos.Pos += new Vector3(emote.OriginX ?? 0, emote.OriginY ?? 0, emote.OriginZ ?? 0);      // uses relative offsets
+                        newPos.Rotation *= new Quaternion(emote.AnglesX ?? 0, emote.AnglesY ?? 0, emote.AnglesZ ?? 0, emote.AnglesW ?? 1);  // also relative?
 
-                        var newPos = new Position();
-                        newPos.LandblockId = new LandblockId(currentPos.LandblockId.Raw);
-                        newPos.Pos = new Vector3(emote.OriginX ?? currentPos.Pos.X, emote.OriginY ?? currentPos.Pos.Y, emote.OriginZ ?? currentPos.Pos.Z);
+                        if (Debug)
+                            Console.WriteLine(newPos.ToLOCString());
 
-                        if (emote.AnglesX == null || emote.AnglesY == null || emote.AnglesZ == null || emote.AnglesW == null)
-                            newPos.Rotation = new Quaternion(currentPos.Rotation.X, currentPos.Rotation.Y, currentPos.Rotation.Z, currentPos.Rotation.W);
-                        else
-                            newPos.Rotation = new Quaternion(emote.AnglesX ?? 0, emote.AnglesY ?? 0, emote.AnglesZ ?? 0, emote.AnglesW ?? 1);
-
-                        if (emote.ObjCellId != null)
-                            newPos.LandblockId = new LandblockId(emote.ObjCellId.Value);
+                        // get new cell
+                        newPos.LandblockId = new LandblockId(PositionExtensions.GetCell(newPos));
 
                         creature.MoveTo(newPos, creature.GetRunRate());
                     }
                     break;
 
                 case EmoteType.MoveHome:
+
+                    if (Debug)
+                        Console.WriteLine(creature.Home.ToLOCString());
 
                     // TODO: call MoveToManager on server
                     if (creature != null && creature.Home != null)      // home seems to be null for creatures?

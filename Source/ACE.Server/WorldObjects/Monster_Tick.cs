@@ -1,4 +1,5 @@
 using System;
+using ACE.Entity.Enum;
 
 namespace ACE.Server.WorldObjects
 {
@@ -7,6 +8,8 @@ namespace ACE.Server.WorldObjects
         private static readonly TimeSpan monsterTickInterval = TimeSpan.FromMilliseconds(200);
 
         private DateTime lastMonsterTick;
+
+        private bool FirstUpdate = true;
 
         /// <summary>
         /// Primary dispatch for monster think
@@ -27,6 +30,21 @@ namespace ACE.Server.WorldObjects
             {
                 Sleep();
                 return;
+            }
+
+            if (FirstUpdate)
+            {
+                if (CurrentMotionState.Stance == MotionStance.NonCombat)
+                    DoAttackStance();
+
+                if (IsAnimating)
+                {
+                    //PhysicsObj.ShowPendingMotions();
+                    PhysicsObj.update_object();
+                    return;
+                }
+
+                FirstUpdate = false;
             }
 
             // select a new weapon if missile launcher is out of ammo

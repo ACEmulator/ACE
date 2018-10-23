@@ -51,29 +51,30 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// The last time a movement tick was processed
         /// </summary>
-        public DateTime LastMoveTime;
+        public double LastMoveTime;
 
         public bool DebugMove;
 
         public bool InitSticky;
         public bool Sticky;
 
+        public double NextMoveTime;
+
         /// <summary>
         /// Starts the process of monster turning towards target
         /// </summary>
         public void StartTurn()
         {
+            if (Timers.RunningTime < NextMoveTime)
+                return;
+
             if (DebugMove)
                 Console.WriteLine($"{Name} ({Guid}) - StartTurn, ranged={IsRanged}");
 
             if (MoveSpeed == 0.0f)
                 GetMovementSpeed();
 
-            if (IsAnimating)
-            {
-                PhysicsObj.update_object();
-                return;
-            }
+            //Console.WriteLine($"[{Timers.RunningTime}] - {Name} ({Guid}) - starting turn");
 
             IsTurning = true;
 
@@ -122,7 +123,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void StartMove()
         {
-            LastMoveTime = DateTime.UtcNow;
+            LastMoveTime = Timers.RunningTime;;
             IsMoving = true;
         }
 

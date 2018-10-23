@@ -1125,6 +1125,31 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
+        /// Returns TRUE if there are any players within range of this object
+        /// </summary>
+        public bool PlayersInRange(float range = 96.0f)
+        {
+            var isDungeon = CurrentLandblock._landblock.IsDungeon;
+
+            var rangeSquared = range * range;
+
+            foreach (var player in PhysicsObj.ObjMaint.VoyeurTable.Values.Select(v => v.WeenieObj.WorldObject as Player))
+            {
+                if (isDungeon && Location.Landblock != player.Location.Landblock)
+                    continue;
+
+                if (Visibility && !player.Adminvision)
+                    continue;
+
+                //var dist = Vector3.Distance(Location.ToGlobal(), player.Location.ToGlobal());
+                var distSquared = Vector3.DistanceSquared(Location.ToGlobal(), player.Location.ToGlobal());
+                if (distSquared <= rangeSquared)
+                    return true;
+            }
+            return false;
+        }
+
+        /// <summary>
         /// Sends network messages to all Players who currently know about this object
         /// within a maximum range
         /// </summary>
