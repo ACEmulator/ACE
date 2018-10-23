@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 
@@ -22,7 +23,7 @@ namespace ACE.DatLoader
 
         public Dictionary<uint, DatFile> AllFiles { get; } = new Dictionary<uint, DatFile>();
 
-        public Dictionary<uint, FileType> FileCache { get; } = new Dictionary<uint, FileType>();
+        public ConcurrentDictionary<uint, FileType> FileCache { get; } = new ConcurrentDictionary<uint, FileType>();
 
         public DatDatabase(string filePath)
         {
@@ -45,7 +46,8 @@ namespace ACE.DatLoader
         }
 
         /// <summary>
-        /// This will try to find the object for the given fileId in local cache. If the object was not found, it will be read from the dat and cached.
+        /// This will try to find the object for the given fileId in local cache. If the object was not found, it will be read from the dat and cached.<para />
+        /// This function is thread safe.
         /// </summary>
         public T ReadFromDat<T>(uint fileId) where T : FileType, new()
         {
@@ -65,7 +67,7 @@ namespace ACE.DatLoader
             }
 
             // Store this object in the FileCache
-            FileCache[fileId] = obj;
+            obj = (T)FileCache.GetOrAdd(fileId, obj);
 
             return obj;
         }
