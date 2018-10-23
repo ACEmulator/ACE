@@ -1,4 +1,7 @@
 using System;
+using System.Linq;
+
+using ACE.Entity;
 
 namespace ACE.Server.WorldObjects
 {
@@ -37,6 +40,8 @@ namespace ACE.Server.WorldObjects
 
         public void Decay(TimeSpan elapsed)
         {
+            // http://asheron.wikia.com/wiki/Item_Decay
+
             if (decayCompleted)
                 return;
 
@@ -64,9 +69,21 @@ namespace ACE.Server.WorldObjects
             // Time to rot has elapsed, time to disappear...
             decayCompleted = true;
 
-            // TODO: if items are left on corpse,
-            // create these items in the world
-            // http://asheron.wikia.com/wiki/Item_Decay
+            // If this is a player corpse, puke out the corpses contents onto the landblock
+            if (this is Corpse corpse && !corpse.IsMonster)
+            {
+                var inventoryGUIDs = corpse.Inventory.Keys.ToList();
+
+                foreach (var guid in inventoryGUIDs)
+                {
+                    if (corpse.TryRemoveFromInventory(guid, out var item))
+                    {
+                        item.SetPropertiesForWorld(corpse);
+                        item.Location = (Position)corpse.Location.Clone();
+                        CurrentLandblock.AddWorldObject(item);
+                    }
+                }
+            }
 
             Destroy();
         }
