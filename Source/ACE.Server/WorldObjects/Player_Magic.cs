@@ -10,7 +10,6 @@ using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
-using ACE.Server.Network.Motion;
 using ACE.Server.Network.Structure;
 using ACE.Server.WorldObjects.Entity;
 
@@ -589,10 +588,7 @@ namespace ACE.Server.WorldObjects
                 {
                     spellChain.AddAction(this, () =>
                     {
-                        var motionWindUp = new UniversalMotion(MotionStance.Magic);
-                        motionWindUp.MovementData.CurrentStyle = (ushort)((uint)MotionStance.Magic & 0xFFFF);
-                        motionWindUp.MovementData.ForwardCommand = (uint)windupGesture;
-                        motionWindUp.MovementData.ForwardSpeed = castSpeed;
+                        var motionWindUp = new Motion(MotionStance.Magic, windupGesture, castSpeed);
                         EnqueueBroadcastMotion(motionWindUp);
                     });
                 }
@@ -601,10 +597,7 @@ namespace ACE.Server.WorldObjects
             // cast spell
             spellChain.AddAction(this, () =>
             {
-                var motionCastSpell = new UniversalMotion(MotionStance.Magic);
-                motionCastSpell.MovementData.CurrentStyle = (ushort)((uint)MotionStance.Magic & 0xFFFF);
-                motionCastSpell.MovementData.ForwardCommand = (uint)spell.Formula.CastGesture;
-                motionCastSpell.MovementData.ForwardSpeed = castSpeed;
+                var motionCastSpell = new Motion(MotionStance.Magic, spell.Formula.CastGesture, castSpeed);
                 EnqueueBroadcastMotion(motionCastSpell);
             });
 
@@ -797,17 +790,14 @@ namespace ACE.Server.WorldObjects
             // return to magic combat stance
             spellChain.AddAction(this, () =>
             {
-                var motionReturnToCastStance = new UniversalMotion(MotionStance.Magic);
-                motionReturnToCastStance.MovementData.CurrentStyle = (ushort)((uint)MotionStance.Magic & 0xFFFF);
-                motionReturnToCastStance.MovementData.ForwardCommand = (uint)MotionCommand.Invalid;
-                EnqueueBroadcastMotion(motionReturnToCastStance);
+                var returnStance = new Motion(MotionStance.Magic, MotionCommand.Ready, 1.0f);
+                EnqueueBroadcastMotion(returnStance);
             });
 
-            if (castingPreCheckStatus == CastingPreCheckStatus.InvalidPKStatus && (spell.School == MagicSchool.LifeMagic || spell.School == MagicSchool.CreatureEnchantment || spell.School == MagicSchool.ItemEnchantment))
-                spellChain.AddAction(this, () => player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.InvalidPkStatus)));
-            else
-                spellChain.AddAction(this, () => player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.None)));
+            var useDone = (castingPreCheckStatus == CastingPreCheckStatus.InvalidPKStatus && (spell.School == MagicSchool.LifeMagic || spell.School == MagicSchool.CreatureEnchantment || spell.School == MagicSchool.ItemEnchantment)) ?
+                WeenieError.InvalidPkStatus : WeenieError.None;
 
+            spellChain.AddAction(this, () => player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, useDone)));
             spellChain.AddDelaySeconds(1.0f);
             spellChain.AddAction(this, () => { player.IsBusy = false; });
             spellChain.EnqueueChain();
@@ -882,20 +872,14 @@ namespace ACE.Server.WorldObjects
                 {
                     spellChain.AddAction(this, () =>
                     {
-                        var motionWindUp = new UniversalMotion(MotionStance.Magic);
-                        motionWindUp.MovementData.CurrentStyle = (ushort)((uint)MotionStance.Magic & 0xFFFF);
-                        motionWindUp.MovementData.ForwardCommand = (uint)windupMotion;
-                        motionWindUp.MovementData.ForwardSpeed = castSpeed;
+                        var motionWindUp = new Motion(MotionStance.Magic, windupMotion, castSpeed);
                         EnqueueBroadcastMotion(motionWindUp);
                     });
                 }
             }
             spellChain.AddAction(this, () =>
             {
-                var motionCastSpell = new UniversalMotion(MotionStance.Magic);
-                motionCastSpell.MovementData.CurrentStyle = (ushort)((uint)MotionStance.Magic & 0xFFFF);
-                motionCastSpell.MovementData.ForwardCommand = (uint)spell.Formula.CastGesture;
-                motionCastSpell.MovementData.ForwardSpeed = castSpeed;
+                var motionCastSpell = new Motion(MotionStance.Magic, spell.Formula.CastGesture, castSpeed);
                 EnqueueBroadcastMotion(motionCastSpell);
             });
 
@@ -932,10 +916,8 @@ namespace ACE.Server.WorldObjects
             // return to magic combat stance
             spellChain.AddAction(this, () =>
             {
-                var motionReturnToCastStance = new UniversalMotion(MotionStance.Magic);
-                motionReturnToCastStance.MovementData.CurrentStyle = (ushort)((uint)MotionStance.Magic & 0xFFFF);
-                motionReturnToCastStance.MovementData.ForwardCommand = (uint)MotionCommand.Invalid;
-                EnqueueBroadcastMotion(motionReturnToCastStance);
+                var returnStance = new Motion(MotionStance.Magic, MotionCommand.Ready, 1.0f);
+                EnqueueBroadcastMotion(returnStance);
             });
 
             // should this happen sync with IsBusy?

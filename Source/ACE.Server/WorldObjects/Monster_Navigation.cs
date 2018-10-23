@@ -69,6 +69,12 @@ namespace ACE.Server.WorldObjects
             if (MoveSpeed == 0.0f)
                 GetMovementSpeed();
 
+            if (IsAnimating)
+            {
+                PhysicsObj.update_object();
+                return;
+            }
+
             IsTurning = true;
 
             // send network actions
@@ -224,7 +230,8 @@ namespace ACE.Server.WorldObjects
             PhysicsObj.update_object();
             UpdatePosition_SyncLocation();
 
-            SendUpdatePosition(ForcePos);
+            //SendUpdatePosition(ForcePos);
+            SendUpdatePosition();
 
             if (DebugMove)
                 Console.WriteLine($"{Name} ({Guid}) - UpdatePosition (velocity: {PhysicsObj.CachedVelocity.Length()})");

@@ -79,7 +79,8 @@ namespace ACE.Server.WorldObjects
             var velocity = movement / (float)deltaTime.TotalSeconds;
             PhysicsObj.CachedVelocity = velocity;
 
-            SendUpdatePosition(ForcePos);
+            //SendUpdatePosition(ForcePos);
+            SendUpdatePosition();
             //MoveTo(AttackTarget, RunRate, true);
 
             if (DebugMove)

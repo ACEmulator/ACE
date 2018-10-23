@@ -4,7 +4,7 @@ using System.Numerics;
 using ACE.DatLoader;
 using ACE.DatLoader.Entity;
 using ACE.Entity.Enum;
-using ACE.Server.Network.Motion;
+using ACE.Server.Physics.Animation.Internal;
 
 namespace ACE.Server.Physics.Animation
 {

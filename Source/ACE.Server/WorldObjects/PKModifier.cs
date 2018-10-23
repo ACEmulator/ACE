@@ -8,7 +8,6 @@ using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Network.GameMessages.Messages;
-using ACE.Server.Network.Motion;
 
 namespace ACE.Server.WorldObjects
 {
@@ -39,20 +38,6 @@ namespace ACE.Server.WorldObjects
                 BaseDescriptionFlags |= ObjectDescriptionFlag.PkSwitch;
         }
 
-        private static readonly UniversalMotion twitch = new UniversalMotion(MotionStance.NonCombat, new MotionItem(MotionCommand.Twitch1));
-
-        public uint? UseTargetSuccessAnimation
-        {
-            get => GetProperty(PropertyDataId.UseTargetSuccessAnimation);
-            set { if (!value.HasValue) RemoveProperty(PropertyDataId.UseTargetSuccessAnimation); else SetProperty(PropertyDataId.UseTargetSuccessAnimation, value.Value); }
-        }
-
-        public uint? UseTargetFailureAnimation
-        {
-            get => GetProperty(PropertyDataId.UseTargetFailureAnimation);
-            set { if (!value.HasValue) RemoveProperty(PropertyDataId.UseTargetFailureAnimation); else SetProperty(PropertyDataId.UseTargetFailureAnimation, value.Value); }
-        }
-
         /// <summary>
         /// This is raised by Player.HandleActionUseItem.<para />
         /// The item does not exist in the players possession.<para />
@@ -61,85 +46,78 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public override void ActOnUse(WorldObject worldObject)
         {
-            if (worldObject is Player)
+            var player = worldObject as Player;
+            if (player == null) return;
+
+            //if (ServerIsPKServer) // Need some form of config switch in configmanager...
+            //{
+            //    player.Session.Network.EnqueueSend(new GameMessageSystemChat(GetProperty(PropertyString.UsePkServerError), ChatMessageType.Broadcast));
+            //    player.SendUseDoneEvent();
+            //    return;
+            //}
+
+            if (AllowedActivator != null)
             {
-                var player = worldObject as Player;
-                //if (ServerIsPKServer) // Need some form of config switch in configmanager...
-                //{
-                //    player.Session.Network.EnqueueSend(new GameMessageSystemChat(GetProperty(PropertyString.UsePkServerError), ChatMessageType.Broadcast));
-                //    player.SendUseDoneEvent();
-                //    return;
-                //}
+                // do nothing / in use error msg?
+                player.SendUseDoneEvent();
+                return;
+            }
 
-                if (AllowedActivator == null)
+            if (player.IsAdvocate || player.AdvocateQuest || player.AdvocateState)
+            {
+                // Advocates cannot change their PK status
+                if (PkLevelModifier == 1)
                 {
-                    if (player.IsAdvocate || (player.AdvocateQuest ?? false) || (player.AdvocateState ?? false))
-                    {
-                        // Advocates cannot change their PK status
-                        if (PkLevelModifier == 1)
-                        {
-                            player.SendUseDoneEvent();
-                            return; // maybe send error msg to tell PK to ask another advocate to @remove them (or maybe make the @remove command support self removal)
-                        }
-
-                        // letting it fall through for the NpkSwitch because it will not change status and error properly.
-                    }
-
-                    //if (player.PkLevelModifier == 0) // wrong check but if PkTimestamp(? maybe different timestamp) + MINIMUM_TIME_SINCE_PK_FLOAT < Time.GetUnixTimestamp proceed else fail
-                    //{
-                    if ((player.PkLevelModifier ?? -1) != PkLevelModifier)
-                    {
-                        AllowedActivator = ObjectGuid.Invalid.Full;
-
-                        var rotateTime = player.Rotate(this);
-
-                        var switchTimer = new ActionChain();
-                        switchTimer.AddDelaySeconds(rotateTime);
-                        switchTimer.AddAction(player, () =>
-                        {
-                            if (UseTargetSuccessAnimation.HasValue)
-                                //EnqueueBroadcastMotion(new UniversalMotion(MotionStance.NonCombat, new MotionItem((MotionCommand)UseTargetSuccessAnimation)));
-                                EnqueueBroadcastMotion(new UniversalMotion(CurrentMotionState.Stance, new MotionItem((MotionCommand)UseTargetSuccessAnimation)));
-                            else
-                                EnqueueBroadcastMotion(twitch);
-                        });
-                        if (UseTargetSuccessAnimation.HasValue)
-                            switchTimer.AddDelaySeconds(DatManager.PortalDat.ReadFromDat<MotionTable>(MotionTableId).GetAnimationLength((MotionCommand)UseTargetSuccessAnimation));
-                        else
-                            switchTimer.AddDelaySeconds(DatManager.PortalDat.ReadFromDat<MotionTable>(MotionTableId).GetAnimationLength(MotionCommand.Twitch1));
-                        switchTimer.AddAction(player, () =>
-                        {
-                            player.Session.Network.EnqueueSend(new GameMessageSystemChat(GetProperty(PropertyString.UseMessage), ChatMessageType.Broadcast));
-                            player.PkLevelModifier = PkLevelModifier;
-
-                            player.SendUseDoneEvent();
-
-                            if (player.PkLevelModifier == 1)
-                                player.PlayerKillerStatus = PlayerKillerStatus.PK;
-                            else
-                                player.PlayerKillerStatus = PlayerKillerStatus.NPK;
-
-                            player.EnqueueBroadcast(new GameMessagePublicUpdatePropertyInt(player, PropertyInt.PlayerKillerStatus, (int)player.PlayerKillerStatus));
-
-                            Reset();
-                        });
-                        switchTimer.EnqueueChain();
-                    }
-                    else
-                    {
-                        if (UseTargetFailureAnimation.HasValue)
-                            //EnqueueBroadcastMotion(new UniversalMotion(MotionStance.NonCombat, new MotionItem((MotionCommand)UseTargetFailureAnimation)));
-                            EnqueueBroadcastMotion(new UniversalMotion(CurrentMotionState.Stance, new MotionItem((MotionCommand)UseTargetFailureAnimation)));
-                        player.Session.Network.EnqueueSend(new GameMessageSystemChat(GetProperty(PropertyString.ActivationFailure), ChatMessageType.Broadcast));
-                        player.SendUseDoneEvent();
-                    }
-                    //}
-                }
-                else
-                {
-                    // do nothing / in use error msg?
                     player.SendUseDoneEvent();
+                    return; // maybe send error msg to tell PK to ask another advocate to @remove them (or maybe make the @remove command support self removal)
                 }
+
+                // letting it fall through for the NpkSwitch because it will not change status and error properly.
+            }
+
+            //if (player.PkLevelModifier == 0) // wrong check but if PkTimestamp(? maybe different timestamp) + MINIMUM_TIME_SINCE_PK_FLOAT < Time.GetUnixTimestamp proceed else fail
+            //{
+            if (player.PkLevelModifier != PkLevelModifier)
+            {
+                AllowedActivator = ObjectGuid.Invalid.Full;
+
+                var rotateTime = player.Rotate(this);
+
+                var switchTimer = new ActionChain();
+                switchTimer.AddDelaySeconds(rotateTime);
+
+                var useMotion = UseTargetSuccessAnimation != MotionCommand.Invalid ? UseTargetSuccessAnimation : MotionCommand.Twitch1;
+                switchTimer.AddAction(player, () => EnqueueBroadcastMotion(new Motion(this, useMotion)));
+
+                var motionTable = DatManager.PortalDat.ReadFromDat<MotionTable>(MotionTableId);
+                switchTimer.AddDelaySeconds(motionTable.GetAnimationLength(useMotion));
+
+                switchTimer.AddAction(player, () =>
+                {
+                    player.Session.Network.EnqueueSend(new GameMessageSystemChat(GetProperty(PropertyString.UseMessage), ChatMessageType.Broadcast));
+                    player.PkLevelModifier = PkLevelModifier;
+
+                    player.SendUseDoneEvent();
+
+                    if (player.PkLevelModifier == 1)
+                        player.PlayerKillerStatus = PlayerKillerStatus.PK;
+                    else
+                        player.PlayerKillerStatus = PlayerKillerStatus.NPK;
+
+                    player.EnqueueBroadcast(new GameMessagePublicUpdatePropertyInt(player, PropertyInt.PlayerKillerStatus, (int)player.PlayerKillerStatus));
+
+                    Reset();
+                });
+                switchTimer.EnqueueChain();
+            }
+            else
+            {
+                if (UseTargetFailureAnimation != MotionCommand.Invalid)
+                    //EnqueueBroadcastMotion(new Motion(MotionStance.NonCombat, UseTargetFailureAnimation));
+                    EnqueueBroadcastMotion(new Motion(this, UseTargetFailureAnimation));
+
+                player.Session.Network.EnqueueSend(new GameMessageSystemChat(GetProperty(PropertyString.ActivationFailure), ChatMessageType.Broadcast));
+                player.SendUseDoneEvent();
             }
         }
 

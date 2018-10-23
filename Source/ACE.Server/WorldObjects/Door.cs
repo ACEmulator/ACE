@@ -5,17 +5,17 @@ using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
-using ACE.Server.Network.Motion;
 
 namespace ACE.Server.WorldObjects
 {
     public class Door : WorldObject, Lock
     {
-        private static readonly UniversalMotion motionOpen = new UniversalMotion(MotionStance.NonCombat, new MotionItem(MotionCommand.On));
-        private static readonly UniversalMotion motionClosed = new UniversalMotion(MotionStance.NonCombat, new MotionItem(MotionCommand.Off));
+        private static readonly Motion motionOpen = new Motion(MotionStance.NonCombat, MotionCommand.On);
+        private static readonly Motion motionClosed = new Motion(MotionStance.NonCombat, MotionCommand.Off);
 
         /// <summary>
         /// A new biota be created taking all of its values from weenie.

@@ -1,9 +1,8 @@
 using System;
 using ACE.Entity;
 using ACE.Entity.Enum;
-using ACE.Entity.Enum.Properties;
+using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
-using ACE.Server.Network.Motion;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Physics.Animation;
 using MAttackType = ACE.Entity.Enum.AttackType;
@@ -185,14 +184,13 @@ namespace ACE.Server.WorldObjects
             var animSpeedMod = IsDualWieldAttack ? 1.2f : 1.0f;     // dual wield swing animation 20% faster
             var animSpeed = baseSpeed * animSpeedMod;
 
-            var swingAnimation = new MotionItem(GetSwingAnimation(), animSpeed);
-            var animLength = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, swingAnimation.Motion, animSpeed);
+            var swingAnimation = GetSwingAnimation();
+            var animLength = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, swingAnimation, animSpeed);
 
             // broadcast player swing animation to clients
-            var motion = new UniversalMotion(CurrentMotionState.Stance, swingAnimation);
-            motion.MovementData.CurrentStyle = (uint)CurrentMotionState.Stance;
-            motion.MovementData.TurnSpeed = 2.25f;
-            motion.HasTarget = true;
+            var motion = new Motion(this, swingAnimation, animSpeed);
+            motion.MotionState.TurnSpeed = 2.25f;
+            motion.MotionFlags |= MotionFlags.StickToObject;
             motion.TargetGuid = target.Guid;
             CurrentMotionState = motion;
 

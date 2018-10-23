@@ -5,9 +5,9 @@ using ACE.DatLoader.FileTypes;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Network.GameMessages.Messages;
-using ACE.Server.Network.Motion;
 
 namespace ACE.Server.WorldObjects
 {
@@ -36,7 +36,7 @@ namespace ACE.Server.WorldObjects
             RadarColor = ACE.Entity.Enum.RadarColor.LifeStone;
         }
 
-        private static readonly UniversalMotion sanctuary = new UniversalMotion(MotionStance.NonCombat, new MotionItem(MotionCommand.Sanctuary));
+        private static readonly Motion sanctuary = new Motion(MotionStance.NonCombat, MotionCommand.Sanctuary);
 
         /// <summary>
         /// This is raised by Player.HandleActionUseItem.<para />

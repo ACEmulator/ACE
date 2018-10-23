@@ -13,7 +13,7 @@ namespace ACE.Server.Network.GameEvent.Events
         {
             //Console.WriteLine("Sending 0x257 - Update House Access Records (HAR)");
 
-            var har = new HAR();
+            var har = new HouseAccess();
 
             Writer.Write(har);
         }

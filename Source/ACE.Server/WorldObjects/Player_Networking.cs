@@ -1,15 +1,14 @@
 using System.Linq;
-
 using ACE.Common;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
-using ACE.Server.Entity;
 using ACE.Server.Managers;
+using ACE.Server.Network.Enum;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
-using ACE.Server.Network.Motion;
 using ACE.Server.Network.Sequence;
+using ACE.Server.Network.Structure;
 
 namespace ACE.Server.WorldObjects
 {
@@ -160,42 +159,32 @@ namespace ACE.Server.WorldObjects
         }
 
 
-        public void RequestUpdatePosition(Position pos)
+        /// <summary>
+        /// Records where the client thinks we are, for use by physics engine later
+        /// </summary>
+        public void SetRequestedLocation(Position pos)
         {
-            ExternalUpdatePosition(pos);
+            RequestedLocation = pos;
         }
 
-        public void RequestUpdateMotion(uint holdKey, MovementData md, MotionItem[] commands)
+        public void BroadcastMovement(MoveToState moveToState)
         {
-            // Update our current style
-            if ((md.MovementStateFlag & MovementStateFlag.CurrentStyle) != 0)
-            {
-                MotionStance newStance = (MotionStance)md.CurrentStyle;
+            var state = moveToState.RawMotionState;
 
-                if (newStance != stance)
-                    stance = (MotionStance)md.CurrentStyle;
+            // update current style
+            if ((state.Flags & RawMotionFlags.CurrentStyle) != 0)
+            {
+                // this lowercase stance field in Player doesn't really seem to be used anywhere
+                stance = state.CurrentStyle;
             }
 
-            md = md.ConvertToClientAccepted(holdKey, GetCreatureSkill(Skill.Run));
-            UniversalMotion newMotion = new UniversalMotion(stance, md);
+            var movementData = new MovementData(this, moveToState);
 
-            // This is a hack to make walking work correctly.   Og II
-            if (holdKey != 0 || (md.ForwardCommand == (uint)MotionCommand.WalkForward))
-                newMotion.IsAutonomous = true;
-
-            // FIXME(ddevec): May need to de-dupe animation/commands from client -- getting multiple (e.g. wave)
-            // FIXME(ddevec): This is the operation that should update our velocity (for physics later)
-            newMotion.Commands.AddRange(commands);
-            EnqueueBroadcastMotion(newMotion);
+            var movementEvent = new GameMessageUpdateMotion(this, movementData);
+            EnqueueBroadcast(movementEvent);    // shouldn't need to go to originating player?
 
             // TODO: use real motion / animation system from physics
-            CurrentMotionCommand = md.ForwardCommand;
-        }
-
-        private void ExternalUpdatePosition(Position newPosition)
-        {
-            //if (InWorld)
-                PrepUpdatePosition(newPosition);
+            CurrentMotionCommand = movementData.Invalid.State.ForwardCommand;
         }
     }
 }

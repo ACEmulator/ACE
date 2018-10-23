@@ -16,14 +16,14 @@ namespace ACE.Server.Physics.Entity
         public static int Requests;
         public static int Hits;
 
-        public static GfxObj Get(GfxObj gfxObj)
+        public static GfxObj Get(DatLoader.FileTypes.GfxObj _gfxObj)
         {
             Requests++;
 
             //if (Requests % 100 == 0)
-                //Console.WriteLine($"GfxObjCache: Requests={Requests}, Hits={Hits}");
+            //Console.WriteLine($"GfxObjCache: Requests={Requests}, Hits={Hits}");
 
-            GfxObjs.TryGetValue(gfxObj.ID, out var result);
+            GfxObjs.TryGetValue(_gfxObj.Id, out var result);
             if (result != null)
             {
                 Hits++;
@@ -31,13 +31,9 @@ namespace ACE.Server.Physics.Entity
             }
 
             // not cached, add it
-            GfxObjs.Add(gfxObj.ID, gfxObj);
+            var gfxObj = new GfxObj(_gfxObj);
+            GfxObjs.Add(_gfxObj.Id, gfxObj);
             return gfxObj;
-        }
-
-        public static GfxObj Get(DatLoader.FileTypes.GfxObj gfxObj)
-        {
-            return Get(new GfxObj(gfxObj));
         }
     }
 }

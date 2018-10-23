@@ -18,7 +18,6 @@ using ACE.Server.Managers;
 using ACE.Server.Network;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
-using ACE.Server.Network.Motion;
 using ACE.Server.Network.Sequence;
 using ACE.Server.Physics;
 using ACE.Server.Physics.Animation;
@@ -51,7 +50,7 @@ namespace ACE.Server.WorldObjects
 
         public ObjectDescriptionFlag BaseDescriptionFlags { get; protected set; }
 
-        public UpdatePositionFlag PositionFlag { get; protected set; }
+        public PositionFlags PositionFlags { get; protected set; }
 
         public SequenceManager Sequences { get; } = new SequenceManager();
 
@@ -331,7 +330,7 @@ namespace ACE.Server.WorldObjects
             if (Placement == null)
                 Placement = ACE.Entity.Enum.Placement.Resting;
 
-            //CurrentMotionState = new UniversalMotion(MotionStance.Invalid, new MotionItem(MotionCommand.Invalid));
+            //CurrentMotionState = new Motion(MotionStance.Invalid, new MotionItem(MotionCommand.Invalid));
         }
 
         /// <summary>
@@ -432,7 +431,7 @@ namespace ACE.Server.WorldObjects
 
         public Position ForcedLocation { get; private set; }
 
-        public Position RequestedLocation { get; private set; }
+        public Position RequestedLocation { get; set; }
 
         public Position PreviousLocation { get; set; }
 
@@ -532,7 +531,7 @@ namespace ACE.Server.WorldObjects
                         sb.AppendLine($"{prop.Name} = {weenieFlags2.ToString()}" + " (" + (uint)weenieFlags2 + ")");
                         break;
                     case "positionflag":
-                        sb.AppendLine($"{prop.Name} = {obj.PositionFlag.ToString()}" + " (" + (uint)obj.PositionFlag + ")");
+                        sb.AppendLine($"{prop.Name} = {obj.PositionFlags.ToString()}" + " (" + (uint)obj.PositionFlags + ")");
                         break;
                     case "itemtype":
                         sb.AppendLine($"{prop.Name} = {obj.ItemType.ToString()}" + " (" + (uint)obj.ItemType + ")");
@@ -679,9 +678,9 @@ namespace ACE.Server.WorldObjects
             proj.OnCollideEnvironment();
         }
 
-        public void EnqueueBroadcastMotion(UniversalMotion motion, float? maxRange = null)
+        public void EnqueueBroadcastMotion(Motion motion, float? maxRange = null)
         {
-            var msg = new GameMessageUpdateMotion(Guid, Sequences.GetCurrentSequence(SequenceType.ObjectInstance), Sequences, motion);
+            var msg = new GameMessageUpdateMotion(this, motion);
 
             if (maxRange == null)
                 EnqueueBroadcast(msg);
@@ -866,9 +865,7 @@ namespace ACE.Server.WorldObjects
             if (multiple) return damageTypes;
 
             // get single damage type
-            var motion = creature.CurrentMotionState != null && creature.CurrentMotionState.Commands != null
-                && creature.CurrentMotionState.Commands.Count > 0 ? creature.CurrentMotionState.Commands[0].Motion.ToString() : "";
-
+            var motion = creature.CurrentMotionState.MotionState.ForwardCommand.ToString();
             foreach (DamageType damageType in Enum.GetValues(typeof(DamageType)))
             {
                 if ((damageTypes & damageType) != 0)
@@ -929,25 +926,26 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Returns TRUE if this object has a non-zero velocity,
-        /// or if it has non-cyclic animations in progress
+        /// Returns TRUE if this object has a non-zero velocity
         /// </summary>
-        public bool IsMoving { get => PhysicsObj != null && (PhysicsObj.Velocity.X != 0 || PhysicsObj.Velocity.Y != 0 || PhysicsObj.Velocity.Z != 0 ||
-                PhysicsObj.MovementManager != null && PhysicsObj.MovementManager.motions_pending()); }
+        public bool IsMoving { get => PhysicsObj != null && (PhysicsObj.Velocity.X != 0 || PhysicsObj.Velocity.Y != 0 || PhysicsObj.Velocity.Z != 0); }
+
+        /// <summary>
+        /// Returns TRUE if this object has non-cyclic animations in progress
+        /// </summary>
+        public bool IsAnimating { get => PhysicsObj != null && PhysicsObj.MovementManager != null && PhysicsObj.MovementManager.motions_pending(); }
 
         /// <summary>
         /// Executes a motion/animation for this object
         /// adds to the physics animation system, and broadcasts to nearby players
         /// </summary>
         /// <returns>The amount it takes to execute the motion</returns>
-        public float ExecuteMotion(UniversalMotion motion, bool sendClient = true, float? maxRange = null)
+        public float ExecuteMotion(Motion motion, bool sendClient = true, float? maxRange = null)
         {
-            var motionCommand = MotionCommand.Invalid;
+            var motionCommand = motion.MotionState.ForwardCommand;
 
-            if (motion.Commands != null && motion.Commands.Count > 0)
-                motionCommand = motion.Commands[0].Motion;
-            else if (motion.MovementData != null && motion.MovementData.CurrentStyle != 0)
-                motionCommand = (MotionCommand)motion.MovementData.CurrentStyle;
+            if (motionCommand == MotionCommand.Invalid)
+                motionCommand = (MotionCommand)motion.Stance;
 
             // run motion command on server through physics animation system
             if (PhysicsObj != null && motionCommand != MotionCommand.Invalid)
@@ -973,6 +971,14 @@ namespace ACE.Server.WorldObjects
                 EnqueueBroadcastMotion(motion, maxRange);
 
             return animLength;
+        }
+
+        public void SetStance(MotionStance stance, bool broadcast = true)
+        {
+            CurrentMotionState = new Motion(stance);
+
+            if (broadcast)
+                EnqueueBroadcastMotion(CurrentMotionState);
         }
     }
 }

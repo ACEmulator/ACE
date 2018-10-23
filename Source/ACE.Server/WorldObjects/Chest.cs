@@ -3,8 +3,8 @@ using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
-using ACE.Server.Network.Motion;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 
@@ -54,11 +54,11 @@ namespace ACE.Server.WorldObjects
                 UseRadius = 2; // Until DoMoveTo (Physics, Indoor/Outside range variance) is smarter, use 2 is safest.
         }
 
-        protected static readonly UniversalMotion motionOpen = new UniversalMotion(MotionStance.NonCombat, new MotionItem(MotionCommand.On));
-        protected static readonly UniversalMotion motionClosed = new UniversalMotion(MotionStance.NonCombat, new MotionItem(MotionCommand.Off));
+        protected static readonly Motion motionOpen = new Motion(MotionStance.NonCombat, MotionCommand.On);
+        protected static readonly Motion motionClosed = new Motion(MotionStance.NonCombat, MotionCommand.Off);
 
-        //private static readonly MotionState motionStateOpen = new UniversalMotion(MotionStance.NonCombat, new MotionItem(MotionCommand.On));
-        //private static readonly MotionState motionStateClosed = new UniversalMotion(MotionStance.NonCombat, new MotionItem(MotionCommand.Off));
+        //private static readonly MotionState motionStateOpen = new Motion(MotionStance.NonCombat, new MotionItem(MotionCommand.On));
+        //private static readonly MotionState motionStateClosed = new Motion(MotionStance.NonCombat, new MotionItem(MotionCommand.Off));
 
         /// <summary>
         /// This is raised by Player.HandleActionUseItem.<para />

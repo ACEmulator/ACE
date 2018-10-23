@@ -62,16 +62,22 @@ namespace ACE.Server.WorldObjects
         // ========= Advocate Properties ==========
         // ========================================
 
-        public bool? AdvocateQuest
+        /// <summary>
+        /// Flag indicates if advocate quest has been completed
+        /// </summary>
+        public bool AdvocateQuest
         {
-            get => GetProperty(PropertyBool.AdvocateQuest);
-            set { if (!value.HasValue) RemoveProperty(PropertyBool.AdvocateQuest); else SetProperty(PropertyBool.AdvocateQuest, value.Value); }
+            get => GetProperty(PropertyBool.AdvocateQuest) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.AdvocateQuest); else SetProperty(PropertyBool.AdvocateQuest, value); }
         }
 
-        public bool? AdvocateState
+        /// <summary>
+        /// Flag indicates if player is currently in advocate state
+        /// </summary>
+        public bool AdvocateState
         {
-            get => GetProperty(PropertyBool.AdvocateState);
-            set { if (!value.HasValue) RemoveProperty(PropertyBool.AdvocateState); else SetProperty(PropertyBool.AdvocateState, value.Value); }
+            get => GetProperty(PropertyBool.AdvocateState) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.AdvocateState); else SetProperty(PropertyBool.AdvocateState, value); }
         }
 
         public int? AdvocateLevel

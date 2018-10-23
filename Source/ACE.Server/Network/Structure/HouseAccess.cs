@@ -7,7 +7,7 @@ namespace ACE.Server.Network.Structure
     /// <summary>
     /// Set of information related to house access
     /// </summary>
-    public class HAR
+    public class HouseAccess
     {
         public uint Version = 0x10000002;   // 0x10000002, seems to be some kind of version.
                                             // Older version started with bitmask, so starting with 0x10000000
@@ -19,9 +19,9 @@ namespace ACE.Server.Network.Structure
         public List<ObjectGuid> Roommates;  // The ID list for all of your roommates
     }
 
-    public static class HARExtensions
+    public static class HouseAccessExtensions
     {
-        public static void Write(this BinaryWriter writer, HAR har)
+        public static void Write(this BinaryWriter writer, HouseAccess har)
         {
             writer.Write(har.Version);
             writer.Write(har.Bitmask);
