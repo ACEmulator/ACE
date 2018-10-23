@@ -329,6 +329,8 @@ namespace ACE.Server.WorldObjects
         #endregion
 
 
+        private readonly Dictionary<PositionType, Position> ephemeralPositions = new Dictionary<PositionType, Position>();
+
         /// <summary>
         /// Do not reference this directly.<para />
         /// This should only be referenced by GetPosition, SetPosition, RemovePosition and SaveBiotaToDatabase.
@@ -337,6 +339,9 @@ namespace ACE.Server.WorldObjects
 
         public Position GetPosition(PositionType positionType)
         {
+            if (ephemeralPositions.TryGetValue(positionType, out var value))
+                return value;
+
             bool success = positionCache.TryGetValue(positionType, out var ret);
 
             if (!success)
@@ -361,7 +366,13 @@ namespace ACE.Server.WorldObjects
                     positionCache[position.Key] = position.Value;
             }
 
-            return new Dictionary<PositionType, Position>(positionCache);
+            var result = new Dictionary<PositionType, Position>(positionCache);
+
+            // Add the ephemeral positions over the cached positions
+            foreach (var kvp in ephemeralPositions)
+                result[kvp.Key] = kvp.Value;
+
+            return result;
         }
 
         /// <summary>
@@ -374,35 +385,52 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void SetPosition(PositionType positionType, Position position)
         {
-            if (position == null)
-                RemovePosition(positionType);
+            if (ephemeralPositions.ContainsKey(positionType))
+                ephemeralPositions[positionType] = position;
             else
             {
-                positionCache[positionType] = position;
+                if (position == null)
+                    RemovePosition(positionType);
+                else
+                {
+                    positionCache[positionType] = position;
 
-                Biota.SetPosition(positionType, position, BiotaDatabaseLock, out var biotaChanged);
-                if (biotaChanged)
-                    ChangesDetected = true;
+                    Biota.SetPosition(positionType, position, BiotaDatabaseLock, out var biotaChanged);
+                    if (biotaChanged)
+                        ChangesDetected = true;
+                }
             }
         }
 
         public void RemovePosition(PositionType positionType)
         {
-            positionCache.Remove(positionType);
+            if (ephemeralPositions.ContainsKey(positionType))
+                ephemeralPositions[positionType] = null;
+            else
+            {
+                positionCache.Remove(positionType);
 
-            if (Biota.TryRemovePosition(positionType, out _, BiotaDatabaseLock))
-                ChangesDetected = true;
+                if (Biota.TryRemovePosition(positionType, out _, BiotaDatabaseLock))
+                    ChangesDetected = true;
+            }
         }
 
 
         // SetPropertiesForWorld, SetPropertiesForContainer, SetPropertiesForVendor
         #region Utility Functions
-        internal void SetPropertiesForWorld(WorldObject objectToPlaceInRelationTo)
+        internal void SetPropertiesForWorld(WorldObject objectToPlaceInRelationTo, double distanceInFront, bool rotate180 = false)
         {
-            Location = objectToPlaceInRelationTo.Location.InFrontOf(1.1f);
+            var newLocation = objectToPlaceInRelationTo.Location.InFrontOf(distanceInFront, rotate180);
+
+            SetPropertiesForWorld(newLocation);
+        }
+
+        internal void SetPropertiesForWorld(Position location)
+        {
+            Location = new Position(location);
 
             // should be sent automatically
-            //PositionFlags = PositionFlags.IsGrounded | PositionFlags.HasPlacementID | PositionFlags.OrientationHasNoY | PositionFlags.OrientationHasNoX;
+            //PositionFlags = PositionFlags.IsGrounded | PositionFlags.HasPlacementID | PositionFlags.OrientationHasNoX | PositionFlags.OrientationHasNoY;
 
             Placement = ACE.Entity.Enum.Placement.Resting; // This is needed to make items lay flat on the ground.
             PlacementPosition = null;
@@ -1923,6 +1951,11 @@ namespace ACE.Server.WorldObjects
             set { if (value == 0) RemoveProperty(PropertyInstanceId.ActivationTarget); else SetProperty(PropertyInstanceId.ActivationTarget, value); }
         }
 
+        /// <summary>
+        /// The number of seconds before this object can exist on an active landblock before it expires and should be destroyed.
+        /// A value of -1 indicates that the item does not rot.<para />
+        /// A value of 0, or less than 0 but not -1 indicates that the item has expired and should be destroyed.
+        /// </summary>
         public double? TimeToRot
         {
             get => GetProperty(PropertyFloat.TimeToRot);

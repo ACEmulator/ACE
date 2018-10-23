@@ -261,6 +261,8 @@ namespace ACE.Database
         {
             if (BiotaContexts.TryGetValue(biota, out var cachedContext))
             {
+                BiotaContexts.Remove(biota);
+
                 rwLock.EnterWriteLock();
                 try
                 {
@@ -387,54 +389,6 @@ namespace ACE.Database
             return wieldedItems.ToList();
         }
 
-        public List<Biota> GetDecayableObjectsByLandblock(ushort landblockId)
-        {
-            var decayables = new List<Biota>();
-
-            using (var context = new ShardDbContext())
-            {
-                context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
-
-                var results = context.BiotaPropertiesPosition
-                    .Where(p => p.ObjCellId >> 16 == landblockId)
-                    .ToList();
-
-                foreach (var result in results)
-                {
-                    var biota = GetBiota(context, result.ObjectId);
-
-                    if (biota != null && biota.WeenieType == (int)WeenieType.Corpse)
-                        decayables.Add(biota);
-                }
-            }
-
-            return decayables;
-        }
-
-        public List<Biota> GetDecayableObjectsByLandblockInParallel(ushort landblockId)
-        {
-            var decayables = new ConcurrentBag<Biota>();
-
-            using (var context = new ShardDbContext())
-            {
-                context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
-
-                var results = context.BiotaPropertiesPosition
-                    .Where(p => p.ObjCellId >> 16 == landblockId)
-                    .ToList();
-
-                Parallel.ForEach(results, result =>
-                {
-                    var biota = GetBiota(result.ObjectId);
-
-                    if (biota != null && biota.WeenieType == (int)WeenieType.Corpse)
-                        decayables.Add(biota);
-                });
-            }
-
-            return decayables.ToList();
-        }
-
         public List<Biota> GetStaticObjectsByLandblock(ushort landblockId)
         {
             var staticObjects = new List<Biota>();
@@ -449,7 +403,7 @@ namespace ACE.Database
 
                 foreach (var result in results)
                 {
-                    var biota = GetBiota(context, result.Id);
+                    var biota = GetBiota(result.Id);
                     staticObjects.Add(biota);
                 }
             }
@@ -478,6 +432,69 @@ namespace ACE.Database
 
             return staticObjects.ToList();
         }
+
+        public List<Biota> GetDynamicObjectsByLandblock(ushort landblockId)
+        {
+            var dynamics = new List<Biota>();
+
+            using (var context = new ShardDbContext())
+            {
+                context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
+
+                var results = context.BiotaPropertiesPosition
+                    .Where(p => p.PositionType == 1 && p.ObjCellId >> 16 == landblockId && p.ObjectId >= 0x80000000)
+                    .ToList();
+
+                foreach (var result in results)
+                {
+                    var biota = GetBiota(result.ObjectId);
+
+                    // Filter out objects that are in a container
+                    if (biota.BiotaPropertiesIID.FirstOrDefault(r => r.Type == 2 && r.Value != 0) != null)
+                        continue;
+
+                    // Filter out wielded objects
+                    if (biota.BiotaPropertiesIID.FirstOrDefault(r => r.Type == 3 && r.Value != 0) != null)
+                        continue;
+
+                    dynamics.Add(biota);
+                }
+            }
+
+            return dynamics;
+        }
+
+        public List<Biota> GetDynamicObjectsByLandblockInParallel(ushort landblockId)
+        {
+            var dynamics = new ConcurrentBag<Biota>();
+
+            using (var context = new ShardDbContext())
+            {
+                context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
+
+                var results = context.BiotaPropertiesPosition
+                    .Where(p => p.PositionType == 1 && p.ObjCellId >> 16 == landblockId && p.ObjectId >= 0x80000000)
+                    .ToList();
+
+                Parallel.ForEach(results, result =>
+                {
+                    var biota = GetBiota(result.ObjectId);
+
+                    // Filter out objects that are in a container
+                    if (biota.BiotaPropertiesIID.FirstOrDefault(r => r.Type == 2 && r.Value != 0) != null)
+                        return;
+
+                    // Filter out wielded objects
+                    if (biota.BiotaPropertiesIID.FirstOrDefault(r => r.Type == 3 && r.Value != 0) != null)
+                        return;
+
+                    dynamics.Add(biota);
+                });
+            }
+
+            return dynamics.ToList();
+        }
+
 
         public bool IsCharacterNameAvailable(string name)
         {

@@ -31,33 +31,39 @@ namespace ACE.Entity.Enum.Properties
         public static HashSet<ushort> PropertiesInt = GetValues<PropertyInt, ushort>();
 
         /// <summary>
-        /// returns a list of values for PropertyInt that are [Ephemeral]
+        /// returns a list of values for PropertyInt64 that are [Ephemeral]
         /// </summary>
         public static HashSet<ushort> PropertiesInt64 = GetValues<PropertyInt64, ushort>();
 
         /// <summary>
-        /// returns a list of values for PropertyInt that are [Ephemeral]
+        /// returns a list of values for PropertyBool that are [Ephemeral]
         /// </summary>
         public static HashSet<ushort> PropertiesBool = GetValues<PropertyBool, ushort>();
 
         /// <summary>
-        /// returns a list of values for PropertyInt that are [Ephemeral]
+        /// returns a list of values for PropertyString that are [Ephemeral]
         /// </summary>
         public static HashSet<ushort> PropertiesString = GetValues<PropertyString, ushort>();
 
         /// <summary>
-        /// returns a list of values for PropertyInt that are [Ephemeral]
+        /// returns a list of values for PropertyFloat that are [Ephemeral]
         /// </summary>
         public static HashSet<ushort> PropertiesDouble = GetValues<PropertyFloat, ushort>();
 
         /// <summary>
-        /// returns a list of values for PropertyInt that are [Ephemeral]
+        /// returns a list of values for PropertyDataId that are [Ephemeral]
         /// </summary>
         public static HashSet<ushort> PropertiesDataId = GetValues<PropertyDataId, ushort>();
 
         /// <summary>
-        /// returns a list of values for PropertyInt that are [Ephemeral]
+        /// returns a list of values for PropertyInstanceId that are [Ephemeral]
         /// </summary>
         public static HashSet<ushort> PropertiesInstanceId = GetValues<PropertyInstanceId, ushort>();
+
+
+        /// <summary>
+        /// returns a list of values for PositionType that are [Ephemeral]
+        /// </summary>
+        public static HashSet<ushort> PositionTypes = GetValues<PositionType, ushort>();
     }
 }

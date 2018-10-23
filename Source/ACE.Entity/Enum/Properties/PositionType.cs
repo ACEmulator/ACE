@@ -1,15 +1,15 @@
-﻿// --------------------------------------------------------------------------------------------------------------------
+// --------------------------------------------------------------------------------------------------------------------
 // <summary>
 //   Defines the Positions types that we need to track.
 // </summary>
 // --------------------------------------------------------------------------------------------------------------------
 
-namespace ACE.Entity.Enum
+namespace ACE.Entity.Enum.Properties
 {
     /// <summary>
     /// The enumerations for the different positions we want to track.  This code provided by Ripley via pastebin
     /// </summary>
-    public enum PositionType
+    public enum PositionType : ushort
     {
         // S_CONSTANT: Type:             0x108E, Value: 11, CRASH_AND_TURN_POSITION
         // S_CONSTANT: Type:             0x108E, Value: 17, SAVE_1_POSITION
@@ -66,8 +66,10 @@ namespace ACE.Entity.Enum
         Sanctuary = 4,
 
         /// <summary>
-        /// Not sure - this could be your house?
+        /// This is the home, starting, or base position of an object.
+        /// It's usually the position the object first spawned in at.
         /// </summary>
+        [Ephemeral]
         Home = 5,
 
         /// <summary>

@@ -6,7 +6,6 @@ using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Server.Entity;
 using ACE.Entity.Enum;
-using ACE.Entity.Enum.Properties;
 using ACE.Server.Network.GameMessages.Messages;
 
 namespace ACE.Server.WorldObjects
@@ -14,9 +13,9 @@ namespace ACE.Server.WorldObjects
     public partial class Corpse : Container
     {
         /// <summary>
-        /// The default number of seconds for a corpse to disappear
+        /// The maximum number of seconds for an empty corpse to stick around
         /// </summary>
-        public static readonly double DefaultDecayTime = 120.0;
+        private static readonly double emptyDecayTime = 15.0;
 
         /// <summary>
         /// Flag indicates if a corpse is from a monster or a player
@@ -28,8 +27,6 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public Corpse(Weenie weenie, ObjectGuid guid) : base(weenie, guid)
         {
-            TimeToRot = DefaultDecayTime;
-
             SetEphemeralValues();
         }
 
@@ -49,9 +46,6 @@ namespace ACE.Server.WorldObjects
 
             ContainerCapacity = 10;
             ItemCapacity = 120;
-
-            var timeToRot = GetProperty(PropertyFloat.TimeToRot);
-            //Console.WriteLine("Corpse.TimeToRot: " + timeToRot);
         }
 
         /// <summary>
@@ -79,13 +73,18 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Sets the decay time for player corpse
+        /// Sets the decay time for player corpse.
+        /// This should be called AFTER the items (if any) have been added to the corpse.
+        /// Corpses that have no items will decay much faster.
         /// </summary>
-        public void SetDecayTime(Player player)
+        public void RecalculateDecayTime(Player player)
         {
-            // a player corpse decays after 5 mins * playerLevel
-            // with a minimum of 1 hour
-            TimeToRot = Math.Max(3600, (player.Level ?? 1) * 300);
+            // empty corpses decay faster
+            if (Inventory.Count == 0)
+                TimeToRot = emptyDecayTime;
+            else
+                // a player corpse decays after 5 mins * playerLevel with a minimum of 1 hour
+                TimeToRot = Math.Max(3600, (player.Level ?? 1) * 300);
         }
 
         /// <summary>

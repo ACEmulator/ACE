@@ -73,7 +73,6 @@ namespace ACE.Server.WorldObjects
 
         public void OnAddRemoveItem()
         {
-            SaveBiotaToDatabase();
         }
     }
 }

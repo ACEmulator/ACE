@@ -3,6 +3,7 @@ using System.Threading;
 
 using ACE.Database;
 using ACE.Database.Models.Shard;
+using ACE.Entity.Enum;
 
 namespace ACE.Server.WorldObjects
 {
@@ -69,6 +70,69 @@ namespace ACE.Server.WorldObjects
 
             if (enqueueRemove)
                 DatabaseManager.Shard.RemoveBiota(Biota, BiotaDatabaseLock, null);
+        }
+
+        /// <summary>
+        /// A static that should persist to the shard may be a hook with an item, or a house that's been purchased, or a housing chest that isn't empty, etc...<para />
+        /// If the world object originated from the database or has been saved to the database, this will also return true.
+        /// </summary>
+        public bool IsStaticThatShouldPersistToShard()
+        {
+            if (!Guid.IsStatic())
+                return false;
+
+            if (biotaOriginatedFromDatabase || LastRequestedDatabaseSave != DateTime.MinValue)
+                return true;
+
+            if (WeenieType == WeenieType.SlumLord && this is SlumLord slumlord)
+            {
+                if (slumlord.House != null && slumlord.House.HouseOwner.HasValue && slumlord.House.HouseOwner != 0)
+                    return true;
+            }
+
+            if (WeenieType == WeenieType.House && this is House house)
+            {
+                if (house.HouseOwner.HasValue && house.HouseOwner != 0)
+                    return true;
+            }
+
+            if ((WeenieType == WeenieType.Hook || WeenieType == WeenieType.Storage) && this is Container container)
+            {
+                if (container.Inventory.Count > 0)
+                    return true;
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// This will filter out the following:<para />
+        /// Ammunition and Spell projectiles.<para />
+        /// Monster corpses.<para />
+        /// Missiles that haven't been saved to the shard yet.<para />
+        /// If the world object originated from the database or has been saved to the database, this will also return true.
+        /// </summary>
+        /// <returns></returns>
+        public bool IsDecayableThatShouldPersistToShard()
+        {
+            if (!IsDecayable())
+                return false;
+
+            if (biotaOriginatedFromDatabase || LastRequestedDatabaseSave != DateTime.MinValue)
+                return true;
+
+            if (WeenieType == WeenieType.Ammunition || WeenieType == WeenieType.ProjectileSpell)
+                return false;
+
+            if (WeenieType == WeenieType.Corpse && this is Corpse corpse && corpse.IsMonster)
+                return false;
+
+            // Missiles are unique. The only missiles that are decayable are ones that already exist in the database.
+            var missile = Missile;
+            if (missile.HasValue && missile.Value)
+                return false;
+
+            return true;
         }
     }
 }

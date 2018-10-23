@@ -115,7 +115,7 @@ namespace ACE.Entity
             return v * invLen;
         }
 
-        public Position InFrontOf(double distanceInFront = 3.0f, bool rotate180 = false)
+        public Position InFrontOf(double distanceInFront, bool rotate180 = false)
         {
             float qw = RotationW; // north
             float qz = RotationZ; // south

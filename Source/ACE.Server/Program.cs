@@ -128,6 +128,9 @@ namespace ACE.Server
 
         private static void OnProcessExit(object sender, EventArgs e)
         {
+            if (!ServerManager.ShutdownInitiated)
+                log.Warn("Unsafe server shutdown detected! Data loss is possible!");
+
             PropertyManager.StopUpdating();
             DatabaseManager.Stop();
 

@@ -141,10 +141,6 @@ namespace ACE.Server.WorldObjects
                         UpdateCoinValue();
                 }
 
-                // todo: we shouldn't be calling this here. Instead, we should be calling wo.Destroy() and letting the destroy method handle the work for us.
-                // todo: re-examine this whole process for inventory movements/combining/destruction.. Mag-nus 2018-09-03
-                worldObject.RemoveBiotaFromDatabase();
-
                 return true;
             }
 
@@ -369,8 +365,6 @@ namespace ACE.Server.WorldObjects
 
                 if (questSolve)
                     QuestManager.Update(item.Quest);
-
-                item.SaveBiotaToDatabase();
             });
 
             // return to previous stance
@@ -472,10 +466,6 @@ namespace ACE.Server.WorldObjects
                 EncumbranceVal += item.EncumbranceVal;
                 Value += item.Value;
             }
-
-            // If we're putting the item into a container not on our person, we should save the changes to the db
-            if (container != this && container.ContainerId != Guid.Full)
-                item.SaveBiotaToDatabase();
 
             Session.Network.EnqueueSend(
                 new GameEventItemServerSaysContainId(Session, item, container),
@@ -662,11 +652,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            item.SetPropertiesForWorld(this);
-
-            // It's important that we save an item after it's been removed from inventory.
-            // We want to avoid the scenario where the server crashes and a player has too many items.
-            item.SaveBiotaToDatabase();
+            item.SetPropertiesForWorld(this, 1.1f);
 
             //var motion = new Motion(MotionStance.NonCombat);
             var motion = new Motion(this, MotionCommand.Pickup);
@@ -1586,7 +1572,7 @@ namespace ACE.Server.WorldObjects
             newStack.EncumbranceVal = (newStack.StackUnitEncumbrance ?? 0) * (newStack.StackSize ?? 1);
             newStack.Value = (newStack.StackUnitValue ?? 0) * (newStack.StackSize ?? 1);
 
-            newStack.SetPropertiesForWorld(this);
+            newStack.SetPropertiesForWorld(this, 1.1f);
 
             container.EncumbranceVal -= newStack.EncumbranceVal;
             container.Value -= newStack.Value;

@@ -63,11 +63,18 @@ namespace ACE.Server.Entity
         private readonly ActionQueue actionQueue = new ActionQueue();
 
         /// <summary>
-        /// Landblocks will be checked for activity every # seconds
+        /// Landblocks heartbeat every 5 seconds
         /// </summary>
         private static readonly TimeSpan heartbeatInterval = TimeSpan.FromSeconds(5);
 
         private DateTime lastHeartBeat = DateTime.MinValue;
+
+        /// <summary>
+        /// Landblock items will be saved to the database every 5 minutes
+        /// </summary>
+        private static readonly TimeSpan databaseSaveInterval = TimeSpan.FromMinutes(5);
+
+        private DateTime lastDatabaseSave = DateTime.MinValue;
 
         /// <summary>
         /// Landblocks which have been inactive for this many seconds will be unloaded
@@ -151,8 +158,8 @@ namespace ACE.Server.Entity
         /// </summary>
         private void SpawnDynamicShardObjects()
         {
-            var corpses = DatabaseManager.Shard.GetDecayableObjectsByLandblock(Id.Landblock);
-            var factoryShardObjects = WorldObjectFactory.CreateWorldObjects(corpses);
+            var dynamics = DatabaseManager.Shard.GetDynamicObjectsByLandblock(Id.Landblock);
+            var factoryShardObjects = WorldObjectFactory.CreateWorldObjects(dynamics);
 
             actionQueue.EnqueueAction(new ActionEventDelegate(() =>
             {
@@ -270,11 +277,26 @@ namespace ACE.Server.Entity
             // Heartbeat
             if (lastHeartBeat + heartbeatInterval <= DateTime.UtcNow)
             {
-                // TODO: handle perma-loaded landblocks
-                if (!Permaload && lastActiveTime + unloadInterval < DateTime.UtcNow)
+                var thisHeartBeat = DateTime.UtcNow;
+
+                // Decay world objects
+                foreach (var wo in wos)
+                {
+                    if (wo.IsDecayable())
+                        wo.Decay(thisHeartBeat - lastHeartBeat);
+                }
+
+                if (!Permaload && lastActiveTime + unloadInterval < thisHeartBeat)
                     LandblockManager.AddToDestructionQueue(this);
 
-                lastHeartBeat = DateTime.UtcNow;
+                lastHeartBeat = thisHeartBeat;
+            }
+
+            // Database Save
+            if (lastDatabaseSave + databaseSaveInterval <= DateTime.UtcNow)
+            {
+                SaveDB();
+                lastDatabaseSave = DateTime.UtcNow;
             }
         }
 
@@ -298,9 +320,20 @@ namespace ACE.Server.Entity
                 player.AddTrackedObject(wo);
         }
 
-        public void AddWorldObject(WorldObject wo)
+        /// <summary>
+        /// This will fail if the wo doesn't have a valid location.
+        /// </summary>
+        public bool AddWorldObject(WorldObject wo)
         {
+            if (wo.Location == null)
+            {
+                log.DebugFormat("Landblock 0x{0} failed to add 0x{1:X8} {2}. Invalid Location", Id, wo.Biota.Id, wo.Name);
+                return false;
+            }
+
             AddWorldObjectInternal(wo);
+
+            return true;
         }
 
         public void AddWorldObjectForPhysics(WorldObject wo)
@@ -393,6 +426,7 @@ namespace ACE.Server.Entity
             if (wo == null) return;
 
             wo.CurrentLandblock = null;
+            wo.TimeToRot = null;
 
             if (!adjacencyMove)
             {
@@ -677,12 +711,26 @@ namespace ACE.Server.Entity
 
             foreach (var wo in worldObjects.Values)
             {
-                // only updates corpses atm
-                if (wo is Corpse corpse && !corpse.IsMonster)
-                    biotas.Add((corpse.Biota, corpse.BiotaDatabaseLock));
+                if (wo.IsStaticThatShouldPersistToShard() || wo.IsDecayableThatShouldPersistToShard())
+                    AddWorldObjectToBiotasSaveCollection(wo, biotas);
             }
 
             DatabaseManager.Shard.SaveBiotasInParallel(biotas, result => { });
+        }
+
+        private void AddWorldObjectToBiotasSaveCollection(WorldObject wo, Collection<(Biota biota, ReaderWriterLockSlim rwLock)> biotas)
+        {
+            if (wo.ChangesDetected)
+            {
+                wo.SaveBiotaToDatabase(false);
+                biotas.Add((wo.Biota, wo.BiotaDatabaseLock));
+            }
+
+            if (wo is Container container)
+            {
+                foreach (var item in container.Inventory.Values)
+                    AddWorldObjectToBiotasSaveCollection(item, biotas);
+            }
         }
 
         /// <summary>
@@ -690,10 +738,9 @@ namespace ACE.Server.Entity
         /// This is a rarely used method to broadcast network messages to all of the players within a landblock,
         /// and possibly the adjacent landblocks.
         /// </summary>
-        public void EnqueueBroadcast(IEnumerable<Player> excludeList, bool adjacents, params GameMessage[] msgs)
+        public void EnqueueBroadcast(ICollection<Player> excludeList, bool adjacents, params GameMessage[] msgs)
         {
-            // todo: benchmark - is this double cast slower than just iterating and doing 1 cast?
-            var players = worldObjects.Values.Where(wo => wo is Player).Select(wo => wo as Player);
+            var players = worldObjects.Values.OfType<Player>();
 
             // for landblock death broadcasts:
             // exclude players that have already been broadcast to within range of the death

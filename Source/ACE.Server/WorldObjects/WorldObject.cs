@@ -315,6 +315,12 @@ namespace ACE.Server.WorldObjects
             foreach (var x in Biota.BiotaPropertiesString.Where(i => EphemeralProperties.PropertiesString.Contains(i.Type)).ToList())
                 ephemeralPropertyStrings[(PropertyString)x.Type] = x.Value;
 
+            foreach (var x in EphemeralProperties.PositionTypes.ToList())
+                ephemeralPositions.TryAdd((PositionType)x, null);
+
+            foreach (var x in Biota.BiotaPropertiesPosition.Where(i => EphemeralProperties.PositionTypes.Contains(i.PositionType)).ToList())
+                ephemeralPositions[(PositionType)x.PositionType] = new Position(x.ObjCellId, x.OriginX, x.OriginY, x.OriginZ, x.AnglesX, x.AnglesY, x.AnglesZ, x.AnglesW);
+
             AddGeneratorProfiles();
 
             if (IsGenerator)
@@ -880,8 +886,23 @@ namespace ACE.Server.WorldObjects
             return damageTypes;
         }
 
+        /// <summary>
+        /// If this is a container or a creature, all of the inventory and/or equipped objects will also be destroyed.
+        /// </summary>
         public virtual void Destroy()
         {
+            if (this is Container container)
+            {
+                foreach (var item in container.Inventory.Values)
+                    item.Destroy();
+            }
+
+            if (this is Creature creature)
+            {
+                foreach (var item in creature.EquippedObjects.Values)
+                    item.Destroy();
+            }
+
             if (Location != null)
             {
                 ActionChain destroyChain = new ActionChain();

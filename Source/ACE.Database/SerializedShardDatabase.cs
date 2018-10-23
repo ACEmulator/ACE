@@ -58,10 +58,12 @@ namespace ACE.Database
                 catch (ObjectDisposedException)
                 {
                     // the _queue has been disposed, we're good
+                    break;
                 }
                 catch (InvalidOperationException)
                 {
                     // _queue is empty and CompleteForAdding has been called -- we're done here
+                    break;
                 }
             }
         }
@@ -242,16 +244,6 @@ namespace ACE.Database
 
         }
 
-        public List<Biota> GetDecayableObjectsByLandblock(ushort landblockId)
-        {
-            return _wrappedDatabase.GetDecayableObjectsByLandblock(landblockId);
-        }
-
-        public List<Biota> GetDecayableObjectsByLandblockInParallel(ushort landblockId)
-        {
-            return _wrappedDatabase.GetDecayableObjectsByLandblockInParallel(landblockId);
-        }
-
         public List<Biota> GetStaticObjectsByLandblock(ushort landblockId)
         {
             return _wrappedDatabase.GetStaticObjectsByLandblock(landblockId);
@@ -260,6 +252,16 @@ namespace ACE.Database
         public List<Biota> GetStaticObjectsByLandblockInParallel(ushort landblockId)
         {
             return _wrappedDatabase.GetStaticObjectsByLandblockInParallel(landblockId);
+        }
+
+        public List<Biota> GetDynamicObjectsByLandblock(ushort landblockId)
+        {
+            return _wrappedDatabase.GetDynamicObjectsByLandblock(landblockId);
+        }
+
+        public List<Biota> GetDynamicObjectsByLandblockInParallel(ushort landblockId)
+        {
+            return _wrappedDatabase.GetDynamicObjectsByLandblockInParallel(landblockId);
         }
 
 
