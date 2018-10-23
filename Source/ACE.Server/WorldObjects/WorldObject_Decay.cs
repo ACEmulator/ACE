@@ -1,8 +1,6 @@
 using System;
 using System.Linq;
 
-using ACE.Entity;
-
 namespace ACE.Server.WorldObjects
 {
     partial class WorldObject
@@ -78,8 +76,7 @@ namespace ACE.Server.WorldObjects
                 {
                     if (corpse.TryRemoveFromInventory(guid, out var item))
                     {
-                        item.SetPropertiesForWorld(corpse);
-                        item.Location = (Position)corpse.Location.Clone();
+                        item.SetPropertiesForWorld(corpse.Location);
                         CurrentLandblock.AddWorldObject(item);
                     }
                 }

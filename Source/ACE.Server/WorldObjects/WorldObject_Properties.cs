@@ -418,9 +418,16 @@ namespace ACE.Server.WorldObjects
 
         // SetPropertiesForWorld, SetPropertiesForContainer, SetPropertiesForVendor
         #region Utility Functions
-        internal void SetPropertiesForWorld(WorldObject objectToPlaceInRelationTo)
+        internal void SetPropertiesForWorld(WorldObject objectToPlaceInRelationTo, double distanceInFront, bool rotate180 = false)
         {
-            Location = objectToPlaceInRelationTo.Location.InFrontOf(1.1f);
+            var newLocation = objectToPlaceInRelationTo.Location.InFrontOf(distanceInFront, rotate180);
+
+            SetPropertiesForWorld(newLocation);
+        }
+
+        internal void SetPropertiesForWorld(Position location)
+        {
+            Location = (Position)location.Clone();
             PositionFlag = UpdatePositionFlag.Contact | UpdatePositionFlag.Placement | UpdatePositionFlag.ZeroQy | UpdatePositionFlag.ZeroQx;
 
             Placement = ACE.Entity.Enum.Placement.Resting; // This is needed to make items lay flat on the ground.

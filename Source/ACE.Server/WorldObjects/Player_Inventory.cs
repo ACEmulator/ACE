@@ -665,7 +665,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            item.SetPropertiesForWorld(this);
+            item.SetPropertiesForWorld(this, 1.1f);
 
             //var motion = new UniversalMotion(MotionStance.NonCombat);
             var motion = new UniversalMotion(CurrentMotionState.Stance);
@@ -1587,7 +1587,7 @@ namespace ACE.Server.WorldObjects
             newStack.EncumbranceVal = (newStack.StackUnitEncumbrance ?? 0) * (newStack.StackSize ?? 1);
             newStack.Value = (newStack.StackUnitValue ?? 0) * (newStack.StackSize ?? 1);
 
-            newStack.SetPropertiesForWorld(this);
+            newStack.SetPropertiesForWorld(this, 1.1f);
 
             container.EncumbranceVal -= newStack.EncumbranceVal;
             container.Value -= newStack.Value;
