@@ -307,7 +307,7 @@ namespace ACE.Server.WorldObjects
                 if (!player.QuestManager.HasQuest(Quest))
                     player.QuestManager.Update(Quest);
             }
-            if (QuestRestriction != null && !player.QuestManager.HasQuest(QuestRestriction))
+            if (QuestRestriction != null && !player.QuestManager.HasQuest(QuestRestriction) && !player.IgnorePortalRestrictions)
             {
                 player.QuestManager.HandleNoQuestError(this);
                 return;
