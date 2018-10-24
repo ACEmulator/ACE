@@ -30,6 +30,8 @@ namespace ACE.Server.WorldObjects
         {
             var currentDir = Location.GetCurrentDir();
             var targetDir = GetDirection(Location.ToGlobal(), target.Location.ToGlobal());
+            targetDir.Z = 0.0f;
+            targetDir = targetDir.Normalize();
             
             // get the 2D angle between these vectors
             return GetAngle(currentDir, targetDir);
