@@ -1,17 +1,13 @@
 using System;
 using System.Collections.Generic;
+
 using ACE.DatLoader.Entity;
 
 namespace ACE.Server.Physics.Entity
 {
     public static class VertexCache
     {
-        public static HashSet<Vertex> Vertices;
-
-        static VertexCache()
-        {
-            Vertices = new HashSet<Vertex>();
-        }
+        public static readonly HashSet<Vertex> Vertices = new HashSet<Vertex>();
 
         public static int Requests;
         public static int Hits;
@@ -37,7 +33,9 @@ namespace ACE.Server.Physics.Entity
 
         public static Vertex Get(SWVertex swv)
         {
-            return Get(new Vertex(swv));
+            var vertex = new Vertex(swv);
+
+            return Get(vertex);
         }
     }
 }

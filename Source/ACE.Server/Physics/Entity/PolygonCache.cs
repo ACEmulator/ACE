@@ -1,17 +1,13 @@
 using System;
 using System.Collections.Generic;
+
 using ACE.DatLoader.Entity;
 
 namespace ACE.Server.Physics.Entity
 {
     public static class PolygonCache
     {
-        public static HashSet<Polygon> Polygons;
-
-        static PolygonCache()
-        {
-            Polygons = new HashSet<Polygon>();
-        }
+        public static readonly HashSet<Polygon> Polygons = new HashSet<Polygon>();
 
         public static int Requests;
         public static int Hits;
@@ -37,7 +33,9 @@ namespace ACE.Server.Physics.Entity
 
         public static Polygon Get(DatLoader.Entity.Polygon p, CVertexArray v)
         {
-            return Get(new Polygon(p, v));
+            var polygon = new Polygon(p, v);
+
+            return Get(polygon);
         }
     }
 }

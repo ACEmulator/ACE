@@ -1,17 +1,13 @@
 using System;
 using System.Collections.Generic;
+
 using ACE.Server.Physics.BSP;
 
 namespace ACE.Server.Physics.Entity
 {
     public static class BSPCache
     {
-        public static HashSet<BSPTree> BSPTrees;
-
-        static BSPCache()
-        {
-            BSPTrees = new HashSet<BSPTree>();
-        }
+        public static readonly HashSet<BSPTree> BSPTrees = new HashSet<BSPTree>();
 
         public static int Requests;
         public static int Hits;
@@ -37,7 +33,9 @@ namespace ACE.Server.Physics.Entity
 
         public static BSPTree Get(DatLoader.Entity.BSPTree bspTree, Dictionary<ushort, DatLoader.Entity.Polygon> polys, DatLoader.Entity.CVertexArray vertexArray)
         {
-            return Get(new BSPTree(bspTree, polys, vertexArray));
+            var physicsBSPTree = new BSPTree(bspTree, polys, vertexArray);
+
+            return Get(physicsBSPTree);
         }
     }
 }

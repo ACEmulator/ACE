@@ -1,17 +1,13 @@
 using System;
 using System.Collections.Generic;
+
 using ACE.Server.Physics.Collision;
 
 namespace ACE.Server.Physics.Entity
 {
     public static class GfxObjCache
     {
-        public static Dictionary<uint, GfxObj> GfxObjs;
-
-        static GfxObjCache()
-        {
-            GfxObjs = new Dictionary<uint, GfxObj>();
-        }
+        public static readonly Dictionary<uint, GfxObj> GfxObjs = new Dictionary<uint, GfxObj>();
 
         public static int Requests;
         public static int Hits;
