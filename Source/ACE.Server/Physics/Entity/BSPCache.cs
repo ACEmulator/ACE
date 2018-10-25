@@ -7,6 +7,11 @@ namespace ACE.Server.Physics.Entity
 {
     public static class BSPCache
     {
+        /// <summary>
+        /// Default is false
+        /// </summary>
+        public static bool CacheEnabled;
+
         public static readonly HashSet<BSPTree> BSPTrees = new HashSet<BSPTree>();
 
         public static int Requests;
@@ -14,6 +19,9 @@ namespace ACE.Server.Physics.Entity
 
         public static BSPTree Get(BSPTree bspTree)
         {
+            if (!CacheEnabled)
+                return bspTree;
+
             Requests++;
 
             //if (Requests % 1000 == 0)
@@ -34,6 +42,9 @@ namespace ACE.Server.Physics.Entity
         public static BSPTree Get(DatLoader.Entity.BSPTree bspTree, Dictionary<ushort, DatLoader.Entity.Polygon> polys, DatLoader.Entity.CVertexArray vertexArray)
         {
             var physicsBSPTree = new BSPTree(bspTree, polys, vertexArray);
+
+            if (!CacheEnabled)
+                return physicsBSPTree;
 
             return Get(physicsBSPTree);
         }
