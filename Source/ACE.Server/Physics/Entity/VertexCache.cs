@@ -27,8 +27,7 @@ namespace ACE.Server.Physics.Entity
             //if (Requests % 100000 == 0)
                 //Console.WriteLine($"VertexCache: Requests={Requests}, Hits={Hits}");
 
-            Vertices.TryGetValue(v, out var result);
-            if (result != null)
+            if (Vertices.TryGetValue(v, out var result))
             {
                 Hits++;
                 return result;

@@ -27,8 +27,7 @@ namespace ACE.Server.Physics.Entity
             //if (Requests % 10000 == 0)
                 //Console.WriteLine($"PolygonCache: Requests={Requests}, Hits={Hits}");
 
-            Polygons.TryGetValue(p, out var result);
-            if (result != null)
+            if (Polygons.TryGetValue(p, out var result))
             {
                 Hits++;
                 return result;

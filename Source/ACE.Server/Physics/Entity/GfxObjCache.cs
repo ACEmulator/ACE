@@ -19,8 +19,7 @@ namespace ACE.Server.Physics.Entity
             //if (Requests % 100 == 0)
             //Console.WriteLine($"GfxObjCache: Requests={Requests}, Hits={Hits}");
 
-            GfxObjs.TryGetValue(_gfxObj.Id, out var result);
-            if (result != null)
+            if (GfxObjs.TryGetValue(_gfxObj.Id, out var result))
             {
                 Hits++;
                 return result;
