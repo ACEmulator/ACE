@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 
 using ACE.Server.Physics.Collision;
+using ACE.Server.Physics.Common;
 
 namespace ACE.Server.Physics.Entity
 {
@@ -24,6 +25,27 @@ namespace ACE.Server.Physics.Entity
                 Hits++;
                 return result;
             }
+
+            // not cached, add it
+            var gfxObj = new GfxObj(_gfxObj);
+            GfxObjs.Add(_gfxObj.Id, gfxObj);
+            return gfxObj;
+        }
+
+        public static GfxObj Get(uint rootObjectID)
+        {
+            Requests++;
+
+            //if (Requests % 100 == 0)
+            //Console.WriteLine($"GfxObjCache: Requests={Requests}, Hits={Hits}");
+
+            if (GfxObjs.TryGetValue(rootObjectID, out var result))
+            {
+                Hits++;
+                return result;
+            }
+
+            var _gfxObj = DBObj.GetGfxObj(rootObjectID);
 
             // not cached, add it
             var gfxObj = new GfxObj(_gfxObj);
