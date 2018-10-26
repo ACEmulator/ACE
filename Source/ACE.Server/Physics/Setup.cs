@@ -11,25 +11,25 @@ namespace ACE.Server.Physics
     public class Setup
     {
         // static
-        private SetupModel _setup;
-        public uint ID { get => _setup.Id; }
-        public uint Bitfield { get => _setup.Bitfield; }
-        public List<uint> ParentIndex { get => _setup.ParentIndex; }
-        public List<Vector3> DefaultScale { get => _setup.DefaultScale; }
-        public bool HasPhysicsBSP { get => _setup.HasPhysicsBSP; }
-        public bool AllowFreeHeading { get => _setup.AllowFreeHeading; }
-        public float Height { get => _setup.Height; }
-        public float Radius { get => _setup.Radius; }
-        public float StepDownHeight { get => _setup.StepDownHeight; }
-        public float StepUpHeight { get => _setup.StepUpHeight; }
-        public Dictionary<int, LocationType> HoldingLocations { get => _setup.HoldingLocations; }
-        public Dictionary<int, LocationType> ConnectionPoints { get => _setup.ConnectionPoints; }
-        public Dictionary<int, PlacementType> PlacementFrames { get => _setup.PlacementFrames; }
-        public uint DefaultAnimID { get => _setup.DefaultAnimation; }
-        public uint DefaultScriptID { get => _setup.DefaultScript; }
-        public uint DefaultMTableID { get => _setup.DefaultMotionTable; }
-        public uint DefaultSTableID { get => _setup.DefaultSoundTable; }
-        public uint DefaultPhsTableID { get => _setup.DefaultScriptTable; }
+        public SetupModel _dat;
+        //public uint ID { get => _dat.Id; }
+        //public uint Bitfield { get => _setup.Bitfield; }
+        //public List<uint> ParentIndex { get => _setup.ParentIndex; }
+        //public List<Vector3> DefaultScale { get => _dat.DefaultScale; }
+        //public bool HasPhysicsBSP { get => _setup.HasPhysicsBSP; }
+        //public bool AllowFreeHeading { get => _dat.AllowFreeHeading; }
+        //public float Height { get => _dat.Height; }
+        //public float Radius { get => _dat.Radius; }
+        //public float StepDownHeight { get => _dat.StepDownHeight; }
+        //public float StepUpHeight { get => _dat.StepUpHeight; }
+        //public Dictionary<int, LocationType> HoldingLocations { get => _dat.HoldingLocations; }
+        //public Dictionary<int, LocationType> ConnectionPoints { get => _setup.ConnectionPoints; }
+        //public Dictionary<int, PlacementType> PlacementFrames { get => _dat.PlacementFrames; }
+        //public uint DefaultAnimID { get => _dat.DefaultAnimation; }
+        //public uint DefaultScriptID { get => _dat.DefaultScript; }
+        //public uint DefaultMTableID { get => _dat.DefaultMotionTable; }
+        //public uint DefaultSTableID { get => _dat.DefaultSoundTable; }
+        //public uint DefaultPhsTableID { get => _dat.DefaultScriptTable; }
 
         public int NumCylsphere;
         public List<CylSphere> CylSphere;
@@ -41,17 +41,17 @@ namespace ACE.Server.Physics
         // dynamic
         public PhysicsObj Owner;
         public int NumParts;
-        public List<uint> PartIDs { get => _setup.Parts; }
+        public List<uint> PartIDs { get => _dat.Parts; }
         public List<PhysicsPart> Parts;
 
         public Setup()
         {
-            _setup = SetupModel.CreateSimpleSetup();
+            _dat = SetupModel.CreateSimpleSetup();
         }
 
         public Setup(SetupModel setupModel)
         {
-            _setup = setupModel;
+            _dat = setupModel;
             //ID = setupModel.Id;
             //Bitfield = setupModel.Bitfield;
             //AllowFreeHeading = setupModel.AllowFreeHeading;
@@ -96,7 +96,7 @@ namespace ACE.Server.Physics
         public LocationType GetHoldingLocation(int location_idx)
         {
             LocationType locationType = null;
-            HoldingLocations.TryGetValue(location_idx, out locationType);
+            _dat.HoldingLocations.TryGetValue(location_idx, out locationType);
             return locationType;
         }
 
@@ -128,7 +128,7 @@ namespace ACE.Server.Physics
 
             var placementType = new PlacementType();
             //placementType.AnimFrame.NumParts = 1;
-            setup.PlacementFrames.Add((int)gfxObjID, placementType);
+            setup._dat.PlacementFrames.Add((int)gfxObjID, placementType);
             return setup;
         }
 
