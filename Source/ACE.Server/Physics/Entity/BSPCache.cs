@@ -7,10 +7,7 @@ namespace ACE.Server.Physics.Entity
 {
     public static class BSPCache
     {
-        /// <summary>
-        /// Default is false
-        /// </summary>
-        public static bool CacheEnabled;
+        public static bool Enabled = true;
 
         public static readonly HashSet<BSPTree> BSPTrees = new HashSet<BSPTree>();
 
@@ -19,7 +16,7 @@ namespace ACE.Server.Physics.Entity
 
         public static BSPTree Get(BSPTree bspTree)
         {
-            if (!CacheEnabled)
+            if (!Enabled)
                 return bspTree;
 
             Requests++;
@@ -38,14 +35,14 @@ namespace ACE.Server.Physics.Entity
             return bspTree;
         }
 
-        public static BSPTree Get(DatLoader.Entity.BSPTree bspTree, Dictionary<ushort, DatLoader.Entity.Polygon> polys, DatLoader.Entity.CVertexArray vertexArray)
+        public static BSPTree Get(DatLoader.Entity.BSPTree _bspTree, Dictionary<ushort, DatLoader.Entity.Polygon> polys, DatLoader.Entity.CVertexArray vertexArray)
         {
-            var physicsBSPTree = new BSPTree(bspTree, polys, vertexArray);
+            var bspTree = new BSPTree(_bspTree, polys, vertexArray);
 
-            if (!CacheEnabled)
-                return physicsBSPTree;
+            if (!Enabled)
+                return bspTree;
 
-            return Get(physicsBSPTree);
+            return Get(bspTree);
         }
     }
 }

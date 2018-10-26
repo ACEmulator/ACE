@@ -8,6 +8,9 @@ using ACE.Server.Physics.Entity;
 
 namespace ACE.Server.Physics
 {
+    /// <summary>
+    /// A static GfxObj from the DAT, combined with dynamic info at runtime (position/rotation/scale)
+    /// </summary>
     public class PhysicsPart
     {
         //public float CYpt;

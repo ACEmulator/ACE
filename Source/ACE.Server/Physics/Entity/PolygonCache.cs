@@ -7,10 +7,7 @@ namespace ACE.Server.Physics.Entity
 {
     public static class PolygonCache
     {
-        /// <summary>
-        /// Default is false
-        /// </summary>
-        public static bool CacheEnabled;
+        public static bool Enabled = true;
 
         public static readonly HashSet<Polygon> Polygons = new HashSet<Polygon>();
 
@@ -19,7 +16,7 @@ namespace ACE.Server.Physics.Entity
 
         public static Polygon Get(Polygon p)
         {
-            if (!CacheEnabled)
+            if (!Enabled)
                 return p;
 
             Requests++;
@@ -42,7 +39,7 @@ namespace ACE.Server.Physics.Entity
         {
             var polygon = new Polygon(p, v);
 
-            if (!CacheEnabled)
+            if (!Enabled)
                 return polygon;
 
             return Get(polygon);

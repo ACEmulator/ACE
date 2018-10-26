@@ -10,83 +10,79 @@ namespace ACE.Server.Physics
 {
     public class Setup
     {
-        public uint ID;
-        public int NumParts;
-        public List<PhysicsPart> Parts;
-        public List<uint> ParentIndex;
-        public List<Vector3> DefaultScale;
+        // static
+        private SetupModel _setup;
+        public uint ID { get => _setup.Id; }
+        public uint Bitfield { get => _setup.Bitfield; }
+        public List<uint> ParentIndex { get => _setup.ParentIndex; }
+        public List<Vector3> DefaultScale { get => _setup.DefaultScale; }
+        public bool HasPhysicsBSP { get => _setup.HasPhysicsBSP; }
+        public bool AllowFreeHeading { get => _setup.AllowFreeHeading; }
+        public float Height { get => _setup.Height; }
+        public float Radius { get => _setup.Radius; }
+        public float StepDownHeight { get => _setup.StepDownHeight; }
+        public float StepUpHeight { get => _setup.StepUpHeight; }
+        public Dictionary<int, LocationType> HoldingLocations { get => _setup.HoldingLocations; }
+        public Dictionary<int, LocationType> ConnectionPoints { get => _setup.ConnectionPoints; }
+        public Dictionary<int, PlacementType> PlacementFrames { get => _setup.PlacementFrames; }
+        public uint DefaultAnimID { get => _setup.DefaultAnimation; }
+        public uint DefaultScriptID { get => _setup.DefaultScript; }
+        public uint DefaultMTableID { get => _setup.DefaultMotionTable; }
+        public uint DefaultSTableID { get => _setup.DefaultSoundTable; }
+        public uint DefaultPhsTableID { get => _setup.DefaultScriptTable; }
+
         public int NumCylsphere;
         public List<CylSphere> CylSphere;
         public int NumSphere;
         public List<Sphere> Sphere;
-        public bool HasPhysicsBSP;
-        public bool AllowFreeHeading;
-        public float Height;
-        public float Radius;
-        public float StepDownHeight;
-        public float StepUpHeight;
         public Sphere SortingSphere;
         public Sphere SelectionSphere;
-        public int NumLights;
-        public List<int> Lights;
-        public Vector3 AnimScale;
-        public Dictionary<int, LocationType> HoldingLocations;
-        public Dictionary<int, LocationType> ConnectionPoints;
-        public Dictionary<int, PlacementType> PlacementFrames;
-        public uint DefaultAnimID;
-        public uint DefaultScriptID;
-        public uint DefaultMTableID;
-        public uint DefaultSTableID;
-        public uint DefaultPhsTableID;
-        public PhysicsObj Owner;
-        public uint Bitfield;
 
-        public List<uint> PartIDs;
+        // dynamic
+        public PhysicsObj Owner;
+        public int NumParts;
+        public List<uint> PartIDs { get => _setup.Parts; }
+        public List<PhysicsPart> Parts;
 
         public Setup()
         {
-            SortingSphere = new Sphere(Vector3.Zero, 0.0f);
-            SelectionSphere = new Sphere(Vector3.Zero, 0.0f);
-            AnimScale = new Vector3(1.0f, 1.0f, 1.0f);
-            AllowFreeHeading = true;
-
-            HoldingLocations = new Dictionary<int, LocationType>();
-            PlacementFrames = new Dictionary<int, PlacementType>();
+            _setup = SetupModel.CreateSimpleSetup();
         }
 
         public Setup(SetupModel setupModel)
         {
-            ID = setupModel.Id;
-            Bitfield = setupModel.Bitfield;
-            AllowFreeHeading = setupModel.AllowFreeHeading;
-            HasPhysicsBSP = setupModel.HasPhysicsBSP;
-            PartIDs = setupModel.Parts;
+            _setup = setupModel;
+            //ID = setupModel.Id;
+            //Bitfield = setupModel.Bitfield;
+            //AllowFreeHeading = setupModel.AllowFreeHeading;
+            //HasPhysicsBSP = setupModel.HasPhysicsBSP;
+            //PartIDs = setupModel.Parts;
             Parts = new List<PhysicsPart>();
             foreach (var partID in PartIDs)
-                Parts.Add(new PhysicsPart(partID));
-            ParentIndex = setupModel.ParentIndex;
-            DefaultScale = setupModel.DefaultScale;
-            HoldingLocations = setupModel.HoldingLocations;
-            ConnectionPoints = setupModel.ConnectionPoints;
-            PlacementFrames = setupModel.PlacementFrames;
-            CylSphere = new List<CylSphere>();
+                Parts.Add(new PhysicsPart(partID));     // physicspart = static gfxobj + dynamic placement
+            //ParentIndex = setupModel.ParentIndex;
+            //DefaultScale = setupModel.DefaultScale;
+            //HoldingLocations = setupModel.HoldingLocations;
+            //ConnectionPoints = setupModel.ConnectionPoints;
+            //PlacementFrames = setupModel.PlacementFrames;
+            CylSphere = new List<CylSphere>();          // todo: don't create empty lists
             foreach (var cylsphere in setupModel.CylSpheres)
                 CylSphere.Add(new CylSphere(cylsphere));
             Sphere = new List<Sphere>();
             foreach (var sphere in setupModel.Spheres)
                 Sphere.Add(new Sphere(sphere));
-            Height = setupModel.Height;
-            Radius = setupModel.Radius;
-            StepDownHeight = setupModel.StepDownHeight;
-            StepUpHeight = setupModel.StepUpHeight;
+            //Height = setupModel.Height;
+            //Radius = setupModel.Radius;
+            //StepDownHeight = setupModel.StepDownHeight;
+            //StepUpHeight = setupModel.StepUpHeight;
             SortingSphere = new Sphere(setupModel.SortingSphere);
             SelectionSphere = new Sphere(setupModel.SelectionSphere);
             // lights
-            DefaultAnimID = setupModel.DefaultAnimation;
-            DefaultScriptID = setupModel.DefaultScript;
-            DefaultMTableID = setupModel.DefaultMotionTable;
-            DefaultSTableID = setupModel.DefaultSoundTable;
-            DefaultPhsTableID = setupModel.DefaultScriptTable;
+            //DefaultAnimID = setupModel.DefaultAnimation;
+            //DefaultScriptID = setupModel.DefaultScript;
+            //DefaultMTableID = setupModel.DefaultMotionTable;
+            //DefaultSTableID = setupModel.DefaultSoundTable;
+            //DefaultPhsTableID = setupModel.DefaultScriptTable;
             NumParts = PartIDs != null ? PartIDs.Count : 0;
             NumCylsphere = CylSphere != null ? CylSphere.Count : 0;
             NumSphere = Sphere != null ? Sphere.Count : 0;
@@ -94,7 +90,7 @@ namespace ACE.Server.Physics
 
         public static Setup Get(uint setupID)
         {
-            return DBObj.GetSetup(setupID);
+            return new Setup(DBObj.GetSetup(setupID));
         }
 
         public LocationType GetHoldingLocation(int location_idx)

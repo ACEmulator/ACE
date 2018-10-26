@@ -7,10 +7,7 @@ namespace ACE.Server.Physics.Entity
 {
     public static class VertexCache
     {
-        /// <summary>
-        /// Default is false
-        /// </summary>
-        public static bool CacheEnabled;
+        public static bool Enabled = true;
 
         public static readonly HashSet<Vertex> Vertices = new HashSet<Vertex>();
 
@@ -19,8 +16,7 @@ namespace ACE.Server.Physics.Entity
 
         public static Vertex Get(Vertex v)
         {
-            if (!CacheEnabled)
-                return v;
+            if (!Enabled) return v;
 
             Requests++;
 
@@ -42,7 +38,7 @@ namespace ACE.Server.Physics.Entity
         {
             var vertex = new Vertex(swv);
 
-            if (!CacheEnabled)
+            if (!Enabled)
                 return vertex;
 
             return Get(vertex);

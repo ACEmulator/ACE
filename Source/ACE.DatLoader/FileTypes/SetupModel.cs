@@ -31,8 +31,8 @@ namespace ACE.DatLoader.FileTypes
         public float Radius { get; private set; }
         public float StepUpHeight { get; private set; }
         public float StepDownHeight { get; private set; }
-        public Sphere SortingSphere { get; } = new Sphere();
-        public Sphere SelectionSphere { get; } = new Sphere();
+        public Sphere SortingSphere { get; private set; } = new Sphere();
+        public Sphere SelectionSphere { get; private set; } = new Sphere();
         public Dictionary<int, LightInfo> Lights { get; } = new Dictionary<int, LightInfo>();
         public uint DefaultAnimation { get; private set; }
         public uint DefaultScript { get; private set; }
@@ -98,6 +98,17 @@ namespace ACE.DatLoader.FileTypes
             DefaultMotionTable  = reader.ReadUInt32();
             DefaultSoundTable   = reader.ReadUInt32();
             DefaultScriptTable  = reader.ReadUInt32();
+        }
+
+        public static SetupModel CreateSimpleSetup()
+        {
+            var setup = new SetupModel();
+
+            setup.SortingSphere = Sphere.CreateDummySphere();
+            setup.SelectionSphere = Sphere.CreateDummySphere();
+            setup.AllowFreeHeading = true;
+
+            return setup;
         }
     }
 }
