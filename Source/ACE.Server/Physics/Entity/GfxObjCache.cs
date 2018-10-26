@@ -1,5 +1,5 @@
 using System;
-using System.Collections.Generic;
+using System.Collections.Concurrent;
 
 using ACE.Server.Physics.Collision;
 using ACE.Server.Physics.Common;
@@ -8,7 +8,7 @@ namespace ACE.Server.Physics.Entity
 {
     public static class GfxObjCache
     {
-        public static readonly Dictionary<uint, GfxObj> GfxObjs = new Dictionary<uint, GfxObj>();
+        public static readonly ConcurrentDictionary<uint, GfxObj> GfxObjs = new ConcurrentDictionary<uint, GfxObj>();
 
         public static int Requests;
         public static int Hits;
@@ -28,7 +28,7 @@ namespace ACE.Server.Physics.Entity
 
             // not cached, add it
             var gfxObj = new GfxObj(_gfxObj);
-            GfxObjs.Add(_gfxObj.Id, gfxObj);
+            gfxObj = GfxObjs.GetOrAdd(_gfxObj.Id, gfxObj);
             return gfxObj;
         }
 
@@ -49,7 +49,7 @@ namespace ACE.Server.Physics.Entity
 
             // not cached, add it
             var gfxObj = new GfxObj(_gfxObj);
-            GfxObjs.Add(_gfxObj.Id, gfxObj);
+            gfxObj = GfxObjs.GetOrAdd(_gfxObj.Id, gfxObj);
             return gfxObj;
         }
     }
