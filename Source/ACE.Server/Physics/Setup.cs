@@ -94,7 +94,7 @@ namespace ACE.Server.Physics
 
         public static Setup Get(uint setupID)
         {
-            return (Setup)DBObj.Get(new QualifiedDataID(7, setupID));
+            return DBObj.GetSetup(setupID);
         }
 
         public LocationType GetHoldingLocation(int location_idx)

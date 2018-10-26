@@ -80,7 +80,7 @@ namespace ACE.Server.Physics.Common
                 return landblock;
 
             // if not, load into cache
-            landblock = new Landblock((DatLoader.FileTypes.CellLandblock)DBObj.Get(new QualifiedDataID(1, landblockID)));
+            landblock = new Landblock(DBObj.GetCellLandblock(landblockID));
             Landblocks.Add(landblockID, landblock);
             landblock.PostInit();
 
@@ -116,7 +116,7 @@ namespace ACE.Server.Physics.Common
             {
                 landblock.LandCells.TryGetValue((int)cellID, out cell);
                 if (cell != null) return cell;
-                cell = (EnvCell)DBObj.Get(new QualifiedDataID(3, blockCellID));
+                cell = DBObj.GetEnvCell(blockCellID);
                 landblock.LandCells.Add((int)cellID, cell);
                 var envCell = cell as EnvCell;
                 envCell.PostInit();

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+
 using ACE.Entity.Enum;
 using ACE.Server.Physics.Animation;
 using ACE.Server.Physics.Combat;
@@ -138,9 +139,9 @@ namespace ACE.Server.Physics.Common
 
             var objCell = new ObjCell(cellID);
             if (cellID >= 0x100)
-                return (EnvCell)DBObj.Get(new QualifiedDataID(3, cellID));
-            else
-                return LandCell.Get(cellID);
+                return DBObj.GetEnvCell(cellID);
+
+            return LandCell.Get(cellID);
         }
 
         public PhysicsObj GetObject(int id)

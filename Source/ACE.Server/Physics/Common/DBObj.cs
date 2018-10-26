@@ -11,50 +11,89 @@ namespace ACE.Server.Physics.Common
         {
             // TODO: map to ACE datloaders
             // return static or mutable?
+
             if (qualifiedDID.Type == 1)
-            {
-                var landblock = DatManager.CellDat.ReadFromDat<CellLandblock>(qualifiedDID.ID);
-                return landblock;
-            }
+                return GetCellLandblock(qualifiedDID.ID);
+
             if (qualifiedDID.Type == 2)
-            {
-                var landblockInfo = DatManager.CellDat.ReadFromDat<LandblockInfo>(qualifiedDID.ID);
-                return landblockInfo;
-            }
+                return GetLandblockInfo(qualifiedDID.ID);
+
             if (qualifiedDID.Type == 3)
-            {
-                var envCell = DatManager.CellDat.ReadFromDat<DatLoader.FileTypes.EnvCell>(qualifiedDID.ID);
-                return new EnvCell(envCell);
-            }
+                return GetEnvCell(qualifiedDID.ID);
+
             if (qualifiedDID.Type == 6)
-            {
-                var gfxObj = DatManager.PortalDat.ReadFromDat<GfxObj>(qualifiedDID.ID);
-                return gfxObj;
-            }
+                return GetGfxObj(qualifiedDID.ID);
+
             if (qualifiedDID.Type == 7)
-            {
-                var setupModel = DatManager.PortalDat.ReadFromDat<SetupModel>(qualifiedDID.ID);
-                return new Setup(setupModel);
-            }
+                return GetSetup(qualifiedDID.ID);
+
             if (qualifiedDID.Type == 8)
-            {
-                var animation = DatManager.PortalDat.ReadFromDat<DatLoader.FileTypes.Animation>(qualifiedDID.ID);
-                return animation;
-            }
+                return GetAnimation(qualifiedDID.ID);
+
             if (qualifiedDID.Type == 16)
-            {
-                var environment = DatManager.PortalDat.ReadFromDat<DatLoader.FileTypes.Environment>(qualifiedDID.ID);
-                return environment;
-            }
+                return GetEnvironment(qualifiedDID.ID);
+
             return -1;
+        }
+
+        /// <summary>
+        /// QualifiedDID Type 1
+        /// </summary>
+        public static DatLoader.FileTypes.CellLandblock GetCellLandblock(uint id)
+        {
+            return DatManager.CellDat.ReadFromDat<DatLoader.FileTypes.CellLandblock>(id);
+        }
+
+        /// <summary>
+        /// QualifiedDID Type 2
+        /// </summary>
+        public static DatLoader.FileTypes.LandblockInfo GetLandblockInfo(uint id)
+        {
+            return DatManager.CellDat.ReadFromDat<DatLoader.FileTypes.LandblockInfo>(id);
+        }
+
+        /// <summary>
+        /// QualifiedDID Type 3
+        /// </summary>
+        public static EnvCell GetEnvCell(uint id)
+        {
+            var envCell = DatManager.CellDat.ReadFromDat<DatLoader.FileTypes.EnvCell>(id);
+
+            return new EnvCell(envCell);
         }
 
         /// <summary>
         /// QualifiedDID Type 6
         /// </summary>
-        public static GfxObj GetGfxObj(uint id)
+        public static DatLoader.FileTypes.GfxObj GetGfxObj(uint id)
         {
-            return DatManager.PortalDat.ReadFromDat<GfxObj>(id);
+            return DatManager.PortalDat.ReadFromDat<DatLoader.FileTypes.GfxObj>(id);
+        }
+
+        /// <summary>
+        /// QualifiedDID Type 7
+        /// </summary>
+        public static Setup GetSetup(uint id)
+        {
+            var setupModel = DatManager.PortalDat.ReadFromDat<SetupModel>(id);
+
+            return new Setup(setupModel);
+        }
+
+        /// <summary>
+        /// QualifiedDID Type 8
+        /// </summary>
+        public static DatLoader.FileTypes.Animation GetAnimation(uint id)
+        {
+            return DatManager.PortalDat.ReadFromDat<DatLoader.FileTypes.Animation>(id);
+        }
+
+        /// <summary>
+        /// QualifiedDID Type 16
+        /// </summary>
+        public static DatLoader.FileTypes.Environment GetEnvironment(uint id)
+        {
+            return DatManager.PortalDat.ReadFromDat<DatLoader.FileTypes.Environment>(id);
         }
     }
 }
