@@ -59,28 +59,28 @@ namespace ACE.Server.Managers
                 0x8c04ffff, // Training Academy - Yaraq Starting Location
                 0x7f03ffff, // Training Academy - Shoushi Starting Location
                 0x7203ffff, // Training Academy - Sanamar Starting Location
-                0x0007ffff,	// Town Network
-                0xce94ffff,	// Eastham
-                0xda55ffff,	// Shoushi
-                0xdb54ffff,	// Shoushi
-                0xa9b4ffff,	// Holtburg
-                0xabb2ffff,	// Holtburg
-                0xaab3ffff,	// Holtburg
-                0x7d64ffff,	// Yaraq
-                0x7e64ffff,	// Yaraq
-                0xe64effff,	// Hebian-to
-                0xe74effff,	// Hebian-to
-                0xbb9fffff,	// Cragstone
-                0xbc9fffff,	// Cragstone
-                0xc6a9ffff,	// Arwic
-                0xe63effff,	// Nanto
-                0xe632ffff,	// Mayoi
-                0xc341ffff,	// Baishi
-                0xc98cffff,	// Rithwic
-                0x977bffff,	// Samsur
-                0x8f58ffff,	// Al-Arqas
-                0x33d9ffff,	// Sanamar
-                0x17b2ffff	// Redspire
+                0x0007ffff, // Town Network
+                0xce94ffff, // Eastham
+                0xda55ffff, // Shoushi
+                0xdb54ffff, // Shoushi
+                0xa9b4ffff, // Holtburg
+                0xabb2ffff, // Holtburg
+                0xaab3ffff, // Holtburg
+                0x7d64ffff, // Yaraq
+                0x7e64ffff, // Yaraq
+                0xe64effff, // Hebian-to
+                0xe74effff, // Hebian-to
+                0xbb9fffff, // Cragstone
+                0xbc9fffff, // Cragstone
+                0xc6a9ffff, // Arwic
+                0xe63effff, // Nanto
+                0xe632ffff, // Mayoi
+                0xc341ffff, // Baishi
+                0xc98cffff, // Rithwic
+                0x977bffff, // Samsur
+                0x8f58ffff, // Al-Arqas
+                0x33d9ffff, // Sanamar
+                0x17b2ffff  // Redspire
         };
 
         /// <summary>
