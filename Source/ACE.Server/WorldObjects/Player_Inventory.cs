@@ -1332,11 +1332,9 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Giver methods used upon successful acceptance of item by NPC
+        /// Giver methods used upon successful acceptance of item by NPC<para />
+        /// The item will be destroyed after processing.
         /// </summary>
-        /// <param name="item"></param>
-        /// <param name="amount"></param>
-        /// <param name="target"></param>
         private void ItemAccepted(WorldObject item, uint amount, WorldObject target)
         {
             if (item.CurrentWieldedLocation != null)
@@ -1349,6 +1347,8 @@ namespace ACE.Server.WorldObjects
             Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.ReceiveItem, 1));
 
             Session.Network.EnqueueSend(new GameEventInventoryRemoveObject(Session, item));
+
+            item.Destroy();
         }
 
         // ===========================
