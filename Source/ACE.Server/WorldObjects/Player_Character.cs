@@ -135,7 +135,7 @@ namespace ACE.Server.WorldObjects
                 ChatPacket.SendServerMessage(Session, "Sorry, but you can't be friends with yourself.", ChatMessageType.Broadcast);
 
             // get friend player info
-            var friendInfo = WorldManager.AllPlayers.FirstOrDefault(p => p.Name.Equals(friendName));
+            var friendInfo = PlayerManager.AllPlayers.FirstOrDefault(p => p.Name.Equals(friendName));
 
             if (friendInfo == null)
             {

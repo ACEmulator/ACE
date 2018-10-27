@@ -79,7 +79,7 @@ namespace ACE.Server.Network.GameEvent.Events
                         isOnline = true;
                 }
 
-                var offlinePlayer = WorldManager.AllPlayers.FirstOrDefault(p => p.Guid.Full == f.FriendId);
+                var offlinePlayer = PlayerManager.AllPlayers.FirstOrDefault(p => p.Guid.Full == f.FriendId);
                 var friendName = offlinePlayer != null ? offlinePlayer.Name : "";
 
                 Writer.Write(f.FriendId);           // Friend's ID

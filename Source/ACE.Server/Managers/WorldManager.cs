@@ -65,93 +65,10 @@ namespace ACE.Server.Managers
         private static readonly ActionQueue playerEnterWorldQueue = new ActionQueue();
         public static readonly DelayManager DelayManager = new DelayManager(); // TODO get rid of this. Each WO should have its own delayManager
 
-        public static List<Player> AllPlayers;
-
         static WorldManager()
         {
             Physics = new PhysicsEngine(new ObjectMaint(), new SmartBox());
             Physics.Server = true;
-
-            LoadAllPlayers();
-        }
-
-        /// <summary>
-        /// Populate a list of all players on the server
-        /// This includes offline players, and these records are technically separate from the online records
-        /// This method is a placeholder until syncing the offline data with the online Players is sorted out...
-        /// </summary>
-        public static void LoadAllPlayers()
-        {
-            // FIXME: this is a placeholder for offline players
-
-            // probably bugged when players are added/removed...
-            AllPlayers = new List<Player>();
-
-            // get all character ids
-            DatabaseManager.Shard.GetAllCharacters(characters =>
-            {
-                foreach (var character in characters)
-                {
-                    DatabaseManager.Shard.GetPlayerBiotasInParallel(character.Id, biotas =>
-                    {
-                        var session = new Session();
-                        var player = new Player(biotas.Player, biotas.Inventory, biotas.WieldedItems, character, session);
-                        AllPlayers.Add(player);
-                    });
-                }
-            });
-        }
-
-        /// <summary>
-        /// Adds a newly created character to the list of all players on the server
-        /// </summary>
-        public static void AddPlayer(Character character)
-        {
-            DatabaseManager.Shard.GetPlayerBiotasInParallel(character.Id, biotas =>
-            {
-                var session = new Session();
-                var player = new Player(biotas.Player, biotas.Inventory, biotas.WieldedItems, character, session);
-                AllPlayers.Add(player);
-            });
-        }
-
-        /// <summary>
-        /// Returns an offline player record from the AllPlayers list
-        /// </summary>
-        /// <param name="playerGuid"></param>
-        /// <returns></returns>
-        public static Player GetOfflinePlayer(ObjectGuid playerGuid)
-        {
-            return AllPlayers.FirstOrDefault(p => p.Guid.Equals(playerGuid));
-        }
-
-        /// <summary>
-        /// Syncs the cached offline player fields
-        /// </summary>
-        /// <param name="player">An online player</param>
-        public static void SyncOffline(Player player)
-        {
-            var offlinePlayer = AllPlayers.FirstOrDefault(p => p.Guid.Full == player.Guid.Full);
-            if (offlinePlayer == null) return;
-
-            // FIXME: this is a placeholder for offline players
-            offlinePlayer.Monarch = player.Monarch;
-            offlinePlayer.Patron = player.Patron;
-
-            offlinePlayer.AllegianceCPPool = player.AllegianceCPPool;
-        }
-
-        /// <summary>
-        /// Syncs an online player with the cached offline fields
-        /// </summary>
-        /// <param name="player">An online player</param>
-        public static void SyncOnline(Player player)
-        {
-            var offlinePlayer = AllPlayers.FirstOrDefault(p => p.Guid.Full == player.Guid.Full);
-            if (offlinePlayer == null) return;
-
-            // FIXME: this is a placeholder for offline players
-            player.AllegianceCPPool = offlinePlayer.AllegianceCPPool;
         }
 
         public static void Initialize()
@@ -349,12 +266,7 @@ namespace ACE.Server.Managers
             }
         }
 
-
-        public static Player GetOfflinePlayerByGuidId(uint playerId)
-        {
-            return AllPlayers.FirstOrDefault(p => p.Guid.Full.Equals(playerId));
-        }
-
+        // TODO do we even need this anymore? Should it be removed? It's not used. Mag-nus 2018-10-26
         public static List<Session> FindInverseFriends(ObjectGuid characterGuid)
         {
             sessionLock.EnterReadLock();
@@ -382,23 +294,6 @@ namespace ACE.Server.Managers
                     return sessions.Where(s => s.Player != null && s.Player.IsOnline).ToList();
 
                 return sessions.ToList();
-            }
-            finally
-            {
-                sessionLock.ExitReadLock();
-            }
-        }
-
-        /// <summary>
-        /// Returns a list of all players who are under a monarch
-        /// </summary>
-        /// <param name="monarch">The monarch of an allegiance</param>
-        public static List<Player> GetAllegiance(Player monarch)
-        {
-            sessionLock.EnterReadLock();
-            try
-            {
-                return AllPlayers.Where(p => p.Monarch == monarch.Guid.Full).ToList();
             }
             finally
             {

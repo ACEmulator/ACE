@@ -1,12 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.Text;
-using ACE.Server.WorldObjects;
-using ACE.Entity.Enum.Properties;
-using ACE.Server.Managers;
-using ACE.Server.Entity;
-using ACE.Entity.Enum;
 using System.Linq;
+
+using ACE.Entity.Enum;
+using ACE.Server.Entity;
+using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Managers
 {
@@ -18,21 +16,16 @@ namespace ACE.Server.Managers
         /// <summary>
         /// A mapping of all Players on the server => their AllegianceNodes
         /// </summary>
-        public static Dictionary<Player, AllegianceNode> Players;
-
-        static AllegianceManager()
-        {
-            Players = new Dictionary<Player, AllegianceNode>();
-        }
+        public static readonly Dictionary<Player, AllegianceNode> Players = new Dictionary<Player, AllegianceNode>();
 
         /// <summary>
         /// Returns the monarch for a player
         /// </summary>
         public static Player GetMonarch(Player player)
         {
-            var monarch = WorldManager.AllPlayers.Where(p => p.Guid.Full.Equals(player.Monarch)).FirstOrDefault();
+            var monarch = PlayerManager.AllPlayers.FirstOrDefault(p => p.Guid.Full.Equals(player.Monarch));
 
-            return monarch != null ? monarch : player;
+            return monarch ?? player;
         }
 
         /// <summary>
@@ -52,11 +45,9 @@ namespace ACE.Server.Managers
             var allegiance = new Allegiance(monarch);
             if (allegiance.TotalMembers == 1)
                 return null;
-            else
-            {
-                AddPlayers(allegiance);
-                return allegiance;
-            }
+
+            AddPlayers(allegiance);
+            return allegiance;
         }
 
         /// <summary>
@@ -73,7 +64,7 @@ namespace ACE.Server.Managers
         /// </summary>
         public static List<Player> FindAllPlayers(Player monarch)
         {
-            return WorldManager.GetAllegiance(monarch);
+            return PlayerManager.GetAllegiance(monarch);
         }
 
         /// <summary>

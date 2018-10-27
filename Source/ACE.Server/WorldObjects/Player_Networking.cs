@@ -1,4 +1,5 @@
 using System.Linq;
+
 using ACE.Common;
 using ACE.Entity;
 using ACE.Entity.Enum;
@@ -43,7 +44,7 @@ namespace ACE.Server.WorldObjects
             Session.Network.EnqueueSend(setTurbineChatChannels, general, trade, lfg, roleplay);
 
             // check if vassals earned XP while offline
-            var offlinePlayer = WorldManager.GetOfflinePlayer(Guid);
+            var offlinePlayer = PlayerManager.GetOfflinePlayer(Guid);
             if (offlinePlayer != null)
                 offlinePlayer.AddCPPoolToUnload(true);
 
