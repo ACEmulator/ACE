@@ -7,6 +7,7 @@ using System.Text;
 using ACE.Database;
 using ACE.Database.Models.Shard;
 using ACE.Entity;
+using ACE.Server.Entity;
 using ACE.Server.Network;
 using ACE.Server.WorldObjects;
 
@@ -20,49 +21,36 @@ namespace ACE.Server.Managers
 
         public static readonly ConcurrentDictionary<uint, Player> OnlinePlayers = new ConcurrentDictionary<uint, Player>();
 
-        //public static readonly ConcurrentDictionary<uint, OfflinePlayer> OfflinePlayers = new ConcurrentDictionary<uint, OfflinePlayer>();
+        public static readonly ConcurrentDictionary<uint, OfflinePlayer> OfflinePlayers = new ConcurrentDictionary<uint, OfflinePlayer>();
 
         public static void Initialize()
         {
-            LoadAllPlayers();
+            LoadOfflinePlayers();
         }
 
-        /// <summary>
-        /// Populate a list of all players on the server
-        /// This includes offline players, and these records are technically separate from the online records
-        /// This method is a placeholder until syncing the offline data with the online Players is sorted out...
-        /// </summary>
-        public static void LoadAllPlayers()
+        private static void LoadOfflinePlayers()
         {
-            // FIXME: this is a placeholder for offline players
+            var results = DatabaseManager.Shard.GetAllPlayerBiotasInParallel();
 
-            // get all character ids
-            DatabaseManager.Shard.GetAllCharacters(characters =>
+            foreach (var result in results)
             {
-                foreach (var character in characters)
-                {
-                    DatabaseManager.Shard.GetPlayerBiotasInParallel(character.Id, biotas =>
-                    {
-                        var session = new Session();
-                        var player = new Player(biotas.Player, biotas.Inventory, biotas.WieldedItems, character, session);
-                        AllPlayers.Add(player);
-                    });
-                }
-            });
+                var offlinePlayer = new OfflinePlayer(result);
+                OfflinePlayers[offlinePlayer.Guid.Full] = offlinePlayer;
+            }
         }
 
-        /// <summary>
-        /// Adds a newly created character to the list of all players on the server
-        /// </summary>
-        public static void AddPlayer(Character character)
+
+        public static void AddOfflinePlayer(Player player)
         {
-            DatabaseManager.Shard.GetPlayerBiotasInParallel(character.Id, biotas =>
-            {
-                var session = new Session();
-                var player = new Player(biotas.Player, biotas.Inventory, biotas.WieldedItems, character, session);
-                AllPlayers.Add(player);
-            });
+            var offlinePlayer = new OfflinePlayer(player.Biota);
+            OfflinePlayers[offlinePlayer.Guid.Full] = offlinePlayer;
         }
+
+
+
+
+
+
 
         /// <summary>
         /// Returns an offline player record from the AllPlayers list

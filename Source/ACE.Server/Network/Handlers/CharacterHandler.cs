@@ -148,7 +148,7 @@ namespace ACE.Server.Network.Handlers
                         return;
                     }
 
-                    PlayerManager.AddPlayer(player.Character);
+                    PlayerManager.AddOfflinePlayer(player);
                     session.Characters.Add(player.Character);
 
                     SendCharacterCreateResponse(session, CharacterGenerationVerificationResponse.Ok, player.Guid, characterCreateInfo.Name);

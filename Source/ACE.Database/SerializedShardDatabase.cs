@@ -303,13 +303,12 @@ namespace ACE.Database
         }
 
 
-        public void GetAllCharacters(Action<List<Character>> callback)
+        /// <summary>
+        /// This will get all player biotas that are backed by characters that are not deleted.
+        /// </summary>
+        public List<Biota> GetAllPlayerBiotasInParallel()
         {
-            _queue.Add(new Task(() =>
-            {
-                var result = _wrappedDatabase.GetAllCharacters();
-                callback?.Invoke(result);
-            }));
+            return _wrappedDatabase.GetAllPlayerBiotasInParallel();
         }
 
 
