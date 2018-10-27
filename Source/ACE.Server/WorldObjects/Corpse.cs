@@ -15,7 +15,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// The maximum number of seconds for an empty corpse to stick around
         /// </summary>
-        private static readonly double emptyDecayTime = 15.0;
+        public static readonly double EmptyDecayTime = 15.0;
 
         /// <summary>
         /// Flag indicates if a corpse is from a monster or a player
@@ -81,7 +81,7 @@ namespace ACE.Server.WorldObjects
         {
             // empty corpses decay faster
             if (Inventory.Count == 0)
-                TimeToRot = emptyDecayTime;
+                TimeToRot = EmptyDecayTime;
             else
                 // a player corpse decays after 5 mins * playerLevel with a minimum of 1 hour
                 TimeToRot = Math.Max(3600, (player.Level ?? 1) * 300);
