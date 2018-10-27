@@ -2,6 +2,7 @@ using System;
 
 using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
+using ACE.Server.Entity;
 
 namespace ACE.Server.WorldObjects.Entity
 {
@@ -76,7 +77,7 @@ namespace ACE.Server.WorldObjects.Entity
                 if (formula != null)
                 {
                     if ((AdvancementClass == SkillAdvancementClass.Untrained && Skill.GetUsability() != null && Skill.GetUsability().UsableUntrained) || AdvancementClass == SkillAdvancementClass.Trained || AdvancementClass == SkillAdvancementClass.Specialized)
-                        total = formula.CalcBase(creature.Strength.Base, creature.Endurance.Base, creature.Coordination.Base, creature.Quickness.Base, creature.Focus.Base, creature.Self.Base);
+                        total = AttributeFormula.GetFormula(creature, Skill, false);
                 }
 
                 total += InitLevel + Ranks;
@@ -98,7 +99,7 @@ namespace ACE.Server.WorldObjects.Entity
                 if (formula != null)
                 {
                     if ((AdvancementClass == SkillAdvancementClass.Untrained && Skill.GetUsability() != null && Skill.GetUsability().UsableUntrained) || AdvancementClass == SkillAdvancementClass.Trained || AdvancementClass == SkillAdvancementClass.Specialized)
-                        total = formula.CalcBase(creature.Strength.Current, creature.Endurance.Current, creature.Coordination.Current, creature.Quickness.Current, creature.Focus.Current, creature.Self.Current);
+                        total = AttributeFormula.GetFormula(creature, Skill);
                 }
 
                 total += InitLevel + Ranks;

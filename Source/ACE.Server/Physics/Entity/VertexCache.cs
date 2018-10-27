@@ -7,7 +7,7 @@ namespace ACE.Server.Physics.Entity
 {
     public static class VertexCache
     {
-        public static bool Enabled = true;
+        public static bool Enabled = false;
 
         public static readonly HashSet<Vertex> Vertices = new HashSet<Vertex>();
 
