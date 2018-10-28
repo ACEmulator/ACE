@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Numerics;
+
 using ACE.Server.Physics.BSP;
 using ACE.Server.Physics.Entity;
 using ACE.Server.Physics.Collision;
@@ -25,7 +26,7 @@ namespace ACE.Server.Physics.Common
         {
             Polygons = new Dictionary<ushort, Polygon>();
             foreach (var poly in cellStruct.Polygons)
-                Polygons.Add(poly.Key, PolygonCache.Get(new Polygon(poly.Value, cellStruct.VertexArray)));
+                Polygons.Add(poly.Key, PolygonCache.Get(poly.Value, cellStruct.VertexArray));
 
             Portals = new List<Polygon>();
             foreach (var portal in cellStruct.Portals)
@@ -33,7 +34,7 @@ namespace ACE.Server.Physics.Common
 
             PhysicsPolygons = new Dictionary<ushort, Polygon>();
             foreach (var poly in cellStruct.PhysicsPolygons)
-                PhysicsPolygons.Add(poly.Key, PolygonCache.Get(new Polygon(poly.Value, cellStruct.VertexArray)));
+                PhysicsPolygons.Add(poly.Key, PolygonCache.Get(poly.Value, cellStruct.VertexArray));
 
             if (cellStruct.CellBSP != null)
                 CellBSP = BSPCache.Get(cellStruct.CellBSP, cellStruct.PhysicsPolygons, cellStruct.VertexArray);

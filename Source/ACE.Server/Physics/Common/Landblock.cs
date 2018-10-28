@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
+
 using ACE.DatLoader;
 using ACE.DatLoader.FileTypes;
 using ACE.Server.Physics.Animation;
@@ -45,7 +46,7 @@ namespace ACE.Server.Physics.Common
             //Console.WriteLine("Loading landblock " + ID.ToString("X8"));
             BlockInfoExists = landblock.HasObjects;
             if (BlockInfoExists)
-                Info = (LandblockInfo)DBObj.Get(new QualifiedDataID(2, ID - 1));
+                Info = DBObj.GetLandblockInfo(ID - 1);
             BlockCoord = LandDefs.blockid_to_lcoord(landblock.Id).Value;
             _landblock = landblock;
             get_land_limits();

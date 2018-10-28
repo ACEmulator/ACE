@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+
 using ACE.DatLoader.Entity;
 using ACE.Server.Physics.Animation;
 using ACE.Server.Physics.Entity;
@@ -34,13 +35,13 @@ namespace ACE.Server.Physics.Collision
 
             Polygons = new Dictionary<ushort, Polygon>();
             foreach (var kvp in gfxObj.Polygons)
-                Polygons.Add(kvp.Key, PolygonCache.Get(new Polygon(kvp.Value, gfxObj.VertexArray)));
+                Polygons.Add(kvp.Key, PolygonCache.Get(kvp.Value, gfxObj.VertexArray));
 
             if (gfxObj.PhysicsPolygons.Count > 0)
             {
                 PhysicsPolygons = new Dictionary<ushort, Polygon>();
                 foreach (var kvp in gfxObj.PhysicsPolygons)
-                    PhysicsPolygons.Add(kvp.Key, PolygonCache.Get(new Polygon(kvp.Value, gfxObj.VertexArray)));
+                    PhysicsPolygons.Add(kvp.Key, PolygonCache.Get(kvp.Value, gfxObj.VertexArray));
 
                 PhysicsBSP = BSPCache.Get(gfxObj.PhysicsBSP, gfxObj.PhysicsPolygons, gfxObj.VertexArray);
                 PhysicsSphere = PhysicsBSP.GetSphere();

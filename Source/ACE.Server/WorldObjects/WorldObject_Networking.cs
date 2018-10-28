@@ -1129,7 +1129,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public bool PlayersInRange(float range = 96.0f)
         {
-            var isDungeon = CurrentLandblock._landblock.IsDungeon;
+            var isDungeon = CurrentLandblock._landblock != null && CurrentLandblock._landblock.IsDungeon;
 
             var rangeSquared = range * range;
 
@@ -1161,7 +1161,7 @@ namespace ACE.Server.WorldObjects
             if (self != null)
                 self.Session.Network.EnqueueSend(msg);
 
-            var isDungeon = CurrentLandblock._landblock.IsDungeon;
+            var isDungeon = CurrentLandblock._landblock != null && CurrentLandblock._landblock.IsDungeon;
 
             var rangeSquared = range * range;
 

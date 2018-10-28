@@ -86,7 +86,7 @@ namespace ACE.Server.Entity
         /// The clientlib backing store landblock
         /// Eventually these classes could be merged, but for now they are separate...
         /// </summary>
-        public readonly Physics.Common.Landblock _landblock;
+        public Physics.Common.Landblock _landblock { get; private set; }
 
         public CellLandblock CellLandblock { get; private set; }
         public LandblockInfo LandblockInfo { get; private set; }
@@ -116,12 +116,12 @@ namespace ACE.Server.Entity
             adjacencies.Add(Adjacency.West, null);
             adjacencies.Add(Adjacency.NorthWest, null);
 
-            _landblock = LScape.get_landblock(Id.Raw);
-
             lastActiveTime = DateTime.UtcNow;
 
             Task.Run(() =>
             {
+                _landblock = LScape.get_landblock(Id.Raw);
+
                 CreateWorldObjects();
 
                 SpawnDynamicShardObjects();
@@ -652,7 +652,7 @@ namespace ACE.Server.Entity
         {
             lastActiveTime = DateTime.UtcNow;
 
-            if (isAdjacent || _landblock.IsDungeon) return;
+            if (isAdjacent || _landblock == null || _landblock.IsDungeon) return;
 
             // for outdoor landblocks, recursively call 1 iteration to set adjacents to active
             foreach (var landblock in adjacencies.Values)
@@ -682,7 +682,7 @@ namespace ACE.Server.Entity
             LScape.unload_landblock(landblockID);
 
             // dungeon landblocks do not handle adjacents
-            if (_landblock.IsDungeon) return;
+            if (_landblock == null || _landblock.IsDungeon) return;
 
             // notify adjacents
             foreach (var adjacent in adjacencies.Where(adj => adj.Value != null))

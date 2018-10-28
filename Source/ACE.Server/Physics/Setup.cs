@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Numerics;
+
 using ACE.DatLoader.Entity;
 using ACE.DatLoader.FileTypes;
 using ACE.Server.Physics.Common;
@@ -93,7 +94,7 @@ namespace ACE.Server.Physics
 
         public static Setup Get(uint setupID)
         {
-            return (Setup)DBObj.Get(new QualifiedDataID(7, setupID));
+            return DBObj.GetSetup(setupID);
         }
 
         public LocationType GetHoldingLocation(int location_idx)
@@ -116,7 +117,7 @@ namespace ACE.Server.Physics
             setup.NumParts = 1;
             setup.Parts = new List<PhysicsPart>(1);
 
-            var gfxObj = GfxObjCache.Get((GfxObj)DBObj.Get(new QualifiedDataID(6, gfxObjID)));
+            var gfxObj = GfxObjCache.Get(gfxObjID);
             if (gfxObj != null)
             {
                 if (gfxObj.PhysicsSphere != null)

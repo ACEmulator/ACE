@@ -1,30 +1,33 @@
 using System;
 using System.Collections.Generic;
+
 using ACE.DatLoader.Entity;
 
 namespace ACE.Server.Physics.Entity
 {
     public static class PolygonCache
     {
-        public static HashSet<Polygon> Polygons;
+        /// <summary>
+        /// Default is false
+        /// </summary>
+        public static bool CacheEnabled;
 
-        static PolygonCache()
-        {
-            Polygons = new HashSet<Polygon>();
-        }
+        public static readonly HashSet<Polygon> Polygons = new HashSet<Polygon>();
 
         public static int Requests;
         public static int Hits;
 
         public static Polygon Get(Polygon p)
         {
+            if (!CacheEnabled)
+                return p;
+
             Requests++;
 
             //if (Requests % 10000 == 0)
                 //Console.WriteLine($"PolygonCache: Requests={Requests}, Hits={Hits}");
 
-            Polygons.TryGetValue(p, out var result);
-            if (result != null)
+            if (Polygons.TryGetValue(p, out var result))
             {
                 Hits++;
                 return result;
@@ -37,7 +40,12 @@ namespace ACE.Server.Physics.Entity
 
         public static Polygon Get(DatLoader.Entity.Polygon p, CVertexArray v)
         {
-            return Get(new Polygon(p, v));
+            var polygon = new Polygon(p, v);
+
+            if (!CacheEnabled)
+                return polygon;
+
+            return Get(polygon);
         }
     }
 }
