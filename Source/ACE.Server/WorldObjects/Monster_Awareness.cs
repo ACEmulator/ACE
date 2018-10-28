@@ -28,6 +28,7 @@ namespace ACE.Server.WorldObjects
         /// Determines when a monster wakes up from idle state
         /// </summary>
         public const float RadiusAwareness = 35.0f;
+        public const float RadiusAwarenessSquared = RadiusAwareness * RadiusAwareness;
 
         /// <summary>
         /// Monsters wake up when players are in visual range

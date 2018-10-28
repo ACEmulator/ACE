@@ -99,7 +99,7 @@ namespace ACE.Server
                 DatabaseManager.World.CacheAllWieldedTreasuresInParallel();
             }
             else
-                log.Info("No World Database Precaching Performed...");
+                log.Info("Precaching World Database Disabled...");
 
             log.Info("Initializing InboundMessageManager...");
             InboundMessageManager.Initialize();
@@ -116,7 +116,7 @@ namespace ACE.Server
                 LandblockManager.PreloadCommonLandblocks();
             }
             else
-                log.Info("No Landblock Preloading Performed...");
+                log.Info("Preloading Landblocks Disabled...");
 
             log.Info("Initializing EventManager...");
             EventManager.Initialize();

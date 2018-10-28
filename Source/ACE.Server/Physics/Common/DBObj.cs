@@ -39,17 +39,17 @@ namespace ACE.Server.Physics.Common
         /// <summary>
         /// QualifiedDID Type 1
         /// </summary>
-        public static DatLoader.FileTypes.CellLandblock GetCellLandblock(uint id)
+        public static CellLandblock GetCellLandblock(uint id)
         {
-            return DatManager.CellDat.ReadFromDat<DatLoader.FileTypes.CellLandblock>(id);
+            return DatManager.CellDat.ReadFromDat<CellLandblock>(id);
         }
 
         /// <summary>
         /// QualifiedDID Type 2
         /// </summary>
-        public static DatLoader.FileTypes.LandblockInfo GetLandblockInfo(uint id)
+        public static LandblockInfo GetLandblockInfo(uint id)
         {
-            return DatManager.CellDat.ReadFromDat<DatLoader.FileTypes.LandblockInfo>(id);
+            return DatManager.CellDat.ReadFromDat<LandblockInfo>(id);
         }
 
         /// <summary>
@@ -65,19 +65,17 @@ namespace ACE.Server.Physics.Common
         /// <summary>
         /// QualifiedDID Type 6
         /// </summary>
-        public static DatLoader.FileTypes.GfxObj GetGfxObj(uint id)
+        public static GfxObj GetGfxObj(uint id)
         {
-            return DatManager.PortalDat.ReadFromDat<DatLoader.FileTypes.GfxObj>(id);
+            return DatManager.PortalDat.ReadFromDat<GfxObj>(id);
         }
 
         /// <summary>
         /// QualifiedDID Type 7
         /// </summary>
-        public static Setup GetSetup(uint id)
+        public static SetupModel GetSetup(uint id)
         {
-            var setupModel = DatManager.PortalDat.ReadFromDat<SetupModel>(id);
-
-            return new Setup(setupModel);
+            return DatManager.PortalDat.ReadFromDat<SetupModel>(id);
         }
 
         /// <summary>

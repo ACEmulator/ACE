@@ -4,6 +4,7 @@ using System.Linq;
 using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Server.Entity;
 
 namespace ACE.Server.WorldObjects.Entity
 {
@@ -75,29 +76,9 @@ namespace ACE.Server.WorldObjects.Entity
         {
             get
             {
-                var formula = Vital.GetFormula();
+                var attr = AttributeFormula.GetFormula(creature, Vital);
 
-                uint derivationTotal = 0;
-                uint total = 0;
-
-                if (formula != null)
-                {
-                    // restricted to endurance and self because those are the only 2 used by vitals
-
-                    var attributeCache = formula.AttributeCache;
-                    uint end = (uint)((attributeCache & AttributeCache.Endurance) > 0 ? 1 : 0);
-                    uint wil = (uint)((attributeCache & AttributeCache.Self) > 0 ? 1 : 0);
-
-                    derivationTotal += end * creature.Endurance.Current;
-                    derivationTotal += wil * creature.Self.Current;
-
-                    derivationTotal *= formula.AbilityMultiplier;
-                    total = (uint)Math.Round((double)derivationTotal / (double)formula.Divisor);
-                }
-
-                total += StartingValue + Ranks;
-
-                return total;
+                return StartingValue + Ranks + attr;
             }
         }
 

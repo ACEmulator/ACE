@@ -588,20 +588,20 @@ namespace ACE.Server.Physics
         /// </summary>
         public void InitDefaults(Setup setup)
         {
-            if (setup.DefaultScriptID != 0)
-                play_script_internal(setup.DefaultScriptID);
+            if (setup._dat.DefaultScript != 0)
+                play_script_internal(setup._dat.DefaultScript);
 
-            if (setup.DefaultMTableID != 0)
-                SetMotionTableID(setup.DefaultMTableID);
+            if (setup._dat.DefaultMotionTable != 0)
+                SetMotionTableID(setup._dat.DefaultMotionTable);
 
-            if (setup.DefaultSTableID != 0)
+            if (setup._dat.DefaultSoundTable != 0)
             {
                 //var qdid = new QualifiedDataID(0x22, setup.DefaultSTableID);
                 //SoundTable = (SoundTable)DBObj.Get(qdid);
                 //log.Warn($"PhysicsObj has DefaultSTableID, (SoundTable)DBObj.Get(qdid) not implemented yet, qdid = new QualifiedDataID(0x22, {setup.DefaultSTableID});");
             }
 
-            if (setup.DefaultPhsTableID != 0)
+            if (setup._dat.DefaultScriptTable != 0)
             {
                 //    var qdid = new QualifiedDataID(0x2C, setup.DefaultPhsTableID);
                 //    PhysicsScriptTable = (PhysicsScriptTable)DBObj.Get(qdid);
@@ -610,10 +610,10 @@ namespace ACE.Server.Physics
 
             if (State.HasFlag(PhysicsState.Static))
             {
-                if (setup.DefaultAnimID != 0)
+                if (setup._dat.DefaultAnimation != 0)
                     State |= PhysicsState.HasDefaultAnim;
 
-                if (setup.DefaultScriptID != 0)
+                if (setup._dat.DefaultScript != 0)
                     State |= PhysicsState.HasDefaultScript;
 
                 PhysicsEngine.AddStaticAnimatingObject(this);
@@ -2547,7 +2547,7 @@ namespace ACE.Server.Physics
             obj.MorphToExistingObject(template);
 
             if (obj.PartArray != null && obj.PartArray.Setup != null)
-                obj.play_script_internal(obj.PartArray.Setup.DefaultScriptID);
+                obj.play_script_internal(obj.PartArray.Setup._dat.DefaultScript);
 
             return obj;
         }

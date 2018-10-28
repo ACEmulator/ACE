@@ -19,45 +19,8 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Wakes up any monsters within the applicable range
         /// </summary>
-        public void CheckMonsters()
+        public void CheckMonsters(float rangeSquared = RadiusAwarenessSquared)
         {
-            if (!IsAttackable) return;
-
-            if (CurrentLandblock?.Id.MapScope == MapScope.Outdoors)
-                GetMonstersInRange();
-            else
-                GetMonstersInPVS();
-        }
-
-        /// <summary>
-        /// Sends alerts to monsters within 2D distance for outdoor areas
-        /// </summary>
-        private void GetMonstersInRange(float range = RadiusAwareness)
-        {
-            var distSq = range * range;
-
-            var landblocks = CurrentLandblock?.GetLandblocksInRange(Location, range);
-
-            foreach (var landblock in landblocks)
-            {
-                var monsters = landblock.worldObjects.Values.OfType<Creature>().ToList();
-                foreach (var monster in monsters)
-                {
-                    if (this == monster || monster is Player) continue;
-
-                    if (Location.SquaredDistanceTo(monster.Location) < distSq)
-                        AlertMonster(monster);
-                }
-            }
-        }
-
-        /// <summary>
-        /// Sends alerts to monsters within PVS range for indoor areas
-        /// </summary>
-        private void GetMonstersInPVS(float range = RadiusAwareness)
-        {
-            var distSq = range * range;
-
             var visibleObjs = PhysicsObj.ObjMaint.VisibleObjectTable.Values;
 
             foreach (var obj in visibleObjs)
@@ -68,7 +31,7 @@ namespace ACE.Server.WorldObjects
 
                 if (monster == null || monster is Player) continue;
 
-                if (Location.SquaredDistanceTo(monster.Location) < distSq)
+                if (Location.SquaredDistanceTo(monster.Location) < rangeSquared)
                     AlertMonster(monster);
             }
         }

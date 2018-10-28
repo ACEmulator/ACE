@@ -13,39 +13,20 @@ namespace ACE.Server.Physics.Entity
         public static int Requests;
         public static int Hits;
 
-        public static GfxObj Get(DatLoader.FileTypes.GfxObj _gfxObj)
+        public static GfxObj Get(uint gfxObjID)
         {
             Requests++;
 
             //if (Requests % 100 == 0)
             //Console.WriteLine($"GfxObjCache: Requests={Requests}, Hits={Hits}");
 
-            if (GfxObjs.TryGetValue(_gfxObj.Id, out var result))
+            if (GfxObjs.TryGetValue(gfxObjID, out var result))
             {
                 Hits++;
                 return result;
             }
 
-            // not cached, add it
-            var gfxObj = new GfxObj(_gfxObj);
-            gfxObj = GfxObjs.GetOrAdd(_gfxObj.Id, gfxObj);
-            return gfxObj;
-        }
-
-        public static GfxObj Get(uint rootObjectID)
-        {
-            Requests++;
-
-            //if (Requests % 100 == 0)
-            //Console.WriteLine($"GfxObjCache: Requests={Requests}, Hits={Hits}");
-
-            if (GfxObjs.TryGetValue(rootObjectID, out var result))
-            {
-                Hits++;
-                return result;
-            }
-
-            var _gfxObj = DBObj.GetGfxObj(rootObjectID);
+            var _gfxObj = DBObj.GetGfxObj(gfxObjID);
 
             // not cached, add it
             var gfxObj = new GfxObj(_gfxObj);
