@@ -654,6 +654,12 @@ namespace ACE.Server.WorldObjects
 
             item.SetPropertiesForWorld(this, 1.1f);
 
+            // We must update the database with the latest ContainerId and WielderId properties.
+            // If we don't, the player can drop the item, log out, and log back in. If the landblock hasn't queued a database save in that time,
+            // the player will end up loading with this object in their inventory even though the landblock is the true owner. This is because
+            // when we load player inventory, the database still has the record that shows this player as the ContainerId for the item.
+            item.SaveBiotaToDatabase();
+
             //var motion = new Motion(MotionStance.NonCombat);
             var motion = new Motion(this, MotionCommand.Pickup);
             Session.Network.EnqueueSend(new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Container, new ObjectGuid(0)));
@@ -686,14 +692,14 @@ namespace ACE.Server.WorldObjects
                 if (item.WeenieType == WeenieType.Coin)
                     UpdateCoinValue();
 
-                    // This is the sequence magic - adds back into 3d space seem to be treated like teleport.
-                    item.Sequences.GetNextSequence(SequenceType.ObjectTeleport);
+                // This is the sequence magic - adds back into 3d space seem to be treated like teleport.
+                item.Sequences.GetNextSequence(SequenceType.ObjectTeleport);
                 item.Sequences.GetNextSequence(SequenceType.ObjectVector);
 
                 CurrentLandblock?.AddWorldObject(item);
 
-                    //Session.Network.EnqueueSend(new GameMessageUpdateObject(item));
-                    EnqueueBroadcast(new GameMessageUpdatePosition(item));
+                //Session.Network.EnqueueSend(new GameMessageUpdateObject(item));
+                EnqueueBroadcast(new GameMessageUpdatePosition(item));
             });
 
             dropChain.EnqueueChain();
@@ -913,6 +919,7 @@ namespace ACE.Server.WorldObjects
 
         /// <summary>
         /// Dictionary for salvage bags/material types
+        /// TODO: This list needs to go somewhere else
         /// </summary>
 
         static Dictionary<int, int> dict = new Dictionary<int, int>()
@@ -1203,6 +1210,12 @@ namespace ACE.Server.WorldObjects
             {
                 if (target != player)
                 {
+                    // todo This should be refactored
+                    // The order should be something like:
+                    // See if target can accept the item
+                    // Remove item from giver
+                    // Save item to db
+                    // Give item to receiver
                     if (target.HandlePlayerReceiveItem(item, player))
                     {
                         if (item.CurrentWieldedLocation != null)
@@ -1232,6 +1245,12 @@ namespace ACE.Server.WorldObjects
                             if (item.WeenieType == WeenieType.Coin)
                                 UpdateCoinValue();
                         }
+
+                        // We must update the database with the latest ContainerId and WielderId properties.
+                        // If we don't, the player can give the item, log out, and log back in. If the receiver hasn't queued a database save in that time,
+                        // the player will end up loading with this object in their inventory even though the receiver is the true owner. This is because
+                        // when we load player inventory, the database still has the record that shows this player as the ContainerId for the item.
+                        item.SaveBiotaToDatabase();
 
                         Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, target));
                         Session.Network.EnqueueSend(new GameMessageSystemChat($"You give {target.Name} {item.Name}.", ChatMessageType.Broadcast));
