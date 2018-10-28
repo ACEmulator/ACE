@@ -197,10 +197,21 @@ namespace ACE.Server.WorldObjects
         {
             if (weapons == null) return null;
 
-            var highestMax = weapons.OrderByDescending(w => w.GetBaseDamage().Max).FirstOrDefault();
+            //var highestMax = weapons.OrderByDescending(w => w.GetBaseDamage().Max).FirstOrDefault();
             //var highestAvg = weapons.OrderByDescending(w => w.GetBaseDamage().Avg).FirstOrDefault();
 
-            return highestMax;
+            //return highestMax;
+
+            // did monsters select best weapons, or just a random weapon?
+            // see: lugians (wielded treasure table 439), 100% spawn with rocks if most damage potential selected
+            weapons.Shuffle();
+            return weapons.FirstOrDefault();
+
+            /*var rng = Physics.Common.Random.RollDice(0, weapons.Count);
+            if (rng == weapons.Count)
+                return null;    // choose no weapon? lugians should have ~33% chance to select rock, according to retail pcaps
+
+            return weapons[rng];*/
         }
 
         public void DebugTreasure()

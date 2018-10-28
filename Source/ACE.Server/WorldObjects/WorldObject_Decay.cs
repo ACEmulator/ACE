@@ -49,6 +49,14 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
+            var corpse = this as Corpse;
+
+            if (corpse != null && corpse.Inventory.Count == 0 && TimeToRot.Value > Corpse.EmptyDecayTime)
+            {
+                TimeToRot = Corpse.EmptyDecayTime;
+                return;
+            }
+
             TimeToRot -= elapsed.TotalSeconds;
 
             // Is there still time left?
@@ -68,7 +76,7 @@ namespace ACE.Server.WorldObjects
             decayCompleted = true;
 
             // If this is a player corpse, puke out the corpses contents onto the landblock
-            if (this is Corpse corpse && !corpse.IsMonster)
+            if (corpse != null && !corpse.IsMonster)
             {
                 var inventoryGUIDs = corpse.Inventory.Keys.ToList();
 

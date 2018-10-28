@@ -191,12 +191,12 @@ namespace ACE.Server.WorldObjects
             var cylDist = (float)Physics.Common.Position.CylinderDistance(PhysicsObj.GetRadius(), PhysicsObj.GetHeight(), PhysicsObj.Position,
                 AttackTarget.PhysicsObj.GetRadius(), AttackTarget.PhysicsObj.GetHeight(), AttackTarget.PhysicsObj.Position);
 
-            if (DebugMove)
+            /*if (DebugMove)
             {
                 Console.WriteLine($"Raw distance: {dist} ({radialDist}) - Cylinder dist: {cylDist}");
                 Console.WriteLine($"Player radius: {AttackTarget.PhysicsObj.GetRadius()} ({AttackTarget.PhysicsObj.GetPhysicsRadius()})");
                 Console.WriteLine($"Monster radius: {PhysicsObj.GetRadius()} ({PhysicsObj.GetPhysicsRadius()})");
-            }
+            }*/
 
             //return radialDist;
             return cylDist;
@@ -335,8 +335,8 @@ namespace ACE.Server.WorldObjects
             if (dist < minDist)
                 threshold += (minDist - dist) * 1.5f;
 
-            //if (DebugMove)
-                //Console.WriteLine($"{Name}.IsFacing({target.Name}): Angle={angle}, Dist={dist}, Threshold={threshold}, {angle < threshold}");
+            if (DebugMove)
+                Console.WriteLine($"{Name}.IsFacing({target.Name}): Angle={angle}, Dist={dist}, Threshold={threshold}, {angle < threshold}");
 
             return angle < threshold;
         }

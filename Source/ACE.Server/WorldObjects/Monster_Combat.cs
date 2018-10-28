@@ -113,12 +113,24 @@ namespace ACE.Server.WorldObjects
 
             var stanceTime = SetCombatMode(combatMode);
 
-            NextMoveTime = NextAttackTime = Timers.RunningTime + stanceTime;
+            var nextTime = Timers.RunningTime + stanceTime;
+
+            if (NextMoveTime > Timers.RunningTime)
+                NextMoveTime += stanceTime;
+            else
+                NextMoveTime = nextTime;
+
+            if (NextAttackTime > Timers.RunningTime)
+                NextAttackTime += stanceTime;
+            else
+                NextAttackTime = nextTime;
 
             if (IsRanged)
                 NextAttackTime += 1.0f;
 
-            //Console.WriteLine($"[{Timers.RunningTime}] - {Name} ({Guid}) - stanceTime: {stanceTime}, isAnimating: {IsAnimating}");
+            if (DebugMove)
+                Console.WriteLine($"[{Timers.RunningTime}] - {Name} ({Guid}) - DoAttackStance - stanceTime: {stanceTime}, isAnimating: {IsAnimating}");
+
             PhysicsObj.StartTimer();
         }
 
@@ -158,7 +170,7 @@ namespace ACE.Server.WorldObjects
         public void Attack()
         {
             if (DebugMove)
-                Console.WriteLine(Name + " Attack");
+                Console.WriteLine($"[{Timers.RunningTime}] - {Name} ({Guid}) - Attack");
 
             switch (CurrentAttack)
             {

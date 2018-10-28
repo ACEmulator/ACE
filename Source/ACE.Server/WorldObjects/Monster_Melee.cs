@@ -199,7 +199,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public Range GetBaseDamage(BiotaPropertiesBodyPart attackPart)
         {
-            if (CurrentAttack == AttackType.Missile)
+            if (CurrentAttack == AttackType.Missile && GetMissileAmmo() != null)
                 return GetMissileDamage();
 
             // use weapon damage for every attack?
