@@ -85,8 +85,8 @@ namespace ACE.Server.Entity
         /// </summary>
         public Physics.Common.Landblock _landblock { get; private set; }
 
-        public CellLandblock CellLandblock { get; private set; }
-        public LandblockInfo LandblockInfo { get; private set; }
+        public CellLandblock CellLandblock { get; }
+        public LandblockInfo LandblockInfo { get; }
 
         /// <summary>
         /// The landblock static meshes for
