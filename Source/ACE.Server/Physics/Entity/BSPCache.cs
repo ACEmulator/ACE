@@ -7,7 +7,7 @@ namespace ACE.Server.Physics.Entity
 {
     public static class BSPCache
     {
-        public static bool Enabled = true;
+        public static bool Enabled = false;
 
         public static readonly HashSet<BSPTree> BSPTrees = new HashSet<BSPTree>();
 
