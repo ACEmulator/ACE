@@ -342,7 +342,7 @@ namespace ACE.Server.Physics
             {
                 for (var i = 0; i < NumParts; i++)
                 {
-                    Parts[i].PhysObj = Owner;
+                    Parts[i].PhysicsObj = Owner;
                     Parts[i].PhysObjIndex = i;
                 }
                 
@@ -369,7 +369,7 @@ namespace ACE.Server.Physics
             for (var i = 0; i < NumParts; i++)
             {
                 Parts[i] = PhysicsPart.MakePhysicsPart(obj.Parts[i]);
-                Parts[i].PhysObj = Owner;
+                Parts[i].PhysicsObj = Owner;
                 Parts[i].PhysObjIndex = i;
                 // removed palette references
             }

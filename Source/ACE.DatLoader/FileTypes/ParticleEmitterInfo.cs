@@ -1,5 +1,6 @@
 using System.IO;
 using System.Numerics;
+using ACE.Entity.Enum;
 
 namespace ACE.DatLoader.FileTypes
 {
@@ -9,8 +10,8 @@ namespace ACE.DatLoader.FileTypes
     [DatFileType(DatFileType.ParticleEmitter)]
     public class ParticleEmitterInfo : FileType
     {
-        public int EmitterType { get; private set; }
-        public int ParticleType { get; private set; }
+        public EmitterType EmitterType { get; private set; }
+        public ParticleType ParticleType { get; private set; }
         public uint GfxObjId { get; private set; }
         public uint HwGfxObjId { get; private set; }
         public double Birthrate { get; private set; }
@@ -46,32 +47,42 @@ namespace ACE.DatLoader.FileTypes
 
             /*uint unknown = */reader.ReadUInt32();
 
-            EmitterType     = reader.ReadInt32();
-            ParticleType    = reader.ReadInt32();
+            EmitterType     = (EmitterType)reader.ReadInt32();
+            ParticleType    = (ParticleType)reader.ReadInt32();
 
+            // hwgfxobjid first?
+            // is parent local?
             GfxObjId    = reader.ReadUInt32();
             HwGfxObjId  = reader.ReadUInt32();
 
+            // birthrate / maxparticles / initial particles not read here?
             Birthrate   = reader.ReadDouble();
 
             MaxParticles        = reader.ReadInt32();
             InitialParticles    = reader.ReadInt32();
-            TotalParticles      = reader.ReadInt32();
+
+            // if size > 12?
+            TotalParticles      = reader.ReadInt32();   
 
             TotalSeconds    = reader.ReadDouble();
+
+            // if size > 12?
             LifespanRand    = reader.ReadDouble();
             Lifespan        = reader.ReadDouble();
 
+            // this is wrong, should be a sphere, and after min offset, if size > 12
             SortingSphere = reader.ReadUInt32();
 
-            OffsetDir = reader.ReadVector3();
+            // offsetdir before sorting sphere? only z?
+            OffsetDir = reader.ReadVector3();      
             MinOffset = reader.ReadSingle();
-            MaxOffset = reader.ReadSingle();
+            MaxOffset = reader.ReadSingle(); 
 
             A = reader.ReadVector3();
             B = reader.ReadVector3();
             C = reader.ReadVector3();
 
+            // none of this below seems to be read here?
             MinA = reader.ReadSingle();
             MaxA = reader.ReadSingle();
             MinB = reader.ReadSingle();
