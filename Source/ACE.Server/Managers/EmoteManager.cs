@@ -881,7 +881,7 @@ namespace ACE.Server.Managers
                         item = WorldObjectFactory.CreateNewWorldObject((uint)emote.WeenieClassId);
                         if (item == null) break;
 
-                        success = player.TryRemoveItemFromInventoryWithNetworking(item, (ushort)emote.Amount);
+                        success = player.TryRemoveItemFromInventoryWithNetworkingWithDestroy(item, (ushort)emote.Amount);
                     }
                     break;
 

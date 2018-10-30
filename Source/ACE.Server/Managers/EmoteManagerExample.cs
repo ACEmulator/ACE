@@ -602,7 +602,7 @@ namespace ACE.Server.Managers
                         item = WorldObjectFactory.CreateNewWorldObject(wcid);
                         if (item == null) break;
 
-                        var success = player.TryRemoveItemFromInventoryWithNetworking(item, (ushort)emote.Amount);
+                        var success = player.TryRemoveItemFromInventoryWithNetworkingWithDestroy(item, (ushort)emote.Amount);
                     }
                     break;
 
