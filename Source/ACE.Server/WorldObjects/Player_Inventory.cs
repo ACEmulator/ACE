@@ -108,7 +108,12 @@ namespace ACE.Server.WorldObjects
             if (amount >= (worldObject.StackSize ?? 1))
             {
                 if (TryRemoveFromInventoryWithNetworking(worldObject))
+                {
                     worldObject.Destroy();
+                    return true;
+                }
+
+                return false;
             }
 
             worldObject.StackSize -= amount;
