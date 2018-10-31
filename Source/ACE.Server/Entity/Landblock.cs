@@ -399,7 +399,10 @@ namespace ACE.Server.Entity
             if (wo == null) return;
 
             wo.CurrentLandblock = null;
-            wo.TimeToRot = null;
+
+            // Weenies can come with a default of 0 or -1. If they still have that value, we want to retain it.
+            if (wo.TimeToRot.HasValue && wo.TimeToRot != 0 && wo.TimeToRot != -1)
+                wo.TimeToRot = null;
 
             if (!adjacencyMove)
             {

@@ -103,10 +103,18 @@ namespace ACE.Server.WorldObjects
         /// This method is used to remove X number of items from a stack.<para />
         /// If amount to remove is greater or equal to the current stacksize, the stack will be destroyed..
         /// </summary>
-        public bool TryRemoveItemFromInventoryWithNetworking(WorldObject worldObject, ushort amount)
+        public bool TryRemoveItemFromInventoryWithNetworkingWithDestroy(WorldObject worldObject, ushort amount)
         {
             if (amount >= (worldObject.StackSize ?? 1))
-                return TryRemoveFromInventoryWithNetworking(worldObject);
+            {
+                if (TryRemoveFromInventoryWithNetworking(worldObject))
+                {
+                    worldObject.Destroy();
+                    return true;
+                }
+
+                return false;
+            }
 
             worldObject.StackSize -= amount;
 
@@ -161,6 +169,7 @@ namespace ACE.Server.WorldObjects
                     return false;
                 }
             }
+
             return TryRemoveFromInventoryWithNetworking(item);
         }
 
@@ -1073,7 +1082,7 @@ namespace ACE.Server.WorldObjects
                         double multiplier = (salvageSkill / 225.0);
                         double multiplier2 = .6 > multiplier ? .6 : multiplier;
                         amount += (int)Math.Ceiling(workmanship * multiplier2);
-                        TryRemoveItemFromInventoryWithNetworking(item, 1);
+                        TryRemoveItemFromInventoryWithNetworkingWithDestroy(item, 1);
                         salvageBags[counter] = WorldObjectFactory.CreateNewWorldObject((uint)dict[materials[counter]]);
                         salvageBags[counter].SetProperty(PropertyInt.Structure, amount);
                         salvageBags[counter].SetProperty(PropertyInt.NumItemsInMaterial, numItems);
@@ -1104,7 +1113,7 @@ namespace ACE.Server.WorldObjects
                         double multiplier = (salvageSkill / 225.0);
                         double multiplier2 = .6 > multiplier ? .6 : multiplier;
                         amount += (int)Math.Ceiling(workmanship * multiplier2);
-                        TryRemoveItemFromInventoryWithNetworking(item, 1);
+                        TryRemoveItemFromInventoryWithNetworkingWithDestroy(item, 1);
                         salvageBags[materialsPlace].SetProperty(PropertyInt.Structure, amount);
                         salvageBags[materialsPlace].SetProperty(PropertyInt.NumItemsInMaterial, numItems);
                         salvageBags[materialsPlace].SetProperty(PropertyInt.ItemWorkmanship, amount);
@@ -1148,7 +1157,7 @@ namespace ACE.Server.WorldObjects
                     double multiplier = (salvageSkill / 225.0);
                     double multiplier2 = .6 > multiplier ? .6 : multiplier;
                     amount += (int)Math.Ceiling(workmanship * multiplier2);
-                    TryRemoveItemFromInventoryWithNetworking(item, 1);
+                    TryRemoveItemFromInventoryWithNetworkingWithDestroy(item, 1);
                 }
 
                 WorldObject wo = WorldObjectFactory.CreateNewWorldObject((uint)dict[materialType]);
@@ -1359,7 +1368,7 @@ namespace ACE.Server.WorldObjects
             if (item.CurrentWieldedLocation != null)
                 UnwieldItemWithNetworking(this, item, 0);       // refactor, duplicate code from above
 
-            TryRemoveItemFromInventoryWithNetworking(item, (ushort)amount);
+            TryRemoveItemFromInventoryWithNetworkingWithDestroy(item, (ushort)amount);
 
             Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, target));
             Session.Network.EnqueueSend(new GameMessageSystemChat($"You give {target.Name} {item.Name}.", ChatMessageType.Broadcast));
