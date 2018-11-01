@@ -1181,6 +1181,9 @@ namespace ACE.Server.Managers
 
             foreach (var damager in damageHistory.Damagers)
                 ExecuteEmoteSet(EmoteCategory.Death, null, damager);
+
+            if (damageHistory.Damagers.Count == 0)
+                ExecuteEmoteSet(EmoteCategory.Death, null, null);
         }
     }
 }

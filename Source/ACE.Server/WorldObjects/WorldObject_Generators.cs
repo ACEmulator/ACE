@@ -406,8 +406,21 @@ namespace ACE.Server.WorldObjects
             switch (GeneratorEndDestructionType)
             {
                 case GeneratorDestruct.Kill:
-                //foreach (var wo in GeneratorCache.Values)
-                //    wo.Kill();
+                    foreach (var generator in GeneratorProfiles)
+                    {
+                        foreach (var rNode in generator.Spawned.Values)
+                        {
+                            if (rNode.WorldObject is Creature)
+                            {
+                                var wo = rNode.WorldObject as Creature;
+                                wo.Smite(this);
+                            }
+                        }
+
+                        generator.Spawned.Clear();
+                        generator.SpawnQueue.Clear();
+                    }
+                    break;
                 case GeneratorDestruct.Nothing:
                     break;
                 case GeneratorDestruct.Destroy:
