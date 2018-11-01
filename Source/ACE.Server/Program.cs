@@ -110,21 +110,17 @@ namespace ACE.Server
             log.Info("Initializing WorldManager...");
             WorldManager.Initialize();
 
-            if (ConfigManager.Config.Server.GlobalEventLandblockPreloading)
-            {
-                log.Info("Preloading Global Event Landblocks...");
-                LandblockManager.PreloadGlobalEventLandblocks();
-            }
-            else
-                log.Warn("Preloading Global Event Landblocks disabled, some events may not work correctly without these landblocks in memory...");
-
             if (ConfigManager.Config.Server.LandblockPreloading)
             {
                 log.Info("Preloading Landblocks...");
-                LandblockManager.PreloadCommonLandblocks();
+                LandblockManager.PreloadConfigLandblocks();
             }
             else
+            {
                 log.Info("Preloading Landblocks Disabled...");
+                log.Warn("Events may not function correctly as Preloading of Landblocks has disabled.");
+            }
+
 
             log.Info("Initializing EventManager...");
             EventManager.Initialize();

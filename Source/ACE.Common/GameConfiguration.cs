@@ -1,4 +1,5 @@
 using Newtonsoft.Json;
+using System.Collections.Generic;
 
 namespace ACE.Common
 {
@@ -20,13 +21,11 @@ namespace ACE.Common
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
         public bool WorldDatabasePrecaching { get; set; }
 
-        [System.ComponentModel.DefaultValue(false)]
+        [System.ComponentModel.DefaultValue(true)]
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
         public bool LandblockPreloading { get; set; }
 
-        [System.ComponentModel.DefaultValue(true)]
-        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
-        public bool GlobalEventLandblockPreloading { get; set; }
+        public List<PreloadedLandblocks> PreloadedLandblocks { get; set; }
 
         /// <summary>
         /// The ammount of seconds to wait before turning off the server. Default value is 60 (for 1 minute).
