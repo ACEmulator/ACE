@@ -16,7 +16,8 @@
     "DatFilesDirectory": "c:\\ACE\\",
     "ShutdownInterval": "60",
     "WorldDatabasePrecaching": false,
-    "LandblockPreloading": false
+    "LandblockPreloading": false,
+    "GlobalEventLandblockPreloading": true
   },
   "MySql": {
     "Authentication": {
