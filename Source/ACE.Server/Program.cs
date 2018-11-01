@@ -110,6 +110,9 @@ namespace ACE.Server
             log.Info("Initializing WorldManager...");
             WorldManager.Initialize();
 
+            log.Info("Preloading Global Event Landblocks...");
+            LandblockManager.PreloadGlobalEventLandblocks();
+
             if (ConfigManager.Config.Server.LandblockPreloading)
             {
                 log.Info("Preloading Landblocks...");

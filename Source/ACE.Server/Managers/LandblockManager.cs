@@ -40,6 +40,16 @@ namespace ACE.Server.Managers
         private static readonly ConcurrentBag<Landblock> destructionQueue = new ConcurrentBag<Landblock>();
 
         /// <summary>
+        /// Permaloads the global event landblock
+        /// </summary>
+        public static void PreloadGlobalEventLandblocks()
+        {
+            var hebianToID = new LandblockId(0xE74E0000);
+            GetLandblock(hebianToID, true, true);
+            log.DebugFormat("Hebian-To (Global Events) Landblock {0:X4} preloaded", hebianToID.Landblock);
+        }
+
+        /// <summary>
         /// Permaloads a list of common landblocks if server option is set
         /// </summary>
         public static void PreloadCommonLandblocks()
