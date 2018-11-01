@@ -16,7 +16,7 @@
     "DatFilesDirectory": "c:\\ACE\\",
     "ShutdownInterval": "60",
     "WorldDatabasePrecaching": false,
-    "LandblockPreloading": true
+    "LandblockPreloading": true,
     "PreloadedLandblocks": [
         {
             "Id": "E74EFFFF",
