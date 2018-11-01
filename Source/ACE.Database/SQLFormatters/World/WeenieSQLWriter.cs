@@ -70,17 +70,11 @@ namespace ACE.Database.SQLFormatters.World
             writer.WriteLine($"DELETE FROM `weenie` WHERE `class_Id` = {input.ClassId};");
         }
 
-        /// <exception cref="System.Exception">WeenieClassNames must be set, and must have a record for input.ClassId.</exception>
         public void CreateSQLINSERTStatement(Weenie input, StreamWriter writer)
         {
-            string className = null;
-
-            if (WeenieClassNames != null)
-                WeenieClassNames.TryGetValue(input.ClassId, out className);
-
             writer.WriteLine("INSERT INTO `weenie` (`class_Id`, `class_Name`, `type`)");
 
-            var output = $"VALUES ({input.ClassId}, '{className}', {input.Type}) /* {Enum.GetName(typeof(WeenieType), input.Type)} */;";
+            var output = $"VALUES ({input.ClassId}, '{input.ClassName}', {input.Type}) /* {Enum.GetName(typeof(WeenieType), input.Type)} */;";
 
             output = FixNullFields(output);
 
@@ -527,7 +521,7 @@ namespace ACE.Database.SQLFormatters.World
                 }
 
                 string weenieClassIdLabel = null;
-                if (WeenieClassNames != null && input[i].WeenieClassId.HasValue)
+                if (input[i].WeenieClassId.HasValue)
                 {
                     WeenieNames.TryGetValue(input[i].WeenieClassId.Value, out weenieClassIdLabel);
                     if (weenieClassIdLabel != null)
