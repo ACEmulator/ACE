@@ -1,8 +1,12 @@
 # ACEmulator Change Log
 
+### 2018-11-01
+[Ripley]
+* Update EmoteManager and WorldObject Generator with fixes for Anniversary event emotes. 
+
 ### 2018-10-31
 [Mag-nus]
-* Retain TimeToRat magic values of 0 and -1. They may have come from the weenie
+* Retain TimeToRot magic values of 0 and -1. They may have come from the weenie
 * Fixes for destroying stacks and consumables
 
 ### 2018-10-30
