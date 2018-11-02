@@ -54,7 +54,7 @@ namespace ACE.Server.Managers
                 ConfigManager.Config.Server.PreloadedLandblocks = new List<PreloadedLandblocks> { new PreloadedLandblocks { Id = "E74EFFFF", Description = "Hebian-To (Global Events)", Permaload = true, IncludeAdjacents = true, Enabled = true } };
             }
 
-            log.InfoFormat("Found {0} landblock ids to preload.", ConfigManager.Config.Server.PreloadedLandblocks.Count);
+            log.InfoFormat("Found {0} landblock entries in PreloadedLandblocks configuration, {1} are set to preload.", ConfigManager.Config.Server.PreloadedLandblocks.Count, ConfigManager.Config.Server.PreloadedLandblocks.Where(x => x.Enabled == true).Count());
 
             foreach (var preloadLandblock in ConfigManager.Config.Server.PreloadedLandblocks)
             {

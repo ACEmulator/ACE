@@ -22,7 +22,7 @@
             "Id": "E74EFFFF",
             "Description": "Hebian-To (Global Events)",
             "Permaload": true,
-            "IncludeAdjacents": true,
+            "IncludeAdjacents": false,
             "Enabled": true
         },        
         {
@@ -50,7 +50,7 @@
             "Id": "0007FFFF",
             "Description": "Town Network",
             "Permaload": true,
-            "IncludeAdjacents": true,
+            "IncludeAdjacents": false,
             "Enabled": false
         }
     ]
