@@ -1,10 +1,12 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 
 using log4net;
 
+using ACE.Common;
 using ACE.Entity;
 using ACE.Server.Entity;
 using ACE.Server.WorldObjects;
@@ -40,48 +42,37 @@ namespace ACE.Server.Managers
         private static readonly ConcurrentBag<Landblock> destructionQueue = new ConcurrentBag<Landblock>();
 
         /// <summary>
-        /// Permaloads a list of common landblocks if server option is set
+        /// Permaloads a list of configurable landblocks if server option is set
         /// </summary>
-        public static void PreloadCommonLandblocks()
+        public static void PreloadConfigLandblocks()
         {
-            foreach (var preloadLandblock in preloadLandblocks)
+            if (ConfigManager.Config.Server.PreloadedLandblocks == null)
             {
-                var landblockID = new LandblockId(preloadLandblock);
-                GetLandblock(landblockID, true, true);
-                log.DebugFormat("Landblock {0:X4} preloaded", landblockID.Landblock);
+                log.Info("No configuration found for PreloadedLandblocks, please refer to Config.json.example");
+                log.Warn("Initializing PreloadedLandblocks with single default for Hebian-To (Global Events)");
+                log.Warn("Add a PreloadedLandblocks section to your Config.json file and adjust to meet your needs");
+                ConfigManager.Config.Server.PreloadedLandblocks = new List<PreloadedLandblocks> { new PreloadedLandblocks { Id = "E74EFFFF", Description = "Hebian-To (Global Events)", Permaload = true, IncludeAdjacents = true, Enabled = true } };
             }
+
+            log.InfoFormat("Found {0} landblock entries in PreloadedLandblocks configuration, {1} are set to preload.", ConfigManager.Config.Server.PreloadedLandblocks.Count, ConfigManager.Config.Server.PreloadedLandblocks.Where(x => x.Enabled == true).Count());
+
+            foreach (var preloadLandblock in ConfigManager.Config.Server.PreloadedLandblocks)
+            {
+                if (!preloadLandblock.Enabled)
+                {
+                    log.DebugFormat("Landblock {0:X4} specified but not enabled in config, skipping", preloadLandblock.Id);
+                    continue;
+                }
+
+                if (uint.TryParse(preloadLandblock.Id, NumberStyles.HexNumber, CultureInfo.CurrentCulture, out uint landblock))
+                {
+                    var landblockID = new LandblockId(landblock);
+                    GetLandblock(landblockID, preloadLandblock.IncludeAdjacents, preloadLandblock.Permaload);
+                    log.DebugFormat("Landblock {0:X4}, ({1}) preloaded. IncludeAdjacents = {2}, Permaload = {3}", landblockID.Landblock, preloadLandblock.Description, preloadLandblock.IncludeAdjacents, preloadLandblock.Permaload);
+                }
+            }
+            
         }
-
-        // TODO: Change the RawLandblockId list used for preloading defined landblocks to some other, more easily-modified format, rather than a compiled uint array
-        private static readonly uint[] preloadLandblocks = {
-
-                0x8603ffff, // Training Academy - Holtburg Starting Location
-                0x8c04ffff, // Training Academy - Yaraq Starting Location
-                0x7f03ffff, // Training Academy - Shoushi Starting Location
-                0x7203ffff, // Training Academy - Sanamar Starting Location
-                0x0007ffff, // Town Network
-                0xce94ffff, // Eastham
-                0xda55ffff, // Shoushi
-                0xdb54ffff, // Shoushi
-                0xa9b4ffff, // Holtburg
-                0xabb2ffff, // Holtburg
-                0xaab3ffff, // Holtburg
-                0x7d64ffff, // Yaraq
-                0x7e64ffff, // Yaraq
-                0xe64effff, // Hebian-to
-                0xe74effff, // Hebian-to
-                0xbb9fffff, // Cragstone
-                0xbc9fffff, // Cragstone
-                0xc6a9ffff, // Arwic
-                0xe63effff, // Nanto
-                0xe632ffff, // Mayoi
-                0xc341ffff, // Baishi
-                0xc98cffff, // Rithwic
-                0x977bffff, // Samsur
-                0x8f58ffff, // Al-Arqas
-                0x33d9ffff, // Sanamar
-                0x17b2ffff  // Redspire
-        };
 
         /// <summary>
         /// Adds a WorldObject to the landblock defined by the object's location

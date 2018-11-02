@@ -113,10 +113,14 @@ namespace ACE.Server
             if (ConfigManager.Config.Server.LandblockPreloading)
             {
                 log.Info("Preloading Landblocks...");
-                LandblockManager.PreloadCommonLandblocks();
+                LandblockManager.PreloadConfigLandblocks();
             }
             else
+            {
                 log.Info("Preloading Landblocks Disabled...");
+                log.Warn("Events may not function correctly as Preloading of Landblocks has disabled.");
+            }
+
 
             log.Info("Initializing EventManager...");
             EventManager.Initialize();

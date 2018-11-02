@@ -16,7 +16,44 @@
     "DatFilesDirectory": "c:\\ACE\\",
     "ShutdownInterval": "60",
     "WorldDatabasePrecaching": false,
-    "LandblockPreloading": false
+    "LandblockPreloading": true,
+    "PreloadedLandblocks": [
+        {
+            "Id": "E74EFFFF",
+            "Description": "Hebian-To (Global Events)",
+            "Permaload": true,
+            "IncludeAdjacents": false,
+            "Enabled": true
+        },        
+        {
+            "Id": "A9B4FFFF",
+            "Description": "Holtburg",
+            "Permaload": true,
+            "IncludeAdjacents": true,
+            "Enabled": false
+        },
+        {
+            "Id": "DA55FFFF",
+            "Description": "Shoushi",
+            "Permaload": true,
+            "IncludeAdjacents": true,
+            "Enabled": false
+        },
+        {
+            "Id": "7D64FFFF",
+            "Description": "Yaraq",
+            "Permaload": true,
+            "IncludeAdjacents": true,
+            "Enabled": false
+        },
+        {
+            "Id": "0007FFFF",
+            "Description": "Town Network",
+            "Permaload": true,
+            "IncludeAdjacents": false,
+            "Enabled": false
+        }
+    ]
   },
   "MySql": {
     "Authentication": {
