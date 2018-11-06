@@ -34,6 +34,7 @@ namespace ACE.Server.Network
                     uint sequence = payload.ReadUInt32();
                     writer.Write(sequence);
                     RetransmitData.Add(sequence);
+                    NetworkStatistics.C2S_RequestsForRetransmit_Aggregate_Increment();
                 }
             }
 
