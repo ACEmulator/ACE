@@ -1,4 +1,5 @@
 using System.IO;
+using ACE.Entity.Enum;
 
 namespace ACE.DatLoader.FileTypes
 {
@@ -9,6 +10,7 @@ namespace ACE.DatLoader.FileTypes
     [DatFileType(DatFileType.Surface)]
     public class Surface : FileType
     {
+        public SurfaceType Type { get; private set; }
         public uint OrigTextureId { get; private set; }
         public uint OrigPaletteId { get; private set; }
         public uint ColorValue { get; private set; }
@@ -18,15 +20,17 @@ namespace ACE.DatLoader.FileTypes
 
         public override void Unpack(BinaryReader reader)
         {
-            Id = reader.ReadUInt32();
+            Type = (SurfaceType)reader.ReadUInt32();
 
-            if ((Id & 6) != 0)
+            if (((uint)Type & 6) != 0)
             {
+                // image or clipmap
                 OrigTextureId = reader.ReadUInt32();
                 OrigPaletteId = reader.ReadUInt32();
             }
             else
             {
+                // solid color
                 ColorValue = reader.ReadUInt32();
             }
 

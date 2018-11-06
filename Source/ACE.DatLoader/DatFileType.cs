@@ -110,7 +110,7 @@ namespace ACE.DatLoader
         ///     0x000000F4 - Same as 0x00000001C / D3DFMT_A8
         ///     0x000001F4 - JPEG
         ///     
-        /// all the files contain a 6-DWORD header (offset indecis):
+        /// all the files contain a 6-DWORD header (offset indices):
         ///     0: objectId
         ///     4: unknown
         ///     8: width

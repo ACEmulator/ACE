@@ -141,14 +141,14 @@ namespace ACE.Server.Physics
 
             if (translucency == 1.0f)
             {
-                NoDraw = true;  // ??
+                NoDraw = true;
                 return;
             }
 
             if (CurTranslucency != translucency)
             {
-                /*CurTranslucency = translucency;
-                if (CurSettingsAreDefault())
+                CurTranslucency = translucency;
+                /*if (CurSettingsAreDefault())
                     RestoreMaterial();
                 else if (CopyMaterial())
                     Material.SetTranslucencySimple(translucency);*/

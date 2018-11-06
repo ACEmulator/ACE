@@ -385,7 +385,10 @@ namespace ACE.Server.Physics
         public void SetCellID(uint cellID)
         {
             foreach (var part in Parts)
-                part.Pos.ObjCellID = cellID;
+            {
+                if (part != null)
+                    part.Pos.ObjCellID = cellID;
+            }
         }
 
         public void SetFrame(AFrame frame)
