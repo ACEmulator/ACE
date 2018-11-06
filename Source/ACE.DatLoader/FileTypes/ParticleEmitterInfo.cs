@@ -42,7 +42,7 @@ namespace ACE.DatLoader.FileTypes
         public float TransRand { get; private set; }
         public float StartTrans { get; private set; }
         public float FinalTrans { get; private set; }
-        public float IsParentLocal { get; private set; }
+        public int IsParentLocal { get; private set; }
 
         public override void Unpack(BinaryReader reader)
         {
