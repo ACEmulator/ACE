@@ -97,7 +97,6 @@ namespace ACE.Server.Physics
         public double GetRandomStartScale()
         {
             var result = Common.Random.RollDice(-1.0f, 1.0f) * ScaleRand + StartScale;
-            //result = Math.Clamp(result, 0.1f, 10.0f);
             result = result.Clamp(0.1f, 10.0f);
 
             return result;
@@ -114,7 +113,7 @@ namespace ACE.Server.Physics
         public double GetRandomStartTrans()
         {
             var result = Common.Random.RollDice(-1.0f, 1.0f) * TransRand * StartTrans;
-            result = result.Clamp(0.1f, 10.0f);
+            result = result.Clamp(0.0f, 1.0f);
 
             return result;
         }
