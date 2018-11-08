@@ -100,7 +100,6 @@ namespace ACE.Server.Physics
             return new ParticleEmitter(parent);
         }
 
-
         public bool SetInfo(ParticleEmitterInfo info)
         {
             // destroy first?

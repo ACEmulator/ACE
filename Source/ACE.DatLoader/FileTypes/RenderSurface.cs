@@ -70,6 +70,7 @@ namespace ACE.DatLoader.FileTypes
                         }
                     }
                     break;
+
                 default:
                     {
                         var bitmapImage = GetBitmap();

@@ -10,7 +10,7 @@ namespace ACE.Server.Physics
     public class Particle
     {
         // union?
-        public double Birthtime;
+        public double Birthtime { get => LastUpdateTime; set => LastUpdateTime = value; }
         public double LastUpdateTime;
 
         public double Lifespan;
@@ -32,6 +32,7 @@ namespace ACE.Server.Physics
 
             LastUpdateTime = currentTime;
             Birthtime = currentTime;
+            Lifetime = 0;
 
             Lifespan = info.GetRandomLifespan();
 
