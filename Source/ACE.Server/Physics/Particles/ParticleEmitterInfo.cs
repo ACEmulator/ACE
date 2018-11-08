@@ -89,6 +89,7 @@ namespace ACE.Server.Physics
             TransRand = info.TransRand;
             StartTrans = info.StartTrans;
             FinalTrans = info.FinalTrans;
+            IsParentLocal = info.IsParentLocal != 0;
 
             InitEnd();
         }
@@ -96,7 +97,7 @@ namespace ACE.Server.Physics
         public double GetRandomStartScale()
         {
             var result = Common.Random.RollDice(-1.0f, 1.0f) * ScaleRand + StartScale;
-            result = Math.Clamp(result, 0.1f, 10.0f);
+            result = result.Clamp(0.1f, 10.0f);
 
             return result;
         }
@@ -104,7 +105,7 @@ namespace ACE.Server.Physics
         public double GetRandomFinalScale()
         {
             var result = Common.Random.RollDice(-1.0f, 1.0f) * ScaleRand * FinalScale;
-            result = Math.Clamp(result, 0.1f, 10.0f);
+            result = result.Clamp(0.1f, 10.0f);
 
             return result;
         }
@@ -112,7 +113,7 @@ namespace ACE.Server.Physics
         public double GetRandomStartTrans()
         {
             var result = Common.Random.RollDice(-1.0f, 1.0f) * TransRand * StartTrans;
-            result = Math.Clamp(result, 0.0f, 1.0f);
+            result = result.Clamp(0.0f, 1.0f);
 
             return result;
         }
@@ -120,7 +121,7 @@ namespace ACE.Server.Physics
         public double GetRandomFinalTrans()
         {
             var result = Common.Random.RollDice(-1.0f, 1.0f) * TransRand * FinalTrans;
-            result = Math.Clamp(result, 0.0f, 1.0f);
+            result = result.Clamp(0.0f, 1.0f);
 
             return result;
         }
@@ -144,6 +145,7 @@ namespace ACE.Server.Physics
             var velocityRadius = MaxA * LifeSpan;
             if (maxOffset <= velocityRadius)
                 maxOffset = (float)velocityRadius;
+            SortingSphere = new Sphere();
             SortingSphere.Radius = maxOffset;
             SortingSphere.Center = Vector3.Zero;
         }

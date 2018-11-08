@@ -10,7 +10,7 @@ namespace ACE.Server.Physics
     public class Particle
     {
         // union?
-        public double Birthtime;
+        public double Birthtime { get => LastUpdateTime; set => LastUpdateTime = value; }
         public double LastUpdateTime;
 
         public double Lifespan;
@@ -32,15 +32,16 @@ namespace ACE.Server.Physics
 
             LastUpdateTime = currentTime;
             Birthtime = currentTime;
+            Lifetime = 0;
 
-            // lifespan?
+            Lifespan = info.GetRandomLifespan();
 
             if (partIdx == -1)
                 StartFrame = new AFrame(parent.Position.Frame);
             else
                 StartFrame = new AFrame(parent.PartArray.Parts[partIdx].Pos.Frame);
 
-            var newFrame = StartFrame.LocalToGlobalVec(pFrame.Origin + _offset);
+            Offset = StartFrame.LocalToGlobalVec(pFrame.Origin + _offset);
 
             switch (info.ParticleType)
             {
@@ -128,6 +129,8 @@ namespace ACE.Server.Physics
                 Lifetime += elapsedTime;
                 LastUpdateTime = currentTime;
             }
+            else
+                Lifetime = elapsedTime;
 
             var lifetime = (float)Lifetime;
 
@@ -159,17 +162,17 @@ namespace ACE.Server.Physics
                     part.Pos.Frame.Origin.Z = (float)Math.Cos(lifetime * B.Z) + swarm.Z;
                     break;
                 case ParticleType.Explode:
-                    part.Pos.Frame.Origin = lifetime * A * C + lifetime * B + parent.Origin + Offset;
+                    part.Pos.Frame.Origin = (lifetime * B + C * A.X) * lifetime + Offset + parent.Origin;
                     break;
                 case ParticleType.Implode:
                     part.Pos.Frame.Origin = ((float)Math.Cos(A.X * lifetime) * C) + (lifetime * lifetime * B) + parent.Origin + Offset;
                     break;
             }
 
-            var offset = Math.Min(Lifetime / Lifespan, 1.0f);
+            var interval = Math.Min(Lifetime / Lifespan, 1.0f);
 
-            var currentScale = StartScale + (FinalScale - StartScale) * offset;
-            var currentTrans = StartTrans + (FinalTrans - StartTrans) * offset;
+            var currentScale = StartScale + (FinalScale - StartScale) * interval;
+            var currentTrans = StartTrans + (FinalTrans - StartTrans) * interval;
 
             part.GfxObjScale = new Vector3((float)currentScale);
             part.SetTranslucency((float)currentTrans);

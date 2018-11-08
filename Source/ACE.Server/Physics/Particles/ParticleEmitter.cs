@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Numerics;
 using ACE.Entity.Enum;
@@ -99,7 +100,6 @@ namespace ACE.Server.Physics
             return new ParticleEmitter(parent);
         }
 
-
         public bool SetInfo(ParticleEmitterInfo info)
         {
             // destroy first?
@@ -135,8 +135,8 @@ namespace ACE.Server.Physics
                 return;
 
             Parts[nextIdx] = PartStorage[nextIdx];
-            if (Parts[nextIdx] == null)
-                return;
+            //if (Parts[nextIdx] == null)   // check if index exists?
+                //return;
 
             var firstParticle = Info.TotalParticles == 0 && Info.TotalSeconds == 0.0f;
 
@@ -165,7 +165,7 @@ namespace ACE.Server.Physics
             if (Info == null || PhysicsObj == null)
                 return false;
 
-            if (PhysicsObj.ShouldDrawParticles(DegradeDistance))
+            if (!PhysicsObj.ShouldDrawParticles(DegradeDistance))
             {
                 if (DegradedOut != 0)
                 {
@@ -173,7 +173,7 @@ namespace ACE.Server.Physics
                     DegradedOut = 1;
                 }
                 LastUpdateTime = PhysicsTimer.CurrentTime;
-                if (Info.TotalParticles > 0 && Info.TotalSeconds > 0.0f)
+                if (Info.TotalParticles > 0 || Info.TotalSeconds > 0.0f)
                 {
                     if (Info.MaxParticles > 0)
                     {
