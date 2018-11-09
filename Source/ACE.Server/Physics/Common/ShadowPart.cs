@@ -28,13 +28,5 @@ namespace ACE.Server.Physics.Common
             Frame = frame;
             Part = part;
         }
-
-        public bool Equals(PhysicsPart physicsPart)
-        {
-            if (Part == null)
-                return physicsPart == null;
-
-            return Part.Equals(physicsPart);
-        }
     }
 }
