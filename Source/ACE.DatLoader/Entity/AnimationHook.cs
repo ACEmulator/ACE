@@ -18,7 +18,6 @@ namespace ACE.DatLoader.Entity
         /// WARNING: If you're reading a hook from the dat, you should use AnimationHook.ReadHook(reader).
         /// If you read a hook from the dat using this function, it is likely you will not read all the data correctly.
         /// </summary>
-        /// <param name="reader"></param>
         public virtual void Unpack(BinaryReader reader)
         {
             HookType    = (AnimationHookType)reader.ReadUInt32();

@@ -57,13 +57,16 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            TimeToRot -= elapsed.TotalSeconds;
-
-            // Is there still time left?
             if (TimeToRot > 0)
-                return;
+            {
+                TimeToRot -= elapsed.TotalSeconds;
 
-            TimeToRot = 0; // We force it to 0 to make sure it doesn't end up at -1. -1 indicates no rot.
+                // Is there still time left?
+                if (TimeToRot > 0)
+                    return;
+
+                TimeToRot = -2; // We force it to -2 to make sure it doesn't end up at 0 or -1. 0 indicates instant rot. -1 indicates no rot. 0 and -1 can be found in weenie defaults
+            }
 
             if (this is Container container && container.IsOpen)
             {

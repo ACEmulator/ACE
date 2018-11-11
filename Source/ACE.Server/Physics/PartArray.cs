@@ -342,7 +342,7 @@ namespace ACE.Server.Physics
             {
                 for (var i = 0; i < NumParts; i++)
                 {
-                    Parts[i].PhysObj = Owner;
+                    Parts[i].PhysicsObj = Owner;
                     Parts[i].PhysObjIndex = i;
                 }
                 
@@ -369,7 +369,7 @@ namespace ACE.Server.Physics
             for (var i = 0; i < NumParts; i++)
             {
                 Parts[i] = PhysicsPart.MakePhysicsPart(obj.Parts[i]);
-                Parts[i].PhysObj = Owner;
+                Parts[i].PhysicsObj = Owner;
                 Parts[i].PhysObjIndex = i;
                 // removed palette references
             }
@@ -385,7 +385,10 @@ namespace ACE.Server.Physics
         public void SetCellID(uint cellID)
         {
             foreach (var part in Parts)
-                part.Pos.ObjCellID = cellID;
+            {
+                if (part != null)
+                    part.Pos.ObjCellID = cellID;
+            }
         }
 
         public void SetFrame(AFrame frame)

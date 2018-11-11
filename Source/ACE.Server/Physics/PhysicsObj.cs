@@ -4,7 +4,6 @@ using System.Linq;
 using System.Numerics;
 
 using ACE.Entity.Enum;
-using ACE.Server.Entity;
 using ACE.Server.Physics.Animation;
 using ACE.Server.Physics.Collision;
 using ACE.Server.Physics.Combat;
@@ -931,9 +930,14 @@ namespace ACE.Server.Physics
 
         public void RemovePartFromShadowCells(PhysicsPart part)
         {
+            if (part == null) return;
+
             if (CurCell != null) part.Pos.ObjCellID = CurCell.ID;
             foreach (var shadowObj in ShadowObjects.Values)
-                shadowObj.Cell.RemovePart(part);
+            {
+                if (shadowObj.Cell != null)
+                    shadowObj.Cell.RemovePart(part);
+            }
         }
 
         public void RestoreLighting()
@@ -1857,7 +1861,8 @@ namespace ACE.Server.Physics
                     ObjCell.find_cell_list(Position, PartArray.GetNumCylsphere(), PartArray.GetCylSphere(), CellArray, null);
                 else
                 {
-                    var sphere = PartArray != null ? PartArray.GetSortingSphere() : PhysicsGlobals.DummySphere;
+                    // added sorting sphere null check
+                    var sphere = PartArray != null && PartArray.Setup.SortingSphere != null ? PartArray.GetSortingSphere() : PhysicsGlobals.DummySphere;
                     ObjCell.find_cell_list(Position, sphere, CellArray, null);
                 }
             }
@@ -2005,7 +2010,7 @@ namespace ACE.Server.Physics
             TransientState = 0;
         }
 
-        public bool create_blocking_particle_emitter(int emitterInfoID, int partIdx, AFrame offset, int emitterID)
+        public int create_blocking_particle_emitter(uint emitterInfoID, int partIdx, AFrame offset, int emitterID)
         {
             if (ParticleManager == null)
                 ParticleManager = new ParticleManager();
@@ -2013,7 +2018,7 @@ namespace ACE.Server.Physics
             return ParticleManager.CreateBlockingParticleEmitter(this, emitterInfoID, partIdx, offset, emitterID);
         }
 
-        public bool create_particle_emitter(int emitterInfoID, int partIdx, AFrame offset, int emitterID)
+        public int create_particle_emitter(uint emitterInfoID, int partIdx, AFrame offset, int emitterID)
         {
             if (ParticleManager == null)
                 ParticleManager = new ParticleManager();
@@ -2561,11 +2566,11 @@ namespace ACE.Server.Physics
             return obj;
         }
 
-        public static PhysicsObj makeParticleObject(int numParts)
+        public static PhysicsObj makeParticleObject(int numParts, Sphere sortingSphere)
         {
             var particle = new PhysicsObj();
             particle.State = PhysicsState.Static | PhysicsState.ReportCollisions;
-            particle.PartArray = PartArray.CreateParticle(particle, numParts, null);
+            particle.PartArray = PartArray.CreateParticle(particle, numParts, sortingSphere);
             return particle;
         }
 

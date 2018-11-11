@@ -881,7 +881,7 @@ namespace ACE.Server.Managers
                         item = WorldObjectFactory.CreateNewWorldObject((uint)emote.WeenieClassId);
                         if (item == null) break;
 
-                        success = player.TryRemoveItemFromInventoryWithNetworking(item, (ushort)emote.Amount);
+                        success = player.TryRemoveItemFromInventoryWithNetworkingWithDestroy(item, (ushort)emote.Amount);
                     }
                     break;
 
@@ -1181,6 +1181,9 @@ namespace ACE.Server.Managers
 
             foreach (var damager in damageHistory.Damagers)
                 ExecuteEmoteSet(EmoteCategory.Death, null, damager);
+
+            if (damageHistory.Damagers.Count == 0)
+                ExecuteEmoteSet(EmoteCategory.Death, null, null);
         }
     }
 }

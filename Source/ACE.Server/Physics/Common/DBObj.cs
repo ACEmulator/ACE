@@ -33,6 +33,9 @@ namespace ACE.Server.Physics.Common
             if (qualifiedDID.Type == 16)
                 return GetEnvironment(qualifiedDID.ID);
 
+            if (qualifiedDID.Type == 42)
+                return GetParticleEmitterInfo(qualifiedDID.ID);
+
             return -1;
         }
 
@@ -92,6 +95,14 @@ namespace ACE.Server.Physics.Common
         public static DatLoader.FileTypes.Environment GetEnvironment(uint id)
         {
             return DatManager.PortalDat.ReadFromDat<DatLoader.FileTypes.Environment>(id);
+        }
+
+        /// <summary>
+        /// QualifiedDID Type 42
+        /// </summary>
+        public static DatLoader.FileTypes.ParticleEmitterInfo GetParticleEmitterInfo(uint id)
+        {
+            return DatManager.PortalDat.ReadFromDat<DatLoader.FileTypes.ParticleEmitterInfo>(id);
         }
     }
 }

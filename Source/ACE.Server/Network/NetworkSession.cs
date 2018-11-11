@@ -201,7 +201,7 @@ namespace ACE.Server.Network
         public void ProcessPacket(ClientPacket packet)
         {
             packetLog.DebugFormat("[{0}] Processing packet {1}", session.LoggingIdentifier, packet.Header.Sequence);
-
+            NetworkStatistics.C2S_Packets_Aggregate_Increment();
             // Check if this packet's sequence is a sequence which we have already processed.
             // There are some exceptions:
             // Sequence 0 as we have several Seq 0 packets during connect.  This also cathes a case where it seems CICMDCommand arrives at any point with 0 sequence value too.
@@ -265,6 +265,7 @@ namespace ACE.Server.Network
             RequestsForRetransmit += (uint)needSeq.Count;
             LastRequestForRetransmitTime = DateTime.Now;
             packetLog.WarnFormat("[{0}] Requested retransmit of {1}", session.LoggingIdentifier, needSeq.Select(k => k.ToString()).Aggregate((a, b) => a + ", " + b));
+            NetworkStatistics.S2C_RequestsForRetransmit_Aggregate_Increment();
         }
         private DateTime LastRequestForRetransmitTime = DateTime.MinValue;
         private uint RequestsForRetransmit = 0;
@@ -283,6 +284,7 @@ namespace ACE.Server.Network
             uint issacXor = !packet.Header.HasFlag(PacketHeaderFlags.RequestRetransmit) && packet.Header.HasFlag(PacketHeaderFlags.EncryptedChecksum) ? ConnectionData.IssacClient.GetOffset() : 0;
             if (!packet.VerifyChecksum(issacXor))
             {
+                NetworkStatistics.C2S_CRCErrors_Aggregate_Increment();
                 if (issacXor != 0)
                 {
                     issacXor = ConnectionData.IssacClient.GetOffset();
@@ -532,6 +534,7 @@ namespace ACE.Server.Network
         private void SendPacket(ServerPacket packet)
         {
             packetLog.DebugFormat("[{0}] Sending packet {1}", session.LoggingIdentifier, packet.GetHashCode());
+            NetworkStatistics.S2C_Packets_Aggregate_Increment();
 
             if (packet.Header.HasFlag(PacketHeaderFlags.EncryptedChecksum))
             {

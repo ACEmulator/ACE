@@ -158,6 +158,12 @@ namespace ACE.Server.Command.Handlers
             session.Player.EnqueueBroadcastPhysicsState();
         }
 
+        [CommandHandler("netstats", AccessLevel.Developer, CommandHandlerFlag.None, "View network statistics")]
+        public static void HandleNetStats(Session session, params string[] parameters)
+        {
+            CommandHandlerHelper.WriteOutputInfo(session, NetworkStatistics.Summary(), ChatMessageType.Broadcast);
+        }
+
         /// <summary>
         /// List all clothing bases which are compatible with setup
         /// </summary>

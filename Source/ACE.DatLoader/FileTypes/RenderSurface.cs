@@ -57,154 +57,173 @@ namespace ACE.DatLoader.FileTypes
         /// </summary>
         public void ExportTexture(string directory)
         {
-            string ext = ".png";
-            ImageFormat exportFormat = ImageFormat.Png; 
+            if (Length == 0) return;
 
-            if (Length > 0)
-                switch (Format)
-                {
-                    case SurfacePixelFormat.PFID_CUSTOM_RAW_JPEG:
+            switch (Format)
+            {
+                case SurfacePixelFormat.PFID_CUSTOM_RAW_JPEG:
+                    {
+                        string filename = Path.Combine(directory, Id.ToString("X8") + ".jpg");
+                        using (BinaryWriter writer = new BinaryWriter(File.Open(filename, FileMode.Create)))
                         {
-                            ext = ".jpg";
-                            string filename = Path.Combine(directory, Id.ToString("X8") + ext);
-                            using (BinaryWriter writer = new BinaryWriter(File.Open(filename, FileMode.Create)))
-                            {
-                                writer.Write(SourceData);
-                            }
+                            writer.Write(SourceData);
                         }
-                        break;
-                    case SurfacePixelFormat.PFID_DXT1:
-                        {
-                            byte[] bitmapData = DxtUtil.DecompressDxt1(SourceData, Width, Height);
-                            Bitmap bitmapImage = GetBitmap(bitmapData);
-                            string filename = Path.Combine(directory, Id.ToString("X8") + ext);
-                            bitmapImage.Save(filename, exportFormat);
-                        }
-                        break;
-                    case SurfacePixelFormat.PFID_DXT3:
-                        {
-                            byte[] bitmapData = DxtUtil.DecompressDxt3(SourceData, Width, Height);
-                            Bitmap bitmapImage = GetBitmap(bitmapData);
-                            string filename = Path.Combine(directory, Id.ToString("X8") + ext);
-                            bitmapImage.Save(filename, exportFormat);
-                        }
-                        break;
-                    case SurfacePixelFormat.PFID_DXT5:
-                        {
-                            byte[] bitmapData = DxtUtil.DecompressDxt5(SourceData, Width, Height);
-                            Bitmap bitmapImage = GetBitmap(bitmapData);
-                            string filename = Path.Combine(directory, Id.ToString("X8") + ext);
-                            bitmapImage.Save(filename, exportFormat);
-                        }
-                        break;
-                    default:
-                        {
-                            List<int> colors = GetImageColorArray();
-                            Bitmap bitmapImage = GetBitmap(colors);
-                            string filename = Path.Combine(directory, Id.ToString("X8") + ext);
-                            bitmapImage.Save(filename, exportFormat);
-                        }
-                        break;
-                }
+                    }
+                    break;
+
+                default:
+                    {
+                        var bitmapImage = GetBitmap();
+                        string filename = Path.Combine(directory, Id.ToString("X8") + ".png");
+                        bitmapImage.Save(filename, ImageFormat.Png);
+                    }
+                    break;
+            }
+        }
+
+        /// <summary>
+        /// Reads RenderSurface to bitmap structure
+        /// </summary>
+        public Bitmap GetBitmap()
+        {
+            switch (Format)
+            {
+                case SurfacePixelFormat.PFID_CUSTOM_RAW_JPEG:
+                    {
+                        var stream = new MemoryStream(SourceData);
+                        var image = Image.FromStream(stream);
+                        return new Bitmap(image);
+                    }
+                case SurfacePixelFormat.PFID_DXT1:
+                    {
+                        var image = DxtUtil.DecompressDxt1(SourceData, Width, Height);
+                        return GetBitmap(image);
+                    }
+                case SurfacePixelFormat.PFID_DXT3:
+                    {
+                        var image = DxtUtil.DecompressDxt3(SourceData, Width, Height);
+                        return GetBitmap(image);
+                    }
+                case SurfacePixelFormat.PFID_DXT5:
+                    {
+                        var image = DxtUtil.DecompressDxt5(SourceData, Width, Height);
+                        return GetBitmap(image);
+                    }
+                default:
+                    {
+                        List<int> colors = GetImageColorArray();
+                        return GetBitmap(colors);
+                    }
+            }
         }
 
         /// <summary>
         /// Converts the byte array SourceData into color values per pixel
         /// </summary>
-        /// <returns></returns>
         private List<int> GetImageColorArray()
         {
             List<int> colors = new List<int>();
-            if(Length > 0)
+            if (Length == 0) return colors;
+
+            switch (Format)
             {
-                switch (Format)
-                {
-                    case SurfacePixelFormat.PFID_R8G8B8: // RGB
-                    case SurfacePixelFormat.PFID_CUSTOM_LSCAPE_R8G8B8:
-                        using (BinaryReader reader = new BinaryReader(new MemoryStream(SourceData)))
-                        {
-                            for (uint i = 0; i < Height; i++)
-                                for (uint j = 0; j < Width; j++)
-                                {
-                                    byte b = reader.ReadByte();
-                                    byte g = reader.ReadByte();
-                                    byte r = reader.ReadByte();
-                                    int color = (r << 16) + (g << 8) + b;
-                                    colors.Add(color);
-                                }
-                        }
-                        break;
-                    case SurfacePixelFormat.PFID_A8R8G8B8: // ARGB format. Most UI textures fall into this category
-                        using (BinaryReader reader = new BinaryReader(new MemoryStream(SourceData)))
-                        {
-                            for (uint i = 0; i < Height; i++)
-                                for (uint j = 0; j < Width; j++)
-                                    colors.Add(reader.ReadInt32());
-                        }
-                        break;
-                    case SurfacePixelFormat.PFID_INDEX16: // 16-bit indexed colors. Index references position in a palette;
-                        using (BinaryReader reader = new BinaryReader(new MemoryStream(SourceData)))
-                        {
-                            for (uint y = 0; y < Height; y++)
-                                for (uint x = 0; x < Width; x++)
-                                    colors.Add(reader.ReadInt16());
-                        }
-                        break;
-                    case SurfacePixelFormat.PFID_A8: // Greyscale, also known as Cairo A8.
-                    case SurfacePixelFormat.PFID_CUSTOM_LSCAPE_ALPHA:
-                        using (BinaryReader reader = new BinaryReader(new MemoryStream(SourceData)))
-                        {
-                            for (uint y = 0; y < Height; y++)
-                                for (uint x = 0; x < Width; x++)
-                                    colors.Add(reader.ReadByte());
-                        }
-                        break;
-                    case SurfacePixelFormat.PFID_P8: // Indexed
-                        using (BinaryReader reader = new BinaryReader(new MemoryStream(SourceData)))
-                        {
-                            for (uint y = 0; y < Height; y++)
-                                for (uint x = 0; x < Width; x++)
-                                    colors.Add(reader.ReadByte());
-                        }
-                        break;
-                    case SurfacePixelFormat.PFID_R5G6B5: // 16-bit RGB
-                        using (BinaryReader reader = new BinaryReader(new MemoryStream(SourceData)))
-                        {
-                            for (uint y = 0; y < Height; y++)
-                                for (uint x = 0; x < Width; x++)
-                                {
-                                    ushort val = reader.ReadUInt16();
-                                    List<int> color = get565RGB(val);
-                                    colors.Add(color[0]); // Red
-                                    colors.Add(color[1]); // Green
-                                    colors.Add(color[2]); // Blue
-                                }
-                        }
-                        break;
-                    case SurfacePixelFormat.PFID_A4R4G4B4: 
-                        using (BinaryReader reader = new BinaryReader(new MemoryStream(SourceData)))
-                        {
-                            for (uint y = 0; y < Height; y++)
-                                for (uint x = 0; x < Width; x++)
-                                {
-                                    ushort val = reader.ReadUInt16();
-                                    int alpha = (val >> 12) / 0xF * 255;
-                                    int red = (val >> 8 & 0xF) / 0xF * 255;
-                                    int green = (val >> 4 & 0xF) / 0xF * 255;
-                                    int blue = (val & 0xF) / 0xF * 255;
+                case SurfacePixelFormat.PFID_R8G8B8: // RGB
+                case SurfacePixelFormat.PFID_CUSTOM_LSCAPE_R8G8B8:
+                    using (BinaryReader reader = new BinaryReader(new MemoryStream(SourceData)))
+                    {
+                        for (uint i = 0; i < Height; i++)
+                            for (uint j = 0; j < Width; j++)
+                            {
+                                byte b = reader.ReadByte();
+                                byte g = reader.ReadByte();
+                                byte r = reader.ReadByte();
+                                int color = (r << 16) | (g << 8) | b;
+                                colors.Add(color);
+                            }
+                    }
+                    break;
+                case SurfacePixelFormat.PFID_A8R8G8B8: // ARGB format. Most UI textures fall into this category
+                    using (BinaryReader reader = new BinaryReader(new MemoryStream(SourceData)))
+                    {
+                        for (uint i = 0; i < Height; i++)
+                            for (uint j = 0; j < Width; j++)
+                                colors.Add(reader.ReadInt32());
+                    }
+                    break;
+                case SurfacePixelFormat.PFID_INDEX16: // 16-bit indexed colors. Index references position in a palette;
+                    using (BinaryReader reader = new BinaryReader(new MemoryStream(SourceData)))
+                    {
+                        for (uint y = 0; y < Height; y++)
+                            for (uint x = 0; x < Width; x++)
+                                colors.Add(reader.ReadInt16());
+                    }
+                    break;
+                case SurfacePixelFormat.PFID_A8: // Greyscale, also known as Cairo A8.
+                case SurfacePixelFormat.PFID_CUSTOM_LSCAPE_ALPHA:
+                    using (BinaryReader reader = new BinaryReader(new MemoryStream(SourceData)))
+                    {
+                        for (uint y = 0; y < Height; y++)
+                            for (uint x = 0; x < Width; x++)
+                                colors.Add(reader.ReadByte());
+                    }
+                    break;
+                case SurfacePixelFormat.PFID_P8: // Indexed
+                    using (BinaryReader reader = new BinaryReader(new MemoryStream(SourceData)))
+                    {
+                        for (uint y = 0; y < Height; y++)
+                            for (uint x = 0; x < Width; x++)
+                                colors.Add(reader.ReadByte());
+                    }
+                    break;
+                case SurfacePixelFormat.PFID_R5G6B5: // 16-bit RGB
+                    using (BinaryReader reader = new BinaryReader(new MemoryStream(SourceData)))
+                    {
+                        for (uint y = 0; y < Height; y++)
+                            for (uint x = 0; x < Width; x++)
+                            {
+                                ushort val = reader.ReadUInt16();
+                                List<int> color = get565RGB(val);
+                                colors.Add(color[0]); // Red
+                                colors.Add(color[1]); // Green
+                                colors.Add(color[2]); // Blue
+                            }
+                    }
+                    break;
+                case SurfacePixelFormat.PFID_A4R4G4B4:
+                    using (BinaryReader reader = new BinaryReader(new MemoryStream(SourceData)))
+                    {
+                        for (uint y = 0; y < Height; y++)
+                            for (uint x = 0; x < Width; x++)
+                            {
+                                ushort val = reader.ReadUInt16();
+                                int alpha = (val >> 12) / 0xF * 255;
+                                int red = (val >> 8 & 0xF) / 0xF * 255;
+                                int green = (val >> 4 & 0xF) / 0xF * 255;
+                                int blue = (val & 0xF) / 0xF * 255;
 
-                                    colors.Add(alpha);
-                                    colors.Add(red); 
-                                    colors.Add(green);
-                                    colors.Add(blue); 
-                                }
-                        }
-                        break;
-                    default:
-                        Console.WriteLine("Unhandled SurfacePixelFormat (" + Format.ToString() + ") in RenderSurface " + Id.ToString("X8"));
-                        break;
+                                colors.Add(alpha);
+                                colors.Add(red);
+                                colors.Add(green);
+                                colors.Add(blue);
+                            }
+                    }
+                    break;
+                default:
+                    Console.WriteLine("Unhandled SurfacePixelFormat (" + Format.ToString() + ") in RenderSurface " + Id.ToString("X8"));
+                    break;
+            }
 
-                }
+            return colors;
+        }
+
+        private List<int> GetPaletteIndexes()
+        {
+            List<int> colors = new List<int>();
+            using (BinaryReader reader = new BinaryReader(new MemoryStream(SourceData)))
+            {
+                for (uint y = 0; y < Height; y++)
+                    for (uint x = 0; x < Width; x++)
+                        colors.Add(reader.ReadInt16());
             }
             return colors;
         }

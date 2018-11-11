@@ -14,11 +14,6 @@ namespace ACE.Database.SQLFormatters
 
         /// <summary>
         /// Set this to enable auto commenting when creating SQL statements.<para />
-        /// </summary>
-        public Dictionary<uint, string> WeenieClassNames;
-
-        /// <summary>
-        /// Set this to enable auto commenting when creating SQL statements.<para />
         /// If a weenie id is found in the dictionary, the name will be added in the form of a /* Friendly Weenie Name */
         /// </summary>
         public Dictionary<uint, string> WeenieNames;

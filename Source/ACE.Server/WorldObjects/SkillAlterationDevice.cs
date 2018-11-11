@@ -87,7 +87,7 @@ namespace ACE.Server.WorldObjects
                                 player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.None));
 
                                 //Destroy the gem we used successfully
-                                player.TryRemoveItemFromInventoryWithNetworking(this, 1);
+                                player.TryRemoveItemFromInventoryWithNetworkingWithDestroy(this, 1);
 
                                 break;
                             }
@@ -127,7 +127,7 @@ namespace ACE.Server.WorldObjects
                             player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.None));
 
                             //Destroy the gem we used successfully
-                            player.TryRemoveItemFromInventoryWithNetworking(this, 1);
+                            player.TryRemoveItemFromInventoryWithNetworkingWithDestroy(this, 1);
 
                             break;
                         }
@@ -152,7 +152,7 @@ namespace ACE.Server.WorldObjects
                             player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.None));
 
                             //Destroy the gem we used successfully
-                            player.TryRemoveItemFromInventoryWithNetworking(this, 1);
+                            player.TryRemoveItemFromInventoryWithNetworkingWithDestroy(this, 1);
 
                             break;
                         }

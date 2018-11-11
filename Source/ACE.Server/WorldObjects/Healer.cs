@@ -82,7 +82,7 @@ namespace ACE.Server.WorldObjects
                 if (healer != target)
                     target.Session.Network.EnqueueSend(new GameMessageSystemChat($"{healer.Name} fails to heal you.", ChatMessageType.Broadcast));
                 if (UsesLeft <= 0)
-                    healer.TryRemoveItemFromInventoryWithNetworking(this, 1);
+                    healer.TryRemoveItemFromInventoryWithNetworkingWithDestroy(this, 1);
                 return;
             }
 
@@ -112,7 +112,7 @@ namespace ACE.Server.WorldObjects
                 target.Session.Network.EnqueueSend(new GameMessageSystemChat($"{healer.Name} heals you for {healAmount} points.", ChatMessageType.Broadcast));
 
             if (UsesLeft <= 0)
-                healer.TryRemoveItemFromInventoryWithNetworking(this, 1);
+                healer.TryRemoveItemFromInventoryWithNetworkingWithDestroy(this, 1);
         }
 
         /// <summary>

@@ -1,6 +1,7 @@
 using System;
 using System.Numerics;
 
+using ACE.Entity.Enum;
 using ACE.Server.Physics.Animation;
 using ACE.Server.Physics.Common;
 using ACE.Server.Physics.Collision;
@@ -25,14 +26,15 @@ namespace ACE.Server.Physics
         //public Material Material;
         //public List<uint> Surfaces;
         //public int OriginalPaletteID;
-        //public float CurTranslucency;
+        public float CurTranslucency;
         //public float CurDiffuse;
         //public float CurLuminosity;
         //public DatLoader.FileTypes.Palette ShiftPal;
         //public int CurrentRenderFrameNum;
-        public PhysicsObj PhysObj;
+        public PhysicsObj PhysicsObj;
         public int PhysObjIndex;
         public BBox BoundingBox;
+        public bool NoDraw;
 
         public static PhysicsObj PlayerObject;
 
@@ -64,10 +66,10 @@ namespace ACE.Server.Physics
 
         public uint GetPhysObjID()
         {
-            if (PhysObj == null)
+            if (PhysicsObj == null)
                 return 0;
 
-            return PhysObj.ID;
+            return PhysicsObj.ID;
         }
 
         public void InitEmpty()
@@ -88,7 +90,7 @@ namespace ACE.Server.Physics
 
         public bool IsPartOfPlayerObj()
         {
-            return PhysObj.Equals(PlayerObject);
+            return PhysicsObj.Equals(PlayerObject);
         }
 
         public bool LoadGfxObjArray(uint rootObjectID/*, GfxObjDegradeInfo newDegrades*/)
@@ -130,6 +132,27 @@ namespace ACE.Server.Physics
         public bool SetPart(uint gfxObjID)
         {
             return LoadGfxObjArray(gfxObjID);
+        }
+
+        public void SetTranslucency(float translucency)
+        {
+            if (PhysicsObj != null && PhysicsObj.State.HasFlag(PhysicsState.Cloaked))
+                return;
+
+            if (translucency == 1.0f)
+            {
+                NoDraw = true;
+                return;
+            }
+
+            if (CurTranslucency != translucency)
+            {
+                CurTranslucency = translucency;
+                /*if (CurSettingsAreDefault())
+                    RestoreMaterial();
+                else if (CopyMaterial())
+                    Material.SetTranslucencySimple(translucency);*/
+            }
         }
 
         public void UpdateViewerDistance()
