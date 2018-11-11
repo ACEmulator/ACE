@@ -42,7 +42,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// This is just a wrapper around Biota.Id
         /// </summary>
-        public ObjectGuid Guid => new ObjectGuid(Biota.Id);
+        public ObjectGuid Guid { get; }
 
         public PhysicsObj PhysicsObj { get; protected set; }
 
@@ -93,6 +93,7 @@ namespace ACE.Server.WorldObjects
         protected WorldObject(Weenie weenie, ObjectGuid guid)
         {
             Biota = weenie.CreateCopyAsBiota(guid.Full);
+            Guid = guid;
 
             CreationTimestamp = (int)Time.GetUnixTime();
 
@@ -106,6 +107,7 @@ namespace ACE.Server.WorldObjects
         protected WorldObject(Biota biota)
         {
             Biota = biota;
+            Guid = new ObjectGuid(Biota.Id);
 
             biotaOriginatedFromDatabase = true;
 
