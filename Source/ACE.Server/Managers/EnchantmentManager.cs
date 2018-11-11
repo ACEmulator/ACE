@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
+
 using ACE.Common.Extensions;
 using ACE.Database.Models.Shard;
 using ACE.Server.Entity.Actions;
@@ -16,6 +17,7 @@ using ACE.Server.Physics;
 using ACE.Server.Physics.Extensions;
 using ACE.Server.WorldObjects;
 using ACE.Server.WorldObjects.Entity;
+
 using SpellEnchantment = ACE.Server.Entity.SpellEnchantment;
 
 namespace ACE.Server.Managers
@@ -54,24 +56,13 @@ namespace ACE.Server.Managers
             Player = obj as Player;
         }
 
-        public Entity.Spell Surpass; // retval
-
-        /// <summary>
-        /// Add/update zero or more enchantments in this object's registry
-        /// </summary>
-        public IEnumerable<StackType> AddRange(IEnumerable<Enchantment> enchantment, WorldObject caster)
-        {
-            List<StackType> stacks = new List<StackType>();
-            enchantment.ToList().ForEach(k => stacks.Add(Add(k, caster)));
-            return stacks;
-        }
-
         /// <summary>
         /// Add/update an enchantment in this object's registry
         /// </summary>
-        public StackType Add(Enchantment enchantment, WorldObject caster)
+        public (StackType stackType, Entity.Spell surpass) Add(Enchantment enchantment, WorldObject caster)
         {
             StackType result = StackType.Undef;
+            Entity.Spell surpass = null;
 
             // check for existing spell in this category
             var entries = GetCategory(enchantment.Spell.Category);
@@ -85,7 +76,7 @@ namespace ACE.Server.Managers
                 WorldObject.Biota.AddEnchantment(newEntry, WorldObject.BiotaDatabaseLock);
                 WorldObject.ChangesDetected = true;
 
-                return StackType.Initial;
+                return (StackType.Initial, null);
             }
 
             // Check for existing spells in registry that are superior
@@ -94,8 +85,7 @@ namespace ACE.Server.Managers
                 if (enchantment.Spell.Power < entry.PowerLevel)
                 {
                     // superior existing spell
-                    Surpass = new Entity.Spell(entry.SpellId);
-
+                    surpass = new Entity.Spell(entry.SpellId);
                     result = StackType.Surpassed;
                 }
             }
@@ -146,7 +136,7 @@ namespace ACE.Server.Managers
                         if (enchantment.Spell.Power > entry.PowerLevel)
                         {
                             // surpass existing spell
-                            Surpass = new Entity.Spell((uint)entry.SpellId);
+                            surpass = new Entity.Spell((uint)entry.SpellId);
                             layerBuffer = entry.LayerId;
                         }
                     }
@@ -161,7 +151,7 @@ namespace ACE.Server.Managers
                 }
             }
 
-            return result;
+            return (result, surpass);
         }
 
         /// <summary>
