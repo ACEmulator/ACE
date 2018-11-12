@@ -184,12 +184,14 @@ namespace ACE.Server.Managers
 
             if (!HasVitae)
             {
+                // TODO refactor this so it uses the existing Add() method.
+
                 // add entry for new vitae
                 vitae = BuildEntry((uint)Spell.Vitae);
                 vitae.EnchantmentCategory = (uint)EnchantmentMask.Vitae;
                 vitae.LayerId = 0;
                 vitae.StatModValue = 1.0f - (float)PropertyManager.GetDouble("vitae_penalty").Item;
-                WorldObject.Biota.BiotaPropertiesEnchantmentRegistry.Add(vitae);
+                WorldObject.Biota.AddEnchantment(vitae, WorldObject.BiotaDatabaseLock);
                 WorldObject.ChangesDetected = true;
             }
             else
