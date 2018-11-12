@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.IO;
 
 using ACE.DatLoader.Entity;
+using ACE.Entity.Enum;
 
 namespace ACE.DatLoader.FileTypes
 {
@@ -12,7 +13,7 @@ namespace ACE.DatLoader.FileTypes
     [DatFileType(DatFileType.Animation)]
     public class Animation : FileType
     {
-        public uint Bitfield { get; private set; }
+        public AnimationFlags Flags { get; private set; }
         public uint NumParts { get; private set; }
         public uint NumFrames { get; private set; }
         public List<Frame> PosFrames { get; } = new List<Frame>();
@@ -21,11 +22,11 @@ namespace ACE.DatLoader.FileTypes
         public override void Unpack(BinaryReader reader)
         {
             Id          = reader.ReadUInt32();
-            Bitfield    = reader.ReadUInt32();
+            Flags       = (AnimationFlags)reader.ReadUInt32();
             NumParts    = reader.ReadUInt32();
             NumFrames   = reader.ReadUInt32();
 
-            if ((Bitfield & 1) != 0)
+            if ((Flags & AnimationFlags.PosFrames) != 0)
                 PosFrames.Unpack(reader, NumFrames);
 
             for (uint i = 0; i < NumFrames; i++)

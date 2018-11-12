@@ -18,21 +18,24 @@ namespace ACE.DatLoader
         public static PortalDatDatabase HighResDat { get; private set; }
         public static PortalDatDatabase LanguageDat { get; private set; }
 
-        public static void Initialize(string datFileDirectory)
+        public static void Initialize(string datFileDirectory, bool loadCell = true)
         {
             var datDir = Path.GetFullPath(Path.Combine(datFileDirectory));
 
-            try
+            if (loadCell)
             {
-                datFile = Path.Combine(datDir, "client_cell_1.dat");
-                CellDat = new CellDatDatabase(datFile);
-                count = CellDat.AllFiles.Count;
-                log.Info($"Successfully opened {datFile} file, containing {count} records");
-            }
-            catch (FileNotFoundException ex)
-            {
-                log.Info($"An exception occured while attempting to open {datFile} file!  This needs to be corrected in order for Landblocks to load!");
-                log.Info($"Exception: {ex.Message}");
+                try
+                {
+                    datFile = Path.Combine(datDir, "client_cell_1.dat");
+                    CellDat = new CellDatDatabase(datFile);
+                    count = CellDat.AllFiles.Count;
+                    log.Info($"Successfully opened {datFile} file, containing {count} records");
+                }
+                catch (FileNotFoundException ex)
+                {
+                    log.Info($"An exception occured while attempting to open {datFile} file!  This needs to be corrected in order for Landblocks to load!");
+                    log.Info($"Exception: {ex.Message}");
+                }
             }
 
             try

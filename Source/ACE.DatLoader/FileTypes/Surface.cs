@@ -22,7 +22,7 @@ namespace ACE.DatLoader.FileTypes
         {
             Type = (SurfaceType)reader.ReadUInt32();
 
-            if (((uint)Type & 6) != 0)
+            if (Type.HasFlag(SurfaceType.Base1Image) || Type.HasFlag(SurfaceType.Base1ClipMap))
             {
                 // image or clipmap
                 OrigTextureId = reader.ReadUInt32();

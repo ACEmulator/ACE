@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 
 using ACE.Entity.Enum;
 
@@ -18,7 +19,7 @@ namespace ACE.DatLoader.Entity
         private const uint BPIN = 1112557902; // 0x4250494E
         private const uint BPnN = 1112567374; // 0x42506E4E
         
-        public uint Type { get; protected set; }
+        public string Type { get; protected set; }
 
         public Plane SplittingPlane { get; protected set; }
 
@@ -40,13 +41,13 @@ namespace ACE.DatLoader.Entity
 
         public virtual void Unpack(BinaryReader reader, BSPType treeType)
         {
-            Type = reader.ReadUInt32();
+            Type = Encoding.ASCII.GetString(reader.ReadBytes(4)).Reverse();
             
             switch (Type)
             {
                 // These types will unpack the data completely, in their own classes
-                case PORT:
-                case LEAF:
+                case "PORT":
+                case "LEAF":
                     throw new Exception();
             }
 
@@ -55,16 +56,16 @@ namespace ACE.DatLoader.Entity
 
             switch (Type)
             {
-                case BPnn:
-                case BPIn:
+                case "BPnn":
+                case "BPIn":
                     PosNode = BSPNode.ReadNode(reader, treeType);
                     break;
-                case BpIN:
-                case BpnN:
+                case "BpIN":
+                case "BpnN":
                     NegNode = BSPNode.ReadNode(reader, treeType);
                     break;
-                case BPIN:
-                case BPnN:
+                case "BPIN":
+                case "BPnN":
                     PosNode = BSPNode.ReadNode(reader, treeType);
                     NegNode = BSPNode.ReadNode(reader, treeType);
                     break;
@@ -88,27 +89,27 @@ namespace ACE.DatLoader.Entity
         public static BSPNode ReadNode(BinaryReader reader, BSPType treeType)
         {
             // We peek forward to get the type, then revert our position.
-            var type = reader.ReadUInt32();
+            var type = Encoding.ASCII.GetString(reader.ReadBytes(4)).Reverse();
             reader.BaseStream.Position -= 4;
 
             BSPNode node;
 
             switch (type)
             {
-                case PORT:
+                case "PORT":
                     node = new BSPPortal();
                     break;
 
-                case LEAF:
+                case "LEAF":
                     node = new BSPLeaf();
                     break;
 
-                case BPnn:
-                case BPIn:
-                case BpIN:
-                case BpnN:
-                case BPIN:
-                case BPnN:
+                case "BPnn":
+                case "BPIn":
+                case "BpIN":
+                case "BpnN":
+                case "BPIN":
+                case "BPnN":
                 default:
                     node = new BSPNode();
                     break;

@@ -2,12 +2,14 @@ using System.Collections.Generic;
 using System.IO;
 using System.Numerics;
 
+using ACE.Entity.Enum;
+
 namespace ACE.DatLoader.Entity
 {
     public class MotionData : IUnpackable
     {
         public byte Bitfield { get; private set; }
-        public byte Bitfield2 { get; private set; }
+        public MotionDataFlags Flags { get; private set; }
         public List<AnimData> Anims { get; } = new List<AnimData>();
         public Vector3 Velocity { get; private set; }
         public Vector3 Omega { get; private set; }
@@ -16,15 +18,15 @@ namespace ACE.DatLoader.Entity
         {
             var numAnims    = reader.ReadByte();
             Bitfield        = reader.ReadByte();
-            Bitfield2       = reader.ReadByte();
+            Flags           = (MotionDataFlags)reader.ReadByte();
             reader.AlignBoundary();
 
             Anims.Unpack(reader, numAnims);
 
-            if ((Bitfield2 & 1) != 0)
+            if ((Flags & MotionDataFlags.HasVelocity) != 0)
                 Velocity = reader.ReadVector3();
 
-            if ((Bitfield2 & 2) != 0)
+            if ((Flags & MotionDataFlags.HasOmega) != 0)
                 Omega = reader.ReadVector3();
         }
     }
