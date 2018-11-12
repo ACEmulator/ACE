@@ -5,7 +5,7 @@ using ACE.DatLoader.Entity;
 
 namespace ACE.DatLoader.FileTypes
 {
-    [DatFileType(DatFileType.String)]
+    [DatFileType(DatFileType.StringTable)]
     public class StringTable : FileType
     {
         public uint Language { get; private set; } // This should always be 1 for English
