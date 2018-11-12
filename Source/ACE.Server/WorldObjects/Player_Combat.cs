@@ -569,7 +569,7 @@ namespace ACE.Server.WorldObjects
 
         public float GetStaminaMod()
         {
-            var endurance = GetCreatureAttribute(PropertyAttribute.Endurance).Base;
+            var endurance = Endurance.Base;
 
             var staminaMod = 1.0f - (endurance - 100.0f) / 600.0f;   // guesstimated formula: 50% reduction at 400 base endurance
             staminaMod = Math.Clamp(staminaMod, 0.5f, 1.0f);

@@ -903,7 +903,7 @@ namespace ACE.Server.WorldObjects
 
                     if (itemAttributeReq != PropertyAttribute.Undef)
                     {
-                        var playerAttribute = GetCreatureAttribute(itemAttributeReq).Current;
+                        var playerAttribute = Attributes[itemAttributeReq].Current;
 
                         if (playerAttribute < (uint)(item.GetProperty(PropertyInt.WieldDifficulty) ?? 0))
                             return WeenieError.SkillTooLow;
