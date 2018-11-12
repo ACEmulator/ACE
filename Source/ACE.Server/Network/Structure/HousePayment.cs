@@ -49,7 +49,7 @@ namespace ACE.Server.Network.Structure
             WeenieID = wo.WeenieClassId;
             Name = wo.Name;
             PluralName = wo.NamePlural;
-            Num = wo.StackSize ?? 1;
+            Num = (uint)(wo.StackSize ?? 1);
         }
     }
 
