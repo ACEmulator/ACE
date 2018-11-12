@@ -408,7 +408,7 @@ namespace ACE.Server.Managers
         /// </summary>
         public void DispelAllEnchantments(bool showMsg = false)
         {
-            var enchantments = WorldObject.Biota.BiotaPropertiesEnchantmentRegistry.ToList();
+            var enchantments = WorldObject.Biota.GetEnchantments(WorldObject.BiotaDatabaseLock);
 
             foreach (var enchantment in enchantments)
             {
