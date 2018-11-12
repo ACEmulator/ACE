@@ -395,20 +395,20 @@ namespace ACE.Server.WorldObjects
                 {
                     // Retrieve enchantment on player and dispel it, if present
                     if (EnchantmentManager.HasSpell(spellId))
-                        EnchantmentManager.Dispel(EnchantmentManager.GetSpell(spellId));
+                        EnchantmentManager.Dispel(EnchantmentManager.GetEnchantment(spellId));
                 }
                 else
                 {
                     // Retrieve enchantment on item and dispel it, if present
                     if (item.EnchantmentManager.HasSpell(spellId))
-                        item.EnchantmentManager.Dispel(item.EnchantmentManager.GetSpell(spellId));
+                        item.EnchantmentManager.Dispel(item.EnchantmentManager.GetEnchantment(spellId));
                 }
             }
             else
             {
                 // Retrieve enchantment on player and dispel it, if present
                 if (EnchantmentManager.HasSpell(spellId))
-                    EnchantmentManager.Dispel(EnchantmentManager.GetSpell(spellId));
+                    EnchantmentManager.Dispel(EnchantmentManager.GetEnchantment(spellId));
             }
         }
 
@@ -441,20 +441,20 @@ namespace ACE.Server.WorldObjects
                 {
                     // Retrieve enchantment on player and remove it, if present
                     if (EnchantmentManager.HasSpell(spellId))
-                        EnchantmentManager.Remove(EnchantmentManager.GetSpell(spellId));
+                        EnchantmentManager.Remove(EnchantmentManager.GetEnchantment(spellId));
                 }
                 else
                 {
                     // Retrieve enchantment on item and remove it, if present
                     if (item.EnchantmentManager.HasSpell(spellId))
-                        item.EnchantmentManager.Remove(item.EnchantmentManager.GetSpell(spellId));
+                        item.EnchantmentManager.Remove(item.EnchantmentManager.GetEnchantment(spellId));
                 }
             }
             else
             {
                 // Retrieve enchantment on player and remove it, if present
                 if (EnchantmentManager.HasSpell(spellId))
-                    EnchantmentManager.Remove(EnchantmentManager.GetSpell(spellId));
+                    EnchantmentManager.Remove(EnchantmentManager.GetEnchantment(spellId));
             }
         }
 

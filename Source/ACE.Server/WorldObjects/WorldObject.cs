@@ -78,7 +78,7 @@ namespace ACE.Server.WorldObjects
         public bool IsAmmoLauncher { get => IsBow || IsAtlatl; }
 
         public EmoteManager EmoteManager;
-        public EnchantmentManager EnchantmentManager;
+        public EnchantmentManagerWithCaching EnchantmentManager;
 
         public WorldObject ProjectileSource;
         public WorldObject ProjectileTarget;
@@ -333,7 +333,7 @@ namespace ACE.Server.WorldObjects
             EncumbranceVal = EncumbranceVal ?? (StackUnitEncumbrance ?? 0) * (StackSize ?? 1);
 
             EmoteManager = new EmoteManager(this);
-            EnchantmentManager = new EnchantmentManager(this);
+            EnchantmentManager = new EnchantmentManagerWithCaching(this);
 
             if (Placement == null)
                 Placement = ACE.Entity.Enum.Placement.Resting;

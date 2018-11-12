@@ -239,7 +239,7 @@ namespace ACE.Server.Command.Handlers
                     session.Network.EnqueueSend(new GameMessageSystemChat($"Run speed boost is currently {(session.Player.EnchantmentManager.HasSpell(spellID) ? "ACTIVE" : "INACTIVE")}", ChatMessageType.Broadcast));
                     break;
                 case "off":
-                    var runBoost = session.Player.EnchantmentManager.GetSpell(spellID);
+                    var runBoost = session.Player.EnchantmentManager.GetEnchantment(spellID);
                     if (runBoost != null)
                         session.Player.EnchantmentManager.Remove(runBoost);
                     else
