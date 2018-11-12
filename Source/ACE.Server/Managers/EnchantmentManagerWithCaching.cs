@@ -106,11 +106,27 @@ namespace ACE.Server.Managers
             attributeModCache.Clear();
             vitalModCache.Clear();
             skillModCache.Clear();
-            regenerationModCache = null;
+
+            bodyArmorModCache = null;
+            resistanceModCache.Clear();
+            protectionResistanceModCache.Clear();
+            vulnerabilityResistanceModCache.Clear();
+            regenerationModCache.Clear();
+
+            damageModCache = null;
+            damageModifierCache = null;
+            attackModCache = null;
+            weaponSpeedModCache = null;
             defenseModCache = null;
+            varianceModCache = null;
             armorModCache = null;
             armorModVsTypeModCache.Clear();
+
+            damageRatingCache = null;
+            damageResistRatingCache = null;
+            healingResistRatingModCache = null;
         }
+
 
         private readonly Dictionary<PropertyAttribute, int> attributeModCache = new Dictionary<PropertyAttribute, int>();
 
@@ -163,7 +179,74 @@ namespace ACE.Server.Managers
             return value;
         }
 
-        private float? regenerationModCache;
+
+        private int? bodyArmorModCache;
+
+        /// <summary>
+        /// Returns the base armor modifier from enchantments
+        /// </summary>
+        public override int GetBodyArmorMod()
+        {
+            if (bodyArmorModCache.HasValue)
+                return bodyArmorModCache.Value;
+
+            bodyArmorModCache = base.GetBodyArmorMod();
+
+            return bodyArmorModCache.Value;
+        }
+
+        private readonly Dictionary<DamageType, float> resistanceModCache = new Dictionary<DamageType, float>();
+
+        /// <summary>
+        /// Gets the resistance modifier for a damage type
+        /// </summary>
+        public override float GetResistanceMod(DamageType damageType)
+        {
+            if (resistanceModCache.TryGetValue(damageType, out var value))
+                return value;
+
+            value = base.GetResistanceMod(damageType);
+
+            resistanceModCache[damageType] = value;
+
+            return value;
+        }
+
+        private readonly Dictionary<DamageType, float> protectionResistanceModCache = new Dictionary<DamageType, float>();
+
+        /// <summary>
+        /// Gets the resistance modifier for a damage type
+        /// </summary>
+        public override float GetProtectionResistanceMod(DamageType damageType)
+        {
+            if (protectionResistanceModCache.TryGetValue(damageType, out var value))
+                return value;
+
+            value = base.GetProtectionResistanceMod(damageType);
+
+            protectionResistanceModCache[damageType] = value;
+
+            return value;
+        }
+
+        private readonly Dictionary<DamageType, float> vulnerabilityResistanceModCache = new Dictionary<DamageType, float>();
+
+        /// <summary>
+        /// Gets the resistance modifier for a damage type
+        /// </summary>
+        public override float GetVulnerabilityResistanceMod(DamageType damageType)
+        {
+            if (vulnerabilityResistanceModCache.TryGetValue(damageType, out var value))
+                return value;
+
+            value = base.GetVulnerabilityResistanceMod(damageType);
+
+            vulnerabilityResistanceModCache[damageType] = value;
+
+            return value;
+        }
+
+        private readonly Dictionary<CreatureVital, float> regenerationModCache = new Dictionary<CreatureVital, float>();
 
         /// <summary>
         /// Gets the regeneration modifier for a vital type
@@ -171,15 +254,79 @@ namespace ACE.Server.Managers
         /// </summary>
         public override float GetRegenerationMod(CreatureVital vital)
         {
-            if (regenerationModCache.HasValue)
-                return regenerationModCache.Value;
+            if (regenerationModCache.TryGetValue(vital, out var value))
+                return value;
 
-            regenerationModCache = base.GetRegenerationMod(vital);
+            value = base.GetRegenerationMod(vital);
 
-            return regenerationModCache.Value;
+            regenerationModCache[vital] = value;
+
+            return value;
+        }
+
+
+        private int? damageModCache;
+
+        /// <summary>
+        /// Returns the weapon damage modifier, ie. Blood Drinker
+        /// </summary>
+        public override int GetDamageMod()
+        {
+            if (damageModCache.HasValue)
+                return damageModCache.Value;
+
+            damageModCache = base.GetDamageMod();
+
+            return damageModCache.Value;
+        }
+
+        private float? damageModifierCache;
+
+        /// <summary>
+        /// Returns the DamageMod for bow / crossbow
+        /// </summary>
+        public override float GetDamageModifier()
+        {
+            if (damageModifierCache.HasValue)
+                return damageModifierCache.Value;
+
+            damageModifierCache = base.GetDamageModifier();
+
+            return damageModifierCache.Value;
+        }
+
+        private float? attackModCache;
+
+        /// <summary>
+        /// Returns the attack skill modifier, ie. Heart Seeker
+        /// </summary>
+        public override float GetAttackMod()
+        {
+            if (attackModCache.HasValue)
+                return attackModCache.Value;
+
+            attackModCache = base.GetAttackMod();
+
+            return attackModCache.Value;
+        }
+
+        private int? weaponSpeedModCache;
+
+        /// <summary>
+        /// Returns the weapon speed modifier, ie. Swift Killer
+        /// </summary>
+        public override int GetWeaponSpeedMod()
+        {
+            if (weaponSpeedModCache.HasValue)
+                return weaponSpeedModCache.Value;
+
+            weaponSpeedModCache = base.GetWeaponSpeedMod();
+
+            return weaponSpeedModCache.Value;
         }
 
         private float? defenseModCache;
+
         /// <summary>
         /// Returns the defense skill modifier, ie. Defender
         /// </summary>
@@ -191,6 +338,22 @@ namespace ACE.Server.Managers
             defenseModCache = base.GetDefenseMod();
 
             return defenseModCache.Value;
+        }
+
+        private float? varianceModCache;
+
+        /// <summary>
+        /// Returns the weapon damage variance modifier
+        /// </summary>
+        /// 
+        public override float GetVarianceMod()
+        {
+            if (varianceModCache.HasValue)
+                return varianceModCache.Value;
+
+            varianceModCache = base.GetVarianceMod();
+
+            return varianceModCache.Value;
         }
 
         private int? armorModCache;
@@ -223,6 +386,49 @@ namespace ACE.Server.Managers
             armorModVsTypeModCache[damageType] = value;
 
             return value;
+        }
+
+
+        private int? damageRatingCache;
+
+        /// <summary>
+        /// Returns the damage rating modifier from enchantments as an int rating (additive)
+        /// </summary>
+        public override int GetDamageRating()
+        {
+            if (damageRatingCache.HasValue)
+                return damageRatingCache.Value;
+
+            damageRatingCache = base.GetDamageRating();
+
+            return damageRatingCache.Value;
+        }
+
+        private int? damageResistRatingCache;
+
+        public override int GetDamageResistRating()
+        {
+            if (damageResistRatingCache.HasValue)
+                return damageResistRatingCache.Value;
+
+            damageResistRatingCache = base.GetDamageResistRating();
+
+            return damageResistRatingCache.Value;
+        }
+
+        private float? healingResistRatingModCache;
+
+        /// <summary>
+        /// Returns the healing resistance rating enchantment modifier
+        /// </summary>
+        public override float GetHealingResistRatingMod()
+        {
+            if (healingResistRatingModCache.HasValue)
+                return healingResistRatingModCache.Value;
+
+            healingResistRatingModCache = base.GetHealingResistRatingMod();
+
+            return healingResistRatingModCache.Value;
         }
     }
 }

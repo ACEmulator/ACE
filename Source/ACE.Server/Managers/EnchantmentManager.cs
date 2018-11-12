@@ -731,8 +731,7 @@ namespace ACE.Server.Managers
         /// <summary>
         /// Returns the base armor modifier from enchantments
         /// </summary>
-        /// <returns></returns>
-        public int GetBodyArmorMod()
+        public virtual int GetBodyArmorMod()
         {
             return GetModifier(EnchantmentTypeFlags.BodyArmorValue);
         }
@@ -740,7 +739,7 @@ namespace ACE.Server.Managers
         /// <summary>
         /// Gets the resistance modifier for a damage type
         /// </summary>
-        public float GetResistanceMod(DamageType damageType)
+        public virtual float GetResistanceMod(DamageType damageType)
         {
             var typeFlags = EnchantmentTypeFlags.Float | EnchantmentTypeFlags.SingleStat | EnchantmentTypeFlags.Multiplicative;
             var resistance = GetResistanceKey(damageType);
@@ -757,7 +756,7 @@ namespace ACE.Server.Managers
         /// <summary>
         /// Gets the resistance modifier for a damage type
         /// </summary>
-        public float GetProtectionResistanceMod(DamageType damageType)
+        public virtual float GetProtectionResistanceMod(DamageType damageType)
         {
             var typeFlags = EnchantmentTypeFlags.Float | EnchantmentTypeFlags.SingleStat | EnchantmentTypeFlags.Multiplicative;
             var resistance = GetResistanceKey(damageType);
@@ -777,7 +776,7 @@ namespace ACE.Server.Managers
         /// <summary>
         /// Gets the resistance modifier for a damage type
         /// </summary>
-        public float GetVulnerabilityResistanceMod(DamageType damageType)
+        public virtual float GetVulnerabilityResistanceMod(DamageType damageType)
         {
             var typeFlags = EnchantmentTypeFlags.Float | EnchantmentTypeFlags.SingleStat | EnchantmentTypeFlags.Multiplicative;
             var resistance = GetResistanceKey(damageType);
@@ -812,10 +811,11 @@ namespace ACE.Server.Managers
             return modifier;
         }
 
+
         /// <summary>
         /// Returns the weapon damage modifier, ie. Blood Drinker
         /// </summary>
-        public int GetDamageMod()
+        public virtual int GetDamageMod()
         {
             // BD8 seems to be the only one with aura in db?
             var aura = GetAdditiveMod(PropertyInt.WeaponAuraDamage);
@@ -827,8 +827,7 @@ namespace ACE.Server.Managers
         /// <summary>
         /// Returns the DamageMod for bow / crossbow
         /// </summary>
-        /// <returns></returns>
-        public float GetDamageModifier()
+        public virtual float GetDamageModifier()
         {
             return GetMultiplicativeMod(PropertyFloat.DamageMod);
         }
@@ -836,7 +835,7 @@ namespace ACE.Server.Managers
         /// <summary>
         /// Returns the attack skill modifier, ie. Heart Seeker
         /// </summary>
-        public float GetAttackMod()
+        public virtual float GetAttackMod()
         {
             var aura = GetAdditiveMod(PropertyFloat.WeaponAuraOffense);
             if (aura != 0) return aura;
@@ -847,7 +846,7 @@ namespace ACE.Server.Managers
         /// <summary>
         /// Returns the weapon speed modifier, ie. Swift Killer
         /// </summary>
-        public int GetWeaponSpeedMod()
+        public virtual int GetWeaponSpeedMod()
         {
             var aura = GetAdditiveMod(PropertyInt.WeaponAuraSpeed);
             if (aura != 0) return aura;
@@ -869,8 +868,7 @@ namespace ACE.Server.Managers
         /// <summary>
         /// Returns the weapon damage variance modifier
         /// </summary>
-        /// <returns></returns>
-        public float GetVarianceMod()
+        public virtual float GetVarianceMod()
         {
             return GetMultiplicativeMod(PropertyFloat.DamageVariance);
         }
@@ -903,7 +901,6 @@ namespace ACE.Server.Managers
         /// <summary>
         /// Returns the defense skill debuffs for Dirty Fighting
         /// </summary>
-        /// <returns></returns>
         public int GetDefenseDebuffMod()
         {
             var typeFlags = EnchantmentTypeFlags.Skill | EnchantmentTypeFlags.Additive | EnchantmentTypeFlags.DefenseSkills;
@@ -916,7 +913,6 @@ namespace ACE.Server.Managers
         /// <summary>
         /// Returns the attack skill debuffs for Dirty Fighting
         /// </summary>
-        /// <returns></returns>
         public int GetAttackDebuffMod()
         {
             var typeFlags = EnchantmentTypeFlags.Skill | EnchantmentTypeFlags.Additive | EnchantmentTypeFlags.AttackSkills;
@@ -925,6 +921,7 @@ namespace ACE.Server.Managers
             // additive
             return (int)Math.Round(GetAdditiveMod(enchantments));
         }
+
 
         /// <summary>
         /// Returns a rating enchantment modifier
@@ -939,10 +936,9 @@ namespace ACE.Server.Managers
         }
 
         /// <summary>
-        /// Returns the damage rating modifier from enchantments
-        /// as an int rating (additive)
+        /// Returns the damage rating modifier from enchantments as an int rating (additive)
         /// </summary>
-        public int GetDamageRating()
+        public virtual int GetDamageRating()
         {
             var damageRating = GetRating(PropertyInt.DamageRating);
 
@@ -952,7 +948,7 @@ namespace ACE.Server.Managers
             return damageRating - weaknessRating;
         }
 
-        public int GetDamageResistRating()
+        public virtual int GetDamageResistRating()
         {
             var damageResistanceRating = GetRating(PropertyInt.DamageResistRating);
 
@@ -986,7 +982,7 @@ namespace ACE.Server.Managers
         /// <summary>
         /// Returns the healing resistance rating enchantment modifier
         /// </summary>
-        public float GetHealingResistRatingMod()
+        public virtual float GetHealingResistRatingMod()
         {
             var rating = GetRating(PropertyInt.HealingResistRating);
 
