@@ -571,7 +571,7 @@ namespace ACE.Server.WorldObjects
 
             spell.Formula.GetPlayerFormula(player.Session.Account);
 
-            string spellWords = spell._spellBase.SpellWords;
+            string spellWords = spell._spellBase.GetSpellWords(DatManager.PortalDat.SpellComponentsTable);
             if (spellWords != null)
                 EnqueueBroadcast(new GameMessageCreatureMessage(spellWords, Name, Guid.Full, ChatMessageType.Spellcasting));
 
@@ -855,7 +855,7 @@ namespace ACE.Server.WorldObjects
 
             spell.Formula.GetPlayerFormula(Session.Account);
 
-            string spellWords = spell._spellBase.SpellWords;
+            string spellWords = spell._spellBase.GetSpellWords(DatManager.PortalDat.SpellComponentsTable);
             if (spellWords != null)
                 EnqueueBroadcast(new GameMessageCreatureMessage(spellWords, Name, Guid.Full, ChatMessageType.Magic));
 

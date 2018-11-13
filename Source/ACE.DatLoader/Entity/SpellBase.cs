@@ -42,8 +42,6 @@ namespace ACE.DatLoader.Entity
         public uint NonComponentTargetType { get; private set; } // Unknown what this does
         public uint ManaMod { get; private set; } // Additional mana cost per target (e.g. "Incantation of Acid Bane" Mana Cost = 80 + 14 per target)
 
-        public string SpellWords { get; private set; } // Not technically part of this function, but saves numerous looks later.
-
         public SpellBase()
         {
         }
@@ -113,8 +111,6 @@ namespace ACE.DatLoader.Entity
             DisplayOrder = reader.ReadUInt32();
             NonComponentTargetType = reader.ReadUInt32();
             ManaMod = reader.ReadUInt32();
-
-            SpellWords = SpellComponentsTable.GetSpellWords(DatManager.PortalDat.SpellComponentsTable, Formula);
         }
 
         private const uint HIGHEST_COMP_ID = 198; // "Essence of Kemeroi", for Void Spells -- not actually ever in game!
@@ -144,6 +140,21 @@ namespace ACE.DatLoader.Entity
             }
 
             return comps;
+        }
+
+        private string spellWords;
+
+        /// <summary>
+        /// Not technically part of this function, but saves numerous looks later.
+        /// </summary>
+        public string GetSpellWords(SpellComponentsTable comps)
+        {
+            if (spellWords != null)
+                return spellWords;
+
+            spellWords = SpellComponentsTable.GetSpellWords(comps, Formula);
+
+            return spellWords;
         }
     }
 }
