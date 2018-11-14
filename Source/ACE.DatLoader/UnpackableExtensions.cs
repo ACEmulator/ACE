@@ -152,9 +152,9 @@ namespace ACE.DatLoader
         /// <summary>
         /// A list that uses a Int32 for the length.
         /// </summary>
-        public static void Unpack<T>(this List<T> value, BinaryReader reader, bool compressed = false) where T : IUnpackable, new()
+        public static void Unpack<T>(this List<T> value, BinaryReader reader) where T : IUnpackable, new()
         {
-            var totalObjects = compressed ? reader.ReadCompressedUInt32() : (uint)reader.ReadInt32();
+            var totalObjects = (uint)reader.ReadInt32();
 
             for (int i = 0; i < totalObjects; i++)
             {

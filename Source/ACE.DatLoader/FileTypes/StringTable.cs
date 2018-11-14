@@ -22,7 +22,7 @@ namespace ACE.DatLoader.FileTypes
 
             Unknown = reader.ReadByte();
 
-            StringTableData.Unpack(reader, true);
+            StringTableData.UnpackSmartArray(reader);
         }
     }
 }

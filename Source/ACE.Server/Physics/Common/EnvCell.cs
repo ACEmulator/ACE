@@ -27,8 +27,8 @@ namespace ACE.Server.Physics.Common
         public List<ushort> LightArray;
         public int InCellTimestamp;
         public List<ushort> VisibleCellIDs;
-        public Dictionary<uint, EnvCell> VisibleCells;
-        public uint Bitfield;
+        public new Dictionary<uint, EnvCell> VisibleCells;
+        public EnvCellFlags Flags;
         public uint EnvironmentID;
         public DatLoader.FileTypes.Environment Environment;
 
@@ -39,9 +39,9 @@ namespace ACE.Server.Physics.Common
 
         public EnvCell(DatLoader.FileTypes.EnvCell envCell): base()
         {
-            Bitfield = envCell.Bitfield;
+            Flags = envCell.Flags;
             ID = envCell.Id;
-            ShadowObjectIDs = envCell.Shadows;
+            ShadowObjectIDs = envCell.Surfaces;
             Pos = new Position(ID, new AFrame(envCell.Position));
             Portals = envCell.CellPortals;
             NumPortals = Portals.Count;
