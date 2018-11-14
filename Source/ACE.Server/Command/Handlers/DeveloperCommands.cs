@@ -400,10 +400,10 @@ namespace ACE.Server.Command.Handlers
         /// This is a VERY crude test. It should never be used on a live server.
         /// There isn't really much point to this command other than making sure landblocks can load and are semi-efficient.
         /// </summary>
-        [CommandHandler("loadalllandblocks", AccessLevel.Developer, CommandHandlerFlag.None, "Loads all Landblocks. This is VERY crude. Do NOT use it on a live server!!! It will likely crash the server.")]
+        [CommandHandler("loadalllandblocks", AccessLevel.Developer, CommandHandlerFlag.None, "Loads all Landblocks. This is VERY crude. Do NOT use it on a live server!!! It will likely crash the server.  Landblock resources will be loaded async and will continue to do work even after all landblocks have been loaded.")]
         public static void HandleLoadAllLandblocks(Session session, params string[] parameters)
         {
-            CommandHandlerHelper.WriteOutputInfo(session, "Loading landblocks... This will likely crash the server...");
+            CommandHandlerHelper.WriteOutputInfo(session, "Loading landblocks. This will likely crash the server. Landblock resources will be loaded async and will continue to do work even after all landblocks have been loaded.");
 
             Task.Run(() =>
             {
@@ -418,7 +418,7 @@ namespace ACE.Server.Command.Handlers
                     }
                 }
 
-                CommandHandlerHelper.WriteOutputInfo(session, "Loading landblocks completed.");
+                CommandHandlerHelper.WriteOutputInfo(session, "Loading landblocks completed. Async landblock resources are likely still loading...");
             });
         }
 
