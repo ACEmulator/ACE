@@ -1,9 +1,7 @@
 using System;
-using System.Collections.Generic;
 using System.Numerics;
 
 using ACE.Entity;
-using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
@@ -48,17 +46,9 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Prepare new action to run on this object
         /// </summary>
-        public LinkedListNode<IAction> EnqueueAction(IAction action)
+        public void EnqueueAction(IAction action)
         {
-            return actionQueue.EnqueueAction(action);
-        }
-
-        /// <summary>
-        /// Satisfies action interface
-        /// </summary>
-        void IActor.DequeueAction(LinkedListNode<IAction> node)
-        {
-            actionQueue.DequeueAction(node);
+            actionQueue.EnqueueAction(action);
         }
 
 
