@@ -113,7 +113,7 @@ namespace ACE.Server.WorldObjects
                 writer.Write(MaxStructure ?? (ushort)0);
 
             if ((weenieFlags & WeenieHeaderFlag.StackSize) != 0)
-                writer.Write(StackSize ?? (ushort)0);
+                writer.Write((ushort?)StackSize ?? (ushort)0);
 
             if ((weenieFlags & WeenieHeaderFlag.MaxStackSize) != 0)
                 writer.Write(MaxStackSize ?? (ushort)0);

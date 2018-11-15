@@ -78,7 +78,7 @@ namespace ACE.Server.Physics.Collision
         {
             GfxBoundBox = new BBox();
 
-            if (VertexArray.Vertices != null)
+            if (VertexArray.Vertices != null && VertexArray.Vertices.Count > 0)
             {
                 var v = VertexArray.Vertices.Values.First();
                 GfxBoundBox.Min = v.Origin; // ref?
