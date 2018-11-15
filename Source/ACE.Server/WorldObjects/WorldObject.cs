@@ -42,7 +42,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// This is just a wrapper around Biota.Id
         /// </summary>
-        public ObjectGuid Guid => new ObjectGuid(Biota.Id);
+        public ObjectGuid Guid { get; }
 
         public PhysicsObj PhysicsObj { get; protected set; }
 
@@ -78,7 +78,7 @@ namespace ACE.Server.WorldObjects
         public bool IsAmmoLauncher { get => IsBow || IsAtlatl; }
 
         public EmoteManager EmoteManager;
-        public EnchantmentManager EnchantmentManager;
+        public EnchantmentManagerWithCaching EnchantmentManager;
 
         public WorldObject ProjectileSource;
         public WorldObject ProjectileTarget;
@@ -93,6 +93,7 @@ namespace ACE.Server.WorldObjects
         protected WorldObject(Weenie weenie, ObjectGuid guid)
         {
             Biota = weenie.CreateCopyAsBiota(guid.Full);
+            Guid = guid;
 
             CreationTimestamp = (int)Time.GetUnixTime();
 
@@ -106,6 +107,7 @@ namespace ACE.Server.WorldObjects
         protected WorldObject(Biota biota)
         {
             Biota = biota;
+            Guid = new ObjectGuid(Biota.Id);
 
             biotaOriginatedFromDatabase = true;
 
@@ -331,7 +333,7 @@ namespace ACE.Server.WorldObjects
             EncumbranceVal = EncumbranceVal ?? (StackUnitEncumbrance ?? 0) * (StackSize ?? 1);
 
             EmoteManager = new EmoteManager(this);
-            EnchantmentManager = new EnchantmentManager(this);
+            EnchantmentManager = new EnchantmentManagerWithCaching(this);
 
             if (Placement == null)
                 Placement = ACE.Entity.Enum.Placement.Resting;

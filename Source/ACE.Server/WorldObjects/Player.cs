@@ -811,7 +811,7 @@ namespace ACE.Server.WorldObjects
 
         public void HandleActionJump(JumpPack jump)
         {
-            var strength = GetCreatureAttribute(PropertyAttribute.Strength).Current;
+            var strength = Strength.Current;
             var capacity = EncumbranceSystem.EncumbranceCapacity((int)strength, 0);     // TODO: augs
             var burden = EncumbranceSystem.GetBurden(capacity, EncumbranceVal ?? 0);
 

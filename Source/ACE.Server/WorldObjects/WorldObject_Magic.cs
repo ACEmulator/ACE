@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using System.Text;
+
 using ACE.Database;
 using ACE.Entity;
 using ACE.Entity.Enum;
@@ -990,7 +991,7 @@ namespace ACE.Server.WorldObjects
 
             // create enchantment
             var enchantment = new Enchantment(target, caster.Guid, spell.Id, duration, 1, EnchantmentMask.CreatureSpells);
-            var stackType = target.EnchantmentManager.Add(enchantment, caster);
+            var addResult = target.EnchantmentManager.Add(enchantment, caster);
 
             var player = this as Player;
             var playerTarget = target as Player;
@@ -998,27 +999,27 @@ namespace ACE.Server.WorldObjects
 
             // build message
             var suffix = "";
-            switch (stackType)
+            switch (addResult.stackType)
             {
                 case StackType.Refresh:
                     suffix = $", refreshing {spell.Name}";
                     break;
                 case StackType.Surpass:
-                    suffix = $", surpassing {target.EnchantmentManager.Surpass.Name}";
+                    suffix = $", surpassing {addResult.surpass.Name}";
                     break;
                 case StackType.Surpassed:
-                    suffix = $", but it is surpassed by {target.EnchantmentManager.Surpass.Name}";
+                    suffix = $", but it is surpassed by {addResult.surpass.Name}";
                     break;
             }
 
             var targetName = this == target ? "yourself" : target.Name;
 
             string message;
-            if (stackType == StackType.Undef)
+            if (addResult.stackType == StackType.Undef)
                 message = null;
             else
             {
-                if (stackType == StackType.None)
+                if (addResult.stackType == StackType.None)
                     message = null;
                 else
                 {
@@ -1041,9 +1042,9 @@ namespace ACE.Server.WorldObjects
 
             if (target is Player)
             {
-                if (stackType != StackType.Undef)
+                if (addResult.stackType != StackType.Undef)
                 {
-                    if (stackType != StackType.Surpassed)
+                    if (addResult.stackType != StackType.Surpassed)
                         playerTarget.Session.Network.EnqueueSend(new GameEventMagicUpdateEnchantment(playerTarget.Session, enchantment));
 
                     if (playerTarget != this)
@@ -1055,7 +1056,7 @@ namespace ACE.Server.WorldObjects
                 enchantmentStatus.message = new GameMessageSystemChat(message, ChatMessageType.Magic);
             else
                 enchantmentStatus.message = null;
-            enchantmentStatus.stackType = stackType;
+            enchantmentStatus.stackType = addResult.stackType;
             return enchantmentStatus;
         }
 

@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 using log4net;
 
@@ -28,7 +27,7 @@ namespace ACE.Server.Entity.Actions
                     while (delayHeap.Count > 0)
                     {
                         // Find the next (O(1))
-                        var min = delayHeap.Min();
+                        var min = delayHeap.Min;
 
                         // If they wanted to run before or at now
                         if (min.EndTime <= Timers.PortalYearTicks)

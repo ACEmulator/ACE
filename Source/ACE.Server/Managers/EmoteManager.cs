@@ -327,7 +327,7 @@ namespace ACE.Server.Managers
 
                     if (targetCreature != null)
                     {
-                        var attr = targetCreature.GetCreatureAttribute((PropertyAttribute)emote.Stat);
+                        var attr = targetCreature.Attributes[(PropertyAttribute)emote.Stat];
                         success = attr != null && attr.Ranks >= emote.Min && attr.Ranks <= emote.Max;
                         ExecuteEmoteSet(success ? EmoteCategory.TestSuccess : EmoteCategory.TestFailure, emote.Message, targetObject, actionChain);
                     }
@@ -461,7 +461,7 @@ namespace ACE.Server.Managers
 
                     if (targetCreature != null)
                     {
-                        var attr = targetCreature.GetCreatureAttribute((PropertyAttribute)emote.Stat);
+                        var attr = targetCreature.Attributes[(PropertyAttribute)emote.Stat];
                         success = attr != null && attr.Base >= emote.Min && attr.Base <= emote.Max;
                         ExecuteEmoteSet(success ? EmoteCategory.TestSuccess : EmoteCategory.TestFailure, emote.Message, targetObject, actionChain);
                     }
@@ -471,7 +471,7 @@ namespace ACE.Server.Managers
 
                     if (targetCreature != null)
                     {
-                        var vital = targetCreature.GetCreatureVital((PropertyAttribute2nd)emote.Stat);
+                        var vital = targetCreature.Vitals[(PropertyAttribute2nd)emote.Stat];
                         success = vital != null && vital.Base >= emote.Min && vital.Base <= emote.Max;
                         ExecuteEmoteSet(success ? EmoteCategory.TestSuccess : EmoteCategory.TestFailure, emote.Message, targetObject, actionChain);
                     }
@@ -491,7 +491,7 @@ namespace ACE.Server.Managers
 
                     if (targetCreature != null)
                     {
-                        var vital = targetCreature.GetCreatureVital((PropertyAttribute2nd)emote.Stat);
+                        var vital = targetCreature.Vitals[(PropertyAttribute2nd)emote.Stat];
                         success = vital != null && vital.Ranks >= emote.Min && vital.Ranks <= emote.Max;
                         ExecuteEmoteSet(success ? EmoteCategory.TestSuccess : EmoteCategory.TestFailure, emote.Message, targetObject, actionChain);
                     }

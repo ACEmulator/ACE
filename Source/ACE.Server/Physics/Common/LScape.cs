@@ -10,6 +10,7 @@ namespace ACE.Server.Physics.Common
         public static int MidRadius = 5;
         public static int MidWidth = 11;
 
+        private static readonly object landblockMutex = new object();
         public static ConcurrentDictionary<uint, Landblock> Landblocks = new ConcurrentDictionary<uint, Landblock>();
         public static Dictionary<uint, Landblock> BlockDrawList = new Dictionary<uint, Landblock>();
 
@@ -37,7 +38,8 @@ namespace ACE.Server.Physics.Common
         }
 
         /// <summary>
-        /// Loads the backing store landblock structure
+        /// Loads the backing store landblock structure<para />
+        /// This function is thread safe
         /// </summary>
         /// <param name="blockCellID">Any landblock + cell ID within the landblock</param>
         public static Landblock get_landblock(uint blockCellID)
@@ -66,14 +68,21 @@ namespace ACE.Server.Physics.Common
             if (Landblocks.TryGetValue(landblockID, out var landblock))
                 return landblock;
 
-            // if not, load into cache
-            landblock = new Landblock(DBObj.GetCellLandblock(landblockID));
-            if (Landblocks.TryAdd(landblockID, landblock))
-                landblock.PostInit();
-            else
-                Landblocks.TryGetValue(landblockID, out landblock);
+            lock (landblockMutex)
+            {
+                // check if landblock is already cached, this time under the lock.
+                if (Landblocks.TryGetValue(landblockID, out landblock))
+                    return landblock;
 
-            return landblock;
+                // if not, load into cache
+                landblock = new Landblock(DBObj.GetCellLandblock(landblockID));
+                if (Landblocks.TryAdd(landblockID, landblock))
+                    landblock.PostInit();
+                else
+                    Landblocks.TryGetValue(landblockID, out landblock);
+
+                return landblock;
+            }
         }
 
         public static bool unload_landblock(uint landblockID)
