@@ -18,14 +18,14 @@ namespace ACE.DatLoader
         public static PortalDatDatabase HighResDat { get; private set; }
         public static PortalDatDatabase LanguageDat { get; private set; }
 
-        public static void Initialize(string datFileDirectory)
+        public static void Initialize(string datFileDirectory, bool keepOpen = false)
         {
             var datDir = Path.GetFullPath(Path.Combine(datFileDirectory));
 
             try
             {
                 datFile = Path.Combine(datDir, "client_cell_1.dat");
-                CellDat = new CellDatDatabase(datFile);
+                CellDat = new CellDatDatabase(datFile, keepOpen);
                 count = CellDat.AllFiles.Count;
                 log.Info($"Successfully opened {datFile} file, containing {count} records");
             }
@@ -38,7 +38,7 @@ namespace ACE.DatLoader
             try
             {
                 datFile = Path.Combine(datDir, "client_portal.dat");
-                PortalDat = new PortalDatDatabase(datFile);
+                PortalDat = new PortalDatDatabase(datFile, keepOpen);
                 count = PortalDat.AllFiles.Count;
                 log.Info($"Successfully opened {datFile} file, containing {count} records");
             }
@@ -52,7 +52,7 @@ namespace ACE.DatLoader
             datFile = Path.Combine(datDir, "client_highres.dat");
             if (File.Exists(datFile))
             { 
-                HighResDat = new PortalDatDatabase(datFile);
+                HighResDat = new PortalDatDatabase(datFile, keepOpen);
                 count = HighResDat.AllFiles.Count;
                 log.Info($"Successfully opened {datFile} file, containing {count} records");
             }
@@ -61,7 +61,7 @@ namespace ACE.DatLoader
             datFile = Path.Combine(datDir, "client_local_English.dat");
             if (File.Exists(datFile))
             {
-                LanguageDat = new PortalDatDatabase(datFile);
+                LanguageDat = new PortalDatDatabase(datFile, keepOpen);
                 count = LanguageDat.AllFiles.Count;
                 log.Info($"Successfully opened {datFile} file, containing {count} records");
             }

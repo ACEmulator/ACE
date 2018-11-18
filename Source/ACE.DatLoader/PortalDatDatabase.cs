@@ -7,7 +7,7 @@ namespace ACE.DatLoader
 {
     public class PortalDatDatabase : DatDatabase
     {
-        public PortalDatDatabase(string filename) : base(filename)
+        public PortalDatDatabase(string filename, bool keepOpen = false) : base(filename, keepOpen)
         {
             BadData = ReadFromDat<BadData>(BadData.FILE_ID);
             ChatPoseTable = ReadFromDat<ChatPoseTable>(ChatPoseTable.FILE_ID);
