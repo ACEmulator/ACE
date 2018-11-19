@@ -449,7 +449,7 @@ namespace ACE.Server.Managers
 
         public static readonly ReadOnlyDictionary<string, string> DefaultStringProperties =
             DictOf(
-                ("motd_string", "Welcome to Asheron's Call\npowered by ACEmulator\n\nFor more information on commands supported by this server, type @acehelp")
+                ("motd_string", "Welcome to Asheron's Call" + "\n" + "  powered by ACEmulator  " + " \n" + "\n" + "For more information on commands supported by this server, type @acehelp" + "\n")
                 );
     }
 }
