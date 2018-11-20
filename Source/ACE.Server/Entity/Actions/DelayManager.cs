@@ -54,27 +54,20 @@ namespace ACE.Server.Entity.Actions
             }
         }
 
-        public LinkedListNode<IAction> EnqueueAction(IAction action)
+        public void EnqueueAction(IAction action)
         {
             var delayAction = action as DelayAction;
 
             if (delayAction == null)
             {
                 log.Error("Non DelayAction IAction added to DelayManager");
-                return null;
+                return;
             }
 
             delayAction.Start();
 
             lock (delayHeap)
                 delayHeap.Add(delayAction);
-
-            return null;
-        }
-
-        public void DequeueAction(LinkedListNode<IAction> action)
-        {
-            log.Error("DelayManager Doesn't support DequeueAction");
         }
     }
 }
