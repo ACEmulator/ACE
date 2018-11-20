@@ -91,18 +91,22 @@ namespace ACE.Server.Network.Structure
 
             if (wo is Door || wo is Chest)
             {
-                // If wo is not locked, do not sent ResistLockpick value, else id panel shows incorrect data
+                // If wo is not locked, do not send ResistLockpick value. If ResistLockpick is sent for unlocked objects, id panel shows bonus to Lockpick skill
                 if (!wo.IsLocked && PropertiesInt.ContainsKey(PropertyInt.ResistLockpick))
                     PropertiesInt.Remove(PropertyInt.ResistLockpick);
 
-                var playerLockPickSkill = examiner.Skills[Skill.Lockpick].Current;
+                // If wo is locked, append skill check percent, as int, to properties for id panel display on chances of success
+                if (wo.IsLocked)
+                {
+                    var playerLockPickSkill = examiner.Skills[Skill.Lockpick].Current;
 
-                var doorLockPickResistance = wo.ResistLockpick;
+                    var doorLockPickResistance = wo.ResistLockpick;
 
-                var lockpickSuccessPercent = SkillCheck.GetSkillChance((int)playerLockPickSkill, (int)doorLockPickResistance) * 100;
+                    var lockpickSuccessPercent = SkillCheck.GetSkillChance((int)playerLockPickSkill, (int)doorLockPickResistance) * 100;
 
-                if (wo.IsLocked && !PropertiesInt.ContainsKey(PropertyInt.AppraisalLockpickSuccessPercent))
-                    PropertiesInt.Add(PropertyInt.AppraisalLockpickSuccessPercent, (int)lockpickSuccessPercent);
+                    if (!PropertiesInt.ContainsKey(PropertyInt.AppraisalLockpickSuccessPercent))
+                        PropertiesInt.Add(PropertyInt.AppraisalLockpickSuccessPercent, (int)lockpickSuccessPercent);
+                }
             }
 
             BuildFlags();
