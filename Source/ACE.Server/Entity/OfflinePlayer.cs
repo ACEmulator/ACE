@@ -6,7 +6,6 @@ using ACE.Database;
 using ACE.Database.Models.Shard;
 using ACE.Entity;
 using ACE.Entity.Enum.Properties;
-using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Entity
 {
@@ -236,5 +235,10 @@ namespace ACE.Server.Entity
         public uint? Monarch => GetProperty(PropertyInstanceId.Monarch);
 
         public uint? Patron => GetProperty(PropertyInstanceId.Patron);
+
+
+        public Allegiance Allegiance { get; set; }
+
+        public AllegianceNode AllegianceNode { get; set; }
     }
 }

@@ -11,8 +11,8 @@ namespace ACE.Server.WorldObjects
 {
     partial class Player
     {
-        public Allegiance Allegiance;
-        public AllegianceNode AllegianceNode;
+        public Allegiance Allegiance { get; set; }
+        public AllegianceNode AllegianceNode { get; set; }
 
         // TODO: write to db
         public ulong CPTithed;

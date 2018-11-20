@@ -2,7 +2,7 @@ using System;
 
 using ACE.Entity;
 
-namespace ACE.Server.WorldObjects
+namespace ACE.Server.Entity
 {
     /// <summary>
     /// This interface is used by Player and OfflinePlayer.
@@ -18,5 +18,10 @@ namespace ACE.Server.WorldObjects
         uint? Monarch { get; }
 
         uint? Patron { get; }
+
+
+        Allegiance Allegiance { get; set; }
+
+        AllegianceNode AllegianceNode { get; set; }
     }
 }
