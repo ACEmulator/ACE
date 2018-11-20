@@ -64,7 +64,7 @@ namespace ACE.Server.Managers
         /// </summary>
         public static List<Player> FindAllPlayers(Player monarch)
         {
-            return PlayerManager.GetAllegiance(monarch);
+            return PlayerManager.GetAllegiance(monarch.Guid);
         }
 
         /// <summary>

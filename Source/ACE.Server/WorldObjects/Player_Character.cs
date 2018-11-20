@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 using ACE.Database.Models.Shard;
 using ACE.Entity;
@@ -135,15 +134,15 @@ namespace ACE.Server.WorldObjects
                 ChatPacket.SendServerMessage(Session, "Sorry, but you can't be friends with yourself.", ChatMessageType.Broadcast);
 
             // get friend player info
-            var friendInfo = PlayerManager.AllPlayers.FirstOrDefault(p => p.Name.Equals(friendName));
+            var friendGuid = PlayerManager.FindGuidByName(friendName);
 
-            if (friendInfo == null)
+            if (friendGuid == ObjectGuid.Invalid)
             {
                 ChatPacket.SendServerMessage(Session, "That character does not exist", ChatMessageType.Broadcast);
                 return;
             }
 
-            var newFriend = Character.AddFriend(friendInfo.Guid.Full, CharacterDatabaseLock, out var friendAlreadyExists);
+            var newFriend = Character.AddFriend(friendGuid.Full, CharacterDatabaseLock, out var friendAlreadyExists);
 
             if (friendAlreadyExists)
             {

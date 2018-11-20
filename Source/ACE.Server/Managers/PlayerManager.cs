@@ -2,61 +2,111 @@ using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 using ACE.Database;
-using ACE.Database.Models.Shard;
 using ACE.Entity;
 using ACE.Server.Entity;
-using ACE.Server.Network;
 using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Managers
 {
     public static class PlayerManager
     {
-        [Obsolete]
-        // probably bugged when players are added/removed...
-        public static readonly List<Player> AllPlayers = new List<Player>();
+        public static readonly ConcurrentDictionary<ObjectGuid, Player> OnlinePlayers = new ConcurrentDictionary<ObjectGuid, Player>();
 
-        public static readonly ConcurrentDictionary<uint, Player> OnlinePlayers = new ConcurrentDictionary<uint, Player>();
-
-        public static readonly ConcurrentDictionary<uint, OfflinePlayer> OfflinePlayers = new ConcurrentDictionary<uint, OfflinePlayer>();
+        public static readonly ConcurrentDictionary<ObjectGuid, OfflinePlayer> OfflinePlayers = new ConcurrentDictionary<ObjectGuid, OfflinePlayer>();
 
         public static void Initialize()
         {
-            LoadOfflinePlayers();
+            LoadAllPlayersAsOffline();
         }
 
-        private static void LoadOfflinePlayers()
+        private static void LoadAllPlayersAsOffline()
         {
             var results = DatabaseManager.Shard.GetAllPlayerBiotasInParallel();
 
             foreach (var result in results)
             {
                 var offlinePlayer = new OfflinePlayer(result);
-                OfflinePlayers[offlinePlayer.Guid.Full] = offlinePlayer;
+                OfflinePlayers[offlinePlayer.Guid] = offlinePlayer;
             }
         }
 
 
+        /// <summary>
+        /// This would be used when a new player is created after the server has started.
+        /// When a new Player is created, they're created in an offline state, and then set to online shortly after as the login sequence continues.
+        /// </summary>
         public static void AddOfflinePlayer(Player player)
         {
             var offlinePlayer = new OfflinePlayer(player.Biota);
-            OfflinePlayers[offlinePlayer.Guid.Full] = offlinePlayer;
+            OfflinePlayers[offlinePlayer.Guid] = offlinePlayer;
+        }
+
+
+        /// <summary>
+        /// This will return ObjectGuid.Invalid if the name was not found.
+        /// </summary>
+        public static ObjectGuid FindGuidByName(string name)
+        {
+            var onlinePlayer = OnlinePlayers.Values.FirstOrDefault(p => p.Name.Equals(name));
+
+            if (onlinePlayer != null)
+                return onlinePlayer.Guid;
+
+            var offlinePlayer = OfflinePlayers.Values.FirstOrDefault(p => p.Name.Equals(name));
+
+            if (offlinePlayer != null)
+                return offlinePlayer.Guid;
+
+            return ObjectGuid.Invalid;
+        }
+
+        /// <summary>
+        /// This will return null of the guid was not found.
+        /// </summary>
+        public static string FindNameByGuid(uint guid)
+        {
+            return FindNameByGuid(new ObjectGuid(guid));
+        }
+
+        /// <summary>
+        /// This will return null of the guid was not found.
+        /// </summary>
+        public static string FindNameByGuid(ObjectGuid guid)
+        {
+            if (OnlinePlayers.TryGetValue(guid, out var onlinePlayer))
+                return onlinePlayer.Name;
+
+            if (OfflinePlayers.TryGetValue(guid, out var offlinePlayer))
+                return offlinePlayer.Name;
+
+            return null;
         }
 
 
 
 
 
+        [Obsolete]
+        // probably bugged when players are added/removed...
+        public static readonly List<Player> AllPlayers = new List<Player>();
 
+        /// <summary>
+        /// Returns a list of all players who are under a monarch
+        /// </summary>
+        /// <param name="monarch">The monarch of an allegiance</param>
+        [Obsolete]
+        public static List<Player> GetAllegiance(ObjectGuid monarch)
+        {
+            return AllPlayers.Where(p => p.Monarch == monarch.Full).ToList();
+        }
 
         /// <summary>
         /// Returns an offline player record from the AllPlayers list
         /// </summary>
         /// <param name="playerGuid"></param>
-        /// <returns></returns>
+        [Obsolete]
         public static Player GetOfflinePlayer(ObjectGuid playerGuid)
         {
             return AllPlayers.FirstOrDefault(p => p.Guid.Equals(playerGuid));
@@ -66,6 +116,7 @@ namespace ACE.Server.Managers
         /// Syncs the cached offline player fields
         /// </summary>
         /// <param name="player">An online player</param>
+        [Obsolete]
         public static void SyncOffline(Player player)
         {
             var offlinePlayer = AllPlayers.FirstOrDefault(p => p.Guid.Full == player.Guid.Full);
@@ -82,6 +133,7 @@ namespace ACE.Server.Managers
         /// Syncs an online player with the cached offline fields
         /// </summary>
         /// <param name="player">An online player</param>
+        [Obsolete]
         public static void SyncOnline(Player player)
         {
             var offlinePlayer = AllPlayers.FirstOrDefault(p => p.Guid.Full == player.Guid.Full);
@@ -91,18 +143,10 @@ namespace ACE.Server.Managers
             player.AllegianceCPPool = offlinePlayer.AllegianceCPPool;
         }
 
+        [Obsolete]
         public static Player GetOfflinePlayerByGuidId(uint playerId)
         {
             return AllPlayers.FirstOrDefault(p => p.Guid.Full.Equals(playerId));
-        }
-
-        /// <summary>
-        /// Returns a list of all players who are under a monarch
-        /// </summary>
-        /// <param name="monarch">The monarch of an allegiance</param>
-        public static List<Player> GetAllegiance(Player monarch)
-        {
-            return AllPlayers.Where(p => p.Monarch == monarch.Guid.Full).ToList();
         }
     }
 }

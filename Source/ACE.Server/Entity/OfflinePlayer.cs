@@ -1,6 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading;
 
 using ACE.Database.Models.Shard;
@@ -20,7 +18,7 @@ namespace ACE.Server.Entity
         /// <summary>
         /// This is just a wrapper around Biota.Id
         /// </summary>
-        public ObjectGuid Guid => new ObjectGuid(Biota.Id);
+        public ObjectGuid Guid { get; }
 
         /// <summary>
         /// Restore a WorldObject from the database.
@@ -29,6 +27,7 @@ namespace ACE.Server.Entity
         public OfflinePlayer(Biota biota)
         {
             Biota = biota;
+            Guid = new ObjectGuid(Biota.Id);
         }
 
         public readonly ReaderWriterLockSlim BiotaDatabaseLock = new ReaderWriterLockSlim();
@@ -42,6 +41,8 @@ namespace ACE.Server.Entity
         public long? GetProperty(PropertyInt64 property) { return Biota.GetProperty(property, BiotaDatabaseLock); }
         public string GetProperty(PropertyString property) { return Biota.GetProperty(property, BiotaDatabaseLock); }
         #endregion
+
+        public string Name => GetProperty(PropertyString.Name);
 
         public uint? Monarch => GetProperty(PropertyInstanceId.Monarch);
 
