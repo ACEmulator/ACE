@@ -35,8 +35,8 @@ namespace ACE.Server.WorldObjects
             Monarch = AllegianceManager.GetMonarch(patron).Guid.Full;
             PlayerManager.SyncOffline(this);
 
-            Console.WriteLine("Patron: " + PlayerManager.GetOfflinePlayerByGuidId(Patron.Value).Name);
-            Console.WriteLine("Monarch: " + PlayerManager.GetOfflinePlayerByGuidId(Monarch.Value).Name);
+            //Console.WriteLine("Patron: " + PlayerManager.GetOfflinePlayerByGuidId(Patron.Value).Name);
+            //Console.WriteLine("Monarch: " + PlayerManager.GetOfflinePlayerByGuidId(Monarch.Value).Name);
 
             // send message to patron:
             // %vassal% has sworn Allegiance to you.
@@ -66,7 +66,7 @@ namespace ACE.Server.WorldObjects
 
             var target = PlayerManager.GetOfflinePlayerByGuidId(targetGuid.Full);
 
-            Console.WriteLine(Name + " breaking allegiance to " + target.Name);
+            //Console.WriteLine(Name + " breaking allegiance to " + target.Name);
 
             // target can be either patron or vassal
             var isPatron = Patron == target.Guid.Full;
@@ -110,28 +110,28 @@ namespace ACE.Server.WorldObjects
             var target = WorldManager.GetPlayerByGuidId(targetGuid.Full);
             if (target == null)
             {
-                Console.WriteLine(Name + " tried to swear to an unknown player guid: " + targetGuid.Full.ToString("X8"));
+                //Console.WriteLine(Name + " tried to swear to an unknown player guid: " + targetGuid.Full.ToString("X8"));
                 return false;
             }
 
             // player already sworn?
             if (Patron != null)
             {
-                Console.WriteLine(Name + " tried to swear to " + target.Name + ", but is already sworn to " + PlayerManager.GetOfflinePlayerByGuidId(Patron.Value).Name);
+                //Console.WriteLine(Name + " tried to swear to " + target.Name + ", but is already sworn to " + PlayerManager.GetOfflinePlayerByGuidId(Patron.Value).Name);
                 return false;
             }
 
             // player can't swear to themselves
             if (targetGuid.Full == Guid.Full)
             {
-                Console.WriteLine(Name + " tried to swear to themselves");
+                //Console.WriteLine(Name + " tried to swear to themselves");
                 return false;
             }
 
             // patron must currently be greater or equal level
             if (target.Level < Level)
             {
-                Console.WriteLine(Name + " tried to swear to a lower level character");
+                //Console.WriteLine(Name + " tried to swear to a lower level character");
                 return false;
             }
 
@@ -143,7 +143,7 @@ namespace ACE.Server.WorldObjects
                 // maximum # of direct vassals = 11
                 if (targetNode.TotalVassals >= 11)
                 {
-                    Console.WriteLine(target.Name + " already has the maximum # of vassals");
+                    //Console.WriteLine(target.Name + " already has the maximum # of vassals");
                     return false;
                 }
 
@@ -153,7 +153,7 @@ namespace ACE.Server.WorldObjects
                 {
                     if (selfNode.Player.Guid.Full == targetNode.Monarch.Player.Guid.Full)
                     {
-                        Console.WriteLine(Name + " tried to swear to someone already in Allegiance: " + target.Name);
+                        //Console.WriteLine(Name + " tried to swear to someone already in Allegiance: " + target.Name);
                         return false;
                     }
                 }
@@ -176,7 +176,7 @@ namespace ACE.Server.WorldObjects
             var target = PlayerManager.GetOfflinePlayerByGuidId(targetGuid.Full);
             if (target == null)
             {
-                Console.WriteLine(Name + " tried to break allegiance to an unknown player guid: " + targetGuid.Full.ToString("X8"));
+                //Console.WriteLine(Name + " tried to break allegiance to an unknown player guid: " + targetGuid.Full.ToString("X8"));
                 return false;
             }
 
@@ -186,7 +186,7 @@ namespace ACE.Server.WorldObjects
 
             if (!isPatron && !isVassal)
             {
-                Console.WriteLine(Name + " tried to break allegiance from " + target.Name + ", but they aren't patron or vassal");
+                //Console.WriteLine(Name + " tried to break allegiance from " + target.Name + ", but they aren't patron or vassal");
                 return false;
             }
             return true;
