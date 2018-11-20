@@ -1,11 +1,15 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
+
 using ACE.DatLoader;
 using ACE.DatLoader.FileTypes;
+using ACE.Entity;
 using ACE.Server.Physics.Animation;
 using ACE.Server.Physics.BSP;
 using ACE.Server.Physics.Extensions;
+using ACE.Server.Managers;
 
 namespace ACE.Server.Physics.Common
 {
@@ -45,7 +49,7 @@ namespace ACE.Server.Physics.Common
             //Console.WriteLine("Loading landblock " + ID.ToString("X8"));
             BlockInfoExists = landblock.HasObjects;
             if (BlockInfoExists)
-                Info = (LandblockInfo)DBObj.Get(new QualifiedDataID(2, ID - 1));
+                Info = DBObj.GetLandblockInfo(ID - 1);
             BlockCoord = LandDefs.blockid_to_lcoord(landblock.Id).Value;
             _landblock = landblock;
             get_land_limits();
@@ -562,17 +566,19 @@ namespace ACE.Server.Physics.Common
         /// <summary>
         /// Returns the list of adjacent landblocks
         /// </summary>
-        public List<Landblock> get_adjacents()
+        public List<Landblock> get_adjacents(bool reload = false)
         {
-            if (adjacents != null) return adjacents;
+            if (adjacents != null && !reload) return adjacents;
+
+            var lbx = ID >> 24;
+            var lby = ID >> 16 & 0xFF;
+
+            var _adjacents = LandblockManager.GetAdjacents(new LandblockId((byte)lbx, (byte)lby));
 
             adjacents = new List<Landblock>();
 
             // dungeons have no adjacents
-            if (IsDungeon) return adjacents;
-
-            var lbx = ID >> 24;
-            var lby = ID >> 16 & 0xFF;
+            if (IsDungeon || _adjacents == null) return adjacents;
 
             var startX = lbx > 0 ? lbx - 1 : lbx;
             var startY = lby > 0 ? lby - 1 : lby;
@@ -589,12 +595,22 @@ namespace ACE.Server.Physics.Common
                     if (curX == lbx && curY == lby) continue;
 
                     var id = curX << 24 | curY << 16 | 0xFFFF;
+
+                    // ensure adjacent is loaded in ace landblock manager
+                    if (!IsAdjacentLoaded(_adjacents, id))
+                        continue;
+
                     var landblock = LScape.get_landblock(id);
                     if (landblock != null)
                         adjacents.Add(landblock);
                 }
             }
             return adjacents;
+        }
+
+        public bool IsAdjacentLoaded(List<Server.Entity.Landblock> adjacents, uint landblockID)
+        {
+            return adjacents.Any(l => (l.Id.Raw | 0xFFFF) == landblockID);
         }
 
         private List<EnvCell> envcells;

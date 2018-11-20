@@ -125,7 +125,7 @@ namespace ACE.Server.WorldObjects
                 // special handling for currency
                 if (buyItem.Name.Equals("Pyreal"))
                 {
-                    if (!HasCurrency(sentItems, buyItem.StackSize ?? 1))
+                    if (!HasCurrency(sentItems, (uint)(buyItem.StackSize ?? 1)))
                         return false;
                 }
                 else if (!HasItem(sentItems, buyItem))

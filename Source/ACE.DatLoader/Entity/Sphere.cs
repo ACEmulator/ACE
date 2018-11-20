@@ -13,5 +13,12 @@ namespace ACE.DatLoader.Entity
             Origin = reader.ReadVector3();
             Radius = reader.ReadSingle();
         }
+
+        public static Sphere CreateDummySphere()
+        {
+            var sphere = new Sphere();
+            sphere.Origin = Vector3.Zero;
+            return sphere;
+        }
     }
 }

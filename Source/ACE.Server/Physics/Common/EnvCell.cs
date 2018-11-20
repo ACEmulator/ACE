@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+
 using ACE.Entity.Enum;
 using ACE.Server.Physics.BSP;
 using ACE.Server.Physics.Animation;
@@ -58,7 +59,7 @@ namespace ACE.Server.Physics.Common
             SeenOutside = envCell.SeenOutside;
 
             EnvironmentID = envCell.EnvironmentId;
-            Environment = (DatLoader.FileTypes.Environment)DBObj.Get(new QualifiedDataID(16, EnvironmentID));
+            Environment = DBObj.GetEnvironment(EnvironmentID);
             CellStructureID = envCell.CellStructure;    // environment can contain multiple?
             if (Environment.Cells != null && Environment.Cells.ContainsKey(CellStructureID))
                 CellStructure = new CellStruct(Environment.Cells[CellStructureID]);
@@ -224,7 +225,7 @@ namespace ACE.Server.Physics.Common
 
         public EnvCell add_visible_cell(uint cellID)
         {
-            var envCell = (EnvCell)DBObj.Get(new QualifiedDataID(3, cellID));
+            var envCell = DBObj.GetEnvCell(cellID);
             VisibleCells.Add(cellID, envCell);
             return envCell;
         }

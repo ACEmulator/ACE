@@ -103,10 +103,18 @@ namespace ACE.Server.WorldObjects
         /// This method is used to remove X number of items from a stack.<para />
         /// If amount to remove is greater or equal to the current stacksize, the stack will be destroyed..
         /// </summary>
-        public bool TryRemoveItemFromInventoryWithNetworking(WorldObject worldObject, ushort amount)
+        public bool TryRemoveItemFromInventoryWithNetworkingWithDestroy(WorldObject worldObject, ushort amount)
         {
             if (amount >= (worldObject.StackSize ?? 1))
-                return TryRemoveFromInventoryWithNetworking(worldObject);
+            {
+                if (TryRemoveFromInventoryWithNetworking(worldObject))
+                {
+                    worldObject.Destroy();
+                    return true;
+                }
+
+                return false;
+            }
 
             worldObject.StackSize -= amount;
 
@@ -161,6 +169,7 @@ namespace ACE.Server.WorldObjects
                     return false;
                 }
             }
+
             return TryRemoveFromInventoryWithNetworking(item);
         }
 
@@ -654,6 +663,12 @@ namespace ACE.Server.WorldObjects
 
             item.SetPropertiesForWorld(this, 1.1f);
 
+            // We must update the database with the latest ContainerId and WielderId properties.
+            // If we don't, the player can drop the item, log out, and log back in. If the landblock hasn't queued a database save in that time,
+            // the player will end up loading with this object in their inventory even though the landblock is the true owner. This is because
+            // when we load player inventory, the database still has the record that shows this player as the ContainerId for the item.
+            item.SaveBiotaToDatabase();
+
             //var motion = new Motion(MotionStance.NonCombat);
             var motion = new Motion(this, MotionCommand.Pickup);
             Session.Network.EnqueueSend(new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Container, new ObjectGuid(0)));
@@ -686,14 +701,14 @@ namespace ACE.Server.WorldObjects
                 if (item.WeenieType == WeenieType.Coin)
                     UpdateCoinValue();
 
-                    // This is the sequence magic - adds back into 3d space seem to be treated like teleport.
-                    item.Sequences.GetNextSequence(SequenceType.ObjectTeleport);
+                // This is the sequence magic - adds back into 3d space seem to be treated like teleport.
+                item.Sequences.GetNextSequence(SequenceType.ObjectTeleport);
                 item.Sequences.GetNextSequence(SequenceType.ObjectVector);
 
                 CurrentLandblock?.AddWorldObject(item);
 
-                    //Session.Network.EnqueueSend(new GameMessageUpdateObject(item));
-                    EnqueueBroadcast(new GameMessageUpdatePosition(item));
+                //Session.Network.EnqueueSend(new GameMessageUpdateObject(item));
+                EnqueueBroadcast(new GameMessageUpdatePosition(item));
             });
 
             dropChain.EnqueueChain();
@@ -888,7 +903,7 @@ namespace ACE.Server.WorldObjects
 
                     if (itemAttributeReq != PropertyAttribute.Undef)
                     {
-                        var playerAttribute = GetCreatureAttribute(itemAttributeReq).Current;
+                        var playerAttribute = Attributes[itemAttributeReq].Current;
 
                         if (playerAttribute < (uint)(item.GetProperty(PropertyInt.WieldDifficulty) ?? 0))
                             return WeenieError.SkillTooLow;
@@ -913,6 +928,7 @@ namespace ACE.Server.WorldObjects
 
         /// <summary>
         /// Dictionary for salvage bags/material types
+        /// TODO: This list needs to go somewhere else
         /// </summary>
 
         static Dictionary<int, int> dict = new Dictionary<int, int>()
@@ -1066,7 +1082,7 @@ namespace ACE.Server.WorldObjects
                         double multiplier = (salvageSkill / 225.0);
                         double multiplier2 = .6 > multiplier ? .6 : multiplier;
                         amount += (int)Math.Ceiling(workmanship * multiplier2);
-                        TryRemoveItemFromInventoryWithNetworking(item, 1);
+                        TryRemoveItemFromInventoryWithNetworkingWithDestroy(item, 1);
                         salvageBags[counter] = WorldObjectFactory.CreateNewWorldObject((uint)dict[materials[counter]]);
                         salvageBags[counter].SetProperty(PropertyInt.Structure, amount);
                         salvageBags[counter].SetProperty(PropertyInt.NumItemsInMaterial, numItems);
@@ -1097,7 +1113,7 @@ namespace ACE.Server.WorldObjects
                         double multiplier = (salvageSkill / 225.0);
                         double multiplier2 = .6 > multiplier ? .6 : multiplier;
                         amount += (int)Math.Ceiling(workmanship * multiplier2);
-                        TryRemoveItemFromInventoryWithNetworking(item, 1);
+                        TryRemoveItemFromInventoryWithNetworkingWithDestroy(item, 1);
                         salvageBags[materialsPlace].SetProperty(PropertyInt.Structure, amount);
                         salvageBags[materialsPlace].SetProperty(PropertyInt.NumItemsInMaterial, numItems);
                         salvageBags[materialsPlace].SetProperty(PropertyInt.ItemWorkmanship, amount);
@@ -1141,7 +1157,7 @@ namespace ACE.Server.WorldObjects
                     double multiplier = (salvageSkill / 225.0);
                     double multiplier2 = .6 > multiplier ? .6 : multiplier;
                     amount += (int)Math.Ceiling(workmanship * multiplier2);
-                    TryRemoveItemFromInventoryWithNetworking(item, 1);
+                    TryRemoveItemFromInventoryWithNetworkingWithDestroy(item, 1);
                 }
 
                 WorldObject wo = WorldObjectFactory.CreateNewWorldObject((uint)dict[materialType]);
@@ -1203,6 +1219,12 @@ namespace ACE.Server.WorldObjects
             {
                 if (target != player)
                 {
+                    // todo This should be refactored
+                    // The order should be something like:
+                    // See if target can accept the item
+                    // Remove item from giver
+                    // Save item to db
+                    // Give item to receiver
                     if (target.HandlePlayerReceiveItem(item, player))
                     {
                         if (item.CurrentWieldedLocation != null)
@@ -1232,6 +1254,12 @@ namespace ACE.Server.WorldObjects
                             if (item.WeenieType == WeenieType.Coin)
                                 UpdateCoinValue();
                         }
+
+                        // We must update the database with the latest ContainerId and WielderId properties.
+                        // If we don't, the player can give the item, log out, and log back in. If the receiver hasn't queued a database save in that time,
+                        // the player will end up loading with this object in their inventory even though the receiver is the true owner. This is because
+                        // when we load player inventory, the database still has the record that shows this player as the ContainerId for the item.
+                        item.SaveBiotaToDatabase();
 
                         Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, target));
                         Session.Network.EnqueueSend(new GameMessageSystemChat($"You give {target.Name} {item.Name}.", ChatMessageType.Broadcast));
@@ -1332,23 +1360,23 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Giver methods used upon successful acceptance of item by NPC
+        /// Giver methods used upon successful acceptance of item by NPC<para />
+        /// The item will be destroyed after processing.
         /// </summary>
-        /// <param name="item"></param>
-        /// <param name="amount"></param>
-        /// <param name="target"></param>
         private void ItemAccepted(WorldObject item, uint amount, WorldObject target)
         {
             if (item.CurrentWieldedLocation != null)
                 UnwieldItemWithNetworking(this, item, 0);       // refactor, duplicate code from above
 
-            TryRemoveItemFromInventoryWithNetworking(item, (ushort)amount);
+            TryRemoveItemFromInventoryWithNetworkingWithDestroy(item, (ushort)amount);
 
             Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, target));
             Session.Network.EnqueueSend(new GameMessageSystemChat($"You give {target.Name} {item.Name}.", ChatMessageType.Broadcast));
             Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.ReceiveItem, 1));
 
             Session.Network.EnqueueSend(new GameEventInventoryRemoveObject(Session, item));
+
+            item.Destroy();
         }
 
         // ===========================

@@ -1,4 +1,5 @@
 using System;
+
 using ACE.DatLoader.Entity;
 using ACE.Server.Physics.Common;
 
@@ -94,7 +95,7 @@ namespace ACE.Server.Physics.Animation
 
         public void set_animation_id(uint animID)
         {
-            var anim = (DatLoader.FileTypes.Animation)DBObj.Get(new QualifiedDataID(8, animID));
+            var anim = DBObj.GetAnimation(animID);
             Anim = new Animation(anim);
             if (Anim == null) return;
 

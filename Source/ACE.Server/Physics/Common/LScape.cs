@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Numerics;
 
@@ -6,10 +7,13 @@ namespace ACE.Server.Physics.Common
 {
     public static class LScape
     {
-        public static int MidRadius;
-        public static int MidWidth;
-        public static Dictionary<uint, Landblock> Landblocks;
-        public static Dictionary<uint, Landblock> BlockDrawList;
+        public static int MidRadius = 5;
+        public static int MidWidth = 11;
+
+        private static readonly object landblockMutex = new object();
+        public static ConcurrentDictionary<uint, Landblock> Landblocks = new ConcurrentDictionary<uint, Landblock>();
+        public static Dictionary<uint, Landblock> BlockDrawList = new Dictionary<uint, Landblock>();
+
         public static uint LoadedCellID;
         public static uint ViewerCellID;
         public static int ViewerXOffset;
@@ -20,22 +24,8 @@ namespace ACE.Server.Physics.Common
         //public static Surface BuildingDetailSurface;
         //public static Surface ObjectDetailSurface;
 
-        public static float AmbientLevel;
-        public static Vector3 Sunlight;
-
-        static LScape()
-        {
-            Landblocks = new Dictionary<uint, Landblock>();
-            BlockDrawList = new Dictionary<uint, Landblock>();
-
-            AmbientLevel = 0.4f;
-            Sunlight = new Vector3(1.2f, 0, 0.5f);
-
-            MidRadius = 5;
-            MidWidth = 11;
-
-            //LandblockStruct.init();
-        }
+        public static float AmbientLevel = 0.4f;
+        public static Vector3 Sunlight = new Vector3(1.2f, 0, 0.5f);
 
         public static bool SetMidRadius(int radius)
         {
@@ -48,7 +38,8 @@ namespace ACE.Server.Physics.Common
         }
 
         /// <summary>
-        /// Loads the backing store landblock structure
+        /// Loads the backing store landblock structure<para />
+        /// This function is thread safe
         /// </summary>
         /// <param name="blockCellID">Any landblock + cell ID within the landblock</param>
         public static Landblock get_landblock(uint blockCellID)
@@ -74,22 +65,29 @@ namespace ACE.Server.Physics.Common
             var landblockID = blockCellID | 0xFFFF;
 
             // check if landblock is already cached
-            Landblock landblock = null;
-            Landblocks.TryGetValue(landblockID, out landblock);
-            if (landblock != null)
+            if (Landblocks.TryGetValue(landblockID, out var landblock))
                 return landblock;
 
-            // if not, load into cache
-            landblock = new Landblock((DatLoader.FileTypes.CellLandblock)DBObj.Get(new QualifiedDataID(1, landblockID)));
-            Landblocks.Add(landblockID, landblock);
-            landblock.PostInit();
+            lock (landblockMutex)
+            {
+                // check if landblock is already cached, this time under the lock.
+                if (Landblocks.TryGetValue(landblockID, out landblock))
+                    return landblock;
 
-            return landblock;
+                // if not, load into cache
+                landblock = new Landblock(DBObj.GetCellLandblock(landblockID));
+                if (Landblocks.TryAdd(landblockID, landblock))
+                    landblock.PostInit();
+                else
+                    Landblocks.TryGetValue(landblockID, out landblock);
+
+                return landblock;
+            }
         }
 
         public static bool unload_landblock(uint landblockID)
         {
-            return Landblocks.Remove(landblockID);
+            return Landblocks.TryRemove(landblockID, out _);
         }
 
         public static ObjCell get_landcell(uint blockCellID)
@@ -116,7 +114,7 @@ namespace ACE.Server.Physics.Common
             {
                 landblock.LandCells.TryGetValue((int)cellID, out cell);
                 if (cell != null) return cell;
-                cell = (EnvCell)DBObj.Get(new QualifiedDataID(3, blockCellID));
+                cell = DBObj.GetEnvCell(blockCellID);
                 landblock.LandCells.Add((int)cellID, cell);
                 var envCell = cell as EnvCell;
                 envCell.PostInit();

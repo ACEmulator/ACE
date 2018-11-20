@@ -53,12 +53,9 @@ namespace ACE.Server.Entity
 
         private DateTime lastActiveTime;
 
-        public bool AdjacenciesLoaded { get; internal set; }
-
-
         public readonly Dictionary<ObjectGuid, WorldObject> worldObjects = new Dictionary<ObjectGuid, WorldObject>(); // TODO Make this private
-        private readonly Dictionary<Adjacency, Landblock> adjacencies = new Dictionary<Adjacency, Landblock>();
 
+        public List<Landblock> adjacents = new List<Landblock>();
 
         private readonly ActionQueue actionQueue = new ActionQueue();
 
@@ -86,10 +83,10 @@ namespace ACE.Server.Entity
         /// The clientlib backing store landblock
         /// Eventually these classes could be merged, but for now they are separate...
         /// </summary>
-        public readonly Physics.Common.Landblock _landblock;
+        public Physics.Common.Landblock _landblock { get; private set; }
 
-        public CellLandblock CellLandblock { get; private set; }
-        public LandblockInfo LandblockInfo { get; private set; }
+        public CellLandblock CellLandblock { get; }
+        public LandblockInfo LandblockInfo { get; }
 
         /// <summary>
         /// The landblock static meshes for
@@ -106,22 +103,15 @@ namespace ACE.Server.Entity
         {
             Id = id;
 
-            // initialize adjacency array
-            adjacencies.Add(Adjacency.North, null);
-            adjacencies.Add(Adjacency.NorthEast, null);
-            adjacencies.Add(Adjacency.East, null);
-            adjacencies.Add(Adjacency.SouthEast, null);
-            adjacencies.Add(Adjacency.South, null);
-            adjacencies.Add(Adjacency.SouthWest, null);
-            adjacencies.Add(Adjacency.West, null);
-            adjacencies.Add(Adjacency.NorthWest, null);
-
-            _landblock = LScape.get_landblock(Id.Raw);
+            CellLandblock = DatManager.CellDat.ReadFromDat<CellLandblock>(Id.Raw >> 16 | 0xFFFF);
+            LandblockInfo = DatManager.CellDat.ReadFromDat<LandblockInfo>((uint)Id.Landblock << 16 | 0xFFFE);
 
             lastActiveTime = DateTime.UtcNow;
 
             Task.Run(() =>
             {
+                _landblock = LScape.get_landblock(Id.Raw);
+
                 CreateWorldObjects();
 
                 SpawnDynamicShardObjects();
@@ -204,13 +194,13 @@ namespace ACE.Server.Entity
         }
 
         /// <summary>
-        /// Loads the meshes for the landblock
+        /// Loads the meshes for the landblock<para />
+        /// This isn't used by ACE, but we still retain it for the following reason:<para />
+        /// its useful, concise, high level overview code for everything needed to load landblocks, all their objects, scenery, polygons
+        /// without getting into all of the low level methods that acclient uses to do it
         /// </summary>
         private void LoadMeshes(List<LandblockInstance> objects)
         {
-            CellLandblock = DatManager.CellDat.ReadFromDat<CellLandblock>(Id.Raw >> 16 | 0xFFFF);
-            LandblockInfo = DatManager.CellDat.ReadFromDat<LandblockInfo>((uint)Id.Landblock << 16 | 0xFFFE);
-
             LandblockMesh = new LandblockMesh(Id);
             LoadLandObjects();
             LoadBuildings();
@@ -299,20 +289,6 @@ namespace ACE.Server.Entity
                 lastDatabaseSave = DateTime.UtcNow;
             }
         }
-
-        public void SetAdjacency(Adjacency adjacency, Landblock landblock)
-        {
-            adjacencies[adjacency] = landblock;
-        }
-
-        private Landblock NorthAdjacency => adjacencies[Adjacency.North];
-        private Landblock NorthEastAdjacency => adjacencies[Adjacency.NorthEast];
-        private Landblock EastAdjacency => adjacencies[Adjacency.East];
-        private Landblock SouthEastAdjacency => adjacencies[Adjacency.SouthEast];
-        private Landblock SouthAdjacency => adjacencies[Adjacency.South];
-        private Landblock SouthWestAdjacency => adjacencies[Adjacency.SouthWest];
-        private Landblock WestAdjacency => adjacencies[Adjacency.West];
-        private Landblock NorthWestAdjacency => adjacencies[Adjacency.NorthWest];
 
         private void AddPlayerTracking(List<WorldObject> wolist, Player player)
         {
@@ -426,7 +402,10 @@ namespace ACE.Server.Entity
             if (wo == null) return;
 
             wo.CurrentLandblock = null;
-            wo.TimeToRot = null;
+
+            // Weenies can come with a default of 0 or -1. If they still have that value, we want to retain it.
+            if (wo.TimeToRot.HasValue && wo.TimeToRot != 0 && wo.TimeToRot != -1)
+                wo.TimeToRot = null;
 
             if (!adjacencyMove)
             {
@@ -462,89 +441,6 @@ namespace ACE.Server.Entity
         }
 
         /// <summary>
-        /// Gets all landblocks in range of a position.  (for indoors positions that is just this landblock)
-        /// </summary>
-        public List<Landblock> GetLandblocksInRange(Position pos, float distance)
-        {
-            List<Landblock> inRange = new List<Landblock>();
-
-            inRange.Add(this);
-
-            if (pos.Indoors)
-            {
-                return inRange;
-            }
-
-            float highX = pos.PositionX + distance;
-            float lowX = pos.PositionX - distance;
-            float highY = pos.PositionY + distance;
-            float lowY = pos.PositionY - distance;
-
-            bool highXInLandblock = (highX < MaxXY);
-            bool highYInLandblock = (highY < MaxXY);
-            bool lowXInLandblock = (lowX > 0);
-            bool lowYInLandblock = (lowY > 0);
-
-            // Check East
-            if (!highXInLandblock)
-            {
-                if (EastAdjacency != null)
-                    inRange.Add(EastAdjacency);
-            }
-
-            // North East
-            if (!highXInLandblock && !highYInLandblock)
-            {
-                if (NorthEastAdjacency != null)
-                    inRange.Add(NorthEastAdjacency);
-            }
-
-            // North
-            if (!highYInLandblock)
-            {
-                if (NorthAdjacency != null)
-                    inRange.Add(NorthAdjacency);
-            }
-
-            // North West
-            if (!lowXInLandblock && !highYInLandblock)
-            {
-                if (NorthWestAdjacency != null)
-                    inRange.Add(NorthWestAdjacency);
-            }
-
-            // West
-            if (!lowXInLandblock)
-            {
-                if (WestAdjacency != null)
-                    inRange.Add(WestAdjacency);
-            }
-
-            // South West
-            if (!lowXInLandblock && !lowYInLandblock)
-            {
-                if (SouthWestAdjacency != null)
-                    inRange.Add(SouthWestAdjacency);
-            }
-
-            // South
-            if (!lowYInLandblock)
-            {
-                if (SouthAdjacency != null)
-                    inRange.Add(SouthAdjacency);
-            }
-
-            // South East
-            if (!highXInLandblock && !lowYInLandblock)
-            {
-                if (SouthEastAdjacency != null)
-                    inRange.Add(SouthEastAdjacency);
-            }
-
-            return inRange;
-        }
-
-        /// <summary>
         /// This will return null if the object was not found in the current or adjacent landblocks.
         /// </summary>
         private Landblock GetOwner(ObjectGuid guid)
@@ -552,7 +448,7 @@ namespace ACE.Server.Entity
             if (worldObjects.ContainsKey(guid))
                 return this;
 
-            foreach (Landblock lb in adjacencies.Values)
+            foreach (Landblock lb in adjacents)
             {
                 if (lb != null && lb.worldObjects.ContainsKey(guid))
                     return lb;
@@ -574,7 +470,7 @@ namespace ACE.Server.Entity
             if (worldObjects.TryGetValue(guid, out var worldObject))
                 return worldObject;
 
-            foreach (Landblock lb in adjacencies.Values)
+            foreach (Landblock lb in adjacents)
             {
                 if (lb != null && lb.worldObjects.TryGetValue(guid, out worldObject))
                     return worldObject;
@@ -600,7 +496,7 @@ namespace ACE.Server.Entity
             // try searching adjacent landblocks if not found
             if (searchAdjacents)
             {
-                foreach (var adjacent in adjacencies.Values)
+                foreach (var adjacent in adjacents)
                 {
                     if (adjacent == null) continue;
 
@@ -620,30 +516,6 @@ namespace ACE.Server.Entity
             wo.PhysicsObj.enqueue_objs(visibleObjs);
         }
 
-        /*/// <summary>
-        /// A landblock is active when it contains at least 1 player
-        /// </summary>
-        public bool IsActive(bool testAdjacents = true)
-        {
-            // TODO: handle perma-loaded landblocks 
-
-            // for increased performance,
-            // if Player ObjectGuids are always within a specific range,
-            // those could possibly be checked instead of casting WorldObject to Player here
-            var currentActive = worldObjects.Values.FirstOrDefault(wo => wo is Player) != null;
-
-            if (currentActive || !testAdjacents || _landblock.IsDungeon)
-                return currentActive;
-
-            // outdoor landblocks:
-            // activity is also determined by adjacent landblocks
-            foreach (var adjacent in adjacencies.Values)
-                if (adjacent.IsActive(false))
-                    return true;
-
-            return false;
-        }*/
-
         /// <summary>
         /// Sets a landblock to active state, with the current time as the LastActiveTime
         /// </summary>
@@ -652,10 +524,10 @@ namespace ACE.Server.Entity
         {
             lastActiveTime = DateTime.UtcNow;
 
-            if (isAdjacent || _landblock.IsDungeon) return;
+            if (isAdjacent || _landblock == null || _landblock.IsDungeon) return;
 
             // for outdoor landblocks, recursively call 1 iteration to set adjacents to active
-            foreach (var landblock in adjacencies.Values)
+            foreach (var landblock in adjacents)
             {
                 if (landblock != null)
                     landblock.SetActive(true);
@@ -680,29 +552,6 @@ namespace ACE.Server.Entity
 
             // remove physics landblock
             LScape.unload_landblock(landblockID);
-
-            // dungeon landblocks do not handle adjacents
-            if (_landblock.IsDungeon) return;
-
-            // notify adjacents
-            foreach (var adjacent in adjacencies.Where(adj => adj.Value != null))
-                adjacent.Value.UnloadAdjacent(AdjacencyHelper.GetInverse(adjacent.Key), this);
-
-            // TODO: cleanup physics landblock references
-        }
-
-        /// <summary>
-        /// Removes a neighbor landblock from the adjacencies list
-        /// </summary>
-        private void UnloadAdjacent(Adjacency? adjacency, Landblock landblock)
-        {
-            if (adjacency == null || adjacencies[adjacency.Value] != landblock)
-            {
-                log.Error($"Landblock({Id}).UnloadAdjacent({adjacency}, {landblock.Id}) couldn't find adjacent landblock");
-                return;
-            }
-            adjacencies[adjacency.Value] = null;
-            AdjacenciesLoaded = false;
         }
 
         private void SaveDB()
@@ -754,8 +603,38 @@ namespace ACE.Server.Entity
             // if applicable, iterate into adjacent landblocks
             if (adjacents)
             {
-                foreach (var adjacent in adjacencies.Values.Where(adj => adj != null))
+                foreach (var adjacent in this.adjacents.Where(adj => adj != null))
                     adjacent.EnqueueBroadcast(excludeList, false, msgs);
+            }
+        }
+
+        private bool? isDungeon;
+
+        /// <summary>
+        /// Returns TRUE if this landblock is a dungeon
+        /// </summary>
+        public bool IsDungeon
+        {
+            get
+            {
+                // return cached value
+                if (isDungeon != null)
+                    return isDungeon.Value;
+
+                // a dungeon landblock is determined by:
+                // - all heights being 0
+                // - having at least 1 EnvCell (0x100+)
+                // - contains no buildings
+                foreach (var height in CellLandblock.Height)
+                {
+                    if (height != 0)
+                    {
+                        isDungeon = false;
+                        return isDungeon.Value;
+                    }
+                }
+                isDungeon = LandblockInfo != null && LandblockInfo.NumCells > 0 && LandblockInfo.Buildings != null && LandblockInfo.Buildings.Count == 0;
+                return isDungeon.Value;
             }
         }
     }

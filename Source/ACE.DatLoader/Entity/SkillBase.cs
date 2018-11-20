@@ -12,9 +12,9 @@ namespace ACE.DatLoader.Entity
         public uint IconId { get; private set; }
         public uint TrainedCost { get; private set; }
         public uint SpecializedCost { get; private set; }
-        public uint Category { get; private set; }
-        public uint ChargenUse { get; private set; }
-        public uint MinLevel { get; private set; }
+        public uint Category { get; private set; }      // 1 = combat, 2 = other, 3 = magic
+        public uint ChargenUse { get; private set; }    // always 1?
+        public uint MinLevel { get; private set; }      // 1-2?
 
         public SkillFormula Formula { get; private set; } = new SkillFormula();
 

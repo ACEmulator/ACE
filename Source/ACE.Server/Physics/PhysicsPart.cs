@@ -1,6 +1,7 @@
 using System;
-using System.Collections.Generic;
 using System.Numerics;
+
+using ACE.Entity.Enum;
 using ACE.Server.Physics.Animation;
 using ACE.Server.Physics.Common;
 using ACE.Server.Physics.Collision;
@@ -8,6 +9,9 @@ using ACE.Server.Physics.Entity;
 
 namespace ACE.Server.Physics
 {
+    /// <summary>
+    /// A static GfxObj from the DAT, combined with dynamic info at runtime (position/rotation/scale)
+    /// </summary>
     public class PhysicsPart
     {
         //public float CYpt;
@@ -22,14 +26,15 @@ namespace ACE.Server.Physics
         //public Material Material;
         //public List<uint> Surfaces;
         //public int OriginalPaletteID;
-        //public float CurTranslucency;
+        public float CurTranslucency;
         //public float CurDiffuse;
         //public float CurLuminosity;
         //public DatLoader.FileTypes.Palette ShiftPal;
         //public int CurrentRenderFrameNum;
-        public PhysicsObj PhysObj;
+        public PhysicsObj PhysicsObj;
         public int PhysObjIndex;
         public BBox BoundingBox;
+        public bool NoDraw;
 
         public static PhysicsObj PlayerObject;
 
@@ -61,10 +66,10 @@ namespace ACE.Server.Physics
 
         public uint GetPhysObjID()
         {
-            if (PhysObj == null)
+            if (PhysicsObj == null)
                 return 0;
 
-            return PhysObj.ID;
+            return PhysicsObj.ID;
         }
 
         public void InitEmpty()
@@ -85,13 +90,12 @@ namespace ACE.Server.Physics
 
         public bool IsPartOfPlayerObj()
         {
-            return PhysObj.Equals(PlayerObject);
+            return PhysicsObj.Equals(PlayerObject);
         }
 
         public bool LoadGfxObjArray(uint rootObjectID/*, GfxObjDegradeInfo newDegrades*/)
         {
-            var gfxObj = (DatLoader.FileTypes.GfxObj)DBObj.Get(new QualifiedDataID(6, rootObjectID));
-            GfxObj = GfxObjCache.Get(gfxObj);
+            GfxObj = GfxObjCache.Get(rootObjectID);
             // degrades omitted
             return GfxObj != null;
         }
@@ -130,16 +134,30 @@ namespace ACE.Server.Physics
             return LoadGfxObjArray(gfxObjID);
         }
 
+        public void SetTranslucency(float translucency)
+        {
+            if (PhysicsObj != null && PhysicsObj.State.HasFlag(PhysicsState.Cloaked))
+                return;
+
+            if (translucency == 1.0f)
+            {
+                NoDraw = true;
+                return;
+            }
+
+            if (CurTranslucency != translucency)
+            {
+                CurTranslucency = translucency;
+                /*if (CurSettingsAreDefault())
+                    RestoreMaterial();
+                else if (CopyMaterial())
+                    Material.SetTranslucencySimple(translucency);*/
+            }
+        }
+
         public void UpdateViewerDistance()
         {
             // client rendering?
-        }
-
-        public bool Equals(ShadowPart shadowPart)
-        {
-            if (shadowPart == null) return false;
-
-            return this == shadowPart.Part;
         }
     }
 }

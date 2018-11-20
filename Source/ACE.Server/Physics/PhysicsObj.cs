@@ -4,7 +4,6 @@ using System.Linq;
 using System.Numerics;
 
 using ACE.Entity.Enum;
-using ACE.Server.Entity;
 using ACE.Server.Physics.Animation;
 using ACE.Server.Physics.Collision;
 using ACE.Server.Physics.Combat;
@@ -588,20 +587,20 @@ namespace ACE.Server.Physics
         /// </summary>
         public void InitDefaults(Setup setup)
         {
-            if (setup.DefaultScriptID != 0)
-                play_script_internal(setup.DefaultScriptID);
+            if (setup._dat.DefaultScript != 0)
+                play_script_internal(setup._dat.DefaultScript);
 
-            if (setup.DefaultMTableID != 0)
-                SetMotionTableID(setup.DefaultMTableID);
+            if (setup._dat.DefaultMotionTable != 0)
+                SetMotionTableID(setup._dat.DefaultMotionTable);
 
-            if (setup.DefaultSTableID != 0)
+            if (setup._dat.DefaultSoundTable != 0)
             {
                 //var qdid = new QualifiedDataID(0x22, setup.DefaultSTableID);
                 //SoundTable = (SoundTable)DBObj.Get(qdid);
                 //log.Warn($"PhysicsObj has DefaultSTableID, (SoundTable)DBObj.Get(qdid) not implemented yet, qdid = new QualifiedDataID(0x22, {setup.DefaultSTableID});");
             }
 
-            if (setup.DefaultPhsTableID != 0)
+            if (setup._dat.DefaultScriptTable != 0)
             {
                 //    var qdid = new QualifiedDataID(0x2C, setup.DefaultPhsTableID);
                 //    PhysicsScriptTable = (PhysicsScriptTable)DBObj.Get(qdid);
@@ -610,10 +609,10 @@ namespace ACE.Server.Physics
 
             if (State.HasFlag(PhysicsState.Static))
             {
-                if (setup.DefaultAnimID != 0)
+                if (setup._dat.DefaultAnimation != 0)
                     State |= PhysicsState.HasDefaultAnim;
 
-                if (setup.DefaultScriptID != 0)
+                if (setup._dat.DefaultScript != 0)
                     State |= PhysicsState.HasDefaultScript;
 
                 PhysicsEngine.AddStaticAnimatingObject(this);
@@ -931,9 +930,14 @@ namespace ACE.Server.Physics
 
         public void RemovePartFromShadowCells(PhysicsPart part)
         {
+            if (part == null) return;
+
             if (CurCell != null) part.Pos.ObjCellID = CurCell.ID;
             foreach (var shadowObj in ShadowObjects.Values)
-                shadowObj.Cell.RemovePart(part);
+            {
+                if (shadowObj.Cell != null)
+                    shadowObj.Cell.RemovePart(part);
+            }
         }
 
         public void RestoreLighting()
@@ -1857,7 +1861,8 @@ namespace ACE.Server.Physics
                     ObjCell.find_cell_list(Position, PartArray.GetNumCylsphere(), PartArray.GetCylSphere(), CellArray, null);
                 else
                 {
-                    var sphere = PartArray != null ? PartArray.GetSortingSphere() : PhysicsGlobals.DummySphere;
+                    // added sorting sphere null check
+                    var sphere = PartArray != null && PartArray.Setup.SortingSphere != null ? PartArray.GetSortingSphere() : PhysicsGlobals.DummySphere;
                     ObjCell.find_cell_list(Position, sphere, CellArray, null);
                 }
             }
@@ -2005,7 +2010,7 @@ namespace ACE.Server.Physics
             TransientState = 0;
         }
 
-        public bool create_blocking_particle_emitter(int emitterInfoID, int partIdx, AFrame offset, int emitterID)
+        public int create_blocking_particle_emitter(uint emitterInfoID, int partIdx, AFrame offset, int emitterID)
         {
             if (ParticleManager == null)
                 ParticleManager = new ParticleManager();
@@ -2013,7 +2018,7 @@ namespace ACE.Server.Physics
             return ParticleManager.CreateBlockingParticleEmitter(this, emitterInfoID, partIdx, offset, emitterID);
         }
 
-        public bool create_particle_emitter(int emitterInfoID, int partIdx, AFrame offset, int emitterID)
+        public int create_particle_emitter(uint emitterInfoID, int partIdx, AFrame offset, int emitterID)
         {
             if (ParticleManager == null)
                 ParticleManager = new ParticleManager();
@@ -2547,7 +2552,7 @@ namespace ACE.Server.Physics
             obj.MorphToExistingObject(template);
 
             if (obj.PartArray != null && obj.PartArray.Setup != null)
-                obj.play_script_internal(obj.PartArray.Setup.DefaultScriptID);
+                obj.play_script_internal(obj.PartArray.Setup._dat.DefaultScript);
 
             return obj;
         }
@@ -2561,11 +2566,11 @@ namespace ACE.Server.Physics
             return obj;
         }
 
-        public static PhysicsObj makeParticleObject(int numParts)
+        public static PhysicsObj makeParticleObject(int numParts, Sphere sortingSphere)
         {
             var particle = new PhysicsObj();
             particle.State = PhysicsState.Static | PhysicsState.ReportCollisions;
-            particle.PartArray = PartArray.CreateParticle(particle, numParts, null);
+            particle.PartArray = PartArray.CreateParticle(particle, numParts, sortingSphere);
             return particle;
         }
 

@@ -371,11 +371,17 @@ namespace ACE.Server.Physics.Common
         /// </summary>
         public void FinalizePVArrays()
         {
-            for (var i = 0; i < VertexArray.Vertices.Count; i++)
-                VertexArray.Vertices[i] = VertexCache.Get(VertexArray.Vertices[i]);
+            if (VertexCache.Enabled)
+            {
+                for (var i = 0; i < VertexArray.Vertices.Count; i++)
+                    VertexArray.Vertices[i] = VertexCache.Get(VertexArray.Vertices[i]);
+            }
 
-            for (var i = 0; i < Polygons.Count; i++)
-                Polygons[i] = PolygonCache.Get(Polygons[i]);
+            if (PolygonCache.Enabled)
+            {
+                for (var i = 0; i < Polygons.Count; i++)
+                    Polygons[i] = PolygonCache.Get(Polygons[i]);
+            }
         }
 
         public void RemoveSurfaces()

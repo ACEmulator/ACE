@@ -99,7 +99,7 @@ namespace ACE.Server
                 DatabaseManager.World.CacheAllWieldedTreasuresInParallel();
             }
             else
-                log.Info("No World Database Precaching Performed...");
+                log.Info("Precaching World Database Disabled...");
 
             log.Info("Initializing PlayerManager...");
             PlayerManager.Initialize();
@@ -116,10 +116,14 @@ namespace ACE.Server
             if (ConfigManager.Config.Server.LandblockPreloading)
             {
                 log.Info("Preloading Landblocks...");
-                LandblockManager.PreloadCommonLandblocks();
+                LandblockManager.PreloadConfigLandblocks();
             }
             else
-                log.Info("No Landblock Preloading Performed...");
+            {
+                log.Info("Preloading Landblocks Disabled...");
+                log.Warn("Events may not function correctly as Preloading of Landblocks has disabled.");
+            }
+
 
             log.Info("Initializing EventManager...");
             EventManager.Initialize();

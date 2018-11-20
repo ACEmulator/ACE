@@ -874,9 +874,9 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyInt.MaxStructure); else SetProperty(PropertyInt.MaxStructure, value.Value); }
         }
 
-        public ushort? StackSize
+        public int? StackSize
         {
-            get => (ushort?)GetProperty(PropertyInt.StackSize);
+            get => GetProperty(PropertyInt.StackSize);
             set { if (!value.HasValue) RemoveProperty(PropertyInt.StackSize); else SetProperty(PropertyInt.StackSize, value.Value); }
         }
 

@@ -390,7 +390,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public float GetAnimSpeed()
         {
-            var quickness = GetCreatureAttribute(PropertyAttribute.Quickness).Current;
+            var quickness = Quickness.Current;
             var weaponSpeed = GetWeaponSpeed(this);
 
             var divisor = 1.0 - (quickness / 300.0) + (weaponSpeed / 150.0);

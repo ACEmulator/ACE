@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 
-using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.WorldObjects.Entity;
 
@@ -16,11 +15,5 @@ namespace ACE.Server.WorldObjects
         public CreatureAttribute Quickness => Attributes[PropertyAttribute.Quickness];
         public CreatureAttribute Focus => Attributes[PropertyAttribute.Focus];
         public CreatureAttribute Self => Attributes[PropertyAttribute.Self];
-
-        public CreatureAttribute GetCreatureAttribute(PropertyAttribute attribute)
-        {
-            Attributes.TryGetValue(attribute, out var value);
-            return value;
-        }
     }
 }

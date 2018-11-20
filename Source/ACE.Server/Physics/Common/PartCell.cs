@@ -1,13 +1,12 @@
 using System.Collections.Generic;
 using System.Linq;
-using System.Numerics;
 using ACE.Server.Physics.Animation;
 
 namespace ACE.Server.Physics.Common
 {
     public class PartCell
     {
-        public List<ShadowPart> ShadowPartList;
+        public List<ShadowPart> ShadowPartList { get; set; }
 
         public PartCell()
         {
@@ -16,6 +15,8 @@ namespace ACE.Server.Physics.Common
 
         public void AddPart(PhysicsPart part, List<int> planes, AFrame frame, int numShadowParts)
         {
+            return;
+            
             if (part == null) return;
 
             var shadowPart = new ShadowPart();
@@ -29,19 +30,14 @@ namespace ACE.Server.Physics.Common
 
         public void RemovePart(PhysicsPart part)
         {
-            // FIXME: null parts
+            return;
+
             if (part == null) return;
 
-            var removeParts = new List<ShadowPart>();
+            var shadowPart = ShadowPartList.FirstOrDefault(p => p != null && p.Part != null && p.Part.Equals(part));
 
-            foreach (var shadowPart in ShadowPartList.ToList())
-            {
-                if (part.Equals(shadowPart))
-                    removeParts.Add(shadowPart);
-            }
-
-            foreach (var removePart in removeParts)
-                ShadowPartList.Remove(removePart);
+            if (shadowPart != null)
+                ShadowPartList.Remove(shadowPart);
         }
     }
 }
