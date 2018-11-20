@@ -134,15 +134,15 @@ namespace ACE.Server.WorldObjects
                 ChatPacket.SendServerMessage(Session, "Sorry, but you can't be friends with yourself.", ChatMessageType.Broadcast);
 
             // get friend player info
-            var friendGuid = PlayerManager.FindGuidByName(friendName);
+            var friend = PlayerManager.FindByName(friendName);
 
-            if (friendGuid == ObjectGuid.Invalid)
+            if (friend != null)
             {
                 ChatPacket.SendServerMessage(Session, "That character does not exist", ChatMessageType.Broadcast);
                 return;
             }
 
-            var newFriend = Character.AddFriend(friendGuid.Full, CharacterDatabaseLock, out var friendAlreadyExists);
+            var newFriend = Character.AddFriend(friend.Guid.Full, CharacterDatabaseLock, out var friendAlreadyExists);
 
             if (friendAlreadyExists)
             {

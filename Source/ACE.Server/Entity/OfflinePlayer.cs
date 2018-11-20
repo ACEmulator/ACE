@@ -6,10 +6,11 @@ using ACE.Database;
 using ACE.Database.Models.Shard;
 using ACE.Entity;
 using ACE.Entity.Enum.Properties;
+using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Entity
 {
-    public class OfflinePlayer
+    public class OfflinePlayer : IPlayer
     {
         /// <summary>
         /// This is object property overrides that should have come from the shard db (or init to defaults of object is new to this instance).

@@ -45,44 +45,45 @@ namespace ACE.Server.Managers
 
 
         /// <summary>
-        /// This will return ObjectGuid.Invalid if the name was not found.
+        /// This will return null if the name was not found.
         /// </summary>
-        public static ObjectGuid FindGuidByName(string name)
+        public static IPlayer FindByName(string name)
         {
             var onlinePlayer = OnlinePlayers.Values.FirstOrDefault(p => p.Name.Equals(name));
 
             if (onlinePlayer != null)
-                return onlinePlayer.Guid;
+                return onlinePlayer;
 
             var offlinePlayer = OfflinePlayers.Values.FirstOrDefault(p => p.Name.Equals(name));
 
             if (offlinePlayer != null)
-                return offlinePlayer.Guid;
-
-            return ObjectGuid.Invalid;
-        }
-
-        /// <summary>
-        /// This will return null of the guid was not found.
-        /// </summary>
-        public static string FindNameByGuid(uint guid)
-        {
-            return FindNameByGuid(new ObjectGuid(guid));
-        }
-
-        /// <summary>
-        /// This will return null of the guid was not found.
-        /// </summary>
-        public static string FindNameByGuid(ObjectGuid guid)
-        {
-            if (OnlinePlayers.TryGetValue(guid, out var onlinePlayer))
-                return onlinePlayer.Name;
-
-            if (OfflinePlayers.TryGetValue(guid, out var offlinePlayer))
-                return offlinePlayer.Name;
+                return offlinePlayer;
 
             return null;
         }
+
+        /// <summary>
+        /// This will return null of the guid was not found.
+        /// </summary>
+        public static IPlayer FindByGuid(uint guid)
+        {
+            return FindByGuid(new ObjectGuid(guid));
+        }
+
+        /// <summary>
+        /// This will return null of the guid was not found.
+        /// </summary>
+        public static IPlayer FindByGuid(ObjectGuid guid)
+        {
+            if (OnlinePlayers.TryGetValue(guid, out var onlinePlayer))
+                return onlinePlayer;
+
+            if (OfflinePlayers.TryGetValue(guid, out var offlinePlayer))
+                return offlinePlayer;
+
+            return null;
+        }
+
 
 
 

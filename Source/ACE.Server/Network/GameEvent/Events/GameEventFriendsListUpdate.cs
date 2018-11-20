@@ -79,7 +79,8 @@ namespace ACE.Server.Network.GameEvent.Events
                         isOnline = true;
                 }
 
-                var friendName = PlayerManager.FindNameByGuid(f.FriendId) ?? "";
+                var player = PlayerManager.FindByGuid(f.FriendId);
+                var friendName = (player != null) ? player.Name : "";
 
                 Writer.Write(f.FriendId);           // Friend's ID
                 Writer.Write(isOnline ? 1u : 0u);   // Whether this friend is online

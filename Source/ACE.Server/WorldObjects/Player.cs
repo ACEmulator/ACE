@@ -2,7 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+
 using log4net;
+
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.DatLoader;
@@ -25,7 +27,7 @@ using MotionTable = ACE.DatLoader.FileTypes.MotionTable;
 
 namespace ACE.Server.WorldObjects
 {
-    public partial class Player : Creature
+    public partial class Player : Creature, IPlayer
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 

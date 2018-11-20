@@ -173,7 +173,7 @@ namespace ACE.Server.WorldObjects
             // players can break from either vassals or patrons
 
             // ensure target player exists
-            var target = PlayerManager.GetOfflinePlayerByGuidId(targetGuid.Full);
+            var target = PlayerManager.FindByGuid(targetGuid);
             if (target == null)
             {
                 //Console.WriteLine(Name + " tried to break allegiance to an unknown player guid: " + targetGuid.Full.ToString("X8"));
