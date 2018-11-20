@@ -67,7 +67,7 @@ namespace ACE.Server
             ServerManager.Initialize();
 
             log.Info("Initializing DatManager...");
-            DatManager.Initialize(ConfigManager.Config.Server.DatFilesDirectory);
+            DatManager.Initialize(ConfigManager.Config.Server.DatFilesDirectory, true);
 
             log.Info("Initializing DatabaseManager...");
             DatabaseManager.Initialize();

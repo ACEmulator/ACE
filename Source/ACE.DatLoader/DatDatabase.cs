@@ -17,6 +17,10 @@ namespace ACE.DatLoader
 
         public string FilePath { get; }
 
+        private FileStream stream { get; }
+
+        private static readonly object streamMutex = new object();
+
         public DatDatabaseHeader Header { get; } = new DatDatabaseHeader();
 
         public DatDirectory RootDirectory { get; }
@@ -25,21 +29,27 @@ namespace ACE.DatLoader
 
         public ConcurrentDictionary<uint, FileType> FileCache { get; } = new ConcurrentDictionary<uint, FileType>();
 
-        public DatDatabase(string filePath)
+        public DatDatabase(string filePath, bool keepOpen = false)
         {
             if (!File.Exists(filePath))
                 throw new FileNotFoundException(filePath);
 
             FilePath = filePath;
 
-            using (FileStream stream = new FileStream(filePath, FileMode.Open))
-            {
-                stream.Seek(DAT_HEADER_OFFSET, SeekOrigin.Begin);
-                using (var reader = new BinaryReader(stream, System.Text.Encoding.Default, true))
-                    Header.Unpack(reader);
+            stream = new FileStream(filePath, FileMode.Open, FileAccess.Read);
 
-                RootDirectory = new DatDirectory(Header.BTree, Header.BlockSize);
-                RootDirectory.Read(stream);
+            stream.Seek(DAT_HEADER_OFFSET, SeekOrigin.Begin);
+            using (var reader = new BinaryReader(stream, System.Text.Encoding.Default, true))
+                Header.Unpack(reader);
+
+            RootDirectory = new DatDirectory(Header.BTree, Header.BlockSize);
+            RootDirectory.Read(stream);
+
+            if (!keepOpen)
+            {
+                stream.Close();
+                stream.Dispose();
+                stream = null;
             }
 
             RootDirectory.AddFilesToList(AllFiles);
@@ -76,7 +86,16 @@ namespace ACE.DatLoader
         {
             if (AllFiles.TryGetValue(fileId, out var file))
             {
-                DatReader dr = new DatReader(FilePath, file.FileOffset, file.FileSize, Header.BlockSize);
+                DatReader dr;
+
+                if (stream != null)
+                {
+                    lock (streamMutex)
+                        dr = new DatReader(stream, file.FileOffset, file.FileSize, Header.BlockSize);
+                }
+                else
+                    dr = new DatReader(FilePath, file.FileOffset, file.FileSize, Header.BlockSize);
+
                 return dr;                    
             }
 
