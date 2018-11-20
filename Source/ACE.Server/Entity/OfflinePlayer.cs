@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.Threading;
 
+using ACE.Database;
 using ACE.Database.Models.Shard;
 using ACE.Entity;
 using ACE.Entity.Enum.Properties;
@@ -28,18 +30,204 @@ namespace ACE.Server.Entity
         {
             Biota = biota;
             Guid = new ObjectGuid(Biota.Id);
+
+            InitializePropertyDictionaries();
         }
+
+        private void InitializePropertyDictionaries()
+        {
+            foreach (var x in Biota.BiotaPropertiesBool)
+                biotaPropertyBools[(PropertyBool)x.Type] = x;
+            foreach (var x in Biota.BiotaPropertiesDID)
+                biotaPropertyDataIds[(PropertyDataId)x.Type] = x;
+            foreach (var x in Biota.BiotaPropertiesFloat)
+                biotaPropertyFloats[(PropertyFloat)x.Type] = x;
+            foreach (var x in Biota.BiotaPropertiesIID)
+                biotaPropertyInstanceIds[(PropertyInstanceId)x.Type] = x;
+            foreach (var x in Biota.BiotaPropertiesInt)
+                biotaPropertyInts[(PropertyInt)x.Type] = x;
+            foreach (var x in Biota.BiotaPropertiesInt64)
+                biotaPropertyInt64s[(PropertyInt64)x.Type] = x;
+            foreach (var x in Biota.BiotaPropertiesString)
+                biotaPropertyStrings[(PropertyString)x.Type] = x;
+        }
+
+
+        public DateTime LastRequestedDatabaseSave { get; protected set; }
+
+        public bool ChangesDetected { get; set; }
 
         public readonly ReaderWriterLockSlim BiotaDatabaseLock = new ReaderWriterLockSlim();
 
+        /// <summary>
+        /// This will set the LastRequestedDatabaseSave to UtcNow and ChangesDetected to false.<para />
+        /// If enqueueSave is set to true, DatabaseManager.Shard.SaveBiota() will be called for the biota.<para />
+        /// Set enqueueSave to false if you want to perform all the normal routines for a save but not the actual save. This is useful if you're going to collect biotas in bulk for bulk saving.
+        /// </summary>
+        public void SaveBiotaToDatabase(bool enqueueSave = true)
+        {
+            LastRequestedDatabaseSave = DateTime.UtcNow;
+            ChangesDetected = false;
+
+            if (enqueueSave)
+                DatabaseManager.Shard.SaveBiota(Biota, BiotaDatabaseLock, null);
+        }
+
+
+        // These dictionaries should ONLY be referenced by SetEphemeralValues, GetProperty, SetProperty and RemoveProperty functions.
+        // They should NOT be accessed directly to get property values.
+        private readonly Dictionary<PropertyBool, BiotaPropertiesBool> biotaPropertyBools = new Dictionary<PropertyBool, BiotaPropertiesBool>();
+        private readonly Dictionary<PropertyDataId, BiotaPropertiesDID> biotaPropertyDataIds = new Dictionary<PropertyDataId, BiotaPropertiesDID>();
+        private readonly Dictionary<PropertyFloat, BiotaPropertiesFloat> biotaPropertyFloats = new Dictionary<PropertyFloat, BiotaPropertiesFloat>();
+        private readonly Dictionary<PropertyInstanceId, BiotaPropertiesIID> biotaPropertyInstanceIds = new Dictionary<PropertyInstanceId, BiotaPropertiesIID>();
+        private readonly Dictionary<PropertyInt, BiotaPropertiesInt> biotaPropertyInts = new Dictionary<PropertyInt, BiotaPropertiesInt>();
+        private readonly Dictionary<PropertyInt64, BiotaPropertiesInt64> biotaPropertyInt64s = new Dictionary<PropertyInt64, BiotaPropertiesInt64>();
+        private readonly Dictionary<PropertyString, BiotaPropertiesString> biotaPropertyStrings = new Dictionary<PropertyString, BiotaPropertiesString>();
+
         #region GetProperty Functions
-        public bool? GetProperty(PropertyBool property) { return Biota.GetProperty(property, BiotaDatabaseLock); }
-        public uint? GetProperty(PropertyDataId property) { return Biota.GetProperty(property, BiotaDatabaseLock); }
-        public double? GetProperty(PropertyFloat property) { return Biota.GetProperty(property, BiotaDatabaseLock); }
-        public uint? GetProperty(PropertyInstanceId property) { return Biota.GetProperty(property, BiotaDatabaseLock); }
-        public int? GetProperty(PropertyInt property) { return Biota.GetProperty(property, BiotaDatabaseLock); }
-        public long? GetProperty(PropertyInt64 property) { return Biota.GetProperty(property, BiotaDatabaseLock); }
-        public string GetProperty(PropertyString property) { return Biota.GetProperty(property, BiotaDatabaseLock); }
+        public bool? GetProperty(PropertyBool property)
+        {
+            BiotaDatabaseLock.EnterReadLock();
+            try
+            {
+                if (biotaPropertyBools.TryGetValue(property, out var record))
+                    return record.Value;
+                return null;
+            }
+            finally
+            {
+                BiotaDatabaseLock.ExitReadLock();
+            }
+        }
+        public uint? GetProperty(PropertyDataId property)
+        {
+            BiotaDatabaseLock.EnterReadLock();
+            try
+            {
+                if (biotaPropertyDataIds.TryGetValue(property, out var record))
+                    return record.Value;
+                return null;
+            }
+            finally
+            {
+                BiotaDatabaseLock.ExitReadLock();
+            }
+        }
+        public double? GetProperty(PropertyFloat property)
+        {
+            BiotaDatabaseLock.EnterReadLock();
+            try
+            {
+                if (biotaPropertyFloats.TryGetValue(property, out var record))
+                    return record.Value;
+                return null;
+            }
+            finally
+            {
+                BiotaDatabaseLock.ExitReadLock();
+            }
+        }
+        public uint? GetProperty(PropertyInstanceId property)
+        {
+            BiotaDatabaseLock.EnterReadLock();
+            try
+            {
+                if (biotaPropertyInstanceIds.TryGetValue(property, out var record))
+                    return record.Value;
+                return null;
+            }
+            finally
+            {
+                BiotaDatabaseLock.ExitReadLock();
+            }
+        }
+        public int? GetProperty(PropertyInt property)
+        {
+            BiotaDatabaseLock.EnterReadLock();
+            try
+            {
+                if (biotaPropertyInts.TryGetValue(property, out var record))
+                    return record.Value;
+                return null;
+            }
+            finally
+            {
+                BiotaDatabaseLock.ExitReadLock();
+            }
+        }
+        public long? GetProperty(PropertyInt64 property)
+        {
+            BiotaDatabaseLock.EnterReadLock();
+            try
+            {
+                if (biotaPropertyInt64s.TryGetValue(property, out var record))
+                    return record.Value;
+                return null;
+            }
+            finally
+            {
+                BiotaDatabaseLock.ExitReadLock();
+            }
+        }
+        public string GetProperty(PropertyString property)
+        {
+            BiotaDatabaseLock.EnterReadLock();
+            try
+            {
+                if (biotaPropertyStrings.TryGetValue(property, out var record))
+                    return record.Value;
+                return null;
+            }
+            finally
+            {
+                BiotaDatabaseLock.ExitReadLock();
+            }
+        }
+        #endregion
+
+        #region SetProperty Functions
+        public void SetProperty(PropertyBool property, bool value)
+        {
+            Biota.SetProperty(property, value, BiotaDatabaseLock, biotaPropertyBools, out var biotaChanged);
+            if (biotaChanged)
+                ChangesDetected = true;
+        }
+        public void SetProperty(PropertyDataId property, uint value)
+        {
+            Biota.SetProperty(property, value, BiotaDatabaseLock, biotaPropertyDataIds, out var biotaChanged);
+            if (biotaChanged)
+                ChangesDetected = true;
+        }
+        public void SetProperty(PropertyFloat property, double value)
+        {
+            Biota.SetProperty(property, value, BiotaDatabaseLock, biotaPropertyFloats, out var biotaChanged);
+            if (biotaChanged)
+                ChangesDetected = true;
+        }
+        public void SetProperty(PropertyInstanceId property, uint value)
+        {
+            Biota.SetProperty(property, value, BiotaDatabaseLock, biotaPropertyInstanceIds, out var biotaChanged);
+            if (biotaChanged)
+                ChangesDetected = true;
+        }
+        public void SetProperty(PropertyInt property, int value)
+        {
+            Biota.SetProperty(property, value, BiotaDatabaseLock, biotaPropertyInts, out var biotaChanged);
+            if (biotaChanged)
+                ChangesDetected = true;
+        }
+        public void SetProperty(PropertyInt64 property, long value)
+        {
+            Biota.SetProperty(property, value, BiotaDatabaseLock, biotaPropertyInt64s, out var biotaChanged);
+            if (biotaChanged)
+                ChangesDetected = true;
+        }
+        public void SetProperty(PropertyString property, string value)
+        {
+            Biota.SetProperty(property, value, BiotaDatabaseLock, biotaPropertyStrings, out var biotaChanged);
+            if (biotaChanged)
+                ChangesDetected = true;
+        }
         #endregion
 
         public string Name => GetProperty(PropertyString.Name);
