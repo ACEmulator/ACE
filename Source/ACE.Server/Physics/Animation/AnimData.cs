@@ -1,4 +1,4 @@
-namespace ACE.Server.Physics.Animation
+﻿namespace ACE.Server.Physics.Animation
 {
     public class AnimData
     {

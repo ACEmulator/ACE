@@ -30,6 +30,7 @@ namespace ACE.Server.Physics.Common
         public new Dictionary<uint, EnvCell> VisibleCells;
         public EnvCellFlags Flags;
         public uint EnvironmentID;
+        public DatLoader.FileTypes.EnvCell _envCell;
         public DatLoader.FileTypes.Environment Environment;
 
         public EnvCell() : base()
@@ -39,6 +40,8 @@ namespace ACE.Server.Physics.Common
 
         public EnvCell(DatLoader.FileTypes.EnvCell envCell): base()
         {
+            _envCell = envCell;
+
             Flags = envCell.Flags;
             ID = envCell.Id;
             ShadowObjectIDs = envCell.Surfaces;
@@ -63,6 +66,8 @@ namespace ACE.Server.Physics.Common
             CellStructureID = envCell.CellStructure;    // environment can contain multiple?
             if (Environment.Cells != null && Environment.Cells.ContainsKey(CellStructureID))
                 CellStructure = new CellStruct(Environment.Cells[CellStructureID]);
+
+            NumSurfaces = envCell.Surfaces.Count;
         }
 
         public void PostInit()

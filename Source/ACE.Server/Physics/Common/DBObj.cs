@@ -30,6 +30,9 @@ namespace ACE.Server.Physics.Common
             if (qualifiedDID.Type == 8)
                 return GetAnimation(qualifiedDID.ID);
 
+            if (qualifiedDID.Type == 11)
+                return GetSurfaceTexture(qualifiedDID.ID);
+
             if (qualifiedDID.Type == 16)
                 return GetEnvironment(qualifiedDID.ID);
 
@@ -87,6 +90,14 @@ namespace ACE.Server.Physics.Common
         public static DatLoader.FileTypes.Animation GetAnimation(uint id)
         {
             return DatManager.PortalDat.ReadFromDat<DatLoader.FileTypes.Animation>(id);
+        }
+
+        /// <summary>
+        /// QualifiedDID Type 11
+        /// </summary>
+        public static SurfaceTexture GetSurfaceTexture(uint id)
+        {
+            return DatManager.PortalDat.ReadFromDat<SurfaceTexture>(id);
         }
 
         /// <summary>
