@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Numerics;
 
 namespace ACE.DatLoader.FileTypes
 {
@@ -27,6 +28,14 @@ namespace ACE.DatLoader.FileTypes
         public bool HasObjects { get; set; }
 
         public List<ushort> Terrain { get; } = new List<ushort>();
+
+        public static ushort TerrainMask_Road = 0x3;
+        public static ushort TerrainMask_Type = 0x7C;
+        public static ushort TerrainMask_Scenery = 0XF800;
+
+        public static byte TerrainShift_Road = 0;
+        public static byte TerrainShift_Type = 2;
+        public static byte TerrainShift_Scenery = 11;
 
         /// <summary>
         /// Z value in-game is double this height.
@@ -58,14 +67,24 @@ namespace ACE.DatLoader.FileTypes
             reader.AlignBoundary();
         }
 
-        /// <summary>
-        /// Simple class to help calulate the Z point.
-        /// </summary>
-        private class Point3D
+        public static ushort GetRoad(ushort terrain)
         {
-            public float X { get; set; }
-            public float Y { get; set; }
-            public float Z { get; set; }
+            return GetTerrain(terrain, TerrainMask_Road, TerrainShift_Road);
+        }
+
+        public static ushort GetType(ushort terrain)
+        {
+            return GetTerrain(terrain, TerrainMask_Type, TerrainShift_Type);
+        }
+
+        public static ushort GetScenery(ushort terrain)
+        {
+            return GetTerrain(terrain, TerrainMask_Scenery, TerrainShift_Scenery);
+        }
+
+        public static ushort GetTerrain(ushort terrain, ushort mask, byte shift)
+        {
+            return (ushort)((terrain & mask) >> shift);
         }
 
         /// <summary>
@@ -84,17 +103,17 @@ namespace ACE.DatLoader.FileTypes
             uint v2 = tileX * 9 + tileY + 1;
             uint v3 = (tileX + 1) * 9 + tileY;
 
-            Point3D p1 = new Point3D();
+            var p1 = new Vector3();
             p1.X = tileX * 24;
             p1.Y = tileY * 24;
             p1.Z = Height[(int)v1] * 2;
 
-            Point3D p2 = new Point3D();
+            var p2 = new Vector3();
             p2.X = tileX * 24;
             p2.Y = (tileY + 1) * 24;
             p2.Z = Height[(int)v2] * 2;
 
-            Point3D p3 = new Point3D();
+            var p3 = new Vector3();
             p3.X = (tileX + 1) * 24;
             p3.Y = tileY * 24;
             p3.Z = Height[(int)v3] * 2;
@@ -106,11 +125,11 @@ namespace ACE.DatLoader.FileTypes
         /// Note that we only need 3 unique points to calculate our plane.
         /// https://social.msdn.microsoft.com/Forums/en-US/1b32dc40-f84d-4365-a677-b59e49d41eb0/how-to-calculate-a-point-on-a-plane-based-on-a-plane-from-3-points?forum=vbgeneral 
         /// </summary>
-        private float GetPointOnPlane(Point3D p1, Point3D p2, Point3D p3, float x, float y)
+        private float GetPointOnPlane(Vector3 p1, Vector3 p2, Vector3 p3, float x, float y)
         {
-            Point3D v1 = new Point3D();
-            Point3D v2 = new Point3D();
-            Point3D abc = new Point3D();
+            var v1 = new Vector3();
+            var v2 = new Vector3();
+            var abc = new Vector3();
 
             v1.X = p1.X - p3.X;
             v1.Y = p1.Y - p3.Y;
