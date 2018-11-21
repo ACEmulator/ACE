@@ -45,6 +45,7 @@ namespace ACE.Server.Managers
 
         /// <summary>
         /// This will return null if the player wasn't found.
+        /// This will almost always be followed up by a call to AddPlayerToOnlinePlayers()
         /// </summary>
         public static OfflinePlayer GetAndRemoveOfflinePlayer(ObjectGuid guid)
         {
@@ -56,6 +57,7 @@ namespace ACE.Server.Managers
 
         /// <summary>
         /// This will return true if the player was successfully added. It will return false if the player already exists in the OnlinePlayers dictionary.
+        /// This will almost always be preceded by a call to AddPlayerToOnlinePlayers()
         /// </summary>
         public static bool AddPlayerToOnlinePlayers(Player player)
         {
