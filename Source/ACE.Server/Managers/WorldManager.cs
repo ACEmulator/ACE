@@ -451,7 +451,7 @@ namespace ACE.Server.Managers
             if (character.TotalLogins <= 1 || PropertyManager.GetBool("alwaysshowwelcome").Item)
             {
                 // check the value of the welcome message. Only display it if it is not empty
-                string welcomeHeader = ConfigManager.Config.Server.Welcome ?? "Welcome to Asheron's Call!";
+                string welcomeHeader = !string.IsNullOrEmpty(ConfigManager.Config.Server.Welcome) ? ConfigManager.Config.Server.Welcome : "Welcome to Asheron's Call!";
                 string msg = "To begin your training, speak to the Society Greeter. Walk up to the Society Greeter using the 'W' key, then double-click on her to initiate a conversation.";
 
                 session.Network.EnqueueSend(new GameEventPopupString(session, $"{welcomeHeader}\n{msg}"));
