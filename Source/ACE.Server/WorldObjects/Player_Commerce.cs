@@ -106,13 +106,13 @@ namespace ACE.Server.WorldObjects
                     if (payment + wo.StackSize.Value <= amount)
                     {
                         // add to payment
-                        payment = payment + wo.StackSize.Value;
+                        payment = payment + (uint)wo.StackSize.Value;
                         cost.Add(wo);
                     }
                     else if (payment + wo.StackSize.Value > amount)
                     {
                         // add payment
-                        payment = payment + wo.StackSize.Value;
+                        payment = payment + (uint)wo.StackSize.Value;
                         cost.Add(wo);
                         // calculate change
                         if (payment > amount)

@@ -903,7 +903,7 @@ namespace ACE.Server.WorldObjects
 
                     if (itemAttributeReq != PropertyAttribute.Undef)
                     {
-                        var playerAttribute = GetCreatureAttribute(itemAttributeReq).Current;
+                        var playerAttribute = Attributes[itemAttributeReq].Current;
 
                         if (playerAttribute < (uint)(item.GetProperty(PropertyInt.WieldDifficulty) ?? 0))
                             return WeenieError.SkillTooLow;
@@ -1673,7 +1673,6 @@ namespace ACE.Server.WorldObjects
 
             var fromItem = GetInventoryItem(mergeFromGuid);
             var toItem = GetInventoryItem(mergeToGuid);
-            var missileAmmo = toItem.ItemType == ItemType.MissileWeapon;
 
             if (fromItem == null || toItem == null)
                 return;
@@ -1682,6 +1681,8 @@ namespace ACE.Server.WorldObjects
             // Check this and see if I need to call UpdateToStack to clear the action with an amount of 0 Og II
             if (toItem.MaxStackSize == toItem.StackSize)
                 return;
+
+            var missileAmmo = toItem.ItemType == ItemType.MissileWeapon;
 
             if (toItem.MaxStackSize >= (ushort)((toItem.StackSize ?? 0) + amount))
             {

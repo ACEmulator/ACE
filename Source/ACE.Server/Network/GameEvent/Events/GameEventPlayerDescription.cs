@@ -176,7 +176,7 @@ namespace ACE.Server.Network.GameEvent.Events
 
             if (Session.Player.Biota.BiotaPropertiesSpellBook.Count > 0)
                 vectorFlags |= DescriptionVectorFlag.Spell;
-            if (Session.Player.Biota.BiotaPropertiesEnchantmentRegistry.Count > 0)
+            if (Session.Player.EnchantmentManager.HasEnchantments)
                 vectorFlags |= DescriptionVectorFlag.Enchantment;
 
             Writer.Write((uint)vectorFlags);

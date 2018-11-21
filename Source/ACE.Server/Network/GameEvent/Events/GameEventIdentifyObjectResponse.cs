@@ -9,7 +9,7 @@ namespace ACE.Server.Network.GameEvent.Events
         public GameEventIdentifyObjectResponse(Session session, WorldObject obj, bool success)
             : base(GameEventType.IdentifyObjectResponse, GameMessageGroup.UIQueue, session)
         {
-            var appraiseInfo = new AppraiseInfo(obj, success);
+            var appraiseInfo = new AppraiseInfo(obj, session.Player, success);
 
             Writer.Write(obj.Guid.Full);
             Writer.Write(appraiseInfo);

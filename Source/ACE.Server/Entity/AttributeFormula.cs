@@ -60,9 +60,9 @@ namespace ACE.Server.Entity
             var attr2 = (PropertyAttribute)formula.Attr2;
             var divisor = formula.Z;
 
-            var total = current ? creature.GetCreatureAttribute(attr1).Current : creature.GetCreatureAttribute(attr1).Base;
+            var total = current ? creature.Attributes[attr1].Current : creature.Attributes[attr1].Base;
             if (attr2 != PropertyAttribute.Undef)
-                total += current ? creature.GetCreatureAttribute(attr2).Current : creature.GetCreatureAttribute(attr2).Base;
+                total += current ? creature.Attributes[attr2].Current : creature.Attributes[attr2].Base;
 
             if (divisor != 1)
                 total = (uint)((float)total / divisor).Round();

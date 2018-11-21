@@ -4,6 +4,7 @@ using System.Linq;
 using ACE.DatLoader;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Server.Entity.Actions;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameMessages.Messages;
 
@@ -87,13 +88,20 @@ namespace ACE.Server.WorldObjects
             VitaeCpPool = (int)curPool;
 
             Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.VitaeCpPool, VitaeCpPool.Value));
+
             if (vitaePenalty != startPenalty)
             {
                 Session.Network.EnqueueSend(new GameMessageSystemChat("Your experience has reduced your Vitae penalty!", ChatMessageType.Magic));
                 EnchantmentManager.SendUpdateVitae();
             }
+
             if (vitaePenalty == 1.0f)
-                EnchantmentManager.RemoveVitae();
+            {
+                var actionChain = new ActionChain();
+                actionChain.AddDelaySeconds(2.0f);
+                actionChain.AddAction(this, () => EnchantmentManager.RemoveVitae());
+                actionChain.EnqueueChain();
+            }
         }
 
         /// <summary>

@@ -42,7 +42,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// This is just a wrapper around Biota.Id
         /// </summary>
-        public ObjectGuid Guid => new ObjectGuid(Biota.Id);
+        public ObjectGuid Guid { get; }
 
         public PhysicsObj PhysicsObj { get; protected set; }
 
@@ -78,7 +78,7 @@ namespace ACE.Server.WorldObjects
         public bool IsAmmoLauncher { get => IsBow || IsAtlatl; }
 
         public EmoteManager EmoteManager;
-        public EnchantmentManager EnchantmentManager;
+        public EnchantmentManagerWithCaching EnchantmentManager;
 
         public WorldObject ProjectileSource;
         public WorldObject ProjectileTarget;
@@ -93,10 +93,13 @@ namespace ACE.Server.WorldObjects
         protected WorldObject(Weenie weenie, ObjectGuid guid)
         {
             Biota = weenie.CreateCopyAsBiota(guid.Full);
+            Guid = guid;
+
+            InitializeSequences();
+            InitializePropertyDictionaries();
+            SetEphemeralValues();
 
             CreationTimestamp = (int)Time.GetUnixTime();
-
-            SetEphemeralValues();
         }
 
         /// <summary>
@@ -106,9 +109,12 @@ namespace ACE.Server.WorldObjects
         protected WorldObject(Biota biota)
         {
             Biota = biota;
+            Guid = new ObjectGuid(Biota.Id);
 
             biotaOriginatedFromDatabase = true;
 
+            InitializeSequences();
+            InitializePropertyDictionaries();
             SetEphemeralValues();
         }
 
@@ -184,8 +190,8 @@ namespace ACE.Server.WorldObjects
             return true;
         }
 
-        private void SetEphemeralValues()
-        { 
+        private void InitializeSequences()
+        {
             Sequences.AddOrSetSequence(SequenceType.ObjectPosition, new UShortSequence());
             Sequences.AddOrSetSequence(SequenceType.ObjectMovement, new UShortSequence());
             Sequences.AddOrSetSequence(SequenceType.ObjectState, new UShortSequence());
@@ -284,6 +290,24 @@ namespace ACE.Server.WorldObjects
 
             Sequences.AddOrSetSequence(SequenceType.SetStackSize, new ByteSequence(false));
             Sequences.AddOrSetSequence(SequenceType.Confirmation, new ByteSequence(false));
+        }
+
+        private void InitializePropertyDictionaries()
+        {
+            foreach (var x in Biota.BiotaPropertiesBool)
+                biotaPropertyBools[(PropertyBool)x.Type] = x;
+            foreach (var x in Biota.BiotaPropertiesDID)
+                biotaPropertyDataIds[(PropertyDataId)x.Type] = x;
+            foreach (var x in Biota.BiotaPropertiesFloat)
+                biotaPropertyFloats[(PropertyFloat)x.Type] = x;
+            foreach (var x in Biota.BiotaPropertiesIID)
+                biotaPropertyInstanceIds[(PropertyInstanceId)x.Type] = x;
+            foreach (var x in Biota.BiotaPropertiesInt)
+                biotaPropertyInts[(PropertyInt)x.Type] = x;
+            foreach (var x in Biota.BiotaPropertiesInt64)
+                biotaPropertyInt64s[(PropertyInt64)x.Type] = x;
+            foreach (var x in Biota.BiotaPropertiesString)
+                biotaPropertyStrings[(PropertyString)x.Type] = x;
 
             foreach (var x in EphemeralProperties.PropertiesBool.ToList())
                 ephemeralPropertyBools.TryAdd((PropertyBool)x, null);
@@ -299,7 +323,10 @@ namespace ACE.Server.WorldObjects
                 ephemeralPropertyInt64s.TryAdd((PropertyInt64)x, null);
             foreach (var x in EphemeralProperties.PropertiesString.ToList())
                 ephemeralPropertyStrings.TryAdd((PropertyString)x, null);
+        }
 
+        private void SetEphemeralValues()
+        { 
             foreach (var x in Biota.BiotaPropertiesBool.Where(i => EphemeralProperties.PropertiesBool.Contains(i.Type)).ToList())
                 ephemeralPropertyBools[(PropertyBool)x.Type] = x.Value;
             foreach (var x in Biota.BiotaPropertiesDID.Where(i => EphemeralProperties.PropertiesDataId.Contains(i.Type)).ToList())
@@ -331,7 +358,7 @@ namespace ACE.Server.WorldObjects
             EncumbranceVal = EncumbranceVal ?? (StackUnitEncumbrance ?? 0) * (StackSize ?? 1);
 
             EmoteManager = new EmoteManager(this);
-            EnchantmentManager = new EnchantmentManager(this);
+            EnchantmentManager = new EnchantmentManagerWithCaching(this);
 
             if (Placement == null)
                 Placement = ACE.Entity.Enum.Placement.Resting;

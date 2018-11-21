@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.WorldObjects.Entity;
@@ -13,12 +14,6 @@ namespace ACE.Server.WorldObjects
         public CreatureVital Health => Vitals[PropertyAttribute2nd.MaxHealth];
         public CreatureVital Stamina => Vitals[PropertyAttribute2nd.MaxStamina];
         public CreatureVital Mana => Vitals[PropertyAttribute2nd.MaxMana];
-
-        public CreatureVital GetCreatureVital(PropertyAttribute2nd vital)
-        {
-            Vitals.TryGetValue(vital, out var value);
-            return value;
-        }
 
         public uint GetCurrentCreatureVital(PropertyAttribute2nd vital)
         {
@@ -145,8 +140,8 @@ namespace ACE.Server.WorldObjects
             // at a faster rate the higher one's endurance is. This bonus is in addition to any regeneration spells one may have placed upon themselves.
             // This regeneration bonus caps at around 110%.
 
-            var strength = GetCreatureAttribute(PropertyAttribute.Strength).Base;
-            var endurance = GetCreatureAttribute(PropertyAttribute.Endurance).Base;
+            var strength = Strength.Base;
+            var endurance = Endurance.Base;
 
             var strAndEnd = strength + (endurance * 2);
 

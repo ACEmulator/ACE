@@ -7,22 +7,34 @@ namespace ACE.DatLoader
 {
     public class PortalDatDatabase : DatDatabase
     {
-        public PortalDatDatabase(string filename) : base(filename)
+        public PortalDatDatabase(string filename, bool keepOpen = false) : base(filename, keepOpen)
         {
+            BadData = ReadFromDat<BadData>(BadData.FILE_ID);
+            ChatPoseTable = ReadFromDat<ChatPoseTable>(ChatPoseTable.FILE_ID);
+            CharGen = ReadFromDat<CharGen>(CharGen.FILE_ID);
+            ContractTable = ReadFromDat<ContractTable>(ContractTable.FILE_ID);
+            GeneratorTable = ReadFromDat<GeneratorTable>(GeneratorTable.FILE_ID);
+            NameFilterTable = ReadFromDat<NameFilterTable>(NameFilterTable.FILE_ID);
+            RegionDesc = ReadFromDat<RegionDesc>(RegionDesc.FILE_ID);
+            SecondaryAttributeTable = ReadFromDat<SecondaryAttributeTable>(SecondaryAttributeTable.FILE_ID);
+            SkillTable = ReadFromDat<SkillTable>(SkillTable.FILE_ID);
+            SpellComponentsTable = ReadFromDat<SpellComponentsTable>(SpellComponentsTable.FILE_ID);
+            SpellTable = ReadFromDat<SpellTable>(SpellTable.FILE_ID);
+            XpTable = ReadFromDat<XpTable>(XpTable.FILE_ID);
         }
 
-        public BadData BadData => ReadFromDat<BadData>(BadData.FILE_ID);
-        public ChatPoseTable ChatPoseTable => ReadFromDat<ChatPoseTable>(ChatPoseTable.FILE_ID);
-        public CharGen CharGen => ReadFromDat<CharGen>(CharGen.FILE_ID);
-        public ContractTable ContractTable => ReadFromDat<ContractTable>(ContractTable.FILE_ID);
-        public GeneratorTable GeneratorTable => ReadFromDat<GeneratorTable>(GeneratorTable.FILE_ID);
-        public NameFilterTable NameFilterTable => ReadFromDat<NameFilterTable>(NameFilterTable.FILE_ID);
-        public RegionDesc RegionDesc => ReadFromDat<RegionDesc>(RegionDesc.FILE_ID);
-        public SecondaryAttributeTable SecondaryAttributeTable => ReadFromDat<SecondaryAttributeTable>(SecondaryAttributeTable.FILE_ID);
-        public SkillTable SkillTable => ReadFromDat<SkillTable>(SkillTable.FILE_ID);
-        public SpellComponentsTable SpellComponentsTable => ReadFromDat<SpellComponentsTable>(SpellComponentsTable.FILE_ID);
-        public SpellTable SpellTable => ReadFromDat<SpellTable>(SpellTable.FILE_ID);
-        public XpTable XpTable => ReadFromDat<XpTable>(XpTable.FILE_ID);
+        public BadData BadData { get; }
+        public ChatPoseTable ChatPoseTable { get; }
+        public CharGen CharGen { get; }
+        public ContractTable ContractTable { get; }
+        public GeneratorTable GeneratorTable { get; }
+        public NameFilterTable NameFilterTable { get; }
+        public RegionDesc RegionDesc { get; }
+        public SecondaryAttributeTable SecondaryAttributeTable { get; }
+        public SkillTable SkillTable { get; }
+        public SpellComponentsTable SpellComponentsTable { get; }
+        public SpellTable SpellTable { get; }
+        public XpTable XpTable { get; }
 
         public void ExtractCategorizedContents(string path)
         {
@@ -43,7 +55,7 @@ namespace ACE.DatLoader
 
                 // Use the DatReader to get the file data
                 DatReader dr = GetReaderForFile(entry.Value.ObjectId);
-                   
+
                 File.WriteAllBytes(thisFile, dr.Buffer);
             }
         }
