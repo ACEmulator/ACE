@@ -230,11 +230,57 @@ namespace ACE.Server.Entity
         }
         #endregion
 
+        #region RemoveProperty Functions
+        public void RemoveProperty(PropertyBool property)
+        {
+            if (Biota.TryRemoveProperty(property, BiotaDatabaseLock, biotaPropertyBools))
+                ChangesDetected = true;
+        }
+        public void RemoveProperty(PropertyDataId property)
+        {
+            if (Biota.TryRemoveProperty(property, BiotaDatabaseLock, biotaPropertyDataIds))
+                ChangesDetected = true;
+        }
+        public void RemoveProperty(PropertyFloat property)
+        {
+            if (Biota.TryRemoveProperty(property, BiotaDatabaseLock, biotaPropertyFloats))
+                ChangesDetected = true;
+        }
+        public void RemoveProperty(PropertyInstanceId property)
+        {
+            if (Biota.TryRemoveProperty(property, BiotaDatabaseLock, biotaPropertyInstanceIds))
+                ChangesDetected = true;
+        }
+
+        public void RemoveProperty(PropertyInt property)
+        {
+            if (Biota.TryRemoveProperty(property, BiotaDatabaseLock, biotaPropertyInts))
+                ChangesDetected = true;
+        }
+
+        public void RemoveProperty(PropertyInt64 property)
+        {
+            if (Biota.TryRemoveProperty(property, BiotaDatabaseLock, biotaPropertyInt64s))
+                ChangesDetected = true;
+        }
+        public void RemoveProperty(PropertyString property)
+        {
+            if (Biota.TryRemoveProperty(property, BiotaDatabaseLock, biotaPropertyStrings))
+                ChangesDetected = true;
+        }
+        #endregion
+
         public string Name => GetProperty(PropertyString.Name);
 
         public uint? Monarch => GetProperty(PropertyInstanceId.Monarch);
 
         public uint? Patron => GetProperty(PropertyInstanceId.Patron);
+
+        public int? AllegianceCPPool
+        {
+            get => GetProperty(PropertyInt.AllegianceCpPool);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.AllegianceCpPool); else SetProperty(PropertyInt.AllegianceCpPool, value.Value); }
+        }
 
 
         public uint GetCurrentLoyalty()
