@@ -106,23 +106,30 @@ namespace ACE.Server.Managers
         }
 
 
+        /// <summary>
+        /// Returns a list of all players who are under a monarch
+        /// </summary>
+        /// <param name="monarch">The monarch of an allegiance</param>
+        public static List<IPlayer> FindAllByMonarch(ObjectGuid monarch)
+        {
+            var onlinePlayers = OnlinePlayers.Values.Where(p => p.Monarch == monarch.Full);
+            var offlinePlayers = OfflinePlayers.Values.Where(p => p.Monarch == monarch.Full);
+
+            var results = new List<IPlayer>();
+            results.AddRange(onlinePlayers);
+            results.AddRange(offlinePlayers);
+
+            return results;
+        }
+
+
 
 
 
 
         [Obsolete]
         // probably bugged when players are added/removed...
-        public static readonly List<Player> AllPlayers = new List<Player>();
-
-        /// <summary>
-        /// Returns a list of all players who are under a monarch
-        /// </summary>
-        /// <param name="monarch">The monarch of an allegiance</param>
-        [Obsolete]
-        public static List<Player> GetAllegiance(ObjectGuid monarch)
-        {
-            return AllPlayers.Where(p => p.Monarch == monarch.Full).ToList();
-        }
+        private static readonly List<Player> AllPlayers = new List<Player>();
 
         /// <summary>
         /// Returns an offline player record from the AllPlayers list
@@ -156,7 +163,7 @@ namespace ACE.Server.Managers
         /// </summary>
         /// <param name="player">An online player</param>
         [Obsolete]
-        public static void SyncOnline(Player player)
+        private static void SyncOnline(Player player)
         {
             var offlinePlayer = AllPlayers.FirstOrDefault(p => p.Guid.Full == player.Guid.Full);
             if (offlinePlayer == null) return;

@@ -237,6 +237,17 @@ namespace ACE.Server.Entity
         public uint? Patron => GetProperty(PropertyInstanceId.Patron);
 
 
+        public uint GetCurrentLoyalty()
+        {
+            return (uint?)GetProperty(PropertyInt.CurrentLoyaltyAtLastLogoff) ?? 0;
+        }
+
+        public uint GetCurrentLeadership()
+        {
+            return (uint?)GetProperty(PropertyInt.CurrentLeadershipAtLastLogoff) ?? 0;
+        }
+
+
         public Allegiance Allegiance { get; set; }
 
         public AllegianceNode AllegianceNode { get; set; }

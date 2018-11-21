@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 using ACE.Entity.Enum;
 using ACE.Server.Entity;
@@ -16,14 +15,17 @@ namespace ACE.Server.Managers
         /// <summary>
         /// A mapping of all Players on the server => their AllegianceNodes
         /// </summary>
-        public static readonly Dictionary<Player, AllegianceNode> Players = new Dictionary<Player, AllegianceNode>();
+        public static readonly Dictionary<IPlayer, AllegianceNode> Players = new Dictionary<IPlayer, AllegianceNode>();
 
         /// <summary>
         /// Returns the monarch for a player
         /// </summary>
-        public static Player GetMonarch(Player player)
+        public static IPlayer GetMonarch(Player player)
         {
-            var monarch = PlayerManager.AllPlayers.FirstOrDefault(p => p.Guid.Full.Equals(player.Monarch));
+            if (player.Monarch == null)
+                return player;
+
+            var monarch = PlayerManager.FindByGuid(player.Monarch.Value);
 
             return monarch ?? player;
         }
@@ -62,9 +64,9 @@ namespace ACE.Server.Managers
         /// <summary>
         /// Returns a list of all players under a monarch
         /// </summary>
-        public static List<Player> FindAllPlayers(Player monarch)
+        public static List<IPlayer> FindAllPlayers(IPlayer monarch)
         {
-            return PlayerManager.GetAllegiance(monarch.Guid);
+            return PlayerManager.FindAllByMonarch(monarch.Guid);
         }
 
         /// <summary>
@@ -201,8 +203,8 @@ namespace ACE.Server.Managers
             var vassal = vassalNode.Player;
             var patron = patronNode.Player;
 
-            var loyalty = Math.Min(vassal.GetCreatureSkill(Skill.Loyalty).Current, SkillCap);
-            var leadership = Math.Min(patron.GetCreatureSkill(Skill.Leadership).Current, SkillCap);
+            var loyalty = Math.Min(vassal.GetCurrentLoyalty(), SkillCap);
+            var leadership = Math.Min(patron.GetCurrentLeadership(), SkillCap);
 
             var timeReal = Math.Min(RealCap, RealCap);
             var timeGame = Math.Min(GameCap, GameCap);

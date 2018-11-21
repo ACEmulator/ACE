@@ -9,6 +9,7 @@ using ACE.Common;
 using ACE.Database;
 using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
+using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity.Actions;
 using ACE.Server.WorldObjects;
 using ACE.Server.Managers;
@@ -201,6 +202,10 @@ namespace ACE.Server.Network
 
         public void LogOffPlayer()
         {
+            // These properties are used with offline players to determine passup rates
+            Player.SetProperty(PropertyInt.CurrentLoyaltyAtLastLogoff, (int)Player.GetCreatureSkill(Skill.Loyalty).Current);
+            Player.SetProperty(PropertyInt.CurrentLeadershipAtLastLogoff, (int)Player.GetCreatureSkill(Skill.Leadership).Current);
+
             // First save, then logout
             ActionChain logoutChain = new ActionChain();
             logoutChain.AddChain(Player.GetSaveChain());

@@ -20,6 +20,11 @@ namespace ACE.Server.Entity
         uint? Patron { get; }
 
 
+        uint GetCurrentLoyalty();
+
+        uint GetCurrentLeadership();
+
+
         Allegiance Allegiance { get; set; }
 
         AllegianceNode AllegianceNode { get; set; }

@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Text;
-using ACE.Server.WorldObjects;
+
 using ACE.Server.Managers;
 
 namespace ACE.Server.Entity
@@ -11,22 +10,22 @@ namespace ACE.Server.Entity
         /// <summary>
         /// The top of the AllegianceNode tree
         /// </summary>
-        public AllegianceNode Monarch;
+        public readonly AllegianceNode Monarch;
 
         /// <summary>
         /// The total # of players in the Allegiance
         /// </summary>
-        public int TotalMembers { get => Members.Count; }
+        public int TotalMembers => Members.Count;
 
         /// <summary>
         /// A lookup table of Players => AllegianceNodes
         /// </summary>
-        public Dictionary<Player, AllegianceNode> Members;
+        public Dictionary<IPlayer, AllegianceNode> Members;
 
         /// <summary>
         /// Constructs a new Allegiance from a Monarch
         /// </summary>
-        public Allegiance(Player monarch)
+        public Allegiance(IPlayer monarch)
         {
             Monarch = new AllegianceNode(monarch, this);
 
@@ -45,7 +44,7 @@ namespace ACE.Server.Entity
         public void BuildMembers(AllegianceNode node)
         {
             if (Monarch.Player.Equals(node.Player))
-                Members = new Dictionary<Player, AllegianceNode>();
+                Members = new Dictionary<IPlayer, AllegianceNode>();
 
             Members.Add(node.Player, node);
 
@@ -58,11 +57,10 @@ namespace ACE.Server.Entity
         /// </summary>
         public override bool Equals(Object obj)
         {
-            var allegiance = obj as Allegiance;
-            if (allegiance != null)
+            if (obj is Allegiance allegiance)
                 return Monarch.Player.Guid.Full == allegiance.Monarch.Player.Guid.Full;
-            else
-                return false;
+
+            return false;
         }
 
         public override int GetHashCode()
