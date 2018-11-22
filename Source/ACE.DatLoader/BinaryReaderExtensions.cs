@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.Numerics;
 
@@ -57,11 +58,21 @@ namespace ACE.DatLoader
         }
 
         /// <summary>
-        /// Returns a string as defined by the first 2-byte's length
+        /// Returns a string as defined by the first sizeOfLength-byte's length
         /// </summary>
-        public static string ReadPString(this BinaryReader reader)
+        public static string ReadPString(this BinaryReader reader, uint sizeOfLength = 2)
         {
-            int stringlength = reader.ReadUInt16();
+            int stringlength;
+            switch (sizeOfLength)
+            {
+                case 1:
+                    stringlength = reader.ReadByte();
+                    break;
+                case 2:
+                default:
+                    stringlength = reader.ReadUInt16();
+                    break;
+            }
 
             byte[] thestring = reader.ReadBytes(stringlength);
 
@@ -86,14 +97,21 @@ namespace ACE.DatLoader
 
         public static string ReadUnicodeString(this BinaryReader reader)
         {
-            int stringLength = reader.ReadByte();
+            uint stringLength = reader.ReadCompressedUInt32();
             string thestring = "";
             for (int i = 0; i < stringLength; i++)
             {
                 ushort myChar = reader.ReadUInt16();
-                thestring += System.Convert.ToChar(myChar);
+                thestring += Convert.ToChar(myChar);
             }
             return thestring;
+        }
+
+        public static string Reverse(this string s)
+        {
+            char[] charArray = s.ToCharArray();
+            Array.Reverse(charArray);
+            return new string(charArray);
         }
  
         /// <summary>

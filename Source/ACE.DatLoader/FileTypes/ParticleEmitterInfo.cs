@@ -21,27 +21,26 @@ namespace ACE.DatLoader.FileTypes
         public int InitialParticles { get; private set; }
         public int TotalParticles { get; private set; }
         public double TotalSeconds { get; private set; }
-        public double LifespanRand { get; private set; }
         public double Lifespan { get; private set; }
-        public uint SortingSphere { get; private set; }
+        public double LifespanRand { get; private set; }
         public Vector3 OffsetDir { get; private set; }
         public float MinOffset { get; private set; }
         public float MaxOffset { get; private set; }
         public Vector3 A { get; private set; }
-        public Vector3 B { get; private set; }
-        public Vector3 C { get; private set; }
         public float MinA { get; private set; }
         public float MaxA { get; private set; }
+        public Vector3 B { get; private set; }
         public float MinB { get; private set; }
         public float MaxB { get; private set; }
+        public Vector3 C { get; private set; }
         public float MinC { get; private set; }
         public float MaxC { get; private set; }
-        public float ScaleRand { get; private set; }
         public float StartScale { get; private set; }
         public float FinalScale { get; private set; }
-        public float TransRand { get; private set; }
+        public float ScaleRand { get; private set; }
         public float StartTrans { get; private set; }
         public float FinalTrans { get; private set; }
+        public float TransRand { get; private set; }
         public int IsParentLocal { get; private set; }
 
         public override void Unpack(BinaryReader reader)
@@ -67,8 +66,6 @@ namespace ACE.DatLoader.FileTypes
 
             Lifespan     = reader.ReadDouble();
             LifespanRand = reader.ReadDouble();
-
-            //SortingSphere = reader.ReadUInt32();
 
             OffsetDir = reader.ReadVector3();      
             MinOffset = reader.ReadSingle();

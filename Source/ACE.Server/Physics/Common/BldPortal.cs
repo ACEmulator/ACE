@@ -1,10 +1,11 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
+using ACE.Entity.Enum;
 
 namespace ACE.Server.Physics.Common
 {
     public class BldPortal
     {
-        public ushort Flags;
+        public PortalFlags Flags;
         public bool ExactMatch;
         public bool PortalSide;
         public ushort OtherCellId;

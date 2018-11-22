@@ -8,7 +8,7 @@ namespace ACE.DatLoader.Entity
         /// <summary>
         /// Contains a list of valid offsets & color values
         /// </summary>
-        public List<CloSubPalleteRange> Ranges { get; } = new List<CloSubPalleteRange>();
+        public List<CloSubPaletteRange> Ranges { get; } = new List<CloSubPaletteRange>();
         /// <summary>
         /// Icon portal.dat 0x0F000000
         /// </summary>

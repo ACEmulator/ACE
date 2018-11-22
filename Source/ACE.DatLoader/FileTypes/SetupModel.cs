@@ -3,6 +3,7 @@ using System.IO;
 using System.Numerics;
 
 using ACE.DatLoader.Entity;
+using ACE.Entity.Enum;
 
 namespace ACE.DatLoader.FileTypes
 {
@@ -16,7 +17,7 @@ namespace ACE.DatLoader.FileTypes
     [DatFileType(DatFileType.Setup)]
     public class SetupModel : FileType
     {
-        public uint Bitfield { get; private set; }
+        public SetupFlags Flags { get; private set; }
         public bool AllowFreeHeading { get; private set; }
         public bool HasPhysicsBSP { get; private set; }
         public List<uint> Parts { get; } = new List<uint>();
@@ -44,23 +45,23 @@ namespace ACE.DatLoader.FileTypes
         {
             Id = reader.ReadUInt32();
 
-            Bitfield = reader.ReadUInt32();
+            Flags = (SetupFlags)reader.ReadUInt32();
 
-            AllowFreeHeading    = (Bitfield & 4) != 0;
-            HasPhysicsBSP       = (Bitfield & 8) != 0;
+            AllowFreeHeading    = (Flags & SetupFlags.AllowFreeHeading) != 0;
+            HasPhysicsBSP       = (Flags & SetupFlags.HasPhysicsBSP) != 0;
 
             // Get all the GraphicsObjects in this SetupModel. These are all the 01-types.
             uint numParts = reader.ReadUInt32();
             for (int i = 0; i < numParts; i++)
                 Parts.Add(reader.ReadUInt32());
 
-            if ((Bitfield & 1) != 0)
+            if ((Flags & SetupFlags.HasParent) != 0)
             {
                 for (int i = 0; i < numParts; i++)
                     ParentIndex.Add(reader.ReadUInt32());
             }
 
-            if ((Bitfield & 2) != 0)
+            if ((Flags & SetupFlags.HasDefaultScale) != 0)
             {
                 for (int i = 0; i < numParts; i++)
                     DefaultScale.Add(reader.ReadVector3());

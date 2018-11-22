@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Text;
 
 using ACE.Entity.Enum;
 
@@ -22,7 +23,7 @@ namespace ACE.DatLoader.Entity
 
         public override void Unpack(BinaryReader reader, BSPType treeType)
         {
-            Type = reader.ReadUInt32();
+            Type = Encoding.ASCII.GetString(reader.ReadBytes(4)).Reverse();
 
             LeafIndex = reader.ReadInt32();
 
