@@ -10,7 +10,7 @@ namespace ACE.DatLoader.FileTypes
     public class Palette : FileType
     {
         /// <summary>
-        /// Color data is stored in ARGB format (Alpha, Red, Green, Blue--each are two bytes long)
+        /// Color data is stored in ARGB format
         /// </summary>
         public List<uint> Colors { get; } = new List<uint>();
 

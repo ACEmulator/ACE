@@ -125,12 +125,6 @@ namespace ACE.Server.WorldObjects
             set { if (value == null) RemoveProperty(PropertyString.LockCode); else SetProperty(PropertyString.LockCode, value); }
         }
 
-        public int? ResistLockpick
-        {
-            get => GetProperty(PropertyInt.ResistLockpick);
-            set { if (!value.HasValue) RemoveProperty(PropertyInt.ResistLockpick); else SetProperty(PropertyInt.ResistLockpick, value.Value); }
-        }
-
         /// <summary>
         /// Used for unlocking a chest via lockpick, so contains a skill check
         /// player.Skills[Skill.Lockpick].Current should be sent for the skill check

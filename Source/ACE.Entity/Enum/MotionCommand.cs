@@ -113,7 +113,7 @@ namespace ACE.Entity.Enum
         AttackLow3                            = 0x1000006a,
         HeadThrow                             = 0x1000006b,
         FistSlam                              = 0x1000006c,
-        BreatheFlame_                         = 0x1000006d,
+        BreatheFlame                         = 0x1000006d,
         SpinAttack                            = 0x1000006e,
         MagicPowerUp01                        = 0x1000006f,
         MagicPowerUp02                        = 0x10000070,

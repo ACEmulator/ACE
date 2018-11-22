@@ -1,10 +1,10 @@
-﻿namespace ACE.Server.Physics.Animation
+namespace ACE.Server.Physics.Animation
 {
     public class AnimData
     {
         public uint AnimID;
-        public uint LowFrame;
-        public uint HighFrame;
+        public int LowFrame;
+        public int HighFrame;
         public float Framerate;
 
         public AnimData() { }

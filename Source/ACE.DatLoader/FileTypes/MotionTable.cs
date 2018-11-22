@@ -104,11 +104,11 @@ namespace ACE.DatLoader.FileTypes
         public float GetAnimationLength(AnimData anim)
         {
             var highFrame = anim.HighFrame;
-            if (anim.HighFrame == uint.MaxValue)
+            if (anim.HighFrame == -1)
             {
                 // get the actual high frame from the animation length
                 var animation = DatManager.PortalDat.ReadFromDat<Animation>(anim.AnimId);
-                highFrame = animation.NumFrames;
+                highFrame = (int)animation.NumFrames;
             }
 
             var numFrames = highFrame - anim.LowFrame;
@@ -147,7 +147,7 @@ namespace ACE.DatLoader.FileTypes
                         uint numFrames;
 
                         // check if the animation is set to play the whole thing, in which case we need to get the numbers of frames in the raw animation
-                        if ((anim.LowFrame == 0) && (anim.HighFrame == uint.MaxValue))
+                        if ((anim.LowFrame == 0) && (anim.HighFrame == -1))
                         {
                             var animation = DatManager.PortalDat.ReadFromDat<Animation>(anim.AnimId);
                             numFrames = animation.NumFrames;
@@ -178,7 +178,7 @@ namespace ACE.DatLoader.FileTypes
                                 return position;
                         }
                         else
-                            numFrames = anim.HighFrame - anim.LowFrame;
+                            numFrames = (uint)(anim.HighFrame - anim.LowFrame);
 
                         length += numFrames / Math.Abs(anim.Framerate); // Framerates can be negative, which tells the client to play in reverse
                     }

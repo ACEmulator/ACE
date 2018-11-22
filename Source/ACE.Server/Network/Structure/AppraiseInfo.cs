@@ -62,7 +62,7 @@ namespace ACE.Server.Network.Structure
         /// <summary>
         /// Construct all of the info required for appraising any WorldObject
         /// </summary>
-        public AppraiseInfo(WorldObject wo, bool success = true)
+        public AppraiseInfo(WorldObject wo, Player examiner, bool success = true)
         {
             //Console.WriteLine("Appraise: " + wo.Guid);
 
@@ -88,6 +88,26 @@ namespace ACE.Server.Network.Structure
 
             if (wo is MeleeWeapon || wo is Missile || wo is MissileLauncher || wo is Ammunition || wo is Caster )
                 BuildWeapon(wo, wielder);
+
+            if (wo is Door || wo is Chest)
+            {
+                // If wo is not locked, do not send ResistLockpick value. If ResistLockpick is sent for unlocked objects, id panel shows bonus to Lockpick skill
+                if (!wo.IsLocked && PropertiesInt.ContainsKey(PropertyInt.ResistLockpick))
+                    PropertiesInt.Remove(PropertyInt.ResistLockpick);
+
+                // If wo is locked, append skill check percent, as int, to properties for id panel display on chances of success
+                if (wo.IsLocked)
+                {
+                    var playerLockPickSkill = examiner.Skills[Skill.Lockpick].Current;
+
+                    var doorLockPickResistance = wo.ResistLockpick;
+
+                    var lockpickSuccessPercent = SkillCheck.GetSkillChance((int)playerLockPickSkill, (int)doorLockPickResistance) * 100;
+
+                    if (!PropertiesInt.ContainsKey(PropertyInt.AppraisalLockpickSuccessPercent))
+                        PropertiesInt.Add(PropertyInt.AppraisalLockpickSuccessPercent, (int)lockpickSuccessPercent);
+                }
+            }
 
             BuildFlags();
         }
