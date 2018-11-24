@@ -88,6 +88,8 @@ namespace ACE.Server.Network
             {
                 Player.EnqueueSaveChain();
                 Player.HandleActionLogout(true);
+
+                PlayerManager.SwitchPlayerFromOnlineToOffline(Player);
             }
 
             log.Info($"client {Account} disconnected");
@@ -234,6 +236,8 @@ namespace ACE.Server.Network
             Network.EnqueueSend(serverNameMessage);
 
             State = SessionState.AuthConnected;
+
+            PlayerManager.SwitchPlayerFromOnlineToOffline(Player);
 
             Player = null;
         }

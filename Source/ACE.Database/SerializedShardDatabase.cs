@@ -215,11 +215,11 @@ namespace ACE.Database
         }
 
 
-        public void GetPlayerBiotasInParallel(uint id, Action<PlayerBiotas> callback)
+        public void GetPossessedBiotasInParallel(uint id, Action<PossessedBiotas> callback)
         {
             _queue.Add(new Task(() =>
             {
-                var c = _wrappedDatabase.GetPlayerBiotasInParallel(id);
+                var c = _wrappedDatabase.GetPossessedBiotasInParallel(id);
                 callback?.Invoke(c);
             }));
         }

@@ -320,15 +320,13 @@ namespace ACE.Database
         }
 
 
-        public PlayerBiotas GetPlayerBiotasInParallel(uint id)
+        public PossessedBiotas GetPossessedBiotasInParallel(uint id)
         {
-            var biota = GetBiota(id);
-
             var inventory = GetInventoryInParallel(id, true);
 
             var wieldedItems = GetWieldedItemsInParallel(id);
 
-            return new PlayerBiotas(biota, inventory, wieldedItems);
+            return new PossessedBiotas(inventory, wieldedItems);
         }
 
         public List<Biota> GetInventoryInParallel(uint parentId, bool includedNestedItems)

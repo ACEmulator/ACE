@@ -266,20 +266,6 @@ namespace ACE.Server.Managers
             }
         }
 
-        // TODO do we even need this anymore? Should it be removed? It's not used. Mag-nus 2018-10-26
-        public static List<Session> FindInverseFriends(ObjectGuid characterGuid)
-        {
-            sessionLock.EnterReadLock();
-            try
-            {
-                return sessions.Where(s => s.Player?.Friends.FirstOrDefault(f => f.Id.Low == characterGuid.Low) != null).ToList();
-            }
-            finally
-            {
-                sessionLock.ExitReadLock();
-            }
-        }
-
         /// <summary>
         /// Returns a list of all sessions currently connected
         /// </summary>
@@ -320,27 +306,38 @@ namespace ACE.Server.Managers
 
         public static void PlayerEnterWorld(Session session, Character character)
         {
-            var start = DateTime.UtcNow;
-            DatabaseManager.Shard.GetPlayerBiotasInParallel(character.Id, biotas =>
-            {
-                log.Debug($"GetPlayerBiotas for {character.Name} took {(DateTime.UtcNow - start).TotalMilliseconds:N0} ms");
+            var offlinePlayer = PlayerManager.GetOfflinePlayer(character.Id);
 
-                playerEnterWorldQueue.EnqueueAction(new ActionEventDelegate(() => DoPlayerEnterWorld(session, character, biotas)));
+            if (offlinePlayer == null)
+            {
+                log.Error($"PlayerEnterWorld requested for character.Id 0x{character.Id:X8} not found in PlayerManager OfflinePlayers.");
+                return;
+            }
+
+            var start = DateTime.UtcNow;
+            DatabaseManager.Shard.GetPossessedBiotasInParallel(character.Id, biotas =>
+            {
+                log.Debug($"GetPossessedBiotasInParallel for {character.Name} took {(DateTime.UtcNow - start).TotalMilliseconds:N0} ms");
+
+                playerEnterWorldQueue.EnqueueAction(new ActionEventDelegate(() => DoPlayerEnterWorld(session, character, offlinePlayer.Biota, biotas)));
             });
         }
 
-        private static void DoPlayerEnterWorld(Session session, Character character, PlayerBiotas biotas)
+        private static void DoPlayerEnterWorld(Session session, Character character, Biota playerBiota, PossessedBiotas possessedBiotas)
         {
             Player player;
 
-            if (biotas.Player.WeenieType == (int)WeenieType.Admin)
-                player = new Admin(biotas.Player, biotas.Inventory, biotas.WieldedItems, character, session);
-            else if (biotas.Player.WeenieType == (int)WeenieType.Sentinel)
-                player = new Sentinel(biotas.Player, biotas.Inventory, biotas.WieldedItems, character, session);
+            if (playerBiota.WeenieType == (int)WeenieType.Admin)
+                player = new Admin(playerBiota, possessedBiotas.Inventory, possessedBiotas.WieldedItems, character, session);
+            else if (playerBiota.WeenieType == (int)WeenieType.Sentinel)
+                player = new Sentinel(playerBiota, possessedBiotas.Inventory, possessedBiotas.WieldedItems, character, session);
             else
-                player = new Player(biotas.Player, biotas.Inventory, biotas.WieldedItems, character, session);
+                player = new Player(playerBiota, possessedBiotas.Inventory, possessedBiotas.WieldedItems, character, session);
 
             session.SetPlayer(player);
+
+            PlayerManager.SwitchPlayerFromOfflineToOnline(player);
+
             session.Player.PlayerEnterWorld();
 
             if (character.TotalLogins <= 1 || PropertyManager.GetBool("alwaysshowwelcome").Item)

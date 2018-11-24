@@ -86,7 +86,7 @@ namespace ACE.Server.Managers
             if (allegiance == null) return;
 
             RemoveCache(allegiance);
-
+            /* TODO HACK FIX 
             // rebuild allegiance
             var refresh = GetAllegiance(allegiance.Monarch.Player);
 
@@ -97,7 +97,7 @@ namespace ACE.Server.Managers
                 if (player == null) continue;
 
                 LoadPlayer(player);
-            }
+            }*/
         }
 
         /// <summary>
@@ -238,11 +238,11 @@ namespace ACE.Server.Managers
 
             if (passupAmount > 0)
             {
-                vassal.CPTithed += generatedAmount;
+                /* TODO HACK FIX vassal.CPTithed += generatedAmount;
                 patron.CPCached += passupAmount;
                 patron.CPPoolToUnload += passupAmount;
 
-                patron.AddCPPoolToUnload(false);
+                patron.AddCPPoolToUnload(false);*/
 
                 // call recursively
                 PassXP(patronNode, passupAmount, false);

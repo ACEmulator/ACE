@@ -66,21 +66,18 @@ namespace ACE.Server.Network.GameEvent.Events
 
             foreach (var f in friendList)
             {
-                bool isOnline = false;
+                var player = PlayerManager.FindByGuid(f.FriendId, out var isOnline);
+                var friendName = (player != null) ? player.Name : "";
 
                 if (overrideOnlineStatus)
                     isOnline = onlineStatusVal;
-                else
+                else if (isOnline)
                 {
-                    // lookup by player id or account id?
-                    //Session friendSession = WorldManager.Find(f.FriendId);
+                    // Does this friend want to appear offline?
                     var onlineFriend = WorldManager.GetPlayerByGuidId(f.FriendId);
-                    if (onlineFriend != null && onlineFriend.GetVirtualOnlineStatus() == true)
-                        isOnline = true;
+                    if (onlineFriend != null && !onlineFriend.GetVirtualOnlineStatus())
+                        isOnline = false;
                 }
-
-                var player = PlayerManager.FindByGuid(f.FriendId);
-                var friendName = (player != null) ? player.Name : "";
 
                 Writer.Write(f.FriendId);           // Friend's ID
                 Writer.Write(isOnline ? 1u : 0u);   // Whether this friend is online
@@ -88,13 +85,13 @@ namespace ACE.Server.Network.GameEvent.Events
                 Writer.WriteString16L(friendName);  // Name of the friend
 
                 // send the list of friend's friends
-                Writer.Write((uint)0/* TODO offlinePlayer.Character.CharacterPropertiesFriendList.Count*/);
-                /*foreach (var friendFriend in offlinePlayer.Character.CharacterPropertiesFriendList)
+                Writer.Write((uint)0/* TODO player.Character.CharacterPropertiesFriendList.Count*/);
+                /*foreach (var friendFriend in player.Character.CharacterPropertiesFriendList)
                     Writer.Write(friendFriend.FriendId);*/
 
                 // todo: send the inverse list of friend's friends
-                Writer.Write((uint)8/* TODO offlinePlayer.Character.CharacterPropertiesFriendList.Count*/);
-                /*foreach (var friendFriend in offlinePlayer.Character.CharacterPropertiesFriendList)
+                Writer.Write((uint)0/* TODO playersFriend.Character.CharacterPropertiesFriendList.Count*/);
+                /*foreach (var friendFriend in playersFriend.Character.CharacterPropertiesFriendList)
                     Writer.Write(friendFriend.FriendId);*/
             }
 

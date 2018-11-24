@@ -232,8 +232,8 @@ namespace ACE.Server.Network.GameAction.Actions
                         {
                             string vassalName = vassal.Player.Name;
 
-                            if (DatabaseManager.Authentication.GetAccountById(vassal.Player.Character.AccountId).AccessLevel == 5)
-                                vassalName = "+" + vassalName;
+                            /* TODO HACK FIX if (DatabaseManager.Authentication.GetAccountById(vassal.Player.Character.AccountId).AccessLevel == 5)
+                                vassalName = "+" + vassalName;*/
 
                             Session vassalSession = WorldManager.FindByPlayerName(vassalName);
 
@@ -261,8 +261,8 @@ namespace ACE.Server.Network.GameAction.Actions
 
                         string patronName = session.Player.AllegianceNode.Patron.Player.Name;
 
-                        if (DatabaseManager.Authentication.GetAccountById(session.Player.AllegianceNode.Patron.Player.Character.AccountId).AccessLevel == 5)
-                            patronName = "+" + patronName;
+                        /* TODO HACK FIX if (DatabaseManager.Authentication.GetAccountById(session.Player.AllegianceNode.Patron.Player.Character.AccountId).AccessLevel == 5)
+                            patronName = "+" + patronName;*/
 
                         Session patronSession = WorldManager.FindByPlayerName(patronName);
 
@@ -290,8 +290,8 @@ namespace ACE.Server.Network.GameAction.Actions
 
                         string monarchName = session.Player.AllegianceNode.Monarch.Player.Name;
 
-                        if (DatabaseManager.Authentication.GetAccountById(session.Player.AllegianceNode.Monarch.Player.Character.AccountId).AccessLevel == 5)
-                            monarchName = "+" + monarchName;
+                        /* TODO HACK FIX if (DatabaseManager.Authentication.GetAccountById(session.Player.AllegianceNode.Monarch.Player.Character.AccountId).AccessLevel == 5)
+                            monarchName = "+" + monarchName;*/
 
                         Session monarchSession = WorldManager.FindByPlayerName(monarchName);
 
@@ -319,8 +319,8 @@ namespace ACE.Server.Network.GameAction.Actions
 
                         string patronName = session.Player.AllegianceNode.Patron.Player.Name;
 
-                        if (DatabaseManager.Authentication.GetAccountById(session.Player.AllegianceNode.Patron.Player.Character.AccountId).AccessLevel == 5)
-                            patronName = "+" + patronName;
+                        /* TODO HACK FIX if (DatabaseManager.Authentication.GetAccountById(session.Player.AllegianceNode.Patron.Player.Character.AccountId).AccessLevel == 5)
+                            patronName = "+" + patronName;*/
 
                         Session patronSession = WorldManager.FindByPlayerName(patronName);
 
@@ -331,8 +331,8 @@ namespace ACE.Server.Network.GameAction.Actions
                         {
                             string vassalName = covassal.Player.Name;
 
-                            if (DatabaseManager.Authentication.GetAccountById(covassal.Player.Character.AccountId).AccessLevel == 5)
-                                vassalName = "+" + vassalName;
+                            /* TODO HACK FIX if (DatabaseManager.Authentication.GetAccountById(covassal.Player.Character.AccountId).AccessLevel == 5)
+                                vassalName = "+" + vassalName;*/
 
                             Session covassalSession = WorldManager.FindByPlayerName(vassalName);
 

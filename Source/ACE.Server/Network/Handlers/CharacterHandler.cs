@@ -188,6 +188,20 @@ namespace ACE.Server.Network.Handlers
                 return;
             }
 
+            if (PlayerManager.GetOnlinePlayer(guid) != null)
+            {
+                // If this happens, it could be that the previous session for this Player terminated in a way that didn't transfer the player to offline via PlayerManager properly.
+                session.SendCharacterError(CharacterError.EnterGameCharacterInWorld);
+                return;
+            }
+
+            if (PlayerManager.GetOfflinePlayer(guid) == null)
+            {
+                // This would likely only happen if the account tried to log in a character that didn't exist.
+                session.SendCharacterError(CharacterError.EnterGameGeneric);
+                return;
+            }
+
             session.InitSessionForWorldLogin();
 
             session.State = SessionState.WorldConnected;

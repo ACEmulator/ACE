@@ -131,12 +131,15 @@ namespace ACE.Server.WorldObjects
         public void HandleActionAddFriend(string friendName)
         {
             if (string.Equals(friendName, Name, StringComparison.CurrentCultureIgnoreCase))
+            {
                 ChatPacket.SendServerMessage(Session, "Sorry, but you can't be friends with yourself.", ChatMessageType.Broadcast);
+                return;
+            }
 
             // get friend player info
             var friend = PlayerManager.FindByName(friendName);
 
-            if (friend != null)
+            if (friend == null)
             {
                 ChatPacket.SendServerMessage(Session, "That character does not exist", ChatMessageType.Broadcast);
                 return;
