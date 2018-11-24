@@ -8,7 +8,7 @@ namespace ACE.Server.Network
     {
         public UIntSequence PacketSequence { get; set; }
         public uint FragmentSequence { get; set; }
-        public ISAAC IssacClient { get; }
+        public ISAAC IssacClient { get; set; }
         public ISAAC IssacServer { get; }
 
         /// <summary>

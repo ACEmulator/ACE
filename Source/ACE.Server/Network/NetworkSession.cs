@@ -1,11 +1,12 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net.Sockets;
 using System.Text;
-
+using ACE.Common.Cryptography;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameMessages;
 using ACE.Server.Network.GameMessages.Messages;
@@ -270,6 +271,137 @@ namespace ACE.Server.Network
         private DateTime LastRequestForRetransmitTime = DateTime.MinValue;
         private uint RequestsForRetransmit = 0;
 
+
+        private bool GetPastGeneration(ISAAC state, ClientPacket packet, ref int Generation, int limit)
+        {
+            limit--; if (limit < 1) return false;
+            Generation--;
+            var x = state.GetOffset();
+            if (packet.VerifyChecksum(x))
+                return true;
+            else
+                return GetPastGeneration(state.Parent, packet, ref Generation, limit);
+        }
+        private bool GetFutureGeneration(ISAAC state, ClientPacket packet, ref int Generation, int limit)
+        {
+            limit--; if (limit < 1) return false;
+            Generation++;
+            var x = state.GetOffset();
+            if (packet.VerifyChecksum(x))
+                return true;
+            else
+                return GetFutureGeneration(state, packet, ref Generation, limit);
+        }
+        private int? GetGeneration(ISAAC state, ClientPacket packet)
+        {
+            int gen = 0;
+            if (GetFutureGeneration(state.Copy(), packet, ref gen, 10))
+                return gen;
+            if (GetPastGeneration(state.Copy(), packet, ref gen, 10))
+                return gen;
+            return null;
+        }
+        private ISAAC GetGeneration(ISAAC current, int cursor)
+        {
+            if (cursor > 0)
+            {
+                for (int i = 0; i < cursor; i++)
+                {
+                    current.GetOffset();
+                }
+                return current;
+            }
+            else if (cursor < 0)
+            {
+                for (int i = 0; i > cursor; i--)
+                {
+                    current = current.Parent;
+                }
+                return current;
+            }
+            else if (cursor == 0)
+                return current;
+            return null;
+        }
+
+        private bool VerifyPacket(ClientPacket packet)
+        {
+            uint issacXor = !packet.Header.HasFlag(PacketHeaderFlags.RequestRetransmit) && packet.Header.HasFlag(PacketHeaderFlags.EncryptedChecksum) ? ConnectionData.IssacClient.GetOffset() : 0;
+            if (packet.VerifyChecksum(issacXor)) return true;
+            if (issacXor == 0) return false;
+            var gen = GetGeneration(ConnectionData.IssacClient.Copy(), packet);
+            if (gen == null) return false;
+            var issac = GetGeneration(ConnectionData.IssacClient.Copy(), gen.Value);
+            issacXor = issac.GetOffset();
+            bool k = packet.VerifyChecksum(issacXor);
+            if (k)
+                ConnectionData.IssacClient = issac;
+            return k;
+        }
+        private bool VerifyCRC(ClientPacket packet)
+        {
+            var encryptedChecksum =
+                !packet.Header.HasFlag(PacketHeaderFlags.RequestRetransmit) &&
+                packet.Header.HasFlag(PacketHeaderFlags.EncryptedChecksum);
+
+            ISAAC copy = (encryptedChecksum) ? ConnectionData.IssacClient.Copy() : null;
+            var issacXor = (encryptedChecksum) ? copy.GetOffset() : 0;
+            if (!packet.VerifyChecksum(issacXor))
+            {
+                if (encryptedChecksum)
+                {
+                    var gen = GetGeneration(copy, packet);
+
+                    if (gen == null)
+                    {
+                        //NetworkStatistics.C2S_CRCErrors_Aggregate_Increment();
+                        packetLog.Error($"Dropping packet {packet.Header.Sequence} {UnfoldFlags(packet.Header.Flags)}");
+                        return false;
+                    }
+                    else
+                    {
+                        NetworkStatistics.C2S_CRCErrors_Aggregate_Increment();
+                        packetLog.Error($"Dropping packet {packet.Header.Sequence} gen {gen} {UnfoldFlags(packet.Header.Flags)}");
+                        return false;
+                       
+                        packetLog.Error($"CRC encryption bork: {gen} generations {UnfoldFlags(packet.Header.Flags)}");
+
+                        //ConnectionData.IssacClient = GetGeneration(copy, gen.Value);
+
+                        //ConnectionData.IssacClient = GetGeneration(copy.Parent, gen.Value+1);
+
+                        //ConnectionData.IssacClient = copy;
+                        ////if bad then try incrementing copy one gen
+
+                        copy.GetOffset();
+                        ConnectionData.IssacClient = copy;
+                        return true;
+                    }
+                }
+                else
+                {
+                    if (packet.Header.HasFlag(PacketHeaderFlags.RequestRetransmit)) return true;
+                    //NetworkStatistics.C2S_CRCErrors_Aggregate_Increment();
+                    packetLog.Error($"Dropping packet {packet.Header.Sequence} {UnfoldFlags(packet.Header.Flags)}");
+                    return false;
+
+                }
+            }
+            else if (encryptedChecksum)
+            {
+                ConnectionData.IssacClient = copy;
+                return true;
+            }
+            return true;
+        }
+        public static string UnfoldFlags(PacketHeaderFlags flags)
+        {
+            List<string> result = new List<string>();
+            foreach (PacketHeaderFlags r in System.Enum.GetValues(typeof(PacketHeaderFlags)))
+                if ((flags & r) != 0) result.Add(r.ToString());
+            if (result.Count == 0) return string.Empty;
+            return result.Aggregate((a, b) => a + " | " + b);
+        }
         /// <summary>
         /// Handles a packet, reading the flags and processing all fragments.
         /// </summary>
@@ -278,25 +410,10 @@ namespace ACE.Server.Network
         {
             packetLog.DebugFormat("[{0}] Handling packet {1}", session.LoggingIdentifier, packet.Header.Sequence);
 
-            // Upon a client's request of packet retransmit the session CRC salt/offset becomes out of sync somehow.
-            // This hack recovers the correct offset and makes WAN client sessions at least reliable enough to test with.
-            // TODO: figure out why
-            uint issacXor = !packet.Header.HasFlag(PacketHeaderFlags.RequestRetransmit) && packet.Header.HasFlag(PacketHeaderFlags.EncryptedChecksum) ? ConnectionData.IssacClient.GetOffset() : 0;
-            if (!packet.VerifyChecksum(issacXor))
+            if (!VerifyCRC(packet))
             {
-                NetworkStatistics.C2S_CRCErrors_Aggregate_Increment();
-                if (issacXor != 0)
-                {
-                    issacXor = ConnectionData.IssacClient.GetOffset();
-                    packetLog.WarnFormat("[{0}] Packet {1} has invalid checksum, trying the next offset", session.LoggingIdentifier, packet.Header.Sequence);
-
-                    bool verified = packet.VerifyChecksum(issacXor);
-                    packetLog.WarnFormat("[{0}] Packet {1} improvised offset checksum result: {2}", session.LoggingIdentifier, packet.Header.Sequence, (verified) ? "successful" : "failed");
-                }
-                else
-                    packetLog.WarnFormat("[{0}] Packet {1} has invalid checksum", session.LoggingIdentifier, packet.Header.Sequence);
+                return;
             }
-            // TODO: drop corrupted packets?
 
             // depending on the current session state:
             // Set the next timeout tick value, to compare against in the WorldManager
@@ -422,6 +539,11 @@ namespace ACE.Server.Network
                 {
                     packetLog.DebugFormat("[{0}] Fragment {1} is early, lastReceivedFragmentSequence = {2}", session.LoggingIdentifier, fragment.Header.Sequence, lastReceivedFragmentSequence);
                     outOfOrderFragments.TryAdd(fragment.Header.Sequence, message);
+                    packetLog.ErrorFormat("Problem!");
+                    if (outOfOrderFragments.Count > 20)
+                    {
+                        Debugger.Break();
+                    }
                 }
             }
         }
@@ -457,6 +579,7 @@ namespace ACE.Server.Network
             {
                 packetLog.DebugFormat("[{0}] Ready to handle out of order fragment {1}", session.LoggingIdentifier, lastReceivedFragmentSequence + 1);
                 HandleFragment(message);
+                packetLog.ErrorFormat("RESOLVED!");
             }
         }
 

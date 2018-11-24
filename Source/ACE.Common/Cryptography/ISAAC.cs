@@ -1,9 +1,43 @@
 using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace ACE.Common.Cryptography
 {
     public class ISAAC
     {
+        private Queue<ISAAC> ancestry = new Queue<ISAAC>();
+        public ISAAC Copy()
+        {
+            ISAAC newCopy = new ISAAC(null);
+            newCopy.SetInternalState(offset, a, b, c, mm, randRsl, ancestry);
+            return newCopy;
+        }
+        public ISAAC Parent
+        {
+            get
+            {
+                return ancestry.ToArray().LastOrDefault();
+            }
+        }
+        private void SetInternalState(uint offset, uint a, uint b, uint c, uint[] mm, uint[] randRsl, Queue<ISAAC> ancestry)
+        {
+            this.offset = offset;
+            this.a = a;
+            this.b = b;
+            this.c = c;
+            this.mm = new uint[256];
+            this.randRsl = new uint[256];
+            Array.Copy(mm, this.mm, mm.Length);
+            Array.Copy(randRsl, this.randRsl, randRsl.Length);
+
+            var g = ancestry.ToArray();
+            var f = new ISAAC[g.Length];
+            Array.Copy(g, f, g.Length);
+            this.ancestry = new Queue<ISAAC>(f);
+        }
+
         public static byte[] ClientSeed { get; } = { 0x60, 0xAF, 0x54, 0x6D }; // C->S
         public static byte[] ServerSeed { get; } = { 0xCD, 0xD7, 0xEB, 0x45 }; // S->C
         public static byte[] WorldClientSeed { get; } = { 0xC4, 0x90, 0xF7, 0x78 };
@@ -17,15 +51,35 @@ namespace ACE.Common.Cryptography
 
         public ISAAC(byte[] seed)
         {
-            mm      = new uint[256];
+            if (seed == null) return;
+
+            mm = new uint[256];
             randRsl = new uint[256];
-            offset  = 255u;
+            offset = 255u;
 
             Initialize(seed);
         }
 
+        public uint GetOffsetEx(int gens)
+        {
+            uint r = 0;
+            for (int i = 0; i < gens; i++)
+                r = GetOffset();
+            return r;
+        }
+
+        /// <summary>
+        /// advance the generation by +1, and return the issacValue
+        /// </summary>
+        /// <returns>the issacValue</returns>
         public uint GetOffset()
         {
+            ancestry.Enqueue(Copy());
+            if (ancestry.Count > 20)
+            {
+                var discardMe = ancestry.Dequeue();
+            }
+
             var issacValue = randRsl[offset];
             if (offset > 0)
                 offset--;
@@ -81,13 +135,17 @@ namespace ACE.Common.Cryptography
                 var x = mm[i];
                 switch (i & 3)
                 {
-                    case 0: a ^= (a << 0x0D);
+                    case 0:
+                        a ^= (a << 0x0D);
                         break;
-                    case 1: a ^= (a >> 0x06);
+                    case 1:
+                        a ^= (a >> 0x06);
                         break;
-                    case 2: a ^= (a << 0x02);
+                    case 2:
+                        a ^= (a << 0x02);
                         break;
-                    case 3: a ^= (a >> 0x10);
+                    case 3:
+                        a ^= (a >> 0x10);
                         break;
                     default:
                         break;
@@ -96,7 +154,7 @@ namespace ACE.Common.Cryptography
                 a += mm[(i + 128) & 0xFF];
 
                 uint y;
-                mm[i]      = y = mm[(int)(x >> 2) & 0xFF] + a + b;
+                mm[i] = y = mm[(int)(x >> 2) & 0xFF] + a + b;
                 randRsl[i] = b = mm[(int)(y >> 10) & 0xFF] + x;
             }
         }
