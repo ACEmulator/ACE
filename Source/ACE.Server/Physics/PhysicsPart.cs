@@ -141,14 +141,14 @@ namespace ACE.Server.Physics
 
             if (translucency == 1.0f)
             {
-                NoDraw = true;  // ??
+                NoDraw = true;
                 return;
             }
 
             if (CurTranslucency != translucency)
             {
-                /*CurTranslucency = translucency;
-                if (CurSettingsAreDefault())
+                CurTranslucency = translucency;
+                /*if (CurSettingsAreDefault())
                     RestoreMaterial();
                 else if (CopyMaterial())
                     Material.SetTranslucencySimple(translucency);*/
@@ -158,13 +158,6 @@ namespace ACE.Server.Physics
         public void UpdateViewerDistance()
         {
             // client rendering?
-        }
-
-        public bool Equals(ShadowPart shadowPart)
-        {
-            if (shadowPart == null) return false;
-
-            return this == shadowPart.Part;
         }
     }
 }

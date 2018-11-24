@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 
 using ACE.DatLoader.Entity;
+using ACE.Entity.Enum;
 
 namespace ACE.DatLoader.FileTypes
 {
@@ -18,9 +19,9 @@ namespace ACE.DatLoader.FileTypes
     [DatFileType(DatFileType.Cell)]
     public class EnvCell : FileType
     {
-        public UInt32 Bitfield { get; private set; }
+        public EnvCellFlags Flags { get; private set; }
         // 0x08000000 surfaces (which contains degrade/quality info to reference the specific 0x06000000 graphics)
-        public List<uint> Shadows { get; } = new List<uint>();
+        public List<uint> Surfaces { get; } = new List<uint>();
         // the 0x0D000000 model of the pre-fab dungeon block
         public uint EnvironmentId { get; private set; }
         public ushort CellStructure { get; private set; }
@@ -30,13 +31,13 @@ namespace ACE.DatLoader.FileTypes
         public List<Stab> StaticObjects { get; } = new List<Stab>();
         public uint RestrictionObj { get; private set; }
 
-        public bool SeenOutside => (Bitfield & 1) != 0;
+        public bool SeenOutside => Flags.HasFlag(EnvCellFlags.SeenOutside);
 
         public override void Unpack(BinaryReader reader)
         {
             Id = reader.ReadUInt32();
 
-            Bitfield = reader.ReadUInt32();
+            Flags = (EnvCellFlags)reader.ReadUInt32();
 
             reader.BaseStream.Position += 4; // Skip ahead 4 bytes, because this is the CellId. Again. Twice.
 
@@ -46,7 +47,7 @@ namespace ACE.DatLoader.FileTypes
 
             // Read what surfaces are used in this cell
             for (uint i = 0; i < numSurfaces; i++)
-                Shadows.Add(0x08000000u | reader.ReadUInt16()); // these are stored in the dat as short values, so we'll make them a full dword
+                Surfaces.Add(0x08000000u | reader.ReadUInt16()); // these are stored in the dat as short values, so we'll make them a full dword
 
             EnvironmentId = (0x0D000000u | reader.ReadUInt16());
 
@@ -59,10 +60,10 @@ namespace ACE.DatLoader.FileTypes
             for (uint i = 0; i < numStabs; i++)
                 VisibleCells.Add(reader.ReadUInt16());
 
-            if ((Bitfield & 2) != 0)
+            if ((Flags & EnvCellFlags.HasStaticObjs) != 0)
                 StaticObjects.Unpack(reader);
 
-            if ((Bitfield & 8) != 0)
+            if ((Flags & EnvCellFlags.HasRestrictionObj) != 0)
                 RestrictionObj = reader.ReadUInt32();
         }
     }

@@ -150,11 +150,11 @@ namespace ACE.DatLoader
         }
 
         /// <summary>
-        /// A list that uses a Int32 for the length.
+        /// A list that uses a UInt32 for the length.
         /// </summary>
         public static void Unpack<T>(this List<T> value, BinaryReader reader) where T : IUnpackable, new()
         {
-            var totalObjects = reader.ReadInt32();
+            var totalObjects = reader.ReadUInt32();
 
             for (int i = 0; i < totalObjects; i++)
             {

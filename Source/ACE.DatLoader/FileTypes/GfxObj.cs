@@ -14,6 +14,7 @@ namespace ACE.DatLoader.FileTypes
     [DatFileType(DatFileType.GraphicsObject)]
     public class GfxObj : FileType
     {
+        public GfxObjFlags Flags { get; private set; }
         public List<uint> Surfaces { get; } = new List<uint>(); // also referred to as m_rgSurfaces in the client
         public CVertexArray VertexArray { get; } = new CVertexArray();
 
@@ -31,14 +32,14 @@ namespace ACE.DatLoader.FileTypes
         {
             Id = reader.ReadUInt32();
 
-            var fields   = reader.ReadUInt32();
+            Flags = (GfxObjFlags)reader.ReadUInt32();
 
             Surfaces.UnpackSmartArray(reader);
 
             VertexArray.Unpack(reader);
 
             // Has Physics 
-            if ((fields & 1) != 0)
+            if ((Flags & GfxObjFlags.HasPhysics) != 0)
             {
                 PhysicsPolygons.UnpackSmartArray(reader);
 
@@ -48,14 +49,14 @@ namespace ACE.DatLoader.FileTypes
             SortCenter = reader.ReadVector3();
 
             // Has Drawing 
-            if ((fields & 2) != 0)
+            if ((Flags & GfxObjFlags.HasDrawing) != 0)
             {
                 Polygons.UnpackSmartArray(reader);
 
                 DrawingBSP.Unpack(reader, BSPType.Drawing);
             }
 
-            if ((fields & 8) != 0)
+            if ((Flags & GfxObjFlags.HasDIDDegrade) != 0)
                 DIDDegrade = reader.ReadUInt32();
         }
     }

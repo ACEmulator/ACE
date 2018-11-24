@@ -18,27 +18,30 @@ namespace ACE.DatLoader
         public static PortalDatDatabase HighResDat { get; private set; }
         public static PortalDatDatabase LanguageDat { get; private set; }
 
-        public static void Initialize(string datFileDirectory)
+        public static void Initialize(string datFileDirectory, bool keepOpen = false, bool loadCell = true)
         {
             var datDir = Path.GetFullPath(Path.Combine(datFileDirectory));
 
-            try
+            if (loadCell)
             {
-                datFile = Path.Combine(datDir, "client_cell_1.dat");
-                CellDat = new CellDatDatabase(datFile);
-                count = CellDat.AllFiles.Count;
-                log.Info($"Successfully opened {datFile} file, containing {count} records");
-            }
-            catch (FileNotFoundException ex)
-            {
-                log.Info($"An exception occured while attempting to open {datFile} file!  This needs to be corrected in order for Landblocks to load!");
-                log.Info($"Exception: {ex.Message}");
+                try
+                {
+                    datFile = Path.Combine(datDir, "client_cell_1.dat");
+                    CellDat = new CellDatDatabase(datFile, keepOpen);
+                    count = CellDat.AllFiles.Count;
+                    log.Info($"Successfully opened {datFile} file, containing {count} records");
+                }
+                catch (FileNotFoundException ex)
+                {
+                    log.Info($"An exception occured while attempting to open {datFile} file!  This needs to be corrected in order for Landblocks to load!");
+                    log.Info($"Exception: {ex.Message}");
+                }
             }
 
             try
             {
                 datFile = Path.Combine(datDir, "client_portal.dat");
-                PortalDat = new PortalDatDatabase(datFile);
+                PortalDat = new PortalDatDatabase(datFile, keepOpen);
                 count = PortalDat.AllFiles.Count;
                 log.Info($"Successfully opened {datFile} file, containing {count} records");
             }
@@ -51,8 +54,8 @@ namespace ACE.DatLoader
             // Load the client_highres.dat file. This is not required for ACE operation, so no exception needs to be generated.
             datFile = Path.Combine(datDir, "client_highres.dat");
             if (File.Exists(datFile))
-            { 
-                HighResDat = new PortalDatDatabase(datFile);
+            {
+                HighResDat = new PortalDatDatabase(datFile, keepOpen);
                 count = HighResDat.AllFiles.Count;
                 log.Info($"Successfully opened {datFile} file, containing {count} records");
             }
@@ -61,7 +64,7 @@ namespace ACE.DatLoader
             datFile = Path.Combine(datDir, "client_local_English.dat");
             if (File.Exists(datFile))
             {
-                LanguageDat = new PortalDatDatabase(datFile);
+                LanguageDat = new PortalDatDatabase(datFile, keepOpen);
                 count = LanguageDat.AllFiles.Count;
                 log.Info($"Successfully opened {datFile} file, containing {count} records");
             }

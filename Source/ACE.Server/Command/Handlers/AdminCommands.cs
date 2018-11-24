@@ -1730,7 +1730,7 @@ namespace ACE.Server.Command.Handlers
             var runTime = DateTime.Now - proc.StartTime;
             sb.Append($"Server Runtime: {runTime.Hours}h {runTime.Minutes}m {runTime.Seconds}s{'\n'}");
 
-            sb.Append($"Total CPU Time: {proc.TotalProcessorTime.TotalSeconds:N1} sec, Threads: {proc.Threads.Count}{'\n'}");
+            sb.Append($"Total CPU Time: {proc.TotalProcessorTime.Hours}h {proc.TotalProcessorTime.Minutes}m {proc.TotalProcessorTime.Seconds}s, Threads: {proc.Threads.Count}{'\n'}");
 
             // todo, add actual system memory used/avail
             sb.Append($"{(proc.PrivateMemorySize64 >> 20)} MB used{'\n'}");  // sb.Append($"{(proc.PrivateMemorySize64 >> 20)} MB used, xxxx / yyyy MB physical mem free.{'\n'}");

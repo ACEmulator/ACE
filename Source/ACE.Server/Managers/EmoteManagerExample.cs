@@ -234,7 +234,7 @@ namespace ACE.Server.Managers
 
                     if (creature != null)
                     {
-                        var attr = creature.GetCreatureAttribute((PropertyAttribute)emote.Stat);
+                        var attr = creature.Attributes[(PropertyAttribute)emote.Stat];
                         var success = attr != null && attr.Ranks >= emote.Min && attr.Ranks <= emote.Max;
                         InqCategory(success ? EmoteCategory.TestSuccess : EmoteCategory.TestFailure, emote);
                     }
@@ -319,7 +319,7 @@ namespace ACE.Server.Managers
 
                     if (creature != null)
                     {
-                        var attr = creature.GetCreatureAttribute((PropertyAttribute)emote.Stat);
+                        var attr = creature.Attributes[(PropertyAttribute)emote.Stat];
                         var success = attr != null && attr.Base >= emote.Min && attr.Base <= emote.Max;
                         InqCategory(success ? EmoteCategory.TestSuccess : EmoteCategory.TestFailure, emote);
                     }
@@ -329,7 +329,7 @@ namespace ACE.Server.Managers
 
                     if (creature != null)
                     {
-                        var vital = creature.GetCreatureVital((PropertyAttribute2nd)emote.Stat);
+                        var vital = creature.Vitals[(PropertyAttribute2nd)emote.Stat];
                         var success = vital != null && vital.Base >= emote.Min && vital.Base <= emote.Max;
                         InqCategory(success ? EmoteCategory.TestSuccess : EmoteCategory.TestFailure, emote);
                     }
@@ -349,7 +349,7 @@ namespace ACE.Server.Managers
 
                     if (creature != null)
                     {
-                        var vital = creature.GetCreatureVital((PropertyAttribute2nd)emote.Stat);
+                        var vital = creature.Vitals[(PropertyAttribute2nd)emote.Stat];
                         var success = vital != null && vital.Ranks >= emote.Min && vital.Ranks <= emote.Max;
                         InqCategory(success ? EmoteCategory.TestSuccess : EmoteCategory.TestFailure, emote);
                     }

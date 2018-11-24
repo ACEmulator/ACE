@@ -26,6 +26,7 @@ Build status: [![Windows CI](https://ci.appveyor.com/api/projects/status/rqebda3
 * Install Visual Studio 2017
   - [Visual Studio minimum required version - VS Community 2017 15.7.0](https://www.visualstudio.com/thank-you-downloading-visual-studio/?sku=Community&rel=15)
   - [.NET Core 2.1 x64 SDK Required](https://www.microsoft.com/net/download/visual-studio-sdks)
+  - If using Visual Studio Community Edition, make sure the following two workloads are installed: .NET Core cross-platform development and .NET Desktop Development
 * Install MySQL
   - [MySQL minimum required version - 5.7.17+](https://dev.mysql.com/downloads/windows/installer/5.7.html)
   - [MariaDB minimum required version - 10.2+](https://mariadb.org/download/)

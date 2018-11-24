@@ -400,24 +400,25 @@ namespace ACE.Server.Command.Handlers
         /// This is a VERY crude test. It should never be used on a live server.
         /// There isn't really much point to this command other than making sure landblocks can load and are semi-efficient.
         /// </summary>
-        [CommandHandler("loadalllandblocks", AccessLevel.Developer, CommandHandlerFlag.None, "Loads all Landblocks. This is VERY crude. Do NOT use it on a live server!!! It will likely crash the server.")]
+        [CommandHandler("loadalllandblocks", AccessLevel.Developer, CommandHandlerFlag.None, "Loads all Landblocks. This is VERY crude. Do NOT use it on a live server!!! It will likely crash the server.  Landblock resources will be loaded async and will continue to do work even after all landblocks have been loaded.")]
         public static void HandleLoadAllLandblocks(Session session, params string[] parameters)
         {
-            CommandHandlerHelper.WriteOutputInfo(session, "Loading landblocks... This will likely crash the server...");
+            CommandHandlerHelper.WriteOutputInfo(session, "Loading landblocks. This will likely crash the server. Landblock resources will be loaded async and will continue to do work even after all landblocks have been loaded.");
 
             Task.Run(() =>
             {
                 for (int x = 0; x <= 0xFE; x++)
                 {
+                    CommandHandlerHelper.WriteOutputInfo(session, $"Loading landblocks, x = 0x{x:X2} of 0xFE....");
+
                     for (int y = 0; y <= 0xFE; y++)
                     {
                         var blockid = new LandblockId((byte)x, (byte)y);
-                        Stopwatch sw = Stopwatch.StartNew();
                         LandblockManager.GetLandblock(blockid, false, false);
-                        sw.Stop();
-                        CommandHandlerHelper.WriteOutputDebug(session, $"Loaded Landblock {blockid.Landblock:X4} in {sw.ElapsedMilliseconds} milliseconds");
                     }
                 }
+
+                CommandHandlerHelper.WriteOutputInfo(session, "Loading landblocks completed. Async landblock resources are likely still loading...");
             });
         }
 
@@ -1013,7 +1014,7 @@ namespace ACE.Server.Command.Handlers
             SpellComponentsTable comps = DatManager.PortalDat.SpellComponentsTable;
 
             Console.WriteLine("Formula for " + spellTable.Spells[spellid].Name);
-            Console.WriteLine("Spell Words: " + spellTable.Spells[spellid].SpellWords);
+            Console.WriteLine("Spell Words: " + spellTable.Spells[spellid].GetSpellWords(DatManager.PortalDat.SpellComponentsTable));
             Console.WriteLine(spellTable.Spells[spellid].Desc);
 
             var formula = SpellTable.GetSpellFormula(DatManager.PortalDat.SpellTable, spellid, parameters[0]);

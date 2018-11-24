@@ -104,8 +104,11 @@ namespace ACE.Server.WorldObjects
             actionChain.AddDelaySeconds(rotateTime);
 
             // switch activate animation
-            var useAnimation = UseTargetAnimation != null ? (MotionCommand)UseTargetAnimation : MotionCommand.Twitch1;
-            EnqueueMotion(actionChain, useAnimation);
+            if (MotionTableId != 0)
+            {
+                var useAnimation = UseTargetAnimation != null ? (MotionCommand)UseTargetAnimation : MotionCommand.Twitch1;
+                EnqueueMotion(actionChain, useAnimation);
+            }
 
             actionChain.AddAction(creature, () =>
             {

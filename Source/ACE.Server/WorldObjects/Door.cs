@@ -137,12 +137,6 @@ namespace ACE.Server.WorldObjects
             set;
         }
 
-        public int? ResistLockpick
-        {
-            get => GetProperty(PropertyInt.ResistLockpick);
-            set { if (!value.HasValue) RemoveProperty(PropertyInt.ResistLockpick); else SetProperty(PropertyInt.ResistLockpick, value.Value); }
-        }
-
         private int? AppraisalLockpickSuccessPercent
         {
             get;

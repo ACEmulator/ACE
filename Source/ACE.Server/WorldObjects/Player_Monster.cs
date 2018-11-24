@@ -21,6 +21,8 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void CheckMonsters(float rangeSquared = RadiusAwarenessSquared)
         {
+            if (!IsAttackable) return;
+
             var visibleObjs = PhysicsObj.ObjMaint.VisibleObjectTable.Values;
 
             foreach (var obj in visibleObjs)

@@ -85,8 +85,8 @@ namespace ACE.Server.Entity
         /// </summary>
         public Physics.Common.Landblock _landblock { get; private set; }
 
-        public CellLandblock CellLandblock { get; private set; }
-        public LandblockInfo LandblockInfo { get; private set; }
+        public CellLandblock CellLandblock { get; }
+        public LandblockInfo LandblockInfo { get; }
 
         /// <summary>
         /// The landblock static meshes for
@@ -194,7 +194,10 @@ namespace ACE.Server.Entity
         }
 
         /// <summary>
-        /// Loads the meshes for the landblock
+        /// Loads the meshes for the landblock<para />
+        /// This isn't used by ACE, but we still retain it for the following reason:<para />
+        /// its useful, concise, high level overview code for everything needed to load landblocks, all their objects, scenery, polygons
+        /// without getting into all of the low level methods that acclient uses to do it
         /// </summary>
         private void LoadMeshes(List<LandblockInstance> objects)
         {

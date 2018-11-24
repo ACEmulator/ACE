@@ -113,7 +113,7 @@ namespace ACE.Server.WorldObjects
                 writer.Write(MaxStructure ?? (ushort)0);
 
             if ((weenieFlags & WeenieHeaderFlag.StackSize) != 0)
-                writer.Write(StackSize ?? (ushort)0);
+                writer.Write((ushort?)StackSize ?? (ushort)0);
 
             if ((weenieFlags & WeenieHeaderFlag.MaxStackSize) != 0)
                 writer.Write(MaxStackSize ?? (ushort)0);
@@ -1075,11 +1075,10 @@ namespace ACE.Server.WorldObjects
         {
             if (PhysicsObj == null) return;
 
-            var self = this as Player;
-            if (self != null)
+            if (this is Player self)
                 self.EnqueueAction(new ActionEventDelegate(() => delegateAction(self)));
 
-            foreach (var player in PhysicsObj.ObjMaint.VoyeurTable.Values.Select(v => v.WeenieObj.WorldObject as Player))
+            foreach (var player in PhysicsObj.ObjMaint.VoyeurTable.Values.Select(v => (Player)v.WeenieObj.WorldObject))
             {
                 if (Visibility && !player.Adminvision)
                     continue;
@@ -1133,7 +1132,7 @@ namespace ACE.Server.WorldObjects
 
             var rangeSquared = range * range;
 
-            foreach (var player in PhysicsObj.ObjMaint.VoyeurTable.Values.Select(v => v.WeenieObj.WorldObject as Player))
+            foreach (var player in PhysicsObj.ObjMaint.VoyeurTable.Values.Select(v => (Player)v.WeenieObj.WorldObject))
             {
                 if (isDungeon && Location.Landblock != player.Location.Landblock)
                     continue;
@@ -1157,15 +1156,14 @@ namespace ACE.Server.WorldObjects
         {
             if (PhysicsObj == null || CurrentLandblock == null) return;
 
-            var self = this as Player;
-            if (self != null)
+            if (this is Player self)
                 self.Session.Network.EnqueueSend(msg);
 
             var isDungeon = CurrentLandblock._landblock != null && CurrentLandblock._landblock.IsDungeon;
 
             var rangeSquared = range * range;
 
-            foreach (var player in PhysicsObj.ObjMaint.VoyeurTable.Values.Select(v => v.WeenieObj.WorldObject as Player))
+            foreach (var player in PhysicsObj.ObjMaint.VoyeurTable.Values.Select(v => (Player)v.WeenieObj.WorldObject))
             {
                 if (isDungeon && Location.Landblock != player.Location.Landblock)
                     continue;
@@ -1183,23 +1181,22 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Sends network messages to all Players who currently know about this object
         /// </summary>
-        public IEnumerable<Player> EnqueueBroadcast(params GameMessage[] msgs)
+        public List<Player> EnqueueBroadcast(params GameMessage[] msgs)
         {
             return EnqueueBroadcast(true, msgs);
         }
 
-        public IEnumerable<Player> EnqueueBroadcast(bool sendSelf = true, params GameMessage[] msgs)
+        public List<Player> EnqueueBroadcast(bool sendSelf = true, params GameMessage[] msgs)
         {
             if (PhysicsObj == null) return null;
 
             if (sendSelf)
             {
-                var self = this as Player;
-                if (self != null)
+                if (this is Player self)
                     self.Session.Network.EnqueueSend(msgs);
             }
 
-            var nearbyPlayers = PhysicsObj.ObjMaint.VoyeurTable.Values.Select(v => v.WeenieObj.WorldObject as Player);
+            var nearbyPlayers = PhysicsObj.ObjMaint.VoyeurTable.Values.Select(v => (Player)v.WeenieObj.WorldObject).ToList();
             foreach (var player in nearbyPlayers)
             {
                 if (Visibility && !player.Adminvision)
@@ -1221,7 +1218,7 @@ namespace ACE.Server.WorldObjects
             //Console.WriteLine($"{Name}: NotifyPlayers - found {PhysicsObj.ObjMaint.VoyeurTable.Count} players");
 
             // add to player tracking / send create object network messages to these players
-            foreach (var player in PhysicsObj.ObjMaint.VoyeurTable.Values.Select(v => v.WeenieObj.WorldObject as Player))
+            foreach (var player in PhysicsObj.ObjMaint.VoyeurTable.Values.Select(v => (Player)v.WeenieObj.WorldObject))
                 player.AddTrackedObject(this);
         }
     }
