@@ -9,6 +9,8 @@ namespace ACE.Factories
     public static class LootHelper
     {
 
+        
+
         public static Dictionary<int, String> gemNames = new Dictionary<int, String>()
                                                             { 
                                                                 {10, "Agate"},
@@ -53,6 +55,7 @@ namespace ACE.Factories
                                                                 {49, "Yellow Topaz"},
                                                                 {50, "Zircon"}
                                                             };
+
 
         public static int[][] HeadSpells =
 {

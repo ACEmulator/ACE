@@ -502,6 +502,19 @@ namespace ACE.Database
             }
         }
 
+        public Weenie GetScrollBySpellID(uint spellID)
+        {
+            using (var context = new WorldDbContext())
+            {
+                var result = from weenie in context.Weenie
+                             join did in context.WeeniePropertiesDID on weenie.ClassId equals did.ObjectId
+                             where weenie.Type == 34 && did.Type == 28 && did.Value == spellID
+                             select weenie;
+                return result.FirstOrDefault();
+                //return result.FirstOrDefault().ClassName;
+            }
+        }
+
         private readonly ConcurrentDictionary<uint, Spell> spellCache = new ConcurrentDictionary<uint, Spell>();
 
         /// <summary>
