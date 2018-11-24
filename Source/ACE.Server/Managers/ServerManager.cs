@@ -132,6 +132,9 @@ namespace ACE.Server.Managers
             while (WorldManager.WorldActive)
                 Thread.Sleep(10);
 
+            log.Info("Saving OfflinePlayers that have unsaved changes...");
+            PlayerManager.SaveOfflinePlayersWithChanges();
+
             log.Info("Waiting for database queue to empty...");
 
             // Wait for the database queue to empty

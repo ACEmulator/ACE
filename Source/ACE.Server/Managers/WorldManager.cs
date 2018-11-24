@@ -418,6 +418,8 @@ namespace ACE.Server.Managers
 
                 worldTickTimer.Restart();
 
+                PlayerManager.Tick();
+
                 InboundClientMessageQueue.RunActions();
 
                 playerEnterWorldQueue.RunActions();

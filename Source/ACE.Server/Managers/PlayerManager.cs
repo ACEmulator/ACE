@@ -1,9 +1,12 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading;
 
 using ACE.Database;
+using ACE.Database.Models.Shard;
 using ACE.Entity;
 using ACE.Server.Entity;
 using ACE.Server.WorldObjects;
@@ -16,12 +19,17 @@ namespace ACE.Server.Managers
 
         public static readonly ConcurrentDictionary<ObjectGuid, OfflinePlayer> OfflinePlayers = new ConcurrentDictionary<ObjectGuid, OfflinePlayer>();
 
-        public static void Initialize()
-        {
-            LoadAllPlayersAsOffline();
-        }
+        /// <summary>
+        /// OfflinePlayers will be saved to the database every 1 hour
+        /// </summary>
+        private static readonly TimeSpan databaseSaveInterval = TimeSpan.FromHours(1);
 
-        private static void LoadAllPlayersAsOffline()
+        private static DateTime lastDatabaseSave = DateTime.MinValue;
+
+        /// <summary>
+        /// This will load all the players from the database into the OfflinePlayers dictionary. It should be called before WorldManager is initialized.
+        /// </summary>
+        public static void Initialize()
         {
             var results = DatabaseManager.Shard.GetAllPlayerBiotasInParallel();
 
@@ -32,6 +40,34 @@ namespace ACE.Server.Managers
             }
         }
 
+        public static void Tick()
+        {
+            // Database Save
+            if (lastDatabaseSave + databaseSaveInterval <= DateTime.UtcNow)
+                SaveOfflinePlayersWithChanges();
+        }
+
+        /// <summary>
+        /// This will save any player in the OfflinePlayers dictionary that has ChangesDetected. The biotas are saved in parallel.
+        /// </summary>
+        public static void SaveOfflinePlayersWithChanges()
+        {
+            lastDatabaseSave = DateTime.UtcNow;
+
+            var biotas = new Collection<(Biota biota, ReaderWriterLockSlim rwLock)>();
+
+            foreach (var player in OfflinePlayers.Values)
+            {
+                if (player.ChangesDetected)
+                {
+                    player.SaveBiotaToDatabase(false);
+                    biotas.Add((player.Biota, player.BiotaDatabaseLock));
+                }
+            }
+
+            DatabaseManager.Shard.SaveBiotasInParallel(biotas, result => { });
+        }
+        
 
         /// <summary>
         /// This would be used when a new player is created after the server has started.
@@ -90,6 +126,9 @@ namespace ACE.Server.Managers
         {
             if (!OfflinePlayers.TryRemove(player.Guid, out var offlinePlayer))
                 return false; // This should never happen
+
+            if (offlinePlayer.ChangesDetected)
+                player.ChangesDetected = true;
 
             player.Allegiance = offlinePlayer.Allegiance;
             player.AllegianceNode = offlinePlayer.AllegianceNode;
