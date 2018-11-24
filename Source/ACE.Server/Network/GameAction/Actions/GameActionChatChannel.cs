@@ -1,7 +1,6 @@
 using System;
-using System.Collections.Generic;
+
 using ACE.Common.Extensions;
-using ACE.Database;
 using ACE.Entity.Enum;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameEvent.Events;
