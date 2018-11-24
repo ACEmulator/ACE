@@ -271,17 +271,17 @@ namespace ACE.Server.Managers
         /// </summary>
         /// <param name="self">The player initiating the break request</param>
         /// <param name="target">The patron or vassal of the self player</param>
-        public static void OnBreakAllegiance(Player self, Player target)
+        public static void OnBreakAllegiance(Player self, IPlayer target)
         {
             // remove the previous allegiance structure
             RemoveCache(self.Allegiance);
 
             // rebuild for self and target
             Rebuild(GetAllegiance(self));
-            Rebuild(GetAllegiance(target));
+            // TODO HACK FIX Rebuild(GetAllegiance(target));
 
             LoadPlayer(self);
-            LoadPlayer(target);
+            // TODO HACK FIX LoadPlayer(target);
         }
     }
 }

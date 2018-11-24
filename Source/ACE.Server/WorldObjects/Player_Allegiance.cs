@@ -33,7 +33,6 @@ namespace ACE.Server.WorldObjects
 
             Patron = targetGuid.Full;
             Monarch = AllegianceManager.GetMonarch(patron).Guid.Full;
-            PlayerManager.SyncOffline(this);
 
             //Console.WriteLine("Patron: " + PlayerManager.GetOfflinePlayerByGuidId(Patron.Value).Name);
             //Console.WriteLine("Monarch: " + PlayerManager.GetOfflinePlayerByGuidId(Monarch.Value).Name);
@@ -64,7 +63,7 @@ namespace ACE.Server.WorldObjects
         {
             if (!IsBreakable(targetGuid)) return;
 
-            var target = PlayerManager.GetOfflinePlayerByGuidId(targetGuid.Full);
+            var target = PlayerManager.GetOfflinePlayer(targetGuid);
 
             //Console.WriteLine(Name + " breaking allegiance to " + target.Name);
 
@@ -77,13 +76,11 @@ namespace ACE.Server.WorldObjects
             {
                 target.Patron = null;
                 target.Monarch = null;
-                PlayerManager.SyncOffline(target);
             }
             else
             {
                 Patron = null;
                 Monarch = null;
-                PlayerManager.SyncOffline(this);
             }
 
             // send message to target if online

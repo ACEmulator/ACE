@@ -15,9 +15,9 @@ namespace ACE.Server.Entity
 
         string Name { get; }
 
-        uint? Monarch { get; }
+        uint? Monarch { get; set; }
 
-        uint? Patron { get; }
+        uint? Patron { get; set; }
 
         int? AllegianceCPPool { get; set; }
 

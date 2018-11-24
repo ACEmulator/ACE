@@ -272,9 +272,17 @@ namespace ACE.Server.Entity
 
         public string Name => GetProperty(PropertyString.Name);
 
-        public uint? Monarch => GetProperty(PropertyInstanceId.Monarch);
+        public uint? Monarch
+        {
+            get => GetProperty(PropertyInstanceId.Monarch);
+            set { if (!value.HasValue) RemoveProperty(PropertyInstanceId.Monarch); else SetProperty(PropertyInstanceId.Monarch, value.Value); }
+        }
 
-        public uint? Patron => GetProperty(PropertyInstanceId.Patron);
+        public uint? Patron
+        {
+            get => GetProperty(PropertyInstanceId.Patron);
+            set { if (!value.HasValue) RemoveProperty(PropertyInstanceId.Patron); else SetProperty(PropertyInstanceId.Patron, value.Value); }
+        }
 
         public int? AllegianceCPPool
         {
