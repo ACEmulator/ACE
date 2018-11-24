@@ -2,8 +2,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 
-using ACE.Entity;
-
 namespace ACE.Database.Models.Shard
 {
     public static class CharacterExtensions
@@ -21,6 +19,25 @@ namespace ACE.Database.Models.Shard
         // =====================================
         // CharacterPropertiesFriendList
         // =====================================
+
+        public static bool HasAsFriend(this Character character, uint friendId, ReaderWriterLockSlim rwLock)
+        {
+            rwLock.EnterUpgradeableReadLock();
+            try
+            {
+                foreach (var record in character.CharacterPropertiesFriendList)
+                {
+                    if (record.FriendId == friendId)
+                        return true;
+                }
+
+                return false;
+            }
+            finally
+            {
+                rwLock.ExitUpgradeableReadLock();
+            }
+        }
 
         public static CharacterPropertiesFriendList AddFriend(this Character character, uint friendId, ReaderWriterLockSlim rwLock, out bool friendAlreadyExists)
         {

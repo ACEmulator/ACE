@@ -267,6 +267,22 @@ namespace ACE.Server.Managers
         }
 
         /// <summary>
+        /// This will return a list of sessions that have this guid as a friend.
+        /// </summary>
+        public static List<Session> FindInverseFriends(ObjectGuid guid)
+        {
+            sessionLock.EnterReadLock();
+            try
+            {
+                return sessions.Where(s => s.Player?.Character?.HasAsFriend(guid.Full, s.Player.CharacterDatabaseLock) == true).ToList();
+            }
+            finally
+            {
+                sessionLock.ExitReadLock();
+            }
+        }
+
+        /// <summary>
         /// Returns a list of all sessions currently connected
         /// </summary>
         /// <param name="isOnlineRequired">false returns all players (offline or online)</param>

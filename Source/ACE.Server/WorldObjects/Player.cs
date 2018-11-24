@@ -311,18 +311,6 @@ namespace ACE.Server.WorldObjects
             Session.Network.EnqueueSend(new GameEventConfirmationDone(Session, confirmationType, contextId));
         }
 
-        //[Obsolete]
-        //private AceCharacter Character => AceObject as AceCharacter;
-
-
-
-
-
-
-        //public ReadOnlyDictionary<CharacterOption, bool> CharacterOptions => CharacterOptions;
-
-        //public ReadOnlyCollection<Friend> Friends => Friends;
-        public ReadOnlyCollection<Friend> Friends { get; set; }
 
         public MotionStance stance = MotionStance.NonCombat;
 

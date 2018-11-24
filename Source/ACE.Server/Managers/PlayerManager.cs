@@ -128,7 +128,7 @@ namespace ACE.Server.Managers
         /// </summary>
         public static IPlayer FindByName(string name, out bool isOnline)
         {
-            var onlinePlayer = OnlinePlayers.Values.FirstOrDefault(p => p.Name.Equals(name, StringComparison.InvariantCultureIgnoreCase));
+            var onlinePlayer = OnlinePlayers.Values.FirstOrDefault(p => p.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
 
             if (onlinePlayer != null)
             {
@@ -138,7 +138,7 @@ namespace ACE.Server.Managers
 
             isOnline = false;
 
-            var offlinePlayer = OfflinePlayers.Values.FirstOrDefault(p => p.Name.Equals(name, StringComparison.InvariantCultureIgnoreCase));
+            var offlinePlayer = OfflinePlayers.Values.FirstOrDefault(p => p.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
 
             if (offlinePlayer != null)
                 return offlinePlayer;

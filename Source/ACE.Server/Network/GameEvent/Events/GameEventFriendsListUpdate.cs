@@ -18,10 +18,10 @@ namespace ACE.Server.Network.GameEvent.Events
             FriendStatusChanged = 0x0004
         }
 
-        private FriendsUpdateTypeFlag updateType;
-        private CharacterPropertiesFriendList friend;
-        private bool overrideOnlineStatus;
-        private bool onlineStatusVal;
+        private readonly FriendsUpdateTypeFlag updateType;
+        private readonly CharacterPropertiesFriendList friend;
+        private readonly bool overrideOnlineStatus;
+        private readonly bool onlineStatusVal;
 
         /// <summary>
         /// This constructor should only be used for sending the full friend list

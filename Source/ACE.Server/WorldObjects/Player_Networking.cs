@@ -1,6 +1,7 @@
 using System.Linq;
 
 using ACE.Common;
+using ACE.Database.Models.Shard;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
@@ -144,19 +145,13 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         private void SendFriendStatusUpdates()
         {
-            return; // todo fix
+            var inverseFriends = WorldManager.FindInverseFriends(Guid);
 
-            /*List<Session> inverseFriends = WorldManager.FindInverseFriends(Guid);
-
-            if (inverseFriends.Count > 0)
+            foreach (var friendSession in inverseFriends)
             {
-                Friend playerFriend = new Friend();
-                playerFriend.Id = Guid;
-                playerFriend.Name = Name;
-
-                foreach (var friendSession in inverseFriends)
-                    friendSession.Network.EnqueueSend(new GameEventFriendsListUpdate(friendSession, GameEventFriendsListUpdate.FriendsUpdateTypeFlag.FriendStatusChanged, playerFriend, true, GetVirtualOnlineStatus()));
-            }*/
+                var playerFriend = new CharacterPropertiesFriendList { CharacterId = friendSession.Player.Guid.Full, FriendId = Guid.Full };
+                friendSession.Network.EnqueueSend(new GameEventFriendsListUpdate(friendSession, GameEventFriendsListUpdate.FriendsUpdateTypeFlag.FriendStatusChanged, playerFriend, true, GetVirtualOnlineStatus()));
+            }
         }
 
 
