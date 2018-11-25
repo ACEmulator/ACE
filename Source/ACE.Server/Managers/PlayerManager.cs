@@ -16,8 +16,8 @@ namespace ACE.Server.Managers
     public static class PlayerManager
     {
         // todo might need to wrap these in a readerwriterslimlock
+        private static readonly ReaderWriterLockSlim playersLock = new ReaderWriterLockSlim();
         public static readonly ConcurrentDictionary<ObjectGuid, Player> OnlinePlayers = new ConcurrentDictionary<ObjectGuid, Player>();
-
         public static readonly ConcurrentDictionary<ObjectGuid, OfflinePlayer> OfflinePlayers = new ConcurrentDictionary<ObjectGuid, OfflinePlayer>();
 
         /// <summary>

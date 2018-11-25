@@ -13,7 +13,6 @@ using ACE.Common;
 using ACE.Database;
 using ACE.Database.Entity;
 using ACE.Database.Models.Shard;
-using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
@@ -207,22 +206,6 @@ namespace ACE.Server.Managers
             try
             {
                 return sessions.SingleOrDefault(s => s.Account == account);
-            }
-            finally
-            {
-                sessionLock.ExitReadLock();
-            }
-        }
-
-        /// <summary>
-        /// This will loop through the active sessions and find one with a player that is named <paramref name="name"/>, ignoring case.
-        /// </summary>
-        public static Session FindByPlayerName(string name)
-        {
-            sessionLock.EnterReadLock();
-            try
-            {
-                return sessions.SingleOrDefault(s => s.Player != null && s.Player.IsOnline && String.Compare(s.Player.Name, name, StringComparison.OrdinalIgnoreCase) == 0);
             }
             finally
             {

@@ -156,9 +156,12 @@ namespace ACE.Server.Command.Handlers
                         }
                     case AccountLookupType.Character:
                         {
-                            playerSession = WorldManager.FindByPlayerName(bootName);
-                            if (playerSession != null)
-                                bootId = playerSession.Player.Guid.Low;
+                            var player = PlayerManager.GetOnlinePlayer(bootName);
+                            if (player != null)
+                            {
+                                playerSession = player.Session;
+                                bootId = player.Guid.Low;
+                            }
                             break;
                         }
                     case AccountLookupType.Iid:
@@ -675,12 +678,12 @@ namespace ACE.Server.Command.Handlers
                         characterName = parameters[0];
 
                     // look up session
-                    var playerSession = WorldManager.FindByPlayerName(characterName);
+                    var player = PlayerManager.GetOnlinePlayer(characterName);
 
                     // playerSession will be null when the character is not found
-                    if (playerSession != null)
+                    if (player != null)
                     {
-                        playerSession.Player.Smite(session.Player);
+                        player.Smite(session.Player);
                         return;
                     }
 
@@ -717,10 +720,10 @@ namespace ACE.Server.Command.Handlers
             // @teleto - Teleports you to the specified character.
             var playerName = String.Join(" ", parameters);
             // Lookup the player in the world
-            Session playerSession = WorldManager.FindByPlayerName(playerName);
+            var player = PlayerManager.GetOnlinePlayer(playerName);
             // If the player is found, teleport the admin to the Player's location
-            if (playerSession != null)
-                session.Player.Teleport(playerSession.Player.Location);
+            if (player != null)
+                session.Player.Teleport(player.Location);
             else
                 session.Network.EnqueueSend(new GameMessageSystemChat($"Player {playerName} was not found.", ChatMessageType.Broadcast));
         }
