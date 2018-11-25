@@ -15,6 +15,7 @@ namespace ACE.Server.Managers
 {
     public static class PlayerManager
     {
+        // todo might need to wrap these in a readerwriterslimlock
         public static readonly ConcurrentDictionary<ObjectGuid, Player> OnlinePlayers = new ConcurrentDictionary<ObjectGuid, Player>();
 
         public static readonly ConcurrentDictionary<ObjectGuid, OfflinePlayer> OfflinePlayers = new ConcurrentDictionary<ObjectGuid, OfflinePlayer>();
@@ -241,6 +242,23 @@ namespace ACE.Server.Managers
             var results = new List<IPlayer>();
             results.AddRange(onlinePlayers);
             results.AddRange(offlinePlayers);
+
+            return results;
+        }
+
+
+        /// <summary>
+        /// This will return a list of sessions that have this guid as a friend.
+        /// </summary>
+        public static List<Player> GetOnlineInverseFriends(ObjectGuid guid)
+        {
+            var results = new List<Player>();
+
+            foreach (var player in OnlinePlayers.Values)
+            {
+                if (player.Character.HasAsFriend(guid.Full, player.CharacterDatabaseLock))
+                    results.Add(player);
+            }
 
             return results;
         }

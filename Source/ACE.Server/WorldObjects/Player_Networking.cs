@@ -145,12 +145,12 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         private void SendFriendStatusUpdates()
         {
-            var inverseFriends = WorldManager.FindInverseFriends(Guid);
+            var inverseFriends = PlayerManager.GetOnlineInverseFriends(Guid);
 
-            foreach (var friendSession in inverseFriends)
+            foreach (var friend in inverseFriends)
             {
-                var playerFriend = new CharacterPropertiesFriendList { CharacterId = friendSession.Player.Guid.Full, FriendId = Guid.Full };
-                friendSession.Network.EnqueueSend(new GameEventFriendsListUpdate(friendSession, GameEventFriendsListUpdate.FriendsUpdateTypeFlag.FriendStatusChanged, playerFriend, true, GetVirtualOnlineStatus()));
+                var playerFriend = new CharacterPropertiesFriendList { CharacterId = friend.Guid.Full, FriendId = Guid.Full };
+                friend.Session.Network.EnqueueSend(new GameEventFriendsListUpdate(friend.Session, GameEventFriendsListUpdate.FriendsUpdateTypeFlag.FriendStatusChanged, playerFriend, true, GetVirtualOnlineStatus()));
             }
         }
 

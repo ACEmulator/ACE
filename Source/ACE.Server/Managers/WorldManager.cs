@@ -252,35 +252,19 @@ namespace ACE.Server.Managers
         /// This should only be used when you need the session for a player.
         /// If you simply need an IPlayer object, use PlayerManager.FindByGuid() instead.
         /// </summary>
-        public static Player GetPlayerByGuidId(uint playerId, bool isOnlineRequired = true)
+        public static Player GetPlayerByGuidId(uint playerId)
         {
             sessionLock.EnterReadLock();
             try
             {
                 Session session;
 
-                if (isOnlineRequired)
+               //if (isOnlineRequired)
                     session = sessions.SingleOrDefault(s => s.Player != null && s.Player.IsOnline && s.Player.Guid.Full == playerId);
-                else
-                    session = sessions.SingleOrDefault(s => s.Player != null && s.Player.Guid.Full == playerId);
+               // else
+                 //   session = sessions.SingleOrDefault(s => s.Player != null && s.Player.Guid.Full == playerId);
 
                 return session?.Player;
-            }
-            finally
-            {
-                sessionLock.ExitReadLock();
-            }
-        }
-
-        /// <summary>
-        /// This will return a list of sessions that have this guid as a friend.
-        /// </summary>
-        public static List<Session> FindInverseFriends(ObjectGuid guid)
-        {
-            sessionLock.EnterReadLock();
-            try
-            {
-                return sessions.Where(s => s.Player?.Character?.HasAsFriend(guid.Full, s.Player.CharacterDatabaseLock) == true).ToList();
             }
             finally
             {

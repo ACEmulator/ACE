@@ -86,7 +86,7 @@ namespace ACE.Server.WorldObjects
             // send message to target if online
             if (targetIsOnline)
             {
-                var onlineTarget = WorldManager.GetPlayerByGuidId(targetGuid.Full, true);
+                var onlineTarget = WorldManager.GetPlayerByGuidId(targetGuid.Full);
                 if (onlineTarget != null)
                     onlineTarget.Session.Network.EnqueueSend(new GameMessageSystemChat($"{Name} has broken their Allegiance to you!", ChatMessageType.Broadcast));
             }
