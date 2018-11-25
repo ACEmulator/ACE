@@ -214,6 +214,7 @@ namespace ACE.Server.Managers
             }
         }
 
+        // TODO: Either remove this one, or, remove GetPlayerByGuidId
         public static Session Find(ObjectGuid characterGuid)
         {
             sessionLock.EnterReadLock();
@@ -246,6 +247,7 @@ namespace ACE.Server.Managers
             }
         }
 
+        // TODO: Either remove this one, or, remove Find(ObjectGuid characterGuid)
         /// <summary>
         /// This should only be used when you need the session for a player.
         /// If you simply need an IPlayer object, use PlayerManager.FindByGuid() instead.

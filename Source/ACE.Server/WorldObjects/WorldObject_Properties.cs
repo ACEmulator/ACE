@@ -272,7 +272,6 @@ namespace ACE.Server.WorldObjects
             else if (Biota.TryRemoveProperty(property, BiotaDatabaseLock, biotaPropertyInstanceIds))
                 ChangesDetected = true;
         }
-
         public void RemoveProperty(PropertyInt property)
         {
             if (ephemeralPropertyInts.ContainsKey(property))
@@ -280,7 +279,6 @@ namespace ACE.Server.WorldObjects
             else if (Biota.TryRemoveProperty(property, BiotaDatabaseLock, biotaPropertyInts))
                 ChangesDetected = true;
         }
-
         public void RemoveProperty(PropertyInt64 property)
         {
             if (ephemeralPropertyInt64s.ContainsKey(property))

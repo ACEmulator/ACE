@@ -270,6 +270,7 @@ namespace ACE.Server.Entity
         }
         #endregion
 
+
         public string Name => GetProperty(PropertyString.Name);
 
         public int? Level => GetProperty(PropertyInt.Level);
