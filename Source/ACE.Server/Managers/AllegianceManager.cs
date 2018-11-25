@@ -85,18 +85,18 @@ namespace ACE.Server.Managers
             if (allegiance == null) return;
 
             RemoveCache(allegiance);
-            /* TODO HACK FIX 
+
             // rebuild allegiance
             var refresh = GetAllegiance(allegiance.Monarch.Player);
 
             // relink players
             foreach (var member in allegiance.Members.Keys)
             {
-                var player = WorldManager.GetPlayerByGuidId(member.Guid.Full);
+                var player = PlayerManager.FindByGuid(member.Guid);
                 if (player == null) continue;
 
                 LoadPlayer(player);
-            }*/
+            }
         }
 
         /// <summary>
