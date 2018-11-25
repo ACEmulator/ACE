@@ -87,8 +87,8 @@ namespace ACE.Server.Managers
                     log.Info(shutdownText);
 
                     // special text
-                    foreach (var player in WorldManager.GetAllOnline())
-                        player.WorldBroadcast(shutdownText);
+                    foreach (var player in PlayerManager.GetAllOnline())
+                        player.Session.WorldBroadcast(shutdownText);
 
                     // break function
                     return;
@@ -102,13 +102,14 @@ namespace ACE.Server.Managers
             log.Debug("Logging off all players...");
 
             // logout each player
-            foreach (var player in WorldManager.GetAllOnline())
-                player.LogOffPlayer();
+            foreach (var player in PlayerManager.GetAllOnline())
+                player.Session.LogOffPlayer();
 
             log.Info("Waiting for all players to log off...");
 
             // wait 10 seconds for log-off
-            Thread.Sleep(10000);
+            while (PlayerManager.GetAllOnline().Count > 0)
+                Thread.Sleep(10);
 
             log.Debug("Adding all landblocks to destruction queue...");
 

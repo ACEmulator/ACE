@@ -8,6 +8,7 @@ using ACE.Database;
 using ACE.Database.Models.Shard;
 using ACE.Entity;
 using ACE.Server.Entity;
+using ACE.Server.Network.GameMessages;
 using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Managers
@@ -400,6 +401,16 @@ namespace ACE.Server.Managers
             }
 
             return results;
+        }
+
+
+        /// <summary>
+        /// Broadcasts GameMessage to all online sessions.
+        /// </summary>
+        public static void BroadcastToAll(GameMessage msg)
+        {
+            foreach (var player in GetAllOnline())
+                player.Session.Network.EnqueueSend(msg);
         }
     }
 }

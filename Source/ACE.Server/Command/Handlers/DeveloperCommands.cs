@@ -375,9 +375,9 @@ namespace ACE.Server.Command.Handlers
             string message = "";
             uint playerCounter = 0;
 
-            foreach (Session playerSession in WorldManager.GetAllOnline())
+            foreach (var player in PlayerManager.GetAllOnline())
             {
-                message += $"{playerSession.Player.Name} : {playerSession.Id}\n";
+                message += $"{player.Name} : {player.Session.Id}\n";
                 playerCounter++;
             }
 

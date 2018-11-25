@@ -19,7 +19,6 @@ using ACE.Server.Entity.Actions;
 using ACE.Server.WorldObjects;
 using ACE.Server.Network;
 using ACE.Server.Network.GameEvent.Events;
-using ACE.Server.Network.GameMessages;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Physics;
 using ACE.Server.Physics.Common;
@@ -219,40 +218,6 @@ namespace ACE.Server.Managers
             try
             {
                 return sessions.SingleOrDefault(s => s.Account == account);
-            }
-            finally
-            {
-                sessionLock.ExitReadLock();
-            }
-        }
-
-        /// <summary>
-        /// Returns a list of all sessions currently connected
-        /// </summary>
-        /// <returns>List of all active sessions to the server</returns>
-        public static List<Session> GetAllOnline()
-        {
-            sessionLock.EnterReadLock();
-            try
-            {
-                return sessions.Where(s => s.Player != null && s.Player.IsOnline).ToList();
-            }
-            finally
-            {
-                sessionLock.ExitReadLock();
-            }
-        }
-
-        /// <summary>
-        /// Broadcasts GameMessage to all online sessions.
-        /// </summary>
-        public static void BroadcastToAll(GameMessage msg)
-        {
-            sessionLock.EnterReadLock();
-            try
-            {
-                foreach (Session session in sessions.Where(s => s.Player != null && s.Player.IsOnline).ToList())
-                    session.Network.EnqueueSend(msg);
             }
             finally
             {
