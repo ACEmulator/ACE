@@ -16,7 +16,6 @@ namespace ACE.Server.Factories
 {
     public class LootGenerationFactory
     {
-        public static ScrollHelper scrollHelper = new ScrollHelper();
         // This is throw away code to understand the world object creation process.
 
         public static void Spawn(WorldObject inventoryItem, Position position)
@@ -2341,34 +2340,17 @@ namespace ACE.Server.Factories
 
         public static WorldObject CreateRandomScroll(int tier)
         {
-            Console.WriteLine("Tier for scroll is : " + tier);
-            //WorldDatabase wDb = new WorldDatabase();
+            WorldDatabase wDb = new WorldDatabase();
             Random r = new Random();
-            String className = "";
-            //uint weenieID = (uint)LootHelper.ScrollSpells[r.Next(0, LootHelper.ScrollSpells.Length)][tier];
-            //String className = DatabaseManager.World.GetScrollBySpellID(weenieID);
-            switch(tier)
+            var tier2 = tier;
+            if(tier > 6)
             {
-                case 1:
-                    className = scrollHelper.level1Scrolls[r.Next(scrollHelper.level1Scrolls.Count)].ClassName;
-                    break;
-                case 2:
-                    className = scrollHelper.level2Scrolls[r.Next(scrollHelper.level2Scrolls.Count)].ClassName;
-                    break;
-                case 3:
-                    className = scrollHelper.level3Scrolls[r.Next(scrollHelper.level3Scrolls.Count)].ClassName;
-                    break;
-                case 4:
-                    className = scrollHelper.level4Scrolls[r.Next(scrollHelper.level4Scrolls.Count)].ClassName;
-                    break;
-                case 5:
-                    className = scrollHelper.level5Scrolls[r.Next(scrollHelper.level5Scrolls.Count)].ClassName;
-                    break;
-                default:
-                    className = scrollHelper.level6Scrolls[r.Next(scrollHelper.level6Scrolls.Count)].ClassName;
-                    break;
+
+                tier2 = 6;
+                
             }
-            
+            uint weenieID = (uint)LootHelper.ScrollSpells[r.Next(0, LootHelper.ScrollSpells.Length)][tier2-1];
+            String className = wDb.GetSpellWeenie((uint)tier2, weenieID).ClassName;   
             WorldObject wo = WorldObjectFactory.CreateNewWorldObject(className);
             return wo;
         }
