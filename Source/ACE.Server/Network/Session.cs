@@ -202,6 +202,15 @@ namespace ACE.Server.Network
             Player = player;
         }
 
+        public void RemovePlayer()
+        {
+            if (Player != null)
+            {
+                PlayerManager.SwitchPlayerFromOnlineToOffline(Player);
+                Player = null;
+            }
+        }
+
         public void LogOffPlayer()
         {
             // These properties are used with offline players to determine passup rates
@@ -237,9 +246,7 @@ namespace ACE.Server.Network
 
             State = SessionState.AuthConnected;
 
-            PlayerManager.SwitchPlayerFromOnlineToOffline(Player);
-
-            Player = null;
+            RemovePlayer();
         }
 
         public void BootPlayer()
