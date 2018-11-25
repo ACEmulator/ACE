@@ -231,15 +231,12 @@ namespace ACE.Server.Managers
         /// <summary>
         /// This will loop through the active sessions and find one with a player that is named <paramref name="name"/>, ignoring case.
         /// </summary>
-        public static Session FindByPlayerName(string name, bool isOnlineRequired = true)
+        public static Session FindByPlayerName(string name)
         {
             sessionLock.EnterReadLock();
             try
             {
-                if (isOnlineRequired)
-                    return sessions.SingleOrDefault(s => s.Player != null && s.Player.IsOnline && String.Compare(s.Player.Name, name, StringComparison.OrdinalIgnoreCase) == 0);
-
-                return sessions.SingleOrDefault(s => s.Player != null && String.Compare(s.Player.Name, name, StringComparison.OrdinalIgnoreCase) == 0);
+                return sessions.SingleOrDefault(s => s.Player != null && s.Player.IsOnline && String.Compare(s.Player.Name, name, StringComparison.OrdinalIgnoreCase) == 0);
             }
             finally
             {
@@ -247,7 +244,7 @@ namespace ACE.Server.Managers
             }
         }
 
-        // TODO: Either remove this one, or, remove Find(ObjectGuid characterGuid)
+        /*// TODO: Either remove this one, or, remove Find(ObjectGuid characterGuid)
         /// <summary>
         /// This should only be used when you need the session for a player.
         /// If you simply need an IPlayer object, use PlayerManager.FindByGuid() instead.
@@ -257,12 +254,7 @@ namespace ACE.Server.Managers
             sessionLock.EnterReadLock();
             try
             {
-                Session session;
-
-               //if (isOnlineRequired)
-                    session = sessions.SingleOrDefault(s => s.Player != null && s.Player.IsOnline && s.Player.Guid.Full == playerId);
-               // else
-                 //   session = sessions.SingleOrDefault(s => s.Player != null && s.Player.Guid.Full == playerId);
+                Session session = sessions.SingleOrDefault(s => s.Player != null && s.Player.IsOnline && s.Player.Guid.Full == playerId);
 
                 return session?.Player;
             }
@@ -270,7 +262,7 @@ namespace ACE.Server.Managers
             {
                 sessionLock.ExitReadLock();
             }
-        }
+        }*/
 
         /// <summary>
         /// Returns a list of all sessions currently connected

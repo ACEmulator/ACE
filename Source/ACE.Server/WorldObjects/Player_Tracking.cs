@@ -4,7 +4,6 @@ using System.Linq;
 
 using ACE.Entity;
 using ACE.Entity.Enum;
-using ACE.Server.Managers;
 using ACE.Server.Network.GameMessages.Messages;
 
 using ACE.Server.Physics.Common;
@@ -21,6 +20,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Different than InWorld which is false when in portal space
         /// </summary>
+        [Obsolete]
         public bool IsOnline { get; private set; }
 
         /// <summary>
@@ -52,7 +52,7 @@ namespace ACE.Server.WorldObjects
         public ObjectMaint ObjMaint { get => PhysicsObj.ObjMaint; }
 
         /// <summary>
-        /// Tracks Interacive world object you are have interacted with recently.  this should be
+        /// Tracks Interactive world object you are have interacted with recently.  this should be
         /// called from the context of an action chain being executed by the landblock loop.
         /// </summary>
         public void TrackInteractiveObjects(List<WorldObject> worldObjects)

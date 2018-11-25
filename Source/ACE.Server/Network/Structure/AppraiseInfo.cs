@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+
 using ACE.Database.Models.Shard;
 using ACE.DatLoader;
 using ACE.DatLoader.FileTypes;
@@ -283,7 +284,7 @@ namespace ACE.Server.Network.Structure
             if (weapon.WielderId == null)
                 return null;
 
-            return WorldManager.GetPlayerByGuidId(weapon.WielderId.Value);
+            return PlayerManager.GetOnlinePlayer(weapon.WielderId.Value);
         }
 
         /// <summary>

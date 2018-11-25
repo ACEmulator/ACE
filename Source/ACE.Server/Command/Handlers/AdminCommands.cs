@@ -2,13 +2,11 @@ using System;
 using System.Linq;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
-using System.Numerics;
 using System.Text;
 using System.Threading;
 
 using log4net;
 
-using ACE.Common;
 using ACE.Database;
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
@@ -674,7 +672,7 @@ namespace ACE.Server.Command.Handlers
                         characterName = parameters[0];
 
                     // look up session
-                    var playerSession = WorldManager.FindByPlayerName(characterName, true);
+                    var playerSession = WorldManager.FindByPlayerName(characterName);
 
                     // playerSession will be null when the character is not found
                     if (playerSession != null)

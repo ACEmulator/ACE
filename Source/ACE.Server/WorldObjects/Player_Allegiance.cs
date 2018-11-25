@@ -29,7 +29,7 @@ namespace ACE.Server.WorldObjects
         {
             if (!IsPledgable(targetGuid)) return;
 
-            var patron = WorldManager.GetPlayerByGuidId(targetGuid.Full);
+            var patron = PlayerManager.GetOnlinePlayer(targetGuid);
 
             Patron = targetGuid.Full;
             Monarch = AllegianceManager.GetMonarch(patron).Guid.Full;
@@ -86,7 +86,7 @@ namespace ACE.Server.WorldObjects
             // send message to target if online
             if (targetIsOnline)
             {
-                var onlineTarget = WorldManager.GetPlayerByGuidId(targetGuid.Full);
+                var onlineTarget = PlayerManager.GetOnlinePlayer(targetGuid);
                 if (onlineTarget != null)
                     onlineTarget.Session.Network.EnqueueSend(new GameMessageSystemChat($"{Name} has broken their Allegiance to you!", ChatMessageType.Broadcast));
             }
@@ -198,7 +198,7 @@ namespace ACE.Server.WorldObjects
         /// <param name="showMsg">Set to TRUE if player is logging in</param>
         public void AddCPPoolToUnload(bool showMsg = false)
         {
-            var patron = WorldManager.GetPlayerByGuidId(Guid.Full);
+            var patron = PlayerManager.GetOnlinePlayer(Guid);
 
             // is player logged in?
             if (patron == null || !patron.IsOnline) return;

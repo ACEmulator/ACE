@@ -119,6 +119,20 @@ namespace ACE.Server.Managers
         }
 
         /// <summary>
+        /// This will return null of the name was not found.
+        /// </summary>
+        public static Player GetOnlinePlayer(string name)
+        {
+            var onlinePlayer = OnlinePlayers.Values.FirstOrDefault(p => p.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+
+            if (onlinePlayer != null)
+                return onlinePlayer;
+
+            return null;
+        }
+
+
+        /// <summary>
         /// This will return true if the player was successfully added.
         /// It will return false if the player was not found in the OfflinePlayers dictionary (which should never happen), or player already exists in the OnlinePlayers dictionary (which should never happen).
         /// This will always be preceded by a call to GetOfflinePlayer()<para />

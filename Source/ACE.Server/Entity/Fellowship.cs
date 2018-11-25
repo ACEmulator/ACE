@@ -237,7 +237,7 @@ namespace ACE.Server.Entity
 
             if (CountPlayerAbove() != FellowshipMembers.Count)
             {
-                var leader = WorldManager.GetPlayerByGuidId(FellowshipLeaderGuid);
+                var leader = PlayerManager.GetOnlinePlayer(FellowshipLeaderGuid);
                 SharableMembers = FellowshipMembers.Where(fellow => LevelDifference(leader, fellow) <= 10 || (fellow.Level ?? 1) >= 50).ToList();
             }
             else
@@ -263,7 +263,7 @@ namespace ACE.Server.Entity
 
             if (CountPlayerAbove() != SharableMembers.Count)
             {
-                var leader = WorldManager.GetPlayerByGuidId(FellowshipLeaderGuid);
+                var leader = PlayerManager.GetOnlinePlayer(FellowshipLeaderGuid);
                 foreach (Player p in SharableMembers)
                 {
                     if (Math.Abs((leader.Level ?? 1) - (p.Level ?? 1)) > 5)
@@ -355,7 +355,7 @@ namespace ACE.Server.Entity
         /// </summary>
         internal double GetDistanceScalar(Player player)
         {
-            Position leaderPosition = WorldManager.GetPlayerByGuidId(FellowshipLeaderGuid).Location;
+            Position leaderPosition = PlayerManager.GetOnlinePlayer(FellowshipLeaderGuid).Location;
             Position memberPosition = player.Location;
 
             var dist = memberPosition.Distance2D(leaderPosition);
