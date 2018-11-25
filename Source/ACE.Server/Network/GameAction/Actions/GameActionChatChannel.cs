@@ -230,10 +230,6 @@ namespace ACE.Server.Network.GameAction.Actions
                         foreach (var vassal in session.Player.AllegianceNode.Vassals)
                         {
                             string vassalName = vassal.Player.Name;
-
-                            /* TODO HACK FIX if (DatabaseManager.Authentication.GetAccountById(vassal.Player.Character.AccountId).AccessLevel == 5)
-                                vassalName = "+" + vassalName;*/
-
                             var vassalPlayer = PlayerManager.GetOnlinePlayer(vassalName);
 
                             if (vassalPlayer != null)
@@ -259,10 +255,6 @@ namespace ACE.Server.Network.GameAction.Actions
                         }
 
                         string patronName = session.Player.AllegianceNode.Patron.Player.Name;
-
-                        /* TODO HACK FIX if (DatabaseManager.Authentication.GetAccountById(session.Player.AllegianceNode.Patron.Player.Character.AccountId).AccessLevel == 5)
-                            patronName = "+" + patronName;*/
-
                         var patronPlayer = PlayerManager.GetOnlinePlayer(patronName);
 
                         if (patronPlayer != null)
@@ -288,10 +280,6 @@ namespace ACE.Server.Network.GameAction.Actions
                         }
 
                         string monarchName = session.Player.AllegianceNode.Monarch.Player.Name;
-
-                        /* TODO HACK FIX if (DatabaseManager.Authentication.GetAccountById(session.Player.AllegianceNode.Monarch.Player.Character.AccountId).AccessLevel == 5)
-                            monarchName = "+" + monarchName;*/
-
                         var monarchPlayer = PlayerManager.GetOnlinePlayer(monarchName);
 
                         if (monarchPlayer != null)
@@ -317,10 +305,6 @@ namespace ACE.Server.Network.GameAction.Actions
                         }
 
                         string patronName = session.Player.AllegianceNode.Patron.Player.Name;
-
-                        /* TODO HACK FIX if (DatabaseManager.Authentication.GetAccountById(session.Player.AllegianceNode.Patron.Player.Character.AccountId).AccessLevel == 5)
-                            patronName = "+" + patronName;*/
-
                         var patronPlayer = PlayerManager.GetOnlinePlayer(patronName);
 
                         if (patronPlayer != null)
@@ -330,17 +314,14 @@ namespace ACE.Server.Network.GameAction.Actions
                         {
                             string vassalName = covassal.Player.Name;
 
-                            /* TODO HACK FIX if (DatabaseManager.Authentication.GetAccountById(covassal.Player.Character.AccountId).AccessLevel == 5)
-                                vassalName = "+" + vassalName;*/
-
-                            var covassalPlayer = PlayerManager.GetOnlinePlayer(vassalName);
-
                             if (vassalName == session.Player.Name)
                             {
                                 session.Network.EnqueueSend(new GameEventChannelBroadcast(session, groupChatType, "", message));
                             }
                             else
                             {
+                                var covassalPlayer = PlayerManager.GetOnlinePlayer(vassalName);
+
                                 if (covassalPlayer != null)
                                     covassalPlayer.Session.Network.EnqueueSend(new GameEventChannelBroadcast(covassalPlayer.Session, groupChatType, session.Player.Name, message));
                             }
