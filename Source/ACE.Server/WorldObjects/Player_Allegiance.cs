@@ -63,7 +63,7 @@ namespace ACE.Server.WorldObjects
         {
             if (!IsBreakable(targetGuid)) return;
 
-            var target = PlayerManager.GetOfflinePlayer(targetGuid);
+            var target = PlayerManager.FindByGuid(targetGuid, out var targetIsOnline);
 
             //Console.WriteLine(Name + " breaking allegiance to " + target.Name);
 
@@ -84,9 +84,12 @@ namespace ACE.Server.WorldObjects
             }
 
             // send message to target if online
-            var onlineTarget = WorldManager.GetPlayerByGuidId(targetGuid.Full, true);
-            if (onlineTarget != null)
-                onlineTarget.Session.Network.EnqueueSend(new GameMessageSystemChat($"{Name} has broken their Allegiance to you!", ChatMessageType.Broadcast));
+            if (targetIsOnline)
+            {
+                var onlineTarget = WorldManager.GetPlayerByGuidId(targetGuid.Full, true);
+                if (onlineTarget != null)
+                    onlineTarget.Session.Network.EnqueueSend(new GameMessageSystemChat($"{Name} has broken their Allegiance to you!", ChatMessageType.Broadcast));
+            }
 
             // send message to self
             Session.Network.EnqueueSend(new GameMessageSystemChat($"You have broken your Allegiance to {target.Name}!", ChatMessageType.Broadcast));

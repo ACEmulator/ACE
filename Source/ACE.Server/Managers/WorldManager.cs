@@ -219,7 +219,7 @@ namespace ACE.Server.Managers
             sessionLock.EnterReadLock();
             try
             {
-                return sessions.SingleOrDefault(s => s.Player?.Guid.Low == characterGuid.Low);
+                return sessions.SingleOrDefault(s => s.Player?.Guid == characterGuid);
             }
             finally
             {
@@ -246,6 +246,7 @@ namespace ACE.Server.Managers
             }
         }
 
+        // todo: This should only be used in cases where a session is required. Else, PlayerManager.FindByGuid() should be used.
         public static Player GetPlayerByGuidId(uint playerId, bool isOnlineRequired = true)
         {
             sessionLock.EnterReadLock();

@@ -19,7 +19,7 @@ namespace ACE.Server.Managers
         /// <summary>
         /// Returns the monarch for a player
         /// </summary>
-        public static IPlayer GetMonarch(Player player)
+        public static IPlayer GetMonarch(IPlayer player)
         {
             if (player.Monarch == null)
                 return player;
@@ -33,7 +33,7 @@ namespace ACE.Server.Managers
         /// Returns the full allegiance structure for any player
         /// </summary>
         /// <param name="player">A player at any level of an allegiance</param>
-        public static Allegiance GetAllegiance(Player player)
+        public static Allegiance GetAllegiance(IPlayer player)
         {
             var monarch = GetMonarch(player);
 
@@ -54,7 +54,7 @@ namespace ACE.Server.Managers
         /// <summary>
         /// Returns the AllegianceNode for a Player
         /// </summary>
-        public static AllegianceNode GetAllegianceNode(Player player)
+        public static AllegianceNode GetAllegianceNode(IPlayer player)
         {
             Players.TryGetValue(player, out var allegianceNode);
             return allegianceNode;
@@ -71,7 +71,7 @@ namespace ACE.Server.Managers
         /// <summary>
         /// Loads the Allegiance and AllegianceNode for a Player
         /// </summary>
-        public static void LoadPlayer(Player player)
+        public static void LoadPlayer(IPlayer player)
         {
             player.Allegiance = GetAllegiance(player);
             player.AllegianceNode = GetAllegianceNode(player);
@@ -277,10 +277,10 @@ namespace ACE.Server.Managers
 
             // rebuild for self and target
             Rebuild(GetAllegiance(self));
-            // TODO HACK FIX Rebuild(GetAllegiance(target));
+            Rebuild(GetAllegiance(target));
 
             LoadPlayer(self);
-            // TODO HACK FIX LoadPlayer(target);
+            LoadPlayer(target);
         }
     }
 }
