@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Numerics;
 using ACE.Entity.Enum;
+using ACE.DatLoader;
 using ACE.DatLoader.FileTypes;
 using ACE.Server.Physics.Entity;
 
@@ -20,24 +22,40 @@ namespace ACE.Server.Physics.Common
         public List<ushort> Terrain;
         public VertexArray VertexArray;
         public List<Polygon> Polygons;
-        public List<int> SurfaceStrips;     // SurfaceTriStrips
-        public int BlockSurfaceIndex;
+        //public List<int> SurfaceStrips;     // SurfaceTriStrips
+        //public int BlockSurfaceIndex;
         public Dictionary<int, ObjCell> LandCells;
-        public List<bool> SWtoNEcut;
+        public List<bool> SWtoNEcut { get; set; }
 
-        //public static List<VertexUV> LandUVs;     // texture coordinates unused by server
+        // client-only
+        public static List<Vector2> LandUVs;
+        public static Dictionary<byte, List<Vector2>> LandUVsRotated;
+
         public static List<ushort> SurfChar;
+
+        public static List<byte> SW_Corner;
+        public static List<byte> SE_Corner;
+        public static List<byte> NE_Corner;
+        public static List<byte> NW_Corner;
+
+        public static LandSurf LandSurf;
 
         static LandblockStruct()
         {
-            /*LandUVs = new List<VertexUV>(4);
-            LandUVs.AddRange(new List<VertexUV>()
+            LandUVs = new List<Vector2>(4);
+            LandUVs.AddRange(new List<Vector2>()
             {
-                new VertexUV(0, 1),
-                new VertexUV(1, 1),
-                new VertexUV(1, 0),
-                new VertexUV(0, 0)
-            });*/
+                new Vector2(0, 1),
+                new Vector2(1, 1),
+                new Vector2(1, 0),
+                new Vector2(0, 0)
+            });
+
+            LandUVsRotated = new Dictionary<byte, List<Vector2>>();
+            LandUVsRotated.Add(0, new List<Vector2>() { LandUVs[0], LandUVs[1], LandUVs[2], LandUVs[3] });
+            LandUVsRotated.Add(1, new List<Vector2>() { LandUVs[3], LandUVs[0], LandUVs[1], LandUVs[2] });
+            LandUVsRotated.Add(2, new List<Vector2>() { LandUVs[2], LandUVs[3], LandUVs[0], LandUVs[1] });
+            LandUVsRotated.Add(3, new List<Vector2>() { LandUVs[1], LandUVs[2], LandUVs[3], LandUVs[0] });
 
             SurfChar = new List<ushort>()
             {
@@ -46,6 +64,11 @@ namespace ACE.Server.Physics.Common
                 1, 1, 1, 1, 1, 0, 0, 0,
                 0, 0, 0, 0, 0, 0, 0, 0
             };
+
+            SW_Corner = new List<byte>() { 0, 3, 2, 1 };
+            SE_Corner = new List<byte>() { 1, 0, 3, 2 };
+            NE_Corner = new List<byte>() { 2, 1, 0, 3 };
+            NW_Corner = new List<byte>() { 3, 2, 1, 0 };
         }
 
         public LandblockStruct()
@@ -188,24 +211,34 @@ namespace ACE.Server.Physics.Common
 
                             var cellIdx = x * SideCellCount + y;
                             var vertIdx = idxI * SideVertexCount + idxJ;
-                            var firstVertex = idxI * SidePolyCount + idxJ;
+                            var firstVertex = (idxI * SidePolyCount + idxJ) * 2;
                             var nextVertIdx = (idxI + 1) * SideVertexCount + idxJ;
 
                             var lcell = (LandCell)LandCells[cellIdx];
 
                             if (splitDir * 2.3283064e-10 < 0.5f)
                             {
-                                SWtoNEcut[polyIdx] = false;
+                                 //  2    1---0
+                                 //  | \   \  |
+                                 //  |  \   \ |
+                                 //  0---1    2
 
-                                lcell.Polygons[polyIdx] = AddPolygon(firstVertex * 2, vertIdx, nextVertIdx, vertIdx + 1);
-                                lcell.Polygons[polyIdx + 1] = AddPolygon(firstVertex * 2 + 1, nextVertIdx + 1, vertIdx + 1, nextVertIdx);
+                                SWtoNEcut[cellIdx] = false;
+
+                                lcell.Polygons[polyIdx] = AddPolygon(firstVertex, vertIdx, nextVertIdx, vertIdx + 1);
+                                lcell.Polygons[polyIdx + 1] = AddPolygon(firstVertex + 1, nextVertIdx + 1, vertIdx + 1, nextVertIdx);
                             }
                             else
                             {
-                                SWtoNEcut[polyIdx] = true;
+                                //     2   2---1
+                                //    / |  |  /
+                                //   /  |  | /
+                                //  0---1  0
 
-                                lcell.Polygons[polyIdx] = AddPolygon(firstVertex * 2, vertIdx, nextVertIdx, nextVertIdx + 1);
-                                lcell.Polygons[polyIdx + 1] = AddPolygon(firstVertex * 2 + 1, vertIdx, nextVertIdx + 1, vertIdx + 1);
+                                SWtoNEcut[cellIdx] = true;
+
+                                lcell.Polygons[polyIdx] = AddPolygon(firstVertex, vertIdx, nextVertIdx, nextVertIdx + 1);
+                                lcell.Polygons[polyIdx + 1] = AddPolygon(firstVertex + 1, vertIdx, nextVertIdx + 1, vertIdx + 1);
                             }
                             idxJ++;
                         }
@@ -232,7 +265,56 @@ namespace ACE.Server.Physics.Common
 
         public void ConstructUVs(uint landblockID)
         {
-            // texture coords for rendering omitted
+            for (uint x = 0; x < SidePolyCount; x++)
+            {
+                for (uint y = 0; y < SidePolyCount; y++)
+                {
+                    bool singleTextureCell = false;
+                    uint surfNum = 0;
+                    var rotation = LandDefs.Rotation.Rot0;
+                    GetCellRotation(landblockID, x, y, ref singleTextureCell, ref surfNum, ref rotation);
+
+                    var idx = (int)(2 * (y + x * SidePolyCount));
+                    if (singleTextureCell)
+                    {
+                        Polygons[idx].Stippling = StipplingType.Both;
+                        Polygons[idx + 1].Stippling = StipplingType.Both;
+                    }
+                    var vType = VertexArray.Type;
+
+                    if (SWtoNEcut[idx / 2])
+                    {
+                        if (vType == VertexType.CSWVertexType)
+                        {
+                            Polygons[idx].PosUVIndices = new List<byte>();
+                            Polygons[idx].PosUVIndices.Add(SW_Corner[(int)rotation]);
+                            Polygons[idx].PosUVIndices.Add(SE_Corner[(int)rotation]);
+                            Polygons[idx].PosUVIndices.Add(NE_Corner[(int)rotation]);
+
+                            Polygons[idx + 1].PosUVIndices = new List<byte>();
+                            Polygons[idx + 1].PosUVIndices.Add(SW_Corner[(int)rotation]);
+                            Polygons[idx + 1].PosUVIndices.Add(NE_Corner[(int)rotation]);
+                            Polygons[idx + 1].PosUVIndices.Add(NW_Corner[(int)rotation]);
+                        }
+                    } else
+                    {
+                        if (vType == VertexType.CSWVertexType)
+                        {
+                            Polygons[idx].PosUVIndices = new List<byte>();
+                            Polygons[idx].PosUVIndices.Add(SW_Corner[(int)rotation]);
+                            Polygons[idx].PosUVIndices.Add(SE_Corner[(int)rotation]);
+                            Polygons[idx].PosUVIndices.Add(NW_Corner[(int)rotation]);
+
+                            Polygons[idx + 1].PosUVIndices = new List<byte>();
+                            Polygons[idx + 1].PosUVIndices.Add(NE_Corner[(int)rotation]);
+                            Polygons[idx + 1].PosUVIndices.Add(NW_Corner[(int)rotation]);
+                            Polygons[idx + 1].PosUVIndices.Add(SE_Corner[(int)rotation]);
+                        }
+                    }
+                    Polygons[idx].PosSurface = (short)surfNum;
+                    Polygons[idx + 1].PosSurface = (short)surfNum;
+                }
+            }
         }
 
         public void ConstructVertices()
@@ -269,7 +351,7 @@ namespace ACE.Server.Physics.Common
             VertexArray.Vertices = null;
             Polygons = null;
             SWtoNEcut = null;
-            SurfaceStrips = null;
+            //SurfaceStrips = null;
 
             // omitted vertex lighting
         }
@@ -313,7 +395,12 @@ namespace ACE.Server.Physics.Common
             if (!cellRegen)
                 AdjustPlanes();
             else
+            {
                 ConstructPolygons(landblockID);
+
+                if (!PhysicsEngine.Instance.Server)
+                    ConstructUVs(landblockID);      // client mode only
+            }
 
             CalcWater();
 
@@ -322,16 +409,73 @@ namespace ACE.Server.Physics.Common
             return cellRegen;
         }
 
-        public void GetCellRotation(uint landblockID, uint x, uint y, ref int uvSet, ref int texIdx)
+        public void GetCellRotation(uint landblockID, uint x, uint y, ref bool singleTextureCell, ref uint surfNum, ref LandDefs.Rotation rotation)
         {
-            // only for rotating texture coords?
+            var lcoord = LandDefs.blockid_to_lcoord(landblockID);
+
+            var globalCellX = (int)(lcoord.Value.X + x);
+            var globalCellY = (int)(lcoord.Value.Y + y);
+
+            // no palette shift
+
+            // SW / SE / NE / NW
+            var i = (int)(LandDefs.VertexDim * x + y);
+            var terrain = Terrain[i];
+            var t1 = (terrain & 0x7F) >> 2;
+            var r1 = terrain & 3;
+            var j = (int)(LandDefs.VertexDim * (x + 1) + y);
+            var terrain2 = Terrain[j];
+            var t2 = (terrain2 & 0x7F) >> 2;
+            var r2 = terrain2 & 3;
+            var terrain3 = Terrain[j + 1];
+            var t3 = (terrain3 & 0x7F) >> 2;
+            var r3 = terrain3 & 3;
+            var terrain4 = Terrain[i + 1];
+            var t4 = (terrain4 & 0x7F) >> 2;
+            var r4 = terrain4 & 3;
+
+            /*Console.WriteLine($"LandblockStruct.GetCellRotation({landblockID:X8}, x:{x}, y:{y})");
+            Console.WriteLine($"I1: {i}, I2: {j}, I3: {j+1}, I4: {i+1}");
+            if (r1 != 0 || r2 != 0 || r3 != 0 || r4 != 0)
+                Console.WriteLine($"R1: {r1}, R2: {r2}, R3: {r3}, R4: {r4}");
+            Console.WriteLine($"T1: {(LandDefs.TerrainType)t1}, T2: {(LandDefs.TerrainType)t2}, T3: {(LandDefs.TerrainType)t3}, T4: {(LandDefs.TerrainType)t4}");*/
+
+            var palCodes = new List<uint>();
+
+            palCodes.Add(GetPalCode(r1, r2, r3, r4, t1, t2, t3, t4));   // 0
+            //palCodes.Add(GetPalCode(r2, r3, r4, r1, t2, t3, t4, t1));   // 270
+            //palCodes.Add(GetPalCode(r3, r4, r1, r2, t3, t4, t1, t2));   // 180
+            //palCodes.Add(GetPalCode(r4, r1, r2, r3, t4, t1, t2, t3));   // 90
+
+            var singleRoadCell = r1 == r2 && r1 == r3 && r1 == r4;
+            var singleTypeCell = t1 == t2 && t1 == t3 && t1 == t4;
+
+            singleTextureCell = r1 != 0 ? singleRoadCell : singleRoadCell && singleTypeCell;
+
+            var regionDesc = DatManager.PortalDat.RegionDesc;
+            var minimizePal = true;
+
+            LandSurf.Instance.SelectTerrain(globalCellX, globalCellY, ref surfNum, ref rotation, palCodes, 1, minimizePal);
+        }
+
+        public static uint GetPalCode(int r1, int r2, int r3, int r4, int t1, int t2, int t3, int t4)
+        {
+            var terrainBits = t1 << 15 | t2 << 10 | t3 << 5 | t4;
+            var roadBits = r1 << 26 | r2 << 24 | r3 << 22 | r4 << 20;
+
+            // tex_size = 1 or 4, only used for palette shift (unused?)
+            var sizeBits = 1 << 28;
+
+            return (uint)(sizeBits | roadBits | terrainBits);
+
+            //return (uint)(sizeBits + t4 + 32 * (t3 + 32 * (t2 + 32 * (t1 + 32 * (r4 + 4 * (r3 + 4 * (r2 + 4 * r1)))))));
         }
 
         public void Init()
         {
             TransDir = LandDefs.Direction.Unknown;
             WaterType = LandDefs.WaterType.NotWater;
-            BlockSurfaceIndex = -1;
+            //BlockSurfaceIndex = -1;
 
             // init for landcell
             LandCells = new Dictionary<int, ObjCell>();

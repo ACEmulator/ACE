@@ -3,8 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 
-using ACE.Server.Entity;
-
 namespace ACE.Server.Physics.Common
 {
     /// <summary>

@@ -21,7 +21,7 @@ namespace ACE.Server.Physics
         //public int DegMode;
         public GfxObj GfxObj;
         public Vector3 GfxObjScale;
-        public Position Pos;
+        public Position Pos;        // this contains all of the per-part, per-frame animation data
         //public Position DrawPos;
         //public Material Material;
         //public List<uint> Surfaces;
