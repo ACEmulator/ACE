@@ -17,6 +17,11 @@ namespace ACE.Server.Entity
 
         int? Level { get; }
 
+        int? Heritage { get; }
+
+        int? Gender { get; }
+
+
         uint? Monarch { get; set; }
 
         uint? Patron { get; set; }

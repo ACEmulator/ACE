@@ -274,6 +274,11 @@ namespace ACE.Server.Entity
 
         public int? Level => GetProperty(PropertyInt.Level);
 
+        public int? Heritage => GetProperty(PropertyInt.HeritageGroup);
+
+        public int? Gender => GetProperty(PropertyInt.Gender);
+
+
         public uint? Monarch
         {
             get => GetProperty(PropertyInstanceId.Monarch);

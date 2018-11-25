@@ -65,12 +65,12 @@ namespace ACE.Server.Network.Structure
                 var player = node.Player;
 
                 characterID = player.Guid;
-                /* TODO HACK FIX gender = (Gender)player.Gender;
+                gender = (Gender)player.Gender;
                 hg = (HeritageGroup)player.Heritage;
                 rank = (ushort)node.Rank;
                 level = (uint)player.Level;
-                loyalty = (ushort)player.GetCreatureSkill(Skill.Loyalty).Current;
-                leadership = (ushort)player.GetCreatureSkill(Skill.Leadership).Current;*/
+                loyalty = (ushort)player.GetCurrentLoyalty();
+                leadership = (ushort)player.GetCurrentLeadership();
                 name = player.Name;
             }
 
