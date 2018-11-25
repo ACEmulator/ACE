@@ -165,9 +165,12 @@ namespace ACE.Server.Command.Handlers
                         {
                             // Extract the Id from the parameters
                             uint.TryParse(parameters[1], out bootId);
-                            playerSession = WorldManager.Find(new ObjectGuid(bootId));
-                            if (playerSession != null)
-                                bootName = playerSession.Player.Name;
+                            var targetPlayer = PlayerManager.GetOnlinePlayer(bootId);
+                            if (targetPlayer != null)
+                            {
+                                playerSession = targetPlayer.Session;
+                                bootName = targetPlayer.Name;
+                            }
                             break;
                         }
                 }

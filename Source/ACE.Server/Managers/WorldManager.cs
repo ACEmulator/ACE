@@ -214,20 +214,6 @@ namespace ACE.Server.Managers
             }
         }
 
-        // TODO: Either remove this one, or, remove GetPlayerByGuidId
-        public static Session Find(ObjectGuid characterGuid)
-        {
-            sessionLock.EnterReadLock();
-            try
-            {
-                return sessions.SingleOrDefault(s => s.Player?.Guid == characterGuid);
-            }
-            finally
-            {
-                sessionLock.ExitReadLock();
-            }
-        }
-
         /// <summary>
         /// This will loop through the active sessions and find one with a player that is named <paramref name="name"/>, ignoring case.
         /// </summary>
@@ -243,26 +229,6 @@ namespace ACE.Server.Managers
                 sessionLock.ExitReadLock();
             }
         }
-
-        /*// TODO: Either remove this one, or, remove Find(ObjectGuid characterGuid)
-        /// <summary>
-        /// This should only be used when you need the session for a player.
-        /// If you simply need an IPlayer object, use PlayerManager.FindByGuid() instead.
-        /// </summary>
-        public static Player GetPlayerByGuidId(uint playerId)
-        {
-            sessionLock.EnterReadLock();
-            try
-            {
-                Session session = sessions.SingleOrDefault(s => s.Player != null && s.Player.IsOnline && s.Player.Guid.Full == playerId);
-
-                return session?.Player;
-            }
-            finally
-            {
-                sessionLock.ExitReadLock();
-            }
-        }*/
 
         /// <summary>
         /// Returns a list of all sessions currently connected
