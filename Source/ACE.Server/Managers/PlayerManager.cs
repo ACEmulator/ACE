@@ -234,6 +234,8 @@ namespace ACE.Server.Managers
                 playersLock.ExitWriteLock();
             }
 
+            AllegianceManager.LoadPlayer(player);
+
             player.SendFriendStatusUpdates();
 
             return true;

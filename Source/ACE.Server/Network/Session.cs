@@ -52,15 +52,6 @@ namespace ACE.Server.Network
         private bool bootSession;
 
 
-        // todo: Remove this when WorldManager.LoadAllPlayers() is refactored
-        public bool IsOnline = true;
-
-        // todo: Remove this when WorldManager.LoadAllPlayers() is refactored
-        public Session()
-        {
-            IsOnline = false;
-        }
-
         public Session(IPEndPoint endPoint, ushort clientId, ushort serverId)
         {
             EndPoint = endPoint;

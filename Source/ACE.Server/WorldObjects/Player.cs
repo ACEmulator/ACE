@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
 
 using log4net;
@@ -131,9 +130,6 @@ namespace ACE.Server.WorldObjects
             }
 
             UpdateCoinValue(false);
-
-            if (Session != null && Session.IsOnline)
-                AllegianceManager.LoadPlayer(this);
 
             QuestManager = new QuestManager(this);
 
