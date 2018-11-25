@@ -246,7 +246,10 @@ namespace ACE.Server.Managers
             }
         }
 
-        // todo: This should only be used in cases where a session is required. Else, PlayerManager.FindByGuid() should be used.
+        /// <summary>
+        /// This should only be used when you need the session for a player.
+        /// If you simply need an IPlayer object, use PlayerManager.FindByGuid() instead.
+        /// </summary>
         public static Player GetPlayerByGuidId(uint playerId, bool isOnlineRequired = true)
         {
             sessionLock.EnterReadLock();

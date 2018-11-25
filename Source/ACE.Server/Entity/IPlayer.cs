@@ -15,6 +15,8 @@ namespace ACE.Server.Entity
 
         string Name { get; }
 
+        int? Level { get; }
+
         uint? Monarch { get; set; }
 
         uint? Patron { get; set; }

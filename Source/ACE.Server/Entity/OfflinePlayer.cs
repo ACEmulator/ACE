@@ -272,6 +272,8 @@ namespace ACE.Server.Entity
 
         public string Name => GetProperty(PropertyString.Name);
 
+        public int? Level => GetProperty(PropertyInt.Level);
+
         public uint? Monarch
         {
             get => GetProperty(PropertyInstanceId.Monarch);

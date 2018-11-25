@@ -107,7 +107,7 @@ namespace ACE.Server.WorldObjects
         public bool IsPledgable(ObjectGuid targetGuid)
         {
             // ensure target player is online, and within range
-            var target = WorldManager.GetPlayerByGuidId(targetGuid.Full);
+            var target = PlayerManager.FindByGuid(targetGuid.Full);
             if (target == null)
             {
                 //Console.WriteLine(Name + " tried to swear to an unknown player guid: " + targetGuid.Full.ToString("X8"));
