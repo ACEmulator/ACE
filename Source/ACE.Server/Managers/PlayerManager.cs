@@ -121,6 +121,24 @@ namespace ACE.Server.Managers
             return null;
         }
 
+        public static List<OfflinePlayer> GetAllOffline()
+        {
+            var results = new List<OfflinePlayer>();
+
+            playersLock.EnterReadLock();
+            try
+            {
+                foreach (var player in OfflinePlayers.Values)
+                    results.Add(player);
+            }
+            finally
+            {
+                playersLock.ExitReadLock();
+            }
+
+            return results;
+        }
+
         /// <summary>
         /// This will return null if the player wasn't found.
         /// </summary>
