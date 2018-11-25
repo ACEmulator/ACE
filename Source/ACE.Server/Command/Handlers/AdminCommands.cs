@@ -1739,7 +1739,7 @@ namespace ACE.Server.Command.Handlers
             // todo, add actual system memory used/avail
             sb.Append($"{(proc.PrivateMemorySize64 >> 20)} MB used{'\n'}");  // sb.Append($"{(proc.PrivateMemorySize64 >> 20)} MB used, xxxx / yyyy MB physical mem free.{'\n'}");
 
-            sb.Append($"{WorldManager.GetAll(false).Count} connections, {WorldManager.GetAll().Count} players online{'\n'}");
+            sb.Append($"{WorldManager.GetSessionCount()} connections, {PlayerManager.GetAllOnline().Count} players online{'\n'}");
 
             // 330 active objects, 1931 total objects(16777216 buckets.)
 

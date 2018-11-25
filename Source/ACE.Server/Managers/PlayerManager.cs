@@ -169,6 +169,24 @@ namespace ACE.Server.Managers
             return null;
         }
 
+        public static List<Player> GetAllOnline()
+        {
+            var results = new List<Player>();
+
+            playersLock.EnterReadLock();
+            try
+            {
+                foreach (var player in OnlinePlayers.Values)
+                    results.Add(player);
+            }
+            finally
+            {
+                playersLock.ExitReadLock();
+            }
+
+            return results;
+        }
+
 
         /// <summary>
         /// This will return true if the player was successfully added.
@@ -343,7 +361,7 @@ namespace ACE.Server.Managers
 
 
         /// <summary>
-        /// This will return a list of sessions that have this guid as a friend.
+        /// This will return a list of Players that have this guid as a friend.
         /// </summary>
         public static List<Player> GetOnlineInverseFriends(ObjectGuid guid)
         {

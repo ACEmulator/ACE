@@ -27,7 +27,7 @@ namespace ACE.Server.Network.GameAction.Actions
                             break;
                         }
 
-                        foreach (var recipient in WorldManager.GetAll())
+                        foreach (var recipient in WorldManager.GetAllOnline())
                             if (recipient != session)
                             {
                                 if (recipient.AccessLevel >= AccessLevel.Advocate)
@@ -48,7 +48,7 @@ namespace ACE.Server.Network.GameAction.Actions
                             break;
                         }
 
-                        foreach (var recipient in WorldManager.GetAll())
+                        foreach (var recipient in WorldManager.GetAllOnline())
                             if (recipient != session)
                             {
                                 if (recipient.AccessLevel == AccessLevel.Admin)
@@ -69,7 +69,7 @@ namespace ACE.Server.Network.GameAction.Actions
                             break;
                         }
 
-                        foreach (var recipient in WorldManager.GetAll())
+                        foreach (var recipient in WorldManager.GetAllOnline())
                             if (recipient != session)
                             {
                                 if (recipient.AccessLevel >= AccessLevel.Sentinel)
@@ -90,7 +90,7 @@ namespace ACE.Server.Network.GameAction.Actions
                             break;
                         }
 
-                        foreach (var recipient in WorldManager.GetAll())
+                        foreach (var recipient in WorldManager.GetAllOnline())
                             if (recipient != session)
                             {
                                 if (recipient.AccessLevel >= AccessLevel.Advocate)
@@ -111,7 +111,7 @@ namespace ACE.Server.Network.GameAction.Actions
                             break;
                         }
 
-                        foreach (var recipient in WorldManager.GetAll())
+                        foreach (var recipient in WorldManager.GetAllOnline())
                             if (recipient != session)
                             {
                                 if (recipient.AccessLevel >= AccessLevel.Advocate)
@@ -132,7 +132,7 @@ namespace ACE.Server.Network.GameAction.Actions
                             break;
                         }
 
-                        foreach (var recipient in WorldManager.GetAll())
+                        foreach (var recipient in WorldManager.GetAllOnline())
                             if (recipient != session)
                             {
                                 if (recipient.AccessLevel >= AccessLevel.Advocate)
@@ -153,7 +153,7 @@ namespace ACE.Server.Network.GameAction.Actions
                             break;
                         }
 
-                        foreach (var recipient in WorldManager.GetAll())
+                        foreach (var recipient in WorldManager.GetAllOnline())
                             if (recipient != session)
                             {
                                 if (recipient.AccessLevel >= AccessLevel.Sentinel)
@@ -181,7 +181,7 @@ namespace ACE.Server.Network.GameAction.Actions
                         var gameMessageSystemChat = new GameMessages.Messages.GameMessageSystemChat(whoSays + onTheWhatChannel + ", \"" + message + "\"", ChatMessageType.Help);
 
                         // TODO This should check if the recipient is subscribed to the channel
-                        foreach (var recipient in WorldManager.GetAll())
+                        foreach (var recipient in WorldManager.GetAllOnline())
                             if (recipient != session)
                                 recipient.Network.EnqueueSend(gameMessageSystemChat);
 

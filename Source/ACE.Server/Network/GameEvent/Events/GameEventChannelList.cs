@@ -17,7 +17,7 @@ namespace ACE.Server.Network.GameEvent.Events
             // For now, since everyone is subscribed and unable to alter, let's just list every character connected.
             uint numClientsConnected = 0;
             List<string> playerNames = new List<string>();
-            foreach (var client in WorldManager.GetAll())
+            foreach (var client in WorldManager.GetAllOnline())
             {
                 numClientsConnected++;
                 playerNames.Add(client.Player.Name);

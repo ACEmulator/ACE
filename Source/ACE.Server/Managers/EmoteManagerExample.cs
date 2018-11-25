@@ -59,7 +59,7 @@ namespace ACE.Server.Managers
                 case EmoteType.AdminSpam:
 
                     var text = Replace(emote.Message, WorldObject, target);
-                    var players = WorldManager.GetAll();
+                    var players = WorldManager.GetAllOnline();
                     foreach (var _player in players)
                         _player.Network.EnqueueSend(new GameMessageSystemChat(text, ChatMessageType.AdminTell));
                     break;
@@ -685,7 +685,7 @@ namespace ACE.Server.Managers
                 case EmoteType.WorldBroadcast:
 
                     text = Replace(emote.Message, WorldObject, target);
-                    players = WorldManager.GetAll();
+                    players = WorldManager.GetAllOnline();
                     foreach (var _player in players)
                         _player.Network.EnqueueSend(new GameMessageSystemChat(text, ChatMessageType.WorldBroadcast));
                     break;

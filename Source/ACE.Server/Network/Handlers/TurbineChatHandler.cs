@@ -48,7 +48,7 @@ namespace ACE.Server.Network.Handlers
                 var gameMessageTurbineChat = new GameMessageTurbineChat(TurbineChatType.InboundMessage, channelID, session.Player.Name, message, senderID);
 
                 // TODO This should check if the recipient is subscribed to the channel
-                foreach (var recipient in WorldManager.GetAll())
+                foreach (var recipient in WorldManager.GetAllOnline())
                     recipient.Network.EnqueueSend(gameMessageTurbineChat);
             }
             else

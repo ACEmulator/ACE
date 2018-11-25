@@ -87,7 +87,7 @@ namespace ACE.Server.Managers
                     log.Info(shutdownText);
 
                     // special text
-                    foreach (var player in WorldManager.GetAll())
+                    foreach (var player in WorldManager.GetAllOnline())
                         player.WorldBroadcast(shutdownText);
 
                     // break function
@@ -102,7 +102,7 @@ namespace ACE.Server.Managers
             log.Debug("Logging off all players...");
 
             // logout each player
-            foreach (var player in WorldManager.GetAll())
+            foreach (var player in WorldManager.GetAllOnline())
                 player.LogOffPlayer();
 
             log.Info("Waiting for all players to log off...");

@@ -187,6 +187,19 @@ namespace ACE.Server.Managers
             }
         }
 
+        public static int GetSessionCount()
+        {
+            sessionLock.EnterReadLock();
+            try
+            {
+                return sessions.Count;
+            }
+            finally
+            {
+                sessionLock.ExitReadLock();
+            }
+        }
+
         public static Session Find(uint accountId)
         {
             sessionLock.EnterReadLock();
@@ -216,17 +229,13 @@ namespace ACE.Server.Managers
         /// <summary>
         /// Returns a list of all sessions currently connected
         /// </summary>
-        /// <param name="isOnlineRequired">false returns all players (offline or online)</param>
         /// <returns>List of all active sessions to the server</returns>
-        public static List<Session> GetAll(bool isOnlineRequired = true)
+        public static List<Session> GetAllOnline()
         {
             sessionLock.EnterReadLock();
             try
             {
-                if (isOnlineRequired)
-                    return sessions.Where(s => s.Player != null && s.Player.IsOnline).ToList();
-
-                return sessions.ToList();
+                return sessions.Where(s => s.Player != null && s.Player.IsOnline).ToList();
             }
             finally
             {
