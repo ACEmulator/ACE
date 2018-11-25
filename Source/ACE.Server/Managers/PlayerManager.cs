@@ -226,12 +226,17 @@ namespace ACE.Server.Managers
                 player.Allegiance = offlinePlayer.Allegiance;
                 player.AllegianceNode = offlinePlayer.AllegianceNode;
 
-                return OnlinePlayers.TryAdd(player.Guid, player);
+                if (!OnlinePlayers.TryAdd(player.Guid, player))
+                    return false;
             }
             finally
             {
                 playersLock.ExitWriteLock();
             }
+
+            player.SendFriendStatusUpdates();
+
+            return true;
         }
 
         /// <summary>
@@ -251,12 +256,17 @@ namespace ACE.Server.Managers
                 offlinePlayer.Allegiance = player.Allegiance;
                 offlinePlayer.AllegianceNode = player.AllegianceNode;
 
-                return OfflinePlayers.TryAdd(offlinePlayer.Guid, offlinePlayer);
+                if (!OfflinePlayers.TryAdd(offlinePlayer.Guid, offlinePlayer))
+                    return false;
             }
             finally
             {
                 playersLock.ExitWriteLock();
             }
+
+            player.SendFriendStatusUpdates(false);
+
+            return true;
         }
 
 

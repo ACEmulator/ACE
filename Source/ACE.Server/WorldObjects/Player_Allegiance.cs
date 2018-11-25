@@ -201,7 +201,7 @@ namespace ACE.Server.WorldObjects
             var patron = PlayerManager.GetOnlinePlayer(Guid);
 
             // is player logged in?
-            if (patron == null || !patron.IsOnline) return;
+            if (patron == null) return;
 
             if (CPPoolToUnload == 0) return;
 

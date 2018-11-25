@@ -18,8 +18,6 @@ namespace ACE.Server.WorldObjects
     {
         public void PlayerEnterWorld()
         {
-            IsOnline = true;
-
             // Save the the LoginTimestamp
             var lastLoginTimestamp = Time.GetUnixTime();
 
@@ -33,8 +31,6 @@ namespace ACE.Server.WorldObjects
 
             // SendSelf will trigger the entrance into portal space
             SendSelf();
-
-            SendFriendStatusUpdates();
 
             // Init the client with the chat channel ID's, and then notify the player that they've choined the associated channels.
             var setTurbineChatChannels = new GameEventSetTurbineChatChannels(Session, 0, 1, 2, 3, 4, 6, 7, 0, 0, 0); // TODO these are hardcoded right now
@@ -143,14 +139,28 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Will send out GameEventFriendsListUpdate packets to everyone online that has this player as a friend.
         /// </summary>
-        private void SendFriendStatusUpdates()
+        public void SendFriendStatusUpdates()
         {
             var inverseFriends = PlayerManager.GetOnlineInverseFriends(Guid);
 
             foreach (var friend in inverseFriends)
             {
                 var playerFriend = new CharacterPropertiesFriendList { CharacterId = friend.Guid.Full, FriendId = Guid.Full };
-                friend.Session.Network.EnqueueSend(new GameEventFriendsListUpdate(friend.Session, GameEventFriendsListUpdate.FriendsUpdateTypeFlag.FriendStatusChanged, playerFriend, true, GetVirtualOnlineStatus()));
+                friend.Session.Network.EnqueueSend(new GameEventFriendsListUpdate(friend.Session, GameEventFriendsListUpdate.FriendsUpdateTypeFlag.FriendStatusChanged, playerFriend, true, !GetAppearOffline()));
+            }
+        }
+
+        /// <summary>
+        /// Will send out GameEventFriendsListUpdate packets to everyone online that has this player as a friend.
+        /// </summary>
+        public void SendFriendStatusUpdates(bool onlineStatus)
+        {
+            var inverseFriends = PlayerManager.GetOnlineInverseFriends(Guid);
+
+            foreach (var friend in inverseFriends)
+            {
+                var playerFriend = new CharacterPropertiesFriendList { CharacterId = friend.Guid.Full, FriendId = Guid.Full };
+                friend.Session.Network.EnqueueSend(new GameEventFriendsListUpdate(friend.Session, GameEventFriendsListUpdate.FriendsUpdateTypeFlag.FriendStatusChanged, playerFriend, true, onlineStatus));
             }
         }
 

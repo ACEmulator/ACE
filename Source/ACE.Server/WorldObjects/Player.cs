@@ -137,8 +137,6 @@ namespace ACE.Server.WorldObjects
 
             QuestManager = new QuestManager(this);
 
-            IsOnline = true;
-
             return; // todo
             /* todo fix for new EF model
             TrackedContracts = new Dictionary<uint, ContractTracker>();
@@ -475,17 +473,6 @@ namespace ACE.Server.WorldObjects
         }
 
  
-        /// <summary>
-        /// Returns false if the player has chosen to Appear Offline.  Otherwise it will return their actual online status.
-        /// </summary>
-        public bool GetVirtualOnlineStatus()
-        {
-            if (GetCharacterOption(CharacterOption.AppearOffline))
-                return false;
-
-            return IsOnline;
-        }
-
         public void HandleActionLogout(bool clientSessionTerminatedAbruptly = false)
         {
             GetLogoutChain().EnqueueChain();
@@ -515,17 +502,9 @@ namespace ACE.Server.WorldObjects
         private void LogoutInternal(bool clientSessionTerminatedAbruptly)
         {
             if (Fellowship != null)
-            {
                 FellowshipQuit(false);
-            }
-
-            if (!IsOnline)
-                return;
 
             InWorld = false;
-            IsOnline = false;
-
-            SendFriendStatusUpdates();
 
             if (!clientSessionTerminatedAbruptly)
             {

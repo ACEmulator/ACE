@@ -18,12 +18,6 @@ namespace ACE.Server.WorldObjects
         public bool InWorld { get; set; }
 
         /// <summary>
-        /// Different than InWorld which is false when in portal space
-        /// </summary>
-        [Obsolete]
-        public bool IsOnline { get; private set; }
-
-        /// <summary>
         /// ObjectId of the currently selected Target (only players and creatures)
         /// </summary>
         private ObjectGuid selectedTarget = ObjectGuid.Invalid;

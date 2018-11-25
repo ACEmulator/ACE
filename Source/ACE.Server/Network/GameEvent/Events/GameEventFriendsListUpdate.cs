@@ -75,7 +75,7 @@ namespace ACE.Server.Network.GameEvent.Events
                 {
                     // Does this friend want to appear offline?
                     var onlineFriend = PlayerManager.GetOnlinePlayer(f.FriendId);
-                    if (onlineFriend != null && !onlineFriend.GetVirtualOnlineStatus())
+                    if (onlineFriend != null && !onlineFriend.GetAppearOffline())
                         isOnline = false;
                 }
 

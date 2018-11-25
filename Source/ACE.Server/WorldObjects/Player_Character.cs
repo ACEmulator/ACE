@@ -186,10 +186,15 @@ namespace ACE.Server.WorldObjects
             log.Warn("HandleActionRemoveAllFriends is not implemented.");
         }
 
+        public bool GetAppearOffline()
+        {
+            return GetCharacterOption(CharacterOption.AppearOffline);
+        }
+
         /// <summary>
         /// Set the AppearOffline option to the provided value.  It will also send out an update to all online clients that have this player as a friend. This option does not save to the database.
         /// </summary>
-        public void AppearOffline(bool appearOffline)
+        public void SetAppearOffline(bool appearOffline)
         {
             SetCharacterOption(CharacterOption.AppearOffline, appearOffline);
             SendFriendStatusUpdates();
