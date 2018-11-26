@@ -77,12 +77,12 @@ namespace ACE.Database
         private static ConcurrentDictionary<uint, Weenie> level6Scrolls = new ConcurrentDictionary<uint, Weenie>();
         public static Boolean areSpellWeeniesLoaded = false;
 
-        public Boolean AreSpellWeeniesLoaded()
+        public static Boolean AreSpellWeeniesLoaded()
         {
             return areSpellWeeniesLoaded;
         }
 
-        public Weenie GetSpellWeenie(uint tier, uint spellID)
+        public static Weenie GetSpellWeenie(uint tier, uint spellID)
         {
             areSpellWeeniesLoaded = true;
             Weenie val;
