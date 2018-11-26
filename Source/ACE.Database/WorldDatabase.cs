@@ -4,16 +4,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage;
-
 using log4net;
-
 using ACE.Database.Models.World;
 using ACE.Entity.Enum;
-using System.Diagnostics;
 
 namespace ACE.Database
 {
@@ -79,9 +75,16 @@ namespace ACE.Database
         private static ConcurrentDictionary<uint, Weenie> level4Scrolls = new ConcurrentDictionary<uint, Weenie>();
         private static ConcurrentDictionary<uint, Weenie> level5Scrolls = new ConcurrentDictionary<uint, Weenie>();
         private static ConcurrentDictionary<uint, Weenie> level6Scrolls = new ConcurrentDictionary<uint, Weenie>();
+        public static Boolean areSpellWeeniesLoaded = false;
+
+        public Boolean AreSpellWeeniesLoaded()
+        {
+            return areSpellWeeniesLoaded;
+        }
 
         public Weenie GetSpellWeenie(uint tier, uint spellID)
         {
+            areSpellWeeniesLoaded = true;
             Weenie val;
             switch (tier)
             {
@@ -93,12 +96,12 @@ namespace ACE.Database
                     else
                     {
                         var context = new WorldDbContext();
-                        var result = from weenie in context.Weenie
+                        var spellWeenie = from weenie in context.Weenie
                                      join did in context.WeeniePropertiesDID on weenie.ClassId equals did.ObjectId
                                      where weenie.Type == 34 && did.Type == 28 && did.Value == spellID
                                      select weenie;
-                        level1Scrolls[spellID] = result.FirstOrDefault();
-                        return result.FirstOrDefault();
+                        level1Scrolls[spellID] = spellWeenie.FirstOrDefault();
+                        return level1Scrolls[spellID];
                     }
                 case 2:
                     if (level2Scrolls.TryGetValue(spellID, out val))
@@ -108,12 +111,12 @@ namespace ACE.Database
                     else
                     {
                         var context = new WorldDbContext();
-                        var result = from weenie in context.Weenie
+                        var spellWeenie = from weenie in context.Weenie
                                      join did in context.WeeniePropertiesDID on weenie.ClassId equals did.ObjectId
                                      where weenie.Type == 34 && did.Type == 28 && did.Value == spellID
                                      select weenie;
-                        level2Scrolls[spellID] = result.FirstOrDefault();
-                        return result.FirstOrDefault();
+                        level2Scrolls[spellID] = spellWeenie.FirstOrDefault();
+                        return level2Scrolls[spellID];
                     }
                 case 3:
                     if (level3Scrolls.TryGetValue(spellID, out val))
@@ -123,12 +126,12 @@ namespace ACE.Database
                     else
                     {
                         var context = new WorldDbContext();
-                        var result = from weenie in context.Weenie
+                        var spellWeenie = from weenie in context.Weenie
                                      join did in context.WeeniePropertiesDID on weenie.ClassId equals did.ObjectId
                                      where weenie.Type == 34 && did.Type == 28 && did.Value == spellID
                                      select weenie;
-                        level3Scrolls[spellID] = result.FirstOrDefault();
-                        return result.FirstOrDefault();
+                        level3Scrolls[spellID] = spellWeenie.FirstOrDefault();
+                        return level3Scrolls[spellID];
                     }
                 case 4:
                     if (level4Scrolls.TryGetValue(spellID, out val))
@@ -138,12 +141,12 @@ namespace ACE.Database
                     else
                     {
                         var context = new WorldDbContext();
-                        var result = from weenie in context.Weenie
+                        var spellWeenie = from weenie in context.Weenie
                                      join did in context.WeeniePropertiesDID on weenie.ClassId equals did.ObjectId
                                      where weenie.Type == 34 && did.Type == 28 && did.Value == spellID
                                      select weenie;
-                        level4Scrolls[spellID] = result.FirstOrDefault();
-                        return result.FirstOrDefault();
+                        level4Scrolls[spellID] = spellWeenie.FirstOrDefault();
+                        return level4Scrolls[spellID];
                     }
                 case 5:
                     if (level5Scrolls.TryGetValue(spellID, out val))
@@ -153,12 +156,12 @@ namespace ACE.Database
                     else
                     {
                         var context = new WorldDbContext();
-                        var result = from weenie in context.Weenie
+                        var spellWeenie = from weenie in context.Weenie
                                      join did in context.WeeniePropertiesDID on weenie.ClassId equals did.ObjectId
                                      where weenie.Type == 34 && did.Type == 28 && did.Value == spellID
                                      select weenie;
-                        level5Scrolls[spellID] = result.FirstOrDefault();
-                        return result.FirstOrDefault();
+                        level5Scrolls[spellID] = spellWeenie.FirstOrDefault();
+                        return level5Scrolls[spellID];
                     }
                 default:
                     if (level6Scrolls.TryGetValue(spellID, out val))
@@ -168,12 +171,12 @@ namespace ACE.Database
                     else
                     {
                         var context = new WorldDbContext();
-                        var result = from weenie in context.Weenie
+                        var spellWeenie = from weenie in context.Weenie
                                      join did in context.WeeniePropertiesDID on weenie.ClassId equals did.ObjectId
                                      where weenie.Type == 34 && did.Type == 28 && did.Value == spellID
                                      select weenie;
-                        level6Scrolls[spellID] = result.FirstOrDefault();
-                        return result.FirstOrDefault();
+                        level6Scrolls[spellID] = spellWeenie.FirstOrDefault();
+                        return level6Scrolls[spellID];
                     }
             }
 

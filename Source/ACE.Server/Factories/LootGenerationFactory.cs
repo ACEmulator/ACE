@@ -2340,7 +2340,26 @@ namespace ACE.Server.Factories
 
         public static WorldObject CreateRandomScroll(int tier)
         {
+            uint weenieID;
             WorldDatabase wDb = new WorldDatabase();
+            if(!wDb.AreSpellWeeniesLoaded())
+            {
+                for(int i = 0; i < LootHelper.ScrollSpells.Length; i++)
+                {
+                    weenieID = (uint)LootHelper.ScrollSpells[i][0];
+                    wDb.GetSpellWeenie(1, weenieID);
+                    weenieID = (uint)LootHelper.ScrollSpells[i][1];
+                    wDb.GetSpellWeenie(2, weenieID);
+                    weenieID = (uint)LootHelper.ScrollSpells[i][2];
+                    wDb.GetSpellWeenie(3, weenieID);
+                    weenieID = (uint)LootHelper.ScrollSpells[i][3];
+                    wDb.GetSpellWeenie(4, weenieID);
+                    weenieID = (uint)LootHelper.ScrollSpells[i][4];
+                    wDb.GetSpellWeenie(5, weenieID);
+                    weenieID = (uint)LootHelper.ScrollSpells[i][5];
+                    wDb.GetSpellWeenie(6, weenieID);
+                }
+            }
             Random r = new Random();
             var tier2 = tier;
             if(tier > 6)
@@ -2349,7 +2368,7 @@ namespace ACE.Server.Factories
                 tier2 = 6;
                 
             }
-            uint weenieID = (uint)LootHelper.ScrollSpells[r.Next(0, LootHelper.ScrollSpells.Length)][tier2-1];
+            weenieID = (uint)LootHelper.ScrollSpells[r.Next(0, LootHelper.ScrollSpells.Length)][tier2-1];
             String className = wDb.GetSpellWeenie((uint)tier2, weenieID).ClassName;   
             WorldObject wo = WorldObjectFactory.CreateNewWorldObject(className);
             return wo;
