@@ -2,7 +2,7 @@
 
 ### 2018-11-25
 [fartwhif]
-fixing bug causing AcknowledgeSequence packets to increment the lastReceivedFragmentSequence variable, causing the Sequence to break and never recover for that session
+fixing bug causing AcknowledgeSequence packets to increment the lastReceivedPacketSequence variable, causing the sequence to break and never recover for that session
 fixing bug causing RequestTransmit packets to be ignored
 fixing bug causing the server to crash when a C2S packet is corrupt or malformed
 changing the C2S RequestForTransmit packet count to be per request packet instead of per requested sequence
