@@ -1,5 +1,14 @@
 # ACEmulator Change Log
 
+### 2018-11-25
+[fartwhif]
+fixing bug causing AcknowledgeSequence packets to increment the lastReceivedFragmentSequence variable, causing the Sequence to break and never recover for that session
+fixing bug causing RequestTransmit packets to be ignored
+fixing bug causing the server to crash when a C2S packet is corrupt or malformed
+changing the C2S RequestForTransmit packet count to be per request packet instead of per requested sequence
+adding Developer commands junk, junk_s2c, junk_c2s, trash_s2c, and trash_c2s to simulate bad connections and manually corrupt packets
+adding a generational feature to ISSAC to aid in stabilization of network layer
+
 ### 2018-11-01
 [Ripley]
 * Update EmoteManager and WorldObject Generator with fixes for Anniversary event emotes. 
