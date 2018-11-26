@@ -16,7 +16,7 @@ namespace ACE.Server.Network
 
         public ClientPacket(byte[] data)
         {
-            ParsePacketData(data);
+            ParsePacketData(NetworkSyntheticTesting.SyntheticCorruption_C2S(data));
             if (IsValid)
                 ReadFragments();
         }
@@ -30,15 +30,26 @@ namespace ACE.Server.Network
                     using (var reader = new BinaryReader(stream))
                     {
                         Header = new PacketHeader(reader);
+                        if (Header.Size > data.Length - reader.BaseStream.Position)
+                        {
+                            IsValid = false;
+                            return;
+                        }
                         Data = new MemoryStream(reader.ReadBytes(Header.Size), 0, Header.Size, false, true);
                         Payload = new BinaryReader(Data);
                         HeaderOptional = new PacketHeaderOptional(Payload, Header);
+                        if (!HeaderOptional.IsValid)
+                        {
+                            IsValid = false;
+                            return;
+                        }
                     }
                 }
                 IsValid = true;
             }
             catch(Exception ex)
             {
+                IsValid = false;
                 log.Error("Invalid packet data", ex);
             }
         }
@@ -48,7 +59,18 @@ namespace ACE.Server.Network
             if (Header.HasFlag(PacketHeaderFlags.BlobFragments))
             {
                 while (Payload.BaseStream.Position != Payload.BaseStream.Length)
-                    Fragments.Add(new ClientPacketFragment(Payload));
+                {
+                    try
+                    {
+                        Fragments.Add(new ClientPacketFragment(Payload));
+                    }
+                    catch (Exception ex)
+                    {
+                        // corrupt packet
+                        IsValid = false;
+                        break;
+                    }
+                }
             }
         }
 

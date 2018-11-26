@@ -12,6 +12,7 @@ namespace ACE.Server.Network
         public double TimeSynch { get; private set; }
         public float EchoRequestClientTime { get; private set; }
         public List<uint> RetransmitData { get; } = new List<uint>();
+        public bool IsValid { get; private set; } = true;
 
         private MemoryStream headerBytes = new MemoryStream();
 
@@ -27,29 +28,33 @@ namespace ACE.Server.Network
 
             if (header.HasFlag(PacketHeaderFlags.RequestRetransmit)) // 0x1000
             {
+                if (payload.BaseStream.Length < payload.BaseStream.Position + 4) { IsValid = false; return; }
                 uint retransmitCount = payload.ReadUInt32();
                 writer.Write(retransmitCount);
                 for (uint i = 0u; i < retransmitCount; i++)
                 {
+                    if (payload.BaseStream.Length < payload.BaseStream.Position + 4) { IsValid = false; return; }
                     uint sequence = payload.ReadUInt32();
                     writer.Write(sequence);
                     RetransmitData.Add(sequence);
-                    NetworkStatistics.C2S_RequestsForRetransmit_Aggregate_Increment();
                 }
             }
 
             if (header.HasFlag(PacketHeaderFlags.RejectRetransmit)) // 0x2000
             {
+                if (payload.BaseStream.Length < payload.BaseStream.Position + 4) { IsValid = false; return; }
                 uint count = payload.ReadUInt32();
                 writer.Write(count);
                 for (int i = 0; i < count; i++)
                 {
+                    if (payload.BaseStream.Length < payload.BaseStream.Position + 4) { IsValid = false; return; }
                     writer.Write(payload.ReadBytes(4));
                 }
             }
 
             if (header.HasFlag(PacketHeaderFlags.AckSequence)) // 0x4000
             {
+                if (payload.BaseStream.Length < payload.BaseStream.Position + 4) { IsValid = false; return; }
                 Sequence = payload.ReadUInt32();
                 writer.Write(Sequence);
             }
@@ -58,6 +63,7 @@ namespace ACE.Server.Network
             {
                 var position = payload.BaseStream.Position;
                 var length = payload.BaseStream.Length - position;
+                if (length < 1) { IsValid = false; return; }
                 byte[] loginBytes = new byte[length];
                 payload.BaseStream.Read(loginBytes, (int)position, (int)length);
                 writer.Write(loginBytes);
@@ -66,6 +72,7 @@ namespace ACE.Server.Network
 
             if (header.HasFlag(PacketHeaderFlags.WorldLoginRequest)) // 0x20000
             {
+                if (payload.BaseStream.Length < payload.BaseStream.Position + 8) { IsValid = false; return; }
                 var position = payload.BaseStream.Position;
                 writer.Write(payload.ReadBytes(8));
                 payload.BaseStream.Position = position;
@@ -74,29 +81,34 @@ namespace ACE.Server.Network
             if (header.HasFlag(PacketHeaderFlags.ConnectResponse)) // 0x80000
             {
                 var position = payload.BaseStream.Position;
+                if (payload.BaseStream.Length < payload.BaseStream.Position + 8) { IsValid = false; return; }
                 writer.Write(payload.ReadBytes(8));
                 payload.BaseStream.Position = position;
             }
 
             if (header.HasFlag(PacketHeaderFlags.CICMDCommand)) // 0x400000
             {
+                if (payload.BaseStream.Length < payload.BaseStream.Position + 8) { IsValid = false; return; }
                 writer.Write(payload.ReadBytes(8));
             }
 
             if (header.HasFlag(PacketHeaderFlags.TimeSync)) // 0x1000000
             {
+                if (payload.BaseStream.Length < payload.BaseStream.Position + 8) { IsValid = false; return; }
                 TimeSynch = payload.ReadDouble();
                 writer.Write(TimeSynch);
             }
 
             if (header.HasFlag(PacketHeaderFlags.EchoRequest)) // 0x2000000
             {
+                if (payload.BaseStream.Length < payload.BaseStream.Position + 4) { IsValid = false; return; }
                 EchoRequestClientTime = payload.ReadSingle();
                 writer.Write(EchoRequestClientTime);
             }
 
             if (header.HasFlag(PacketHeaderFlags.Flow)) // 0x8000000
             {
+                if (payload.BaseStream.Length < payload.BaseStream.Position + 6) { IsValid = false; return; }
                 writer.Write(payload.ReadBytes(6));
             }
 
