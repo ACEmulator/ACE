@@ -1551,6 +1551,26 @@ namespace ACE.Server.Physics
             if (ScriptManager != null) ScriptManager.UpdateScripts();
         }
 
+        public void UpdateAnimationInternal(double quantum)
+        {
+            if (!TransientState.HasFlag(TransientStateFlags.Active))
+                return;
+
+            if (TransientState.HasFlag(TransientStateFlags.CheckEthereal))
+                set_ethereal(false, false);
+
+            JumpedThisFrame = false;
+            var newPos = new Position(Position.ObjCellID);
+
+            //UpdatePositionInternal(quantum, ref newPos.Frame);
+            if (PartArray != null)
+                PartArray.Update(quantum, ref newPos.Frame);
+
+            set_frame(newPos.Frame);
+
+            if (PartArray != null) PartArray.HandleMovement();
+        }
+
         public void UpdatePartsInternal()
         {
             if (PartArray == null || State.HasFlag(PhysicsState.ParticleEmitter))
@@ -3206,8 +3226,11 @@ namespace ACE.Server.Physics
 
             // custom for server:
             // only update part frames for objects with physics bsp
-            if (PartArray != null && !State.HasFlag(PhysicsState.ParticleEmitter) && State.HasFlag(PhysicsState.HasPhysicsBSP))
+            if (PartArray != null && !State.HasFlag(PhysicsState.ParticleEmitter)
+                && (State.HasFlag(PhysicsState.HasPhysicsBSP) || !PhysicsEngine.Instance.Server))
+            {
                 PartArray.SetFrame(frame);
+            }
 
             UpdateChildrenInternal();
         }
@@ -3745,6 +3768,46 @@ namespace ACE.Server.Physics
             {
                 PhysicsTimer_CurrentTime += deltaTime;
                 UpdateObjectInternal(deltaTime);
+            }
+
+            UpdateTime = PhysicsTimer_CurrentTime;
+            return true;
+        }
+
+        public bool update_animation()
+        {
+            if (Parent != null || State.HasFlag(PhysicsState.Frozen))
+            {
+                TransientState &= ~TransientStateFlags.Active;
+                return false;
+            }
+
+            PhysicsTimer_CurrentTime = UpdateTime;
+
+            var deltaTime = PhysicsTimer.CurrentTime - UpdateTime;
+
+            if (deltaTime < TickRate)
+                return false;
+
+            //Console.WriteLine("deltaTime: " + deltaTime);
+
+            if (deltaTime > PhysicsGlobals.HugeQuantum)
+            {
+                UpdateTime = PhysicsTimer.CurrentTime;   // consume time?
+                return false;
+            }
+
+            while (deltaTime > PhysicsGlobals.MaxQuantum)
+            {
+                PhysicsTimer_CurrentTime += PhysicsGlobals.MaxQuantum;
+                UpdateAnimationInternal(PhysicsGlobals.MaxQuantum);
+                deltaTime -= PhysicsGlobals.MaxQuantum;
+            }
+
+            if (deltaTime > PhysicsGlobals.MinQuantum)
+            {
+                PhysicsTimer_CurrentTime += deltaTime;
+                UpdateAnimationInternal(deltaTime);
             }
 
             UpdateTime = PhysicsTimer_CurrentTime;
