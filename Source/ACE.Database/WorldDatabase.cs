@@ -7,7 +7,9 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage;
+
 using log4net;
+
 using ACE.Database.Models.World;
 using ACE.Entity.Enum;
 
@@ -333,6 +335,39 @@ namespace ACE.Database
             return GetWeenie(weenieClassId); // This will add the result into the weenieCache
         }
 
+        private readonly ConcurrentDictionary<int, List<Weenie>> weenieCacheByType = new ConcurrentDictionary<int, List<Weenie>>();
+
+        public List<Weenie> GetRandomCachedWeeniesOfType(int weenieTypeId, int count)
+        {
+            if (!weenieCacheByType.TryGetValue(weenieTypeId, out var weenies))
+            {
+                weenies = new List<Weenie>();
+
+                foreach (var weenie in weenieCache.Values)
+                {
+                    if (weenie != null && weenie.Type == weenieTypeId)
+                        weenies.Add(weenie);
+                }
+
+                weenieCacheByType[weenieTypeId] = weenies;
+            }
+
+            var rand = new Random();
+
+            var results = new List<Weenie>();
+
+            for (int i = 0; i < count; i++)
+            {
+                var index = rand.Next(0, weenies.Count - 1);
+
+                var weenie = GetCachedWeenie(weenies[index].ClassId);
+
+                results.Add(weenie);
+            }
+
+            return results;
+        }
+
         /// <summary>
         /// This will make sure every weenie in the database has been read and cached.<para />
         /// This function may take 15+ minutes to complete.
@@ -372,32 +407,6 @@ namespace ACE.Database
                     if (!weenieCache.ContainsKey(result.ClassId))
                         GetWeenie(result.ClassId);
                 });
-            }
-        }
-
-        public List<Weenie> GetRandomWeeniesOfType(int weenieTypeId, int count)
-        {
-            using (var context = new WorldDbContext())
-            {
-                var results = context.Weenie
-                    .AsNoTracking()
-                    .Where(r => r.Type == weenieTypeId)
-                    .ToList();
-
-                var rand = new Random();
-
-                var weenies = new List<Weenie>();
-
-                for (int i = 0; i < count; i++)
-                {
-                    var index = rand.Next(0, results.Count - 1);
-
-                    var weenie = GetCachedWeenie(results[index].ClassId);
-
-                    weenies.Add(weenie);
-                }
-
-                return weenies;
             }
         }
 
