@@ -7,6 +7,7 @@ namespace ACE.Common.Cryptography
 {
     public class ISAAC
     {
+#if NETDIAG
         private Queue<ISAAC> ancestry = new Queue<ISAAC>();
         public ISAAC Copy()
         {
@@ -21,7 +22,8 @@ namespace ACE.Common.Cryptography
                 return ancestry.ToArray().LastOrDefault();
             }
         }
-        private void SetInternalState(uint offset, uint a, uint b, uint c, uint[] mm, uint[] randRsl, Queue<ISAAC> ancestry)
+#endif
+        private void SetInternalState(uint offset, uint a, uint b, uint c, uint[] mm, uint[] randRsl)
         {
             this.offset = offset;
             this.a = a;
@@ -31,13 +33,17 @@ namespace ACE.Common.Cryptography
             this.randRsl = new uint[256];
             Array.Copy(mm, this.mm, mm.Length);
             Array.Copy(randRsl, this.randRsl, randRsl.Length);
-
+        }
+#if NETDIAG
+        private void SetInternalState(uint offset, uint a, uint b, uint c, uint[] mm, uint[] randRsl, Queue<ISAAC> ancestry)
+        {
+            SetInternalState(offset, a, b, c, mm, randRsl);
             var g = ancestry.ToArray();
             var f = new ISAAC[g.Length];
             Array.Copy(g, f, g.Length);
             this.ancestry = new Queue<ISAAC>(f);
         }
-
+#endif
         public static byte[] ClientSeed { get; } = { 0x60, 0xAF, 0x54, 0x6D }; // C->S    // TO-DO: needs to be random
         public static byte[] ServerSeed { get; } = { 0xCD, 0xD7, 0xEB, 0x45 }; // S->C    // TO-DO: needs to be random
         public static byte[] WorldClientSeed { get; } = { 0xC4, 0x90, 0xF7, 0x78 };
@@ -74,11 +80,13 @@ namespace ACE.Common.Cryptography
         /// <returns>the issacValue</returns>
         public uint GetOffset()
         {
+#if NETDIAG
             ancestry.Enqueue(Copy());
             if (ancestry.Count > 20)
             {
                 var discardMe = ancestry.Dequeue();
             }
+#endif
 
             var issacValue = randRsl[offset];
             if (offset > 0)

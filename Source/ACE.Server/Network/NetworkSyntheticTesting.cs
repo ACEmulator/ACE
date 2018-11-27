@@ -2,6 +2,7 @@ using System;
 
 namespace ACE.Server.Network
 {
+#if NETDIAG
     public sealed class NetworkSyntheticTesting
     {
         private static readonly Lazy<NetworkSyntheticTesting> lazy =
@@ -79,4 +80,5 @@ namespace ACE.Server.Network
             return packetBytes;
         }
     }
+#endif
 }

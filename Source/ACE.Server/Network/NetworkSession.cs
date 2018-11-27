@@ -294,6 +294,7 @@ namespace ACE.Server.Network
         }
         private DateTime LastRequestForRetransmitTime = DateTime.MinValue;
 
+#if NETDIAG
         private bool GetPastGeneration(ISAAC state, ClientPacket packet, ref int Generation, int limit)
         {
             limit--; if (limit < 1)
@@ -370,6 +371,7 @@ namespace ACE.Server.Network
 
             return null;
         }
+#endif
 
         private bool VerifyCRC(ClientPacket packet)
         {
@@ -379,15 +381,24 @@ namespace ACE.Server.Network
 
             if (encryptedChecksum)
             {
+#if NETDIAG
                 int? gen = GetGeneration(ConnectionData.IssacClient, packet);
                 if (gen != null)
                 {
                     // gen should always be 1 notch forward, but some programming errors have revealed gen to be 2 or more and since fixed
-                    // should leave in generational ISAAC until networking is stable.  Then remove or disable generational feature for the performance boost.
+                    // generational ISSAC helps immensely when troubleshooting certain kinds of protocol problems
                     ConnectionData.IssacClient = GetGeneration(ConnectionData.IssacClient, gen.Value);
+                    if (gen.Value != 1)
+                    {
+                        packetLog.Warn($"Packet CRC encryption generation out of sequence for packet {packet.Header.Sequence} gen {gen} {UnfoldFlags(packet.Header.Flags)}");
+                    }
                     packetLog.Debug($"Verified encrypted CRC for packet {packet.Header.Sequence} gen {gen} {UnfoldFlags(packet.Header.Flags)}");
                     return true;
                 }
+#else
+                if (packet.VerifyChecksum(ConnectionData.IssacClient.GetOffset()))
+                    return true;
+#endif
             }
             else
             {
@@ -703,7 +714,9 @@ namespace ACE.Server.Network
 
             byte[] payload = packet.GetPayload();
 
+#if NETDIAG
             payload = NetworkSyntheticTesting.SyntheticCorruption_S2C(payload);
+#endif
 
             if (packetLog.IsDebugEnabled)
             {

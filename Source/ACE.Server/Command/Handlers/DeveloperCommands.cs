@@ -164,6 +164,7 @@ namespace ACE.Server.Command.Handlers
             CommandHandlerHelper.WriteOutputInfo(session, NetworkStatistics.Summary(), ChatMessageType.Broadcast);
         }
 
+#if NETDIAG
         [CommandHandler("trash_c2s", AccessLevel.Developer, CommandHandlerFlag.None, "Trash (corrupt) the next C2S packet that arrives.")]
         public static void HandleTrashNextPacketC2S(Session session, params string[] parameters)
         {
@@ -194,12 +195,14 @@ namespace ACE.Server.Command.Handlers
             CommandHandlerHelper.WriteOutputInfo(session, $"Junky S2C connection {endis}.", ChatMessageType.Broadcast);
         }
 
+
         [CommandHandler("junk", AccessLevel.Developer, CommandHandlerFlag.None, "Toggle synthetically junky S2C and C2S connections of a 10% payload corruption rate.")]
         public static void HandleJunk(Session session, params string[] parameters)
         {
             HandleJunkC2S(session, parameters);
             HandleJunkS2C(session, parameters);
         }
+#endif
 
         /// <summary>
         /// List all clothing bases which are compatible with setup
