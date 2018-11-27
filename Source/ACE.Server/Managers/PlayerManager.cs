@@ -16,8 +16,8 @@ namespace ACE.Server.Managers
     public static class PlayerManager
     {
         private static readonly ReaderWriterLockSlim playersLock = new ReaderWriterLockSlim();
-        public static readonly Dictionary<ObjectGuid, Player> OnlinePlayers = new Dictionary<ObjectGuid, Player>();
-        public static readonly Dictionary<ObjectGuid, OfflinePlayer> OfflinePlayers = new Dictionary<ObjectGuid, OfflinePlayer>();
+        private static readonly Dictionary<uint, Player> onlinePlayers = new Dictionary<uint, Player>();
+        private static readonly Dictionary<uint, OfflinePlayer> offlinePlayers = new Dictionary<uint, OfflinePlayer>();
 
         /// <summary>
         /// OfflinePlayers will be saved to the database every 1 hour
@@ -36,7 +36,7 @@ namespace ACE.Server.Managers
             foreach (var result in results)
             {
                 var offlinePlayer = new OfflinePlayer(result);
-                OfflinePlayers[offlinePlayer.Guid] = offlinePlayer;
+                offlinePlayers[offlinePlayer.Guid.Full] = offlinePlayer;
             }
         }
 
@@ -59,7 +59,7 @@ namespace ACE.Server.Managers
             playersLock.EnterReadLock();
             try
             {
-                foreach (var player in OfflinePlayers.Values)
+                foreach (var player in offlinePlayers.Values)
                 {
                     if (player.ChangesDetected)
                     {
@@ -87,7 +87,7 @@ namespace ACE.Server.Managers
             try
             {
                 var offlinePlayer = new OfflinePlayer(player.Biota);
-                OfflinePlayers[offlinePlayer.Guid] = offlinePlayer;
+                offlinePlayers[offlinePlayer.Guid.Full] = offlinePlayer;
             }
             finally
             {
@@ -98,20 +98,20 @@ namespace ACE.Server.Managers
         /// <summary>
         /// This will return null if the player wasn't found.
         /// </summary>
-        public static OfflinePlayer GetOfflinePlayer(uint guid)
+        public static OfflinePlayer GetOfflinePlayer(ObjectGuid guid)
         {
-            return GetOfflinePlayer(new ObjectGuid(guid));
+            return GetOfflinePlayer(guid.Full);
         }
 
         /// <summary>
         /// This will return null if the player wasn't found.
         /// </summary>
-        public static OfflinePlayer GetOfflinePlayer(ObjectGuid guid)
+        public static OfflinePlayer GetOfflinePlayer(uint guid)
         {
             playersLock.EnterReadLock();
             try
             {
-                if (OfflinePlayers.TryGetValue(guid, out var value))
+                if (offlinePlayers.TryGetValue(guid, out var value))
                     return value;
             }
             finally
@@ -129,7 +129,7 @@ namespace ACE.Server.Managers
             playersLock.EnterReadLock();
             try
             {
-                foreach (var player in OfflinePlayers.Values)
+                foreach (var player in offlinePlayers.Values)
                     results.Add(player);
             }
             finally
@@ -143,20 +143,20 @@ namespace ACE.Server.Managers
         /// <summary>
         /// This will return null if the player wasn't found.
         /// </summary>
-        public static Player GetOnlinePlayer(uint guid)
+        public static Player GetOnlinePlayer(ObjectGuid guid)
         {
-            return GetOnlinePlayer(new ObjectGuid(guid));
+            return GetOnlinePlayer(guid.Full);
         }
 
         /// <summary>
         /// This will return null if the player wasn't found.
         /// </summary>
-        public static Player GetOnlinePlayer(ObjectGuid guid)
+        public static Player GetOnlinePlayer(uint guid)
         {
             playersLock.EnterReadLock();
             try
             {
-                if (OnlinePlayers.TryGetValue(guid, out var value))
+                if (onlinePlayers.TryGetValue(guid, out var value))
                     return value;
             }
             finally
@@ -175,7 +175,7 @@ namespace ACE.Server.Managers
             playersLock.EnterReadLock();
             try
             {
-                var onlinePlayer = OnlinePlayers.Values.FirstOrDefault(p => p.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+                var onlinePlayer = onlinePlayers.Values.FirstOrDefault(p => p.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
 
                 if (onlinePlayer != null)
                     return onlinePlayer;
@@ -195,7 +195,7 @@ namespace ACE.Server.Managers
             playersLock.EnterReadLock();
             try
             {
-                foreach (var player in OnlinePlayers.Values)
+                foreach (var player in onlinePlayers.Values)
                     results.Add(player);
             }
             finally
@@ -217,7 +217,7 @@ namespace ACE.Server.Managers
             playersLock.EnterWriteLock();
             try
             {
-                if (!OfflinePlayers.Remove(player.Guid, out var offlinePlayer))
+                if (!offlinePlayers.Remove(player.Guid.Full, out var offlinePlayer))
                     return false; // This should never happen
 
                 if (offlinePlayer.ChangesDetected)
@@ -226,7 +226,7 @@ namespace ACE.Server.Managers
                 player.Allegiance = offlinePlayer.Allegiance;
                 player.AllegianceNode = offlinePlayer.AllegianceNode;
 
-                if (!OnlinePlayers.TryAdd(player.Guid, player))
+                if (!onlinePlayers.TryAdd(player.Guid.Full, player))
                     return false;
             }
             finally
@@ -250,7 +250,7 @@ namespace ACE.Server.Managers
             playersLock.EnterWriteLock();
             try
             {
-                if (!OnlinePlayers.Remove(player.Guid, out _))
+                if (!onlinePlayers.Remove(player.Guid.Full, out _))
                     return false; // This should never happen
 
                 var offlinePlayer = new OfflinePlayer(player.Biota);
@@ -258,7 +258,7 @@ namespace ACE.Server.Managers
                 offlinePlayer.Allegiance = player.Allegiance;
                 offlinePlayer.AllegianceNode = player.AllegianceNode;
 
-                if (!OfflinePlayers.TryAdd(offlinePlayer.Guid, offlinePlayer))
+                if (!offlinePlayers.TryAdd(offlinePlayer.Guid.Full, offlinePlayer))
                     return false;
             }
             finally
@@ -288,7 +288,7 @@ namespace ACE.Server.Managers
             playersLock.EnterReadLock();
             try
             {
-                var onlinePlayer = OnlinePlayers.Values.FirstOrDefault(p => p.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+                var onlinePlayer = onlinePlayers.Values.FirstOrDefault(p => p.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
 
                 if (onlinePlayer != null)
                 {
@@ -298,7 +298,7 @@ namespace ACE.Server.Managers
 
                 isOnline = false;
 
-                var offlinePlayer = OfflinePlayers.Values.FirstOrDefault(p => p.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+                var offlinePlayer = offlinePlayers.Values.FirstOrDefault(p => p.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
 
                 if (offlinePlayer != null)
                     return offlinePlayer;
@@ -314,22 +314,6 @@ namespace ACE.Server.Managers
         /// <summary>
         /// This will return null of the guid was not found.
         /// </summary>
-        public static IPlayer FindByGuid(uint guid)
-        {
-            return FindByGuid(guid, out _);
-        }
-
-        /// <summary>
-        /// This will return null of the guid was not found.
-        /// </summary>
-        public static IPlayer FindByGuid(uint guid, out bool isOnline)
-        {
-            return FindByGuid(new ObjectGuid(guid), out isOnline);
-        }
-
-        /// <summary>
-        /// This will return null of the guid was not found.
-        /// </summary>
         public static IPlayer FindByGuid(ObjectGuid guid)
         {
             return FindByGuid(guid, out _);
@@ -340,10 +324,26 @@ namespace ACE.Server.Managers
         /// </summary>
         public static IPlayer FindByGuid(ObjectGuid guid, out bool isOnline)
         {
+            return FindByGuid(guid.Full, out isOnline);
+        }
+
+        /// <summary>
+        /// This will return null of the guid was not found.
+        /// </summary>
+        public static IPlayer FindByGuid(uint guid)
+        {
+            return FindByGuid(guid, out _);
+        }
+
+        /// <summary>
+        /// This will return null of the guid was not found.
+        /// </summary>
+        public static IPlayer FindByGuid(uint guid, out bool isOnline)
+        {
             playersLock.EnterReadLock();
             try
             {
-                if (OnlinePlayers.TryGetValue(guid, out var onlinePlayer))
+                if (onlinePlayers.TryGetValue(guid, out var onlinePlayer))
                 {
                     isOnline = true;
                     return onlinePlayer;
@@ -351,7 +351,7 @@ namespace ACE.Server.Managers
 
                 isOnline = false;
 
-                if (OfflinePlayers.TryGetValue(guid, out var offlinePlayer))
+                if (offlinePlayers.TryGetValue(guid, out var offlinePlayer))
                     return offlinePlayer;
             }
             finally
@@ -369,14 +369,14 @@ namespace ACE.Server.Managers
         /// <param name="monarch">The monarch of an allegiance</param>
         public static List<IPlayer> FindAllByMonarch(ObjectGuid monarch)
         {
-            IEnumerable<Player> onlinePlayers;
-            IEnumerable<OfflinePlayer> offlinePlayers;
+            IEnumerable<Player> onlinePlayersResult;
+            IEnumerable<OfflinePlayer> offlinePlayersResult;
 
             playersLock.EnterReadLock();
             try
             {
-                onlinePlayers = OnlinePlayers.Values.Where(p => p.Monarch == monarch.Full);
-                offlinePlayers = OfflinePlayers.Values.Where(p => p.Monarch == monarch.Full);
+                onlinePlayersResult = onlinePlayers.Values.Where(p => p.Monarch == monarch.Full);
+                offlinePlayersResult = offlinePlayers.Values.Where(p => p.Monarch == monarch.Full);
             }
             finally
             {
@@ -384,8 +384,8 @@ namespace ACE.Server.Managers
             }
 
             var results = new List<IPlayer>();
-            results.AddRange(onlinePlayers);
-            results.AddRange(offlinePlayers);
+            results.AddRange(onlinePlayersResult);
+            results.AddRange(offlinePlayersResult);
 
             return results;
         }
@@ -401,7 +401,7 @@ namespace ACE.Server.Managers
             playersLock.EnterReadLock();
             try
             {
-                foreach (var player in OnlinePlayers.Values)
+                foreach (var player in onlinePlayers.Values)
                 {
                     if (player.Character.HasAsFriend(guid.Full, player.CharacterDatabaseLock))
                         results.Add(player);
