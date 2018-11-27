@@ -93,7 +93,7 @@ namespace ACE.Server.Command.Handlers
                 {
                     var wave = DatManager.PortalDat.ReadFromDat<Wave>(entry.Value.ObjectId);
 
-                    Wave.ExportWave(wave, entry.Value.ObjectId, exportDir);
+                    wave.ExportWave(exportDir);
                 }
             }
             Console.WriteLine($"Export to {exportDir} complete.");
