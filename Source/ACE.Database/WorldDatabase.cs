@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -12,6 +13,7 @@ using log4net;
 
 using ACE.Database.Models.World;
 using ACE.Entity.Enum;
+using ACE.Entity.Enum.Properties;
 
 namespace ACE.Database
 {
@@ -70,120 +72,6 @@ namespace ACE.Database
                 return maxId;
             }
         }
-
-        private static ConcurrentDictionary<uint, Weenie> level1Scrolls = new ConcurrentDictionary<uint, Weenie>();
-        private static ConcurrentDictionary<uint, Weenie> level2Scrolls = new ConcurrentDictionary<uint, Weenie>();
-        private static ConcurrentDictionary<uint, Weenie> level3Scrolls = new ConcurrentDictionary<uint, Weenie>();
-        private static ConcurrentDictionary<uint, Weenie> level4Scrolls = new ConcurrentDictionary<uint, Weenie>();
-        private static ConcurrentDictionary<uint, Weenie> level5Scrolls = new ConcurrentDictionary<uint, Weenie>();
-        private static ConcurrentDictionary<uint, Weenie> level6Scrolls = new ConcurrentDictionary<uint, Weenie>();
-        public static Boolean areSpellWeeniesLoaded = false;
-
-        public static Boolean AreSpellWeeniesLoaded()
-        {
-            return areSpellWeeniesLoaded;
-        }
-
-        public static Weenie GetSpellWeenie(uint tier, uint spellID)
-        {
-            areSpellWeeniesLoaded = true;
-            Weenie val;
-            switch (tier)
-            {
-                case 1:
-                    if(level1Scrolls.TryGetValue(spellID, out val))
-                    {
-                        return val;
-                    }
-                    else
-                    {
-                        var context = new WorldDbContext();
-                        var spellWeenie = from weenie in context.Weenie
-                                     join did in context.WeeniePropertiesDID on weenie.ClassId equals did.ObjectId
-                                     where weenie.Type == 34 && did.Type == 28 && did.Value == spellID
-                                     select weenie;
-                        level1Scrolls[spellID] = spellWeenie.FirstOrDefault();
-                        return level1Scrolls[spellID];
-                    }
-                case 2:
-                    if (level2Scrolls.TryGetValue(spellID, out val))
-                    {
-                        return val;
-                    }
-                    else
-                    {
-                        var context = new WorldDbContext();
-                        var spellWeenie = from weenie in context.Weenie
-                                     join did in context.WeeniePropertiesDID on weenie.ClassId equals did.ObjectId
-                                     where weenie.Type == 34 && did.Type == 28 && did.Value == spellID
-                                     select weenie;
-                        level2Scrolls[spellID] = spellWeenie.FirstOrDefault();
-                        return level2Scrolls[spellID];
-                    }
-                case 3:
-                    if (level3Scrolls.TryGetValue(spellID, out val))
-                    {
-                        return val;
-                    }
-                    else
-                    {
-                        var context = new WorldDbContext();
-                        var spellWeenie = from weenie in context.Weenie
-                                     join did in context.WeeniePropertiesDID on weenie.ClassId equals did.ObjectId
-                                     where weenie.Type == 34 && did.Type == 28 && did.Value == spellID
-                                     select weenie;
-                        level3Scrolls[spellID] = spellWeenie.FirstOrDefault();
-                        return level3Scrolls[spellID];
-                    }
-                case 4:
-                    if (level4Scrolls.TryGetValue(spellID, out val))
-                    {
-                        return val;
-                    }
-                    else
-                    {
-                        var context = new WorldDbContext();
-                        var spellWeenie = from weenie in context.Weenie
-                                     join did in context.WeeniePropertiesDID on weenie.ClassId equals did.ObjectId
-                                     where weenie.Type == 34 && did.Type == 28 && did.Value == spellID
-                                     select weenie;
-                        level4Scrolls[spellID] = spellWeenie.FirstOrDefault();
-                        return level4Scrolls[spellID];
-                    }
-                case 5:
-                    if (level5Scrolls.TryGetValue(spellID, out val))
-                    {
-                        return val;
-                    }
-                    else
-                    {
-                        var context = new WorldDbContext();
-                        var spellWeenie = from weenie in context.Weenie
-                                     join did in context.WeeniePropertiesDID on weenie.ClassId equals did.ObjectId
-                                     where weenie.Type == 34 && did.Type == 28 && did.Value == spellID
-                                     select weenie;
-                        level5Scrolls[spellID] = spellWeenie.FirstOrDefault();
-                        return level5Scrolls[spellID];
-                    }
-                default:
-                    if (level6Scrolls.TryGetValue(spellID, out val))
-                    {
-                        return val;
-                    }
-                    else
-                    {
-                        var context = new WorldDbContext();
-                        var spellWeenie = from weenie in context.Weenie
-                                     join did in context.WeeniePropertiesDID on weenie.ClassId equals did.ObjectId
-                                     where weenie.Type == 34 && did.Type == 28 && did.Value == spellID
-                                     select weenie;
-                        level6Scrolls[spellID] = spellWeenie.FirstOrDefault();
-                        return level6Scrolls[spellID];
-                    }
-            }
-
-        }
-
 
 
         private readonly ConcurrentDictionary<uint, Weenie> weenieCache = new ConcurrentDictionary<uint, Weenie>();
@@ -341,31 +229,81 @@ namespace ACE.Database
         {
             if (!weenieCacheByType.TryGetValue(weenieTypeId, out var weenies))
             {
-                weenies = new List<Weenie>();
-
-                foreach (var weenie in weenieCache.Values)
+                if (!weenieSpecificCachesPopulated)
                 {
-                    if (weenie != null && weenie.Type == weenieTypeId)
-                        weenies.Add(weenie);
+                    using (var context = new WorldDbContext())
+                    {
+                        var results = context.Weenie
+                            .AsNoTracking()
+                            .Where(r => r.Type == weenieTypeId)
+                            .ToList();
+
+                        var rand = new Random();
+
+                        weenies = new List<Weenie>();
+
+                        for (int i = 0; i < count; i++)
+                        {
+                            var index = rand.Next(0, results.Count - 1);
+
+                            var weenie = GetCachedWeenie(results[index].ClassId);
+
+                            weenies.Add(weenie);
+                        }
+
+                        return weenies;
+                    }
                 }
 
+                weenies = new List<Weenie>();
                 weenieCacheByType[weenieTypeId] = weenies;
             }
 
-            var rand = new Random();
+            if (weenies.Count == 0)
+                return new List<Weenie>();
 
-            var results = new List<Weenie>();
-
-            for (int i = 0; i < count; i++)
             {
-                var index = rand.Next(0, weenies.Count - 1);
+                var rand = new Random();
 
-                var weenie = GetCachedWeenie(weenies[index].ClassId);
+                var results = new List<Weenie>();
 
-                results.Add(weenie);
+                for (int i = 0; i < count; i++)
+                {
+                    var index = rand.Next(0, weenies.Count - 1);
+
+                    var weenie = GetCachedWeenie(weenies[index].ClassId);
+
+                    results.Add(weenie);
+                }
+
+                return results;
+            }
+        }
+
+        private readonly Dictionary<uint, Weenie> scrollsBySpellID = new Dictionary<uint, Weenie>();
+
+        public Weenie GetScrollWeenie(uint spellID)
+        {
+            if (!scrollsBySpellID.TryGetValue(spellID, out var weenie))
+            {
+                if (!weenieSpecificCachesPopulated)
+                {
+                    using (var context = new WorldDbContext())
+                    {
+                        var query = from weenieRecord in context.Weenie
+                            join did in context.WeeniePropertiesDID on weenieRecord.ClassId equals did.ObjectId
+                            where weenieRecord.Type == (int)WeenieType.Scroll && did.Type == (ushort)PropertyDataId.Spell && did.Value == spellID
+                            select weenieRecord;
+
+                        weenie = query.FirstOrDefault();
+
+                        scrollsBySpellID[spellID] = weenie;
+
+                    }
+                }
             }
 
-            return results;
+            return weenie;
         }
 
         /// <summary>
@@ -388,6 +326,8 @@ namespace ACE.Database
                     GetWeenie(context, result.ClassId);
                 }
             }
+
+            PopulateWeenieSpecificCaches();
         }
 
         /// <summary>
@@ -408,6 +348,50 @@ namespace ACE.Database
                         GetWeenie(result.ClassId);
                 });
             }
+
+            PopulateWeenieSpecificCaches();
+        }
+
+        private bool weenieSpecificCachesPopulated;
+
+        private void PopulateWeenieSpecificCaches()
+        {
+            // populate weenieCacheByType
+            foreach (var weenie in weenieCache.Values)
+            {
+                if (weenie == null)
+                    continue;
+
+                if (!weenieCacheByType.TryGetValue(weenie.Type, out var weenies))
+                {
+                    weenies = new List<Weenie>();
+                    weenieCacheByType[weenie.Type] = weenies;
+                }
+
+                if (!weenies.Contains(weenie))
+                    weenies.Add(weenie);
+            }
+
+            // populate scrollsBySpellID
+            foreach (var weenie in weenieCache.Values)
+            {
+                if (weenie == null)
+                    continue;
+
+                if (weenie.Type == (int)WeenieType.Scroll)
+                {
+                    foreach (var record in weenie.WeeniePropertiesDID)
+                    {
+                        if (record.Type == (ushort)PropertyDataId.Spell)
+                        {
+                            scrollsBySpellID[record.Value] = weenie;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            weenieSpecificCachesPopulated = true;
         }
 
         /// <summary>

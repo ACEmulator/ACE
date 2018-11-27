@@ -2341,34 +2341,12 @@ namespace ACE.Server.Factories
         public static WorldObject CreateRandomScroll(int tier)
         {
             uint weenieID;
-            if(!WorldDatabase.AreSpellWeeniesLoaded())
-            {
-                for(int i = 0; i < LootHelper.ScrollSpells.Length; i++)
-                {
-                    weenieID = (uint)LootHelper.ScrollSpells[i][0];
-                    WorldDatabase.GetSpellWeenie(1, weenieID);
-                    weenieID = (uint)LootHelper.ScrollSpells[i][1];
-                    WorldDatabase.GetSpellWeenie(2, weenieID);
-                    weenieID = (uint)LootHelper.ScrollSpells[i][2];
-                    WorldDatabase.GetSpellWeenie(3, weenieID);
-                    weenieID = (uint)LootHelper.ScrollSpells[i][3];
-                    WorldDatabase.GetSpellWeenie(4, weenieID);
-                    weenieID = (uint)LootHelper.ScrollSpells[i][4];
-                    WorldDatabase.GetSpellWeenie(5, weenieID);
-                    weenieID = (uint)LootHelper.ScrollSpells[i][5];
-                    WorldDatabase.GetSpellWeenie(6, weenieID);
-                }
-            }
             Random r = new Random();
             var tier2 = tier;
             if(tier > 6)
-            {
-
                 tier2 = 6;
-                
-            }
             weenieID = (uint)LootHelper.ScrollSpells[r.Next(0, LootHelper.ScrollSpells.Length)][tier2-1];
-            String className = WorldDatabase.GetSpellWeenie((uint)tier2, weenieID).ClassName;   
+            String className = DatabaseManager.World.GetScrollWeenie(weenieID).ClassName;   
             WorldObject wo = WorldObjectFactory.CreateNewWorldObject(className);
             return wo;
         }
