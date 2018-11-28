@@ -13,7 +13,7 @@ using log4net;
 
 using ACE.Database.Models.World;
 using ACE.Entity.Enum;
-using System.Diagnostics;
+using ACE.Entity.Enum.Properties;
 
 namespace ACE.Database
 {
@@ -223,6 +223,89 @@ namespace ACE.Database
             return GetWeenie(weenieClassId); // This will add the result into the weenieCache
         }
 
+        private readonly ConcurrentDictionary<int, List<Weenie>> weenieCacheByType = new ConcurrentDictionary<int, List<Weenie>>();
+
+        public List<Weenie> GetRandomWeeniesOfType(int weenieTypeId, int count)
+        {
+            if (!weenieCacheByType.TryGetValue(weenieTypeId, out var weenies))
+            {
+                if (!weenieSpecificCachesPopulated)
+                {
+                    using (var context = new WorldDbContext())
+                    {
+                        var results = context.Weenie
+                            .AsNoTracking()
+                            .Where(r => r.Type == weenieTypeId)
+                            .ToList();
+
+                        var rand = new Random();
+
+                        weenies = new List<Weenie>();
+
+                        for (int i = 0; i < count; i++)
+                        {
+                            var index = rand.Next(0, results.Count - 1);
+
+                            var weenie = GetCachedWeenie(results[index].ClassId);
+
+                            weenies.Add(weenie);
+                        }
+
+                        return weenies;
+                    }
+                }
+
+                weenies = new List<Weenie>();
+                weenieCacheByType[weenieTypeId] = weenies;
+            }
+
+            if (weenies.Count == 0)
+                return new List<Weenie>();
+
+            {
+                var rand = new Random();
+
+                var results = new List<Weenie>();
+
+                for (int i = 0; i < count; i++)
+                {
+                    var index = rand.Next(0, weenies.Count - 1);
+
+                    var weenie = GetCachedWeenie(weenies[index].ClassId);
+
+                    results.Add(weenie);
+                }
+
+                return results;
+            }
+        }
+
+        private readonly Dictionary<uint, Weenie> scrollsBySpellID = new Dictionary<uint, Weenie>();
+
+        public Weenie GetScrollWeenie(uint spellID)
+        {
+            if (!scrollsBySpellID.TryGetValue(spellID, out var weenie))
+            {
+                if (!weenieSpecificCachesPopulated)
+                {
+                    using (var context = new WorldDbContext())
+                    {
+                        var query = from weenieRecord in context.Weenie
+                            join did in context.WeeniePropertiesDID on weenieRecord.ClassId equals did.ObjectId
+                            where weenieRecord.Type == (int)WeenieType.Scroll && did.Type == (ushort)PropertyDataId.Spell && did.Value == spellID
+                            select weenieRecord;
+
+                        weenie = query.FirstOrDefault();
+
+                        scrollsBySpellID[spellID] = weenie;
+
+                    }
+                }
+            }
+
+            return weenie;
+        }
+
         /// <summary>
         /// This will make sure every weenie in the database has been read and cached.<para />
         /// This function may take 15+ minutes to complete.
@@ -243,6 +326,8 @@ namespace ACE.Database
                     GetWeenie(context, result.ClassId);
                 }
             }
+
+            PopulateWeenieSpecificCaches();
         }
 
         /// <summary>
@@ -263,32 +348,50 @@ namespace ACE.Database
                         GetWeenie(result.ClassId);
                 });
             }
+
+            PopulateWeenieSpecificCaches();
         }
 
-        public List<Weenie> GetRandomWeeniesOfType(int weenieTypeId, int count)
+        private bool weenieSpecificCachesPopulated;
+
+        private void PopulateWeenieSpecificCaches()
         {
-            using (var context = new WorldDbContext())
+            // populate weenieCacheByType
+            foreach (var weenie in weenieCache.Values)
             {
-                var results = context.Weenie
-                    .AsNoTracking()
-                    .Where(r => r.Type == weenieTypeId)
-                    .ToList();
+                if (weenie == null)
+                    continue;
 
-                var rand = new Random();
-
-                var weenies = new List<Weenie>();
-
-                for (int i = 0; i < count; i++)
+                if (!weenieCacheByType.TryGetValue(weenie.Type, out var weenies))
                 {
-                    var index = rand.Next(0, results.Count - 1);
-
-                    var weenie = GetCachedWeenie(results[index].ClassId);
-
-                    weenies.Add(weenie);
+                    weenies = new List<Weenie>();
+                    weenieCacheByType[weenie.Type] = weenies;
                 }
 
-                return weenies;
+                if (!weenies.Contains(weenie))
+                    weenies.Add(weenie);
             }
+
+            // populate scrollsBySpellID
+            foreach (var weenie in weenieCache.Values)
+            {
+                if (weenie == null)
+                    continue;
+
+                if (weenie.Type == (int)WeenieType.Scroll)
+                {
+                    foreach (var record in weenie.WeeniePropertiesDID)
+                    {
+                        if (record.Type == (ushort)PropertyDataId.Spell)
+                        {
+                            scrollsBySpellID[record.Value] = weenie;
+                            break;
+                        }
+                    }
+                }
+            }
+
+            weenieSpecificCachesPopulated = true;
         }
 
         /// <summary>
@@ -499,6 +602,19 @@ namespace ACE.Database
                 {
                     GetCachedCookbook(result.SourceWCID, result.TargetWCID);
                 });
+            }
+        }
+
+        public Weenie GetScrollBySpellID(uint spellID)
+        {
+            using (var context = new WorldDbContext())
+            {
+                var result = from weenie in context.Weenie
+                             join did in context.WeeniePropertiesDID on weenie.ClassId equals did.ObjectId
+                             where weenie.Type == 34 && did.Type == 28 && did.Value == spellID
+                             select weenie;
+                return result.FirstOrDefault();
+                //return result.FirstOrDefault().ClassName;
             }
         }
 
