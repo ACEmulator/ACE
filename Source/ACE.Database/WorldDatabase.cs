@@ -225,7 +225,7 @@ namespace ACE.Database
 
         private readonly ConcurrentDictionary<int, List<Weenie>> weenieCacheByType = new ConcurrentDictionary<int, List<Weenie>>();
 
-        public List<Weenie> GetRandomCachedWeeniesOfType(int weenieTypeId, int count)
+        public List<Weenie> GetRandomWeeniesOfType(int weenieTypeId, int count)
         {
             if (!weenieCacheByType.TryGetValue(weenieTypeId, out var weenies))
             {

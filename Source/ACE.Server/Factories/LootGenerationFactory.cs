@@ -32,7 +32,7 @@ namespace ACE.Server.Factories
 
         public static List<WorldObject> CreateRandomObjectsOfType(WeenieType type, int count)
         {
-            var weenies = DatabaseManager.World.GetRandomCachedWeeniesOfType((int)type, count);
+            var weenies = DatabaseManager.World.GetRandomWeeniesOfType((int)type, count);
 
             var worldObjects = new List<WorldObject>();
 
