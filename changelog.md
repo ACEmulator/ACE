@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2018-11-28
+[OptimShi]
+* Added RenderTexture, String and Font to DatLoader.FileTypes
+
 ### 2018-11-25
 [fartwhif]
 * fixing bug causing AcknowledgeSequence packets to increment the lastReceivedPacketSequence variable, causing the sequence to break and never recover for that session
