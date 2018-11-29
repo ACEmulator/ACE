@@ -39,6 +39,7 @@ namespace ACE.Server.Network.Sequence
         PublicUpdatePropertyString,
 
         SetStackSize,
+
         Confirmation,
 
         PrivateUpdateAttributeStrength,

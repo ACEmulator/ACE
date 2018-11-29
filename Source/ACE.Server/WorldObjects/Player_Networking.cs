@@ -27,7 +27,7 @@ namespace ACE.Server.WorldObjects
             Character.TotalLogins++;
             CharacterChangesDetected = true;
 
-            Sequences.AddOrSetSequence(SequenceType.ObjectInstance, new UShortSequence((ushort)Character.TotalLogins));
+            Sequences.SetSequence(SequenceType.ObjectInstance, new UShortSequence((ushort)Character.TotalLogins));
 
             // SendSelf will trigger the entrance into portal space
             SendSelf();
