@@ -2,7 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+
 using log4net;
+
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.DatLoader;
@@ -16,6 +18,7 @@ using ACE.Server.Network;
 using ACE.Server.Network.Enum;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
+using ACE.Server.Network.Sequence;
 using ACE.Server.Network.Structure;
 using ACE.Server.WorldObjects.Entity;
 using ACE.Server.Physics.Animation;
@@ -88,6 +91,91 @@ namespace ACE.Server.WorldObjects
             IgnoreCollisions = true; ReportCollisions = false; Hidden = true;
 
             PhysicsObj.SetPlayer();
+        }
+
+        protected override void InitializeSequences()
+        {
+            base.InitializeSequences();
+
+            Sequences.SetSequence(SequenceType.PrivateUpdateAttribute, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateAttribute2ndLevel, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateSkill, new ByteSequence(false));
+
+            Sequences.SetSequence(SequenceType.PrivateUpdatePropertyInt, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdatePropertyInt64, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdatePropertyBool, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdatePropertyDouble, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdatePropertyDataID, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdatePropertyInstanceID, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdatePropertyString, new ByteSequence(false));
+
+            Sequences.SetSequence(SequenceType.PrivateUpdateAttribute2ndLevelHealth, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateAttribute2ndLevelStamina, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateAttribute2ndLevelMana, new ByteSequence(false));
+
+            Sequences.SetSequence(SequenceType.Confirmation, new ByteSequence(false));
+
+            Sequences.SetSequence(SequenceType.PrivateUpdateAttributeStrength, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateAttributeEndurance, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateAttributeQuickness, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateAttributeCoordination, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateAttributeFocus, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateAttributeSelf, new ByteSequence(false));
+
+            Sequences.SetSequence(SequenceType.PrivateUpdateSkillAxe, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateSkillBow, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateSkillCrossBow, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateSkillDagger, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateSkillMace, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateSkillMeleeDefense, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateSkillMissileDefense, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateSkillSling, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateSkillSpear, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateSkillStaff, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateSkillSword, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateSkillThrownWeapon, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateSkillUnarmedCombat, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateSkillArcaneLore, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateSkillMagicDefense, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateSkillManaConversion, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateSkillSpellcraft, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateSkillItemAppraisal, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateSkillPersonalAppraisal, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateSkillDeception, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateSkillHealing, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateSkillJump, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateSkillLockpick, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateSkillRun, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateSkillAwareness, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateSkillArmsAndArmorRepair, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateSkillCreatureAppraisal, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateSkillWeaponAppraisal, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateSkillArmorAppraisal, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateSkillMagicItemAppraisal, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateSkillCreatureEnchantment, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateSkillItemEnchantment, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateSkillLifeMagic, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateSkillWarMagic, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateSkillLeadership, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateSkillLoyalty, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateSkillFletching, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateSkillAlchemy, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateSkillCooking, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateSkillSalvaging, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateSkillTwoHandedCombat, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateSkillGearcraft, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateSkillVoidMagic, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateSkillHeavyWeapons, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateSkillLightWeapons, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateSkillFinesseWeapons, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateSkillMissileWeapons, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateSkillShield, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateSkillDualWield, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateSkillRecklessness, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateSkillSneakAttack, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateSkillDirtyFighting, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateSkillChallenge, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateSkillSummoning, new ByteSequence(false));
         }
 
         private void SetEphemeralValues()
