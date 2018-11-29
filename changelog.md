@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2018-11-28
+[OptimShi]
+* Added RenderTexture, String and Font to DatLoader.FileTypes
+
 ### 2018-11-01
 [Ripley]
 * Update EmoteManager and WorldObject Generator with fixes for Anniversary event emotes. 
