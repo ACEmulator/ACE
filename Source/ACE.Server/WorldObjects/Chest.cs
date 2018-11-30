@@ -139,7 +139,7 @@ namespace ACE.Server.WorldObjects
                         if(generator.Biota.WeenieClassId > 500)
                         {
                             //If the WeenieClassId is greater than the profile Id's, then it will be an item that is created with that Id.
-                            wo = WorldObjectFactory.CreateNewWorldObject((uint)generator.Biota.WeenieClassId);
+                            var wo = WorldObjectFactory.CreateNewWorldObject((uint)generator.Biota.WeenieClassId);
                             TryAddToInventory(wo);
                         }
                         break;
