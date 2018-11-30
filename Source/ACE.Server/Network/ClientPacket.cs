@@ -67,7 +67,7 @@ namespace ACE.Server.Network
                     {
                         Fragments.Add(new ClientPacketFragment(Payload));
                     }
-                    catch (Exception ex)
+                    catch (Exception)
                     {
                         // corrupt packet
                         IsValid = false;
