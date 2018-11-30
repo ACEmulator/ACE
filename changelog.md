@@ -16,6 +16,17 @@
 [gmriggs]
 * Added stream support to audio export
 
+### 2018-11-26
+[fartwhif]
+* Fixed a long-standing network bug with lost/corrupted packets dropping clients
+  - Fixed a bug causing AcknowledgeSequence packets to increment the LastReceivedPacketSequence, causing the Sequence to break and never recover for that Session
+  - Fixed a bug causing RequestTransmit packets to be ignored
+  - Improved server resiliency against malformed packets
+  - Changed the C2S RequestForRetransmit to per-request packet, instead of sequence
+  - Added developer network debug commands
+  - Added a generational feature to ISAAC development of network layer
+  - Adding pre-processor definition NETDIAG + directives to ACE.Common and ACE.Server to help development by preserving troubleshooting tools, without interference with the optimal solution
+
 ### 2018-11-25
 [gmriggs, parad0x]
 * Updated client lib with features useful for third-party apps
@@ -26,6 +37,9 @@
 ### 2018-11-23
 [quinw68]
 * Added instructions for installing with VS Community Edition
+
+[dgatewood]
+* Added more RNG treasure generation for chests
 
 ### 2018-11-22
 [gmriggs]
