@@ -1,14 +1,31 @@
 using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.Linq;
 
 namespace ACE.Common.Cryptography
 {
     public class ISAAC
     {
+        public static byte[] ClientSeed { get; } = { 0x60, 0xAF, 0x54, 0x6D }; // C->S
+        public static byte[] ServerSeed { get; } = { 0xCD, 0xD7, 0xEB, 0x45 }; // S->C
+        public static byte[] WorldClientSeed { get; } = { 0xC4, 0x90, 0xF7, 0x78 };
+        public static byte[] WorldServerSeed { get; } = { 0x18, 0xA1, 0xEB, 0x11 };
+
+        private uint offset;
+
+        private uint a, b, c;
+        private uint[] mm;
+        private uint[] randRsl;
+
+        public ISAAC(byte[] seed)
+        {
+            mm      = new uint[256];
+            randRsl = new uint[256];
+            offset  = 255u;
+
+            Initialize(seed);
+        }
 #if NETDIAG
-        private Queue<ISAAC> ancestry = new Queue<ISAAC>();
+        private System.Collections.Generic.Queue<ISAAC> ancestry = new System.Collections.Generic.Queue<ISAAC>();
         public ISAAC Copy()
         {
             ISAAC newCopy = new ISAAC(null);
@@ -22,7 +39,14 @@ namespace ACE.Common.Cryptography
                 return ancestry.ToArray().LastOrDefault();
             }
         }
-#endif
+        private void SetInternalState(uint offset, uint a, uint b, uint c, uint[] mm, uint[] randRsl, System.Collections.Generic.Queue<ISAAC> ancestry)
+        {
+            SetInternalState(offset, a, b, c, mm, randRsl);
+            var g = ancestry.ToArray();
+            var f = new ISAAC[g.Length];
+            Array.Copy(g, f, g.Length);
+            this.ancestry = new System.Collections.Generic.Queue<ISAAC>(f);
+        }
         private void SetInternalState(uint offset, uint a, uint b, uint c, uint[] mm, uint[] randRsl)
         {
             this.offset = offset;
@@ -34,50 +58,7 @@ namespace ACE.Common.Cryptography
             Array.Copy(mm, this.mm, mm.Length);
             Array.Copy(randRsl, this.randRsl, randRsl.Length);
         }
-#if NETDIAG
-        private void SetInternalState(uint offset, uint a, uint b, uint c, uint[] mm, uint[] randRsl, Queue<ISAAC> ancestry)
-        {
-            SetInternalState(offset, a, b, c, mm, randRsl);
-            var g = ancestry.ToArray();
-            var f = new ISAAC[g.Length];
-            Array.Copy(g, f, g.Length);
-            this.ancestry = new Queue<ISAAC>(f);
-        }
 #endif
-        public static byte[] ClientSeed { get; } = { 0x60, 0xAF, 0x54, 0x6D }; // C->S    // TO-DO: needs to be random
-        public static byte[] ServerSeed { get; } = { 0xCD, 0xD7, 0xEB, 0x45 }; // S->C    // TO-DO: needs to be random
-        public static byte[] WorldClientSeed { get; } = { 0xC4, 0x90, 0xF7, 0x78 };
-        public static byte[] WorldServerSeed { get; } = { 0x18, 0xA1, 0xEB, 0x11 };
-
-        private uint offset;
-
-        private uint a, b, c;
-        private uint[] mm;
-        private uint[] randRsl;
-
-        public ISAAC(byte[] seed)
-        {
-            if (seed == null) return;
-
-            mm = new uint[256];
-            randRsl = new uint[256];
-            offset = 255u;
-
-            Initialize(seed);
-        }
-
-        public uint GetOffsetEx(int gens)
-        {
-            uint r = 0;
-            for (int i = 0; i < gens; i++)
-                r = GetOffset();
-            return r;
-        }
-
-        /// <summary>
-        /// advance the generation by +1, and return the issacValue
-        /// </summary>
-        /// <returns>the issacValue</returns>
         public uint GetOffset()
         {
 #if NETDIAG
@@ -87,7 +68,6 @@ namespace ACE.Common.Cryptography
                 var discardMe = ancestry.Dequeue();
             }
 #endif
-
             var issacValue = randRsl[offset];
             if (offset > 0)
                 offset--;
@@ -143,17 +123,13 @@ namespace ACE.Common.Cryptography
                 var x = mm[i];
                 switch (i & 3)
                 {
-                    case 0:
-                        a ^= (a << 0x0D);
+                    case 0: a ^= (a << 0x0D);
                         break;
-                    case 1:
-                        a ^= (a >> 0x06);
+                    case 1: a ^= (a >> 0x06);
                         break;
-                    case 2:
-                        a ^= (a << 0x02);
+                    case 2: a ^= (a << 0x02);
                         break;
-                    case 3:
-                        a ^= (a >> 0x10);
+                    case 3: a ^= (a >> 0x10);
                         break;
                     default:
                         break;
@@ -162,7 +138,7 @@ namespace ACE.Common.Cryptography
                 a += mm[(i + 128) & 0xFF];
 
                 uint y;
-                mm[i] = y = mm[(int)(x >> 2) & 0xFF] + a + b;
+                mm[i]      = y = mm[(int)(x >> 2) & 0xFF] + a + b;
                 randRsl[i] = b = mm[(int)(y >> 10) & 0xFF] + x;
             }
         }
