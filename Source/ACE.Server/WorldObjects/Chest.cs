@@ -53,9 +53,10 @@ namespace ACE.Server.WorldObjects
 
             //Adding loot to chests
             //Eventually these case statements would be linked to indivual treasure generators. Each one should be a different profile, but currently it will be the complete appropriate tier profile.
-
-            for(int i = 0; i < GeneratorProfiles.Count; i++)
+            Random r = new Random();
+            for (int i = 0; i < GeneratorProfiles.Count; i++)
             {
+                int amount = r.Next(2, 14);
                 var generator = GeneratorProfiles[i];
                 switch(generator.Biota.WeenieClassId)
                 {
@@ -65,8 +66,11 @@ namespace ACE.Server.WorldObjects
                     case 6:
                     case 18:
                     case 465:
-                        var wo = LootGenerationFactory.CreateRandomLootObjects(1);
-                        TryAddToInventory(wo);
+                        for (int j = 0; i < amount; i++)
+                        {
+                            var wo = LootGenerationFactory.CreateRandomLootObjects(1);
+                            TryAddToInventory(wo);
+                        }
                         break;
                     case 413:
                     case 410:
@@ -75,8 +79,11 @@ namespace ACE.Server.WorldObjects
                     case 4:
                     case 463:
                     case 395:
-                        wo = LootGenerationFactory.CreateRandomLootObjects(2);
-                        TryAddToInventory(wo);
+                        for (int j = 0; i < amount; i++)
+                        {
+                            var wo = LootGenerationFactory.CreateRandomLootObjects(2);
+                            TryAddToInventory(wo);
+                        }
                         break;
                     case 411:
                     case 15:
@@ -86,8 +93,11 @@ namespace ACE.Server.WorldObjects
                     case 456:
                     case 340:
                     case 365:
-                        wo = LootGenerationFactory.CreateRandomLootObjects(3);
-                        TryAddToInventory(wo);
+                        for (int j = 0; i < amount; i++)
+                        {
+                            var wo = LootGenerationFactory.CreateRandomLootObjects(3);
+                            TryAddToInventory(wo);
+                        }
                         break;
                     case 460:
                     case 412:
@@ -96,14 +106,20 @@ namespace ACE.Server.WorldObjects
                     case 13:
                     case 59:
                     case 339:
-                        wo = LootGenerationFactory.CreateRandomLootObjects(4);
-                        TryAddToInventory(wo);
+                        for (int j = 0; i < amount; i++)
+                        {
+                            var wo = LootGenerationFactory.CreateRandomLootObjects(4);
+                            TryAddToInventory(wo);
+                        }
                         break;
                     case 334:
                     case 341:
                     case 317:
-                        wo = LootGenerationFactory.CreateRandomLootObjects(5);
-                        TryAddToInventory(wo);
+                        for (int j = 0; i < amount; i++)
+                        {
+                            var wo = LootGenerationFactory.CreateRandomLootObjects(5);
+                            TryAddToInventory(wo);
+                        }
                         break;
                     case 449:
                     case 32:
@@ -113,8 +129,11 @@ namespace ACE.Server.WorldObjects
                     case 351:
                     case 422:
                     case 338:
-                        wo = LootGenerationFactory.CreateRandomLootObjects(6);
-                        TryAddToInventory(wo);
+                        for (int j = 0; i < amount; i++)
+                        {
+                            var wo = LootGenerationFactory.CreateRandomLootObjects(6);
+                            TryAddToInventory(wo);
+                        }
                         break;
                     default:
                         if(generator.Biota.WeenieClassId > 500)
