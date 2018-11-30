@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2018-11-28
+[OptimShi]
+* Added RenderTexture, String and Font to DatLoader.FileTypes
+
 ### 2018-11-25
 [fartwhif]
 * fixing bug causing AcknowledgeSequence packets to increment the lastReceivedPacketSequence variable, causing the sequence to break and never recover for that session
@@ -8,6 +12,7 @@
 * changing the C2S RequestForTransmit packet count to be per request packet instead of per requested sequence
 * adding Developer commands junk, junk_s2c, junk_c2s, trash_s2c, and trash_c2s to simulate bad connections and manually corrupt packets
 * adding a generational feature to ISSAC to aid in stabilization of network layer
+* adding preprocessor definition NETDIAG and directives to ACE.Common and ACE.Server to help development by preserving troubleshooting tools without interference with the optimal solution
 
 ### 2018-11-01
 [Ripley]
