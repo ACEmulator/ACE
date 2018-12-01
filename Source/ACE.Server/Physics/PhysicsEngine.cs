@@ -43,12 +43,12 @@ namespace ACE.Server.Physics
         public static PhysicsEngine Instance;
         public bool Server;
 
-        public static List<PhysicsObj> StaticAnimatingObjects;
+        //public static List<PhysicsObj> StaticAnimatingObjects; // This is not used
         public static double LastUpdate;
 
         static PhysicsEngine()
         {
-            StaticAnimatingObjects = new List<PhysicsObj>();
+            //StaticAnimatingObjects = new List<PhysicsObj>();
         }
 
         public PhysicsEngine(ObjectMaint objMaint, SmartBox smartBox)
@@ -60,15 +60,15 @@ namespace ACE.Server.Physics
             Instance = this;
         }
 
-        public static void AddStaticAnimatingObject(PhysicsObj obj)
+        /*public static void AddStaticAnimatingObject(PhysicsObj obj) // Was used in PhysicsObj.InitDefaults
         {
             StaticAnimatingObjects.Add(obj);
-        }
+        }*/
 
-        public static void RemoveStaticAnimatingObject(PhysicsObj obj)
+        /*public static void RemoveStaticAnimatingObject(PhysicsObj obj) // Was used in PhysicsObj.Destroy
         {
             StaticAnimatingObjects.Remove(obj);
-        }
+        }*/
 
         public static bool SetObjectMovement(PhysicsObj obj, object buffer, int size, int movementTimestamp, int serverControlTimestamp, bool autonomous)
         {
@@ -123,8 +123,8 @@ namespace ACE.Server.Physics
                 if (Player.Equals(obj))
                     SmartBox.PlayerPhysicsUpdatedCallback();
             }
-            foreach (var obj in StaticAnimatingObjects)
-                obj.animate_static_object();
+            //foreach (var obj in StaticAnimatingObjects)
+            //    obj.animate_static_object();
 
             LastUpdate = PhysicsTimer.CurrentTime;
         }
