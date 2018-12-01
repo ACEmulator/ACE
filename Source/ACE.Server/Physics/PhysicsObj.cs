@@ -157,8 +157,8 @@ namespace ACE.Server.Physics
             ScriptManager = null;
             Hooks = null;
 
-            if (State.HasFlag(PhysicsState.Static) && (State.HasFlag(PhysicsState.HasDefaultAnim) || State.HasFlag(PhysicsState.HasDefaultScript)))
-                PhysicsEngine.RemoveStaticAnimatingObject(this);
+            //if (State.HasFlag(PhysicsState.Static) && (State.HasFlag(PhysicsState.HasDefaultAnim) || State.HasFlag(PhysicsState.HasDefaultScript)))
+            //    PhysicsEngine.RemoveStaticAnimatingObject(this);
 
             if (PhysicsScriptTable != null)
                 PhysicsScriptTable.Release();
@@ -615,7 +615,7 @@ namespace ACE.Server.Physics
                 if (setup._dat.DefaultScript != 0)
                     State |= PhysicsState.HasDefaultScript;
 
-                PhysicsEngine.AddStaticAnimatingObject(this);
+                //PhysicsEngine.AddStaticAnimatingObject(this);
             }
         }
 
