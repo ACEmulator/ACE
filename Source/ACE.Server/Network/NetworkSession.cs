@@ -81,7 +81,7 @@ namespace ACE.Server.Network
             // New network auth session timeouts will always be low.
             TimeoutTick = DateTime.UtcNow.AddSeconds(AuthenticationHandler.DefaultAuthTimeout).Ticks;
 
-            for (int i = 0 ; i < currentBundles.Length; i++)
+            for (int i = 0; i < currentBundles.Length; i++)
             {
                 currentBundleLocks[i] = new object();
                 currentBundles[i] = new NetworkBundle();
@@ -132,7 +132,7 @@ namespace ACE.Server.Network
         /// </summary>
         public void Update()
         {
-            for (int i = 0 ; i < currentBundles.Length; i++)
+            for (int i = 0; i < currentBundles.Length; i++)
             {
                 NetworkBundle bundleToSend = null;
 
@@ -202,6 +202,21 @@ namespace ACE.Server.Network
         {
             packetLog.DebugFormat("[{0}] Processing packet {1}", session.LoggingIdentifier, packet.Header.Sequence);
             NetworkStatistics.C2S_Packets_Aggregate_Increment();
+
+            // If the client is requesting a retransmission, pull those packets from the queue and resend them.
+            if (packet.Header.HasFlag(PacketHeaderFlags.RequestRetransmit))
+            {
+                if (VerifyCRC(packet))
+                {
+                    foreach (uint sequence in packet.HeaderOptional.RetransmitData)
+                    {
+                        Retransmit(sequence);
+                    }
+                    NetworkStatistics.C2S_RequestsForRetransmit_Aggregate_Increment();
+                }
+                return;
+            }
+           
             // Check if this packet's sequence is a sequence which we have already processed.
             // There are some exceptions:
             // Sequence 0 as we have several Seq 0 packets during connect.  This also cathes a case where it seems CICMDCommand arrives at any point with 0 sequence value too.
@@ -218,7 +233,7 @@ namespace ACE.Server.Network
             var desiredSeq = lastReceivedPacketSequence + 1;
             if (packet.Header.Sequence > desiredSeq)
             {
-                packetLog.WarnFormat("[{0}] Packet {1} received out of order", session.LoggingIdentifier, packet.Header.Sequence);
+                packetLog.DebugFormat("[{0}] Packet {1} received out of order", session.LoggingIdentifier, packet.Header.Sequence);
 
                 if (!outOfOrderPackets.ContainsKey(packet.Header.Sequence))
                     outOfOrderPackets.TryAdd(packet.Header.Sequence, packet);
@@ -257,18 +272,143 @@ namespace ACE.Server.Network
             needSeq.ForEach(k => msReqData.Write(BitConverter.GetBytes(k), 0, 4));
             reqPacket.Data = msReqData;
             reqPacket.Header.Flags = PacketHeaderFlags.RequestRetransmit;
-            //reqPacket.Header.Checksum = reqPacket.Header.CalculateHash32();
 
             EnqueueSend(reqPacket);
 
-            // TODO: calculate session packet loss
-            RequestsForRetransmit += (uint)needSeq.Count;
             LastRequestForRetransmitTime = DateTime.Now;
-            packetLog.WarnFormat("[{0}] Requested retransmit of {1}", session.LoggingIdentifier, needSeq.Select(k => k.ToString()).Aggregate((a, b) => a + ", " + b));
+            packetLog.DebugFormat("[{0}] Requested retransmit of {1}", session.LoggingIdentifier, needSeq.Select(k => k.ToString()).Aggregate((a, b) => a + ", " + b));
             NetworkStatistics.S2C_RequestsForRetransmit_Aggregate_Increment();
         }
         private DateTime LastRequestForRetransmitTime = DateTime.MinValue;
-        private uint RequestsForRetransmit = 0;
+
+#if NETDIAG
+        private bool GetPastGeneration(Common.Cryptography.ISAAC state, ClientPacket packet, ref int Generation, int limit)
+        {
+            limit--;
+            if (limit < 1)
+            {
+                return false;
+            }
+            Generation--;
+            uint x = state.GetOffset();
+            if (packet.VerifyChecksum(x))
+            {
+                return true;
+            }
+            else
+            {
+                return GetPastGeneration(state.Parent, packet, ref Generation, limit);
+            }
+        }
+        private bool GetFutureGeneration(Common.Cryptography.ISAAC state, ClientPacket packet, ref int Generation, int limit)
+        {
+            limit--;
+            if (limit < 1)
+            {
+                return false;
+            }
+            Generation++;
+            uint x = state.GetOffset();
+            if (packet.VerifyChecksum(x))
+            {
+                return true;
+            }
+            else
+            {
+                return GetFutureGeneration(state, packet, ref Generation, limit);
+            }
+        }
+        private int? GetGeneration(Common.Cryptography.ISAAC state, ClientPacket packet)
+        {
+            int gen = 0;
+            if (GetFutureGeneration(state.Copy(), packet, ref gen, 10))
+            {
+                return gen;
+            }
+            if (GetPastGeneration(state.Copy(), packet, ref gen, 10))
+            {
+                return gen;
+            }
+            return null;
+        }
+        private Common.Cryptography.ISAAC GetGeneration(Common.Cryptography.ISAAC current, int cursor)
+        {
+            if (cursor > 0)
+            {
+                for (int i = 0; i < cursor; i++)
+                {
+                    current.GetOffset();
+                }
+                return current;
+            }
+            else if (cursor < 0)
+            {
+                for (int i = 0; i > cursor; i--)
+                {
+                    current = current.Parent;
+                }
+                return current;
+            }
+            else if (cursor == 0)
+            {
+                return current;
+            }
+            return null;
+        }
+#endif
+        private bool VerifyCRC(ClientPacket packet)
+        {
+            bool encryptedChecksum =
+                !packet.Header.HasFlag(PacketHeaderFlags.RequestRetransmit) &&
+                packet.Header.HasFlag(PacketHeaderFlags.EncryptedChecksum);
+            if (encryptedChecksum)
+            {
+#if NETDIAG
+                int? gen = GetGeneration(ConnectionData.IssacClient, packet);
+                if (gen != null)
+                {
+                    // gen should always be 1 notch forward, but some programming errors have revealed gen to be 2 or more and since fixed
+                    // generational ISSAC helps immensely when troubleshooting certain kinds of protocol problems
+                    ConnectionData.IssacClient = GetGeneration(ConnectionData.IssacClient, gen.Value);
+                    if (gen.Value != 1)
+                    {
+                        packetLog.Warn($"Packet CRC encryption generation out of sequence for packet {packet.Header.Sequence} gen {gen} {UnfoldFlags(packet.Header.Flags)}");
+                    }
+                    packetLog.Debug($"Verified encrypted CRC for packet {packet.Header.Sequence} gen {gen} {UnfoldFlags(packet.Header.Flags)}");
+                    return true;
+                }
+#else
+                if (packet.VerifyChecksum(ConnectionData.IssacClient.GetOffset()))
+                    return true;
+#endif
+            }
+            else
+            {
+                if (packet.VerifyChecksum(0))
+                {
+                    packetLog.Debug($"Verified CRC for packet {packet.Header.Sequence} {UnfoldFlags(packet.Header.Flags)}");
+                    return true;
+                }
+            }
+            NetworkStatistics.C2S_CRCErrors_Aggregate_Increment();
+            return false;
+        }
+        public static string UnfoldFlags(PacketHeaderFlags flags)
+        {
+            List<string> result = new List<string>();
+            foreach (PacketHeaderFlags r in System.Enum.GetValues(typeof(PacketHeaderFlags)))
+            {
+                if ((flags & r) != 0)
+                {
+                    result.Add(r.ToString());
+                }
+            }
+            if (result.Count == 0)
+            {
+                return string.Empty;
+            }
+            return result.Aggregate((a, b) => a + " | " + b);
+        }
 
         /// <summary>
         /// Handles a packet, reading the flags and processing all fragments.
@@ -278,25 +418,11 @@ namespace ACE.Server.Network
         {
             packetLog.DebugFormat("[{0}] Handling packet {1}", session.LoggingIdentifier, packet.Header.Sequence);
 
-            // Upon a client's request of packet retransmit the session CRC salt/offset becomes out of sync somehow.
-            // This hack recovers the correct offset and makes WAN client sessions at least reliable enough to test with.
-            // TODO: figure out why
-            uint issacXor = !packet.Header.HasFlag(PacketHeaderFlags.RequestRetransmit) && packet.Header.HasFlag(PacketHeaderFlags.EncryptedChecksum) ? ConnectionData.IssacClient.GetOffset() : 0;
-            if (!packet.VerifyChecksum(issacXor))
+            if (!VerifyCRC(packet))
             {
-                NetworkStatistics.C2S_CRCErrors_Aggregate_Increment();
-                if (issacXor != 0)
-                {
-                    issacXor = ConnectionData.IssacClient.GetOffset();
-                    packetLog.WarnFormat("[{0}] Packet {1} has invalid checksum, trying the next offset", session.LoggingIdentifier, packet.Header.Sequence);
-
-                    bool verified = packet.VerifyChecksum(issacXor);
-                    packetLog.WarnFormat("[{0}] Packet {1} improvised offset checksum result: {2}", session.LoggingIdentifier, packet.Header.Sequence, (verified) ? "successful" : "failed");
-                }
-                else
-                    packetLog.WarnFormat("[{0}] Packet {1} has invalid checksum", session.LoggingIdentifier, packet.Header.Sequence);
+                //DoRequestForRetransmission(packet.Header.Sequence);
+                return;
             }
-            // TODO: drop corrupted packets?
 
             // depending on the current session state:
             // Set the next timeout tick value, to compare against in the WorldManager
@@ -324,14 +450,6 @@ namespace ACE.Server.Network
                 // We will send this at a 20 second time interval.  I don't know what to do with these when we receive them at this point.
             }
 
-            // If the client is requesting a retransmission, pull those packets from the queue and resend them.
-            if (packet.Header.HasFlag(PacketHeaderFlags.RequestRetransmit))
-            {
-                foreach (uint sequence in packet.HeaderOptional.RetransmitData)
-                    Retransmit(sequence);
-                // TODO: calculate packet loss
-            }
-
             // This should be set on the first packet to the server indicating the client is logging in.
             // This is the start of a three-way handshake between the client and server (LoginRequest, ConnectRequest, ConnectResponse)
             // Note this would be sent to each server a client would connect too (Login and each world).
@@ -357,7 +475,7 @@ namespace ACE.Server.Network
                 ProcessFragment(fragment);
 
             // Update the last received sequence.
-            if (packet.Header.Sequence != 0)
+            if (packet.Header.Sequence != 0 && packet.Header.Flags != PacketHeaderFlags.AckSequence)
                 lastReceivedPacketSequence = packet.Header.Sequence;
         }
 
@@ -554,6 +672,10 @@ namespace ACE.Server.Network
 
             byte[] payload = packet.GetPayload();
 
+#if NETDIAG
+            payload = NetworkSyntheticTesting.SyntheticCorruption_S2C(payload);
+#endif
+
             if (packetLog.IsDebugEnabled)
             {
                 System.Net.IPEndPoint listenerEndpoint = (System.Net.IPEndPoint)socket.LocalEndPoint;
@@ -698,103 +820,6 @@ namespace ACE.Server.Network
                 packetLog.DebugFormat("[{0}] Outgoing EchoResponse: {1}", session.LoggingIdentifier, bundle.ClientTime);
                 packet.BodyWriter.Write(bundle.ClientTime);
                 packet.BodyWriter.Write((float)ConnectionData.ServerTime - bundle.ClientTime);
-            }
-        }
-
-        private class MessageBuffer
-        {
-            private List<ClientPacketFragment> fragments = new List<ClientPacketFragment>();
-
-            public uint Sequence { get; }
-            public int Count => fragments.Count;
-            public uint TotalFragments { get; }
-            public bool Complete => fragments.Count == TotalFragments;
-
-            public MessageBuffer(uint sequence, uint totalFragments)
-            {
-                Sequence = sequence;
-                TotalFragments = totalFragments;
-            }
-
-            public void AddFragment(ClientPacketFragment fragment)
-            {
-                lock (fragments)
-                {
-                    if (!Complete && !fragments.Any(x => x.Header.Index == fragment.Header.Index))
-                        fragments.Add(fragment);
-                }
-            }
-
-            public ClientMessage GetMessage()
-            {
-                fragments.Sort(delegate (ClientPacketFragment x, ClientPacketFragment y) { return (int)x.Header.Index - (int)y.Header.Index; });
-                MemoryStream stream = new MemoryStream();
-                BinaryWriter writer = new BinaryWriter(stream);
-                foreach (ClientPacketFragment fragment in fragments)
-                {
-                    writer.Write(fragment.Data);
-                }
-                stream.Seek(0, SeekOrigin.Begin);
-                return new ClientMessage(stream);
-            }
-        }
-
-        private class NetworkBundle
-        {
-            private bool propChanged;
-
-            public bool NeedsSending => propChanged || messages.Count > 0;
-
-            public bool HasMoreMessages => messages.Count > 0;
-
-            private Queue<GameMessage> messages = new Queue<GameMessage>();
-
-            private float clientTime = -1f;
-            public float ClientTime
-            {
-                get => clientTime;
-                set
-                {
-                    clientTime = value;
-                    propChanged = true;
-                }
-            }
-
-            private bool timeSync;
-            public bool TimeSync
-            {
-                get => timeSync;
-                set
-                {
-                    timeSync = value;
-                    propChanged = true;
-                }
-            }
-
-            private bool ackSeq;
-            public bool SendAck
-            {
-                get => ackSeq;
-                set
-                {
-                    ackSeq = value;
-                    propChanged = true;
-                }
-            }
-
-            public bool EncryptedChecksum { get; set; }
-
-            public int CurrentSize { get; private set; }
-
-            public void Enqueue(GameMessage message)
-            {
-                CurrentSize += (int)message.Data.Length;
-                messages.Enqueue(message);
-            }
-
-            public GameMessage Dequeue()
-            {
-                return messages.Dequeue();
             }
         }
     }
