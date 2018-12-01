@@ -23,7 +23,7 @@ namespace ACE.Server.Network
         {
             lock (fragments)
             {
-                if (!Complete && !fragments.Any(x => x.Header.Index == fragment.Header.Index))
+                if (!Complete && fragments.All(x => x.Header.Index != fragment.Header.Index))
                 {
                     fragments.Add(fragment);
                 }
