@@ -1,5 +1,93 @@
 # ACEmulator Change Log
 
+### 2018-11-29
+[Mag-nus]
+* Improved design and performance for SequenceManager
+
+### 2018-11-28
+[OptimShi]
+* Added RenderTexture, String and Font to DatLoader.FileTypes
+
+### 2018-11-27
+[dgatewood]
+* Added scrolls to loot profiles
+* Added caching system for scrolls
+
+[gmriggs]
+* Added stream support to audio export
+
+### 2018-11-26
+[fartwhif]
+* Fixed a long-standing network bug with lost/corrupted packets dropping clients
+  - Fixed a bug causing AcknowledgeSequence packets to increment the LastReceivedPacketSequence, causing the Sequence to break and never recover for that Session
+  - Fixed a bug causing RequestTransmit packets to be ignored
+  - Improved server resiliency against malformed packets
+  - Changed the C2S RequestForRetransmit to per-request packet, instead of sequence
+  - Added developer network debug commands
+  - Added a generational feature to ISAAC development of network layer
+  - Adding pre-processor definition NETDIAG + directives to ACE.Common and ACE.Server to help development by preserving troubleshooting tools, without interference with the optimal solution
+
+### 2018-11-25
+[gmriggs, parad0x]
+* Updated client lib with features useful for third-party apps
+  - Added outdoor landscape texture blending system (ImgTex, TexMerge, LandSurf)
+  - Updated LandblockStruct to optionally generated texture UV coordinates for landscape textures. Defaults to off for server environments
+  - Added animation-only updates to physics engine
+
+### 2018-11-23
+[quinw68]
+* Added instructions for installing with VS Community Edition
+
+[dgatewood]
+* Added more RNG treasure generation for chests
+
+### 2018-11-22
+[gmriggs]
+* Improved DatLoader for third-party apps
+  - Fixed a bug where Unicode string lengths weren't being read as compressed
+  - Added optional flag for caller to select whether or not to load the cell.dat.
+  - Fixed a bug where Animation framecounts were being read as uint instead of int
+  - Added more enum flags, as per client definitions
+
+[gmriggs + Optimshi]
+  - Added more DAT fletypes: EnumMapper, StringTable, DIDMapper, DualDIDMapper
+
+### 2018-11-16
+[Ripley]
+* Fixed an issue with door and chest appraisal with respect to lockpick chances
+
+[Mag-nus]
+* keepOpen option added to DatDatabase FileStream - improves DatLoader performance
+* Added Property dictionary system - reduces CPU needed for handling properties by about 80%
+* Removed ActionQueue.Dequeue architecture, as it was unused. This change reduces the CPU ActionQueues require by half.
+
+### 2018-11-15
+[Ripley]
+* Make StackSize an int instead of ushort
+  - This fixes the housing prices to match retail
+
+[Mag-nus]
+* Changed format of ServerStatus, Total CPU Time to match server runtime
+* Streamline attributes and vitals
+* Cleanup LoadAllLandblocks status output, and improved comments
+
+### 2018-11-14
+[Mag-nus]
+* Profiling-based performance improvements:
+  - Landblock LoadMeshes summary improved
+  - Added thread safety to LScape.get_landblock()
+  - Improved WorldObject.ObjectGuid creation
+* Added caching subsystem to EnchantmentManager
+* With these recent changes, 50+ active players have been tested and running smoothly
+
+### 2018-11-11
+[gmriggs]
+* Improved ShadowPart performance
+
+### 2018-11-05
+[fartwhif]
+* Fixed a bug with using certain mana pools
+
 ### 2018-11-01
 [Ripley]
 * Update EmoteManager and WorldObject Generator with fixes for Anniversary event emotes. 

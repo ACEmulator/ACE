@@ -29,6 +29,60 @@ namespace ACE.Server.Physics.Common
             EntirelyWater = 0x2,
         };
 
+        public enum Rotation
+        {
+            Rot0 = 0x0,
+            Rot90 = 0x1,
+            Rot180 = 0x2,
+            Rot270 = 0x3
+        };
+
+        public enum PalType
+        {
+            SWTerrain = 0x0,
+            SETerrain = 0x1,
+            NETerrain = 0x2,
+            NWTerrain = 0x3,
+            Road = 0x4
+        };
+
+        public enum TerrainType
+        {
+            BarrenRock = 0x0,
+            Grassland = 0x1,
+            Ice = 0x2,
+            LushGrass = 0x3,
+            MarshSparseSwamp = 0x4,
+            MudRichDirt = 0x5,
+            ObsidianPlain = 0x6,
+            PackedDirt = 0x7,
+            PatchyDirt = 0x8,
+            PatchyGrassland = 0x9,
+            SandYellow = 0xA,
+            SandGrey = 0xB,
+            SandRockStrewn = 0xC,
+            SedimentaryRock = 0xD,
+            SemiBarrenRock = 0xE,
+            Snow = 0xF,
+            WaterRunning = 0x10,
+            WaterStandingFresh = 0x11,
+            WaterShallowSea = 0x12,
+            WaterShallowStillSea = 0x13,
+            WaterDeepSea = 0x14,
+            Reserved21 = 0x15,
+            Reserved22 = 0x16,
+            Reserved23 = 0x17,
+            Reserved24 = 0x18,
+            Reserved25 = 0x19,
+            Reserved26 = 0x1A,
+            Reserved27 = 0x1B,
+            Reserved28 = 0x1C,
+            Reserved29 = 0x1D,
+            Reserved30 = 0x1E,
+            Reserved31 = 0x1F,
+            RoadType = 0x20
+        };
+
         public static readonly int BlockCellID = 0x0000FFFF;
         public static readonly int FirstEnvCellID = 0x100;
         public static readonly int LastEnvCellID = 0xFFFD;

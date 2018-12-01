@@ -110,7 +110,7 @@ namespace ACE.Server.Factories
                 {
                     case 1:
                         //mundane items
-                        int mundaneType = r.Next(1, 7);
+                        int mundaneType = r.Next(1, 8);
                         switch (mundaneType)
                         {
                             case 1:
@@ -203,9 +203,11 @@ namespace ACE.Server.Factories
                                 //Food Items
                                 id = CreateFood();
                                 break;
-                            case 8:
-                                //spell scrolls level 1-3
-                                break;
+                            case 7:
+                            //spell scrolls level 1-3
+                            wo = CreateRandomScroll(r.Next(1, 4));
+                            return wo;
+                            break;
                             default:
                                 break;
                         }
@@ -241,7 +243,7 @@ namespace ACE.Server.Factories
                 {
                     case 1:
                         //mundane items
-                        int mundaneType = r.Next(1, 7);
+                        int mundaneType = r.Next(1, 8);
                         switch (mundaneType)
                         {
                             case 1:
@@ -367,9 +369,10 @@ namespace ACE.Server.Factories
                             case 6:
                                 id = CreateFood();
                                 break;
-                            case 8:
-                                //spell scrolls level 3-5
-                                break;
+                            case 7:
+                            //spell scrolls level 3-5
+                            wo = CreateRandomScroll(r.Next(3, 6));
+                            return wo;
                             default:
                                 break;
                         }
@@ -405,7 +408,7 @@ namespace ACE.Server.Factories
                 {
                     case 1:
                         //mundane items
-                        int mundaneType = r.Next(1, 7);
+                        int mundaneType = r.Next(1, 8);
                         switch (mundaneType)
                         {
                             case 1:
@@ -549,8 +552,11 @@ namespace ACE.Server.Factories
                             //    break;
                             case 6:
                                 id = CreateFood();
-                                break;
-                            default:
+                            break;
+                        case 7:
+                            wo = CreateRandomScroll(r.Next(4, 6));
+                            return wo;
+                        default:
                                 break;
                         }
                     wo = WorldObjectFactory.CreateNewWorldObject((uint)id);
@@ -585,7 +591,7 @@ namespace ACE.Server.Factories
                 {
                     case 1:
                         //mundane items
-                        int mundaneType = r.Next(1, 7);
+                        int mundaneType = r.Next(1, 8);
                         switch (mundaneType)
                         {
                             case 1:
@@ -735,7 +741,10 @@ namespace ACE.Server.Factories
                             case 6:
                                 id = CreateFood();
                                 break;
-                            default:
+                        case 7:
+                            wo = CreateRandomScroll(r.Next(4, 6));
+                            return wo;
+                        default:
                                 break;
                         }
                     wo = WorldObjectFactory.CreateNewWorldObject((uint)id);
@@ -770,7 +779,7 @@ namespace ACE.Server.Factories
                 {
                     case 1:
                         //mundane items
-                        int mundaneType = r.Next(1, 7);
+                        int mundaneType = r.Next(1, 8);
                         switch (mundaneType)
                         {
                             case 1:
@@ -920,7 +929,10 @@ namespace ACE.Server.Factories
                             case 6:
                                 id = CreateFood();
                                 break;
-                            default:
+                        case 7:
+                            wo = CreateRandomScroll(r.Next(5, 8));
+                            return wo;
+                        default:
                                 break;
                         }
                         wo = WorldObjectFactory.CreateNewWorldObject((uint)id);
@@ -950,12 +962,12 @@ namespace ACE.Server.Factories
             int chance;
             WorldObject wo;
             Random r = new Random();
-                int type = r.Next(1, 6);
+                int type = r.Next(1, 5);
                 switch (type)
                 {
                     case 1:
                         //mundane items
-                        int mundaneType = r.Next(1, 7);
+                        int mundaneType = r.Next(1, 8);
                         switch (mundaneType)
                         {
                             case 1:
@@ -1100,7 +1112,10 @@ namespace ACE.Server.Factories
                             case 6:
                                 id = CreateFood();
                                 break;
-                            default:
+                        case 7:
+                            wo = CreateRandomScroll(r.Next(6 , 8));
+                            return wo;
+                        default:
                                 break;
                         }
                         wo = WorldObjectFactory.CreateNewWorldObject((uint)id);
@@ -1135,7 +1150,7 @@ namespace ACE.Server.Factories
                 {
                     case 1:
                         //mundane items
-                        int mundaneType = r.Next(1, 7);
+                        int mundaneType = r.Next(1, 8);
                         switch (mundaneType)
                         {
                             case 1:
@@ -1280,7 +1295,10 @@ namespace ACE.Server.Factories
                             case 6:
                                 id = CreateFood();
                                 break;
-                            default:
+                        case 7:
+                            wo = CreateRandomScroll(r.Next(6,8));
+                            return wo;
+                        default:
                                 break;
                         }
                         wo = WorldObjectFactory.CreateNewWorldObject((uint)id);
@@ -1315,7 +1333,7 @@ namespace ACE.Server.Factories
                 {
                     case 1:
                         //mundane items
-                        int mundaneType = r.Next(1, 7);
+                        int mundaneType = r.Next(1, 8);
                         switch (mundaneType)
                         {
                             case 1:
@@ -1839,7 +1857,10 @@ namespace ACE.Server.Factories
                             case 6:
                                 id = CreateFood();
                                 break;
-                            default:
+                        case 7:
+                            wo = CreateRandomScroll(7);
+                            return wo;
+                        default:
                                 break;
                         }
                         wo = WorldObjectFactory.CreateNewWorldObject((uint)id);
@@ -2315,6 +2336,19 @@ namespace ACE.Server.Factories
             int[] food = { 258, 4746, 259, 547, 260, 5758, 261, 262, 263, 264, 265 };
             foodType = food[r.Next(0, 11)];
             return foodType;
+        }
+
+        public static WorldObject CreateRandomScroll(int tier)
+        {
+            uint weenieID;
+            Random r = new Random();
+            var tier2 = tier;
+            if(tier > 6)
+                tier2 = 6;
+            weenieID = (uint)LootHelper.ScrollSpells[r.Next(0, LootHelper.ScrollSpells.Length)][tier2-1];
+            String className = DatabaseManager.World.GetScrollWeenie(weenieID).ClassName;   
+            WorldObject wo = WorldObjectFactory.CreateNewWorldObject(className);
+            return wo;
         }
 
         public static WorldObject CreateJewelry(int tier)
