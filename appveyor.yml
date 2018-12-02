@@ -16,7 +16,7 @@ test:
   # all except assemblies to test
   assemblies:
     except:
-      - '**\ACE.DatLoader.Tests.dll'
+      - '**\*ACE.DatLoader.Tests.dll'
 artifacts:
   - path: '**\ACETests*.txt'
     name: test logs
