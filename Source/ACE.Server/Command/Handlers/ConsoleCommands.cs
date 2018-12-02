@@ -32,7 +32,7 @@ namespace ACE.Server.Command.Handlers
             string exportDir = parameters[0];
 
             Console.WriteLine($"Exporting portal.dat contents to {exportDir}.  This will take a while.");
-            DatManager.PortalDat.ExtractCategorizedContents(exportDir);
+            DatManager.PortalDat.ExtractCategorizedPortalContents(exportDir);
             Console.WriteLine($"Export of portal.dat to {exportDir} complete.");
         }
 
@@ -50,7 +50,7 @@ namespace ACE.Server.Command.Handlers
             string exportDir = parameters[0];
 
             Console.WriteLine($"Exporting client_highres.dat contents to {exportDir}.  This will take a while.");
-            DatManager.HighResDat.ExtractCategorizedContents(exportDir);
+            DatManager.HighResDat.ExtractCategorizedPortalContents(exportDir);
             Console.WriteLine($"Export of client_highres.dat to {exportDir} complete.");
         }
 
@@ -68,7 +68,7 @@ namespace ACE.Server.Command.Handlers
             string exportDir = parameters[0];
 
             Console.WriteLine($"Exporting client_local_English.dat contents to {exportDir}.  This will take a while.");
-            DatManager.LanguageDat.ExtractCategorizedContents(exportDir);
+            DatManager.LanguageDat.ExtractCategorizedPortalContents(exportDir);
             Console.WriteLine($"Export of client_local_English.dat to {exportDir} complete.");
         }
 

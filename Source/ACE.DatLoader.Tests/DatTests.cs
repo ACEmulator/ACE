@@ -169,7 +169,7 @@ namespace ACE.DatLoader.Tests
         {
             string output = @"c:\Turbine\typed_portal_dat_export";
             PortalDatDatabase db = new PortalDatDatabase(portalDatLocation);
-            db.ExtractCategorizedContents(output);
+            db.ExtractCategorizedPortalContents(output);
         }
     }
 }
