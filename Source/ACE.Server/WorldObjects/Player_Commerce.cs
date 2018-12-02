@@ -242,20 +242,16 @@ namespace ACE.Server.WorldObjects
                 else
                 {
                     // remove item from inventory.
-                    TryRemoveFromInventory(profile.Guid);
+                    TryRemoveFromInventoryWithNetworking(item);
                 }
 
                 //Session.Network.EnqueueSend(new GameMessagePrivateUpdateInstanceId(profile, PropertyInstanceId.Container, new ObjectGuid(0).Full));
 
                 item.SetPropertiesForVendor();
-
-                // clean up the shard database.
-                throw new NotImplementedException();
-                // todo fix for EF
-                //DatabaseManager.Shard.DeleteObject(item.SnapShotOfAceObject(), null);
-
                 Session.Network.EnqueueSend(new GameMessageDeleteObject(item));
                 purchaselist.Add(item);
+                //update item in database
+                item.SaveBiotaToDatabase();
             }
 
             var vendor = CurrentLandblock?.GetObject(vendorId) as Vendor;
