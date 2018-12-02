@@ -138,7 +138,7 @@ namespace ACE.Server.Command.Handlers
                     return;
                 }
 
-                var image = DatManager.PortalDat.ReadFromDat<RenderSurface>(imageId);
+                var image = DatManager.PortalDat.ReadFromDat<Texture>(imageId);
                 image.ExportTexture(exportDir);
 
                 Console.WriteLine($"Exported " + imageId.ToString("X8") + " to " + exportDir + ".");
@@ -150,9 +150,9 @@ namespace ACE.Server.Command.Handlers
                 Console.WriteLine($"Exporting client_portal.dat textures and images to {exportDir}.  This may take a while.");
                 foreach (KeyValuePair<uint, DatFile> entry in DatManager.PortalDat.AllFiles)
                 {
-                    if (entry.Value.GetFileType(DatDatabaseType.Portal) == DatFileType.RenderSurface)
+                    if (entry.Value.GetFileType(DatDatabaseType.Portal) == DatFileType.Texture)
                     {
-                        var image = DatManager.PortalDat.ReadFromDat<RenderSurface>(entry.Value.ObjectId);
+                        var image = DatManager.PortalDat.ReadFromDat<Texture>(entry.Value.ObjectId);
                         image.ExportTexture(exportDir);
                         portalFiles++;
                     }
@@ -163,9 +163,9 @@ namespace ACE.Server.Command.Handlers
                 {
                     foreach (KeyValuePair<uint, DatFile> entry in DatManager.HighResDat.AllFiles)
                     {
-                        if (entry.Value.GetFileType(DatDatabaseType.Portal) == DatFileType.RenderSurface)
+                        if (entry.Value.GetFileType(DatDatabaseType.Portal) == DatFileType.Texture)
                         {
-                            var image = DatManager.HighResDat.ReadFromDat<RenderSurface>(entry.Value.ObjectId);
+                            var image = DatManager.HighResDat.ReadFromDat<Texture>(entry.Value.ObjectId);
                             image.ExportTexture(exportDir);
                             highresFiles++;
                         }

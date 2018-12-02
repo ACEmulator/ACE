@@ -18,7 +18,7 @@ namespace ACE.Server.Physics.Common
         public uint TextureCode;
         public bool IsLocked;
 
-        public DatLoader.FileTypes.RenderSurface _renderSurface;
+        public Texture _texture;
         public SurfaceTexture _surfaceTexture;
 
         public static ImageScaleType LandTextureScale;
@@ -41,9 +41,9 @@ namespace ACE.Server.Physics.Common
 
         }
 
-        public ImgTex(DatLoader.FileTypes.RenderSurface renderSurface)
+        public ImgTex(Texture texture)
         {
-            _renderSurface = renderSurface;
+            _texture = texture;
         }
 
         public ImgTex(SurfaceTexture surfaceTexture)
@@ -59,7 +59,7 @@ namespace ACE.Server.Physics.Common
             ID = _surfaceTexture.Id;
             var textureID = TextureCode = surfaceTexture.Textures[0];   // use texturecode here?
             //Console.WriteLine($"Loading texture {textureID:X8}");
-            var renderSurface = DatManager.PortalDat.ReadFromDat<DatLoader.FileTypes.RenderSurface>(textureID);
+            var renderSurface = DatManager.PortalDat.ReadFromDat<Texture>(textureID);
             ImageData = new RenderSurface(renderSurface);
         }
 
