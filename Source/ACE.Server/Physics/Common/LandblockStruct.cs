@@ -1,7 +1,8 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
 using System.Numerics;
+
 using ACE.Entity.Enum;
 using ACE.DatLoader;
 using ACE.DatLoader.FileTypes;
@@ -24,7 +25,8 @@ namespace ACE.Server.Physics.Common
         public List<Polygon> Polygons;
         //public List<int> SurfaceStrips;     // SurfaceTriStrips
         //public int BlockSurfaceIndex;
-        public Dictionary<int, ObjCell> LandCells;
+        public readonly object LandCellMutex = new object();
+        public ConcurrentDictionary<int, ObjCell> LandCells;
         public List<bool> SWtoNEcut { get; set; }
 
         // client-only
@@ -478,8 +480,8 @@ namespace ACE.Server.Physics.Common
             //BlockSurfaceIndex = -1;
 
             // init for landcell
-            LandCells = new Dictionary<int, ObjCell>();
-            for (uint i = 1; i <= 64; i++) LandCells.Add((int)i, new LandCell((i)));
+            LandCells = new ConcurrentDictionary<int, ObjCell>();
+            for (uint i = 1; i <= 64; i++) LandCells.TryAdd((int)i, new LandCell((i)));
         }
 
         /// <summary>
@@ -504,9 +506,9 @@ namespace ACE.Server.Physics.Common
             for (var i = 0; i < numSquares; i++)
                 SWtoNEcut.Add(false);
 
-            LandCells = new Dictionary<int, ObjCell>(numCells);
+            LandCells = new ConcurrentDictionary<int, ObjCell>(1, numCells);
             for (uint i = 0; i < numCells; i++)
-                LandCells.Add((int)i, new LandCell((ID & LandDefs.BlockMask) + i));
+                LandCells.TryAdd((int)i, new LandCell((ID & LandDefs.BlockMask) + i));
         }
 
         /// <summary>
