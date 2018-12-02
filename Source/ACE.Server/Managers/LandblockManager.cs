@@ -282,7 +282,7 @@ namespace ACE.Server.Managers
         /// </summary>
         private static void SetAdjacents(Landblock landblock, bool traverse = true, bool pSync = false)
         {
-            landblock.adjacents = GetAdjacents(landblock);
+            landblock.Adjacents = GetAdjacents(landblock);
 
             if (pSync)
             {
@@ -292,7 +292,7 @@ namespace ACE.Server.Managers
 
             if (traverse)
             {
-                foreach (var adjacent in landblock.adjacents)
+                foreach (var adjacent in landblock.Adjacents)
                     SetAdjacents(adjacent, false);
             }
         }
