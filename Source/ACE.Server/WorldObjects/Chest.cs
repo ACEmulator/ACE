@@ -65,7 +65,7 @@ namespace ACE.Server.WorldObjects
                     case 6:
                     case 18:
                     case 465:
-                        for (int j = 0; i < amount; i++)
+                        for (int j = 0; j < amount; j++)
                         {
                             var wo = LootGenerationFactory.CreateRandomLootObjects(1);
                             TryAddToInventory(wo);
@@ -78,7 +78,7 @@ namespace ACE.Server.WorldObjects
                     case 4:
                     case 463:
                     case 395:
-                        for (int j = 0; i < amount; i++)
+                        for (int j = 0; j < amount; j++)
                         {
                             var wo = LootGenerationFactory.CreateRandomLootObjects(2);
                             TryAddToInventory(wo);
@@ -92,7 +92,7 @@ namespace ACE.Server.WorldObjects
                     case 456:
                     case 340:
                     case 365:
-                        for (int j = 0; i < amount; i++)
+                        for (int j = 0; j < amount; j++)
                         {
                             var wo = LootGenerationFactory.CreateRandomLootObjects(3);
                             TryAddToInventory(wo);
@@ -105,7 +105,7 @@ namespace ACE.Server.WorldObjects
                     case 13:
                     case 59:
                     case 339:
-                        for (int j = 0; i < amount; i++)
+                        for (int j = 0; j < amount; j++)
                         {
                             var wo = LootGenerationFactory.CreateRandomLootObjects(4);
                             TryAddToInventory(wo);
@@ -114,7 +114,7 @@ namespace ACE.Server.WorldObjects
                     case 334:
                     case 341:
                     case 317:
-                        for (int j = 0; i < amount; i++)
+                        for (int j = 0; j < amount; j++)
                         {
                             var wo = LootGenerationFactory.CreateRandomLootObjects(5);
                             TryAddToInventory(wo);
@@ -128,7 +128,7 @@ namespace ACE.Server.WorldObjects
                     case 351:
                     case 422:
                     case 338:
-                        for (int j = 0; i < amount; i++)
+                        for (int j = 0; j < amount; j++)
                         {
                             var wo = LootGenerationFactory.CreateRandomLootObjects(6);
                             TryAddToInventory(wo);
