@@ -11,7 +11,8 @@ namespace ACE.Server.Network.GameAction.Actions
         {
             uint newMemberId = message.Payload.ReadUInt32();
             ObjectGuid newMember = new ObjectGuid(newMemberId);
-            Player newPlayer = WorldManager.GetPlayerByGuidId(newMemberId);
+            Player newPlayer = PlayerManager.GetOnlinePlayer(newMemberId);
+
             session.Player.FellowshipRecruit(newPlayer);
         }
     }

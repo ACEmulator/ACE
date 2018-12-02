@@ -320,15 +320,13 @@ namespace ACE.Database
         }
 
 
-        public PlayerBiotas GetPlayerBiotasInParallel(uint id)
+        public PossessedBiotas GetPossessedBiotasInParallel(uint id)
         {
-            var biota = GetBiota(id);
-
             var inventory = GetInventoryInParallel(id, true);
 
             var wieldedItems = GetWieldedItemsInParallel(id);
 
-            return new PlayerBiotas(biota, inventory, wieldedItems);
+            return new PossessedBiotas(inventory, wieldedItems);
         }
 
         public List<Biota> GetInventoryInParallel(uint parentId, bool includedNestedItems)
@@ -601,16 +599,29 @@ namespace ACE.Database
         }
 
 
-        public List<Character> GetAllCharacters()
+        /// <summary>
+        /// This will get all player biotas that are backed by characters that are not deleted.
+        /// </summary>
+        public List<Biota> GetAllPlayerBiotasInParallel()
         {
+            var biotas = new ConcurrentBag<Biota>();
+
             using (var context = new ShardDbContext())
             {
                 var results = context.Character
+                    .Where(r => !r.IsDeleted)
                     .AsNoTracking()
                     .ToList();
 
-                return results;
+                Parallel.ForEach(results, result =>
+                {
+                    var biota = GetBiota(result.Id);
+
+                    biotas.Add(biota);
+                });
             }
+
+            return biotas.ToList();
         }
     }
 }

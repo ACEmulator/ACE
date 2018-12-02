@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
 
 using log4net;
@@ -28,7 +27,7 @@ using MotionTable = ACE.DatLoader.FileTypes.MotionTable;
 
 namespace ACE.Server.WorldObjects
 {
-    public partial class Player : Creature
+    public partial class Player : Creature, IPlayer
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -218,12 +217,7 @@ namespace ACE.Server.WorldObjects
 
             UpdateCoinValue(false);
 
-            if (Session != null && Session.IsOnline)
-                AllegianceManager.LoadPlayer(this);
-
             QuestManager = new QuestManager(this);
-
-            IsOnline = true;
 
             return; // todo
             /* todo fix for new EF model
@@ -397,18 +391,6 @@ namespace ACE.Server.WorldObjects
             Session.Network.EnqueueSend(new GameEventConfirmationDone(Session, confirmationType, contextId));
         }
 
-        //[Obsolete]
-        //private AceCharacter Character => AceObject as AceCharacter;
-
-
-
-
-
-
-        //public ReadOnlyDictionary<CharacterOption, bool> CharacterOptions => CharacterOptions;
-
-        //public ReadOnlyCollection<Friend> Friends => Friends;
-        public ReadOnlyCollection<Friend> Friends { get; set; }
 
         public MotionStance stance = MotionStance.NonCombat;
 
@@ -573,17 +555,6 @@ namespace ACE.Server.WorldObjects
         }
 
  
-        /// <summary>
-        /// Returns false if the player has chosen to Appear Offline.  Otherwise it will return their actual online status.
-        /// </summary>
-        public bool GetVirtualOnlineStatus()
-        {
-            if (GetCharacterOption(CharacterOption.AppearOffline))
-                return false;
-
-            return IsOnline;
-        }
-
         public void HandleActionLogout(bool clientSessionTerminatedAbruptly = false)
         {
             GetLogoutChain().EnqueueChain();
@@ -613,17 +584,9 @@ namespace ACE.Server.WorldObjects
         private void LogoutInternal(bool clientSessionTerminatedAbruptly)
         {
             if (Fellowship != null)
-            {
                 FellowshipQuit(false);
-            }
-
-            if (!IsOnline)
-                return;
 
             InWorld = false;
-            IsOnline = false;
-
-            SendFriendStatusUpdates();
 
             if (!clientSessionTerminatedAbruptly)
             {

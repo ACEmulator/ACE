@@ -13,14 +13,12 @@ using ACE.Common;
 using ACE.Database;
 using ACE.Database.Entity;
 using ACE.Database.Models.Shard;
-using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.WorldObjects;
 using ACE.Server.Network;
 using ACE.Server.Network.GameEvent.Events;
-using ACE.Server.Network.GameMessages;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Physics;
 using ACE.Server.Physics.Common;
@@ -65,93 +63,10 @@ namespace ACE.Server.Managers
         private static readonly ActionQueue playerEnterWorldQueue = new ActionQueue();
         public static readonly DelayManager DelayManager = new DelayManager(); // TODO get rid of this. Each WO should have its own delayManager
 
-        public static List<Player> AllPlayers;
-
         static WorldManager()
         {
             Physics = new PhysicsEngine(new ObjectMaint(), new SmartBox());
             Physics.Server = true;
-
-            LoadAllPlayers();
-        }
-
-        /// <summary>
-        /// Populate a list of all players on the server
-        /// This includes offline players, and these records are technically separate from the online records
-        /// This method is a placeholder until syncing the offline data with the online Players is sorted out...
-        /// </summary>
-        public static void LoadAllPlayers()
-        {
-            // FIXME: this is a placeholder for offline players
-
-            // probably bugged when players are added/removed...
-            AllPlayers = new List<Player>();
-
-            // get all character ids
-            DatabaseManager.Shard.GetAllCharacters(characters =>
-            {
-                foreach (var character in characters)
-                {
-                    DatabaseManager.Shard.GetPlayerBiotasInParallel(character.Id, biotas =>
-                    {
-                        var session = new Session();
-                        var player = new Player(biotas.Player, biotas.Inventory, biotas.WieldedItems, character, session);
-                        AllPlayers.Add(player);
-                    });
-                }
-            });
-        }
-
-        /// <summary>
-        /// Adds a newly created character to the list of all players on the server
-        /// </summary>
-        public static void AddPlayer(Character character)
-        {
-            DatabaseManager.Shard.GetPlayerBiotasInParallel(character.Id, biotas =>
-            {
-                var session = new Session();
-                var player = new Player(biotas.Player, biotas.Inventory, biotas.WieldedItems, character, session);
-                AllPlayers.Add(player);
-            });
-        }
-
-        /// <summary>
-        /// Returns an offline player record from the AllPlayers list
-        /// </summary>
-        /// <param name="playerGuid"></param>
-        /// <returns></returns>
-        public static Player GetOfflinePlayer(ObjectGuid playerGuid)
-        {
-            return AllPlayers.FirstOrDefault(p => p.Guid.Equals(playerGuid));
-        }
-
-        /// <summary>
-        /// Syncs the cached offline player fields
-        /// </summary>
-        /// <param name="player">An online player</param>
-        public static void SyncOffline(Player player)
-        {
-            var offlinePlayer = AllPlayers.FirstOrDefault(p => p.Guid.Full == player.Guid.Full);
-            if (offlinePlayer == null) return;
-
-            // FIXME: this is a placeholder for offline players
-            offlinePlayer.Monarch = player.Monarch;
-            offlinePlayer.Patron = player.Patron;
-
-            offlinePlayer.AllegianceCPPool = player.AllegianceCPPool;
-        }
-
-        /// <summary>
-        /// Syncs an online player with the cached offline fields
-        /// </summary>
-        /// <param name="player">An online player</param>
-        public static void SyncOnline(Player player)
-        {
-            var offlinePlayer = AllPlayers.FirstOrDefault(p => p.Guid.Full == player.Guid.Full);
-            if (offlinePlayer == null) return;
-
-            // FIXME: this is a placeholder for offline players
-            player.AllegianceCPPool = offlinePlayer.AllegianceCPPool;
         }
 
         public static void Initialize()
@@ -271,6 +186,19 @@ namespace ACE.Server.Managers
             }
         }
 
+        public static int GetSessionCount()
+        {
+            sessionLock.EnterReadLock();
+            try
+            {
+                return sessions.Count;
+            }
+            finally
+            {
+                sessionLock.ExitReadLock();
+            }
+        }
+
         public static Session Find(uint accountId)
         {
             sessionLock.EnterReadLock();
@@ -297,155 +225,40 @@ namespace ACE.Server.Managers
             }
         }
 
-        public static Session Find(ObjectGuid characterGuid)
-        {
-            sessionLock.EnterReadLock();
-            try
-            {
-                return sessions.SingleOrDefault(s => s.Player?.Guid.Low == characterGuid.Low);
-            }
-            finally
-            {
-                sessionLock.ExitReadLock();
-            }
-        }
-
-        /// <summary>
-        /// This will loop through the active sessions and find one with a player that is named <paramref name="name"/>, ignoring case.
-        /// </summary>
-        public static Session FindByPlayerName(string name, bool isOnlineRequired = true)
-        {
-            sessionLock.EnterReadLock();
-            try
-            {
-                if (isOnlineRequired)
-                    return sessions.SingleOrDefault(s => s.Player != null && s.Player.IsOnline && String.Compare(s.Player.Name, name, StringComparison.OrdinalIgnoreCase) == 0);
-
-                return sessions.SingleOrDefault(s => s.Player != null && String.Compare(s.Player.Name, name, StringComparison.OrdinalIgnoreCase) == 0);
-            }
-            finally
-            {
-                sessionLock.ExitReadLock();
-            }
-        }
-
-        public static Player GetPlayerByGuidId(uint playerId, bool isOnlineRequired = true)
-        {
-            sessionLock.EnterReadLock();
-            try
-            {
-                Session session;
-
-                if (isOnlineRequired)
-                    session = sessions.SingleOrDefault(s => s.Player != null && s.Player.IsOnline && s.Player.Guid.Full == playerId);
-                else
-                    session = sessions.SingleOrDefault(s => s.Player != null && s.Player.Guid.Full == playerId);
-
-                return session?.Player;
-            }
-            finally
-            {
-                sessionLock.ExitReadLock();
-            }
-        }
-
-
-        public static Player GetOfflinePlayerByGuidId(uint playerId)
-        {
-            return AllPlayers.FirstOrDefault(p => p.Guid.Full.Equals(playerId));
-        }
-
-        public static List<Session> FindInverseFriends(ObjectGuid characterGuid)
-        {
-            sessionLock.EnterReadLock();
-            try
-            {
-                return sessions.Where(s => s.Player?.Friends.FirstOrDefault(f => f.Id.Low == characterGuid.Low) != null).ToList();
-            }
-            finally
-            {
-                sessionLock.ExitReadLock();
-            }
-        }
-
-        /// <summary>
-        /// Returns a list of all sessions currently connected
-        /// </summary>
-        /// <param name="isOnlineRequired">false returns all players (offline or online)</param>
-        /// <returns>List of all active sessions to the server</returns>
-        public static List<Session> GetAll(bool isOnlineRequired = true)
-        {
-            sessionLock.EnterReadLock();
-            try
-            {
-                if (isOnlineRequired)
-                    return sessions.Where(s => s.Player != null && s.Player.IsOnline).ToList();
-
-                return sessions.ToList();
-            }
-            finally
-            {
-                sessionLock.ExitReadLock();
-            }
-        }
-
-        /// <summary>
-        /// Returns a list of all players who are under a monarch
-        /// </summary>
-        /// <param name="monarch">The monarch of an allegiance</param>
-        public static List<Player> GetAllegiance(Player monarch)
-        {
-            sessionLock.EnterReadLock();
-            try
-            {
-                return AllPlayers.Where(p => p.Monarch == monarch.Guid.Full).ToList();
-            }
-            finally
-            {
-                sessionLock.ExitReadLock();
-            }
-        }
-
-        /// <summary>
-        /// Broadcasts GameMessage to all online sessions.
-        /// </summary>
-        public static void BroadcastToAll(GameMessage msg)
-        {
-            sessionLock.EnterReadLock();
-            try
-            {
-                foreach (Session session in sessions.Where(s => s.Player != null && s.Player.IsOnline).ToList())
-                    session.Network.EnqueueSend(msg);
-            }
-            finally
-            {
-                sessionLock.ExitReadLock();
-            }
-        }
-
         public static void PlayerEnterWorld(Session session, Character character)
         {
-            var start = DateTime.UtcNow;
-            DatabaseManager.Shard.GetPlayerBiotasInParallel(character.Id, biotas =>
-            {
-                log.Debug($"GetPlayerBiotas for {character.Name} took {(DateTime.UtcNow - start).TotalMilliseconds:N0} ms");
+            var offlinePlayer = PlayerManager.GetOfflinePlayer(character.Id);
 
-                playerEnterWorldQueue.EnqueueAction(new ActionEventDelegate(() => DoPlayerEnterWorld(session, character, biotas)));
+            if (offlinePlayer == null)
+            {
+                log.Error($"PlayerEnterWorld requested for character.Id 0x{character.Id:X8} not found in PlayerManager OfflinePlayers.");
+                return;
+            }
+
+            var start = DateTime.UtcNow;
+            DatabaseManager.Shard.GetPossessedBiotasInParallel(character.Id, biotas =>
+            {
+                log.Debug($"GetPossessedBiotasInParallel for {character.Name} took {(DateTime.UtcNow - start).TotalMilliseconds:N0} ms");
+
+                playerEnterWorldQueue.EnqueueAction(new ActionEventDelegate(() => DoPlayerEnterWorld(session, character, offlinePlayer.Biota, biotas)));
             });
         }
 
-        private static void DoPlayerEnterWorld(Session session, Character character, PlayerBiotas biotas)
+        private static void DoPlayerEnterWorld(Session session, Character character, Biota playerBiota, PossessedBiotas possessedBiotas)
         {
             Player player;
 
-            if (biotas.Player.WeenieType == (int)WeenieType.Admin)
-                player = new Admin(biotas.Player, biotas.Inventory, biotas.WieldedItems, character, session);
-            else if (biotas.Player.WeenieType == (int)WeenieType.Sentinel)
-                player = new Sentinel(biotas.Player, biotas.Inventory, biotas.WieldedItems, character, session);
+            if (playerBiota.WeenieType == (int)WeenieType.Admin)
+                player = new Admin(playerBiota, possessedBiotas.Inventory, possessedBiotas.WieldedItems, character, session);
+            else if (playerBiota.WeenieType == (int)WeenieType.Sentinel)
+                player = new Sentinel(playerBiota, possessedBiotas.Inventory, possessedBiotas.WieldedItems, character, session);
             else
-                player = new Player(biotas.Player, biotas.Inventory, biotas.WieldedItems, character, session);
+                player = new Player(playerBiota, possessedBiotas.Inventory, possessedBiotas.WieldedItems, character, session);
 
             session.SetPlayer(player);
+
+            PlayerManager.SwitchPlayerFromOfflineToOnline(player);
+
             session.Player.PlayerEnterWorld();
 
             if (character.TotalLogins <= 1 || PropertyManager.GetBool("alwaysshowwelcome").Item)
@@ -509,6 +322,8 @@ namespace ACE.Server.Managers
                 */
 
                 worldTickTimer.Restart();
+
+                PlayerManager.Tick();
 
                 InboundClientMessageQueue.RunActions();
 
@@ -683,6 +498,7 @@ namespace ACE.Server.Managers
                 foreach (var session in deadSessions)
                 {
                     log.Info($"client {session.Account} dropped");
+                    session.RemovePlayer();
                     RemoveSession(session); // This will temporarily upgrade our ReadLock to a WriteLock
                 }
             }

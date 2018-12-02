@@ -41,6 +41,12 @@ namespace ACE.Database
         }
 
 
+        public int GetAccountCount()
+        {
+            using (var context = new AuthDbContext())
+                return context.Account.Count();
+        }
+
         /// <exception cref="MySqlException">Account with name already exists.</exception>
         public Account CreateAccount(string name, string password, AccessLevel accessLevel)
         {

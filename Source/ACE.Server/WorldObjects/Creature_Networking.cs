@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+
 using ACE.DatLoader;
 using ACE.DatLoader.Entity;
 using ACE.DatLoader.FileTypes;
@@ -26,7 +27,7 @@ namespace ACE.Server.WorldObjects
         {
             GameMessageSystemChat sysMessage = new GameMessageSystemChat(message, messageType);
 
-            WorldManager.BroadcastToAll(sysMessage);
+            PlayerManager.BroadcastToAll(sysMessage);
         }
 
         public override ACE.Entity.ObjDesc CalculateObjDesc()

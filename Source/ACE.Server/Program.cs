@@ -101,6 +101,9 @@ namespace ACE.Server
             else
                 log.Info("Precaching World Database Disabled...");
 
+            log.Info("Initializing PlayerManager...");
+            PlayerManager.Initialize();
+
             log.Info("Initializing InboundMessageManager...");
             InboundMessageManager.Initialize();
 

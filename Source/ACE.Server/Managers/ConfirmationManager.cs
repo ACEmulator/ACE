@@ -25,8 +25,8 @@ namespace ACE.Server.Managers
         {
             if (confirmations.Remove<uint, Confirmation>(contextId, out var confirmationToProcess))
             { 
-                Player newMember = WorldManager.GetPlayerByGuidId(confirmationToProcess.Target);
-                Player player = WorldManager.GetPlayerByGuidId(confirmationToProcess.Initiator);
+                Player newMember = PlayerManager.GetOnlinePlayer(confirmationToProcess.Target);
+                Player player = PlayerManager.GetOnlinePlayer(confirmationToProcess.Initiator);
                 switch (confirmationToProcess.ConfirmationType)
                 {
                     case Network.Enum.ConfirmationType.Fellowship:

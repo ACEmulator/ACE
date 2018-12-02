@@ -59,9 +59,9 @@ namespace ACE.Server.Managers
                 case EmoteType.AdminSpam:
 
                     var text = Replace(emote.Message, WorldObject, target);
-                    var players = WorldManager.GetAll();
+                    var players = PlayerManager.GetAllOnline();
                     foreach (var _player in players)
-                        _player.Network.EnqueueSend(new GameMessageSystemChat(text, ChatMessageType.AdminTell));
+                        _player.Session.Network.EnqueueSend(new GameMessageSystemChat(text, ChatMessageType.AdminTell));
                     break;
 
                 case EmoteType.AwardLevelProportionalSkillXP:
@@ -685,9 +685,9 @@ namespace ACE.Server.Managers
                 case EmoteType.WorldBroadcast:
 
                     text = Replace(emote.Message, WorldObject, target);
-                    players = WorldManager.GetAll();
+                    players = PlayerManager.GetAllOnline();
                     foreach (var _player in players)
-                        _player.Network.EnqueueSend(new GameMessageSystemChat(text, ChatMessageType.WorldBroadcast));
+                        _player.Session.Network.EnqueueSend(new GameMessageSystemChat(text, ChatMessageType.WorldBroadcast));
                     break;
             }
         }

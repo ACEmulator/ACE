@@ -112,13 +112,13 @@ namespace ACE.Server.Command.Handlers
                 log.Info("Admin message: " + adminShutdownText);
 
             // send a message to each player that the server will go down in x interval
-            foreach (var player in WorldManager.GetAll())
+            foreach (var player in PlayerManager.GetAllOnline())
             {
                 // send server shutdown message and time remaining till shutdown
-                player.Network.EnqueueSend(new GameMessageSystemChat(shutdownText + "\n" + timeRemaining, ChatMessageType.Broadcast));
+                player.Session.Network.EnqueueSend(new GameMessageSystemChat(shutdownText + "\n" + timeRemaining, ChatMessageType.Broadcast));
 
                 if (adminShutdownText.Length > 0)
-                    player.Network.EnqueueSend(new GameMessageSystemChat($"Message from {shutdownInitiator}: {adminShutdownText}", ChatMessageType.Broadcast));
+                    player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Message from {shutdownInitiator}: {adminShutdownText}", ChatMessageType.Broadcast));
             }
             ServerManager.BeginShutdown();
         }

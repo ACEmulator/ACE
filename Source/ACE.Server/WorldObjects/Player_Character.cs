@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 using ACE.Database.Models.Shard;
 using ACE.Entity;
@@ -132,18 +131,21 @@ namespace ACE.Server.WorldObjects
         public void HandleActionAddFriend(string friendName)
         {
             if (string.Equals(friendName, Name, StringComparison.CurrentCultureIgnoreCase))
+            {
                 ChatPacket.SendServerMessage(Session, "Sorry, but you can't be friends with yourself.", ChatMessageType.Broadcast);
+                return;
+            }
 
             // get friend player info
-            var friendInfo = WorldManager.AllPlayers.FirstOrDefault(p => p.Name.Equals(friendName));
+            var friend = PlayerManager.FindByName(friendName);
 
-            if (friendInfo == null)
+            if (friend == null)
             {
                 ChatPacket.SendServerMessage(Session, "That character does not exist", ChatMessageType.Broadcast);
                 return;
             }
 
-            var newFriend = Character.AddFriend(friendInfo.Guid.Full, CharacterDatabaseLock, out var friendAlreadyExists);
+            var newFriend = Character.AddFriend(friend.Guid.Full, CharacterDatabaseLock, out var friendAlreadyExists);
 
             if (friendAlreadyExists)
             {
@@ -184,10 +186,15 @@ namespace ACE.Server.WorldObjects
             log.Warn("HandleActionRemoveAllFriends is not implemented.");
         }
 
+        public bool GetAppearOffline()
+        {
+            return GetCharacterOption(CharacterOption.AppearOffline);
+        }
+
         /// <summary>
         /// Set the AppearOffline option to the provided value.  It will also send out an update to all online clients that have this player as a friend. This option does not save to the database.
         /// </summary>
-        public void AppearOffline(bool appearOffline)
+        public void SetAppearOffline(bool appearOffline)
         {
             SetCharacterOption(CharacterOption.AppearOffline, appearOffline);
             SendFriendStatusUpdates();

@@ -215,11 +215,11 @@ namespace ACE.Database
         }
 
 
-        public void GetPlayerBiotasInParallel(uint id, Action<PlayerBiotas> callback)
+        public void GetPossessedBiotasInParallel(uint id, Action<PossessedBiotas> callback)
         {
             _queue.Add(new Task(() =>
             {
-                var c = _wrappedDatabase.GetPlayerBiotasInParallel(id);
+                var c = _wrappedDatabase.GetPossessedBiotasInParallel(id);
                 callback?.Invoke(c);
             }));
         }
@@ -303,13 +303,12 @@ namespace ACE.Database
         }
 
 
-        public void GetAllCharacters(Action<List<Character>> callback)
+        /// <summary>
+        /// This will get all player biotas that are backed by characters that are not deleted.
+        /// </summary>
+        public List<Biota> GetAllPlayerBiotasInParallel()
         {
-            _queue.Add(new Task(() =>
-            {
-                var result = _wrappedDatabase.GetAllCharacters();
-                callback?.Invoke(result);
-            }));
+            return _wrappedDatabase.GetAllPlayerBiotasInParallel();
         }
 
 

@@ -2,13 +2,11 @@ using System;
 using System.Linq;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
-using System.Numerics;
 using System.Text;
 using System.Threading;
 
 using log4net;
 
-using ACE.Common;
 using ACE.Database;
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
@@ -158,18 +156,24 @@ namespace ACE.Server.Command.Handlers
                         }
                     case AccountLookupType.Character:
                         {
-                            playerSession = WorldManager.FindByPlayerName(bootName);
-                            if (playerSession != null)
-                                bootId = playerSession.Player.Guid.Low;
+                            var player = PlayerManager.GetOnlinePlayer(bootName);
+                            if (player != null)
+                            {
+                                playerSession = player.Session;
+                                bootId = player.Guid.Low;
+                            }
                             break;
                         }
                     case AccountLookupType.Iid:
                         {
                             // Extract the Id from the parameters
                             uint.TryParse(parameters[1], out bootId);
-                            playerSession = WorldManager.Find(new ObjectGuid(bootId));
-                            if (playerSession != null)
-                                bootName = playerSession.Player.Name;
+                            var targetPlayer = PlayerManager.GetOnlinePlayer(bootId);
+                            if (targetPlayer != null)
+                            {
+                                playerSession = targetPlayer.Session;
+                                bootName = targetPlayer.Name;
+                            }
                             break;
                         }
                 }
@@ -674,12 +678,12 @@ namespace ACE.Server.Command.Handlers
                         characterName = parameters[0];
 
                     // look up session
-                    var playerSession = WorldManager.FindByPlayerName(characterName, true);
+                    var player = PlayerManager.GetOnlinePlayer(characterName);
 
                     // playerSession will be null when the character is not found
-                    if (playerSession != null)
+                    if (player != null)
                     {
-                        playerSession.Player.Smite(session.Player);
+                        player.Smite(session.Player);
                         return;
                     }
 
@@ -716,10 +720,10 @@ namespace ACE.Server.Command.Handlers
             // @teleto - Teleports you to the specified character.
             var playerName = String.Join(" ", parameters);
             // Lookup the player in the world
-            Session playerSession = WorldManager.FindByPlayerName(playerName);
+            var player = PlayerManager.GetOnlinePlayer(playerName);
             // If the player is found, teleport the admin to the Player's location
-            if (playerSession != null)
-                session.Player.Teleport(playerSession.Player.Location);
+            if (player != null)
+                session.Player.Teleport(player.Location);
             else
                 session.Network.EnqueueSend(new GameMessageSystemChat($"Player {playerName} was not found.", ChatMessageType.Broadcast));
         }
@@ -1735,7 +1739,8 @@ namespace ACE.Server.Command.Handlers
             // todo, add actual system memory used/avail
             sb.Append($"{(proc.PrivateMemorySize64 >> 20)} MB used{'\n'}");  // sb.Append($"{(proc.PrivateMemorySize64 >> 20)} MB used, xxxx / yyyy MB physical mem free.{'\n'}");
 
-            sb.Append($"{WorldManager.GetAll(false).Count} connections, {WorldManager.GetAll().Count} players online{'\n'}");
+            sb.Append($"{WorldManager.GetSessionCount()} connections, {PlayerManager.GetAllOnline().Count} players online{'\n'}");
+            sb.Append($"Total Accounts Created: {DatabaseManager.Authentication.GetAccountCount()}, Total Characters Created: {PlayerManager.GetAllOffline().Count + PlayerManager.GetAllOnline().Count}{'\n'}");
 
             // 330 active objects, 1931 total objects(16777216 buckets.)
 

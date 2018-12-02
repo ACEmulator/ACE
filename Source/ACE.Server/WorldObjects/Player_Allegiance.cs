@@ -1,4 +1,5 @@
 using System;
+
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Server.Entity;
@@ -10,8 +11,8 @@ namespace ACE.Server.WorldObjects
 {
     partial class Player
     {
-        public Allegiance Allegiance;
-        public AllegianceNode AllegianceNode;
+        public Allegiance Allegiance { get; set; }
+        public AllegianceNode AllegianceNode { get; set; }
 
         // TODO: write to db
         public ulong CPTithed;
@@ -28,14 +29,13 @@ namespace ACE.Server.WorldObjects
         {
             if (!IsPledgable(targetGuid)) return;
 
-            var patron = WorldManager.GetPlayerByGuidId(targetGuid.Full);
+            var patron = PlayerManager.GetOnlinePlayer(targetGuid);
 
             Patron = targetGuid.Full;
             Monarch = AllegianceManager.GetMonarch(patron).Guid.Full;
-            WorldManager.SyncOffline(this);
 
-            Console.WriteLine("Patron: " + WorldManager.GetOfflinePlayerByGuidId(Patron.Value).Name);
-            Console.WriteLine("Monarch: " + WorldManager.GetOfflinePlayerByGuidId(Monarch.Value).Name);
+            //Console.WriteLine("Patron: " + PlayerManager.GetOfflinePlayerByGuidId(Patron.Value).Name);
+            //Console.WriteLine("Monarch: " + PlayerManager.GetOfflinePlayerByGuidId(Monarch.Value).Name);
 
             // send message to patron:
             // %vassal% has sworn Allegiance to you.
@@ -63,9 +63,9 @@ namespace ACE.Server.WorldObjects
         {
             if (!IsBreakable(targetGuid)) return;
 
-            var target = WorldManager.GetOfflinePlayerByGuidId(targetGuid.Full);
+            var target = PlayerManager.FindByGuid(targetGuid, out var targetIsOnline);
 
-            Console.WriteLine(Name + " breaking allegiance to " + target.Name);
+            //Console.WriteLine(Name + " breaking allegiance to " + target.Name);
 
             // target can be either patron or vassal
             var isPatron = Patron == target.Guid.Full;
@@ -76,19 +76,20 @@ namespace ACE.Server.WorldObjects
             {
                 target.Patron = null;
                 target.Monarch = null;
-                WorldManager.SyncOffline(target);
             }
             else
             {
                 Patron = null;
                 Monarch = null;
-                WorldManager.SyncOffline(this);
             }
 
             // send message to target if online
-            var onlineTarget = WorldManager.GetPlayerByGuidId(targetGuid.Full, true);
-            if (onlineTarget != null)
-                onlineTarget.Session.Network.EnqueueSend(new GameMessageSystemChat($"{Name} has broken their Allegiance to you!", ChatMessageType.Broadcast));
+            if (targetIsOnline)
+            {
+                var onlineTarget = PlayerManager.GetOnlinePlayer(targetGuid);
+                if (onlineTarget != null)
+                    onlineTarget.Session.Network.EnqueueSend(new GameMessageSystemChat($"{Name} has broken their Allegiance to you!", ChatMessageType.Broadcast));
+            }
 
             // send message to self
             Session.Network.EnqueueSend(new GameMessageSystemChat($"You have broken your Allegiance to {target.Name}!", ChatMessageType.Broadcast));
@@ -106,31 +107,31 @@ namespace ACE.Server.WorldObjects
         public bool IsPledgable(ObjectGuid targetGuid)
         {
             // ensure target player is online, and within range
-            var target = WorldManager.GetPlayerByGuidId(targetGuid.Full);
+            var target = PlayerManager.FindByGuid(targetGuid.Full);
             if (target == null)
             {
-                Console.WriteLine(Name + " tried to swear to an unknown player guid: " + targetGuid.Full.ToString("X8"));
+                //Console.WriteLine(Name + " tried to swear to an unknown player guid: " + targetGuid.Full.ToString("X8"));
                 return false;
             }
 
             // player already sworn?
             if (Patron != null)
             {
-                Console.WriteLine(Name + " tried to swear to " + target.Name + ", but is already sworn to " + WorldManager.GetOfflinePlayerByGuidId(Patron.Value).Name);
+                //Console.WriteLine(Name + " tried to swear to " + target.Name + ", but is already sworn to " + PlayerManager.GetOfflinePlayerByGuidId(Patron.Value).Name);
                 return false;
             }
 
             // player can't swear to themselves
             if (targetGuid.Full == Guid.Full)
             {
-                Console.WriteLine(Name + " tried to swear to themselves");
+                //Console.WriteLine(Name + " tried to swear to themselves");
                 return false;
             }
 
             // patron must currently be greater or equal level
             if (target.Level < Level)
             {
-                Console.WriteLine(Name + " tried to swear to a lower level character");
+                //Console.WriteLine(Name + " tried to swear to a lower level character");
                 return false;
             }
 
@@ -142,7 +143,7 @@ namespace ACE.Server.WorldObjects
                 // maximum # of direct vassals = 11
                 if (targetNode.TotalVassals >= 11)
                 {
-                    Console.WriteLine(target.Name + " already has the maximum # of vassals");
+                    //Console.WriteLine(target.Name + " already has the maximum # of vassals");
                     return false;
                 }
 
@@ -152,7 +153,7 @@ namespace ACE.Server.WorldObjects
                 {
                     if (selfNode.Player.Guid.Full == targetNode.Monarch.Player.Guid.Full)
                     {
-                        Console.WriteLine(Name + " tried to swear to someone already in Allegiance: " + target.Name);
+                        //Console.WriteLine(Name + " tried to swear to someone already in Allegiance: " + target.Name);
                         return false;
                     }
                 }
@@ -172,10 +173,10 @@ namespace ACE.Server.WorldObjects
             // players can break from either vassals or patrons
 
             // ensure target player exists
-            var target = WorldManager.GetOfflinePlayerByGuidId(targetGuid.Full);
+            var target = PlayerManager.FindByGuid(targetGuid);
             if (target == null)
             {
-                Console.WriteLine(Name + " tried to break allegiance to an unknown player guid: " + targetGuid.Full.ToString("X8"));
+                //Console.WriteLine(Name + " tried to break allegiance to an unknown player guid: " + targetGuid.Full.ToString("X8"));
                 return false;
             }
 
@@ -185,7 +186,7 @@ namespace ACE.Server.WorldObjects
 
             if (!isPatron && !isVassal)
             {
-                Console.WriteLine(Name + " tried to break allegiance from " + target.Name + ", but they aren't patron or vassal");
+                //Console.WriteLine(Name + " tried to break allegiance from " + target.Name + ", but they aren't patron or vassal");
                 return false;
             }
             return true;
@@ -197,10 +198,10 @@ namespace ACE.Server.WorldObjects
         /// <param name="showMsg">Set to TRUE if player is logging in</param>
         public void AddCPPoolToUnload(bool showMsg = false)
         {
-            var patron = WorldManager.GetPlayerByGuidId(Guid.Full);
+            var patron = PlayerManager.GetOnlinePlayer(Guid);
 
             // is player logged in?
-            if (patron == null || !patron.IsOnline) return;
+            if (patron == null) return;
 
             if (CPPoolToUnload == 0) return;
 

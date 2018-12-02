@@ -1,4 +1,4 @@
-﻿using ACE.Common.Extensions;
+using ACE.Common.Extensions;
 using ACE.Entity.Enum;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameEvent.Events;
@@ -14,20 +14,20 @@ namespace ACE.Server.Network.GameAction.Actions
             var message = clientMessage.Payload.ReadString16L(); // The client seems to do the trimming for us
             var target = clientMessage.Payload.ReadString16L(); // Needs to be trimmed because it may contain white spaces after the name and before the ,
             target = target.Trim();
-            var targetsession = WorldManager.FindByPlayerName(target);
+            var targetPlayer = PlayerManager.GetOnlinePlayer(target);
 
-            if (targetsession == null)
+            if (targetPlayer == null)
             {
                 var statusMessage = new GameEventWeenieError(session, WeenieError.CharacterNotAvailable);
                 session.Network.EnqueueSend(statusMessage);
             }
             else
             {
-                if (session.Player != targetsession.Player)
+                if (session.Player != targetPlayer)
                     session.Network.EnqueueSend(new GameMessageSystemChat($"You tell {target}, \"{message}\"", ChatMessageType.OutgoingTell));
 
-                var tell = new GameEventTell(targetsession, message, session.Player.Name, session.Player.Guid.Full, targetsession.Player.Guid.Full, ChatMessageType.Tell);
-                targetsession.Network.EnqueueSend(tell);
+                var tell = new GameEventTell(targetPlayer.Session, message, session.Player.Name, session.Player.Guid.Full, targetPlayer.Guid.Full, ChatMessageType.Tell);
+                targetPlayer.Session.Network.EnqueueSend(tell);
             }
         }
     }

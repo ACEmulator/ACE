@@ -90,6 +90,10 @@ namespace ACE.Server.Physics.Common
             return Landblocks.TryRemove(landblockID, out _);
         }
 
+        /// <summary>
+        /// Gets the landcell from a landblock. If the cell is an indoor cell and hasn't been loaded, it will be loaded.<para />
+        /// This function is thread safe
+        /// </summary>
         public static ObjCell get_landcell(uint blockCellID)
         {
             //Console.WriteLine($"get_landcell({blockCellID:X8}");
@@ -112,12 +116,19 @@ namespace ACE.Server.Physics.Common
             // indoor cells
             else
             {
-                landblock.LandCells.TryGetValue((int)cellID, out cell);
-                if (cell != null) return cell;
-                cell = DBObj.GetEnvCell(blockCellID);
-                landblock.LandCells.Add((int)cellID, cell);
-                var envCell = cell as EnvCell;
-                envCell.PostInit();
+                if (landblock.LandCells.TryGetValue((int)cellID, out cell))
+                    return cell;
+
+                lock (landblock.LandCellMutex)
+                {
+                    if (landblock.LandCells.TryGetValue((int)cellID, out cell))
+                        return cell;
+
+                    cell = DBObj.GetEnvCell(blockCellID);
+                    landblock.LandCells.TryAdd((int)cellID, cell);
+                    var envCell = (EnvCell)cell;
+                    envCell.PostInit();
+                }
             }
             return cell;
         }

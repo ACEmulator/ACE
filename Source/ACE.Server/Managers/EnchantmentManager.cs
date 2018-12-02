@@ -300,7 +300,7 @@ namespace ACE.Server.Managers
 
                 if (ownerID != null)
                 {
-                    var owner = WorldManager.GetPlayerByGuidId((uint)ownerID);
+                    var owner = PlayerManager.GetOnlinePlayer((uint)ownerID);
 
                     if (owner != null)
                     {

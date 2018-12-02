@@ -1,28 +1,26 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Entity
 {
     public class AllegianceNode
     {
-        public Player Player;
+        public readonly IPlayer Player;
 
-        public Allegiance Allegiance;
+        public readonly Allegiance Allegiance;
 
-        public AllegianceNode Monarch;
-        public AllegianceNode Patron;
+        public readonly AllegianceNode Monarch;
+        public readonly AllegianceNode Patron;
         public List<AllegianceNode> Vassals;
 
         public uint Rank;
 
-        public bool IsMonarch { get => Patron == null; }
+        public bool IsMonarch => Patron == null;
 
-        public bool HasVassals { get => TotalVassals > 0; }
+        public bool HasVassals => TotalVassals > 0;
 
-        public int TotalVassals { get => Vassals != null ? Vassals.Count : 0; }
+        public int TotalVassals => Vassals != null ? Vassals.Count : 0;
 
         public int TotalFollowers
         {
@@ -37,15 +35,15 @@ namespace ACE.Server.Entity
             }
         }
 
-        public AllegianceNode(Player player, Allegiance allegiance, AllegianceNode monarch = null, AllegianceNode patron = null)
+        public AllegianceNode(IPlayer player, Allegiance allegiance, AllegianceNode monarch = null, AllegianceNode patron = null)
         {
             Player = player;
             Allegiance = allegiance;
-            Monarch = monarch != null ? monarch : this;
+            Monarch = monarch ?? this;
             Patron = patron;
         }
 
-        public void BuildChain(Allegiance allegiance, List<Player> players)
+        public void BuildChain(Allegiance allegiance, List<IPlayer> players)
         {
             var vassals = players.Where(p => p.Patron == Player.Guid.Full).ToList();
 
@@ -58,6 +56,7 @@ namespace ACE.Server.Entity
 
                 Vassals.Add(node);
             }
+
             CalculateRank();
         }
 

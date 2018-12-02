@@ -12,7 +12,7 @@ namespace ACE.Server.WorldObjects
 
         /// <summary>
         /// This will get a CreatureSkill wrapper around the BiotaPropertiesSkill record for this player.
-        /// If the skill doesn't exist for this Biota, one will be creatd with a status of Untrained.
+        /// If the skill doesn't exist for this Biota, one will be created with a status of Untrained.
         /// </summary>
         public CreatureSkill GetCreatureSkill(Skill skill)
         {
@@ -48,6 +48,23 @@ namespace ACE.Server.WorldObjects
                     return GetCreatureSkill(Skill.WarMagic);
             }
             return null;
+        }
+
+
+        /// <summary>
+        /// This is an IPlayer wrapper that is used by the AllegianceManager to handle passup. You shouldn't be using these anywhere else. Reference GetCreatureSkill() directly.
+        /// </summary>
+        public uint GetCurrentLoyalty()
+        {
+            return GetCreatureSkill(Skill.Loyalty).Current;
+        }
+
+        /// <summary>
+        /// This is an IPlayer wrapper that is used by the AllegianceManager to handle passup. You shouldn't be using these anywhere else. Reference GetCreatureSkill() directly.
+        /// </summary>
+        public uint GetCurrentLeadership()
+        {
+            return GetCreatureSkill(Skill.Leadership).Current;
         }
     }
 }
