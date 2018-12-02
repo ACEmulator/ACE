@@ -250,7 +250,10 @@ namespace ACE.Server.WorldObjects
                 item.SetPropertiesForVendor();
                 Session.Network.EnqueueSend(new GameMessageDeleteObject(item));
                 purchaselist.Add(item);
-                //update item in database
+                // We must update the database with the latest ContainerId.
+                // If we don't, the player can drop the item, log out, and log back in. If the landblock hasn't queued a database save in that time,
+                // the player will end up loading with this object in their inventory even though the landblock is the true owner. This is because
+                // when we load player inventory, the database still has the record that shows this player as the ContainerId for the item.
                 item.SaveBiotaToDatabase();
             }
 
