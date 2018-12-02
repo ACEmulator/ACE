@@ -11,9 +11,9 @@ build:
   verbosity: minimal
 test_script:
 - cmd: >-
-    dotnet test --diag ACETests-Server.txt --no-build "Source\ACE.Server.Tests"
+    dotnet test --diag ACETests-Server.txt --no-build "Source\ACE.Server.Tests" --test-adapter-path:. --logger:Appveyor
 
-    dotnet test --diag ACETests-Database.txt --no-build "Source\ACE.Database.Tests"
+    dotnet test --diag ACETests-Database.txt --no-build "Source\ACE.Database.Tests" --test-adapter-path:. --logger:Appveyor
 artifacts:
 - path: '**\ACETests*.txt'
   name: test logs
