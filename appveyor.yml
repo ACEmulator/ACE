@@ -14,7 +14,8 @@ build:
   verbosity: minimal
 test:
   assemblies:
-    except: '**\*Tests.dll'
+    except: 
+    - '**\*Tests.dll'
 artifacts:
   - path: '**\ACETests*.txt'
     name: test logs
