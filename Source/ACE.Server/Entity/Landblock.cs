@@ -434,9 +434,9 @@ namespace ACE.Server.Entity
         /// <summary>
         /// Returns landblock objects with physics initialized
         /// </summary>
-        public List<WorldObject> GetPhysicsWorldObjects()
+        public List<WorldObject> GetWorldObjectsForPhysicsHandling()
         {
-            return worldObjects.Values.Where(wo => wo.PhysicsObj != null).ToList();
+            return worldObjects.Values.ToList();
         }
 
         /// <summary>
@@ -487,7 +487,7 @@ namespace ACE.Server.Entity
             var creatures = worldObjects.Values.Where(wo => wo is Creature);
             foreach (var creature in creatures)
             {
-                var wieldedItem = (creature as Creature).GetWieldedItem(guid);
+                var wieldedItem = ((Creature)creature).GetWieldedItem(guid);
                 if (wieldedItem != null)
                     return wieldedItem;     // found it
             }

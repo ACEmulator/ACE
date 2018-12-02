@@ -422,7 +422,7 @@ namespace ACE.Server.Managers
 
         private static void HandlePhysicsLandblock(Landblock landblock, double timeTick, ConcurrentQueue<WorldObject> movedObjects)
         {
-            foreach (WorldObject wo in landblock.GetPhysicsWorldObjects())
+            foreach (WorldObject wo in landblock.GetWorldObjectsForPhysicsHandling())
             {
                 // set to TRUE if object changes landblock
                 var landblockUpdate = false;
