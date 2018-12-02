@@ -12,9 +12,6 @@ before_build:
 build:
   project: source\ACE.sln
   verbosity: minimal
-test_script:
- - cmd: dotnet test --diag ACETests-Server.txt --no-build "Source\ACE.Server.Tests"
- - cmd: dotnet test --diag ACETests-Database.txt --no-build "Source\ACE.Database.Tests"
 artifacts:
   - path: '**\ACETests*.txt'
     name: test logs
