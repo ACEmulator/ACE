@@ -55,7 +55,7 @@ namespace ACE.DatLoader
 
         [DatDatabaseType(DatDatabaseType.Cell)]
         [DatFileTypeIdRange(0x01010000, 0x013EFFFF)]
-        Cell                    = 3, // DB_TYPE_CELL
+        EnvCell                    = 3, // DB_TYPE_ENVCELL
 
         /// <summary>
         /// usage of this is currently unknown.  exists in the client, but has no discernable
@@ -127,7 +127,7 @@ namespace ACE.DatLoader
         [DatFileTypeExtension("csi")]
         [DatFileTypeExtension("alp")]
         [DatFileTypeIdRange(0x06000000, 0x07FFFFFF)]
-        RenderSurface           = 12, // DB_TYPE_RENDERSURFACE
+        Texture           = 12, // DB_TYPE_RENDERSURFACE
 
         /// <summary>
         /// indexed in client as "materials" for some reason
@@ -140,7 +140,7 @@ namespace ACE.DatLoader
         [DatDatabaseType(DatDatabaseType.Portal)]
         [DatFileTypeExtension("dsc")]
         [DatFileTypeIdRange(0x09000000, 0x0900FFFF)]
-        ModelTable              = 14, // DB_TYPE_MTABLE
+        MotionTable              = 14, // DB_TYPE_MTABLE
 
         /// <summary>
         /// indexed as "sound" in the client
@@ -329,7 +329,7 @@ namespace ACE.DatLoader
         [DatDatabaseType(DatDatabaseType.Portal)]
         [DatFileTypeExtension("stb")]
         [DatFileTypeIdRange(0x20000000, 0x2000FFFF)]
-        STable                  = 34, // DB_TYPE_STABLE
+        SoundTable              = 34, // DB_TYPE_STABLE
 
         /// <summary>
         /// This is in the Language dat (client_local_English.dat)

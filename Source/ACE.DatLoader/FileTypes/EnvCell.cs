@@ -16,7 +16,7 @@ namespace ACE.DatLoader.FileTypes
     /// <remarks>
     /// Very special thanks again to David Simpson for his early work on reading the cell.dat. Even bigger thanks for his documentation of it!
     /// </remarks>
-    [DatFileType(DatFileType.Cell)]
+    [DatFileType(DatFileType.EnvCell)]
     public class EnvCell : FileType
     {
         public EnvCellFlags Flags { get; private set; }

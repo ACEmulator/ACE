@@ -14,8 +14,8 @@ using System.Drawing.Imaging;
 
 namespace ACE.DatLoader.FileTypes
 {
-    [DatFileType(DatFileType.RenderSurface)]
-    public class RenderSurface : FileType
+    [DatFileType(DatFileType.Texture)]
+    public class Texture : FileType
     {
         public int Unknown { get; set; }
         public int Width { get; set; }

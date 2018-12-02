@@ -7,7 +7,7 @@ using ACE.Entity.Enum;
 
 namespace ACE.DatLoader.FileTypes
 {
-    [DatFileType(DatFileType.ModelTable)]
+    [DatFileType(DatFileType.MotionTable)]
     public class MotionTable : FileType
     {
         public uint DefaultStyle { get; private set; }

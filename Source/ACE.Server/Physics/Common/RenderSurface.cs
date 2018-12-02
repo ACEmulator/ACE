@@ -1,10 +1,11 @@
+using ACE.DatLoader.FileTypes;
 using ACE.Entity.Enum;
 
 namespace ACE.Server.Physics.Common
 {
     public class RenderSurface
     {
-        public DatLoader.FileTypes.RenderSurface _renderSurface;
+        public Texture _texture;
 
         public int Width;
         public int Height;
@@ -17,16 +18,16 @@ namespace ACE.Server.Physics.Common
         {
         }
 
-        public RenderSurface(DatLoader.FileTypes.RenderSurface renderSurface)
+        public RenderSurface(Texture texture)
         {
-            _renderSurface = renderSurface;
+            _texture = texture;
 
-            Width = renderSurface.Width;
-            Height = renderSurface.Height;
-            Format = renderSurface.Format;
-            Length = renderSurface.Length;
-            Data = renderSurface.SourceData;
-            DefaultPaletteID = renderSurface.DefaultPaletteId;
+            Width = texture.Width;
+            Height = texture.Height;
+            Format = texture.Format;
+            Length = texture.Length;
+            Data = texture.SourceData;
+            DefaultPaletteID = texture.DefaultPaletteId;
         }
 
         // RenderSurfaceD3D.Create()

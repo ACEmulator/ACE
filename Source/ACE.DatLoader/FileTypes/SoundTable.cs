@@ -9,7 +9,7 @@ namespace ACE.DatLoader.FileTypes
     /// SoundTable files contain a listing of which Wav types to play in response to certain events.
     /// They are located in the client_portal.dat and are files starting with 0x20
     /// </summary>
-    [DatFileType(DatFileType.STable)]
+    [DatFileType(DatFileType.SoundTable)]
     public class SoundTable:FileType
     {
         public uint Unknown; // As the name implies, not sure what this is
