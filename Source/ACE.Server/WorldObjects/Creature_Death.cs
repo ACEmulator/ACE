@@ -18,7 +18,7 @@ namespace ACE.Server.WorldObjects
     partial class Creature
     {
         public TreasureDeath DeathTreasure { get => DeathTreasureType.HasValue ? DatabaseManager.World.GetCachedDeathTreasure(DeathTreasureType.Value) : null; }
-
+        WorldObject killerObject;
         /// <summary>
         /// Called when a monster or player dies, in conjunction with Die()
         /// </summary>
@@ -60,6 +60,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         protected virtual void Die(WorldObject lastDamager, WorldObject topDamager)
         {
+            killerObject = topDamager;
             UpdateVital(Health, 0);
 
             if (topDamager != null)
@@ -147,7 +148,8 @@ namespace ACE.Server.WorldObjects
 
             if (Killer.HasValue && Killer != 0)
             {
-                var killer = CurrentLandblock?.GetObject(new ObjectGuid(Killer ?? 0));
+                //var killer = CurrentLandblock?.GetObject(new ObjectGuid(Killer ?? 0));
+                var killer = killerObject;
 
                 if (killer != null)
                     killerName = killer.Name;
