@@ -1,6 +1,7 @@
 using System;
 
 using ACE.Database.Models.Shard;
+using ACE.DatLoader;
 using ACE.Entity.Enum;
 using ACE.Server.Entity;
 
@@ -70,13 +71,15 @@ namespace ACE.Server.WorldObjects.Entity
         {
             get
             {
-                var formula = Skill.GetFormula();
-
                 uint total = 0;
 
-                if (formula != null)
+                if (AdvancementClass == SkillAdvancementClass.Trained || AdvancementClass == SkillAdvancementClass.Specialized)
+                    total = AttributeFormula.GetFormula(creature, Skill, false);
+                else if (AdvancementClass == SkillAdvancementClass.Untrained)
                 {
-                    if ((AdvancementClass == SkillAdvancementClass.Untrained && Skill.GetUsability() != null && Skill.GetUsability().UsableUntrained) || AdvancementClass == SkillAdvancementClass.Trained || AdvancementClass == SkillAdvancementClass.Specialized)
+                    var skillTableRecord = DatManager.PortalDat.SkillTable.SkillBaseHash[(uint)Skill];
+
+                    if (skillTableRecord.MinLevel == 1)
                         total = AttributeFormula.GetFormula(creature, Skill, false);
                 }
 
@@ -92,13 +95,15 @@ namespace ACE.Server.WorldObjects.Entity
         {
             get
             {
-                var formula = Skill.GetFormula();
-
                 uint total = 0;
 
-                if (formula != null)
+                if (AdvancementClass == SkillAdvancementClass.Trained || AdvancementClass == SkillAdvancementClass.Specialized)
+                    total = AttributeFormula.GetFormula(creature, Skill);
+                else if (AdvancementClass == SkillAdvancementClass.Untrained)
                 {
-                    if ((AdvancementClass == SkillAdvancementClass.Untrained && Skill.GetUsability() != null && Skill.GetUsability().UsableUntrained) || AdvancementClass == SkillAdvancementClass.Trained || AdvancementClass == SkillAdvancementClass.Specialized)
+                    var skillTableRecord = DatManager.PortalDat.SkillTable.SkillBaseHash[(uint)Skill];
+
+                    if (skillTableRecord.MinLevel == 1)
                         total = AttributeFormula.GetFormula(creature, Skill);
                 }
 

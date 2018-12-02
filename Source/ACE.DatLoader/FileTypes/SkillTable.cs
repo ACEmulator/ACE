@@ -1,8 +1,8 @@
-using ACE.DatLoader.Entity;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Text;
+
+using ACE.DatLoader.Entity;
 
 namespace ACE.DatLoader.FileTypes
 {
