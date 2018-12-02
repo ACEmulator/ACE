@@ -9,6 +9,8 @@ before_build:
 build:
   project: source\ACE.sln
   verbosity: minimal
+after_build:
+- cmd: source\AppVeyor\AppVeyorAfterCompile.bat
 test_script:
 - cmd: >-
     dotnet test --diag ACETests-Server.txt --no-build "Source\ACE.Server.Tests" --test-adapter-path:. --logger:Appveyor
