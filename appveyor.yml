@@ -13,10 +13,8 @@ build:
   project: source\ACE.sln
   verbosity: minimal
 test:
-  # all except assemblies to test
   assemblies:
-    except:
-      - '**\*ACE.DatLoader.Tests.dll'
+    except: '**\*Tests.dll'
 artifacts:
   - path: '**\ACETests*.txt'
     name: test logs
