@@ -33,11 +33,11 @@ namespace ACE.DatLoader
         }
 
 
-        private DatFileType? fileType;
+        /*private DatFileType? fileType;
 
         private static List<DatFileType> EnumTypes = Enum.GetValues(typeof(DatFileType)).Cast<DatFileType>().ToList();
 
-        /*public DatFileType? GetFileType(DatDatabaseType datDatabaseType)
+        public DatFileType? GetFileType(DatDatabaseType datDatabaseType)
         {
             if (fileType != null)
                 return fileType.Value;
