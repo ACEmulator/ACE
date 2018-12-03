@@ -1326,7 +1326,20 @@ namespace ACE.Server.Command.Handlers
             Console.WriteLine("===");
 
             foreach (var skill in untrained)
-                Console.WriteLine(skill.Skill + ": " + skill.Current);
+            {
+                bool isUnusable = false;
+
+                var skillTableRecord = DatManager.PortalDat.SkillTable.SkillBaseHash[(uint)skill.Skill];
+
+                if (skillTableRecord.MinLevel == 2)
+                    isUnusable = true;
+
+                if (isUnusable)
+                    Console.WriteLine(skill.Skill + ": " + skill.Current + " [Unusable]");
+                else
+                    Console.WriteLine(skill.Skill + ": " + skill.Current);
+            }
+
             Console.WriteLine("===");
 
             // These are retired skills
