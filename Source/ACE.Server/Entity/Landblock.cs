@@ -187,8 +187,7 @@ namespace ACE.Server.Entity
 
                 actionQueue.EnqueueAction(new ActionEventDelegate(() =>
                 {
-                    if (!worldObjects.ContainsKey(wo.Guid))
-                        AddWorldObject(wo);
+                    AddWorldObject(wo);
                 }));
             }
         }
@@ -261,6 +260,7 @@ namespace ACE.Server.Entity
 
             var wos = worldObjects.Values.ToList();
 
+            // When a WorldObject Ticks, it can end up adding additional WorldObjects to this landblock
             foreach (var wo in wos)
                 wo.Tick(currentUnixTime);
 
@@ -434,9 +434,9 @@ namespace ACE.Server.Entity
         /// <summary>
         /// Returns landblock objects with physics initialized
         /// </summary>
-        public List<WorldObject> GetWorldObjectsForPhysicsHandling()
+        public IEnumerable<WorldObject> GetWorldObjectsForPhysicsHandling()
         {
-            return worldObjects.Values.ToList();
+            return worldObjects.Values;
         }
 
         /// <summary>
