@@ -1,9 +1,10 @@
+
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
+using ACE.DatLoader;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
-using ACE.Server.Factories;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 
@@ -60,13 +61,13 @@ namespace ACE.Server.WorldObjects
             }
 
             //Gather costs associated with manipulating currently selected skill
-            var currentSkillCost = currentSkill.Skill.GetCost();
+            var skill = DatManager.PortalDat.SkillTable.SkillBaseHash[(uint)currentSkill.Skill];
 
             switch (TypeOfAlteration)
             {
                 case SkillAlterationType.Specialize:
                     //Check to make sure player won't exceed limit of 70 specialized credits after operation
-                    if (currentSkillCost.SpecializationCost + GetTotalSpecializedCredits(player) > 70)
+                    if (skill.UpgradeCostFromTrainedToSpecialized + GetTotalSpecializedCredits(player) > 70)
                     {
                         player.Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(player.Session, WeenieErrorWithString.TooManyCreditsInSpecializedSkills, currentSkill.Skill.ToSentence()));
                         player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.YouFailToAlterSkill));
@@ -76,9 +77,9 @@ namespace ACE.Server.WorldObjects
                     //Check to see if the skill is ripe for specializing
                     if (currentSkill.AdvancementClass == SkillAdvancementClass.Trained)
                     {
-                        if (player.AvailableSkillCredits >= currentSkillCost.SpecializationCost)
+                        if (player.AvailableSkillCredits >= skill.UpgradeCostFromTrainedToSpecialized)
                         {
-                            if (player.SpecializeSkill(currentSkill.Skill, currentSkillCost.SpecializationCost, false))
+                            if (player.SpecializeSkill(currentSkill.Skill, skill.UpgradeCostFromTrainedToSpecialized, false))
                             {
                                 //Specialization was successful, notify the client
                                 player.Session.Network.EnqueueSend(new GameMessagePrivateUpdateSkill(player, currentSkill));
@@ -118,7 +119,7 @@ namespace ACE.Server.WorldObjects
 
                     if (currentSkill.AdvancementClass == SkillAdvancementClass.Specialized)
                     {
-                        if (player.UnspecializeSkill(currentSkill.Skill, currentSkillCost.SpecializationCost))
+                        if (player.UnspecializeSkill(currentSkill.Skill, skill.UpgradeCostFromTrainedToSpecialized))
                         {
                             //Unspecialization was successful, notify the client
                             player.Session.Network.EnqueueSend(new GameMessagePrivateUpdateSkill(player, currentSkill));
@@ -136,7 +137,7 @@ namespace ACE.Server.WorldObjects
                     {
                         var untrainable = Player.IsSkillUntrainable(currentSkill.Skill);
 
-                        if (player.UntrainSkill(currentSkill.Skill, currentSkillCost.TrainingCost))
+                        if (player.UntrainSkill(currentSkill.Skill, skill.TrainedCost))
                         {
                             //Untraining was successful, notify the client
                             player.Session.Network.EnqueueSend(new GameMessagePrivateUpdateSkill(player, currentSkill));
@@ -177,18 +178,13 @@ namespace ACE.Server.WorldObjects
         {
             var specializedCreditsTotal = 0;
 
-            foreach (var skill in player.Skills.Keys)
+            foreach (var kvp in player.Skills)
             {
-                var skillCost = skill.GetCost();
-                var currentSkill = player.GetCreatureSkill(skill);
-
-                if (currentSkill != null)
+                if (kvp.Value.AdvancementClass == SkillAdvancementClass.Specialized)
                 {
-                    if (currentSkill.AdvancementClass == SkillAdvancementClass.Specialized)
-                    {
-                        specializedCreditsTotal += skillCost.SpecializationCost;
-                    }
+                    var skill = DatManager.PortalDat.SkillTable.SkillBaseHash[(uint)kvp.Key];
 
+                    specializedCreditsTotal += skill.UpgradeCostFromTrainedToSpecialized;
                 }
             }
 

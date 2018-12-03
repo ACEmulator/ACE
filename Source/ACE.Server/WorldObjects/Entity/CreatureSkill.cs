@@ -1,6 +1,7 @@
 using System;
 
 using ACE.Database.Models.Shard;
+using ACE.DatLoader;
 using ACE.Entity.Enum;
 using ACE.Server.Entity;
 
@@ -31,6 +32,25 @@ namespace ACE.Server.WorldObjects.Entity
                     creature.ChangesDetected = true;
 
                 BiotaPropertiesSkill.SAC = (uint)value;
+            }
+        }
+
+        public bool IsUsable
+        {
+            get
+            {
+                if (AdvancementClass == SkillAdvancementClass.Trained || AdvancementClass == SkillAdvancementClass.Specialized)
+                    return true;
+
+                if (AdvancementClass == SkillAdvancementClass.Untrained)
+                {
+                    DatManager.PortalDat.SkillTable.SkillBaseHash.TryGetValue((uint)Skill, out var skillTableRecord);
+
+                    if (skillTableRecord?.MinLevel == 1)
+                        return true;
+                }
+
+                return false;
             }
         }
 
@@ -70,15 +90,10 @@ namespace ACE.Server.WorldObjects.Entity
         {
             get
             {
-                var formula = Skill.GetFormula();
-
                 uint total = 0;
 
-                if (formula != null)
-                {
-                    if ((AdvancementClass == SkillAdvancementClass.Untrained && Skill.GetUsability() != null && Skill.GetUsability().UsableUntrained) || AdvancementClass == SkillAdvancementClass.Trained || AdvancementClass == SkillAdvancementClass.Specialized)
-                        total = AttributeFormula.GetFormula(creature, Skill, false);
-                }
+                if (IsUsable)
+                    total = AttributeFormula.GetFormula(creature, Skill, false);
 
                 total += InitLevel + Ranks;
 
@@ -92,15 +107,10 @@ namespace ACE.Server.WorldObjects.Entity
         {
             get
             {
-                var formula = Skill.GetFormula();
-
                 uint total = 0;
 
-                if (formula != null)
-                {
-                    if ((AdvancementClass == SkillAdvancementClass.Untrained && Skill.GetUsability() != null && Skill.GetUsability().UsableUntrained) || AdvancementClass == SkillAdvancementClass.Trained || AdvancementClass == SkillAdvancementClass.Specialized)
-                        total = AttributeFormula.GetFormula(creature, Skill);
-                }
+                if (IsUsable)
+                    total = AttributeFormula.GetFormula(creature, Skill);
 
                 total += InitLevel + Ranks;
 

@@ -53,9 +53,9 @@ namespace ACE.Server.Entity
 
         private DateTime lastActiveTime;
 
-        public readonly Dictionary<ObjectGuid, WorldObject> worldObjects = new Dictionary<ObjectGuid, WorldObject>(); // TODO Make this private
+        private readonly Dictionary<ObjectGuid, WorldObject> worldObjects = new Dictionary<ObjectGuid, WorldObject>();
 
-        public List<Landblock> adjacents = new List<Landblock>();
+        public List<Landblock> Adjacents = new List<Landblock>();
 
         private readonly ActionQueue actionQueue = new ActionQueue();
 
@@ -187,8 +187,7 @@ namespace ACE.Server.Entity
 
                 actionQueue.EnqueueAction(new ActionEventDelegate(() =>
                 {
-                    if (!worldObjects.ContainsKey(wo.Guid))
-                        AddWorldObject(wo);
+                    AddWorldObject(wo);
                 }));
             }
         }
@@ -261,6 +260,7 @@ namespace ACE.Server.Entity
 
             var wos = worldObjects.Values.ToList();
 
+            // When a WorldObject Ticks, it can end up adding additional WorldObjects to this landblock
             foreach (var wo in wos)
                 wo.Tick(currentUnixTime);
 
@@ -319,8 +319,7 @@ namespace ACE.Server.Entity
 
         private void AddWorldObjectInternal(WorldObject wo)
         {
-            if (!worldObjects.ContainsKey(wo.Guid))
-                worldObjects[wo.Guid] = wo;
+            worldObjects[wo.Guid] = wo;
 
             wo.CurrentLandblock = this;
 
@@ -435,9 +434,9 @@ namespace ACE.Server.Entity
         /// <summary>
         /// Returns landblock objects with physics initialized
         /// </summary>
-        public List<WorldObject> GetPhysicsWorldObjects()
+        public IEnumerable<WorldObject> GetWorldObjectsForPhysicsHandling()
         {
-            return worldObjects.Values.Where(wo => wo.PhysicsObj != null).ToList();
+            return worldObjects.Values;
         }
 
         /// <summary>
@@ -448,7 +447,7 @@ namespace ACE.Server.Entity
             if (worldObjects.ContainsKey(guid))
                 return this;
 
-            foreach (Landblock lb in adjacents)
+            foreach (Landblock lb in Adjacents)
             {
                 if (lb != null && lb.worldObjects.ContainsKey(guid))
                     return lb;
@@ -470,7 +469,7 @@ namespace ACE.Server.Entity
             if (worldObjects.TryGetValue(guid, out var worldObject))
                 return worldObject;
 
-            foreach (Landblock lb in adjacents)
+            foreach (Landblock lb in Adjacents)
             {
                 if (lb != null && lb.worldObjects.TryGetValue(guid, out worldObject))
                     return worldObject;
@@ -488,7 +487,7 @@ namespace ACE.Server.Entity
             var creatures = worldObjects.Values.Where(wo => wo is Creature);
             foreach (var creature in creatures)
             {
-                var wieldedItem = (creature as Creature).GetWieldedItem(guid);
+                var wieldedItem = ((Creature)creature).GetWieldedItem(guid);
                 if (wieldedItem != null)
                     return wieldedItem;     // found it
             }
@@ -496,7 +495,7 @@ namespace ACE.Server.Entity
             // try searching adjacent landblocks if not found
             if (searchAdjacents)
             {
-                foreach (var adjacent in adjacents)
+                foreach (var adjacent in Adjacents)
                 {
                     if (adjacent == null) continue;
 
@@ -527,7 +526,7 @@ namespace ACE.Server.Entity
             if (isAdjacent || _landblock == null || _landblock.IsDungeon) return;
 
             // for outdoor landblocks, recursively call 1 iteration to set adjacents to active
-            foreach (var landblock in adjacents)
+            foreach (var landblock in Adjacents)
             {
                 if (landblock != null)
                     landblock.SetActive(true);
@@ -603,7 +602,7 @@ namespace ACE.Server.Entity
             // if applicable, iterate into adjacent landblocks
             if (adjacents)
             {
-                foreach (var adjacent in this.adjacents.Where(adj => adj != null))
+                foreach (var adjacent in this.Adjacents.Where(adj => adj != null))
                     adjacent.EnqueueBroadcast(excludeList, false, msgs);
             }
         }
