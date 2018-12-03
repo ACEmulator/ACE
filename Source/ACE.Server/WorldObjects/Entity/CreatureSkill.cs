@@ -35,6 +35,25 @@ namespace ACE.Server.WorldObjects.Entity
             }
         }
 
+        public bool IsUsable
+        {
+            get
+            {
+                if (AdvancementClass == SkillAdvancementClass.Trained || AdvancementClass == SkillAdvancementClass.Specialized)
+                    return true;
+
+                if (AdvancementClass == SkillAdvancementClass.Untrained)
+                {
+                    var skillTableRecord = DatManager.PortalDat.SkillTable.SkillBaseHash[(uint)Skill];
+
+                    if (skillTableRecord.MinLevel == 1)
+                        return true;
+                }
+
+                return false;
+            }
+        }
+
         /// <summary>
         /// Total experience for this skill,
         /// both spent and earned
@@ -73,15 +92,8 @@ namespace ACE.Server.WorldObjects.Entity
             {
                 uint total = 0;
 
-                if (AdvancementClass == SkillAdvancementClass.Trained || AdvancementClass == SkillAdvancementClass.Specialized)
+                if (IsUsable)
                     total = AttributeFormula.GetFormula(creature, Skill, false);
-                else if (AdvancementClass == SkillAdvancementClass.Untrained)
-                {
-                    var skillTableRecord = DatManager.PortalDat.SkillTable.SkillBaseHash[(uint)Skill];
-
-                    if (skillTableRecord.MinLevel == 1)
-                        total = AttributeFormula.GetFormula(creature, Skill, false);
-                }
 
                 total += InitLevel + Ranks;
 
@@ -97,15 +109,8 @@ namespace ACE.Server.WorldObjects.Entity
             {
                 uint total = 0;
 
-                if (AdvancementClass == SkillAdvancementClass.Trained || AdvancementClass == SkillAdvancementClass.Specialized)
+                if (IsUsable)
                     total = AttributeFormula.GetFormula(creature, Skill);
-                else if (AdvancementClass == SkillAdvancementClass.Untrained)
-                {
-                    var skillTableRecord = DatManager.PortalDat.SkillTable.SkillBaseHash[(uint)Skill];
-
-                    if (skillTableRecord.MinLevel == 1)
-                        total = AttributeFormula.GetFormula(creature, Skill);
-                }
 
                 total += InitLevel + Ranks;
 

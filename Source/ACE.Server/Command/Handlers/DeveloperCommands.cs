@@ -1314,7 +1314,7 @@ namespace ACE.Server.Command.Handlers
 
             var specialized = player.Skills.Values.Where(s => s.AdvancementClass == SkillAdvancementClass.Specialized).OrderBy(s => s.Skill.ToString());
             var trained = player.Skills.Values.Where(s => s.AdvancementClass == SkillAdvancementClass.Trained).OrderBy(s => s.Skill.ToString());
-            var untrained = player.Skills.Values.Where(s => s.AdvancementClass == SkillAdvancementClass.Untrained).OrderBy(s => s.Skill.ToString());
+            var untrained = player.Skills.Values.Where(s => s.AdvancementClass == SkillAdvancementClass.Untrained).OrderBy(s => !s.IsUsable).ThenBy(s => s.Skill.ToString());
             var inactive = player.Skills.Values.Where(s => s.AdvancementClass == SkillAdvancementClass.Inactive).OrderBy(s => s.Skill.ToString());
 
             foreach (var skill in specialized)
@@ -1327,17 +1327,10 @@ namespace ACE.Server.Command.Handlers
 
             foreach (var skill in untrained)
             {
-                bool isUnusable = false;
-
-                var skillTableRecord = DatManager.PortalDat.SkillTable.SkillBaseHash[(uint)skill.Skill];
-
-                if (skillTableRecord.MinLevel == 2)
-                    isUnusable = true;
-
-                if (isUnusable)
-                    Console.WriteLine(skill.Skill + ": " + skill.Current + " [Unusable]");
-                else
+                if (skill.IsUsable)
                     Console.WriteLine(skill.Skill + ": " + skill.Current);
+                else
+                    Console.WriteLine(skill.Skill + ": " + skill.Current + " [Unusable]");
             }
 
             Console.WriteLine("===");
