@@ -1,3 +1,4 @@
+using System;
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.Entity;
@@ -5,8 +6,10 @@ using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
+using ACE.Server.Factories;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
+using Microsoft.EntityFrameworkCore.Internal;
 
 namespace ACE.Server.WorldObjects
 {
@@ -47,6 +50,100 @@ namespace ACE.Server.WorldObjects
 
             ContainerCapacity = ContainerCapacity ?? 10;
             ItemCapacity = ItemCapacity ?? 120;
+
+            //Adding loot to chests
+            //Eventually these case statements would be linked to indivual treasure generators. Each one should be a different profile, but currently it will be the complete appropriate tier profile.
+            for (int i = 0; i < GeneratorProfiles.Count; i++)
+            {
+                int amount = ACE.Server.Physics.Common.Random.RollDice(2, 14);  //r.Next(2, 14);
+                var generator = GeneratorProfiles[i];
+                switch(generator.Biota.WeenieClassId)
+                {
+                    case 414:
+                    case 459:
+                    case 0:
+                    case 6:
+                    case 18:
+                    case 465:
+                        for (int j = 0; j < amount; j++)
+                        {
+                            var wo = LootGenerationFactory.CreateRandomLootObjects(1);
+                            TryAddToInventory(wo);
+                        }
+                        break;
+                    case 413:
+                    case 410:
+                    case 16:
+                    case 457:
+                    case 4:
+                    case 463:
+                    case 395:
+                        for (int j = 0; j < amount; j++)
+                        {
+                            var wo = LootGenerationFactory.CreateRandomLootObjects(2);
+                            TryAddToInventory(wo);
+                        }
+                        break;
+                    case 411:
+                    case 15:
+                    case 313:
+                    case 462:
+                    case 3:
+                    case 456:
+                    case 340:
+                    case 365:
+                        for (int j = 0; j < amount; j++)
+                        {
+                            var wo = LootGenerationFactory.CreateRandomLootObjects(3);
+                            TryAddToInventory(wo);
+                        }
+                        break;
+                    case 460:
+                    case 412:
+                    case 354:
+                    case 1:
+                    case 13:
+                    case 59:
+                    case 339:
+                        for (int j = 0; j < amount; j++)
+                        {
+                            var wo = LootGenerationFactory.CreateRandomLootObjects(4);
+                            TryAddToInventory(wo);
+                        }
+                        break;
+                    case 334:
+                    case 341:
+                    case 317:
+                        for (int j = 0; j < amount; j++)
+                        {
+                            var wo = LootGenerationFactory.CreateRandomLootObjects(5);
+                            TryAddToInventory(wo);
+                        }
+                        break;
+                    case 449:
+                    case 32:
+                    case 2:
+                    case 421:
+                    case 349:
+                    case 351:
+                    case 422:
+                    case 338:
+                        for (int j = 0; j < amount; j++)
+                        {
+                            var wo = LootGenerationFactory.CreateRandomLootObjects(6);
+                            TryAddToInventory(wo);
+                        }
+                        break;
+                    default:
+                        if(generator.Biota.WeenieClassId > 500)
+                        {
+                            //If the WeenieClassId is greater than the profile Id's, then it will be an item that is created with that Id.
+                            var wo = WorldObjectFactory.CreateNewWorldObject((uint)generator.Biota.WeenieClassId);
+                            TryAddToInventory(wo);
+                        }
+                        break;
+                }
+            }
 
             CurrentMotionState = motionClosed; // What chest defaults to open?
 
