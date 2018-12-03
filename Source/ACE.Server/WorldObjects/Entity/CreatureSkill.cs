@@ -44,9 +44,9 @@ namespace ACE.Server.WorldObjects.Entity
 
                 if (AdvancementClass == SkillAdvancementClass.Untrained)
                 {
-                    var skillTableRecord = DatManager.PortalDat.SkillTable.SkillBaseHash[(uint)Skill];
+                    DatManager.PortalDat.SkillTable.SkillBaseHash.TryGetValue((uint)Skill, out var skillTableRecord);
 
-                    if (skillTableRecord.MinLevel == 1)
+                    if (skillTableRecord?.MinLevel == 1)
                         return true;
                 }
 
