@@ -143,7 +143,7 @@ namespace ACE.Server.Command.Handlers
         {
             // @portal_bypass - Toggles the ability to bypass portal restrictions.
 
-            var param = session.Player.IgnorePortalRestrictions ?? false;
+            var param = session.Player.IgnorePortalRestrictions;
 
             switch (param)
             {
@@ -186,7 +186,7 @@ namespace ACE.Server.Command.Handlers
         // buff [name]
         [CommandHandler("buff", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 0,
             "Buffs you (or a player) with all beneficial spells.",
-            "[name]\n"
+            "[name] [maxLevel]\n"
             + "This command buffs yourself (or the specified character).")]
         public static void HandleBuff(Session session, params string[] parameters)
         {
@@ -196,10 +196,16 @@ namespace ACE.Server.Command.Handlers
                     Type = CommandParameterHelpers.ACECommandParameterType.Player,
                     Required = false,
                     DefaultValue = session.Player
+                },
+                new CommandParameterHelpers.ACECommandParameter()
+                {
+                    Type = CommandParameterHelpers.ACECommandParameterType.ULong,
+                    Required = false,
+                    DefaultValue = (ulong)8
                 }
             };
             if (!CommandParameterHelpers.ResolveACEParameters(session, parameters, aceParams)) return;
-            session.Player.CreateSentinelBuffPlayers(new Player[] { aceParams[0].AsPlayer }, aceParams[0].AsPlayer == session.Player);
+            session.Player.CreateSentinelBuffPlayers(new Player[] { aceParams[0].AsPlayer }, aceParams[0].AsPlayer == session.Player, aceParams[1].AsULong);
         }        
 
         // run < on | off | toggle | check >
@@ -233,7 +239,7 @@ namespace ACE.Server.Command.Handlers
                     session.Network.EnqueueSend(new GameMessageSystemChat($"Run speed boost is currently {(session.Player.EnchantmentManager.HasSpell(spellID) ? "ACTIVE" : "INACTIVE")}", ChatMessageType.Broadcast));
                     break;
                 case "off":
-                    var runBoost = session.Player.EnchantmentManager.GetSpell(spellID);
+                    var runBoost = session.Player.EnchantmentManager.GetEnchantment(spellID);
                     if (runBoost != null)
                         session.Player.EnchantmentManager.Remove(runBoost);
                     else

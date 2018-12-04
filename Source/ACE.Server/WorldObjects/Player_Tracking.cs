@@ -4,7 +4,6 @@ using System.Linq;
 
 using ACE.Entity;
 using ACE.Entity.Enum;
-using ACE.Server.Managers;
 using ACE.Server.Network.GameMessages.Messages;
 
 using ACE.Server.Physics.Common;
@@ -17,11 +16,6 @@ namespace ACE.Server.WorldObjects
         /// This will be false when in portal space
         /// </summary>
         public bool InWorld { get; set; }
-
-        /// <summary>
-        /// Different than InWorld which is false when in portal space
-        /// </summary>
-        public bool IsOnline { get; private set; }
 
         /// <summary>
         /// ObjectId of the currently selected Target (only players and creatures)
@@ -52,7 +46,7 @@ namespace ACE.Server.WorldObjects
         public ObjectMaint ObjMaint { get => PhysicsObj.ObjMaint; }
 
         /// <summary>
-        /// Tracks Interacive world object you are have interacted with recently.  this should be
+        /// Tracks Interactive world object you are have interacted with recently.  this should be
         /// called from the context of an action chain being executed by the landblock loop.
         /// </summary>
         public void TrackInteractiveObjects(List<WorldObject> worldObjects)
@@ -76,7 +70,7 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// forces either an update or a create object to be sent to the client
+        /// Sends a network message to player for CreateObject, if applicable
         /// </summary>
         public void TrackObject(WorldObject worldObject)
         {
@@ -86,15 +80,15 @@ namespace ACE.Server.WorldObjects
                 return;
 
             // If Visibility is true, do not send object to client, object is meant for server side only, unless Adminvision is true.
-            if ((worldObject.Visibility ?? false) && !Adminvision)
+            if (worldObject.Visibility && !Adminvision)
                 return;
 
             //Console.WriteLine($"TrackObject({worldObject.Name})");
             Session.Network.EnqueueSend(new GameMessageCreateObject(worldObject));
 
             // add creature equipped objects / wielded items
-            if (worldObject is Creature)
-                TrackEquippedObjects(worldObject as Creature);
+            if (worldObject is Creature creature)
+                TrackEquippedObjects(creature);
         }
 
         /// <summary>

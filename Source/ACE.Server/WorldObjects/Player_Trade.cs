@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Server.Managers;
@@ -18,25 +19,24 @@ namespace ACE.Server.WorldObjects
         {
             session.Player.TradePartner = tradePartner;
 
-            var targetsession = WorldManager.Find(session.Player.TradePartner);
-            var target = CurrentLandblock?.GetObject(tradePartner);
+            var target = PlayerManager.GetOnlinePlayer(tradePartner);
 
             //Check to see if partner is not allowing trades
-            if ((initiator) && (targetsession.Player.GetCharacterOption(CharacterOption.IgnoreAllTradeRequests)))
+            if ((initiator) && (target.GetCharacterOption(CharacterOption.IgnoreAllTradeRequests)))
             {
                 session.Network.EnqueueSend(new GameEventWeenieError(session, WeenieError.TradeIgnoringRequests));
                 return false;
             }
 
             //Check to see if either party is already part of an in process trade session
-            if ((session.Player.IsTrading) || (targetsession.Player.IsTrading))
+            if ((session.Player.IsTrading) || (target.IsTrading))
             {
                 session.Network.EnqueueSend(new GameEventWeenieError(session, WeenieError.TradeAlreadyTrading));
                 return false;
             }
 
             //Check to see if either party is in combat mode
-            if ((session.Player.CombatMode != CombatMode.NonCombat) || (targetsession.Player.CombatMode != CombatMode.NonCombat))
+            if ((session.Player.CombatMode != CombatMode.NonCombat) || (target.CombatMode != CombatMode.NonCombat))
             {
                 session.Network.EnqueueSend(new GameEventWeenieError(session, WeenieError.TradeNonCombatMode));
                 return false;
@@ -58,16 +58,14 @@ namespace ACE.Server.WorldObjects
                 if (!initiator)
                 {
                     session.Player.IsTrading = true;
-                    targetsession.Player.IsTrading = true;
+                    target.IsTrading = true;
                 }
                 
                 return true;
             }
-            else
-            {
-                session.Network.EnqueueSend(new GameEventWeenieError(session, WeenieError.TradeMaxDistanceExceeded));
-                return false;
-            }
+
+            session.Network.EnqueueSend(new GameEventWeenieError(session, WeenieError.TradeMaxDistanceExceeded));
+            return false;
         }
 
         public void HandleActionCloseTradeNegotiations(Session session, EndTradeReason endTradeReason = EndTradeReason.Normal)
@@ -83,11 +81,11 @@ namespace ACE.Server.WorldObjects
 
         public void HandleActionAddToTrade(Session session, ObjectGuid item, uint tradeWindowSlotNumber)
         {
-            var targetsession = WorldManager.Find(session.Player.TradePartner);
+            var target = PlayerManager.GetOnlinePlayer(session.Player.TradePartner);
 
             session.Player.TradeAccepted = false;
 
-            if ((item != null) && (targetsession != null))
+            if (item != ObjectGuid.Invalid && target != null)
             {
                 IsAttuned(item, out bool isAttuned);
 
@@ -101,9 +99,9 @@ namespace ACE.Server.WorldObjects
 
                         session.Network.EnqueueSend(new GameEventAddToTrade(session, item, TradeSide.Self));
 
-                        targetsession.Player.TrackObject(wo);
+                        target.TrackObject(wo);
 
-                        targetsession.Network.EnqueueSend(new GameEventAddToTrade(targetsession, item, TradeSide.Partner));
+                        target.Session.Network.EnqueueSend(new GameEventAddToTrade(target.Session, item, TradeSide.Partner));
                     }
                     
                 }
@@ -132,19 +130,19 @@ namespace ACE.Server.WorldObjects
             if (whoAccepted == session.Player.Guid)
                 session.Network.EnqueueSend(new GameEventCommunicationTransientString(session, "You have accepted the offer"));
 
-            var targetsession = WorldManager.Find(session.Player.TradePartner);
+            var target = PlayerManager.GetOnlinePlayer(session.Player.TradePartner);
 
-            if (targetsession != null)
+            if (target != null)
             {
-                targetsession.Network.EnqueueSend(new GameEventAcceptTrade(targetsession, whoAccepted));
+                target.Session.Network.EnqueueSend(new GameEventAcceptTrade(target.Session, whoAccepted));
 
                 if (whoAccepted == session.Player.Guid)
-                    targetsession.Network.EnqueueSend(new GameEventCommunicationTransientString(targetsession, $"({session.Player.Name}) has accepted the offer"));
+                    target.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(target.Session, $"({session.Player.Name}) has accepted the offer"));
 
-                if ((session.Player.TradeAccepted) && (targetsession.Player.TradeAccepted))
+                if (session.Player.TradeAccepted && target.TradeAccepted)
                 {
                     session.Network.EnqueueSend(new GameEventCommunicationTransientString(session, "The items are being traded"));
-                    targetsession.Network.EnqueueSend(new GameEventCommunicationTransientString(targetsession, "The items are being traded"));
+                    target.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(target.Session, "The items are being traded"));
 
                     foreach (ObjectGuid itemGuid in session.Player.ItemsInTradeWindow)
                     {
@@ -154,18 +152,18 @@ namespace ACE.Server.WorldObjects
                         {
                             session.Player.TryRemoveFromInventoryWithNetworking(wo);
 
-                            targetsession.Player.TryCreateInInventoryWithNetworking(wo);
+                            target.TryCreateInInventoryWithNetworking(wo);
 
                         }
                     }
 
-                    foreach (ObjectGuid itemGuid in targetsession.Player.ItemsInTradeWindow)
+                    foreach (ObjectGuid itemGuid in target.ItemsInTradeWindow)
                     {
-                        WorldObject wo = targetsession.Player.GetInventoryItem(itemGuid);
+                        WorldObject wo = target.GetInventoryItem(itemGuid);
 
                         if (wo != null)
                         {
-                            targetsession.Player.TryRemoveFromInventoryWithNetworking(wo);
+                            target.TryRemoveFromInventoryWithNetworking(wo);
 
                             session.Player.TryCreateInInventoryWithNetworking(wo);
 
@@ -173,13 +171,13 @@ namespace ACE.Server.WorldObjects
                     }
 
                     session.Network.EnqueueSend(new GameEventWeenieError(session, WeenieError.TradeComplete));
-                    targetsession.Network.EnqueueSend(new GameEventWeenieError(targetsession, WeenieError.TradeComplete));
+                    target.Session.Network.EnqueueSend(new GameEventWeenieError(target.Session, WeenieError.TradeComplete));
 
                     session.Player.HandleActionResetTrade(session, new ObjectGuid(0));
-                    targetsession.Player.HandleActionResetTrade(targetsession, new ObjectGuid(0));
+                    target.HandleActionResetTrade(target.Session, new ObjectGuid(0));
 
                     session.Player.EnqueueSaveChain();
-                    targetsession.Player.EnqueueSaveChain();
+                    target.EnqueueSaveChain();
                 }
             }
         }
@@ -191,28 +189,28 @@ namespace ACE.Server.WorldObjects
             session.Network.EnqueueSend(new GameEventDeclineTrade(session,session.Player.Guid));
             session.Network.EnqueueSend(new GameEventCommunicationTransientString(session, "Trade confirmation failed"));
             
-            var targetsession = WorldManager.Find(session.Player.TradePartner);
+            var target = PlayerManager.GetOnlinePlayer(session.Player.TradePartner);
 
-            if (targetsession != null)
+            if (target != null)
             {
-                targetsession.Network.EnqueueSend(new GameEventDeclineTrade(targetsession, session.Player.Guid));
-                targetsession.Network.EnqueueSend(new GameEventCommunicationTransientString(targetsession, "Trade confirmation failed"));
+                target.Session.Network.EnqueueSend(new GameEventDeclineTrade(target.Session, session.Player.Guid));
+                target.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(target.Session, "Trade confirmation failed"));
             }
         }
 
         public void HandleActionTradeSwitchToCombatMode(Session session)
         {
-            if ((session.Player.CombatMode != CombatMode.NonCombat) && (session.Player.IsTrading))
+            if (session.Player.CombatMode != CombatMode.NonCombat && session.Player.IsTrading)
             {
-                var targetsession = WorldManager.Find(session.Player.TradePartner);
+                var target = PlayerManager.GetOnlinePlayer(session.Player.TradePartner);
 
                 session.Network.EnqueueSend(new GameEventWeenieError(session, WeenieError.TradeNonCombatMode));
                 session.Player.HandleActionCloseTradeNegotiations(session, EndTradeReason.EnteredCombat);
 
-                if (targetsession !=null)
+                if (target !=null)
                 {
-                    targetsession.Network.EnqueueSend(new GameEventWeenieError(targetsession, WeenieError.TradeNonCombatMode));
-                    targetsession.Player.HandleActionCloseTradeNegotiations(targetsession, EndTradeReason.EnteredCombat);
+                    target.Session.Network.EnqueueSend(new GameEventWeenieError(target.Session, WeenieError.TradeNonCombatMode));
+                    target.HandleActionCloseTradeNegotiations(target.Session, EndTradeReason.EnteredCombat);
                 }
             }
         }

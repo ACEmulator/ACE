@@ -43,8 +43,6 @@ namespace ACE.Server.WorldObjects
 
             ManaConsumersTick();
 
-            ItemEnchantmentTick();
-
             // Check if we're due for our periodic SavePlayer
             if (LastRequestedDatabaseSave == DateTime.MinValue)
                 LastRequestedDatabaseSave = DateTime.UtcNow;

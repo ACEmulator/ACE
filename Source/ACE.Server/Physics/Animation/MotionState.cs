@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using System.Linq;
+using ACE.Server.Physics.Animation.Internal;
 
 namespace ACE.Server.Physics.Animation
 {
@@ -69,7 +69,8 @@ namespace ACE.Server.Physics.Animation
 
         public void remove_action_head()
         {
-            Actions.RemoveFirst();
+            if (Actions.Count > 0)
+                Actions.RemoveFirst();
         }
 
         public void remove_modifier(LinkedListNode<Motion> modifier)

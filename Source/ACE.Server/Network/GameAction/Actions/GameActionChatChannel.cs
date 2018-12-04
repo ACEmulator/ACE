@@ -1,7 +1,6 @@
 using System;
-using System.Collections.Generic;
+
 using ACE.Common.Extensions;
-using ACE.Database;
 using ACE.Entity.Enum;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameEvent.Events;
@@ -28,15 +27,15 @@ namespace ACE.Server.Network.GameAction.Actions
                             break;
                         }
 
-                        foreach (var recipient in WorldManager.GetAll())
-                            if (recipient != session)
+                        foreach (var recipient in PlayerManager.GetAllOnline())
+                            if (recipient.Session != session)
                             {
-                                if (recipient.AccessLevel >= AccessLevel.Advocate)
-                                    recipient.Network.EnqueueSend(new GameEvent.Events.GameEventChannelBroadcast(recipient, groupChatType, session.Player.Name, message));
+                                if (recipient.Session.AccessLevel >= AccessLevel.Advocate)
+                                    recipient.Session.Network.EnqueueSend(new GameEventChannelBroadcast(recipient.Session, groupChatType, session.Player.Name, message));
                             }
                             else
                             {
-                                recipient.Network.EnqueueSend(new GameEvent.Events.GameEventChannelBroadcast(recipient, groupChatType, "", message));
+                                recipient.Session.Network.EnqueueSend(new GameEventChannelBroadcast(recipient.Session, groupChatType, "", message));
                             }
                     }
                     break;
@@ -49,15 +48,15 @@ namespace ACE.Server.Network.GameAction.Actions
                             break;
                         }
 
-                        foreach (var recipient in WorldManager.GetAll())
-                            if (recipient != session)
+                        foreach (var recipient in PlayerManager.GetAllOnline())
+                            if (recipient.Session != session)
                             {
-                                if (recipient.AccessLevel == AccessLevel.Admin)
-                                    recipient.Network.EnqueueSend(new GameEvent.Events.GameEventChannelBroadcast(recipient, groupChatType, session.Player.Name, message));
+                                if (recipient.Session.AccessLevel == AccessLevel.Admin)
+                                    recipient.Session.Network.EnqueueSend(new GameEventChannelBroadcast(recipient.Session, groupChatType, session.Player.Name, message));
                             }
                             else
                             {
-                                recipient.Network.EnqueueSend(new GameEvent.Events.GameEventChannelBroadcast(recipient, groupChatType, "", message));
+                                recipient.Session.Network.EnqueueSend(new GameEventChannelBroadcast(recipient.Session, groupChatType, "", message));
                             }
                     }
                     break;
@@ -70,15 +69,15 @@ namespace ACE.Server.Network.GameAction.Actions
                             break;
                         }
 
-                        foreach (var recipient in WorldManager.GetAll())
-                            if (recipient != session)
+                        foreach (var recipient in PlayerManager.GetAllOnline())
+                            if (recipient.Session != session)
                             {
-                                if (recipient.AccessLevel >= AccessLevel.Sentinel)
-                                    recipient.Network.EnqueueSend(new GameEvent.Events.GameEventChannelBroadcast(recipient, groupChatType, session.Player.Name, message));
+                                if (recipient.Session.AccessLevel >= AccessLevel.Sentinel)
+                                    recipient.Session.Network.EnqueueSend(new GameEventChannelBroadcast(recipient.Session, groupChatType, session.Player.Name, message));
                             }
                             else
                             {
-                                recipient.Network.EnqueueSend(new GameEvent.Events.GameEventChannelBroadcast(recipient, groupChatType, "", message));
+                                recipient.Session.Network.EnqueueSend(new GameEventChannelBroadcast(recipient.Session, groupChatType, "", message));
                             }
                     }
                     break;
@@ -91,15 +90,15 @@ namespace ACE.Server.Network.GameAction.Actions
                             break;
                         }
 
-                        foreach (var recipient in WorldManager.GetAll())
-                            if (recipient != session)
+                        foreach (var recipient in PlayerManager.GetAllOnline())
+                            if (recipient.Session != session)
                             {
-                                if (recipient.AccessLevel >= AccessLevel.Advocate)
-                                    recipient.Network.EnqueueSend(new GameEvent.Events.GameEventChannelBroadcast(recipient, groupChatType, session.Player.Name, message));
+                                if (recipient.Session.AccessLevel >= AccessLevel.Advocate)
+                                    recipient.Session.Network.EnqueueSend(new GameEventChannelBroadcast(recipient.Session, groupChatType, session.Player.Name, message));
                             }
                             else
                             {
-                                recipient.Network.EnqueueSend(new GameEvent.Events.GameEventChannelBroadcast(recipient, groupChatType, "", message));
+                                recipient.Session.Network.EnqueueSend(new GameEventChannelBroadcast(recipient.Session, groupChatType, "", message));
                             }
                     }
                     break;
@@ -112,15 +111,15 @@ namespace ACE.Server.Network.GameAction.Actions
                             break;
                         }
 
-                        foreach (var recipient in WorldManager.GetAll())
-                            if (recipient != session)
+                        foreach (var recipient in PlayerManager.GetAllOnline())
+                            if (recipient.Session != session)
                             {
-                                if (recipient.AccessLevel >= AccessLevel.Advocate)
-                                    recipient.Network.EnqueueSend(new GameEvent.Events.GameEventChannelBroadcast(recipient, groupChatType, session.Player.Name, message));
+                                if (recipient.Session.AccessLevel >= AccessLevel.Advocate)
+                                    recipient.Session.Network.EnqueueSend(new GameEventChannelBroadcast(recipient.Session, groupChatType, session.Player.Name, message));
                             }
                             else
                             {
-                                recipient.Network.EnqueueSend(new GameEvent.Events.GameEventChannelBroadcast(recipient, groupChatType, "", message));
+                                recipient.Session.Network.EnqueueSend(new GameEventChannelBroadcast(recipient.Session, groupChatType, "", message));
                             }
                     }
                     break;
@@ -133,15 +132,15 @@ namespace ACE.Server.Network.GameAction.Actions
                             break;
                         }
 
-                        foreach (var recipient in WorldManager.GetAll())
-                            if (recipient != session)
+                        foreach (var recipient in PlayerManager.GetAllOnline())
+                            if (recipient.Session != session)
                             {
-                                if (recipient.AccessLevel >= AccessLevel.Advocate)
-                                    recipient.Network.EnqueueSend(new GameEvent.Events.GameEventChannelBroadcast(recipient, groupChatType, session.Player.Name, message));
+                                if (recipient.Session.AccessLevel >= AccessLevel.Advocate)
+                                    recipient.Session.Network.EnqueueSend(new GameEventChannelBroadcast(recipient.Session, groupChatType, session.Player.Name, message));
                             }
                             else
                             {
-                                recipient.Network.EnqueueSend(new GameEvent.Events.GameEventChannelBroadcast(recipient, groupChatType, "", message));
+                                recipient.Session.Network.EnqueueSend(new GameEventChannelBroadcast(recipient.Session, groupChatType, "", message));
                             }
                     }
                     break;
@@ -154,15 +153,15 @@ namespace ACE.Server.Network.GameAction.Actions
                             break;
                         }
 
-                        foreach (var recipient in WorldManager.GetAll())
-                            if (recipient != session)
+                        foreach (var recipient in PlayerManager.GetAllOnline())
+                            if (recipient.Session != session)
                             {
-                                if (recipient.AccessLevel >= AccessLevel.Sentinel)
-                                    recipient.Network.EnqueueSend(new GameEvent.Events.GameEventChannelBroadcast(recipient, groupChatType, session.Player.Name, message));
+                                if (recipient.Session.AccessLevel >= AccessLevel.Sentinel)
+                                    recipient.Session.Network.EnqueueSend(new GameEventChannelBroadcast(recipient.Session, groupChatType, session.Player.Name, message));
                             }
                             else
                             {
-                                recipient.Network.EnqueueSend(new GameEvent.Events.GameEventChannelBroadcast(recipient, groupChatType, "", message));
+                                recipient.Session.Network.EnqueueSend(new GameEventChannelBroadcast(recipient.Session, groupChatType, "", message));
                             }
                     }
                     break;
@@ -182,18 +181,18 @@ namespace ACE.Server.Network.GameAction.Actions
                         var gameMessageSystemChat = new GameMessages.Messages.GameMessageSystemChat(whoSays + onTheWhatChannel + ", \"" + message + "\"", ChatMessageType.Help);
 
                         // TODO This should check if the recipient is subscribed to the channel
-                        foreach (var recipient in WorldManager.GetAll())
-                            if (recipient != session)
-                                recipient.Network.EnqueueSend(gameMessageSystemChat);
+                        foreach (var recipient in PlayerManager.GetAllOnline())
+                            if (recipient.Session != session)
+                                recipient.Session.Network.EnqueueSend(gameMessageSystemChat);
 
                         // again not sure what way to go with this.. the code below was added after I realized I should be handling things differently
                         // and by handling differently I mean letting the client do all of the work it was already designed to do.
 
                         // foreach (var recipient in WorldManager.GetAll())
                         //    if (recipient != session)
-                        //        NetworkManager.SendWorldMessage(recipient, new GameEvent.Events.GameEventChannelBroadcast(recipient, groupChatType, session.Player.Name, message));
+                        //        NetworkManager.SendWorldMessage(recipient, new GameEventChannelBroadcast(recipient, groupChatType, session.Player.Name, message));
                         //    else
-                        //        NetworkManager.SendWorldMessage(recipient, new GameEvent.Events.GameEventChannelBroadcast(recipient, groupChatType, "", message));
+                        //        NetworkManager.SendWorldMessage(recipient, new GameEventChannelBroadcast(recipient, groupChatType, "", message));
                     }
                     break;
                 case Channel.Fellow:
@@ -207,9 +206,9 @@ namespace ACE.Server.Network.GameAction.Actions
 
                         foreach (var fellowmember in session.Player.Fellowship.FellowshipMembers)
                             if (fellowmember.Session != session)
-                                fellowmember.Session.Network.EnqueueSend(new GameEvent.Events.GameEventChannelBroadcast(fellowmember.Session, groupChatType, session.Player.Name, message));
+                                fellowmember.Session.Network.EnqueueSend(new GameEventChannelBroadcast(fellowmember.Session, groupChatType, session.Player.Name, message));
                             else
-                                session.Network.EnqueueSend(new GameEvent.Events.GameEventChannelBroadcast(session, groupChatType, "", message));
+                                session.Network.EnqueueSend(new GameEventChannelBroadcast(session, groupChatType, "", message));
                     }
                     break;
                 case Channel.Vassals:
@@ -231,16 +230,12 @@ namespace ACE.Server.Network.GameAction.Actions
                         foreach (var vassal in session.Player.AllegianceNode.Vassals)
                         {
                             string vassalName = vassal.Player.Name;
+                            var vassalPlayer = PlayerManager.GetOnlinePlayer(vassalName);
 
-                            if (DatabaseManager.Authentication.GetAccountById(vassal.Player.Character.AccountId).AccessLevel == 5)
-                                vassalName = "+" + vassalName;
-
-                            Session vassalSession = WorldManager.FindByPlayerName(vassalName);
-
-                            if (vassalSession != null)
-                                vassalSession.Network.EnqueueSend(new GameEvent.Events.GameEventChannelBroadcast(vassalSession.Player.Session, groupChatType, session.Player.Name, message));
+                            if (vassalPlayer != null)
+                                vassalPlayer.Session.Network.EnqueueSend(new GameEventChannelBroadcast(vassalPlayer.Session, groupChatType, session.Player.Name, message));
                         }
-                        session.Network.EnqueueSend(new GameEvent.Events.GameEventChannelBroadcast(session, groupChatType, "", message));
+                        session.Network.EnqueueSend(new GameEventChannelBroadcast(session, groupChatType, "", message));
                     }
                     break;
                 case Channel.Patron:
@@ -260,16 +255,12 @@ namespace ACE.Server.Network.GameAction.Actions
                         }
 
                         string patronName = session.Player.AllegianceNode.Patron.Player.Name;
+                        var patronPlayer = PlayerManager.GetOnlinePlayer(patronName);
 
-                        if (DatabaseManager.Authentication.GetAccountById(session.Player.AllegianceNode.Patron.Player.Character.AccountId).AccessLevel == 5)
-                            patronName = "+" + patronName;
+                        if (patronPlayer != null)
+                            patronPlayer.Session.Network.EnqueueSend(new GameEventChannelBroadcast(patronPlayer.Session, groupChatType, session.Player.Name, message));
 
-                        Session patronSession = WorldManager.FindByPlayerName(patronName);
-
-                        if (patronSession != null)
-                            patronSession.Network.EnqueueSend(new GameEvent.Events.GameEventChannelBroadcast(patronSession.Player.Session, groupChatType, session.Player.Name, message));
-
-                        session.Network.EnqueueSend(new GameEvent.Events.GameEventChannelBroadcast(session, groupChatType, "", message));
+                        session.Network.EnqueueSend(new GameEventChannelBroadcast(session, groupChatType, "", message));
                     }
                     break;
                 case Channel.Monarch:
@@ -289,16 +280,12 @@ namespace ACE.Server.Network.GameAction.Actions
                         }
 
                         string monarchName = session.Player.AllegianceNode.Monarch.Player.Name;
+                        var monarchPlayer = PlayerManager.GetOnlinePlayer(monarchName);
 
-                        if (DatabaseManager.Authentication.GetAccountById(session.Player.AllegianceNode.Monarch.Player.Character.AccountId).AccessLevel == 5)
-                            monarchName = "+" + monarchName;
+                        if (monarchPlayer != null)
+                            monarchPlayer.Session.Network.EnqueueSend(new GameEventChannelBroadcast(monarchPlayer.Session, Channel.Patron, session.Player.Name, message));
 
-                        Session monarchSession = WorldManager.FindByPlayerName(monarchName);
-
-                        if (monarchSession != null)
-                            monarchSession.Network.EnqueueSend(new GameEvent.Events.GameEventChannelBroadcast(monarchSession.Player.Session, Channel.Patron, session.Player.Name, message));
-
-                        session.Network.EnqueueSend(new GameEvent.Events.GameEventChannelBroadcast(session, groupChatType, "", message));
+                        session.Network.EnqueueSend(new GameEventChannelBroadcast(session, groupChatType, "", message));
                     }
                     break;
                 case Channel.CoVassals:
@@ -318,32 +305,25 @@ namespace ACE.Server.Network.GameAction.Actions
                         }
 
                         string patronName = session.Player.AllegianceNode.Patron.Player.Name;
+                        var patronPlayer = PlayerManager.GetOnlinePlayer(patronName);
 
-                        if (DatabaseManager.Authentication.GetAccountById(session.Player.AllegianceNode.Patron.Player.Character.AccountId).AccessLevel == 5)
-                            patronName = "+" + patronName;
-
-                        Session patronSession = WorldManager.FindByPlayerName(patronName);
-
-                        if (patronSession != null)
-                            patronSession.Network.EnqueueSend(new GameEvent.Events.GameEventChannelBroadcast(patronSession.Player.Session, Channel.Patron, session.Player.Name, message));
+                        if (patronPlayer != null)
+                            patronPlayer.Session.Network.EnqueueSend(new GameEventChannelBroadcast(patronPlayer.Session, Channel.Patron, session.Player.Name, message));
 
                         foreach (var covassal in session.Player.AllegianceNode.Patron.Vassals)
                         {
                             string vassalName = covassal.Player.Name;
 
-                            if (DatabaseManager.Authentication.GetAccountById(covassal.Player.Character.AccountId).AccessLevel == 5)
-                                vassalName = "+" + vassalName;
-
-                            Session covassalSession = WorldManager.FindByPlayerName(vassalName);
-
                             if (vassalName == session.Player.Name)
                             {
-                                session.Network.EnqueueSend(new GameEvent.Events.GameEventChannelBroadcast(session, groupChatType, "", message));
+                                session.Network.EnqueueSend(new GameEventChannelBroadcast(session, groupChatType, "", message));
                             }
                             else
                             {
-                                if (covassalSession != null)
-                                    covassalSession.Network.EnqueueSend(new GameEvent.Events.GameEventChannelBroadcast(covassalSession.Player.Session, groupChatType, session.Player.Name, message));
+                                var covassalPlayer = PlayerManager.GetOnlinePlayer(vassalName);
+
+                                if (covassalPlayer != null)
+                                    covassalPlayer.Session.Network.EnqueueSend(new GameEventChannelBroadcast(covassalPlayer.Session, groupChatType, session.Player.Name, message));
                             }
                         }
                     }

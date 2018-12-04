@@ -45,7 +45,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            GameEventMagicUpdateSpell updateSpellEvent = new GameEventMagicUpdateSpell(Session, spellId);
+            GameEventMagicUpdateSpell updateSpellEvent = new GameEventMagicUpdateSpell(Session, (ushort)spellId);
             Session.Network.EnqueueSend(updateSpellEvent);
 
             //Check to see if we echo output to the client
@@ -70,7 +70,7 @@ namespace ACE.Server.WorldObjects
 
             ChangesDetected = true;
 
-            GameEventMagicRemoveSpellId removeSpellEvent = new GameEventMagicRemoveSpellId(Session, spellId);
+            GameEventMagicRemoveSpell removeSpellEvent = new GameEventMagicRemoveSpell(Session, (ushort)spellId);
             Session.Network.EnqueueSend(removeSpellEvent);
         }
     }

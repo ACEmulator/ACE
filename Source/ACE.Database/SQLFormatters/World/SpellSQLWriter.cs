@@ -420,6 +420,11 @@ namespace ACE.Database.SQLFormatters.World
 
             spellLine = FixNullFields(spellLine);
 
+            if (input.PositionObjCellId.HasValue && input.PositionOriginX.HasValue && input.PositionOriginY.HasValue && input.PositionOriginZ.HasValue && input.PositionAnglesX.HasValue && input.PositionAnglesY.HasValue && input.PositionAnglesZ.HasValue && input.PositionAnglesW.HasValue)
+            {
+                spellLine += Environment.NewLine + $"/* @teleloc 0x{input.PositionObjCellId.Value.ToString("X8")} [{input.PositionOriginX.Value.ToString("F6")} {input.PositionOriginY.Value.ToString("F6")} {input.PositionOriginZ.Value.ToString("F6")}] {input.PositionAnglesW.Value.ToString("F6")} {input.PositionAnglesX.Value.ToString("F6")} {input.PositionAnglesY.Value.ToString("F6")} {input.PositionAnglesZ.Value.ToString("F6")} */";
+            }
+
             writer.WriteLine(spellLineHdr);
             writer.WriteLine(spellLine);
         }

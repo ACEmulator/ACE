@@ -1,4 +1,3 @@
-using ACE.Entity;
 using ACE.Server.Managers;
 
 namespace ACE.Server.Network.GameAction.Actions
@@ -8,16 +7,16 @@ namespace ACE.Server.Network.GameAction.Actions
         [GameAction(GameActionType.ResetTrade)]
         public static void Handle(ClientMessage message, Session session)
         {
-            ObjectGuid whoReset = session.Player.Guid;
+            var whoReset = session.Player.Guid;
 
-            var targetsession = WorldManager.Find(session.Player.TradePartner);
+            var target = PlayerManager.GetOnlinePlayer(session.Player.TradePartner);
 
-            if (targetsession != null)
+            if (target != null)
             {
                 session.Player.HandleActionResetTrade(session, whoReset);
 
                 //Send GameEvent to reset partner's trade window
-                targetsession.Player.HandleActionResetTrade(targetsession, whoReset);
+                target.HandleActionResetTrade(target.Session, whoReset);
             }
         }
     }

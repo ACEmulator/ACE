@@ -1,7 +1,9 @@
 using System;
 
 using ACE.Database.Models.Shard;
+using ACE.DatLoader;
 using ACE.Entity.Enum;
+using ACE.Server.Entity;
 
 namespace ACE.Server.WorldObjects.Entity
 {
@@ -30,6 +32,25 @@ namespace ACE.Server.WorldObjects.Entity
                     creature.ChangesDetected = true;
 
                 BiotaPropertiesSkill.SAC = (uint)value;
+            }
+        }
+
+        public bool IsUsable
+        {
+            get
+            {
+                if (AdvancementClass == SkillAdvancementClass.Trained || AdvancementClass == SkillAdvancementClass.Specialized)
+                    return true;
+
+                if (AdvancementClass == SkillAdvancementClass.Untrained)
+                {
+                    DatManager.PortalDat.SkillTable.SkillBaseHash.TryGetValue((uint)Skill, out var skillTableRecord);
+
+                    if (skillTableRecord?.MinLevel == 1)
+                        return true;
+                }
+
+                return false;
             }
         }
 
@@ -69,15 +90,10 @@ namespace ACE.Server.WorldObjects.Entity
         {
             get
             {
-                var formula = Skill.GetFormula();
-
                 uint total = 0;
 
-                if (formula != null)
-                {
-                    if ((AdvancementClass == SkillAdvancementClass.Untrained && Skill.GetUsability() != null && Skill.GetUsability().UsableUntrained) || AdvancementClass == SkillAdvancementClass.Trained || AdvancementClass == SkillAdvancementClass.Specialized)
-                        total = formula.CalcBase(creature.Strength.Base, creature.Endurance.Base, creature.Coordination.Base, creature.Quickness.Base, creature.Focus.Base, creature.Self.Base);
-                }
+                if (IsUsable)
+                    total = AttributeFormula.GetFormula(creature, Skill, false);
 
                 total += InitLevel + Ranks;
 
@@ -91,15 +107,10 @@ namespace ACE.Server.WorldObjects.Entity
         {
             get
             {
-                var formula = Skill.GetFormula();
-
                 uint total = 0;
 
-                if (formula != null)
-                {
-                    if ((AdvancementClass == SkillAdvancementClass.Untrained && Skill.GetUsability() != null && Skill.GetUsability().UsableUntrained) || AdvancementClass == SkillAdvancementClass.Trained || AdvancementClass == SkillAdvancementClass.Specialized)
-                        total = formula.CalcBase(creature.Strength.Current, creature.Endurance.Current, creature.Coordination.Current, creature.Quickness.Current, creature.Focus.Current, creature.Self.Current);
-                }
+                if (IsUsable)
+                    total = AttributeFormula.GetFormula(creature, Skill);
 
                 total += InitLevel + Ranks;
 
@@ -107,12 +118,13 @@ namespace ACE.Server.WorldObjects.Entity
                 total += (uint)skillMod;    // can be negative?
 
                 // TODO: include augs + any other modifiers
-                if (creature is Player)
-                {
-                    var player = creature as Player;
 
-                    if (player.HasVitae)
-                        total = (uint)Math.Round(total * player.Vitae);
+                if (creature is Player player)
+                {
+                    var vitae = player.Vitae;
+
+                    if (vitae != 1.0f)
+                        total = (uint)Math.Round(total * vitae);
                 }
 
                 return total;

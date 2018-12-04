@@ -1,5 +1,5 @@
 using System;
-using System.Linq;
+using System.Numerics;
 using log4net;
 
 using ACE.Database.Models.World;
@@ -11,11 +11,10 @@ using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity.Actions;
 using ACE.Database.Models.Shard;
-using ACE.Server.Network.GameMessages.Messages;
-using ACE.Server.Network.Motion;
-using ACE.Server.Network.Sequence;
 using ACE.Server.Entity;
 using ACE.Server.WorldObjects.Entity;
+
+using Position = ACE.Entity.Position;
 
 namespace ACE.Server.WorldObjects
 {
@@ -85,11 +84,7 @@ namespace ACE.Server.WorldObjects
 
             Value = null; // Creatures don't have value. By setting this to null, it effectively disables the Value property. (Adding/Subtracting from null results in null)
 
-            //CurrentMotionState = new UniversalMotion(MotionStance.NonCombat);     // breaks emotes?
-            //CurrentMotionState.MovementData.ForwardCommand = (uint)MotionCommand.Ready;   // already the default?
-
-            //CurrentMotionState = new UniversalMotion(MotionStance.NonCombat, new MotionItem(MotionCommand.Ready));
-            CurrentMotionState = new UniversalMotion(MotionStance.Invalid, new MotionItem(MotionCommand.Invalid));
+            CurrentMotionState = new Motion(MotionStance.NonCombat, MotionCommand.Ready);
         }
 
         public void GenerateNewFace()
@@ -201,34 +196,49 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public bool IsAlive { get => Health.Current > 0; }
 
-        public void SetMotionState(WorldObject obj, UniversalMotion motionState)
+        /// <summary>
+        /// Sends the network commands to move a player towards an object
+        /// </summary>
+        public void MoveToObject(WorldObject target)
         {
-            CurrentMotionState = motionState;
-            motionState.IsAutonomous = false;
-            GameMessageUpdateMotion updateMotion = new GameMessageUpdateMotion(Guid, Sequences.GetCurrentSequence(SequenceType.ObjectInstance), obj.Sequences, motionState);
-            EnqueueBroadcast(updateMotion);
+            var distanceToObject = target.UseRadius ?? 0.6f;
+
+            var moveToObject = new Motion(this, target, MovementType.MoveToObject);
+            moveToObject.MoveToParameters.DistanceToObject = distanceToObject;
+
+            SetWalkRunThreshold(moveToObject, target.Location);
+
+            EnqueueBroadcastMotion(moveToObject);
         }
 
         /// <summary>
-        /// This signature services MoveToObject and TurnToObject
-        /// Update Position prior to start, start them moving or turning, set statemachine to moving.
-        /// Moved from player - we need to be able to move creatures as well.   Og II
+        /// Sends the network commands to move a player towards a position
         /// </summary>
-        /// <param name="worldObjectPosition">Position in the world</param>
-        /// <param name="sequence">Sequence for the object getting the message.</param>
-        /// <param name="movementType">What type of movement are we about to execute</param>
-        /// <param name="targetGuid">Who are we moving or turning toward</param>
-        public void OnAutonomousMove(ACE.Entity.Position worldObjectPosition, SequenceManager sequence, MovementTypes movementType, ObjectGuid targetGuid, float distanceFrom = 0.60f)
+        public void MoveToPosition(Position position)
         {
-            var target = CurrentLandblock.GetObject(targetGuid);
-            if (target != null && target is Creature)
-                distanceFrom = 0.6f;
+            var moveToPosition = new Motion(this, position);
+            moveToPosition.MoveToParameters.DistanceToObject = 0.0f;
 
-            UniversalMotion newMotion = new UniversalMotion(MotionStance.NonCombat, worldObjectPosition, targetGuid);
-            newMotion.DistanceFrom = distanceFrom;
-            newMotion.MovementTypes = movementType;
-            EnqueueBroadcast(new GameMessageUpdatePosition(this));
-            EnqueueBroadcastMotion(newMotion);
+            SetWalkRunThreshold(moveToPosition, position);
+
+            EnqueueBroadcastMotion(moveToPosition);
+        }
+
+        public void SetWalkRunThreshold(Motion motion, Position targetLocation)
+        {
+            // FIXME: WalkRunThreshold (default 15 distance) seems to not be used automatically by client
+            // player will always walk instead of run, and if MovementParams.CanCharge is sent, they will always charge
+            // to remedy this, we manually calculate a threshold based on WalkRunThreshold
+
+            var dist = Vector3.Distance(Location.ToGlobal(), targetLocation.ToGlobal());
+            if (dist >= motion.MoveToParameters.WalkRunThreshold / 2.0f)     // default 15 distance seems too far, especially with weird in-combat walking animation?
+            {
+                motion.MoveToParameters.MovementParameters |= MovementParams.CanCharge;
+
+                // TODO: find the correct runrate here
+                // the default runrate / charge seems much too fast...
+                motion.RunRate = GetRunRate() / 4.0f;
+            }
         }
 
         /// <summary>
@@ -244,47 +254,27 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public override void ActOnUse(WorldObject worldObject)
         {
-            if (worldObject is Player)
-            {
-                var player = worldObject as Player;
+            var player = worldObject as Player;
+            if (player == null) return;
 
-                var actionChain = new ActionChain();
-                actionChain.AddDelaySeconds(player.Rotate(this));
-                if (Biota.BiotaPropertiesEmote.Count > 0)
-                {
-                    var emoteSets = Biota.BiotaPropertiesEmote.Where(x => x.Category == (int)EmoteCategory.Use).ToList();
+            var rotateTime = player.Rotate(this);
 
-                    if (emoteSets.Count > 0)
-                    {
-                        var selectedEmoteSet = emoteSets.FirstOrDefault(x => x.Probability == 1);
+            var actionChain = new ActionChain();
+            actionChain.AddDelaySeconds(rotateTime);
 
-                        if (selectedEmoteSet == null)
-                        {
-                            var rng = Physics.Common.Random.RollDice(0.0f, 1.0f);
+            EmoteManager.ExecuteEmoteSet(EmoteCategory.Use, null, player, actionChain, true);
+            actionChain.EnqueueChain();
 
-                            selectedEmoteSet = emoteSets.FirstOrDefault(x => x.Probability >= rng);
-                        }
+            player.SendUseDoneEvent();
+        }
 
-                        if (selectedEmoteSet == null)
-                        {
-                            player.SendUseDoneEvent();
-                            return;
-                        }
+        public override void OnCollideObject(WorldObject target)
+        {
+            if (target.ReportCollisions == false)
+                return;
 
-                        foreach (var action in selectedEmoteSet.BiotaPropertiesEmoteAction)
-                        {
-                            EmoteManager.ExecuteEmote(selectedEmoteSet, action, actionChain, this, player);
-                        }
-                        actionChain.EnqueueChain();
-                    }
-                    
-                    player.SendUseDoneEvent();
-                }
-                else
-                {
-                    player.SendUseDoneEvent();
-                }
-            }
+            if (target is Door door)
+                door.OnCollideObject(this);
         }
     }
 }

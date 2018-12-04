@@ -1,14 +1,9 @@
-using ACE.Database;
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
-using ACE.DatLoader;
-using ACE.DatLoader.FileTypes;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity.Actions;
-using ACE.Server.Factories;
-using ACE.Server.Network.Motion;
 
 namespace ACE.Server.WorldObjects
 {
@@ -94,56 +89,54 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyDataId.UseTargetAnimation); else SetProperty(PropertyDataId.UseTargetAnimation, value.Value); }
         }
 
-        private static readonly UniversalMotion twitch = new UniversalMotion(MotionStance.NonCombat, new MotionItem(MotionCommand.Twitch1));
-
+        /// <summary>
+        /// Called when a player or creature uses a switch
+        /// </summary>
         public override void ActOnUse(WorldObject worldObject)
         {
-            var switchTimer = new ActionChain();
-            var turnToMotion = new UniversalMotion(MotionStance.NonCombat, Location, Guid);
-            turnToMotion.MovementTypes = MovementTypes.TurnToObject;
-            switchTimer.AddAction(this, () => worldObject.EnqueueBroadcastMotion(turnToMotion));
-            switchTimer.AddDelaySeconds(1);
-            switchTimer.AddAction(worldObject, () =>
+            var creature = worldObject as Creature;
+            if (creature == null) return;
+
+            var actionChain = new ActionChain();
+
+            // creature rotates towards switch
+            var rotateTime = creature.Rotate(this);
+            actionChain.AddDelaySeconds(rotateTime);
+
+            // switch activate animation
+            if (MotionTableId != 0)
             {
-                if (UseTargetAnimation.HasValue)
-                    EnqueueBroadcastMotion(new UniversalMotion(MotionStance.NonCombat, new MotionItem((MotionCommand)UseTargetAnimation)));
-                else
-                    EnqueueBroadcastMotion(twitch);
-            });
-            if (UseTargetAnimation.HasValue)
-                switchTimer.AddDelaySeconds(DatManager.PortalDat.ReadFromDat<MotionTable>(MotionTableId).GetAnimationLength((MotionCommand)UseTargetAnimation));
-            else
-                switchTimer.AddDelaySeconds(DatManager.PortalDat.ReadFromDat<MotionTable>(MotionTableId).GetAnimationLength(MotionCommand.Twitch1));
-            switchTimer.AddAction(worldObject, () =>
+                var useAnimation = UseTargetAnimation != null ? (MotionCommand)UseTargetAnimation : MotionCommand.Twitch1;
+                EnqueueMotion(actionChain, useAnimation);
+            }
+
+            actionChain.AddAction(creature, () =>
             {
+                // switch activates target
                 if (ActivationTarget > 0)
                 {
-                    var target = CurrentLandblock?.GetObject(new ObjectGuid(ActivationTarget.Value));
+                    var target = CurrentLandblock?.GetObject(new ObjectGuid(ActivationTarget));
 
-                    target.ActOnUse(worldObject);
+                    target.ActOnUse(creature);
                 }
 
-                //player.SendUseDoneEvent();
-
-                //Reset();
-
-                if (worldObject is Player)
+                // only affects players?
+                var player = creature as Player;
+                if (player != null)
                 {
-                    var player = worldObject as Player;
                     if (Usable.HasValue && Usable == ACE.Entity.Enum.Usable.ViewedRemote && SpellDID.HasValue)
                     {
-                        //taken from Gem.UseItem
                         var spell = new Server.Entity.Spell((uint)SpellDID);
-                        EnchantmentStatus enchantmentStatus = default(EnchantmentStatus);
+                        var enchantmentStatus = default(EnchantmentStatus);
+
+                        LifeMagic(player, spell, out uint damage, out bool critical, out enchantmentStatus);    // always life magic?
                         player.PlayParticleEffect(spell.TargetEffect, player.Guid);
-                        LifeMagic(player, spell, out uint damage, out bool critical, out enchantmentStatus);
-                        //player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session));
+
                         player.SendUseDoneEvent();
-                        return;
                     }
                 }
             });
-            switchTimer.EnqueueChain();
+            actionChain.EnqueueChain();
         }
 
         public override void SetLinkProperties(WorldObject wo)

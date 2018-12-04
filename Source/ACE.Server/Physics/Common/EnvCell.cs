@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+
 using ACE.Entity.Enum;
 using ACE.Server.Physics.BSP;
 using ACE.Server.Physics.Animation;
@@ -26,9 +27,10 @@ namespace ACE.Server.Physics.Common
         public List<ushort> LightArray;
         public int InCellTimestamp;
         public List<ushort> VisibleCellIDs;
-        public Dictionary<uint, EnvCell> VisibleCells;
-        public uint Bitfield;
+        public new Dictionary<uint, EnvCell> VisibleCells;
+        public EnvCellFlags Flags;
         public uint EnvironmentID;
+        public DatLoader.FileTypes.EnvCell _envCell;
         public DatLoader.FileTypes.Environment Environment;
 
         public EnvCell() : base()
@@ -38,9 +40,11 @@ namespace ACE.Server.Physics.Common
 
         public EnvCell(DatLoader.FileTypes.EnvCell envCell): base()
         {
-            Bitfield = envCell.Bitfield;
+            _envCell = envCell;
+
+            Flags = envCell.Flags;
             ID = envCell.Id;
-            ShadowObjectIDs = envCell.Shadows;
+            ShadowObjectIDs = envCell.Surfaces;
             Pos = new Position(ID, new AFrame(envCell.Position));
             Portals = envCell.CellPortals;
             NumPortals = Portals.Count;
@@ -58,10 +62,12 @@ namespace ACE.Server.Physics.Common
             SeenOutside = envCell.SeenOutside;
 
             EnvironmentID = envCell.EnvironmentId;
-            Environment = (DatLoader.FileTypes.Environment)DBObj.Get(new QualifiedDataID(16, EnvironmentID));
+            Environment = DBObj.GetEnvironment(EnvironmentID);
             CellStructureID = envCell.CellStructure;    // environment can contain multiple?
             if (Environment.Cells != null && Environment.Cells.ContainsKey(CellStructureID))
                 CellStructure = new CellStruct(Environment.Cells[CellStructureID]);
+
+            NumSurfaces = envCell.Surfaces.Count;
         }
 
         public void PostInit()
@@ -224,7 +230,7 @@ namespace ACE.Server.Physics.Common
 
         public EnvCell add_visible_cell(uint cellID)
         {
-            var envCell = (EnvCell)DBObj.Get(new QualifiedDataID(3, cellID));
+            var envCell = DBObj.GetEnvCell(cellID);
             VisibleCells.Add(cellID, envCell);
             return envCell;
         }

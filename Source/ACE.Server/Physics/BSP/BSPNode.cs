@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Numerics;
+
 using ACE.Server.Physics.Animation;
 using ACE.Server.Physics.Collision;
 using ACE.Server.Physics.Entity;
@@ -50,7 +51,7 @@ namespace ACE.Server.Physics.BSP
                 Sphere = new Sphere(node.Sphere);
             if (node.SplittingPlane != null)
                 SplittingPlane = node.SplittingPlane.ToNumerics();
-            Type = (BSPTreeType)node.Type;
+            Typename = node.Type;
             //Typename
             if (node.InPolys != null)
             {
@@ -58,7 +59,7 @@ namespace ACE.Server.Physics.BSP
                 PolyIDs = node.InPolys;
                 Polygons = new List<Polygon>();
                 foreach (var poly in node.InPolys)
-                    Polygons.Add(PolygonCache.Get(new Polygon(polys[poly], vertexArray)));
+                    Polygons.Add(PolygonCache.Get(polys[poly], vertexArray));
             }
             if (node.PosNode != null)
             {

@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Server.Entity;
@@ -68,8 +69,8 @@ namespace ACE.Server.Network.Structure
                 hg = (HeritageGroup)player.Heritage;
                 rank = (ushort)node.Rank;
                 level = (uint)player.Level;
-                loyalty = (ushort)player.GetCreatureSkill(Skill.Loyalty).Current;
-                leadership = (ushort)player.GetCreatureSkill(Skill.Leadership).Current;
+                loyalty = (ushort)player.GetCurrentLoyalty();
+                leadership = (ushort)player.GetCurrentLeadership();
                 name = player.Name;
             }
 

@@ -1,15 +1,16 @@
 using System.Linq;
 
 using ACE.Common;
+using ACE.Database.Models.Shard;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
-using ACE.Server.Entity;
 using ACE.Server.Managers;
+using ACE.Server.Network.Enum;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
-using ACE.Server.Network.Motion;
 using ACE.Server.Network.Sequence;
+using ACE.Server.Network.Structure;
 
 namespace ACE.Server.WorldObjects
 {
@@ -17,8 +18,6 @@ namespace ACE.Server.WorldObjects
     {
         public void PlayerEnterWorld()
         {
-            IsOnline = true;
-
             // Save the the LoginTimestamp
             var lastLoginTimestamp = Time.GetUnixTime();
 
@@ -28,12 +27,10 @@ namespace ACE.Server.WorldObjects
             Character.TotalLogins++;
             CharacterChangesDetected = true;
 
-            Sequences.AddOrSetSequence(SequenceType.ObjectInstance, new UShortSequence((ushort)Character.TotalLogins));
+            Sequences.SetSequence(SequenceType.ObjectInstance, new UShortSequence((ushort)Character.TotalLogins));
 
             // SendSelf will trigger the entrance into portal space
             SendSelf();
-
-            SendFriendStatusUpdates();
 
             // Init the client with the chat channel ID's, and then notify the player that they've choined the associated channels.
             var setTurbineChatChannels = new GameEventSetTurbineChatChannels(Session, 0, 1, 2, 3, 4, 6, 7, 0, 0, 0); // TODO these are hardcoded right now
@@ -44,9 +41,9 @@ namespace ACE.Server.WorldObjects
             Session.Network.EnqueueSend(setTurbineChatChannels, general, trade, lfg, roleplay);
 
             // check if vassals earned XP while offline
-            var offlinePlayer = WorldManager.GetOfflinePlayer(Guid);
+            /* TODO HACK FIX var offlinePlayer = PlayerManager.GetOfflinePlayerOld(Guid);
             if (offlinePlayer != null)
-                offlinePlayer.AddCPPoolToUnload(true);
+                offlinePlayer.AddCPPoolToUnload(true);*/
 
             HandleDBUpdates();
         }
@@ -142,60 +139,58 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Will send out GameEventFriendsListUpdate packets to everyone online that has this player as a friend.
         /// </summary>
-        private void SendFriendStatusUpdates()
+        public void SendFriendStatusUpdates()
         {
-            return; // todo fix
+            var inverseFriends = PlayerManager.GetOnlineInverseFriends(Guid);
 
-            /*List<Session> inverseFriends = WorldManager.FindInverseFriends(Guid);
-
-            if (inverseFriends.Count > 0)
+            foreach (var friend in inverseFriends)
             {
-                Friend playerFriend = new Friend();
-                playerFriend.Id = Guid;
-                playerFriend.Name = Name;
+                var playerFriend = new CharacterPropertiesFriendList { CharacterId = friend.Guid.Full, FriendId = Guid.Full };
+                friend.Session.Network.EnqueueSend(new GameEventFriendsListUpdate(friend.Session, GameEventFriendsListUpdate.FriendsUpdateTypeFlag.FriendStatusChanged, playerFriend, true, !GetAppearOffline()));
+            }
+        }
 
-                foreach (var friendSession in inverseFriends)
-                    friendSession.Network.EnqueueSend(new GameEventFriendsListUpdate(friendSession, GameEventFriendsListUpdate.FriendsUpdateTypeFlag.FriendStatusChanged, playerFriend, true, GetVirtualOnlineStatus()));
-            }*/
+        /// <summary>
+        /// Will send out GameEventFriendsListUpdate packets to everyone online that has this player as a friend.
+        /// </summary>
+        public void SendFriendStatusUpdates(bool onlineStatus)
+        {
+            var inverseFriends = PlayerManager.GetOnlineInverseFriends(Guid);
+
+            foreach (var friend in inverseFriends)
+            {
+                var playerFriend = new CharacterPropertiesFriendList { CharacterId = friend.Guid.Full, FriendId = Guid.Full };
+                friend.Session.Network.EnqueueSend(new GameEventFriendsListUpdate(friend.Session, GameEventFriendsListUpdate.FriendsUpdateTypeFlag.FriendStatusChanged, playerFriend, true, onlineStatus));
+            }
         }
 
 
-        public void RequestUpdatePosition(Position pos)
+        /// <summary>
+        /// Records where the client thinks we are, for use by physics engine later
+        /// </summary>
+        public void SetRequestedLocation(Position pos)
         {
-            ExternalUpdatePosition(pos);
+            RequestedLocation = pos;
         }
 
-        public void RequestUpdateMotion(uint holdKey, MovementData md, MotionItem[] commands)
+        public void BroadcastMovement(MoveToState moveToState)
         {
-            // Update our current style
-            if ((md.MovementStateFlag & MovementStateFlag.CurrentStyle) != 0)
-            {
-                MotionStance newStance = (MotionStance)md.CurrentStyle;
+            var state = moveToState.RawMotionState;
 
-                if (newStance != stance)
-                    stance = (MotionStance)md.CurrentStyle;
+            // update current style
+            if ((state.Flags & RawMotionFlags.CurrentStyle) != 0)
+            {
+                // this lowercase stance field in Player doesn't really seem to be used anywhere
+                stance = state.CurrentStyle;
             }
 
-            md = md.ConvertToClientAccepted(holdKey, GetCreatureSkill(Skill.Run));
-            UniversalMotion newMotion = new UniversalMotion(stance, md);
+            var movementData = new MovementData(this, moveToState);
 
-            // This is a hack to make walking work correctly.   Og II
-            if (holdKey != 0 || (md.ForwardCommand == (uint)MotionCommand.WalkForward))
-                newMotion.IsAutonomous = true;
-
-            // FIXME(ddevec): May need to de-dupe animation/commands from client -- getting multiple (e.g. wave)
-            // FIXME(ddevec): This is the operation that should update our velocity (for physics later)
-            newMotion.Commands.AddRange(commands);
-            EnqueueBroadcastMotion(newMotion);
+            var movementEvent = new GameMessageUpdateMotion(this, movementData);
+            EnqueueBroadcast(movementEvent);    // shouldn't need to go to originating player?
 
             // TODO: use real motion / animation system from physics
-            CurrentMotionCommand = md.ForwardCommand;
-        }
-
-        private void ExternalUpdatePosition(Position newPosition)
-        {
-            //if (InWorld)
-                PrepUpdatePosition(newPosition);
+            CurrentMotionCommand = movementData.Invalid.State.ForwardCommand;
         }
     }
 }

@@ -1,4 +1,5 @@
 using System;
+
 using ACE.DatLoader.Entity;
 using ACE.Server.Physics.Common;
 
@@ -8,14 +9,14 @@ namespace ACE.Server.Physics.Animation
     {
         public Animation Anim;
         public float Framerate;
-        public uint LowFrame;
-        public uint HighFrame;
+        public int LowFrame;
+        public int HighFrame;
 
         public AnimSequenceNode()
         {
             Framerate = 30.0f;
             LowFrame = 0;
-            HighFrame = uint.MaxValue;
+            HighFrame = -1;
         }
 
         public AnimSequenceNode(AnimData animData)
@@ -35,12 +36,12 @@ namespace ACE.Server.Physics.Animation
                 return LowFrame;
         }
 
-        public uint get_high_frame()
+        public int get_high_frame()
         {
             return HighFrame;
         }
 
-        public uint get_low_frame()
+        public int get_low_frame()
         {
             return LowFrame;
         }
@@ -94,18 +95,18 @@ namespace ACE.Server.Physics.Animation
 
         public void set_animation_id(uint animID)
         {
-            var anim = (DatLoader.FileTypes.Animation)DBObj.Get(new QualifiedDataID(8, animID));
+            var anim = DBObj.GetAnimation(animID);
             Anim = new Animation(anim);
             if (Anim == null) return;
 
             if (HighFrame < 0)
-                HighFrame = Anim.NumFrames - 1;
+                HighFrame = (int)(Anim.NumFrames - 1);
 
             if (LowFrame >= Anim.NumFrames)
-                LowFrame = Anim.NumFrames - 1;
+                LowFrame = (int)(Anim.NumFrames - 1);
 
             if (HighFrame >= Anim.NumFrames)
-                HighFrame = Anim.NumFrames - 1;
+                HighFrame = (int)(Anim.NumFrames - 1);
 
             if (LowFrame > HighFrame)
                 HighFrame = LowFrame;

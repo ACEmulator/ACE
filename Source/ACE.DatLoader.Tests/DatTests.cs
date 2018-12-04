@@ -112,20 +112,15 @@ namespace ACE.DatLoader.Tests
 
                 var fileType = kvp.Value.GetFileType(DatDatabaseType.Portal);
 
-                Assert.IsNotNull(fileType, $"Key: 0x{kvp.Key:X8}, ObjectID: 0x{kvp.Value.ObjectId:X8}, FileSize: {kvp.Value.FileSize}, BitFlags:, 0x{kvp.Value.BitFlags:X8}");
+                //Assert.IsNotNull(fileType, $"Key: 0x{kvp.Key:X8}, ObjectID: 0x{kvp.Value.ObjectId:X8}, FileSize: {kvp.Value.FileSize}, BitFlags:, 0x{kvp.Value.BitFlags:X8}");
+                Assert.IsNotNull(fileType, $"Key: 0x{kvp.Key:X8}, ObjectID: 0x{kvp.Value.ObjectId:X8}, FileSize: {kvp.Value.FileSize}");
 
                 // These file types aren't converted yet
-                if (fileType == DatFileType.EnumMapper) continue;
-                if (fileType == DatFileType.String) continue;
                 if (fileType == DatFileType.KeyMap) continue;
-                if (fileType == DatFileType.RenderTexture) continue;
                 if (fileType == DatFileType.RenderMaterial) continue;
                 if (fileType == DatFileType.MaterialModifier) continue;
                 if (fileType == DatFileType.MaterialInstance) continue;
-                if (fileType == DatFileType.DidMapper) continue;
                 if (fileType == DatFileType.ActionMap) continue;
-                if (fileType == DatFileType.DualDidMapper) continue;
-                if (fileType == DatFileType.Font) continue;
                 if (fileType == DatFileType.MasterProperty) continue;
                 if (fileType == DatFileType.DbProperties) continue;
 
@@ -174,7 +169,7 @@ namespace ACE.DatLoader.Tests
         {
             string output = @"c:\Turbine\typed_portal_dat_export";
             PortalDatDatabase db = new PortalDatDatabase(portalDatLocation);
-            db.ExtractCategorizedContents(output);
+            db.ExtractCategorizedPortalContents(output);
         }
     }
 }

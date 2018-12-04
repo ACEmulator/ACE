@@ -58,10 +58,12 @@ namespace ACE.Database
                 catch (ObjectDisposedException)
                 {
                     // the _queue has been disposed, we're good
+                    break;
                 }
                 catch (InvalidOperationException)
                 {
                     // _queue is empty and CompleteForAdding has been called -- we're done here
+                    break;
                 }
             }
         }
@@ -127,7 +129,7 @@ namespace ACE.Database
             }));
         }
 
-        public void SaveBiotas(IEnumerable<(Biota biota, ReaderWriterLockSlim rwLock)> biotas, Action<bool> callback)
+        public void SaveBiotasInParallel(IEnumerable<(Biota biota, ReaderWriterLockSlim rwLock)> biotas, Action<bool> callback)
         {
             _queue.Add(new Task(() =>
             {
@@ -136,7 +138,7 @@ namespace ACE.Database
             }));
         }
 
-        public void SaveBiotas(IEnumerable<(Biota biota, ReaderWriterLockSlim rwLock)> biotas, Action<bool> callback, Action<TimeSpan, TimeSpan> performanceResults)
+        public void SaveBiotasInParallel(IEnumerable<(Biota biota, ReaderWriterLockSlim rwLock)> biotas, Action<bool> callback, Action<TimeSpan, TimeSpan> performanceResults)
         {
             var initialCallTime = DateTime.UtcNow;
 
@@ -173,7 +175,7 @@ namespace ACE.Database
             }));
         }
 
-        public void RemoveBiotas(IEnumerable<(Biota biota, ReaderWriterLockSlim rwLock)> biotas, Action<bool> callback)
+        public void RemoveBiotasInParallel(IEnumerable<(Biota biota, ReaderWriterLockSlim rwLock)> biotas, Action<bool> callback)
         {
             _queue.Add(new Task(() =>
             {
@@ -182,7 +184,7 @@ namespace ACE.Database
             }));
         }
 
-        public void RemoveBiotas(IEnumerable<(Biota biota, ReaderWriterLockSlim rwLock)> biotas, Action<bool> callback, Action<TimeSpan, TimeSpan> performanceResults)
+        public void RemoveBiotasInParallel(IEnumerable<(Biota biota, ReaderWriterLockSlim rwLock)> biotas, Action<bool> callback, Action<TimeSpan, TimeSpan> performanceResults)
         {
             var initialCallTime = DateTime.UtcNow;
 
@@ -213,16 +215,16 @@ namespace ACE.Database
         }
 
 
-        public void GetPlayerBiotas(uint id, Action<PlayerBiotas> callback)
+        public void GetPossessedBiotasInParallel(uint id, Action<PossessedBiotas> callback)
         {
             _queue.Add(new Task(() =>
             {
-                var c = _wrappedDatabase.GetPlayerBiotasInParallel(id);
+                var c = _wrappedDatabase.GetPossessedBiotasInParallel(id);
                 callback?.Invoke(c);
             }));
         }
 
-        public void GetInventory(uint parentId, bool includedNestedItems, Action<List<Biota>> callback)
+        public void GetInventoryInParallel(uint parentId, bool includedNestedItems, Action<List<Biota>> callback)
         {
             _queue.Add(new Task(() =>
             {
@@ -232,7 +234,7 @@ namespace ACE.Database
 
         }
 
-        public void GetWieldedItems(uint parentId, Action<List<Biota>> callback)
+        public void GetWieldedItemsInParallel(uint parentId, Action<List<Biota>> callback)
         {
             _queue.Add(new Task(() =>
             {
@@ -242,23 +244,24 @@ namespace ACE.Database
 
         }
 
-        public List<Biota> GetObjectsByLandblock(ushort landblockId)
+        public List<Biota> GetStaticObjectsByLandblock(ushort landblockId)
         {
-            return _wrappedDatabase.GetObjectsByLandblockInParallel(landblockId);
+            return _wrappedDatabase.GetStaticObjectsByLandblock(landblockId);
         }
 
-        public List<Biota> GetStaticObjectsByLandblock(ushort landblockId)
+        public List<Biota> GetStaticObjectsByLandblockInParallel(ushort landblockId)
         {
             return _wrappedDatabase.GetStaticObjectsByLandblockInParallel(landblockId);
         }
 
-        public void GetObjectsByLandblock(ushort landblockId, Action<List<Biota>> callback)
+        public List<Biota> GetDynamicObjectsByLandblock(ushort landblockId)
         {
-            _queue.Add(new Task(() =>
-            {
-                var c = _wrappedDatabase.GetObjectsByLandblockInParallel(landblockId);
-                callback?.Invoke(c);
-            }));
+            return _wrappedDatabase.GetDynamicObjectsByLandblock(landblockId);
+        }
+
+        public List<Biota> GetDynamicObjectsByLandblockInParallel(ushort landblockId)
+        {
+            return _wrappedDatabase.GetDynamicObjectsByLandblockInParallel(landblockId);
         }
 
 
@@ -290,7 +293,7 @@ namespace ACE.Database
         }
 
 
-        public void AddCharacter(Biota biota, ReaderWriterLockSlim biotaLock, IEnumerable<(Biota biota, ReaderWriterLockSlim rwLock)> possessions, Character character, ReaderWriterLockSlim characterLock, Action<bool> callback)
+        public void AddCharacterInParallel(Biota biota, ReaderWriterLockSlim biotaLock, IEnumerable<(Biota biota, ReaderWriterLockSlim rwLock)> possessions, Character character, ReaderWriterLockSlim characterLock, Action<bool> callback)
         {
             _queue.Add(new Task(() =>
             {
@@ -300,13 +303,12 @@ namespace ACE.Database
         }
 
 
-        public void GetAllCharacters(Action<List<Character>> callback)
+        /// <summary>
+        /// This will get all player biotas that are backed by characters that are not deleted.
+        /// </summary>
+        public List<Biota> GetAllPlayerBiotasInParallel()
         {
-            _queue.Add(new Task(() =>
-            {
-                var result = _wrappedDatabase.GetAllCharacters();
-                callback?.Invoke(result);
-            }));
+            return _wrappedDatabase.GetAllPlayerBiotasInParallel();
         }
 
 

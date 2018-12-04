@@ -1,43 +1,37 @@
 using System;
-using System.Collections.Generic;
+using System.Collections.Concurrent;
+
 using ACE.Server.Physics.Collision;
+using ACE.Server.Physics.Common;
 
 namespace ACE.Server.Physics.Entity
 {
     public static class GfxObjCache
     {
-        public static Dictionary<uint, GfxObj> GfxObjs;
-
-        static GfxObjCache()
-        {
-            GfxObjs = new Dictionary<uint, GfxObj>();
-        }
+        public static readonly ConcurrentDictionary<uint, GfxObj> GfxObjs = new ConcurrentDictionary<uint, GfxObj>();
 
         public static int Requests;
         public static int Hits;
 
-        public static GfxObj Get(GfxObj gfxObj)
+        public static GfxObj Get(uint gfxObjID)
         {
             Requests++;
 
             //if (Requests % 100 == 0)
-                //Console.WriteLine($"GfxObjCache: Requests={Requests}, Hits={Hits}");
+            //Console.WriteLine($"GfxObjCache: Requests={Requests}, Hits={Hits}");
 
-            GfxObjs.TryGetValue(gfxObj.ID, out var result);
-            if (result != null)
+            if (GfxObjs.TryGetValue(gfxObjID, out var result))
             {
                 Hits++;
                 return result;
             }
 
-            // not cached, add it
-            GfxObjs.Add(gfxObj.ID, gfxObj);
-            return gfxObj;
-        }
+            var _gfxObj = DBObj.GetGfxObj(gfxObjID);
 
-        public static GfxObj Get(DatLoader.FileTypes.GfxObj gfxObj)
-        {
-            return Get(new GfxObj(gfxObj));
+            // not cached, add it
+            var gfxObj = new GfxObj(_gfxObj);
+            gfxObj = GfxObjs.GetOrAdd(_gfxObj.Id, gfxObj);
+            return gfxObj;
         }
     }
 }

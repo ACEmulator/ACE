@@ -12,15 +12,12 @@ using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
-using ACE.Server.Managers;
 using ACE.Server.Network;
 using ACE.Server.Network.GameMessages;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Structure;
 using ACE.Server.Network.Sequence;
 using ACE.Server.Physics;
-using ACE.Server.Physics.Common;
-using ACE.Server.Physics.Extensions;
 
 namespace ACE.Server.WorldObjects
 {
@@ -116,7 +113,7 @@ namespace ACE.Server.WorldObjects
                 writer.Write(MaxStructure ?? (ushort)0);
 
             if ((weenieFlags & WeenieHeaderFlag.StackSize) != 0)
-                writer.Write(StackSize ?? (ushort)0);
+                writer.Write((ushort?)StackSize ?? (ushort)0);
 
             if ((weenieFlags & WeenieHeaderFlag.MaxStackSize) != 0)
                 writer.Write(MaxStackSize ?? (ushort)0);
@@ -247,15 +244,12 @@ namespace ACE.Server.WorldObjects
                 return PhysicsGlobals.DefaultState;
         }
 
-        // todo: return bytes of data for network write ? ?
+        /// <summary>
+        /// Sent as part of the CreateObject message, PhysicsDesc in protocol docs
+        /// </summary>
         private void SerializePhysicsData(BinaryWriter writer)
         {
             var physicsDescriptionFlag = CalculatedPhysicsDescriptionFlag();
-
-            // PhysicsDescriptionFlag.Movement takes priority over PhysicsDescription.FlagAnimationFrame
-            // If both are set, only Movement is written.
-            if (physicsDescriptionFlag.HasFlag(PhysicsDescriptionFlag.Movement) && physicsDescriptionFlag.HasFlag(PhysicsDescriptionFlag.AnimationFrame))
-                physicsDescriptionFlag &= ~PhysicsDescriptionFlag.AnimationFrame;
 
             writer.Write((uint)physicsDescriptionFlag);
 
@@ -265,27 +259,14 @@ namespace ACE.Server.WorldObjects
 
             if ((physicsDescriptionFlag & PhysicsDescriptionFlag.Movement) != 0)
             {
-                if (CurrentMotionState != null)
+                var movementData = new MovementData(this, CurrentMotionState).Serialize();
+
+                writer.Write((uint)movementData.Length);
+
+                if (movementData.Length > 0)
                 {
-                    var movementData = CurrentMotionState.GetPayload(Guid, Sequences);
-                    if (movementData.Length > 0)
-                    {
-                        writer.Write((uint)movementData.Length); // May not need this cast from int to uint, but the protocol says uint Og II
-                        writer.Write(movementData);
-                        uint autonomous = CurrentMotionState.IsAutonomous ? (ushort)1 : (ushort)0;
-                        writer.Write(autonomous);
-                    }
-                    else
-                    {
-                        // Adding these debug lines - don't think we can hit these, but want to make sure. Og II
-                        log.Debug($"Our flag is set but we have no data length. {Guid.Full:X}");
-                        writer.Write(0u);
-                    }
-                }
-                else
-                {
-                    log.Debug($"Our flag is set but our current motion state is null. {Guid.Full:X}");
-                    writer.Write(0u);
+                    writer.Write(movementData);
+                    writer.Write(Convert.ToUInt32(CurrentMotionState.IsAutonomous));
                 }
             }
             else if ((physicsDescriptionFlag & PhysicsDescriptionFlag.AnimationFrame) != 0)
@@ -369,28 +350,13 @@ namespace ACE.Server.WorldObjects
             writer.Align();
         }
 
-
-        public void WriteUpdatePositionPayload(BinaryWriter writer, bool forcePos = false)
-        {
-            if (forcePos)
-                PositionFlag |= UpdatePositionFlag.Contact;
-
-            writer.WriteGuid(Guid);
-            Location.Serialize(writer, PositionFlag, (int)(Placement ?? ACE.Entity.Enum.Placement.Default));
-            writer.Write(Sequences.GetCurrentSequence(SequenceType.ObjectInstance));
-            writer.Write(Sequences.GetNextSequence(SequenceType.ObjectPosition));
-            writer.Write(Sequences.GetCurrentSequence(SequenceType.ObjectTeleport));
-            writer.Write(Sequences.GetCurrentSequence(SequenceType.ObjectForcePosition));
-        }
-
         /// <summary>
-        /// Alerts clients of change in position
+        /// Broadcast position updates to players within range
         /// </summary>
-        protected virtual void SendUpdatePosition(bool forcePos = false)
+        protected void SendUpdatePosition()
         {
-            EnqueueBroadcast(new GameMessageUpdatePosition(this, forcePos));
+            EnqueueBroadcast(new GameMessageUpdatePosition(this));
         }
-
 
         public virtual void SendPartialUpdates(Session targetSession, List<GenericPropertyId> properties)
         {
@@ -410,16 +376,17 @@ namespace ACE.Server.WorldObjects
             }
         }
 
+        /// <summary>
+        /// Calculates the PhysicsDesc flags from the current object state
+        /// </summary>
         protected PhysicsDescriptionFlag CalculatedPhysicsDescriptionFlag()
         {
             var physicsDescriptionFlag = PhysicsDescriptionFlag.None;
 
-            var movementData = CurrentMotionState?.GetPayload(Guid, Sequences);
-
-            if (movementData != null && movementData.Length > 0)
+            if (CurrentMotionState != null)
                 physicsDescriptionFlag |= PhysicsDescriptionFlag.Movement;
 
-            if (Placement != null)
+            else if (Placement != null)
                 physicsDescriptionFlag |= PhysicsDescriptionFlag.AnimationFrame;
 
             if (Location != null)
@@ -836,7 +803,7 @@ namespace ACE.Server.WorldObjects
             ////Openable               = 0x00000001,
             if (WeenieType == WeenieType.Container || WeenieType == WeenieType.Corpse || WeenieType == WeenieType.Chest || WeenieType == WeenieType.Hook || WeenieType == WeenieType.Storage)
             {
-                if (!(IsLocked ?? false) && !(IsOpen ?? false) || (WeenieType == WeenieType.Hook || WeenieType == WeenieType.Storage))
+                if ((!IsLocked && !IsOpen) || (WeenieType == WeenieType.Hook || WeenieType == WeenieType.Storage))
                     flag |= ObjectDescriptionFlag.Openable;
                 else
                     flag &= ~ObjectDescriptionFlag.Openable;
@@ -968,15 +935,6 @@ namespace ACE.Server.WorldObjects
                 flag &= ~ObjectDescriptionFlag.WieldLeft;
 
             return flag;
-        }
-
-        /// <summary>
-        /// Records where the client thinks we are, for use by physics engine later
-        /// </summary>
-        /// <param name="newPosition"></param>
-        protected void PrepUpdatePosition(ACE.Entity.Position newPosition)
-        {
-            RequestedLocation = newPosition;
         }
 
         public void ClearRequestedPositions()
@@ -1118,13 +1076,12 @@ namespace ACE.Server.WorldObjects
         {
             if (PhysicsObj == null) return;
 
-            var self = this as Player;
-            if (self != null)
+            if (this is Player self)
                 self.EnqueueAction(new ActionEventDelegate(() => delegateAction(self)));
 
-            foreach (var player in PhysicsObj.ObjMaint.VoyeurTable.Values.Select(v => v.WeenieObj.WorldObject as Player))
+            foreach (var player in PhysicsObj.ObjMaint.VoyeurTable.Values.Select(v => (Player)v.WeenieObj.WorldObject))
             {
-                if ((Visibility ?? false) && !player.Adminvision)
+                if (Visibility && !player.Adminvision)
                     continue;
 
                 player.EnqueueAction(new ActionEventDelegate(() => delegateAction(player)));
@@ -1148,6 +1105,50 @@ namespace ACE.Server.WorldObjects
             return iterator.CurrentLandblock == null ? null : iterator;
         }
 
+        public float EnqueueMotion(ActionChain actionChain, MotionCommand motionCommand, float speed = 1.0f, bool useStance = true)
+        {
+            var stance = CurrentMotionState != null && useStance ? CurrentMotionState.Stance : MotionStance.NonCombat;
+
+            var motion = new Motion(stance, motionCommand, speed);
+            motion.MotionState.TurnSpeed = 2.25f;  // ??
+
+            var animLength = Physics.Animation.MotionTable.GetAnimationLength(MotionTableId, stance, motionCommand);
+
+            actionChain.AddAction(this, () =>
+            {
+                CurrentMotionState = motion;
+                EnqueueBroadcastMotion(motion);
+            });
+
+            actionChain.AddDelaySeconds(animLength);
+            return animLength;
+        }
+
+        /// <summary>
+        /// Returns TRUE if there are any players within range of this object
+        /// </summary>
+        public bool PlayersInRange(float range = 96.0f)
+        {
+            var isDungeon = CurrentLandblock._landblock != null && CurrentLandblock._landblock.IsDungeon;
+
+            var rangeSquared = range * range;
+
+            foreach (var player in PhysicsObj.ObjMaint.VoyeurTable.Values.Select(v => (Player)v.WeenieObj.WorldObject))
+            {
+                if (isDungeon && Location.Landblock != player.Location.Landblock)
+                    continue;
+
+                if (Visibility && !player.Adminvision)
+                    continue;
+
+                //var dist = Vector3.Distance(Location.ToGlobal(), player.Location.ToGlobal());
+                var distSquared = Vector3.DistanceSquared(Location.ToGlobal(), player.Location.ToGlobal());
+                if (distSquared <= rangeSquared)
+                    return true;
+            }
+            return false;
+        }
+
         /// <summary>
         /// Sends network messages to all Players who currently know about this object
         /// within a maximum range
@@ -1156,20 +1157,19 @@ namespace ACE.Server.WorldObjects
         {
             if (PhysicsObj == null || CurrentLandblock == null) return;
 
-            var self = this as Player;
-            if (self != null)
+            if (this is Player self)
                 self.Session.Network.EnqueueSend(msg);
 
-            var isDungeon = CurrentLandblock._landblock.IsDungeon;
+            var isDungeon = CurrentLandblock._landblock != null && CurrentLandblock._landblock.IsDungeon;
 
             var rangeSquared = range * range;
 
-            foreach (var player in PhysicsObj.ObjMaint.VoyeurTable.Values.Select(v => v.WeenieObj.WorldObject as Player))
+            foreach (var player in PhysicsObj.ObjMaint.VoyeurTable.Values.Select(v => (Player)v.WeenieObj.WorldObject))
             {
                 if (isDungeon && Location.Landblock != player.Location.Landblock)
                     continue;
 
-                if ((Visibility ?? false) && !player.Adminvision)
+                if (Visibility && !player.Adminvision)
                     continue;
 
                 //var dist = Vector3.Distance(Location.ToGlobal(), player.Location.ToGlobal());
@@ -1182,21 +1182,30 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Sends network messages to all Players who currently know about this object
         /// </summary>
-        public void EnqueueBroadcast(params GameMessage[] msgs)
+        public List<Player> EnqueueBroadcast(params GameMessage[] msgs)
         {
-            if (PhysicsObj == null) return;
+            return EnqueueBroadcast(true, msgs);
+        }
 
-            var self = this as Player;
-            if (self != null)
-                self.Session.Network.EnqueueSend(msgs);
+        public List<Player> EnqueueBroadcast(bool sendSelf = true, params GameMessage[] msgs)
+        {
+            if (PhysicsObj == null) return null;
 
-            foreach (var player in PhysicsObj.ObjMaint.VoyeurTable.Values.Select(v => v.WeenieObj.WorldObject as Player))
+            if (sendSelf)
             {
-                if ((Visibility ?? false) && !player.Adminvision)
+                if (this is Player self)
+                    self.Session.Network.EnqueueSend(msgs);
+            }
+
+            var nearbyPlayers = PhysicsObj.ObjMaint.VoyeurTable.Values.Select(v => (Player)v.WeenieObj.WorldObject).ToList();
+            foreach (var player in nearbyPlayers)
+            {
+                if (Visibility && !player.Adminvision)
                     continue;
 
                 player.Session.Network.EnqueueSend(msgs);
             }
+            return nearbyPlayers;
         }
 
         /// <summary>
@@ -1210,7 +1219,7 @@ namespace ACE.Server.WorldObjects
             //Console.WriteLine($"{Name}: NotifyPlayers - found {PhysicsObj.ObjMaint.VoyeurTable.Count} players");
 
             // add to player tracking / send create object network messages to these players
-            foreach (var player in PhysicsObj.ObjMaint.VoyeurTable.Values.Select(v => v.WeenieObj.WorldObject as Player))
+            foreach (var player in PhysicsObj.ObjMaint.VoyeurTable.Values.Select(v => (Player)v.WeenieObj.WorldObject))
                 player.AddTrackedObject(this);
         }
     }

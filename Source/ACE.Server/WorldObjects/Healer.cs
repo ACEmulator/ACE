@@ -8,7 +8,6 @@ using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
-using ACE.Server.Network.Motion;
 using ACE.Server.Physics.Animation;
 
 namespace ACE.Server.WorldObjects
@@ -53,12 +52,8 @@ namespace ACE.Server.WorldObjects
 
         public void DoHealMotion(Player healer, Player target)
         {
-            var healAnimation = new MotionItem(MotionCommand.SkillHealSelf, 1.0f);
+            var motion = new Motion(healer, MotionCommand.SkillHealSelf);
             var animLength = MotionTable.GetAnimationLength(healer.MotionTableId, healer.CurrentMotionState.Stance, MotionCommand.SkillHealSelf);
-
-            var motion = new UniversalMotion(healer.CurrentMotionState.Stance, healAnimation);
-            motion.MovementData.CurrentStyle = (uint)healer.CurrentMotionState.Stance;
-            healer.CurrentMotionState = motion;
 
             var actionChain = new ActionChain();
             actionChain.AddAction(healer, () => healer.EnqueueBroadcastMotion(motion));
@@ -87,7 +82,7 @@ namespace ACE.Server.WorldObjects
                 if (healer != target)
                     target.Session.Network.EnqueueSend(new GameMessageSystemChat($"{healer.Name} fails to heal you.", ChatMessageType.Broadcast));
                 if (UsesLeft <= 0)
-                    healer.TryRemoveItemFromInventoryWithNetworking(this, 1);
+                    healer.TryRemoveItemFromInventoryWithNetworkingWithDestroy(this, 1);
                 return;
             }
 
@@ -117,7 +112,7 @@ namespace ACE.Server.WorldObjects
                 target.Session.Network.EnqueueSend(new GameMessageSystemChat($"{healer.Name} heals you for {healAmount} points.", ChatMessageType.Broadcast));
 
             if (UsesLeft <= 0)
-                healer.TryRemoveItemFromInventoryWithNetworking(this, 1);
+                healer.TryRemoveItemFromInventoryWithNetworkingWithDestroy(this, 1);
         }
 
         /// <summary>

@@ -46,7 +46,7 @@ namespace ACE.Server.Physics
 
         public bool AllowsFreeHeading()
         {
-            return Setup.AllowFreeHeading;
+            return Setup._dat.AllowFreeHeading;
         }
 
         public void AnimationDone(bool success)
@@ -177,8 +177,8 @@ namespace ACE.Server.Physics
 
         public uint GetDataID()
         {
-            if (Setup.ID != 0)
-                return Setup.ID;
+            if (Setup._dat.Id != 0)
+                return Setup._dat.Id;
 
             if (NumParts == 1)
                 return Parts[0].GfxObj.ID;
@@ -188,7 +188,7 @@ namespace ACE.Server.Physics
 
         public float GetHeight()
         {
-            return Setup.Height * Scale.Z;
+            return Setup._dat.Height * Scale.Z;
         }
 
         public int GetNumCylsphere()
@@ -203,7 +203,7 @@ namespace ACE.Server.Physics
 
         public float GetRadius()
         {
-            return Setup.Radius * Scale.Z;
+            return Setup._dat.Radius * Scale.Z;
         }
 
         public Sphere GetSelectionSphere(Sphere selectionSphere)
@@ -215,7 +215,7 @@ namespace ACE.Server.Physics
         public uint GetSetupID()
         {
             if (Setup != null)
-                return Setup.ID;
+                return Setup._dat.Id;
 
             return 0;
         }
@@ -237,14 +237,14 @@ namespace ACE.Server.Physics
         {
             if (Setup == null) return PhysicsGlobals.DefaultStepHeight;
 
-            return Setup.StepDownHeight * Scale.Z;
+            return Setup._dat.StepDownHeight * Scale.Z;
         }
 
         public float GetStepUpHeight()
         {
             if (Setup == null) return PhysicsGlobals.DefaultStepHeight;
 
-            return Setup.StepUpHeight * Scale.Z;
+            return Setup._dat.StepUpHeight * Scale.Z;
         }
 
         public void HandleEnterWorld()
@@ -272,11 +272,11 @@ namespace ACE.Server.Physics
 
         public void InitDefaults()
         {
-            if (Setup.DefaultAnimID != 0)
+            if (Setup._dat.DefaultAnimation != 0)
             {
                 Sequence.clear_animations();
                 var animData = new Animation.AnimData();
-                animData.AnimID = Setup.DefaultAnimID;
+                animData.AnimID = Setup._dat.DefaultAnimation;
                 animData.LowFrame = 0;
                 animData.HighFrame = Int32.MaxValue;
                 Sequence.append_animation(animData);
@@ -342,14 +342,14 @@ namespace ACE.Server.Physics
             {
                 for (var i = 0; i < NumParts; i++)
                 {
-                    Parts[i].PhysObj = Owner;
+                    Parts[i].PhysicsObj = Owner;
                     Parts[i].PhysObjIndex = i;
                 }
                 
-                if (Setup.DefaultScale != null && Setup.DefaultScale.Count == NumParts)
+                if (Setup._dat.DefaultScale != null && Setup._dat.DefaultScale.Count == NumParts)
                 {
                     for (var i = 0; i < NumParts; i++)
-                        Parts[i].GfxObjScale = Setup.DefaultScale[i];
+                        Parts[i].GfxObjScale = Setup._dat.DefaultScale[i];  // mutable?
                 }
                 return true;
             }
@@ -369,7 +369,7 @@ namespace ACE.Server.Physics
             for (var i = 0; i < NumParts; i++)
             {
                 Parts[i] = PhysicsPart.MakePhysicsPart(obj.Parts[i]);
-                Parts[i].PhysObj = Owner;
+                Parts[i].PhysicsObj = Owner;
                 Parts[i].PhysObjIndex = i;
                 // removed palette references
             }
@@ -385,7 +385,10 @@ namespace ACE.Server.Physics
         public void SetCellID(uint cellID)
         {
             foreach (var part in Parts)
-                part.Pos.ObjCellID = cellID;
+            {
+                if (part != null)
+                    part.Pos.ObjCellID = cellID;
+            }
         }
 
         public void SetFrame(AFrame frame)
@@ -503,7 +506,7 @@ namespace ACE.Server.Physics
             PlacementType placementFrame = null;
 
             // try to get placementID
-            Setup.PlacementFrames.TryGetValue(placementID, out placementFrame);
+            Setup._dat.PlacementFrames.TryGetValue(placementID, out placementFrame);
             if (placementFrame != null)
             {
                 Sequence.SetPlacementFrame(placementFrame.AnimFrame, placementID);
@@ -511,7 +514,7 @@ namespace ACE.Server.Physics
             }
 
             // if failed, try to get index 0
-            Setup.PlacementFrames.TryGetValue(0, out placementFrame);
+            Setup._dat.PlacementFrames.TryGetValue(0, out placementFrame);
             if (placementFrame != null)
             {
                 Sequence.SetPlacementFrame(placementFrame.AnimFrame, 0);
@@ -532,8 +535,8 @@ namespace ACE.Server.Physics
                 var part = Parts[i];
                 if (part != null)
                 {
-                    if (Setup != null && Setup.DefaultScale != null && Setup.DefaultScale.Count > i)
-                        part.GfxObjScale = Setup.DefaultScale[i] * newScale;
+                    if (Setup != null && Setup._dat.DefaultScale != null && Setup._dat.DefaultScale.Count > i)
+                        part.GfxObjScale = Setup._dat.DefaultScale[i] * newScale;
                     else
                         part.GfxObjScale = newScale;
                 }
@@ -543,7 +546,7 @@ namespace ACE.Server.Physics
 
         public bool SetSetupID(uint setupID, bool createParts)
         {
-            if (Setup != null && Setup.ID == setupID)
+            if (Setup != null && Setup._dat.Id == setupID)
                 return true;
 
             Setup = Setup.Get(setupID);

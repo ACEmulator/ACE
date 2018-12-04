@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 
 using log4net;
@@ -13,7 +11,6 @@ using ACE.Database;
 using ACE.Database.Models.Auth;
 using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
-using ACE.Server.Factories;
 using ACE.Server.Managers;
 using ACE.Server.Network.Enum;
 using ACE.Server.Network.GameMessages.Messages;
@@ -158,7 +155,7 @@ namespace ACE.Server.Network.Handlers
             session.UpdateCharacters(characters);
 
             GameMessageCharacterList characterListMessage = new GameMessageCharacterList(session.Characters, session);
-            GameMessageServerName serverNameMessage = new GameMessageServerName(ConfigManager.Config.Server.WorldName, WorldManager.GetAll().Count, (int)ConfigManager.Config.Server.Network.MaximumAllowedSessions);
+            GameMessageServerName serverNameMessage = new GameMessageServerName(ConfigManager.Config.Server.WorldName, PlayerManager.GetAllOnline().Count, (int)ConfigManager.Config.Server.Network.MaximumAllowedSessions);
             GameMessageDDDInterrogation dddInterrogation = new GameMessageDDDInterrogation();
 
             session.Network.EnqueueSend(characterListMessage, serverNameMessage);

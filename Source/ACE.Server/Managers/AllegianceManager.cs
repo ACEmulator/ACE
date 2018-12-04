@@ -1,12 +1,8 @@
 using System;
 using System.Collections.Generic;
-using System.Text;
-using ACE.Server.WorldObjects;
-using ACE.Entity.Enum.Properties;
-using ACE.Server.Managers;
+
 using ACE.Server.Entity;
-using ACE.Entity.Enum;
-using System.Linq;
+using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Managers
 {
@@ -18,28 +14,26 @@ namespace ACE.Server.Managers
         /// <summary>
         /// A mapping of all Players on the server => their AllegianceNodes
         /// </summary>
-        public static Dictionary<Player, AllegianceNode> Players;
-
-        static AllegianceManager()
-        {
-            Players = new Dictionary<Player, AllegianceNode>();
-        }
+        public static readonly Dictionary<IPlayer, AllegianceNode> Players = new Dictionary<IPlayer, AllegianceNode>();
 
         /// <summary>
         /// Returns the monarch for a player
         /// </summary>
-        public static Player GetMonarch(Player player)
+        public static IPlayer GetMonarch(IPlayer player)
         {
-            var monarch = WorldManager.AllPlayers.Where(p => p.Guid.Full.Equals(player.Monarch)).FirstOrDefault();
+            if (player.Monarch == null)
+                return player;
 
-            return monarch != null ? monarch : player;
+            var monarch = PlayerManager.FindByGuid(player.Monarch.Value);
+
+            return monarch ?? player;
         }
 
         /// <summary>
         /// Returns the full allegiance structure for any player
         /// </summary>
         /// <param name="player">A player at any level of an allegiance</param>
-        public static Allegiance GetAllegiance(Player player)
+        public static Allegiance GetAllegiance(IPlayer player)
         {
             var monarch = GetMonarch(player);
 
@@ -52,17 +46,15 @@ namespace ACE.Server.Managers
             var allegiance = new Allegiance(monarch);
             if (allegiance.TotalMembers == 1)
                 return null;
-            else
-            {
-                AddPlayers(allegiance);
-                return allegiance;
-            }
+
+            AddPlayers(allegiance);
+            return allegiance;
         }
 
         /// <summary>
         /// Returns the AllegianceNode for a Player
         /// </summary>
-        public static AllegianceNode GetAllegianceNode(Player player)
+        public static AllegianceNode GetAllegianceNode(IPlayer player)
         {
             Players.TryGetValue(player, out var allegianceNode);
             return allegianceNode;
@@ -71,15 +63,15 @@ namespace ACE.Server.Managers
         /// <summary>
         /// Returns a list of all players under a monarch
         /// </summary>
-        public static List<Player> FindAllPlayers(Player monarch)
+        public static List<IPlayer> FindAllPlayers(IPlayer monarch)
         {
-            return WorldManager.GetAllegiance(monarch);
+            return PlayerManager.FindAllByMonarch(monarch.Guid);
         }
 
         /// <summary>
         /// Loads the Allegiance and AllegianceNode for a Player
         /// </summary>
-        public static void LoadPlayer(Player player)
+        public static void LoadPlayer(IPlayer player)
         {
             player.Allegiance = GetAllegiance(player);
             player.AllegianceNode = GetAllegianceNode(player);
@@ -100,7 +92,7 @@ namespace ACE.Server.Managers
             // relink players
             foreach (var member in allegiance.Members.Keys)
             {
-                var player = WorldManager.GetPlayerByGuidId(member.Guid.Full);
+                var player = PlayerManager.FindByGuid(member.Guid);
                 if (player == null) continue;
 
                 LoadPlayer(player);
@@ -210,8 +202,8 @@ namespace ACE.Server.Managers
             var vassal = vassalNode.Player;
             var patron = patronNode.Player;
 
-            var loyalty = Math.Min(vassal.GetCreatureSkill(Skill.Loyalty).Current, SkillCap);
-            var leadership = Math.Min(patron.GetCreatureSkill(Skill.Leadership).Current, SkillCap);
+            var loyalty = Math.Min(vassal.GetCurrentLoyalty(), SkillCap);
+            var leadership = Math.Min(patron.GetCurrentLeadership(), SkillCap);
 
             var timeReal = Math.Min(RealCap, RealCap);
             var timeGame = Math.Min(GameCap, GameCap);
@@ -245,11 +237,11 @@ namespace ACE.Server.Managers
 
             if (passupAmount > 0)
             {
-                vassal.CPTithed += generatedAmount;
+                /* TODO HACK FIX vassal.CPTithed += generatedAmount;
                 patron.CPCached += passupAmount;
                 patron.CPPoolToUnload += passupAmount;
 
-                patron.AddCPPoolToUnload(false);
+                patron.AddCPPoolToUnload(false);*/
 
                 // call recursively
                 PassXP(patronNode, passupAmount, false);
@@ -278,7 +270,7 @@ namespace ACE.Server.Managers
         /// </summary>
         /// <param name="self">The player initiating the break request</param>
         /// <param name="target">The patron or vassal of the self player</param>
-        public static void OnBreakAllegiance(Player self, Player target)
+        public static void OnBreakAllegiance(Player self, IPlayer target)
         {
             // remove the previous allegiance structure
             RemoveCache(self.Allegiance);

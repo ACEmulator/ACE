@@ -3,10 +3,10 @@ using System;
 namespace ACE.Entity.Enum
 {
     [Flags]
-    public enum MotionFlags
+    public enum MotionFlags : byte
     {
-        None        = 0x0,
-        HasTarget   = 0x1,
-        Jumping     = 0x2 // Needs to be investigated
-    }
+        None                = 0x0,
+        StickToObject       = 0x1,
+        StandingLongJump    = 0x2
+    };
 }

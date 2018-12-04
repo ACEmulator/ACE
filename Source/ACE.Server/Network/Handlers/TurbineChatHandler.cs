@@ -1,5 +1,6 @@
-﻿using System;
+using System;
 using System.Text;
+
 using ACE.Entity.Enum;
 using ACE.Server.Managers;
 using ACE.Server.Network.Enum;
@@ -47,9 +48,11 @@ namespace ACE.Server.Network.Handlers
 
                 var gameMessageTurbineChat = new GameMessageTurbineChat(TurbineChatType.InboundMessage, channelID, session.Player.Name, message, senderID);
 
-                // TODO This should check if the recipient is subscribed to the channel
-                foreach (var recipient in WorldManager.GetAll())
-                    recipient.Network.EnqueueSend(gameMessageTurbineChat);
+                foreach (var recipient in PlayerManager.GetAllOnline())
+                {
+                    // TODO This should check if the recipient is subscribed to the channel
+                    recipient.Session.Network.EnqueueSend(gameMessageTurbineChat);
+                }
             }
             else
                 Console.WriteLine($"Unhandled TurbineChatHandler TurbineChatType: 0x{(uint)turbineChatType:X4}");

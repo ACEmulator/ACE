@@ -5,7 +5,7 @@ namespace ACE.DatLoader
 {
     public class CellDatDatabase : DatDatabase
     {
-        public CellDatDatabase(string filename) : base(filename)
+        public CellDatDatabase(string filename, bool keepOpen = false) : base(filename, keepOpen)
         {
         }
 

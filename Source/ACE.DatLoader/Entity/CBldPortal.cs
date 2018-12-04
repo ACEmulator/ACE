@@ -1,15 +1,16 @@
 using System.Collections.Generic;
 using System.IO;
+using ACE.Entity.Enum;
 
 namespace ACE.DatLoader.Entity
 {
     public class CBldPortal : IUnpackable
     {
-        public ushort Flags { get; private set; }
+        public PortalFlags Flags { get; private set; }
 
         // Not sure what these do. They are both calculated from the flags.
-        public bool ExactMatch => (Flags & 1) != 0;
-        public bool PortalSide => (Flags & 2) == 0;
+        public bool ExactMatch => Flags.HasFlag(PortalFlags.ExactMatch);
+        public bool PortalSide => Flags.HasFlag(PortalFlags.PortalSide);
 
         // Basically the cells that connect both sides of the portal
         public ushort OtherCellId { get; private set; }
@@ -22,7 +23,7 @@ namespace ACE.DatLoader.Entity
 
         public void Unpack(BinaryReader reader)
         {
-            Flags = reader.ReadUInt16();
+            Flags = (PortalFlags)reader.ReadUInt16();
 
             OtherCellId = reader.ReadUInt16();
             OtherPortalId = reader.ReadUInt16();

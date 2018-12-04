@@ -152,12 +152,13 @@ namespace ACE.Server.WorldObjects
                 var splatter = (PlayScript)Enum.Parse(typeof(PlayScript), "Splatter" + GetSplatterHeight() + GetSplatterDir(target));
                 Session.Network.EnqueueSend(new GameMessageScript(target.Guid, splatter));
 
-                Session.Network.EnqueueSend(new GameEventUpdateHealth(Session, target.Guid.Full, (float)target.Health.Current / target.Health.MaxValue));
-
                 // handle Dirty Fighting
                 if (GetCreatureSkill(Skill.DirtyFighting).AdvancementClass >= SkillAdvancementClass.Trained)
                     FightDirty(target);
             }
+
+            if (damage > 0.0f)
+                Session.Network.EnqueueSend(new GameEventUpdateHealth(Session, target.Guid.Full, (float)target.Health.Current / target.Health.MaxValue));
 
             OnAttackMonster(target);
             return damage;
@@ -479,8 +480,11 @@ namespace ACE.Server.WorldObjects
 
             if (Health.Current <= 0)
             {
-                // todo: send death messages
+                // since damage over time is possibly combined from multiple sources,
+                // sending a message to the last damager here could be tricky..
+                OnDeath(null, damageType, false);
                 Die();
+
                 return;
             }
 
@@ -504,6 +508,7 @@ namespace ACE.Server.WorldObjects
 
             if (Health.Current == 0)
             {
+                OnDeath(source, damageType, crit);
                 Die();
                 return;
             }
@@ -529,7 +534,7 @@ namespace ACE.Server.WorldObjects
             {
                 if (!string.IsNullOrWhiteSpace(hotspot.ActivationTalkString))
                     Session.Network.EnqueueSend(new GameMessageSystemChat(hotspot.ActivationTalkString.Replace("%i", amount.ToString()), ChatMessageType.Craft));
-                if (!(hotspot.Visibility ?? false))
+                if (!hotspot.Visibility)
                     hotspot.EnqueueBroadcast(new GameMessageSound(hotspot.Guid, Sound.TriggerActivated, 1.0f));
             }
 
@@ -564,7 +569,7 @@ namespace ACE.Server.WorldObjects
 
         public float GetStaminaMod()
         {
-            var endurance = GetCreatureAttribute(PropertyAttribute.Endurance).Base;
+            var endurance = Endurance.Base;
 
             var staminaMod = 1.0f - (endurance - 100.0f) / 600.0f;   // guesstimated formula: 50% reduction at 400 base endurance
             staminaMod = Math.Clamp(staminaMod, 0.5f, 1.0f);

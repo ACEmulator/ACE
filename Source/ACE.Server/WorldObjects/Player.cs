@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Linq;
 
 using log4net;
@@ -17,20 +16,18 @@ using ACE.Server.Managers;
 using ACE.Server.Network;
 using ACE.Server.Network.Enum;
 using ACE.Server.Network.GameEvent.Events;
-using ACE.Server.Network.GameMessages;
 using ACE.Server.Network.GameMessages.Messages;
-using ACE.Server.Network.Motion;
+using ACE.Server.Network.Sequence;
 using ACE.Server.Network.Structure;
 using ACE.Server.WorldObjects.Entity;
 using ACE.Server.Physics.Animation;
 using ACE.Server.Physics.Common;
 
 using MotionTable = ACE.DatLoader.FileTypes.MotionTable;
-using Position = ACE.Entity.Position;
 
 namespace ACE.Server.WorldObjects
 {
-    public partial class Player : Creature
+    public partial class Player : Creature, IPlayer
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -95,14 +92,100 @@ namespace ACE.Server.WorldObjects
             PhysicsObj.SetPlayer();
         }
 
+        protected override void InitializeSequences()
+        {
+            base.InitializeSequences();
+
+            Sequences.SetSequence(SequenceType.PrivateUpdateAttribute, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateAttribute2ndLevel, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateSkill, new ByteSequence(false));
+
+            Sequences.SetSequence(SequenceType.PrivateUpdatePropertyInt, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdatePropertyInt64, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdatePropertyBool, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdatePropertyDouble, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdatePropertyDataID, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdatePropertyInstanceID, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdatePropertyString, new ByteSequence(false));
+
+            Sequences.SetSequence(SequenceType.PrivateUpdateAttribute2ndLevelHealth, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateAttribute2ndLevelStamina, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateAttribute2ndLevelMana, new ByteSequence(false));
+
+            Sequences.SetSequence(SequenceType.Confirmation, new ByteSequence(false));
+
+            Sequences.SetSequence(SequenceType.PrivateUpdateAttributeStrength, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateAttributeEndurance, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateAttributeQuickness, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateAttributeCoordination, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateAttributeFocus, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateAttributeSelf, new ByteSequence(false));
+
+            Sequences.SetSequence(SequenceType.PrivateUpdateSkillAxe, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateSkillBow, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateSkillCrossBow, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateSkillDagger, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateSkillMace, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateSkillMeleeDefense, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateSkillMissileDefense, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateSkillSling, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateSkillSpear, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateSkillStaff, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateSkillSword, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateSkillThrownWeapon, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateSkillUnarmedCombat, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateSkillArcaneLore, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateSkillMagicDefense, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateSkillManaConversion, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateSkillSpellcraft, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateSkillItemAppraisal, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateSkillPersonalAppraisal, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateSkillDeception, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateSkillHealing, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateSkillJump, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateSkillLockpick, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateSkillRun, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateSkillAwareness, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateSkillArmsAndArmorRepair, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateSkillCreatureAppraisal, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateSkillWeaponAppraisal, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateSkillArmorAppraisal, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateSkillMagicItemAppraisal, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateSkillCreatureEnchantment, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateSkillItemEnchantment, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateSkillLifeMagic, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateSkillWarMagic, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateSkillLeadership, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateSkillLoyalty, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateSkillFletching, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateSkillAlchemy, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateSkillCooking, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateSkillSalvaging, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateSkillTwoHandedCombat, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateSkillGearcraft, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateSkillVoidMagic, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateSkillHeavyWeapons, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateSkillLightWeapons, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateSkillFinesseWeapons, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateSkillMissileWeapons, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateSkillShield, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateSkillDualWield, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateSkillRecklessness, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateSkillSneakAttack, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateSkillDirtyFighting, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateSkillChallenge, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdateSkillSummoning, new ByteSequence(false));
+        }
+
         private void SetEphemeralValues()
         {
             BaseDescriptionFlags |= ObjectDescriptionFlag.Player;
 
             // This is the default send upon log in and the most common. Anything with a velocity will need to add that flag.
-            PositionFlag |= UpdatePositionFlag.ZeroQx | UpdatePositionFlag.ZeroQy | UpdatePositionFlag.Contact | UpdatePositionFlag.Placement;
+            // This should be handled automatically...
+            //PositionFlags |= PositionFlags.OrientationHasNoX | PositionFlags.OrientationHasNoY | PositionFlags.IsGrounded | PositionFlags.HasPlacementID;
 
-            CurrentMotionState = new UniversalMotion(MotionStance.NonCombat);
+            SetStance(MotionStance.NonCombat, false);
 
             // radius for object updates
             ListeningRadius = 5f;
@@ -124,7 +207,7 @@ namespace ACE.Server.WorldObjects
 
             ContainerCapacity = 7;
 
-            if (Session != null && (AdvocateQuest ?? false) && IsAdvocate) // Advocate permissions are per character regardless of override
+            if (Session != null && AdvocateQuest && IsAdvocate) // Advocate permissions are per character regardless of override
             {
                 if (Session.AccessLevel == AccessLevel.Player)
                     Session.SetAccessLevel(AccessLevel.Advocate); // Elevate to Advocate permissions
@@ -134,12 +217,7 @@ namespace ACE.Server.WorldObjects
 
             UpdateCoinValue(false);
 
-            if (Session != null && Session.IsOnline)
-                AllegianceManager.LoadPlayer(this);
-
             QuestManager = new QuestManager(this);
-
-            IsOnline = true;
 
             return; // todo
             /* todo fix for new EF model
@@ -184,17 +262,6 @@ namespace ACE.Server.WorldObjects
             // FirstEnterWorldDone = false;
 
             // IsAlive = true;
-        }
-
-
-        /// <summary>
-        /// Called every ~5 secs for inventory item enchantments
-        /// </summary>
-        public void ItemEnchantmentTick()
-        {
-            var allItems = GetAllPossessions();
-            foreach (var item in allItems)
-                item.EnchantmentManager.HeartBeat();
         }
 
         /// <summary>
@@ -324,18 +391,6 @@ namespace ACE.Server.WorldObjects
             Session.Network.EnqueueSend(new GameEventConfirmationDone(Session, confirmationType, contextId));
         }
 
-        //[Obsolete]
-        //private AceCharacter Character => AceObject as AceCharacter;
-
-
-
-
-
-
-        //public ReadOnlyDictionary<CharacterOption, bool> CharacterOptions => CharacterOptions;
-
-        //public ReadOnlyCollection<Friend> Friends => Friends;
-        public ReadOnlyCollection<Friend> Friends { get; set; }
 
         public MotionStance stance = MotionStance.NonCombat;
 
@@ -384,7 +439,7 @@ namespace ACE.Server.WorldObjects
                     if (wo != null)
                         wo.Examine(Session);
                     else
-                        log.Warn("${Name} tried to appraise object {examinationId:X8}, couldn't find it");
+                        log.Warn($"{Name} tried to appraise object {examinationId.Full:X8}, couldn't find it");
                 }
             }
 
@@ -397,10 +452,12 @@ namespace ACE.Server.WorldObjects
             if (target.ReportCollisions == false)
                 return;
 
-            if (target is Portal)
-                (target as Portal).OnCollideObject(this);
-            else if (target is Hotspot)
-                (target as Hotspot).OnCollideObject(this);
+            if (target is Portal portal)
+                portal.OnCollideObject(this);
+            else if (target is PressurePlate pressurePlate)
+                pressurePlate.OnCollideObject(this);
+            else if (target is Hotspot hotspot)
+                hotspot.OnCollideObject(this);
         }
 
         public override void OnCollideObjectEnd(WorldObject target)
@@ -498,17 +555,6 @@ namespace ACE.Server.WorldObjects
         }
 
  
-        /// <summary>
-        /// Returns false if the player has chosen to Appear Offline.  Otherwise it will return their actual online status.
-        /// </summary>
-        public bool GetVirtualOnlineStatus()
-        {
-            if (GetCharacterOption(CharacterOption.AppearOffline))
-                return false;
-
-            return IsOnline;
-        }
-
         public void HandleActionLogout(bool clientSessionTerminatedAbruptly = false)
         {
             GetLogoutChain().EnqueueChain();
@@ -538,21 +584,13 @@ namespace ACE.Server.WorldObjects
         private void LogoutInternal(bool clientSessionTerminatedAbruptly)
         {
             if (Fellowship != null)
-            {
                 FellowshipQuit(false);
-            }
-
-            if (!IsOnline)
-                return;
 
             InWorld = false;
-            IsOnline = false;
-
-            SendFriendStatusUpdates();
 
             if (!clientSessionTerminatedAbruptly)
             {
-                var logout = new UniversalMotion(MotionStance.NonCombat, new MotionItem(MotionCommand.LogOut));
+                var logout = new Motion(MotionStance.NonCombat, MotionCommand.LogOut);
                 EnqueueBroadcastMotion(logout);
 
                 EnqueueBroadcastPhysicsState();
@@ -677,14 +715,6 @@ namespace ACE.Server.WorldObjects
             else
                 log.Debug($"HandleActionForceObjDescSend() - couldn't find inventory item {item}");
         }
-
-        protected override void SendUpdatePosition(bool forcePos = false)
-        {
-            GameMessage msg = new GameMessageUpdatePosition(this, forcePos);
-            Session.Network.EnqueueSend(msg);
-            base.SendUpdatePosition();
-        }
-
 
 
         /// <summary>
@@ -832,7 +862,7 @@ namespace ACE.Server.WorldObjects
 
         public void HandleActionJump(JumpPack jump)
         {
-            var strength = GetCreatureAttribute(PropertyAttribute.Strength).Current;
+            var strength = Strength.Current;
             var capacity = EncumbranceSystem.EncumbranceCapacity((int)strength, 0);     // TODO: augs
             var burden = EncumbranceSystem.GetBurden(capacity, EncumbranceVal ?? 0);
 
@@ -843,6 +873,23 @@ namespace ACE.Server.WorldObjects
 
             // TODO: ensure player has enough stamina to jump
             UpdateVitalDelta(Stamina, -staminaCost);
+
+            //Console.WriteLine($"Jump velocity: {jump.Velocity}");
+
+            // set jump velocity
+            PhysicsObj.set_velocity(jump.Velocity, true);
+
+            // this shouldn't be needed, but without sending this update motion / simulated movement event beforehand,
+            // running forward and then performing a charged jump does an uncharged shallow arc jump instead
+            // this hack fixes that...
+            var movementData = new MovementData(this);
+            movementData.IsAutonomous = true;
+            movementData.MovementType = MovementType.Invalid;
+            movementData.Invalid = new MovementInvalid(movementData);
+            EnqueueBroadcast(new GameMessageUpdateMotion(this, movementData));
+
+            // broadcast jump
+            EnqueueBroadcast(new GameMessageVectorUpdate(this));
         }
 
         /// <summary>
@@ -851,17 +898,15 @@ namespace ACE.Server.WorldObjects
         public void OnExhausted()
         {
             // adjust player speed if running
-            if (CurrentMotionCommand == (uint)MotionCommand.RunForward)
+            if (CurrentMotionCommand == MotionCommand.RunForward)
             {
-                var motion = new UniversalMotion(CurrentMotionState.Stance);
-                // this should be autonomous, like retail, but if it's set to autonomous here, the desired effect doesn't happen
+                // verify - forced commands from server should be non-autonomous, but could have been sent as autonomous in retail?
+                // if set to autonomous here, the desired effect doesn't happen
                 // motion.IsAutonomous = true;
-                motion.MovementData = new MovementData()
-                {
-                    CurrentStyle = (uint)CurrentMotionState.Stance,
-                    ForwardCommand = (uint)MotionCommand.RunForward
-                };
+                var motion = new Motion(this, MotionCommand.RunForward);
+
                 CurrentMotionState = motion;
+
                 if (CurrentLandblock != null)
                     EnqueueBroadcastMotion(motion);
             }
@@ -876,11 +921,8 @@ namespace ACE.Server.WorldObjects
         /// <param name="buffType">ConsumableBuffType.Spell,ConsumableBuffType.Health,ConsumableBuffType.Stamina,ConsumableBuffType.Mana</param>
         /// <param name="boostAmount">Amount the Vital is boosted by; can be null, if buffType = ConsumableBuffType.Spell</param>
         /// <param name="spellDID">Id of the spell cast by the consumable; can be null, if buffType != ConsumableBuffType.Spell</param>
-        public void ApplyComsumable(string consumableName, Sound sound, ConsumableBuffType buffType, uint? boostAmount, uint? spellDID)
+        public void ApplyConsumable(string consumableName, Sound sound, ConsumableBuffType buffType, uint? boostAmount, uint? spellDID)
         {
-            uint spellId = spellDID ?? 0;
-
-            GameMessageSystemChat buffMessage;
             MotionCommand motionCommand;
 
             if (sound == Sound.Eat1)
@@ -888,65 +930,76 @@ namespace ACE.Server.WorldObjects
             else
                 motionCommand = MotionCommand.Drink;
 
-            var soundEvent = new GameMessageSound(Guid, sound, 1.0f);
-            var motion = new UniversalMotion(MotionStance.NonCombat, new MotionItem(motionCommand));
-
+            // start the eat/drink motion
+            var motion = new Motion(MotionStance.NonCombat, motionCommand);
             EnqueueBroadcastMotion(motion);
 
-            if (buffType == ConsumableBuffType.Spell)
+            var motionTable = DatManager.PortalDat.ReadFromDat<MotionTable>(MotionTableId);
+            var animTime = motionTable.GetAnimationLength(CurrentMotionState.Stance, motionCommand, MotionCommand.Ready);
+
+            var actionChain = new ActionChain();
+            actionChain.AddDelaySeconds(animTime);
+
+            actionChain.AddAction(this, () =>
             {
-                bool result = false;
-                if (spellId != 0)
-                    result = CreateSingleSpell(spellId);
+                GameMessageSystemChat buffMessage;
 
-                var spell = new Server.Entity.Spell(spellId);
-
-                if (!result)
-                    buffMessage = new GameMessageSystemChat($"Consuming {consumableName} attempted to apply a spell not yet fully implemented.", ChatMessageType.System);
-                else
-                    buffMessage = new GameMessageSystemChat($"{consumableName} applies {spell.Name} on you.", ChatMessageType.Craft);
-            }
-            else
-            {
-                CreatureVital creatureVital;
-                string vitalName;
-
-                // Null check for safety
-                if (boostAmount == null)
-                    boostAmount = 0;
-
-                switch (buffType)
+                if (buffType == ConsumableBuffType.Spell)
                 {
-                    case ConsumableBuffType.Health:
-                        creatureVital = Health;
-                        vitalName = "Health";
-                        break;
-                    case ConsumableBuffType.Mana:
-                        creatureVital = Mana;
-                        vitalName = "Mana";
-                        break;
-                    default:
-                        creatureVital = Stamina;
-                        vitalName = "Stamina";
-                        break;
+                    bool result = false;
+
+                    uint spellId = spellDID ?? 0;
+
+                    if (spellId != 0)
+                        result = CreateSingleSpell(spellId);
+
+                    if (result)
+                    {
+                        var spell = new Server.Entity.Spell(spellId);
+                        buffMessage = new GameMessageSystemChat($"{consumableName} applies {spell.Name} on you.", ChatMessageType.Craft);
+                    }
+                    else
+                        buffMessage = new GameMessageSystemChat($"Consuming {consumableName} attempted to apply a spell not yet fully implemented.", ChatMessageType.System);
+                }
+                else
+                {
+                    CreatureVital creatureVital;
+                    string vitalName;
+
+                    // Null check for safety
+                    if (boostAmount == null)
+                        boostAmount = 0;
+
+                    switch (buffType)
+                    {
+                        case ConsumableBuffType.Health:
+                            creatureVital = Health;
+                            vitalName = "Health";
+                            break;
+                        case ConsumableBuffType.Mana:
+                            creatureVital = Mana;
+                            vitalName = "Mana";
+                            break;
+                        default:
+                            creatureVital = Stamina;
+                            vitalName = "Stamina";
+                            break;
+                    }
+
+                    var vitalChange = UpdateVitalDelta(creatureVital, (uint)boostAmount);
+
+                    buffMessage = new GameMessageSystemChat($"You regain {vitalChange} {vitalName}.", ChatMessageType.Craft);
                 }
 
-                var vitalChange = UpdateVitalDelta(creatureVital, (uint)boostAmount);
+                var soundEvent = new GameMessageSound(Guid, sound, 1.0f);
+                Session.Network.EnqueueSend(soundEvent, buffMessage);
 
-                buffMessage = new GameMessageSystemChat($"You regain {vitalChange} {vitalName}.", ChatMessageType.Craft);
-            }
+                // return to original stance
+                var returnStance = new Motion(CurrentMotionState.Stance);
+                EnqueueBroadcastMotion(returnStance);
+            });
 
-            Session.Network.EnqueueSend(soundEvent, buffMessage);
-
-            // Wait for animation
-            var motionChain = new ActionChain();
-            var motionTable = DatManager.PortalDat.ReadFromDat<MotionTable>((uint)MotionTableId);
-            var motionAnimationLength = motionTable.GetAnimationLength(MotionCommand.Eat);
-            motionChain.AddDelaySeconds(motionAnimationLength);
-
-            // Return to standing position after the animation delay
-            motionChain.AddAction(this, () => EnqueueBroadcastMotion(new UniversalMotion(MotionStance.NonCombat)));
-            motionChain.EnqueueChain();
+           actionChain.EnqueueChain();
         }
 
         public bool Adminvision;
@@ -974,8 +1027,14 @@ namespace ACE.Server.WorldObjects
                     break;
             }
 
-            if (Adminvision)
-                CurrentLandblock?.ResendObjectsInRange(this);
+            // send CO network messages for admin objects
+            if (Adminvision && oldState != Adminvision)
+            {
+                var adminObjs = PhysicsObj.ObjMaint.ObjectTable.Values.Where(o => o.WeenieObj.WorldObject.Visibility);
+                PhysicsObj.enqueue_objs(adminObjs);
+
+                // sending DO network messages for /adminvision off here doesn't work in client unfortunately?
+            }
 
             string state = Adminvision ? "enabled" : "disabled";
             Session.Network.EnqueueSend(new GameMessageSystemChat($"Admin Vision is {state}.", ChatMessageType.Broadcast));
@@ -984,6 +1043,11 @@ namespace ACE.Server.WorldObjects
             {
                 Session.Network.EnqueueSend(new GameMessageSystemChat("Note that you will need to log out and back in before the visible items become invisible again.", ChatMessageType.Broadcast));
             }
+        }
+
+        public void SendMessage(string msg)
+        {
+            Session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
         }
     }
 }

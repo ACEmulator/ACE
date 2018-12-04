@@ -145,6 +145,9 @@ namespace ACE.Server.WorldObjects
                 }
             }
 
+            if (spell.Name.Equals("Rolling Death"))
+                return ProjectileSpellType.Wall;    // ??
+
             if (spell.School == MagicSchool.VoidMagic)
                 return ProjectileSpellType.Bolt;
 
@@ -422,26 +425,14 @@ namespace ACE.Server.WorldObjects
                     target.DamageHistory.Add(ProjectileSource, Spell.DamageType, amount);
                 }
 
-                string verb = null, plural = null;
-                Strings.DeathMessages.TryGetValue(Spell.DamageType, out var messages);
-                Strings.GetAttackVerb(Spell.DamageType, percent, ref verb, ref plural);
-                var type = Spell.DamageType.GetName().ToLower();
-
                 amount = (uint)Math.Round(damage.Value);    // full amount for debugging
 
-                if (target.Health.Current <= 0)
+                if (target.IsAlive)
                 {
-                    target.Die();
+                    string verb = null, plural = null;
+                    Strings.GetAttackVerb(Spell.DamageType, percent, ref verb, ref plural);
+                    var type = Spell.DamageType.GetName().ToLower();
 
-                    if (player != null)
-                    {
-                        var rng = Physics.Common.Random.RollDice(0, messages.Count - 1);
-                        player.Session.Network.EnqueueSend(new GameMessageSystemChat(string.Format(messages[rng], target.Name), ChatMessageType.Broadcast));
-                        player.EarnXP((long)target.XpOverride);
-                    }
-                }
-                else
-                {
                     var critMsg = critical ? "Critical hit!  " : "";
                     var sneakMsg = sneakAttackMod > 1.0f ? "Sneak Attack! " : "";
                     if (player != null)
@@ -454,6 +445,14 @@ namespace ACE.Server.WorldObjects
 
                     if (targetPlayer != null)
                         targetPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"{critMsg}{sneakMsg}{ProjectileSource.Name} {plural} you for {amount} points of {type} damage!", ChatMessageType.Magic));
+                }
+                else
+                {
+                    target.OnDeath(ProjectileSource, Spell.DamageType, critical);
+                    target.Die();
+
+                    if (player != null)
+                        player.EarnXP((long)target.XpOverride);     // TODO: refactor to common Creature.OnDeath()
                 }
             }
         }

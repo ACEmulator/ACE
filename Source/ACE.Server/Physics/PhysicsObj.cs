@@ -4,7 +4,6 @@ using System.Linq;
 using System.Numerics;
 
 using ACE.Entity.Enum;
-using ACE.Server.Entity;
 using ACE.Server.Physics.Animation;
 using ACE.Server.Physics.Collision;
 using ACE.Server.Physics.Combat;
@@ -158,8 +157,8 @@ namespace ACE.Server.Physics
             ScriptManager = null;
             Hooks = null;
 
-            if (State.HasFlag(PhysicsState.Static) && (State.HasFlag(PhysicsState.HasDefaultAnim) || State.HasFlag(PhysicsState.HasDefaultScript)))
-                PhysicsEngine.RemoveStaticAnimatingObject(this);
+            //if (State.HasFlag(PhysicsState.Static) && (State.HasFlag(PhysicsState.HasDefaultAnim) || State.HasFlag(PhysicsState.HasDefaultScript)))
+            //    PhysicsEngine.RemoveStaticAnimatingObject(this);
 
             if (PhysicsScriptTable != null)
                 PhysicsScriptTable.Release();
@@ -426,9 +425,9 @@ namespace ACE.Server.Physics
             }
             else if (PartArray != null)
             {
-                var collisions = PartArray.FindObjCollisions(transition);
-                transition.SpherePath.ObstructionEthereal = false;
-                return collisions;
+                var collided = PartArray.FindObjCollisions(transition);
+                if (collided != TransitionState.OK)
+                    return FindObjCollisions_Inner(transition, collided, ethereal, isCreature);
             }
 
             transition.SpherePath.ObstructionEthereal = false;
@@ -444,12 +443,14 @@ namespace ACE.Server.Physics
                     if (!transition.ObjectInfo.State.HasFlag(ObjectInfoState.Contact))
                         transition.CollisionInfo.CollidedWithEnvironment = true;
                 }
-                else
+                else if (ethereal || isCreature && transition.ObjectInfo.State.HasFlag(ObjectInfoState.IgnoreCreatures))
                 {
-                    if (ethereal || isCreature && transition.ObjectInfo.State.HasFlag(ObjectInfoState.IgnoreCreatures))
-                        transition.CollisionInfo.CollisionNormalValid = false;
+                    result = TransitionState.OK;
+                    transition.CollisionInfo.CollisionNormalValid = false;
                     transition.CollisionInfo.AddObject(this, TransitionState.OK);
                 }
+                else
+                    transition.CollisionInfo.AddObject(this, result);
             }
             transition.SpherePath.ObstructionEthereal = false;
             return result;
@@ -586,20 +587,20 @@ namespace ACE.Server.Physics
         /// </summary>
         public void InitDefaults(Setup setup)
         {
-            if (setup.DefaultScriptID != 0)
-                play_script_internal(setup.DefaultScriptID);
+            if (setup._dat.DefaultScript != 0)
+                play_script_internal(setup._dat.DefaultScript);
 
-            if (setup.DefaultMTableID != 0)
-                SetMotionTableID(setup.DefaultMTableID);
+            if (setup._dat.DefaultMotionTable != 0)
+                SetMotionTableID(setup._dat.DefaultMotionTable);
 
-            if (setup.DefaultSTableID != 0)
+            if (setup._dat.DefaultSoundTable != 0)
             {
                 //var qdid = new QualifiedDataID(0x22, setup.DefaultSTableID);
                 //SoundTable = (SoundTable)DBObj.Get(qdid);
                 //log.Warn($"PhysicsObj has DefaultSTableID, (SoundTable)DBObj.Get(qdid) not implemented yet, qdid = new QualifiedDataID(0x22, {setup.DefaultSTableID});");
             }
 
-            if (setup.DefaultPhsTableID != 0)
+            if (setup._dat.DefaultScriptTable != 0)
             {
                 //    var qdid = new QualifiedDataID(0x2C, setup.DefaultPhsTableID);
                 //    PhysicsScriptTable = (PhysicsScriptTable)DBObj.Get(qdid);
@@ -608,13 +609,13 @@ namespace ACE.Server.Physics
 
             if (State.HasFlag(PhysicsState.Static))
             {
-                if (setup.DefaultAnimID != 0)
+                if (setup._dat.DefaultAnimation != 0)
                     State |= PhysicsState.HasDefaultAnim;
 
-                if (setup.DefaultScriptID != 0)
+                if (setup._dat.DefaultScript != 0)
                     State |= PhysicsState.HasDefaultScript;
 
-                PhysicsEngine.AddStaticAnimatingObject(this);
+                //PhysicsEngine.AddStaticAnimatingObject(this);
             }
         }
 
@@ -873,8 +874,8 @@ namespace ACE.Server.Physics
                 }
             }
 
-            var height = PartArray != null ? PartArray.GetHeight() : 0;
-            var radius = PartArray != null ? PartArray.GetRadius() : 0;
+            var height = obj.PartArray != null ? obj.PartArray.GetHeight() : 0;
+            var radius = obj.PartArray != null ? obj.PartArray.GetRadius() : 0;
             var parent = obj.Parent != null ? obj.Parent : obj;
 
             MoveToObject_Internal(obj, parent.ID, radius, height, movementParams);
@@ -929,9 +930,14 @@ namespace ACE.Server.Physics
 
         public void RemovePartFromShadowCells(PhysicsPart part)
         {
+            if (part == null) return;
+
             if (CurCell != null) part.Pos.ObjCellID = CurCell.ID;
             foreach (var shadowObj in ShadowObjects.Values)
-                shadowObj.Cell.RemovePart(part);
+            {
+                if (shadowObj.Cell != null)
+                    shadowObj.Cell.RemovePart(part);
+            }
         }
 
         public void RestoreLighting()
@@ -1545,6 +1551,26 @@ namespace ACE.Server.Physics
             if (ScriptManager != null) ScriptManager.UpdateScripts();
         }
 
+        public void UpdateAnimationInternal(double quantum)
+        {
+            if (!TransientState.HasFlag(TransientStateFlags.Active))
+                return;
+
+            if (TransientState.HasFlag(TransientStateFlags.CheckEthereal))
+                set_ethereal(false, false);
+
+            JumpedThisFrame = false;
+            var newPos = new Position(Position.ObjCellID);
+
+            //UpdatePositionInternal(quantum, ref newPos.Frame);
+            if (PartArray != null)
+                PartArray.Update(quantum, ref newPos.Frame);
+
+            set_frame(newPos.Frame);
+
+            if (PartArray != null) PartArray.HandleMovement();
+        }
+
         public void UpdatePartsInternal()
         {
             if (PartArray == null || State.HasFlag(PhysicsState.ParticleEmitter))
@@ -1855,7 +1881,8 @@ namespace ACE.Server.Physics
                     ObjCell.find_cell_list(Position, PartArray.GetNumCylsphere(), PartArray.GetCylSphere(), CellArray, null);
                 else
                 {
-                    var sphere = PartArray != null ? PartArray.GetSortingSphere() : PhysicsGlobals.DummySphere;
+                    // added sorting sphere null check
+                    var sphere = PartArray != null && PartArray.Setup.SortingSphere != null ? PartArray.GetSortingSphere() : PhysicsGlobals.DummySphere;
                     ObjCell.find_cell_list(Position, sphere, CellArray, null);
                 }
             }
@@ -2003,7 +2030,7 @@ namespace ACE.Server.Physics
             TransientState = 0;
         }
 
-        public bool create_blocking_particle_emitter(int emitterInfoID, int partIdx, AFrame offset, int emitterID)
+        public int create_blocking_particle_emitter(uint emitterInfoID, int partIdx, AFrame offset, int emitterID)
         {
             if (ParticleManager == null)
                 ParticleManager = new ParticleManager();
@@ -2011,7 +2038,7 @@ namespace ACE.Server.Physics
             return ParticleManager.CreateBlockingParticleEmitter(this, emitterInfoID, partIdx, offset, emitterID);
         }
 
-        public bool create_particle_emitter(int emitterInfoID, int partIdx, AFrame offset, int emitterID)
+        public int create_particle_emitter(uint emitterInfoID, int partIdx, AFrame offset, int emitterID)
         {
             if (ParticleManager == null)
                 ParticleManager = new ParticleManager();
@@ -2030,7 +2057,7 @@ namespace ACE.Server.Physics
             ParticleManager = null;
         }
 
-        public void enqueue_objs(List<PhysicsObj> newlyVisible)
+        public void enqueue_objs(IEnumerable<PhysicsObj> newlyVisible)
         {
             var player = WeenieObj.WorldObject as Player;
             if (player == null) return;
@@ -2545,7 +2572,7 @@ namespace ACE.Server.Physics
             obj.MorphToExistingObject(template);
 
             if (obj.PartArray != null && obj.PartArray.Setup != null)
-                obj.play_script_internal(obj.PartArray.Setup.DefaultScriptID);
+                obj.play_script_internal(obj.PartArray.Setup._dat.DefaultScript);
 
             return obj;
         }
@@ -2559,11 +2586,11 @@ namespace ACE.Server.Physics
             return obj;
         }
 
-        public static PhysicsObj makeParticleObject(int numParts)
+        public static PhysicsObj makeParticleObject(int numParts, Sphere sortingSphere)
         {
             var particle = new PhysicsObj();
             particle.State = PhysicsState.Static | PhysicsState.ReportCollisions;
-            particle.PartArray = PartArray.CreateParticle(particle, numParts, null);
+            particle.PartArray = PartArray.CreateParticle(particle, numParts, sortingSphere);
             return particle;
         }
 
@@ -3199,8 +3226,11 @@ namespace ACE.Server.Physics
 
             // custom for server:
             // only update part frames for objects with physics bsp
-            if (PartArray != null && !State.HasFlag(PhysicsState.ParticleEmitter) && State.HasFlag(PhysicsState.HasPhysicsBSP))
+            if (PartArray != null && !State.HasFlag(PhysicsState.ParticleEmitter)
+                && (State.HasFlag(PhysicsState.HasPhysicsBSP) || !PhysicsEngine.Instance.Server))
+            {
                 PartArray.SetFrame(frame);
+            }
 
             UpdateChildrenInternal();
         }
@@ -3604,7 +3634,7 @@ namespace ACE.Server.Physics
 
         public bool track_object_collision(PhysicsObj obj, bool prev_has_contact)
         {
-            if (State.HasFlag(PhysicsState.Static))
+            if (obj.State.HasFlag(PhysicsState.Static))
                 return report_environment_collision(prev_has_contact);
 
             if (CollisionTable == null)
@@ -3740,8 +3770,60 @@ namespace ACE.Server.Physics
                 UpdateObjectInternal(deltaTime);
             }
 
-            UpdateTime = PhysicsTimer.CurrentTime;
+            UpdateTime = PhysicsTimer_CurrentTime;
             return true;
+        }
+
+        public bool update_animation()
+        {
+            if (Parent != null || State.HasFlag(PhysicsState.Frozen))
+            {
+                TransientState &= ~TransientStateFlags.Active;
+                return false;
+            }
+
+            PhysicsTimer_CurrentTime = UpdateTime;
+
+            var deltaTime = PhysicsTimer.CurrentTime - UpdateTime;
+
+            if (deltaTime < TickRate)
+                return false;
+
+            //Console.WriteLine("deltaTime: " + deltaTime);
+
+            if (deltaTime > PhysicsGlobals.HugeQuantum)
+            {
+                UpdateTime = PhysicsTimer.CurrentTime;   // consume time?
+                return false;
+            }
+
+            while (deltaTime > PhysicsGlobals.MaxQuantum)
+            {
+                PhysicsTimer_CurrentTime += PhysicsGlobals.MaxQuantum;
+                UpdateAnimationInternal(PhysicsGlobals.MaxQuantum);
+                deltaTime -= PhysicsGlobals.MaxQuantum;
+            }
+
+            if (deltaTime > PhysicsGlobals.MinQuantum)
+            {
+                PhysicsTimer_CurrentTime += deltaTime;
+                UpdateAnimationInternal(deltaTime);
+            }
+
+            UpdateTime = PhysicsTimer_CurrentTime;
+            return true;
+        }
+
+        public void StartTimer(double delta = 0)
+        {
+            UpdateTime = PhysicsTimer.CurrentTime - delta;
+        }
+
+        public void ShowPendingMotions()
+        {
+            Console.WriteLine($"{Name} pending motions:");
+            foreach (var motion in MovementManager.MotionInterpreter.PendingMotions)
+                Console.WriteLine($"{(MotionCommand)motion.Motion}");
         }
 
         public void update_object_server(bool forcePos = true)

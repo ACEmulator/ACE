@@ -1,14 +1,15 @@
 using System;
 using System.Threading;
 
-using ACE.Common;
-
 using log4net;
+
+using ACE.Common;
+using ACE.Database;
 
 namespace ACE.Server.Managers
 {
     /// <summary>
-    /// Servermanager handles unloading the server application properly.
+    /// ServerManager handles unloading the server application properly.
     /// </summary>
     /// <remarks>
     ///   Possibly useful for:
@@ -19,6 +20,8 @@ namespace ACE.Server.Managers
     /// </remarks>
     public static class ServerManager
     {
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         /// <summary>
         /// Indicates advanced warning if the applcation will unload.
         /// </summary>
@@ -44,8 +47,6 @@ namespace ACE.Server.Managers
             // Loads the configuration for ShutdownInterval from the settings file.
             ShutdownInterval = ConfigManager.Config.Server.ShutdownInterval;
         }
-
-        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         /// <summary>
         /// Starts the shutdown wait thread.
@@ -73,7 +74,7 @@ namespace ACE.Server.Managers
         /// </summary>
         private static void ShutdownServer()
         {
-            DateTime shutdownTime = DateTime.UtcNow.AddSeconds(ShutdownInterval);
+            var shutdownTime = DateTime.UtcNow.AddSeconds(ShutdownInterval);
 
             // wait for shutdown interval to expire
             while (shutdownTime != DateTime.MinValue && shutdownTime >= DateTime.UtcNow)
@@ -86,38 +87,65 @@ namespace ACE.Server.Managers
                     log.Info(shutdownText);
 
                     // special text
-                    foreach (var player in WorldManager.GetAll())
-                        player.WorldBroadcast(shutdownText);
+                    foreach (var player in PlayerManager.GetAllOnline())
+                        player.Session.WorldBroadcast(shutdownText);
 
                     // break function
                     return;
                 }
 
-                Thread.Sleep(1);
+                Thread.Sleep(10);
             }
 
+            PropertyManager.StopUpdating();
+
+            log.Debug("Logging off all players...");
+
             // logout each player
-            foreach (var player in WorldManager.GetAll())
-                player.LogOffPlayer();
+            foreach (var player in PlayerManager.GetAllOnline())
+                player.Session.LogOffPlayer();
 
-            // wait 6 seconds for log-off
-            Thread.Sleep(6000);
+            log.Info("Waiting for all players to log off...");
 
-            // TODO: Make sure that the landblocks unloads properly.
+            // wait 10 seconds for log-off
+            while (PlayerManager.GetAllOnline().Count > 0)
+                Thread.Sleep(10);
 
-            // TODO: Make sure that the databasemanager unloads properly.
+            log.Debug("Adding all landblocks to destruction queue...");
 
-            // disabled thread update loop and halt application
+            // Queue unloading of all the landblocks
+            // The actual unloading will happen in WorldManager.UpdateGameWorld
+            LandblockManager.AddAllActiveLandblocksToDestructionQueue();
+
+            log.Info("Waiting for all active landblocks to unload...");
+
+            while (LandblockManager.GetActiveLandblocks().Count > 0)
+                Thread.Sleep(10);
+
+            log.Debug("Stopping world...");
+
+            // Disabled thread update loop
             WorldManager.StopWorld();
 
-            // wait for world to end
-            while (WorldManager.WorldActive)
-                ; // do nothing
+            log.Info("Waiting for world to stop...");
 
-            // write exit to console/log
+            // Wait for world to end
+            while (WorldManager.WorldActive)
+                Thread.Sleep(10);
+
+            log.Info("Saving OfflinePlayers that have unsaved changes...");
+            PlayerManager.SaveOfflinePlayersWithChanges();
+
+            log.Info("Waiting for database queue to empty...");
+
+            // Wait for the database queue to empty
+            while (DatabaseManager.Shard.QueueCount > 0)
+                Thread.Sleep(10);
+
+            // Write exit to console/log
             log.Info($"Exiting at {DateTime.UtcNow}");
 
-            // system exit
+            // System exit
             Environment.Exit(Environment.ExitCode);
         }
     }

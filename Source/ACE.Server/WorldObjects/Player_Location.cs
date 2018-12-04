@@ -1,5 +1,4 @@
 using System;
-
 using ACE.Database;
 using ACE.Database.Models.World;
 using ACE.DatLoader;
@@ -7,10 +6,10 @@ using ACE.DatLoader.FileTypes;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Network;
 using ACE.Server.Network.GameMessages.Messages;
-using ACE.Server.Network.Motion;
 
 namespace ACE.Server.WorldObjects
 {
@@ -36,7 +35,7 @@ namespace ACE.Server.WorldObjects
             return false;
         }
 
-        private static readonly UniversalMotion motionLifestoneRecall = new UniversalMotion(MotionStance.NonCombat, new MotionItem(MotionCommand.LifestoneRecall));
+        private static readonly Motion motionLifestoneRecall = new Motion(MotionStance.NonCombat, MotionCommand.LifestoneRecall);
 
         /// <summary>
         /// Handles teleporting a player to the lifestone (/ls or /lifestone command)
@@ -52,6 +51,7 @@ namespace ACE.Server.WorldObjects
                 {
                     // this should be handled by a different thing, probably a function that forces player into peacemode
                     var updateCombatMode = new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.CombatMode, (int)CombatMode.NonCombat);
+                    SetCombatMode(CombatMode.NonCombat);
                     Session.Network.EnqueueSend(updateCombatMode);
                 }
 
@@ -73,7 +73,7 @@ namespace ACE.Server.WorldObjects
             }
         }
 
-        private static readonly UniversalMotion motionMarketplaceRecall = new UniversalMotion(MotionStance.NonCombat, new MotionItem(MotionCommand.MarketplaceRecall));
+        private static readonly Motion motionMarketplaceRecall = new Motion(MotionStance.NonCombat, MotionCommand.MarketplaceRecall);
 
         public void HandleActionTeleToMarketPlace()
         {
@@ -101,6 +101,9 @@ namespace ACE.Server.WorldObjects
             if (!InWorld)
                 return;
 
+            InWorld = false;
+            Teleporting = true;
+
             Session.Network.EnqueueSend(new GameMessagePlayerTeleport(this));
 
             // load quickly, but player can load into landblock before server is finished loading
@@ -114,8 +117,8 @@ namespace ACE.Server.WorldObjects
             ReportCollisions = false;
             EnqueueBroadcastPhysicsState();
 
-            InWorld = false;
-            Teleporting = true;
+            // force out of hotspots
+            PhysicsObj.report_collision_end(true);
         }
 
         public void OnTeleportComplete()

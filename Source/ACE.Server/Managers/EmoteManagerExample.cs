@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 using ACE.Entity;
@@ -15,6 +16,9 @@ namespace ACE.Server.Managers
 {
     public partial class EmoteManager
     {
+        public DateTime EndTime;
+        public Queue<QueuedEmote> EmoteQueue;
+
         /// <summary>
         /// Example code for implementing EmoteTypes
         /// For actual implementation, please place working and verified code in EmoteManager.ExecuteEmote()
@@ -55,9 +59,9 @@ namespace ACE.Server.Managers
                 case EmoteType.AdminSpam:
 
                     var text = Replace(emote.Message, WorldObject, target);
-                    var players = WorldManager.GetAll();
+                    var players = PlayerManager.GetAllOnline();
                     foreach (var _player in players)
-                        _player.Network.EnqueueSend(new GameMessageSystemChat(text, ChatMessageType.AdminTell));
+                        _player.Session.Network.EnqueueSend(new GameMessageSystemChat(text, ChatMessageType.AdminTell));
                     break;
 
                 case EmoteType.AwardLevelProportionalSkillXP:
@@ -230,7 +234,7 @@ namespace ACE.Server.Managers
 
                     if (creature != null)
                     {
-                        var attr = creature.GetCreatureAttribute((PropertyAttribute)emote.Stat);
+                        var attr = creature.Attributes[(PropertyAttribute)emote.Stat];
                         var success = attr != null && attr.Ranks >= emote.Min && attr.Ranks <= emote.Max;
                         InqCategory(success ? EmoteCategory.TestSuccess : EmoteCategory.TestFailure, emote);
                     }
@@ -315,7 +319,7 @@ namespace ACE.Server.Managers
 
                     if (creature != null)
                     {
-                        var attr = creature.GetCreatureAttribute((PropertyAttribute)emote.Stat);
+                        var attr = creature.Attributes[(PropertyAttribute)emote.Stat];
                         var success = attr != null && attr.Base >= emote.Min && attr.Base <= emote.Max;
                         InqCategory(success ? EmoteCategory.TestSuccess : EmoteCategory.TestFailure, emote);
                     }
@@ -325,7 +329,7 @@ namespace ACE.Server.Managers
 
                     if (creature != null)
                     {
-                        var vital = creature.GetCreatureVital((PropertyAttribute2nd)emote.Stat);
+                        var vital = creature.Vitals[(PropertyAttribute2nd)emote.Stat];
                         var success = vital != null && vital.Base >= emote.Min && vital.Base <= emote.Max;
                         InqCategory(success ? EmoteCategory.TestSuccess : EmoteCategory.TestFailure, emote);
                     }
@@ -345,7 +349,7 @@ namespace ACE.Server.Managers
 
                     if (creature != null)
                     {
-                        var vital = creature.GetCreatureVital((PropertyAttribute2nd)emote.Stat);
+                        var vital = creature.Vitals[(PropertyAttribute2nd)emote.Stat];
                         var success = vital != null && vital.Ranks >= emote.Min && vital.Ranks <= emote.Max;
                         InqCategory(success ? EmoteCategory.TestSuccess : EmoteCategory.TestFailure, emote);
                     }
@@ -598,7 +602,7 @@ namespace ACE.Server.Managers
                         item = WorldObjectFactory.CreateNewWorldObject(wcid);
                         if (item == null) break;
 
-                        var success = player.TryRemoveItemFromInventoryWithNetworking(item, (ushort)emote.Amount);
+                        var success = player.TryRemoveItemFromInventoryWithNetworkingWithDestroy(item, (ushort)emote.Amount);
                     }
                     break;
 
@@ -681,9 +685,9 @@ namespace ACE.Server.Managers
                 case EmoteType.WorldBroadcast:
 
                     text = Replace(emote.Message, WorldObject, target);
-                    players = WorldManager.GetAll();
+                    players = PlayerManager.GetAllOnline();
                     foreach (var _player in players)
-                        _player.Network.EnqueueSend(new GameMessageSystemChat(text, ChatMessageType.WorldBroadcast));
+                        _player.Session.Network.EnqueueSend(new GameMessageSystemChat(text, ChatMessageType.WorldBroadcast));
                     break;
             }
         }

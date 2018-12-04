@@ -5,7 +5,6 @@ using ACE.Entity.Enum;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Network.GameMessages.Messages;
-using ACE.Server.Network.Motion;
 using ACE.Server.Physics.Animation;
 
 namespace ACE.Server.WorldObjects
@@ -78,25 +77,23 @@ namespace ACE.Server.WorldObjects
             return rng < probability;
         }
 
+        // todo: monster spellcasting anim speed?
+        public static float CastSpeed = 1.5f;
+
         /// <summary>
         /// Perform the first part of monster spell casting animation - spreading arms out
         /// </summary>
         public float PreCastMotion(WorldObject target)
         {
-            // todo: monster spellcasting anim speed?
-            var castMotion = new MotionItem(MotionCommand.CastSpell, 1.5f);
-            var animLength = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, MotionCommand.CastSpell, 1.5f);
-
-            var motion = new UniversalMotion(CurrentMotionState.Stance, castMotion);
-            motion.MovementData.CurrentStyle = (uint)CurrentMotionState.Stance;
-            motion.MovementData.TurnSpeed = 2.25f;
+            var motion = new Motion(this, MotionCommand.CastSpell, CastSpeed);
+            motion.MotionState.TurnSpeed = 2.25f;
             //motion.HasTarget = true;
             //motion.TargetGuid = target.Guid;
             CurrentMotionState = motion;
 
             EnqueueBroadcastMotion(motion);
 
-            return animLength;
+            return MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, MotionCommand.CastSpell, CastSpeed);
         }
 
         /// <summary>
@@ -105,12 +102,8 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void PostCastMotion()
         {
-            // todo: monster spellcasting anim speed?
-            var castMotion = new MotionItem(MotionCommand.Ready, 1.5f);
-
-            var motion = new UniversalMotion(CurrentMotionState.Stance, castMotion);
-            motion.MovementData.CurrentStyle = (uint)CurrentMotionState.Stance;
-            motion.MovementData.TurnSpeed = 2.25f;
+            var motion = new Motion(this, MotionCommand.Ready, CastSpeed);
+            motion.MotionState.TurnSpeed = 2.25f;
             //motion.HasTarget = true;
             //motion.TargetGuid = target.Guid;
             CurrentMotionState = motion;
@@ -124,6 +117,14 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void MagicAttack()
         {
+            var target = AttackTarget as Creature;
+
+            if (target == null || !target.IsAlive)
+            {
+                Sleep();
+                return;
+            }
+
             var spell = GetCurrentSpell();
             //Console.WriteLine(spell.Name);
 
@@ -143,7 +144,7 @@ namespace ACE.Server.WorldObjects
 
             //Console.WriteLine($"{Name}.MagicAttack(): preCastTime({preCastTime}), postCastTime({postCastTime})");
 
-            NextAttackTime = DateTime.UtcNow.AddSeconds(animTime + MagicDelay);
+            NextAttackTime = Timers.RunningTime + animTime + MagicDelay;;
         }
 
         /// <summary>
@@ -192,6 +193,23 @@ namespace ACE.Server.WorldObjects
                     }
                     CreatureMagic(target, spell);
                     EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
+                    break;
+
+                case MagicSchool.VoidMagic:
+
+                    if (spell.NumProjectiles == 0)
+                    {
+                        resisted = ResistSpell(target, spell);
+                        if (!targetSelf && (resisted == true)) break;
+                        if (resisted == null)
+                        {
+                            log.Error("Something went wrong with the Magic resistance check");
+                            break;
+                        }
+                    }
+                    VoidMagic(AttackTarget, spell);
+                    if (spell.NumProjectiles == 0)
+                        EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
                     break;
             }
         }

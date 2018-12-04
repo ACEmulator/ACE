@@ -62,16 +62,22 @@ namespace ACE.Server.WorldObjects
         // ========= Advocate Properties ==========
         // ========================================
 
-        public bool? AdvocateQuest
+        /// <summary>
+        /// Flag indicates if advocate quest has been completed
+        /// </summary>
+        public bool AdvocateQuest
         {
-            get => GetProperty(PropertyBool.AdvocateQuest);
-            set { if (!value.HasValue) RemoveProperty(PropertyBool.AdvocateQuest); else SetProperty(PropertyBool.AdvocateQuest, value.Value); }
+            get => GetProperty(PropertyBool.AdvocateQuest) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.AdvocateQuest); else SetProperty(PropertyBool.AdvocateQuest, value); }
         }
 
-        public bool? AdvocateState
+        /// <summary>
+        /// Flag indicates if player is currently in advocate state
+        /// </summary>
+        public bool AdvocateState
         {
-            get => GetProperty(PropertyBool.AdvocateState);
-            set { if (!value.HasValue) RemoveProperty(PropertyBool.AdvocateState); else SetProperty(PropertyBool.AdvocateState, value.Value); }
+            get => GetProperty(PropertyBool.AdvocateState) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.AdvocateState); else SetProperty(PropertyBool.AdvocateState, value); }
         }
 
         public int? AdvocateLevel
@@ -162,22 +168,20 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyInt.VitaeCpPool); else SetProperty(PropertyInt.VitaeCpPool, value.Value); }
         }
 
-        public bool HasVitae
-        {
-            get
-            {
-                return EnchantmentManager.HasVitae;
-            }
-        }
+        public bool HasVitae => EnchantmentManager.HasVitae;
 
+        /// <summary>
+        /// Will return 1.0f if no vitae exists.
+        /// </summary>
         public float Vitae
         {
             get
             {
-                if (!HasVitae)
+                var vitae = EnchantmentManager.GetVitae();
+
+                if (vitae == null)
                     return 1.0f;
 
-                var vitae = EnchantmentManager.GetVitae();
                 return vitae.StatModValue;
             }
         }

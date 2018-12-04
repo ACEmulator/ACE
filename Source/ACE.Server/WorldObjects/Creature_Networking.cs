@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+
 using ACE.DatLoader;
 using ACE.DatLoader.Entity;
 using ACE.DatLoader.FileTypes;
@@ -9,9 +10,7 @@ using ACE.Entity.Enum;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameMessages.Messages;
-using ACE.Server.Network.Motion;
 using ACE.Server.Network.Structure;
-using ACE.Server.Physics.Animation;
 
 namespace ACE.Server.WorldObjects
 {
@@ -28,7 +27,7 @@ namespace ACE.Server.WorldObjects
         {
             GameMessageSystemChat sysMessage = new GameMessageSystemChat(message, messageType);
 
-            WorldManager.BroadcastToAll(sysMessage);
+            PlayerManager.BroadcastToAll(sysMessage);
         }
 
         public override ACE.Entity.ObjDesc CalculateObjDesc()
@@ -191,25 +190,6 @@ namespace ACE.Server.WorldObjects
         {
             var creatureProfile = new CreatureProfile(creature, success);
             writer.Write(creatureProfile);
-        }
-
-        public float EnqueueMotion(ActionChain actionChain, MotionCommand motionCommand, float speed = 1.0f)
-        {
-            var motion = new UniversalMotion(CurrentMotionState.Stance);
-            motion.MovementData.CurrentStyle = (uint)CurrentMotionState.Stance;
-            motion.MovementData.ForwardCommand = (uint)motionCommand;
-            motion.MovementData.TurnSpeed = 2.25f;  // ??
-
-            var animLength = Physics.Animation.MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, motionCommand);
-
-            actionChain.AddAction(this, () =>
-            {
-                CurrentMotionState = motion;
-                EnqueueBroadcastMotion(motion);
-            });
-
-            actionChain.AddDelaySeconds(animLength);
-            return animLength;
         }
     }
 }

@@ -1,6 +1,8 @@
 using System;
 using System.Linq;
 
+using log4net;
+
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.Entity;
@@ -13,6 +15,8 @@ namespace ACE.Server.WorldObjects
 {
     public class ManaStone : WorldObject
     {
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         /// <summary>
         /// A new biota be created taking all of its values from weenie.
         /// </summary>
@@ -65,11 +69,16 @@ namespace ACE.Server.WorldObjects
                         useResult = WeenieError.ActionCancelled;
                     else
                     {
-                        var sourceMana = target.ItemCurMana.Value;
-                        if (!player.TryRemoveItemWithNetworking(target)) throw new Exception($"Failed to remove {target.Name} from player inventory.");
+                        if (!player.TryRemoveItemWithNetworking(target))
+                        {
+                            log.Error($"Failed to remove {target.Name} from player inventory.");
+                            return;
+                        }
                         ItemCurMana = (int)Math.Round(Efficiency.Value * target.ItemCurMana.Value);
                         player.Session.Network.EnqueueSend(new GameMessageSystemChat($"The {Name} drains {ItemCurMana.Value.ToString("N0")} points of mana from the {target.Name}.\nThe {target.Name} is destroyed.", ChatMessageType.Broadcast));
                         SetUiEffect(player, ACE.Entity.Enum.UiEffects.Magical);
+
+                        target.Destroy();
                     }
                 }
                 else
@@ -90,18 +99,17 @@ namespace ACE.Server.WorldObjects
                         while (manaAvailable > 0)
                         {
                             var itemsNeedingMana = origItemsNeedingMana.Where(k => k.Value.ItemCurMana.Value + k.Value.ManaGiven < k.Value.ItemMaxMana.Value).ToList();
-                            if (itemsNeedingMana.Count < 1) break;
-                            else
+                            if (itemsNeedingMana.Count < 1)
+                                break;
+
+                            var ration = manaAvailable / itemsNeedingMana.Count;
+                            itemsNeedingMana.ForEach(k =>
                             {
-                                var ration = manaAvailable / itemsNeedingMana.Count;
-                                itemsNeedingMana.ForEach(k =>
-                                {
-                                    var manaNeededForTopoff = (int)(k.Value.ItemMaxMana - k.Value.ItemCurMana - k.Value.ManaGiven);
-                                    var adjustedRation = Math.Min(ration, manaNeededForTopoff);
-                                    k.Value.ManaGiven += adjustedRation;
-                                    manaAvailable -= adjustedRation;
-                                });
-                            }
+                                var manaNeededForTopoff = (int)(k.Value.ItemMaxMana - k.Value.ItemCurMana - k.Value.ManaGiven);
+                                var adjustedRation = Math.Min(ration, manaNeededForTopoff);
+                                k.Value.ManaGiven += adjustedRation;
+                                manaAvailable -= adjustedRation;
+                            });
                         }
                         var itemsGivenMana = origItemsNeedingMana.Where(k => k.Value.ManaGiven > 0).ToList();
                         if (itemsGivenMana.Count < 1)
@@ -117,7 +125,8 @@ namespace ACE.Server.WorldObjects
                             var msg = $"The {Name} gives {itemsGivenMana.Sum(k => k.Value.ManaGiven).ToString("N0")} points of mana to the following items: {itemsGivenMana.Select(c => c.Value.Name).Aggregate((a, b) => a + ", " + b)}.{additionalManaText}";
                             itemsGivenMana.ForEach(k => k.Value.ItemCurMana += k.Value.ManaGiven);
                             player.Session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
-                            if (!Destroy(player))
+
+                            if (!DoDestroyDiceRoll(player))
                             {
                                 ItemCurMana = null;
                                 SetUiEffect(player, ACE.Entity.Enum.UiEffects.Undef);
@@ -141,7 +150,8 @@ namespace ACE.Server.WorldObjects
                         var additionalManaText = (additionalManaNeeded > 0) ? $"\nYou need {additionalManaNeeded.ToString("N0")} more mana to fully charge your {target.Name}." : string.Empty;
                         var msg = $"The {Name} gives {manaToPour.ToString("N0")} points of mana to the {target.Name}.{additionalManaText}";
                         player.Session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
-                        if (!Destroy(player))
+
+                        if (!DoDestroyDiceRoll(player))
                         {
                             ItemCurMana = null;
                             SetUiEffect(player, ACE.Entity.Enum.UiEffects.Undef);
@@ -157,18 +167,25 @@ namespace ACE.Server.WorldObjects
             player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, useResult));
         }
 
-        public bool Destroy(Player player)
+        public bool DoDestroyDiceRoll(Player player)
         {
-            if (DestroyChance == 0) return false;
+            if (DestroyChance == 0)
+                return false;
+
             // TODO: special handling for "Eternal Mana Charge"
             var dice = Physics.Common.Random.RollDice(0.0f, 1.0f);
+
             if (dice < DestroyChance)
             {
-                player.TryRemoveFromInventoryWithNetworking(this);
-                player.Session.Network.EnqueueSend(new GameMessageSystemChat($"The {Name} is destroyed.", ChatMessageType.Broadcast));
-                return true;
+                if (player.TryRemoveFromInventoryWithNetworking(this))
+                {
+                    player.Session.Network.EnqueueSend(new GameMessageSystemChat($"The {Name} is destroyed.", ChatMessageType.Broadcast));
+                    Destroy();
+                    return true;
+                }
             }
-            else return false;
+
+            return false;
         }
     }
 }

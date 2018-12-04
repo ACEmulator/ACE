@@ -106,13 +106,13 @@ namespace ACE.Server.WorldObjects
                     if (payment + wo.StackSize.Value <= amount)
                     {
                         // add to payment
-                        payment = payment + wo.StackSize.Value;
+                        payment = payment + (uint)wo.StackSize.Value;
                         cost.Add(wo);
                     }
                     else if (payment + wo.StackSize.Value > amount)
                     {
                         // add payment
-                        payment = payment + wo.StackSize.Value;
+                        payment = payment + (uint)wo.StackSize.Value;
                         cost.Add(wo);
                         // calculate change
                         if (payment > amount)
@@ -131,17 +131,8 @@ namespace ACE.Server.WorldObjects
                 // destroy all stacks of currency required / sale
                 foreach (WorldObject wo in cost)
                 {
-                    TryRemoveFromInventoryWithNetworking(wo);
-
-                    /*TryRemoveFromInventory(wo.Guid);
-                    ObjectGuid clearContainer = new ObjectGuid(0);
-                    Session.Network.EnqueueSend(new GameMessagePublicUpdateInstanceID(wo, PropertyInstanceId.Container, clearContainer));
-
-                    // clean up the shard database.
-                    throw new NotImplementedException();
-                    // todo fix for EF
-                    //DatabaseManager.Shard.DeleteObject(wo.SnapShotOfAceObject(), null);*/
-                    Session.Network.EnqueueSend(new GameMessageDeleteObject(wo));
+                    if (TryRemoveFromInventoryWithNetworking(wo))
+                        wo.Destroy();
                 }
 
                 // if there is change - readd - do this at the end to try to prevent exploiting
@@ -251,20 +242,19 @@ namespace ACE.Server.WorldObjects
                 else
                 {
                     // remove item from inventory.
-                    TryRemoveFromInventory(profile.Guid);
+                    TryRemoveFromInventoryWithNetworking(item);
                 }
 
                 //Session.Network.EnqueueSend(new GameMessagePrivateUpdateInstanceId(profile, PropertyInstanceId.Container, new ObjectGuid(0).Full));
 
                 item.SetPropertiesForVendor();
-
-                // clean up the shard database.
-                throw new NotImplementedException();
-                // todo fix for EF
-                //DatabaseManager.Shard.DeleteObject(item.SnapShotOfAceObject(), null);
-
                 Session.Network.EnqueueSend(new GameMessageDeleteObject(item));
                 purchaselist.Add(item);
+                // We must update the database with the latest ContainerId.
+                // If we don't, the player can drop the item, log out, and log back in. If the landblock hasn't queued a database save in that time,
+                // the player will end up loading with this object in their inventory even though the landblock is the true owner. This is because
+                // when we load player inventory, the database still has the record that shows this player as the ContainerId for the item.
+                item.SaveBiotaToDatabase();
             }
 
             var vendor = CurrentLandblock?.GetObject(vendorId) as Vendor;

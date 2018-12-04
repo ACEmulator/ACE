@@ -110,7 +110,7 @@ namespace ACE.Server.Factories
                 {
                     case 1:
                         //mundane items
-                        int mundaneType = r.Next(1, 7);
+                        int mundaneType = r.Next(1, 8);
                         switch (mundaneType)
                         {
                             case 1:
@@ -203,9 +203,11 @@ namespace ACE.Server.Factories
                                 //Food Items
                                 id = CreateFood();
                                 break;
-                            case 8:
-                                //spell scrolls level 1-3
-                                break;
+                            case 7:
+                            //spell scrolls level 1-3
+                            wo = CreateRandomScroll(r.Next(1, 4));
+                            return wo;
+                            break;
                             default:
                                 break;
                         }
@@ -241,7 +243,7 @@ namespace ACE.Server.Factories
                 {
                     case 1:
                         //mundane items
-                        int mundaneType = r.Next(1, 7);
+                        int mundaneType = r.Next(1, 8);
                         switch (mundaneType)
                         {
                             case 1:
@@ -367,9 +369,10 @@ namespace ACE.Server.Factories
                             case 6:
                                 id = CreateFood();
                                 break;
-                            case 8:
-                                //spell scrolls level 3-5
-                                break;
+                            case 7:
+                            //spell scrolls level 3-5
+                            wo = CreateRandomScroll(r.Next(3, 6));
+                            return wo;
                             default:
                                 break;
                         }
@@ -405,7 +408,7 @@ namespace ACE.Server.Factories
                 {
                     case 1:
                         //mundane items
-                        int mundaneType = r.Next(1, 7);
+                        int mundaneType = r.Next(1, 8);
                         switch (mundaneType)
                         {
                             case 1:
@@ -549,8 +552,11 @@ namespace ACE.Server.Factories
                             //    break;
                             case 6:
                                 id = CreateFood();
-                                break;
-                            default:
+                            break;
+                        case 7:
+                            wo = CreateRandomScroll(r.Next(4, 6));
+                            return wo;
+                        default:
                                 break;
                         }
                     wo = WorldObjectFactory.CreateNewWorldObject((uint)id);
@@ -585,7 +591,7 @@ namespace ACE.Server.Factories
                 {
                     case 1:
                         //mundane items
-                        int mundaneType = r.Next(1, 7);
+                        int mundaneType = r.Next(1, 8);
                         switch (mundaneType)
                         {
                             case 1:
@@ -735,7 +741,10 @@ namespace ACE.Server.Factories
                             case 6:
                                 id = CreateFood();
                                 break;
-                            default:
+                        case 7:
+                            wo = CreateRandomScroll(r.Next(4, 6));
+                            return wo;
+                        default:
                                 break;
                         }
                     wo = WorldObjectFactory.CreateNewWorldObject((uint)id);
@@ -770,7 +779,7 @@ namespace ACE.Server.Factories
                 {
                     case 1:
                         //mundane items
-                        int mundaneType = r.Next(1, 7);
+                        int mundaneType = r.Next(1, 8);
                         switch (mundaneType)
                         {
                             case 1:
@@ -920,7 +929,10 @@ namespace ACE.Server.Factories
                             case 6:
                                 id = CreateFood();
                                 break;
-                            default:
+                        case 7:
+                            wo = CreateRandomScroll(r.Next(5, 8));
+                            return wo;
+                        default:
                                 break;
                         }
                         wo = WorldObjectFactory.CreateNewWorldObject((uint)id);
@@ -950,12 +962,12 @@ namespace ACE.Server.Factories
             int chance;
             WorldObject wo;
             Random r = new Random();
-                int type = r.Next(1, 6);
+                int type = r.Next(1, 5);
                 switch (type)
                 {
                     case 1:
                         //mundane items
-                        int mundaneType = r.Next(1, 7);
+                        int mundaneType = r.Next(1, 8);
                         switch (mundaneType)
                         {
                             case 1:
@@ -1100,7 +1112,10 @@ namespace ACE.Server.Factories
                             case 6:
                                 id = CreateFood();
                                 break;
-                            default:
+                        case 7:
+                            wo = CreateRandomScroll(r.Next(6 , 8));
+                            return wo;
+                        default:
                                 break;
                         }
                         wo = WorldObjectFactory.CreateNewWorldObject((uint)id);
@@ -1135,7 +1150,7 @@ namespace ACE.Server.Factories
                 {
                     case 1:
                         //mundane items
-                        int mundaneType = r.Next(1, 7);
+                        int mundaneType = r.Next(1, 8);
                         switch (mundaneType)
                         {
                             case 1:
@@ -1280,7 +1295,10 @@ namespace ACE.Server.Factories
                             case 6:
                                 id = CreateFood();
                                 break;
-                            default:
+                        case 7:
+                            wo = CreateRandomScroll(r.Next(6,8));
+                            return wo;
+                        default:
                                 break;
                         }
                         wo = WorldObjectFactory.CreateNewWorldObject((uint)id);
@@ -1315,7 +1333,7 @@ namespace ACE.Server.Factories
                 {
                     case 1:
                         //mundane items
-                        int mundaneType = r.Next(1, 7);
+                        int mundaneType = r.Next(1, 8);
                         switch (mundaneType)
                         {
                             case 1:
@@ -1839,7 +1857,10 @@ namespace ACE.Server.Factories
                             case 6:
                                 id = CreateFood();
                                 break;
-                            default:
+                        case 7:
+                            wo = CreateRandomScroll(7);
+                            return wo;
+                        default:
                                 break;
                         }
                         wo = WorldObjectFactory.CreateNewWorldObject((uint)id);
@@ -2317,6 +2338,19 @@ namespace ACE.Server.Factories
             return foodType;
         }
 
+        public static WorldObject CreateRandomScroll(int tier)
+        {
+            uint weenieID;
+            Random r = new Random();
+            var tier2 = tier;
+            if(tier > 6)
+                tier2 = 6;
+            weenieID = (uint)LootHelper.ScrollSpells[r.Next(0, LootHelper.ScrollSpells.Length)][tier2-1];
+            String className = DatabaseManager.World.GetScrollWeenie(weenieID).ClassName;   
+            WorldObject wo = WorldObjectFactory.CreateNewWorldObject(className);
+            return wo;
+        }
+
         public static WorldObject CreateJewelry(int tier)
         {
             Random r = new Random();
@@ -2368,7 +2402,7 @@ namespace ACE.Server.Factories
             wo.SetProperty(PropertyInt.ItemMaxMana, max_mana);
             wo.SetProperty(PropertyInt.ItemCurMana, max_mana);
             wo.SetProperty(PropertyInt.ItemSpellcraft, spellcraft);
-            wo.SetProperty(PropertyString.LongDesc, getLongDesc(wo.GetProperty(PropertyString.Name), gemType, gemCount));
+            wo.SetProperty(PropertyString.LongDesc, getLongDesc(wo.GetProperty(PropertyString.Name)));
             wo.RemoveProperty(PropertyInt.ItemSkillLevelLimit);
             int[] shuffledValues = new int[JewelrySpells.Length];
             for (int i = 0; i < JewelrySpells.Length; i++)
@@ -3306,7 +3340,7 @@ namespace ACE.Server.Factories
                 wo.SetProperty(PropertyFloat.WeaponOffense, weaponOffense);
                 wo.SetProperty(PropertyFloat.WeaponMissileDefense, missileD);
                 wo.SetProperty(PropertyFloat.WeaponMagicDefense, magicD);
-                wo.SetProperty(PropertyString.LongDesc, getLongDesc(wo.GetProperty(PropertyString.Name), gemType, gemCount));
+                wo.SetProperty(PropertyString.LongDesc, getLongDesc(wo.GetProperty(PropertyString.Name)));
             if (numSpells == 0)
                 {
                     wo.RemoveProperty(PropertyInt.ItemManaCost);
@@ -13495,7 +13529,7 @@ namespace ACE.Server.Factories
             wo.SetProperty(PropertyInt.UiEffects, 1);
             wo.SetProperty(PropertyInt.Value, GetValue(tier));
             wo.SetProperty(PropertyInt.ArmorLevel, GetArmorLevel(tier, armorPieceType));
-            wo.SetProperty(PropertyString.LongDesc, getLongDesc(wo.GetProperty(PropertyString.Name), gemType, gemCount));
+            wo.SetProperty(PropertyString.LongDesc, getLongDesc(wo.GetProperty(PropertyString.Name)));
             if (numSpells == 0)
             {
                 wo.RemoveProperty(PropertyInt.ItemManaCost);
@@ -14751,7 +14785,7 @@ namespace ACE.Server.Factories
             wo.SetProperty(PropertyInt.WeaponSkill, weaponSkillInt);
             wo.SetProperty(PropertyInt.WieldRequirements, wieldRequirements);
             wo.SetProperty(PropertyInt.WieldSkilltype, wieldSkillType);
-            wo.SetProperty(PropertyString.LongDesc, getLongDesc(wo.GetProperty(PropertyString.Name), gemType, gemCount));
+            wo.SetProperty(PropertyString.LongDesc, getLongDesc(wo.GetProperty(PropertyString.Name)));
             if (numSpells == 0)
             {
                 wo.RemoveProperty(PropertyInt.ItemManaCost);
@@ -15125,7 +15159,7 @@ namespace ACE.Server.Factories
             wo.SetProperty(PropertyInt.GemCount, gemCount);
             wo.SetProperty(PropertyInt.GemType, gemType);
             wo.SetProperty(PropertyString.Name, shortDesc);
-            wo.SetProperty(PropertyString.LongDesc, getLongDesc(wo.GetProperty(PropertyString.Name), gemType, gemCount));
+            wo.SetProperty(PropertyString.LongDesc, getLongDesc(wo.GetProperty(PropertyString.Name)));
             int minorCantrips = GetNumMinorCantrips(tier);
             int majorCantrips = GetNumMajorCantrips(tier);
             int epicCantrips = GetNumEpicCantrips(tier);
@@ -18099,19 +18133,13 @@ namespace ACE.Server.Factories
             return amount;
         }
 
-        public static String getLongDesc(String name, int gemType, int gemNum)
+        public static String getLongDesc(String name)
         {
             //Still need to get spell name
             //Format for long description is: "Exquisitely crafted Ruby Ring of Fire Protection set with 1 White Sapphire."
             String lD = "";
-            if(gemNum > 1)
-            {
-                lD = name + " set with " + gemNum + " " + LootHelper.gemNames[gemType] +"s.";
-            }
-            else
-            {
-                lD = name + " set with " + gemNum + " " + LootHelper.gemNames[gemType]+".";
-            }
+                lD = name + ".";
+            
 
             return lD;
         }

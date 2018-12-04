@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 
+using log4net;
+
 using ACE.Database;
 using ACE.Database.Models.World;
 using ACE.DatLoader;
@@ -16,10 +18,13 @@ namespace ACE.Server.Factories
 {
     public static class PlayerFactory
     {
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         public enum CreateResult
         {
             Success,
-            TooManySkillCreditsUsed
+            TooManySkillCreditsUsed,
+            InvalidSkillRequested,
         }
 
         public static CreateResult Create(CharacterCreateInfo characterCreateInfo, Weenie weenie, ObjectGuid guid, uint accountId, out Player player)
@@ -151,21 +156,30 @@ namespace ACE.Server.Factories
 
             for (int i = 0; i < characterCreateInfo.SkillAdvancementClasses.Count; i++)
             {
-                var skill = (Skill)i;
-                var skillCost = skill.GetCost();
                 var sac = characterCreateInfo.SkillAdvancementClasses[i];
+
+                if (sac == SkillAdvancementClass.Inactive)
+                    continue;
+
+                if (!DatManager.PortalDat.SkillTable.SkillBaseHash.ContainsKey((uint)i))
+                {
+                    log.ErrorFormat("Character {0} tried to create with skill {1} that was not found in Portal dat.", characterCreateInfo.Name, i);
+                    return CreateResult.InvalidSkillRequested;
+                }
+
+                var skill = DatManager.PortalDat.SkillTable.SkillBaseHash[(uint)i];
 
                 if (sac == SkillAdvancementClass.Specialized)
                 {
-                    player.TrainSkill(skill, skillCost.TrainingCost);
-                    player.SpecializeSkill(skill, skillCost.SpecializationCost);
+                    player.TrainSkill((Skill)i, skill.TrainedCost);
+                    player.SpecializeSkill((Skill)i, skill.UpgradeCostFromTrainedToSpecialized);
                 }
                 else if (sac == SkillAdvancementClass.Trained)
                 {
-                    player.TrainSkill(skill, skillCost.TrainingCost);
+                    player.TrainSkill((Skill)i, skill.TrainedCost);
                 }
-                else if (skillCost != null && sac == SkillAdvancementClass.Untrained)
-                    player.UntrainSkill(skill, skillCost.TrainingCost);
+                else if (sac == SkillAdvancementClass.Untrained)
+                    player.UntrainSkill((Skill)i, 0);
             }
 
             // grant starter items based on skills
@@ -191,7 +205,7 @@ namespace ACE.Server.Factories
 
                         var loot = WorldObjectFactory.CreateNewWorldObject(item.WeenieId);
                         if (loot != null)
-                        { 
+                        {
                             if (loot.StackSize.HasValue && loot.MaxStackSize.HasValue)
                                 loot.StackSize = (item.StackSize <= loot.MaxStackSize) ? item.StackSize : loot.MaxStackSize;
                         }
@@ -540,7 +554,7 @@ namespace ACE.Server.Factories
             }
         }
 
-        private static void AddAllSpells( Player player)
+        private static void AddAllSpells(Player player)
         {
             for (uint spellLevel = 1; spellLevel <= 8; spellLevel++)
             {

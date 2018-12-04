@@ -132,15 +132,15 @@ namespace ACE.Server.Command
                                 break;
                             case ACECommandParameterType.Player:
                                 if (i != 0) throw new Exception("Player name parameter must be the first parameter, since it can contain spaces.");
-                                var targetPlayerSession = WorldManager.FindByPlayerName(parameterBlob);
-                                if (targetPlayerSession == null)
+                                var targetPlayer = PlayerManager.GetOnlinePlayer(parameterBlob);
+                                if (targetPlayer == null)
                                 {
                                     ChatPacket.SendServerMessage(session, $"Unable to find player {parameterBlob}", ChatMessageType.Broadcast);
                                     return false;
                                 }
                                 else
                                 {
-                                    acp.Value = targetPlayerSession.Player;
+                                    acp.Value = targetPlayer;
                                     acp.Defaulted = false;
                                 }
                                 break;

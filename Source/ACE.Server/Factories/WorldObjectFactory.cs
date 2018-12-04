@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 using log4net;
 
@@ -10,7 +11,6 @@ using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Server.Managers;
 using ACE.Server.WorldObjects;
-using System.Linq;
 
 namespace ACE.Server.Factories
 {
@@ -107,14 +107,18 @@ namespace ACE.Server.Factories
                     return new Storage(weenie, guid);
                 case WeenieType.Hook:
                     return new Hook(weenie, guid);
+                case WeenieType.Hooker:
+                    return new Hooker(weenie, guid);
                 case WeenieType.HousePortal:
                     return new WorldObjects.HousePortal(weenie, guid);
                 case WeenieType.SkillAlterationDevice:
                     return new SkillAlterationDevice(weenie, guid);
+                case WeenieType.PressurePlate:
+                    return new PressurePlate(weenie, guid);
                 case WeenieType.PetDevice:
-                    return new WorldObjects.PetDevice(weenie, guid);
+                    return new PetDevice(weenie, guid);
                 case WeenieType.Pet:
-                    return new WorldObjects.Creature(weenie, guid);
+                    return new Creature(weenie, guid);
                 default:
                     return new GenericObject(weenie, guid);
             }
@@ -208,8 +212,14 @@ namespace ACE.Server.Factories
                     return new Storage(biota);
                 case WeenieType.Hook:
                     return new Hook(biota);
+                case WeenieType.Hooker:
+                    return new Hooker(biota);
                 case WeenieType.HousePortal:
                     return new WorldObjects.HousePortal(biota);
+                case WeenieType.SkillAlterationDevice:
+                    return new SkillAlterationDevice(biota);
+                case WeenieType.PressurePlate:
+                    return new PressurePlate(biota);
                 default:
                     return new GenericObject(biota);
             }
@@ -239,17 +249,18 @@ namespace ACE.Server.Factories
 
                 var biota = biotas.FirstOrDefault(b => b.Id == instance.Guid);
                 if (biota == null)
+                {
                     worldObject = CreateWorldObject(weenie, guid);
+
+                    worldObject.Location = new Position(instance.ObjCellId, instance.OriginX, instance.OriginY, instance.OriginZ, instance.AnglesX, instance.AnglesY, instance.AnglesZ, instance.AnglesW);
+                }
                 else
                 {
                     worldObject = CreateWorldObject(biota);
-                    //Console.WriteLine("Loaded biota " + worldObject.Name);
                 }
 
                 if (worldObject != null)
                 {
-                    worldObject.Location = new Position(instance.ObjCellId, instance.OriginX, instance.OriginY, instance.OriginZ, instance.AnglesX, instance.AnglesY, instance.AnglesZ, instance.AnglesW);
-
                     // queue linked child objects
                     foreach (var link in instance.LandblockInstanceLink)
                     {

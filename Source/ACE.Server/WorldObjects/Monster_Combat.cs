@@ -40,7 +40,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// The time when monster can perform its next attack
         /// </summary>
-        public DateTime NextAttackTime;
+        public double NextAttackTime;
 
         /// <summary>
         /// Returns true if monster is dead
@@ -113,7 +113,25 @@ namespace ACE.Server.WorldObjects
 
             var stanceTime = SetCombatMode(combatMode);
 
-            NextAttackTime = DateTime.UtcNow.AddSeconds(stanceTime + 1.0f);
+            var nextTime = Timers.RunningTime + stanceTime;
+
+            if (NextMoveTime > Timers.RunningTime)
+                NextMoveTime += stanceTime;
+            else
+                NextMoveTime = nextTime;
+
+            if (NextAttackTime > Timers.RunningTime)
+                NextAttackTime += stanceTime;
+            else
+                NextAttackTime = nextTime;
+
+            if (IsRanged)
+                NextAttackTime += 1.0f;
+
+            if (DebugMove)
+                Console.WriteLine($"[{Timers.RunningTime}] - {Name} ({Guid}) - DoAttackStance - stanceTime: {stanceTime}, isAnimating: {IsAnimating}");
+
+            PhysicsObj.StartTimer();
         }
 
         public float GetMaxRange()
@@ -143,7 +161,7 @@ namespace ACE.Server.WorldObjects
         /// <returns></returns>
         public bool AttackReady()
         {
-            return IsAttackRange() && DateTime.UtcNow >= NextAttackTime;
+            return IsAttackRange() && Timers.RunningTime >= NextAttackTime;
         }
 
         /// <summary>
@@ -152,7 +170,7 @@ namespace ACE.Server.WorldObjects
         public void Attack()
         {
             if (DebugMove)
-                Console.WriteLine(Name + " Attack");
+                Console.WriteLine($"[{Timers.RunningTime}] - {Name} ({Guid}) - Attack");
 
             switch (CurrentAttack)
             {
@@ -196,7 +214,7 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Simplified player take damage function, only called for DoTs currently
+        /// Simplified monster take damage over time function, only called for DoTs currently
         /// </summary>
         public virtual void TakeDamageOverTime(float amount, DamageType damageType)
         {
@@ -269,8 +287,8 @@ namespace ACE.Server.WorldObjects
                 var lastDamager = DamageHistory.LastDamager as Player;
                 if (lastDamager != null)
                 {
-                    var deathMessage = GetDeathMessage(lastDamager, damageType, crit);
-                    lastDamager.Session.Network.EnqueueSend(new GameMessageSystemChat(string.Format(deathMessage, Name), ChatMessageType.Broadcast));
+                    var deathMessage = Strings.GetDeathMessage(damageType, crit);
+                    lastDamager.Session.Network.EnqueueSend(new GameMessageSystemChat(string.Format(deathMessage.Killer, Name), ChatMessageType.Broadcast));
                 }
 
                 // split xp between players in damage history?

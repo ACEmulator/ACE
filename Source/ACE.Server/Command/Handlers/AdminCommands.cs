@@ -2,13 +2,11 @@ using System;
 using System.Linq;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
-using System.Numerics;
 using System.Text;
 using System.Threading;
 
 using log4net;
 
-using ACE.Common;
 using ACE.Database;
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
@@ -158,18 +156,24 @@ namespace ACE.Server.Command.Handlers
                         }
                     case AccountLookupType.Character:
                         {
-                            playerSession = WorldManager.FindByPlayerName(bootName);
-                            if (playerSession != null)
-                                bootId = playerSession.Player.Guid.Low;
+                            var player = PlayerManager.GetOnlinePlayer(bootName);
+                            if (player != null)
+                            {
+                                playerSession = player.Session;
+                                bootId = player.Guid.Low;
+                            }
                             break;
                         }
                     case AccountLookupType.Iid:
                         {
                             // Extract the Id from the parameters
                             uint.TryParse(parameters[1], out bootId);
-                            playerSession = WorldManager.Find(new ObjectGuid(bootId));
-                            if (playerSession != null)
-                                bootName = playerSession.Player.Name;
+                            var targetPlayer = PlayerManager.GetOnlinePlayer(bootId);
+                            if (targetPlayer != null)
+                            {
+                                playerSession = targetPlayer.Session;
+                                bootName = targetPlayer.Name;
+                            }
                             break;
                         }
                 }
@@ -594,7 +598,7 @@ namespace ACE.Server.Command.Handlers
                 }
 
                 // Save the position
-                session.Player.SetPosition(positionType, (Position)playerPosition.Clone());
+                session.Player.SetPosition(positionType, new Position(playerPosition));
                 // Report changes to client
                 var positionMessage = new GameMessageSystemChat($"Set: {positionType} to Loc: {playerPosition}", ChatMessageType.Broadcast);
                 session.Network.EnqueueSend(positionMessage);
@@ -649,7 +653,7 @@ namespace ACE.Server.Command.Handlers
                         if (wo is Player) // I don't recall if @smite all would kill players in range, assuming it didn't
                             continue;
 
-                        if (wo is Creature creature)
+                        if (wo is Creature creature && creature.IsAttackable())
                             creature.Smite(session.Player);
                     }
                 }
@@ -674,12 +678,12 @@ namespace ACE.Server.Command.Handlers
                         characterName = parameters[0];
 
                     // look up session
-                    var playerSession = WorldManager.FindByPlayerName(characterName, true);
+                    var player = PlayerManager.GetOnlinePlayer(characterName);
 
                     // playerSession will be null when the character is not found
-                    if (playerSession != null)
+                    if (player != null)
                     {
-                        playerSession.Player.Smite(session.Player);
+                        player.Smite(session.Player);
                         return;
                     }
 
@@ -716,10 +720,10 @@ namespace ACE.Server.Command.Handlers
             // @teleto - Teleports you to the specified character.
             var playerName = String.Join(" ", parameters);
             // Lookup the player in the world
-            Session playerSession = WorldManager.FindByPlayerName(playerName);
+            var player = PlayerManager.GetOnlinePlayer(playerName);
             // If the player is found, teleport the admin to the Player's location
-            if (playerSession != null)
-                session.Player.Teleport(playerSession.Player.Location);
+            if (player != null)
+                session.Player.Teleport(player.Location);
             else
                 session.Network.EnqueueSend(new GameMessageSystemChat($"Player {playerName} was not found.", ChatMessageType.Broadcast));
         }
@@ -727,16 +731,33 @@ namespace ACE.Server.Command.Handlers
         // telepoi location
         [CommandHandler("telepoi", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
             "Teleport yourself to a named Point of Interest",
-            "[POI]\n" +
-            "@telepoi Arwic")]
+            "[POI|list]\n" +
+            "@telepoi Arwic\n"+
+            "Get the list of POIs\n" +
+            "@telepoi list")]
         public static void HandleTeleportPoi(Session session, params string[] parameters)
         {
             var poi = String.Join(" ", parameters);
-            var teleportPOI = DatabaseManager.World.GetCachedPointOfInterest(poi);
-            if (teleportPOI == null)
-                return;
-            var weenie = DatabaseManager.World.GetCachedWeenie(teleportPOI.WeenieClassId);
-            session.Player.Teleport(weenie.GetPosition(PositionType.Destination));
+
+            if (poi.ToLower() == "list")
+            {
+                DatabaseManager.World.CacheAllPointsOfInterest();
+                var pois = DatabaseManager.World.GetPointsOfInterestCache();
+                var list = pois
+                    .Select(k => k.Key)
+                    .OrderBy(k => k)
+                    .DefaultIfEmpty()
+                    .Aggregate((a, b) => a + ", " + b);
+                session.Network.EnqueueSend(new GameMessageSystemChat($"All POIs: {list}", ChatMessageType.Broadcast));
+            }
+            else
+            {
+                var teleportPOI = DatabaseManager.World.GetCachedPointOfInterest(poi);
+                if (teleportPOI == null)
+                    return;
+                var weenie = DatabaseManager.World.GetCachedWeenie(teleportPOI.WeenieClassId);
+                session.Player.Teleport(weenie.GetPosition(PositionType.Destination));
+            }
         }
 
         // teleloc cell x y z [qx qy qz qw]
@@ -890,6 +911,8 @@ namespace ACE.Server.Command.Handlers
             // TODO: output
         }
 
+        public static Position LastSpawnPos;
+
         public const uint WEENIE_MAX = 199999;
         // create wclassid (number)
         [CommandHandler("create", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
@@ -958,44 +981,6 @@ namespace ACE.Server.Command.Handlers
             //inventoryItem.PhysicsDescriptionFlag |= PhysicsDescriptionFlag.Position;
             //LandblockManager.AddObject(loot);
             loot.EnterWorld();
-        }
-
-        public static Position LastSpawnPos;
-
-        /// <summary>
-        /// Teleport object culling precision test
-        /// </summary>
-        [CommandHandler("teledist", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Teleports a some distance ahead of the last object spawned", "/teletest <distance>")]
-        public static void HandleTeleportDist(Session session, params string[] parameters)
-        {
-            if (parameters.Length < 1)
-                return;
-
-            var distance = float.Parse(parameters[0]);
-
-            var newPos = new Position();
-            newPos.LandblockId = new LandblockId(LastSpawnPos.LandblockId.Raw);
-            newPos.Pos = LastSpawnPos.Pos;
-            newPos.Rotation = session.Player.Location.Rotation;
-
-            var dir = Vector3.Normalize(Vector3.Transform(Vector3.UnitY, newPos.Rotation));
-            var offset = dir * distance;
-
-            newPos.SetPosition(newPos.Pos + offset);
-
-            session.Player.Teleport(newPos);
-
-            var globLastSpawnPos = LastSpawnPos.ToGlobal();
-            var globNewPos = newPos.ToGlobal();
-
-            var totalDist = Vector3.Distance(globLastSpawnPos, globNewPos);
-
-            var totalDist2d = Vector2.Distance(new Vector2(globLastSpawnPos.X, globLastSpawnPos.Y), new Vector2(globNewPos.X, globNewPos.Y));
-
-            ChatPacket.SendServerMessage(session, $"Teleporting player to {newPos.Cell:X8} @ {newPos.Pos}", ChatMessageType.System);
-
-            ChatPacket.SendServerMessage(session, "2D Distance: " + totalDist2d, ChatMessageType.System);
-            ChatPacket.SendServerMessage(session, "3D Distance: " + totalDist, ChatMessageType.System);
         }
 
         // ci wclassid (number)
@@ -1108,13 +1093,16 @@ namespace ACE.Server.Command.Handlers
             // TODO: output
         }
 
-        // deathxp
-        [CommandHandler("deathxp", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0)]
+        /// <summary>
+        /// Displays how much experience the last appraised creature is worth when killed.
+        /// </summary>
+        [CommandHandler("deathxp", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Displays how much experience the last appraised creature iw worth when killed.")]
         public static void HandleDeathxp(Session session, params string[] parameters)
         {
-            // @deathxp - Displays how much experience this creature is worth when killed.
+            var creature = CommandHandlerHelper.GetLastAppraisedObject(session);
+            if (creature == null) return;
 
-            // TODO: output
+            CommandHandlerHelper.WriteOutputInfo(session, $"{creature.Name} XP: {creature.XpOverride}");
         }
 
         // de_n name, text
@@ -1181,14 +1169,14 @@ namespace ACE.Server.Command.Handlers
         }
 
         // dispel
-        [CommandHandler("dispel", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0)]
+        [CommandHandler("dispel", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Removes all enchantments from the player", "/dispel")]
         public static void HandleDispel(Session session, params string[] parameters)
         {
-            // usage: @dispel
-            // This command removes all enchantments from you, or the object you have selected.
-            // @dispel - Dispels all enchantments from you (or the selected object).
+            session.Player.EnchantmentManager.DispelAllEnchantments();
 
-            // TODO: output
+            // remove all enchantments from equipped items for now
+            foreach (var item in session.Player.EquippedObjects.Values)
+                item.EnchantmentManager.DispelAllEnchantments();
         }
 
         // event
@@ -1291,9 +1279,9 @@ namespace ACE.Server.Command.Handlers
 
             // TODO: When buffs are implemented, we'll need to revisit this command to make sure it takes those into account and restores vitals to 100%
 
-            session.Player.Health.Current = session.Player.Health.Base;
-            session.Player.Stamina.Current = session.Player.Stamina.Base;
-            session.Player.Mana.Current = session.Player.Mana.Base;
+            session.Player.Health.Current = session.Player.Health.MaxValue;
+            session.Player.Stamina.Current = session.Player.Stamina.MaxValue;
+            session.Player.Mana.Current = session.Player.Mana.MaxValue;
 
             var updatePlayersHealth = new GameMessagePrivateUpdateAttribute2ndLevel(session.Player, Vital.Health, session.Player.Health.Current);
             var updatePlayersStamina = new GameMessagePrivateUpdateAttribute2ndLevel(session.Player, Vital.Stamina, session.Player.Stamina.Current);
@@ -1452,7 +1440,7 @@ namespace ACE.Server.Command.Handlers
             foreach (var possession in possessions)
                 possessedBiotas.Add((possession.Biota, possession.BiotaDatabaseLock));
 
-            DatabaseManager.Shard.AddCharacter(player.Biota, player.BiotaDatabaseLock, possessedBiotas, player.Character, player.CharacterDatabaseLock, null);
+            DatabaseManager.Shard.AddCharacterInParallel(player.Biota, player.BiotaDatabaseLock, possessedBiotas, player.Character, player.CharacterDatabaseLock, null);
 
             session.LogOffPlayer();
         }
@@ -1467,6 +1455,31 @@ namespace ACE.Server.Command.Handlers
             // @qst erase fellow < quest flag > -Erase a fellowship quest flag.
             // @qst bestow < quest flag > -Stamps the specific quest flag on the targeted player.If this fails, it's probably because you spelled the quest flag wrong.
             // @qst - Query, stamp, and erase quests on the targeted player.
+            if (parameters.Length == 0)
+            {
+                // todo: display help screen
+                return;
+            }
+
+            if (parameters[0].Equals("erase"))
+            {
+                if (parameters.Length < 2)
+                {
+                    // delete all quests?
+                    // seems unsafe, maybe a confirmation?
+                    return;
+                }
+                var questName = parameters[1];
+                var player = session.Player;
+                if (!player.QuestManager.HasQuest(questName))
+                {
+                    player.SendMessage($"{questName} not found");
+                    return;
+                }
+                player.QuestManager.Erase(questName);
+                player.SendMessage($"{questName} erased");
+                return;
+            }
 
             // TODO: output
         }
@@ -1567,15 +1580,20 @@ namespace ACE.Server.Command.Handlers
             HandleGamecast(session, parameters);
         }
 
-        // sticky { on | off }
-        [CommandHandler("sticky", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1)]
+        /// <summary>
+        /// Sets whether you lose items should you die.
+        /// </summary>
+        [CommandHandler("sticky", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0)]
         public static void HandleSticky(Session session, params string[] parameters)
         {
-            // usage: @sticky {on,off}
-            // This command sets whether you loose any items should you die.When set to 'on', you will be complete protected from item-loss rules.
-            // @sticky - Sets whether you loose items should you die.
+            bool sticky = !(parameters.Length > 0 && parameters[0] == "off");
 
-            // TODO: output
+            if (sticky)
+                CommandHandlerHelper.WriteOutputInfo(session, "You will no longer drop any items on death.");
+            else
+                CommandHandlerHelper.WriteOutputInfo(session, "You will now drop items on death normally.");
+
+            session.Player.NoCorpse = sticky;
         }
 
         // userlimit { num }
@@ -1716,12 +1734,13 @@ namespace ACE.Server.Command.Handlers
             var runTime = DateTime.Now - proc.StartTime;
             sb.Append($"Server Runtime: {runTime.Hours}h {runTime.Minutes}m {runTime.Seconds}s{'\n'}");
 
-            sb.Append($"Total CPU Time: {proc.TotalProcessorTime.TotalSeconds:N1} sec, Threads: {proc.Threads.Count}{'\n'}");
+            sb.Append($"Total CPU Time: {proc.TotalProcessorTime.Hours}h {proc.TotalProcessorTime.Minutes}m {proc.TotalProcessorTime.Seconds}s, Threads: {proc.Threads.Count}{'\n'}");
 
             // todo, add actual system memory used/avail
             sb.Append($"{(proc.PrivateMemorySize64 >> 20)} MB used{'\n'}");  // sb.Append($"{(proc.PrivateMemorySize64 >> 20)} MB used, xxxx / yyyy MB physical mem free.{'\n'}");
 
-            sb.Append($"{WorldManager.GetAll(false).Count} connections, {WorldManager.GetAll().Count} players online{'\n'}");
+            sb.Append($"{WorldManager.GetSessionCount()} connections, {PlayerManager.GetAllOnline().Count} players online{'\n'}");
+            sb.Append($"Total Accounts Created: {DatabaseManager.Authentication.GetAccountCount()}, Total Characters Created: {PlayerManager.GetAllOffline().Count + PlayerManager.GetAllOnline().Count}{'\n'}");
 
             // 330 active objects, 1931 total objects(16777216 buckets.)
 

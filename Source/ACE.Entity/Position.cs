@@ -5,7 +5,7 @@ using ACE.Entity.Enum;
 
 namespace ACE.Entity
 {
-    public class Position : ICloneable
+    public class Position
     {
         private LandblockId landblockId;
 
@@ -115,7 +115,7 @@ namespace ACE.Entity
             return v * invLen;
         }
 
-        public Position InFrontOf(double distanceInFront = 3.0f, bool rotate180 = false)
+        public Position InFrontOf(double distanceInFront, bool rotate180 = false)
         {
             float qw = RotationW; // north
             float qz = RotationZ; // south
@@ -300,9 +300,9 @@ namespace ACE.Entity
             Rotation = Quaternion.Identity;
         }
 
-        public void Serialize(BinaryWriter payload, UpdatePositionFlag updatePositionFlags, int animationFrame, bool writeLandblock = true)
+        public void Serialize(BinaryWriter payload, PositionFlags positionFlags, int animationFrame, bool writeLandblock = true)
         {
-            payload.Write((uint)updatePositionFlags);
+            payload.Write((uint)positionFlags);
 
             if (writeLandblock)
                 payload.Write(LandblockId.Raw);
@@ -311,23 +311,23 @@ namespace ACE.Entity
             payload.Write(PositionY);
             payload.Write(PositionZ);
 
-            if ((updatePositionFlags & UpdatePositionFlag.ZeroQw) == 0)
+            if ((positionFlags & PositionFlags.OrientationHasNoW) == 0)
                 payload.Write(RotationW);
 
-            if ((updatePositionFlags & UpdatePositionFlag.ZeroQx) == 0)
+            if ((positionFlags & PositionFlags.OrientationHasNoX) == 0)
                 payload.Write(RotationX);
 
-            if ((updatePositionFlags & UpdatePositionFlag.ZeroQy) == 0)
+            if ((positionFlags & PositionFlags.OrientationHasNoY) == 0)
                 payload.Write(RotationY);
 
-            if ((updatePositionFlags & UpdatePositionFlag.ZeroQz) == 0)
+            if ((positionFlags & PositionFlags.OrientationHasNoZ) == 0)
                 payload.Write(RotationZ);
 
-            if ((updatePositionFlags & UpdatePositionFlag.Placement) != 0)
+            if ((positionFlags & PositionFlags.HasPlacementID) != 0)
                 // TODO: this is current animationframe_id when we are animating (?) - when we are not, how are we setting on the ground Position_id.
                 payload.Write(animationFrame);
 
-            if ((updatePositionFlags & UpdatePositionFlag.Velocity) != 0)
+            if ((positionFlags & PositionFlags.HasVelocity) != 0)
             {
                 // velocity would go here
                 payload.Write(0f);
@@ -352,12 +352,6 @@ namespace ACE.Entity
                 payload.Write(RotationY);
                 payload.Write(RotationZ);
             }
-        }
-
-        private float GetZFromCellXy(uint cell, float xOffset, float yOffset)
-        {
-            // TODO: Load correct z from file
-            return 200.0f;
         }
 
         private uint GetCellFromBase(uint baseX, uint baseY)
@@ -463,11 +457,6 @@ namespace ACE.Entity
         public string ToLOCString()
         {
             return $"0x{LandblockId.Raw:X} [{PositionX} {PositionY} {PositionZ}] {RotationW} {RotationX} {RotationY} {RotationZ}";
-        }
-
-        public object Clone()
-        {
-            return MemberwiseClone();
         }
 
         public static readonly int BlockLength = 192;

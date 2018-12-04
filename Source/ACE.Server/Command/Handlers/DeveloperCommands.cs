@@ -1,26 +1,24 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Numerics;
 
 using log4net;
 
 using ACE.Database;
-using ACE.Database.Models.Shard;
 using ACE.DatLoader;
 using ACE.DatLoader.FileTypes;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
-using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
 using ACE.Server.Managers;
 using ACE.Server.Network;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
-using ACE.Server.Network.Motion;
 using ACE.Server.WorldObjects;
 using ACE.Server.WorldObjects.Entity;
 
@@ -159,6 +157,52 @@ namespace ACE.Server.Command.Handlers
             session.Player.Hidden = false;
             session.Player.EnqueueBroadcastPhysicsState();
         }
+
+        [CommandHandler("netstats", AccessLevel.Developer, CommandHandlerFlag.None, "View network statistics")]
+        public static void HandleNetStats(Session session, params string[] parameters)
+        {
+            CommandHandlerHelper.WriteOutputInfo(session, NetworkStatistics.Summary(), ChatMessageType.Broadcast);
+        }
+
+#if NETDIAG
+        [CommandHandler("trash_c2s", AccessLevel.Developer, CommandHandlerFlag.None, "Trash (corrupt) the next C2S packet that arrives.")]
+        public static void HandleTrashNextPacketC2S(Session session, params string[] parameters)
+        {
+            CommandHandlerHelper.WriteOutputInfo(session, "The next C2S packet will be synthetically corrupted.", ChatMessageType.Broadcast);
+            NetworkSyntheticTesting.TrashNextPacketC2S = true;
+        }
+
+        [CommandHandler("junk_c2s", AccessLevel.Developer, CommandHandlerFlag.None, "Toggle synthetically junky C2S connection of a 10% payload corruption rate.")]
+        public static void HandleJunkC2S(Session session, params string[] parameters)
+        {
+            NetworkSyntheticTesting.JunkyConnectionC2S = !NetworkSyntheticTesting.JunkyConnectionC2S;
+            var endis = (NetworkSyntheticTesting.JunkyConnectionC2S) ? "enabled" : "disabled";
+            CommandHandlerHelper.WriteOutputInfo(session, $"Junky C2S connection {endis}.", ChatMessageType.Broadcast);
+        }
+
+        [CommandHandler("trash_s2c", AccessLevel.Developer, CommandHandlerFlag.None, "Trash (corrupt) the next S2C packet that is sent.")]
+        public static void HandleTrashNextPacketS2C(Session session, params string[] parameters)
+        {
+            CommandHandlerHelper.WriteOutputInfo(session, "The next S2C packet will be synthetically corrupted.", ChatMessageType.Broadcast);
+            NetworkSyntheticTesting.TrashNextPacketS2C = true;
+        }
+
+        [CommandHandler("junk_s2c", AccessLevel.Developer, CommandHandlerFlag.None, "Toggle synthetically junky S2C connection of a 10% payload corruption rate.")]
+        public static void HandleJunkS2C(Session session, params string[] parameters)
+        {
+            NetworkSyntheticTesting.JunkyConnectionS2C = !NetworkSyntheticTesting.JunkyConnectionS2C;
+            var endis = (NetworkSyntheticTesting.JunkyConnectionS2C) ? "enabled" : "disabled";
+            CommandHandlerHelper.WriteOutputInfo(session, $"Junky S2C connection {endis}.", ChatMessageType.Broadcast);
+        }
+
+
+        [CommandHandler("junk", AccessLevel.Developer, CommandHandlerFlag.None, "Toggle synthetically junky S2C and C2S connections of a 10% payload corruption rate.")]
+        public static void HandleJunk(Session session, params string[] parameters)
+        {
+            HandleJunkC2S(session, parameters);
+            HandleJunkS2C(session, parameters);
+        }
+#endif
 
         /// <summary>
         /// List all clothing bases which are compatible with setup
@@ -312,32 +356,22 @@ namespace ACE.Server.Command.Handlers
                 return;
             }
 
-            UniversalMotion motion = new UniversalMotion(MotionStance.NonCombat, new MotionItem((MotionCommand)animationId));
-            session.Player.EnqueueBroadcastMotion(motion);
+            session.Player.EnqueueBroadcastMotion(new Motion(session.Player, (MotionCommand)animationId));
         }
 
         /// <summary>
         /// This function is just used to exercise the ability to have player movement without animation.   Once we are solid on this it can be removed.   Og II
         /// </summary>
-        [CommandHandler("movement", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Movement testing command, to be removed soon")]
+        [CommandHandler("movement", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Movement testing command, to be removed soon")]
         public static void Movement(Session session, params string[] parameters)
         {
-            ushort forwardCommand = 24;
+            var forwardCommand = (MotionCommand)Convert.ToInt16(parameters[0]);
 
-            if ((parameters?.Length > 0))
-                forwardCommand = (ushort)Convert.ToInt16(parameters[0]);
+            var movement = new Motion(session.Player, forwardCommand);
+            session.Network.EnqueueSend(new GameMessageUpdateMotion(session.Player, movement));
 
-            var movement = new UniversalMotion(MotionStance.NonCombat);
-            movement.MovementData.ForwardCommand = forwardCommand;
-            session.Network.EnqueueSend(new GameMessageUpdateMotion(session.Player.Guid,
-                                                                    session.Player.Sequences.GetCurrentSequence(Network.Sequence.SequenceType.ObjectInstance),
-                                                                    session.Player.Sequences,
-                                                                    movement));
-            movement = new UniversalMotion(MotionStance.NonCombat);
-            session.Network.EnqueueSend(new GameMessageUpdateMotion(session.Player.Guid,
-                                                                    session.Player.Sequences.GetCurrentSequence(Network.Sequence.SequenceType.ObjectInstance),
-                                                                    session.Player.Sequences,
-                                                                    movement));
+            movement = new Motion(session.Player, MotionCommand.Ready);
+            session.Network.EnqueueSend(new GameMessageUpdateMotion(session.Player, movement));
         }
 
         /// <summary>
@@ -381,9 +415,9 @@ namespace ACE.Server.Command.Handlers
             string message = "";
             uint playerCounter = 0;
 
-            foreach (Session playerSession in WorldManager.GetAll())
+            foreach (var player in PlayerManager.GetAllOnline())
             {
-                message += $"{playerSession.Player.Name} : {playerSession.Id}\n";
+                message += $"{player.Name} : {player.Session.Id}\n";
                 playerCounter++;
             }
 
@@ -406,31 +440,32 @@ namespace ACE.Server.Command.Handlers
         /// This is a VERY crude test. It should never be used on a live server.
         /// There isn't really much point to this command other than making sure landblocks can load and are semi-efficient.
         /// </summary>
-        [CommandHandler("loadalllandblocks", AccessLevel.Developer, CommandHandlerFlag.None, "Loads all Landblocks. This is VERY crude. Do NOT use it on a live server!!! It will likely crash the server.")]
+        [CommandHandler("loadalllandblocks", AccessLevel.Developer, CommandHandlerFlag.None, "Loads all Landblocks. This is VERY crude. Do NOT use it on a live server!!! It will likely crash the server.  Landblock resources will be loaded async and will continue to do work even after all landblocks have been loaded.")]
         public static void HandleLoadAllLandblocks(Session session, params string[] parameters)
         {
-            CommandHandlerHelper.WriteOutputInfo(session, "Loading landblocks... This will likely crash the server...");
+            CommandHandlerHelper.WriteOutputInfo(session, "Loading landblocks. This will likely crash the server. Landblock resources will be loaded async and will continue to do work even after all landblocks have been loaded.");
 
             Task.Run(() =>
             {
                 for (int x = 0; x <= 0xFE; x++)
                 {
+                    CommandHandlerHelper.WriteOutputInfo(session, $"Loading landblocks, x = 0x{x:X2} of 0xFE....");
+
                     for (int y = 0; y <= 0xFE; y++)
                     {
                         var blockid = new LandblockId((byte)x, (byte)y);
-                        Stopwatch sw = Stopwatch.StartNew();
-                        LandblockManager.ForceLoadLandBlock(blockid, false, false);
-                        sw.Stop();
-                        CommandHandlerHelper.WriteOutputDebug(session, $"Loaded Landblock {blockid.Landblock:X4} in {sw.ElapsedMilliseconds} milliseconds");
+                        LandblockManager.GetLandblock(blockid, false, false);
                     }
                 }
+
+                CommandHandlerHelper.WriteOutputInfo(session, "Loading landblocks completed. Async landblock resources are likely still loading...");
             });
         }
 
-        [CommandHandler("cacheallweenies", AccessLevel.Developer, CommandHandlerFlag.None, "Loads and caches all Weenies. This may take 10+ minutes and is very heavy on the database.")]
+        [CommandHandler("cacheallweenies", AccessLevel.Developer, CommandHandlerFlag.None, "Loads and caches all Weenies. This may take 15+ minutes and is very heavy on the database.")]
         public static void HandleCacheAllWeenies(Session session, params string[] parameters)
         {
-            CommandHandlerHelper.WriteOutputInfo(session, "Caching Weenies... This may take more than 10 minutes...");
+            CommandHandlerHelper.WriteOutputInfo(session, "Caching Weenies... This may take more than 15 minutes...");
 
             Task.Run(() => DatabaseManager.World.CacheAllWeenies());
         }
@@ -508,7 +543,7 @@ namespace ACE.Server.Command.Handlers
                             debugOutput = $"{weenieHdr2.GetType().Name} = {weenieHdr2.ToString()}" + " (" + (uint)weenieHdr2 + ")";
                             break;
                         case "positionflag":
-                            var posFlag = (UpdatePositionFlag)Convert.ToUInt32(parameters[1]);
+                            var posFlag = (PositionFlags)Convert.ToUInt32(parameters[1]);
 
                             debugOutput = $"{posFlag.GetType().Name} = {posFlag.ToString()}" + " (" + (uint)posFlag + ")";
                             break;
@@ -679,7 +714,7 @@ namespace ACE.Server.Command.Handlers
                     if (positionType != PositionType.Undef)
                     {
                         // Create a new position from the current player location
-                        Position playerPosition = (Position)session.Player.Location.Clone();
+                        var playerPosition = new Position(session.Player.Location);
 
                         // Save the position
                         session.Player.SetPosition(positionType, playerPosition);
@@ -1019,7 +1054,7 @@ namespace ACE.Server.Command.Handlers
             SpellComponentsTable comps = DatManager.PortalDat.SpellComponentsTable;
 
             Console.WriteLine("Formula for " + spellTable.Spells[spellid].Name);
-            Console.WriteLine("Spell Words: " + spellTable.Spells[spellid].SpellWords);
+            Console.WriteLine("Spell Words: " + spellTable.Spells[spellid].GetSpellWords(DatManager.PortalDat.SpellComponentsTable));
             Console.WriteLine(spellTable.Spells[spellid].Desc);
 
             var formula = SpellTable.GetSpellFormula(DatManager.PortalDat.SpellTable, spellid, parameters[0]);
@@ -1257,13 +1292,54 @@ namespace ACE.Server.Command.Handlers
             return target;
         }
 
+        [CommandHandler("showstats", AccessLevel.Developer, CommandHandlerFlag.None, 0, "Shows a list of player's current attribute/skill levels in console window", "showstats")]
+        public static void HandleShowStats(Session session, params string[] parameters)
+        {
+            var player = session.Player;
+
+            Console.WriteLine("Strength: " + player.Strength.Current);
+            Console.WriteLine("Endurance: " + player.Endurance.Current);
+            Console.WriteLine("Coordination: " + player.Coordination.Current);
+            Console.WriteLine("Quickness: " + player.Quickness.Current);
+            Console.WriteLine("Focus: " + player.Focus.Current);
+            Console.WriteLine("Self: " + player.Self.Current);
+
+            Console.WriteLine();
+
+            Console.WriteLine("Health: " + player.Health.Current + "/" + player.Health.MaxValue);
+            Console.WriteLine("Stamina: " + player.Stamina.Current + "/" + player.Stamina.MaxValue);
+            Console.WriteLine("Mana: " + player.Mana.Current + "/" + player.Mana.MaxValue);
+
+            Console.WriteLine();
+
+            var specialized = player.Skills.Values.Where(s => s.AdvancementClass == SkillAdvancementClass.Specialized).OrderBy(s => s.Skill.ToString());
+            var trained = player.Skills.Values.Where(s => s.AdvancementClass == SkillAdvancementClass.Trained).OrderBy(s => s.Skill.ToString());
+            var untrained = player.Skills.Values.Where(s => s.AdvancementClass == SkillAdvancementClass.Untrained && s.IsUsable).OrderBy(s => s.Skill.ToString());
+            var unusable = player.Skills.Values.Where(s => s.AdvancementClass == SkillAdvancementClass.Untrained && !s.IsUsable).OrderBy(s => s.Skill.ToString());
+
+            foreach (var skill in specialized)
+                Console.WriteLine(skill.Skill + ": " + skill.Current);
+            Console.WriteLine("===");
+
+            foreach (var skill in trained)
+                Console.WriteLine(skill.Skill + ": " + skill.Current);
+            Console.WriteLine("===");
+
+            foreach (var skill in untrained)
+                Console.WriteLine(skill.Skill + ": " + skill.Current);
+            Console.WriteLine("===");
+
+            foreach (var skill in unusable)
+                Console.WriteLine(skill.Skill + ": " + skill.Current);
+        }
+
         [CommandHandler("givemana", AccessLevel.Developer, CommandHandlerFlag.None, 0, "Gives mana to the last appraised object", "givemana <amount>")]
         public static void HandleGiveMana(Session session, params string[] parameters)
         {
             if (parameters.Length == 0) return;
             var amount = Int32.Parse(parameters[0]);
 
-            var obj = GetLastAppraisedObject(session);
+            var obj = CommandHandlerHelper.GetLastAppraisedObject(session);
             if (obj == null) return;
 
             amount = Math.Min(amount, obj.ItemMaxMana ?? 0);
@@ -1271,54 +1347,13 @@ namespace ACE.Server.Command.Handlers
             session.Network.EnqueueSend(new GameMessageSystemChat($"You give {amount} points of mana to the {obj.Name}.", ChatMessageType.Magic));
         }
 
-        [CommandHandler("debugemote", AccessLevel.Developer, CommandHandlerFlag.None, 0, "Debugs a hardcoded emote for the last appraised object", "debugemote")]
-        public static void HandleDebugEmote(Session session, params string[] parameters)
-        {
-            // get the wo emotemanager for the last appraised object
-            var targetID = session.Player.CurrentAppraisalTarget;
-            if (targetID == null)
-            {
-                CommandHandlerHelper.WriteOutputInfo(session, "ERROR: no appraisal target");
-                return;
-            }
-            var targetGuid = new ObjectGuid(targetID.Value);
-            var target = session.Player.CurrentLandblock?.GetObject(targetGuid);
-            if (target == null)
-            {
-                CommandHandlerHelper.WriteOutputInfo(session, "ERROR: couldn't find " + targetGuid);
-                return;
-            }
-            var actionChain = new ActionChain();
-
-            // build the emote
-            var emote = new BiotaPropertiesEmote();
-
-            var action = new BiotaPropertiesEmoteAction();
-            action.Type = (uint)EmoteType.MoveToPos;
-
-            // get current position
-            var currentPos = target.Location;
-
-            var newPos = new Position();
-            newPos.LandblockId = new LandblockId(currentPos.Cell);
-            newPos.Pos = new Vector3(currentPos.PositionX - 10, currentPos.PositionY, currentPos.PositionZ);
-            action.OriginX = newPos.PositionX;
-            action.OriginY = newPos.PositionY;
-            action.OriginZ = newPos.PositionZ;
-            action.ObjCellId = newPos.Cell;
-
-            CommandHandlerHelper.WriteOutputInfo(session, $"Moving {target.Name} from {target.Location.LandblockId} {currentPos.Pos} to {newPos.LandblockId} {newPos.Pos}");
-
-            target.EmoteManager.ExecuteEmote(emote, action, actionChain, target, target);
-        }
-
         /// <summary>
         /// Returns the distance to the last appraised object
         /// </summary>
         [CommandHandler("dist", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Returns the distance to the last appraised object")]
-        public static void HandleTeleportDist(Session session, params string[] parameters)
+        public static void HandleDist(Session session, params string[] parameters)
         {
-            var obj = GetLastAppraisedObject(session);
+            var obj = CommandHandlerHelper.GetLastAppraisedObject(session);
             if (obj == null) return;
 
             var sourcePos = session.Player.Location.ToGlobal();
@@ -1329,6 +1364,120 @@ namespace ACE.Server.Command.Handlers
 
             Console.WriteLine("Dist: " + dist);
             Console.WriteLine("2D Dist: " + dist2d);
+        }
+
+        /// <summary>
+        /// Teleport object culling precision test
+        /// </summary>
+        [CommandHandler("teledist", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Teleports a some distance ahead of the last object spawned", "/teletest <distance>")]
+        public static void HandleTeleportDist(Session session, params string[] parameters)
+        {
+            if (parameters.Length < 1)
+                return;
+
+            var lastSpawnPos = AdminCommands.LastSpawnPos;
+
+            var distance = float.Parse(parameters[0]);
+
+            var newPos = new Position();
+            newPos.LandblockId = new LandblockId(lastSpawnPos.LandblockId.Raw);
+            newPos.Pos = lastSpawnPos.Pos;
+            newPos.Rotation = session.Player.Location.Rotation;
+
+            var dir = Vector3.Normalize(Vector3.Transform(Vector3.UnitY, newPos.Rotation));
+            var offset = dir * distance;
+
+            newPos.SetPosition(newPos.Pos + offset);
+
+            session.Player.Teleport(newPos);
+
+            var globLastSpawnPos = lastSpawnPos.ToGlobal();
+            var globNewPos = newPos.ToGlobal();
+
+            var totalDist = Vector3.Distance(globLastSpawnPos, globNewPos);
+
+            var totalDist2d = Vector2.Distance(new Vector2(globLastSpawnPos.X, globLastSpawnPos.Y), new Vector2(globNewPos.X, globNewPos.Y));
+
+            ChatPacket.SendServerMessage(session, $"Teleporting player to {newPos.Cell:X8} @ {newPos.Pos}", ChatMessageType.System);
+
+            ChatPacket.SendServerMessage(session, "2D Distance: " + totalDist2d, ChatMessageType.System);
+            ChatPacket.SendServerMessage(session, "3D Distance: " + totalDist, ChatMessageType.System);
+        }
+
+        /// <summary>
+        /// Shows the list of objects known to this player
+        /// </summary>
+        [CommandHandler("knownobjs", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Shows the list of objects known to this player", "/knownobjs")]
+        public static void HandleKnownObjs(Session session, params string[] parameters)
+        {
+            Console.WriteLine($"\nKnown objects to {session.Player.Name}: {session.Player.PhysicsObj.ObjMaint.ObjectTable.Count}");
+
+            foreach (var obj in session.Player.PhysicsObj.ObjMaint.ObjectTable.Values)
+                Console.WriteLine($"{obj.Name} ({obj.ID:X8})");
+        }
+
+        /// <summary>
+        /// Shows the list of objects visible to this player
+        /// </summary>
+        [CommandHandler("visibleobjs", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Shows the list of objects known to this player", "/visibleobjs")]
+        public static void HandleVisibleObjs(Session session, params string[] parameters)
+        {
+            Console.WriteLine($"\nVisible objects to {session.Player.Name}: {session.Player.PhysicsObj.ObjMaint.VisibleObjectTable.Count}");
+
+            foreach (var obj in session.Player.PhysicsObj.ObjMaint.VisibleObjectTable.Values)
+                Console.WriteLine($"{obj.Name} ({obj.ID:X8})");
+        }
+
+        /// <summary>
+        /// Shows the list of players known to this player
+        /// </summary>
+        [CommandHandler("knownplayers", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Shows the list of players known to this player", "/knownplayers")]
+        public static void HandleKnownPlayers(Session session, params string[] parameters)
+        {
+            Console.WriteLine($"\nKnown players to {session.Player.Name}: {session.Player.PhysicsObj.ObjMaint.ObjectTable.Values.Where(o => o.IsPlayer).Count()}");
+
+            foreach (var obj in session.Player.PhysicsObj.ObjMaint.ObjectTable.Values.Where(o => o.IsPlayer))
+                Console.WriteLine($"{obj.Name} ({obj.ID:X8})");
+        }
+
+        /// <summary>
+        /// Shows the list of players visible to this player
+        /// </summary>
+        [CommandHandler("visibleplayers", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Shows the list of players visible to this player", "/visibleplayers")]
+        public static void HandleVisiblePlayers(Session session, params string[] parameters)
+        {
+            Console.WriteLine($"\nVisible players to {session.Player.Name}: {session.Player.PhysicsObj.ObjMaint.VisibleObjectTable.Values.Where(o => o.IsPlayer).Count()}");
+
+            foreach (var obj in session.Player.PhysicsObj.ObjMaint.VisibleObjectTable.Values.Where(o => o.IsPlayer))
+                Console.WriteLine($"{obj.Name} ({obj.ID:X8})");
+        }
+
+        /// <summary>
+        /// Shows the list of previously visible objects queued for destruction for this player
+        /// </summary>
+        [CommandHandler("destructionqueue", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Shows the list of previously visible objects queued for destruction for this player", "/destructionqueue")]
+        public static void HandleDestructionQueue(Session session, params string[] parameters)
+        {
+            Console.WriteLine($"\nDestruction queue for {session.Player.Name}: {session.Player.PhysicsObj.ObjMaint.DestructionQueue.Count}");
+
+            var currentTime = Physics.Common.PhysicsTimer.CurrentTime;
+
+            foreach (var obj in session.Player.PhysicsObj.ObjMaint.DestructionQueue)
+                Console.WriteLine($"{obj.Key.Name} ({obj.Key.ID:X8}): {obj.Value - currentTime}");
+        }
+
+        /// <summary>
+        /// Enables emote debugging for the last appraised object
+        /// </summary>
+        [CommandHandler("debugemote", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Enables emote debugging for the last appraised object", "/debugemote")]
+        public static void HandleDebugEmote(Session session, params string[] parameters)
+        {
+            var obj = CommandHandlerHelper.GetLastAppraisedObject(session);
+            if (obj != null)
+            {
+                Console.WriteLine($"Showing emotes for {obj.Name}");
+                obj.EmoteManager.Debug = true;
+            }
         }
     }
 }

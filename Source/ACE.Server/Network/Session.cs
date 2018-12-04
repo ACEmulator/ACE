@@ -9,6 +9,7 @@ using ACE.Common;
 using ACE.Database;
 using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
+using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity.Actions;
 using ACE.Server.WorldObjects;
 using ACE.Server.Managers;
@@ -51,15 +52,6 @@ namespace ACE.Server.Network
         private bool bootSession;
 
 
-        // todo: Remove this when WorldManager.LoadAllPlayers() is refactored
-        public bool IsOnline = true;
-
-        // todo: Remove this when WorldManager.LoadAllPlayers() is refactored
-        public Session()
-        {
-            IsOnline = false;
-        }
-
         public Session(IPEndPoint endPoint, ushort clientId, ushort serverId)
         {
             EndPoint = endPoint;
@@ -87,6 +79,8 @@ namespace ACE.Server.Network
             {
                 Player.EnqueueSaveChain();
                 Player.HandleActionLogout(true);
+
+                PlayerManager.SwitchPlayerFromOnlineToOffline(Player);
             }
 
             log.Info($"client {Account} disconnected");
@@ -114,19 +108,18 @@ namespace ACE.Server.Network
 
 
         /// <summary>
-        /// This is run in series from our main loop.
+        /// This will process all inbound GameActions.
         /// </summary>
-        public void Tick()
+        public void TickInbound()
         {
             if (Player != null)
                 InboundGameActionQueue.RunActions();
         }
 
         /// <summary>
-        /// This is run in parallel from our main loop.<para />
         /// This will send outgoing packets as well as the final logoff message.
         /// </summary>
-        public void TickInParallel()
+        public void TickOutbound()
         {
             // Checks if the session has stopped responding.
             if (DateTime.UtcNow.Ticks >= Network.TimeoutTick)
@@ -200,8 +193,21 @@ namespace ACE.Server.Network
             Player = player;
         }
 
+        public void RemovePlayer()
+        {
+            if (Player != null)
+            {
+                PlayerManager.SwitchPlayerFromOnlineToOffline(Player);
+                Player = null;
+            }
+        }
+
         public void LogOffPlayer()
         {
+            // These properties are used with offline players to determine passup rates
+            Player.SetProperty(PropertyInt.CurrentLoyaltyAtLastLogoff, (int)Player.GetCreatureSkill(Skill.Loyalty).Current);
+            Player.SetProperty(PropertyInt.CurrentLeadershipAtLastLogoff, (int)Player.GetCreatureSkill(Skill.Leadership).Current);
+
             // First save, then logout
             ActionChain logoutChain = new ActionChain();
             logoutChain.AddChain(Player.GetSaveChain());
@@ -231,7 +237,7 @@ namespace ACE.Server.Network
 
             State = SessionState.AuthConnected;
 
-            Player = null;
+            RemovePlayer();
         }
 
         public void BootPlayer()

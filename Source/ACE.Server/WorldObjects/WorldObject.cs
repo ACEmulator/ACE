@@ -18,7 +18,6 @@ using ACE.Server.Managers;
 using ACE.Server.Network;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
-using ACE.Server.Network.Motion;
 using ACE.Server.Network.Sequence;
 using ACE.Server.Physics;
 using ACE.Server.Physics.Animation;
@@ -43,7 +42,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// This is just a wrapper around Biota.Id
         /// </summary>
-        public ObjectGuid Guid => new ObjectGuid(Biota.Id);
+        public ObjectGuid Guid { get; }
 
         public PhysicsObj PhysicsObj { get; protected set; }
 
@@ -51,7 +50,7 @@ namespace ACE.Server.WorldObjects
 
         public ObjectDescriptionFlag BaseDescriptionFlags { get; protected set; }
 
-        public UpdatePositionFlag PositionFlag { get; protected set; }
+        public PositionFlags PositionFlags { get; protected set; }
 
         public SequenceManager Sequences { get; } = new SequenceManager();
 
@@ -79,7 +78,7 @@ namespace ACE.Server.WorldObjects
         public bool IsAmmoLauncher { get => IsBow || IsAtlatl; }
 
         public EmoteManager EmoteManager;
-        public EnchantmentManager EnchantmentManager;
+        public EnchantmentManagerWithCaching EnchantmentManager;
 
         public WorldObject ProjectileSource;
         public WorldObject ProjectileTarget;
@@ -94,10 +93,13 @@ namespace ACE.Server.WorldObjects
         protected WorldObject(Weenie weenie, ObjectGuid guid)
         {
             Biota = weenie.CreateCopyAsBiota(guid.Full);
+            Guid = guid;
+
+            InitializeSequences();
+            InitializePropertyDictionaries();
+            SetEphemeralValues();
 
             CreationTimestamp = (int)Time.GetUnixTime();
-
-            SetEphemeralValues();
         }
 
         /// <summary>
@@ -107,9 +109,12 @@ namespace ACE.Server.WorldObjects
         protected WorldObject(Biota biota)
         {
             Biota = biota;
+            Guid = new ObjectGuid(Biota.Id);
 
             biotaOriginatedFromDatabase = true;
 
+            InitializeSequences();
+            InitializePropertyDictionaries();
             SetEphemeralValues();
         }
 
@@ -118,7 +123,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public virtual void InitPhysicsObj()
         {
-            //Console.WriteLine($"InitPhysicsObj({Name} - {Guid.Full})");
+            //Console.WriteLine($"InitPhysicsObj({Name} - {Guid})");
 
             var defaultState = CalculatedPhysicsState();
 
@@ -141,6 +146,11 @@ namespace ACE.Server.WorldObjects
             PhysicsObj.SetMotionTableID(MotionTableId);
 
             PhysicsObj.SetScaleStatic(ObjScale ?? 1.0f);
+
+            // gaerlan rolling balls of death
+            if (Name.Equals("Rolling Death"))
+                PhysicsObj.SetScaleStatic(1.0f);
+
             PhysicsObj.State = defaultState;
 
             if (creature != null) AllowEdgeSlide = true;
@@ -170,114 +180,57 @@ namespace ACE.Server.WorldObjects
                 //Console.WriteLine($"AddPhysicsObj: failure: {Name} @ {cell.ID.ToString("X8")} - {Location.Pos} - {Location.Rotation} - SetupID: {SetupTableId.ToString("X8")}, MTableID: {MotionTableId.ToString("X8")}");
                 return false;
             }
-            //Console.WriteLine($"AddPhysicsObj: success: {Name}");
+            //Console.WriteLine($"AddPhysicsObj: success: {Name} ({Guid})");
             Location.LandblockId = new LandblockId(PhysicsObj.Position.ObjCellID);
             Location.Pos = PhysicsObj.Position.Frame.Origin;
             Location.Rotation = PhysicsObj.Position.Frame.Orientation;
 
+            SetPosition(PositionType.Home, new Position(Location));
+
             return true;
         }
 
-        private void SetEphemeralValues()
-        { 
-            Sequences.AddOrSetSequence(SequenceType.ObjectPosition, new UShortSequence());
-            Sequences.AddOrSetSequence(SequenceType.ObjectMovement, new UShortSequence());
-            Sequences.AddOrSetSequence(SequenceType.ObjectState, new UShortSequence());
-            Sequences.AddOrSetSequence(SequenceType.ObjectVector, new UShortSequence());
-            Sequences.AddOrSetSequence(SequenceType.ObjectTeleport, new UShortSequence());
-            Sequences.AddOrSetSequence(SequenceType.ObjectServerControl, new UShortSequence());
-            Sequences.AddOrSetSequence(SequenceType.ObjectForcePosition, new UShortSequence());
-            Sequences.AddOrSetSequence(SequenceType.ObjectVisualDesc, new UShortSequence());
-            Sequences.AddOrSetSequence(SequenceType.ObjectInstance, new UShortSequence());
+        protected virtual void InitializeSequences()
+        {
+            Sequences.SetSequence(SequenceType.ObjectPosition, new UShortSequence());
+            Sequences.SetSequence(SequenceType.ObjectMovement, new UShortSequence());
+            Sequences.SetSequence(SequenceType.ObjectState, new UShortSequence());
+            Sequences.SetSequence(SequenceType.ObjectVector, new UShortSequence());
+            Sequences.SetSequence(SequenceType.ObjectTeleport, new UShortSequence());
+            Sequences.SetSequence(SequenceType.ObjectServerControl, new UShortSequence());
+            Sequences.SetSequence(SequenceType.ObjectForcePosition, new UShortSequence());
+            Sequences.SetSequence(SequenceType.ObjectVisualDesc, new UShortSequence());
+            Sequences.SetSequence(SequenceType.ObjectInstance, new UShortSequence());
 
-            Sequences.AddOrSetSequence(SequenceType.Motion, new UShortSequence(1, 0x7FFF)); // MSB is reserved, so set max value to exclude it.
+            Sequences.SetSequence(SequenceType.Motion, new UShortSequence(1, 0x7FFF)); // MSB is reserved, so set max value to exclude it.
 
-            Sequences.AddOrSetSequence(SequenceType.PrivateUpdateAttribute, new ByteSequence(false));
-            Sequences.AddOrSetSequence(SequenceType.PrivateUpdateAttributeStrength, new ByteSequence(false));
-            Sequences.AddOrSetSequence(SequenceType.PrivateUpdateAttributeEndurance, new ByteSequence(false));
-            Sequences.AddOrSetSequence(SequenceType.PrivateUpdateAttributeQuickness, new ByteSequence(false));
-            Sequences.AddOrSetSequence(SequenceType.PrivateUpdateAttributeCoordination, new ByteSequence(false));
-            Sequences.AddOrSetSequence(SequenceType.PrivateUpdateAttributeFocus, new ByteSequence(false));
-            Sequences.AddOrSetSequence(SequenceType.PrivateUpdateAttributeSelf, new ByteSequence(false));
-            Sequences.AddOrSetSequence(SequenceType.PrivateUpdateAttribute2ndLevel, new ByteSequence(false));
-            Sequences.AddOrSetSequence(SequenceType.PrivateUpdateAttribute2ndLevelHealth, new ByteSequence(false));
-            Sequences.AddOrSetSequence(SequenceType.PrivateUpdateAttribute2ndLevelStamina, new ByteSequence(false));
-            Sequences.AddOrSetSequence(SequenceType.PrivateUpdateAttribute2ndLevelMana, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PublicUpdatePropertyInt, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PublicUpdatePropertyInt64, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PublicUpdatePropertyBool, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PublicUpdatePropertyDouble, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PublicUpdatePropertyDataID, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PublicUpdatePropertyInstanceId, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PublicUpdatePropertyString, new ByteSequence(false));
 
-            Sequences.AddOrSetSequence(SequenceType.PrivateUpdateSkill, new ByteSequence(false));
-            Sequences.AddOrSetSequence(SequenceType.PrivateUpdateSkillAxe, new ByteSequence(false));
-            Sequences.AddOrSetSequence(SequenceType.PrivateUpdateSkillBow, new ByteSequence(false));
-            Sequences.AddOrSetSequence(SequenceType.PrivateUpdateSkillCrossBow, new ByteSequence(false));
-            Sequences.AddOrSetSequence(SequenceType.PrivateUpdateSkillDagger, new ByteSequence(false));
-            Sequences.AddOrSetSequence(SequenceType.PrivateUpdateSkillMace, new ByteSequence(false));
-            Sequences.AddOrSetSequence(SequenceType.PrivateUpdateSkillMeleeDefense, new ByteSequence(false));
-            Sequences.AddOrSetSequence(SequenceType.PrivateUpdateSkillMissileDefense, new ByteSequence(false));
-            Sequences.AddOrSetSequence(SequenceType.PrivateUpdateSkillSling, new ByteSequence(false));
-            Sequences.AddOrSetSequence(SequenceType.PrivateUpdateSkillSpear, new ByteSequence(false));
-            Sequences.AddOrSetSequence(SequenceType.PrivateUpdateSkillStaff, new ByteSequence(false));
-            Sequences.AddOrSetSequence(SequenceType.PrivateUpdateSkillSword, new ByteSequence(false));
-            Sequences.AddOrSetSequence(SequenceType.PrivateUpdateSkillThrownWeapon, new ByteSequence(false));
-            Sequences.AddOrSetSequence(SequenceType.PrivateUpdateSkillUnarmedCombat, new ByteSequence(false));
-            Sequences.AddOrSetSequence(SequenceType.PrivateUpdateSkillArcaneLore, new ByteSequence(false));
-            Sequences.AddOrSetSequence(SequenceType.PrivateUpdateSkillMagicDefense, new ByteSequence(false));
-            Sequences.AddOrSetSequence(SequenceType.PrivateUpdateSkillManaConversion, new ByteSequence(false));
-            Sequences.AddOrSetSequence(SequenceType.PrivateUpdateSkillSpellcraft, new ByteSequence(false));
-            Sequences.AddOrSetSequence(SequenceType.PrivateUpdateSkillItemAppraisal, new ByteSequence(false));
-            Sequences.AddOrSetSequence(SequenceType.PrivateUpdateSkillPersonalAppraisal, new ByteSequence(false));
-            Sequences.AddOrSetSequence(SequenceType.PrivateUpdateSkillDeception, new ByteSequence(false));
-            Sequences.AddOrSetSequence(SequenceType.PrivateUpdateSkillHealing, new ByteSequence(false));
-            Sequences.AddOrSetSequence(SequenceType.PrivateUpdateSkillJump, new ByteSequence(false));
-            Sequences.AddOrSetSequence(SequenceType.PrivateUpdateSkillLockpick, new ByteSequence(false));
-            Sequences.AddOrSetSequence(SequenceType.PrivateUpdateSkillRun, new ByteSequence(false));
-            Sequences.AddOrSetSequence(SequenceType.PrivateUpdateSkillAwareness, new ByteSequence(false));
-            Sequences.AddOrSetSequence(SequenceType.PrivateUpdateSkillArmsAndArmorRepair, new ByteSequence(false));
-            Sequences.AddOrSetSequence(SequenceType.PrivateUpdateSkillCreatureAppraisal, new ByteSequence(false));
-            Sequences.AddOrSetSequence(SequenceType.PrivateUpdateSkillWeaponAppraisal, new ByteSequence(false));
-            Sequences.AddOrSetSequence(SequenceType.PrivateUpdateSkillArmorAppraisal, new ByteSequence(false));
-            Sequences.AddOrSetSequence(SequenceType.PrivateUpdateSkillMagicItemAppraisal, new ByteSequence(false));
-            Sequences.AddOrSetSequence(SequenceType.PrivateUpdateSkillCreatureEnchantment, new ByteSequence(false));
-            Sequences.AddOrSetSequence(SequenceType.PrivateUpdateSkillItemEnchantment, new ByteSequence(false));
-            Sequences.AddOrSetSequence(SequenceType.PrivateUpdateSkillLifeMagic, new ByteSequence(false));
-            Sequences.AddOrSetSequence(SequenceType.PrivateUpdateSkillWarMagic, new ByteSequence(false));
-            Sequences.AddOrSetSequence(SequenceType.PrivateUpdateSkillLeadership, new ByteSequence(false));
-            Sequences.AddOrSetSequence(SequenceType.PrivateUpdateSkillLoyalty, new ByteSequence(false));
-            Sequences.AddOrSetSequence(SequenceType.PrivateUpdateSkillFletching, new ByteSequence(false));
-            Sequences.AddOrSetSequence(SequenceType.PrivateUpdateSkillAlchemy, new ByteSequence(false));
-            Sequences.AddOrSetSequence(SequenceType.PrivateUpdateSkillCooking, new ByteSequence(false));
-            Sequences.AddOrSetSequence(SequenceType.PrivateUpdateSkillSalvaging, new ByteSequence(false));
-            Sequences.AddOrSetSequence(SequenceType.PrivateUpdateSkillTwoHandedCombat, new ByteSequence(false));
-            Sequences.AddOrSetSequence(SequenceType.PrivateUpdateSkillGearcraft, new ByteSequence(false));
-            Sequences.AddOrSetSequence(SequenceType.PrivateUpdateSkillVoidMagic, new ByteSequence(false));
-            Sequences.AddOrSetSequence(SequenceType.PrivateUpdateSkillHeavyWeapons, new ByteSequence(false));
-            Sequences.AddOrSetSequence(SequenceType.PrivateUpdateSkillLightWeapons, new ByteSequence(false));
-            Sequences.AddOrSetSequence(SequenceType.PrivateUpdateSkillFinesseWeapons, new ByteSequence(false));
-            Sequences.AddOrSetSequence(SequenceType.PrivateUpdateSkillMissileWeapons, new ByteSequence(false));
-            Sequences.AddOrSetSequence(SequenceType.PrivateUpdateSkillShield, new ByteSequence(false));
-            Sequences.AddOrSetSequence(SequenceType.PrivateUpdateSkillDualWield, new ByteSequence(false));
-            Sequences.AddOrSetSequence(SequenceType.PrivateUpdateSkillRecklessness, new ByteSequence(false));
-            Sequences.AddOrSetSequence(SequenceType.PrivateUpdateSkillSneakAttack, new ByteSequence(false));
-            Sequences.AddOrSetSequence(SequenceType.PrivateUpdateSkillDirtyFighting, new ByteSequence(false));
-            Sequences.AddOrSetSequence(SequenceType.PrivateUpdateSkillChallenge, new ByteSequence(false));
-            Sequences.AddOrSetSequence(SequenceType.PrivateUpdateSkillSummoning, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.SetStackSize, new ByteSequence(false));
+        }
 
-            Sequences.AddOrSetSequence(SequenceType.PrivateUpdatePropertyBool, new ByteSequence(false));
-            Sequences.AddOrSetSequence(SequenceType.PrivateUpdatePropertyInt, new ByteSequence(false));
-            Sequences.AddOrSetSequence(SequenceType.PrivateUpdatePropertyInt64, new ByteSequence(false));
-            Sequences.AddOrSetSequence(SequenceType.PrivateUpdatePropertyDouble, new ByteSequence(false));
-            Sequences.AddOrSetSequence(SequenceType.PrivateUpdatePropertyString, new ByteSequence(false));
-            Sequences.AddOrSetSequence(SequenceType.PrivateUpdatePropertyDataID, new ByteSequence(false));
-            Sequences.AddOrSetSequence(SequenceType.PrivateUpdatePropertyInstanceID, new ByteSequence(false));
-
-            Sequences.AddOrSetSequence(SequenceType.PublicUpdatePropertyBool, new ByteSequence(false));
-            Sequences.AddOrSetSequence(SequenceType.PublicUpdatePropertyInt, new ByteSequence(false));
-            Sequences.AddOrSetSequence(SequenceType.PublicUpdatePropertyInt64, new ByteSequence(false));
-            Sequences.AddOrSetSequence(SequenceType.PublicUpdatePropertyDouble, new ByteSequence(false));
-            Sequences.AddOrSetSequence(SequenceType.PublicUpdatePropertyString, new ByteSequence(false));
-            Sequences.AddOrSetSequence(SequenceType.PublicUpdatePropertyDataID, new ByteSequence(false));
-            Sequences.AddOrSetSequence(SequenceType.PublicUpdatePropertyInstanceId, new ByteSequence(false));
-
-            Sequences.AddOrSetSequence(SequenceType.SetStackSize, new ByteSequence(false));
-            Sequences.AddOrSetSequence(SequenceType.Confirmation, new ByteSequence(false));
+        private void InitializePropertyDictionaries()
+        {
+            foreach (var x in Biota.BiotaPropertiesBool)
+                biotaPropertyBools[(PropertyBool)x.Type] = x;
+            foreach (var x in Biota.BiotaPropertiesDID)
+                biotaPropertyDataIds[(PropertyDataId)x.Type] = x;
+            foreach (var x in Biota.BiotaPropertiesFloat)
+                biotaPropertyFloats[(PropertyFloat)x.Type] = x;
+            foreach (var x in Biota.BiotaPropertiesIID)
+                biotaPropertyInstanceIds[(PropertyInstanceId)x.Type] = x;
+            foreach (var x in Biota.BiotaPropertiesInt)
+                biotaPropertyInts[(PropertyInt)x.Type] = x;
+            foreach (var x in Biota.BiotaPropertiesInt64)
+                biotaPropertyInt64s[(PropertyInt64)x.Type] = x;
+            foreach (var x in Biota.BiotaPropertiesString)
+                biotaPropertyStrings[(PropertyString)x.Type] = x;
 
             foreach (var x in EphemeralProperties.PropertiesBool.ToList())
                 ephemeralPropertyBools.TryAdd((PropertyBool)x, null);
@@ -293,7 +246,10 @@ namespace ACE.Server.WorldObjects
                 ephemeralPropertyInt64s.TryAdd((PropertyInt64)x, null);
             foreach (var x in EphemeralProperties.PropertiesString.ToList())
                 ephemeralPropertyStrings.TryAdd((PropertyString)x, null);
+        }
 
+        private void SetEphemeralValues()
+        { 
             foreach (var x in Biota.BiotaPropertiesBool.Where(i => EphemeralProperties.PropertiesBool.Contains(i.Type)).ToList())
                 ephemeralPropertyBools[(PropertyBool)x.Type] = x.Value;
             foreach (var x in Biota.BiotaPropertiesDID.Where(i => EphemeralProperties.PropertiesDataId.Contains(i.Type)).ToList())
@@ -309,9 +265,15 @@ namespace ACE.Server.WorldObjects
             foreach (var x in Biota.BiotaPropertiesString.Where(i => EphemeralProperties.PropertiesString.Contains(i.Type)).ToList())
                 ephemeralPropertyStrings[(PropertyString)x.Type] = x.Value;
 
+            foreach (var x in EphemeralProperties.PositionTypes.ToList())
+                ephemeralPositions.TryAdd((PositionType)x, null);
+
+            foreach (var x in Biota.BiotaPropertiesPosition.Where(i => EphemeralProperties.PositionTypes.Contains(i.PositionType)).ToList())
+                ephemeralPositions[(PositionType)x.PositionType] = new Position(x.ObjCellId, x.OriginX, x.OriginY, x.OriginZ, x.AnglesX, x.AnglesY, x.AnglesZ, x.AnglesW);
+
             AddGeneratorProfiles();
 
-            if (IsGenerator && RegenerationInterval > 5)
+            if (IsGenerator)
                 HeartbeatInterval = RegenerationInterval;
 
             BaseDescriptionFlags = ObjectDescriptionFlag.Attackable;
@@ -319,12 +281,12 @@ namespace ACE.Server.WorldObjects
             EncumbranceVal = EncumbranceVal ?? (StackUnitEncumbrance ?? 0) * (StackSize ?? 1);
 
             EmoteManager = new EmoteManager(this);
-            EnchantmentManager = new EnchantmentManager(this);
+            EnchantmentManager = new EnchantmentManagerWithCaching(this);
 
             if (Placement == null)
                 Placement = ACE.Entity.Enum.Placement.Resting;
 
-            //CurrentMotionState = new UniversalMotion(MotionStance.Invalid, new MotionItem(MotionCommand.Invalid));
+            //CurrentMotionState = new Motion(MotionStance.Invalid, new MotionItem(MotionCommand.Invalid));
         }
 
         /// <summary>
@@ -332,21 +294,13 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public bool Teleporting { get; set; } = false;
 
-        public bool HandleNPCReceiveItem(WorldObject item, WorldObject receiver, WorldObject giver, ActionChain chain)
+        public bool HandleNPCReceiveItem(WorldObject item, WorldObject giver, ActionChain actionChain)
         {
-            if (chain == null) chain = new ActionChain();
-
-            var rng = Physics.Common.Random.RollDice(0.0f, 1.0f);
-            // last/first?
-            var emote = Biota.BiotaPropertiesEmote.FirstOrDefault(e => e.WeenieClassId == item.WeenieClassId && rng < e.Probability);
-            if (emote == null)
-                emote = Biota.BiotaPropertiesEmote.FirstOrDefault(e => e.WeenieClassId == item.WeenieClassId);
-            if (emote == null)
+            var emoteSet = EmoteManager.GetEmoteSet(EmoteCategory.Give, null, null, item.WeenieClassId);
+            if (emoteSet == null)
                 return false;
 
-            foreach (var action in emote.BiotaPropertiesEmoteAction)
-                EmoteManager.ExecuteEmote(emote, action, chain, receiver, giver);
-
+            EmoteManager.ExecuteEmoteSet(emoteSet, giver, actionChain, true);
             return true;
         }
 
@@ -433,7 +387,7 @@ namespace ACE.Server.WorldObjects
 
         public Position ForcedLocation { get; private set; }
 
-        public Position RequestedLocation { get; private set; }
+        public Position RequestedLocation { get; set; }
 
         public Position PreviousLocation { get; set; }
 
@@ -533,7 +487,7 @@ namespace ACE.Server.WorldObjects
                         sb.AppendLine($"{prop.Name} = {weenieFlags2.ToString()}" + " (" + (uint)weenieFlags2 + ")");
                         break;
                     case "positionflag":
-                        sb.AppendLine($"{prop.Name} = {obj.PositionFlag.ToString()}" + " (" + (uint)obj.PositionFlag + ")");
+                        sb.AppendLine($"{prop.Name} = {obj.PositionFlags.ToString()}" + " (" + (uint)obj.PositionFlags + ")");
                         break;
                     case "itemtype":
                         sb.AppendLine($"{prop.Name} = {obj.ItemType.ToString()}" + " (" + (uint)obj.ItemType + ")");
@@ -680,9 +634,9 @@ namespace ACE.Server.WorldObjects
             proj.OnCollideEnvironment();
         }
 
-        public void EnqueueBroadcastMotion(UniversalMotion motion, float? maxRange = null)
+        public void EnqueueBroadcastMotion(Motion motion, float? maxRange = null)
         {
-            var msg = new GameMessageUpdateMotion(Guid, Sequences.GetCurrentSequence(SequenceType.ObjectInstance), Sequences, motion);
+            var msg = new GameMessageUpdateMotion(this, motion);
 
             if (maxRange == null)
                 EnqueueBroadcast(msg);
@@ -791,26 +745,6 @@ namespace ACE.Server.WorldObjects
             return $"You {verb} {creature.Name} for {amount} points of {type} damage!";
         }
 
-        /// <summary>
-        /// Returns a randomized death message based on damage type
-        /// </summary>
-        public virtual string GetDeathMessage(WorldObject killer, DamageType damageType, bool criticalHit = false)
-        {
-            if (!criticalHit)
-            {
-                //var damageType = killer.GetDamageType();
-                Strings.DeathMessages.TryGetValue(damageType, out var messages);
-                var idx = Physics.Common.Random.RollDice(0, messages.Count - 1);
-                return messages[idx];
-            }
-            else
-            {
-                var messages = Strings.Critical;
-                var idx = Physics.Common.Random.RollDice(0, messages.Count - 1);
-                return messages[idx];
-            }
-        }
-
         public Dictionary<PropertyInt, int?> GetProperties(WorldObject wo)
         {
             var props = new Dictionary<PropertyInt, int?>();
@@ -887,9 +821,7 @@ namespace ACE.Server.WorldObjects
             if (multiple) return damageTypes;
 
             // get single damage type
-            var motion = creature.CurrentMotionState != null && creature.CurrentMotionState.Commands != null
-                && creature.CurrentMotionState.Commands.Count > 0 ? creature.CurrentMotionState.Commands[0].Motion.ToString() : "";
-
+            var motion = creature.CurrentMotionState.MotionState.ForwardCommand.ToString();
             foreach (DamageType damageType in Enum.GetValues(typeof(DamageType)))
             {
                 if ((damageTypes & damageType) != 0)
@@ -904,8 +836,23 @@ namespace ACE.Server.WorldObjects
             return damageTypes;
         }
 
+        /// <summary>
+        /// If this is a container or a creature, all of the inventory and/or equipped objects will also be destroyed.
+        /// </summary>
         public virtual void Destroy()
         {
+            if (this is Container container)
+            {
+                foreach (var item in container.Inventory.Values)
+                    item.Destroy();
+            }
+
+            if (this is Creature creature)
+            {
+                foreach (var item in creature.EquippedObjects.Values)
+                    item.Destroy();
+            }
+
             if (Location != null)
             {
                 ActionChain destroyChain = new ActionChain();
@@ -950,25 +897,26 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Returns TRUE if this object has a non-zero velocity,
-        /// or if it has non-cyclic animations in progress
+        /// Returns TRUE if this object has a non-zero velocity
         /// </summary>
-        public bool IsMoving { get => PhysicsObj != null && (PhysicsObj.Velocity.X != 0 || PhysicsObj.Velocity.Y != 0 || PhysicsObj.Velocity.Z != 0 ||
-                PhysicsObj.MovementManager != null && PhysicsObj.MovementManager.motions_pending()); }
+        public bool IsMoving { get => PhysicsObj != null && (PhysicsObj.Velocity.X != 0 || PhysicsObj.Velocity.Y != 0 || PhysicsObj.Velocity.Z != 0); }
+
+        /// <summary>
+        /// Returns TRUE if this object has non-cyclic animations in progress
+        /// </summary>
+        public bool IsAnimating { get => PhysicsObj != null && PhysicsObj.MovementManager != null && PhysicsObj.MovementManager.motions_pending(); }
 
         /// <summary>
         /// Executes a motion/animation for this object
         /// adds to the physics animation system, and broadcasts to nearby players
         /// </summary>
         /// <returns>The amount it takes to execute the motion</returns>
-        public float ExecuteMotion(UniversalMotion motion, bool sendClient = true, float? maxRange = null)
+        public float ExecuteMotion(Motion motion, bool sendClient = true, float? maxRange = null)
         {
-            var motionCommand = MotionCommand.Invalid;
+            var motionCommand = motion.MotionState.ForwardCommand;
 
-            if (motion.Commands != null && motion.Commands.Count > 0)
-                motionCommand = motion.Commands[0].Motion;
-            else if (motion.MovementData != null && motion.MovementData.CurrentStyle != 0)
-                motionCommand = (MotionCommand)motion.MovementData.CurrentStyle;
+            if (motionCommand == MotionCommand.Invalid)
+                motionCommand = (MotionCommand)motion.Stance;
 
             // run motion command on server through physics animation system
             if (PhysicsObj != null && motionCommand != MotionCommand.Invalid)
@@ -986,7 +934,7 @@ namespace ACE.Server.WorldObjects
             }
 
             // hardcoded ready?
-            var animLength = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, MotionCommand.Ready, motionCommand);
+            var animLength = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, CurrentMotionState.MotionState.ForwardCommand, motionCommand);
             CurrentMotionState = motion;
 
             // broadcast to nearby players
@@ -994,6 +942,14 @@ namespace ACE.Server.WorldObjects
                 EnqueueBroadcastMotion(motion, maxRange);
 
             return animLength;
+        }
+
+        public void SetStance(MotionStance stance, bool broadcast = true)
+        {
+            CurrentMotionState = new Motion(stance);
+
+            if (broadcast)
+                EnqueueBroadcastMotion(CurrentMotionState);
         }
     }
 }

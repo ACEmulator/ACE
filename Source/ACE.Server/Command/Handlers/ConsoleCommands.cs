@@ -32,7 +32,7 @@ namespace ACE.Server.Command.Handlers
             string exportDir = parameters[0];
 
             Console.WriteLine($"Exporting portal.dat contents to {exportDir}.  This will take a while.");
-            DatManager.PortalDat.ExtractCategorizedContents(exportDir);
+            DatManager.PortalDat.ExtractCategorizedPortalContents(exportDir);
             Console.WriteLine($"Export of portal.dat to {exportDir} complete.");
         }
 
@@ -50,7 +50,7 @@ namespace ACE.Server.Command.Handlers
             string exportDir = parameters[0];
 
             Console.WriteLine($"Exporting client_highres.dat contents to {exportDir}.  This will take a while.");
-            DatManager.HighResDat.ExtractCategorizedContents(exportDir);
+            DatManager.HighResDat.ExtractCategorizedPortalContents(exportDir);
             Console.WriteLine($"Export of client_highres.dat to {exportDir} complete.");
         }
 
@@ -68,7 +68,7 @@ namespace ACE.Server.Command.Handlers
             string exportDir = parameters[0];
 
             Console.WriteLine($"Exporting client_local_English.dat contents to {exportDir}.  This will take a while.");
-            DatManager.LanguageDat.ExtractCategorizedContents(exportDir);
+            DatManager.LanguageDat.ExtractCategorizedPortalContents(exportDir);
             Console.WriteLine($"Export of client_local_English.dat to {exportDir} complete.");
         }
 
@@ -93,7 +93,7 @@ namespace ACE.Server.Command.Handlers
                 {
                     var wave = DatManager.PortalDat.ReadFromDat<Wave>(entry.Value.ObjectId);
 
-                    Wave.ExportWave(wave, entry.Value.ObjectId, exportDir);
+                    wave.ExportWave(exportDir);
                 }
             }
             Console.WriteLine($"Export to {exportDir} complete.");
@@ -138,7 +138,7 @@ namespace ACE.Server.Command.Handlers
                     return;
                 }
 
-                var image = DatManager.PortalDat.ReadFromDat<RenderSurface>(imageId);
+                var image = DatManager.PortalDat.ReadFromDat<Texture>(imageId);
                 image.ExportTexture(exportDir);
 
                 Console.WriteLine($"Exported " + imageId.ToString("X8") + " to " + exportDir + ".");
@@ -150,9 +150,9 @@ namespace ACE.Server.Command.Handlers
                 Console.WriteLine($"Exporting client_portal.dat textures and images to {exportDir}.  This may take a while.");
                 foreach (KeyValuePair<uint, DatFile> entry in DatManager.PortalDat.AllFiles)
                 {
-                    if (entry.Value.GetFileType(DatDatabaseType.Portal) == DatFileType.RenderSurface)
+                    if (entry.Value.GetFileType(DatDatabaseType.Portal) == DatFileType.Texture)
                     {
-                        var image = DatManager.PortalDat.ReadFromDat<RenderSurface>(entry.Value.ObjectId);
+                        var image = DatManager.PortalDat.ReadFromDat<Texture>(entry.Value.ObjectId);
                         image.ExportTexture(exportDir);
                         portalFiles++;
                     }
@@ -163,9 +163,9 @@ namespace ACE.Server.Command.Handlers
                 {
                     foreach (KeyValuePair<uint, DatFile> entry in DatManager.HighResDat.AllFiles)
                     {
-                        if (entry.Value.GetFileType(DatDatabaseType.Portal) == DatFileType.RenderSurface)
+                        if (entry.Value.GetFileType(DatDatabaseType.Portal) == DatFileType.Texture)
                         {
-                            var image = DatManager.HighResDat.ReadFromDat<RenderSurface>(entry.Value.ObjectId);
+                            var image = DatManager.HighResDat.ReadFromDat<Texture>(entry.Value.ObjectId);
                             image.ExportTexture(exportDir);
                             highresFiles++;
                         }

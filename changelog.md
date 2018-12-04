@@ -1,5 +1,324 @@
 # ACEmulator Change Log
 
+### 2018-11-29
+[Mag-nus]
+* Improved design and performance for SequenceManager
+
+### 2018-11-28
+[OptimShi]
+* Added RenderTexture, String and Font to DatLoader.FileTypes
+
+### 2018-11-27
+[dgatewood]
+* Added scrolls to loot profiles
+* Added caching system for scrolls
+
+[gmriggs]
+* Added stream support to audio export
+
+### 2018-11-26
+[fartwhif]
+* Fixed a long-standing network bug with lost/corrupted packets dropping clients
+  - Fixed a bug causing AcknowledgeSequence packets to increment the LastReceivedPacketSequence, causing the Sequence to break and never recover for that Session
+  - Fixed a bug causing RequestTransmit packets to be ignored
+  - Improved server resiliency against malformed packets
+  - Changed the C2S RequestForRetransmit to per-request packet, instead of sequence
+  - Added developer network debug commands
+  - Added a generational feature to ISAAC development of network layer
+  - Adding pre-processor definition NETDIAG + directives to ACE.Common and ACE.Server to help development by preserving troubleshooting tools, without interference with the optimal solution
+
+### 2018-11-25
+[gmriggs, parad0x]
+* Updated client lib with features useful for third-party apps
+  - Added outdoor landscape texture blending system (ImgTex, TexMerge, LandSurf)
+  - Updated LandblockStruct to optionally generated texture UV coordinates for landscape textures. Defaults to off for server environments
+  - Added animation-only updates to physics engine
+
+### 2018-11-23
+[quinw68]
+* Added instructions for installing with VS Community Edition
+
+[dgatewood]
+* Added more RNG treasure generation for chests
+
+### 2018-11-22
+[gmriggs]
+* Improved DatLoader for third-party apps
+  - Fixed a bug where Unicode string lengths weren't being read as compressed
+  - Added optional flag for caller to select whether or not to load the cell.dat.
+  - Fixed a bug where Animation framecounts were being read as uint instead of int
+  - Added more enum flags, as per client definitions
+
+[gmriggs + Optimshi]
+  - Added more DAT fletypes: EnumMapper, StringTable, DIDMapper, DualDIDMapper
+
+### 2018-11-16
+[Ripley]
+* Fixed an issue with door and chest appraisal with respect to lockpick chances
+
+[Mag-nus]
+* keepOpen option added to DatDatabase FileStream - improves DatLoader performance
+* Added Property dictionary system - reduces CPU needed for handling properties by about 80%
+* Removed ActionQueue.Dequeue architecture, as it was unused. This change reduces the CPU ActionQueues require by half.
+
+### 2018-11-15
+[Ripley]
+* Make StackSize an int instead of ushort
+  - This fixes the housing prices to match retail
+
+[Mag-nus]
+* Changed format of ServerStatus, Total CPU Time to match server runtime
+* Streamline attributes and vitals
+* Cleanup LoadAllLandblocks status output, and improved comments
+
+### 2018-11-14
+[Mag-nus]
+* Profiling-based performance improvements:
+  - Landblock LoadMeshes summary improved
+  - Added thread safety to LScape.get_landblock()
+  - Improved WorldObject.ObjectGuid creation
+* Added caching subsystem to EnchantmentManager
+* With these recent changes, 50+ active players have been tested and running smoothly
+
+### 2018-11-11
+[gmriggs]
+* Improved ShadowPart performance
+
+### 2018-11-05
+[fartwhif]
+* Fixed a bug with using certain mana pools
+
+### 2018-11-01
+[Ripley]
+* Update EmoteManager and WorldObject Generator with fixes for Anniversary event emotes. 
+
+### 2018-10-31
+[Mag-nus]
+* Retain TimeToRot magic values of 0 and -1. They may have come from the weenie
+* Fixes for destroying stacks and consumables
+
+### 2018-10-30
+[gmriggs]
+* Adding particle emitters and animation to physics system (useful for non-server based projects)
+  - Much thanks to Pea and parad0x for their pioneering work to RE these systems
+
+### 2018-10-28
+[gmriggs]
+* Refactored LandblockManager, improved VitalTick performance
+* Added SetupModel caching
+
+[Mag-nus]
+* Improved performance of physics entity cache system
+* DBObj boxing/unboxing performance improvements
+* Improved performance of physics landblock loading / async - 30% faster landblock loading
+* Fixed a bug with corpses decaying a Corpse.EmptyDecayTime after they were looted
+* Fixed items given to NPCs reappearing back in player inventory
+
+### 2018-10-26
+[gmriggs]
+* Lugian animation / stance improvements
+
+### 2018-10-23
+[Mag-nus]
+* Added thread safety to DatLoader.ReadFromDat
+* Refactored landblock item -> db persistence system
+* Improved server shutdown for db consistency
+* Fixed a bug where landblocks were loading equipped items as objects owned by the landblock
+* Fixed a possible crash if invalid object added to landblock
+* Improved object decayable system:
+  - Decayable timer heirarchy now controlled by landblock
+  - WorldObject_Decay added to manage decay of all decayable objects
+  - WorldObject_Database now has functions to determine which static and dynamic objects should be saved to shard db
+* Improved object database persistence system:
+  - Performance improvements for player inventory actions
+  - Players are now saved to the database on a per-player 5 minute interval. This collects all of their items and performs saves in parallel
+  - Landblocks save their items to the database on a per-landblock 5 minute interval. This collects all of their items and performs saves in parallel
+* WorldObject.Destroy now destroys contained and equipped items
+* PositionType improvements
+
+### 2018-10-21
+[gmriggs]
+* Fixed an issue with some monsters getting stuck if they wakeup during idle emotes
+* Improved monster animation sync between server and client
+* Added relative positions to EmoteType.Move
+
+[fartwhif]
+* Improved /portal_bypass admin command to ignore quest restrictions
+
+### 2018-10-19
+[gmriggs]
+* Improved performance of GfxObjCache
+* Massive refactoring to the movement and animation systems
+  - UniversalMotion has been replaced with a new Motion class, which has a much simpler API
+  - Fixed a multiplayer bug where jumping couldn't be seen by other players
+  - Added Network structures for all movement and animation related packets in Network.Motion namespace
+  - Fixed a bug where players performing standing longjumps would repeatedly appear to run ahead and snapback in multiplayer
+  - Improved parsing of contact/isgrounded/sticky/standinglongjump/ flags in movement packets
+  - Added network reader alignment
+  - Fixed a bug where creatures were broadcasting UpdatePosition messages when performing emotes while standing still
+
+### 2018-10-15
+[gmriggs]
+* Added dispels and pressure plates
+* Adjusted use radius for some objects to match retail
+* Added fishing!
+* Refactored EmoteManager to better handle NPCs in busy state
+* Added more emotes to support the quest system
+* Bug fixes:
+  - Fixed a bug where Olthoi Swarm Eviscerator would spawn a quarter staff in its inventory, and attempt to wield it
+  - Fixed a bug where some linkable generators were not being classified correctly, and not spawning all of their objects
+  - Fixed a bug where '/adminvision on' would not take effect immediately
+  - Fixed a bug where larger monsters were not being detected as within melee range of player
+  - Thanks to [Jyrus] for testing, finding and reporting these bugs
+
+[Mag-nus]
+* Added RateMonitor system
+* Additional performance improvements from profiling:
+  - NetworkSession GameMessageGroup based bundles switched from concurrent dictionary to an array
+  - Landblock ctor async code grouped into single thread. This ensures landblock construction on server while loading assets doesn't consume idle threads, and saves that processor time for more important work in UpdateGameWorld
+  - Renamed Session tick functions, and removed the redundant checks from LandblockManager.GetLandblock()
+
+[Ripley]
+* Updated DownloadACEWorld.bat with latest ACE-World-16PY release (v0.0.20)
+
+### 2018-10-14
+[fartwhif]
+* added command verb "list" to developer command /telepoi that (re)caches and lists all POIs.
+
+### 2018-10-13
+[gmriggs]
+* Adding methods to QuestManager
+  - Added quest solve timers to item pickups
+  - Added "You've solved this quest too recently!" timer text
+  - Added quest restrictions for portals
+* Fixed a bug where recipe items could be combined with themselves
+* Added ConvertToMoASkill to recipe skill checks
+* Added Item Tinkering to skill updates
+* Complex quests such as Aerlinthe and Gaerlan's Citadel are now fully tested and completed
+
+### 2018-10-11
+[Mag-nus]
+* VitalHeartbeat performance optimizations
+* Fixed a possible null pointer exception in LaunchMissile
+
+### 2018-10-10
+[gmriggs]
+* Improved death messages for PK battles
+  - Messages added for all possible perspectives: the attacker, the defender, and nearby players
+* Fixed @heal to use maximum vitals
+* Added @deathxp command
+* Added all death messages for players dying to monsters
+* Fixed a bug where spell projectiles weren't triggering the possible critical death messages
+* Improved the generic creature -> player death pipeline
+* Fixed a bug where monsters would continually attack players while still materializing at the lifestone
+
+[Ripley]
+* Added @teleloc to SQL writers - now coordinates for every object in the game are visible in all the SQL files
+
+[Mag-nus]
+* Improved GameMessagePlayerTeleport packet structure to match retail exactly
+
+### 2018-10-09
+[gmriggs]
+* Improved player movement when using items (corpses/chests/doors)
+* Fixed a bug where player would switch to Peace mode to open containers
+* Fixed a bug where player would return to an open container for closing
+* Fixed a bug with arbitrary delays for using / rotating towards items (0.5s/1.0s)
+* Improved animation timing when using consumables (food/drink)
+* Fixed various bugs with player switching to Peace mode to perform various actions, instead of using the current stance
+* Fixed a bug where NPCs were running Actions before completing rotation towards player
+* Refactored MoveToChain a bit
+* Added character titles
+
+[Mag-nus]
+* Improved performance with weenie precaching
+* Improved performance of landblock loading - portal collision -> portal space -> landblock speed improvements
+
+### 2018-10-08
+[gmriggs]
+* Added server support for all level 8 spells
+* Added complete set of level 8 player spells
+* Updated Spell enum to have consistent casing between spell levels
+* Fixed a bug in the spell DAT reader for component loss (uint -> float)
+* Fixed a 'collection was modified' error during player death while removing enchantments
+* Added /dispel developer command
+* Added /showstats debug command to show all player attribute and skill levels from server
+* Improved /buff command with an optional spell level # parameter
+  - Fixed a bug where /buff command was applying multiple versions of the same spells
+* Fixed a bug where level 8 spells had their minimum power set to 350 instead of 400
+* Fixed a bug where level 8 spell effects were too small
+* Added TransferFlags enum for life magic transfer spells
+* Fixed a bug where no death message was displayed for death blows from DamageType.Health (harm, drain, life projectiles)
+* Fixed a bug where item enchantments were having their ticks applied twice
+* Fixed a bug where mages would cast spells before rotating completely to target
+* Added level 8 item auras to EnchantmentManager.GetModifier()
+* Player magic refactoring:
+  - Fixed a bug where players would windup / fizzle if they didn't have enough mana
+  - Updated text messages for life magic transfer and boost spells to match retail more closely
+  - Fixed a bug where life projectiles were getting the target stats instead of the source stats
+  - Updated life magic transfer spells to use TransferFlags
+
+### 2018-10-06
+[Mag-nus]
+* Added RateLimiter system for precise timing control on server components
+* Improved performance for session handlers
+
+### 2018-10-05
+[gmriggs]
+* Added 2-handed weapons, and cleaving damage system
+
+### 2018-10-04
+[gmriggs]
+* Added the ItemManaDepleted sound effect
+* Updated the low mana warning timer from 30s -> 2m
+* Added commas to all numbers >= 1,000
+* Added /givemana debug command
+* Changed the wording of some message to match retail:
+  - mana -> Mana for low/depleted messages
+  - added a missing . to the end of item lists
+
+### 2018-10-03
+[gmriggs]
+* Added multistrike weapons
+* Improved dual weapons stat combinations from both weapons
+* Imporved weapon swing animation timings for melee combat
+
+[Riaf]
+* Fixed a possible server crash if new players try to join an allegiance
+
+### 2018-10-02
+[Jyrus]
+* Added landblock preloading / permaload system
+
+[Ripley]
+* Update Generator InitCreate and MaxCreate from uint -> int
+
+[gmriggs]
+* Massive refactoring to Generator systems:
+  - Fixed various bugs with generators spawning too many objects, RNG selecting the wrong items, and missing various RNG selection formulas
+  - Generators now use RegenInterval heartbeats
+* Improved MotionRange broadcast performance w/ distance squared
+* Improved performance for landblock objects by staggering the heartbeat offsets
+* Added default values for Generator properties
+* Moved HandlePhysics and ActiveLandblocks to UpdateGameWorld(), targeted to run @ 60fps
+* Updated SessionHandler for improved performance
+* Removed calls to legacy Landblock.UpdateStatus() methods
+* Fixed a bug where resisted spells weren't alerting monsters
+* Fixed a crash for landblocks with no LandblockInfo record
+
+### 2018-10-01
+[Jyrus]
+* Fixed a bug with Life Magic boost spells pointing to DamageType
+* Renamed DamageType2 to VitalDamageType
+
+[Mag-nus]
+* Added @propertydump command - displays all of the properties for the last appraised object
+* Added PlayerFactory for load testing
+* Added @spendallxp developer command
+
+[gmriggs]
+* Fixed a generator bug with RegenLocationType.Specific spawning some mobs in different landblocks
+
 ### 2018-09-30
 [gmriggs]
 * Improved monster timing / server animation sync

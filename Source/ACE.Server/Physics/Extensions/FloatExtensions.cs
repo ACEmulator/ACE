@@ -13,5 +13,14 @@ namespace ACE.Server.Physics.Extensions
         {
             return (float)(180.0f / Math.PI * rads);
         }
+
+        public static float Clamp(this float f, float min, float max)
+        {
+            if (f < min)
+                f = min;
+            if (f > max)
+                f = max;
+            return f;
+        }
     }
 }

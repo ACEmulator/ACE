@@ -1,22 +1,21 @@
+using System;
 using ACE.Common;
-using ACE.Database;
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
-using ACE.Server.Factories;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
-using ACE.Server.Network.Motion;
 
 namespace ACE.Server.WorldObjects
 {
     public class Door : WorldObject, Lock
     {
-        private static readonly UniversalMotion motionOpen = new UniversalMotion(MotionStance.NonCombat, new MotionItem(MotionCommand.On));
-        private static readonly UniversalMotion motionClosed = new UniversalMotion(MotionStance.NonCombat, new MotionItem(MotionCommand.Off));
+        private static readonly Motion motionOpen = new Motion(MotionStance.NonCombat, MotionCommand.On);
+        private static readonly Motion motionClosed = new Motion(MotionStance.NonCombat, MotionCommand.Off);
 
         /// <summary>
         /// A new biota be created taking all of its values from weenie.
@@ -51,7 +50,6 @@ namespace ACE.Server.WorldObjects
                 //Ethereal = true;
             }
 
-            IsLocked = IsLocked ?? false;
             ResetInterval = ResetInterval ?? 30.0f;
             ResistLockpick = ResistLockpick ?? 0;
             LockCode = LockCode ?? "";
@@ -63,7 +61,7 @@ namespace ACE.Server.WorldObjects
             ////    IsLocked = false;
 
             // But since we don't know what doors were DefaultLocked, let's assume for now that any door that starts Locked should default as such.
-            if (IsLocked ?? false)
+            if (IsLocked)
                 DefaultLocked = true;
 
             if (UseRadius < 2)
@@ -139,12 +137,6 @@ namespace ACE.Server.WorldObjects
             set;
         }
 
-        public int? ResistLockpick
-        {
-            get => GetProperty(PropertyInt.ResistLockpick);
-            set { if (!value.HasValue) RemoveProperty(PropertyInt.ResistLockpick); else SetProperty(PropertyInt.ResistLockpick, value.Value); }
-        }
-
         private int? AppraisalLockpickSuccessPercent
         {
             get;
@@ -160,47 +152,36 @@ namespace ACE.Server.WorldObjects
             ////    return;
             ////}
 
-            ActionChain checkDoorChain = new ActionChain();
-
-            checkDoorChain.AddAction(this, () =>
+            if (!IsLocked)
             {
-                if (!IsLocked ?? false)
-                {
-                    if (!IsOpen ?? false)
-                    {
-                        Open(worldObject.Guid);
-                    }
-                    else
-                    {
-                        Close(worldObject.Guid);
-                    }
+                if (!IsOpen)
+                    Open(worldObject.Guid);
+                else if (!(worldObject is Switch) && !(worldObject is PressurePlate))
+                    Close(worldObject.Guid);
 
-                    // Create Door auto close timer
-                    ActionChain autoCloseTimer = new ActionChain();
-                    autoCloseTimer.AddDelaySeconds(ResetInterval ?? 0);
-                    autoCloseTimer.AddAction(this, () => Reset());
-                    autoCloseTimer.EnqueueChain();
-                }
-                else
-                {
-                    if (worldObject is Player)
-                    {
-                        var player = worldObject as Player;
-                        var doorIsLocked = new GameEventCommunicationTransientString(player.Session, "The door is locked!");
-                        player.Session.Network.EnqueueSend(doorIsLocked);
-                        EnqueueBroadcast(new GameMessageSound(Guid, Sound.OpenFailDueToLock, 1.0f));
-                    }
-                }
-
+                // Create Door auto close timer
+                ActionChain autoCloseTimer = new ActionChain();
+                autoCloseTimer.AddDelaySeconds(ResetInterval ?? 0);
+                autoCloseTimer.AddAction(this, () => Reset());
+                autoCloseTimer.EnqueueChain();
+            }
+            else
+            {
                 if (worldObject is Player)
                 {
                     var player = worldObject as Player;
-                    var sendUseDoneEvent = new GameEventUseDone(player.Session);
-                    player.Session.Network.EnqueueSend(sendUseDoneEvent);
+                    var doorIsLocked = new GameEventCommunicationTransientString(player.Session, "The door is locked!");
+                    player.Session.Network.EnqueueSend(doorIsLocked);
+                    EnqueueBroadcast(new GameMessageSound(Guid, Sound.OpenFailDueToLock, 1.0f));
                 }
-            });
+            }
 
-            checkDoorChain.EnqueueChain();
+            if (worldObject is Player)
+            {
+                var player = worldObject as Player;
+                var sendUseDoneEvent = new GameEventUseDone(player.Session);
+                player.Session.Network.EnqueueSend(sendUseDoneEvent);
+            }
         }
 
         public void Open(ObjectGuid opener = new ObjectGuid())
@@ -244,7 +225,7 @@ namespace ACE.Server.WorldObjects
                 if (DefaultLocked)
                 {
                     IsLocked = true;
-                    var updateProperty = new GameMessagePublicUpdatePropertyBool(this, PropertyBool.Locked, IsLocked ?? true);
+                    var updateProperty = new GameMessagePublicUpdatePropertyBool(this, PropertyBool.Locked, IsLocked);
                     var sound = new GameMessageSound(Guid, Sound.OpenFailDueToLock, 1.0f); // TODO: This should probably come 1.5 seconds after the door closes so that sounds don't overlap
                     EnqueueBroadcast(updateProperty, sound);
                 }
@@ -275,6 +256,19 @@ namespace ACE.Server.WorldObjects
         public override void SetLinkProperties(WorldObject wo)
         {
             wo.ActivationTarget = Guid.Full;
+        }
+
+        public override void OnCollideObject(WorldObject target)
+        {
+            if (IsOpen) return;
+
+            // currently the only AI options appear to be 0 or 1,
+            // 1 meaning able to open doors?
+            var creature = target as Creature;
+            if (creature == null || creature.AiOptions == 0)
+                return;
+
+            ActOnUse(target);
         }
     }
 }

@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Numerics;
 
 using ACE.Entity;
@@ -34,6 +33,24 @@ namespace ACE.Server.WorldObjects
                 HeartBeat(currentUnixTime);
         }
 
+
+        /// <summary>
+        /// Runs all actions pending on this WorldObject
+        /// </summary>
+        void IActor.RunActions()
+        {
+            actionQueue.RunActions();
+        }
+
+        /// <summary>
+        /// Prepare new action to run on this object
+        /// </summary>
+        public void EnqueueAction(IAction action)
+        {
+            actionQueue.EnqueueAction(action);
+        }
+
+
         /// <summary>
         /// Enqueues the first heartbeat on a staggered 0-5s delay
         /// </summary>
@@ -61,29 +78,6 @@ namespace ACE.Server.WorldObjects
             SetProperty(PropertyFloat.HeartbeatTimestamp, currentUnixTime);
         }
 
-        /// <summary>
-        /// Runs all actions pending on this WorldObject
-        /// </summary>
-        void IActor.RunActions()
-        {
-            actionQueue.RunActions();
-        }
-
-        /// <summary>
-        /// Prepare new action to run on this object
-        /// </summary>
-        public LinkedListNode<IAction> EnqueueAction(IAction action)
-        {
-            return actionQueue.EnqueueAction(action);
-        }
-
-        /// <summary>
-        /// Satisfies action interface
-        /// </summary>
-        void IActor.DequeueAction(LinkedListNode<IAction> node)
-        {
-            actionQueue.DequeueAction(node);
-        }
 
         public uint prevCell;
         public bool InUpdate;
@@ -172,6 +166,8 @@ namespace ACE.Server.WorldObjects
             // arrows / spell projectiles
             var isMissile = Missile.HasValue && Missile.Value;
 
+            //var contactPlane = (PhysicsObj.State & PhysicsState.Gravity) != 0 && MotionTableId != 0 && (PhysicsObj.TransientState & TransientStateFlags.Contact) == 0;
+
             // monsters have separate physics updates
             var creature = this as Creature;
             var monster = creature != null && creature.IsMonster;
@@ -180,7 +176,7 @@ namespace ACE.Server.WorldObjects
             // determine if updates should be run for object
             //var runUpdate = !monster && (isMissile || !PhysicsObj.IsGrounded);
             //var runUpdate = isMissile;
-            var runUpdate = !monster && (isMissile || IsMoving);
+            var runUpdate = !monster && (isMissile || /*IsMoving ||*/ IsAnimating /*|| contactPlane*/);
 
             if (creature != null)
             {
@@ -211,6 +207,7 @@ namespace ACE.Server.WorldObjects
             var prevPos = new Vector3(pos.X, pos.Y, pos.Z);
             var cellBefore = PhysicsObj.CurCell != null ? PhysicsObj.CurCell.ID : 0;
 
+            //Console.WriteLine($"{Name} - ticking physics");
             var updated = PhysicsObj.update_object();
 
             // get position after
@@ -240,8 +237,8 @@ namespace ACE.Server.WorldObjects
                 //WorldManager.UpdateLandblock.Add(this);
             }
 
-            if (PhysicsObj.IsGrounded)
-                SendUpdatePosition(true);
+            /*if (PhysicsObj.IsGrounded)
+                SendUpdatePosition();*/
 
             //var dist = Vector3.Distance(ProjectileTarget.Location.Pos, newPos);
             //Console.WriteLine("Dist: " + dist);

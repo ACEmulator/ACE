@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+
 using ACE.Entity.Enum;
 using ACE.Server.Managers;
 
@@ -17,10 +18,10 @@ namespace ACE.Server.Network.GameEvent.Events
             // For now, since everyone is subscribed and unable to alter, let's just list every character connected.
             uint numClientsConnected = 0;
             List<string> playerNames = new List<string>();
-            foreach (var client in WorldManager.GetAll())
+            foreach (var client in PlayerManager.GetAllOnline())
             {
                 numClientsConnected++;
-                playerNames.Add(client.Player.Name);
+                playerNames.Add(client.Name);
             }
 
             Writer.Write(numClientsConnected);

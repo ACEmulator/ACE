@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+
 using ACE.Entity.Enum;
 using ACE.Server.Physics.Animation;
 using ACE.Server.Physics.Combat;
@@ -120,7 +121,14 @@ namespace ACE.Server.Physics.Common
 
                 var state = obj.FindObjCollisions(transition);
                 if (state != TransitionState.OK)
+                {
+                    // custom: fix hellfire spawn colliding with volcano heat, and possibly other placements
+                    if (path.InsertType == InsertType.Placement && obj.State.HasFlag(PhysicsState.Ethereal))
+                        continue;
+
                     return state;
+                }
+                    
             }
             return TransitionState.OK;
         }
@@ -131,9 +139,9 @@ namespace ACE.Server.Physics.Common
 
             var objCell = new ObjCell(cellID);
             if (cellID >= 0x100)
-                return (EnvCell)DBObj.Get(new QualifiedDataID(3, cellID));
-            else
-                return LandCell.Get(cellID);
+                return DBObj.GetEnvCell(cellID);
+
+            return LandCell.Get(cellID);
         }
 
         public PhysicsObj GetObject(int id)

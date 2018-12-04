@@ -67,7 +67,7 @@ namespace ACE.Server
             ServerManager.Initialize();
 
             log.Info("Initializing DatManager...");
-            DatManager.Initialize(ConfigManager.Config.Server.DatFilesDirectory);
+            DatManager.Initialize(ConfigManager.Config.Server.DatFilesDirectory, true);
 
             log.Info("Initializing DatabaseManager...");
             DatabaseManager.Initialize();
@@ -81,6 +81,29 @@ namespace ACE.Server
             log.Info("Initializing GuidManager...");
             GuidManager.Initialize();
 
+            if (ConfigManager.Config.Server.WorldDatabasePrecaching)
+            {
+                log.Info("Precaching Weenies...");
+                DatabaseManager.World.CacheAllWeeniesInParallel();
+                log.Info("Precaching Points Of Interest...");
+                DatabaseManager.World.CacheAllPointsOfInterest();
+                log.Info("Precaching Cookbooks...");
+                DatabaseManager.World.CacheAllCookbooksInParallel();
+                log.Info("Precaching Spells...");
+                DatabaseManager.World.CacheAllSpells();
+                log.Info("Precaching Events...");
+                DatabaseManager.World.GetAllEvents();
+                log.Info("Precaching Death Treasures...");
+                DatabaseManager.World.CacheAllDeathTreasures();
+                log.Info("Precaching Wielded Treasures...");
+                DatabaseManager.World.CacheAllWieldedTreasuresInParallel();
+            }
+            else
+                log.Info("Precaching World Database Disabled...");
+
+            log.Info("Initializing PlayerManager...");
+            PlayerManager.Initialize();
+
             log.Info("Initializing InboundMessageManager...");
             InboundMessageManager.Initialize();
 
@@ -90,13 +113,17 @@ namespace ACE.Server
             log.Info("Initializing WorldManager...");
             WorldManager.Initialize();
 
-            if (ConfigManager.Config.Server.LandblockPreloading == true)
+            if (ConfigManager.Config.Server.LandblockPreloading)
             {
                 log.Info("Preloading Landblocks...");
-                LandblockManager.Initialize();
+                LandblockManager.PreloadConfigLandblocks();
             }
             else
-                log.Info("No Landblock Preloading Performed...");
+            {
+                log.Info("Preloading Landblocks Disabled...");
+                log.Warn("Events may not function correctly as Preloading of Landblocks has disabled.");
+            }
+
 
             log.Info("Initializing EventManager...");
             EventManager.Initialize();
@@ -108,6 +135,9 @@ namespace ACE.Server
 
         private static void OnProcessExit(object sender, EventArgs e)
         {
+            if (!ServerManager.ShutdownInitiated)
+                log.Warn("Unsafe server shutdown detected! Data loss is possible!");
+
             PropertyManager.StopUpdating();
             DatabaseManager.Stop();
 

@@ -19,8 +19,8 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Determines if a monster is within melee range of target
         /// </summary>
-        //public static readonly float MaxMeleeRange = 0.5f;
         public static readonly float MaxMeleeRange = 1.5f;
+        //public static readonly float MaxMeleeRange = 1.5f + 0.6f + 0.1f;    // max melee range + distance from + buffer
 
         /// <summary>
         /// The maximum range for a monster missile attack
@@ -51,23 +51,30 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// The last time a movement tick was processed
         /// </summary>
-        public DateTime LastMoveTime;
+        public double LastMoveTime;
 
         public bool DebugMove;
 
         public bool InitSticky;
         public bool Sticky;
 
+        public double NextMoveTime;
+
         /// <summary>
         /// Starts the process of monster turning towards target
         /// </summary>
         public void StartTurn()
         {
+            if (Timers.RunningTime < NextMoveTime)
+                return;
+
             if (DebugMove)
                 Console.WriteLine($"{Name} ({Guid}) - StartTurn, ranged={IsRanged}");
 
             if (MoveSpeed == 0.0f)
                 GetMovementSpeed();
+
+            //Console.WriteLine($"[{Timers.RunningTime}] - {Name} ({Guid}) - starting turn");
 
             IsTurning = true;
 
@@ -116,7 +123,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void StartMove()
         {
-            LastMoveTime = DateTime.UtcNow;
+            LastMoveTime = Timers.RunningTime;;
             IsMoving = true;
         }
 
@@ -178,8 +185,21 @@ namespace ACE.Server.WorldObjects
         public float GetDistanceToTarget()
         {
             var dist = (AttackTarget.Location.ToGlobal() - Location.ToGlobal()).Length();
-            dist -= AttackTarget.PhysicsObj.GetRadius() + PhysicsObj.GetRadius();
-            return dist;
+            var radialDist = dist - (AttackTarget.PhysicsObj.GetRadius() + PhysicsObj.GetRadius());
+
+            // always use spheres?
+            var cylDist = (float)Physics.Common.Position.CylinderDistance(PhysicsObj.GetRadius(), PhysicsObj.GetHeight(), PhysicsObj.Position,
+                AttackTarget.PhysicsObj.GetRadius(), AttackTarget.PhysicsObj.GetHeight(), AttackTarget.PhysicsObj.Position);
+
+            /*if (DebugMove)
+            {
+                Console.WriteLine($"Raw distance: {dist} ({radialDist}) - Cylinder dist: {cylDist}");
+                Console.WriteLine($"Player radius: {AttackTarget.PhysicsObj.GetRadius()} ({AttackTarget.PhysicsObj.GetPhysicsRadius()})");
+                Console.WriteLine($"Monster radius: {PhysicsObj.GetRadius()} ({PhysicsObj.GetPhysicsRadius()})");
+            }*/
+
+            //return radialDist;
+            return cylDist;
         }
 
         /// <summary>
@@ -211,7 +231,8 @@ namespace ACE.Server.WorldObjects
             PhysicsObj.update_object();
             UpdatePosition_SyncLocation();
 
-            SendUpdatePosition(ForcePos);
+            //SendUpdatePosition(ForcePos);
+            SendUpdatePosition();
 
             if (DebugMove)
                 Console.WriteLine($"{Name} ({Guid}) - UpdatePosition (velocity: {PhysicsObj.CachedVelocity.Length()})");
@@ -314,8 +335,8 @@ namespace ACE.Server.WorldObjects
             if (dist < minDist)
                 threshold += (minDist - dist) * 1.5f;
 
-            //if (DebugMove)
-                //Console.WriteLine($"{Name}.IsFacing({target.Name}): Angle={angle}, Dist={dist}, Threshold={threshold}, {angle < threshold}");
+            if (DebugMove)
+                Console.WriteLine($"{Name}.IsFacing({target.Name}): Angle={angle}, Dist={dist}, Threshold={threshold}, {angle < threshold}");
 
             return angle < threshold;
         }

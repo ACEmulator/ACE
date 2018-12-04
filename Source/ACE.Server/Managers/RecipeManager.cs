@@ -4,10 +4,10 @@ using ACE.Database;
 using ACE.DatLoader;
 using ACE.DatLoader.FileTypes;
 using ACE.Entity.Enum;
+using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.WorldObjects;
 using ACE.Server.Network.GameMessages.Messages;
-using ACE.Server.Network.Motion;
 using ACE.Server.WorldObjects.Entity;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Factories;
@@ -25,6 +25,14 @@ namespace ACE.Server.Managers
 
         public static void UseObjectOnTarget(Player player, WorldObject source, WorldObject target)
         {
+            if (source == target)
+            {
+                var message = new GameMessageSystemChat($"The {source.Name} cannot be combined with itself.", ChatMessageType.Craft);
+                player.Session.Network.EnqueueSend(message);
+                player.SendUseDoneEvent();
+                return;
+            }
+
             var recipe = DatabaseManager.World.GetCachedCookbook(source.WeenieClassId, target.WeenieClassId);
 
             if (recipe == null)
@@ -40,7 +48,7 @@ namespace ACE.Server.Managers
             bool skillSuccess = true; // assume success, unless there's a skill check
             double percentSuccess = 1;
 
-            UniversalMotion motion = new UniversalMotion(MotionStance.NonCombat, new MotionItem(MotionCommand.ClapHands));
+            var motion = new Motion(MotionStance.NonCombat, MotionCommand.ClapHands);
             craftChain.AddAction(player, () => player.EnqueueBroadcastMotion(motion));
             var motionTable = DatManager.PortalDat.ReadFromDat<MotionTable>(player.MotionTableId);
             var craftAnimationLength = motionTable.GetAnimationLength(MotionCommand.ClapHands);
@@ -50,11 +58,11 @@ namespace ACE.Server.Managers
             {
                 if (recipe.Recipe.Skill > 0 && recipe.Recipe.Difficulty > 0)
                 {
-                        // there's a skill associated with this
-                        Skill skillId = (Skill)recipe.Recipe.Skill;
+                    // there's a skill associated with this
+                    Skill skillId = (Skill)recipe.Recipe.Skill;
 
-                        // this shouldn't happen, but sanity check for unexpected nulls
-                        skill = player.GetCreatureSkill(skillId);
+                    // this shouldn't happen, but sanity check for unexpected nulls
+                    skill = player.GetCreatureSkill(skillId);
 
                     if (skill == null)
                     {
@@ -63,12 +71,22 @@ namespace ACE.Server.Managers
                         return;
                     }
 
+                    //Console.WriteLine("Skill difficulty: " + recipe.Recipe.Difficulty);
+
                     percentSuccess = skill.GetPercentSuccess(recipe.Recipe.Difficulty); //FIXME: Pretty certain this is broken
                 }
 
                 if (skill != null)
                 {
-                    if (skill.AdvancementClass == SkillAdvancementClass.Untrained)
+                    // check for pre-MoA skill
+                    // convert into appropriate post-MoA skill
+                    // pre-MoA melee weapons: get highest melee weapons skill
+                    var newSkill = player.ConvertToMoASkill(skill.Skill);
+                    skill = player.GetCreatureSkill(newSkill);
+
+                    //Console.WriteLine("Required skill: " + skill.Skill);
+
+                    if (skill.AdvancementClass <= SkillAdvancementClass.Untrained)
                     {
                         var message = new GameEventWeenieError(player.Session, WeenieError.YouAreNotTrainedInThatTradeSkill);
                         player.Session.Network.EnqueueSend(message);
@@ -91,7 +109,7 @@ namespace ACE.Server.Managers
                     {
                         if (target.OwnerId == player.Guid.Full  || player.GetInventoryItem(target.Guid) != null)
                         {
-                            player.TryRemoveItemFromInventoryWithNetworking(target, (ushort)recipe.Recipe.SuccessDestroyTargetAmount);
+                            player.TryRemoveItemFromInventoryWithNetworkingWithDestroy(target, (ushort)recipe.Recipe.SuccessDestroyTargetAmount);
                         }
                         else if (target.WielderId == player.Guid.Full)
                         {
@@ -114,7 +132,7 @@ namespace ACE.Server.Managers
                     {
                         if (source.OwnerId == player.Guid.Full || player.GetInventoryItem(target.Guid) != null)
                         {
-                            player.TryRemoveItemFromInventoryWithNetworking(source, (ushort)recipe.Recipe.SuccessDestroySourceAmount);
+                            player.TryRemoveItemFromInventoryWithNetworkingWithDestroy(source, (ushort)recipe.Recipe.SuccessDestroySourceAmount);
                         }
                         else if (source.WielderId == player.Guid.Full)
                         {
@@ -158,7 +176,7 @@ namespace ACE.Server.Managers
                     {
                         if (target.OwnerId == player.Guid.Full || player.GetInventoryItem(target.Guid) != null)
                         {
-                            player.TryRemoveItemFromInventoryWithNetworking(target, (ushort)recipe.Recipe.FailDestroyTargetAmount);
+                            player.TryRemoveItemFromInventoryWithNetworkingWithDestroy(target, (ushort)recipe.Recipe.FailDestroyTargetAmount);
                         }
                         else if (target.WielderId == player.Guid.Full)
                         {
@@ -181,7 +199,7 @@ namespace ACE.Server.Managers
                     {
                         if (source.OwnerId == player.Guid.Full || player.GetInventoryItem(target.Guid) != null)
                         {
-                            player.TryRemoveItemFromInventoryWithNetworking(source, (ushort)recipe.Recipe.FailDestroySourceAmount);
+                            player.TryRemoveItemFromInventoryWithNetworkingWithDestroy(source, (ushort)recipe.Recipe.FailDestroySourceAmount);
                         }
                         else if (source.WielderId == player.Guid.Full)
                         {

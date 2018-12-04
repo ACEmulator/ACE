@@ -6,16 +6,10 @@ namespace ACE.Entity.Enum.Properties
     public enum PropertyAttribute2nd : ushort
     {
         Undef       = 0,
-
-        [AttributeFormula(AttributeCache.Endurance, 2)]
         MaxHealth   = 1,
         Health      = 2,
-
-        [AttributeFormula(AttributeCache.Endurance)]
         MaxStamina  = 3,
         Stamina     = 4,
-
-        [AttributeFormula(AttributeCache.Self)]
         MaxMana     = 5,
         Mana        = 6
     }
@@ -26,11 +20,6 @@ namespace ACE.Entity.Enum.Properties
         {
             var description = prop.GetAttributeOfType<DescriptionAttribute>();
             return description?.Description ?? prop.ToString();
-        }
-
-        public static AttributeFormulaAttribute GetFormula(this PropertyAttribute2nd attribute)
-        {
-            return attribute.GetAttributeOfType<AttributeFormulaAttribute>();
         }
 
         /// <summary>

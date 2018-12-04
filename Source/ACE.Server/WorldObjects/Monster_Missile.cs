@@ -31,6 +31,14 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void RangeAttack()
         {
+            var target = AttackTarget as Creature;
+
+            if (target == null || !target.IsAlive)
+            {
+                Sleep();
+                return;
+            }
+
             var weapon = GetEquippedMissileWeapon();
             var ammo = GetEquippedAmmo();
 
@@ -62,7 +70,7 @@ namespace ACE.Server.WorldObjects
             // ensure direct line of sight
             if (!IsDirectVisible(AttackTarget))
             {
-                NextAttackTime = DateTime.UtcNow.AddSeconds(1.0f);
+                NextAttackTime = Timers.RunningTime + 1.0f;;
                 return;
             }
 
@@ -71,6 +79,9 @@ namespace ACE.Server.WorldObjects
 
             var dist = GetDistanceToTarget();
             //Console.WriteLine("RangeAttack: " + dist);
+
+            if (DebugMove)
+                Console.WriteLine($"[{Timers.RunningTime}] - {Name} ({Guid}) - LaunchMissile");
 
             // launch animation
             var actionChain = new ActionChain();
@@ -86,15 +97,18 @@ namespace ACE.Server.WorldObjects
 
                 // TODO: monster stamina usage
 
-                var projectile = LaunchProjectile(ammo, AttackTarget, out targetTime);
-                UpdateAmmoAfterLaunch(ammo);
+                if (AttackTarget != null)
+                {
+                    var projectile = LaunchProjectile(ammo, AttackTarget, out targetTime);
+                    UpdateAmmoAfterLaunch(ammo);
+                }
             });
 
             // will ammo be depleted?
             if (ammo.StackSize == 1)
             {
                 actionChain.EnqueueChain();
-                NextAttackTime = DateTime.UtcNow.AddSeconds(launchTime + MissileDelay);
+                NextMoveTime = NextAttackTime = Timers.RunningTime + launchTime + MissileDelay;
                 return;
             }
 
@@ -114,7 +128,11 @@ namespace ACE.Server.WorldObjects
 
             var timeOffset = launchTime + reloadTime + linkTime;
 
-            NextAttackTime = DateTime.UtcNow.AddSeconds(timeOffset + MissileDelay);
+            var missileDelay = MissileDelay;
+            if (!weapon.IsAmmoLauncher)
+                missileDelay *= 1.5f;
+
+            NextMoveTime = NextAttackTime = Timers.RunningTime + timeOffset + missileDelay;
         }
 
         /// <summary>
@@ -122,6 +140,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public Range GetMissileDamage()
         {
+            // FIXME: use actual projectile, instead of currently equipped ammo
             var ammo = GetMissileAmmo();
 
             return ammo.GetDamageMod(this);

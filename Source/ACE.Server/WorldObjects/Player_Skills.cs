@@ -1,9 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+
 using ACE.DatLoader;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Server.Entity.Actions;
 using ACE.Server.Network.Enum;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.WorldObjects.Entity;
@@ -497,8 +499,13 @@ namespace ACE.Server.WorldObjects
                     var spell = new Server.Entity.Spell(spellID);
                     if (spell.NotFound)
                     {
-                        Session.Network.EnqueueSend(this, 3.0f, new GameMessageSystemChat("To install Dirty Fighting, please apply the latest patches from https://github.com/ACEmulator/ACE-World-16PY-Patches", ChatMessageType.Broadcast));
-                        break;
+                        var actionChain = new ActionChain();
+                        actionChain.AddDelaySeconds(3.0f);
+                        actionChain.AddAction(this, () =>
+                        {
+                            Session.Network.EnqueueSend(new GameMessageSystemChat("To install Dirty Fighting, please apply the latest patches from https://github.com/ACEmulator/ACE-World-16PY-Patches", ChatMessageType.Broadcast));
+                        });
+                        actionChain.EnqueueChain();
                     }
                     break;  // performance improvement: only check first spell
                 }
@@ -513,8 +520,13 @@ namespace ACE.Server.WorldObjects
                     var spell = new Server.Entity.Spell(spellID);
                     if (spell.NotFound)
                     {
-                        Session.Network.EnqueueSend(this, 3.0f, new GameMessageSystemChat("To install Void Magic, please apply the latest patches from https://github.com/ACEmulator/ACE-World-16PY-Patches", ChatMessageType.Broadcast));
-                        break;
+                        var actionChain = new ActionChain();
+                        actionChain.AddDelaySeconds(3.0f);
+                        actionChain.AddAction(this, () =>
+                        {
+                            Session.Network.EnqueueSend(new GameMessageSystemChat("To install Void Magic, please apply the latest patches from https://github.com/ACEmulator/ACE-World-16PY-Patches", ChatMessageType.Broadcast));
+                        });
+                        actionChain.EnqueueChain();
                     }
                     break;  // performance improvement: only check first spell (measured 102ms to check 75 uncached void spells)
                 }

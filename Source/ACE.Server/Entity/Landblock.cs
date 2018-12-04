@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Numerics;
 using System.Threading;
+using System.Threading.Tasks;
 
 using log4net;
 
@@ -13,11 +14,12 @@ using ACE.Database.Models.World;
 using ACE.DatLoader;
 using ACE.DatLoader.FileTypes;
 using ACE.Entity;
-using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
 using ACE.Server.Managers;
 using ACE.Server.Physics.Common;
+using ACE.Server.Network.GameMessages;
 using ACE.Server.WorldObjects;
 
 using Position = ACE.Entity.Position;
@@ -49,24 +51,27 @@ namespace ACE.Server.Entity
         /// </summary>
         public bool Permaload = false;
 
-        public bool IsActive { get; private set; } = true;
         private DateTime lastActiveTime;
 
-        public LandBlockStatus Status { get; } = new LandBlockStatus();
+        private readonly Dictionary<ObjectGuid, WorldObject> worldObjects = new Dictionary<ObjectGuid, WorldObject>();
 
-        public bool AdjacenciesLoaded { get; internal set; }
+        public List<Landblock> Adjacents = new List<Landblock>();
 
-
-        public readonly Dictionary<ObjectGuid, WorldObject> worldObjects = new Dictionary<ObjectGuid, WorldObject>(); // TODO Make this private
-        private readonly Dictionary<Adjacency, Landblock> adjacencies = new Dictionary<Adjacency, Landblock>();
-
+        private readonly ActionQueue actionQueue = new ActionQueue();
 
         /// <summary>
-        /// Landblocks will be checked for activity every # seconds
+        /// Landblocks heartbeat every 5 seconds
         /// </summary>
         private static readonly TimeSpan heartbeatInterval = TimeSpan.FromSeconds(5);
 
         private DateTime lastHeartBeat = DateTime.MinValue;
+
+        /// <summary>
+        /// Landblock items will be saved to the database every 5 minutes
+        /// </summary>
+        private static readonly TimeSpan databaseSaveInterval = TimeSpan.FromMinutes(5);
+
+        private DateTime lastDatabaseSave = DateTime.MinValue;
 
         /// <summary>
         /// Landblocks which have been inactive for this many seconds will be unloaded
@@ -78,10 +83,10 @@ namespace ACE.Server.Entity
         /// The clientlib backing store landblock
         /// Eventually these classes could be merged, but for now they are separate...
         /// </summary>
-        public readonly Physics.Common.Landblock _landblock;
+        public Physics.Common.Landblock _landblock { get; private set; }
 
-        public CellLandblock CellLandblock { get; private set; }
-        public LandblockInfo LandblockInfo { get; private set; }
+        public CellLandblock CellLandblock { get; }
+        public LandblockInfo LandblockInfo { get; }
 
         /// <summary>
         /// The landblock static meshes for
@@ -97,51 +102,65 @@ namespace ACE.Server.Entity
         public Landblock(LandblockId id)
         {
             Id = id;
-            //Console.WriteLine("Landblock constructor(" + (id.Raw | 0xFFFF).ToString("X8") + ")");
 
-            UpdateStatus(LandBlockStatusFlag.IdleUnloaded);
-
-            // initialize adjacency array
-            adjacencies.Add(Adjacency.North, null);
-            adjacencies.Add(Adjacency.NorthEast, null);
-            adjacencies.Add(Adjacency.East, null);
-            adjacencies.Add(Adjacency.SouthEast, null);
-            adjacencies.Add(Adjacency.South, null);
-            adjacencies.Add(Adjacency.SouthWest, null);
-            adjacencies.Add(Adjacency.West, null);
-            adjacencies.Add(Adjacency.NorthWest, null);
-
-            UpdateStatus(LandBlockStatusFlag.IdleLoading);
-
-            // create world objects (monster locations, generators)
-            var objects = DatabaseManager.World.GetCachedInstancesByLandblock(Id.Landblock);
-            var shardObjects = DatabaseManager.Shard.GetStaticObjectsByLandblock(Id.Landblock);
-            var factoryObjects = WorldObjectFactory.CreateNewWorldObjects(objects, shardObjects);
-            foreach (var fo in factoryObjects)
-            {
-                AddWorldObject(fo);
-                fo.ActivateLinks(objects, shardObjects);
-            }
-
-            // create dynamic shard objects (corpses)
-            var corpses = DatabaseManager.Shard.GetObjectsByLandblock(Id.Landblock);
-            var factoryShardObjects = WorldObjectFactory.CreateWorldObjects(corpses);
-            foreach (var fso in factoryShardObjects)
-                AddWorldObject(fso);
-
-            _landblock = LScape.get_landblock(Id.Raw);
-
-            //LoadMeshes(objects);
-
-            SpawnEncounters();
-
-            UpdateStatus(LandBlockStatusFlag.IdleLoaded);
+            CellLandblock = DatManager.CellDat.ReadFromDat<CellLandblock>(Id.Raw >> 16 | 0xFFFF);
+            LandblockInfo = DatManager.CellDat.ReadFromDat<LandblockInfo>((uint)Id.Landblock << 16 | 0xFFFE);
 
             lastActiveTime = DateTime.UtcNow;
+
+            Task.Run(() =>
+            {
+                _landblock = LScape.get_landblock(Id.Raw);
+
+                CreateWorldObjects();
+
+                SpawnDynamicShardObjects();
+
+                SpawnEncounters();
+            });
+
+            //LoadMeshes(objects);
         }
 
         /// <summary>
-        /// Spawns the semi-randomized monsters scattered around the outdoors
+        /// Monster Locations, Generators<para />
+        /// This will be called from a separate task from our constructor. Use thread safety when interacting with this landblock.
+        /// </summary>
+        private void CreateWorldObjects()
+        {
+            var objects = DatabaseManager.World.GetCachedInstancesByLandblock(Id.Landblock);
+            var shardObjects = DatabaseManager.Shard.GetStaticObjectsByLandblock(Id.Landblock);
+            var factoryObjects = WorldObjectFactory.CreateNewWorldObjects(objects, shardObjects);
+
+            actionQueue.EnqueueAction(new ActionEventDelegate(() =>
+            {
+                foreach (var fo in factoryObjects)
+                {
+                    AddWorldObject(fo);
+                    fo.ActivateLinks(objects, shardObjects);
+                }
+            }));
+        }
+
+        /// <summary>
+        /// Corpses<para />
+        /// This will be called from a separate task from our constructor. Use thread safety when interacting with this landblock.
+        /// </summary>
+        private void SpawnDynamicShardObjects()
+        {
+            var dynamics = DatabaseManager.Shard.GetDynamicObjectsByLandblock(Id.Landblock);
+            var factoryShardObjects = WorldObjectFactory.CreateWorldObjects(dynamics);
+
+            actionQueue.EnqueueAction(new ActionEventDelegate(() =>
+            {
+                foreach (var fso in factoryShardObjects)
+                    AddWorldObject(fso);
+            }));
+        }
+
+        /// <summary>
+        /// Spawns the semi-randomized monsters scattered around the outdoors<para />
+        /// This will be called from a separate task from our constructor. Use thread safety when interacting with this landblock.
         /// </summary>
         private void SpawnEncounters()
         {
@@ -166,19 +185,21 @@ namespace ACE.Server.Entity
 
                 wo.Location = new Position(pos.ObjCellID, pos.Frame.Origin, pos.Frame.Orientation);
 
-                if (!worldObjects.ContainsKey(wo.Guid))
+                actionQueue.EnqueueAction(new ActionEventDelegate(() =>
+                {
                     AddWorldObject(wo);
+                }));
             }
         }
 
         /// <summary>
-        /// Loads the meshes for the landblock
+        /// Loads the meshes for the landblock<para />
+        /// This isn't used by ACE, but we still retain it for the following reason:<para />
+        /// its useful, concise, high level overview code for everything needed to load landblocks, all their objects, scenery, polygons
+        /// without getting into all of the low level methods that acclient uses to do it
         /// </summary>
         private void LoadMeshes(List<LandblockInstance> objects)
         {
-            CellLandblock = DatManager.CellDat.ReadFromDat<CellLandblock>(Id.Raw >> 16 | 0xFFFF);
-            LandblockInfo = DatManager.CellDat.ReadFromDat<LandblockInfo>((uint)Id.Landblock << 16 | 0xFFFE);
-
             LandblockMesh = new LandblockMesh(Id);
             LoadLandObjects();
             LoadBuildings();
@@ -235,53 +256,39 @@ namespace ACE.Server.Entity
 
         public void Tick(double currentUnixTime)
         {
-            // Here we'd move server objects in motion (subject to landscape) and do physics collision detection
+            actionQueue.RunActions();
 
-            // TODO: remove these legacy functions
-            //var allworldobj = worldObjects.Values;
-            //var allplayers = allworldobj.OfType<Player>().ToList();
+            var wos = worldObjects.Values.ToList();
 
-            //UpdateStatus(allplayers.Count);
-
-            if (IsActive)
-            {
-                var wos = worldObjects.Values.ToList();
-
-                foreach (var wo in wos)
-                    wo.Tick(currentUnixTime);
-            }
+            // When a WorldObject Ticks, it can end up adding additional WorldObjects to this landblock
+            foreach (var wo in wos)
+                wo.Tick(currentUnixTime);
 
             // Heartbeat
             if (lastHeartBeat + heartbeatInterval <= DateTime.UtcNow)
             {
-                if (IsActive)
-                {
-                    // tick decayable objects ?? Is this still needed now that we've migrated to the new Tick architecture?
+                var thisHeartBeat = DateTime.UtcNow;
 
-                    // tick items sold to vendors ?? Is this still needed now that we've migrated to the new Tick architecture?
+                // Decay world objects
+                foreach (var wo in wos)
+                {
+                    if (wo.IsDecayable())
+                        wo.Decay(thisHeartBeat - lastHeartBeat);
                 }
 
-                // TODO: handle perma-loaded landblocks
-                if (!Permaload && lastActiveTime + unloadInterval < DateTime.UtcNow)
+                if (!Permaload && lastActiveTime + unloadInterval < thisHeartBeat)
                     LandblockManager.AddToDestructionQueue(this);
 
-                lastHeartBeat = DateTime.UtcNow;
+                lastHeartBeat = thisHeartBeat;
+            }
+
+            // Database Save
+            if (lastDatabaseSave + databaseSaveInterval <= DateTime.UtcNow)
+            {
+                SaveDB();
+                lastDatabaseSave = DateTime.UtcNow;
             }
         }
-
-        public void SetAdjacency(Adjacency adjacency, Landblock landblock)
-        {
-            adjacencies[adjacency] = landblock;
-        }
-
-        private Landblock NorthAdjacency => adjacencies[Adjacency.North];
-        private Landblock NorthEastAdjacency => adjacencies[Adjacency.NorthEast];
-        private Landblock EastAdjacency => adjacencies[Adjacency.East];
-        private Landblock SouthEastAdjacency => adjacencies[Adjacency.SouthEast];
-        private Landblock SouthAdjacency => adjacencies[Adjacency.South];
-        private Landblock SouthWestAdjacency => adjacencies[Adjacency.SouthWest];
-        private Landblock WestAdjacency => adjacencies[Adjacency.West];
-        private Landblock NorthWestAdjacency => adjacencies[Adjacency.NorthWest];
 
         private void AddPlayerTracking(List<WorldObject> wolist, Player player)
         {
@@ -289,9 +296,20 @@ namespace ACE.Server.Entity
                 player.AddTrackedObject(wo);
         }
 
-        public void AddWorldObject(WorldObject wo)
+        /// <summary>
+        /// This will fail if the wo doesn't have a valid location.
+        /// </summary>
+        public bool AddWorldObject(WorldObject wo)
         {
+            if (wo.Location == null)
+            {
+                log.DebugFormat("Landblock 0x{0} failed to add 0x{1:X8} {2}. Invalid Location", Id, wo.Biota.Id, wo.Name);
+                return false;
+            }
+
             AddWorldObjectInternal(wo);
+
+            return true;
         }
 
         public void AddWorldObjectForPhysics(WorldObject wo)
@@ -301,8 +319,7 @@ namespace ACE.Server.Entity
 
         private void AddWorldObjectInternal(WorldObject wo)
         {
-            if (!worldObjects.ContainsKey(wo.Guid))
-                worldObjects[wo.Guid] = wo;
+            worldObjects[wo.Guid] = wo;
 
             wo.CurrentLandblock = this;
 
@@ -385,6 +402,10 @@ namespace ACE.Server.Entity
 
             wo.CurrentLandblock = null;
 
+            // Weenies can come with a default of 0 or -1. If they still have that value, we want to retain it.
+            if (wo.TimeToRot.HasValue && wo.TimeToRot != 0 && wo.TimeToRot != -1)
+                wo.TimeToRot = null;
+
             if (!adjacencyMove)
             {
                 // really remove it - send message to client to remove object
@@ -413,117 +434,9 @@ namespace ACE.Server.Entity
         /// <summary>
         /// Returns landblock objects with physics initialized
         /// </summary>
-        public List<WorldObject> GetPhysicsWorldObjects()
+        public IEnumerable<WorldObject> GetWorldObjectsForPhysicsHandling()
         {
-            return worldObjects.Values.Where(wo => wo.PhysicsObj != null).ToList();
-        }
-
-        private void UpdateStatus(LandBlockStatusFlag flag)
-        {
-            Status.LandBlockStatusFlag = flag;
-            // TODO: Diagnostics uses WinForms, which is not supported in .net standard/core.
-            // TODO: We need a better way to expose diagnostic information moving forward.
-            // Diagnostics.Diagnostics.SetLandBlockKey(id.LandblockX, id.LandblockY, Status);
-        }
-
-        private void UpdateStatus(int playerCount)
-        {
-            Status.PlayerCount = playerCount;
-            if (playerCount > 0)
-            {
-                Status.LandBlockStatusFlag = LandBlockStatusFlag.InUseLow;
-                // TODO: Diagnostics uses WinForms, which is not supported in .net standard/core.
-                // TODO: We need a better way to expose diagnostic information moving forward.
-                // Diagnostics.Diagnostics.SetLandBlockKey(id.LandblockX, id.LandblockY, Status);
-            }
-            else
-            {
-                Status.LandBlockStatusFlag = LandBlockStatusFlag.IdleLoaded;
-                UpdateStatus(Status.LandBlockStatusFlag);
-            }
-        }
-
-        /// <summary>
-        /// Gets all landblocks in range of a position.  (for indoors positions that is just this landblock)
-        /// </summary>
-        public List<Landblock> GetLandblocksInRange(Position pos, float distance)
-        {
-            List<Landblock> inRange = new List<Landblock>();
-
-            inRange.Add(this);
-
-            if (pos.Indoors)
-            {
-                return inRange;
-            }
-
-            float highX = pos.PositionX + distance;
-            float lowX = pos.PositionX - distance;
-            float highY = pos.PositionY + distance;
-            float lowY = pos.PositionY - distance;
-
-            bool highXInLandblock = (highX < MaxXY);
-            bool highYInLandblock = (highY < MaxXY);
-            bool lowXInLandblock = (lowX > 0);
-            bool lowYInLandblock = (lowY > 0);
-
-            // Check East
-            if (!highXInLandblock)
-            {
-                if (EastAdjacency != null)
-                    inRange.Add(EastAdjacency);
-            }
-
-            // North East
-            if (!highXInLandblock && !highYInLandblock)
-            {
-                if (NorthEastAdjacency != null)
-                    inRange.Add(NorthEastAdjacency);
-            }
-
-            // North
-            if (!highYInLandblock)
-            {
-                if (NorthAdjacency != null)
-                    inRange.Add(NorthAdjacency);
-            }
-
-            // North West
-            if (!lowXInLandblock && !highYInLandblock)
-            {
-                if (NorthWestAdjacency != null)
-                    inRange.Add(NorthWestAdjacency);
-            }
-
-            // West
-            if (!lowXInLandblock)
-            {
-                if (WestAdjacency != null)
-                    inRange.Add(WestAdjacency);
-            }
-
-            // South West
-            if (!lowXInLandblock && !lowYInLandblock)
-            {
-                if (SouthWestAdjacency != null)
-                    inRange.Add(SouthWestAdjacency);
-            }
-
-            // South
-            if (!lowYInLandblock)
-            {
-                if (SouthAdjacency != null)
-                    inRange.Add(SouthAdjacency);
-            }
-
-            // South East
-            if (!highXInLandblock && !lowYInLandblock)
-            {
-                if (SouthEastAdjacency != null)
-                    inRange.Add(SouthEastAdjacency);
-            }
-
-            return inRange;
+            return worldObjects.Values;
         }
 
         /// <summary>
@@ -534,7 +447,7 @@ namespace ACE.Server.Entity
             if (worldObjects.ContainsKey(guid))
                 return this;
 
-            foreach (Landblock lb in adjacencies.Values)
+            foreach (Landblock lb in Adjacents)
             {
                 if (lb != null && lb.worldObjects.ContainsKey(guid))
                     return lb;
@@ -556,7 +469,7 @@ namespace ACE.Server.Entity
             if (worldObjects.TryGetValue(guid, out var worldObject))
                 return worldObject;
 
-            foreach (Landblock lb in adjacencies.Values)
+            foreach (Landblock lb in Adjacents)
             {
                 if (lb != null && lb.worldObjects.TryGetValue(guid, out worldObject))
                     return worldObject;
@@ -574,7 +487,7 @@ namespace ACE.Server.Entity
             var creatures = worldObjects.Values.Where(wo => wo is Creature);
             foreach (var creature in creatures)
             {
-                var wieldedItem = (creature as Creature).GetWieldedItem(guid);
+                var wieldedItem = ((Creature)creature).GetWieldedItem(guid);
                 if (wieldedItem != null)
                     return wieldedItem;     // found it
             }
@@ -582,7 +495,7 @@ namespace ACE.Server.Entity
             // try searching adjacent landblocks if not found
             if (searchAdjacents)
             {
-                foreach (var adjacent in adjacencies.Values)
+                foreach (var adjacent in Adjacents)
                 {
                     if (adjacent == null) continue;
 
@@ -596,34 +509,11 @@ namespace ACE.Server.Entity
 
         public void ResendObjectsInRange(WorldObject wo)
         {
-            // this could need reworked a bit for consistency..
             wo.PhysicsObj.ObjMaint.RemoveAllObjects();
-            wo.PhysicsObj.handle_visible_cells();
+
+            var visibleObjs = wo.PhysicsObj.handle_visible_cells();
+            wo.PhysicsObj.enqueue_objs(visibleObjs);
         }
-
-        /*/// <summary>
-        /// A landblock is active when it contains at least 1 player
-        /// </summary>
-        public bool IsActive(bool testAdjacents = true)
-        {
-            // TODO: handle perma-loaded landblocks 
-
-            // for increased performance,
-            // if Player ObjectGuids are always within a specific range,
-            // those could possibly be checked instead of casting WorldObject to Player here
-            var currentActive = worldObjects.Values.FirstOrDefault(wo => wo is Player) != null;
-
-            if (currentActive || !testAdjacents || _landblock.IsDungeon)
-                return currentActive;
-
-            // outdoor landblocks:
-            // activity is also determined by adjacent landblocks
-            foreach (var adjacent in adjacencies.Values)
-                if (adjacent.IsActive(false))
-                    return true;
-
-            return false;
-        }*/
 
         /// <summary>
         /// Sets a landblock to active state, with the current time as the LastActiveTime
@@ -631,13 +521,12 @@ namespace ACE.Server.Entity
         /// <param name="isAdjacent">Public calls to this function should always set isAdjacent to false</param>
         public void SetActive(bool isAdjacent = false)
         {
-            IsActive = true;
             lastActiveTime = DateTime.UtcNow;
 
-            if (isAdjacent || _landblock.IsDungeon) return;
+            if (isAdjacent || _landblock == null || _landblock.IsDungeon) return;
 
             // for outdoor landblocks, recursively call 1 iteration to set adjacents to active
-            foreach (var landblock in adjacencies.Values)
+            foreach (var landblock in Adjacents)
             {
                 if (landblock != null)
                     landblock.SetActive(true);
@@ -662,29 +551,6 @@ namespace ACE.Server.Entity
 
             // remove physics landblock
             LScape.unload_landblock(landblockID);
-
-            // dungeon landblocks do not handle adjacents
-            if (_landblock.IsDungeon) return;
-
-            // notify adjacents
-            foreach (var adjacent in adjacencies.Where(adj => adj.Value != null))
-                adjacent.Value.UnloadAdjacent(AdjacencyHelper.GetInverse(adjacent.Key), this);
-
-            // TODO: cleanup physics landblock references
-        }
-
-        /// <summary>
-        /// Removes a neighbor landblock from the adjacencies list
-        /// </summary>
-        private void UnloadAdjacent(Adjacency? adjacency, Landblock landblock)
-        {
-            if (adjacency == null || adjacencies[adjacency.Value] != landblock)
-            {
-                log.Error($"Landblock({Id}).UnloadAdjacent({adjacency}, {landblock.Id}) couldn't find adjacent landblock");
-                return;
-            }
-            adjacencies[adjacency.Value] = null;
-            AdjacenciesLoaded = false;
         }
 
         private void SaveDB()
@@ -693,12 +559,82 @@ namespace ACE.Server.Entity
 
             foreach (var wo in worldObjects.Values)
             {
-                // only updates corpses atm
-                if (wo is Corpse corpse && !corpse.IsMonster)
-                    biotas.Add((corpse.Biota, corpse.BiotaDatabaseLock));
+                if (wo.IsStaticThatShouldPersistToShard() || wo.IsDecayableThatShouldPersistToShard())
+                    AddWorldObjectToBiotasSaveCollection(wo, biotas);
             }
 
-            DatabaseManager.Shard.SaveBiotas(biotas, result => { });
+            DatabaseManager.Shard.SaveBiotasInParallel(biotas, result => { });
+        }
+
+        private void AddWorldObjectToBiotasSaveCollection(WorldObject wo, Collection<(Biota biota, ReaderWriterLockSlim rwLock)> biotas)
+        {
+            if (wo.ChangesDetected)
+            {
+                wo.SaveBiotaToDatabase(false);
+                biotas.Add((wo.Biota, wo.BiotaDatabaseLock));
+            }
+
+            if (wo is Container container)
+            {
+                foreach (var item in container.Inventory.Values)
+                    AddWorldObjectToBiotasSaveCollection(item, biotas);
+            }
+        }
+
+        /// <summary>
+        /// This is only used for very specific instances, such as broadcasting player deaths to the destination lifestone block
+        /// This is a rarely used method to broadcast network messages to all of the players within a landblock,
+        /// and possibly the adjacent landblocks.
+        /// </summary>
+        public void EnqueueBroadcast(ICollection<Player> excludeList, bool adjacents, params GameMessage[] msgs)
+        {
+            var players = worldObjects.Values.OfType<Player>();
+
+            // for landblock death broadcasts:
+            // exclude players that have already been broadcast to within range of the death
+            if (excludeList != null)
+                players = players.Except(excludeList);
+
+            // broadcast messages to player in this landblock
+            foreach (var player in players)
+                player.Session.Network.EnqueueSend(msgs);
+
+            // if applicable, iterate into adjacent landblocks
+            if (adjacents)
+            {
+                foreach (var adjacent in this.Adjacents.Where(adj => adj != null))
+                    adjacent.EnqueueBroadcast(excludeList, false, msgs);
+            }
+        }
+
+        private bool? isDungeon;
+
+        /// <summary>
+        /// Returns TRUE if this landblock is a dungeon
+        /// </summary>
+        public bool IsDungeon
+        {
+            get
+            {
+                // return cached value
+                if (isDungeon != null)
+                    return isDungeon.Value;
+
+                // a dungeon landblock is determined by:
+                // - all heights being 0
+                // - having at least 1 EnvCell (0x100+)
+                // - contains no buildings
+                foreach (var height in CellLandblock.Height)
+                {
+                    if (height != 0)
+                    {
+                        isDungeon = false;
+                        return isDungeon.Value;
+                    }
+                }
+                isDungeon = LandblockInfo != null && LandblockInfo.NumCells > 0 && LandblockInfo.Buildings != null && LandblockInfo.Buildings.Count == 0;
+                return isDungeon.Value;
+            }
         }
     }
 }

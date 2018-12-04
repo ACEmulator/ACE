@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.WorldObjects.Entity;
@@ -13,12 +14,6 @@ namespace ACE.Server.WorldObjects
         public CreatureVital Health => Vitals[PropertyAttribute2nd.MaxHealth];
         public CreatureVital Stamina => Vitals[PropertyAttribute2nd.MaxStamina];
         public CreatureVital Mana => Vitals[PropertyAttribute2nd.MaxMana];
-
-        public CreatureVital GetCreatureVital(PropertyAttribute2nd vital)
-        {
-            Vitals.TryGetValue(vital, out var value);
-            return value;
-        }
 
         public uint GetCurrentCreatureVital(PropertyAttribute2nd vital)
         {
@@ -67,30 +62,34 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Called every ~5 secs to regenerate vitals
         /// </summary>
-        public void VitalTick()
+        public void VitalHeartBeat()
         {
-            if (Health.Current != Health.MaxValue)
-                VitalTick(Health);
+            if (IsDead)
+                return;
 
-            if (Stamina.Current != Stamina.MaxValue)
-                VitalTick(Stamina);
+            VitalHeartBeat(Health);
 
-            if (Mana.Current != Mana.MaxValue)
-                VitalTick(Mana);
+            VitalHeartBeat(Stamina);
+
+            VitalHeartBeat(Mana);
         }
 
         /// <summary>
         /// Updates a particular vital according to regeneration rate
         /// </summary>
         /// <param name="vital">The vital stat to update (health/stamina/mana)</param>
-        public void VitalTick(CreatureVital vital)
+        public void VitalHeartBeat(CreatureVital vital)
         {
-            if (vital.Current == vital.MaxValue)
+            // Current and MaxValue are properties and include overhead in getting their values. We cache them so we only hit the overhead once.
+            var vitalCurrent = vital.Current;
+            var vitalMax = vital.MaxValue;
+
+            if (vitalCurrent == vitalMax)
                 return;
 
-            if (vital.Current > vital.MaxValue)
+            if (vitalCurrent > vitalMax)
             {
-                UpdateVital(vital, vital.MaxValue);
+                UpdateVital(vital, vitalMax);
                 return;
             }
 
@@ -141,8 +140,8 @@ namespace ACE.Server.WorldObjects
             // at a faster rate the higher one's endurance is. This bonus is in addition to any regeneration spells one may have placed upon themselves.
             // This regeneration bonus caps at around 110%.
 
-            var strength = GetCreatureAttribute(PropertyAttribute.Strength).Base;
-            var endurance = GetCreatureAttribute(PropertyAttribute.Endurance).Base;
+            var strength = Strength.Base;
+            var endurance = Endurance.Base;
 
             var strAndEnd = strength + (endurance * 2);
 
@@ -165,7 +164,7 @@ namespace ACE.Server.WorldObjects
             if (vital.Vital == PropertyAttribute2nd.MaxMana) return 1.0f;
 
             // combat mode / running
-            if (CombatMode != CombatMode.NonCombat || CurrentMotionCommand == (uint)MotionCommand.RunForward)
+            if (CombatMode != CombatMode.NonCombat || CurrentMotionCommand == MotionCommand.RunForward)
                 return 0.5f;
 
             switch (CurrentMotionCommand)
@@ -173,11 +172,11 @@ namespace ACE.Server.WorldObjects
                 // TODO: verify multipliers
                 default:
                     return 1.0f;
-                case 0x12:  // MotionCommand.Crouch
+                case MotionCommand.Crouch:
                     return 2.0f;
-                case 0x13:  // MotionCommand.Sitting
+                case MotionCommand.Sitting:
                     return 2.5f;
-                case 0x14:  // MotionCommand.Sleeping
+                case MotionCommand.Sleeping:
                     return 3.0f;
             }
         }

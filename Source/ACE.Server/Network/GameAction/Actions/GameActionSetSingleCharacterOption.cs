@@ -13,7 +13,7 @@ namespace ACE.Server.Network.GameAction.Actions
             switch (option)
             {
                 case CharacterOption.AppearOffline:
-                    session.Player.AppearOffline(optionValue);
+                    session.Player.SetAppearOffline(optionValue);
                     break;
                 case CharacterOption.AutomaticallyAcceptFellowshipRequests:
                     session.Player.SetCharacterOption(CharacterOption.AutomaticallyAcceptFellowshipRequests, optionValue);

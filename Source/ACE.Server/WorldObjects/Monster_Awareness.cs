@@ -1,4 +1,5 @@
 using System;
+using ACE.Server.Entity;
 
 namespace ACE.Server.WorldObjects
 {
@@ -27,6 +28,7 @@ namespace ACE.Server.WorldObjects
         /// Determines when a monster wakes up from idle state
         /// </summary>
         public const float RadiusAwareness = 35.0f;
+        public const float RadiusAwarenessSquared = RadiusAwareness * RadiusAwareness;
 
         /// <summary>
         /// Monsters wake up when players are in visual range
@@ -40,7 +42,8 @@ namespace ACE.Server.WorldObjects
         {
             MonsterState = State.Awake;
             IsAwake = true;
-            DoAttackStance();
+            //DoAttackStance();
+            EmoteManager.OnAttack(AttackTarget as Creature);
         }
 
         /// <summary>

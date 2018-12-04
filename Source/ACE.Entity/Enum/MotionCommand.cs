@@ -113,7 +113,7 @@ namespace ACE.Entity.Enum
         AttackLow3                            = 0x1000006a,
         HeadThrow                             = 0x1000006b,
         FistSlam                              = 0x1000006c,
-        BreatheFlame_                         = 0x1000006d,
+        BreatheFlame                         = 0x1000006d,
         SpinAttack                            = 0x1000006e,
         MagicPowerUp01                        = 0x1000006f,
         MagicPowerUp02                        = 0x10000070,
@@ -275,9 +275,9 @@ namespace ACE.Entity.Enum
         VividTargetIndicator                  = 0x900010c,
         SelectSelf                            = 0x900010d,
         SkillHealSelf                         = 0x1000010e,
-        WoahDuplicate1                        = 0x1000010F, // Appears to be the same as Motion_Woah except it starts with 0x10 instead of 0x13
-        MimeDrinkDuplicate1                   = 0x10000110, // Appears to be the same as Motion_MimeDrink except it starts with 0x10 instead of 0x13
-        MimeDrinkDuplicate2                   = 0x10000111, // Appears to be the same as Motion_MimeDrink except it starts with 0x10 instead of 0x13
+        //WoahDuplicate1                      = 0x1000010f,  // ushort collision with NextMonster?
+        //MimeDrinkDuplicate1                 = 0x10000110,  // ushort collision with PreviousMonster?
+        //MimeDrinkDuplicate2                 = 0x10000111,  // ushort collision with ClosestMonster?
         NextMonster                           = 0x900010f,
         PreviousMonster                       = 0x9000110,
         ClosestMonster                        = 0x9000111,
@@ -416,5 +416,16 @@ namespace ACE.Entity.Enum
         OffhandPunchSlowMed                   = 0x10000199,
         OffhandPunchSlowLow                   = 0x1000019a,
         WoahDuplicate2                        = 0x1000019b, // Appears to be the same as Motion_Woah except it starts with 0x10 instead of 0x13
+    }
+
+    public static class MotionCommandHelper
+    {
+        public static MotionCommand GetMotion(int motionCommand)
+        {
+            if (motionCommand == 0x10000162)
+                return MotionCommand.Fishing;
+
+            return (MotionCommand)motionCommand;
+        }
     }
 }

@@ -7,14 +7,14 @@ namespace ACE.Server.Network.GameAction.Actions
         [GameAction(GameActionType.CloseTradeNegotiations)]
         public static void Handle(ClientMessage message, Session session)
         {
-            var targetsession = WorldManager.Find(session.Player.TradePartner);
+            var target = PlayerManager.GetOnlinePlayer(session.Player.TradePartner);
 
-            if (targetsession != null)
+            if (target != null)
             {
                 session.Player.HandleActionCloseTradeNegotiations(session);
 
                 //Close the trade window for the trade partner
-                targetsession.Player.HandleActionCloseTradeNegotiations(targetsession);
+                target.HandleActionCloseTradeNegotiations(target.Session);
             }
             
         }

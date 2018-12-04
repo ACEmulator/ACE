@@ -23,7 +23,7 @@ namespace ACE.Server.WorldObjects
                     wo.Shade = item.Shade;
 
                 if (item.StackSize > 0)
-                    wo.StackSize = (ushort)item.StackSize;
+                    wo.StackSize = item.StackSize;
 
                 items.Add(wo);
             }

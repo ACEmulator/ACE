@@ -2,7 +2,7 @@ using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
-using ACE.Server.Network.Motion;
+using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Managers;
 
@@ -35,7 +35,7 @@ namespace ACE.Server.WorldObjects
             ActionChain killChain = new ActionChain();
             killChain.AddAction(this, () =>
             {
-                EnqueueBroadcastMotion(new UniversalMotion(MotionStance.NonCombat, new MotionItem(MotionCommand.Dead)));
+                EnqueueBroadcastMotion(new Motion(MotionStance.NonCombat, MotionCommand.Dead));
             });
             killChain.AddDelaySeconds(5);
             killChain.AddAction(this, () =>

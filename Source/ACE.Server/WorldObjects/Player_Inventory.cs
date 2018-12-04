@@ -2,27 +2,23 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Diagnostics;
-
 using ACE.DatLoader;
 using ACE.DatLoader.FileTypes;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
 using ACE.Server.Network;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
-using ACE.Server.Network.Motion;
 using ACE.Server.Network.Sequence;
 
 namespace ACE.Server.WorldObjects
 {
     partial class Player
     {
-        private static readonly float PickUpDistance = .75f;
-
-
         /// <summary>
         /// Returns all inventory, side slot items, items in side containers, and all wielded items.
         /// </summary>
@@ -107,10 +103,18 @@ namespace ACE.Server.WorldObjects
         /// This method is used to remove X number of items from a stack.<para />
         /// If amount to remove is greater or equal to the current stacksize, the stack will be destroyed..
         /// </summary>
-        public bool TryRemoveItemFromInventoryWithNetworking(WorldObject worldObject, ushort amount)
+        public bool TryRemoveItemFromInventoryWithNetworkingWithDestroy(WorldObject worldObject, ushort amount)
         {
             if (amount >= (worldObject.StackSize ?? 1))
-                return TryRemoveFromInventoryWithNetworking(worldObject);
+            {
+                if (TryRemoveFromInventoryWithNetworking(worldObject))
+                {
+                    worldObject.Destroy();
+                    return true;
+                }
+
+                return false;
+            }
 
             worldObject.StackSize -= amount;
 
@@ -145,10 +149,6 @@ namespace ACE.Server.WorldObjects
                         UpdateCoinValue();
                 }
 
-                // todo: we shouldn't be calling this here. Instead, we should be calling wo.Destroy() and letting the destroy method handle the work for us.
-                // todo: re-examine this whole process for inventory movements/combining/destruction.. Mag-nus 2018-09-03
-                worldObject.RemoveBiotaFromDatabase();
-
                 return true;
             }
 
@@ -169,9 +169,36 @@ namespace ACE.Server.WorldObjects
                     return false;
                 }
             }
+
             return TryRemoveFromInventoryWithNetworking(item);
         }
 
+
+        /// <summary>
+        /// Returns an item from the landblock, or the lastUsedContainer
+        /// </summary>
+        private WorldObject GetPickupItem(ObjectGuid itemGuid, out bool itemWasRestingOnLandblock)
+        {
+            // Grab a reference to the item before its removed from the CurrentLandblock
+            var item = CurrentLandblock?.GetObject(itemGuid);
+            itemWasRestingOnLandblock = false;
+
+            if (item != null)
+            {
+                itemWasRestingOnLandblock = true;
+                return item;
+            }
+
+            var lastUsedContainer = CurrentLandblock?.GetObject(lastUsedContainerId) as Container;
+
+            if (lastUsedContainer != null)
+                lastUsedContainer.Inventory.TryGetValue(itemGuid, out item);
+
+            if (item == null)
+                log.Error($"{Name}.GetPickupItem({itemGuid}) - couldn't find item");
+
+            return item;
+        }
 
         // =====================================
         // Helper Functions - Inventory Movement
@@ -186,14 +213,26 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         private void PickupItemWithNetworking(Container container, ObjectGuid itemGuid, int placementPosition, PropertyInstanceId iidPropertyId)
         {
+            var item = GetPickupItem(itemGuid, out bool itemWasRestingOnLandblock);
+            if (item == null) return;
+
+            var targetLocation = FindItemLocation(itemGuid);
+            if (targetLocation == null) return;
+
+            // rotate / move towards object
+            // TODO: only do this if not within use distance
             ActionChain pickUpItemChain = new ActionChain();
+            pickUpItemChain.AddChain(CreateMoveToChain(targetLocation, out var thisMoveToChainNumber));
 
-            // Move to the object
-            pickUpItemChain.AddChain(CreateMoveToChain(itemGuid, out var thisMoveToChainNumber));
-
-            // Pick up the object
-            // Start pickup animation
             var thisMoveToChainNumberCopy = thisMoveToChainNumber;
+
+            // rotate towards object
+            // TODO: should rotating be added directly to moveto chain?
+
+            /*pickUpItemChain.AddAction(this, () => Rotate(targetLocation));
+            var angle = GetAngle(targetLocation);
+            var rotateTime = GetRotateDelay(angle);
+            pickUpItemChain.AddDelaySeconds(rotateTime);*/
 
             pickUpItemChain.AddAction(this, () =>
             {
@@ -205,36 +244,41 @@ namespace ACE.Server.WorldObjects
                     return;
                 }*/
 
-                var motion = new UniversalMotion(MotionStance.NonCombat);
-                motion.MovementData.ForwardCommand = (uint)MotionCommand.Pickup;
-                EnqueueBroadcast(new GameMessageUpdatePosition(this),
-                    new GameMessageUpdateMotion(Guid, Sequences.GetCurrentSequence(SequenceType.ObjectInstance), Sequences, motion));
+                // start picking up item animation
+                var motion = new Motion(CurrentMotionState.Stance, MotionCommand.Pickup);
+                EnqueueBroadcast(new GameMessageUpdatePosition(this), new GameMessageUpdateMotion(this, motion));
             });
 
             // Wait for animation to progress
             var motionTable = DatManager.PortalDat.ReadFromDat<MotionTable>(MotionTableId);
-            var pickupAnimationLength = motionTable.GetAnimationLength(MotionCommand.Pickup);
+            var pickupAnimationLength = motionTable.GetAnimationLength(CurrentMotionState.Stance, MotionCommand.Pickup, MotionCommand.Ready);
             pickUpItemChain.AddDelaySeconds(pickupAnimationLength);
 
-            // Grab a reference to the item before its removed from the CurrentLandblock
-            var item = CurrentLandblock?.GetObject(itemGuid);
-            var itemWasRestingOnLandblock = false;
-
-            if (item != null)
+            // pick up item
+            pickUpItemChain.AddAction(this, () =>
             {
-                itemWasRestingOnLandblock = true;
-                pickUpItemChain.AddAction(this, () =>
+                // handle quest items
+                var questSolve = false;
+
+                if (item.Quest != null)
+                {
+                    if (!QuestManager.CanSolve(item.Quest))
+                    {
+                        QuestManager.HandleSolveError(item.Quest);
+                        return;
+                    }
+                    else
+                        questSolve = true;
+                }
+
+                if (itemWasRestingOnLandblock)
                 {
                     if (CurrentLandblock != null && CurrentLandblock.RemoveWorldObjectFromPickup(itemGuid))
                         item.NotifyOfEvent(RegenerationType.PickUp);
-                });
-            }
-            else
-            {
-                var lastUsedContainer = CurrentLandblock?.GetObject(lastUsedContainerId) as Container;
-
-                if (lastUsedContainer != null)
+                }
+                else
                 {
+                    var lastUsedContainer = CurrentLandblock?.GetObject(lastUsedContainerId) as Container;
                     if (lastUsedContainer.TryRemoveFromInventory(itemGuid, out item))
                     {
                         item.NotifyOfEvent(RegenerationType.PickUp);
@@ -242,28 +286,21 @@ namespace ACE.Server.WorldObjects
                     else
                     {
                         // Item is in the container which we should have open
-                        log.Error("Player_Inventory PickupItemWithNetworking picking up items from world containers side pack WIP");
+                        log.Error($"{Name}.PickUpItemWithNetworking({itemGuid}): picking up items from world containers side pack WIP");
                         return;
                     }
+
+                    var containerInventory = lastUsedContainer.Inventory;
 
                     var lastUsedHook = lastUsedContainer as Hook;
                     if (lastUsedHook != null)
                         lastUsedHook.OnRemoveItem();
                 }
-            }
 
-            if (item == null)
-            {
-                log.Error("Player_Inventory PickupItemWithNetworking item == null");
-                return;
-            }
-
-            // Finish pickup animation
-            pickUpItemChain.AddAction(this, () =>
-            {
                 // If the item still has a location, CurrentLandblock failed to remove it
                 if (item.Location != null)
                 {
+                    Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, WeenieError.NoObject));
                     log.Error("Player_Inventory PickupItemWithNetworking item.Location != null");
                     return;
                 }
@@ -272,6 +309,7 @@ namespace ACE.Server.WorldObjects
                 if (itemWasRestingOnLandblock && item.ContainerId != null && item.ContainerId != 0)
                 {
                     log.Error("Player_Inventory PickupItemWithNetworking item.ContainerId != 0");
+                    Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, WeenieError.ObjectGone));
                     return;
                 }
 
@@ -283,6 +321,7 @@ namespace ACE.Server.WorldObjects
                 {
                     if (!container.TryAddToInventory(item, placementPosition, true))
                     {
+                        Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, WeenieError.NoObject));
                         log.Error("Player_Inventory PickupItemWithNetworking TryAddToInventory failed");
                         return;
                     }
@@ -305,60 +344,45 @@ namespace ACE.Server.WorldObjects
                     Session.Network.EnqueueSend(
                         new GameMessageSound(Guid, Sound.PickUpItem, 1.0f),
                         new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Container, container.Guid),
-                        new GameMessageCreateObject(item),
                         new GameEventItemServerSaysContainId(Session, item, container));
                 }
                 else if (iidPropertyId == PropertyInstanceId.Wielder)
                 {
-                    if (!TryEquipObject(item, placementPosition))
+                    // wield requirements check
+                    var canWield = CheckWieldRequirement(item);
+                    if (canWield != WeenieError.None)
                     {
-                        log.Error("Player_Inventory PickupItemWithNetworking TryEquipObject failed");
+                        Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, canWield));
                         return;
                     }
-
-                    if (((EquipMask)placementPosition & EquipMask.Selectable) != 0)
-                        SetChild(item, placementPosition, out _, out _);
-
-                    // todo I think we need to recalc our SetupModel here. see CalculateObjDesc()
-
-                    Session.Network.EnqueueSend(
-                        new GameMessageSound(Guid, Sound.WieldObject, (float)1.0),
-                        //new GameMessageObjDescEvent(this),
-                        new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Wielder, container.Guid),
-                        new GameEventWieldItem(Session, itemGuid.Full, placementPosition),
-                        new GameMessageCreateObject(item),
-                        new GameMessagePublicUpdatePropertyInt(item, PropertyInt.CurrentWieldedLocation, (int)(item.CurrentWieldedLocation ?? 0)));
+                    if (!TryEquipObject(item, placementPosition))
+                    {
+                        Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, WeenieError.NoObject));
+                        return;
+                    }
                 }
+
+                EnqueueBroadcast(new GameMessagePickupEvent(item));
 
                 Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
 
                 if (item.WeenieType == WeenieType.Coin)
                     UpdateCoinValue();
 
-                var motion = new UniversalMotion(MotionStance.NonCombat);
-
-                EnqueueBroadcast(new GameMessageUpdateMotion(Guid, Sequences.GetCurrentSequence(SequenceType.ObjectInstance), Sequences, motion),
-                    new GameMessagePickupEvent(item));
-
                 if (iidPropertyId == PropertyInstanceId.Wielder)
-                    EnqueueBroadcast(new GameMessageObjDescEvent(this));
+                    TryWieldItem(item, placementPosition);
 
-                // TODO: Og II - check this later to see if it is still required.
-                //Session.Network.EnqueueSend(new GameMessageUpdateObject(item));
-
-                // Was Item controlled by a generator?
-                // TODO: Should this be happening this way? Should the landblock notify the object of pickup or the generator...
-                /*if (item.GeneratorId > 0)
-                {
-                    WorldObject generator = GetObject(new ObjectGuid((uint)item.GeneratorId));
-
-                    item.GeneratorId = null;
-
-                    generator.NotifyGeneratorOfPickup(item.Guid.Full);
-                }*/
-
-                item.SaveBiotaToDatabase();
+                if (questSolve)
+                    QuestManager.Update(item.Quest);
             });
+
+            // return to previous stance
+            pickUpItemChain.AddAction(this, () =>
+            {
+                var motion = new Motion(CurrentMotionState.Stance);
+                EnqueueBroadcastMotion(motion);
+            });
+
             // Set chain to run
             pickUpItemChain.EnqueueChain();
         }
@@ -451,10 +475,6 @@ namespace ACE.Server.WorldObjects
                 EncumbranceVal += item.EncumbranceVal;
                 Value += item.Value;
             }
-
-            // If we're putting the item into a container not on our person, we should save the changes to the db
-            if (container != this && container.ContainerId != Guid.Full)
-                item.SaveBiotaToDatabase();
 
             Session.Network.EnqueueSend(
                 new GameEventItemServerSaysContainId(Session, item, container),
@@ -557,7 +577,7 @@ namespace ACE.Server.WorldObjects
                     if (itemToPickup.WeenieType == WeenieType.Container)
                     {
                         //Check to see if the container is open
-                        if (itemToPickup.IsOpen ?? false)
+                        if (itemToPickup.IsOpen)
                         {
                             var containerToPickup = CurrentLandblock?.GetObject(itemGuid) as Container;
 
@@ -641,14 +661,16 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            item.SetPropertiesForWorld(this);
+            item.SetPropertiesForWorld(this, 1.1f);
 
-            // It's important that we save an item after it's been removed from inventory.
-            // We want to avoid the scenario where the server crashes and a player has too many items.
+            // We must update the database with the latest ContainerId and WielderId properties.
+            // If we don't, the player can drop the item, log out, and log back in. If the landblock hasn't queued a database save in that time,
+            // the player will end up loading with this object in their inventory even though the landblock is the true owner. This is because
+            // when we load player inventory, the database still has the record that shows this player as the ContainerId for the item.
             item.SaveBiotaToDatabase();
 
-            var motion = new UniversalMotion(MotionStance.NonCombat);
-            motion.MovementData.ForwardCommand = (uint)MotionCommand.Pickup;
+            //var motion = new Motion(MotionStance.NonCombat);
+            var motion = new Motion(this, MotionCommand.Pickup);
             Session.Network.EnqueueSend(new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Container, new ObjectGuid(0)));
 
             // Set drop motion
@@ -659,15 +681,18 @@ namespace ACE.Server.WorldObjects
 
             // Wait for drop animation
             var motionTable = DatManager.PortalDat.ReadFromDat<MotionTable>(MotionTableId);
-            var pickupAnimationLength = motionTable.GetAnimationLength(MotionCommand.Pickup);
+            var pickupAnimationLength = motionTable.GetAnimationLength(CurrentMotionState.Stance, MotionCommand.Pickup, MotionCommand.Ready);
             dropChain.AddDelaySeconds(pickupAnimationLength);
 
             // Play drop sound
             // Put item on landblock
             dropChain.AddAction(this, () =>
             {
-                EnqueueBroadcastMotion(new UniversalMotion(MotionStance.NonCombat));
+                var returnStance = new Motion(CurrentMotionState.Stance);
+                EnqueueBroadcastMotion(returnStance);
+
                 EnqueueBroadcast(new GameMessageSound(Guid, Sound.DropItem, (float)1.0));
+
                 Session.Network.EnqueueSend(
                     new GameEventItemServerSaysMoveItem(Session, item),
                     new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Container, new ObjectGuid(0)),
@@ -676,14 +701,14 @@ namespace ACE.Server.WorldObjects
                 if (item.WeenieType == WeenieType.Coin)
                     UpdateCoinValue();
 
-                    // This is the sequence magic - adds back into 3d space seem to be treated like teleport.
-                    item.Sequences.GetNextSequence(SequenceType.ObjectTeleport);
+                // This is the sequence magic - adds back into 3d space seem to be treated like teleport.
+                item.Sequences.GetNextSequence(SequenceType.ObjectTeleport);
                 item.Sequences.GetNextSequence(SequenceType.ObjectVector);
 
                 CurrentLandblock?.AddWorldObject(item);
 
-                    //Session.Network.EnqueueSend(new GameMessageUpdateObject(item));
-                    EnqueueBroadcast(new GameMessageUpdatePosition(item));
+                //Session.Network.EnqueueSend(new GameMessageUpdateObject(item));
+                EnqueueBroadcast(new GameMessageUpdatePosition(item));
             });
 
             dropChain.EnqueueChain();
@@ -751,7 +776,7 @@ namespace ACE.Server.WorldObjects
             PickupItemWithNetworking(this, itemGuid, wieldLocation, PropertyInstanceId.Wielder);
         }
 
-        public bool TryWieldItem(WorldObject item, int wieldLocation)
+        public bool TryWieldItem(WorldObject item, int wieldLocation, bool preCheck = false)
         {
             //Console.WriteLine($"TryWieldItem({item.Name}, {(EquipMask)wieldLocation})");
 
@@ -878,7 +903,7 @@ namespace ACE.Server.WorldObjects
 
                     if (itemAttributeReq != PropertyAttribute.Undef)
                     {
-                        var playerAttribute = GetCreatureAttribute(itemAttributeReq).Current;
+                        var playerAttribute = Attributes[itemAttributeReq].Current;
 
                         if (playerAttribute < (uint)(item.GetProperty(PropertyInt.WieldDifficulty) ?? 0))
                             return WeenieError.SkillTooLow;
@@ -903,6 +928,7 @@ namespace ACE.Server.WorldObjects
 
         /// <summary>
         /// Dictionary for salvage bags/material types
+        /// TODO: This list needs to go somewhere else
         /// </summary>
 
         static Dictionary<int, int> dict = new Dictionary<int, int>()
@@ -1056,7 +1082,7 @@ namespace ACE.Server.WorldObjects
                         double multiplier = (salvageSkill / 225.0);
                         double multiplier2 = .6 > multiplier ? .6 : multiplier;
                         amount += (int)Math.Ceiling(workmanship * multiplier2);
-                        TryRemoveItemFromInventoryWithNetworking(item, 1);
+                        TryRemoveItemFromInventoryWithNetworkingWithDestroy(item, 1);
                         salvageBags[counter] = WorldObjectFactory.CreateNewWorldObject((uint)dict[materials[counter]]);
                         salvageBags[counter].SetProperty(PropertyInt.Structure, amount);
                         salvageBags[counter].SetProperty(PropertyInt.NumItemsInMaterial, numItems);
@@ -1087,7 +1113,7 @@ namespace ACE.Server.WorldObjects
                         double multiplier = (salvageSkill / 225.0);
                         double multiplier2 = .6 > multiplier ? .6 : multiplier;
                         amount += (int)Math.Ceiling(workmanship * multiplier2);
-                        TryRemoveItemFromInventoryWithNetworking(item, 1);
+                        TryRemoveItemFromInventoryWithNetworkingWithDestroy(item, 1);
                         salvageBags[materialsPlace].SetProperty(PropertyInt.Structure, amount);
                         salvageBags[materialsPlace].SetProperty(PropertyInt.NumItemsInMaterial, numItems);
                         salvageBags[materialsPlace].SetProperty(PropertyInt.ItemWorkmanship, amount);
@@ -1131,7 +1157,7 @@ namespace ACE.Server.WorldObjects
                     double multiplier = (salvageSkill / 225.0);
                     double multiplier2 = .6 > multiplier ? .6 : multiplier;
                     amount += (int)Math.Ceiling(workmanship * multiplier2);
-                    TryRemoveItemFromInventoryWithNetworking(item, 1);
+                    TryRemoveItemFromInventoryWithNetworkingWithDestroy(item, 1);
                 }
 
                 WorldObject wo = WorldObjectFactory.CreateNewWorldObject((uint)dict[materialType]);
@@ -1156,25 +1182,21 @@ namespace ACE.Server.WorldObjects
             // giver rotates to receiver
             var rotateDelay = Rotate(target);
 
-            var actionChain = new ActionChain();
-            actionChain.AddChain(CreateMoveToChain(targetID, out var thisMoveToChainNumber));
+            var giveChain = new ActionChain();
+            giveChain.AddChain(CreateMoveToChain(targetID, out var thisMoveToChainNumber));
 
             if (target is Player)
-                actionChain.AddAction(this, () => GiveObjecttoPlayer(target as Player, item, (ushort)amount));
+                giveChain.AddAction(this, () => GiveObjecttoPlayer(target as Player, item, (ushort)amount));
             else
             {
-                actionChain.AddAction(this, () =>
+                var receiveChain = new ActionChain();
+                giveChain.AddAction(this, () =>
                 {
-                    var giveChain = new ActionChain();
-                    var receiveChain = new ActionChain();
-
                     GiveObjecttoNPC(target, item, amount, giveChain, receiveChain);
-
-                    giveChain.EnqueueChain();
-                    receiveChain.EnqueueChain();
+                    giveChain.AddChain(receiveChain);
                 });
             }
-            actionChain.EnqueueChain();
+            giveChain.EnqueueChain();
         }
 
         /// <summary>
@@ -1197,6 +1219,12 @@ namespace ACE.Server.WorldObjects
             {
                 if (target != player)
                 {
+                    // todo This should be refactored
+                    // The order should be something like:
+                    // See if target can accept the item
+                    // Remove item from giver
+                    // Save item to db
+                    // Give item to receiver
                     if (target.HandlePlayerReceiveItem(item, player))
                     {
                         if (item.CurrentWieldedLocation != null)
@@ -1226,6 +1254,12 @@ namespace ACE.Server.WorldObjects
                             if (item.WeenieType == WeenieType.Coin)
                                 UpdateCoinValue();
                         }
+
+                        // We must update the database with the latest ContainerId and WielderId properties.
+                        // If we don't, the player can give the item, log out, and log back in. If the receiver hasn't queued a database save in that time,
+                        // the player will end up loading with this object in their inventory even though the receiver is the true owner. This is because
+                        // when we load player inventory, the database still has the record that shows this player as the ContainerId for the item.
+                        item.SaveBiotaToDatabase();
 
                         Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, target));
                         Session.Network.EnqueueSend(new GameMessageSystemChat($"You give {target.Name} {item.Name}.", ChatMessageType.Broadcast));
@@ -1263,7 +1297,15 @@ namespace ACE.Server.WorldObjects
         {
             if (target == null || item == null) return;
 
-            if (target.GetProperty(PropertyBool.AiAcceptEverything) ?? false)
+            if (target.EmoteManager.IsBusy)
+            {
+                giveChain.AddAction(this, () =>
+                {
+                    Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(Session, WeenieErrorWithString._IsTooBusyToAcceptGifts, target.Name));
+                    Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, this));
+                });
+            }
+            else if (target.GetProperty(PropertyBool.AiAcceptEverything) ?? false)
             {
                 // NPC accepts any item
                 giveChain.AddAction(this, () => ItemAccepted(item, amount, target));
@@ -1289,7 +1331,7 @@ namespace ACE.Server.WorldObjects
             {
                 var result = target.Biota.BiotaPropertiesEmote.Where(emote => emote.WeenieClassId == item.WeenieClassId);
                 WorldObject player = this;
-                if (target.HandleNPCReceiveItem(item, target, player, receiveChain))
+                if (target.HandleNPCReceiveItem(item, player, receiveChain))
                 {
                     if (result.ElementAt(0).Category == (uint)EmoteCategory.Give)
                     {
@@ -1318,23 +1360,23 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Giver methods used upon successful acceptance of item by NPC
+        /// Giver methods used upon successful acceptance of item by NPC<para />
+        /// The item will be destroyed after processing.
         /// </summary>
-        /// <param name="item"></param>
-        /// <param name="amount"></param>
-        /// <param name="target"></param>
         private void ItemAccepted(WorldObject item, uint amount, WorldObject target)
         {
             if (item.CurrentWieldedLocation != null)
                 UnwieldItemWithNetworking(this, item, 0);       // refactor, duplicate code from above
 
-            TryRemoveItemFromInventoryWithNetworking(item, (ushort)amount);
+            TryRemoveItemFromInventoryWithNetworkingWithDestroy(item, (ushort)amount);
 
             Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, target));
             Session.Network.EnqueueSend(new GameMessageSystemChat($"You give {target.Name} {item.Name}.", ChatMessageType.Broadcast));
             Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.ReceiveItem, 1));
 
             Session.Network.EnqueueSend(new GameEventInventoryRemoveObject(Session, item));
+
+            item.Destroy();
         }
 
         // ===========================
@@ -1558,7 +1600,7 @@ namespace ACE.Server.WorldObjects
             newStack.EncumbranceVal = (newStack.StackUnitEncumbrance ?? 0) * (newStack.StackSize ?? 1);
             newStack.Value = (newStack.StackUnitValue ?? 0) * (newStack.StackSize ?? 1);
 
-            newStack.SetPropertiesForWorld(this);
+            newStack.SetPropertiesForWorld(this, 1.1f);
 
             container.EncumbranceVal -= newStack.EncumbranceVal;
             container.Value -= newStack.Value;
@@ -1569,8 +1611,7 @@ namespace ACE.Server.WorldObjects
                 Value -= newStack.Value;
             }
 
-            var motion = new UniversalMotion(MotionStance.NonCombat);
-            motion.MovementData.ForwardCommand = (uint)MotionCommand.Pickup;
+            var motion = new Motion(this, MotionCommand.Pickup);
 
             // Set drop motion
             EnqueueBroadcastMotion(motion);
@@ -1580,7 +1621,7 @@ namespace ACE.Server.WorldObjects
 
             // Wait for drop animation
             var motionTable = DatManager.PortalDat.ReadFromDat<MotionTable>(MotionTableId);
-            var pickupAnimationLength = motionTable.GetAnimationLength(MotionCommand.Pickup);
+            var pickupAnimationLength = motionTable.GetAnimationLength(CurrentMotionState.Stance, MotionCommand.Pickup, MotionCommand.Ready);
             dropChain.AddDelaySeconds(pickupAnimationLength);
 
             // Play drop sound
@@ -1591,7 +1632,9 @@ namespace ACE.Server.WorldObjects
                     Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(container, PropertyInt.EncumbranceVal, container.EncumbranceVal ?? 0));
                 Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
 
-                EnqueueBroadcastMotion(new UniversalMotion(MotionStance.NonCombat));
+                var returnStance = new Motion(CurrentMotionState.Stance);
+                EnqueueBroadcastMotion(returnStance);
+
                 EnqueueBroadcast(new GameMessageSound(Guid, Sound.DropItem, 1.0f));
 
                 Session.Network.EnqueueSend(new GameMessageSetStackSize(stack));
@@ -1630,7 +1673,6 @@ namespace ACE.Server.WorldObjects
 
             var fromItem = GetInventoryItem(mergeFromGuid);
             var toItem = GetInventoryItem(mergeToGuid);
-            var missileAmmo = toItem.ItemType == ItemType.MissileWeapon;
 
             if (fromItem == null || toItem == null)
                 return;
@@ -1639,6 +1681,8 @@ namespace ACE.Server.WorldObjects
             // Check this and see if I need to call UpdateToStack to clear the action with an amount of 0 Og II
             if (toItem.MaxStackSize == toItem.StackSize)
                 return;
+
+            var missileAmmo = toItem.ItemType == ItemType.MissileWeapon;
 
             if (toItem.MaxStackSize >= (ushort)((toItem.StackSize ?? 0) + amount))
             {

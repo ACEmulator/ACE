@@ -10,7 +10,7 @@ namespace ACE.Server.Physics
     /// <summary>
     /// A cylinder sphere
     /// </summary>
-    public class CylSphere
+    public class CylSphere: IEquatable<CylSphere>
     {
         /// <summary>
         /// The base of the cylinder sphere
@@ -464,6 +464,22 @@ namespace ACE.Server.Physics
             var normZ = (_disp.Z - disp.Z <= 0.0f) ? 1 : -1;
             normal = new Vector3(0, 0, normZ);
             return true;
+        }
+
+        public bool Equals(CylSphere cylSphere)
+        {
+            return cylSphere != null && Height == cylSphere.Height && Radius == cylSphere.Radius && LowPoint.IsEqual(cylSphere.LowPoint);
+        }
+
+        public override int GetHashCode()
+        {
+            int hash = 0;
+
+            hash = (hash * 397) ^ Height.GetHashCode();
+            hash = (hash * 397) ^ Radius.GetHashCode();
+            hash = (hash * 397) ^ LowPoint.GetHashCode();
+
+            return hash;
         }
     }
 }
