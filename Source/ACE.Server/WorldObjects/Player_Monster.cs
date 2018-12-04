@@ -14,7 +14,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Flag indicates if player is attackable
         /// </summary>
-        public bool IsAttackable { get => GetProperty(PropertyBool.Attackable) ?? false == true; }
+        public new bool IsAttackable { get => GetProperty(PropertyBool.Attackable) ?? false == true; }
 
         /// <summary>
         /// Wakes up any monsters within the applicable range

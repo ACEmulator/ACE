@@ -11,51 +11,11 @@ namespace ACE.Server.WorldObjects
     partial class Creature
     {
         /// <summary>
-        /// Flag indicates if player is attackable
-        /// </summary>
-        public bool IsAttackable { get => GetProperty(PropertyBool.Attackable) ?? false == true; }
-
-        /// <summary>
         /// Wakes up any monsters within the applicable range
         /// </summary>
-        public void PetCheckMonsters()
+        public void PetCheckMonsters(float rangeSquared = RadiusAwarenessSquared)
         {
-            if (!IsAttackable) return;
-
-            if (CurrentLandblock?.Id.MapScope == MapScope.Outdoors)
-                PetGetMonstersInRange();
-            else
-                PetGetMonstersInPVS();
-        }
-
-        /// <summary>
-        /// Sends alerts to monsters within 2D distance for outdoor areas
-        /// </summary>
-        private void PetGetMonstersInRange(float range = RadiusAwareness)
-        {
-            var distSq = range * range;
-
-            var landblocks = CurrentLandblock?.GetLandblocksInRange(Location, range);
-
-            foreach (var landblock in landblocks)
-            {
-                var monsters = landblock.worldObjects.Values.OfType<Creature>().ToList();
-                foreach (var monster in monsters)
-                {
-                    if (this == monster || monster is Player) continue;
-
-                    if (Location.SquaredDistanceTo(monster.Location) < distSq)
-                        PetAlertMonster(monster);
-                }
-            }
-        }
-
-        /// <summary>
-        /// Sends alerts to monsters within PVS range for indoor areas
-        /// </summary>
-        private void PetGetMonstersInPVS(float range = RadiusAwareness)
-        {
-            var distSq = range * range;
+            if (GetProperty(PropertyBool.Attackable) ?? false == false) return;
 
             var visibleObjs = PhysicsObj.ObjMaint.VisibleObjectTable.Values;
 
@@ -63,14 +23,15 @@ namespace ACE.Server.WorldObjects
             {
                 if (PhysicsObj == obj) continue;
 
-                var monster = obj.WeenieObj.WorldObject as Creature;
+                var target = obj.WeenieObj.WorldObject as Creature;
 
-                if (monster == null || monster is Player) continue;
+                if (target == null || target is Player) continue;
 
-                if (Location.SquaredDistanceTo(monster.Location) < distSq)
-                    PetAlertMonster(monster);
+                if (Location.SquaredDistanceTo(target.Location) < rangeSquared)
+                    PetAlertMonster(target);
             }
         }
+        
 
         /// <summary>
         /// Wakes up a monster if it can be alerted

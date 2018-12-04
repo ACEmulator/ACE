@@ -11,27 +11,24 @@ namespace ACE.Server.WorldObjects
         public bool IsPet = false;
         public DateTime petCreationTime;
 
-        public void PetFindTarget(float range = RadiusAwareness)
+        public void PetFindTarget(float rangeSquared = RadiusAwarenessSquared)
         {
-            var distSq = range * range;
+            var visibleObjs = PhysicsObj.ObjMaint.VisibleObjectTable.Values;
 
-            var landblocks = CurrentLandblock?.GetLandblocksInRange(Location, range);
-
-            foreach (var landblock in landblocks)
+            foreach (var obj in visibleObjs)
             {
-                var targets = landblock.worldObjects.Values.OfType<Creature>().ToList();
-                foreach (var target in targets)
-                {
-                    if (this == target || target is Player) continue;
+                if (PhysicsObj == obj) continue;
 
-                    if (Location.SquaredDistanceTo(target.Location) < distSq)
-                    {
-                        AttackTarget = target;
-                        WakeUp();
-                    }
+                var target = obj.WeenieObj.WorldObject as Creature;
+
+                if (target == null || target is Player) continue;
+
+                if (Location.SquaredDistanceTo(target.Location) < rangeSquared)
+                {
+                    AttackTarget = target;
+                    WakeUp();
                 }
             }
         }
-
     }
 }

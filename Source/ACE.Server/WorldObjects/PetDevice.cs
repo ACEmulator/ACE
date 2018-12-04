@@ -58,7 +58,7 @@ namespace ACE.Server.WorldObjects
                 pet.NoCorpse = true;
                 pet.IsPet = true;
                 pet.petCreationTime = DateTime.UtcNow;
-                pet.Location = ((Position)player.Location.Clone()).InFrontOf(5f);
+                pet.Location = player.Location.InFrontOf(5f);
                 pet.Name = player.Name + "'s " + pet.Name;
                 pet.PetOwner = player.Guid.Full;
                 pet.SetCombatMode(CombatMode.Melee);
