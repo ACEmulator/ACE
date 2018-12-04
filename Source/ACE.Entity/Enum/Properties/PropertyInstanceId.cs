@@ -70,7 +70,12 @@ namespace ACE.Entity.Enum.Properties
         TeleportedCharacter              = 42,
         Pet                              = 43,
         PetOwner                         = 44,
-        PetDevice                        = 45
+        PetDevice                        = 45,
+
+        [ServerOnly]
+        PCAPRecordedObjectIID            = 8000,
+        [ServerOnly]
+        PCAPRecordedParentIID            = 8008
     }
 
     public static class PropertyInstanceIdExtensions
