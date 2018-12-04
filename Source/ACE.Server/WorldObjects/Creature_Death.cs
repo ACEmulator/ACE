@@ -18,7 +18,6 @@ namespace ACE.Server.WorldObjects
     partial class Creature
     {
         public TreasureDeath DeathTreasure { get => DeathTreasureType.HasValue ? DatabaseManager.World.GetCachedDeathTreasure(DeathTreasureType.Value) : null; }
-
         /// <summary>
         /// Called when a monster or player dies, in conjunction with Die()
         /// </summary>
@@ -78,8 +77,8 @@ namespace ACE.Server.WorldObjects
             dieChain.AddAction(this, () =>
             {
                 NotifyOfEvent(RegenerationType.Destruction);
-                LandblockManager.RemoveObject(this);
                 CreateCorpse();
+                LandblockManager.RemoveObject(this);
             });
 
             dieChain.EnqueueChain();

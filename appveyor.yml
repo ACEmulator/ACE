@@ -1,21 +1,22 @@
-services:
-  - mysql
 version: 0.0.{build}
-image: Visual Studio 2017
 pull_requests:
   do_not_increment_build_number: true
+image: Visual Studio 2017
 platform: x64
+services: mysql
 before_build:
-- cmd: >-
-    source\AppVeyor\AppVeyorBeforeCompile.bat
-
+- cmd: source\AppVeyor\AppVeyorBeforeCompile.bat
 build:
   project: source\ACE.sln
   verbosity: minimal
+after_build:
+- cmd: source\AppVeyor\AppVeyorAfterCompile.bat
 test_script:
- - cmd: dotnet test --diag ACETests-Server.txt --no-build "Source\ACE.Server.Tests"
- - cmd: dotnet test --diag ACETests-Database.txt --no-build "Source\ACE.Database.Tests"
+- cmd: >-
+    dotnet test --diag ACETests-Server.txt --no-build "Source\ACE.Server.Tests" --test-adapter-path:. --logger:Appveyor
+
+    dotnet test --diag ACETests-Database.txt --no-build "Source\ACE.Database.Tests" --test-adapter-path:. --logger:Appveyor
 artifacts:
-  - path: '**\ACETests*.txt'
-    name: test logs
-    type: zip
+- path: '**\ACETests*.txt'
+  name: test logs
+  type: zip

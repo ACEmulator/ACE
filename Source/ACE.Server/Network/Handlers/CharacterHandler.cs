@@ -117,7 +117,7 @@ namespace ACE.Server.Network.Handlers
             }
 
 
-            var result = PlayerFactory.Create(characterCreateInfo, weenie, guid, session.Id, out var player);
+            var result = PlayerFactory.Create(characterCreateInfo, weenie, guid, session.AccountId, out var player);
 
             if (result != PlayerFactory.CreateResult.Success || player == null)
             {

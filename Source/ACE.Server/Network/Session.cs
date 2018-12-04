@@ -32,7 +32,7 @@ namespace ACE.Server.Network
         public SessionState State { get; set; }
 
 
-        public uint Id { get; private set; }
+        public uint AccountId { get; private set; }
 
         public string Account { get; private set; }
 
@@ -149,7 +149,7 @@ namespace ACE.Server.Network
 
         public void SetAccount(uint accountId, string account, AccessLevel accountAccesslevel)
         {
-            Id = accountId;
+            AccountId = accountId;
             Account = account;
             AccessLevel = accountAccesslevel;
         }

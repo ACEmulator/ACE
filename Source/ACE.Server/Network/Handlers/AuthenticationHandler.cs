@@ -141,7 +141,7 @@ namespace ACE.Server.Network.Handlers
         {
             PacketInboundConnectResponse connectResponse = new PacketInboundConnectResponse(packet);
 
-            DatabaseManager.Shard.GetCharacters(session.Id, false, result =>
+            DatabaseManager.Shard.GetCharacters(session.AccountId, false, result =>
             {
                 // If you want to create default characters for accounts that have none, here is where you would do it.
 

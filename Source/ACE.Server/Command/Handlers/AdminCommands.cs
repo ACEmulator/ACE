@@ -1387,7 +1387,7 @@ namespace ACE.Server.Command.Handlers
 
             weenie.Type = (int)session.Player.WeenieType;
 
-            var player = new Player(weenie, guid, session.Id);
+            var player = new Player(weenie, guid, session.AccountId);
             player.Location = session.Player.Location;
 
             player.Character.CharacterOptions1 = session.Player.Character.CharacterOptions1;
