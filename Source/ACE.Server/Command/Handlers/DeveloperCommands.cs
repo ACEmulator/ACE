@@ -417,7 +417,7 @@ namespace ACE.Server.Command.Handlers
 
             foreach (var player in PlayerManager.GetAllOnline())
             {
-                message += $"{player.Name} : {player.Session.Id}\n";
+                message += $"{player.Name} : {player.Session.AccountId}\n";
                 playerCounter++;
             }
 

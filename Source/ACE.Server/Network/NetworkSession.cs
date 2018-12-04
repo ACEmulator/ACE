@@ -678,14 +678,32 @@ namespace ACE.Server.Network
 
             if (packetLog.IsDebugEnabled)
             {
-                System.Net.IPEndPoint listenerEndpoint = (System.Net.IPEndPoint)socket.LocalEndPoint;
-                StringBuilder sb = new StringBuilder();
-                sb.AppendLine(String.Format("[{5}] Sending Packet (Len: {0}) [{1}:{2}=>{3}:{4}]", payload.Length, listenerEndpoint.Address, listenerEndpoint.Port, session.EndPoint.Address, session.EndPoint.Port, session.Id));
+                var listenerEndpoint = (System.Net.IPEndPoint)socket.LocalEndPoint;
+                var sb = new StringBuilder();
+                sb.AppendLine(String.Format("[{5}] Sending Packet (Len: {0}) [{1}:{2}=>{3}:{4}]", payload.Length, listenerEndpoint.Address, listenerEndpoint.Port, session.EndPoint.Address, session.EndPoint.Port, session.Network.ClientId));
                 sb.AppendLine(payload.BuildPacketString());
                 packetLog.Debug(sb.ToString());
             }
 
-            socket.SendTo(payload, session.EndPoint);
+            try
+            {
+                socket.SendTo(payload, session.EndPoint);
+            }
+            catch (SocketException ex)
+            {
+                // Unhandled Exception: System.Net.Sockets.SocketException: A message sent on a datagram socket was larger than the internal message buffer or some other network limit, or the buffer used to receive a datagram into was smaller than the datagram itself
+                // at System.Net.Sockets.Socket.UpdateStatusAfterSocketErrorAndThrowException(SocketError error, String callerName)
+                // at System.Net.Sockets.Socket.SendTo(Byte[] buffer, Int32 offset, Int32 size, SocketFlags socketFlags, EndPoint remoteEP)
+
+                var listenerEndpoint = (System.Net.IPEndPoint)socket.LocalEndPoint;
+                var sb = new StringBuilder();
+                sb.AppendLine(ex.ToString());
+                sb.AppendLine(String.Format("[{5}] Sending Packet (Len: {0}) [{1}:{2}=>{3}:{4}]", payload.Length, listenerEndpoint.Address, listenerEndpoint.Port, session.EndPoint.Address, session.EndPoint.Port, session.Network.ClientId));
+                sb.AppendLine(payload.BuildPacketString());
+                log.Error(sb.ToString());
+
+                session.State = Enum.SessionState.NetworkTimeout; // This will force WorldManager to drop the session
+            }
         }
 
         /// <summary>
