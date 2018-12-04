@@ -29,7 +29,7 @@ namespace ACE.Database.SQLFormatters.World
 
         public void CreateSQLDELETEStatement(IList<LandblockInstance> input, StreamWriter writer)
         {
-            throw new NotImplementedException();
+            writer.WriteLine($"DELETE FROM `landblock_instance` WHERE `landblock` = {input[0].ObjCellId >> 16};");
         }
 
         /// <exception cref="System.Exception">WeenieClassNames must be set, and must have a record for input.ClassId.</exception>
