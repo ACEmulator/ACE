@@ -76,6 +76,12 @@ namespace ACE.Database
         }
 
 
+        public int GetBiotaCount()
+        {
+            using (var context = new ShardDbContext())
+                return context.Biota.Count();
+        }
+
         [Flags]
         enum PopulatedCollectionFlags
         {
