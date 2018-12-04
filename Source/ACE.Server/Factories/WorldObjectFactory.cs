@@ -220,6 +220,10 @@ namespace ACE.Server.Factories
                     return new SkillAlterationDevice(biota);
                 case WeenieType.PressurePlate:
                     return new PressurePlate(biota);
+                case WeenieType.PetDevice:
+                    return new PetDevice(biota);
+                case WeenieType.Pet:
+                    return new Creature(biota);
                 default:
                     return new GenericObject(biota);
             }

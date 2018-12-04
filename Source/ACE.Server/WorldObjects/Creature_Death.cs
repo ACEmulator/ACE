@@ -197,7 +197,7 @@ namespace ACE.Server.WorldObjects
         private void GenerateTreasure(Corpse corpse)
         {
             var random = new Random((int)DateTime.UtcNow.Ticks);
-            int level = (int)Level;
+            int level = Level ?? 0;
             int tier;
             if (level < 16)
             {

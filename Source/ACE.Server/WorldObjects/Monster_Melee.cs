@@ -114,6 +114,8 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public CombatManeuver GetCombatManeuver()
         {
+            if (CombatTable == null) return null;
+
             //ShowCombatTable();
 
             // for some reason, the combat maneuvers table can return stance motions that don't exist in the motion table
