@@ -204,7 +204,7 @@ namespace ACE.Server.Managers
             sessionLock.EnterReadLock();
             try
             {
-                return sessions.SingleOrDefault(s => s.Id == accountId);
+                return sessions.SingleOrDefault(s => s.AccountId == accountId);
             }
             finally
             {

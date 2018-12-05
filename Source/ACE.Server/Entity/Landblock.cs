@@ -435,9 +435,10 @@ namespace ACE.Server.Entity
         /// <summary>
         /// Returns landblock objects with physics initialized
         /// </summary>
-        public IEnumerable<WorldObject> GetWorldObjectsForPhysicsHandling()
+        public List<WorldObject> GetWorldObjectsForPhysicsHandling()
         {
-            return worldObjects.Values;
+            // If a missile is destroyed when it runs it's UpdateObjectPhysics(), it will remove itself from the landblock, thus, modifying the worldObjects collection.
+            return worldObjects.Values.ToList();
         }
 
         /// <summary>
