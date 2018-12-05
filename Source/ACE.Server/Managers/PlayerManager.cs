@@ -210,7 +210,7 @@ namespace ACE.Server.Managers
         /// <summary>
         /// This will return true if the player was successfully added.
         /// It will return false if the player was not found in the OfflinePlayers dictionary (which should never happen), or player already exists in the OnlinePlayers dictionary (which should never happen).
-        /// This will always be preceded by a call to GetOfflinePlayer()<para />
+        /// This will always be preceded by a call to GetOfflinePlayer()
         /// </summary>
         public static bool SwitchPlayerFromOfflineToOnline(Player player)
         {
@@ -271,10 +271,26 @@ namespace ACE.Server.Managers
             return true;
         }
 
-        public static void ProcessDeletedPlayer(uint guid)
+        /// <summary>
+        /// This will return true if the player was successfully found and removed from the OfflinePlayers dictionary.
+        /// It will return false if the player was not found in the OfflinePlayers dictionary (which should never happen).
+        /// </summary>
+        public static bool ProcessDeletedPlayer(uint guid)
         {
-            // todo
-            // update allegiance
+            playersLock.EnterWriteLock();
+            try
+            {
+                if (!offlinePlayers.Remove(guid, out var offlinePlayer))
+                    return false; // This should never happen
+
+                // TODO break allegiance, etc...
+            }
+            finally
+            {
+                playersLock.ExitWriteLock();
+            }
+
+            return true;
         }
 
 

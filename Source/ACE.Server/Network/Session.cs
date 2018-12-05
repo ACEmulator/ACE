@@ -225,6 +225,8 @@ namespace ACE.Server.Network
                 Player.LogOut(true);
                 PlayerManager.SwitchPlayerFromOnlineToOffline(Player);
                 Player = null;
+
+                // At this point, if the player was on a landblock, they'll still exist on that landblock until the logout animation completes (~6s).
             }
 
             WorldManager.RemoveSession(this);

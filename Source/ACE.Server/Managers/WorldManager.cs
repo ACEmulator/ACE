@@ -173,12 +173,10 @@ namespace ACE.Server.Managers
             try
             {
                 log.DebugFormat("Removing session for {0} with id {1}", session.EndPoint, session.Network.ClientId);
-                if (sessions.Contains(session))
-                    sessions.Remove(session);
+                sessions.Remove(session);
                 if (sessionMap[session.Network.ClientId] == session)
                     sessionMap[session.Network.ClientId] = null;
-                if (loggedInClients.Contains(session.EndPoint))
-                    loggedInClients.Remove(session.EndPoint);
+                loggedInClients.Remove(session.EndPoint);
             }
             finally
             {
@@ -496,10 +494,7 @@ namespace ACE.Server.Managers
                 var deadSessions = sessions.FindAll(s => s.State == Network.Enum.SessionState.NetworkTimeout);
 
                 foreach (var session in deadSessions)
-                {
                     session.DropSession("Network Timeout");
-                    RemoveSession(session); // This will temporarily upgrade our ReadLock to a WriteLock
-                }
             }
             finally
             {
