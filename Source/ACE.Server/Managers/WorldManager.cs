@@ -497,8 +497,7 @@ namespace ACE.Server.Managers
 
                 foreach (var session in deadSessions)
                 {
-                    log.Info($"client {session.Account} dropped");
-                    session.RemovePlayer();
+                    session.DropSession("Network Timeout");
                     RemoveSession(session); // This will temporarily upgrade our ReadLock to a WriteLock
                 }
             }

@@ -9,7 +9,6 @@ using ACE.Common;
 using ACE.Database;
 using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
-using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity.Actions;
 using ACE.Server.WorldObjects;
 using ACE.Server.Managers;
@@ -73,21 +72,6 @@ namespace ACE.Server.Network
             return true;
         }
 
-        private void HandleDisconnectResponse()
-        {
-            if (Player != null)
-            {
-                Player.SavePlayerToDatabase();
-                Player.EnqueueLogout(true);
-
-                PlayerManager.SwitchPlayerFromOnlineToOffline(Player);
-            }
-
-            log.Info($"client {Account} disconnected");
-
-            WorldManager.RemoveSession(this);
-        }
-
         public void ProcessPacket(ClientPacket packet)
         {
             if (!CheckState(packet))
@@ -96,7 +80,7 @@ namespace ACE.Server.Network
             Network.ProcessPacket(packet);
 
             if (packet.Header.HasFlag(PacketHeaderFlags.Disconnect))
-                HandleDisconnectResponse();
+                DropSession("PacketHeader Disconnect");
         }
 
         public uint GetIssacValue(PacketDirection direction)
@@ -193,18 +177,13 @@ namespace ACE.Server.Network
             Player = player;
         }
 
-        public void RemovePlayer()
-        {
-            if (Player != null)
-            {
-                PlayerManager.SwitchPlayerFromOnlineToOffline(Player);
-                Player = null;
-            }
-        }
 
+        /// <summary>
+        /// Log off the player normally
+        /// </summary>
         public void LogOffPlayer()
         {
-            Player.EnqueueLogout();
+            Player.LogOut();
 
             logOffRequestTime = DateTime.UtcNow;
         }
@@ -213,12 +192,13 @@ namespace ACE.Server.Network
         {
             // It's possible for a character change to happen from a GameActionSetCharacterOptions message.
             // This message can be received/processed by the server AFTER LogOfPlayer has been called.
+            // What that means is, we could end up with Character changes after the Character has been saved from the initial LogOff request.
+            // To make sure we commit these additional changes (if any), we check again here
+            if (Player.CharacterChangesDetected)
+                Player.SaveCharacterToDatabase();
 
-            // These properties are used with offline players to determine passup rates
-            Player.SetProperty(PropertyInt.CurrentLoyaltyAtLastLogoff, (int)Player.GetCreatureSkill(Skill.Loyalty).Current);
-            Player.SetProperty(PropertyInt.CurrentLeadershipAtLastLogoff, (int)Player.GetCreatureSkill(Skill.Leadership).Current);
-
-            Player.SavePlayerToDatabase();
+            PlayerManager.SwitchPlayerFromOnlineToOffline(Player);
+            Player = null;
 
             Network.EnqueueSend(new GameMessageCharacterLogOff());
 
@@ -230,8 +210,20 @@ namespace ACE.Server.Network
             Network.EnqueueSend(serverNameMessage);
 
             State = SessionState.AuthConnected;
+        }
 
-            RemovePlayer();
+        public void DropSession(string reason)
+        {
+            log.Info($"client {Account} session dropped, reason: {reason}");
+
+            if (Player != null)
+            {
+                Player.LogOut(true);
+                PlayerManager.SwitchPlayerFromOnlineToOffline(Player);
+                Player = null;
+            }
+
+            WorldManager.RemoveSession(this);
         }
 
         public void BootPlayer()

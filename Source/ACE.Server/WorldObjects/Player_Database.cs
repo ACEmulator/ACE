@@ -6,7 +6,6 @@ using ACE.Database;
 using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
-using ACE.Server.Entity.Actions;
 
 namespace ACE.Server.WorldObjects
 {
@@ -33,6 +32,13 @@ namespace ACE.Server.WorldObjects
         /// Mag-nus 2018-08-19
         /// </summary>
         public readonly ReaderWriterLockSlim CharacterDatabaseLock = new ReaderWriterLockSlim();
+
+        private void SetPropertiesAtLogOut()
+        {
+            // These properties are used with offline players to determine passup rates
+            SetProperty(PropertyInt.CurrentLoyaltyAtLastLogoff, (int)GetCreatureSkill(Skill.Loyalty).Current);
+            SetProperty(PropertyInt.CurrentLeadershipAtLastLogoff, (int)GetCreatureSkill(Skill.Leadership).Current);
+        }
 
         /// <summary>
         /// Saves the character to the persistent database. Includes Stats, Position, Skills, etc.<para />
@@ -64,7 +70,7 @@ namespace ACE.Server.WorldObjects
             DatabaseManager.Shard.SaveBiotasInParallel(biotas, result => log.Debug($"{Name} has been saved. It took {(DateTime.UtcNow - requestedTime).TotalMilliseconds:N0} ms to process the request."));
         }
 
-        private void SaveCharacterToDatabase()
+        public void SaveCharacterToDatabase()
         {
             // Make sure our IsPlussed value is up to date
             bool isPlussed = (GetProperty(PropertyBool.IsAdmin) ?? false) || (GetProperty(PropertyBool.IsArch) ?? false) || (GetProperty(PropertyBool.IsPsr) ?? false) || (GetProperty(PropertyBool.IsSentinel) ?? false);
