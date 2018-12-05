@@ -77,8 +77,8 @@ namespace ACE.Server.Network
         {
             if (Player != null)
             {
-                Player.EnqueueSaveChain();
-                Player.HandleActionLogout(true);
+                Player.SavePlayerToDatabase();
+                Player.EnqueueLogout(true);
 
                 PlayerManager.SwitchPlayerFromOnlineToOffline(Player);
             }
@@ -171,6 +171,8 @@ namespace ACE.Server.Network
 
                     DatabaseManager.Shard.SaveCharacter(Characters[i], new ReaderWriterLockSlim(), null);
 
+                    PlayerManager.ProcessDeletedPlayer(Characters[i].Id);
+
                     Characters.RemoveAt(i);
                 }
             }
@@ -202,15 +204,7 @@ namespace ACE.Server.Network
 
         public void LogOffPlayer()
         {
-            // These properties are used with offline players to determine passup rates
-            Player.SetProperty(PropertyInt.CurrentLoyaltyAtLastLogoff, (int)Player.GetCreatureSkill(Skill.Loyalty).Current);
-            Player.SetProperty(PropertyInt.CurrentLeadershipAtLastLogoff, (int)Player.GetCreatureSkill(Skill.Leadership).Current);
-
-            // First save, then logout
-            ActionChain logoutChain = new ActionChain();
-            logoutChain.AddChain(Player.GetSaveChain());
-            logoutChain.AddChain(Player.GetLogoutChain());
-            logoutChain.EnqueueChain();
+            Player.EnqueueLogout();
 
             logOffRequestTime = DateTime.UtcNow;
         }
@@ -219,10 +213,12 @@ namespace ACE.Server.Network
         {
             // It's possible for a character change to happen from a GameActionSetCharacterOptions message.
             // This message can be received/processed by the server AFTER LogOfPlayer has been called.
-            // What that means is, we could end up with Character changes after the Character has been saved from the initial LogOff request.
-            // To make sure we commit these additional changes (if any), we check again here
-            if (Player.CharacterChangesDetected)
-                Player.SaveCharacterToDatabase();
+
+            // These properties are used with offline players to determine passup rates
+            Player.SetProperty(PropertyInt.CurrentLoyaltyAtLastLogoff, (int)Player.GetCreatureSkill(Skill.Loyalty).Current);
+            Player.SetProperty(PropertyInt.CurrentLeadershipAtLastLogoff, (int)Player.GetCreatureSkill(Skill.Leadership).Current);
+
+            Player.SavePlayerToDatabase();
 
             Network.EnqueueSend(new GameMessageCharacterLogOff());
 
@@ -260,7 +256,6 @@ namespace ACE.Server.Network
         /// <summary>
         /// Sends a broadcast message to the player
         /// </summary>
-        /// <param name="broadcastMessage"></param>
         public void WorldBroadcast(string broadcastMessage)
         {
             var worldBroadcastMessage = new GameMessageSystemChat(broadcastMessage, ChatMessageType.Broadcast);

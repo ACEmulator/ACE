@@ -5,18 +5,12 @@ using System.Linq;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Server.Network.GameMessages.Messages;
-
 using ACE.Server.Physics.Common;
 
 namespace ACE.Server.WorldObjects
 {
     partial class Player
     {
-        /// <summary>
-        /// This will be false when in portal space
-        /// </summary>
-        public bool InWorld { get; set; }
-
         /// <summary>
         /// ObjectId of the currently selected Target (only players and creatures)
         /// </summary>

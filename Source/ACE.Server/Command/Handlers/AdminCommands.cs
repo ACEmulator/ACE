@@ -25,6 +25,8 @@ namespace ACE.Server.Command.Handlers
 {
     public static class AdminCommands
     {
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         // // commandname parameters
         // [CommandHandler("commandname", AccessLevel.Admin, CommandHandlerFlag.RequiresWorld, 0)]
         // public static void HandleHelp(Session session, params string[] parameters)
@@ -151,8 +153,9 @@ namespace ACE.Server.Command.Handlers
                 {
                     case AccountLookupType.Subscription:
                         {
-                            throw new NotImplementedException();
-                            // break;
+                            // Send the error to a player or the console
+                            CommandHandlerHelper.WriteOutputInfo(session, "Boot by Subscription not implemented.", ChatMessageType.Broadcast);
+                            return;
                         }
                     case AccountLookupType.Character:
                         {
@@ -160,7 +163,7 @@ namespace ACE.Server.Command.Handlers
                             if (player != null)
                             {
                                 playerSession = player.Session;
-                                bootId = player.Guid.Low;
+                                bootId = player.Guid.Full;
                             }
                             break;
                         }
@@ -199,7 +202,6 @@ namespace ACE.Server.Command.Handlers
                     }
 
                     // log the boot to file
-                    ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
                     log.Info(bootText);
 
                     // finish execution of command logic
@@ -208,9 +210,8 @@ namespace ACE.Server.Command.Handlers
             }
 
             // Did not find a player
-            string errorText = "Error locating the player or account to boot.";
             // Send the error to a player or the console
-            CommandHandlerHelper.WriteOutputInfo(session, errorText, ChatMessageType.Broadcast);
+            CommandHandlerHelper.WriteOutputInfo(session, "Error locating the player or account to boot.", ChatMessageType.Broadcast);
         }
 
         // deaf < on / off >

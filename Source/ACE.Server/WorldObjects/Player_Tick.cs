@@ -48,7 +48,7 @@ namespace ACE.Server.WorldObjects
                 LastRequestedDatabaseSave = DateTime.UtcNow;
 
             if (LastRequestedDatabaseSave + PlayerSaveInterval <= DateTime.UtcNow)
-                SavePlayer();
+                SavePlayerToDatabase();
 
             base.HeartBeat(currentUnixTime);
         }

@@ -555,12 +555,7 @@ namespace ACE.Server.WorldObjects
         }
 
  
-        public void HandleActionLogout(bool clientSessionTerminatedAbruptly = false)
-        {
-            GetLogoutChain().EnqueueChain();
-        }
-
-        public ActionChain GetLogoutChain(bool clientSessionTerminatedAbruptly = false)
+        public void EnqueueLogout(bool clientSessionTerminatedAbruptly = false)
         {
             ActionChain logoutChain = new ActionChain(this, () => LogoutInternal(clientSessionTerminatedAbruptly));
 
@@ -574,7 +569,7 @@ namespace ACE.Server.WorldObjects
                 logoutChain.AddAction(this, () => CurrentLandblock.RemoveWorldObject(Guid, false));
             }
 
-            return logoutChain;
+            logoutChain.EnqueueChain();
         }
 
         /// <summary>
@@ -585,8 +580,6 @@ namespace ACE.Server.WorldObjects
         {
             if (Fellowship != null)
                 FellowshipQuit(false);
-
-            InWorld = false;
 
             if (!clientSessionTerminatedAbruptly)
             {

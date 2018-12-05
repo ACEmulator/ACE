@@ -1,5 +1,9 @@
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Threading;
 
+using ACE.Database;
+using ACE.Database.Models.Shard;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Server.Managers;
@@ -144,6 +148,8 @@ namespace ACE.Server.WorldObjects
                     session.Network.EnqueueSend(new GameEventCommunicationTransientString(session, "The items are being traded"));
                     target.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(target.Session, "The items are being traded"));
 
+                    var tradedItems = new Collection<(Biota biota, ReaderWriterLockSlim rwLock)>();
+
                     foreach (ObjectGuid itemGuid in session.Player.ItemsInTradeWindow)
                     {
                         WorldObject wo = GetInventoryItem(itemGuid);
@@ -154,6 +160,8 @@ namespace ACE.Server.WorldObjects
 
                             target.TryCreateInInventoryWithNetworking(wo);
 
+                            wo.SaveBiotaToDatabase(false);
+                            tradedItems.Add((wo.Biota, wo.BiotaDatabaseLock));
                         }
                     }
 
@@ -167,6 +175,8 @@ namespace ACE.Server.WorldObjects
 
                             session.Player.TryCreateInInventoryWithNetworking(wo);
 
+                            wo.SaveBiotaToDatabase(false);
+                            tradedItems.Add((wo.Biota, wo.BiotaDatabaseLock));
                         }
                     }
 
@@ -176,8 +186,7 @@ namespace ACE.Server.WorldObjects
                     session.Player.HandleActionResetTrade(session, new ObjectGuid(0));
                     target.HandleActionResetTrade(target.Session, new ObjectGuid(0));
 
-                    session.Player.EnqueueSaveChain();
-                    target.EnqueueSaveChain();
+                    DatabaseManager.Shard.SaveBiotasInParallel(tradedItems, null);
                 }
             }
         }

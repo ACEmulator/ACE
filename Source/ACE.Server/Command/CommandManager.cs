@@ -167,7 +167,7 @@ namespace ACE.Server.Command
             if (commandInfo.Attribute.ParameterCount != -1 && parameters.Length < commandInfo.Attribute.ParameterCount)
                 return CommandHandlerResponse.InvalidParameterCount;
 
-            if ((commandInfo.Attribute.Flags & CommandHandlerFlag.RequiresWorld) != 0 && (session == null || session.Player == null || !session.Player.InWorld))
+            if ((commandInfo.Attribute.Flags & CommandHandlerFlag.RequiresWorld) != 0 && (session == null || session.Player == null || session.Player.CurrentLandblock == null))
                 return CommandHandlerResponse.NotInWorld;
 
             if (isSUDOauthorized)

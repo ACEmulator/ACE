@@ -271,6 +271,12 @@ namespace ACE.Server.Managers
             return true;
         }
 
+        public static void ProcessDeletedPlayer(uint guid)
+        {
+            // todo
+            // update allegiance
+        }
+
 
         /// <summary>
         /// This will return null if the name was not found.
