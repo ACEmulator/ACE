@@ -122,10 +122,7 @@ namespace ACE.Server.Network
 
             // Check if the player has been booted
             if (bootSession)
-            {
-                SendFinalBoot();
                 State = SessionState.NetworkTimeout;
-            }
         }
 
 
@@ -212,9 +209,16 @@ namespace ACE.Server.Network
             State = SessionState.AuthConnected;
         }
 
+        public void BootPlayer()
+        {
+            Network.EnqueueSend(new GameMessageBootAccount(this));
+
+            bootSession = true;
+        }
+
         public void DropSession(string reason)
         {
-            log.Info($"client {Account} session dropped, reason: {reason}");
+            log.Info($"Session dropped. Account: {Account}, Player: {Player?.Name}, Reason: {reason}");
 
             if (Player != null)
             {
@@ -224,19 +228,6 @@ namespace ACE.Server.Network
             }
 
             WorldManager.RemoveSession(this);
-        }
-
-        public void BootPlayer()
-        {
-            bootSession = true;
-        }
-
-        private void SendFinalBoot()
-        {
-            // Note that: Currently, if a player is able to block this specific message
-            // then they will not be booted from the server, this was noticed in practice and test.
-            // TODO: Hook in a player disconnect function and prevent the LogOffPlayer() function from firing after this diconnect has occurred.
-            Network.EnqueueSend(new GameMessageBootAccount(this));
         }
 
 
