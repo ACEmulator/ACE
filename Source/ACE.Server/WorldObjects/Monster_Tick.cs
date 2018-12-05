@@ -42,23 +42,19 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if (AttackTarget.IsDestroyed)
+            if (AttackTarget.IsDestroyed && !FindNextTarget())
             {
                 Sleep();
-
-                if (IsPet)
-                {
-                    //We're a pet, find a new target
-                    PetFindTarget();
-                }
                 return;
             }
 
             var creatureTarget = AttackTarget as Creature;
-            if (creatureTarget != null && (creatureTarget.IsDead || !creatureTarget.IsVisible(this)) && !(AttackTarget.WeenieClassId == 49114) && !(WeenieClassId == 49114))
+
+            if (creatureTarget != null && (creatureTarget.IsDead || !creatureTarget.IsVisible(this) && !IsPet))
             {
-                Console.WriteLine("Target is not visible");
-                Sleep();
+                //Console.WriteLine("Target is not visible");
+                if (!FindNextTarget())
+                    Sleep();
                 return;
             }
 

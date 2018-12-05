@@ -62,7 +62,8 @@ namespace ACE.Server.WorldObjects
             PhysicsObj.stick_to_object(AttackTarget.PhysicsObj.ID);
 
             var actionChain = new ActionChain();
-            actionChain.AddDelaySeconds(animLength / 3.0f);     // TODO: get attack frame?
+            var delayFactor = IsPet ? 1.5f : 3.0f;
+            actionChain.AddDelaySeconds(animLength / delayFactor);     // TODO: get attack frame?
             actionChain.AddAction(this, () =>
             {
                 if (AttackTarget == null) return;

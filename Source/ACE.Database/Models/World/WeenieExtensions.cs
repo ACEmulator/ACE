@@ -116,6 +116,16 @@ namespace ACE.Database.Models.World
             return weenie.WeeniePropertiesString.FirstOrDefault(x => x.Type == (uint)property)?.Value;
         }
 
+        public static WeeniePropertiesAttribute GetProperty(this Weenie weenie, PropertyAttribute property)
+        {
+            return weenie.WeeniePropertiesAttribute.FirstOrDefault(x => x.Type == (uint)property);
+        }
+
+        public static WeeniePropertiesAttribute2nd GetProperty(this Weenie weenie, PropertyAttribute2nd property)
+        {
+            return weenie.WeeniePropertiesAttribute2nd.FirstOrDefault(x => x.Type == (uint)property);
+        }
+
         public static WeeniePropertiesTextureMap GetTextureMap(this Weenie weenie, byte index)
         {
             return weenie.WeeniePropertiesTextureMap.FirstOrDefault(x => x.Index == index);

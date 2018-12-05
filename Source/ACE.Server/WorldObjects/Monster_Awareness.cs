@@ -51,10 +51,25 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void Sleep()
         {
+            // temporary
+            if (IsPet) return;
+
             AttackTarget = null;
             IsAwake = false;
             IsMoving = false;
             MonsterState = State.Idle;
+        }
+
+        public bool FindNextTarget()
+        {
+            if (!IsPet)
+                return false;
+
+            // rebuild visible objects (handle this better for monsters)
+            PhysicsObj.ObjMaint.RemoveAllObjects();
+            PhysicsObj.handle_visible_cells();
+
+            return PetFindTarget() != null;
         }
     }
 }
