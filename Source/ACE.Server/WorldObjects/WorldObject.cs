@@ -83,8 +83,6 @@ namespace ACE.Server.WorldObjects
         public WorldObject ProjectileSource;
         public WorldObject ProjectileTarget;
 
-        public bool IsDestroyed = false;
-
         public WorldObject() { }
 
         /// <summary>
