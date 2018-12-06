@@ -1,41 +1,28 @@
-using System;
-using System.Linq;
+using ACE.Database.Models.Shard;
+using ACE.Database.Models.World;
+using ACE.Entity;
 
 namespace ACE.Server.WorldObjects
 {
     /// <summary>
-    /// Pet AI functions
+    /// A passive summonable creature
     /// </summary>
-    partial class Creature
+    public class Pet : Creature
     {
-        public bool IsPet = false;
-        public DateTime petCreationTime;
-
-        public static TimeSpan ExpirationTime = TimeSpan.FromSeconds(45);
-
-        public WorldObject PetFindTarget(float rangeSquared = RadiusAwarenessSquared)
+        /// <summary>
+        /// A new biota be created taking all of its values from weenie.
+        /// </summary>
+        public Pet(Weenie weenie, ObjectGuid guid) : base(weenie, guid)
         {
-            var visibleObjs = PhysicsObj.ObjMaint.VisibleObjectTable.Values;
+            SetEphemeralValues();
+        }
 
-            //Console.WriteLine($"{Name} searching {visibleObjs.Count} visible objects for target");
-
-            foreach (var obj in visibleObjs)
-            {
-                if (PhysicsObj == obj) continue;
-
-                var target = obj.WeenieObj.WorldObject as Creature;
-
-                if (target == null || target is Player) continue;
-
-                if (Location.SquaredDistanceTo(target.Location) < rangeSquared)
-                {
-                    //Console.WriteLine($"{Name} found target {target.Name}");
-                    AttackTarget = target;
-                    WakeUp();
-                    return AttackTarget;
-                }
-            }
-            return null;
+        /// <summary>
+        /// Restore a WorldObject from the database.
+        /// </summary>
+        public Pet(Biota biota) : base(biota)
+        {
+            SetEphemeralValues();
         }
     }
 }

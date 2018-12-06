@@ -171,7 +171,7 @@ namespace ACE.Server.WorldObjects
             // monsters have separate physics updates
             var creature = this as Creature;
             var monster = creature != null && creature.IsMonster;
-            var pet = creature != null && creature.IsPet;
+            var pet = this as CombatPet;
 
             // determine if updates should be run for object
             //var runUpdate = !monster && (isMissile || !PhysicsObj.IsGrounded);
@@ -186,10 +186,8 @@ namespace ACE.Server.WorldObjects
                     runUpdate = false;
             }
 
-            if (pet)
-            {
-                creature.PetCheckMonsters();
-            }
+            if (pet != null)
+                pet.PetCheckMonsters();
 
             if (!runUpdate) return false;
 

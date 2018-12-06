@@ -23,13 +23,14 @@ namespace ACE.Server.WorldObjects
 
             if (!IsAwake || IsDead) return;
 
+            HandleFindTarget();
+
             if (AttackTarget == null) return;
 
             IsMonster = true;
 
-            //HandleFindTarget();
-
-            if (IsPet && DateTime.UtcNow >= petCreationTime + ExpirationTime)
+            var pet = this as CombatPet;
+            if (pet != null && DateTime.UtcNow >= pet.ExpirationTime)
             {
                 Destroy();
                 return;
@@ -39,20 +40,6 @@ namespace ACE.Server.WorldObjects
             {
                 Sleep();
                 return;
-            }
-
-            var creatureTarget = AttackTarget as Creature;
-
-            if (creatureTarget != null)
-            {
-                if (creatureTarget.IsDead || !creatureTarget.IsVisible(this))
-                {
-                    if (!FindNextTarget())
-                    {
-                        Sleep();
-                        return;
-                    }
-                }
             }
 
             if (FirstUpdate)

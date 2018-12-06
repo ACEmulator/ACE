@@ -1,20 +1,16 @@
+using System;
+using System.Collections.Generic;
+using ACE.Database;
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.Entity;
-using ACE.Server.Entity;
 using ACE.Entity.Enum;
-using ACE.Server.Factories;
-using System.Collections.Generic;
-using System;
-using ACE.Server.Network.Structure;
-using ACE.DatLoader;
-using ACE.Database;
-using ACE.Server.Network.GameEvent.Events;
+using ACE.Server.Managers;
 
 namespace ACE.Server.WorldObjects
 {
     /// <summary>
-    /// For essences (ie. Blistering Moar Essence), used to summon a creature
+    /// Pet Devices are the essences used to summon creatures
     /// </summary>
     public class PetDevice : WorldObject
     {
@@ -38,16 +34,10 @@ namespace ACE.Server.WorldObjects
         {
         }
 
-        /// <summary>
-        /// This is raised by Player.HandleActionUseItem.<para />
-        /// The item does not exist in the players possession.<para />
-        /// If the item was outside of range, the player will have been commanded to move using DoMoveTo before ActOnUse is called.<para />
-        /// When this is called, it should be assumed that the player is within range.
-        /// </summary>
         public override void UseItem(Player player)
         {
-            //Good PCAP example of using a PetDevice to summon a pet:
-            //Asherons-Call-packets-includes-3-towers\pkt_2017-1-30_1485823896_log.pcap lines 27837 - 27843
+            // Good PCAP example of using a PetDevice to summon a pet:
+            // Asherons-Call-packets-includes-3-towers\pkt_2017-1-30_1485823896_log.pcap lines 27837 - 27843
 
             if (!PetDeviceToPetMapping.TryGetValue(WeenieClassId, out var petData))
             {
@@ -56,46 +46,36 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            var petWCID = petData.Item1;
+            var wcid = petData.Item1;
             var damageType = petData.Item2;
 
-            var pet = WorldObjectFactory.CreateNewWorldObject(petWCID) as Creature;
-            if (pet == null)
+            if (!SummonCreature(player, wcid))
             {
                 // this would be a good place to send a friendly reminder to install the latest summoning updates from ACE-World-Patch
-                Console.WriteLine($"PetDevice.UseItem(): failed to create pet for wcid {petWCID}");
-                player.SendUseDoneEvent();
-                return;
             }
-
-            pet.SuppressGenerateEffect = true;
-            pet.NoCorpse = true;
-            pet.IsPet = true;
-            pet.petCreationTime = DateTime.UtcNow;
-            pet.Location = player.Location.InFrontOf(5f);
-            pet.Name = player.Name + "'s " + pet.Name;
-            pet.PetOwner = player.Guid.Full;
-            pet.SetCombatMode(CombatMode.Melee);
-            //pet.CombatTableDID = 0x30000001;
-            pet.EnterWorld();
-            pet.UpdateObjectPhysics();
-            pet.PetFindTarget();
-
-            /*var spellBase = DatManager.PortalDat.SpellTable.Spells[32981];
-            var spell = DatabaseManager.World.GetCachedSpell(32981);
-
-            if (spell != null && spellBase != null)
-            {
-                var enchantment = new Enchantment(this, player.Guid, spellBase, spellBase.Duration, 1, (uint)EnchantmentMask.Cooldown, spell.StatModType);
-                player.Session.Network.EnqueueSend(new GameEventMagicUpdateEnchantment(player.Session, enchantment));
-            }
-            else
-            {
-                Console.WriteLine("Cooldown spell or spellBase were null");
-            }
-            */
 
             player.SendUseDoneEvent();
+        }
+
+        public bool SummonCreature(Player player, uint wcid)
+        {
+            // since we are instantiating regular creatures instead of actual CombatPet weenies atm,
+            // bypassing CreateNewWorldObject() here...
+            //var combatPet = WorldObjectFactory.CreateNewWorldObject(wcid) as CombatPet;
+            var weenie = DatabaseManager.World.GetCachedWeenie(wcid);
+            if (weenie == null)
+            {
+                Console.WriteLine($"Couldn't find pet wcid #{wcid}");
+                return false;
+            }
+            var combatPet = new CombatPet(weenie, GuidManager.NewDynamicGuid());
+            if (combatPet == null)
+            {
+                Console.WriteLine($"PetDevice.UseItem(): failed to create pet for wcid {wcid}");
+                return false;
+            }
+            combatPet.Init(player);
+            return true;
         }
 
         /// <summary>

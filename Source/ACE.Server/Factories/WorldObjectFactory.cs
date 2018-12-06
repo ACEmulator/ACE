@@ -118,7 +118,9 @@ namespace ACE.Server.Factories
                 case WeenieType.PetDevice:
                     return new PetDevice(weenie, guid);
                 case WeenieType.Pet:
-                    return new Creature(weenie, guid);
+                    return new Pet(weenie, guid);
+                case WeenieType.CombatPet:
+                    return new CombatPet(weenie, guid);
                 default:
                     return new GenericObject(weenie, guid);
             }
@@ -223,7 +225,9 @@ namespace ACE.Server.Factories
                 case WeenieType.PetDevice:
                     return new PetDevice(biota);
                 case WeenieType.Pet:
-                    return new Creature(biota);
+                    return new Pet(biota);
+                case WeenieType.CombatPet:
+                    return new CombatPet(biota);
                 default:
                     return new GenericObject(biota);
             }

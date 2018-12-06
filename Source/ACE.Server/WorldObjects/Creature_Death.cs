@@ -153,11 +153,8 @@ namespace ACE.Server.WorldObjects
 
                 if (killer != null)
                 {
-                    var killerCreature = killer as Creature;
-                    var killerIsPet = killer != null && killerCreature.IsPet;
-
                     corpse.LongDesc = $"Killed by {killer.Name}";
-                    if (killerIsPet)
+                    if (killer is CombatPet)
                     {
                         corpse.SetProperty(PropertyInstanceId.AllowedActivator, killer.PetOwner.Value);
                     }

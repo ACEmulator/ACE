@@ -37,7 +37,8 @@ namespace ACE.Server.WorldObjects
         {
             var target = AttackTarget as Creature;
             var targetPlayer = AttackTarget as Player;
-            var pet = target != null && target.IsPet;
+            var targetPet = AttackTarget as CombatPet;
+            var combatPet = this as CombatPet;
 
             if (target == null || !target.IsAlive)
             {
@@ -62,7 +63,7 @@ namespace ACE.Server.WorldObjects
             PhysicsObj.stick_to_object(AttackTarget.PhysicsObj.ID);
 
             var actionChain = new ActionChain();
-            var delayFactor = IsPet ? 1.5f : 3.0f;
+            var delayFactor = combatPet != null ? 1.5f : 3.0f;
             actionChain.AddDelaySeconds(animLength / delayFactor);     // TODO: get attack frame?
             actionChain.AddAction(this, () =>
             {
@@ -77,19 +78,16 @@ namespace ACE.Server.WorldObjects
 
                 if (damage > 0.0f)
                 {
-                    if (pet)
+                    if (combatPet != null || targetPet != null)
                     {
-                        //This should be a pet receiving damage
+                        // combat pet inflicting or receiving damage
+                        //Console.WriteLine($"{target.Name} taking {Math.Round(damage)} {damageType} damage from {Name}");
                         target.TakeDamage(this, damageType, damage);
+                        EmitSplatter(target, damage);
                     }
-                    else if (!pet && targetPlayer == null)
+                    else
                     {
-                        //This should be a pet inflicting damage on another creature
-                        target.TakeDamage(this, damageType, damage);
-                    }
-                    else if (!pet && targetPlayer != null)
-                    {
-                        //This should be a player receiving damage
+                        // this is a player taking damage
                         targetPlayer.TakeDamage(this, damageType, damage, bodyPart, critical);
 
                         if (shieldMod != 1.0f)
@@ -293,13 +291,7 @@ namespace ACE.Server.WorldObjects
             var player = AttackTarget as Player;
             var recklessnessMod = player != null ? player.GetRecklessnessMod() : 1.0f;
             var target = AttackTarget as Creature;
-            var targetPlayer = AttackTarget as Player;
-            var pet = target != null && target.IsPet;
-
-            if (pet)
-                recklessnessMod = 1.0f;
-            else
-                recklessnessMod = targetPlayer != null ? targetPlayer.GetRecklessnessMod() : 1.0f;
+            var targetPet = AttackTarget as CombatPet;
 
             // monster weapon / attributes
             var weapon = GetEquippedWeapon();

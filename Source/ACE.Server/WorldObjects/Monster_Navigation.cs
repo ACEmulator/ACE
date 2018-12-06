@@ -123,7 +123,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void StartMove()
         {
-            LastMoveTime = Timers.RunningTime;;
+            LastMoveTime = Timers.RunningTime;
             IsMoving = true;
         }
 
@@ -218,13 +218,13 @@ namespace ACE.Server.WorldObjects
         public void Movement()
         {
             //if (!IsRanged)
-                UpdatePosition();
+            UpdatePosition();
 
             if (GetDistanceToTarget() >= MaxChaseRange)
                 Sleep();
         }
 
-        public static bool ForcePos = true;
+        public static bool ForcePos = false;
 
         public void UpdatePosition()
         {
@@ -232,7 +232,8 @@ namespace ACE.Server.WorldObjects
             UpdatePosition_SyncLocation();
 
             //SendUpdatePosition(ForcePos);
-            SendUpdatePosition();
+            if (ForcePos)
+                SendUpdatePosition();
 
             if (DebugMove)
                 Console.WriteLine($"{Name} ({Guid}) - UpdatePosition (velocity: {PhysicsObj.CachedVelocity.Length()})");
