@@ -5,7 +5,9 @@ using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
+using ACE.Entity.Enum.Properties;
 using ACE.Server.Managers;
+using ACE.Server.Network.GameMessages.Messages;
 
 namespace ACE.Server.WorldObjects
 {
@@ -20,6 +22,9 @@ namespace ACE.Server.WorldObjects
         public PetDevice(Weenie weenie, ObjectGuid guid) : base(weenie, guid)
         {
             SetEphemeralValues();
+
+            // todo: remove me when the data is fixed
+            Structure = MaxStructure;
         }
 
         /// <summary>
@@ -46,15 +51,81 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
+            if (!CheckRequirements(player))
+                return;
+
+            if (!CheckCooldown(player))
+            {
+                // 'You have used this item too recently' error message?
+                player.SendUseDoneEvent();  
+                return;
+            }
+
             var wcid = petData.Item1;
             var damageType = petData.Item2;
 
-            if (!SummonCreature(player, wcid))
+            if (SummonCreature(player, wcid))
+            {
+                // track usage for cooldown
+                if (!player.LastUseTracker.ContainsKey(CooldownId.Value))
+                    player.LastUseTracker.Add(CooldownId.Value, DateTime.UtcNow);
+                else
+                    player.LastUseTracker[CooldownId.Value] = DateTime.UtcNow;
+
+                // decrease remaining uses
+                if (--Structure <= 0)
+                    player.TryRemoveItemFromInventoryWithNetworkingWithDestroy(this, 1);
+
+                player.Session.Network.EnqueueSend(new GameMessagePublicUpdatePropertyInt(this, PropertyInt.Structure, Structure.Value));
+            }
+            else
             {
                 // this would be a good place to send a friendly reminder to install the latest summoning updates from ACE-World-Patch
             }
 
             player.SendUseDoneEvent();
+        }
+
+        public bool CheckRequirements(Player player)
+        {
+            // verify player level
+            if (UseRequiresLevel != null && player.Level.Value < UseRequiresLevel)
+            {
+                player.SendUseDoneEvent(WeenieError.SkillTooLow);
+                return false;
+            }
+
+            // verify summoning skill
+            var summoning = player.GetCreatureSkill(Skill.Summoning);
+            if (summoning.AdvancementClass < SkillAdvancementClass.Trained)
+            {
+                player.SendUseDoneEvent(WeenieError.SkillTooLow);
+                return false;
+            }
+            if (UseRequiresSkillLevel != null && summoning.Current < UseRequiresSkillLevel)
+            {
+                player.SendUseDoneEvent(WeenieError.SkillTooLow);
+                return false;
+            }
+
+            // verify summoning specialization
+            if (summoning.AdvancementClass < SkillAdvancementClass.Specialized && UseRequiresSkillSpec == (int)Skill.Summoning)
+            {
+                player.SendUseDoneEvent(WeenieError.SkillTooLow);
+                return false;
+            }
+
+            // TODO: verify error messages w/ retail
+
+            return true;
+        }
+
+        public bool CheckCooldown(Player player)
+        {
+            if (!player.LastUseTracker.TryGetValue(CooldownId.Value, out var lastUseTime))
+                return true;
+
+            return DateTime.UtcNow >= lastUseTime + TimeSpan.FromSeconds(CooldownDuration.Value);
         }
 
         public bool SummonCreature(Player player, uint wcid)

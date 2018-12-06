@@ -186,9 +186,6 @@ namespace ACE.Server.WorldObjects
                     runUpdate = false;
             }
 
-            if (pet != null)
-                pet.PetCheckMonsters();
-
             if (!runUpdate) return false;
 
             if (isMissile && physicsCreationTime + ProjectileTimeout <= PhysicsTimer.CurrentTime)

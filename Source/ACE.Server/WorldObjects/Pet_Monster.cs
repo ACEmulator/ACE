@@ -31,7 +31,6 @@ namespace ACE.Server.WorldObjects
                     PetAlertMonster(target);
             }
         }
-        
 
         /// <summary>
         /// Wakes up a monster if it can be alerted

@@ -41,7 +41,6 @@ namespace ACE.Server.WorldObjects
             PetOwner = player.Guid.Full;
             SetCombatMode(CombatMode.Melee);
             EnterWorld();
-            UpdateObjectPhysics();
 
             MonsterState = State.Awake;
             IsAwake = true;
