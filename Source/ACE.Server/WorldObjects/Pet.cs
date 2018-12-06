@@ -11,6 +11,8 @@ namespace ACE.Server.WorldObjects
         public bool IsPet = false;
         public DateTime petCreationTime;
 
+        public static TimeSpan ExpirationTime = TimeSpan.FromSeconds(45);
+
         public WorldObject PetFindTarget(float rangeSquared = RadiusAwarenessSquared)
         {
             var visibleObjs = PhysicsObj.ObjMaint.VisibleObjectTable.Values;

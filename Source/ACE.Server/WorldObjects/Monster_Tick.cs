@@ -27,18 +27,11 @@ namespace ACE.Server.WorldObjects
 
             IsMonster = true;
 
-            if (IsPet && (DateTime.UtcNow >= (petCreationTime + (new TimeSpan(0,0,45)))))
-            {
-                //Pet has expired
-                Sleep();
-                Destroy();
-                return;
-            }
+            //HandleFindTarget();
 
-            if (AttackTarget.Guid.Full == PetOwner)
+            if (IsPet && DateTime.UtcNow >= petCreationTime + ExpirationTime)
             {
-                //Pet's shouldn't attack their owners
-                Sleep();
+                Destroy();
                 return;
             }
 
@@ -50,12 +43,16 @@ namespace ACE.Server.WorldObjects
 
             var creatureTarget = AttackTarget as Creature;
 
-            if (creatureTarget != null && (creatureTarget.IsDead || !creatureTarget.IsVisible(this) && !IsPet))
+            if (creatureTarget != null)
             {
-                //Console.WriteLine("Target is not visible");
-                if (!FindNextTarget())
-                    Sleep();
-                return;
+                if (creatureTarget.IsDead || !creatureTarget.IsVisible(this))
+                {
+                    if (!FindNextTarget())
+                    {
+                        Sleep();
+                        return;
+                    }
+                }
             }
 
             if (FirstUpdate)
