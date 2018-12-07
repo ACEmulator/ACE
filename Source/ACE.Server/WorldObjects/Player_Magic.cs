@@ -525,7 +525,7 @@ namespace ACE.Server.WorldObjects
             var difficulty = spell.Power;
 
             // is this needed? should talismans remain the same, regardless of player spell formula?
-            spell.Formula.GetPlayerFormula(player.Session.Account);
+            spell.Formula.GetPlayerFormula(player);
 
             var castingPreCheckStatus = CastingPreCheckStatus.CastFailed;
 
@@ -569,7 +569,10 @@ namespace ACE.Server.WorldObjects
             Proficiency.OnSuccessUse(player, player.GetCreatureSkill(Skill.ManaConversion), spell.PowerMod);
             player.UpdateVitalDelta(player.Mana, -(int)manaUsed);
 
-            spell.Formula.GetPlayerFormula(player.Session.Account);
+            spell.Formula.GetPlayerFormula(player);
+
+            // consume components
+            TryBurnComponents(spell);
 
             string spellWords = spell._spellBase.GetSpellWords(DatManager.PortalDat.SpellComponentsTable);
             if (spellWords != null)
@@ -853,7 +856,10 @@ namespace ACE.Server.WorldObjects
             UpdateVital(Mana, Mana.Current - manaUsed);
             Proficiency.OnSuccessUse(this, GetCreatureSkill(Skill.ManaConversion), spell.PowerMod);
 
-            spell.Formula.GetPlayerFormula(Session.Account);
+            spell.Formula.GetPlayerFormula(this);
+
+            // consume components
+            TryBurnComponents(spell);
 
             string spellWords = spell._spellBase.GetSpellWords(DatManager.PortalDat.SpellComponentsTable);
             if (spellWords != null)
@@ -1130,6 +1136,57 @@ namespace ACE.Server.WorldObjects
             if (buff.Spell.NotFound) return null;
             buff.Enchantment = new Enchantment(null, null, spellID, buff.Spell.Duration, 1, (EnchantmentMask)buff.Spell.StatModType, buff.Spell.StatModVal);
             return buff;
+        }
+
+        public void TryBurnComponents(Spell spell)
+        {
+            if (SafeSpellComponents) return;
+
+            var burned = spell.TryBurnComponents();
+            if (burned.Count == 0) return;
+
+            // decrement components
+            foreach (var component in burned)
+            {
+                if (!SpellFormula.SpellComponentsTable.SpellComponents.TryGetValue(component, out var spellComponent))
+                {
+                    Console.WriteLine($"{Name}.TryBurnComponents(): Couldn't find SpellComponent {component}");
+                    continue;
+                }
+
+                var wcid = Spell.GetComponentWCID(component);
+                if (wcid == 0) continue;
+
+                var item = GetInventoryItemsOfWCID(wcid).FirstOrDefault();
+                if (item == null)
+                {
+                    Console.WriteLine($"{Name}.TryBurnComponents({spellComponent.Name}): not found in inventory");
+                    continue;
+                }
+
+                item.StackSize--;
+                if (item.StackSize <= 0)
+                    TryRemoveFromInventoryWithNetworking(item);
+            }
+
+            // send message to player
+            var msg = Spell.GetConsumeString(burned);
+            Session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Magic));
+        }
+
+        public static Dictionary<MagicSchool, uint> FociWCIDs = new Dictionary<MagicSchool, uint>()
+        {
+            { MagicSchool.CreatureEnchantment, 15268 },   // Foci of Enchantment
+            { MagicSchool.ItemEnchantment,     15269 },   // Foci of Artifice
+            { MagicSchool.LifeMagic,           15270 },   // Foci of Verdancy
+            { MagicSchool.WarMagic,            15271 },   // Foci of Strife
+            { MagicSchool.VoidMagic,           43173 },   // Foci of Shadow
+        };
+
+        public bool HasFoci(MagicSchool school)
+        {
+            var wcid = FociWCIDs[school];
+            return Inventory.Values.FirstOrDefault(i => i.WeenieClassId == wcid) != null;
         }
     }
 }

@@ -127,7 +127,8 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// This method will check all containers in our possession. Inventory in main or any packs,
+        /// This method will check all containers in our possession
+        /// in main inventory or any side packs
         /// </summary>
         public bool HasInventoryItem(ObjectGuid objectGuid)
         {
@@ -135,7 +136,8 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// This method is used to get anything in our posession. Inventory in main or any packs,
+        /// This method will check all containers in our possession
+        /// in main inventory or any side packs
         /// </summary>
         public WorldObject GetInventoryItem(ObjectGuid objectGuid)
         {
@@ -143,7 +145,8 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// This method is used to get anything in our posession. Inventory in main or any packs,
+        /// This method will check all containers in our possession
+        /// in main inventory or any side packs
         /// </summary>
         public WorldObject GetInventoryItem(ObjectGuid objectGuid, out Container container)
         {

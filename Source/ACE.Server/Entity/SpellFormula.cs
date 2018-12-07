@@ -4,6 +4,7 @@ using System.Linq;
 using ACE.Entity.Enum;
 using ACE.DatLoader;
 using ACE.DatLoader.FileTypes;
+using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Entity
 {
@@ -130,6 +131,18 @@ namespace ACE.Server.Entity
         public List<uint> PlayerFormula;
 
         /// <summary>
+        /// The scarab + prismatic taper formula
+        /// applies if player has a foci for current magic school
+        /// </summary>
+        public List<uint> FociFormula;
+
+        /// <summary>
+        /// The current spell formula for the player
+        /// either PlayerFormula or FociFormula
+        /// </summary>
+        public List<uint> CurrentFormula;
+
+        /// <summary>
         /// Constructs a SpellFormula from a list of components
         /// </summary>
         /// <param name="spell">The spell for this formula</param>
@@ -190,9 +203,13 @@ namespace ACE.Server.Entity
         /// Builds the pseudo-randomized spell formula
         /// based on account name
         /// </summary>
-        public List<uint> GetPlayerFormula(string account)
+        public List<uint> GetPlayerFormula(Player player)
         {
-            PlayerFormula = SpellTable.GetSpellFormula(SpellTable, Spell.Id, account);
+            PlayerFormula = SpellTable.GetSpellFormula(SpellTable, Spell.Id, player.Session.Account);
+            FociFormula = GetFociFormula();
+
+            GetCurrentFormula(player);
+
             return PlayerFormula;
         }
 
@@ -290,6 +307,35 @@ namespace ACE.Server.Entity
                 return castTime;
 
             return windupTime + castTime;
+        }
+
+        public List<uint> GetFociFormula()
+        {
+            FociFormula = new List<uint>();
+
+            // max 4 prismatic tapers, depending on spell level (client formula)
+            var numTapers = Math.Min(Level, 4);
+
+            var curTapers = 0;
+            for (var i = 0; i < Components.Count; i++)
+            {
+                var component = Components[i];
+                if (IsScarab(component))
+                    FociFormula.Add(component);
+                else
+                {
+                    FociFormula.Add(188);   // prismatic taper
+                    curTapers++;
+                    if (curTapers == numTapers)
+                        break;
+                }
+            }
+            return FociFormula;
+        }
+
+        public void GetCurrentFormula(Player player)
+        {
+            CurrentFormula = player.HasFoci(Spell.School) ? FociFormula : PlayerFormula;
         }
     }
 }

@@ -74,7 +74,7 @@ namespace ACE.DatLoader.FileTypes
 
         private static List<uint> RandomizeVersion1(SpellBase spell, string accountName)
         {
-            List<uint> comps = spell.Formula;
+            List<uint> comps = new List<uint>(spell.Formula);
             bool hasTaper1 = false;
             bool hasTaper2 = false;
             bool hasTaper3 = false;
@@ -124,7 +124,7 @@ namespace ACE.DatLoader.FileTypes
 
         private static List<uint> RandomizeVersion2(SpellBase spell, string accountName)
         {
-            List<uint> comps = spell.Formula;
+            List<uint> comps = new List<uint>(spell.Formula);
 
             uint key = ComputeHash(accountName);
             uint seed = key % 0x13D573;
@@ -142,7 +142,7 @@ namespace ACE.DatLoader.FileTypes
 
         private static List<uint> RandomizeVersion3(SpellBase spell, string accountName)
         {
-            List<uint> comps = spell.Formula;
+            List<uint> comps = new List<uint>(spell.Formula);
 
             uint key = ComputeHash(accountName);
             uint seed1 = key % 0x13D573;
