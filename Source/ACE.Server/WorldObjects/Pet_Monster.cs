@@ -1,12 +1,10 @@
 using System;
-using System.Linq;
-using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 
 namespace ACE.Server.WorldObjects
 {
     /// <summary>
-    /// Handles player->monster visibility checks
+    /// Handles pets waking up monsters
     /// </summary>
     partial class Creature
     {
@@ -15,7 +13,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void PetCheckMonsters(float rangeSquared = RadiusAwarenessSquared)
         {
-            if (GetProperty(PropertyBool.Attackable) ?? false == false) return;
+            //if (GetProperty(PropertyBool.Attackable) ?? true == false) return;
 
             var visibleObjs = PhysicsObj.ObjMaint.VisibleObjectTable.Values;
 
@@ -23,12 +21,12 @@ namespace ACE.Server.WorldObjects
             {
                 if (PhysicsObj == obj) continue;
 
-                var target = obj.WeenieObj.WorldObject as Creature;
+                var monster = obj.WeenieObj.WorldObject as Creature;
 
-                if (target == null || target is Player) continue;
+                if (monster == null || monster is Player) continue;
 
-                if (Location.SquaredDistanceTo(target.Location) < rangeSquared)
-                    PetAlertMonster(target);
+                if (Location.SquaredDistanceTo(monster.Location) < rangeSquared)
+                    PetAlertMonster(monster);
             }
         }
 
@@ -50,7 +48,7 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Called when this player attacks a monster
+        /// Called when a combat pet attacks a monster
         /// </summary>
         public void PetOnAttackMonster(Creature monster)
         {

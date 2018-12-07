@@ -42,6 +42,7 @@ namespace ACE.Server.WorldObjects
             SetCombatMode(CombatMode.Melee);
             EnterWorld();
 
+            Attackable = true;
             MonsterState = State.Awake;
             IsAwake = true;
 

@@ -130,6 +130,10 @@ namespace ACE.Server.WorldObjects
                         Attack();
                 }
             }
+
+            // pets drawing aggro
+            if (pet != null)
+                pet.PetCheckMonsters();
         }
     }
 }
