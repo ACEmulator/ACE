@@ -756,7 +756,9 @@ namespace ACE.Server.Command.Handlers
                 if (teleportPOI == null)
                     return;
                 var weenie = DatabaseManager.World.GetCachedWeenie(teleportPOI.WeenieClassId);
-                session.Player.Teleport(weenie.GetPosition(PositionType.Destination));
+                var portalDest = new Position(weenie.GetPosition(PositionType.Destination));
+                session.Player.AdjustDungeon(portalDest);
+                session.Player.Teleport(portalDest);
             }
         }
 
