@@ -99,15 +99,15 @@ namespace ACE.Server.Managers
             {
                 // TODO: Not sure what to do with these packets yet
             }
-            else if (sessionMap.Length > packet.Header.Id && loggedInClients.Contains(endPoint))
+            else if (sessionMap.Length > packet.Header.Id /*&& loggedInClients.Contains(endPoint)*/)
             {
                 var session = sessionMap[packet.Header.Id];
                 if (session != null)
                 {
-                    if (session.EndPoint.Equals(endPoint))
+                    //if (session.EndPoint.Equals(endPoint))
                         session.ProcessPacket(packet);
-                    else
-                        log.WarnFormat("Session for Id {0} has IP {1} but packet has IP {2}", packet.Header.Id, session.EndPoint, endPoint);
+                    //else
+                    //    log.WarnFormat("Session for Id {0} has IP {1} but packet has IP {2}", packet.Header.Id, session.EndPoint, endPoint);
                 }
                 else
                 {

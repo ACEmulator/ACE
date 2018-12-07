@@ -666,9 +666,9 @@ namespace ACE.Server.Network
 
         private void SendPacketRaw(ServerPacket packet)
         {
-            Socket socket = SocketManager.GetSocket();
-            if (packet.Header.Sequence == 0)
-                socket = SocketManager.GetSocket(0);
+            Socket socket = SocketManager.GetSocket(0);
+           // if (packet.Header.Sequence == 0)
+           //     socket = SocketManager.GetSocket(0);
 
             byte[] payload = packet.GetPayload();
 
@@ -676,14 +676,14 @@ namespace ACE.Server.Network
             payload = NetworkSyntheticTesting.SyntheticCorruption_S2C(payload);
 #endif
 
-            if (packetLog.IsDebugEnabled)
-            {
+            //if (packetLog.IsDebugEnabled)
+            //{
                 var listenerEndpoint = (System.Net.IPEndPoint)socket.LocalEndPoint;
                 var sb = new StringBuilder();
-                sb.AppendLine(String.Format("[{5}] Sending Packet (Len: {0}) [{1}:{2}=>{3}:{4}]", payload.Length, listenerEndpoint.Address, listenerEndpoint.Port, session.EndPoint.Address, session.EndPoint.Port, session.Network.ClientId));
-                sb.AppendLine(payload.BuildPacketString());
-                packetLog.Debug(sb.ToString());
-            }
+                sb.Append(String.Format("[{5}] Sending Packet (Len: {0}) [{1}:{2}=>{3}:{4}]", payload.Length, listenerEndpoint.Address, listenerEndpoint.Port, session.EndPoint.Address, session.EndPoint.Port, session.Network.ClientId));
+            //    sb.AppendLine(payload.BuildPacketString());
+                packetLog.Info(sb.ToString());
+           // }
 
             try
             {
@@ -695,12 +695,12 @@ namespace ACE.Server.Network
                 // at System.Net.Sockets.Socket.UpdateStatusAfterSocketErrorAndThrowException(SocketError error, String callerName)
                 // at System.Net.Sockets.Socket.SendTo(Byte[] buffer, Int32 offset, Int32 size, SocketFlags socketFlags, EndPoint remoteEP)
 
-                var listenerEndpoint = (System.Net.IPEndPoint)socket.LocalEndPoint;
-                var sb = new StringBuilder();
-                sb.AppendLine(ex.ToString());
-                sb.AppendLine(String.Format("[{5}] Sending Packet (Len: {0}) [{1}:{2}=>{3}:{4}]", payload.Length, listenerEndpoint.Address, listenerEndpoint.Port, session.EndPoint.Address, session.EndPoint.Port, session.Network.ClientId));
-                sb.AppendLine(payload.BuildPacketString());
-                log.Error(sb.ToString());
+                var listenerEndpoint2 = (System.Net.IPEndPoint)socket.LocalEndPoint;
+                var sb2 = new StringBuilder();
+                sb2.AppendLine(ex.ToString());
+                sb2.AppendLine(String.Format("[{5}] Sending Packet (Len: {0}) [{1}:{2}=>{3}:{4}]", payload.Length, listenerEndpoint2.Address, listenerEndpoint2.Port, session.EndPoint.Address, session.EndPoint.Port, session.Network.ClientId));
+                sb2.AppendLine(payload.BuildPacketString());
+                log.Error(sb2.ToString());
 
                 session.State = Enum.SessionState.NetworkTimeout; // This will force WorldManager to drop the session
             }

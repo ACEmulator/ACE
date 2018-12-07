@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -79,20 +80,25 @@ namespace ACE.Server.Network
             try
             {
                 clientEndPoint = new IPEndPoint(listeningHost, 0);
+                
                 int dataSize = Socket.EndReceiveFrom(result, ref clientEndPoint);
-
                 byte[] data = new byte[dataSize];
                 Buffer.BlockCopy(buffer, 0, data, 0, dataSize);
 
                 IPEndPoint ipEndpoint = (IPEndPoint)clientEndPoint;
 
-                if (packetLog.IsDebugEnabled)
+                if (listenerEndpoint.Port == 9001)
                 {
-                    StringBuilder sb = new StringBuilder();
-                    sb.AppendLine($"Received Packet (Len: {data.Length}) [{ipEndpoint.Address}:{ipEndpoint.Port}=>{listenerEndpoint.Address}:{listenerEndpoint.Port}]");
-                    sb.AppendLine(data.BuildPacketString());
-                    packetLog.Debug(sb.ToString());
+                    //Debugger.Break();
                 }
+
+                //if (packetLog.IsDebugEnabled)
+               // {
+                    StringBuilder sb = new StringBuilder();
+                    sb.Append($"Received Packet (Len: {data.Length}) [{ipEndpoint.Address}:{ipEndpoint.Port}=>{listenerEndpoint.Address}:{listenerEndpoint.Port}]");
+                    //sb.AppendLine(data.BuildPacketString());
+                    packetLog.Info(sb.ToString());
+                //}
 
                 var packet = new ClientPacket(data);
                 if (packet.IsValid)
