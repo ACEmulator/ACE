@@ -191,7 +191,28 @@ namespace ACE.Entity.Enum.Properties
         [SendOnLogin]
         WeaponAuraElemental            = 170,
         [SendOnLogin]
-        WeaponAuraManaConv             = 171
+        WeaponAuraManaConv             = 171,
+
+        [ServerOnly]
+        PCAPRecordedWorkmanship        = 8004,
+        [ServerOnly]
+        PCAPRecordedVelocityX          = 8010,
+        [ServerOnly]
+        PCAPRecordedVelocityY          = 8011,
+        [ServerOnly]
+        PCAPRecordedVelocityZ          = 8012,
+        [ServerOnly]
+        PCAPRecordedAccelerationX      = 8013,
+        [ServerOnly]
+        PCAPRecordedAccelerationY      = 8014,
+        [ServerOnly]
+        PCAPRecordedAccelerationZ      = 8015,
+        [ServerOnly]
+        PCAPRecordeOmegaX              = 8016,
+        [ServerOnly]
+        PCAPRecordeOmegaY              = 8017,
+        [ServerOnly]
+        PCAPRecordeOmegaZ              = 8018
     }
 
     public static class PropertyFloatExtensions

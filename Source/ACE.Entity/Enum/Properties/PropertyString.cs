@@ -71,7 +71,10 @@ namespace ACE.Entity.Enum.Properties
         UseSendsSignal                  = 51,
 
         [Description("Gear Plating Name")]
-        GearPlatingName                 = 52
+        GearPlatingName                 = 52,
+
+        [ServerOnly]
+        PCAPRecordedCurrentMotionState  = 8006
     }
 
     public static class PropertyStringExtensions

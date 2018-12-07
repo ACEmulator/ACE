@@ -134,6 +134,37 @@ namespace ACE.Entity.Enum.Properties
         [ServerOnly]
         OlthoiDeathTreasureType    = 61,
 
+        [ServerOnly]
+        PCAPRecordedWeenieHeader   = 8001,
+        [ServerOnly]
+        PCAPRecordedWeenieHeader2  = 8002,
+        [ServerOnly]
+        PCAPRecordedObjectDesc     = 8003,
+        [ServerOnly]
+        PCAPRecordedPhysicsDesc    = 8005,
+        [ServerOnly]
+        PCAPRecordedParentLocation = 8003,
+        [ServerOnly]
+        PCAPRecordedDefaultScript  = 8019,
+        [ServerOnly]
+        PCAPRecordedTimestamp1     = 8021,
+        [ServerOnly]
+        PCAPRecordedTimestamp2     = 8022,
+        [ServerOnly]
+        PCAPRecordedTimestamp3     = 8023,
+        [ServerOnly]
+        PCAPRecordedTimestamp4     = 8024,
+        [ServerOnly]
+        PCAPRecordedTimestamp5     = 8025,
+        [ServerOnly]
+        PCAPRecordedTimestamp6     = 8026,
+        [ServerOnly]
+        PCAPRecordedTimestamp7     = 8027,
+        [ServerOnly]
+        PCAPRecordedTimestamp8     = 8028,
+        [ServerOnly]
+        PCAPRecordedTimestamp9     = 8029
+
         //[ServerOnly]
         //HairTexture                = 9001,
         //[ServerOnly]
@@ -169,6 +200,9 @@ namespace ACE.Entity.Enum.Properties
                 case PropertyDataId.DeathTreasureType:
                     // todo
                     break;
+
+                case PropertyDataId.PCAPRecordedParentLocation:
+                    return System.Enum.GetName(typeof(ParentLocation), value);
             }
 
             return null;
