@@ -50,6 +50,18 @@ namespace ACE.Server.Physics.Common
             return (float)(LazyRandom.Instance.RNG.NextDouble() * (max - min) + min);
         }
 
+        public static void NextBytes(byte[] bytes)
+        {
+            LazyRandom.Instance.RNG.NextBytes(bytes);
+        }
+
+        public static ulong NextUInt64()
+        {
+            byte[] bytes = new byte[8];
+            LazyRandom.Instance.RNG.NextBytes(bytes);
+            return BitConverter.ToUInt64(bytes, 0);
+        }
+
         /// <summary>
         /// Returns a random integer between min and max, inclusive
         /// </summary>

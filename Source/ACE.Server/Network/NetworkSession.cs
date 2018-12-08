@@ -11,7 +11,7 @@ using ACE.Server.Network.GameMessages;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Handlers;
 using ACE.Server.Network.Managers;
-
+using ACE.Server.Network.Packets;
 using log4net;
 
 namespace ACE.Server.Network
@@ -38,7 +38,7 @@ namespace ACE.Server.Network
 
         // Resync will be started after ConnectResponse, and should immediately be sent then, so no delay here.
         // Fun fact: even though we send the server time in the ConnectRequest, client doesn't seem to use it?  Therefore we must TimeSync early so client doesn't see a skew when we send it later.
-        private bool sendResync;
+        public bool sendResync;
         private DateTime nextResync = DateTime.UtcNow;
 
         // Ack should be sent after a 2 second delay, so start enabled with the delay.
@@ -461,14 +461,7 @@ namespace ACE.Server.Network
                 return;
             }
 
-            // This should be set on the second packet to the server from the client.
-            // This completes the three-way handshake.
-            if (packet.Header.HasFlag(PacketHeaderFlags.ConnectResponse))
-            {
-                sendResync = true;
-                AuthenticationHandler.HandleConnectResponse(packet, session);
-                return;
-            }
+
 
             // Process all fragments out of the packet
             foreach (ClientPacketFragment fragment in packet.Fragments)
@@ -666,9 +659,10 @@ namespace ACE.Server.Network
 
         private void SendPacketRaw(ServerPacket packet)
         {
+            // necessary to select socket 0 because the use of two unidirectional sockets doesn't work for some client firewalls
             Socket socket = SocketManager.GetSocket(0);
-           // if (packet.Header.Sequence == 0)
-           //     socket = SocketManager.GetSocket(0);
+            //if (packet.Header.Sequence == 0)
+            //    socket = SocketManager.GetSocket(0);
 
             byte[] payload = packet.GetPayload();
 
@@ -676,14 +670,14 @@ namespace ACE.Server.Network
             payload = NetworkSyntheticTesting.SyntheticCorruption_S2C(payload);
 #endif
 
-            //if (packetLog.IsDebugEnabled)
-            //{
+            if (packetLog.IsDebugEnabled)
+            {
                 var listenerEndpoint = (System.Net.IPEndPoint)socket.LocalEndPoint;
                 var sb = new StringBuilder();
                 sb.Append(String.Format("[{5}] Sending Packet (Len: {0}) [{1}:{2}=>{3}:{4}]", payload.Length, listenerEndpoint.Address, listenerEndpoint.Port, session.EndPoint.Address, session.EndPoint.Port, session.Network.ClientId));
-            //    sb.AppendLine(payload.BuildPacketString());
-                packetLog.Info(sb.ToString());
-           // }
+                sb.AppendLine(payload.BuildPacketString());
+                packetLog.Debug(sb.ToString());
+            }
 
             try
             {

@@ -74,7 +74,18 @@ namespace ACE.Server.Network.Handlers
         private static void AccountSelectCallback(Account account, Session session, PacketInboundLoginRequest loginRequest)
         {
             packetLog.DebugFormat("ConnectRequest TS: {0}", session.Network.ConnectionData.ServerTime);
-            var connectRequest = new PacketOutboundConnectRequest(session.Network.ConnectionData.ServerTime, 0, session.Network.ClientId, ISAAC.ServerSeed, ISAAC.ClientSeed);
+
+            session.Network.ConnectionData.ConnectionCookie = Physics.Common.Random.NextUInt64();
+
+            var connectRequest = new PacketOutboundConnectRequest(
+                session.Network.ConnectionData.ServerTime,
+                session.Network.ConnectionData.ConnectionCookie,
+                session.Network.ClientId,
+                session.Network.ConnectionData.ServerSeed,
+                session.Network.ConnectionData.ClientSeed);
+
+            session.Network.ConnectionData.ServerSeed = null;
+            session.Network.ConnectionData.ClientSeed = null;
 
             session.Network.EnqueueSend(connectRequest);
 
@@ -116,6 +127,8 @@ namespace ACE.Server.Network.Handlers
                     session.SendCharacterError(CharacterError.AccountInUse);
                     session.State = SessionState.NetworkTimeout;
 
+                    //TO-DO: generate ban entries here
+
                     return;
                 }
 
@@ -137,10 +150,8 @@ namespace ACE.Server.Network.Handlers
             session.State = SessionState.AuthConnectResponse;
         }
 
-        public static void HandleConnectResponse(ClientPacket packet, Session session)
+        public static void HandleConnectResponse(Session session)
         {
-            PacketInboundConnectResponse connectResponse = new PacketInboundConnectResponse(packet);
-
             DatabaseManager.Shard.GetCharacters(session.AccountId, false, result =>
             {
                 // If you want to create default characters for accounts that have none, here is where you would do it.
@@ -160,8 +171,6 @@ namespace ACE.Server.Network.Handlers
 
             session.Network.EnqueueSend(characterListMessage, serverNameMessage);
             session.Network.EnqueueSend(dddInterrogation);
-
-            session.State = SessionState.AuthConnected;
         }
     }
 }

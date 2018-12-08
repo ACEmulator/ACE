@@ -18,6 +18,9 @@ using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.WorldObjects;
 using ACE.Server.Network;
+using ACE.Server.Network.Packets;
+using ACE.Server.Network.Handlers;
+using ACE.Server.Network.Enum;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Physics;
@@ -80,6 +83,7 @@ namespace ACE.Server.Managers
 
         public static void ProcessPacket(ClientPacket packet, IPEndPoint endPoint)
         {
+            // TO-DO: generate ban entries here based on packet rates of endPoint, IP Address, and IP Address Range
             if (packet.Header.HasFlag(PacketHeaderFlags.LoginRequest))
             {
                 if (!loggedInClients.Contains(endPoint) && loggedInClients.Count >= ConfigManager.Config.Server.Network.MaximumAllowedSessions)
@@ -99,15 +103,41 @@ namespace ACE.Server.Managers
             {
                 // TODO: Not sure what to do with these packets yet
             }
-            else if (sessionMap.Length > packet.Header.Id /*&& loggedInClients.Contains(endPoint)*/)
+            else if (packet.Header.Flags.HasFlag(PacketHeaderFlags.ConnectResponse))
+            {
+                PacketInboundConnectResponse connectResponse = new PacketInboundConnectResponse(packet);
+
+                // This should be set on the second packet to the server from the client.
+                // This completes the three-way handshake.
+                // the client should be sending it back now
+                // This could be offloaded into a queue and processed on another thread
+                // TO-DO: generate ban entries here
+                // TO-DO: fix race condition between bob and eve getting and setting session state
+                var session =
+                    (from k in sessionMap
+                     where
+                        k != null &&
+                        k.State == SessionState.AuthConnectResponse &&
+                        k.Network.ConnectionData.ConnectionCookie == connectResponse.Check
+                     select k).FirstOrDefault();
+
+                if (session != null)
+                {
+                    session.State = SessionState.AuthConnected; // slam the door.  
+                    session.Network.sendResync = true;
+                    AuthenticationHandler.HandleConnectResponse(session);
+                    return;
+                }
+            }
+            else if (sessionMap.Length > packet.Header.Id && loggedInClients.Contains(endPoint))
             {
                 var session = sessionMap[packet.Header.Id];
                 if (session != null)
                 {
-                    //if (session.EndPoint.Equals(endPoint))
+                    if (session.EndPoint.Equals(endPoint))
                         session.ProcessPacket(packet);
-                    //else
-                    //    log.WarnFormat("Session for Id {0} has IP {1} but packet has IP {2}", packet.Header.Id, session.EndPoint, endPoint);
+                    else
+                        log.WarnFormat("Session for Id {0} has IP {1} but packet has IP {2}", packet.Header.Id, session.EndPoint, endPoint);
                 }
                 else
                 {

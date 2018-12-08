@@ -87,18 +87,13 @@ namespace ACE.Server.Network
 
                 IPEndPoint ipEndpoint = (IPEndPoint)clientEndPoint;
 
-                if (listenerEndpoint.Port == 9001)
+                if (packetLog.IsDebugEnabled)
                 {
-                    //Debugger.Break();
-                }
-
-                //if (packetLog.IsDebugEnabled)
-               // {
                     StringBuilder sb = new StringBuilder();
                     sb.Append($"Received Packet (Len: {data.Length}) [{ipEndpoint.Address}:{ipEndpoint.Port}=>{listenerEndpoint.Address}:{listenerEndpoint.Port}]");
-                    //sb.AppendLine(data.BuildPacketString());
-                    packetLog.Info(sb.ToString());
-                //}
+                    sb.AppendLine(data.BuildPacketString());
+                    packetLog.Debug(sb.ToString());
+                }
 
                 var packet = new ClientPacket(data);
                 if (packet.IsValid)
