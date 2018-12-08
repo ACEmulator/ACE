@@ -237,7 +237,8 @@ namespace ACE.Server.WorldObjects
 
                 // TODO: find the correct runrate here
                 // the default runrate / charge seems much too fast...
-                motion.RunRate = GetRunRate() / 4.0f;
+                //motion.RunRate = GetRunRate() / 4.0f;
+                motion.RunRate = GetRunRate();
             }
         }
 
