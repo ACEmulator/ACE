@@ -101,7 +101,8 @@ namespace ACE.Server.Managers
                          where
                             k != null &&
                             k.State == SessionState.AuthConnectResponse &&
-                            k.Network.ConnectionData.ConnectionCookie == connectResponse.Check
+                            k.Network.ConnectionData.ConnectionCookie == connectResponse.Check &&
+                            k.EndPoint.Address.Equals(endPoint.Address)
                          select k).FirstOrDefault();
 
                     if (session != null)
