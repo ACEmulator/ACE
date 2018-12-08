@@ -15,6 +15,8 @@ namespace ACE.Server.WorldObjects
     {
         public DateTime ExpirationTime;
 
+        public DamageType DamageType;
+
         /// <summary>
         /// A new biota be created taking all of its values from weenie.
         /// </summary>
@@ -31,7 +33,7 @@ namespace ACE.Server.WorldObjects
             SetEphemeralValues();
         }
 
-        public void Init(Player player)
+        public void Init(Player player, DamageType damageType)
         {
             SuppressGenerateEffect = true;
             NoCorpse = true;
@@ -41,7 +43,7 @@ namespace ACE.Server.WorldObjects
             PetOwner = player.Guid.Full;
             SetCombatMode(CombatMode.Melee);
             EnterWorld();
-
+            DamageType = damageType;
             Attackable = true;
             MonsterState = State.Awake;
             IsAwake = true;

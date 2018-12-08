@@ -293,6 +293,11 @@ namespace ACE.Server.WorldObjects
             var target = AttackTarget as Creature;
             var targetPet = AttackTarget as CombatPet;
 
+            // handle pet damage type
+            var pet = this as CombatPet;
+            if (pet != null)
+                damageType = pet.DamageType;
+
             // monster weapon / attributes
             var weapon = GetEquippedWeapon();
 

@@ -64,7 +64,7 @@ namespace ACE.Server.WorldObjects
             var wcid = petData.Item1;
             var damageType = petData.Item2;
 
-            if (SummonCreature(player, wcid))
+            if (SummonCreature(player, wcid, damageType))
             {
                 // track usage for cooldown
                 if (!player.LastUseTracker.ContainsKey(CooldownId.Value))
@@ -115,6 +115,8 @@ namespace ACE.Server.WorldObjects
                 return false;
             }
 
+            // TODO: limit non-golems to summoning mastery
+
             // TODO: verify error messages w/ retail
 
             return true;
@@ -128,7 +130,7 @@ namespace ACE.Server.WorldObjects
             return DateTime.UtcNow >= lastUseTime + TimeSpan.FromSeconds(CooldownDuration.Value);
         }
 
-        public bool SummonCreature(Player player, uint wcid)
+        public bool SummonCreature(Player player, uint wcid, DamageType damageType)
         {
             // since we are instantiating regular creatures instead of actual CombatPet weenies atm,
             // bypassing CreateNewWorldObject() here...
@@ -145,7 +147,7 @@ namespace ACE.Server.WorldObjects
                 Console.WriteLine($"PetDevice.UseItem(): failed to create pet for wcid {wcid}");
                 return false;
             }
-            combatPet.Init(player);
+            combatPet.Init(player, damageType);
             return true;
         }
 
