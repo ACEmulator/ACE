@@ -80,8 +80,8 @@ namespace ACE.Server.Network
             try
             {
                 clientEndPoint = new IPEndPoint(listeningHost, 0);
-                
                 int dataSize = Socket.EndReceiveFrom(result, ref clientEndPoint);
+
                 byte[] data = new byte[dataSize];
                 Buffer.BlockCopy(buffer, 0, data, 0, dataSize);
 
@@ -90,7 +90,7 @@ namespace ACE.Server.Network
                 if (packetLog.IsDebugEnabled)
                 {
                     StringBuilder sb = new StringBuilder();
-                    sb.Append($"Received Packet (Len: {data.Length}) [{ipEndpoint.Address}:{ipEndpoint.Port}=>{listenerEndpoint.Address}:{listenerEndpoint.Port}]");
+                    sb.AppendLine($"Received Packet (Len: {data.Length}) [{ipEndpoint.Address}:{ipEndpoint.Port}=>{listenerEndpoint.Address}:{listenerEndpoint.Port}]");
                     sb.AppendLine(data.BuildPacketString());
                     packetLog.Debug(sb.ToString());
                 }

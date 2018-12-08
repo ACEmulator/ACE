@@ -11,7 +11,7 @@ using ACE.Server.Network.GameMessages;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Handlers;
 using ACE.Server.Network.Managers;
-using ACE.Server.Network.Packets;
+
 using log4net;
 
 namespace ACE.Server.Network
@@ -674,7 +674,7 @@ namespace ACE.Server.Network
             {
                 var listenerEndpoint = (System.Net.IPEndPoint)socket.LocalEndPoint;
                 var sb = new StringBuilder();
-                sb.Append(String.Format("[{5}] Sending Packet (Len: {0}) [{1}:{2}=>{3}:{4}]", payload.Length, listenerEndpoint.Address, listenerEndpoint.Port, session.EndPoint.Address, session.EndPoint.Port, session.Network.ClientId));
+                sb.AppendLine(String.Format("[{5}] Sending Packet (Len: {0}) [{1}:{2}=>{3}:{4}]", payload.Length, listenerEndpoint.Address, listenerEndpoint.Port, session.EndPoint.Address, session.EndPoint.Port, session.Network.ClientId));
                 sb.AppendLine(payload.BuildPacketString());
                 packetLog.Debug(sb.ToString());
             }
@@ -689,12 +689,12 @@ namespace ACE.Server.Network
                 // at System.Net.Sockets.Socket.UpdateStatusAfterSocketErrorAndThrowException(SocketError error, String callerName)
                 // at System.Net.Sockets.Socket.SendTo(Byte[] buffer, Int32 offset, Int32 size, SocketFlags socketFlags, EndPoint remoteEP)
 
-                var listenerEndpoint2 = (System.Net.IPEndPoint)socket.LocalEndPoint;
-                var sb2 = new StringBuilder();
-                sb2.AppendLine(ex.ToString());
-                sb2.AppendLine(String.Format("[{5}] Sending Packet (Len: {0}) [{1}:{2}=>{3}:{4}]", payload.Length, listenerEndpoint2.Address, listenerEndpoint2.Port, session.EndPoint.Address, session.EndPoint.Port, session.Network.ClientId));
-                sb2.AppendLine(payload.BuildPacketString());
-                log.Error(sb2.ToString());
+                var listenerEndpoint = (System.Net.IPEndPoint)socket.LocalEndPoint;
+                var sb = new StringBuilder();
+                sb.AppendLine(ex.ToString());
+                sb.AppendLine(String.Format("[{5}] Sending Packet (Len: {0}) [{1}:{2}=>{3}:{4}]", payload.Length, listenerEndpoint.Address, listenerEndpoint.Port, session.EndPoint.Address, session.EndPoint.Port, session.Network.ClientId));
+                sb.AppendLine(payload.BuildPacketString());
+                log.Error(sb.ToString());
 
                 session.State = Enum.SessionState.NetworkTimeout; // This will force WorldManager to drop the session
             }
