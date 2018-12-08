@@ -571,9 +571,6 @@ namespace ACE.Server.WorldObjects
 
             spell.Formula.GetPlayerFormula(player);
 
-            // consume components
-            TryBurnComponents(spell);
-
             string spellWords = spell._spellBase.GetSpellWords(DatManager.PortalDat.SpellComponentsTable);
             if (spellWords != null)
                 EnqueueBroadcast(new GameMessageCreatureMessage(spellWords, Name, Guid.Full, ChatMessageType.Spellcasting));
@@ -606,6 +603,11 @@ namespace ACE.Server.WorldObjects
 
             var castingDelay = spell.Formula.GetCastTime(MotionTableId, castSpeed);
             spellChain.AddDelaySeconds(castingDelay);
+
+            spellChain.AddAction(this, () =>
+            {
+                TryBurnComponents(spell);
+            });
 
             var checkPKStatusVsTarget = CheckPKStatusVsTarget(player, (target as Player), spell);
             if (checkPKStatusVsTarget != null && checkPKStatusVsTarget == false)
@@ -800,7 +802,8 @@ namespace ACE.Server.WorldObjects
             var useDone = (castingPreCheckStatus == CastingPreCheckStatus.InvalidPKStatus && (spell.School == MagicSchool.LifeMagic || spell.School == MagicSchool.CreatureEnchantment || spell.School == MagicSchool.ItemEnchantment)) ?
                 WeenieError.InvalidPkStatus : WeenieError.None;
 
-            spellChain.AddAction(this, () => player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, useDone)));
+            if (castingPreCheckStatus != CastingPreCheckStatus.CastFailed)
+                spellChain.AddAction(this, () => player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, useDone)));
             spellChain.AddDelaySeconds(1.0f);
             spellChain.AddAction(this, () => { player.IsBusy = false; });
             spellChain.EnqueueChain();
@@ -858,9 +861,6 @@ namespace ACE.Server.WorldObjects
 
             spell.Formula.GetPlayerFormula(this);
 
-            // consume components
-            TryBurnComponents(spell);
-
             string spellWords = spell._spellBase.GetSpellWords(DatManager.PortalDat.SpellComponentsTable);
             if (spellWords != null)
                 EnqueueBroadcast(new GameMessageCreatureMessage(spellWords, Name, Guid.Full, ChatMessageType.Magic));
@@ -891,6 +891,11 @@ namespace ACE.Server.WorldObjects
 
             var castingDelay = spell.Formula.GetCastTime(MotionTableId, castSpeed);
             spellChain.AddDelaySeconds(castingDelay);
+
+            spellChain.AddAction(this, () =>
+            {
+                TryBurnComponents(spell);
+            });
 
             switch (castingPreCheckStatus)
             {
@@ -927,7 +932,8 @@ namespace ACE.Server.WorldObjects
             });
 
             // should this happen sync with IsBusy?
-            spellChain.AddAction(this, () => Session.Network.EnqueueSend(new GameEventUseDone(Session, WeenieError.None)));
+            if (castingPreCheckStatus != CastingPreCheckStatus.CastFailed)
+                spellChain.AddAction(this, () => Session.Network.EnqueueSend(new GameEventUseDone(Session, WeenieError.None)));
 
             spellChain.AddDelaySeconds(1.0f);
             spellChain.AddAction(this, () => IsBusy = false);
@@ -1165,7 +1171,9 @@ namespace ACE.Server.WorldObjects
                 }
 
                 item.StackSize--;
-                if (item.StackSize <= 0)
+                if (item.StackSize > 0)
+                    Session.Network.EnqueueSend(new GameMessageSetStackSize(item));
+                else
                     TryRemoveFromInventoryWithNetworking(item);
             }
 

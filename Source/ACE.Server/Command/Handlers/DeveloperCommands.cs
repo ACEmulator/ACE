@@ -93,6 +93,17 @@ namespace ACE.Server.Command.Handlers
                 session.Network.EnqueueSend(positionMessage);
             }
         }
+
+        /// <summary>
+        /// Attempts to remove the hourglass / fix the busy state for the player
+        /// </summary>
+        [CommandHandler("fixbusy", AccessLevel.Player, CommandHandlerFlag.RequiresWorld, 0, "Attempts to remove the hourglass / fix the busy state for the player", "/fixbusy")]
+        public static void HandleFixBusy(Session session, params string[] parameters)
+        {
+            session.Network.EnqueueSend(new GameEventUseDone(session, WeenieError.None));
+        }
+
+
         static string PostionAsLandblocksGoogleSpreadsheetFormat(Position pos)
         {
             return $"0x{pos.Cell.ToString("X")} {pos.Pos.X} {pos.Pos.Y} {pos.Pos.Z} {pos.Rotation.W} {pos.Rotation.X} {pos.Rotation.Y} {pos.Rotation.Z}";
