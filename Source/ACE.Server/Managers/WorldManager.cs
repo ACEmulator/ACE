@@ -81,10 +81,49 @@ namespace ACE.Server.Managers
             log.DebugFormat($"Current maximum allowed sessions: {ConfigManager.Config.Server.Network.MaximumAllowedSessions}");
         }
 
-        public static void ProcessPacket(ClientPacket packet, IPEndPoint endPoint)
+        public static void ProcessPacket(ClientPacket packet, IPEndPoint endPoint, IPEndPoint listenerEndpoint)
         {
             // TO-DO: generate ban entries here based on packet rates of endPoint, IP Address, and IP Address Range
-            if (packet.Header.HasFlag(PacketHeaderFlags.LoginRequest))
+            if (listenerEndpoint.Port == ConfigManager.Config.Server.Network.Port + 1)
+            {
+                if (packet.Header.Flags.HasFlag(PacketHeaderFlags.ConnectResponse))
+                {
+                    PacketInboundConnectResponse connectResponse = new PacketInboundConnectResponse(packet);
+
+                    // This should be set on the second packet to the server from the client.
+                    // This completes the three-way handshake.
+                    // the client should be sending it back now
+                    // This could be offloaded into a queue and processed on another thread
+                    // TO-DO: generate ban entries here, situation rate
+                    // TO-DO: fix race condition between bob and eve getting and setting session state
+                    var session =
+                        (from k in sessionMap
+                         where
+                            k != null &&
+                            k.State == SessionState.AuthConnectResponse &&
+                            k.Network.ConnectionData.ConnectionCookie == connectResponse.Check
+                         select k).FirstOrDefault();
+
+                    if (session != null)
+                    {
+                        session.State = SessionState.AuthConnected; // slam the door.
+                        session.Network.sendResync = true;
+                        AuthenticationHandler.HandleConnectResponse(session);
+                        return;
+                    }
+                    else
+                    {
+                        // TO-DO: generate ban entries here, failiure rate
+                        return;
+                    }
+                }
+                else
+                {
+                    // TO-DO: generate ban entries here, rate of invalid packet
+                    log.ErrorFormat("Packet from {0} rejected. Packet sent to listener 1 and is not a ConnectResponse", endPoint);
+                }
+            }
+            else if (packet.Header.HasFlag(PacketHeaderFlags.LoginRequest))
             {
                 if (!loggedInClients.Contains(endPoint) && loggedInClients.Count >= ConfigManager.Config.Server.Network.MaximumAllowedSessions)
                 {
@@ -102,32 +141,6 @@ namespace ACE.Server.Managers
             else if (packet.Header.Id == 0 && packet.Header.HasFlag(PacketHeaderFlags.CICMDCommand))
             {
                 // TODO: Not sure what to do with these packets yet
-            }
-            else if (packet.Header.Flags.HasFlag(PacketHeaderFlags.ConnectResponse))
-            {
-                PacketInboundConnectResponse connectResponse = new PacketInboundConnectResponse(packet);
-
-                // This should be set on the second packet to the server from the client.
-                // This completes the three-way handshake.
-                // the client should be sending it back now
-                // This could be offloaded into a queue and processed on another thread
-                // TO-DO: generate ban entries here
-                // TO-DO: fix race condition between bob and eve getting and setting session state
-                var session =
-                    (from k in sessionMap
-                     where
-                        k != null &&
-                        k.State == SessionState.AuthConnectResponse &&
-                        k.Network.ConnectionData.ConnectionCookie == connectResponse.Check
-                     select k).FirstOrDefault();
-
-                if (session != null)
-                {
-                    session.State = SessionState.AuthConnected; // slam the door.  
-                    session.Network.sendResync = true;
-                    AuthenticationHandler.HandleConnectResponse(session);
-                    return;
-                }
             }
             else if (sessionMap.Length > packet.Header.Id && loggedInClients.Contains(endPoint))
             {

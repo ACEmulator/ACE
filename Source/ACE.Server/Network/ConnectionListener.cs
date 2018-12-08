@@ -97,7 +97,7 @@ namespace ACE.Server.Network
 
                 var packet = new ClientPacket(data);
                 if (packet.IsValid)
-                    WorldManager.ProcessPacket(packet, ipEndpoint);
+                    WorldManager.ProcessPacket(packet, ipEndpoint, listenerEndpoint);
             }
             catch (SocketException socketException)
             {
