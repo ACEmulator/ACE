@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using log4net;
 
 using ACE.Common;
-using ACE.Common.Cryptography;
 using ACE.Database;
 using ACE.Database.Models.Auth;
 using ACE.Database.Models.Shard;

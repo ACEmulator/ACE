@@ -1,7 +1,8 @@
+using System;
+
 using ACE.Common.Cryptography;
 using ACE.Server.Entity;
 using ACE.Server.Network.Sequence;
-using System;
 
 namespace ACE.Server.Network
 {
@@ -64,7 +65,7 @@ namespace ACE.Server.Network
             // since the network processor is single threaded this can instantiate the .NET Core System.Random class without locking
             Random rand = new Random();
 
-            // the client and server seeds determine where on the 32 bit keyspace the stream cipher begins
+            // the client and server seeds determine where on the 32 bit wheel the stream cipher begins
             // by picking a random initialization vector it makes it more difficult for an adversary to forge packets
             ClientSeed = new byte[4];
             ServerSeed = new byte[4];
