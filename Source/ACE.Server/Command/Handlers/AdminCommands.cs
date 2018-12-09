@@ -730,7 +730,7 @@ namespace ACE.Server.Command.Handlers
         }
 
         // teleallto [char]
-        [CommandHandler("teleallto", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 0, "Teleports all players to a player. If no target is specified, all players will be teleported to you.", "[Player's Name]\n")]
+        [CommandHandler("teleallto", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Teleports all players to a player. If no target is specified, all players will be teleported to you.", "[Player's Name]\n")]
         public static void HandleTeleAllTo(Session session, params string[] parameters)
         {
             Player destinationPlayer = null;
