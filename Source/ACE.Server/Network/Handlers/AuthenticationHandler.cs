@@ -124,7 +124,8 @@ namespace ACE.Server.Network.Handlers
                     session.SendCharacterError(CharacterError.AccountInUse);
                     session.State = SessionState.NetworkTimeout;
 
-                    //TO-DO: generate ban entries here
+                    // TO-DO: temporary lockout of account preventing brute force password discovery
+                    // exponential duration of lockout for targeted account
 
                     return;
                 }
