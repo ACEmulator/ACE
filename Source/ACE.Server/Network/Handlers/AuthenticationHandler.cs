@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using log4net;
 
 using ACE.Common;
-using ACE.Common.Cryptography;
 using ACE.Database;
 using ACE.Database.Models.Auth;
 using ACE.Database.Models.Shard;
@@ -74,7 +73,15 @@ namespace ACE.Server.Network.Handlers
         private static void AccountSelectCallback(Account account, Session session, PacketInboundLoginRequest loginRequest)
         {
             packetLog.DebugFormat("ConnectRequest TS: {0}", session.Network.ConnectionData.ServerTime);
-            var connectRequest = new PacketOutboundConnectRequest(session.Network.ConnectionData.ServerTime, 0, session.Network.ClientId, ISAAC.ServerSeed, ISAAC.ClientSeed);
+
+            var connectRequest = new PacketOutboundConnectRequest(
+                session.Network.ConnectionData.ServerTime,
+                session.Network.ConnectionData.ConnectionCookie,
+                session.Network.ClientId,
+                session.Network.ConnectionData.ServerSeed,
+                session.Network.ConnectionData.ClientSeed);
+
+            session.Network.ConnectionData.DiscardSeeds();
 
             session.Network.EnqueueSend(connectRequest);
 
@@ -116,6 +123,9 @@ namespace ACE.Server.Network.Handlers
                     session.SendCharacterError(CharacterError.AccountInUse);
                     session.State = SessionState.NetworkTimeout;
 
+                    // TO-DO: temporary lockout of account preventing brute force password discovery
+                    // exponential duration of lockout for targeted account
+
                     return;
                 }
 
@@ -137,10 +147,8 @@ namespace ACE.Server.Network.Handlers
             session.State = SessionState.AuthConnectResponse;
         }
 
-        public static void HandleConnectResponse(ClientPacket packet, Session session)
+        public static void HandleConnectResponse(Session session)
         {
-            PacketInboundConnectResponse connectResponse = new PacketInboundConnectResponse(packet);
-
             DatabaseManager.Shard.GetCharacters(session.AccountId, false, result =>
             {
                 // If you want to create default characters for accounts that have none, here is where you would do it.
@@ -160,8 +168,6 @@ namespace ACE.Server.Network.Handlers
 
             session.Network.EnqueueSend(characterListMessage, serverNameMessage);
             session.Network.EnqueueSend(dddInterrogation);
-
-            session.State = SessionState.AuthConnected;
         }
     }
 }

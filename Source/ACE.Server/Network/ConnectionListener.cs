@@ -86,6 +86,8 @@ namespace ACE.Server.Network
 
                 IPEndPoint ipEndpoint = (IPEndPoint)clientEndPoint;
 
+                // TO-DO: generate ban entries here based on packet rates of endPoint, IP Address, and IP Address Range
+
                 if (packetLog.IsDebugEnabled)
                 {
                     StringBuilder sb = new StringBuilder();
@@ -96,7 +98,7 @@ namespace ACE.Server.Network
 
                 var packet = new ClientPacket(data);
                 if (packet.IsValid)
-                    WorldManager.ProcessPacket(packet, ipEndpoint);
+                    WorldManager.ProcessPacket(packet, ipEndpoint, listenerEndpoint);
             }
             catch (SocketException socketException)
             {
