@@ -75,8 +75,6 @@ namespace ACE.Server.Network.Handlers
         {
             packetLog.DebugFormat("ConnectRequest TS: {0}", session.Network.ConnectionData.ServerTime);
 
-            session.Network.ConnectionData.ConnectionCookie = Physics.Common.Random.NextUInt64();
-
             var connectRequest = new PacketOutboundConnectRequest(
                 session.Network.ConnectionData.ServerTime,
                 session.Network.ConnectionData.ConnectionCookie,
@@ -84,8 +82,7 @@ namespace ACE.Server.Network.Handlers
                 session.Network.ConnectionData.ServerSeed,
                 session.Network.ConnectionData.ClientSeed);
 
-            session.Network.ConnectionData.ServerSeed = null;
-            session.Network.ConnectionData.ClientSeed = null;
+            session.Network.ConnectionData.DiscardSeeds();
 
             session.Network.EnqueueSend(connectRequest);
 
