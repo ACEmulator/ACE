@@ -1,4 +1,5 @@
 using System;
+
 using ACE.Database;
 using ACE.Database.Models.World;
 using ACE.DatLoader;
@@ -98,10 +99,6 @@ namespace ACE.Server.WorldObjects
 
         public void Teleport(Position newPosition)
         {
-            if (!InWorld)
-                return;
-
-            InWorld = false;
             Teleporting = true;
 
             Session.Network.EnqueueSend(new GameMessagePlayerTeleport(this));
@@ -132,7 +129,6 @@ namespace ACE.Server.WorldObjects
             EnqueueBroadcastPhysicsState();
 
             Teleporting = false;
-            InWorld = true;
         }
 
         public void NotifyLandblocks()

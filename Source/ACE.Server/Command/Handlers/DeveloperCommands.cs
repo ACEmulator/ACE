@@ -151,7 +151,6 @@ namespace ACE.Server.Command.Handlers
         [CommandHandler("fakelogin", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, "Fake Login Complete response")]
         public static void HandleFakeLogin(Session session, params string[] parameters)
         {
-            session.Player.InWorld = true;
             session.Player.ReportCollisions = true;
             session.Player.IgnoreCollisions = false;
             session.Player.Hidden = false;
@@ -433,7 +432,7 @@ namespace ACE.Server.Command.Handlers
         [CommandHandler("save-now", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, "Saves your session.")]
         public static void HandleSaveNow(Session session, params string[] parameters)
         {
-            session.Player.EnqueueSaveChain();
+            session.Player.SavePlayerToDatabase();
         }
 
         /// <summary>

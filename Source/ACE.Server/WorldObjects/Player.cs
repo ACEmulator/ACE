@@ -555,46 +555,17 @@ namespace ACE.Server.WorldObjects
         }
 
  
-        public void HandleActionLogout(bool clientSessionTerminatedAbruptly = false)
-        {
-            GetLogoutChain().EnqueueChain();
-        }
-
-        public ActionChain GetLogoutChain(bool clientSessionTerminatedAbruptly = false)
-        {
-            ActionChain logoutChain = new ActionChain(this, () => LogoutInternal(clientSessionTerminatedAbruptly));
-
-            var motionTable = DatManager.PortalDat.ReadFromDat<MotionTable>((uint)MotionTableId);
-            float logoutAnimationLength = motionTable.GetAnimationLength(MotionCommand.LogOut);
-            logoutChain.AddDelaySeconds(logoutAnimationLength);
-
-            if (CurrentLandblock != null)
-            {
-                // remove the player from landblock management -- after the animation has run
-                logoutChain.AddAction(this, () => CurrentLandblock.RemoveWorldObject(Guid, false));
-            }
-
-            return logoutChain;
-        }
-
         /// <summary>
         /// Do the player log out work.<para />
         /// If you want to force a player to logout, use Session.LogOffPlayer().
         /// </summary>
-        private void LogoutInternal(bool clientSessionTerminatedAbruptly)
+        public void LogOut(bool clientSessionTerminatedAbruptly = false)
         {
             if (Fellowship != null)
                 FellowshipQuit(false);
 
-            InWorld = false;
-
             if (!clientSessionTerminatedAbruptly)
             {
-                var logout = new Motion(MotionStance.NonCombat, MotionCommand.LogOut);
-                EnqueueBroadcastMotion(logout);
-
-                EnqueueBroadcastPhysicsState();
-
                 // Thie retail server sends a ChatRoomTracker 0x0295 first, then the status message, 0x028B. It does them one at a time for each individual channel.
                 // The ChatRoomTracker message doesn't seem to change at all.
                 // For the purpose of ACE, we simplify this process.
@@ -603,6 +574,35 @@ namespace ACE.Server.WorldObjects
                 var lfg = new GameEventWeenieErrorWithString(Session, WeenieErrorWithString.YouHaveLeftThe_Channel, "LFG");
                 var roleplay = new GameEventWeenieErrorWithString(Session, WeenieErrorWithString.YouHaveLeftThe_Channel, "Roleplay");
                 Session.Network.EnqueueSend(general, trade, lfg, roleplay);
+            }
+
+            if (CurrentLandblock != null)
+            {
+                var logout = new Motion(MotionStance.NonCombat, MotionCommand.LogOut);
+                EnqueueBroadcastMotion(logout);
+
+                EnqueueBroadcastPhysicsState();
+
+                var logoutChain = new ActionChain();
+
+                var motionTable = DatManager.PortalDat.ReadFromDat<MotionTable>((uint)MotionTableId);
+                float logoutAnimationLength = motionTable.GetAnimationLength(MotionCommand.LogOut);
+                logoutChain.AddDelaySeconds(logoutAnimationLength);
+
+                // remove the player from landblock management -- after the animation has run
+                logoutChain.AddAction(this, () =>
+                {
+                    CurrentLandblock.RemoveWorldObject(Guid, false);
+                    SetPropertiesAtLogOut();
+                    SavePlayerToDatabase();
+                });
+
+                logoutChain.EnqueueChain();
+            }
+            else
+            {
+                SetPropertiesAtLogOut();
+                SavePlayerToDatabase();
             }
         }
 
