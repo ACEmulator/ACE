@@ -127,7 +127,7 @@ namespace ACE.Server.Managers
                 }
                 else
                 {
-                    log.ErrorFormat("Packet from {0} rejected. Packet sent to listener 1 and is not a ConnectResponse", endPoint);
+                    log.ErrorFormat("Packet from {0} rejected. Packet sent to listener 1 and is not a ConnectResponse or CICMDCommand", endPoint);
                 }
             }
             else if (packet.Header.HasFlag(PacketHeaderFlags.LoginRequest))
