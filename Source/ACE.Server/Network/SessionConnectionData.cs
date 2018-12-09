@@ -24,7 +24,7 @@ namespace ACE.Server.Network
         /// The connection cookie was meant to authenticate and establish another unidirectional port for listener 1.
         /// But the old dual unidirectional port approach doesn't work for some firewalls.
         /// For some reason some firewalls without special configuration don't accept the listener 1 traffic even though the client initiated it.
-        /// It evolved to use only listener 0 with the exception of the ConnectionResponse packet.
+        /// It evolved to use only listener 0 with the exception of the ConnectionResponse packet and CICMDCommand packets
         /// </summary>
         public ulong ConnectionCookie { get; private set; }
 
