@@ -412,7 +412,6 @@ namespace ACE.Server.Entity
                 wo.EnqueueActionBroadcast((Player p) => p.RemoveTrackedObject(wo, true));
 
                 wo.PhysicsObj.DestroyObject();
-                wo.IsDestroyed = true;
             }
         }
 
