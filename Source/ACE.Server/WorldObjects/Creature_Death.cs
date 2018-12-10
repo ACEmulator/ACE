@@ -144,8 +144,6 @@ namespace ACE.Server.WorldObjects
             LandblockManager.AddObject(corpse);
 
             // set 'killed by' for looting rights
-            string killerName = null;
-
             if (Killer.HasValue && Killer != 0)
             {
                 
@@ -162,14 +160,10 @@ namespace ACE.Server.WorldObjects
                     {
                         corpse.SetProperty(PropertyInstanceId.AllowedActivator, Killer.Value);
                     }
-                    
                 }
                 else
-                {
                     corpse.LongDesc = $"Killed by misadventure";
-                }
             }
-
 
             var player = this as Player;
             if (player != null)

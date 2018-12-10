@@ -218,7 +218,7 @@ namespace ACE.Server.WorldObjects
         public void Movement()
         {
             //if (!IsRanged)
-            UpdatePosition();
+                UpdatePosition();
 
             if (GetDistanceToTarget() >= MaxChaseRange)
                 Sleep();

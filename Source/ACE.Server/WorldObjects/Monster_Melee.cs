@@ -74,8 +74,6 @@ namespace ACE.Server.WorldObjects
                 var shieldMod = 1.0f;
                 var damage = CalculateDamage(ref damageType, maneuver, bodyPart, ref critical, ref shieldMod);
 
-                var player = AttackTarget as Player;
-
                 if (damage > 0.0f)
                 {
                     if (combatPet != null || targetPet != null)
@@ -243,7 +241,7 @@ namespace ACE.Server.WorldObjects
         public float GetEvadeChance()
         {
             // get monster attack skill
-            var target= AttackTarget as Creature;
+            var target = AttackTarget as Creature;
             var attackSkill = GetCreatureSkill(GetCurrentAttackSkill()).Current;
             var offenseMod = GetWeaponOffenseModifier(this);
             attackSkill = (uint)Math.Round(attackSkill * offenseMod);
