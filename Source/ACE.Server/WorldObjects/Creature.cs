@@ -40,7 +40,7 @@ namespace ACE.Server.WorldObjects
             SetEphemeralValues();
         }
 
-        protected void SetEphemeralValues()
+        private void SetEphemeralValues()
         {
             CombatMode = CombatMode.NonCombat;
             DamageHistory = new DamageHistory(this);

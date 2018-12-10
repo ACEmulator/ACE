@@ -33,6 +33,11 @@ namespace ACE.Server.WorldObjects
             SetEphemeralValues();
         }
 
+        private void SetEphemeralValues()
+        {
+
+        }
+
         public void Init(Player player, DamageType damageType)
         {
             SuppressGenerateEffect = true;

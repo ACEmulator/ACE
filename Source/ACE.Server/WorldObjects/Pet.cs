@@ -24,5 +24,10 @@ namespace ACE.Server.WorldObjects
         {
             SetEphemeralValues();
         }
+
+        private void SetEphemeralValues()
+        {
+
+        }
     }
 }
