@@ -729,6 +729,29 @@ namespace ACE.Server.Command.Handlers
                 session.Network.EnqueueSend(new GameMessageSystemChat($"Player {playerName} was not found.", ChatMessageType.Broadcast));
         }
 
+        // teleallto [char]
+        [CommandHandler("teleallto", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Teleports all players to a player. If no target is specified, all players will be teleported to you.", "[Player's Name]\n")]
+        public static void HandleTeleAllTo(Session session, params string[] parameters)
+        {
+            Player destinationPlayer = null;
+
+            if (parameters.Length > 0)
+                destinationPlayer = PlayerManager.GetOnlinePlayer(parameters[0]);
+
+            if (destinationPlayer == null)
+                destinationPlayer = session.Player;
+
+            foreach (var player in PlayerManager.GetAllOnline())
+            {
+                if (player == destinationPlayer)
+                    continue;
+
+                player.SetPosition(PositionType.TeleportedCharacter, new Position(player.Location));
+
+                player.Teleport(new Position(destinationPlayer.Location));
+            }
+        }
+
         // telepoi location
         [CommandHandler("telepoi", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
             "Teleport yourself to a named Point of Interest",
