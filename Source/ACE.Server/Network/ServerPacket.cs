@@ -1,11 +1,14 @@
 using System;
 using System.IO;
+
 using ACE.Common.Cryptography;
 
 namespace ACE.Server.Network
 {
     public class ServerPacket : Packet
     {
+        public static int MaxPacketSize { get; } = 464;
+
         public BinaryWriter BodyWriter { get; private set; }
 
         private uint issacXor;

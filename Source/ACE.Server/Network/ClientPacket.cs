@@ -10,6 +10,8 @@ namespace ACE.Server.Network
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         private static readonly ILog packetLog = LogManager.GetLogger(System.Reflection.Assembly.GetEntryAssembly(), "Packets");
 
+        public static int MaxPacketSize { get; } = 1024;
+
         public BinaryReader Payload { get; private set; }
         public PacketHeaderOptional HeaderOptional { get; private set; }
         public bool IsValid { get; private set; } = false;

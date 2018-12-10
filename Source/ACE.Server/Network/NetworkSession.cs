@@ -690,7 +690,6 @@ namespace ACE.Server.Network
                 var sb = new StringBuilder();
                 sb.AppendLine(ex.ToString());
                 sb.AppendLine(String.Format("[{5}] Sending Packet (Len: {0}) [{1}:{2}=>{3}:{4}]", payload.Length, listenerEndpoint.Address, listenerEndpoint.Port, session.EndPoint.Address, session.EndPoint.Port, session.Network.ClientId));
-                sb.AppendLine(payload.BuildPacketString());
                 log.Error(sb.ToString());
 
                 session.State = Enum.SessionState.NetworkTimeout; // This will force WorldManager to drop the session
@@ -734,7 +733,7 @@ namespace ACE.Server.Network
                 if (bundle.EncryptedChecksum)
                     packetHeader.Flags |= PacketHeaderFlags.EncryptedChecksum;
 
-                uint availableSpace = Packet.MaxPacketDataSize;
+                int availableSpace = ServerPacket.MaxPacketSize;
 
                 // Pull first message and see if it is a large one
                 var firstMessage = fragments.FirstOrDefault();
@@ -746,7 +745,7 @@ namespace ACE.Server.Network
                         packetLog.DebugFormat("[{0}] Sending large fragment", session.LoggingIdentifier);
                         ServerPacketFragment spf = firstMessage.GetNextFragment();
                         packet.Fragments.Add(spf);
-                        availableSpace -= (uint)spf.Length;
+                        availableSpace -= spf.Length;
                         if (firstMessage.DataRemaining <= 0)
                             fragments.Remove(firstMessage);
                     }
@@ -757,7 +756,7 @@ namespace ACE.Server.Network
                         {
                             writeOptionalHeaders = false;
                             WriteOptionalHeaders(bundle, packet);
-                            availableSpace -= (uint)packet.Data.Length;
+                            availableSpace -= (int)packet.Data.Length;
                         }
 
                         // Create a list to remove completed messages after iterator
@@ -771,7 +770,7 @@ namespace ACE.Server.Network
                                 packetLog.DebugFormat("[{0}] Sending tail fragment", session.LoggingIdentifier);
                                 ServerPacketFragment spf = fragment.GetTailFragment();
                                 packet.Fragments.Add(spf);
-                                availableSpace -= (uint)spf.Length;
+                                availableSpace -= spf.Length;
                             }
                             // Otherwise will this message fit in the remaining space?
                             else if (availableSpace >= fragment.NextSize)
@@ -779,7 +778,7 @@ namespace ACE.Server.Network
                                 packetLog.DebugFormat("[{0}] Sending small message", session.LoggingIdentifier);
                                 ServerPacketFragment spf = fragment.GetNextFragment();
                                 packet.Fragments.Add(spf);
-                                availableSpace -= (uint)spf.Length;
+                                availableSpace -= spf.Length;
                             }
                             // If message is out of data, set to remove it
                             if (fragment.DataRemaining <= 0)
@@ -798,7 +797,7 @@ namespace ACE.Server.Network
                     {
                         writeOptionalHeaders = false;
                         WriteOptionalHeaders(bundle, packet);
-                        availableSpace -= (uint)packet.Data.Length;
+                        availableSpace -= (int)packet.Data.Length;
                     }
                 }
                 EnqueueSend(packet);

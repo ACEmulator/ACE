@@ -20,7 +20,7 @@ namespace ACE.Server.Network
 
         private readonly uint listeningPort;
 
-        private readonly byte[] buffer = new byte[Packet.MaxPacketSize];
+        private readonly byte[] buffer = new byte[ClientPacket.MaxPacketSize];
 
         private readonly IPAddress listeningHost;
 
