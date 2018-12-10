@@ -37,6 +37,8 @@ namespace ACE.Server.WorldObjects
 
         public QuestManager QuestManager;
 
+        public bool LastContact = true;
+
         /// <summary>
         /// A new biota be created taking all of its values from weenie.
         /// </summary>
