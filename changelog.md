@@ -1,5 +1,11 @@
 # ACEmulator Change Log
 
+### 2018-12-07
+[Ripley]
+* Added some properties so the SQL writers could annotate them for readability (PCAP imported properties, used for dev reference only)
+* Updated Creature.CalculateObjDesc to support reading in of PCAP'd ObjDesc data. This bootstraps weenie appearance without the need to divine clothing data (base and objects(palette + shade))
+* Fix issue with telepoi command
+
 ### 2018-11-29
 [Mag-nus]
 * Improved design and performance for SequenceManager

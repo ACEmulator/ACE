@@ -9,7 +9,6 @@ using ACE.Common;
 using ACE.Database;
 using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
-using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity.Actions;
 using ACE.Server.WorldObjects;
 using ACE.Server.Managers;
@@ -73,32 +72,15 @@ namespace ACE.Server.Network
             return true;
         }
 
-        private void HandleDisconnectResponse()
-        {
-            if (Player != null)
-            {
-                Player.EnqueueSaveChain();
-                Player.HandleActionLogout(true);
-
-                PlayerManager.SwitchPlayerFromOnlineToOffline(Player);
-            }
-
-            log.Info($"client {Account} disconnected");
-
-            WorldManager.RemoveSession(this);
-        }
-
         public void ProcessPacket(ClientPacket packet)
         {
             if (!CheckState(packet))
                 return;
 
-            // Prevent crash when world is not initialized yet.  Need to look at this closer as I think there are some changes needed to state handling/transitions.
-            if (Network != null)
-                Network.ProcessPacket(packet);
+            Network.ProcessPacket(packet);
 
             if (packet.Header.HasFlag(PacketHeaderFlags.Disconnect))
-                HandleDisconnectResponse();
+                DropSession("PacketHeader Disconnect");
         }
 
         public uint GetIssacValue(PacketDirection direction)
@@ -140,10 +122,7 @@ namespace ACE.Server.Network
 
             // Check if the player has been booted
             if (bootSession)
-            {
-                SendFinalBoot();
                 State = SessionState.NetworkTimeout;
-            }
         }
 
 
@@ -173,6 +152,8 @@ namespace ACE.Server.Network
 
                     DatabaseManager.Shard.SaveCharacter(Characters[i], new ReaderWriterLockSlim(), null);
 
+                    PlayerManager.ProcessDeletedPlayer(Characters[i].Id);
+
                     Characters.RemoveAt(i);
                 }
             }
@@ -193,26 +174,13 @@ namespace ACE.Server.Network
             Player = player;
         }
 
-        public void RemovePlayer()
-        {
-            if (Player != null)
-            {
-                PlayerManager.SwitchPlayerFromOnlineToOffline(Player);
-                Player = null;
-            }
-        }
 
+        /// <summary>
+        /// Log off the player normally
+        /// </summary>
         public void LogOffPlayer()
         {
-            // These properties are used with offline players to determine passup rates
-            Player.SetProperty(PropertyInt.CurrentLoyaltyAtLastLogoff, (int)Player.GetCreatureSkill(Skill.Loyalty).Current);
-            Player.SetProperty(PropertyInt.CurrentLeadershipAtLastLogoff, (int)Player.GetCreatureSkill(Skill.Leadership).Current);
-
-            // First save, then logout
-            ActionChain logoutChain = new ActionChain();
-            logoutChain.AddChain(Player.GetSaveChain());
-            logoutChain.AddChain(Player.GetLogoutChain());
-            logoutChain.EnqueueChain();
+            Player.LogOut();
 
             logOffRequestTime = DateTime.UtcNow;
         }
@@ -226,6 +194,9 @@ namespace ACE.Server.Network
             if (Player.CharacterChangesDetected)
                 Player.SaveCharacterToDatabase();
 
+            PlayerManager.SwitchPlayerFromOnlineToOffline(Player);
+            Player = null;
+
             Network.EnqueueSend(new GameMessageCharacterLogOff());
 
             CheckCharactersForDeletion();
@@ -236,21 +207,29 @@ namespace ACE.Server.Network
             Network.EnqueueSend(serverNameMessage);
 
             State = SessionState.AuthConnected;
-
-            RemovePlayer();
         }
 
         public void BootPlayer()
         {
+            Network.EnqueueSend(new GameMessageBootAccount(this));
+
             bootSession = true;
         }
 
-        private void SendFinalBoot()
+        public void DropSession(string reason)
         {
-            // Note that: Currently, if a player is able to block this specific message
-            // then they will not be booted from the server, this was noticed in practice and test.
-            // TODO: Hook in a player disconnect function and prevent the LogOffPlayer() function from firing after this diconnect has occurred.
-            Network.EnqueueSend(new GameMessageBootAccount(this));
+            log.Info($"Session dropped. Account: {Account}, Player: {Player?.Name}, Reason: {reason}");
+
+            if (Player != null)
+            {
+                Player.LogOut(true);
+                PlayerManager.SwitchPlayerFromOnlineToOffline(Player);
+                Player = null;
+
+                // At this point, if the player was on a landblock, they'll still exist on that landblock until the logout animation completes (~6s).
+            }
+
+            WorldManager.RemoveSession(this);
         }
 
 
@@ -262,7 +241,6 @@ namespace ACE.Server.Network
         /// <summary>
         /// Sends a broadcast message to the player
         /// </summary>
-        /// <param name="broadcastMessage"></param>
         public void WorldBroadcast(string broadcastMessage)
         {
             var worldBroadcastMessage = new GameMessageSystemChat(broadcastMessage, ChatMessageType.Broadcast);

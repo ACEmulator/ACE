@@ -75,7 +75,26 @@ namespace ACE.Server.WorldObjects
                 }
             }
 
-            foreach (var w in EquippedObjects.Values.Where(x => (x.CurrentWieldedLocation & (EquipMask.Clothing | EquipMask.Armor | EquipMask.Cloak)) != 0).OrderBy(x => x.Priority))
+            var eo = EquippedObjects.Values.Where(x => (x.CurrentWieldedLocation & (EquipMask.Clothing | EquipMask.Armor | EquipMask.Cloak)) != 0).OrderBy(x => x.Priority).ToList();
+
+            if (eo.Count == 0)
+            {
+                if (Biota.BiotaPropertiesAnimPart.Count > 0 || Biota.BiotaPropertiesPalette.Count > 0 || Biota.BiotaPropertiesTextureMap.Count > 0)
+                {
+                    foreach (var animPart in Biota.BiotaPropertiesAnimPart.OrderBy(b => b.Order))
+                        objDesc.AnimPartChanges.Add(new ACE.Entity.AnimationPartChange { PartIndex = animPart.Index, PartID = animPart.AnimationId });
+
+                    foreach (var subPalette in Biota.BiotaPropertiesPalette)
+                        objDesc.SubPalettes.Add(new ACE.Entity.SubPalette { SubID = subPalette.SubPaletteId, Offset = subPalette.Offset, NumColors = subPalette.Length });
+
+                    foreach (var textureMap in Biota.BiotaPropertiesTextureMap.OrderBy(b => b.Order))
+                        objDesc.TextureChanges.Add(new ACE.Entity.TextureMapChange { PartIndex = textureMap.Index, OldTexture = textureMap.OldId, NewTexture = textureMap.NewId });
+
+                    return objDesc;
+                }
+            }
+
+            foreach (var w in eo)
             {
                 if ((w.CurrentWieldedLocation == EquipMask.HeadWear) && !showHelm && (this is Player))
                     continue;

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Diagnostics;
+
 using ACE.DatLoader;
 using ACE.DatLoader.FileTypes;
 using ACE.Entity;
@@ -195,7 +196,7 @@ namespace ACE.Server.WorldObjects
                 lastUsedContainer.Inventory.TryGetValue(itemGuid, out item);
 
             if (item == null)
-                log.Error($"{Name}.GetPickupItem({itemGuid}) - couldn't find item");
+                log.Debug($"{Name}.GetPickupItem({itemGuid}) - couldn't find item");
 
             return item;
         }

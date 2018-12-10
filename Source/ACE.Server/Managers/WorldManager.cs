@@ -18,6 +18,9 @@ using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.WorldObjects;
 using ACE.Server.Network;
+using ACE.Server.Network.Packets;
+using ACE.Server.Network.Handlers;
+using ACE.Server.Network.Enum;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Physics;
@@ -78,9 +81,56 @@ namespace ACE.Server.Managers
             log.DebugFormat($"Current maximum allowed sessions: {ConfigManager.Config.Server.Network.MaximumAllowedSessions}");
         }
 
-        public static void ProcessPacket(ClientPacket packet, IPEndPoint endPoint)
+        public static void ProcessPacket(ClientPacket packet, IPEndPoint endPoint, IPEndPoint listenerEndpoint)
         {
-            if (packet.Header.HasFlag(PacketHeaderFlags.LoginRequest))
+            if (listenerEndpoint.Port == ConfigManager.Config.Server.Network.Port + 1)
+            {
+                if (packet.Header.Flags.HasFlag(PacketHeaderFlags.ConnectResponse))
+                {
+                    PacketInboundConnectResponse connectResponse = new PacketInboundConnectResponse(packet);
+
+                    // This should be set on the second packet to the server from the client.
+                    // This completes the three-way handshake.
+                    sessionLock.EnterReadLock();
+                    Session session = null;
+                    try
+                    {
+                        session =
+                            (from k in sessionMap
+                             where
+                                 k != null &&
+                                 k.State == SessionState.AuthConnectResponse &&
+                                 k.Network.ConnectionData.ConnectionCookie == connectResponse.Check &&
+                                 k.EndPoint.Address.Equals(endPoint.Address)
+                             select k).FirstOrDefault();
+                    }
+                    finally
+                    {
+                        sessionLock.ExitReadLock();
+                    }
+                    if (session != null)
+                    {
+                        session.State = SessionState.AuthConnected;
+                        session.Network.sendResync = true;
+                        AuthenticationHandler.HandleConnectResponse(session);
+                        return;
+                    }
+                    else
+                    {
+                        return;
+                    }
+
+                }
+                else if (packet.Header.Id == 0 && packet.Header.HasFlag(PacketHeaderFlags.CICMDCommand))
+                {
+                    // TODO: Not sure what to do with these packets yet
+                }
+                else
+                {
+                    log.ErrorFormat("Packet from {0} rejected. Packet sent to listener 1 and is not a ConnectResponse or CICMDCommand", endPoint);
+                }
+            }
+            else if (packet.Header.HasFlag(PacketHeaderFlags.LoginRequest))
             {
                 if (!loggedInClients.Contains(endPoint) && loggedInClients.Count >= ConfigManager.Config.Server.Network.MaximumAllowedSessions)
                 {
@@ -94,10 +144,6 @@ namespace ACE.Server.Managers
                     if (session != null)
                         session.ProcessPacket(packet);
                 }
-            }
-            else if (packet.Header.Id == 0 && packet.Header.HasFlag(PacketHeaderFlags.CICMDCommand))
-            {
-                // TODO: Not sure what to do with these packets yet
             }
             else if (sessionMap.Length > packet.Header.Id && loggedInClients.Contains(endPoint))
             {
@@ -173,12 +219,10 @@ namespace ACE.Server.Managers
             try
             {
                 log.DebugFormat("Removing session for {0} with id {1}", session.EndPoint, session.Network.ClientId);
-                if (sessions.Contains(session))
-                    sessions.Remove(session);
+                sessions.Remove(session);
                 if (sessionMap[session.Network.ClientId] == session)
                     sessionMap[session.Network.ClientId] = null;
-                if (loggedInClients.Contains(session.EndPoint))
-                    loggedInClients.Remove(session.EndPoint);
+                loggedInClients.Remove(session.EndPoint);
             }
             finally
             {
@@ -496,11 +540,7 @@ namespace ACE.Server.Managers
                 var deadSessions = sessions.FindAll(s => s.State == Network.Enum.SessionState.NetworkTimeout);
 
                 foreach (var session in deadSessions)
-                {
-                    log.Info($"client {session.Account} dropped");
-                    session.RemovePlayer();
-                    RemoveSession(session); // This will temporarily upgrade our ReadLock to a WriteLock
-                }
+                    session.DropSession("Network Timeout");
             }
             finally
             {

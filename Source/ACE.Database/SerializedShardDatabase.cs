@@ -92,6 +92,11 @@ namespace ACE.Database
         }
 
 
+        public int GetBiotaCount()
+        {
+            return _wrappedDatabase.GetBiotaCount();
+        }
+
         public Biota GetBiota(uint id)
         {
             return _wrappedDatabase.GetBiota(id);

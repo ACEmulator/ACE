@@ -25,6 +25,8 @@ namespace ACE.Server.Command.Handlers
 {
     public static class AdminCommands
     {
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         // // commandname parameters
         // [CommandHandler("commandname", AccessLevel.Admin, CommandHandlerFlag.RequiresWorld, 0)]
         // public static void HandleHelp(Session session, params string[] parameters)
@@ -151,8 +153,9 @@ namespace ACE.Server.Command.Handlers
                 {
                     case AccountLookupType.Subscription:
                         {
-                            throw new NotImplementedException();
-                            // break;
+                            // Send the error to a player or the console
+                            CommandHandlerHelper.WriteOutputInfo(session, "Boot by Subscription not implemented.", ChatMessageType.Broadcast);
+                            return;
                         }
                     case AccountLookupType.Character:
                         {
@@ -160,7 +163,7 @@ namespace ACE.Server.Command.Handlers
                             if (player != null)
                             {
                                 playerSession = player.Session;
-                                bootId = player.Guid.Low;
+                                bootId = player.Guid.Full;
                             }
                             break;
                         }
@@ -199,7 +202,6 @@ namespace ACE.Server.Command.Handlers
                     }
 
                     // log the boot to file
-                    ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
                     log.Info(bootText);
 
                     // finish execution of command logic
@@ -208,9 +210,8 @@ namespace ACE.Server.Command.Handlers
             }
 
             // Did not find a player
-            string errorText = "Error locating the player or account to boot.";
             // Send the error to a player or the console
-            CommandHandlerHelper.WriteOutputInfo(session, errorText, ChatMessageType.Broadcast);
+            CommandHandlerHelper.WriteOutputInfo(session, "Error locating the player or account to boot.", ChatMessageType.Broadcast);
         }
 
         // deaf < on / off >
@@ -728,6 +729,29 @@ namespace ACE.Server.Command.Handlers
                 session.Network.EnqueueSend(new GameMessageSystemChat($"Player {playerName} was not found.", ChatMessageType.Broadcast));
         }
 
+        // teleallto [char]
+        [CommandHandler("teleallto", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Teleports all players to a player. If no target is specified, all players will be teleported to you.", "[Player's Name]\n")]
+        public static void HandleTeleAllTo(Session session, params string[] parameters)
+        {
+            Player destinationPlayer = null;
+
+            if (parameters.Length > 0)
+                destinationPlayer = PlayerManager.GetOnlinePlayer(parameters[0]);
+
+            if (destinationPlayer == null)
+                destinationPlayer = session.Player;
+
+            foreach (var player in PlayerManager.GetAllOnline())
+            {
+                if (player == destinationPlayer)
+                    continue;
+
+                player.SetPosition(PositionType.TeleportedCharacter, new Position(player.Location));
+
+                player.Teleport(new Position(destinationPlayer.Location));
+            }
+        }
+
         // telepoi location
         [CommandHandler("telepoi", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
             "Teleport yourself to a named Point of Interest",
@@ -756,7 +780,9 @@ namespace ACE.Server.Command.Handlers
                 if (teleportPOI == null)
                     return;
                 var weenie = DatabaseManager.World.GetCachedWeenie(teleportPOI.WeenieClassId);
-                session.Player.Teleport(weenie.GetPosition(PositionType.Destination));
+                var portalDest = new Position(weenie.GetPosition(PositionType.Destination));
+                session.Player.AdjustDungeon(portalDest);
+                session.Player.Teleport(portalDest);
             }
         }
 
@@ -1737,19 +1763,20 @@ namespace ACE.Server.Command.Handlers
             sb.Append($"Total CPU Time: {proc.TotalProcessorTime.Hours}h {proc.TotalProcessorTime.Minutes}m {proc.TotalProcessorTime.Seconds}s, Threads: {proc.Threads.Count}{'\n'}");
 
             // todo, add actual system memory used/avail
-            sb.Append($"{(proc.PrivateMemorySize64 >> 20)} MB used{'\n'}");  // sb.Append($"{(proc.PrivateMemorySize64 >> 20)} MB used, xxxx / yyyy MB physical mem free.{'\n'}");
+            sb.Append($"{(proc.PrivateMemorySize64 >> 20):N0} MB used{'\n'}");  // sb.Append($"{(proc.PrivateMemorySize64 >> 20)} MB used, xxxx / yyyy MB physical mem free.{'\n'}");
 
-            sb.Append($"{WorldManager.GetSessionCount()} connections, {PlayerManager.GetAllOnline().Count} players online{'\n'}");
-            sb.Append($"Total Accounts Created: {DatabaseManager.Authentication.GetAccountCount()}, Total Characters Created: {PlayerManager.GetAllOffline().Count + PlayerManager.GetAllOnline().Count}{'\n'}");
+            sb.Append($"{WorldManager.GetSessionCount():N0} connections, {PlayerManager.GetAllOnline().Count:N0} players online{'\n'}");
+            sb.Append($"Total Accounts Created: {DatabaseManager.Authentication.GetAccountCount():N0}, Total Characters Created: {(PlayerManager.GetAllOffline().Count + PlayerManager.GetAllOnline().Count):N0}{'\n'}");
 
             // 330 active objects, 1931 total objects(16777216 buckets.)
 
             // todo, expand this
             var activeLandblocks = LandblockManager.GetActiveLandblocks();
-            sb.Append($"{activeLandblocks.Count} active landblocks.{'\n'}"); // 11 total blocks loaded. 11 active. 0 pending dormancy. 0 dormant. 314 unloaded.
+            sb.Append($"{activeLandblocks.Count:N0} active landblocks.{'\n'}"); // 11 total blocks loaded. 11 active. 0 pending dormancy. 0 dormant. 314 unloaded.
             // 11 total blocks loaded. 11 active. 0 pending dormancy. 0 dormant. 314 unloaded.
 
             sb.Append($"World DB Cache Counts - Weenies: {DatabaseManager.World.GetWeenieCacheCount():N0}, LandblockInstances: {DatabaseManager.World.GetLandblockInstancesCacheCount():N0}, PointsOfInterest: {DatabaseManager.World.GetPointsOfInterestCacheCount():N0}, Cookbooks: {DatabaseManager.World.GetCookbookCacheCount():N0}, Spells: {DatabaseManager.World.GetSpellCacheCount():N0}, Encounters: {DatabaseManager.World.GetEncounterCacheCount():N0}, Events: {DatabaseManager.World.GetEventsCacheCount():N0}{'\n'}");
+            sb.Append($"Shard DB Counts - Biotas: {DatabaseManager.Shard.GetBiotaCount():N0}{'\n'}");
 
             sb.Append($"Portal.dat has {DatManager.PortalDat.FileCache.Count:N0} files cached of {DatManager.PortalDat.AllFiles.Count:N0} total{'\n'}");
             sb.Append($"Cell.dat has {DatManager.CellDat.FileCache.Count:N0} files cached of {DatManager.CellDat.AllFiles.Count:N0} total{'\n'}");

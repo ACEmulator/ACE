@@ -2091,37 +2091,19 @@ namespace ACE.Server.Physics
             enter_cell(newCell);
             RequestPos.ObjCellID = newCell.ID;
 
-            // handle indoor cell visibility
-            //if ((newCell.ID & 0xFFFF) >= 0x100)
-            //{
-                if (IsPlayer)
-                {
-                    // player entering new indoor cell
-                    var newlyVisible = handle_visible_cells();
-                    enqueue_objs(newlyVisible);
-                }
+            if (IsPlayer)
+            {
+                // handle object visibility
+                var newlyVisible = handle_visible_cells();
+                enqueue_objs(newlyVisible);
 
-                foreach (var player in Players)
+                // handle object visibility for nearby players
+                foreach (var player in ObjMaint.ObjectTable.Values.Where(i => i.IsPlayer))
                 {
-                    // is other player in same indoor landblock?
-                    if (player.CurCell != null && (player.CurCell.ID & 0xFFFF) >= 0x100 && player.CurCell.ID >> 16 == newCell.ID >> 16)
-                    {
-                        var envCell = player.CurCell as EnvCell;
-                        if (envCell != null)
-                        {
-                            if (envCell.VisibleCells.ContainsKey(newCell.ID & 0xFFFF))
-                            {
-                                //Console.WriteLine($"Informing {player.WeenieObj.WorldObject.Name} about {WeenieObj.WorldObject.Name}");
-
-                                // inform other player about this object
-                                var newlyVisible = player.handle_visible_cells();
-                                player.enqueue_objs(newlyVisible);
-                            }
-                        }
-                    }
+                    newlyVisible = player.handle_visible_cells();
+                    player.enqueue_objs(newlyVisible);
                 }
-            //}
-            //Console.WriteLine("Cell: " + newCell.ID.ToString("X8") + " (" + newCell.ShadowObjectList.Count + ")");
+            }
         }
 
         public bool enter_world(Position pos)

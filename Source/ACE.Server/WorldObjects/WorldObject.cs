@@ -61,16 +61,13 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public Landblock CurrentLandblock { get; internal set; }
 
-        private bool busyState;
-        private bool movingState;
-
         public int ManaGiven { get; set; }
 
         public DateTime? ItemManaDepletionMessageTimestamp { get; set; } = null;
         public DateTime? ItemManaConsumptionTimestamp { get; set; } = null;
 
-        public bool IsBusy { get => busyState; set => busyState = value; }
-        public bool IsMovingTo { get => movingState; set => movingState = value; }
+        public bool IsBusy { get; set; }
+        public bool IsMovingTo { get; set; }
         public bool IsShield { get => CombatUse != null && CombatUse == ACE.Entity.Enum.CombatUse.Shield; }
         public bool IsTwoHanded { get => CurrentWieldedLocation != null && CurrentWieldedLocation == EquipMask.TwoHanded; }
         public bool IsBow { get => DefaultCombatStyle != null && (DefaultCombatStyle == CombatStyle.Bow || DefaultCombatStyle == CombatStyle.Crossbow); }
@@ -82,8 +79,6 @@ namespace ACE.Server.WorldObjects
 
         public WorldObject ProjectileSource;
         public WorldObject ProjectileTarget;
-
-        public bool IsDestroyed = false;
 
         public WorldObject() { }
 

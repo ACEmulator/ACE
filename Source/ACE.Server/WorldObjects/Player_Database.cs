@@ -6,7 +6,6 @@ using ACE.Database;
 using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
-using ACE.Server.Entity.Actions;
 
 namespace ACE.Server.WorldObjects
 {
@@ -34,28 +33,18 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public readonly ReaderWriterLockSlim CharacterDatabaseLock = new ReaderWriterLockSlim();
 
-        /// <summary>
-        /// Gets the ActionChain to save a character
-        /// </summary>
-        public ActionChain GetSaveChain()
+        private void SetPropertiesAtLogOut()
         {
-            return new ActionChain(this, SavePlayer);
+            // These properties are used with offline players to determine passup rates
+            SetProperty(PropertyInt.CurrentLoyaltyAtLastLogoff, (int)GetCreatureSkill(Skill.Loyalty).Current);
+            SetProperty(PropertyInt.CurrentLeadershipAtLastLogoff, (int)GetCreatureSkill(Skill.Leadership).Current);
         }
 
         /// <summary>
-        /// Creates and Enqueues an ActionChain to save a character
-        /// </summary>
-        public void EnqueueSaveChain()
-        {
-            GetSaveChain().EnqueueChain();
-        }
-
-        /// <summary>
-        /// Internal save character functionality<para  />
         /// Saves the character to the persistent database. Includes Stats, Position, Skills, etc.<para />
         /// Will also save any possessions that are marked with ChangesDetected.
         /// </summary>
-        private void SavePlayer()
+        public void SavePlayerToDatabase()
         {
             if (CharacterChangesDetected)
                 SaveCharacterToDatabase();
@@ -78,7 +67,7 @@ namespace ACE.Server.WorldObjects
 
             var requestedTime = DateTime.UtcNow;
 
-            DatabaseManager.Shard.SaveBiotasInParallel(biotas, result => log.Debug($"{Session.Player.Name} has been saved. It took {(DateTime.UtcNow - requestedTime).TotalMilliseconds:N0} ms to process the request."));
+            DatabaseManager.Shard.SaveBiotasInParallel(biotas, result => log.Debug($"{Name} has been saved. It took {(DateTime.UtcNow - requestedTime).TotalMilliseconds:N0} ms to process the request."));
         }
 
         public void SaveCharacterToDatabase()

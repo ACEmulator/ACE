@@ -521,6 +521,9 @@ namespace ACE.Entity.Enum.Properties
         [SendOnLogin]
         Enlightenment                            = 390,
 
+        [ServerOnly]
+        PCAPRecordedAutonomousMovement           = 8007,
+
         //[ServerOnly]
         //TotalLogins                              = 9001,
         //[ServerOnly]

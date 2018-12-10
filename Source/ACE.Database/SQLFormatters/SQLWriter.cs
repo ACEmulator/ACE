@@ -234,6 +234,14 @@ namespace ACE.Database.SQLFormatters
                         }
                     }
                     break;
+                case PropertyDataId.PCAPRecordedObjectDesc:
+                    return ((ObjectDescriptionFlag)value).ToString();
+                case PropertyDataId.PCAPRecordedPhysicsDesc:
+                    return ((PhysicsDescriptionFlag)value).ToString();
+                case PropertyDataId.PCAPRecordedWeenieHeader:
+                    return ((WeenieHeaderFlag)value).ToString();
+                case PropertyDataId.PCAPRecordedWeenieHeader2:
+                    return ((WeenieHeaderFlag2)value).ToString();
             }
 
             return property.GetValueEnumName(value);
