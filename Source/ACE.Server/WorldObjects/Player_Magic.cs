@@ -938,10 +938,10 @@ namespace ACE.Server.WorldObjects
 
             // ensure level 8s are installed
             var maxSpellLevel = Math.Clamp(maxLevel, 1, 8);
-            if (maxSpellLevel == 8 && DatabaseManager.World.GetCachedSpell((uint)Network.Enum.Spell.ArmorOther8) == null)
+            if (maxSpellLevel == 8 && DatabaseManager.World.GetCachedSpell((uint)SpellId.ArmorOther8) == null)
                 maxSpellLevel = 7;
 
-            var tySpell = typeof(Network.Enum.Spell);
+            var tySpell = typeof(SpellId);
             List<BuffMessage> buffMessages = new List<BuffMessage>();
             // prepare messages
             List<string> buffsNotImplementedYet = new List<string>();

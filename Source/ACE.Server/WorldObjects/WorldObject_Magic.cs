@@ -629,9 +629,9 @@ namespace ACE.Server.WorldObjects
                 {
                     case SpellType.PortalRecall:
                         PositionType recall = PositionType.Undef;
-                        switch ((Network.Enum.Spell)spell.Id)
+                        switch ((SpellId)spell.Id)
                         {
-                            case Network.Enum.Spell.PortalRecall:       // portal recall
+                            case SpellId.PortalRecall:       // portal recall
                                 if (player.GetPosition(PositionType.LastPortal) == null)
                                 {
                                     // You must link to a portal to recall it!
@@ -640,7 +640,7 @@ namespace ACE.Server.WorldObjects
                                 else
                                     recall = PositionType.LastPortal;
                                 break;
-                            case Network.Enum.Spell.LifestoneRecall1:   // lifestone recall
+                            case SpellId.LifestoneRecall1:   // lifestone recall
                                 if (player.GetPosition(PositionType.LinkedLifestone) == null)
                                 {
                                     // You must link to a lifestone to recall it!
@@ -649,7 +649,7 @@ namespace ACE.Server.WorldObjects
                                 else
                                     recall = PositionType.LinkedLifestone;
                                 break;
-                            case Network.Enum.Spell.PortalTieRecall1:   // primary portal tie recall
+                            case SpellId.PortalTieRecall1:   // primary portal tie recall
                                 if (player.GetPosition(PositionType.LinkedPortalOne) == null)
                                 {
                                     // You must link to a portal to recall it!
@@ -658,7 +658,7 @@ namespace ACE.Server.WorldObjects
                                 else
                                     recall = PositionType.LinkedPortalOne;
                                 break;
-                            case Network.Enum.Spell.PortalTieRecall2:   // secondary portal tie recall
+                            case SpellId.PortalTieRecall2:   // secondary portal tie recall
                                 if (player.GetPosition(PositionType.LinkedPortalTwo) == null)
                                 {
                                     // You must link to a portal to recall it!
@@ -689,9 +689,9 @@ namespace ACE.Server.WorldObjects
                     case SpellType.PortalLink:
                         if (player != null)
                         {
-                            switch ((Network.Enum.Spell)spell.Id)
+                            switch ((SpellId)spell.Id)
                             {
-                                case Network.Enum.Spell.PortalTie1:    // Primary Portal Tie
+                                case SpellId.PortalTie1:    // Primary Portal Tie
                                     if (target.WeenieType == WeenieType.Portal)
                                     {
                                         var targetPortal = target as Portal;
@@ -703,13 +703,13 @@ namespace ACE.Server.WorldObjects
                                     else
                                         player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, $"Primary Portal Tie cannot be cast on {target.Name}"));
                                     break;
-                                case Network.Enum.Spell.LifestoneTie1:  // Lifestone Tie
+                                case SpellId.LifestoneTie1:  // Lifestone Tie
                                     if (target.WeenieType == WeenieType.LifeStone)
                                         player.LinkedLifestone = target.Location;
                                     else
                                         player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, $"Lifestone Tie cannot be cast on {target.Name}"));
                                     break;
-                                case Network.Enum.Spell.PortalTie2:  // Secondary Portal Tie
+                                case SpellId.PortalTie2:  // Secondary Portal Tie
                                     if (target.WeenieType == WeenieType.Portal)
                                     {
                                         var targetPortal = target as Portal;
