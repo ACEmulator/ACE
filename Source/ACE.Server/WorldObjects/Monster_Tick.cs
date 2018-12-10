@@ -36,7 +36,8 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if (AttackTarget.IsDestroyed && !FindNextTarget())
+            var creatureTarget = AttackTarget as Creature;
+            if (creatureTarget != null && (creatureTarget.IsDead || (pet == null && !creatureTarget.IsVisible(this))))
             {
                 Sleep();
                 return;

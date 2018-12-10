@@ -75,6 +75,8 @@ namespace ACE.Server.WorldObjects
 
         public virtual void HandleFindTarget()
         {
+            return;
+
             var currentTime = Timers.RunningTime;
 
             if (currentTime < NextFindTarget)

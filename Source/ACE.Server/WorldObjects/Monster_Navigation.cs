@@ -224,7 +224,7 @@ namespace ACE.Server.WorldObjects
                 Sleep();
         }
 
-        public static bool ForcePos = false;
+        public static bool ForcePos = true;
 
         public void UpdatePosition()
         {
