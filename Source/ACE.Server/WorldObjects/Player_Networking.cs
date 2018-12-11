@@ -18,6 +18,8 @@ namespace ACE.Server.WorldObjects
     {
         public void PlayerEnterWorld()
         {
+            PlayerManager.SwitchPlayerFromOfflineToOnline(this);
+
             // Save the the LoginTimestamp
             var lastLoginTimestamp = Time.GetUnixTime();
 

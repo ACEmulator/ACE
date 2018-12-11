@@ -301,8 +301,6 @@ namespace ACE.Server.Managers
 
             session.SetPlayer(player);
 
-            PlayerManager.SwitchPlayerFromOfflineToOnline(player);
-
             session.Player.PlayerEnterWorld();
 
             if (character.TotalLogins <= 1 || PropertyManager.GetBool("alwaysshowwelcome").Item)
@@ -537,7 +535,7 @@ namespace ACE.Server.Managers
                     s.TickOutbound();
 
                 // Removes sessions in the NetworkTimeout state, including sessions that have reached a timeout limit.
-                var deadSessions = sessions.FindAll(s => s.State == Network.Enum.SessionState.NetworkTimeout);
+                var deadSessions = sessions.FindAll(s => s.State == SessionState.NetworkTimeout);
 
                 foreach (var session in deadSessions)
                     session.DropSession("Network Timeout");

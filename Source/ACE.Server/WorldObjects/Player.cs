@@ -597,6 +597,7 @@ namespace ACE.Server.WorldObjects
                     CurrentLandblock.RemoveWorldObject(Guid, false);
                     SetPropertiesAtLogOut();
                     SavePlayerToDatabase();
+                    PlayerManager.SwitchPlayerFromOnlineToOffline(this);
                 });
 
                 logoutChain.EnqueueChain();
@@ -605,6 +606,7 @@ namespace ACE.Server.WorldObjects
             {
                 SetPropertiesAtLogOut();
                 SavePlayerToDatabase();
+                PlayerManager.SwitchPlayerFromOnlineToOffline(this);
             }
         }
 
