@@ -226,6 +226,9 @@ namespace ACE.Server.Network
             {
                 Player.LogOut(true);
 
+                // We don't want to set the player to null here. Because the player is still on the network, it may still enqueue work onto it's session.
+                // Some network message objects will reference session.Player in their construction. If we set Player to null here, we'll throw exceptions in those cases.
+
                 // At this point, if the player was on a landblock, they'll still exist on that landblock until the logout animation completes (~6s).
             }
 
