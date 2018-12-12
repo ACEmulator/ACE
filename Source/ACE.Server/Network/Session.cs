@@ -109,16 +109,13 @@ namespace ACE.Server.Network
                 // Change the state to show that the Session has reached a timeout.
                 State = SessionState.NetworkTimeout;
             }
-
-            Network.Update();
+            else
+                Network.Update();
 
             // Live server seemed to take about 6 seconds. 4 seconds is nice because it has smooth animation, and saves the user 2 seconds every logoff
             // This could be made 0 for instant logoffs.
             if (logOffRequestTime != DateTime.MinValue && logOffRequestTime.AddSeconds(6) <= DateTime.UtcNow)
-            {
-                logOffRequestTime = DateTime.MinValue;
                 SendFinalLogOffMessages();
-            }
 
             // Check if the player has been booted
             if (bootSession)
@@ -187,6 +184,12 @@ namespace ACE.Server.Network
 
         private void SendFinalLogOffMessages()
         {
+            // If we still exist on a landblock, we can't exit yet.
+            if (Player.CurrentLandblock != null)
+                return;
+
+            logOffRequestTime = DateTime.MinValue;
+
             // It's possible for a character change to happen from a GameActionSetCharacterOptions message.
             // This message can be received/processed by the server AFTER LogOfPlayer has been called.
             // What that means is, we could end up with Character changes after the Character has been saved from the initial LogOff request.
@@ -194,7 +197,6 @@ namespace ACE.Server.Network
             if (Player.CharacterChangesDetected)
                 Player.SaveCharacterToDatabase();
 
-            PlayerManager.SwitchPlayerFromOnlineToOffline(Player);
             Player = null;
 
             Network.EnqueueSend(new GameMessageCharacterLogOff());
@@ -223,8 +225,9 @@ namespace ACE.Server.Network
             if (Player != null)
             {
                 Player.LogOut(true);
-                PlayerManager.SwitchPlayerFromOnlineToOffline(Player);
-                Player = null;
+
+                // We don't want to set the player to null here. Because the player is still on the network, it may still enqueue work onto it's session.
+                // Some network message objects will reference session.Player in their construction. If we set Player to null here, we'll throw exceptions in those cases.
 
                 // At this point, if the player was on a landblock, they'll still exist on that landblock until the logout animation completes (~6s).
             }

@@ -89,36 +89,39 @@ namespace ACE.Server.Network.Managers
         {
             var opcode = (GameMessageOpcode)message.Opcode;
 
-            if (!messageHandlers.ContainsKey(opcode))
-                log.WarnFormat("Received unhandled fragment opcode: 0x{0:X4}", ((uint)opcode));
+            if (messageHandlers.TryGetValue(opcode, out var messageHandlerInfo))
+            {
+                if (messageHandlerInfo.Attribute.State == session.State)
+                {
+                    WorldManager.InboundClientMessageQueue.EnqueueAction(new ActionEventDelegate(() =>
+                    {
+                        // It's possible that before this work is executed by WorldManager, and after it was enqueued here, the session.Player was set to null
+                        // To avoid null reference exceptions, we make sure that the player is valid before the message handler is invoked.
+                        if (messageHandlerInfo.Attribute.State == Enum.SessionState.WorldConnected && session.Player == null)
+                            return;
+
+                        messageHandlerInfo.Handler.Invoke(message, session);
+                    }));
+                }
+            }
             else
             {
-                if (messageHandlers.TryGetValue(opcode, out var messageHandlerInfo))
-                {
-                    if (messageHandlerInfo.Attribute.State == session.State)
-                    {
-                        WorldManager.InboundClientMessageQueue.EnqueueAction(new ActionEventDelegate(() =>
-                        {
-                            messageHandlerInfo.Handler.Invoke(message, session);
-                        }));
-                    }
-                }
+                log.Warn($"Received unhandled fragment opcode: 0x{opcode:X4}");
             }
         }
 
         public static void HandleGameAction(GameActionType opcode, ClientMessage message, Session session)
         {
-            if (!actionHandlers.ContainsKey(opcode))
-                log.WarnFormat("Received unhandled GameActionType: 0x{0:X4}", ((uint)opcode));
+            if (actionHandlers.TryGetValue(opcode, out var actionHandlerInfo))
+            {
+                session.InboundGameActionQueue.EnqueueAction(new ActionEventDelegate(() =>
+                {
+                    actionHandlerInfo.Handler.Invoke(message, session);
+                }));
+            }
             else
             {
-                if (actionHandlers.TryGetValue(opcode, out var actionHandlerInfo))
-                {
-                    session.InboundGameActionQueue.EnqueueAction(new ActionEventDelegate(() =>
-                    {
-                        actionHandlerInfo.Handler.Invoke(message, session);
-                    }));
-                }
+                log.Warn($"Received unhandled GameActionType: 0x{opcode:X4}");
             }
         }
     }
