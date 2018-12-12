@@ -100,6 +100,8 @@ namespace ACE.Server.Entity
                             return envCell.ID;
                 }
             }
+
+            return cellID;
         }
 
         /// <summary>
