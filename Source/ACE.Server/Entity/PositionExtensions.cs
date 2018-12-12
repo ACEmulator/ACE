@@ -70,37 +70,36 @@ namespace ACE.Server.Entity
             // outside - could be on landscape, in building, or underground cave
             var cellID = GetOutdoorCell(p);
             var landcell = (LandCell)LScape.get_landcell(cellID);
-            if (landcell != null)
+
+            if (landcell == null)
+                return cellID;
+
+            if (landcell.has_building())
             {
-                if (landcell.has_building())
+                var envCells = landcell.Building.get_building_cells();
+                foreach (var envCell in envCells)
+                    if (envCell.point_in_cell(p.Pos))
+                        return envCell.ID;
+            }
+
+            // handle underground areas ie. caves
+            // get the terrain Z-height for this X/Y
+            Physics.Polygon walkable = null;
+            var terrainPoly = landcell.find_terrain_poly(p.Pos, ref walkable);
+            if (walkable != null)
+            {
+                Vector3 terrainPos = p.Pos;
+                walkable.Plane.set_height(ref terrainPos);
+
+                // are we below ground? if so, search all of the indoor cells for this landblock
+                if (terrainPos.Z > p.Pos.Z)
                 {
-                    var envCells = landcell.Building.get_building_cells();
+                    var envCells = landblock.get_envcells();
                     foreach (var envCell in envCells)
                         if (envCell.point_in_cell(p.Pos))
                             return envCell.ID;
                 }
-
-                // handle underground areas ie. caves
-                // get the terrain Z-height for this X/Y
-                Physics.Polygon walkable = null;
-                var terrainPoly = landcell.find_terrain_poly(p.Pos, ref walkable);
-                if (walkable != null)
-                {
-                    Vector3 terrainPos = p.Pos;
-                    walkable.Plane.set_height(ref terrainPos);
-
-                    // are we below ground? if so, search all of the indoor cells for this landblock
-                    if (terrainPos.Z > p.Pos.Z)
-                    {
-                        var envCells = landblock.get_envcells();
-                        foreach (var envCell in envCells)
-                            if (envCell.point_in_cell(p.Pos))
-                                return envCell.ID;
-                    }
-                }
             }
-
-            return cellID;
         }
 
         /// <summary>
