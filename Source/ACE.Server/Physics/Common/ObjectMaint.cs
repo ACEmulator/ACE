@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
@@ -69,7 +70,7 @@ namespace ACE.Server.Physics.Common
         /// <summary>
         /// Custom lookup table of PhysicsObjs for the server
         /// </summary>
-        public static Dictionary<uint, PhysicsObj> ServerObjects;
+        public static ConcurrentDictionary<uint, PhysicsObj> ServerObjects = new ConcurrentDictionary<uint, PhysicsObj>();
 
         // Client structures -
         // When client unloads a cell/landblock, but still knows about objects in those cells?
@@ -77,11 +78,6 @@ namespace ACE.Server.Physics.Common
         //public List<PhysicsObj> NullObjectTable;
         //public Dictionary<uint, WeenieObject> WeenieObjectTable;
         //public List<WeenieObject> NullWeenieObjectTable;
-
-        static ObjectMaint()
-        {
-            ServerObjects = new Dictionary<uint, PhysicsObj>();
-        }
 
         public ObjectMaint() { }
 
@@ -388,10 +384,7 @@ namespace ACE.Server.Physics.Common
         {
             if (obj == null) return;
 
-            if (ServerObjects.ContainsKey(obj.ID))
-                ServerObjects[obj.ID] = obj;
-            else
-                ServerObjects.Add(obj.ID, obj);
+            ServerObjects[obj.ID] = obj;
         }
 
         /// <summary>
@@ -401,8 +394,7 @@ namespace ACE.Server.Physics.Common
         {
             if (obj == null) return;
 
-            if (ServerObjects.ContainsKey(obj.ID))
-                ServerObjects.Remove(obj.ID);
+            ServerObjects.TryRemove(obj.ID, out _);
         }
 
         /// <summary>
