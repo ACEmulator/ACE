@@ -70,6 +70,10 @@ namespace ACE.Server.Entity
             // outside - could be on landscape, in building, or underground cave
             var cellID = GetOutdoorCell(p);
             var landcell = (LandCell)LScape.get_landcell(cellID);
+
+            if (landcell == null)
+                return cellID;
+
             if (landcell.has_building())
             {
                 var envCells = landcell.Building.get_building_cells();
@@ -96,6 +100,7 @@ namespace ACE.Server.Entity
                             return envCell.ID;
                 }
             }
+
             return cellID;
         }
 
