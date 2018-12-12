@@ -4,7 +4,6 @@ using System.Numerics;
 using ACE.Entity.Enum;
 using ACE.Server.Physics.Animation;
 using ACE.Server.Physics.Common;
-using ACE.Server.Physics.Extensions;
 
 namespace ACE.Server.Physics
 {
@@ -78,7 +77,7 @@ namespace ACE.Server.Physics
             NumParticles++;
             TotalEmitted++;
 
-            LastEmitOffset = PhysicsObj.Position.Frame.Origin.Copy();
+            LastEmitOffset = PhysicsObj.Position.Frame.Origin;
             LastEmitTime = PhysicsTimer.CurrentTime;
         }
 
@@ -110,7 +109,7 @@ namespace ACE.Server.Physics
                 return false;
             }
             PhysicsObj = PhysicsObj.makeParticleObject(Info.MaxParticles, Info.SortingSphere);
-            LastEmitOffset = PhysicsObj.Position.Frame.Origin.Copy();
+            LastEmitOffset = PhysicsObj.Position.Frame.Origin;
             Parts = PhysicsObj.PartArray.Parts;
             PartStorage = new PhysicsPart[Info.MaxParticles];
             for (var i = 0; i < Info.MaxParticles; i++)

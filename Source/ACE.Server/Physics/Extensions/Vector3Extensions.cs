@@ -6,11 +6,6 @@ namespace ACE.Server.Physics.Extensions
 {
     public static class Vector3Extensions
     {
-        public static Vector3 Copy(this Vector3 v)
-        {
-            return new Vector3(v.X, v.Y, v.Z);
-        }
-
         public static float Dot2D(this Vector3 a, Vector3 b)
         {
             return a.X * b.X + a.Y * b.Y;

@@ -3,7 +3,6 @@ using System.Numerics;
 using ACE.Entity.Enum;
 using ACE.Server.Physics.Animation;
 using ACE.Server.Physics.Common;
-using ACE.Server.Physics.Extensions;
 
 namespace ACE.Server.Physics
 {
@@ -58,12 +57,12 @@ namespace ACE.Server.Physics
                     break;
                 case ParticleType.Swarm:
                     A = StartFrame.LocalToGlobalVec(a);
-                    B = b.Copy();
-                    C = c.Copy();
+                    B = b;
+                    C = c;
                     break;
                 case ParticleType.Explode:
-                    A = a.Copy();
-                    B = b.Copy();
+                    A = a;
+                    B = b;
 
                     var ra = Common.Random.RollDice(-(float)Math.PI, (float)Math.PI);
                     var po = Common.Random.RollDice(-(float)Math.PI, (float)Math.PI);
@@ -78,8 +77,8 @@ namespace ACE.Server.Physics
 
                     break;
                 case ParticleType.Implode:
-                    A = a.Copy();
-                    B = b.Copy();
+                    A = a;
+                    B = b;
                     Offset *= c;
                     C = Offset;
                     break;
@@ -91,18 +90,18 @@ namespace ACE.Server.Physics
                     C = StartFrame.LocalToGlobalVec(c);
                     break;
                 case ParticleType.ParabolicGVGA:
-                    B = b.Copy();
+                    B = b;
                     break;
                 case ParticleType.ParabolicGVGAGR:
-                    C = c.Copy();
+                    C = c;
                     break;
                 case ParticleType.GlobalVelocity:
-                    A = a.Copy();
+                    A = a;
                     break;
                 default:
-                    A = a.Copy();
-                    B = b.Copy();
-                    C = c.Copy();
+                    A = a;
+                    B = b;
+                    C = c;
                     break;
             }
 

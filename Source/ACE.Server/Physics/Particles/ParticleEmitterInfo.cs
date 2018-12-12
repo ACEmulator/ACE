@@ -71,12 +71,12 @@ namespace ACE.Server.Physics
             LifeSpanRand = info.LifespanRand;
             LifeSpan = info.Lifespan;
             //SortingSphere?
-            OffsetDir = info.OffsetDir.Copy();
+            OffsetDir = info.OffsetDir;
             MinOffset = info.MinOffset;
             MaxOffset = info.MaxOffset;
-            A = info.A.Copy();
-            B = info.B.Copy();
-            C = info.C.Copy();
+            A = info.A;
+            B = info.B;
+            C = info.C;
             MinA = info.MinA;
             MaxA = info.MaxA;
             MinB = info.MinB;
