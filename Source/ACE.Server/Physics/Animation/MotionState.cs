@@ -69,7 +69,7 @@ namespace ACE.Server.Physics.Animation
 
         public void remove_action_head()
         {
-            if (Actions.Count > 0)
+            if (Actions.First != null)
                 Actions.RemoveFirst();
         }
 

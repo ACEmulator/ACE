@@ -38,7 +38,7 @@ namespace ACE.Server.Physics.Animation
             if (PhysicsObj == null)
                 return;
 
-            var dest = PositionQueue.Count > 0 && PositionQueue.Last.Value.Type == InterpolationNodeType.PositionType ?
+            var dest = PositionQueue.First != null && PositionQueue.Last.Value.Type == InterpolationNodeType.PositionType ?
                 PositionQueue.Last.Value.Position : PhysicsObj.Position;
 
             var dist = dest.Distance(position);
@@ -47,7 +47,7 @@ namespace ACE.Server.Physics.Animation
             {
                 if (PhysicsObj.Position.Distance(position) > 0.05f)
                 {
-                    while (PositionQueue.Count > 0)
+                    while (PositionQueue.First != null)
                     {
                         var lastNode = PositionQueue.Last.Value;
                         if (lastNode.Type != InterpolationNodeType.PositionType || lastNode.Position.Distance(position) >= 0.05f)
@@ -85,7 +85,7 @@ namespace ACE.Server.Physics.Animation
 
         public bool IsInterpolating()
         {
-            return PositionQueue.Count > 0;
+            return PositionQueue.First != null;
         }
 
         public void NodeCompleted(bool success)
@@ -96,7 +96,7 @@ namespace ACE.Server.Physics.Animation
             FrameCounter = 0;
             ProgressQuantum = 0.0f;
 
-            var head = PositionQueue.Count == 0 ? null : PositionQueue.First.Value;
+            var head = PositionQueue.First == null ? null : PositionQueue.First.Value;
             var next = PositionQueue.Count <= 1 ? null : PositionQueue.ElementAt(1);
 
             if (PositionQueue.Count > 1)
@@ -121,7 +121,7 @@ namespace ACE.Server.Physics.Animation
                 else
                     StopInterpolating();
             }
-            if (PositionQueue.Count > 0)
+            if (PositionQueue.First != null)
                 PositionQueue.RemoveFirst();
         }
 
@@ -144,7 +144,7 @@ namespace ACE.Server.Physics.Animation
             if (PhysicsObj == null)
                 return;
 
-            if (NodeFailCounter > 3 || PositionQueue.Count == 0)
+            if (NodeFailCounter > 3 || PositionQueue.First == null)
             {
                 if (NodeFailCounter <= 0) return;
 
@@ -198,7 +198,7 @@ namespace ACE.Server.Physics.Animation
 
         public void adjust_offset(AFrame frame, double quantum)
         {
-            if (PositionQueue.Count == 0 || PhysicsObj == null || !PhysicsObj.TransientState.HasFlag(TransientStateFlags.Contact))
+            if (PositionQueue.First == null || PhysicsObj == null || !PhysicsObj.TransientState.HasFlag(TransientStateFlags.Contact))
                 return;
 
             var first = PositionQueue.First.Value;

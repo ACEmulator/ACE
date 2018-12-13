@@ -67,7 +67,7 @@ namespace ACE.Server.Physics.Animation
 
         public bool HasAnims()
         {
-            return AnimList != null && AnimList.Count != 0;
+            return AnimList != null && AnimList.First != null;
         }
 
         public void Init()
