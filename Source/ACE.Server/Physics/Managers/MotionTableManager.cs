@@ -105,13 +105,13 @@ namespace ACE.Server.Physics.Animation
         public void HandleEnterWorld(Sequence sequence)
         {
             sequence.remove_all_link_animations();
-            while (PendingAnimations.First != null)
+            while (PendingAnimations.Count > 0)
                 AnimationDone(false);
         }
 
         public void HandleExitWorld()
         {
-            while (PendingAnimations.First != null)
+            while (PendingAnimations.Count > 0)
                 AnimationDone(false);
         }
 

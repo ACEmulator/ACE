@@ -775,7 +775,7 @@ namespace ACE.Server.Physics.Animation
 
         public bool motions_pending()
         {
-            return PendingMotions.First != null;
+            return PendingMotions.Count > 0;
         }
 
         public bool move_to_interpreted_state(InterpretedMotionState state)
