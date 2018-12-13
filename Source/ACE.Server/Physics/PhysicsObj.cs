@@ -3040,7 +3040,7 @@ namespace ACE.Server.Physics
 
         public bool is_active()
         {
-            return TransientState.HasFlag(TransientStateFlags.Active);
+            return (TransientState & TransientStateFlags.Active) != 0;
         }
 
         public void set_current_pos(Position newPos)

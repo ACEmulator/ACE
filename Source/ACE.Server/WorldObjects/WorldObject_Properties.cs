@@ -695,7 +695,7 @@ namespace ACE.Server.WorldObjects
         public bool GetPhysicsState(PhysicsState state)
         {
             if (PhysicsObj == null) return false;
-            return PhysicsObj.State.HasFlag(state);
+            return (PhysicsObj.State & state) != 0;
         }
 
         public void SetPhysicsState(PhysicsState state, bool? value)
