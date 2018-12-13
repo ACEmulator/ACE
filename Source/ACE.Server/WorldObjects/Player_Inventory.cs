@@ -1490,7 +1490,7 @@ namespace ACE.Server.WorldObjects
 
             // Build the needed messages to the client.
             if (missileAmmo)
-                EnqueueBroadcast( new GameMessageSetStackSize(toWo));
+                EnqueueBroadcast(new GameMessageSetStackSize(toWo));
             else
                 EnqueueBroadcast(new GameEventItemServerSaysContainId(Session, toWo, this), new GameMessageSetStackSize(toWo));
         }
@@ -1518,12 +1518,15 @@ namespace ACE.Server.WorldObjects
                 container = GetInventoryItem(new ObjectGuid(containerId)) as Container;
 
             if (container == null)
+                container = CurrentLandblock?.GetObject(containerId) as Container;
+
+            if (container == null)
             {
                 log.Error("Player_Inventory HandleActionStackableSplitToContainer container not found");
                 return;
             }
 
-            var stack = container.GetInventoryItem(new ObjectGuid(stackId));
+            var stack = GetInventoryItem(new ObjectGuid(stackId));
 
             if (stack == null)
             {
