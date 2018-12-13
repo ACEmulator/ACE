@@ -34,7 +34,7 @@ namespace ACE.Server.Physics
         /// </summary>
         public Sphere(Sphere sphere)
         {
-            Center = new Vector3(sphere.Center.X, sphere.Center.Y, sphere.Center.Z);
+            Center = sphere.Center;
             Radius = sphere.Radius;
         }
 

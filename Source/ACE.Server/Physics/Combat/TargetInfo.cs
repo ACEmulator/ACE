@@ -49,8 +49,8 @@ namespace ACE.Server.Physics.Combat
             Quantum = info.Quantum;
             TargetPosition = new Position(info.TargetPosition);
             InterpolatedPosition = new Position(info.InterpolatedPosition);
-            InterpolatedHeading = new Vector3(info.InterpolatedHeading.X, info.InterpolatedHeading.Y, info.InterpolatedHeading.Z);
-            Velocity = new Vector3(info.Velocity.X, info.Velocity.Y, info.Velocity.Z);
+            InterpolatedHeading = info.InterpolatedHeading;
+            Velocity = info.Velocity;
             Status = info.Status;
             LastUpdateTime = info.LastUpdateTime;
         }

@@ -16,7 +16,7 @@ namespace ACE.DatLoader.Entity
 
         public System.Numerics.Plane ToNumerics()
         {
-            return new System.Numerics.Plane(new Vector3(N.X, N.Y, N.Z), D);
+            return new System.Numerics.Plane(N, D);
         }
     }
 }

@@ -296,7 +296,7 @@ namespace ACE.Server.Physics.Animation
         {
             WalkableCheckPos = new Sphere(sphere);
             Walkable = poly;
-            WalkableUp = new Vector3(zAxis.X, zAxis.Y, zAxis.Z);
+            WalkableUp = zAxis;
             WalkablePos = new Position(localPos);
             WalkableScale = scale;
         }

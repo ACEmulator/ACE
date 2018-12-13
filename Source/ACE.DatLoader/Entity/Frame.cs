@@ -29,7 +29,7 @@ namespace ACE.DatLoader.Entity
 
         public void Init(Vector3 origin, Quaternion orientation)
         {
-            Origin = new Vector3(origin.X, origin.Y, origin.Z);
+            Origin = origin;
             Orientation = new Quaternion(orientation.X, orientation.Y, orientation.Z, orientation.W);
         }
 
