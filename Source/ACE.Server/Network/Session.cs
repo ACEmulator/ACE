@@ -103,14 +103,18 @@ namespace ACE.Server.Network
         /// </summary>
         public void TickOutbound()
         {
+            if (State == SessionState.NetworkTimeout)
+                return;
+
             // Checks if the session has stopped responding.
             if (DateTime.UtcNow.Ticks >= Network.TimeoutTick)
             {
                 // Change the state to show that the Session has reached a timeout.
                 State = SessionState.NetworkTimeout;
+                return;
             }
-            else
-                Network.Update();
+
+            Network.Update();
 
             // Live server seemed to take about 6 seconds. 4 seconds is nice because it has smooth animation, and saves the user 2 seconds every logoff
             // This could be made 0 for instant logoffs.
@@ -224,7 +228,12 @@ namespace ACE.Server.Network
 
             if (Player != null)
             {
-                Player.LogOut(true);
+                if (logOffRequestTime == DateTime.MinValue)
+                {
+                    Player.LogOut(true);
+
+                    logOffRequestTime = DateTime.UtcNow;
+                }
 
                 // We don't want to set the player to null here. Because the player is still on the network, it may still enqueue work onto it's session.
                 // Some network message objects will reference session.Player in their construction. If we set Player to null here, we'll throw exceptions in those cases.

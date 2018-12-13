@@ -1,9 +1,10 @@
 using System;
-using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
-using ACE.Common;
+
 using log4net;
+
+using ACE.Common;
 
 namespace ACE.Server.Network.Managers
 {
@@ -11,7 +12,7 @@ namespace ACE.Server.Network.Managers
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        private static readonly List<ConnectionListener> Listeners = new List<ConnectionListener>();
+        private static readonly ConnectionListener[] listeners = new ConnectionListener[2];
 
         public static void Initialize()
         {
@@ -28,18 +29,22 @@ namespace ACE.Server.Network.Managers
                 host = IPAddress.Any;
             }
 
-            Listeners.Add(new ConnectionListener(host, ConfigManager.Config.Server.Network.Port));
+            listeners[0] = new ConnectionListener(host, ConfigManager.Config.Server.Network.Port);
             log.Info($"Binding ConnectionListener to {host}:{ConfigManager.Config.Server.Network.Port}");
-            Listeners.Add(new ConnectionListener(host, ConfigManager.Config.Server.Network.Port + 1));
+
+            listeners[1] = new ConnectionListener(host, ConfigManager.Config.Server.Network.Port + 1);
             log.Info($"Binding ConnectionListener to {host}:{ConfigManager.Config.Server.Network.Port + 1}");
 
-            foreach (var listener in Listeners)
-                listener.Start();
+            listeners[0].Start();
+            listeners[1].Start();
         }
 
-        public static Socket GetSocket(int id = 1)
+        /// <summary>
+        /// We use a single socket because the use of dual unidirectional sockets doesn't work for some client firewalls
+        /// </summary>
+        public static Socket GetMainSocket()
         {
-            return Listeners[id].Socket;
+            return listeners[0].Socket;
         }
     }
 }

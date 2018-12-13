@@ -28,8 +28,6 @@
 //    int SolveQuartic(double c0, double c1, double c2, double c3, double c4, out double s0, out double s1, out double s2, out double s3);
 
 
-using ACE.Server.Physics.Extensions;
-
 using System;
 using System.Diagnostics;
 using System.Numerics;
@@ -338,7 +336,7 @@ namespace ACE.Server.Physics
             var highAng = Math.Atan2(speed2 + root, gx);
             int numSolutions = lowAng != highAng ? 2 : 1;
 
-            Vector3 groundDir = diffXY.Normalize();
+            Vector3 groundDir = Vector3.Normalize(diffXY);
             s0 = groundDir * (float)Math.Cos(lowAng) * proj_speed + Vector3.UnitZ * (float)Math.Sin(lowAng) * proj_speed;
             if (numSolutions > 1)
                 s1 = groundDir * (float)Math.Cos(highAng) * proj_speed + Vector3.UnitZ * (float)Math.Sin(highAng) * proj_speed;
@@ -481,7 +479,7 @@ namespace ACE.Server.Physics
 
             time = lateralDist / lateralSpeed;
 
-            velocityVector = diffXY.Normalize() * lateralSpeed;
+            velocityVector = Vector3.Normalize(diffXY) * lateralSpeed;
 
             // System of equations. Hit max_height at t=.5*time. Hit target at t=time.
             //
@@ -530,7 +528,7 @@ namespace ACE.Server.Physics
 
             float time = lateralDist / lateral_speed;
 
-            fire_velocity = diffXY.Normalize() * lateral_speed;
+            fire_velocity = Vector3.Normalize(diffXY) * lateral_speed;
 
             // System of equations. Hit max_height at t=.5*time. Hit target at t=time.
             //
@@ -604,7 +602,7 @@ namespace ACE.Server.Physics
 
             // Calculate fire velocity along XZ plane
             Vector3 dir = impact_point - proj_pos;
-            fire_velocity = new Vector3(dir.X, dir.Y, 0f).Normalize() * lateral_speed;
+            fire_velocity = Vector3.Normalize(new Vector3(dir.X, dir.Y, 0f)) * lateral_speed;
 
             // Solve system of equations. Hit max_height at t=.5*time. Hit target at t=time.
             //

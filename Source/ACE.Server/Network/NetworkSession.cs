@@ -658,8 +658,7 @@ namespace ACE.Server.Network
 
         private void SendPacketRaw(ServerPacket packet)
         {
-            // necessary to select listener 0 because the use of dual unidirectional sockets doesn't work for some client firewalls
-            Socket socket = SocketManager.GetSocket(0);
+            Socket socket = SocketManager.GetMainSocket();
 
             byte[] payload = packet.GetPayload();
 

@@ -441,7 +441,13 @@ namespace ACE.Server.WorldObjects
                     if (wo != null)
                         wo.Examine(Session);
                     else
-                        log.Warn($"{Name} tried to appraise object {examinationId.Full:X8}, couldn't find it");
+                    {
+                        // At this point, the object wasn't found.
+                        // It could be that the object was teleported away before this request was processed
+                        // It could also be a decal plugin requesting information for an object that is no longer in range
+
+                        //log.Warn($"{Name} tried to appraise object {examinationId.Full:X8}, couldn't find it");
+                    }
                 }
             }
 
@@ -594,7 +600,7 @@ namespace ACE.Server.WorldObjects
                 // remove the player from landblock management -- after the animation has run
                 logoutChain.AddAction(this, () =>
                 {
-                    CurrentLandblock.RemoveWorldObject(Guid, false);
+                    CurrentLandblock?.RemoveWorldObject(Guid, false);
                     SetPropertiesAtLogOut();
                     SavePlayerToDatabase();
                     PlayerManager.SwitchPlayerFromOnlineToOffline(this);

@@ -468,7 +468,7 @@ namespace ACE.Server.Physics
 
         public bool Equals(CylSphere cylSphere)
         {
-            return cylSphere != null && Height == cylSphere.Height && Radius == cylSphere.Radius && LowPoint.IsEqual(cylSphere.LowPoint);
+            return cylSphere != null && Height == cylSphere.Height && Radius == cylSphere.Radius && LowPoint == cylSphere.LowPoint;
         }
 
         public override int GetHashCode()

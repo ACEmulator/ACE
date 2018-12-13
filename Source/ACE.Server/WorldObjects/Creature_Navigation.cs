@@ -31,7 +31,7 @@ namespace ACE.Server.WorldObjects
             var currentDir = Location.GetCurrentDir();
             var targetDir = GetDirection(Location.ToGlobal(), target.Location.ToGlobal());
             targetDir.Z = 0.0f;
-            targetDir = targetDir.Normalize();
+            targetDir = Vector3.Normalize(targetDir);
             
             // get the 2D angle between these vectors
             return GetAngle(currentDir, targetDir);
@@ -83,7 +83,7 @@ namespace ACE.Server.WorldObjects
             var target2D = new Vector3(self.X, self.Y, 0);
             var self2D = new Vector3(target.X, target.Y, 0);
 
-            return (target - self).Normalize();
+            return Vector3.Normalize(target - self);
         }
 
         /// <summary>
