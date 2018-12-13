@@ -8,7 +8,6 @@ using ACE.Server.Physics.Animation;
 using ACE.Server.Physics.Collision;
 using ACE.Server.Physics.Combat;
 using ACE.Server.Physics.Common;
-using ACE.Server.Physics.Extensions;
 using ACE.Server.Physics.Hooks;
 using ACE.Server.WorldObjects;
 
@@ -1481,10 +1480,10 @@ namespace ACE.Server.Physics
                     if (State.HasFlag(PhysicsState.AlignPath))
                     {
                         var diff = newPos.Frame.Origin - Position.Frame.Origin;
-                        newPos.Frame.set_vector_heading(diff.Normalize());
+                        newPos.Frame.set_vector_heading(Vector3.Normalize(diff));
                     }
                     else if (State.HasFlag(PhysicsState.Sledding) && Velocity != Vector3.Zero)
-                        newPos.Frame.set_vector_heading(Velocity.Normalize());
+                        newPos.Frame.set_vector_heading(Vector3.Normalize(Velocity));
                 }
 
                 var transit = transition(Position, newPos, false);
@@ -1592,7 +1591,7 @@ namespace ACE.Server.Physics
             {
                 if (velocity_mag2 > PhysicsGlobals.MaxVelocitySquared)
                 {
-                    Velocity = Velocity.Normalize() * PhysicsGlobals.MaxVelocity;
+                    Velocity = Vector3.Normalize(Velocity) * PhysicsGlobals.MaxVelocity;
                     velocity_mag2 = PhysicsGlobals.MaxVelocitySquared;
                 }
                 // todo: collision normals

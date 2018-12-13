@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Numerics;
 using ACE.Entity.Enum;
 using ACE.Server.Physics.Common;
-using ACE.Server.Physics.Extensions;
 
 namespace ACE.Server.Physics.Animation
 {
@@ -689,7 +688,7 @@ namespace ACE.Server.Physics.Animation
             var maxSpeed = RunAnimSpeed * rate;
             if (velocity.Length() > maxSpeed)
             {
-                velocity = velocity.Normalize();
+                velocity = Vector3.Normalize(velocity);
                 velocity *= maxSpeed;
             }
             return velocity;

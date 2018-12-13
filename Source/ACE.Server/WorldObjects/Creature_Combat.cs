@@ -8,7 +8,6 @@ using ACE.Server.Entity.Actions;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Structure;
 using ACE.Server.Physics.Animation;
-using ACE.Server.Physics.Extensions;
 
 namespace ACE.Server.WorldObjects
 {
@@ -451,9 +450,9 @@ namespace ACE.Server.WorldObjects
             var targetDir = new AFrame(target.Location.Pos, target.Location.Rotation).get_vector_heading();
 
             targetDir.Z = 0;
-            targetDir = targetDir.Normalize();
+            targetDir = Vector3.Normalize(targetDir);
 
-            var sourceToTarget = (sourcePos - targetPos).Normalize();
+            var sourceToTarget = Vector3.Normalize(sourcePos - targetPos);
 
             var dir = Vector3.Dot(sourceToTarget, targetDir);
             var angle = Vector3.Cross(sourceToTarget, targetDir);

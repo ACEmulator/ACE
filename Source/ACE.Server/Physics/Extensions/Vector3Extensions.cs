@@ -26,11 +26,6 @@ namespace ACE.Server.Physics.Extensions
             return new Vector2(v.X, v.Y).LengthSquared();
         }
 
-        public static Vector3 Normalize(this Vector3 v)
-        {
-            return v / v.Length();
-        }
-
         public static bool IsEqual(this Vector3 v1, Vector3 v2)
         {
             return v1.X == v2.X && v1.Y == v2.Y && v1.Z == v2.Z;    // epsilon?

@@ -219,7 +219,7 @@ namespace ACE.Server.Physics
 
                 normal += Vector3.Cross(v1, v2);
             }
-            normal = normal.Normalize();
+            normal = Vector3.Normalize(normal);
 
             // calculate distance
             var distSum = 0.0f;
