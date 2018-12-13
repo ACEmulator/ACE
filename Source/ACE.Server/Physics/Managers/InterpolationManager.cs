@@ -6,7 +6,7 @@ namespace ACE.Server.Physics.Animation
 {
     public class InterpolationManager
     {
-        public Queue<InterpolationNode> PositionQueue;
+        public LinkedList<InterpolationNode> PositionQueue;
         public PhysicsObj PhysicsObj;
         public bool KeepHeading;
         public int FrameCounter;
@@ -38,8 +38,8 @@ namespace ACE.Server.Physics.Animation
             if (PhysicsObj == null)
                 return;
 
-            var dest = PositionQueue.Count > 0 && PositionQueue.Last().Type == InterpolationNodeType.PositionType ?
-                PositionQueue.Last().Position : PhysicsObj.Position;
+            var dest = PositionQueue.Count > 0 && PositionQueue.Last.Value.Type == InterpolationNodeType.PositionType ?
+                PositionQueue.Last.Value.Position : PhysicsObj.Position;
 
             var dist = dest.Distance(position);
 
@@ -49,20 +49,20 @@ namespace ACE.Server.Physics.Animation
                 {
                     while (PositionQueue.Count > 0)
                     {
-                        var lastNode = PositionQueue.Last();
+                        var lastNode = PositionQueue.Last.Value;
                         if (lastNode.Type != InterpolationNodeType.PositionType || lastNode.Position.Distance(position) >= 0.05f)
                             break;
 
-                        PositionQueue.DequeueLast();
+                        PositionQueue.RemoveLast();
                     }
                     while (PositionQueue.Count >= 20)
-                        PositionQueue.Dequeue();
+                        PositionQueue.RemoveFirst();
 
                     var interpolationNode = new InterpolationNode(InterpolationNodeType.PositionType, position);
                     if (keepHeading)
                         interpolationNode.Position.Frame.set_heading(PhysicsObj.get_heading());
 
-                    PositionQueue.Enqueue(interpolationNode);
+                    PositionQueue.AddLast(interpolationNode);
                 }
                 else
                 {
@@ -78,7 +78,7 @@ namespace ACE.Server.Physics.Animation
                 if (keepHeading)
                     interpolationNode.Position.Frame.set_heading(PhysicsObj.get_heading());
 
-                PositionQueue.Enqueue(interpolationNode);
+                PositionQueue.AddLast(interpolationNode);
                 NodeFailCounter = 4;
             }
         }
@@ -96,7 +96,7 @@ namespace ACE.Server.Physics.Animation
             FrameCounter = 0;
             ProgressQuantum = 0.0f;
 
-            var head = PositionQueue.Count == 0 ? null : PositionQueue.First();
+            var head = PositionQueue.Count == 0 ? null : PositionQueue.First.Value;
             var next = PositionQueue.Count <= 1 ? null : PositionQueue.ElementAt(1);
 
             if (PositionQueue.Count > 1)
@@ -122,7 +122,7 @@ namespace ACE.Server.Physics.Animation
                     StopInterpolating();
             }
             if (PositionQueue.Count > 0)
-                PositionQueue.Dequeue();
+                PositionQueue.RemoveFirst();
         }
 
         public void SetPhysicsObject(PhysicsObj obj)
@@ -148,7 +148,7 @@ namespace ACE.Server.Physics.Animation
             {
                 if (NodeFailCounter <= 0) return;
 
-                var last = PositionQueue.Last();
+                var last = PositionQueue.Last.Value;
                 if (last.Type != InterpolationNodeType.JumpType && last.Type != InterpolationNodeType.VelocityType)
                 {
                     if (PhysicsObj.SetPositionSimple(last.Position, true) != SetPositionError.OK)
@@ -182,7 +182,7 @@ namespace ACE.Server.Physics.Animation
                 return;
             }
 
-            var first = PositionQueue.FirstOrDefault();
+            var first = PositionQueue.First.Value;
             switch (first.Type)
             {
                 case InterpolationNodeType.JumpType:
@@ -201,7 +201,7 @@ namespace ACE.Server.Physics.Animation
             if (PositionQueue.Count == 0 || PhysicsObj == null || !PhysicsObj.TransientState.HasFlag(TransientStateFlags.Contact))
                 return;
 
-            var first = PositionQueue.First();
+            var first = PositionQueue.First.Value;
             if (first.Type == InterpolationNodeType.JumpType || first.Type == InterpolationNodeType.VelocityType)
                 return;
 
