@@ -1,5 +1,8 @@
+using System;
+using System.Collections.Generic;
 using ACE.DatLoader;
 using ACE.DatLoader.Entity;
+using ACE.DatLoader.FileTypes;
 using ACE.Database;
 using ACE.Entity.Enum;
 
@@ -127,5 +130,79 @@ namespace ACE.Server.Entity
         /// Returns TRUE if this is a hamrful spell
         /// </summary>
         public bool IsHarmful { get => !IsBeneficial; }
+
+        public List<uint> TryBurnComponents()
+        {
+            var consumed = new List<uint>();
+
+            // the base rate for each component is defined per-spell
+            var baseRate = ComponentLoss;
+
+            //DebugComponents();
+
+            foreach (var component in Formula.CurrentFormula)
+            {
+                if (!SpellFormula.SpellComponentsTable.SpellComponents.TryGetValue(component, out var spellComponent))
+                {
+                    Console.WriteLine($"Spell.TryBurnComponents(): Couldn't find SpellComponent {component}");
+                    continue;
+                }
+
+                // component burn rate = spell base rate * component destruction modifier
+                var burnRate = baseRate * spellComponent.CDM;
+
+                var rng = Physics.Common.Random.RollDice(0.0f, 1.0f);
+                if (rng < burnRate)
+                    consumed.Add(component);
+            }
+            return consumed;
+        }
+
+        public void DebugComponents()
+        {
+            var baseComponents = Formula.Components;
+            var currComponents = Formula.CurrentFormula;
+
+            Console.WriteLine($"{Name}:");
+            Console.WriteLine($"Base formula: {string.Join(", ", GetComponentNames(baseComponents))}");
+            Console.WriteLine($"Current formula: {string.Join(", ", GetComponentNames(currComponents))}");
+        }
+
+        public static string GetConsumeString(List<uint> components)
+        {
+            var compNames = GetComponentNames(components);
+            return $"The spell consumed the following components: {string.Join(", ", compNames)}";
+        }
+
+        public static List<string> GetComponentNames(List<uint> components)
+        {
+            var compNames = new List<string>();
+
+            foreach (var component in components)
+            {
+                if (!SpellFormula.SpellComponentsTable.SpellComponents.TryGetValue(component, out var spellComponent))
+                {
+                    Console.WriteLine($"Spell.GetComponentNames(): Couldn't find SpellComponent {component}");
+                    continue;
+                }
+
+                compNames.Add(spellComponent.Name);
+            }
+            return compNames;
+        }
+
+        public static uint SpellComponentDIDs = 0x27000002;
+
+        public static uint GetComponentWCID(uint compID)
+        {
+            var dualDIDs = DatManager.PortalDat.ReadFromDat<DualDidMapper>(SpellComponentDIDs);
+
+            if (!dualDIDs.ClientEnumToID.TryGetValue(compID, out var wcid))
+            {
+                Console.WriteLine($"GetComponentWCID({compID}): couldn't find component ID");
+                return 0;
+            }
+            return wcid;
+        }
     }
 }

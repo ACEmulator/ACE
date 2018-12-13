@@ -1216,6 +1216,12 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyBool.Attackable); else SetProperty(PropertyBool.Attackable, value.Value); }
         }
 
+        public bool SafeSpellComponents
+        {
+            get => GetProperty(PropertyBool.SafeSpellComponents) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.SafeSpellComponents); else SetProperty(PropertyBool.SafeSpellComponents, value); }
+        }
+
         public bool? HiddenAdmin
         {
             get => GetProperty(PropertyBool.HiddenAdmin);
