@@ -26,11 +26,6 @@ namespace ACE.Server.Physics.Extensions
             return v.X * v.X + v.Y * v.Y;
         }
 
-        public static bool IsMoved(this Vector3 a, Vector3 b)
-        {
-            return (a.X != b.X || a.Y != b.Y || a.Z != b.Z);
-        }
-
         public static float get_heading(this Vector3 v)
         {
             var normal = new Vector3(v.X, v.Y, 0);

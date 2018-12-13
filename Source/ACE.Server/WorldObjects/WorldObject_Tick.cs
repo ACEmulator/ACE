@@ -210,7 +210,7 @@ namespace ACE.Server.WorldObjects
             var newPos = new Vector3(pos.X, pos.Y, pos.Z);
 
             // handle landblock / cell change
-            var isMoved = prevPos.IsMoved(newPos);
+            var isMoved = (prevPos != newPos);
             var curCell = PhysicsObj.CurCell;
 
             if (PhysicsObj.CurCell == null)
