@@ -23,7 +23,7 @@ namespace ACE.Server.Physics.Extensions
 
         public static double LengthSquared2D(this Vector3 v)
         {
-            return new Vector2(v.X, v.Y).LengthSquared();
+            return v.X * v.X + v.Y * v.Y;
         }
 
         public static bool IsEqual(this Vector3 v1, Vector3 v2)
