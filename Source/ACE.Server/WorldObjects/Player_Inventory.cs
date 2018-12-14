@@ -1576,8 +1576,8 @@ namespace ACE.Server.WorldObjects
         /// This method is used to split a stack of any item that is stackable - arrows, tapers, pyreal etc.
         /// It creates the new object and sets the burden of the new item, adjusts the count and burden of the splitting item.
         /// </summary>
-        /// <param name="stackId">This is the guild of the item we are spliting</param>
-        /// <param name="amount">The amount of the stack we are spliting from that we are moving to a new stack.</param>
+        /// <param name="stackId">This is the guild of the item we are splitting</param>
+        /// <param name="amount">The amount of the stack we are splitting from that we are moving to a new stack.</param>
         public void HandleActionStackableSplitTo3D(uint stackId, uint amount)
         {
             var stack = GetInventoryItem(new ObjectGuid(stackId), out var container);
@@ -1595,25 +1595,6 @@ namespace ACE.Server.WorldObjects
             }
 
             // Ok we are in business
-            stack.StackSize -= (ushort)amount;
-            stack.EncumbranceVal = (stack.StackUnitEncumbrance ?? 0) * (stack.StackSize ?? 1);
-            stack.Value = (stack.StackUnitValue ?? 0) * (stack.StackSize ?? 1);
-
-            var newStack = WorldObjectFactory.CreateNewWorldObject(stack.WeenieClassId);
-            newStack.StackSize = (ushort)amount;
-            newStack.EncumbranceVal = (newStack.StackUnitEncumbrance ?? 0) * (newStack.StackSize ?? 1);
-            newStack.Value = (newStack.StackUnitValue ?? 0) * (newStack.StackSize ?? 1);
-
-            newStack.SetPropertiesForWorld(this, 1.1f);
-
-            container.EncumbranceVal -= newStack.EncumbranceVal;
-            container.Value -= newStack.Value;
-
-            if (container != this)
-            {
-                EncumbranceVal -= newStack.EncumbranceVal;
-                Value -= newStack.Value;
-            }
 
             var motion = new Motion(this, MotionCommand.Pickup);
 
@@ -1632,28 +1613,48 @@ namespace ACE.Server.WorldObjects
             // Put item on landblock
             dropChain.AddAction(this, () =>
             {
+                if (CurrentLandblock == null)
+                    return; // Maybe we were teleported as we were motioning to drop the item
+
+                stack.StackSize -= (ushort)amount;
+                stack.EncumbranceVal = (stack.StackUnitEncumbrance ?? 0) * (stack.StackSize ?? 1);
+                stack.Value = (stack.StackUnitValue ?? 0) * (stack.StackSize ?? 1);
+
+                var newStack = WorldObjectFactory.CreateNewWorldObject(stack.WeenieClassId);
+                newStack.StackSize = (ushort)amount;
+                newStack.EncumbranceVal = (newStack.StackUnitEncumbrance ?? 0) * (newStack.StackSize ?? 1);
+                newStack.Value = (newStack.StackUnitValue ?? 0) * (newStack.StackSize ?? 1);
+
+                newStack.SetPropertiesForWorld(this, 1.1f);
+
+                container.EncumbranceVal -= newStack.EncumbranceVal;
+                container.Value -= newStack.Value;
+
                 if (container != this)
-                    Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(container, PropertyInt.EncumbranceVal, container.EncumbranceVal ?? 0));
+                {
+                    EncumbranceVal -= newStack.EncumbranceVal;
+                    Value -= newStack.Value;
+                }
+
+                Session.Network.EnqueueSend(new GameMessageSetStackSize(stack));
+
+                if (container != this)
+                    Session.Network.EnqueueSend(new GameMessagePublicUpdatePropertyInt(container, PropertyInt.EncumbranceVal, container.EncumbranceVal ?? 0));
                 Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
+
+                if (stack.WeenieType == WeenieType.Coin)
+                    UpdateCoinValue();
 
                 var returnStance = new Motion(CurrentMotionState.Stance);
                 EnqueueBroadcastMotion(returnStance);
 
                 EnqueueBroadcast(new GameMessageSound(Guid, Sound.DropItem, 1.0f));
 
-                Session.Network.EnqueueSend(new GameMessageSetStackSize(stack));
-
-                if (newStack.WeenieType == WeenieType.Coin)
-                    UpdateCoinValue();
-
-                    // This is the sequence magic - adds back into 3d space seem to be treated like teleport.
-                    newStack.Sequences.GetNextSequence(SequenceType.ObjectTeleport);
+                // This is the sequence magic - adds back into 3d space seem to be treated like teleport.
+                newStack.Sequences.GetNextSequence(SequenceType.ObjectTeleport);
                 newStack.Sequences.GetNextSequence(SequenceType.ObjectVector);
 
-                CurrentLandblock?.AddWorldObject(newStack);
-
-                    //Session.Network.EnqueueSend(new GameMessageUpdateObject(item));
-                    EnqueueBroadcast(new GameMessageUpdatePosition(newStack));
+                CurrentLandblock.AddWorldObject(newStack);
             });
 
             dropChain.EnqueueChain();
