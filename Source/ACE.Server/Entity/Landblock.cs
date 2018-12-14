@@ -386,6 +386,7 @@ namespace ACE.Server.Entity
             }
 
             RemoveWorldObjectInternal(objectGuid, true);
+            //item.PhysicsObj.DestroyObject();    // destroy physicsobj, but do not remove from tracking
 
             item.Location = null;
 
