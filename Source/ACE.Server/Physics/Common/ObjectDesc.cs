@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Numerics;
 using ACE.Server.Physics.Animation;
 using ACE.Server.Physics.Extensions;
@@ -75,7 +75,7 @@ namespace ACE.Server.Physics.Common
         public static AFrame RotateObj(DatLoader.Entity.ObjectDesc obj, uint x, uint y, uint k, Vector3 loc)
         {
             var frame = new AFrame(obj.BaseLoc);
-            frame.Origin = new Vector3(loc.X, loc.Y, loc.Z);
+            frame.Origin = loc;
             if (obj.MaxRotation > 0.0f)
             {
                 var degrees = (float)((1813693831 * y - (k + 63127) * (1360117743 * y * x + 1888038839) - 1109124029 * x) * 2.3283064e-10 * obj.MaxRotation);
@@ -90,7 +90,7 @@ namespace ACE.Server.Physics.Common
         public static AFrame ObjAlign(DatLoader.Entity.ObjectDesc obj, Plane plane, Vector3 loc)
         {
             var frame = new AFrame(obj.BaseLoc);
-            frame.Origin = new Vector3(loc.X, loc.Y, loc.Z);
+            frame.Origin = loc;
             var negNormal = -plane.Normal;
             var degrees = negNormal.get_heading();
             frame.set_heading(degrees);

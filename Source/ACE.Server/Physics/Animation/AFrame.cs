@@ -24,19 +24,19 @@ namespace ACE.Server.Physics.Animation
 
         public AFrame(AFrame frame)
         {
-            Origin = new Vector3(frame.Origin.X, frame.Origin.Y, frame.Origin.Z);
+            Origin = frame.Origin;
             Orientation = new Quaternion(frame.Orientation.X, frame.Orientation.Y, frame.Orientation.Z, frame.Orientation.W);
         }
 
         public AFrame(DatLoader.Entity.Frame frame)
         {
-            Origin = new Vector3(frame.Origin.X, frame.Origin.Y, frame.Origin.Z);
+            Origin = frame.Origin;
             Orientation = new Quaternion(frame.Orientation.X, frame.Orientation.Y, frame.Orientation.Z, frame.Orientation.W);
         }
 
         public AFrame(ACE.Entity.Frame frame)
         {
-            Origin = new Vector3(frame.Origin.X, frame.Origin.Y, frame.Origin.Z);
+            Origin = frame.Origin;
             Orientation = new Quaternion(frame.Orientation.X, frame.Orientation.Y, frame.Orientation.Z, frame.Orientation.W);
         }
 
@@ -203,7 +203,7 @@ namespace ACE.Server.Physics.Animation
 
         public void set_vector_heading(Vector3 heading)
         {
-            var normal = new Vector3(heading.X, heading.Y, heading.Z);
+            var normal = heading;
             if (Vec.NormalizeCheckSmall(ref normal)) return;
 
             var zDeg = 450.0f - ((float)Math.Atan2(normal.Y, normal.X)).ToDegrees();

@@ -199,7 +199,7 @@ namespace ACE.Server.WorldObjects
 
             // get position before
             var pos = PhysicsObj.Position.Frame.Origin;
-            var prevPos = new Vector3(pos.X, pos.Y, pos.Z);
+            var prevPos = pos;
             var cellBefore = PhysicsObj.CurCell != null ? PhysicsObj.CurCell.ID : 0;
 
             //Console.WriteLine($"{Name} - ticking physics");
@@ -207,7 +207,7 @@ namespace ACE.Server.WorldObjects
 
             // get position after
             pos = PhysicsObj.Position.Frame.Origin;
-            var newPos = new Vector3(pos.X, pos.Y, pos.Z);
+            var newPos = pos;
 
             // handle landblock / cell change
             var isMoved = (prevPos != newPos);

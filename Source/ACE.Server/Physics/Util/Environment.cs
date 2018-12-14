@@ -49,7 +49,7 @@ namespace ACE.Server.Physics.Util
         {
             var origin = EnvCell.Position.Origin;
             var orientation = EnvCell.Position.Orientation;
-            var translate = Matrix4x4.CreateTranslation(new Vector3(origin.X, origin.Y, origin.Z));
+            var translate = Matrix4x4.CreateTranslation(origin);
             var rotate = Matrix4x4.CreateFromQuaternion(new Quaternion(orientation.X, orientation.Y, orientation.Z, orientation.W));
             BBox = new BBox(Polygons, rotate * translate);
         }
