@@ -255,7 +255,8 @@ namespace ACE.Server.WorldObjects
             foreach (WorldObject wo in items)
             {
                 // payout scaled by the vendor's buy rate
-                payout = payout + (uint)Math.Floor((BuyPrice ?? 1) * (wo.Value ?? 0) * (wo.StackSize ?? 1) + 0.1);
+                //for each looks at each item, stack or not, so no need to multiple by stack size.
+                payout = payout + (uint)Math.Floor((BuyPrice ?? 1) * (wo.Value ?? 0) + 0.1);
 
                 if (!wo.MaxStackSize.HasValue & !wo.MaxStructure.HasValue)
                 {
