@@ -200,6 +200,8 @@ namespace ACE.Entity.Enum.Properties
                 case PropertyDataId.DeathTreasureType:
                     // todo
                     break;
+                case PropertyDataId.Spell:
+                    return System.Enum.GetName(typeof(SpellId), value);
 
                 case PropertyDataId.PCAPRecordedParentLocation:
                     return System.Enum.GetName(typeof(ParentLocation), value);

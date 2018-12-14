@@ -729,7 +729,7 @@ namespace ACE.Server.WorldObjects
         public void FightDirty_ApplyLowAttack(Creature target)
         {
             var spellID = GetCreatureSkill(Skill.DirtyFighting).AdvancementClass == SkillAdvancementClass.Specialized ?
-                Network.Enum.Spell.DF_Specialized_DefenseDebuff : Network.Enum.Spell.DF_Trained_DefenseDebuff;
+                SpellId.DF_Specialized_DefenseDebuff : SpellId.DF_Trained_DefenseDebuff;
 
             var spell = new Spell(spellID);
             if (spell.NotFound) return;  // TODO: friendly message to install DF patch
@@ -750,7 +750,7 @@ namespace ACE.Server.WorldObjects
         public void FightDirty_ApplyMediumAttack(Creature target)
         {
             var spellID = GetCreatureSkill(Skill.DirtyFighting).AdvancementClass == SkillAdvancementClass.Specialized ?
-                Network.Enum.Spell.DF_Specialized_Bleed : Network.Enum.Spell.DF_Trained_Bleed;
+                SpellId.DF_Specialized_Bleed : SpellId.DF_Trained_Bleed;
 
             var spell = new Spell(spellID);
             if (spell.NotFound) return;  // TODO: friendly message to install DF patch
@@ -773,7 +773,7 @@ namespace ACE.Server.WorldObjects
         {
             // attack debuff
             var spellID = GetCreatureSkill(Skill.DirtyFighting).AdvancementClass == SkillAdvancementClass.Specialized ?
-                Network.Enum.Spell.DF_Specialized_AttackDebuff : Network.Enum.Spell.DF_Trained_AttackDebuff;
+                SpellId.DF_Specialized_AttackDebuff : SpellId.DF_Trained_AttackDebuff;
 
             var spell = new Spell(spellID);
             if (spell.NotFound) return;  // TODO: friendly message to install DF patch
@@ -787,7 +787,7 @@ namespace ACE.Server.WorldObjects
 
             // healing resistance rating
             spellID = GetCreatureSkill(Skill.DirtyFighting).AdvancementClass == SkillAdvancementClass.Specialized ?
-                Network.Enum.Spell.DF_Specialized_HealingDebuff : Network.Enum.Spell.DF_Trained_HealingDebuff;
+                SpellId.DF_Specialized_HealingDebuff : SpellId.DF_Trained_HealingDebuff;
 
             spell = new Spell(spellID);
             if (spell.NotFound) return;  // TODO: friendly message to install DF patch

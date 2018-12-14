@@ -226,7 +226,7 @@ namespace ACE.Server.Command.Handlers
             else
                 param = "toggle";
 
-            var spellID = (uint)Network.Enum.Spell.SentinelRun;
+            var spellID = (uint)SpellId.SentinelRun;
 
             switch (param)
             {
