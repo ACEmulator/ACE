@@ -948,6 +948,7 @@ namespace ACE.Server.WorldObjects
             PreviousLocation = null;
         }
 
+
         public bool? IgnoreCloIcons
         {
             get => GetProperty(PropertyBool.IgnoreCloIcons);

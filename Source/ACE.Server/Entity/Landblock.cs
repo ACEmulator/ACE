@@ -338,7 +338,7 @@ namespace ACE.Server.Entity
 
             // if adding a player to this landblock,
             // tell them about other nearby objects
-            if (wo is Player)
+            if (wo is Player || wo is CombatPet)
             {
                 var newlyVisible = wo.PhysicsObj.handle_visible_cells();
                 wo.PhysicsObj.enqueue_objs(newlyVisible);

@@ -1,27 +1,19 @@
 using System;
-using System.Linq;
-using ACE.Server.Entity;
-using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 
 namespace ACE.Server.WorldObjects
 {
     /// <summary>
-    /// Handles player->monster visibility checks
+    /// Handles pets waking up monsters
     /// </summary>
-    partial class Player
+    partial class Creature
     {
-        /// <summary>
-        /// Flag indicates if player is attackable
-        /// </summary>
-        public new bool IsAttackable { get => GetProperty(PropertyBool.Attackable) ?? false == true; }
-
         /// <summary>
         /// Wakes up any monsters within the applicable range
         /// </summary>
-        public void CheckMonsters(float rangeSquared = RadiusAwarenessSquared)
+        public void PetCheckMonsters(float rangeSquared = RadiusAwarenessSquared)
         {
-            if (!IsAttackable) return;
+            //if (GetProperty(PropertyBool.Attackable) ?? true == false) return;
 
             var visibleObjs = PhysicsObj.ObjMaint.VisibleObjectTable.Values;
 
@@ -34,21 +26,20 @@ namespace ACE.Server.WorldObjects
                 if (monster == null || monster is Player) continue;
 
                 if (Location.SquaredDistanceTo(monster.Location) < rangeSquared)
-                    AlertMonster(monster);
+                    PetAlertMonster(monster);
             }
         }
 
         /// <summary>
         /// Wakes up a monster if it can be alerted
         /// </summary>
-        private bool AlertMonster(Creature monster)
+        private bool PetAlertMonster(Creature monster)
         {
             var attackable = monster.GetProperty(PropertyBool.Attackable) ?? false;
             var tolerance = (Tolerance)(monster.GetProperty(PropertyInt.Tolerance) ?? 0);
 
             if (attackable && monster.MonsterState == State.Idle && tolerance == Tolerance.None)
             {
-                //Console.WriteLine($"[{Timers.RunningTime}] - {monster.Name} ({monster.Guid}) - waking up");
                 monster.AttackTarget = this;
                 monster.WakeUp();
                 return true;
@@ -57,18 +48,18 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Called when this player attacks a monster
+        /// Called when a combat pet attacks a monster
         /// </summary>
-        public void OnAttackMonster(Creature monster)
+        public void PetOnAttackMonster(Creature monster)
         {
             var attackable = monster.GetProperty(PropertyBool.Attackable) ?? false;
             var tolerance = (Tolerance)(monster.GetProperty(PropertyInt.Tolerance) ?? 0);
             var hasTolerance = monster.GetProperty(PropertyInt.Tolerance).HasValue;
 
-            /*Console.WriteLine("OnAttackMonster(" + monster.Name + ")");
+            Console.WriteLine("OnAttackMonster(" + monster.Name + ")");
             Console.WriteLine("Attackable: " + attackable);
             Console.WriteLine("Tolerance: " + tolerance);
-            Console.WriteLine("HasTolerance: " + hasTolerance);*/
+            Console.WriteLine("HasTolerance: " + hasTolerance);
 
             if (monster.MonsterState == State.Idle && !tolerance.HasFlag(Tolerance.NoAttack))
             {

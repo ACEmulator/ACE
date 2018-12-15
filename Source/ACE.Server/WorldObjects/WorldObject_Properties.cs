@@ -1370,6 +1370,30 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyInt.Level); else SetProperty(PropertyInt.Level, value.Value); }
         }
 
+        public int? UseRequiresLevel
+        {
+            get => GetProperty(PropertyInt.UseRequiresLevel);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.UseRequiresLevel); else SetProperty(PropertyInt.UseRequiresLevel, value.Value); }
+        }
+
+        public int? UseRequiresSkill
+        {
+            get => GetProperty(PropertyInt.UseRequiresSkill);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.UseRequiresSkill); else SetProperty(PropertyInt.UseRequiresSkill, value.Value); }
+        }
+
+        public int? UseRequiresSkillLevel
+        {
+            get => GetProperty(PropertyInt.UseRequiresSkillLevel);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.UseRequiresSkillLevel); else SetProperty(PropertyInt.UseRequiresSkillLevel, value.Value); }
+        }
+
+        public int? UseRequiresSkillSpec
+        {
+            get => GetProperty(PropertyInt.UseRequiresSkillSpec);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.UseRequiresSkillSpec); else SetProperty(PropertyInt.UseRequiresSkillSpec, value.Value); }
+        }
+
         public double? ArmorModVsSlash
         {
             get => GetProperty(PropertyFloat.ArmorModVsSlash);

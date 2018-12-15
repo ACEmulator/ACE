@@ -9,7 +9,6 @@ using ACE.Server.Managers;
 using ACE.Server.Physics;
 using ACE.Server.Physics.Common;
 using ACE.Server.Physics.Extensions;
-
 namespace ACE.Server.WorldObjects
 {
     partial class WorldObject
@@ -172,6 +171,7 @@ namespace ACE.Server.WorldObjects
             // monsters have separate physics updates
             var creature = this as Creature;
             var monster = creature != null && creature.IsMonster;
+            var pet = this as CombatPet;
 
             // determine if updates should be run for object
             //var runUpdate = !monster && (isMissile || !PhysicsObj.IsGrounded);

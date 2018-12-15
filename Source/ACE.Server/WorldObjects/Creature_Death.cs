@@ -138,27 +138,32 @@ namespace ACE.Server.WorldObjects
 
             corpse.Location = DatManager.PortalDat.ReadFromDat<MotionTable>(MotionTableId).GetAnimationFinalPositionFromStart(Location, ObjScale ?? 1, MotionCommand.Dead);
             //corpse.Location.PositionZ = corpse.Location.PositionZ - .5f; // Adding BaseDescriptionFlags |= ObjectDescriptionFlag.Corpse to Corpse objects made them immune to gravity.. this seems to fix floating corpse...
-
+            
             corpse.Name = $"Corpse of {Name}";
 
-            // set 'killed by' for looting rights
-            string killerName = null;
+            LandblockManager.AddObject(corpse);
 
+            // set 'killed by' for looting rights
             if (Killer.HasValue && Killer != 0)
             {
-                var killer = CurrentLandblock?.GetObject(new ObjectGuid(Killer ?? 0));
+                
+                var killer = corpse.CurrentLandblock?.GetObject(new ObjectGuid(Killer ?? 0));
 
                 if (killer != null)
-                    killerName = killer.Name;
+                {
+                    corpse.LongDesc = $"Killed by {killer.Name}";
+                    if (killer is CombatPet)
+                    {
+                        corpse.SetProperty(PropertyInstanceId.AllowedActivator, killer.PetOwner.Value);
+                    }
+                    else
+                    {
+                        corpse.SetProperty(PropertyInstanceId.AllowedActivator, Killer.Value);
+                    }
+                }
+                else
+                    corpse.LongDesc = $"Killed by misadventure";
             }
-
-            if (String.IsNullOrEmpty(killerName))
-                killerName = "misadventure";
-
-            corpse.LongDesc = $"Killed by {killerName}";
-
-            if (Killer.HasValue)
-                corpse.SetProperty(PropertyInstanceId.AllowedActivator, Killer.Value);
 
             var player = this as Player;
             if (player != null)
@@ -183,7 +188,7 @@ namespace ACE.Server.WorldObjects
         private void GenerateTreasure(Corpse corpse)
         {
             var random = new Random((int)DateTime.UtcNow.Ticks);
-            int level = (int)Level;
+            int level = Level ?? 0;
             int tier;
             if (level < 16)
             {

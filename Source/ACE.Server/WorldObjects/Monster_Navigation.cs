@@ -123,7 +123,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void StartMove()
         {
-            LastMoveTime = Timers.RunningTime;;
+            LastMoveTime = Timers.RunningTime;
             IsMoving = true;
         }
 
@@ -232,7 +232,8 @@ namespace ACE.Server.WorldObjects
             UpdatePosition_SyncLocation();
 
             //SendUpdatePosition(ForcePos);
-            SendUpdatePosition();
+            if (ForcePos)
+                SendUpdatePosition();
 
             if (DebugMove)
                 Console.WriteLine($"{Name} ({Guid}) - UpdatePosition (velocity: {PhysicsObj.CachedVelocity.Length()})");
