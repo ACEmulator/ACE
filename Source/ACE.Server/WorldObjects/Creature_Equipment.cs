@@ -46,7 +46,7 @@ namespace ACE.Server.WorldObjects
             return true;
         }
 
-        public bool HasWieldedItem(ObjectGuid objectGuid)
+        public bool HasEquippedItem(ObjectGuid objectGuid)
         {
             return EquippedObjects.ContainsKey(objectGuid);
         }
@@ -54,7 +54,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Get Wielded Item. Returns null if not found.
         /// </summary>
-        public WorldObject GetWieldedItem(ObjectGuid objectGuid)
+        public WorldObject GetEquippedItem(ObjectGuid objectGuid)
         {
             return EquippedObjects.TryGetValue(objectGuid, out var item) ? item : null;
         }
@@ -76,8 +76,8 @@ namespace ACE.Server.WorldObjects
         {
             if (!IsDualWieldAttack || DualWieldAlternate)
                 return EquippedObjects.Values.FirstOrDefault(e => e.ParentLocation == ACE.Entity.Enum.ParentLocation.RightHand && (e.CurrentWieldedLocation == EquipMask.MeleeWeapon || e.CurrentWieldedLocation == EquipMask.TwoHanded));
-            else
-                return GetDualWieldWeapon();
+
+            return GetDualWieldWeapon();
         }
 
         /// <summary>
@@ -131,8 +131,8 @@ namespace ACE.Server.WorldObjects
 
             if (weapon != null && weapon.IsAmmoLauncher)
                 return GetEquippedAmmo();
-            else
-                return weapon;
+
+            return weapon;
         }
 
         /// <summary>
@@ -301,8 +301,8 @@ namespace ACE.Server.WorldObjects
             {
                 if (WieldedTreasureType.HasValue)
                     return DatabaseManager.World.GetCachedWieldedTreasure(WieldedTreasureType.Value);
-                else
-                    return null;
+
+                return null;
             }
         }
 

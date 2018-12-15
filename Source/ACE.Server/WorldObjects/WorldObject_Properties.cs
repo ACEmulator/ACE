@@ -2268,5 +2268,17 @@ namespace ACE.Server.WorldObjects
             get => GetProperty(PropertyInt.ResistLockpick) ?? 0;
             set { if (!value.HasValue) RemoveProperty(PropertyInt.ResistLockpick); else SetProperty(PropertyInt.ResistLockpick, value.Value); }
         }
+
+        public int? Attuned
+        {
+            get => GetProperty(PropertyInt.Attuned);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.Attuned); else SetProperty(PropertyInt.Attuned, value.Value); }
+        }
+
+        public int? Bonded
+        {
+            get => GetProperty(PropertyInt.Bonded);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.Bonded); else SetProperty(PropertyInt.Bonded, value.Value); }
+        }
     }
 }

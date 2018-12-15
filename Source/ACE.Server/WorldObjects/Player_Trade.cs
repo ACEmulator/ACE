@@ -91,13 +91,16 @@ namespace ACE.Server.WorldObjects
 
             if (item != ObjectGuid.Invalid && target != null)
             {
-                IsAttuned(item, out bool isAttuned);
+                WorldObject wo = GetInventoryItem(item);
 
-                if (!isAttuned)
+                if (wo != null)
                 {
-                    WorldObject wo = GetInventoryItem(item);
-
-                    if (wo != null)
+                    if ((wo.Attuned ?? 0) == 1)
+                    {
+                        session.Network.EnqueueSend(new GameEventCommunicationTransientString(session, "You cannot trade that!"));
+                        session.Network.EnqueueSend(new GameEventTradeFailure(session, item, WeenieError.AttunedItem));
+                    }
+                    else
                     {
                         session.Player.ItemsInTradeWindow.Add(item);
 
@@ -107,12 +110,6 @@ namespace ACE.Server.WorldObjects
 
                         target.Session.Network.EnqueueSend(new GameEventAddToTrade(target.Session, item, TradeSide.Partner));
                     }
-                    
-                }
-                else
-                {
-                    session.Network.EnqueueSend(new GameEventCommunicationTransientString(session, "You cannot trade that!"));
-                    session.Network.EnqueueSend(new GameEventTradeFailure(session, item, WeenieError.AttunedItem));
                 }
             }
         }

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+
 using ACE.Common;
 using ACE.Database;
 using ACE.DatLoader;
@@ -80,7 +81,7 @@ namespace ACE.Server.WorldObjects
             }
             else
             {
-                target = GetWieldedItem(targetGuid);
+                target = GetEquippedItem(targetGuid);
                 if (target != null)
                     targetCategory = TargetCategory.Wielded;
                 else
@@ -236,7 +237,7 @@ namespace ACE.Server.WorldObjects
         public bool CreateItemSpell(ObjectGuid guidItem, uint spellId, bool suppressSpellChatText = false, bool ignoreRequirements = false)
         {
             var player = this;
-            WorldObject item = player.GetWieldedItem(guidItem);
+            WorldObject item = player.GetEquippedItem(guidItem);
 
             if (item == null)
             {
@@ -371,7 +372,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void DispelItemSpell(ObjectGuid guidItem, uint spellId)
         {
-            WorldObject item = GetWieldedItem(guidItem);
+            WorldObject item = GetEquippedItem(guidItem);
 
             if (item == null)
                 return;
@@ -417,7 +418,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void RemoveItemSpell(ObjectGuid guidItem, uint spellId)
         {
-            WorldObject item = GetWieldedItem(guidItem);
+            WorldObject item = GetEquippedItem(guidItem);
 
             if (item == null)
                 return;
@@ -743,7 +744,7 @@ namespace ACE.Server.WorldObjects
                                     else
                                     {
                                         // Impen/bane targeted at a player
-                                        var items = (target as Player).GetAllWieldedItems();
+                                        var items = ((Player)target).EquippedObjects.Values;
                                         foreach (var item in items)
                                         {
                                             if (item.WeenieType == WeenieType.Clothing)
@@ -1025,7 +1026,7 @@ namespace ACE.Server.WorldObjects
                 if (buffMessages.Any(k => k.Bane))
                 {
                     // Impen/bane
-                    var items = (targetPlayer as Player).GetAllWieldedItems();
+                    var items = targetPlayer.EquippedObjects.Values.ToList();
                     var itembuffs = buffMessages.Where(k => k.Bane).ToList();
                     foreach (var itemBuff in itembuffs)
                     {

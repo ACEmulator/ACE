@@ -484,11 +484,11 @@ namespace ACE.Server.Entity
         public WorldObject GetWieldedObject(ObjectGuid guid, bool searchAdjacents = true)
         {
             // search creature wielded items in current landblock
-            var creatures = worldObjects.Values.Where(wo => wo is Creature);
+            var creatures = worldObjects.Values.OfType<Creature>();
             foreach (var creature in creatures)
             {
-                var wieldedItem = ((Creature)creature).GetWieldedItem(guid);
-                if (wieldedItem != null)
+                var wieldedItem = creature.GetEquippedItem(guid);
+                if (wieldedItem != null) // todo: This should make sure the object is actually wielded and not just equipped
                     return wieldedItem;     // found it
             }
 

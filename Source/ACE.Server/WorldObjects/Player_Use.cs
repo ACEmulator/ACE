@@ -38,7 +38,7 @@ namespace ACE.Server.WorldObjects
 
             var invSource = GetInventoryItem(sourceObjectId);
             var invTarget = GetInventoryItem(targetObjectId);
-            var invWielded = GetWieldedItem(targetObjectId);
+            var invWielded = GetEquippedItem(targetObjectId);
 
             var worldTarget = (invTarget == null) ? CurrentLandblock?.GetObject(targetObjectId) : null;
 
@@ -119,8 +119,7 @@ namespace ACE.Server.WorldObjects
                 }
 
                 var moveTo = true;
-                var container = item as Container;
-                if (container != null)
+                if (item is Container container)
                 {
                     lastUsedContainerId = usedItemId;
 
@@ -206,7 +205,7 @@ namespace ACE.Server.WorldObjects
 
                 // Are we within use radius?
                 var valid = false;
-                bool ret = CurrentLandblock != null ? !CurrentLandblock.WithinUseRadius(this, target.Guid, out valid) : false;
+                bool ret = CurrentLandblock != null && !CurrentLandblock.WithinUseRadius(this, target.Guid, out valid);
 
                 // If one of the items isn't on a landblock
                 if (!valid)
@@ -216,45 +215,6 @@ namespace ACE.Server.WorldObjects
             }, moveToBody);
 
             return moveToChain;
-        }
-
-        // TODO: deprecate this
-        // it is not the responsibility of Player_Use to convert ObjectGuids into WorldObjects
-        // this should be done much earlier, at the beginning of the HandleAction methods
-        private ActionChain CreateMoveToChain(ObjectGuid targetGuid, out int thisMoveToChainNumber)
-        {
-            var targetObject = FindItemLocation(targetGuid);
-            if (targetObject == null)
-            {
-                thisMoveToChainNumber = moveToChainCounter;
-                return null;
-            }
-            return CreateMoveToChain(targetObject, out thisMoveToChainNumber);
-        }
-
-        /// <summary>
-        /// Finds the location of an item in the world
-        /// If item is within a container or corpse, returns the location of the parent
-        /// </summary>
-        private WorldObject FindItemLocation(ObjectGuid targetGuid)
-        {
-            var targetObject = CurrentLandblock?.GetObject(targetGuid);
-
-            if (targetObject == null)
-            {
-                // Is the item we're trying to move to in the container we have open?
-                var lastUsedContainer = CurrentLandblock?.GetObject(lastUsedContainerId) as Container;
-
-                if (lastUsedContainer != null)
-                {
-                    if (lastUsedContainer.Inventory.ContainsKey(targetGuid))
-                        targetObject = lastUsedContainer;
-                }
-            }
-            if (targetObject == null)
-                log.Error($"{Name}.FindItemLocation({targetGuid}): couldn't find item location on landblock"); ;
-
-            return targetObject;
         }
 
         public void SendUseDoneEvent(WeenieError errorType = WeenieError.None)

@@ -226,7 +226,7 @@ namespace ACE.Server.WorldObjects
                 if (item == null)
                 {
                     // check to see if this item is wielded
-                    item = GetWieldedItem(profile.Guid);
+                    item = GetEquippedItem(profile.Guid);
 
                     if (item != null)
                     {
