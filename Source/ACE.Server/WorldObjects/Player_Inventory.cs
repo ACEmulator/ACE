@@ -1505,71 +1505,121 @@ namespace ACE.Server.WorldObjects
         /// This method is used to split a stack of any item that is stackable - arrows, tapers, pyreal etc.
         /// It creates the new object and sets the burden of the new item, adjusts the count and burden of the splitting item. Og II
         /// </summary>
-        /// <param name="stackId">This is the guild of the item we are spliting</param>
+        /// <param name="stackId">This is the guild of the item we are splitting</param>
         /// <param name="containerId">The guid of the container</param>
-        /// <param name="placementPosition">Place is the slot in the container we are spliting into. Range 0-MaxCapacity</param>
-        /// <param name="amount">The amount of the stack we are spliting from that we are moving to a new stack.</param>
+        /// <param name="placementPosition">Place is the slot in the container we are splitting into. Range 0-MaxCapacity</param>
+        /// <param name="amount">The amount of the stack we are splitting from that we are moving to a new stack.</param>
         public void HandleActionStackableSplitToContainer(uint stackId, uint containerId, int placementPosition, ushort amount)
         {
-            Container container;
-            if (containerId == Guid.Full)
-                container = this;
-            else
-                container = GetInventoryItem(new ObjectGuid(containerId)) as Container;
+            Container sourceContainer;
+            bool sourceContainerIsOnLandblock = false;
 
-            if (container == null)
-                container = CurrentLandblock?.GetObject(containerId) as Container;
+            Container targetContainer;
+            bool targetContainerIsOnLandblock = false;
 
-            if (container == null)
+            // Init our source vars
+            var stack = GetInventoryItem(new ObjectGuid(stackId), out sourceContainer);
+
+            if (stack == null)
             {
-                log.Error("Player_Inventory HandleActionStackableSplitToContainer container not found");
-                return;
-            }
+                sourceContainer = CurrentLandblock?.GetObject(lastUsedContainerId) as Container;
 
-            var stack = GetInventoryItem(new ObjectGuid(stackId));
+                if (sourceContainer != null)
+                {
+                    stack = sourceContainer.GetInventoryItem(new ObjectGuid(stackId), out sourceContainer);
+
+                    if (stack != null)
+                        sourceContainerIsOnLandblock = true;
+                }
+            }
 
             if (stack == null)
             {
                 log.Error("Player_Inventory HandleActionStackableSplitToContainer stack not found");
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, WeenieError.YouDoNotOwnThatItem));
                 return;
             }
 
             if (stack.Value == null || stack.StackSize < amount || stack.StackSize == 0)
             {
                 log.Error("Player_Inventory HandleActionStackableSplitToContainer stack not large enough for amount");
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, WeenieError.BadParam));
+                return;
+            }
+
+            // Init our target vars
+            if (containerId == Guid.Full)
+                targetContainer = this;
+            else
+                targetContainer = GetInventoryItem(new ObjectGuid(containerId)) as Container;
+
+            if (targetContainer == null)
+            {
+                targetContainer = CurrentLandblock?.GetObject(containerId) as Container;
+
+                if (targetContainer == null)
+                {
+                    var lastUsedContainer = CurrentLandblock?.GetObject(lastUsedContainerId) as Container;
+
+                    if (lastUsedContainer != null)
+                        targetContainer = lastUsedContainer.GetInventoryItem(new ObjectGuid(containerId)) as Container;
+                }
+
+                targetContainerIsOnLandblock = (targetContainer != null);
+            }
+
+            if (targetContainer == null)
+            {
+                log.Error("Player_Inventory HandleActionStackableSplitToContainer container not found");
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, WeenieError.YouDoNotOwnThatItem));
                 return;
             }
 
             // Ok we are in business
-            stack.StackSize -= amount;
-            stack.EncumbranceVal = (stack.StackUnitEncumbrance ?? 0) * (stack.StackSize ?? 1);
-            stack.Value = (stack.StackUnitValue ?? 0) * (stack.StackSize ?? 1);
 
             var newStack = WorldObjectFactory.CreateNewWorldObject(stack.WeenieClassId);
             newStack.StackSize = amount;
             newStack.EncumbranceVal = (newStack.StackUnitEncumbrance ?? 0) * (newStack.StackSize ?? 1);
             newStack.Value = (newStack.StackUnitValue ?? 0) * (newStack.StackSize ?? 1);
 
-            if (!container.TryAddToInventory(newStack, placementPosition, true))
+            // Before we modify the original stack, we make sure we can add the new stack
+            if (!targetContainer.TryAddToInventory(newStack, placementPosition, true))
             {
                 log.Error("Player_Inventory HandleActionStackableSplitToContainer TryAddToInventory failed");
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, WeenieError.BadParam));
                 return;
             }
 
-            /* todo this needs to be fixed. There are many scenarios here, to/from main pack, to/from side pack, to/from landscape container.
-            if (container.Guid.Full == stack.ContainerId)
-            {
-                // We subtract the new stack from our main values because TryAddToInventory will end up readding them.
-                EncumbranceVal -= newStack.EncumbranceVal;
-                Value -= newStack.Value;
-                // todo CoinValue .. would only apply if we're going to/from landscape container
-            }*/
+            stack.StackSize -= amount;
+            stack.EncumbranceVal = (stack.StackUnitEncumbrance ?? 0) * (stack.StackSize ?? 1);
+            stack.Value = (stack.StackUnitValue ?? 0) * (stack.StackSize ?? 1);
 
-            // todo i'm not sure if this is right? Should it be a landblock broadcast if we're splitting items on our own person?
-            // todo Probably only landblock if the container exists on the landscape, but even then... i don't think so
-            EnqueueBroadcast(new GameEventItemServerSaysContainId(Session, newStack, container),
-                new GameMessageSetStackSize(stack),
-                new GameMessageCreateObject(newStack));
+            Session.Network.EnqueueSend(new GameMessageSetStackSize(stack));
+
+            Session.Network.EnqueueSend(new GameMessageCreateObject(newStack));
+            Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, newStack, targetContainer));
+
+            // Adjust EncumbranceVal and Value
+
+            sourceContainer.EncumbranceVal -= newStack.EncumbranceVal;
+            sourceContainer.Value -= newStack.Value;
+
+            if (sourceContainer == this && sourceContainer != targetContainer && !targetContainerIsOnLandblock)
+            {
+                // Add back the encunbrance and value back to the player since we moved it from the player to a side pack
+                EncumbranceVal += newStack.EncumbranceVal;
+                Value += newStack.Value;
+            }
+
+            if ((sourceContainerIsOnLandblock || targetContainerIsOnLandblock) && sourceContainerIsOnLandblock != targetContainerIsOnLandblock)
+            {
+                // Between the player and an external pack
+
+                Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
+
+                if (stack.WeenieType == WeenieType.Coin)
+                    UpdateCoinValue();
+            }
         }
 
         /// <summary>
@@ -1585,12 +1635,14 @@ namespace ACE.Server.WorldObjects
             if (stack == null)
             {
                 log.Error("Player_Inventory HandleActionStackableSplitToContainer stack not found");
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, WeenieError.YouDoNotOwnThatItem));
                 return;
             }
 
             if (stack.Value == null || stack.StackSize < amount || stack.StackSize == 0)
             {
                 log.Error("Player_Inventory HandleActionStackableSplitToContainer stack not large enough for amount");
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, WeenieError.BadParam));
                 return;
             }
 
@@ -1625,7 +1677,9 @@ namespace ACE.Server.WorldObjects
                 newStack.EncumbranceVal = (newStack.StackUnitEncumbrance ?? 0) * (newStack.StackSize ?? 1);
                 newStack.Value = (newStack.StackUnitValue ?? 0) * (newStack.StackSize ?? 1);
 
-                newStack.SetPropertiesForWorld(this, 1.1f);
+                Session.Network.EnqueueSend(new GameMessageSetStackSize(stack));
+
+                // Adjust EncumbranceVal and Value
 
                 container.EncumbranceVal -= newStack.EncumbranceVal;
                 container.Value -= newStack.Value;
@@ -1636,10 +1690,6 @@ namespace ACE.Server.WorldObjects
                     Value -= newStack.Value;
                 }
 
-                Session.Network.EnqueueSend(new GameMessageSetStackSize(stack));
-
-                if (container != this)
-                    Session.Network.EnqueueSend(new GameMessagePublicUpdatePropertyInt(container, PropertyInt.EncumbranceVal, container.EncumbranceVal ?? 0));
                 Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
 
                 if (stack.WeenieType == WeenieType.Coin)
@@ -1653,6 +1703,8 @@ namespace ACE.Server.WorldObjects
                 // This is the sequence magic - adds back into 3d space seem to be treated like teleport.
                 newStack.Sequences.GetNextSequence(SequenceType.ObjectTeleport);
                 newStack.Sequences.GetNextSequence(SequenceType.ObjectVector);
+
+                newStack.SetPropertiesForWorld(this, 1.1f);
 
                 CurrentLandblock.AddWorldObject(newStack);
             });
