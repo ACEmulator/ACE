@@ -14,6 +14,7 @@ using ACE.Database.Models.World;
 using ACE.DatLoader;
 using ACE.DatLoader.FileTypes;
 using ACE.Entity;
+using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
@@ -488,8 +489,13 @@ namespace ACE.Server.Entity
             foreach (var creature in creatures)
             {
                 var wieldedItem = creature.GetEquippedItem(guid);
-                if (wieldedItem != null) // todo: This should make sure the object is actually wielded and not just equipped
-                    return wieldedItem;     // found it
+                if (wieldedItem != null)
+                {
+                    if ((wieldedItem.CurrentWieldedLocation & EquipMask.Selectable) != 0)
+                        return wieldedItem;
+
+                    return null;
+                }
             }
 
             // try searching adjacent landblocks if not found

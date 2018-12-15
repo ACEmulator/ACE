@@ -104,9 +104,6 @@ namespace ACE.Server.WorldObjects
             if (!selectable && !missileCombat)
                 return;
 
-            if (creature.Location == null || creature.Placement == null || creature.ParentLocation == null)
-                creature.SetChild(wieldedItem, (int)wieldedItem.CurrentWieldedLocation, out var placementId, out var parentLocation);
-
             if (!remove)
                 Session.Network.EnqueueSend(new GameMessageCreateObject(wieldedItem));
             else

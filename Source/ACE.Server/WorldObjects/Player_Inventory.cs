@@ -471,13 +471,6 @@ namespace ACE.Server.WorldObjects
                 EncumbranceVal += item.EncumbranceVal;
                 Value += item.Value;
             }
-
-            if ((oldLocation & EquipMask.Selectable) != 0)
-            {
-                // We are coming from a hand shield slot.
-                Children.Remove(Children.Find(s => s.Guid == item.Guid.Full));
-            }
-
             // todo I think we need to recalc our SetupModel here. see CalculateObjDesc()
 
             EnqueueBroadcast(new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Wielder, new ObjectGuid(0)),
@@ -535,8 +528,10 @@ namespace ACE.Server.WorldObjects
         // These are raised by client actions
 
         /// <summary>
-        /// This is raised when we move an item around in our inventory.
-        /// It is also raised when we dequip an item.
+        /// This is raised when we:
+        /// - move an item around in our inventory.
+        /// - dequip an item.
+        /// - Pickup an item off of the landblock or a container on the lanblock
         /// </summary>
         public void HandleActionPutItemInContainer(ObjectGuid itemGuid, ObjectGuid containerGuid, int placement = 0)
         {
@@ -656,10 +651,16 @@ namespace ACE.Server.WorldObjects
             // check packs of item.
             WorldObject item = FindObject(itemGuid, SearchLocations.MyInventory | SearchLocations.MyEquippedItems, out _, out _);
 
-            if (item != null && (item.Attuned ?? 0) == 1)
+            if (item == null)
             {
-                Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "You cannot drop that!"));
-                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, WeenieError.None));
+                log.Error("Player_Inventory HandleActionDropItem item is null");
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, WeenieError.YouDoNotOwnThatItem));
+                return;
+            }
+
+            if ((item.Attuned ?? 0) == 1 || (item.Bonded ?? 0) == 1)
+            {
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, WeenieError.AttunedItem));
                 return;
             }
 
@@ -668,32 +669,11 @@ namespace ACE.Server.WorldObjects
                 // check to see if this item is wielded
                 if (TryDequipObject(itemGuid, out item))
                 {
-                    Children.Remove(Children.Find(s => s.Guid == item.Guid.Full));
-
-                    //Session.Network.EnqueueSend(
-                    //    new GameMessageSound(Guid, Sound.WieldObject, 1.0f),
-                    //    new GameMessageObjDescEvent(this),
-                    //    new GameMessageUpdateInstanceId(item.Sequences, new ObjectGuid(0), item.Guid, PropertyInstanceId.Wielder));
-
                     EnqueueBroadcast(new GameMessageSound(Guid, Sound.WieldObject, 1.0f),
                         new GameMessageObjDescEvent(this),
                         new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Wielder, new ObjectGuid(0)));
                 }
             }
-
-            if (item == null)
-            {
-                log.Error("Player_Inventory HandleActionDropItem item is null");
-                return;
-            }
-
-            item.SetPropertiesForWorld(this, 1.1f);
-
-            // We must update the database with the latest ContainerId and WielderId properties.
-            // If we don't, the player can drop the item, log out, and log back in. If the landblock hasn't queued a database save in that time,
-            // the player will end up loading with this object in their inventory even though the landblock is the true owner. This is because
-            // when we load player inventory, the database still has the record that shows this player as the ContainerId for the item.
-            item.SaveBiotaToDatabase();
 
             //var motion = new Motion(MotionStance.NonCombat);
             var motion = new Motion(this, MotionCommand.Pickup);
@@ -714,6 +694,9 @@ namespace ACE.Server.WorldObjects
             // Put item on landblock
             dropChain.AddAction(this, () =>
             {
+                if (CurrentLandblock == null)
+                    return; // Maybe we were teleported as we were motioning to drop the item
+
                 var returnStance = new Motion(CurrentMotionState.Stance);
                 EnqueueBroadcastMotion(returnStance);
 
@@ -731,10 +714,17 @@ namespace ACE.Server.WorldObjects
                 item.Sequences.GetNextSequence(SequenceType.ObjectTeleport);
                 item.Sequences.GetNextSequence(SequenceType.ObjectVector);
 
+                item.SetPropertiesForWorld(this, 1.1f);
+
                 CurrentLandblock?.AddWorldObject(item);
 
-                //Session.Network.EnqueueSend(new GameMessageUpdateObject(item));
                 EnqueueBroadcast(new GameMessageUpdatePosition(item));
+
+                // We must update the database with the latest ContainerId and WielderId properties.
+                // If we don't, the player can drop the item, log out, and log back in. If the landblock hasn't queued a database save in that time,
+                // the player will end up loading with this object in their inventory even though the landblock is the true owner. This is because
+                // when we load player inventory, the database still has the record that shows this player as the ContainerId for the item.
+                item.SaveBiotaToDatabase();
             });
 
             dropChain.EnqueueChain();
@@ -856,10 +846,8 @@ namespace ACE.Server.WorldObjects
                     return true;
                 }
 
-                SetChild(item, wieldLocation, out var placementId, out var childLocation);
-
                 // TODO: wait for HandleQueueStance() here?
-                EnqueueBroadcast(new GameMessageParentEvent(this, item, childLocation, placementId), msgWieldItem, sound, updateContainer, updateWielder, updateWieldLoc);
+                EnqueueBroadcast(new GameMessageParentEvent(this, item, (int?)item.ParentLocation ?? 0, (int?)item.Placement ?? 0), msgWieldItem, sound, updateContainer, updateWielder, updateWieldLoc);
 
                 if (CombatMode == CombatMode.NonCombat || CombatMode == CombatMode.Undef)
                     return true;
@@ -1159,57 +1147,6 @@ namespace ACE.Server.WorldObjects
             Session.Network.EnqueueSend(new GameEventInventoryRemoveObject(Session, item));
 
             item.Destroy();
-        }
-
-        // ===========================
-        // Game Action Handlers - Misc
-        // ===========================
-        // These are raised by client actions
-
-        /// <summary>
-        /// This method handles inscription.   If you remove the inscription, it will remove the data from the object and
-        /// remove it from the shard database - all inscriptions are stored in ace_object_properties_string Og II
-        /// </summary>
-        /// <param name="itemGuid">This is the object that we are trying to inscribe</param>
-        /// <param name="inscriptionText">This is our inscription</param>
-        public void HandleActionSetInscription(ObjectGuid itemGuid, string inscriptionText)
-        {
-            var item = GetInventoryItem(itemGuid) ?? GetEquippedItem(itemGuid);
-
-            if (item == null)
-            {
-                log.Error("Player_Inventory HandleActionSetInscription failed");
-                return;
-            }
-
-            if (item.Inscribable == true && item.ScribeName != "prewritten")
-            {
-                if (item.ScribeName != null && item.ScribeName != Name)
-                {
-                    ChatPacket.SendServerMessage(Session, "Only the original scribe may alter this without the use of an uninscription stone.", ChatMessageType.Broadcast);
-                }
-                else
-                {
-                    if (inscriptionText != "")
-                    {
-                        item.Inscription = inscriptionText;
-                        item.ScribeName = Name;
-                        item.ScribeAccount = Session.Account;
-                        Session.Network.EnqueueSend(new GameEventInscriptionResponse(Session, item.Guid.Full, item.Inscription, item.ScribeName, item.ScribeAccount));
-                    }
-                    else
-                    {
-                        item.Inscription = null;
-                        item.ScribeName = null;
-                        item.ScribeAccount = null;
-                    }
-                }
-            }
-            else
-            {
-                // Send some cool you cannot inscribe that item message. Not sure how that was handled live, I could not find a pcap of a failed inscription. Og II
-                ChatPacket.SendServerMessage(Session, "Target item cannot be inscribed.", ChatMessageType.System);
-            }
         }
 
 
@@ -1563,6 +1500,58 @@ namespace ACE.Server.WorldObjects
 
                 UpdateToStack(fromItem, toItem, amtToFill, missileAmmo);
                 UpdateFromStack(toItem, amtToFill);
+            }
+        }
+
+
+        // ===========================
+        // Game Action Handlers - Misc
+        // ===========================
+        // These are raised by client actions
+
+        /// <summary>
+        /// This method handles inscription.   If you remove the inscription, it will remove the data from the object and
+        /// remove it from the shard database - all inscriptions are stored in ace_object_properties_string Og II
+        /// </summary>
+        /// <param name="itemGuid">This is the object that we are trying to inscribe</param>
+        /// <param name="inscriptionText">This is our inscription</param>
+        public void HandleActionSetInscription(ObjectGuid itemGuid, string inscriptionText)
+        {
+            var item = GetInventoryItem(itemGuid) ?? GetEquippedItem(itemGuid);
+
+            if (item == null)
+            {
+                log.Error("Player_Inventory HandleActionSetInscription failed");
+                return;
+            }
+
+            if (item.Inscribable == true && item.ScribeName != "prewritten")
+            {
+                if (item.ScribeName != null && item.ScribeName != Name)
+                {
+                    ChatPacket.SendServerMessage(Session, "Only the original scribe may alter this without the use of an uninscription stone.", ChatMessageType.Broadcast);
+                }
+                else
+                {
+                    if (inscriptionText != "")
+                    {
+                        item.Inscription = inscriptionText;
+                        item.ScribeName = Name;
+                        item.ScribeAccount = Session.Account;
+                        Session.Network.EnqueueSend(new GameEventInscriptionResponse(Session, item.Guid.Full, item.Inscription, item.ScribeName, item.ScribeAccount));
+                    }
+                    else
+                    {
+                        item.Inscription = null;
+                        item.ScribeName = null;
+                        item.ScribeAccount = null;
+                    }
+                }
+            }
+            else
+            {
+                // Send some cool you cannot inscribe that item message. Not sure how that was handled live, I could not find a pcap of a failed inscription. Og II
+                ChatPacket.SendServerMessage(Session, "Target item cannot be inscribed.", ChatMessageType.System);
             }
         }
     }

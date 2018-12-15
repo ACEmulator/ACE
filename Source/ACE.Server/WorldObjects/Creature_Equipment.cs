@@ -38,6 +38,8 @@ namespace ACE.Server.WorldObjects
             }
 
             EquippedObjectsLoaded = true;
+
+            SetChildren();
         }
 
         public bool WieldedLocationIsAvailable(int wieldedLocation)
@@ -151,6 +153,8 @@ namespace ACE.Server.WorldObjects
             EncumbranceVal += worldObject.EncumbranceVal;
             Value += worldObject.Value;
 
+            TrySetChild(worldObject, wieldedLocation);
+
             EnqueueActionBroadcast((Player p) => p.TrackObject(this));
 
             worldObject.EmoteManager.OnWield(this);
@@ -177,6 +181,9 @@ namespace ACE.Server.WorldObjects
         {
             if (EquippedObjects.Remove(objectGuid, out worldObject))
             {
+                var wo = worldObject;
+                Children.Remove(Children.Find(s => s.Guid == wo.Guid.Full));
+
                 worldObject.RemoveProperty(PropertyInt.CurrentWieldedLocation);
                 worldObject.RemoveProperty(PropertyInstanceId.Wielder);
 
@@ -202,72 +209,88 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         /// <param name="item">The child item - we link them together</param>
         /// <param name="placementPosition">Where is this on the parent - where is it equipped</param>
-        /// <param name="placementId">out parameter - this deals with the orientation of the child item as it relates to parent model</param>
-        /// <param name="parentLocation">out parameter - this is another part of the orientation data for correct visual display</param>
-        public void SetChild(WorldObject item, int placementPosition, out int placementId, out int parentLocation)
+        private bool TrySetChild(WorldObject item, int placementPosition)
         {
-            placementId = 0;
-            parentLocation = 0;
+            if (item.CurrentWieldedLocation == null || ((EquipMask)item.CurrentWieldedLocation & EquipMask.Selectable) == 0)
+                return false;
+
+            Placement placement;
+            ParentLocation parentLocation;
 
             // TODO: I think there is a state missing - it is one of the edge cases. I need to revist this.   Og II
             switch ((EquipMask)placementPosition)
             {
                 case EquipMask.MeleeWeapon:
-                    placementId = (int)ACE.Entity.Enum.Placement.RightHandCombat;
-                    parentLocation = (int)ACE.Entity.Enum.ParentLocation.RightHand;
+                    placement = ACE.Entity.Enum.Placement.RightHandCombat;
+                    parentLocation = ACE.Entity.Enum.ParentLocation.RightHand;
                     break;
 
                 case EquipMask.Shield:
                     if (item.ItemType == ItemType.Armor)
                     {
-                        placementId = (int)ACE.Entity.Enum.Placement.Shield;
-                        parentLocation = (int)ACE.Entity.Enum.ParentLocation.Shield;
+                        placement = ACE.Entity.Enum.Placement.Shield;
+                        parentLocation = ACE.Entity.Enum.ParentLocation.Shield;
                     }
                     else
                     {
-                        placementId = (int)ACE.Entity.Enum.Placement.RightHandCombat;
-                        parentLocation = (int)ACE.Entity.Enum.ParentLocation.LeftWeapon;
+                        placement = ACE.Entity.Enum.Placement.RightHandCombat;
+                        parentLocation = ACE.Entity.Enum.ParentLocation.LeftWeapon;
                     }
                     break;
 
                 case EquipMask.MissileWeapon:
-                    if (item.DefaultCombatStyle == CombatStyle.Bow ||
-                        item.DefaultCombatStyle == CombatStyle.Crossbow)
+                    if (item.DefaultCombatStyle == CombatStyle.Bow || item.DefaultCombatStyle == CombatStyle.Crossbow)
                     {
-                        placementId = (int)ACE.Entity.Enum.Placement.LeftHand;
-                        parentLocation = (int)ACE.Entity.Enum.ParentLocation.LeftHand;
+                        placement = ACE.Entity.Enum.Placement.LeftHand;
+                        parentLocation = ACE.Entity.Enum.ParentLocation.LeftHand;
                     }
                     else
                     {
-                        placementId = (int)ACE.Entity.Enum.Placement.RightHandCombat;
-                        parentLocation = (int)ACE.Entity.Enum.ParentLocation.RightHand;
+                        placement = ACE.Entity.Enum.Placement.RightHandCombat;
+                        parentLocation = ACE.Entity.Enum.ParentLocation.RightHand;
                     }
                     break;
 
                 case EquipMask.MissileAmmo:
                     // quiver = 5 for arrows/bolts?
-                    placementId = (int)ACE.Entity.Enum.Placement.RightHandCombat;
-                    parentLocation = (int)ACE.Entity.Enum.ParentLocation.RightHand;
+                    placement = ACE.Entity.Enum.Placement.RightHandCombat;
+                    parentLocation = ACE.Entity.Enum.ParentLocation.RightHand;
                     break;
 
                 case EquipMask.Held:
-                    placementId = (int)ACE.Entity.Enum.Placement.RightHandCombat;
-                    parentLocation = (int)ACE.Entity.Enum.ParentLocation.RightHand;
+                    placement = ACE.Entity.Enum.Placement.RightHandCombat;
+                    parentLocation = ACE.Entity.Enum.ParentLocation.RightHand;
                     break;
 
                 default:
-                    placementId = (int)ACE.Entity.Enum.Placement.Default;
-                    parentLocation = (int)ACE.Entity.Enum.ParentLocation.None;
+                    placement = ACE.Entity.Enum.Placement.Default;
+                    parentLocation = ACE.Entity.Enum.ParentLocation.None;
                     break;
             }
 
-            if (item.CurrentWieldedLocation != null)
-                Children.Add(new HeldItem(item.Guid.Full, parentLocation, (EquipMask)item.CurrentWieldedLocation));
+            Children.Add(new HeldItem(item.Guid.Full, (int)parentLocation, (EquipMask)item.CurrentWieldedLocation));
 
-            item.Placement = (Placement)placementId;
-            item.ParentLocation = (ParentLocation)parentLocation;
+            item.Placement = placement;
+            item.ParentLocation = parentLocation;
             item.Location = Location;
+
+            return true;
         }
+
+        /// <summary>
+        /// This is called prior to SendSelf to load up the child list for wielded items that are held in a hand.
+        /// </summary>
+        private void SetChildren()
+        {
+            Children.Clear();
+
+            foreach (var item in EquippedObjects.Values)
+            {
+                if (item.CurrentWieldedLocation != null)
+                    TrySetChild(item, (int)item.CurrentWieldedLocation);
+            }
+        }
+
 
         public void GenerateWieldList()
         {
