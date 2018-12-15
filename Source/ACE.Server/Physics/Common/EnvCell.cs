@@ -123,7 +123,9 @@ namespace ACE.Server.Physics.Common
 
         public void check_building_transit(ushort portalId, Position pos, int numSphere, List<Sphere> spheres, CellArray cellArray, SpherePath path)
         {
-            if (portalId == 0) return;
+            //if (portalId == 0) return;
+            if (portalId == ushort.MaxValue) return;
+
             foreach (var sphere in spheres)
             {
                 var globSphere = new Sphere(Pos.Frame.GlobalToLocal(sphere.Center), sphere.Radius);
@@ -139,7 +141,8 @@ namespace ACE.Server.Physics.Common
 
         public void check_building_transit(int portalId, int numParts, List<PhysicsPart> parts, CellArray cellArray)
         {
-            if (portalId == 0) return;
+            //if (portalId == 0) return;
+            if (portalId == ushort.MaxValue) return;
 
             var portal = Portals[portalId];
             var portalPoly = CellStructure.Portals[portalId];

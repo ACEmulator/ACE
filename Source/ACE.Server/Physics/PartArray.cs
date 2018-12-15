@@ -594,7 +594,12 @@ namespace ACE.Server.Physics
         public void UpdateParts(AFrame frame)
         {
             var curFrame = Sequence.GetCurrAnimFrame();
-            if (curFrame == null) return;
+            if (curFrame == null)
+            {
+                if (Parts.Count == 1)
+                    Parts[0].Pos = Owner.Position;
+                return;
+            }
             var numParts = Math.Min(NumParts, curFrame.Frames.Count);
             for (var i = 0; i < numParts; i++)
                 Parts[i].Pos.Frame.Combine(frame, new AFrame(curFrame.Frames[i]), Scale);
