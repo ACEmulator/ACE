@@ -109,6 +109,14 @@ namespace ACE.Server.WorldObjects
                 }
             }
 
+            // Make sure placement positions are correct. They could get out of sync from a client issue, server issue, or orphaned biota
+            var mainPackItems = Inventory.Values.Where(wo => !wo.UseBackpackSlot).OrderBy(wo => wo.PlacementPosition).ToList();
+            for (int i = 0; i < mainPackItems.Count; i++)
+                mainPackItems[i].PlacementPosition = i;
+            var sidPackItems = Inventory.Values.Where(wo => wo.UseBackpackSlot).OrderBy(wo => wo.PlacementPosition).ToList();
+            for (int i = 0; i < sidPackItems.Count; i++)
+                sidPackItems[i].PlacementPosition = i;
+
             InventoryLoaded = true;
 
             // All that should be left are side pack sub contents.
