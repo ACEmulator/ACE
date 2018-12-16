@@ -10,7 +10,13 @@ namespace ACE.Server.WorldObjects
 {
     partial class Player
     {
-        public float AccuracyLevel;
+        private float _accuracyLevel;
+
+        public float AccuracyLevel
+        {
+            get => IsExhausted ? 0.0f : _accuracyLevel;
+            set => _accuracyLevel = value;
+        }
 
         public WorldObject MissileTarget;
 

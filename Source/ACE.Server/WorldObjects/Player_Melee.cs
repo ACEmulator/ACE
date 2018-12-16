@@ -19,10 +19,16 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public WorldObject MeleeTarget;
 
+        private float _powerLevel;
+
         /// <summary>
         /// The power bar level, a value between 0-1
         /// </summary>
-        public float PowerLevel;
+        public float PowerLevel
+        {
+            get => IsExhausted ? 0.0f : _powerLevel;
+            set => _powerLevel = value;
+        }
 
         public override PowerAccuracy GetPowerRange()
         {
