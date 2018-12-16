@@ -47,8 +47,8 @@ namespace ACE.Server.WorldObjects
                 LastMoveTime = Timers.RunningTime;
             }
 
-            if (IsAttackRange())
-                OnMoveComplete();
+            //if (IsAttackRange())
+                //OnMoveComplete();
 
             if (GetDistanceToTarget() >= MaxChaseRange)
                 Sleep();

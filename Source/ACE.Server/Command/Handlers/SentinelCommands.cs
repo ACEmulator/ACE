@@ -216,7 +216,7 @@ namespace ACE.Server.Command.Handlers
         public static void HandleRun(Session session, params string[] parameters)
         {
             // usage: @run on| off | toggle | check
-            // Boosts the run skill of the PSR so they can pursue the "bad folks".The enchantment will wear off after a while.This command defualts to toggle.
+            // Boosts the run skill of the PSR so they can pursue the "bad folks".The enchantment will wear off after a while.This command defaults to toggle.
             // @run - Temporarily boosts your run skill.
 
             string param;
