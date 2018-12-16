@@ -22,6 +22,10 @@ namespace ACE.Server.WorldObjects
             var wieldedArmor = SelectWieldedArmor();
 
             var wieldedWeapons = SelectWieldedWeapons();
+            var wieldedShield = SelectWieldedShield();
+
+            if (wieldedShield != null)
+                wieldedWeapons.Add(wieldedShield);
 
             return wieldedWeapons;
         }
@@ -212,6 +216,18 @@ namespace ACE.Server.WorldObjects
                 return null;    // choose no weapon? lugians should have ~33% chance to select rock, according to retail pcaps
 
             return weapons[rng];*/
+        }
+
+        public WorldObject SelectWieldedShield()
+        {
+            var shields = Inventory.Values.Where(wo => wo.IsShield).ToList();
+
+            if (shields.Count == 0)
+                return null;
+
+            // select a random shield
+            var rng = Physics.Common.Random.RollDice(0, shields.Count - 1);
+            return shields[rng];
         }
 
         public void DebugTreasure()
