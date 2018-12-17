@@ -360,10 +360,15 @@ namespace ACE.Server.Entity
 
             var dist = memberPosition.Distance2D(leaderPosition);
 
-            if (dist <= MaxDistance)
-                return 1;
+            if (dist >= MaxDistance * 2.0f)
+                return 0.0f;
 
-            return 1 - (dist - MaxDistance) / MaxDistance;
+            if (dist <= MaxDistance)
+                return 1.0f;
+
+            var scalar = 1 - (dist - MaxDistance) / MaxDistance;
+
+            return Math.Max(0.0f, scalar);
         }
 
         /// <summary>
