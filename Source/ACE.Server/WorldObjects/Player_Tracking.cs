@@ -4,6 +4,7 @@ using System.Linq;
 
 using ACE.Entity;
 using ACE.Entity.Enum;
+using ACE.Entity.Enum.Properties;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Physics.Common;
 
@@ -77,7 +78,7 @@ namespace ACE.Server.WorldObjects
             if (worldObject.Visibility && !Adminvision)
                 return;
 
-            //Console.WriteLine($"TrackObject({worldObject.Name})");
+            //Console.WriteLine($"Player {Name} - TrackObject({worldObject.Name})");
             Session.Network.EnqueueSend(new GameMessageCreateObject(worldObject));
 
             // add creature equipped objects / wielded items
@@ -96,7 +97,7 @@ namespace ACE.Server.WorldObjects
 
         public void TrackEquippedObject(Creature creature, WorldObject wieldedItem, bool remove = false)
         {
-            //Console.WriteLine($"TrackEquippedObject({wieldedItem.Name})");
+            //Console.WriteLine($"Player {Name} - TrackEquippedObject({wieldedItem.Name}) on Creature {creature.Name}, remove: {remove}");
 
             var selectable = (wieldedItem.ValidLocations.Value & EquipMask.Selectable) != 0;
             var missileCombat = creature.CombatMode == CombatMode.Missile && (wieldedItem.ValidLocations.Value & EquipMask.MissileAmmo) != 0;
@@ -114,7 +115,10 @@ namespace ACE.Server.WorldObjects
         {
             // does this work for equipped objects?
             if (ObjMaint.ObjectTable.Values.Contains(worldObject.PhysicsObj))
+            {
+                //Console.WriteLine($"Player {Name} - AddTrackedObject({worldObject}) skipped, already tracked");
                 return false;
+            }
 
             ObjMaint.AddObject(worldObject.PhysicsObj);
             ObjMaint.AddVisibleObject(worldObject.PhysicsObj);
@@ -128,7 +132,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public bool RemoveTrackedObject(WorldObject worldObject, bool remove)
         {
-            //Console.WriteLine($"RemoveTrackedObject({remove})");
+            //Console.WriteLine($"Player {Name} - RemoveTrackedObject({remove})");
 
             ObjMaint.RemoveObject(worldObject.PhysicsObj);
 
