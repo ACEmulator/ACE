@@ -877,12 +877,21 @@ namespace ACE.Server.WorldObjects
 
                 EnqueueBroadcast(new GameMessageSound(Guid, Sound.DropItem));
 
+                // todo: These messages should really be sent by the tracking code.
                 if (wasEquipped)
                 {
-                    // todo: These messages should really be sent by the tracking code.
                     // todo: The equipped items should already be tracked by other players.
                     // todo: When we add this item to the landblock, and then call NotifyPlayers, we should simply send these two messages
                     EnqueueBroadcast(
+                        new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Container, new ObjectGuid(0)),
+                        new GameMessageUpdatePosition(item));
+                }
+                else
+                {
+                    // todo: The owned item should already be tracked/known by self.
+                    // todo: When we add this item to the landblock, we should simply send these two messages
+                    // todo: For other players, they would receive the CreateObject messages
+                    Session.Network.EnqueueSend(
                         new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Container, new ObjectGuid(0)),
                         new GameMessageUpdatePosition(item));
                 }
