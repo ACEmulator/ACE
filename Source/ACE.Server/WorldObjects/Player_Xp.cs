@@ -21,9 +21,17 @@ namespace ACE.Server.WorldObjects
         public void EarnXP(long amount, bool sharable = true, bool fixedAmount = false)
         {
             // apply xp modifier
-            amount = (long)(amount * PropertyManager.GetDouble("xp_modifier").Item);
+            var modifier = PropertyManager.GetDouble("xp_modifier").Item;
+            var m_amount = (long)(amount * modifier);
 
-            GrantXP(amount, sharable, fixedAmount, false);
+            if (m_amount < 0 || m_amount > 1000000000)
+            {
+                log.Warn($"{Name}.EarnXP({amount}, {sharable}, {fixedAmount})");
+                log.Warn($"Modifier: {modifier}, m_amount: {m_amount}");
+                return;
+            }
+
+            GrantXP(m_amount, sharable, fixedAmount, false);
         }
 
         /// <summary>
