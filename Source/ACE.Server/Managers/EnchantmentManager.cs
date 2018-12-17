@@ -44,7 +44,7 @@ namespace ACE.Server.Managers
         /// <summary>
         /// Returns TRUE If this object has a vitae penalty
         /// </summary>
-        public bool HasVitae => WorldObject.Biota.HasEnchantment((uint)Spell.Vitae, WorldObject.BiotaDatabaseLock);
+        public bool HasVitae => WorldObject.Biota.HasEnchantment((uint)SpellId.Vitae, WorldObject.BiotaDatabaseLock);
 
         /// <summary>
         /// Constructs a new EnchantmentManager for a WorldObject
@@ -321,7 +321,7 @@ namespace ACE.Server.Managers
         /// </summary>
         public virtual void RemoveAllEnchantments()
         {
-            var spellsToExclude = new Collection<int> { (int)Spell.Vitae };
+            var spellsToExclude = new Collection<int> { (int)SpellId.Vitae };
 
             WorldObject.Biota.RemoveAllEnchantments(spellsToExclude, WorldObject.BiotaDatabaseLock);
             WorldObject.ChangesDetected = true;
@@ -334,7 +334,7 @@ namespace ACE.Server.Managers
         /// </summary>
         public BiotaPropertiesEnchantmentRegistry GetVitae()
         {
-            return GetEnchantment((uint)Spell.Vitae);
+            return GetEnchantment((uint)SpellId.Vitae);
         }
 
         /// <summary>
@@ -372,7 +372,7 @@ namespace ACE.Server.Managers
                 // TODO refactor this so it uses the existing Add() method.
 
                 // add entry for new vitae
-                vitae = BuildEntry((uint)Spell.Vitae);
+                vitae = BuildEntry((uint)SpellId.Vitae);
                 vitae.EnchantmentCategory = (uint)EnchantmentMask.Vitae;
                 vitae.LayerId = 0;
                 vitae.StatModValue = 1.0f - (float)PropertyManager.GetDouble("vitae_penalty").Item;

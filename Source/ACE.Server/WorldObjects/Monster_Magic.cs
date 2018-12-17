@@ -161,7 +161,7 @@ namespace ACE.Server.WorldObjects
             var target = targetSelf ? this : AttackTarget;
 
             var player = AttackTarget as Player;
-
+ 
             switch (spell.School)
             {
                 case MagicSchool.WarMagic:

@@ -221,6 +221,8 @@ namespace ACE.Server.WorldObjects
 
             QuestManager = new QuestManager(this);
 
+            LastUseTracker = new Dictionary<int, DateTime>();
+
             return; // todo
             /* todo fix for new EF model
             TrackedContracts = new Dictionary<uint, ContractTracker>();
@@ -238,8 +240,6 @@ namespace ACE.Server.WorldObjects
 
                 TrackedContracts.Add(trackedContract.Key, loadContract);
             }*/
-
-            LastUseTracker = new Dictionary<int, DateTime>();
 
             // =======================================
             // This code was taken from the old Load()

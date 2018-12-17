@@ -56,7 +56,6 @@ namespace ACE.Server.WorldObjects
                 }
                 else if (sourceCreature != null && sourceCreature.AttackTarget != null)
                 {
-                    // monster damage player
                     var targetPlayer = sourceCreature.AttackTarget as Player;
                     var bodyPart = BodyParts.GetBodyPart(sourceCreature.AttackHeight.Value);
 
@@ -65,20 +64,36 @@ namespace ACE.Server.WorldObjects
                     var shieldMod = 1.0f;
                     var damage = sourceCreature.CalculateDamage(ref damageType, null, bodyPart, ref critical, ref shieldMod);
 
-                    if (damage > 0.0f)
+                    if (targetPlayer != null)
                     {
-                        targetPlayer.TakeDamage(sourceCreature, damageType, damage, bodyPart, critical);
-
-                        if (shieldMod != 1.0f)
+                        // monster damage player
+                        if (damage > 0.0f)
                         {
-                            var shieldSkill = targetPlayer.GetCreatureSkill(Skill.Shield);
-                            Proficiency.OnSuccessUse(targetPlayer, shieldSkill, shieldSkill.Current);   // ??
+                            targetPlayer.TakeDamage(sourceCreature, damageType, damage, bodyPart, critical);
+
+                            // blood splatter?
+
+                            if (shieldMod != 1.0f)
+                            {
+                                var shieldSkill = targetPlayer.GetCreatureSkill(Skill.Shield);
+                                Proficiency.OnSuccessUse(targetPlayer, shieldSkill, shieldSkill.Current);   // ??
+                            }
+                        }
+                        else
+                        {
+                            targetPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"You evaded {sourceCreature.Name}!", ChatMessageType.CombatEnemy));
+                            Proficiency.OnSuccessUse(targetPlayer, targetPlayer.GetCreatureSkill(Skill.MissileDefense), sourceCreature.GetCreatureSkill(sourceCreature.GetCurrentAttackSkill()).Current);
                         }
                     }
                     else
                     {
-                        targetPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"You evaded {sourceCreature.Name}!", ChatMessageType.CombatEnemy));
-                        Proficiency.OnSuccessUse(targetPlayer, targetPlayer.GetCreatureSkill(Skill.MissileDefense), sourceCreature.GetCreatureSkill(sourceCreature.GetCurrentAttackSkill()).Current);
+                        // monster damage pet
+                        if (damage > 0.0f)
+                        {
+                            targetCreature.TakeDamage(sourceCreature, damageType, damage);
+
+                            // blood splatter?
+                        }
                     }
                 }
             }

@@ -440,7 +440,11 @@ namespace ACE.Server.WorldObjects
                 if (itemWasRestingOnLandblock)
                 {
                     if (CurrentLandblock != null && CurrentLandblock.RemoveWorldObjectFromPickup(itemGuid))
+                    {
                         item.NotifyOfEvent(RegenerationType.PickUp);
+                        EnqueueActionBroadcast((Player p) => p.RemoveTrackedObject(item, true), true);
+                        item.PhysicsObj.DestroyObject();    // destroy physicsobj, but do not remove from tracking
+                    }
                 }
                 else
                 {

@@ -115,6 +115,12 @@ namespace ACE.Server.Factories
                     return new SkillAlterationDevice(weenie, guid);
                 case WeenieType.PressurePlate:
                     return new PressurePlate(weenie, guid);
+                case WeenieType.PetDevice:
+                    return new PetDevice(weenie, guid);
+                case WeenieType.Pet:
+                    return new Pet(weenie, guid);
+                case WeenieType.CombatPet:
+                    return new CombatPet(weenie, guid);
                 default:
                     return new GenericObject(weenie, guid);
             }
@@ -216,6 +222,12 @@ namespace ACE.Server.Factories
                     return new SkillAlterationDevice(biota);
                 case WeenieType.PressurePlate:
                     return new PressurePlate(biota);
+                case WeenieType.PetDevice:
+                    return new PetDevice(biota);
+                case WeenieType.Pet:
+                    return new Pet(biota);
+                case WeenieType.CombatPet:
+                    return new CombatPet(biota);
                 default:
                     return new GenericObject(biota);
             }

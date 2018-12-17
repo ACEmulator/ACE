@@ -23,10 +23,21 @@ namespace ACE.Server.WorldObjects
 
             if (!IsAwake || IsDead) return;
 
+            HandleFindTarget();
+
+            if (AttackTarget == null) return;
+
             IsMonster = true;
 
+            var pet = this as CombatPet;
+            if (pet != null && DateTime.UtcNow >= pet.ExpirationTime)
+            {
+                Destroy();
+                return;
+            }
+
             var creatureTarget = AttackTarget as Creature;
-            if (creatureTarget != null && (creatureTarget.IsDead || !creatureTarget.IsVisible(this)))
+            if (creatureTarget != null && (creatureTarget.IsDead || (pet == null && !creatureTarget.IsVisible(this))))
             {
                 Sleep();
                 return;
@@ -120,6 +131,10 @@ namespace ACE.Server.WorldObjects
                         Attack();
                 }
             }
+
+            // pets drawing aggro
+            if (pet != null)
+                pet.PetCheckMonsters();
         }
     }
 }

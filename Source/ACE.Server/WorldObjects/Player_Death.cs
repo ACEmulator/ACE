@@ -95,7 +95,7 @@ namespace ACE.Server.WorldObjects
             // update vitae
             var vitae = EnchantmentManager.UpdateVitae();
 
-            var spellID = (uint)Network.Enum.Spell.Vitae;
+            var spellID = (uint)SpellId.Vitae;
             var spell = new Spell(spellID);
             var vitaeEnchantment = new Enchantment(this, Guid, spellID, spell.Duration, 0, (EnchantmentMask)spell.StatModType, vitae);
             var msgVitaeEnchantment = new GameEventMagicUpdateEnchantment(Session, vitaeEnchantment);

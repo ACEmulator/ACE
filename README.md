@@ -32,13 +32,13 @@ Build status: [![Windows CI](https://ci.appveyor.com/api/projects/status/rqebda3
   - [MariaDB minimum required version - 10.2+](https://mariadb.org/download/)
 * Create two databases named `ace_auth`, `ace_shard`.
 * Load AuthenticationBase.sql and ShardBase.sql for their respective databases. 
-* Load all incremental SQL updates found in the Database\Updates\Authentication sub directory in the order of oldest to newest.
-* Load all incremental SQL updates found in the Database\Updates\Shard sub directory in the order of oldest to newest.
+* Load all incremental SQL updates found in the Database\Updates\Authentication sub directory in the order of oldest to newest. Skip this step if there are no updates in this directory.
+* Load all incremental SQL updates found in the Database\Updates\Shard sub directory in the order of oldest to newest. Skip this step if there are no updates in this directory.
 * Create a final database named `ace_world`.
 * Load WorldBase.sql to initialize the ace_world database. 
-* Download from [ACE-World-16PY](https://github.com/ACEmulator/ACE-World-16PY) the [latest release](https://github.com/ACEmulator/ACE-World-16PY/releases/latest) of world data, extract and load into your ace_world database.
-  - [ACE-World-16PY minimum required version - 0.0.17+](https://github.com/ACEmulator/ACE-World-16PY/releases/latest)
-* Load all incremental SQL updates found in the Database\Updates\World sub directory in the order of oldest to newest.
+* Download from [ACE-World-16PY-Patches](https://github.com/ACEmulator/ACE-World-16PY-Patches) the [latest release](https://github.com/ACEmulator/ACE-World-16PY-Patches/releases/latest) of world data, extract and load into your ace_world database.
+  - [ACE World Database (ACE-World-16PY-Patches) minimum required version - 0.9.0+](https://github.com/ACEmulator/ACE-World-16PY-Patches/releases/latest)
+* Load all incremental SQL updates found in the Database\Updates\World sub directory in the order of oldest to newest. Skip this step if there are no updates in this directory.
 * Copy `ACE\Config.json.example` to `Config.json` and modify settings, such as passwords and other server settings.
 * Open ACE.sln with Visual Studio and build the solution.
 * Download and install [Microsoft .NET Core Runtime - 2.1](https://www.microsoft.com/net/download) if you don't already have it.

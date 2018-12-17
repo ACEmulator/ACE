@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 
+using ACE.Database;
 using ACE.DatLoader;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
@@ -529,6 +530,24 @@ namespace ACE.Server.WorldObjects
                         actionChain.EnqueueChain();
                     }
                     break;  // performance improvement: only check first spell (measured 102ms to check 75 uncached void spells)
+                }
+            }
+
+            // summoning
+            var summoning = GetCreatureSkill(Skill.Summoning);
+            if (summoning.AdvancementClass >= SkillAdvancementClass.Trained)
+            {
+                uint essenceWCID = 48878;
+                var weenie = DatabaseManager.World.GetCachedWeenie(essenceWCID);
+                if (weenie == null)
+                {
+                    var actionChain = new ActionChain();
+                    actionChain.AddDelaySeconds(3.0f);
+                    actionChain.AddAction(this, () =>
+                    {
+                        Session.Network.EnqueueSend(new GameMessageSystemChat("To install Summoning, please apply the latest patches from https://github.com/ACEmulator/ACE-World-16PY-Patches", ChatMessageType.Broadcast));
+                    });
+                    actionChain.EnqueueChain();
                 }
             }
         }

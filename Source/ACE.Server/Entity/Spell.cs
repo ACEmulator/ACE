@@ -54,7 +54,7 @@ namespace ACE.Server.Entity
         /// <summary>
         /// Constructs a Spell from a Spell enum
         /// </summary>
-        public Spell(Network.Enum.Spell spell, bool loadDB = true)
+        public Spell(SpellId spell, bool loadDB = true)
         {
             Init((uint)spell, loadDB);
         }

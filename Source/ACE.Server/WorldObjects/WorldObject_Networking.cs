@@ -948,6 +948,7 @@ namespace ACE.Server.WorldObjects
             PreviousLocation = null;
         }
 
+
         public bool? IgnoreCloIcons
         {
             get => GetProperty(PropertyBool.IgnoreCloIcons);
@@ -1071,16 +1072,19 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Runs a function for all Players that currently know about this object
         /// </summary>
-        public void EnqueueActionBroadcast(Action<Player> delegateAction)
+        public void EnqueueActionBroadcast(Action<Player> delegateAction, bool excludeSelf = false)
         {
             if (PhysicsObj == null) return;
 
-            if (this is Player self)
+            if (!excludeSelf && this is Player self)
                 self.EnqueueAction(new ActionEventDelegate(() => delegateAction(self)));
 
             foreach (var player in PhysicsObj.ObjMaint.VoyeurTable.Values.Select(v => (Player)v.WeenieObj.WorldObject))
             {
                 if (Visibility && !player.Adminvision)
+                    continue;
+
+                if (excludeSelf && this == player)
                     continue;
 
                 player.EnqueueAction(new ActionEventDelegate(() => delegateAction(player)));
