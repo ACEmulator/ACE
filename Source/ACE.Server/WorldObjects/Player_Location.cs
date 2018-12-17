@@ -10,6 +10,7 @@ using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Network;
+using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 
 namespace ACE.Server.WorldObjects
@@ -37,6 +38,38 @@ namespace ACE.Server.WorldObjects
         }
 
         private static readonly Motion motionLifestoneRecall = new Motion(MotionStance.NonCombat, MotionCommand.LifestoneRecall);
+
+        private static readonly Motion motionHouseRecall = new Motion(MotionStance.NonCombat, MotionCommand.HouseRecall);
+
+        public void HandleActionTeleToHouse()
+        {
+            if (HouseInstance == null)
+            {
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouMustOwnHouseToUseCommand));
+                return;
+            }
+
+            if (CombatMode != CombatMode.NonCombat)
+            {
+                // this should be handled by a different thing, probably a function that forces player into peacemode
+                var updateCombatMode = new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.CombatMode, (int)CombatMode.NonCombat);
+                SetCombatMode(CombatMode.NonCombat);
+                Session.Network.EnqueueSend(updateCombatMode);
+            }
+
+            EnqueueBroadcast(new GameMessageSystemChat($"{Name} is recalling home.", ChatMessageType.Recall));
+            EnqueueBroadcastMotion(motionHouseRecall);
+
+            // Wait for animation
+            var actionChain = new ActionChain();
+
+            // Then do teleport
+            var animLength = DatManager.PortalDat.ReadFromDat<MotionTable>(MotionTableId).GetAnimationLength(MotionCommand.HouseRecall);
+            actionChain.AddDelaySeconds(animLength);
+            actionChain.AddAction(this, () => Teleport(House.SlumLord.Location));
+
+            actionChain.EnqueueChain();
+        }
 
         /// <summary>
         /// Handles teleporting a player to the lifestone (/ls or /lifestone command)

@@ -66,5 +66,22 @@ namespace ACE.Server.WorldObjects
             // empty base
             Console.WriteLine($"{Name}.SetLinkProperties({wo.Name}) called for unknown parent type: {WeenieType}");
         }
+
+        public virtual void UpdateLinkProperties(WorldObject wo)
+        {
+            // empty base
+            Console.WriteLine($"{Name}.UpdateLinkProperties({wo.Name}) called for unknown parent type: {WeenieType}");
+        }
+
+        public void UpdateLinks()
+        {
+            foreach (var link in ChildLinks)
+            {
+                UpdateLinkProperties(link);
+
+                foreach (var subLink in link.ChildLinks)
+                    UpdateLinkProperties(subLink);
+            }
+        }
     }
 }
