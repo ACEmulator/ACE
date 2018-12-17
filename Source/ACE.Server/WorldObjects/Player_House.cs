@@ -6,6 +6,7 @@ using ACE.Database;
 using ACE.Database.Models.Shard;
 using ACE.Entity;
 using ACE.Entity.Enum;
+using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
 using ACE.Server.Factories;
 using ACE.Server.Managers;
@@ -64,6 +65,13 @@ namespace ACE.Server.WorldObjects
                 // player slumlord 'off' animation
                 var slumlord = house.SlumLord;
                 slumlord.EnqueueBroadcastMotion(new Motion(MotionStance.Invalid, MotionCommand.Off));
+
+                // reset slumlord name
+                var weenie = DatabaseManager.World.GetCachedWeenie(slumlord.WeenieClassId);
+                var wo = WorldObjectFactory.CreateWorldObject(weenie, new ObjectGuid(0));
+                slumlord.Name = wo.Name;
+
+                slumlord.EnqueueBroadcast(new GameMessagePublicUpdatePropertyString(slumlord, PropertyString.Name, wo.Name));
             }
 
             HouseId = null;
@@ -104,6 +112,10 @@ namespace ACE.Server.WorldObjects
 
             // player slumlord 'on' animation
             slumlord.EnqueueBroadcastMotion(new Motion(MotionStance.Invalid, MotionCommand.On));
+
+            // set house name
+            slumlord.Name = $"{Name}'s {slumlord.Name}";
+            slumlord.EnqueueBroadcast(new GameMessagePublicUpdatePropertyString(slumlord, PropertyString.Name, slumlord.Name));
 
             // set house data
             //var house = new HouseData();
