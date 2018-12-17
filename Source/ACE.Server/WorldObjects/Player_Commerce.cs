@@ -131,7 +131,7 @@ namespace ACE.Server.WorldObjects
                 // destroy all stacks of currency required / sale
                 foreach (WorldObject wo in cost)
                 {
-                    if (TryRemoveFromInventoryWithNetworking(wo))
+                    if (TryRemoveFromInventoryWithNetworking(wo.Guid, out _))
                         wo.Destroy();
                 }
 
@@ -229,20 +229,18 @@ namespace ACE.Server.WorldObjects
                     item = GetEquippedItem(profile.Guid);
 
                     if (item != null)
-                    {
-                        TryDequipObject(item.Guid);
-
-                        Session.Network.EnqueueSend(
-                           new GameMessageSound(Guid, Sound.WieldObject, (float)1.0),
-                           new GameMessageObjDescEvent(this),
-                           new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Wielder, new ObjectGuid(0)),
-                           new GameMessagePublicUpdatePropertyInt(item, PropertyInt.CurrentWieldedLocation, 0));
-                    }
+                        TryDequipObjectWithBroadcasting(item.Guid, out _);
                 }
                 else
                 {
                     // remove item from inventory.
-                    TryRemoveFromInventoryWithNetworking(item);
+                    TryRemoveFromInventoryWithNetworking(item.Guid, out _);
+                }
+
+                if (item == null)
+                {
+                    // todo give the client an error message
+                    return;
                 }
 
                 //Session.Network.EnqueueSend(new GameMessagePrivateUpdateInstanceId(profile, PropertyInstanceId.Container, new ObjectGuid(0).Full));

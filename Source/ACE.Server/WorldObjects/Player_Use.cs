@@ -140,10 +140,8 @@ namespace ACE.Server.WorldObjects
                 }
 
                 // if required, move to
-                var moveToChain = CreateMoveToChain(item, out var thisMoveToChainNumber);
+                var actionChain = CreateMoveToChain(item, out var thisMoveToChainNumber);
 
-                var actionChain = new ActionChain();
-                actionChain.AddChain(moveToChain);
                 actionChain.AddAction(item, () =>
                 {
                     if (thisMoveToChainNumber == moveToChainCounter)
@@ -160,14 +158,11 @@ namespace ACE.Server.WorldObjects
 
                         Session.Network.EnqueueSend(new GameEventUseDone(Session));
                     }
-                }); 
+                });
                 actionChain.EnqueueChain();
             }
         }
 
-        // TODO: refactor movetochainnumber, this is a confusing and patchwork concept
-        // TODO: add proper hooks for canceling an existing moveto event
-        // TODO: add reasonable max move time
         private ActionChain CreateMoveToChain(WorldObject target, out int thisMoveToChainNumber)
         {
             thisMoveToChainNumber = GetNextMoveToChainNumber();
@@ -189,6 +184,7 @@ namespace ACE.Server.WorldObjects
             });
 
             // poll for arrival every .1 seconds
+            // Ideally, this should be switched away from using the DelayManager, and instead be checked on every Player Tick()
             ActionChain moveToBody = new ActionChain();
             moveToBody.AddDelaySeconds(.1);
 
@@ -201,7 +197,12 @@ namespace ACE.Server.WorldObjects
 
                 // Break loop if CurrentLandblock == null (we portaled or logged out)
                 if (CurrentLandblock == null)
+                {
+                    StopExistingMoveToChains(); // This increments our moveToChainCounter and thus, should stop any additional actions in this chain
                     return false;
+                }
+
+                // todo: Have we timed out?
 
                 // Are we within use radius?
                 var valid = false;
@@ -210,6 +211,9 @@ namespace ACE.Server.WorldObjects
                 // If one of the items isn't on a landblock
                 if (!valid)
                     ret = false;
+
+                if (ret == false)
+                    StopExistingMoveToChains(); // This increments our moveToChainCounter and thus, should stop any additional actions in this chain
 
                 return ret;
             }, moveToBody);

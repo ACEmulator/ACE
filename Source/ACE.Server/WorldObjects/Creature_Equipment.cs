@@ -155,50 +155,67 @@ namespace ACE.Server.WorldObjects
 
             TrySetChild(worldObject, wieldedLocation);
 
-            EnqueueActionBroadcast((Player p) => p.TrackObject(this));
-
             worldObject.EmoteManager.OnWield(this);
 
             return true;
         }
 
         /// <summary>
-        /// This will remove the Wielder and CurrentWieldedLocation properties on the item and will remove it from the EquippedObjects dictionary.<para />
-        /// It does not add it to inventory as you could be unwielding to the ground or a chest. Og II<para />
-        /// It will also decrease the EncumbranceVal and Value.
+        /// This will set the CurrentWieldedLocation property to wieldedLocation and the Wielder property to this guid and will add it to the EquippedObjects dictionary.<para />
+        /// It will also increase the EncumbranceVal and Value.
         /// </summary>
-        public bool TryDequipObject(ObjectGuid objectGuid)
+        protected bool TryEquipObjectWithBroadcasting(WorldObject worldObject, int wieldedLocation)
         {
-            return TryDequipObject(objectGuid, out _);
+            if (!TryEquipObject(worldObject, wieldedLocation))
+                return false;
+
+            // Notify viewers in the area that we've equipped the item
+            EnqueueActionBroadcast(p => p.TrackObject(worldObject));
+
+            return true;
         }
 
         /// <summary>
         /// This will remove the Wielder and CurrentWieldedLocation properties on the item and will remove it from the EquippedObjects dictionary.<para />
-        /// It does not add it to inventory as you could be unwielding to the ground or a chest. Og II<para />
+        /// It does not add it to inventory as you could be unwielding to the ground or a chest.<para />
         /// It will also decrease the EncumbranceVal and Value.
         /// </summary>
-        public bool TryDequipObject(ObjectGuid objectGuid, out WorldObject worldObject)
+        private bool TryDequipObject(ObjectGuid objectGuid, out WorldObject worldObject)
         {
-            if (EquippedObjects.Remove(objectGuid, out worldObject))
+            if (!EquippedObjects.Remove(objectGuid, out worldObject))
+                return false;
+
+            var wo = worldObject;
+            Children.Remove(Children.Find(s => s.Guid == wo.Guid.Full));
+
+            worldObject.RemoveProperty(PropertyInt.CurrentWieldedLocation);
+            worldObject.RemoveProperty(PropertyInstanceId.Wielder);
+
+            EncumbranceVal -= worldObject.EncumbranceVal;
+            Value -= worldObject.Value;
+
+            worldObject.EmoteManager.OnUnwield(this);
+
+            return true;
+        }
+
+        /// <summary>
+        /// This will remove the Wielder and CurrentWieldedLocation properties on the item and will remove it from the EquippedObjects dictionary.<para />
+        /// It does not add it to inventory as you could be unwielding to the ground or a chest.<para />
+        /// It will also decrease the EncumbranceVal and Value.
+        /// </summary>
+        protected bool TryDequipObjectWithBroadcasting(ObjectGuid objectGuid, out WorldObject worldObject, bool droppingToLandscape = false)
+        {
+            if (!TryDequipObject(objectGuid, out worldObject))
+                return false;
+
+            if (!droppingToLandscape)
             {
-                var wo = worldObject;
-                Children.Remove(Children.Find(s => s.Guid == wo.Guid.Full));
-
-                worldObject.RemoveProperty(PropertyInt.CurrentWieldedLocation);
-                worldObject.RemoveProperty(PropertyInstanceId.Wielder);
-
-                EncumbranceVal -= worldObject.EncumbranceVal;
-                Value -= worldObject.Value;
-
-                //EnqueueActionBroadcast((Player p) => p.TrackObject(this));
+                // This should only be called if the object is going to the private storage, not when dropped on the landscape
                 EnqueueBroadcast(new GameMessagePickupEvent(worldObject));
-
-                worldObject.EmoteManager.OnUnwield(this);
-
-                return true;
             }
 
-            return false;
+            return true;
         }
 
 
@@ -307,7 +324,7 @@ namespace ACE.Server.WorldObjects
                         wo.Shade = item.Shade;
 
                     if (wo.ValidLocations != null)
-                        TryEquipObject(wo, (int) wo.ValidLocations.Value);
+                        TryEquipObjectWithBroadcasting(wo, (int) wo.ValidLocations.Value);
                 }
             }
         }

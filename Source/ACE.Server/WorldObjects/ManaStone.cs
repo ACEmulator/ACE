@@ -177,7 +177,7 @@ namespace ACE.Server.WorldObjects
 
             if (dice < DestroyChance)
             {
-                if (player.TryRemoveFromInventoryWithNetworking(this))
+                if (player.TryRemoveFromInventoryWithNetworking(Guid, out _))
                 {
                     player.Session.Network.EnqueueSend(new GameMessageSystemChat($"The {Name} is destroyed.", ChatMessageType.Broadcast));
                     Destroy();
