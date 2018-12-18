@@ -68,8 +68,8 @@ namespace ACE.Server.Factories
                     wo = CreateTier1Objects();
                     break;
                 case 2:
-                    wo = CreateTier2Objects();
                     //loot tier 2
+                    wo = CreateTier2Objects();
                     break;
                 case 3:
                     //loot tier 3
@@ -104,13 +104,12 @@ namespace ACE.Server.Factories
             WorldObject wo;
             int id = 0;
             int chance;
-            Random r = new Random();
-                int type = r.Next(1, 6);
-                switch (type)
+                int type = Physics.Common.Random.RollDice(1,5); ;
+            switch (type)
                 {
                     case 1:
                         //mundane items
-                        int mundaneType = r.Next(1, 8);
+                        int mundaneType = Physics.Common.Random.RollDice(1, 7);
                         switch (mundaneType)
                         {
                             case 1:
@@ -120,7 +119,7 @@ namespace ACE.Server.Factories
                                 break;
                             case 2:
                                 //mana stones
-                                chance = r.Next(1, 100);
+                                chance = Physics.Common.Random.RollDice(1, 100);
                                 if(chance < 75)
                                 {
                                     //Minor Mana Stone
@@ -134,7 +133,7 @@ namespace ACE.Server.Factories
                                 break;
                             case 3:
                                 //potions
-                                chance = r.Next(1, 375);
+                                chance = Physics.Common.Random.RollDice(1, 375);
                                 if (chance < 100)
                                 {
                                     //Stamina Potion
@@ -168,7 +167,7 @@ namespace ACE.Server.Factories
                                 break;
                             case 4:
                                 //healing kits
-                                chance = r.Next(1, 100);
+                                chance = Physics.Common.Random.RollDice(1, 100);
                                 if (chance < 75)
                                 {
                                     //Handy Healing Kit
@@ -182,7 +181,7 @@ namespace ACE.Server.Factories
                                 break;
                             case 5:
                                 //lockpicks
-                                chance = r.Next(1, 100);
+                                chance = Physics.Common.Random.RollDice(1, 100);
                                 if (chance < 75)
                                 {
                                     //Plain Lockpick
@@ -203,13 +202,10 @@ namespace ACE.Server.Factories
                                 //Food Items
                                 id = CreateFood();
                                 break;
-                            case 7:
-                            //spell scrolls level 1-3
-                            wo = CreateRandomScroll(r.Next(1, 4));
-                            return wo;
-                            break;
                             default:
-                                break;
+                                //spell scrolls level 1-3
+                                wo = CreateRandomScroll(Physics.Common.Random.RollDice(1, 3));
+                                return wo;
                         }
                     wo = WorldObjectFactory.CreateNewWorldObject((uint)id);
                     return wo;
@@ -237,18 +233,18 @@ namespace ACE.Server.Factories
             int id = 0;
             int chance;
             WorldObject wo;
-            Random r = new Random();
-                int type = r.Next(1, 6);
+            
+                int type = Physics.Common.Random.RollDice(1, 5);
                 switch (type)
                 {
                     case 1:
                         //mundane items
-                        int mundaneType = r.Next(1, 8);
+                        int mundaneType = Physics.Common.Random.RollDice(1, 7);
                         switch (mundaneType)
                         {
                             case 1:
                                 //peas
-                                chance = r.Next(1, 100);
+                                chance = Physics.Common.Random.RollDice(1, 100);
                                 if (chance < 75)
                                 {
                                     //lead pea
@@ -262,7 +258,7 @@ namespace ACE.Server.Factories
                                 break;
                             case 2:
                                 //mana stones
-                                chance = r.Next(1, 100);
+                                chance = Physics.Common.Random.RollDice(1, 100);
                                 if (chance < 75)
                                 {
                                     //Minor Mana Stone
@@ -281,7 +277,7 @@ namespace ACE.Server.Factories
                                 break;
                             case 3:
                                 //potions
-                                chance = r.Next(1, 450);
+                                chance = Physics.Common.Random.RollDice(1, 450);
                                 if (chance < 100)
                                 {
                                     //Stamina Potion
@@ -330,7 +326,7 @@ namespace ACE.Server.Factories
                                 break;
                             case 4:
                                 //healing kits
-                                chance = r.Next(1, 100);
+                                chance = Physics.Common.Random.RollDice(1, 100);
                                 if (chance < 75)
                                 {
                                     //Adept Healing Kit
@@ -344,7 +340,7 @@ namespace ACE.Server.Factories
                                 break;
                             case 5:
                                 //lockpicks
-                                chance = r.Next(1, 105);
+                                chance = Physics.Common.Random.RollDice(1, 105);
                                 if (chance < 75)
                                 {
                                     //Plain Lockpick
@@ -369,12 +365,10 @@ namespace ACE.Server.Factories
                             case 6:
                                 id = CreateFood();
                                 break;
-                            case 7:
-                            //spell scrolls level 3-5
-                            wo = CreateRandomScroll(r.Next(3, 6));
-                            return wo;
                             default:
-                                break;
+                                //spell scrolls level 3-5
+                                wo = CreateRandomScroll(Physics.Common.Random.RollDice(3, 5));
+                                return wo;
                         }
                     wo = WorldObjectFactory.CreateNewWorldObject((uint)id);
                     return wo;
@@ -402,24 +396,23 @@ namespace ACE.Server.Factories
             int id = 0;
             int chance;
             WorldObject wo;
-            Random r = new Random();
-                int type = r.Next(1, 6);
+                int type = Physics.Common.Random.RollDice(1, 5);
                 switch (type)
                 {
                     case 1:
                         //mundane items
-                        int mundaneType = r.Next(1, 8);
+                        int mundaneType = Physics.Common.Random.RollDice(1, 7);
                         switch (mundaneType)
                         {
                             case 1:
                                 //peas
-                                chance = r.Next(1, 125);
+                                chance = Physics.Common.Random.RollDice(1, 125);
                                 if (chance < 75)
                                 {
                                     //lead pea
                                     id = 8329;
                                 }
-                                else if(chance < 100)
+                                else if(chance < 115)
                                 {
                                     //Iron Pea
                                     id = 8328;
@@ -432,13 +425,13 @@ namespace ACE.Server.Factories
                                 break;
                             case 2:
                                 //mana stones
-                                chance = r.Next(1, 100);
-                                if (chance < 50)
+                                chance = Physics.Common.Random.RollDice(1, 100);
+                                if (chance < 65)
                                 {
                                     //Lesser Mana Stone
                                     id = 2434;
                                 }
-                                else if (chance < 95)
+                                else if (chance < 97)
                                 {
                                     //Mana Stone
                                     id = 2435;
@@ -451,7 +444,7 @@ namespace ACE.Server.Factories
                                 break;
                             case 3:
                                 //potions
-                                chance = r.Next(1, 450);
+                                chance = Physics.Common.Random.RollDice(1, 450);
                                 if (chance < 100)
                                 {
                                     //Stamina Tincture
@@ -500,13 +493,13 @@ namespace ACE.Server.Factories
                                 break;
                             case 4:
                                 //healing kits
-                                chance = r.Next(1, 100);
+                                chance = Physics.Common.Random.RollDice(1, 100);
                                 if (chance < 75)
                                 {
                                     //Adept Healing Kit
                                     id = 629;
                                 }
-                                else if (chance < 90)
+                                else if (chance < 97)
                                 {
                                     //Gifted Healing Kit
                                     id = 630;
@@ -519,8 +512,8 @@ namespace ACE.Server.Factories
                                 break;
                             case 5:
                                 //lockpicks
-                                chance = r.Next(1, 105);
-                                if (chance < 100)
+                                chance = Physics.Common.Random.RollDice(1, 105);
+                                if (chance < 70)
                                 {
                                     //Reliable Lockpick
                                     id = 545;
@@ -538,7 +531,7 @@ namespace ACE.Server.Factories
                                 break;
                             //case 6:
                             //    //coalesced mana
-                            //    chance = r.Next(1, 100);
+                            //    chance = Physics.Common.Random.RollDice(1, 100);
                             //    if (chance < 90)
                             //    {
                             //        //Coalecsed Mana (Yellow)
@@ -552,12 +545,10 @@ namespace ACE.Server.Factories
                             //    break;
                             case 6:
                                 id = CreateFood();
-                            break;
-                        case 7:
-                            wo = CreateRandomScroll(r.Next(4, 6));
-                            return wo;
-                        default:
                                 break;
+                            default:
+                                wo = CreateRandomScroll(Physics.Common.Random.RollDice(4, 5));
+                                return wo;
                         }
                     wo = WorldObjectFactory.CreateNewWorldObject((uint)id);
                     return wo;
@@ -585,18 +576,18 @@ namespace ACE.Server.Factories
             int id = 0;
             int chance;
             WorldObject wo;
-            Random r = new Random();
-                int type = r.Next(1, 6);
+            
+                int type = Physics.Common.Random.RollDice(1, 6);
                 switch (type)
                 {
                     case 1:
                         //mundane items
-                        int mundaneType = r.Next(1, 8);
+                        int mundaneType = Physics.Common.Random.RollDice(1, 8);
                         switch (mundaneType)
                         {
                             case 1:
                                 //peas
-                                chance = r.Next(1, 125);
+                                chance = Physics.Common.Random.RollDice(1, 125);
                                 if (chance < 75)
                                 {
                                     //lead pea
@@ -615,7 +606,7 @@ namespace ACE.Server.Factories
                                 break;
                             case 2:
                                 //mana stones
-                                chance = r.Next(1, 100);
+                                chance = Physics.Common.Random.RollDice(1, 100);
                                 if (chance < 50)
                                 {
                                     //Lesser Mana Stone
@@ -634,7 +625,7 @@ namespace ACE.Server.Factories
                                 break;
                             case 3:
                                 //potions
-                                chance = r.Next(1, 450);
+                                chance = Physics.Common.Random.RollDice(1, 450);
                                 if (chance < 100)
                                 {
                                     //Stamina Tincture
@@ -683,7 +674,7 @@ namespace ACE.Server.Factories
                                 break;
                             case 4:
                                 //healing kits
-                                chance = r.Next(1, 100);
+                                chance = Physics.Common.Random.RollDice(1, 100);
                                 if (chance < 75)
                                 {
                                     //Adept Healing Kit
@@ -702,8 +693,8 @@ namespace ACE.Server.Factories
                                 break;
                             case 5:
                                 //lockpicks
-                                chance = r.Next(1, 105);
-                                if (chance < 100)
+                                chance = Physics.Common.Random.RollDice(1, 105);
+                                if (chance < 70)
                                 {
                                     //Reliable Lockpick
                                     id = 545;
@@ -721,7 +712,7 @@ namespace ACE.Server.Factories
                                 break;
                             //case 6:
                             //    //coalesced mana
-                            //    chance = r.Next(1, 100);
+                            //    chance = Physics.Common.Random.RollDice(1, 100);
                             //    if (chance < 50)
                             //    {
                             //        //Coalesced Mana (Yellow)
@@ -741,11 +732,9 @@ namespace ACE.Server.Factories
                             case 6:
                                 id = CreateFood();
                                 break;
-                        case 7:
-                            wo = CreateRandomScroll(r.Next(4, 6));
-                            return wo;
-                        default:
-                                break;
+                            default:
+                                wo = CreateRandomScroll(Physics.Common.Random.RollDice(4, 5));
+                                return wo;
                         }
                     wo = WorldObjectFactory.CreateNewWorldObject((uint)id);
                     return wo;
@@ -773,24 +762,24 @@ namespace ACE.Server.Factories
             int id = 0;
             int chance;
             WorldObject wo;
-            Random r = new Random();
-                int type = r.Next(1, 6);
+            
+                int type = Physics.Common.Random.RollDice(1, 6);
                 switch (type)
                 {
                     case 1:
                         //mundane items
-                        int mundaneType = r.Next(1, 8);
+                        int mundaneType = Physics.Common.Random.RollDice(1, 7);
                         switch (mundaneType)
                         {
                             case 1:
                                 //peas
-                                chance = r.Next(1, 125);
+                                chance = Physics.Common.Random.RollDice(1, 125);
                                 if (chance < 75)
                                 {
                                     //Copper Pea
                                     id = 8326;
                                 }
-                                else if (chance < 100)
+                                else if (chance < 120)
                                 {
                                     //Silver Pea
                                     id = 8331;
@@ -803,7 +792,7 @@ namespace ACE.Server.Factories
                                 break;
                             case 2:
                                 //mana stones
-                                chance = r.Next(1, 100);
+                                chance = Physics.Common.Random.RollDice(1, 100);
                                 if (chance < 50)
                                 {
                                     //Moderate Mana Stone
@@ -822,7 +811,7 @@ namespace ACE.Server.Factories
                                 break;
                             case 3:
                                 //potions
-                                chance = r.Next(1, 450);
+                                chance = Physics.Common.Random.RollDice(1, 450);
                                 if (chance < 100)
                                 {
                                     //Stamina Brew
@@ -871,13 +860,13 @@ namespace ACE.Server.Factories
                                 break;
                             case 4:
                                 //healing kits
-                                chance = r.Next(1, 100);
+                                chance = Physics.Common.Random.RollDice(1, 100);
                                 if (chance < 75)
                                 {
                                     //Excellent Healing Kit
                                     id = 631;
                                 }
-                                else if (chance < 90)
+                                else if (chance < 95)
                                 {
                                     //Peerless Healing Kit
                                     id = 632;
@@ -890,8 +879,8 @@ namespace ACE.Server.Factories
                                 break;
                             case 5:
                                 //lockpicks
-                                chance = r.Next(1, 105);
-                                if (chance < 100)
+                                chance = Physics.Common.Random.RollDice(1, 105);
+                                if (chance < 70)
                                 {
                                     //Excellent Lockpick
                                     id = 514;
@@ -909,7 +898,7 @@ namespace ACE.Server.Factories
                                 break;
                             //case 6:
                             //    //coalesced mana
-                            //    chance = r.Next(1, 100);
+                            //    chance = Physics.Common.Random.RollDice(1, 100);
                             //    if (chance < 50)
                             //    {
                             //        //Coalesced Mana (Yellow)
@@ -929,11 +918,9 @@ namespace ACE.Server.Factories
                             case 6:
                                 id = CreateFood();
                                 break;
-                        case 7:
-                            wo = CreateRandomScroll(r.Next(5, 8));
-                            return wo;
-                        default:
-                                break;
+                            default:
+                                wo = CreateRandomScroll(Physics.Common.Random.RollDice(5, 6));
+                                return wo;
                         }
                         wo = WorldObjectFactory.CreateNewWorldObject((uint)id);
                         return wo;
@@ -961,24 +948,24 @@ namespace ACE.Server.Factories
             int id = 0;
             int chance;
             WorldObject wo;
-            Random r = new Random();
-                int type = r.Next(1, 5);
+            
+                int type = Physics.Common.Random.RollDice(1, 5);
                 switch (type)
                 {
                     case 1:
                         //mundane items
-                        int mundaneType = r.Next(1, 8);
+                        int mundaneType = Physics.Common.Random.RollDice(1, 7);
                         switch (mundaneType)
                         {
                             case 1:
                                 //peas
-                                chance = r.Next(1, 125);
-                                if (chance < 75)
+                                chance = Physics.Common.Random.RollDice(1, 125);
+                                if (chance < 80)
                                 {
                                     //Silver Pea
                                     id = 8331;
                                 }
-                                else if (chance < 100)
+                                else if (chance < 115)
                                 {
                                     //Gold Pea
                                     id = 8327;
@@ -991,7 +978,7 @@ namespace ACE.Server.Factories
                                 break;
                             case 2:
                                 //mana stones
-                                chance = r.Next(1, 100);
+                                chance = Physics.Common.Random.RollDice(1, 100);
                                 if (chance < 75)
                                 {
                                     //Greater Mana Stone
@@ -1005,7 +992,7 @@ namespace ACE.Server.Factories
                                 break;
                             case 3:
                                 //potions
-                                chance = r.Next(1, 450);
+                                chance = Physics.Common.Random.RollDice(1, 450);
                                 if (chance < 100)
                                 {
                                     //Stamina Brew
@@ -1054,13 +1041,13 @@ namespace ACE.Server.Factories
                                 break;
                             case 4:
                                 //healing kits
-                                chance = r.Next(1, 100);
+                                chance = Physics.Common.Random.RollDice(1, 100);
                                 if (chance < 75)
                                 {
                                     //Excellent Healing Kit
                                     id = 631;
                                 }
-                                else if (chance < 90)
+                                else if (chance < 95)
                                 {
                                     //Peerless Healing Kit
                                     id = 632;
@@ -1073,7 +1060,7 @@ namespace ACE.Server.Factories
                                 break;
                             case 5:
                                 //lockpicks
-                                chance = r.Next(1, 105);
+                                chance = Physics.Common.Random.RollDice(1, 105);
                                 if (chance < 100)
                                 {
                                     //Excellent Lockpick
@@ -1092,7 +1079,7 @@ namespace ACE.Server.Factories
                                 break;
                             //case 6:
                             //    //coalesced mana
-                            //    chance = r.Next(1, 100);
+                            //    chance = Physics.Common.Random.RollDice(1, 100);
                             //    if (chance < 50)
                             //    {
                             //        //Coalesced Mana (Yellow)
@@ -1112,11 +1099,9 @@ namespace ACE.Server.Factories
                             case 6:
                                 id = CreateFood();
                                 break;
-                        case 7:
-                            wo = CreateRandomScroll(r.Next(6 , 8));
-                            return wo;
-                        default:
-                                break;
+                            default:
+                                wo = CreateRandomScroll(Physics.Common.Random.RollDice(6 , 6));
+                                return wo;
                         }
                         wo = WorldObjectFactory.CreateNewWorldObject((uint)id);
                         return wo;
@@ -1144,24 +1129,24 @@ namespace ACE.Server.Factories
             int id = 0;
             int chance;
             WorldObject wo;
-            Random r = new Random();
-                int type = r.Next(1, 6);
+            
+                int type = Physics.Common.Random.RollDice(1, 5);
                 switch (type)
                 {
                     case 1:
                         //mundane items
-                        int mundaneType = r.Next(1, 8);
+                        int mundaneType = Physics.Common.Random.RollDice(1, 7);
                         switch (mundaneType)
                         {
                             case 1:
                                 //peas
-                                chance = r.Next(1, 125);
+                                chance = Physics.Common.Random.RollDice(1, 125);
                                 if (chance < 75)
                                 {
                                     //Silver Pea
                                     id = 8331;
                                 }
-                                else if (chance < 100)
+                                else if (chance < 115)
                                 {
                                     //Gold Pea
                                     id = 8327;
@@ -1174,7 +1159,7 @@ namespace ACE.Server.Factories
                                 break;
                             case 2:
                                 //mana stones
-                                chance = r.Next(1, 100);
+                                chance = Physics.Common.Random.RollDice(1, 100);
                                 if (chance < 75)
                                 {
                                     //Greater Mana Stone
@@ -1188,7 +1173,7 @@ namespace ACE.Server.Factories
                                 break;
                             case 3:
                                 //potions
-                                chance = r.Next(1, 450);
+                                chance = Physics.Common.Random.RollDice(1, 450);
                                 if (chance < 100)
                                 {
                                     //Stamina Brew
@@ -1237,13 +1222,13 @@ namespace ACE.Server.Factories
                                 break;
                             case 4:
                                 //healing kits
-                                chance = r.Next(1, 100);
+                                chance = Physics.Common.Random.RollDice(1, 100);
                                 if (chance < 75)
                                 {
                                     //Excellent Healing Kit
                                     id = 631;
                                 }
-                                else if (chance < 90)
+                                else if (chance < 95)
                                 {
                                     //Peerless Healing Kit
                                     id = 632;
@@ -1256,7 +1241,7 @@ namespace ACE.Server.Factories
                                 break;
                             case 5:
                                 //lockpicks
-                                chance = r.Next(1, 105);
+                                chance = Physics.Common.Random.RollDice(1, 105);
                                 if (chance < 100)
                                 {
                                     //Excellent Lockpick
@@ -1275,7 +1260,7 @@ namespace ACE.Server.Factories
                                 break;
                             //case 6:
                             //    //coalesced mana
-                            //    chance = r.Next(1, 100);
+                            //    chance = Physics.Common.Random.RollDice(1, 100);
                             //    if (chance < 50)
                             //    {
                             //        //Coalesced Mana (Yellow)
@@ -1295,11 +1280,9 @@ namespace ACE.Server.Factories
                             case 6:
                                 id = CreateFood();
                                 break;
-                        case 7:
-                            wo = CreateRandomScroll(r.Next(6,8));
-                            return wo;
-                        default:
-                                break;
+                            default:
+                                wo = CreateRandomScroll(Physics.Common.Random.RollDice(6,6));
+                                return wo;
                         }
                         wo = WorldObjectFactory.CreateNewWorldObject((uint)id);
                         return wo;
@@ -1327,24 +1310,24 @@ namespace ACE.Server.Factories
             int id = 0;
             int chance;
             WorldObject wo;
-            Random r = new Random();
-                int type = r.Next(1, 6);
+            
+                int type = Physics.Common.Random.RollDice(1, 5);
                 switch (type)
                 {
                     case 1:
                         //mundane items
-                        int mundaneType = r.Next(1, 8);
+                        int mundaneType = Physics.Common.Random.RollDice(1, 7);
                         switch (mundaneType)
                         {
                             case 1:
                                 //peas
-                                chance = r.Next(1, 125);
+                                chance = Physics.Common.Random.RollDice(1, 125);
                                 if (chance < 75)
                                 {
                                     //Silver Pea
                                     id = 8331;
                                 }
-                                else if (chance < 100)
+                                else if (chance < 115)
                                 {
                                     //Gold Pea
                                     id = 8327;
@@ -1357,7 +1340,7 @@ namespace ACE.Server.Factories
                                 break;
                             case 2:
                                 //mana stones
-                                chance = r.Next(1, 100);
+                                chance = Physics.Common.Random.RollDice(1, 100);
                                 if (chance < 75)
                                 {
                                     //Greater Mana Stone
@@ -1371,7 +1354,7 @@ namespace ACE.Server.Factories
                                 break;
                             case 3:
                                 //potions
-                                chance = r.Next(1, 450);
+                                chance = Physics.Common.Random.RollDice(1, 450);
                                 if (chance < 100)
                                 {
                                     //Stamina Brew
@@ -1420,7 +1403,7 @@ namespace ACE.Server.Factories
                                 break;
                             case 4:
                                 //healing kits
-                                chance = r.Next(1, 100);
+                                chance = Physics.Common.Random.RollDice(1, 100);
                                 if (chance < 75)
                                 {
                                     //Excellent Healing Kit
@@ -1439,7 +1422,7 @@ namespace ACE.Server.Factories
                                 break;
                             case 5:
                                 //lockpicks
-                                chance = r.Next(1, 105);
+                                chance = Physics.Common.Random.RollDice(1, 105);
                                 if (chance < 100)
                                 {
                                     //Excellent Lockpick
@@ -1458,7 +1441,7 @@ namespace ACE.Server.Factories
                                 break;
                             //case 6:
                             //    //coalesced mana
-                            //    chance = r.Next(1, 100);
+                            //    chance = Physics.Common.Random.RollDice(1, 100);
                             //    if (chance < 50)
                             //    {
                             //        //Coalesced Mana (Yellow)
@@ -1477,7 +1460,7 @@ namespace ACE.Server.Factories
                             //    break;
                             //case 7:
                             //    //spell components
-                            //    chance = r.Next(1, 170);
+                            //    chance = Physics.Common.Random.RollDice(1, 170);
                             //    if (chance < 100)
                             //    {
                             //        //Quill of Infliction
@@ -1857,10 +1840,10 @@ namespace ACE.Server.Factories
                             case 6:
                                 id = CreateFood();
                                 break;
-                        case 7:
-                            wo = CreateRandomScroll(7);
-                            return wo;
-                        default:
+                            case 7:
+                                wo = CreateRandomScroll(7);
+                                return wo;
+                            default:
                                 break;
                         }
                         wo = WorldObjectFactory.CreateNewWorldObject((uint)id);
@@ -1887,7 +1870,7 @@ namespace ACE.Server.Factories
 
         public static WorldObject CreateJewels(int tier)
         {
-            Random r = new Random();
+            
             int spellChance = 0;
             int gemType = 0;
             int workmanship = 0;
@@ -1924,50 +1907,50 @@ namespace ACE.Server.Factories
             {
                 case 1:
                     //tier 1
-                    gemType = t1gems[r.Next(0, t1gems.Length)];
-                    if(r.Next(0,2) == 1)
+                    gemType = t1gems[Physics.Common.Random.RollDice(0, t1gems.Length-1)];
+                    if(Physics.Common.Random.RollDice(0,1) == 1)
                     {
-                        spellChance = r.Next(0, 100);
+                        spellChance = Physics.Common.Random.RollDice(0, 100);
                         if(spellChance < 30)
                         {
-                            spellDID = creature1[r.Next(0, creature1.Length)];
+                            spellDID = creature1[Physics.Common.Random.RollDice(0, creature1.Length-1)];
                             mana_cost = 50;
-                            max_mana = r.Next(mana_cost, mana_cost + 50);
+                            max_mana = Physics.Common.Random.RollDice(mana_cost, mana_cost + 50);
                             spellcraft = 50;
                         }
                         else if (spellChance < 60)
                         {
-                            spellDID = life1[r.Next(0, life1.Length)];
+                            spellDID = life1[Physics.Common.Random.RollDice(0, life1.Length-1)];
                             mana_cost = 50;
-                            max_mana = r.Next(mana_cost, mana_cost + 50);
+                            max_mana = Physics.Common.Random.RollDice(mana_cost, mana_cost + 50);
                             spellcraft = 50;
                         }
                         else if (spellChance < 75)
                         {
-                            spellDID = creature2[r.Next(0, creature2.Length)];
+                            spellDID = creature2[Physics.Common.Random.RollDice(0, creature2.Length-1)];
                             mana_cost = 100;
-                            max_mana = r.Next(mana_cost, mana_cost + 50);
+                            max_mana = Physics.Common.Random.RollDice(mana_cost, mana_cost + 50);
                             spellcraft = 100;
                         }
                         else if (spellChance < 90)
                         {
-                            spellDID = life2[r.Next(0, life2.Length)];
+                            spellDID = life2[Physics.Common.Random.RollDice(0, life2.Length-1)];
                             mana_cost = 100;
-                            max_mana = r.Next(mana_cost, mana_cost + 50);
+                            max_mana = Physics.Common.Random.RollDice(mana_cost, mana_cost + 50);
                             spellcraft = 100;
                         }
                         else if (spellChance < 95)
                         {
-                            spellDID = creature3[r.Next(0, creature3.Length)];
+                            spellDID = creature3[Physics.Common.Random.RollDice(0, creature3.Length-1)];
                             mana_cost = 150;
-                            max_mana = r.Next(mana_cost, mana_cost + 50);
+                            max_mana = Physics.Common.Random.RollDice(mana_cost, mana_cost + 50);
                             spellcraft = 150;
                         }
                         else
                         {
-                            spellDID = life3[r.Next(0, life3.Length)];
+                            spellDID = life3[Physics.Common.Random.RollDice(0, life3.Length-1)];
                             mana_cost = 150;
-                            max_mana = r.Next(mana_cost, mana_cost + 50);
+                            max_mana = Physics.Common.Random.RollDice(mana_cost, mana_cost + 50);
                             spellcraft = 150;
                         }
                     }
@@ -1975,50 +1958,50 @@ namespace ACE.Server.Factories
                     break;
                 case 2:
                     //tier 2
-                    gemType = t2gems[r.Next(0, t2gems.Length)];
-                    if (r.Next(0, 2) == 1)
+                    gemType = t2gems[Physics.Common.Random.RollDice(0, t2gems.Length-1)];
+                    if (Physics.Common.Random.RollDice(0, 1) == 1)
                     {
-                        spellChance = r.Next(0, 100);
+                        spellChance = Physics.Common.Random.RollDice(0, 100);
                         if (spellChance < 30)
                         {
-                            spellDID = creature3[r.Next(0, creature1.Length)];
+                            spellDID = creature3[Physics.Common.Random.RollDice(0, creature1.Length-1)];
                             mana_cost = 150;
-                            max_mana = r.Next(mana_cost, mana_cost + 50);
+                            max_mana = Physics.Common.Random.RollDice(mana_cost, mana_cost + 50);
                             spellcraft = 150;
                         }
                         else if (spellChance < 60)
                         {
-                            spellDID = life3[r.Next(0, life1.Length)];
+                            spellDID = life3[Physics.Common.Random.RollDice(0, life1.Length-1)];
                             mana_cost = 150;
-                            max_mana = r.Next(mana_cost, mana_cost + 50);
+                            max_mana = Physics.Common.Random.RollDice(mana_cost, mana_cost + 50);
                             spellcraft = 150;
                         }
                         else if (spellChance < 75)
                         {
-                            spellDID = creature4[r.Next(0, creature2.Length)];
+                            spellDID = creature4[Physics.Common.Random.RollDice(0, creature2.Length-1)];
                             mana_cost = 200;
-                            max_mana = r.Next(mana_cost, mana_cost + 50);
+                            max_mana = Physics.Common.Random.RollDice(mana_cost, mana_cost + 50);
                             spellcraft = 200;
                         }
                         else if (spellChance < 90)
                         {
-                            spellDID = life4[r.Next(0, life2.Length)];
+                            spellDID = life4[Physics.Common.Random.RollDice(0, life2.Length-1)];
                             mana_cost = 200;
-                            max_mana = r.Next(mana_cost, mana_cost + 50);
+                            max_mana = Physics.Common.Random.RollDice(mana_cost, mana_cost + 50);
                             spellcraft = 200;
                         }
                         else if (spellChance < 95)
                         {
-                            spellDID = creature5[r.Next(0, creature3.Length)];
+                            spellDID = creature5[Physics.Common.Random.RollDice(0, creature3.Length-1)];
                             mana_cost = 250;
-                            max_mana = r.Next(mana_cost, mana_cost + 50);
+                            max_mana = Physics.Common.Random.RollDice(mana_cost, mana_cost + 50);
                             spellcraft = 250;
                         }
                         else
                         {
-                            spellDID = life5[r.Next(0, life3.Length)];
+                            spellDID = life5[Physics.Common.Random.RollDice(0, life3.Length-1)];
                             mana_cost = 250;
-                            max_mana = r.Next(mana_cost, mana_cost + 50);
+                            max_mana = Physics.Common.Random.RollDice(mana_cost, mana_cost + 50);
                             spellcraft = 250;
                         }
                     }
@@ -2026,50 +2009,50 @@ namespace ACE.Server.Factories
                     break;
                 case 3:
                     //tier 3
-                    gemType = t3gems[r.Next(0, t3gems.Length)];
-                    if (r.Next(0, 2) == 1)
+                    gemType = t3gems[Physics.Common.Random.RollDice(0, t3gems.Length-1)];
+                    if (Physics.Common.Random.RollDice(0, 1) == 1)
                     {
-                        spellChance = r.Next(0, 100);
+                        spellChance = Physics.Common.Random.RollDice(0, 100);
                         if (spellChance < 30)
                         {
-                            spellDID = creature4[r.Next(0, creature1.Length)];
+                            spellDID = creature4[Physics.Common.Random.RollDice(0, creature1.Length-1)];
                             mana_cost = 200;
-                            max_mana = r.Next(mana_cost, mana_cost + 50);
+                            max_mana = Physics.Common.Random.RollDice(mana_cost, mana_cost + 50);
                             spellcraft = 200;
                         }
                         else if (spellChance < 60)
                         {
-                            spellDID = life4[r.Next(0, life1.Length)];
+                            spellDID = life4[Physics.Common.Random.RollDice(0, life1.Length-1)];
                             mana_cost = 200;
-                            max_mana = r.Next(mana_cost, mana_cost + 50);
+                            max_mana = Physics.Common.Random.RollDice(mana_cost, mana_cost + 50);
                             spellcraft = 200;
                         }
                         else if (spellChance < 75)
                         {
-                            spellDID = creature5[r.Next(0, creature2.Length)];
+                            spellDID = creature5[Physics.Common.Random.RollDice(0, creature2.Length-1)];
                             mana_cost = 250;
-                            max_mana = r.Next(mana_cost, mana_cost + 50);
+                            max_mana = Physics.Common.Random.RollDice(mana_cost, mana_cost + 50);
                             spellcraft = 250;
                         }
                         else if (spellChance < 90)
                         {
-                            spellDID = life5[r.Next(0, life2.Length)];
+                            spellDID = life5[Physics.Common.Random.RollDice(0, life2.Length-1)];
                             mana_cost = 250;
-                            max_mana = r.Next(mana_cost, mana_cost + 50);
+                            max_mana = Physics.Common.Random.RollDice(mana_cost, mana_cost + 50);
                             spellcraft = 250;
                         }
                         else if (spellChance < 95)
                         {
-                            spellDID = creature6[r.Next(0, creature3.Length)];
+                            spellDID = creature6[Physics.Common.Random.RollDice(0, creature3.Length-1)];
                             mana_cost = 300;
-                            max_mana = r.Next(mana_cost, mana_cost + 50);
+                            max_mana = Physics.Common.Random.RollDice(mana_cost, mana_cost + 50);
                             spellcraft = 300;
                         }
                         else
                         {
-                            spellDID = life6[r.Next(0, life3.Length)];
+                            spellDID = life6[Physics.Common.Random.RollDice(0, life3.Length-1)];
                             mana_cost = 300;
-                            max_mana = r.Next(mana_cost, mana_cost + 50);
+                            max_mana = Physics.Common.Random.RollDice(mana_cost, mana_cost + 50);
                             spellcraft = 300;
                         }
                     }
@@ -2077,35 +2060,35 @@ namespace ACE.Server.Factories
                     break;
                 case 4:
                     //tier 4
-                    gemType = t4gems[r.Next(0, t4gems.Length)];
-                    if (r.Next(0, 2) == 1)
+                    gemType = t4gems[Physics.Common.Random.RollDice(0, t4gems.Length-1)];
+                    if (Physics.Common.Random.RollDice(0, 1) == 1)
                     {
                         if (spellChance < 35)
                         {
-                            spellDID = creature5[r.Next(0, creature2.Length)];
+                            spellDID = creature5[Physics.Common.Random.RollDice(0, creature2.Length-1)];
                             mana_cost = 250;
-                            max_mana = r.Next(mana_cost, mana_cost + 50);
+                            max_mana = Physics.Common.Random.RollDice(mana_cost, mana_cost + 50);
                             spellcraft = 250;
                         }
                         else if (spellChance < 70)
                         {
-                            spellDID = life5[r.Next(0, life2.Length)];
+                            spellDID = life5[Physics.Common.Random.RollDice(0, life2.Length-1)];
                             mana_cost = 250;
-                            max_mana = r.Next(mana_cost, mana_cost + 50);
+                            max_mana = Physics.Common.Random.RollDice(mana_cost, mana_cost + 50);
                             spellcraft = 250;
                         }
                         else if (spellChance < 85)
                         {
-                            spellDID = creature6[r.Next(0, creature3.Length)];
+                            spellDID = creature6[Physics.Common.Random.RollDice(0, creature3.Length-1)];
                             mana_cost = 300;
-                            max_mana = r.Next(mana_cost, mana_cost + 50);
+                            max_mana = Physics.Common.Random.RollDice(mana_cost, mana_cost + 50);
                             spellcraft = 300;
                         }
                         else
                         {
-                            spellDID = life6[r.Next(0, life3.Length)];
+                            spellDID = life6[Physics.Common.Random.RollDice(0, life3.Length-1)];
                             mana_cost = 300;
-                            max_mana = r.Next(mana_cost, mana_cost + 50);
+                            max_mana = Physics.Common.Random.RollDice(mana_cost, mana_cost + 50);
                             spellcraft = 300;
                         }
                     }
@@ -2113,50 +2096,50 @@ namespace ACE.Server.Factories
                     break;
                 case 5:
                     //tier 5
-                    gemType = t5gems[r.Next(0, t5gems.Length)];
-                    if (r.Next(0, 2) == 1)
+                    gemType = t5gems[Physics.Common.Random.RollDice(0, t5gems.Length-1)];
+                    if (Physics.Common.Random.RollDice(0, 1) == 1)
                     {
-                        spellChance = r.Next(0, 100);
+                        spellChance = Physics.Common.Random.RollDice(0, 100);
                         if (spellChance < 30)
                         {
-                            spellDID = creature5[r.Next(0, creature1.Length)];
+                            spellDID = creature5[Physics.Common.Random.RollDice(0, creature1.Length-1)];
                             mana_cost = 250;
-                            max_mana = r.Next(mana_cost, mana_cost + 50);
+                            max_mana = Physics.Common.Random.RollDice(mana_cost, mana_cost + 50);
                             spellcraft = 250;
                         }
                         else if (spellChance < 60)
                         {
-                            spellDID = life5[r.Next(0, life1.Length)];
+                            spellDID = life5[Physics.Common.Random.RollDice(0, life1.Length-1)];
                             mana_cost = 250;
-                            max_mana = r.Next(mana_cost, mana_cost + 50);
+                            max_mana = Physics.Common.Random.RollDice(mana_cost, mana_cost + 50);
                             spellcraft = 250;
                         }
                         else if (spellChance < 75)
                         {
-                            spellDID = creature6[r.Next(0, creature2.Length)];
+                            spellDID = creature6[Physics.Common.Random.RollDice(0, creature2.Length-1)];
                             mana_cost = 300;
-                            max_mana = r.Next(mana_cost, mana_cost + 50);
+                            max_mana = Physics.Common.Random.RollDice(mana_cost, mana_cost + 50);
                             spellcraft = 300;
                         }
                         else if (spellChance < 90)
                         {
-                            spellDID = life6[r.Next(0, life2.Length)];
+                            spellDID = life6[Physics.Common.Random.RollDice(0, life2.Length-1)];
                             mana_cost = 300;
-                            max_mana = r.Next(mana_cost, mana_cost + 50);
+                            max_mana = Physics.Common.Random.RollDice(mana_cost, mana_cost + 50);
                             spellcraft = 300;
                         }
                         else if (spellChance < 95)
                         {
-                            spellDID = creature7[r.Next(0, creature3.Length)];
+                            spellDID = creature7[Physics.Common.Random.RollDice(0, creature3.Length-1)];
                             mana_cost = 350;
-                            max_mana = r.Next(mana_cost, mana_cost + 50);
+                            max_mana = Physics.Common.Random.RollDice(mana_cost, mana_cost + 50);
                             spellcraft = 350;
                         }
                         else
                         {
-                            spellDID = life7[r.Next(0, life3.Length)];
+                            spellDID = life7[Physics.Common.Random.RollDice(0, life3.Length-1)];
                             mana_cost = 350;
-                            max_mana = r.Next(mana_cost, mana_cost + 50);
+                            max_mana = Physics.Common.Random.RollDice(mana_cost, mana_cost + 50);
                             spellcraft = 350;
                         }
                     }
@@ -2164,35 +2147,35 @@ namespace ACE.Server.Factories
                     break;
                 case 6:
                     //tier 6
-                    gemType = t5gems[r.Next(0, t5gems.Length)];
-                    if (r.Next(0, 2) == 1)
+                    gemType = t5gems[Physics.Common.Random.RollDice(0, t5gems.Length-1)];
+                    if (Physics.Common.Random.RollDice(0, 1) == 1)
                     {
                         if (spellChance < 35)
                         {
-                            spellDID = creature6[r.Next(0, creature2.Length)];
+                            spellDID = creature6[Physics.Common.Random.RollDice(0, creature2.Length-1)];
                             mana_cost = 300;
-                            max_mana = r.Next(mana_cost, mana_cost + 50);
+                            max_mana = Physics.Common.Random.RollDice(mana_cost, mana_cost + 50);
                             spellcraft = 300;
                         }
                         else if (spellChance < 70)
                         {
-                            spellDID = life6[r.Next(0, life2.Length)];
+                            spellDID = life6[Physics.Common.Random.RollDice(0, life2.Length-1)];
                             mana_cost = 300;
-                            max_mana = r.Next(mana_cost, mana_cost + 50);
+                            max_mana = Physics.Common.Random.RollDice(mana_cost, mana_cost + 50);
                             spellcraft = 300;
                         }
                         else if (spellChance < 85)
                         {
-                            spellDID = creature7[r.Next(0, creature3.Length)];
+                            spellDID = creature7[Physics.Common.Random.RollDice(0, creature3.Length-1)];
                             mana_cost = 350;
-                            max_mana = r.Next(mana_cost, mana_cost + 50);
+                            max_mana = Physics.Common.Random.RollDice(mana_cost, mana_cost + 50);
                             spellcraft = 350;
                         }
                         else
                         {
-                            spellDID = life7[r.Next(0, life3.Length)];
+                            spellDID = life7[Physics.Common.Random.RollDice(0, life3.Length-1)];
                             mana_cost = 350;
-                            max_mana = r.Next(mana_cost, mana_cost + 50);
+                            max_mana = Physics.Common.Random.RollDice(mana_cost, mana_cost + 50);
                             spellcraft = 350;
                         }
                     }
@@ -2200,92 +2183,90 @@ namespace ACE.Server.Factories
                     break;
                 case 7:
                     //tier 7
-                    gemType = t5gems[r.Next(0, t5gems.Length)];
-                    if (r.Next(0, 2) == 1)
+                    gemType = t5gems[Physics.Common.Random.RollDice(0, t5gems.Length-1)];
+                    if (Physics.Common.Random.RollDice(0, 1) == 1)
                     {
-                        spellChance = r.Next(0, 100);
+                        spellChance = Physics.Common.Random.RollDice(0, 100);
                         if (spellChance < 30)
                         {
-                            spellDID = creature6[r.Next(0, creature1.Length)];
+                            spellDID = creature6[Physics.Common.Random.RollDice(0, creature1.Length-1)];
                             mana_cost = 300;
-                            max_mana = r.Next(mana_cost, mana_cost + 50);
+                            max_mana = Physics.Common.Random.RollDice(mana_cost, mana_cost + 50);
                             spellcraft = 300;
                         }
                         else if (spellChance < 60)
                         {
-                            spellDID = life6[r.Next(0, life1.Length)];
+                            spellDID = life6[Physics.Common.Random.RollDice(0, life1.Length-1)];
                             mana_cost = 300;
-                            max_mana = r.Next(mana_cost, mana_cost + 50);
+                            max_mana = Physics.Common.Random.RollDice(mana_cost, mana_cost + 50);
                             spellcraft = 300;
                         }
                         else if (spellChance < 75)
                         {
-                            spellDID = creature7[r.Next(0, creature2.Length)];
+                            spellDID = creature7[Physics.Common.Random.RollDice(0, creature2.Length-1)];
                             mana_cost = 350;
-                            max_mana = r.Next(mana_cost, mana_cost + 50);
+                            max_mana = Physics.Common.Random.RollDice(mana_cost, mana_cost + 50);
                             spellcraft = 350;
                         }
                         else if (spellChance < 90)
                         {
-                            spellDID = life7[r.Next(0, life2.Length)];
+                            spellDID = life7[Physics.Common.Random.RollDice(0, life2.Length-1)];
                             mana_cost = 350;
-                            max_mana = r.Next(mana_cost, mana_cost + 50);
+                            max_mana = Physics.Common.Random.RollDice(mana_cost, mana_cost + 50);
                             spellcraft = 350;
                         }
                         else if (spellChance < 95)
                         {
-                            spellDID = creature8[r.Next(0, creature3.Length)];
+                            spellDID = creature8[Physics.Common.Random.RollDice(0, creature3.Length-1)];
                             mana_cost = 400;
-                            max_mana = r.Next(mana_cost, mana_cost + 50);
+                            max_mana = Physics.Common.Random.RollDice(mana_cost, mana_cost + 50);
                             spellcraft = 400;
                         }
                         else
                         {
-                            spellDID = life8[r.Next(0, life3.Length)];
+                            spellDID = life8[Physics.Common.Random.RollDice(0, life3.Length-1)];
                             mana_cost = 400;
-                            max_mana = r.Next(mana_cost, mana_cost + 50);
+                            max_mana = Physics.Common.Random.RollDice(mana_cost, mana_cost + 50);
                             spellcraft = 400;
                         }
                     }
                     workmanship = GetWorkmanship(7);
                     break;
-                case 8:
+                default:
                     //tier 8
-                    gemType = t5gems[r.Next(0, t5gems.Length)];
-                    if (r.Next(0, 2) == 1)
+                    gemType = t5gems[Physics.Common.Random.RollDice(0, t5gems.Length-1)];
+                    if (Physics.Common.Random.RollDice(0, 2) == 1)
                     {
                         if (spellChance < 35)
                         {
-                            spellDID = creature7[r.Next(0, creature2.Length)];
+                            spellDID = creature7[Physics.Common.Random.RollDice(0, creature2.Length-1)];
                             mana_cost = 350;
-                            max_mana = r.Next(mana_cost, mana_cost + 50);
+                            max_mana = Physics.Common.Random.RollDice(mana_cost, mana_cost + 50);
                             spellcraft = 350;
                         }
                         else if (spellChance < 70)
                         {
-                            spellDID = life7[r.Next(0, life2.Length)];
+                            spellDID = life7[Physics.Common.Random.RollDice(0, life2.Length-1)];
                             mana_cost = 350;
-                            max_mana = r.Next(mana_cost, mana_cost + 50);
+                            max_mana = Physics.Common.Random.RollDice(mana_cost, mana_cost + 50);
                             spellcraft = 350;
                         }
                         else if (spellChance < 85)
                         {
-                            spellDID = creature8[r.Next(0, creature3.Length)];
+                            spellDID = creature8[Physics.Common.Random.RollDice(0, creature3.Length-1)];
                             mana_cost = 400;
-                            max_mana = r.Next(mana_cost, mana_cost + 50);
+                            max_mana = Physics.Common.Random.RollDice(mana_cost, mana_cost + 50);
                             spellcraft = 400;
                         }
                         else
                         {
-                            spellDID = life8[r.Next(0, life3.Length)];
+                            spellDID = life8[Physics.Common.Random.RollDice(0, life3.Length-1)];
                             mana_cost = 400;
-                            max_mana = r.Next(mana_cost, mana_cost + 50);
+                            max_mana = Physics.Common.Random.RollDice(mana_cost, mana_cost + 50);
                             spellcraft = 400;
                         }
                     }
                     workmanship = GetWorkmanship(8);
-                    break;
-                default:
                     break;
             }
             WorldObject wo = WorldObjectFactory.CreateNewWorldObject((uint)gemType) as Gem;
@@ -2293,20 +2274,14 @@ namespace ACE.Server.Factories
             if(spellDID > 0)
             {
                 wo.SetProperty(PropertyInt.ItemUseable, 8);
-            }
-            else
-            {
-                wo.SetProperty(PropertyInt.ItemUseable, 1);
-            }
-            if (spellDID > 0)
-            {
                 wo.SetProperty(PropertyInt.UiEffects, 1);
             }
             else
             {
+                wo.SetProperty(PropertyInt.ItemUseable, 1);
                 wo.SetProperty(PropertyInt.UiEffects, 0);
             }
-            value = workmanship * r.Next(5, 100) + spellcraft;
+            value = workmanship * Physics.Common.Random.RollDice(5, 100) + spellcraft;
             wo.SetProperty(PropertyInt.Value, value);
             wo.SetProperty(PropertyDataId.Spell, (uint)spellDID);
             wo.SetProperty(PropertyInt.ItemAllegianceRankLimit, rank);
@@ -2331,21 +2306,21 @@ namespace ACE.Server.Factories
 
         public static int CreateFood()
         {
-            Random r = new Random();
+            
             int foodType = 0;
             int[] food = { 258, 4746, 259, 547, 260, 5758, 261, 262, 263, 264, 265 };
-            foodType = food[r.Next(0, 11)];
+            foodType = food[Physics.Common.Random.RollDice(0, food.Length-1)];
             return foodType;
         }
 
         public static WorldObject CreateRandomScroll(int tier)
         {
             uint weenieID;
-            Random r = new Random();
+            
             var tier2 = tier;
             if(tier > 6)
                 tier2 = 6;
-            weenieID = (uint)LootHelper.ScrollSpells[r.Next(0, LootHelper.ScrollSpells.Length)][tier2-1];
+            weenieID = (uint)LootHelper.ScrollSpells[Physics.Common.Random.RollDice(0, LootHelper.ScrollSpells.Length-1)][tier2-1];
             String className = DatabaseManager.World.GetScrollWeenie(weenieID).ClassName;   
             WorldObject wo = WorldObjectFactory.CreateNewWorldObject(className);
             return wo;
@@ -2353,11 +2328,11 @@ namespace ACE.Server.Factories
 
         public static WorldObject CreateJewelry(int tier)
         {
-            Random r = new Random();
+            
             int[][] JewelrySpells = LootHelper.JewelrySpells;
             int[][] JewelryCantrips = LootHelper.JewelryCantrips;
             int[] jewelryItems = { 621, 295, 297, 294, 623, 622 };
-            int jewelType = jewelryItems[r.Next(0, jewelryItems.Length)];
+            int jewelType = jewelryItems[Physics.Common.Random.RollDice(0, jewelryItems.Length-1)];
             int numSpells = 0;
             int numCantrips = 0;
             int lowSpellTier = 0;
@@ -2392,8 +2367,8 @@ namespace ACE.Server.Factories
             wo.SetProperty(PropertyInt.AppraisalLongDescDecoration, 1);
             wo.SetProperty(PropertyInt.MaterialType, mT);
             wo.SetProperty(PropertyInt.Value, value);
-            int gemCount = r.Next(1, 6);
-            int gemType = r.Next(10, 51);
+            int gemCount = Physics.Common.Random.RollDice(1, 5);
+            int gemType = Physics.Common.Random.RollDice(10, 50);
             wo.SetProperty(PropertyInt.GemCount, gemCount);
             wo.SetProperty(PropertyInt.GemType, gemType);
             wo.SetProperty(PropertyInt.ItemWorkmanship, workmanship);
@@ -2402,7 +2377,7 @@ namespace ACE.Server.Factories
             wo.SetProperty(PropertyInt.ItemMaxMana, max_mana);
             wo.SetProperty(PropertyInt.ItemCurMana, max_mana);
             wo.SetProperty(PropertyInt.ItemSpellcraft, spellcraft);
-            wo.SetProperty(PropertyString.LongDesc, getLongDesc(wo.GetProperty(PropertyString.Name)));
+            wo.SetProperty(PropertyString.LongDesc, getLongDesc(wo.GetProperty(PropertyString.Name), gemType, gemCount));
             wo.RemoveProperty(PropertyInt.ItemSkillLevelLimit);
             int[] shuffledValues = new int[JewelrySpells.Length];
             for (int i = 0; i < JewelrySpells.Length; i++)
@@ -2415,7 +2390,7 @@ namespace ACE.Server.Factories
                 wo.SetProperty(PropertyInt.UiEffects, 1);
                 for (int a = 0; a < numSpells - numCantrips; a++)
                 {
-                    int col = r.Next(lowSpellTier - 1, highSpellTier);
+                    int col = Physics.Common.Random.RollDice(lowSpellTier - 1, highSpellTier-1);
                     int spellID = JewelrySpells[shuffledValues[a]][col];
                     var result = new BiotaPropertiesSpellBook { ObjectId = wo.Biota.Id, Spell = spellID, Object = wo.Biota };
                     wo.Biota.BiotaPropertiesSpellBook.Add(result);
@@ -2490,7 +2465,7 @@ namespace ACE.Server.Factories
 
         public static WorldObject CreateWeapon(int tier)
         {
-            Random r = new Random();
+            
             int weaponWeenie = 0;
             int weaponType = 0;
             ///Properties for weapons
@@ -2503,8 +2478,8 @@ namespace ACE.Server.Factories
             int longDescDecoration = 5; // 
             double magicD = GetMissileDMod(tier);
             double missileD = GetMissileDMod(tier);
-            int gemCount = r.Next(1, 6);
-            int gemType = r.Next(10, 51);
+            int gemCount = Physics.Common.Random.RollDice(1, 5);
+            int gemType = Physics.Common.Random.RollDice(10, 50);
             int materialType = GetMaterialType(2, tier);
             int workmanship = GetWorkmanship(tier);
             int value = GetValue(tier);
@@ -2517,30 +2492,68 @@ namespace ACE.Server.Factories
             int maxMana = GetMaxMana(numSpells, tier);
             int subType = 0;
 
-            weaponType = r.Next(0, 5);
+            weaponType = Physics.Common.Random.RollDice(0, 4);
             switch (weaponType)
             {
                 case 0:
                     ////Heavy Weapons, of which there are 7 sub types
                     wieldSkillType = 44;
-                    subType = r.Next(0, 7);
+                    subType = Physics.Common.Random.RollDice(0, 6);
                     if (subType == 0)
                     {
                         weaponDefense = GetMaxDamageMod(tier, 18);
                         weaponOffense = GetMaxDamageMod(tier, 22);
                         damage = GetMaxDamage(1, wieldDiff, 1);
                         damageVariance = GetVariance(1, 1);
-                        int subAxeType = r.Next(0, 3);
+                        int subAxeType = Physics.Common.Random.RollDice(0, 2);
                         ////There are 4 subtypes of axes
                         if (subAxeType == 0)
                         {
                             ////Battle Axe
-                            weaponWeenie = 301;
+                            int eleType = Physics.Common.Random.RollDice(0, 4);
+                            switch(eleType)
+                            {
+                                case 0:
+                                    weaponWeenie = 301;
+                                    break;
+                                case 1:
+                                    weaponWeenie = 3750;
+                                    break;
+                                case 2:
+                                    weaponWeenie = 3751;
+                                    break;
+                                case 3:
+                                    weaponWeenie = 3752;
+                                    break;
+                                default:
+                                    weaponWeenie = 3753;
+                                    break;
+                            }
+                            
                         }
                         if (subAxeType == 1)
                         {
                             ////Silifi
-                            weaponWeenie = 344;
+                            int eleType = Physics.Common.Random.RollDice(0, 4);
+                            switch (eleType)
+                            {
+                                case 0:
+                                    weaponWeenie = 344;
+                                    break;
+                                case 1:
+                                    weaponWeenie = 3865;
+                                    break;
+                                case 2:
+                                    weaponWeenie = 3866;
+                                    break;
+                                case 3:
+                                    weaponWeenie = 3867;
+                                    break;
+                                default:
+                                    weaponWeenie = 3868;
+                                    break;
+                            }
+                            
                         }
                         if (subAxeType == 2)
                         {
@@ -2554,26 +2567,80 @@ namespace ACE.Server.Factories
                         weaponDefense = GetMaxDamageMod(tier, 20);
                         weaponOffense = GetMaxDamageMod(tier, 20);
                         ////There are three subtypes of daggers
-                        int subDaggerType = r.Next(0, 3);
+                        int subDaggerType = Physics.Common.Random.RollDice(0, 2);
                         if (subDaggerType == 0)
                         {
                             ////Dirk
+                            int eleType = Physics.Common.Random.RollDice(0, 4);
+                            switch (eleType)
+                            {
+                                case 0:
+                                    weaponWeenie = 22440;
+                                    break;
+                                case 1:
+                                    weaponWeenie = 22441;
+                                    break;
+                                case 2:
+                                    weaponWeenie = 22442;
+                                    break;
+                                case 3:
+                                    weaponWeenie = 22443;
+                                    break;
+                                default:
+                                    weaponWeenie = 22444;
+                                    break;
+                            }
                             damageVariance = GetVariance(1, 2);
-                            weaponWeenie = 22440;
                         }
                         if (subDaggerType == 1)
                         {
                             ////Stiletto
                             damage = GetMaxDamage(1, wieldDiff, 3);
                             damageVariance = GetVariance(1, 3);
-                            weaponWeenie = 7565;
+                            int eleType = Physics.Common.Random.RollDice(0, 4);
+                            switch (eleType)
+                            {
+                                case 0:
+                                    weaponWeenie = 30601;
+                                    break;
+                                case 1:
+                                    weaponWeenie = 30602;
+                                    break;
+                                case 2:
+                                    weaponWeenie = 30603;
+                                    break;
+                                case 3:
+                                    weaponWeenie = 30604;
+                                    break;
+                                default:
+                                    weaponWeenie = 30605;
+                                    break;
+                            }
                         }
                         if (subDaggerType == 2)
                         {
                             ////Jambiya
                             damage = GetMaxDamage(1, wieldDiff, 3);
                             damageVariance = GetVariance(1, 3);
-                            weaponWeenie = 319;
+                            int eleType = Physics.Common.Random.RollDice(0, 4);
+                            switch (eleType)
+                            {
+                                case 0:
+                                    weaponWeenie = 319;
+                                    break;
+                                case 1:
+                                    weaponWeenie = 3794;
+                                    break;
+                                case 2:
+                                    weaponWeenie = 3795;
+                                    break;
+                                case 3:
+                                    weaponWeenie = 3796;
+                                    break;
+                                default:
+                                    weaponWeenie = 3797;
+                                    break;
+                            }
                         }
                     }
                     if (subType == 2)
@@ -2583,25 +2650,98 @@ namespace ACE.Server.Factories
                         weaponDefense = GetMaxDamageMod(tier, 22);
                         weaponOffense = GetMaxDamageMod(tier, 18);
                         damageVariance = GetVariance(1, 4);
-                        int subMaceType = r.Next(0, 4);
+                        int subMaceType = Physics.Common.Random.RollDice(0, 3);
                         if (subMaceType == 0)
                         {
                             ////Flanged Mace
-                            weaponWeenie = 30586;
+                            int eleType = Physics.Common.Random.RollDice(0, 4);
+                            switch (eleType)
+                            {
+                                case 0:
+                                    weaponWeenie = 30586;
+                                    break;
+                                case 1:
+                                    weaponWeenie = 30587;
+                                    break;
+                                case 2:
+                                    weaponWeenie = 30588;
+                                    break;
+                                case 3:
+                                    weaponWeenie = 30589;
+                                    break;
+                                default:
+                                    weaponWeenie = 30590;
+                                    break;
+                            }
                         }
                         if (subMaceType == 1)
                         {
                             ////Mace
-                            weaponWeenie = 331;
+                            int eleType = Physics.Common.Random.RollDice(0, 4);
+                            switch (eleType)
+                            {
+                                case 0:
+                                    weaponWeenie = 331;
+                                    break;
+                                case 1:
+                                    weaponWeenie = 3834;
+                                    break;
+                                case 2:
+                                    weaponWeenie = 3835;
+                                    break;
+                                case 3:
+                                    weaponWeenie = 3836;
+                                    break;
+                                default:
+                                    weaponWeenie = 3837;
+                                    break;
+                            }
                         }
                         if (subMaceType == 2)
                         {
                             ////Mazule
-                            weaponWeenie = 30581;
+                            int eleType = Physics.Common.Random.RollDice(0, 4);
+                            switch (eleType)
+                            {
+                                case 0:
+                                    weaponWeenie = 30581;
+                                    break;
+                                case 1:
+                                    weaponWeenie = 30582;
+                                    break;
+                                case 2:
+                                    weaponWeenie = 30583;
+                                    break;
+                                case 3:
+                                    weaponWeenie = 30584;
+                                    break;
+                                default:
+                                    weaponWeenie = 30585;
+                                    break;
+                            }
                         }
                         if (subMaceType == 3)
                         {
                             ////Morning Star
+                            int eleType = Physics.Common.Random.RollDice(0, 4);
+                            switch (eleType)
+                            {
+                                case 0:
+                                    weaponWeenie = 332;
+                                    break;
+                                case 1:
+                                    weaponWeenie = 3937;
+                                    break;
+                                case 2:
+                                    weaponWeenie = 3938;
+                                    break;
+                                case 3:
+                                    weaponWeenie = 3939;
+                                    break;
+                                default:
+                                    weaponWeenie = 3940;
+                                    break;
+                            }
                             weaponWeenie = 332;
                         }
                     }
@@ -2612,24 +2752,79 @@ namespace ACE.Server.Factories
                         weaponDefense = GetMaxDamageMod(tier, 15);
                         weaponOffense = GetMaxDamageMod(tier, 25);
                         damageVariance = GetVariance(1, 5);
-                        int subSpearType = r.Next(1, 3);
+                        int subSpearType = Physics.Common.Random.RollDice(1, 2);
                         //////
                         //////
-                        //////Spine Glaive is not in the database
+                        //////Spine Glaive is not in the database which is why we start the random at 1.
                         if (subSpearType == 0)
                         {
                             ////Spine Glaive
+                            int eleType = Physics.Common.Random.RollDice(0, 4);
+                            switch (eleType)
+                            {
+                                case 0:
+                                    weaponWeenie = 30581;
+                                    break;
+                                case 1:
+                                    weaponWeenie = 30582;
+                                    break;
+                                case 2:
+                                    weaponWeenie = 30583;
+                                    break;
+                                case 3:
+                                    weaponWeenie = 30584;
+                                    break;
+                                default:
+                                    weaponWeenie = 30585;
+                                    break;
+                            }
                             weaponWeenie = 38932;
                         }
                         if (subSpearType == 1)
                         {
                             ////Partizan
-                            weaponWeenie = 29972;
+                            int eleType = Physics.Common.Random.RollDice(0, 4);
+                            switch (eleType)
+                            {
+                                case 0:
+                                    weaponWeenie = 30591;
+                                    break;
+                                case 1:
+                                    weaponWeenie = 30592;
+                                    break;
+                                case 2:
+                                    weaponWeenie = 30593;
+                                    break;
+                                case 3:
+                                    weaponWeenie = 30594;
+                                    break;
+                                default:
+                                    weaponWeenie = 30595;
+                                    break;
+                            }
                         }
                         if (subSpearType == 2)
                         {
                             ////Trident
-                            weaponWeenie = 7772;
+                            int eleType = Physics.Common.Random.RollDice(0, 4);
+                            switch (eleType)
+                            {
+                                case 0:
+                                    weaponWeenie = 7772;
+                                    break;
+                                case 1:
+                                    weaponWeenie = 7791;
+                                    break;
+                                case 2:
+                                    weaponWeenie = 7792;
+                                    break;
+                                case 3:
+                                    weaponWeenie = 7793;
+                                    break;
+                                default:
+                                    weaponWeenie = 7794;
+                                    break;
+                            }
                         }
                     }
                     if (subType == 4)
@@ -2639,11 +2834,30 @@ namespace ACE.Server.Factories
                         weaponDefense = GetMaxDamageMod(tier, 25);
                         weaponOffense = GetMaxDamageMod(tier, 15);
                         damageVariance = GetVariance(1, 6);
-                        int subStaffType = r.Next(0, 1);
+                        int subStaffType = Physics.Common.Random.RollDice(0, 0);
+                        ///stick is not in db yet, so the random always returns 0, but it is left in to allow for the expansion later easily.
                         if (subStaffType == 0)
                         {
                             ////Nabut
-                            weaponWeenie = 333;
+                            int eleType = Physics.Common.Random.RollDice(0, 4);
+                            switch (eleType)
+                            {
+                                case 0:
+                                    weaponWeenie = 333;
+                                    break;
+                                case 1:
+                                    weaponWeenie = 22159;
+                                    break;
+                                case 2:
+                                    weaponWeenie = 22160;
+                                    break;
+                                case 3:
+                                    weaponWeenie = 22161;
+                                    break;
+                                default:
+                                    weaponWeenie = 22162;
+                                    break;
+                            }
                         }
                         if (subStaffType == 1)
                         {
@@ -2658,36 +2872,127 @@ namespace ACE.Server.Factories
                         damage = GetMaxDamage(1, wieldDiff, 6);
                         weaponDefense = GetMaxDamageMod(tier, 20);
                         weaponOffense = GetMaxDamageMod(tier, 20);
-                        int subSwordType = r.Next(0, 5);
+                        int subSwordType = Physics.Common.Random.RollDice(0, 4);
                         if (subSwordType == 0)
                         {
                             ////Flamberge
                             damageVariance = GetVariance(1, 7);
-                            weaponWeenie = 30576;
+                            int eleType = Physics.Common.Random.RollDice(0, 4);
+                            switch (eleType)
+                            {
+                                case 0:
+                                    weaponWeenie = 30576;
+                                    break;
+                                case 1:
+                                    weaponWeenie = 30577;
+                                    break;
+                                case 2:
+                                    weaponWeenie = 30578;
+                                    break;
+                                case 3:
+                                    weaponWeenie = 30579;
+                                    break;
+                                default:
+                                    weaponWeenie = 30580;
+                                    break;
+                            }
                         }
                         if (subSwordType == 1)
                         {
                             ////Ken
                             damageVariance = GetVariance(1, 7);
+                            int eleType = Physics.Common.Random.RollDice(0, 4);
+                            switch (eleType)
+                            {
+                                case 0:
+                                    weaponWeenie = 327;
+                                    break;
+                                case 1:
+                                    weaponWeenie = 3822;
+                                    break;
+                                case 2:
+                                    weaponWeenie = 3823;
+                                    break;
+                                case 3:
+                                    weaponWeenie = 3824;
+                                    break;
+                                default:
+                                    weaponWeenie = 3825;
+                                    break;
+                            }
                             weaponWeenie = 327;
                         }
                         if (subSwordType == 2)
                         {
                             ////Long Sword
                             damageVariance = GetVariance(1, 7);
-                            weaponWeenie = 351;
+                            int eleType = Physics.Common.Random.RollDice(0, 4);
+                            switch (eleType)
+                            {
+                                case 0:
+                                    weaponWeenie = 351;
+                                    break;
+                                case 1:
+                                    weaponWeenie = 3881;
+                                    break;
+                                case 2:
+                                    weaponWeenie = 3882;
+                                    break;
+                                case 3:
+                                    weaponWeenie = 3883;
+                                    break;
+                                default:
+                                    weaponWeenie = 3884;
+                                    break;
+                            }
                         }
                         if (subSwordType == 3)
                         {
                             ////Tachi
                             damageVariance = GetVariance(1, 7);
-                            weaponWeenie = 353;
+                            int eleType = Physics.Common.Random.RollDice(0, 4);
+                            switch (eleType)
+                            {
+                                case 0:
+                                    weaponWeenie = 353;
+                                    break;
+                                case 1:
+                                    weaponWeenie = 3889;
+                                    break;
+                                case 2:
+                                    weaponWeenie = 3890;
+                                    break;
+                                case 3:
+                                    weaponWeenie = 3891;
+                                    break;
+                                default:
+                                    weaponWeenie = 3892;
+                                    break;
+                            }
                         }
                         if (subSwordType == 4)
                         {
                             ////Takuba
                             damageVariance = GetVariance(1, 7);
-                            weaponWeenie = 354;
+                            int eleType = Physics.Common.Random.RollDice(0, 4);
+                            switch (eleType)
+                            {
+                                case 0:
+                                    weaponWeenie = 354;
+                                    break;
+                                case 1:
+                                    weaponWeenie = 3893;
+                                    break;
+                                case 2:
+                                    weaponWeenie = 3894;
+                                    break;
+                                case 3:
+                                    weaponWeenie = 3895;
+                                    break;
+                                default:
+                                    weaponWeenie = 3896;
+                                    break;
+                            }
                         }
                         if (subSwordType == 5)
                         {
@@ -2705,52 +3010,161 @@ namespace ACE.Server.Factories
                         weaponDefense = GetMaxDamageMod(tier, 20);
                         weaponOffense = GetMaxDamageMod(tier, 20);
                         damageVariance = GetVariance(1, 9);
-                        int subUAType = r.Next(0, 2);
+                        int subUAType = Physics.Common.Random.RollDice(0, 1);
                         if (subUAType == 0)
                         {
                             ////Cestus
-                            weaponWeenie = 4190;
-                            damageType = 4;
+                            int eleType = Physics.Common.Random.RollDice(0, 4);
+                            switch (eleType)
+                            {
+                                case 0:
+                                    weaponWeenie = 4190;
+                                    damageType = 4;
+                                    break;
+                                case 1:
+                                    weaponWeenie = 4194;
+                                    break;
+                                case 2:
+                                    weaponWeenie = 4192;
+                                    break;
+                                case 3:
+                                    weaponWeenie = 4193;
+                                    break;
+                                default:
+                                    weaponWeenie = 4194;
+                                    break;
+                            }
                         }
                         if (subUAType == 1)
                         {
                             ////Nekode
-                            weaponWeenie = 4195;
-                            damageType = 3;
+                            int eleType = Physics.Common.Random.RollDice(0, 4);
+                            switch (eleType)
+                            {
+                                case 0:
+                                    weaponWeenie = 4195;
+                                    damageType = 3;
+                                    break;
+                                case 1:
+                                    weaponWeenie = 4196;
+                                    break;
+                                case 2:
+                                    weaponWeenie = 4197;
+                                    break;
+                                case 3:
+                                    weaponWeenie = 4198;
+                                    break;
+                                default:
+                                    weaponWeenie = 4199;
+                                    break;
+                            }
                         }
                     }
                     break;
                 case 1:
                     ///Light weapons
                     wieldSkillType = 46;
-                    subType = r.Next(0, 6);
+                    subType = Physics.Common.Random.RollDice(0, 6);
                     if (subType == 0)
                     {
                         damage = GetMaxDamage(2, wieldDiff, 1);
                         damageVariance = GetVariance(2, 1);
                         weaponDefense = GetMaxDamageMod(tier, 18);
                         weaponOffense = GetMaxDamageMod(tier, 22);
-                        int subAxeType = r.Next(0, 4);
+                        int subAxeType = Physics.Common.Random.RollDice(0, 3);
                         ////There are 4 subtypes of axes
                         if (subAxeType == 0)
                         {
                             ////Dolabra
-                            weaponWeenie = 30561;
+                            int eleType = Physics.Common.Random.RollDice(0, 4);
+                            switch (eleType)
+                            {
+                                case 0:
+                                    weaponWeenie = 30561;
+                                    break;
+                                case 1:
+                                    weaponWeenie = 30562;
+                                    break;
+                                case 2:
+                                    weaponWeenie = 30563;
+                                    break;
+                                case 3:
+                                    weaponWeenie = 30564;
+                                    break;
+                                default:
+                                    weaponWeenie = 30565;
+                                    break;
+                            }
                         }
                         if (subAxeType == 1)
                         {
                             ////Hand Axe
-                            weaponWeenie = 303;
+                            int eleType = Physics.Common.Random.RollDice(0, 4);
+                            switch (eleType)
+                            {
+                                case 0:
+                                    weaponWeenie = 303;
+                                    damageType = 3;
+                                    break;
+                                case 1:
+                                    weaponWeenie = 3754;
+                                    break;
+                                case 2:
+                                    weaponWeenie = 3755;
+                                    break;
+                                case 3:
+                                    weaponWeenie = 3756;
+                                    break;
+                                default:
+                                    weaponWeenie = 3757;
+                                    break;
+                            }
                         }
                         if (subAxeType == 2)
                         {
                             ////Ono
-                            weaponWeenie = 336;
+                            int eleType = Physics.Common.Random.RollDice(0, 4);
+                            switch (eleType)
+                            {
+                                case 0:
+                                    weaponWeenie = 336;
+                                    break;
+                                case 1:
+                                    weaponWeenie = 3842;
+                                    break;
+                                case 2:
+                                    weaponWeenie = 3843;
+                                    break;
+                                case 3:
+                                    weaponWeenie = 3844;
+                                    break;
+                                default:
+                                    weaponWeenie = 3845;
+                                    break;
+                            }
                         }
                         if (subAxeType == 3)
                         {
                             ////War Hammer
-                            weaponWeenie = 359;
+                            int eleType = Physics.Common.Random.RollDice(0, 4);
+                            switch (eleType)
+                            {
+                                case 0:
+                                    weaponWeenie = 359;
+                                    break;
+                                case 1:
+                                    weaponWeenie = 3905;
+                                    break;
+                                case 2:
+                                    weaponWeenie = 3906;
+                                    break;
+                                case 3:
+                                    weaponWeenie = 3907;
+                                    break;
+                                default:
+                                    weaponWeenie = 3908;
+                                    break;
+                            }
                         }
                     }
                     if (subType == 1)
@@ -2759,19 +3173,55 @@ namespace ACE.Server.Factories
                         damage = GetMaxDamage(2, wieldDiff, 2);
                         weaponDefense = GetMaxDamageMod(tier, 20);
                         weaponOffense = GetMaxDamageMod(tier, 20);
-                        int subDaggerType = r.Next(0, 2);
+                        int subDaggerType = Physics.Common.Random.RollDice(0, 1);
                         if (subDaggerType == 0)
                         {
                             ////Dagger
                             damageVariance = GetVariance(2, 2);
-                            weaponWeenie = 314;
+                            int eleType = Physics.Common.Random.RollDice(0, 4);
+                            switch (eleType)
+                            {
+                                case 0:
+                                    weaponWeenie = 314;
+                                    break;
+                                case 1:
+                                    weaponWeenie = 3778;
+                                    break;
+                                case 2:
+                                    weaponWeenie = 3779;
+                                    break;
+                                case 3:
+                                    weaponWeenie = 3780;
+                                    break;
+                                default:
+                                    weaponWeenie = 3781;
+                                    break;
+                            }
                         }
                         if (subDaggerType == 1)
                         {
                             ////Khanjar
                             damageVariance = GetVariance(2, 3);
                             damage = GetMaxDamage(2, wieldDiff, 3);
-                            weaponWeenie = 328;
+                            int eleType = Physics.Common.Random.RollDice(0, 4);
+                            switch (eleType)
+                            {
+                                case 0:
+                                    weaponWeenie = 328;
+                                    break;
+                                case 1:
+                                    weaponWeenie = 3826;
+                                    break;
+                                case 2:
+                                    weaponWeenie = 3827;
+                                    break;
+                                case 3:
+                                    weaponWeenie = 3828;
+                                    break;
+                                default:
+                                    weaponWeenie = 3829;
+                                    break;
+                            }
                         }
                     }
                     if (subType == 2)
@@ -2781,21 +3231,75 @@ namespace ACE.Server.Factories
                         weaponDefense = GetMaxDamageMod(tier, 22);
                         weaponOffense = GetMaxDamageMod(tier, 18);
                         ////There are 3 subtypes of maces
-                        int subMaceType = r.Next(0, 3);
+                        int subMaceType = Physics.Common.Random.RollDice(0, 2);
                         if (subMaceType == 0)
                         {
                             ////Club
-                            weaponWeenie = 309;
+                            int eleType = Physics.Common.Random.RollDice(0, 4);
+                            switch (eleType)
+                            {
+                                case 0:
+                                    weaponWeenie = 309;
+                                    break;
+                                case 1:
+                                    weaponWeenie = 3766;
+                                    break;
+                                case 2:
+                                    weaponWeenie = 3767;
+                                    break;
+                                case 3:
+                                    weaponWeenie = 3768;
+                                    break;
+                                default:
+                                    weaponWeenie = 3769;
+                                    break;
+                            }
                         }
                         if (subMaceType == 1)
                         {
                             ////Kasrullah
-                            weaponWeenie = 325;
+                            int eleType = Physics.Common.Random.RollDice(0, 4);
+                            switch (eleType)
+                            {
+                                case 0:
+                                    weaponWeenie = 325;
+                                    break;
+                                case 1:
+                                    weaponWeenie = 3814;
+                                    break;
+                                case 2:
+                                    weaponWeenie = 3815;
+                                    break;
+                                case 3:
+                                    weaponWeenie = 3816;
+                                    break;
+                                default:
+                                    weaponWeenie = 3817;
+                                    break;
+                            }
                         }
                         if (subMaceType == 2)
                         {
                             ////Spiked Club
-                            weaponWeenie = 7768;
+                            int eleType = Physics.Common.Random.RollDice(0, 4);
+                            switch (eleType)
+                            {
+                                case 0:
+                                    weaponWeenie = 7768;
+                                    break;
+                                case 1:
+                                    weaponWeenie = 7787;
+                                    break;
+                                case 2:
+                                    weaponWeenie = 7788;
+                                    break;
+                                case 3:
+                                    weaponWeenie = 7789;
+                                    break;
+                                default:
+                                    weaponWeenie = 7790;
+                                    break;
+                            }
                         }
                     }
                     if (subType == 3)
@@ -2805,16 +3309,52 @@ namespace ACE.Server.Factories
                         weaponDefense = GetMaxDamageMod(tier, 15);
                         weaponOffense = GetMaxDamageMod(tier, 25);
                         ////There are 2 subtypes of spears
-                        int subSpearType = r.Next(0, 2);
+                        int subSpearType = Physics.Common.Random.RollDice(0, 1);
                         if (subSpearType == 0)
                         {
                             ////Spear
-                            weaponWeenie = 348;
+                            int eleType = Physics.Common.Random.RollDice(0, 4);
+                            switch (eleType)
+                            {
+                                case 0:
+                                    weaponWeenie = 348;
+                                    break;
+                                case 1:
+                                    weaponWeenie = 3873;
+                                    break;
+                                case 2:
+                                    weaponWeenie = 3874;
+                                    break;
+                                case 3:
+                                    weaponWeenie = 3875;
+                                    break;
+                                default:
+                                    weaponWeenie = 3876;
+                                    break;
+                            }
                         }
                         if (subSpearType == 1)
                         {
                             ////Yari
-                            weaponWeenie = 362;
+                            int eleType = Physics.Common.Random.RollDice(0, 4);
+                            switch (eleType)
+                            {
+                                case 0:
+                                    weaponWeenie = 362;
+                                    break;
+                                case 1:
+                                    weaponWeenie = 3913;
+                                    break;
+                                case 2:
+                                    weaponWeenie = 3914;
+                                    break;
+                                case 3:
+                                    weaponWeenie = 3915;
+                                    break;
+                                default:
+                                    weaponWeenie = 3916;
+                                    break;
+                            }
                         }
                     }
                     if (subType == 4)
@@ -2824,11 +3364,29 @@ namespace ACE.Server.Factories
                         weaponDefense = GetMaxDamageMod(tier, 25);
                         weaponOffense = GetMaxDamageMod(tier, 15);
                         ////There is 1 subtypes of staves
-                        int subStaffType = r.Next(0, 1);
+                        int subStaffType = Physics.Common.Random.RollDice(0, 0);
                         if (subStaffType == 0)
                         {
                             ////Quarter Staff
-                            weaponWeenie = 338;
+                            int eleType = Physics.Common.Random.RollDice(0, 4);
+                            switch (eleType)
+                            {
+                                case 0:
+                                    weaponWeenie = 338;
+                                    break;
+                                case 1:
+                                    weaponWeenie = 22164;
+                                    break;
+                                case 2:
+                                    weaponWeenie = 22165;
+                                    break;
+                                case 3:
+                                    weaponWeenie = 22166;
+                                    break;
+                                default:
+                                    weaponWeenie = 22167;
+                                    break;
+                            }
                         }
                     }
                     if (subType == 5)
@@ -2838,11 +3396,29 @@ namespace ACE.Server.Factories
                         ////There are 6 subtypes of swords
                         weaponDefense = GetMaxDamageMod(tier, 20);
                         weaponOffense = GetMaxDamageMod(tier, 20);
-                        int subSwordType = r.Next(0, 4);
+                        int subSwordType = Physics.Common.Random.RollDice(0, 3);
                         if (subSwordType == 0)
                         {
                             ////Broad Sword
-                            weaponWeenie = 350;
+                            int eleType = Physics.Common.Random.RollDice(0, 4);
+                            switch (eleType)
+                            {
+                                case 0:
+                                    weaponWeenie = 350;
+                                    break;
+                                case 1:
+                                    weaponWeenie = 3877;
+                                    break;
+                                case 2:
+                                    weaponWeenie = 3878;
+                                    break;
+                                case 3:
+                                    weaponWeenie = 3879;
+                                    break;
+                                default:
+                                    weaponWeenie = 3880;
+                                    break;
+                            }
                         }
                         //if (subSwordType == 1)
                         //{
@@ -2860,17 +3436,71 @@ namespace ACE.Server.Factories
                         if (subSwordType == 1)
                         {
                             ////Kaskara
-                            weaponWeenie = 324;
+                            int eleType = Physics.Common.Random.RollDice(0, 4);
+                            switch (eleType)
+                            {
+                                case 0:
+                                    weaponWeenie = 324;
+                                    break;
+                                case 1:
+                                    weaponWeenie = 3810;
+                                    break;
+                                case 2:
+                                    weaponWeenie = 3811;
+                                    break;
+                                case 3:
+                                    weaponWeenie = 3812;
+                                    break;
+                                default:
+                                    weaponWeenie = 3813;
+                                    break;
+                            }
                         }
                         if (subSwordType == 2)
                         {
                             ////Spada
-                            weaponWeenie = 30571;
+                            int eleType = Physics.Common.Random.RollDice(0, 4);
+                            switch (eleType)
+                            {
+                                case 0:
+                                    weaponWeenie = 30571;
+                                    break;
+                                case 1:
+                                    weaponWeenie = 30572;
+                                    break;
+                                case 2:
+                                    weaponWeenie = 30573;
+                                    break;
+                                case 3:
+                                    weaponWeenie = 30574;
+                                    break;
+                                default:
+                                    weaponWeenie = 30575;
+                                    break;
+                            }
                         }
                         if (subSwordType == 3)
                         {
                             ////Shamshir
-                            weaponWeenie = 340;
+                            int eleType = Physics.Common.Random.RollDice(0, 4);
+                            switch (eleType)
+                            {
+                                case 0:
+                                    weaponWeenie = 340;
+                                    break;
+                                case 1:
+                                    weaponWeenie = 3853;
+                                    break;
+                                case 2:
+                                    weaponWeenie = 3854;
+                                    break;
+                                case 3:
+                                    weaponWeenie = 3855;
+                                    break;
+                                default:
+                                    weaponWeenie = 3856;
+                                    break;
+                            }
                         }
                     }
                     if (subType == 6)
@@ -2880,21 +3510,57 @@ namespace ACE.Server.Factories
                         weaponOffense = GetMaxDamageMod(tier, 20);
                         damageVariance = GetVariance(2, 10);
                         ////There are 2 subtypes of UA
-                        int subUAType = r.Next(0, 2);
+                        int subUAType = Physics.Common.Random.RollDice(0, 1);
                         if (subUAType == 0)
                         {
                             ////Knuckles
-                            weaponWeenie = 30611;
+                            int eleType = Physics.Common.Random.RollDice(0, 4);
+                            switch (eleType)
+                            {
+                                case 0:
+                                    weaponWeenie = 30611;
+                                    break;
+                                case 1:
+                                    weaponWeenie = 30612;
+                                    break;
+                                case 2:
+                                    weaponWeenie = 30613;
+                                    break;
+                                case 3:
+                                    weaponWeenie = 30614;
+                                    break;
+                                default:
+                                    weaponWeenie = 30615;
+                                    break;
+                            }
                         }
                         if (subUAType == 1)
                         {
                             ////Katar
-                            weaponWeenie = 326;
+                            int eleType = Physics.Common.Random.RollDice(0, 4);
+                            switch (eleType)
+                            {
+                                case 0:
+                                    weaponWeenie = 326;
+                                    break;
+                                case 1:
+                                    weaponWeenie = 4196;
+                                    break;
+                                case 2:
+                                    weaponWeenie = 4197;
+                                    break;
+                                case 3:
+                                    weaponWeenie = 4198;
+                                    break;
+                                default:
+                                    weaponWeenie = 4199;
+                                    break;
+                            }
                         }
                     }
                     break;
                 case 2:
-                    subType = r.Next(0, 6);
+                    subType = Physics.Common.Random.RollDice(0, 5);
                     wieldSkillType = 45;
                     if (subType == 0)
                     {
@@ -2902,7 +3568,7 @@ namespace ACE.Server.Factories
                         damageVariance = GetVariance(2, 1);
                         weaponDefense = GetMaxDamageMod(tier, 18);
                         weaponOffense = GetMaxDamageMod(tier, 22);
-                        int subAxeType = r.Next(1, 4);
+                        int subAxeType = Physics.Common.Random.RollDice(1, 3);
                         ////There are 4 subtypes of axes
                         if (subAxeType == 0)
                         {
@@ -2914,20 +3580,76 @@ namespace ACE.Server.Factories
                         if (subAxeType == 1)
                         {
                             ////Shou-ono
-                            weaponWeenie = 342;
-                            damageType = 1;
+                            int eleType = Physics.Common.Random.RollDice(0, 4);
+                            switch (eleType)
+                            {
+                                case 0:
+                                    weaponWeenie = 342;
+                                    damageType = 1;
+                                    break;
+                                case 1:
+                                    weaponWeenie = 3857;
+                                    break;
+                                case 2:
+                                    weaponWeenie = 3858;
+                                    break;
+                                case 3:
+                                    weaponWeenie = 3859;
+                                    break;
+                                default:
+                                    weaponWeenie = 3860;
+                                    break;
+                            }
                         }
                         if (subAxeType == 2)
                         {
                             ////Hatchet
-                            weaponWeenie = 30556;
-                            damageType = 1;
+                            
+                            int eleType = Physics.Common.Random.RollDice(0, 4);
+                            switch (eleType)
+                            {
+                                case 0:
+                                    weaponWeenie = 30556;
+                                    damageType = 1;
+                                    break;
+                                case 1:
+                                    weaponWeenie = 30557;
+                                    break;
+                                case 2:
+                                    weaponWeenie = 30558;
+                                    break;
+                                case 3:
+                                    weaponWeenie = 30559;
+                                    break;
+                                default:
+                                    weaponWeenie = 30560;
+                                    break;
+                            }
                         }
                         if (subAxeType == 3)
                         {
                             ////Tungi
-                            weaponWeenie = 357;
-                            damageType = 1;
+                            int eleType = Physics.Common.Random.RollDice(0, 4);
+                            switch (eleType)
+                            {
+                                case 0:
+                                    weaponWeenie = 357;
+                                    damageType = 1;
+                                    break;
+                                case 1:
+                                    weaponWeenie = 30901;
+                                    break;
+                                case 2:
+                                    weaponWeenie = 30902;
+                                    break;
+                                case 3:
+                                    weaponWeenie = 30903;
+                                    break;
+                                default:
+                                    weaponWeenie = 30904;
+                                    break;
+                            }
+
                         }
                     }
                     if (subType == 1)
@@ -2937,13 +3659,31 @@ namespace ACE.Server.Factories
                         weaponDefense = GetMaxDamageMod(tier, 20);
                         weaponOffense = GetMaxDamageMod(tier, 20);
                         ////There are 3 subtypes of daggers
-                        int subDaggerType = r.Next(0, 2);
+                        int subDaggerType = Physics.Common.Random.RollDice(0, 1);
                         if (subDaggerType == 0)
                         {
                             ////Knife
                             damageVariance = GetVariance(2, 3);
                             damage = GetMaxDamage(2, wieldDiff, 3);
-                            weaponWeenie = 329;
+                            int eleType = Physics.Common.Random.RollDice(0, 4);
+                            switch (eleType)
+                            {
+                                case 0:
+                                    weaponWeenie = 329;
+                                    break;
+                                case 1:
+                                    weaponWeenie = 3830;
+                                    break;
+                                case 2:
+                                    weaponWeenie = 3831;
+                                    break;
+                                case 3:
+                                    weaponWeenie = 3832;
+                                    break;
+                                default:
+                                    weaponWeenie = 3833;
+                                    break;
+                            }
                         }
                         //if (subDaggerType == 1)
                         //{
@@ -2955,7 +3695,25 @@ namespace ACE.Server.Factories
                         if (subDaggerType == 1)
                         {
                             ////Poniard
-                            weaponWeenie = 30946;
+                            int eleType = Physics.Common.Random.RollDice(0, 4);
+                            switch (eleType)
+                            {
+                                case 0:
+                                    weaponWeenie = 30596;
+                                    break;
+                                case 1:
+                                    weaponWeenie = 30597;
+                                    break;
+                                case 2:
+                                    weaponWeenie = 30598;
+                                    break;
+                                case 3:
+                                    weaponWeenie = 30599;
+                                    break;
+                                default:
+                                    weaponWeenie = 30600;
+                                    break;
+                            }
                         }
                     }
                     if (subType == 2)
@@ -2965,7 +3723,7 @@ namespace ACE.Server.Factories
                         weaponDefense = GetMaxDamageMod(tier, 22);
                         weaponOffense = GetMaxDamageMod(tier, 18);
                         ////There are 4 subtypes of maces
-                        int subMaceType = r.Next(0, 4);
+                        int subMaceType = Physics.Common.Random.RollDice(0, 3);
                         if (subMaceType == 0)
                         {
                             ////Board with Nail
@@ -2975,21 +3733,75 @@ namespace ACE.Server.Factories
                         if (subMaceType == 1)
                         {
                             ////Dabus
-                            weaponWeenie = 313;
-                            damageType = 4;
+                            int eleType = Physics.Common.Random.RollDice(0, 4);
+                            switch (eleType)
+                            {
+                                case 0:
+                                    weaponWeenie = 313;
+                                    damageType = 4;
+                                    break;
+                                case 1:
+                                    weaponWeenie = 3774;
+                                    break;
+                                case 2:
+                                    weaponWeenie = 3775;
+                                    break;
+                                case 3:
+                                    weaponWeenie = 3776;
+                                    break;
+                                default:
+                                    weaponWeenie = 3777;
+                                    break;
+                            }
                         }
                         if (subMaceType == 2)
                         {
                             ////Tofun
-                            weaponWeenie = 356;
-                            damageType = 4;
+                            int eleType = Physics.Common.Random.RollDice(0, 4);
+                            switch (eleType)
+                            {
+                                case 0:
+                                    weaponWeenie = 356;
+                                    damageType = 4;
+                                    break;
+                                case 1:
+                                    weaponWeenie = 3897;
+                                    break;
+                                case 2:
+                                    weaponWeenie = 3898;
+                                    break;
+                                case 3:
+                                    weaponWeenie = 3899;
+                                    break;
+                                default:
+                                    weaponWeenie = 3900;
+                                    break;
+                            }
                         }
                         if (subMaceType == 3)
                         {
                             ////Jitte
                             damageVariance = GetVariance(2, 5);
-                            weaponWeenie = 321;
-                            damageType = 4;
+                            int eleType = Physics.Common.Random.RollDice(0, 4);
+                            switch (eleType)
+                            {
+                                case 0:
+                                    weaponWeenie = 321;
+                                    damageType = 4;
+                                    break;
+                                case 1:
+                                    weaponWeenie = 3802;
+                                    break;
+                                case 2:
+                                    weaponWeenie = 3803;
+                                    break;
+                                case 3:
+                                    weaponWeenie = 3804;
+                                    break;
+                                default:
+                                    weaponWeenie = 3805;
+                                    break;
+                            }
                         }
                     }
                     if (subType == 3)
@@ -2999,16 +3811,52 @@ namespace ACE.Server.Factories
                         ////There are 2 subtypes of spears
                         weaponDefense = GetMaxDamageMod(tier, 15);
                         weaponOffense = GetMaxDamageMod(tier, 25);
-                        int subSpearType = r.Next(0, 2);
+                        int subSpearType = Physics.Common.Random.RollDice(0, 1);
                         if (subSpearType == 0)
                         {
                             ////Budiaq
-                            weaponWeenie = 308;
+                            int eleType = Physics.Common.Random.RollDice(0, 4);
+                            switch (eleType)
+                            {
+                                case 0:
+                                    weaponWeenie = 308;
+                                    break;
+                                case 1:
+                                    weaponWeenie = 3762;
+                                    break;
+                                case 2:
+                                    weaponWeenie = 3763;
+                                    break;
+                                case 3:
+                                    weaponWeenie = 3764;
+                                    break;
+                                default:
+                                    weaponWeenie = 3765;
+                                    break;
+                            }
                         }
                         if (subSpearType == 1)
                         {
                             ////Naginata
-                            weaponWeenie = 7771;
+                            int eleType = Physics.Common.Random.RollDice(0, 4);
+                            switch (eleType)
+                            {
+                                case 0:
+                                    weaponWeenie = 7771;
+                                    break;
+                                case 1:
+                                    weaponWeenie = 7795;
+                                    break;
+                                case 2:
+                                    weaponWeenie = 7796;
+                                    break;
+                                case 3:
+                                    weaponWeenie = 7797;
+                                    break;
+                                default:
+                                    weaponWeenie = 7798;
+                                    break;
+                            }
                         }
                     }
                     if (subType == 4)
@@ -3018,16 +3866,52 @@ namespace ACE.Server.Factories
                         weaponDefense = GetMaxDamageMod(tier, 25);
                         weaponOffense = GetMaxDamageMod(tier, 15);
                         ////There is 2 subtypes of staves
-                        int subStaffType = r.Next(0, 2);
+                        int subStaffType = Physics.Common.Random.RollDice(0, 1);
                         if (subStaffType == 0)
                         {
                             ////Bastone
-                            weaponWeenie = 30606;
+                            int eleType = Physics.Common.Random.RollDice(0, 4);
+                            switch (eleType)
+                            {
+                                case 0:
+                                    weaponWeenie = 30606;
+                                    break;
+                                case 1:
+                                    weaponWeenie = 30607;
+                                    break;
+                                case 2:
+                                    weaponWeenie = 30608;
+                                    break;
+                                case 3:
+                                    weaponWeenie = 30609;
+                                    break;
+                                default:
+                                    weaponWeenie = 30610;
+                                    break;
+                            }
                         }
                         if (subStaffType == 1)
                         {
                             ////Jo
-                            weaponWeenie = 322;
+                            int eleType = Physics.Common.Random.RollDice(0, 4);
+                            switch (eleType)
+                            {
+                                case 0:
+                                    weaponWeenie = 322;
+                                    break;
+                                case 1:
+                                    weaponWeenie = 3806;
+                                    break;
+                                case 2:
+                                    weaponWeenie = 3807;
+                                    break;
+                                case 3:
+                                    weaponWeenie = 3808;
+                                    break;
+                                default:
+                                    weaponWeenie = 3809;
+                                    break;
+                            }
                         }
                     }
                     if (subType == 5)
@@ -3037,38 +3921,129 @@ namespace ACE.Server.Factories
                         weaponDefense = GetMaxDamageMod(tier, 20);
                         weaponOffense = GetMaxDamageMod(tier, 20);
                         ////There are 6 subtypes of swords
-                        int subSwordType = r.Next(0, 6);
+                        int subSwordType = Physics.Common.Random.RollDice(0, 5);
                         if (subSwordType == 0)
                         {
                             ////Rapier
                             damageVariance = GetVariance(2, 9);
                             damage = GetMaxDamage(2, wieldDiff, 7);
                             weaponWeenie = 6853;
+
                         }
                         if (subSwordType == 1)
                         {
                             ////Sabra
-                            weaponWeenie = 30566;
+                            int eleType = Physics.Common.Random.RollDice(0, 4);
+                            switch (eleType)
+                            {
+                                case 0:
+                                    weaponWeenie = 30566;
+                                    break;
+                                case 1:
+                                    weaponWeenie = 30567;
+                                    break;
+                                case 2:
+                                    weaponWeenie = 30568;
+                                    break;
+                                case 3:
+                                    weaponWeenie = 30569;
+                                    break;
+                                default:
+                                    weaponWeenie = 30570;
+                                    break;
+                            }
                         }
                         if (subSwordType == 2)
                         {
                             ////Scimitar
-                            weaponWeenie = 339;
+                            int eleType = Physics.Common.Random.RollDice(0, 4);
+                            switch (eleType)
+                            {
+                                case 0:
+                                    weaponWeenie = 339;
+                                    break;
+                                case 1:
+                                    weaponWeenie = 3849;
+                                    break;
+                                case 2:
+                                    weaponWeenie = 3850;
+                                    break;
+                                case 3:
+                                    weaponWeenie = 3851;
+                                    break;
+                                default:
+                                    weaponWeenie = 3852;
+                                    break;
+                            }
                         }
                         if (subSwordType == 3)
                         {
                             ////Short Sword
-                            weaponWeenie = 352;
+                            int eleType = Physics.Common.Random.RollDice(0, 4);
+                            switch (eleType)
+                            {
+                                case 0:
+                                    weaponWeenie = 352;
+                                    break;
+                                case 1:
+                                    weaponWeenie = 3885;
+                                    break;
+                                case 2:
+                                    weaponWeenie = 3886;
+                                    break;
+                                case 3:
+                                    weaponWeenie = 3887;
+                                    break;
+                                default:
+                                    weaponWeenie = 3888;
+                                    break;
+                            }
                         }
                         if (subSwordType == 4)
                         {
                             ////Simi
-                            weaponWeenie = 345;
+                            int eleType = Physics.Common.Random.RollDice(0, 4);
+                            switch (eleType)
+                            {
+                                case 0:
+                                    weaponWeenie = 345;
+                                    break;
+                                case 1:
+                                    weaponWeenie = 3869;
+                                    break;
+                                case 2:
+                                    weaponWeenie = 3970;
+                                    break;
+                                case 3:
+                                    weaponWeenie = 3871;
+                                    break;
+                                default:
+                                    weaponWeenie = 3872;
+                                    break;
+                            }
                         }
                         if (subSwordType == 5)
                         {
                             ////Yaoji
-                            weaponWeenie = 361;
+                            int eleType = Physics.Common.Random.RollDice(0, 4);
+                            switch (eleType)
+                            {
+                                case 0:
+                                    weaponWeenie = 361;
+                                    break;
+                                case 1:
+                                    weaponWeenie = 3909;
+                                    break;
+                                case 2:
+                                    weaponWeenie = 3910;
+                                    break;
+                                case 3:
+                                    weaponWeenie = 3911;
+                                    break;
+                                default:
+                                    weaponWeenie = 3912;
+                                    break;
+                            }
                         }
                     }
                     //if (subType == 6)
@@ -3078,7 +4053,7 @@ namespace ACE.Server.Factories
                     //    weaponDefense = GetMaxDamageMod(tier, 20);
                     //    weaponOffense = GetMaxDamageMod(tier, 20);
                     //    ////There are 2 subtypes of UA
-                    //    int subUAType = r.Next(0, 2);
+                    //    int subUAType = Physics.Common.Random.RollDice(0, 1);
                     //    if (subUAType == 0)
                     //    {
                     //        ////Claw
@@ -3098,7 +4073,7 @@ namespace ACE.Server.Factories
                 //wieldSkillType = 41;
                 //        damageVariance = GetVariance(3, 1);
                 //        damage = GetMaxDamage(3, wieldDiff, 1);
-                //        subType = r.Next(0, 4);
+                //        subType = Physics.Common.Random.RollDice(0, 4);
                 //        if (subType == 0)
                 //        {
                 //            damageVariance = GetVariance(2, 1);
@@ -3106,7 +4081,7 @@ namespace ACE.Server.Factories
 
                 //            weaponDefense = GetMaxDamageMod(tier, 20);
                 //            weaponOffense = GetMaxDamageMod(tier, 20);
-                //            int subSwordType = r.Next(0, 3);
+                //            int subSwordType = Physics.Common.Random.RollDice(0, 2);
                 //            if (subSwordType == 0)
                 //            {
                 //                ////Nodachi
@@ -3128,7 +4103,7 @@ namespace ACE.Server.Factories
                 //            ////There are 4 subtypes of Maces
                 //            weaponDefense = GetMaxDamageMod(tier, 22);
                 //            weaponOffense = GetMaxDamageMod(tier, 18);
-                //            int subMaceType = r.Next(0, 4);
+                //            int subMaceType = Physics.Common.Random.RollDice(0, 3);
                 //            if (subMaceType == 0)
                 //            {
                 //                ////Great Star Mace
@@ -3155,7 +4130,7 @@ namespace ACE.Server.Factories
                 //            ////There are 1 subtypes of axes
                 //            weaponDefense = GetMaxDamageMod(tier, 18);
                 //            weaponOffense = GetMaxDamageMod(tier, 22);
-                //            int subAxeType = r.Next(0, 1);
+                //            int subAxeType = Physics.Common.Random.RollDice(0, 0);
                 //            if (subAxeType == 0)
                 //            {
                 //                ////Greataxe
@@ -3168,7 +4143,7 @@ namespace ACE.Server.Factories
                 //            damage = GetMaxDamage(3, wieldDiff, 2);
                 //            weaponDefense = GetMaxDamageMod(tier, 15);
                 //            weaponOffense = GetMaxDamageMod(tier, 25);
-                //            int subSpearType = r.Next(0, 4);
+                //            int subSpearType = Physics.Common.Random.RollDice(0, 3);
                 //            if (subSpearType == 0)
                 //            {
                 //                ////Assagai
@@ -3193,53 +4168,53 @@ namespace ACE.Server.Factories
                 //        break;
                 case 3:
                     return CreateMissileWeapon(tier);
-                case 4:
+                default:
                     return CreateCaster(tier);
 
             }
-            String elementName = "";
-            int elementalChance = 0;
+            //String elementName = "";
+            //int elementalChance = 0;
             if (numSpells > 0)
             {
                 uiEffects = 1;
             }
-            if (wieldDiff > 0)
-            {
-                elementalChance = r.Next(0, 100);
-                if (elementalChance > 90)
-                {
-                    int chance = r.Next(0, 4);
-                    switch (chance)
-                    {
+            //if (wieldDiff > 0)
+            //{
+            //    elementalChance = Physics.Common.Random.RollDice(0, 100);
+            //    if (elementalChance > 90)
+            //    {
+            //        int chance = Physics.Common.Random.RollDice(0, 3);
+            //        switch (chance)
+            //        {
 
-                        case 0:
-                            //cold
-                            damageType = 8;
-                            uiEffects = 129;
-                            elementName = "Frost";
-                            break;
-                        case 1:
-                            //fire
-                            damageType = 16;
-                            uiEffects = 33;
-                            elementName = "Fire";
-                            break;
-                        case 2:
-                            //acid
-                            damageType = 32;
-                            uiEffects = 247;
-                            elementName = "Acid";
-                            break;
-                        case 3:
-                            //electric
-                            damageType = 64;
-                            uiEffects = 64;
-                            elementName = "Electric";
-                            break;
+            //            case 0:
+            //                //cold
+            //                damageType = 8;
+            //                uiEffects = 129;
+            //                elementName = "Frost";
+            //                break;
+            //            case 1:
+            //                //fire
+            //                damageType = 16;
+            //                uiEffects = 33;
+            //                elementName = "Fire";
+            //                break;
+            //            case 2:
+            //                //acid
+            //                damageType = 32;
+            //                uiEffects = 247;
+            //                elementName = "Acid";
+            //                break;
+            //            case 3:
+            //                //electric
+            //                damageType = 64;
+            //                uiEffects = 64;
+            //                elementName = "Electric";
+            //                break;
 
-                    }
-                }
-            }
+            //        }
+            //    }
+            //}
             ///To be done: setting random burdens,
             WorldObject wo = WorldObjectFactory.CreateNewWorldObject((uint)weaponWeenie);
             wo.SetProperty(PropertyInt.GemCount, gemCount);
@@ -3257,10 +4232,10 @@ namespace ACE.Server.Factories
             int numCantrips = minorCantrips + majorCantrips + epicCantrips + legendaryCantrips;
             int[][] spells = LootHelper.MeleeSpells;
             int[][] cantrips = LootHelper.MeleeCantrips;
-            if (elementalChance > 90)
-            {
-                wo.SetProperty(PropertyInt.DamageType, damageType);
-            }
+            //if (elementalChance > 90)
+            //{
+            //    wo.SetProperty(PropertyInt.DamageType, damageType);
+            //}
             if (numSpells > 0)
             {
                 wo.SetProperty(PropertyInt.ItemSpellcraft, spellCraft);
@@ -3279,7 +4254,7 @@ namespace ACE.Server.Factories
                     wo.SetProperty(PropertyInt.UiEffects, 1);
                     for (int a = 0; a < numSpells - numCantrips; a++)
                     {
-                        int col = r.Next(lowSpellTier - 1, highSpellTier);
+                        int col = Physics.Common.Random.RollDice(lowSpellTier - 1, highSpellTier-1);
                         int spellID = spells[shuffledValues[a]][col];
                         var result = new BiotaPropertiesSpellBook { ObjectId = wo.Biota.Id, Spell = spellID, Object = wo.Biota };
                         wo.Biota.BiotaPropertiesSpellBook.Add(result);
@@ -3340,7 +4315,7 @@ namespace ACE.Server.Factories
                 wo.SetProperty(PropertyFloat.WeaponOffense, weaponOffense);
                 wo.SetProperty(PropertyFloat.WeaponMissileDefense, missileD);
                 wo.SetProperty(PropertyFloat.WeaponMagicDefense, magicD);
-                wo.SetProperty(PropertyString.LongDesc, getLongDesc(wo.GetProperty(PropertyString.Name)));
+                wo.SetProperty(PropertyString.LongDesc, getLongDesc(wo.GetProperty(PropertyString.Name), gemType, gemCount));
             if (numSpells == 0)
                 {
                     wo.RemoveProperty(PropertyInt.ItemManaCost);
@@ -3361,7 +4336,7 @@ namespace ACE.Server.Factories
 
         public static WorldObject CreateArmor(int tier)
         {
-            Random r = new Random();
+            
             int lowSpellTier = 0;
             int highSpellTier = 0;
             ////Double values needed
@@ -3386,17 +4361,17 @@ namespace ACE.Server.Factories
             int[][] spells;
             int[][] cantrips;
             int armorWeenie = 0;
-            int palette = 0;
+            //int palette = 0;
             switch (tier)
             {
                 case 1:
                     lowSpellTier = 1;
                     highSpellTier = 3;
-                    armorType = r.Next(0, 4);
+                    armorType = Physics.Common.Random.RollDice(0, 3);
                     ////Leather Armor
                     if (armorType == 0)
                     {
-                        int armorPiece = r.Next(0, 16);
+                        int armorPiece = Physics.Common.Random.RollDice(0, 15);
                         if (armorPiece == 0)
                         {
                             ////helm
@@ -3530,7 +4505,7 @@ namespace ACE.Server.Factories
                     ////Studded Leather
                     if (armorType == 1)
                     {
-                        int armorPiece = r.Next(0, 13);
+                        int armorPiece = Physics.Common.Random.RollDice(0, 12);
                         if (armorPiece == 0)
                         {
                             armorWeenie = 554;
@@ -3635,7 +4610,7 @@ namespace ACE.Server.Factories
                     if (armorType == 2)
                     {
                         ////Thinking a dictionary with random roll/WeenieID would be more concise.
-                        int armorPiece = r.Next(0, 13);
+                        int armorPiece = Physics.Common.Random.RollDice(0, 12);
                         if (armorPiece == 0)
                         {
                             armorWeenie = 35;
@@ -3732,7 +4707,7 @@ namespace ACE.Server.Factories
                     ////Random Armor Items
                     if (armorType == 3)
                     {
-                        int armorPiece = r.Next(0, 16);
+                        int armorPiece = Physics.Common.Random.RollDice(0, 15);
                         if (armorPiece == 0)
                         {
                             ////bandana
@@ -3927,11 +4902,11 @@ namespace ACE.Server.Factories
                 case 2:
                     lowSpellTier = 3;
                     highSpellTier = 5;
-                    armorType = r.Next(0, 7);
+                    armorType = Physics.Common.Random.RollDice(0, 6);
                     ////Leather Armor
                     if (armorType == 0)
                     {
-                        int armorPiece = r.Next(0, 16);
+                        int armorPiece = Physics.Common.Random.RollDice(0, 15);
                         if (armorPiece == 0)
                         {
                             ////helm
@@ -4066,7 +5041,7 @@ namespace ACE.Server.Factories
                     if (armorType == 1)
                     {
                         ////Thinking a dictionary with random roll/WeenieID would be more concise.
-                        int armorPiece = r.Next(0, 15);
+                        int armorPiece = Physics.Common.Random.RollDice(0, 14);
                         if (armorPiece == 0)
                         {
                             armorWeenie = 554;
@@ -4177,7 +5152,7 @@ namespace ACE.Server.Factories
                     ////Chainmail
                     if (armorType == 2)
                     {
-                        int armorPiece = r.Next(0, 13);
+                        int armorPiece = Physics.Common.Random.RollDice(0, 12);
                         if (armorPiece == 0)
                         {
                             armorWeenie = 35;
@@ -4274,7 +5249,7 @@ namespace ACE.Server.Factories
                     ////Platemail
                     if (armorType == 3)
                     {
-                        int armorPiece = r.Next(0, 11);
+                        int armorPiece = Physics.Common.Random.RollDice(0, 10);
                         if (armorPiece == 0)
                         {
                             armorWeenie = 40;
@@ -4357,7 +5332,7 @@ namespace ACE.Server.Factories
                     ////Scalemail
                     if (armorType == 4)
                     {
-                        int armorPiece = r.Next(0, 14);
+                        int armorPiece = Physics.Common.Random.RollDice(0, 13);
                         if (armorPiece == 0)
                         {
                             armorWeenie = 552;
@@ -4461,7 +5436,7 @@ namespace ACE.Server.Factories
                     ////Yoroi
                     if (armorType == 5)
                     {
-                        int armorPiece = r.Next(0, 8);
+                        int armorPiece = Physics.Common.Random.RollDice(0, 7);
                         if (armorPiece == 0)
                         {
                             armorWeenie = 43;
@@ -4523,7 +5498,7 @@ namespace ACE.Server.Factories
                     ////Diforsa
                     if (armorType == 6)
                     {
-                        int armorPiece = r.Next(0, 13);
+                        int armorPiece = Physics.Common.Random.RollDice(0, 12);
                         if (armorPiece == 0)
                         {
                             armorWeenie = 28367;
@@ -4620,7 +5595,7 @@ namespace ACE.Server.Factories
                     ////Random Armor Items
                     if (armorType == 7)
                     {
-                        int armorPiece = r.Next(0, 30);
+                        int armorPiece = Physics.Common.Random.RollDice(0, 29);
                         if (armorPiece == 0)
                         {
                             ////bandana
@@ -4904,11 +5879,11 @@ namespace ACE.Server.Factories
                 case 3:
                     lowSpellTier = 4;
                     highSpellTier = 6;
-                    armorType = r.Next(0, 11);
+                    armorType = Physics.Common.Random.RollDice(0, 10);
                     ////Leather Armor
                     if (armorType == 0)
                     {
-                        int armorPiece = r.Next(0, 16);
+                        int armorPiece = Physics.Common.Random.RollDice(0, 15);
                         if (armorPiece == 0)
                         {
                             ////helm
@@ -5042,7 +6017,7 @@ namespace ACE.Server.Factories
                     ////Studded Leather
                     if (armorType == 1)
                     {
-                        int armorPiece = r.Next(0, 15);
+                        int armorPiece = Physics.Common.Random.RollDice(0, 14);
                         if (armorPiece == 0)
                         {
                             armorWeenie = 554;
@@ -5153,7 +6128,7 @@ namespace ACE.Server.Factories
                     ////Chainmail
                     if (armorType == 2)
                     {
-                        int armorPiece = r.Next(0, 13);
+                        int armorPiece = Physics.Common.Random.RollDice(0, 12);
                         if (armorPiece == 0)
                         {
                             armorWeenie = 35;
@@ -5250,7 +6225,7 @@ namespace ACE.Server.Factories
                     ////Platemail
                     if (armorType == 3)
                     {
-                        int armorPiece = r.Next(0, 12);
+                        int armorPiece = Physics.Common.Random.RollDice(0, 11);
                         if (armorPiece == 0)
                         {
                             armorWeenie = 40;
@@ -5333,7 +6308,7 @@ namespace ACE.Server.Factories
                     ////Scalemail
                     if (armorType == 4)
                     {
-                        int armorPiece = r.Next(0, 14);
+                        int armorPiece = Physics.Common.Random.RollDice(0, 13);
                         if (armorPiece == 0)
                         {
                             armorWeenie = 552;
@@ -5437,7 +6412,7 @@ namespace ACE.Server.Factories
                     ////Yoroi
                     if (armorType == 5)
                     {
-                        int armorPiece = r.Next(0, 8);
+                        int armorPiece = Physics.Common.Random.RollDice(0, 7);
                         if (armorPiece == 0)
                         {
                             armorWeenie = 43;
@@ -5499,7 +6474,7 @@ namespace ACE.Server.Factories
                     ////Diforsa
                     if (armorType == 6)
                     {
-                        int armorPiece = r.Next(0, 13);
+                        int armorPiece = Physics.Common.Random.RollDice(0, 12);
                         if (armorPiece == 0)
                         {
                             armorWeenie = 28367;
@@ -5596,7 +6571,7 @@ namespace ACE.Server.Factories
                     ////celdon
                     if (armorType == 7)
                     {
-                        int armorPiece = r.Next(0, 4);
+                        int armorPiece = Physics.Common.Random.RollDice(0, 3);
                         if (armorPiece == 0)
                         {
                             armorWeenie = 6044;
@@ -5630,7 +6605,7 @@ namespace ACE.Server.Factories
                     ///Amuli
                     if (armorType == 8)
                     {
-                        int armorPiece = r.Next(0, 2);
+                        int armorPiece = Physics.Common.Random.RollDice(0, 1);
                         if (armorPiece == 0)
                         {
                             armorWeenie = 6046;
@@ -5650,7 +6625,7 @@ namespace ACE.Server.Factories
                     ////Koujia
                     if (armorType == 9)
                     {
-                        int armorPiece = r.Next(0, 3);
+                        int armorPiece = Physics.Common.Random.RollDice(0, 2);
                         if (armorPiece == 0)
                         {
                             armorWeenie = 6003;
@@ -5677,7 +6652,7 @@ namespace ACE.Server.Factories
                     ////Tenassa
                     if (armorType == 10)
                     {
-                        int armorPiece = r.Next(0, 3);
+                        int armorPiece = Physics.Common.Random.RollDice(0, 2);
                         if (armorPiece == 0)
                         {
                             armorWeenie = 31026;
@@ -5703,7 +6678,7 @@ namespace ACE.Server.Factories
                     }
                     if (armorType == 11)
                     {
-                        int armorPiece = r.Next(0, 30);
+                        int armorPiece = Physics.Common.Random.RollDice(0, 29);
                         if (armorPiece == 0)
                         {
                             ////bandana
@@ -6035,11 +7010,11 @@ namespace ACE.Server.Factories
                 case 4:
                     lowSpellTier = 5;
                     highSpellTier = 6;
-                    armorType = r.Next(0, 11);
+                    armorType = Physics.Common.Random.RollDice(0, 10);
                     ////Leather Armor
                     if (armorType == 0)
                     {
-                        int armorPiece = r.Next(0, 16);
+                        int armorPiece = Physics.Common.Random.RollDice(0, 15);
                         if (armorPiece == 0)
                         {
                             ////helm
@@ -6174,7 +7149,7 @@ namespace ACE.Server.Factories
                     if (armorType == 1)
                     {
                         ////Thinking a dictionary with random roll/WeenieID would be more concise.
-                        int armorPiece = r.Next(0, 15);
+                        int armorPiece = Physics.Common.Random.RollDice(0, 14);
                         if (armorPiece == 0)
                         {
                             armorWeenie = 554;
@@ -6285,7 +7260,7 @@ namespace ACE.Server.Factories
                     ////Chainmail
                     if (armorType == 2)
                     {
-                        int armorPiece = r.Next(0, 13);
+                        int armorPiece = Physics.Common.Random.RollDice(0, 12);
                         if (armorPiece == 0)
                         {
                             armorWeenie = 35;
@@ -6382,7 +7357,7 @@ namespace ACE.Server.Factories
                     ////Platemail
                     if (armorType == 3)
                     {
-                        int armorPiece = r.Next(0, 11);
+                        int armorPiece = Physics.Common.Random.RollDice(0, 10);
                         if (armorPiece == 0)
                         {
                             armorWeenie = 40;
@@ -6465,7 +7440,7 @@ namespace ACE.Server.Factories
                     ////Scalemail
                     if (armorType == 4)
                     {
-                        int armorPiece = r.Next(0, 14);
+                        int armorPiece = Physics.Common.Random.RollDice(0, 13);
                         if (armorPiece == 0)
                         {
                             armorWeenie = 552;
@@ -6569,7 +7544,7 @@ namespace ACE.Server.Factories
                     ////Yoroi
                     if (armorType == 5)
                     {
-                        int armorPiece = r.Next(0, 8);
+                        int armorPiece = Physics.Common.Random.RollDice(0, 7);
                         if (armorPiece == 0)
                         {
                             armorWeenie = 43;
@@ -6631,7 +7606,7 @@ namespace ACE.Server.Factories
                     ////Diforsa
                     if (armorType == 6)
                     {
-                        int armorPiece = r.Next(0, 13);
+                        int armorPiece = Physics.Common.Random.RollDice(0, 12);
                         if (armorPiece == 0)
                         {
                             armorWeenie = 28367;
@@ -6728,7 +7703,7 @@ namespace ACE.Server.Factories
                     ////celdon
                     if (armorType == 7)
                     {
-                        int armorPiece = r.Next(0, 4);
+                        int armorPiece = Physics.Common.Random.RollDice(0, 3);
                         if (armorPiece == 0)
                         {
                             armorWeenie = 6044;
@@ -6762,7 +7737,7 @@ namespace ACE.Server.Factories
                     ///Amuli
                     if (armorType == 8)
                     {
-                        int armorPiece = r.Next(0, 2);
+                        int armorPiece = Physics.Common.Random.RollDice(0, 1);
                         if (armorPiece == 0)
                         {
                             armorWeenie = 6046;
@@ -6782,7 +7757,7 @@ namespace ACE.Server.Factories
                     ////Koujia
                     if (armorType == 9)
                     {
-                        int armorPiece = r.Next(0, 3);
+                        int armorPiece = Physics.Common.Random.RollDice(0, 2);
                         if (armorPiece == 0)
                         {
                             armorWeenie = 6003;
@@ -6809,7 +7784,7 @@ namespace ACE.Server.Factories
                     ////Tenassa
                     if (armorType == 10)
                     {
-                        int armorPiece = r.Next(0, 3);
+                        int armorPiece = Physics.Common.Random.RollDice(0, 2);
                         if (armorPiece == 0)
                         {
                             armorWeenie = 31026;
@@ -6835,7 +7810,7 @@ namespace ACE.Server.Factories
                     }
                     if (armorType == 11)
                     {
-                        int armorPiece = r.Next(0, 30);
+                        int armorPiece = Physics.Common.Random.RollDice(0, 29);
                         if (armorPiece == 0)
                         {
                             ////bandana
@@ -7167,11 +8142,11 @@ namespace ACE.Server.Factories
                 case 5:
                     lowSpellTier = 5;
                     highSpellTier = 7;
-                    armorType = r.Next(0, 15);
+                    armorType = Physics.Common.Random.RollDice(0, 14);
                     ////Leather Armor
                     if (armorType == 0)
                     {
-                        int armorPiece = r.Next(0, 16);
+                        int armorPiece = Physics.Common.Random.RollDice(0, 15);
                         if (armorPiece == 0)
                         {
                             ////helm
@@ -7305,7 +8280,7 @@ namespace ACE.Server.Factories
                     ////Studded Leather
                     if (armorType == 1)
                     {
-                        int armorPiece = r.Next(0, 15);
+                        int armorPiece = Physics.Common.Random.RollDice(0, 14);
                         if (armorPiece == 0)
                         {
                             armorWeenie = 554;
@@ -7416,7 +8391,7 @@ namespace ACE.Server.Factories
                     ////Chainmail
                     if (armorType == 2)
                     {
-                        int armorPiece = r.Next(0, 13);
+                        int armorPiece = Physics.Common.Random.RollDice(0, 12);
                         if (armorPiece == 0)
                         {
                             armorWeenie = 35;
@@ -7513,7 +8488,7 @@ namespace ACE.Server.Factories
                     ////Platemail
                     if (armorType == 3)
                     {
-                        int armorPiece = r.Next(0, 11);
+                        int armorPiece = Physics.Common.Random.RollDice(0, 10);
                         if (armorPiece == 0)
                         {
                             armorWeenie = 40;
@@ -7596,7 +8571,7 @@ namespace ACE.Server.Factories
                     ////Scalemail
                     if (armorType == 4)
                     {
-                        int armorPiece = r.Next(0, 14);
+                        int armorPiece = Physics.Common.Random.RollDice(0, 13);
                         if (armorPiece == 0)
                         {
                             armorWeenie = 552;
@@ -7700,7 +8675,7 @@ namespace ACE.Server.Factories
                     ////Yoroi
                     if (armorType == 5)
                     {
-                        int armorPiece = r.Next(0, 8);
+                        int armorPiece = Physics.Common.Random.RollDice(0, 7);
                         if (armorPiece == 0)
                         {
                             armorWeenie = 43;
@@ -7762,7 +8737,7 @@ namespace ACE.Server.Factories
                     ////Diforsa
                     if (armorType == 6)
                     {
-                        int armorPiece = r.Next(0, 13);
+                        int armorPiece = Physics.Common.Random.RollDice(0, 12);
                         if (armorPiece == 0)
                         {
                             armorWeenie = 28367;
@@ -7859,7 +8834,7 @@ namespace ACE.Server.Factories
                     ////celdon
                     if (armorType == 7)
                     {
-                        int armorPiece = r.Next(0, 4);
+                        int armorPiece = Physics.Common.Random.RollDice(0, 3);
                         if (armorPiece == 0)
                         {
                             armorWeenie = 6044;
@@ -7893,7 +8868,7 @@ namespace ACE.Server.Factories
                     ///Amuli
                     if (armorType == 8)
                     {
-                        int armorPiece = r.Next(0, 2);
+                        int armorPiece = Physics.Common.Random.RollDice(0, 1);
                         if (armorPiece == 0)
                         {
                             armorWeenie = 6046;
@@ -7913,7 +8888,7 @@ namespace ACE.Server.Factories
                     ////Koujia
                     if (armorType == 9)
                     {
-                        int armorPiece = r.Next(0, 3);
+                        int armorPiece = Physics.Common.Random.RollDice(0, 2);
                         if (armorPiece == 0)
                         {
                             armorWeenie = 6003;
@@ -7940,7 +8915,7 @@ namespace ACE.Server.Factories
                     ////Tenassa
                     if (armorType == 10)
                     {
-                        int armorPiece = r.Next(0, 3);
+                        int armorPiece = Physics.Common.Random.RollDice(0, 2);
                         if (armorPiece == 0)
                         {
                             armorWeenie = 31026;
@@ -7967,7 +8942,7 @@ namespace ACE.Server.Factories
                     ////Lorica
                     if (armorType == 11)
                     {
-                        int armorPiece = r.Next(0, 6);
+                        int armorPiece = Physics.Common.Random.RollDice(0, 5);
                         if (armorPiece == 0)
                         {
                             armorWeenie = 27220;
@@ -8015,7 +8990,7 @@ namespace ACE.Server.Factories
                     ////Nariyid
                     if (armorType == 12)
                     {
-                        int armorPiece = r.Next(0, 7);
+                        int armorPiece = Physics.Common.Random.RollDice(0, 6);
                         if (armorPiece == 0)
                         {
                             armorWeenie = 27226;
@@ -8070,7 +9045,7 @@ namespace ACE.Server.Factories
                     ////Chiran
                     if (armorType == 13)
                     {
-                        int armorPiece = r.Next(0, 5);
+                        int armorPiece = Physics.Common.Random.RollDice(0, 4);
                         if (armorPiece == 0)
                         {
                             armorWeenie = 27215;
@@ -8111,7 +9086,7 @@ namespace ACE.Server.Factories
                     ////Alduressa
                     if (armorType == 14)
                     {
-                        int armorPiece = r.Next(0, 5);
+                        int armorPiece = Physics.Common.Random.RollDice(0, 4);
                         if (armorPiece == 0)
                         {
                             armorWeenie = 30950;
@@ -8151,7 +9126,7 @@ namespace ACE.Server.Factories
                     }
                     if (armorType == 15)
                     {
-                        int armorPiece = r.Next(0, 30);
+                        int armorPiece = Physics.Common.Random.RollDice(0, 29);
                         if (armorPiece == 0)
                         {
                             ////bandana
@@ -8504,11 +9479,11 @@ namespace ACE.Server.Factories
                 case 6:
                     lowSpellTier = 6;
                     highSpellTier = 7;
-                    armorType = r.Next(0, 16);
+                    armorType = Physics.Common.Random.RollDice(0, 15);
                     ////Leather Armor
                     if (armorType == 0)
                     {
-                        int armorPiece = r.Next(0, 16);
+                        int armorPiece = Physics.Common.Random.RollDice(0, 15);
                         if (armorPiece == 0)
                         {
                             ////helm
@@ -8642,7 +9617,7 @@ namespace ACE.Server.Factories
                     ////Studded Leather
                     if (armorType == 1)
                     {
-                        int armorPiece = r.Next(0, 15);
+                        int armorPiece = Physics.Common.Random.RollDice(0, 14);
                         if (armorPiece == 0)
                         {
                             armorWeenie = 554;
@@ -8753,7 +9728,7 @@ namespace ACE.Server.Factories
                     ////Chainmail
                     if (armorType == 2)
                     {
-                        int armorPiece = r.Next(0, 13);
+                        int armorPiece = Physics.Common.Random.RollDice(0, 12);
                         if (armorPiece == 0)
                         {
                             armorWeenie = 35;
@@ -8850,7 +9825,7 @@ namespace ACE.Server.Factories
                     ////Platemail
                     if (armorType == 3)
                     {
-                        int armorPiece = r.Next(0, 11);
+                        int armorPiece = Physics.Common.Random.RollDice(0, 10);
                         if (armorPiece == 0)
                         {
                             armorWeenie = 40;
@@ -8933,7 +9908,7 @@ namespace ACE.Server.Factories
                     ////Scalemail
                     if (armorType == 4)
                     {
-                        int armorPiece = r.Next(0, 14);
+                        int armorPiece = Physics.Common.Random.RollDice(0, 13);
                         if (armorPiece == 0)
                         {
                             armorWeenie = 552;
@@ -9037,7 +10012,7 @@ namespace ACE.Server.Factories
                     ////Yoroi
                     if (armorType == 5)
                     {
-                        int armorPiece = r.Next(0, 8);
+                        int armorPiece = Physics.Common.Random.RollDice(0, 7);
                         if (armorPiece == 0)
                         {
                             armorWeenie = 43;
@@ -9099,7 +10074,7 @@ namespace ACE.Server.Factories
                     ////Diforsa
                     if (armorType == 6)
                     {
-                        int armorPiece = r.Next(0, 13);
+                        int armorPiece = Physics.Common.Random.RollDice(0, 12);
                         if (armorPiece == 0)
                         {
                             armorWeenie = 28367;
@@ -9196,7 +10171,7 @@ namespace ACE.Server.Factories
                     ////celdon
                     if (armorType == 7)
                     {
-                        int armorPiece = r.Next(0, 4);
+                        int armorPiece = Physics.Common.Random.RollDice(0, 3);
                         if (armorPiece == 0)
                         {
                             armorWeenie = 6044;
@@ -9230,7 +10205,7 @@ namespace ACE.Server.Factories
                     ///Amuli
                     if (armorType == 8)
                     {
-                        int armorPiece = r.Next(0, 2);
+                        int armorPiece = Physics.Common.Random.RollDice(0, 1);
                         if (armorPiece == 0)
                         {
                             armorWeenie = 6046;
@@ -9250,7 +10225,7 @@ namespace ACE.Server.Factories
                     ////Koujia
                     if (armorType == 9)
                     {
-                        int armorPiece = r.Next(0, 3);
+                        int armorPiece = Physics.Common.Random.RollDice(0, 2);
                         if (armorPiece == 0)
                         {
                             armorWeenie = 6003;
@@ -9277,7 +10252,7 @@ namespace ACE.Server.Factories
                     ////Tenassa
                     if (armorType == 10)
                     {
-                        int armorPiece = r.Next(0, 3);
+                        int armorPiece = Physics.Common.Random.RollDice(0, 2);
                         if (armorPiece == 0)
                         {
                             armorWeenie = 31026;
@@ -9304,7 +10279,7 @@ namespace ACE.Server.Factories
                     ////Lorica
                     if (armorType == 11)
                     {
-                        int armorPiece = r.Next(0, 6);
+                        int armorPiece = Physics.Common.Random.RollDice(0, 5);
                         if (armorPiece == 0)
                         {
                             armorWeenie = 27220;
@@ -9352,7 +10327,7 @@ namespace ACE.Server.Factories
                     ////Nariyid
                     if (armorType == 12)
                     {
-                        int armorPiece = r.Next(0, 7);
+                        int armorPiece = Physics.Common.Random.RollDice(0, 6);
                         if (armorPiece == 0)
                         {
                             armorWeenie = 27226;
@@ -9407,7 +10382,7 @@ namespace ACE.Server.Factories
                     ////Chiran
                     if (armorType == 13)
                     {
-                        int armorPiece = r.Next(0, 5);
+                        int armorPiece = Physics.Common.Random.RollDice(0, 4);
                         if (armorPiece == 0)
                         {
                             armorWeenie = 27215;
@@ -9448,7 +10423,7 @@ namespace ACE.Server.Factories
                     ////Alduressa
                     if (armorType == 14)
                     {
-                        int armorPiece = r.Next(0, 5);
+                        int armorPiece = Physics.Common.Random.RollDice(0, 4);
                         if (armorPiece == 0)
                         {
                             armorWeenie = 30950;
@@ -9489,7 +10464,7 @@ namespace ACE.Server.Factories
                     //////Knorr Academy Armor
                     //if (armorType == 15)
                     //{
-                    //    int armorPiece = r.Next(0, 8);
+                    //    int armorPiece = Physics.Common.Random.RollDice(0, 8);
                     //    if (armorPiece == 0)
                     //    {
                     //        armorWeenie = 43053;
@@ -9551,7 +10526,7 @@ namespace ACE.Server.Factories
                     //////Sedgemail Leather Armor
                     //if (armorType == 16)
                     //{
-                    //    int armorPiece = r.Next(0, 6);
+                    //    int armorPiece = Physics.Common.Random.RollDice(0, 6);
                     //    if (armorPiece == 0)
                     //    {
                     //        armorWeenie = 43829;
@@ -9599,7 +10574,7 @@ namespace ACE.Server.Factories
                     //////Haebrean
                     //if (armorType == 17)
                     //{
-                    //    int armorPiece = r.Next(0, 9);
+                    //    int armorPiece = Physics.Common.Random.RollDice(0, 9);
                     //    if (armorPiece == 0)
                     //    {
                     //        armorWeenie = 42755;
@@ -9667,7 +10642,7 @@ namespace ACE.Server.Factories
                     //}
                     if (armorType == 15)
                     {
-                        int armorPiece = r.Next(0, 34);
+                        int armorPiece = Physics.Common.Random.RollDice(0, 29);
                         if (armorPiece == 0)
                         {
                             ////bandana
@@ -10044,11 +11019,11 @@ namespace ACE.Server.Factories
                 case 7:
                     lowSpellTier = 6;
                     highSpellTier = 8;
-                    armorType = r.Next(0, 16);
+                    armorType = Physics.Common.Random.RollDice(0, 15);
                     ////Leather Armor
                     if (armorType == 0)
                     {
-                        int armorPiece = r.Next(0, 16);
+                        int armorPiece = Physics.Common.Random.RollDice(0, 15);
                         if (armorPiece == 0)
                         {
                             ////helm
@@ -10182,7 +11157,7 @@ namespace ACE.Server.Factories
                     ////Studded Leather
                     if (armorType == 1)
                     {
-                        int armorPiece = r.Next(0, 15);
+                        int armorPiece = Physics.Common.Random.RollDice(0, 14);
                         if (armorPiece == 0)
                         {
                             armorWeenie = 554;
@@ -10293,7 +11268,7 @@ namespace ACE.Server.Factories
                     ////Chainmail
                     if (armorType == 2)
                     {
-                        int armorPiece = r.Next(0, 13);
+                        int armorPiece = Physics.Common.Random.RollDice(0, 12);
                         if (armorPiece == 0)
                         {
                             armorWeenie = 35;
@@ -10390,7 +11365,7 @@ namespace ACE.Server.Factories
                     ////Platemail
                     if (armorType == 3)
                     {
-                        int armorPiece = r.Next(0, 11);
+                        int armorPiece = Physics.Common.Random.RollDice(0, 10);
                         if (armorPiece == 0)
                         {
                             armorWeenie = 40;
@@ -10473,7 +11448,7 @@ namespace ACE.Server.Factories
                     ////Scalemail
                     if (armorType == 4)
                     {
-                        int armorPiece = r.Next(0, 14);
+                        int armorPiece = Physics.Common.Random.RollDice(0, 13);
                         if (armorPiece == 0)
                         {
                             armorWeenie = 552;
@@ -10577,7 +11552,7 @@ namespace ACE.Server.Factories
                     ////Yoroi
                     if (armorType == 5)
                     {
-                        int armorPiece = r.Next(0, 8);
+                        int armorPiece = Physics.Common.Random.RollDice(0, 7);
                         if (armorPiece == 0)
                         {
                             armorWeenie = 43;
@@ -10639,7 +11614,7 @@ namespace ACE.Server.Factories
                     ////Diforsa
                     if (armorType == 6)
                     {
-                        int armorPiece = r.Next(0, 13);
+                        int armorPiece = Physics.Common.Random.RollDice(0, 12);
                         if (armorPiece == 0)
                         {
                             armorWeenie = 28367;
@@ -10736,7 +11711,7 @@ namespace ACE.Server.Factories
                     ////celdon
                     if (armorType == 7)
                     {
-                        int armorPiece = r.Next(0, 4);
+                        int armorPiece = Physics.Common.Random.RollDice(0, 3);
                         if (armorPiece == 0)
                         {
                             armorWeenie = 6044;
@@ -10770,7 +11745,7 @@ namespace ACE.Server.Factories
                     ///Amuli
                     if (armorType == 8)
                     {
-                        int armorPiece = r.Next(0, 2);
+                        int armorPiece = Physics.Common.Random.RollDice(0, 1);
                         if (armorPiece == 0)
                         {
                             armorWeenie = 6046;
@@ -10790,7 +11765,7 @@ namespace ACE.Server.Factories
                     ////Koujia
                     if (armorType == 9)
                     {
-                        int armorPiece = r.Next(0, 3);
+                        int armorPiece = Physics.Common.Random.RollDice(0, 2);
                         if (armorPiece == 0)
                         {
                             armorWeenie = 6003;
@@ -10817,7 +11792,7 @@ namespace ACE.Server.Factories
                     ////Tenassa
                     if (armorType == 10)
                     {
-                        int armorPiece = r.Next(0, 3);
+                        int armorPiece = Physics.Common.Random.RollDice(0, 5);
                         if (armorPiece == 0)
                         {
                             armorWeenie = 31026;
@@ -10844,7 +11819,7 @@ namespace ACE.Server.Factories
                     ////Lorica
                     if (armorType == 11)
                     {
-                        int armorPiece = r.Next(0, 6);
+                        int armorPiece = Physics.Common.Random.RollDice(0, 5);
                         if (armorPiece == 0)
                         {
                             armorWeenie = 27220;
@@ -10892,7 +11867,7 @@ namespace ACE.Server.Factories
                     ////Nariyid
                     if (armorType == 12)
                     {
-                        int armorPiece = r.Next(0, 7);
+                        int armorPiece = Physics.Common.Random.RollDice(0, 6);
                         if (armorPiece == 0)
                         {
                             armorWeenie = 27226;
@@ -10947,7 +11922,7 @@ namespace ACE.Server.Factories
                     ////Chiran
                     if (armorType == 13)
                     {
-                        int armorPiece = r.Next(0, 5);
+                        int armorPiece = Physics.Common.Random.RollDice(0, 4);
                         if (armorPiece == 0)
                         {
                             armorWeenie = 27215;
@@ -10988,7 +11963,7 @@ namespace ACE.Server.Factories
                     ////Alduressa
                     if (armorType == 14)
                     {
-                        int armorPiece = r.Next(0, 6);
+                        int armorPiece = Physics.Common.Random.RollDice(0, 4);
                         if (armorPiece == 0)
                         {
                             armorWeenie = 30950;
@@ -11029,7 +12004,7 @@ namespace ACE.Server.Factories
                     ////Knorr Academy Armor
                     //if (armorType == 15)
                     //{
-                    //    int armorPiece = r.Next(0, 8);
+                    //    int armorPiece = Physics.Common.Random.RollDice(0, 8);
                     //    if (armorPiece == 0)
                     //    {
                     //        armorWeenie = 43053;
@@ -11091,7 +12066,7 @@ namespace ACE.Server.Factories
                     //////Sedgemail Leather Armor
                     //if (armorType == 16)
                     //{
-                    //    int armorPiece = r.Next(0, 6);
+                    //    int armorPiece = Physics.Common.Random.RollDice(0, 6);
                     //    if (armorPiece == 0)
                     //    {
                     //        armorWeenie = 43829;
@@ -11139,7 +12114,7 @@ namespace ACE.Server.Factories
                     //////Haebrean
                     //if (armorType == 17)
                     //{
-                    //    int armorPiece = r.Next(0, 9);
+                    //    int armorPiece = Physics.Common.Random.RollDice(0, 9);
                     //    if (armorPiece == 0)
                     //    {
                     //        armorWeenie = 42755;
@@ -11207,7 +12182,7 @@ namespace ACE.Server.Factories
                     //}
                     if (armorType == 15)
                     {
-                        int armorPiece = r.Next(0, 29);
+                        int armorPiece = Physics.Common.Random.RollDice(0, 29);
                         if (armorPiece == 0)
                         {
                             ////bandana
@@ -11582,14 +12557,14 @@ namespace ACE.Server.Factories
                     }
                     wieldDifficulty = 150;
                     break;
-                case 8:
+                default:
                     lowSpellTier = 6;
                     highSpellTier = 8;
-                    armorType = r.Next(0, 16);
+                    armorType = Physics.Common.Random.RollDice(0, 15);
                     ////Leather Armor
                     if (armorType == 0)
                     {
-                        int armorPiece = r.Next(0, 16);
+                        int armorPiece = Physics.Common.Random.RollDice(0, 15);
                         if (armorPiece == 0)
                         {
                             ////helm
@@ -11723,7 +12698,7 @@ namespace ACE.Server.Factories
                     ////Studded Leather
                     if (armorType == 1)
                     {
-                        int armorPiece = r.Next(0, 15);
+                        int armorPiece = Physics.Common.Random.RollDice(0, 14);
                         if (armorPiece == 0)
                         {
                             armorWeenie = 554;
@@ -11834,7 +12809,7 @@ namespace ACE.Server.Factories
                     ////Chainmail
                     if (armorType == 2)
                     {
-                        int armorPiece = r.Next(0, 13);
+                        int armorPiece = Physics.Common.Random.RollDice(0, 12);
                         if (armorPiece == 0)
                         {
                             armorWeenie = 35;
@@ -11931,7 +12906,7 @@ namespace ACE.Server.Factories
                     ////Platemail
                     if (armorType == 3)
                     {
-                        int armorPiece = r.Next(0, 11);
+                        int armorPiece = Physics.Common.Random.RollDice(0, 10);
                         if (armorPiece == 0)
                         {
                             armorWeenie = 40;
@@ -12014,7 +12989,7 @@ namespace ACE.Server.Factories
                     ////Scalemail
                     if (armorType == 4)
                     {
-                        int armorPiece = r.Next(0, 14);
+                        int armorPiece = Physics.Common.Random.RollDice(0, 13);
                         if (armorPiece == 0)
                         {
                             armorWeenie = 552;
@@ -12118,7 +13093,7 @@ namespace ACE.Server.Factories
                     ////Yoroi
                     if (armorType == 5)
                     {
-                        int armorPiece = r.Next(0, 8);
+                        int armorPiece = Physics.Common.Random.RollDice(0, 7);
                         if (armorPiece == 0)
                         {
                             armorWeenie = 43;
@@ -12180,7 +13155,7 @@ namespace ACE.Server.Factories
                     ////Diforsa
                     if (armorType == 6)
                     {
-                        int armorPiece = r.Next(0, 13);
+                        int armorPiece = Physics.Common.Random.RollDice(0, 12);
                         if (armorPiece == 0)
                         {
                             armorWeenie = 28367;
@@ -12277,7 +13252,7 @@ namespace ACE.Server.Factories
                     ////celdon
                     if (armorType == 7)
                     {
-                        int armorPiece = r.Next(0, 4);
+                        int armorPiece = Physics.Common.Random.RollDice(0, 3);
                         if (armorPiece == 0)
                         {
                             armorWeenie = 6044;
@@ -12311,7 +13286,7 @@ namespace ACE.Server.Factories
                     ///Amuli
                     if (armorType == 8)
                     {
-                        int armorPiece = r.Next(0, 2);
+                        int armorPiece = Physics.Common.Random.RollDice(0, 1);
                         if (armorPiece == 0)
                         {
                             armorWeenie = 6046;
@@ -12331,7 +13306,7 @@ namespace ACE.Server.Factories
                     ////Koujia
                     if (armorType == 9)
                     {
-                        int armorPiece = r.Next(0, 3);
+                        int armorPiece = Physics.Common.Random.RollDice(0, 2);
                         if (armorPiece == 0)
                         {
                             armorWeenie = 6003;
@@ -12358,7 +13333,7 @@ namespace ACE.Server.Factories
                     ////Tenassa
                     if (armorType == 10)
                     {
-                        int armorPiece = r.Next(0, 3);
+                        int armorPiece = Physics.Common.Random.RollDice(0, 2);
                         if (armorPiece == 0)
                         {
                             armorWeenie = 31026;
@@ -12385,7 +13360,7 @@ namespace ACE.Server.Factories
                     ////Lorica
                     if (armorType == 11)
                     {
-                        int armorPiece = r.Next(0, 6);
+                        int armorPiece = Physics.Common.Random.RollDice(0, 5);
                         if (armorPiece == 0)
                         {
                             armorWeenie = 27220;
@@ -12433,7 +13408,7 @@ namespace ACE.Server.Factories
                     ////Nariyid
                     if (armorType == 12)
                     {
-                        int armorPiece = r.Next(0, 7);
+                        int armorPiece = Physics.Common.Random.RollDice(0, 6);
                         if (armorPiece == 0)
                         {
                             armorWeenie = 27226;
@@ -12488,7 +13463,7 @@ namespace ACE.Server.Factories
                     ////Chiran
                     if (armorType == 13)
                     {
-                        int armorPiece = r.Next(0, 5);
+                        int armorPiece = Physics.Common.Random.RollDice(0, 4);
                         if (armorPiece == 0)
                         {
                             armorWeenie = 27215;
@@ -12529,7 +13504,7 @@ namespace ACE.Server.Factories
                     ////Alduressa
                     if (armorType == 14)
                     {
-                        int armorPiece = r.Next(0, 5);
+                        int armorPiece = Physics.Common.Random.RollDice(0, 4);
                         if (armorPiece == 0)
                         {
                             armorWeenie = 30950;
@@ -12570,7 +13545,7 @@ namespace ACE.Server.Factories
                     //////Knorr Academy Armor
                     //if (armorType == 15)
                     //{
-                    //    int armorPiece = r.Next(0, 8);
+                    //    int armorPiece = Physics.Common.Random.RollDice(0, 8);
                     //    if (armorPiece == 0)
                     //    {
                     //        armorWeenie = 43053;
@@ -12632,7 +13607,7 @@ namespace ACE.Server.Factories
                     //////Sedgemail Leather Armor
                     //if (armorType == 16)
                     //{
-                    //    int armorPiece = r.Next(0, 6);
+                    //    int armorPiece = Physics.Common.Random.RollDice(0, 6);
                     //    if (armorPiece == 0)
                     //    {
                     //        armorWeenie = 43829;
@@ -12680,7 +13655,7 @@ namespace ACE.Server.Factories
                     //////Haebrean
                     //if (armorType == 17)
                     //{
-                    //    int armorPiece = r.Next(0, 9);
+                    //    int armorPiece = Physics.Common.Random.RollDice(0, 9);
                     //    if (armorPiece == 0)
                     //    {
                     //        armorWeenie = 42755;
@@ -12749,7 +13724,7 @@ namespace ACE.Server.Factories
                     //////Olthoi Alduressa
                     //if (armorType == 18)
                     //{
-                    //    int armorPiece = r.Next(0, 5);
+                    //    int armorPiece = Physics.Common.Random.RollDice(0, 5);
                     //    if (armorPiece == 0)
                     //    {
                     //        armorWeenie = 37207;
@@ -12795,7 +13770,7 @@ namespace ACE.Server.Factories
                     //////Olthoi Amuli
                     //if (armorType == 19)
                     //{
-                    //    int armorPiece = r.Next(0, 5);
+                    //    int armorPiece = Physics.Common.Random.RollDice(0, 5);
                     //    if (armorPiece == 0)
                     //    {
                     //        armorWeenie = 37208;
@@ -12841,7 +13816,7 @@ namespace ACE.Server.Factories
                     //////Olthoi Celdon
                     //if (armorType == 20)
                     //{
-                    //    int armorPiece = r.Next(0, 7);
+                    //    int armorPiece = Physics.Common.Random.RollDice(0, 7);
                     //    if (armorPiece == 0)
                     //    {
                     //        armorWeenie = 37209;
@@ -12903,7 +13878,7 @@ namespace ACE.Server.Factories
                     //////Olthoi Celdon
                     //if (armorType == 21)
                     //{
-                    //    int armorPiece = r.Next(0, 5);
+                    //    int armorPiece = Physics.Common.Random.RollDice(0, 5);
                     //    if (armorPiece == 0)
                     //    {
                     //        armorWeenie = 37215;
@@ -12948,7 +13923,7 @@ namespace ACE.Server.Factories
                     //}
                     if (armorType == 15)
                     {
-                        int armorPiece = r.Next(0, 29);
+                        int armorPiece = Physics.Common.Random.RollDice(0, 29);
                         if (armorPiece == 0)
                         {
                             ////bandana
@@ -13326,25 +14301,25 @@ namespace ACE.Server.Factories
 
             }
             ////ArmorModVsSlash, with a value between 0.0-2.0.
-            armorModSlash = .1 * r.Next(1, 21);
+            armorModSlash = .1 * Physics.Common.Random.RollDice(1, 20);
             ////ArmorModVsPierce, with a value between 0.0-2.0.
-            armorModPierce = .1 * r.Next(1, 21);
+            armorModPierce = .1 * Physics.Common.Random.RollDice(1, 20);
             ////ArmorModVsBludgeon, with a value between 0.0-2.0.
-            armorModBludge = .1 * r.Next(1, 21);
+            armorModBludge = .1 * Physics.Common.Random.RollDice(1, 20);
             ////ArmorModVsCold, with a value between 0.0-2.0.
-            armorModCold = .1 * r.Next(1, 21);
+            armorModCold = .1 * Physics.Common.Random.RollDice(1, 20);
             ////ArmorModVsFire, with a value between 0.0-2.0.
-            armorModFire = .1 * r.Next(1, 21);
+            armorModFire = .1 * Physics.Common.Random.RollDice(1, 20);
             ////ArmorModVsAcid, with a value between 0.0-2.0.
-            armorModAcid = .1 * r.Next(1, 21);
+            armorModAcid = .1 * Physics.Common.Random.RollDice(1, 20);
             ////ArmorModVsElectric, with a value between 0.0-2.0.
-            armorModElectric = .1 * r.Next(1, 21);
+            armorModElectric = .1 * Physics.Common.Random.RollDice(1, 20);
             ////ArmorModVsNether, with a value between 0.0-2.0.
-            armorModNether = .1 * r.Next(1, 21);
+            armorModNether = .1 * Physics.Common.Random.RollDice(1, 20);
 
             WorldObject wo = WorldObjectFactory.CreateNewWorldObject((uint)armorWeenie);
-            int gemCount = r.Next(1, 6);
-            int gemType = r.Next(10, 51);
+            int gemCount = Physics.Common.Random.RollDice(1, 6);
+            int gemType = Physics.Common.Random.RollDice(10, 50);
             wo.SetProperty(PropertyInt.MaterialType, materialType);
             wo.SetProperty(PropertyInt.GemCount, gemCount);
             wo.SetProperty(PropertyInt.GemType, gemType);
@@ -13457,7 +14432,7 @@ namespace ACE.Server.Factories
                 wo.SetProperty(PropertyInt.UiEffects, 1);
                 for (int a = 0; a < numSpells - numCantrips; a++)
                 {
-                    int col = r.Next(lowSpellTier - 1, highSpellTier);
+                    int col = Physics.Common.Random.RollDice(lowSpellTier - 1, highSpellTier-1);
                     int spellID = spells[shuffledValues[a]][col];
                     var result = new BiotaPropertiesSpellBook { ObjectId = wo.Biota.Id, Spell = spellID, Object = wo.Biota };
                     wo.Biota.BiotaPropertiesSpellBook.Add(result);
@@ -13519,8 +14494,8 @@ namespace ACE.Server.Factories
                 wo.RemoveProperty(PropertyInt.WieldDifficulty);
             }
             /////Setting random color
-            wo.SetProperty(PropertyInt.PaletteTemplate, r.Next(1, 19));
-            double shade = .1 * (double)r.Next(0, 10);
+            wo.SetProperty(PropertyInt.PaletteTemplate, Physics.Common.Random.RollDice(1, 18));
+            double shade = .1 * Physics.Common.Random.RollDice(0, 9); 
             wo.SetProperty(PropertyFloat.Shade, shade);
             spellcraft = GetSpellcraft(numSpells, tier);
             wo.SetProperty(PropertyInt.ItemSpellcraft, spellcraft);
@@ -13529,7 +14504,7 @@ namespace ACE.Server.Factories
             wo.SetProperty(PropertyInt.UiEffects, 1);
             wo.SetProperty(PropertyInt.Value, GetValue(tier));
             wo.SetProperty(PropertyInt.ArmorLevel, GetArmorLevel(tier, armorPieceType));
-            wo.SetProperty(PropertyString.LongDesc, getLongDesc(wo.GetProperty(PropertyString.Name)));
+            wo.SetProperty(PropertyString.LongDesc, getLongDesc(wo.GetProperty(PropertyString.Name), gemType, gemCount));
             if (numSpells == 0)
             {
                 wo.RemoveProperty(PropertyInt.ItemManaCost);
@@ -13545,112 +14520,112 @@ namespace ACE.Server.Factories
 
         public static int GetArmorLevel(int tier, int armorType)
         {
-            Random r = new Random();
+            
             switch(tier)
             {
                 case 1:
                     if(armorType == 1)
                     {
-                        return r.Next(10, 38);
+                        return Physics.Common.Random.RollDice(10, 37);
                     }
                     else if(armorType == 5)
                     {
-                        return r.Next(10, 34);
+                        return Physics.Common.Random.RollDice(10, 33);
                     }
                     else
                     {
-                        return r.Next(10, 51);
+                        return Physics.Common.Random.RollDice(10, 50);
                     }
                 case 2:
                     if (armorType == 1)
                     {
-                        return r.Next(37, 73);
+                        return Physics.Common.Random.RollDice(37, 72);
                     }
                     else if (armorType == 5)
                     {
-                        return r.Next(34, 58);
+                        return Physics.Common.Random.RollDice(34, 57);
                     }
                     else
                     {
-                        return r.Next(51, 91);
+                        return Physics.Common.Random.RollDice(51, 90);
                     }
                 case 3:
                     if (armorType == 1)
                     {
-                        return r.Next(73, 109);
+                        return Physics.Common.Random.RollDice(73, 109);
                     }
                     else if (armorType == 5)
                     {
-                        return r.Next(58, 82);
+                        return Physics.Common.Random.RollDice(58, 82);
                     }
                     else
                     {
-                        return r.Next(92, 132);
+                        return Physics.Common.Random.RollDice(92, 132);
                     }
                 case 4:
                     if (armorType == 1)
                     {
-                        return r.Next(109, 145);
+                        return Physics.Common.Random.RollDice(109, 145);
                     }
                     else if (armorType == 5)
                     {
-                        return r.Next(82, 106);
+                        return Physics.Common.Random.RollDice(82, 106);
                     }
                     else
                     {
-                        return r.Next(133, 173);
+                        return Physics.Common.Random.RollDice(133, 173);
                     }
                 case 5:
                     if (armorType == 1)
                     {
-                        return r.Next(145, 181);
+                        return Physics.Common.Random.RollDice(145, 181);
                     }
                     else if (armorType == 5)
                     {
-                        return r.Next(106, 130);
+                        return Physics.Common.Random.RollDice(106, 130);
                     }
                     else
                     {
-                        return r.Next(173, 213);
+                        return Physics.Common.Random.RollDice(173, 213);
                     }
                 case 6:
                     if (armorType == 1)
                     {
-                        return r.Next(181, 217);
+                        return Physics.Common.Random.RollDice(181, 217);
                     }
                     else if (armorType == 5)
                     {
-                        return r.Next(130, 154);
+                        return Physics.Common.Random.RollDice(130, 154);
                     }
                     else
                     {
-                        return r.Next(213, 254);
+                        return Physics.Common.Random.RollDice(213, 254);
                     }
                 case 7:
                     if (armorType == 1)
                     {
-                        return r.Next(217, 253);
+                        return Physics.Common.Random.RollDice(217, 253);
                     }
                     else if (armorType == 5)
                     {
-                        return r.Next(154, 178);
+                        return Physics.Common.Random.RollDice(154, 178);
                     }
                     else
                     {
-                        return r.Next(254, 294);
+                        return Physics.Common.Random.RollDice(254, 294);
                     }
                 case 8:
                     if (armorType == 1)
                     {
-                        return r.Next(253, 304);
+                        return Physics.Common.Random.RollDice(253, 304);
                     }
                     else if (armorType == 5)
                     {
-                        return r.Next(178, 202);
+                        return Physics.Common.Random.RollDice(178, 202);
                     }
                     else
                     {
-                        return r.Next(294, 335);
+                        return Physics.Common.Random.RollDice(294, 335);
                     }
             }
             return 0;
@@ -13658,7 +14633,7 @@ namespace ACE.Server.Factories
 
         public static int GetWield(int tier, int type)
         {
-            Random r = new Random();
+            
             int wield = 0;
             int chance = 0;
             ////Types: 1 Missiles, 2 Casters, 3 melee weapons, 4 covenant armor
@@ -13671,7 +14646,7 @@ namespace ACE.Server.Factories
                             wield = 0;
                             break;
                         case 2:
-                            chance = r.Next(0, 100);
+                            chance = Physics.Common.Random.RollDice(0, 100);
                             if (chance < 60)
                             {
                                 wield = 0;
@@ -13682,7 +14657,7 @@ namespace ACE.Server.Factories
                             }
                             break;
                         case 3:
-                            chance = r.Next(0, 100);
+                            chance = Physics.Common.Random.RollDice(0, 100);
                             if (chance < 60)
                             {
                                 wield = 0;
@@ -13697,7 +14672,7 @@ namespace ACE.Server.Factories
                             }
                             break;
                         case 4:
-                            chance = r.Next(0, 100);
+                            chance = Physics.Common.Random.RollDice(0, 100);
                             if (chance < 60)
                             {
                                 wield = 0;
@@ -13712,7 +14687,7 @@ namespace ACE.Server.Factories
                             }
                             break;
                         case 5:
-                            chance = r.Next(0, 100);
+                            chance = Physics.Common.Random.RollDice(0, 100);
                             if (chance < 60)
                             {
                                 wield = 270;
@@ -13727,7 +14702,7 @@ namespace ACE.Server.Factories
                             }
                             break;
                         case 6:
-                            chance = r.Next(0, 100);
+                            chance = Physics.Common.Random.RollDice(0, 100);
                             if (chance < 60)
                             {
                                 wield = 315;
@@ -13742,7 +14717,7 @@ namespace ACE.Server.Factories
                             }
                             break;
                         case 7:
-                            chance = r.Next(0, 100);
+                            chance = Physics.Common.Random.RollDice(0, 100);
                             if (chance < 60)
                             {
                                 wield = 335;
@@ -13757,7 +14732,7 @@ namespace ACE.Server.Factories
                             }
                             break;
                         case 8:
-                            chance = r.Next(0, 100);
+                            chance = Physics.Common.Random.RollDice(0, 100);
                             if (chance < 60)
                             {
                                 wield = 360;
@@ -13789,7 +14764,7 @@ namespace ACE.Server.Factories
                             wield = 0;
                             break;
                         case 5:
-                            chance = r.Next(0, 100);
+                            chance = Physics.Common.Random.RollDice(0, 100);
                             if (chance < 60)
                             {
                                 wield = 0;
@@ -13804,7 +14779,7 @@ namespace ACE.Server.Factories
                             }
                             break;
                         case 6:
-                            chance = r.Next(0, 100);
+                            chance = Physics.Common.Random.RollDice(0, 100);
                             if (chance < 40)
                             {
                                 wield = 0;
@@ -13823,7 +14798,7 @@ namespace ACE.Server.Factories
                             }
                             break;
                         case 7:
-                            chance = r.Next(0, 100);
+                            chance = Physics.Common.Random.RollDice(0, 100);
                             if (chance < 60)
                             {
                                 wield = 330;
@@ -13838,7 +14813,7 @@ namespace ACE.Server.Factories
                             }
                             break;
                         case 8:
-                            chance = r.Next(0, 100);
+                            chance = Physics.Common.Random.RollDice(0, 100);
                             if (chance < 60)
                             {
                                 wield = 355;
@@ -13861,7 +14836,7 @@ namespace ACE.Server.Factories
                             wield = 0;
                             break;
                         case 2:
-                            chance = r.Next(0, 100);
+                            chance = Physics.Common.Random.RollDice(0, 100);
                             if (chance < 60)
                             {
                                 wield = 0;
@@ -13872,7 +14847,7 @@ namespace ACE.Server.Factories
                             }
                             break;
                         case 3:
-                            chance = r.Next(0, 100);
+                            chance = Physics.Common.Random.RollDice(0, 100);
                             if (chance < 60)
                             {
                                 wield = 0;
@@ -13887,7 +14862,7 @@ namespace ACE.Server.Factories
                             }
                             break;
                         case 4:
-                            chance = r.Next(0, 100);
+                            chance = Physics.Common.Random.RollDice(0, 100);
                             if (chance < 60)
                             {
                                 wield = 0;
@@ -13902,7 +14877,7 @@ namespace ACE.Server.Factories
                             }
                             break;
                         case 5:
-                            chance = r.Next(0, 100);
+                            chance = Physics.Common.Random.RollDice(0, 100);
                             if (chance < 60)
                             {
                                 wield = 300;
@@ -13917,7 +14892,7 @@ namespace ACE.Server.Factories
                             }
                             break;
                         case 6:
-                            chance = r.Next(0, 100);
+                            chance = Physics.Common.Random.RollDice(0, 100);
                             if (chance < 60)
                             {
                                 wield = 350;
@@ -13932,7 +14907,7 @@ namespace ACE.Server.Factories
                             }
                             break;
                         case 7:
-                            chance = r.Next(0, 100);
+                            chance = Physics.Common.Random.RollDice(0, 100);
                             if (chance < 60)
                             {
                                 wield = 370;
@@ -13947,7 +14922,7 @@ namespace ACE.Server.Factories
                             }
                             break;
                         case 8:
-                            chance = r.Next(0, 100);
+                            chance = Physics.Common.Random.RollDice(0, 100);
                             if (chance < 60)
                             {
                                 wield = 400;
@@ -13969,23 +14944,23 @@ namespace ACE.Server.Factories
 
         public static double GetManaRate()
         {
-            Random r = new Random();
-            double manaRate = 1.0 / (double)(r.Next(10, 31));
+            
+            double manaRate = 1.0 / (double)(Physics.Common.Random.RollDice(10, 30));
             return -manaRate;
         }
 
         public static int GetNumSpells(int tier)
         {
-            Random r = new Random();
+            
             int chance = 0;
             int numSpells = 0;
             switch (tier)
             {
                 case 1:
                     ////1-3, minor cantrips
-                    if (r.Next(0, 100) > 60)
+                    if (Physics.Common.Random.RollDice(0, 100) > 60)
                     {
-                        chance = r.Next(1, 100);
+                        chance = Physics.Common.Random.RollDice(1, 100);
                         if (chance < 50)
                         {
                             numSpells = 1;
@@ -14002,9 +14977,9 @@ namespace ACE.Server.Factories
                     break;
                 case 2:
                     ////3-5 minor, and major
-                    if (r.Next(0, 100) > 60)
+                    if (Physics.Common.Random.RollDice(0, 100) > 60)
                     {
-                        chance = r.Next(1, 1000);
+                        chance = Physics.Common.Random.RollDice(1, 1000);
                         if (chance < 500)
                         {
                             numSpells = 1;
@@ -14029,9 +15004,9 @@ namespace ACE.Server.Factories
                     break;
                 case 3:
                     //4-6, major/minor
-                    if (r.Next(0, 100) > 60)
+                    if (Physics.Common.Random.RollDice(0, 100) > 60)
                     {
-                        chance = r.Next(1, 1000);
+                        chance = Physics.Common.Random.RollDice(1, 1000);
                         if (chance < 500)
                         {
                             numSpells = 1;
@@ -14060,9 +15035,9 @@ namespace ACE.Server.Factories
                     break;
                 case 4:
                     //5-6, major and minor
-                    if (r.Next(0, 100) > 60)
+                    if (Physics.Common.Random.RollDice(0, 100) > 60)
                     {
-                        chance = r.Next(1, 1000);
+                        chance = Physics.Common.Random.RollDice(1, 1000);
                         if (chance < 500)
                         {
                             numSpells = 1;
@@ -14091,9 +15066,9 @@ namespace ACE.Server.Factories
                     break;
                 case 5:
                     //5-7 major/minor
-                    if (r.Next(0, 100) > 60)
+                    if (Physics.Common.Random.RollDice(0, 100) > 60)
                     {
-                        chance = r.Next(1, 1000);
+                        chance = Physics.Common.Random.RollDice(1, 1000);
                         if (chance < 500)
                         {
                             numSpells = 1;
@@ -14126,9 +15101,9 @@ namespace ACE.Server.Factories
                     break;
                 case 6:
                     //6-7, minor(4 total) major(2 total)
-                    if (r.Next(0, 100) > 60)
+                    if (Physics.Common.Random.RollDice(0, 100) > 60)
                     {
-                        chance = r.Next(1, 1000);
+                        chance = Physics.Common.Random.RollDice(1, 1000);
                         if (chance < 200)
                         {
                             numSpells = 1;
@@ -14165,48 +15140,9 @@ namespace ACE.Server.Factories
                     break;
                 case 7:
                     ///6-8, minor(4), major(5), epic(3)
-                    if (r.Next(0, 100) > 60)
+                    if (Physics.Common.Random.RollDice(0, 100) > 60)
                     {
-                        chance = r.Next(1, 1000);
-                        if (chance < 200)
-                        {
-                            numSpells = 1;
-                        }
-                        else if (chance < 300)
-                        {
-                            numSpells = 2;
-                        }
-                        else if (chance < 400)
-                        {
-                            numSpells = 3;
-                        }
-                        else if (chance < 500)
-                        {
-                            numSpells = 4;
-                        }
-                        else if (chance < 600)
-                        {
-                            numSpells = 5;
-                        }
-                        else if (chance < 700)
-                        {
-                            numSpells = 6;
-                        }
-                        else if (chance < 950)
-                        {
-                            numSpells = 7;
-                        }
-                        else
-                        {
-                            numSpells = 8;
-                        }
-                    }
-                    break;
-                case 8:
-                    //6-8, minor(4), major(5), epic(3), legendary(2)
-                    if (r.Next(0, 100) > 60)
-                    {
-                        chance = r.Next(1, 1000);
+                        chance = Physics.Common.Random.RollDice(1, 1000);
                         if (chance < 200)
                         {
                             numSpells = 1;
@@ -14242,6 +15178,43 @@ namespace ACE.Server.Factories
                     }
                     break;
                 default:
+                    //6-8, minor(4), major(5), epic(3), legendary(2)
+                    if (Physics.Common.Random.RollDice(0, 100) > 60)
+                    {
+                        chance = Physics.Common.Random.RollDice(1, 1000);
+                        if (chance < 200)
+                        {
+                            numSpells = 1;
+                        }
+                        else if (chance < 300)
+                        {
+                            numSpells = 2;
+                        }
+                        else if (chance < 400)
+                        {
+                            numSpells = 3;
+                        }
+                        else if (chance < 500)
+                        {
+                            numSpells = 4;
+                        }
+                        else if (chance < 600)
+                        {
+                            numSpells = 5;
+                        }
+                        else if (chance < 700)
+                        {
+                            numSpells = 6;
+                        }
+                        else if (chance < 950)
+                        {
+                            numSpells = 7;
+                        }
+                        else
+                        {
+                            numSpells = 8;
+                        }
+                    }
                     break;
 
             }
@@ -14250,21 +15223,21 @@ namespace ACE.Server.Factories
 
         public static int GetNumCantrips(int spellAmount)
         {
-            Random r = new Random();
+            
             int chance = 0;
             int numSpells = 0;
             switch (spellAmount)
             {
                 case 1:
-                    if (r.Next(0, 100) > 90)
+                    if (Physics.Common.Random.RollDice(0, 100) > 90)
                     {
                         return 1; 
                     }
                     break;
                 case 2:
-                    if (r.Next(0, 100) > 90)
+                    if (Physics.Common.Random.RollDice(0, 100) > 90)
                     {
-                        chance = r.Next(1, 1000);
+                        chance = Physics.Common.Random.RollDice(1, 1000);
                         if (chance < 750)
                         {
                             numSpells = 1;
@@ -14276,9 +15249,9 @@ namespace ACE.Server.Factories
                     }
                     break;
                 case 3:
-                    if (r.Next(0, 100) > 60)
+                    if (Physics.Common.Random.RollDice(0, 100) > 60)
                     {
-                        chance = r.Next(1, 1000);
+                        chance = Physics.Common.Random.RollDice(1, 1000);
                         if (chance < 750)
                         {
                             numSpells = 1;
@@ -14294,9 +15267,9 @@ namespace ACE.Server.Factories
                     }
                     break;
                 case 4:
-                    if (r.Next(0, 100) > 60)
+                    if (Physics.Common.Random.RollDice(0, 100) > 60)
                     {
-                        chance = r.Next(1, 1000);
+                        chance = Physics.Common.Random.RollDice(1, 1000);
                         if (chance < 500)
                         {
                             numSpells = 1;
@@ -14316,9 +15289,9 @@ namespace ACE.Server.Factories
                     }
                     break;
                 case 5:
-                    if (r.Next(0, 100) > 60)
+                    if (Physics.Common.Random.RollDice(0, 100) > 60)
                     {
-                        chance = r.Next(1, 1000);
+                        chance = Physics.Common.Random.RollDice(1, 1000);
                         if (chance < 500)
                         {
                             numSpells = 1;
@@ -14342,9 +15315,9 @@ namespace ACE.Server.Factories
                     }
                     break;
                 case 6:
-                    if (r.Next(0, 100) > 60)
+                    if (Physics.Common.Random.RollDice(0, 100) > 60)
                     {
-                        chance = r.Next(1, 1000);
+                        chance = Physics.Common.Random.RollDice(1, 1000);
                         if (chance < 200)
                         {
                             numSpells = 1;
@@ -14372,9 +15345,9 @@ namespace ACE.Server.Factories
                     }
                     break;
                 case 7:
-                    if (r.Next(0, 100) > 60)
+                    if (Physics.Common.Random.RollDice(0, 100) > 60)
                     {
-                        chance = r.Next(1, 1000);
+                        chance = Physics.Common.Random.RollDice(1, 1000);
                         if (chance < 200)
                         {
                             numSpells = 1;
@@ -14407,9 +15380,9 @@ namespace ACE.Server.Factories
                     break;
                 case 8:
                     //6-8, minor(4), major(5), epic(3), legendary(2)
-                    if (r.Next(0, 100) > 60)
+                    if (Physics.Common.Random.RollDice(0, 100) > 60)
                     {
-                        chance = r.Next(1, 1000);
+                        chance = Physics.Common.Random.RollDice(1, 1000);
                         if (chance < 200)
                         {
                             numSpells = 1;
@@ -14492,7 +15465,7 @@ namespace ACE.Server.Factories
 
         public static WorldObject CreateMissileWeapon(int tier)
         {
-            Random r = new Random();
+            
             int[][] spells = LootHelper.MissileSpells;
             int[][] cantrips = LootHelper.MissileCantrips;
             int weaponWeenie = 0;
@@ -14506,8 +15479,8 @@ namespace ACE.Server.Factories
             double weaponOffense = 1;
             /////Int Valules
             int encumb = 0;
-            int gemCount = r.Next(1, 6);
-            int gemType = r.Next(10, 51);
+            int gemCount = Physics.Common.Random.RollDice(1, 5);
+            int gemType = Physics.Common.Random.RollDice(10, 50);
             int numSpells = GetNumSpells(tier);
             int numCantrips = GetNumCantrips(numSpells);
             int itemMaxMana = GetMaxMana(numSpells, tier);
@@ -14526,117 +15499,117 @@ namespace ACE.Server.Factories
             double elemenatalBonus = GetElementalBonus(wieldDifficulty);
             int lowSpellTier = GetLowSpellTier(tier);
             int highSpellTier = GetHighSpellTier(tier);
-            int subType = r.Next(0, 3);
+            int subType = Physics.Common.Random.RollDice(0, 2);
             if (subType == 0)
             {
                 ////There are 8 subtypes of Bows
-                int subBowType = r.Next(0, 7);
+                int subBowType = Physics.Common.Random.RollDice(0, 6);
                 if (subBowType == 0)
                 {
                     ////Longbow
-                    encumb = r.Next(700, 1000);
+                    encumb = Physics.Common.Random.RollDice(700, 1000);
                     weaponWeenie = 306;
                     maxVelocity = 27.3;
                     weaponTime = 45;
                 }
-                if (subBowType == 1)
+                else if (subBowType == 1)
                 {
                     ////Yumi
                     weaponWeenie = 363;
                     maxVelocity = 27.3;
                     weaponTime = 45;
-                    encumb = r.Next(700, 1000);
+                    encumb = Physics.Common.Random.RollDice(700, 1000);
                 }
-                if (subBowType == 2)
+                else if (subBowType == 2)
                 {
                     ////Nayin
                     weaponWeenie = 334;
                     maxVelocity = 27.3;
                     weaponTime = 40;
-                    encumb = r.Next(700, 1000);
+                    encumb = Physics.Common.Random.RollDice(700, 1000);
                 }
-                if (subBowType == 3)
+                else if (subBowType == 3)
                 {
                     ////Shortbow
                     weaponWeenie = 307;
                     maxVelocity = 24.9;
                     weaponTime = 30;
-                    encumb = r.Next(300, 400);
+                    encumb = Physics.Common.Random.RollDice(300, 400);
                 }
-                if (subBowType == 4)
+                else if (subBowType == 4)
                 {
                     ////Shouyumi
                     weaponWeenie = 341;
                     maxVelocity = 24.9;
                     weaponTime = 29;
-                    encumb = r.Next(300, 400);
+                    encumb = Physics.Common.Random.RollDice(300, 400);
                 }
-                if (subBowType == 5)
+                else if (subBowType == 5)
                 {
                     ////War Bow
                     weaponWeenie = 30625;
                     maxVelocity = 27.3;
                     weaponTime = 43;
-                    encumb = r.Next(700, 1000);
+                    encumb = Physics.Common.Random.RollDice(700, 1000);
                 }
-                if (subBowType == 6)
+                else
                 {
                     ////Yag
                     weaponWeenie = 360;
                     maxVelocity = 24.9;
                     weaponTime = 24;
-                    encumb = r.Next(300, 400);
+                    encumb = Physics.Common.Random.RollDice(300, 400);
                 }
             }
-            if (subType == 1)
+            else if (subType == 1)
             {
                 ////There are 4 subtypes of Crossbows
-                int subXbowType = r.Next(0, 3);
+                int subXbowType = Physics.Common.Random.RollDice(0, 2);
                 if (subXbowType == 0)
                 {
                     ////Arbalest
                     weaponWeenie = 30616;
                     maxVelocity = 27.3;
                     weaponTime = 113;
-                    encumb = r.Next(1400, 2000);
+                    encumb = Physics.Common.Random.RollDice(1400, 2000);
                 }
                 ////Compound Crossbow should go here, but not in the db
-                if (subXbowType == 1)
+                else if (subXbowType == 1)
                 {
                     ////Heavy Crossbow
                     weaponWeenie = 311;
                     maxVelocity = 27.3;
                     weaponTime = 120;
-                    encumb = r.Next(1400, 2000);
+                    encumb = Physics.Common.Random.RollDice(1400, 2000);
                 }
-                if (subXbowType == 2)
+                else
                 {
                     ////Light Crossbow
                     weaponWeenie = 312;
                     maxVelocity = 24.9;
                     weaponTime = 58;
-                    encumb = r.Next(700, 1000);
+                    encumb = Physics.Common.Random.RollDice(700, 1000);
                 }
             }
-            if (subType == 2)
+            else
             {
                 ////There are 3 subtypes of Atlatl
-                int subAtlatlType = r.Next(0, 2);
+                int subAtlatlType = Physics.Common.Random.RollDice(0, 1);
                 if (subAtlatlType == 0)
                 {
                     ////Dart Flicker
                     weaponWeenie = 30345;
                     maxVelocity = 27.3;
                     weaponTime = 15;
-                    encumb = r.Next(250, 500);
+                    encumb = Physics.Common.Random.RollDice(250, 500);
                 }
-                if (subAtlatlType == 1)
+                else
                 {
                     ////Royal Atlatl
                     weaponWeenie = 20640;
                     maxVelocity = 27.3;
                     weaponTime = 15;
-                    encumb = r.Next(250, 500);
+                    encumb = Physics.Common.Random.RollDice(250, 500);
                 }
             }
             double damageMod = GetDamageModifier(wieldDifficulty, subType);
@@ -14652,7 +15625,7 @@ namespace ACE.Server.Factories
                 wo.SetProperty(PropertyInt.UiEffects, 1);
                 for (int a = 0; a < numSpells - numCantrips; a++)
                 {
-                    int col = r.Next(lowSpellTier - 1, highSpellTier);
+                    int col = Physics.Common.Random.RollDice(lowSpellTier - 1, highSpellTier-1);
                     int spellID = spells[shuffledValues[a]][col];
                     var result = new BiotaPropertiesSpellBook { ObjectId = wo.Biota.Id, Spell = spellID, Object = wo.Biota };
                     wo.Biota.BiotaPropertiesSpellBook.Add(result);
@@ -14708,8 +15681,8 @@ namespace ACE.Server.Factories
             int damageType = 0;
             int uiEffects = 0;
             String elementName = "";
-            int chance = r.Next(0, 8);
-            if (r.Next(1, 100) > 90)
+            int chance = Physics.Common.Random.RollDice(0, 6);
+            if (Physics.Common.Random.RollDice(1, 100) > 90)
             {
                 switch (chance)
                 {
@@ -14785,7 +15758,7 @@ namespace ACE.Server.Factories
             wo.SetProperty(PropertyInt.WeaponSkill, weaponSkillInt);
             wo.SetProperty(PropertyInt.WieldRequirements, wieldRequirements);
             wo.SetProperty(PropertyInt.WieldSkilltype, wieldSkillType);
-            wo.SetProperty(PropertyString.LongDesc, getLongDesc(wo.GetProperty(PropertyString.Name)));
+            wo.SetProperty(PropertyString.LongDesc, getLongDesc(wo.GetProperty(PropertyString.Name), gemType, gemCount));
             if (numSpells == 0)
             {
                 wo.RemoveProperty(PropertyInt.ItemManaCost);
@@ -14834,7 +15807,7 @@ namespace ACE.Server.Factories
                 ////Hermetic Link
                 new int[] { 1475, 1476, 1477, 1478, 1479, 1480, 2117, 4418 },
              };
-            Random r = new Random();
+            
             String weaponName = "";
             String elementName = "";
             int casterWeenie = 0; //done
@@ -14869,7 +15842,7 @@ namespace ACE.Server.Factories
                     wield = 0;
                     break;
                 case 3:
-                    chance = r.Next(0, 100);
+                    chance = Physics.Common.Random.RollDice(0, 100);
                     if(chance < 80)
                     {
                         wield = 0;
@@ -14880,7 +15853,7 @@ namespace ACE.Server.Factories
                     }
                     break;
                 case 4:
-                    chance = r.Next(0, 100);
+                    chance = Physics.Common.Random.RollDice(0, 100);
                     if (chance < 60)
                     {
                         wield = 0;
@@ -14895,7 +15868,7 @@ namespace ACE.Server.Factories
                     }
                     break;
                 case 5:
-                    chance = r.Next(0, 100);
+                    chance = Physics.Common.Random.RollDice(0, 100);
                     if (chance < 50)
                     {
                         wield = 0;
@@ -14914,7 +15887,7 @@ namespace ACE.Server.Factories
                     }
                     break;
                 case 6:
-                    chance = r.Next(0, 100);
+                    chance = Physics.Common.Random.RollDice(0, 100);
                     if (chance < 40)
                     {
                         wield = 0;
@@ -14937,7 +15910,7 @@ namespace ACE.Server.Factories
                     }
                     break;
                 case 7:
-                    chance = r.Next(0, 100);
+                    chance = Physics.Common.Random.RollDice(0, 100);
                     if (chance < 30)
                     {
                         wield = 0;
@@ -14963,8 +15936,8 @@ namespace ACE.Server.Factories
                         wield = 375;
                     }
                     break;
-                case 8:
-                    chance = r.Next(0, 100);
+                default:
+                    chance = Physics.Common.Random.RollDice(0, 100);
                     if (chance < 25)
                     {
                         wield = 0;
@@ -14998,26 +15971,26 @@ namespace ACE.Server.Factories
             ////Getting the caster Weenie needed.
             if(wield == 0)
             {
-                int subType = r.Next(0, 4);
+                int subType = Physics.Common.Random.RollDice(0, 3);
                 if (subType == 0)
                 {
                     ////Orb
                     casterWeenie = 2366;
                     weaponName = "Orb";
                 }
-                if (subType == 1)
+                else if (subType == 1)
                 {
                     ////Sceptre
                     casterWeenie = 2548;
                     weaponName = "Sceptre";
                 }
-                if (subType == 2)
+                else if (subType == 2)
                 {
                     ////staff
                     casterWeenie = 2547;
                     weaponName = "Staff";
                 }
-                if (subType == 3)
+                else
                 {
                     ////wand
                     casterWeenie = 2472;
@@ -15026,20 +15999,20 @@ namespace ACE.Server.Factories
             }
             else
             {
-                int subType = r.Next(0, 3);
+                int subType = Physics.Common.Random.RollDice(0, 2);
                 if (subType == 0)
                 {
                     ////staff
                     casterWeenie = 29259;
                     weaponName = "Sceptre";
                 }
-                if (subType == 1)
+                else if (subType == 1)
                 {
                     ////Sceptre
                     casterWeenie = 29259;
                     weaponName = "Sceptre";
                 }
-                if (subType == 2)
+                else
                 {
                     ////baton
                     casterWeenie = 29259;
@@ -15050,7 +16023,7 @@ namespace ACE.Server.Factories
             
             if (wield > 0)
             {
-                chance = r.Next(0, 5);
+                chance = Physics.Common.Random.RollDice(0, 4);
                 switch (chance)
                 {
                     case 0:
@@ -15065,11 +16038,11 @@ namespace ACE.Server.Factories
                     case 3:
                         wieldSkillType = 32;
                         break;
-                    case 4:
+                    default:
                         wieldSkillType = 33;
                         break;
                 }
-                chance = r.Next(0, 9);
+                chance = Physics.Common.Random.RollDice(0, 7);
                 switch(chance)
                 {
                     case 0:
@@ -15114,7 +16087,7 @@ namespace ACE.Server.Factories
                         uiEffects = 64;
                         elementName = "Electric";
                         break;
-                    case 7:
+                    default:
                         //nether
                         damageType = 1024;
                         uiEffects = 1;
@@ -15122,7 +16095,7 @@ namespace ACE.Server.Factories
                         break;
                 }
             }
-            if(r.Next(0, 100) > 95)
+            if(Physics.Common.Random.RollDice(0, 100) > 95)
             {
                 missileDMod = GetMissileDMod(tier);
             }
@@ -15130,8 +16103,8 @@ namespace ACE.Server.Factories
             meleeDMod = GetMeleeDMod(20, tier);
             workmanship = GetWorkmanship(tier);
             materialType = GetMaterialType(3, tier);
-            gemCount = r.Next(1, 6);
-            gemType = r.Next(10, 51);
+            gemCount = Physics.Common.Random.RollDice(1, 5);
+            gemType = Physics.Common.Random.RollDice(10, 50);
             manaConMod = GetManaCMod(tier);
             lowSpellTier = GetLowSpellTier(tier);
             highSpellTier = GetHighSpellTier(tier);
@@ -15159,7 +16132,7 @@ namespace ACE.Server.Factories
             wo.SetProperty(PropertyInt.GemCount, gemCount);
             wo.SetProperty(PropertyInt.GemType, gemType);
             wo.SetProperty(PropertyString.Name, shortDesc);
-            wo.SetProperty(PropertyString.LongDesc, getLongDesc(wo.GetProperty(PropertyString.Name)));
+            wo.SetProperty(PropertyString.LongDesc, getLongDesc(wo.GetProperty(PropertyString.Name), gemType, gemCount));
             int minorCantrips = GetNumMinorCantrips(tier);
             int majorCantrips = GetNumMajorCantrips(tier);
             int epicCantrips = GetNumEpicCantrips(tier);
@@ -15194,7 +16167,7 @@ namespace ACE.Server.Factories
                 wo.SetProperty(PropertyInt.UiEffects, 1);
                 for (int a = 0; a < numSpells - numCantrips; a++)
                 {
-                    int col = r.Next(lowSpellTier - 1, highSpellTier);
+                    int col = Physics.Common.Random.RollDice(lowSpellTier - 1, highSpellTier);
                     int spellID = spells[shuffledValues[a]][col];
                     var result = new BiotaPropertiesSpellBook { ObjectId = wo.Biota.Id, Spell = spellID, Object = wo.Biota };
                     wo.Biota.BiotaPropertiesSpellBook.Add(result);
@@ -15265,7 +16238,7 @@ namespace ACE.Server.Factories
 
         public static double GetMaxDamageMod(int tier, int maxDamageMod)
         {
-            Random r = new Random();
+            
             double damageMod = 0;
             int chance = 0;
             switch (maxDamageMod)
@@ -15278,7 +16251,7 @@ namespace ACE.Server.Factories
                             damageMod = 0;
                             break;
                         case 2:
-                            chance = r.Next(0, 100);
+                            chance = Physics.Common.Random.RollDice(0, 100);
                             if (chance < 80)
                             {
                                 damageMod = .01;
@@ -15293,7 +16266,7 @@ namespace ACE.Server.Factories
                             }
                             break;
                         case 3:
-                            chance = r.Next(0, 100);
+                            chance = Physics.Common.Random.RollDice(0, 100);
                             if (chance < 50)
                             {
                                 damageMod = .03;
@@ -15312,7 +16285,7 @@ namespace ACE.Server.Factories
                             }
                             break;
                         case 4:
-                            chance = r.Next(0, 100);
+                            chance = Physics.Common.Random.RollDice(0, 100);
                             if (chance < 50)
                             {
                                 damageMod = .06;
@@ -15331,7 +16304,7 @@ namespace ACE.Server.Factories
                             }
                             break;
                         case 5:
-                            chance = r.Next(0, 100);
+                            chance = Physics.Common.Random.RollDice(0, 100);
                             if (chance < 50)
                             {
                                 damageMod = .09;
@@ -15350,7 +16323,7 @@ namespace ACE.Server.Factories
                             }
                             break;
                         case 6:
-                            chance = r.Next(0, 100);
+                            chance = Physics.Common.Random.RollDice(0, 100);
                             if (chance < 50)
                             {
                                 damageMod = .09;
@@ -15369,7 +16342,7 @@ namespace ACE.Server.Factories
                             }
                             break;
                         case 7:
-                            chance = r.Next(0, 100);
+                            chance = Physics.Common.Random.RollDice(0, 100);
                             if (chance < 50)
                             {
                                 damageMod = .11;
@@ -15384,7 +16357,7 @@ namespace ACE.Server.Factories
                             }
                             break;
                         case 8:
-                            chance = r.Next(0, 100);
+                            chance = Physics.Common.Random.RollDice(0, 100);
                             if (chance < 50)
                             {
                                 damageMod = .13;
@@ -15410,7 +16383,7 @@ namespace ACE.Server.Factories
                             damageMod = 0;
                             break;
                         case 2:
-                            chance = r.Next(0, 100);
+                            chance = Physics.Common.Random.RollDice(0, 100);
                              if (chance < 80)
                             {
                                 damageMod = .01;
@@ -15425,7 +16398,7 @@ namespace ACE.Server.Factories
                             }
                             break;
                         case 3:
-                            chance = r.Next(0, 100);
+                            chance = Physics.Common.Random.RollDice(0, 100);
                             if (chance < 50)
                             {
                                 damageMod = .03;
@@ -15444,7 +16417,7 @@ namespace ACE.Server.Factories
                             }
                             break;
                         case 4:
-                            chance = r.Next(0, 100);
+                            chance = Physics.Common.Random.RollDice(0, 100);
                             if (chance < 50)
                             {
                                 damageMod = .06;
@@ -15463,7 +16436,7 @@ namespace ACE.Server.Factories
                             }
                             break;
                         case 5:
-                            chance = r.Next(0, 100);
+                            chance = Physics.Common.Random.RollDice(0, 100);
                             if (chance < 50)
                             {
                                 damageMod = .09;
@@ -15482,7 +16455,7 @@ namespace ACE.Server.Factories
                             }
                             break;
                         case 6:
-                            chance = r.Next(0, 100);
+                            chance = Physics.Common.Random.RollDice(0, 100);
                             if (chance < 50)
                             {
                                 damageMod = .12;
@@ -15501,7 +16474,7 @@ namespace ACE.Server.Factories
                             }
                             break;
                         case 7:
-                            chance = r.Next(0, 100);
+                            chance = Physics.Common.Random.RollDice(0, 100);
                             if (chance < 50)
                             {
                                 damageMod = .15;
@@ -15516,7 +16489,7 @@ namespace ACE.Server.Factories
                             }
                             break;
                         case 8:
-                            chance = r.Next(0, 100);
+                            chance = Physics.Common.Random.RollDice(0, 100);
                             if (chance < 50)
                             {
                                 damageMod = .16;
@@ -15542,7 +16515,7 @@ namespace ACE.Server.Factories
                             damageMod = 0;
                             break;
                         case 2:
-                            chance = r.Next(0, 100);
+                            chance = Physics.Common.Random.RollDice(0, 100);
                             if (chance < 80)
                             {
                                 damageMod = .01;
@@ -15557,7 +16530,7 @@ namespace ACE.Server.Factories
                             }
                             break;
                         case 3:
-                            chance = r.Next(0, 100);
+                            chance = Physics.Common.Random.RollDice(0, 100);
                             if (chance < 50)
                             {
                                 damageMod = .02;
@@ -15576,7 +16549,7 @@ namespace ACE.Server.Factories
                             }
                             break;
                         case 4:
-                            chance = r.Next(0, 100);
+                            chance = Physics.Common.Random.RollDice(0, 100);
                             if (chance < 50)
                             {
                                 damageMod = .05;
@@ -15595,7 +16568,7 @@ namespace ACE.Server.Factories
                             }
                             break;
                         case 5:
-                            chance = r.Next(0, 100);
+                            chance = Physics.Common.Random.RollDice(0, 100);
                             if (chance < 50)
                             {
                                 damageMod = .07;
@@ -15614,7 +16587,7 @@ namespace ACE.Server.Factories
                             }
                             break;
                         case 6:
-                            chance = r.Next(0, 100);
+                            chance = Physics.Common.Random.RollDice(0, 100);
                             if (chance < 50)
                             {
                                 damageMod = .11;
@@ -15633,7 +16606,7 @@ namespace ACE.Server.Factories
                             }
                             break;
                         case 7:
-                            chance = r.Next(0, 100);
+                            chance = Physics.Common.Random.RollDice(0, 100);
                             if (chance < 50)
                             {
                                 damageMod = .13;
@@ -15652,7 +16625,7 @@ namespace ACE.Server.Factories
                             }
                             break;
                         case 8:
-                            chance = r.Next(0, 100);
+                            chance = Physics.Common.Random.RollDice(0, 100);
                             if (chance < 50)
                             {
                                 damageMod = .17;
@@ -15682,7 +16655,7 @@ namespace ACE.Server.Factories
                             damageMod = 0;
                             break;
                         case 2:
-                            chance = r.Next(0, 100);
+                            chance = Physics.Common.Random.RollDice(0, 100);
                             if (chance < 80)
                             {
                                 damageMod = .01;
@@ -15697,7 +16670,7 @@ namespace ACE.Server.Factories
                             }
                             break;
                         case 3:
-                            chance = r.Next(0, 100);
+                            chance = Physics.Common.Random.RollDice(0, 100);
                             if (chance < 50)
                             {
                                 damageMod = .02;
@@ -15716,7 +16689,7 @@ namespace ACE.Server.Factories
                             }
                             break;
                         case 4:
-                            chance = r.Next(0, 100);
+                            chance = Physics.Common.Random.RollDice(0, 100);
                             if (chance < 50)
                             {
                                 damageMod = .05;
@@ -15735,7 +16708,7 @@ namespace ACE.Server.Factories
                             }
                             break;
                         case 5:
-                            chance = r.Next(0, 100);
+                            chance = Physics.Common.Random.RollDice(0, 100);
                             if (chance < 50)
                             {
                                 damageMod = .07;
@@ -15754,7 +16727,7 @@ namespace ACE.Server.Factories
                             }
                             break;
                         case 6:
-                            chance = r.Next(0, 100);
+                            chance = Physics.Common.Random.RollDice(0, 100);
                             if (chance < 50)
                             {
                                 damageMod = .11;
@@ -15773,7 +16746,7 @@ namespace ACE.Server.Factories
                             }
                             break;
                         case 7:
-                            chance = r.Next(0, 100);
+                            chance = Physics.Common.Random.RollDice(0, 100);
                             if (chance < 50)
                             {
                                 damageMod = .14;
@@ -15792,7 +16765,7 @@ namespace ACE.Server.Factories
                             }
                             break;
                         case 8:
-                            chance = r.Next(0, 100);
+                            chance = Physics.Common.Random.RollDice(0, 100);
                             if (chance < 50)
                             {
                                 damageMod = .18;
@@ -15826,7 +16799,7 @@ namespace ACE.Server.Factories
                             damageMod = 0;
                             break;
                         case 2:
-                            chance = r.Next(0, 100);
+                            chance = Physics.Common.Random.RollDice(0, 100);
                             if (chance < 80)
                             {
                                 damageMod = .01;
@@ -15845,7 +16818,7 @@ namespace ACE.Server.Factories
                             }
                             break;
                         case 3:
-                            chance = r.Next(0, 100);
+                            chance = Physics.Common.Random.RollDice(0, 100);
                             if (chance < 50)
                             {
                                 damageMod = .04;
@@ -15864,7 +16837,7 @@ namespace ACE.Server.Factories
                             }
                             break;
                         case 4:
-                            chance = r.Next(0, 100);
+                            chance = Physics.Common.Random.RollDice(0, 100);
                             if (chance < 50)
                             {
                                 damageMod = .07;
@@ -15887,7 +16860,7 @@ namespace ACE.Server.Factories
                             }
                             break;
                         case 5:
-                            chance = r.Next(0, 100);
+                            chance = Physics.Common.Random.RollDice(0, 100);
                             if (chance < 50)
                             {
                                 damageMod = .11;
@@ -15910,7 +16883,7 @@ namespace ACE.Server.Factories
                             }
                             break;
                         case 6:
-                            chance = r.Next(0, 100);
+                            chance = Physics.Common.Random.RollDice(0, 100);
                             if (chance < 50)
                             {
                                 damageMod = .15;
@@ -15929,7 +16902,7 @@ namespace ACE.Server.Factories
                             }
                             break;
                         case 7:
-                            chance = r.Next(0, 100);
+                            chance = Physics.Common.Random.RollDice(0, 100);
                             if (chance < 50)
                             {
                                 damageMod = .18;
@@ -15948,7 +16921,7 @@ namespace ACE.Server.Factories
                             }
                             break;
                         case 8:
-                            chance = r.Next(0, 100);
+                            chance = Physics.Common.Random.RollDice(0, 100);
                             if (chance < 50)
                             {
                                 damageMod = .21;
@@ -15983,7 +16956,7 @@ namespace ACE.Server.Factories
 
         public static double GetElementalBonus(int wield)
         {
-            Random r = new Random();
+            
             int chance = 0;
             double eleMod = 0;
             switch(wield)
@@ -15995,7 +16968,7 @@ namespace ACE.Server.Factories
                 case 270:
                     break;
                 case 315:
-                    chance = r.Next(0, 100);
+                    chance = Physics.Common.Random.RollDice(0, 100);
                     if(chance < 20)
                     {
                         eleMod = 1;
@@ -16018,7 +16991,7 @@ namespace ACE.Server.Factories
                     }
                     break;
                 case 335:
-                    chance = r.Next(0, 100);
+                    chance = Physics.Common.Random.RollDice(0, 100);
                     if (chance < 20)
                     {
                         eleMod = 5;
@@ -16041,7 +17014,7 @@ namespace ACE.Server.Factories
                     }
                     break;
                 case 360:
-                    chance = r.Next(0, 100);
+                    chance = Physics.Common.Random.RollDice(0, 100);
                     if (chance < 20)
                     {
                         eleMod = 10;
@@ -16072,7 +17045,7 @@ namespace ACE.Server.Factories
                     }
                     break;
                 case 375:
-                    chance = r.Next(0, 100);
+                    chance = Physics.Common.Random.RollDice(0, 100);
                     if (chance < 20)
                     {
                         eleMod = 12;
@@ -16103,7 +17076,7 @@ namespace ACE.Server.Factories
                     }
                     break;
                 case 385:
-                    chance = r.Next(0, 100);
+                    chance = Physics.Common.Random.RollDice(0, 100);
                     if (chance < 20)
                     {
                         eleMod = 16;
@@ -16140,14 +17113,14 @@ namespace ACE.Server.Factories
         //The percentages for variances need to be fixed
         public static double GetVariance(int category, int type)
         {
-            Random r = new Random();
+            
             int chance = 0;
             double variance = 0;
             switch (category)
             {
                 case 1:
                     //Heavy Weapons
-                    chance = r.Next(0, 100);
+                    chance = Physics.Common.Random.RollDice(0, 100);
                     switch (type)
                     {
                         case 1:
@@ -16361,7 +17334,7 @@ namespace ACE.Server.Factories
                     break;
                 case 2:
                     //Finesse/Light Weapons
-                    chance = r.Next(0, 100);
+                    chance = Physics.Common.Random.RollDice(0, 100);
                     switch (type)
                     {
                         case 1:
@@ -16598,7 +17571,7 @@ namespace ACE.Server.Factories
                     break;
                 case 3:
                     ///Two Handed, all have type 1, since there is only 1 set of variances
-                    chance = r.Next(0, 100);
+                    chance = Physics.Common.Random.RollDice(0, 100);
                     switch (type)
                     {
                         case 1:
@@ -16790,15 +17763,15 @@ namespace ACE.Server.Factories
 
         public static int GetSkillLevelLimit(int wield)
         {
-            Random r = new Random();
-            double percentage = (double)r.Next(75, 99);
+            
+            double percentage = (double)Physics.Common.Random.RollDice(75, 98);
             int skill = (int)(percentage * (double)wield);
             return skill;
          }
 
         public static double GetManaCMod(int tier)
         {
-            Random r = new Random();
+            
             int magicMod = 0;
             int chance = 0;
             switch (tier)
@@ -16811,7 +17784,7 @@ namespace ACE.Server.Factories
                     magicMod = 0;
                     break;
                 case 3:
-                    chance = r.Next(0, 1000);
+                    chance = Physics.Common.Random.RollDice(0, 1000);
                     if (chance > 900)
                     {
                         magicMod = 5;
@@ -16834,7 +17807,7 @@ namespace ACE.Server.Factories
                     }
                     break;
                 case 4:
-                    chance = r.Next(0, 1000);
+                    chance = Physics.Common.Random.RollDice(0, 1000);
                     if (chance > 900)
                     {
                         magicMod = 10;
@@ -16861,7 +17834,7 @@ namespace ACE.Server.Factories
                     }
                     break;
                 case 5:
-                    chance = r.Next(0, 1000);
+                    chance = Physics.Common.Random.RollDice(0, 1000);
                     if (chance > 900)
                     {
                         magicMod = 10;
@@ -16888,7 +17861,7 @@ namespace ACE.Server.Factories
                     }
                     break;
                 case 6:
-                    chance = r.Next(0, 1000);
+                    chance = Physics.Common.Random.RollDice(0, 1000);
                     if (chance > 900)
                     {
                         magicMod = 10;
@@ -16915,7 +17888,7 @@ namespace ACE.Server.Factories
                     }
                     break;
                 case 7:
-                    chance = r.Next(0, 1000);
+                    chance = Physics.Common.Random.RollDice(0, 1000);
                     if (chance > 900)
                     {
                         magicMod = 10;
@@ -16942,7 +17915,7 @@ namespace ACE.Server.Factories
                     }
                     break;
                 case 8:
-                    chance = r.Next(0, 1000);
+                    chance = Physics.Common.Random.RollDice(0, 1000);
                     if(chance > 900)
                     {
                         magicMod = 10;
@@ -16977,7 +17950,7 @@ namespace ACE.Server.Factories
 
         public static double GetMissileDMod(int tier)
         {
-            Random r = new Random();
+            
             double missileMod = 0;
             switch (tier)
             {
@@ -16989,14 +17962,14 @@ namespace ACE.Server.Factories
                     missileMod = 0;
                     break;
                 case 3:
-                    int chance = r.Next(0, 100);
+                    int chance = Physics.Common.Random.RollDice(0, 100);
                     if (chance > 95)
                     {
                         missileMod = .005;
                     }
                     break;
                 case 4:
-                    chance = r.Next(0, 100);
+                    chance = Physics.Common.Random.RollDice(0, 100);
                     if (chance > 95)
                     {
                         missileMod =.01;
@@ -17011,7 +17984,7 @@ namespace ACE.Server.Factories
                     }
                     break;
                 case 5:
-                    chance = r.Next(0, 1000);
+                    chance = Physics.Common.Random.RollDice(0, 1000);
                     if (chance > 950)
                     {
                         missileMod = .01;
@@ -17026,7 +17999,7 @@ namespace ACE.Server.Factories
                     }
                     break;
                 case 6:
-                    chance = r.Next(0, 1000);
+                    chance = Physics.Common.Random.RollDice(0, 1000);
                     if (chance > 975)
                     {
                         missileMod = .020;
@@ -17049,7 +18022,7 @@ namespace ACE.Server.Factories
                     }
                     break;
                 case 7:
-                    chance = r.Next(0, 1000);
+                    chance = Physics.Common.Random.RollDice(0, 1000);
                     if (chance > 990)
                     {
                         missileMod = .030;
@@ -17080,7 +18053,7 @@ namespace ACE.Server.Factories
                     }
                     break;
                 case 8:
-                    chance = r.Next(0, 1000);
+                    chance = Physics.Common.Random.RollDice(0, 1000);
                     if (chance > 998)
                     {
                         missileMod = .04;
@@ -17129,34 +18102,34 @@ namespace ACE.Server.Factories
         {
             ///This is just a placeholder. This doesnt return a final value used retail, just a quick vaue for now.
             ///Will use, tier, material type, amount of gems set into item, type of gems, spells on item
-            Random r = new Random();
+            
             int value = 0;
             switch (tier)
             {
                 case 1:
                     //tier 1
-                    value = (int)(tier * r.Next(1, 20) + r.Next(1, 50));
+                    value = (int)(tier * Physics.Common.Random.RollDice(1, 20) + Physics.Common.Random.RollDice(1, 50));
                     break;
                 case 2:
-                    value = (int)(tier * r.Next(1, 40) + r.Next(1, 50));
+                    value = (int)(tier * Physics.Common.Random.RollDice(1, 40) + Physics.Common.Random.RollDice(1, 50));
                     break;
                 case 3:
-                    value = (int)(tier * r.Next(1, 60) + r.Next(1, 50));
+                    value = (int)(tier * Physics.Common.Random.RollDice(1, 60) + Physics.Common.Random.RollDice(1, 50));
                     break;
                 case 4:
-                    value = (int)(tier * r.Next(1, 80) + r.Next(1, 50));
+                    value = (int)(tier * Physics.Common.Random.RollDice(1, 80) + Physics.Common.Random.RollDice(1, 50));
                     break;
                 case 5:
-                    value = (int)(tier * r.Next(1, 100) + r.Next(1, 50));
+                    value = (int)(tier * Physics.Common.Random.RollDice(1, 100) + Physics.Common.Random.RollDice(1, 50));
                     break;
                 case 6:
-                    value = (int)(tier * r.Next(1, 120) + r.Next(1, 50));
+                    value = (int)(tier * Physics.Common.Random.RollDice(1, 120) + Physics.Common.Random.RollDice(1, 50));
                     break;
                 case 7:
-                    value = (int)(tier * r.Next(1, 140) + r.Next(1, 50));
+                    value = (int)(tier * Physics.Common.Random.RollDice(1, 140) + Physics.Common.Random.RollDice(1, 50));
                     break;
                 case 8:
-                    value = (int)(tier * r.Next(1, 160) + r.Next(1, 50));
+                    value = (int)(tier * Physics.Common.Random.RollDice(1, 160) + Physics.Common.Random.RollDice(1, 50));
                     break;
                 default:
                     break;
@@ -17166,14 +18139,14 @@ namespace ACE.Server.Factories
 
         public static int GetWorkmanship(int tier)
         {
-            Random r = new Random();
+            
             int chance = 0;
             int workmanship = 0;
             switch (tier)
             {
                 case 1:
                     //tier 1
-                    chance = r.Next(0, 100);
+                    chance = Physics.Common.Random.RollDice(0, 100);
                     if (chance < 50)
                     {
                         workmanship = 1;
@@ -17189,7 +18162,7 @@ namespace ACE.Server.Factories
                     break;
                 case 2:
                     //tier 2
-                    chance = r.Next(0, 100);
+                    chance = Physics.Common.Random.RollDice(0, 100);
                     if (chance < 30)
                     {
                         workmanship = 2;
@@ -17213,7 +18186,7 @@ namespace ACE.Server.Factories
                     break;
                 case 3:
                     //tier 3
-                    chance = r.Next(0, 100);
+                    chance = Physics.Common.Random.RollDice(0, 100);
                     if (chance < 30)
                     {
                         workmanship = 3;
@@ -17237,7 +18210,7 @@ namespace ACE.Server.Factories
                     break;
                 case 4:
                     //tier 4
-                    chance = r.Next(0, 100);
+                    chance = Physics.Common.Random.RollDice(0, 100);
                     if (chance < 30)
                     {
                         workmanship = 3;
@@ -17265,7 +18238,7 @@ namespace ACE.Server.Factories
                     break;
                 case 5:
                     //tier 5
-                    chance = r.Next(0, 100);
+                    chance = Physics.Common.Random.RollDice(0, 100);
                     if (chance < 15)
                     {
                         workmanship = 3;
@@ -17297,7 +18270,7 @@ namespace ACE.Server.Factories
                     break;
                 case 6:
                     //tier 6
-                    chance = r.Next(0, 100);
+                    chance = Physics.Common.Random.RollDice(0, 100);
                     if (chance < 15)
                     {
                         workmanship = 4;
@@ -17329,7 +18302,7 @@ namespace ACE.Server.Factories
                     break;
                 case 7:
                     //tier 7
-                    chance = r.Next(0, 100);
+                    chance = Physics.Common.Random.RollDice(0, 100);
                     if (chance < 15)
                     {
                         workmanship = 4;
@@ -17361,7 +18334,7 @@ namespace ACE.Server.Factories
                     break;
                 case 8:
                     //tier 8
-                    chance = r.Next(0, 100);
+                    chance = Physics.Common.Random.RollDice(0, 100);
                     if (chance < 15)
                     {
                         workmanship = 4;
@@ -17400,33 +18373,33 @@ namespace ACE.Server.Factories
 
         public static int GetSpellcraft(int spellAmount, int tier)
         {
-            Random r = new Random();
+            
             int spellcraft = 0;
             switch (tier)
             {
                 case 1:
-                    spellcraft = r.Next(1, 20) + spellAmount * r.Next(1, 4); //1-50
+                    spellcraft = Physics.Common.Random.RollDice(1, 20) + spellAmount * Physics.Common.Random.RollDice(1, 4); //1-50
                     break;
                 case 2:
-                    spellcraft = r.Next(40, 70) + spellAmount * r.Next(1, 5); //40-90
+                    spellcraft = Physics.Common.Random.RollDice(40, 70) + spellAmount * Physics.Common.Random.RollDice(1, 5); //40-90
                     break;
                 case 3:
-                    spellcraft = r.Next(70, 90) + spellAmount * r.Next(1, 6); //80 - 130
+                    spellcraft = Physics.Common.Random.RollDice(70, 90) + spellAmount * Physics.Common.Random.RollDice(1, 6); //80 - 130
                     break;
                 case 4:
-                    spellcraft = r.Next(100, 120) + spellAmount * r.Next(1, 7); /// 120 - 160
+                    spellcraft = Physics.Common.Random.RollDice(100, 120) + spellAmount * Physics.Common.Random.RollDice(1, 7); /// 120 - 160
                     break;
                 case 5:
-                    spellcraft = r.Next(130, 150) + spellAmount * r.Next(1, 8); ///150 - 210
+                    spellcraft = Physics.Common.Random.RollDice(130, 150) + spellAmount * Physics.Common.Random.RollDice(1, 8); ///150 - 210
                     break;
                 case 6:
-                    spellcraft = r.Next(160, 180) + spellAmount * r.Next(1, 9); /// 200-260
+                    spellcraft = Physics.Common.Random.RollDice(160, 180) + spellAmount * Physics.Common.Random.RollDice(1, 9); /// 200-260
                     break;
                 case 7:
-                    spellcraft = r.Next(230, 260) + spellAmount * r.Next(1, 10); /// 250 - 310
+                    spellcraft = Physics.Common.Random.RollDice(230, 260) + spellAmount * Physics.Common.Random.RollDice(1, 10); /// 250 - 310
                     break;
                 case 8:
-                    spellcraft = r.Next(280, 300) + spellAmount * r.Next(1, 11); //300-450
+                    spellcraft = Physics.Common.Random.RollDice(280, 300) + spellAmount * Physics.Common.Random.RollDice(1, 11); //300-450
                     break;
                 default:
                     break;
@@ -17437,33 +18410,33 @@ namespace ACE.Server.Factories
 
         public static int GetDifficulty(int tier, int spellcraft)
         {
-            Random r = new Random();
+            
             int difficulty = 0;
             switch (tier)
             {
                 case 1:
-                    difficulty = spellcraft + (r.Next(0, 10) * r.Next(1, 3));
+                    difficulty = spellcraft + (Physics.Common.Random.RollDice(0, 10) * Physics.Common.Random.RollDice(1, 3));
                     break;
                 case 2:
-                    difficulty = spellcraft + (r.Next(0, 10) * r.Next(1, 3));
+                    difficulty = spellcraft + (Physics.Common.Random.RollDice(0, 10) * Physics.Common.Random.RollDice(1, 3));
                     break;
                 case 3:
-                    difficulty = spellcraft + (r.Next(0, 10) * r.Next(1, 3));
+                    difficulty = spellcraft + (Physics.Common.Random.RollDice(0, 10) * Physics.Common.Random.RollDice(1, 3));
                     break;
                 case 4:
-                    difficulty = spellcraft + (r.Next(0, 10) * r.Next(1, 3));
+                    difficulty = spellcraft + (Physics.Common.Random.RollDice(0, 10) * Physics.Common.Random.RollDice(1, 3));
                     break;
                 case 5:
-                    difficulty = spellcraft + (r.Next(0, 10) * r.Next(1, 3));
+                    difficulty = spellcraft + (Physics.Common.Random.RollDice(0, 10) * Physics.Common.Random.RollDice(1, 3));
                     break;
                 case 6:
-                    difficulty = spellcraft + (r.Next(0, 10) * r.Next(1, 3));
+                    difficulty = spellcraft + (Physics.Common.Random.RollDice(0, 10) * Physics.Common.Random.RollDice(1, 3));
                     break;
                 case 7:
-                    difficulty = spellcraft + (r.Next(0, 10) * r.Next(1, 3));
+                    difficulty = spellcraft + (Physics.Common.Random.RollDice(0, 10) * Physics.Common.Random.RollDice(1, 3));
                     break;
                 case 8:
-                    difficulty = spellcraft + (r.Next(0, 10) * r.Next(1, 3));
+                    difficulty = spellcraft + (Physics.Common.Random.RollDice(0, 10) * Physics.Common.Random.RollDice(1, 3));
                     break;
                 default:
                     break;
@@ -17473,33 +18446,33 @@ namespace ACE.Server.Factories
 
         public static int GetMaxMana(int spellAmount, int tier)
         {
-            Random r = new Random();
+            
             int maxmana = 0;
             switch (tier)
             {
                 case 1:
-                    maxmana = (r.Next(100, 500) + spellAmount * r.Next(1, 4)) * r.Next(3, 9); //1-50
+                    maxmana = (Physics.Common.Random.RollDice(100, 500) + spellAmount * Physics.Common.Random.RollDice(1, 4)) * Physics.Common.Random.RollDice(3, 9); //1-50
                     break;
                 case 2:
-                    maxmana = (r.Next(400,700) + spellAmount * r.Next(1, 5)) * r.Next(3, 9); //40-90
+                    maxmana = (Physics.Common.Random.RollDice(400,700) + spellAmount * Physics.Common.Random.RollDice(1, 5)) * Physics.Common.Random.RollDice(3, 9); //40-90
                     break;
                 case 3:
-                    maxmana = (r.Next(700,900) + spellAmount * r.Next(1, 6)) *r.Next(3, 9); //80 - 130
+                    maxmana = (Physics.Common.Random.RollDice(700,900) + spellAmount * Physics.Common.Random.RollDice(1, 6)) *Physics.Common.Random.RollDice(3, 9); //80 - 130
                     break;
                 case 4:
-                    maxmana = (r.Next(1000,1200) + spellAmount * r.Next(1, 7)) *r.Next(3, 9); /// 120 - 160
+                    maxmana = (Physics.Common.Random.RollDice(1000,1200) + spellAmount * Physics.Common.Random.RollDice(1, 7)) *Physics.Common.Random.RollDice(3, 9); /// 120 - 160
                     break;
                 case 5:
-                    maxmana = (r.Next(1300, 1500) + spellAmount * r.Next(1, 8)) *r.Next(3, 9); ///150 - 210
+                    maxmana = (Physics.Common.Random.RollDice(1300, 1500) + spellAmount * Physics.Common.Random.RollDice(1, 8)) *Physics.Common.Random.RollDice(3, 9); ///150 - 210
                     break;
                 case 6:
-                    maxmana = (r.Next(1600, 1800) + spellAmount * r.Next(1, 9)) *r.Next(3, 9); /// 200-260
+                    maxmana = (Physics.Common.Random.RollDice(1600, 1800) + spellAmount * Physics.Common.Random.RollDice(1, 9)) *Physics.Common.Random.RollDice(3, 9); /// 200-260
                     break;
                 case 7:
-                    maxmana = (r.Next(2300, 2600) + spellAmount * r.Next(1, 10)) *r.Next(3, 9); /// 250 - 310
+                    maxmana = (Physics.Common.Random.RollDice(2300, 2600) + spellAmount * Physics.Common.Random.RollDice(1, 10)) *Physics.Common.Random.RollDice(3, 9); /// 250 - 310
                     break;
                 case 8:
-                    maxmana = (r.Next(2800, 3000) + spellAmount * r.Next(1, 11)) *r.Next(3, 9); //300-450
+                    maxmana = (Physics.Common.Random.RollDice(2800, 3000) + spellAmount * Physics.Common.Random.RollDice(1, 11)) *Physics.Common.Random.RollDice(3, 9); //300-450
                     break;
                 default:
                     break;
@@ -17510,7 +18483,7 @@ namespace ACE.Server.Factories
         public static int GetMaterialType(int type, int tier)
         {
             uint materialType = 0;
-            Random r = new Random();
+            
             ///Type = 1 for gems, 2 for weapons/bows, 3 for armor, 4 jewelry
             uint[] gems5 ={ 0x00000020, 0x0000002A, 0x0000002C, 0x0000002E, 0x0000000B, 0x0000001F, 0x0000000A, 0x0000000E, 0x00000011, 0x00000012, 0x00000013, 0x00000019,
                             0x0000001C, 0x0000001D, 0x0000001E, 0x00000024, 0x00000025, 0x00000028, 0x0000000C, 0x00000018, 0x0000002B, 0x0000002D, 0x00000030, 0x00000032,
@@ -17594,82 +18567,82 @@ namespace ACE.Server.Factories
                 case 1:
                     if(tier == 1)
                     {
-                        materialType = gems1[r.Next(0, gems1.Length)];
+                        materialType = gems1[Physics.Common.Random.RollDice(0, gems1.Length-1)];
                     }
                     if (tier == 2)
                     {
-                        materialType = gems2[r.Next(0, gems2.Length)];
+                        materialType = gems2[Physics.Common.Random.RollDice(0, gems2.Length-1)];
                     }
                     if (tier == 3)
                     {
-                        materialType = gems3[r.Next(0, gems3.Length)];
+                        materialType = gems3[Physics.Common.Random.RollDice(0, gems3.Length-1)];
                     }
                     if (tier == 4)
                     {
-                        materialType = gems4[r.Next(0, gems4.Length)];
+                        materialType = gems4[Physics.Common.Random.RollDice(0, gems4.Length-1)];
                     }
                     else
                     {
-                        materialType = gems5[r.Next(0, gems5.Length)];
+                        materialType = gems5[Physics.Common.Random.RollDice(0, gems5.Length-1)];
                     }
                     break;
                 case 2:
                     if (tier == 1)
                     {
-                        materialType = bowTypes1[r.Next(0, bowTypes1.Length)];
+                        materialType = bowTypes1[Physics.Common.Random.RollDice(0, bowTypes1.Length-1)];
                     }
                     if (tier == 2)
                     {
-                        materialType = bowTypes2[r.Next(0, bowTypes2.Length)];
+                        materialType = bowTypes2[Physics.Common.Random.RollDice(0, bowTypes2.Length-1)];
                     }
                     if (tier == 3)
                     {
-                        materialType = bowTypes3[r.Next(0, bowTypes3.Length)];
+                        materialType = bowTypes3[Physics.Common.Random.RollDice(0, bowTypes3.Length-1)];
                     }
                     if (tier == 4)
                     {
-                        materialType = bowTypes4[r.Next(0, bowTypes4.Length)];
+                        materialType = bowTypes4[Physics.Common.Random.RollDice(0, bowTypes4.Length-1)];
                     }
                     else
                     {
-                        materialType = bowTypes5[r.Next(0, bowTypes5.Length)];
+                        materialType = bowTypes5[Physics.Common.Random.RollDice(0, bowTypes5.Length-1)];
                     }
                     break;
                 case 3:
                     if (tier == 1)
                     {
-                        materialType = materialTypes1[r.Next(0, materialTypes1.Length)];
+                        materialType = materialTypes1[Physics.Common.Random.RollDice(0, materialTypes1.Length-1)];
                     }
                     if (tier == 2)
                     {
-                        materialType = materialTypes2[r.Next(0, materialTypes2.Length)];
+                        materialType = materialTypes2[Physics.Common.Random.RollDice(0, materialTypes2.Length-1)];
                     }
                     if (tier == 3)
                     {
-                        materialType = materialTypes3[r.Next(0, materialTypes3.Length)];
+                        materialType = materialTypes3[Physics.Common.Random.RollDice(0, materialTypes3.Length-1)];
                     }
                     if (tier == 4)
                     {
-                        materialType = materialTypes4[r.Next(0, materialTypes4.Length)];
+                        materialType = materialTypes4[Physics.Common.Random.RollDice(0, materialTypes4.Length-1)];
                     }
                     else
                     {
-                        materialType = materialTypes5[r.Next(0, materialTypes5.Length)];
+                        materialType = materialTypes5[Physics.Common.Random.RollDice(0, materialTypes5.Length-1)];
                     }
                     break;
                 case 4:
-                    materialType = metalWeaponsAll[r.Next(0, metalWeaponsAll.Length)];
+                    materialType = metalWeaponsAll[Physics.Common.Random.RollDice(0, metalWeaponsAll.Length-1)];
                     break;
-                case 5: materialType = leatherArmor[r.Next(0, leatherArmor.Length)];
+                case 5: materialType = leatherArmor[Physics.Common.Random.RollDice(0, leatherArmor.Length-1)];
                     break;
                 case 6:
-                    materialType = metalAndLeatherArmor[r.Next(0, metalAndLeatherArmor.Length)];
+                    materialType = metalAndLeatherArmor[Physics.Common.Random.RollDice(0, metalAndLeatherArmor.Length-1)];
                     break;
                 case 7:
-                    materialType = metalArmor[r.Next(0, metalArmor.Length)];
+                    materialType = metalArmor[Physics.Common.Random.RollDice(0, metalArmor.Length-1)];
                     break;
                 case 8:
-                    materialType = clothArmor[r.Next(0, clothArmor.Length)];
+                    materialType = clothArmor[Physics.Common.Random.RollDice(0, clothArmor.Length-1)];
                     break;
                 default:
                     break;
@@ -17680,7 +18653,7 @@ namespace ACE.Server.Factories
 
         public static double GetMeleeDMod(int maxMelee, int tier)
         {
-            Random r = new Random();
+            
             double meleeMod = 0;
             int chance = 0;
             switch (maxMelee)
@@ -17693,7 +18666,7 @@ namespace ACE.Server.Factories
                             meleeMod = 0;
                             break;
                         case 2:
-                            chance = r.Next(0, 100);
+                            chance = Physics.Common.Random.RollDice(0, 100);
                             if (chance < 60)
                             {
                                 meleeMod = 0;
@@ -17712,7 +18685,7 @@ namespace ACE.Server.Factories
                             }
                             break;
                         case 3:
-                            chance = r.Next(0, 100);
+                            chance = Physics.Common.Random.RollDice(0, 100);
                             if (chance < 60)
                             {
                                 meleeMod = .03;
@@ -17731,7 +18704,7 @@ namespace ACE.Server.Factories
                             }
                             break;
                         case 4:
-                            chance = r.Next(0, 100);
+                            chance = Physics.Common.Random.RollDice(0, 100);
                             if (chance < 60)
                             {
                                 meleeMod = .06;
@@ -17750,7 +18723,7 @@ namespace ACE.Server.Factories
                             }
                             break;
                         case 5:
-                            chance = r.Next(0, 100);
+                            chance = Physics.Common.Random.RollDice(0, 100);
                             if (chance < 60)
                             {
                                 meleeMod = .09;
@@ -17769,7 +18742,7 @@ namespace ACE.Server.Factories
                             }
                             break;
                         case 6:
-                            chance = r.Next(0, 100);
+                            chance = Physics.Common.Random.RollDice(0, 100);
                             if (chance < 60)
                             {
                                 meleeMod = .12;
@@ -17788,7 +18761,7 @@ namespace ACE.Server.Factories
                             }
                             break;
                         case 7:
-                            chance = r.Next(0, 100);
+                            chance = Physics.Common.Random.RollDice(0, 100);
                             if (chance < 60)
                             {
                                 meleeMod = .15;
@@ -17807,7 +18780,7 @@ namespace ACE.Server.Factories
                             }
                             break;
                         case 8:
-                            chance = r.Next(0, 100);
+                            chance = Physics.Common.Random.RollDice(0, 100);
                             if (chance < 60)
                             {
                                 meleeMod = .17;
@@ -17834,7 +18807,7 @@ namespace ACE.Server.Factories
 
         public static int GetNumLegendaryCantrips(int tier)
         {
-            Random r = new Random();
+            
             int amount = 0;
             switch(tier)
             {
@@ -17853,21 +18826,21 @@ namespace ACE.Server.Factories
                 case 7:
                     break;
                 default:
-                    if(r.Next(0,1000) == 0)
+                    if(Physics.Common.Random.RollDice(0,1000) == 0)
                     {
                         amount = 1;
                     }
-                    if (r.Next(0, 5000) == 0)
+                    if (Physics.Common.Random.RollDice(0, 5000) == 0)
                     {
                         amount = 2;
                     }
-                    if (r.Next(0, 1000000) == 0)
+                    if (Physics.Common.Random.RollDice(0, 1000000) == 0)
                     {
-                        amount = 1;
+                        amount = 3;
                     }
-                    if (r.Next(0, 10000000) == 0)
+                    if (Physics.Common.Random.RollDice(0, 10000000) == 0)
                     {
-                        amount = 1;
+                        amount = 4;
                     }
                     break;
 
@@ -17877,7 +18850,7 @@ namespace ACE.Server.Factories
 
         public static int GetNumEpicCantrips(int tier)
         {
-            Random r = new Random();
+            
             int amount = 0;
             switch (tier)
             {
@@ -17894,29 +18867,29 @@ namespace ACE.Server.Factories
                 case 6:
                     break;
                 case 7:
-                    if (r.Next(0, 1000) == 0)
+                    if (Physics.Common.Random.RollDice(0, 1000) == 0)
                     {
                         amount = 1;
                     }
-                    if (r.Next(0, 10000) == 0)
+                    if (Physics.Common.Random.RollDice(0, 10000) == 0)
                     {
                         amount = 2;
                     }
-                    if (r.Next(0, 100000) == 0)
+                    if (Physics.Common.Random.RollDice(0, 100000) == 0)
                     {
                         amount = 3;
                     }
                     break;
                 default:
-                    if (r.Next(0, 1000) == 0)
+                    if (Physics.Common.Random.RollDice(0, 1000) == 0)
                     {
                         amount = 1;
                     }
-                    if (r.Next(0, 10000) == 0)
+                    if (Physics.Common.Random.RollDice(0, 10000) == 0)
                     {
                         amount = 2;
                     }
-                    if (r.Next(0, 100000) == 0)
+                    if (Physics.Common.Random.RollDice(0, 100000) == 0)
                     {
                         amount = 3;
                     }
@@ -17928,7 +18901,7 @@ namespace ACE.Server.Factories
 
         public static int GetNumMajorCantrips(int tier)
         {
-            Random r = new Random();
+            
             int amount = 0;
             switch (tier)
             {
@@ -17936,75 +18909,75 @@ namespace ACE.Server.Factories
                     amount = 0;
                     break;
                 case 2:
-                    if (r.Next(0, 500) == 0)
+                    if (Physics.Common.Random.RollDice(0, 500) == 0)
                     {
                         amount = 1;
                     }
                     break;
                 case 3:
-                    if (r.Next(0, 500) == 0)
+                    if (Physics.Common.Random.RollDice(0, 500) == 0)
                     {
                         amount = 1;
                     }
-                    if (r.Next(0, 10000) == 0)
+                    if (Physics.Common.Random.RollDice(0, 10000) == 0)
                     {
                         amount = 2;
                     }
                     break;
                 case 4:
-                    if (r.Next(0, 500) == 0)
+                    if (Physics.Common.Random.RollDice(0, 500) == 0)
                     {
                         amount = 1;
                     }
-                    if (r.Next(0, 5000) == 0)
+                    if (Physics.Common.Random.RollDice(0, 5000) == 0)
                     {
                         amount = 2;
                     }
                     break;
                 case 5:
-                    if (r.Next(0, 500) == 0)
+                    if (Physics.Common.Random.RollDice(0, 500) == 0)
                     {
                         amount = 1;
                     }
-                    if (r.Next(0, 5000) == 0)
+                    if (Physics.Common.Random.RollDice(0, 5000) == 0)
                     {
                         amount = 2;
                     }
                     break;
                 case 6:
-                    if (r.Next(0, 500) == 0)
+                    if (Physics.Common.Random.RollDice(0, 500) == 0)
                     {
                         amount = 1;
                     }
-                    if (r.Next(0, 5000) == 0)
+                    if (Physics.Common.Random.RollDice(0, 5000) == 0)
                     {
                         amount = 2;
                     }
                     break;
                 case 7:
-                    if (r.Next(0, 500) == 0)
+                    if (Physics.Common.Random.RollDice(0, 500) == 0)
                     {
                         amount = 1;
                     }
-                    if (r.Next(0, 5000) == 0)
+                    if (Physics.Common.Random.RollDice(0, 5000) == 0)
                     {
                         amount = 2;
                     }
-                    if (r.Next(0, 15000) == 0)
+                    if (Physics.Common.Random.RollDice(0, 15000) == 0)
                     {
                         amount = 3;
                     }
                     break;
                 default:
-                    if (r.Next(0, 500) == 0)
+                    if (Physics.Common.Random.RollDice(0, 500) == 0)
                     {
                         amount = 1;
                     }
-                    if (r.Next(0, 5000) == 0)
+                    if (Physics.Common.Random.RollDice(0, 5000) == 0)
                     {
                         amount = 2;
                     }
-                    if (r.Next(0, 15000) == 0)
+                    if (Physics.Common.Random.RollDice(0, 15000) == 0)
                     {
                         amount = 3;
                     }
@@ -18016,114 +18989,114 @@ namespace ACE.Server.Factories
 
         public static int GetNumMinorCantrips(int tier)
         {
-            Random r = new Random();
+            
             int amount = 0;
             switch (tier)
             {
                 case 1:
-                    if (r.Next(0, 100) == 0)
+                    if (Physics.Common.Random.RollDice(0, 100) == 0)
                     {
                         amount = 1;
                     }
                     break;
                 case 2:
-                    if (r.Next(0, 50) == 0)
+                    if (Physics.Common.Random.RollDice(0, 50) == 0)
                     {
                         amount = 1;
                     }
-                    if (r.Next(0, 250) == 0)
+                    if (Physics.Common.Random.RollDice(0, 250) == 0)
                     {
                         amount = 2;
                     }
                     break;
                 case 3:
-                    if (r.Next(0, 50) == 0)
+                    if (Physics.Common.Random.RollDice(0, 50) == 0)
                     {
                         amount = 1;
                     }
-                    if (r.Next(0, 250) == 0)
+                    if (Physics.Common.Random.RollDice(0, 250) == 0)
                     {
                         amount = 2;
                     }
                     break;
                 case 4:
-                    if (r.Next(0, 50) == 0)
+                    if (Physics.Common.Random.RollDice(0, 50) == 0)
                     {
                         amount = 1;
                     }
-                    if (r.Next(0, 250) == 0)
+                    if (Physics.Common.Random.RollDice(0, 250) == 0)
                     {
                         amount = 2;
                     }
-                    if (r.Next(0, 1000) == 0)
+                    if (Physics.Common.Random.RollDice(0, 1000) == 0)
                     {
                         amount = 3;
                     }
                     break;
                 case 5:
-                    if (r.Next(0, 50) == 0)
+                    if (Physics.Common.Random.RollDice(0, 50) == 0)
                     {
                         amount = 1;
                     }
-                    if (r.Next(0, 250) == 0)
+                    if (Physics.Common.Random.RollDice(0, 250) == 0)
                     {
                         amount = 2;
                     }
-                    if (r.Next(0, 1000) == 0)
+                    if (Physics.Common.Random.RollDice(0, 1000) == 0)
                     {
                         amount = 3;
                     }
                     break;
                 case 6:
-                    if (r.Next(0, 50) == 0)
+                    if (Physics.Common.Random.RollDice(0, 50) == 0)
                     {
                         amount = 1;
                     }
-                    if (r.Next(0, 250) == 0)
+                    if (Physics.Common.Random.RollDice(0, 250) == 0)
                     {
                         amount = 2;
                     }
-                    if (r.Next(0, 1000) == 0)
+                    if (Physics.Common.Random.RollDice(0, 1000) == 0)
                     {
                         amount = 3;
                     }
-                    if (r.Next(0, 5000) == 0)
+                    if (Physics.Common.Random.RollDice(0, 5000) == 0)
                     {
                         amount = 4;
                     }
                     break;
                 case 7:
-                    if (r.Next(0, 50) == 0)
+                    if (Physics.Common.Random.RollDice(0, 50) == 0)
                     {
                         amount = 1;
                     }
-                    if (r.Next(0, 250) == 0)
+                    if (Physics.Common.Random.RollDice(0, 250) == 0)
                     {
                         amount = 2;
                     }
-                    if (r.Next(0, 1000) == 0)
+                    if (Physics.Common.Random.RollDice(0, 1000) == 0)
                     {
                         amount = 3;
                     }
-                    if (r.Next(0, 5000) == 0)
+                    if (Physics.Common.Random.RollDice(0, 5000) == 0)
                     {
                         amount = 4;
                     }
                     break;
                 default:
-                    if (r.Next(0, 50) == 0)
+                    if (Physics.Common.Random.RollDice(0, 50) == 0)
                     {
                         amount = 1;
                     }
-                    if (r.Next(0, 250) == 0)
+                    if (Physics.Common.Random.RollDice(0, 250) == 0)
                     {
                         amount = 2;
                     }
-                    if (r.Next(0, 1000) == 0)
+                    if (Physics.Common.Random.RollDice(0, 1000) == 0)
                     {
                         amount = 3;
                     }
-                    if (r.Next(0, 5000) == 0)
+                    if (Physics.Common.Random.RollDice(0, 5000) == 0)
                     {
                         amount = 4;
                     }
@@ -18133,13 +19106,19 @@ namespace ACE.Server.Factories
             return amount;
         }
 
-        public static String getLongDesc(String name)
+        public static String getLongDesc(String name, int gemType, int gemNum)
         {
             //Still need to get spell name
             //Format for long description is: "Exquisitely crafted Ruby Ring of Fire Protection set with 1 White Sapphire."
             String lD = "";
-                lD = name + ".";
-            
+            if(gemNum > 1)
+            {
+                lD = name + " set with " + gemNum + " " + LootHelper.gemNames[gemType] +"s.";
+            }
+            else
+            {
+                lD = name + " set with " + gemNum + " " + LootHelper.gemNames[gemType]+".";
+            }
 
             return lD;
         }
