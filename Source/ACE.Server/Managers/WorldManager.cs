@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Net;
+using System.Numerics;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -311,6 +312,10 @@ namespace ACE.Server.Managers
 
                 session.Network.EnqueueSend(new GameEventPopupString(session, $"{welcomeHeader}\n{msg}"));
             }
+
+            // If the client is missing a location, we start them off in the starter dungeon
+            // TODO: This doesn't seem to work.. it spawns the player in black space... but at least it doesn't crash the server
+            if (session.Player.Location == null) session.Player.Location = new Position(0x7F0301AD, new Vector3(12.3199f, -28.482f, 0.004999995f), new Quaternion(0.338946f, 0, 0, 0.9408059f));
 
             LandblockManager.AddObject(session.Player, true);
 
