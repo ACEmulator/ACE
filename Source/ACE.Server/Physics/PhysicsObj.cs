@@ -1456,6 +1456,8 @@ namespace ACE.Server.Physics
                 UpdateChild(Children.Objects[i], Children.PartNumbers[i], Children.Frames[i]);
         }
 
+        public int InitialUpdates;
+
         public void UpdateObjectInternal(double quantum)
         {
             if (!TransientState.HasFlag(TransientStateFlags.Active) || CurCell == null)
@@ -1474,6 +1476,7 @@ namespace ACE.Server.Physics
                 {
                     CachedVelocity = Vector3.Zero;
                     set_frame(newPos.Frame);
+                    InitialUpdates++;
                 }
                 else
                 {
@@ -1509,6 +1512,7 @@ namespace ACE.Server.Physics
                 newPos.Frame.Origin = Position.Frame.Origin;
                 set_frame(newPos.Frame);
                 CachedVelocity = Vector3.Zero;
+                InitialUpdates++;
             }
 
             if (DetectionManager != null) DetectionManager.CheckDetection();
