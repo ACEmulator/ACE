@@ -130,7 +130,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Called when the MoveTo process has completed
         /// </summary>
-        public void OnMoveComplete()
+        public virtual void OnMoveComplete(WeenieError status)
         {
             if (DebugMove)
                 Console.WriteLine($"{Name} ({Guid}) - OnMoveComplete");
@@ -346,7 +346,7 @@ namespace ACE.Server.WorldObjects
         {
             var mvp = new MovementParameters();
 
-            // set non-defualt params for monster movement
+            // set non-default params for monster movement
             mvp.Flags &= ~MovementParamFlags.CanWalk;
             if (!IsRanged)
                 mvp.Flags |= MovementParamFlags.FailWalk | MovementParamFlags.UseFinalHeading | MovementParamFlags.Sticky | MovementParamFlags.MoveAway;

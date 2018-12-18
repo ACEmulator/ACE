@@ -3852,12 +3852,12 @@ namespace ACE.Server.Physics
             ObjMaint.get_voyeurs();
         }
 
-        public void add_moveto_listener(Action listener)
+        public void add_moveto_listener(Action<WeenieError> listener)
         {
             MovementManager.MoveToManager.add_listener(listener);
         }
 
-        public void remove_moveto_listener(Action listener)
+        public void remove_moveto_listener(Action<WeenieError> listener)
         {
             MovementManager.MoveToManager.remove_listener(listener);
         }

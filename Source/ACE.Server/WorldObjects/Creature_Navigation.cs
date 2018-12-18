@@ -227,7 +227,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Used by the monster AI system to start turning / running towards a target
         /// </summary>
-        public void MoveTo(WorldObject target, float runRate = 1.0f)
+        public virtual void MoveTo(WorldObject target, float runRate = 1.0f)
         {
             if (DebugMove)
                 Console.WriteLine($"{Name}.MoveTo({target.Name}, {runRate})");

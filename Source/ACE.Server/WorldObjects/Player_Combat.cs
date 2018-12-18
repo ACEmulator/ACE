@@ -183,8 +183,8 @@ namespace ACE.Server.WorldObjects
             var accuracyMod = attackType == AttackType.Missile ? AccuracyLevel + 0.6f : 1.0f;
             attackSkill = (uint)Math.Round(attackSkill * accuracyMod * offenseMod);
 
-            if (IsExhausted)
-                attackSkill = GetExhaustedSkill(attackSkill);
+            //if (IsExhausted)
+                //attackSkill = GetExhaustedSkill(attackSkill);
 
             //var baseStr = offenseMod != 1.0f ? $" (base: {GetCreatureSkill(GetCurrentWeaponSkill()).Current})" : "";
             //Console.WriteLine("Attack skill: " + attackSkill + baseStr);
