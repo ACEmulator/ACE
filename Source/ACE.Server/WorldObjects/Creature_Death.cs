@@ -151,7 +151,7 @@ namespace ACE.Server.WorldObjects
 
                 if (killer != null)
                 {
-                    corpse.LongDesc = $"Killed by {killer.Name}";
+                    corpse.LongDesc = $"Killed by {killer.Name}.";
                     if (killer is CombatPet)
                     {
                         corpse.SetProperty(PropertyInstanceId.AllowedActivator, killer.PetOwner.Value);
@@ -162,7 +162,7 @@ namespace ACE.Server.WorldObjects
                     }
                 }
                 else
-                    corpse.LongDesc = $"Killed by misadventure";
+                    corpse.LongDesc = $"Killed by misadventure.";
             }
 
             var player = this as Player;
