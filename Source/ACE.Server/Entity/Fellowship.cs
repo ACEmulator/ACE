@@ -303,17 +303,15 @@ namespace ACE.Server.Entity
             else
             {
                 // Calc distribution %
-                double totalLevels = 0;
-                foreach (Player p in SharableMembers)
-                {
-                    totalLevels += p.Level ?? 1;
-                }
-                double percentPerLevel = totalLevels / SharableMembers.Count;
+                var levelSum = SharableMembers.Select(p => p.Level ?? 1).Sum();
+
                 foreach (var member in SharableMembers)
                 {
+                    var levelScale = (float)(member.Level ?? 1) / levelSum;
+
                     if (!member.Location.Indoors)
                     {
-                        UInt64 playerTotal = (UInt64)(member.Level * percentPerLevel * GetDistanceScalar(member));
+                        UInt64 playerTotal = (UInt64)(amount * levelScale * GetDistanceScalar(member));
                         member.EarnXP((long)playerTotal, false);
                     }
                 }
