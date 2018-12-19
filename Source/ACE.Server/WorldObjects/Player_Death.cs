@@ -623,13 +623,12 @@ namespace ACE.Server.WorldObjects
         /// <param name="playerName">The granter name</param>
         public void HandleActionRemoveFromPlayerConsentList(string playerName)
         {
-            // todo: offline player lookup by string
-            var player = PlayerManager.GetOnlinePlayer(playerName);
+            var player = PlayerManager.FindByName(playerName);
 
             if (player == null)
             {
                 playerName = "+" + playerName;
-                player = PlayerManager.GetOnlinePlayer(playerName);
+                player = PlayerManager.FindByName(playerName);
                 if (player == null)
                     playerName = playerName.Substring(1);
             }
