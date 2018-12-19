@@ -2281,8 +2281,7 @@ namespace ACE.Server.Factories
                 wo.SetProperty(PropertyInt.ItemUseable, 1);
                 wo.SetProperty(PropertyInt.UiEffects, 0);
             }
-            value = workmanship * Physics.Common.Random.RollDice(5, 100) + spellcraft;
-            wo.SetProperty(PropertyInt.Value, value);
+            wo.SetProperty(PropertyInt.Value, GetValue(tier, workmanship));
             wo.SetProperty(PropertyDataId.Spell, (uint)spellDID);
             wo.SetProperty(PropertyInt.ItemAllegianceRankLimit, rank);
             wo.SetProperty(PropertyInt.ItemDifficulty, difficulty);
@@ -2359,7 +2358,7 @@ namespace ACE.Server.Factories
             numCantrips = minorCantrips + majorCantrips + epicCantrips + legendaryCantrips;
             WorldObject wo = WorldObjectFactory.CreateNewWorldObject((uint)jewelType);
             workmanship = GetWorkmanship(tier);
-            value = GetValue(tier);
+            value = GetValue(tier, workmanship);
             spellcraft = GetSpellcraft(numSpells, tier);
             max_mana = GetMaxMana(numSpells, tier);
             difficulty = GetDifficulty(tier, spellcraft);
@@ -2482,7 +2481,7 @@ namespace ACE.Server.Factories
             int gemType = Physics.Common.Random.RollDice(10, 50);
             int materialType = GetMaterialType(2, tier);
             int workmanship = GetWorkmanship(tier);
-            int value = GetValue(tier);
+            int value = GetValue(tier, workmanship);
             int uiEffects = 0;
             int spellCraft = GetSpellcraft(numSpells, tier);
             int itemDifficulty = GetDifficulty(tier, spellCraft); ;
@@ -14500,9 +14499,10 @@ namespace ACE.Server.Factories
             spellcraft = GetSpellcraft(numSpells, tier);
             wo.SetProperty(PropertyInt.ItemSpellcraft, spellcraft);
             wo.SetProperty(PropertyInt.ItemDifficulty, GetDifficulty(tier, spellcraft));
-            wo.SetProperty(PropertyInt.ItemWorkmanship, GetWorkmanship(tier));
+            int workmanship2 = GetWorkmanship(tier);
+            wo.SetProperty(PropertyInt.ItemWorkmanship, workmanship2);
             wo.SetProperty(PropertyInt.UiEffects, 1);
-            wo.SetProperty(PropertyInt.Value, GetValue(tier));
+            wo.SetProperty(PropertyInt.Value, GetValue(tier, workmanship2));
             wo.SetProperty(PropertyInt.ArmorLevel, GetArmorLevel(tier, armorPieceType));
             wo.SetProperty(PropertyString.LongDesc, getLongDesc(wo.GetProperty(PropertyString.Name), gemType, gemCount));
             if (numSpells == 0)
@@ -15489,7 +15489,7 @@ namespace ACE.Server.Factories
             int itemDifficulty = GetDifficulty(tier, spellCraft);
             int workmanship = GetWorkmanship(tier);
             int materialType = GetMaterialType(2, tier);
-            int value = GetValue(tier);
+            int value = GetValue(tier, workmanship);
             int weaponTime = 0; ///done
             int wieldDifficulty = GetWield(tier, 1); // done
             int itemSkillLevelLimit = 0;
@@ -16112,7 +16112,7 @@ namespace ACE.Server.Factories
             spellcraft = GetSpellcraft(numSpells, tier);
             itemMaxMana = GetMaxMana(numSpells, tier);
             itemDiff = GetDifficulty(tier, spellcraft);
-            value = GetValue(tier);
+            value = GetValue(tier, workmanship);
             String shortDesc = elementName + " " + weaponName;
             elementalDamageMod = GetMaxDamageMod(tier, 18);
             wo.SetProperty(PropertyInt.MaterialType, materialType);
@@ -18098,42 +18098,11 @@ namespace ACE.Server.Factories
             return m2;
         }
 
-        public static int GetValue(int tier)
+        public static int GetValue(int tier, int work)
         {
             ///This is just a placeholder. This doesnt return a final value used retail, just a quick vaue for now.
             ///Will use, tier, material type, amount of gems set into item, type of gems, spells on item
-            
-            int value = 0;
-            switch (tier)
-            {
-                case 1:
-                    //tier 1
-                    value = (int)(tier * Physics.Common.Random.RollDice(1, 20) + Physics.Common.Random.RollDice(1, 50));
-                    break;
-                case 2:
-                    value = (int)(tier * Physics.Common.Random.RollDice(1, 40) + Physics.Common.Random.RollDice(1, 50));
-                    break;
-                case 3:
-                    value = (int)(tier * Physics.Common.Random.RollDice(1, 60) + Physics.Common.Random.RollDice(1, 50));
-                    break;
-                case 4:
-                    value = (int)(tier * Physics.Common.Random.RollDice(1, 80) + Physics.Common.Random.RollDice(1, 50));
-                    break;
-                case 5:
-                    value = (int)(tier * Physics.Common.Random.RollDice(1, 100) + Physics.Common.Random.RollDice(1, 50));
-                    break;
-                case 6:
-                    value = (int)(tier * Physics.Common.Random.RollDice(1, 120) + Physics.Common.Random.RollDice(1, 50));
-                    break;
-                case 7:
-                    value = (int)(tier * Physics.Common.Random.RollDice(1, 140) + Physics.Common.Random.RollDice(1, 50));
-                    break;
-                case 8:
-                    value = (int)(tier * Physics.Common.Random.RollDice(1, 160) + Physics.Common.Random.RollDice(1, 50));
-                    break;
-                default:
-                    break;
-            }
+            int value = Physics.Common.Random.RollDice(1, tier)* Physics.Common.Random.RollDice(1, tier)* Physics.Common.Random.RollDice(1, work)*Physics.Common.Random.RollDice(1, 250) + Physics.Common.Random.RollDice(1, 50);
             return value;
         }
 
