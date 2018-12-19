@@ -689,7 +689,7 @@ namespace ACE.Server.Network
                 var sb = new StringBuilder();
                 sb.AppendLine(ex.ToString());
                 sb.AppendLine(String.Format("[{5}] Sending Packet (Len: {0}) [{1}:{2}=>{3}:{4}]", payload.Length, listenerEndpoint.Address, listenerEndpoint.Port, session.EndPoint.Address, session.EndPoint.Port, session.Network.ClientId));
-                packetLog.Error(sb.ToString());
+                log.Error(sb.ToString());
 
                 session.State = Enum.SessionState.NetworkTimeout; // This will force WorldManager to drop the session
             }
