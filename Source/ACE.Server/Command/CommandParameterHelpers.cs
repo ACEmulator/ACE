@@ -40,7 +40,17 @@ namespace ACE.Server.Command
             /// a number, example: 01231242
             /// output is of type ulong: 1231242
             /// </summary>
-            ULong
+            ULong,
+            /// <summary>
+            /// a number, example: -01231242
+            /// output is of type long: -1231242
+            /// </summary>
+            Long,
+            /// <summary>
+            /// a number, example: 01231242
+            /// output is of type long: 1231242
+            /// </summary>
+            PositiveLong
         }
         /// <summary>
         /// A player supplied parameter
@@ -66,6 +76,7 @@ namespace ACE.Server.Command
             public Position AsPosition { get { return (Position)Value; } }
             public Player AsPlayer { get { return (Player)Value; } }
             public ulong AsULong { get { return (ulong)Value; } }
+            public long AsLong { get { return (long)Value; } }
             /// <summary>
             /// The parameter either wasn't supplied or was invalid (doesn't parse, player doesn't exist, etc.)
             /// </summary>
@@ -100,11 +111,45 @@ namespace ACE.Server.Command
                     {
                         switch (acp.Type)
                         {
+                            case ACECommandParameterType.PositiveLong:
+                                var match4 = Regex.Match(parameterBlob, @"(-?\d+)$", RegexOptions.IgnoreCase);
+                                if (match4.Success)
+                                {
+                                    if (!long.TryParse(match4.Groups[1].Value, out long val))
+                                    {
+                                        return false;
+                                    }
+                                    if (val <= 0)
+                                    {
+                                        return false;
+                                    }
+                                    acp.Value = val;
+                                    acp.Defaulted = false;
+                                    parameterBlob = (match4.Groups[1].Index == 0) ? string.Empty : parameterBlob.Substring(0, match4.Groups[1].Index).Trim(new char[] { ' ', ',' });
+                                }
+                                break;
+                            case ACECommandParameterType.Long:
+                                var match3 = Regex.Match(parameterBlob, @"(-?\d+)$", RegexOptions.IgnoreCase);
+                                if (match3.Success)
+                                {
+                                    if (!long.TryParse(match3.Groups[1].Value, out long val))
+                                    {
+                                        return false;
+                                    }
+                                    acp.Value = val;
+                                    acp.Defaulted = false;
+                                    parameterBlob = (match3.Groups[1].Index == 0) ? string.Empty : parameterBlob.Substring(0, match3.Groups[1].Index).Trim(new char[] { ' ', ',' });
+                                }
+                                break;
                             case ACECommandParameterType.ULong:
-                                var match2 = Regex.Match(parameterBlob, @"(\d+)$", RegexOptions.IgnoreCase);
+                                var match2 = Regex.Match(parameterBlob, @"(-?\d+)$", RegexOptions.IgnoreCase);
                                 if (match2.Success)
                                 {
-                                    acp.Value = ulong.Parse(match2.Groups[1].Value);
+                                    if (!ulong.TryParse(match2.Groups[1].Value, out ulong val))
+                                    {
+                                        return false;
+                                    }
+                                    acp.Value = val;
                                     acp.Defaulted = false;
                                     parameterBlob = (match2.Groups[1].Index == 0) ? string.Empty : parameterBlob.Substring(0, match2.Groups[1].Index).Trim(new char[] { ' ', ',' });
                                 }

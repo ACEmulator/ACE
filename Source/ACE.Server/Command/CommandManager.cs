@@ -7,10 +7,14 @@ using System.Threading;
 using ACE.Entity.Enum;
 using ACE.Server.Network;
 
+using log4net;
+
 namespace ACE.Server.Command
 {
     public static class CommandManager
     {
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         private static Dictionary<string, CommandHandlerInfo> commandHandlers;
 
         public static IEnumerable<CommandHandlerInfo> GetCommands()
@@ -65,12 +69,35 @@ namespace ACE.Server.Command
                 if (string.IsNullOrWhiteSpace(commandLine))
                     continue;
 
-                ParseCommand(commandLine, out var command, out var parameters);
-
-                if (GetCommandHandler(null, command, parameters, out var commandHandler) == CommandHandlerResponse.Ok)
+                string command = null;
+                string[] parameters = null;
+                try
                 {
-                    // Add command to world manager's main thread...
-                    ((CommandHandler)commandHandler.Handler).Invoke(null, parameters);
+                    ParseCommand(commandLine, out command, out parameters);
+                }
+                catch (Exception ex)
+                {
+                    log.Error($"Exception while parsing command: {commandLine}", ex);
+                    return;
+                }
+                try
+                {
+                    if (GetCommandHandler(null, command, parameters, out var commandHandler) == CommandHandlerResponse.Ok)
+                    {
+                        try
+                        {
+                            // Add command to world manager's main thread...
+                            ((CommandHandler)commandHandler.Handler).Invoke(null, parameters);
+                        }
+                        catch (Exception ex)
+                        {
+                            log.Error($"Exception while invoking command handler for: {commandLine}", ex);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    log.Error($"Exception while getting command handler for: {commandLine}", ex);
                 }
             }
         }
