@@ -590,7 +590,7 @@ namespace ACE.Server.WorldObjects
             foreach (var playerGuid in LootPermission.Keys)
             {
                 // is the granter required to stay online?
-                var player = PlayerManager.GetPlayer(playerGuid);
+                var player = PlayerManager.FindByGuid(playerGuid);
 
                 if (player == null)
                 {

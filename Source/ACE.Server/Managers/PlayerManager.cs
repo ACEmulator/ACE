@@ -207,32 +207,6 @@ namespace ACE.Server.Managers
         }
 
         /// <summary>
-        /// This will return null if the player wasn't found.
-        /// </summary>
-        public static IPlayer GetPlayer(ObjectGuid guid)
-        {
-            var player = GetOnlinePlayer(guid.Full);
-
-            if (player == null)
-                return GetOfflinePlayer(guid.Full);
-            else
-                return player;
-        }
-
-        /// <summary>
-        /// This will return null if the player wasn't found.
-        /// </summary>
-        public static IPlayer GetPlayer(uint guid)
-        {
-            var player = GetOnlinePlayer(guid);
-
-            if (player == null)
-                return GetOfflinePlayer(guid);
-            else
-                return player;
-        }
-
-        /// <summary>
         /// This will return true if the player was successfully added.
         /// It will return false if the player was not found in the OfflinePlayers dictionary (which should never happen), or player already exists in the OnlinePlayers dictionary (which should never happen).
         /// This will always be preceded by a call to GetOfflinePlayer()
