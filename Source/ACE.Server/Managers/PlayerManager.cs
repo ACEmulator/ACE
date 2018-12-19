@@ -206,6 +206,7 @@ namespace ACE.Server.Managers
             return results;
         }
 
+
         /// <summary>
         /// This will return true if the player was successfully added.
         /// It will return false if the player was not found in the OfflinePlayers dictionary (which should never happen), or player already exists in the OnlinePlayers dictionary (which should never happen).
