@@ -205,15 +205,14 @@ namespace ACE.Server.WorldObjects
                 // todo: Have we timed out?
 
                 // Are we within use radius?
-                var valid = false;
-                bool ret = CurrentLandblock != null && !CurrentLandblock.WithinUseRadius(this, target.Guid, out valid);
+                bool ret = !CurrentLandblock.WithinUseRadius(this, target.Guid, out var valid);
 
                 // If one of the items isn't on a landblock
                 if (!valid)
+                {
                     ret = false;
-
-                if (ret == false)
                     StopExistingMoveToChains(); // This increments our moveToChainCounter and thus, should stop any additional actions in this chain
+                }
 
                 return ret;
             }, moveToBody);

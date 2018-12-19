@@ -349,28 +349,25 @@ namespace ACE.Server.WorldObjects
         /// This will clear the ContainerId and PlacementPosition properties.<para />
         /// It will also subtract the EncumbranceVal and Value.
         /// </summary>
-        public bool TryRemoveFromInventory(ObjectGuid objectGuid, bool withClear = true)
+        public bool TryRemoveFromInventory(ObjectGuid objectGuid)
         {
-            return TryRemoveFromInventory(objectGuid, out _, withClear);
+            return TryRemoveFromInventory(objectGuid, out _);
         }
 
         /// <summary>
         /// This will clear the ContainerId and PlacementPosition properties and remove the object from the Inventory dictionary.<para />
         /// It will also subtract the EncumbranceVal and Value.
         /// </summary>
-        public bool TryRemoveFromInventory(ObjectGuid objectGuid, out WorldObject item, bool withClear = true)
+        public bool TryRemoveFromInventory(ObjectGuid objectGuid, out WorldObject item)
         {
             // first search me / add all items of type.
             if (Inventory.Remove(objectGuid, out item))
             {
                 int removedItemsPlacementPosition = item.PlacementPosition ?? 0;
 
-                if (withClear)
-                {
-                    item.OwnerId = null;
-                    item.ContainerId = null;
-                    item.PlacementPosition = null;
-                }
+                item.OwnerId = null;
+                item.ContainerId = null;
+                item.PlacementPosition = null;
 
                 // Move all the existing items PlacementPosition over.
                 if (!item.UseBackpackSlot)

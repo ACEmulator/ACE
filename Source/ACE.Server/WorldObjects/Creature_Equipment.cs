@@ -148,6 +148,7 @@ namespace ACE.Server.WorldObjects
 
             worldObject.CurrentWieldedLocation = (EquipMask)wieldedLocation;
             worldObject.WielderId = Biota.Id;
+
             EquippedObjects[worldObject.Guid] = worldObject;
 
             EncumbranceVal += worldObject.EncumbranceVal;
@@ -169,6 +170,8 @@ namespace ACE.Server.WorldObjects
             if (!TryEquipObject(worldObject, wieldedLocation))
                 return false;
 
+            EnqueueBroadcast(new GameMessageSound(Guid, Sound.WieldObject));
+
             // Notify viewers in the area that we've equipped the item
             EnqueueActionBroadcast(p => p.TrackObject(worldObject));
 
@@ -185,14 +188,14 @@ namespace ACE.Server.WorldObjects
             if (!EquippedObjects.Remove(objectGuid, out worldObject))
                 return false;
 
-            var wo = worldObject;
-            Children.Remove(Children.Find(s => s.Guid == wo.Guid.Full));
-
             worldObject.RemoveProperty(PropertyInt.CurrentWieldedLocation);
             worldObject.RemoveProperty(PropertyInstanceId.Wielder);
 
             EncumbranceVal -= worldObject.EncumbranceVal;
             Value -= worldObject.Value;
+
+            var wo = worldObject;
+            Children.Remove(Children.Find(s => s.Guid == wo.Guid.Full));
 
             worldObject.EmoteManager.OnUnwield(this);
 
@@ -209,10 +212,14 @@ namespace ACE.Server.WorldObjects
             if (!TryDequipObject(objectGuid, out worldObject))
                 return false;
 
+            EnqueueBroadcast(new GameMessageSound(Guid, Sound.UnwieldObject));
+
             if (!droppingToLandscape)
             {
                 // This should only be called if the object is going to the private storage, not when dropped on the landscape
                 EnqueueBroadcast(new GameMessagePickupEvent(worldObject));
+
+                // todo: remove the object from internal tracking
             }
 
             return true;
