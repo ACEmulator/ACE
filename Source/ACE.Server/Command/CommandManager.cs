@@ -77,6 +77,12 @@ namespace ACE.Server.Command
 
         public static void ParseCommand(string commandLine, out string command, out string[] parameters)
         {
+            if (commandLine == "/" || commandLine == "")
+            {
+                command = null;
+                parameters = null;
+                return;
+            }
             var commandSplit = commandLine.Split(' ',StringSplitOptions.RemoveEmptyEntries);
             command = commandSplit[0];
             parameters = new string[commandSplit.Length - 1];
@@ -112,6 +118,11 @@ namespace ACE.Server.Command
 
         public static CommandHandlerResponse GetCommandHandler(Session session, string command, string[] parameters, out CommandHandlerInfo commandInfo)
         {
+            if (command == null || parameters == null)
+            {
+                commandInfo = null;
+                return CommandHandlerResponse.InvalidCommand;
+            }
             bool isSUDOauthorized = false;
 
             if (command.ToLower() == "sudo")
