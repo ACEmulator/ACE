@@ -147,16 +147,15 @@ namespace ACE.Server.WorldObjects
             // set 'killed by' for looting rights
             if (Killer.HasValue && Killer != 0)
             {
-                
                 var killer = corpse.CurrentLandblock?.GetObject(new ObjectGuid(Killer ?? 0));
 
                 if (killer != null)
                 {
                     corpse.LongDesc = $"Killed by {killer.Name}.";
                     if (killer is CombatPet)
-                        AllowedActivator = killer.PetOwner.Value;
+                        corpse.AllowedActivator = killer.PetOwner.Value;
                     else
-                        AllowedActivator = Killer.Value;
+                        corpse.AllowedActivator = Killer.Value;
                 }
                 else
                     corpse.LongDesc = $"Killed by misadventure.";
