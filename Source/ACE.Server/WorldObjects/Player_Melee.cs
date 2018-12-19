@@ -19,10 +19,16 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public WorldObject MeleeTarget;
 
+        private float _powerLevel;
+
         /// <summary>
         /// The power bar level, a value between 0-1
         /// </summary>
-        public float PowerLevel;
+        public float PowerLevel
+        {
+            get => IsExhausted ? 0.0f : _powerLevel;
+            set => _powerLevel = value;
+        }
 
         public override PowerAccuracy GetPowerRange()
         {
@@ -79,11 +85,21 @@ namespace ACE.Server.WorldObjects
             //Console.WriteLine("Angle: " + angle);
 
             // turn / moveto if required
-            Rotate(target);
-            MoveTo(target);
+            if (IsMeleeDistance(target))
+            {
+                var rotateTime = Rotate(target);
+                var actionChain = new ActionChain();
+                actionChain.AddDelaySeconds(rotateTime * 0.8f);
+                actionChain.AddAction(this, () => Attack(target));
+                actionChain.EnqueueChain();
+                //Rotate(target);
+                //Attack(target);
+            }
+            else
+                MoveTo(target);
 
             // do melee attack
-            Attack(target);
+            //Attack(target);
         }
 
         /// <summary>
@@ -95,6 +111,8 @@ namespace ACE.Server.WorldObjects
 
             MeleeTarget = null;
             MissileTarget = null;
+
+            PhysicsObj.cancel_moveto();
         }
 
         /// <summary>
@@ -259,6 +277,15 @@ namespace ACE.Server.WorldObjects
                         return motion;
                     }
             }
+        }
+
+        public bool IsMeleeDistance(WorldObject target)
+        {
+            // always use spheres?
+            var cylDist = (float)Physics.Common.Position.CylinderDistance(PhysicsObj.GetRadius(), PhysicsObj.GetHeight(), PhysicsObj.Position,
+                target.PhysicsObj.GetRadius(), target.PhysicsObj.GetHeight(), target.PhysicsObj.Position);
+
+            return cylDist <= 0.6f;
         }
     }
 }

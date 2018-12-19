@@ -246,8 +246,8 @@ namespace ACE.Server.WorldObjects
             var offenseMod = GetWeaponOffenseModifier(this);
             attackSkill = (uint)Math.Round(attackSkill * offenseMod);
 
-            if (IsExhausted)
-                attackSkill = GetExhaustedSkill(attackSkill);
+            //if (IsExhausted)
+                //attackSkill = GetExhaustedSkill(attackSkill);
 
             // get creature defense skill
             var defenseSkill = CurrentAttack == AttackType.Missile ? Skill.MissileDefense : Skill.MeleeDefense;

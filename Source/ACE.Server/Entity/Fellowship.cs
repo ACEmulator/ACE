@@ -303,17 +303,15 @@ namespace ACE.Server.Entity
             else
             {
                 // Calc distribution %
-                double totalLevels = 0;
-                foreach (Player p in SharableMembers)
-                {
-                    totalLevels += p.Level ?? 1;
-                }
-                double percentPerLevel = totalLevels / SharableMembers.Count;
+                var levelSum = SharableMembers.Select(p => p.Level ?? 1).Sum();
+
                 foreach (var member in SharableMembers)
                 {
+                    var levelScale = (float)(member.Level ?? 1) / levelSum;
+
                     if (!member.Location.Indoors)
                     {
-                        UInt64 playerTotal = (UInt64)(member.Level * percentPerLevel * GetDistanceScalar(member));
+                        UInt64 playerTotal = (UInt64)(amount * levelScale * GetDistanceScalar(member));
                         member.EarnXP((long)playerTotal, false);
                     }
                 }
@@ -360,10 +358,15 @@ namespace ACE.Server.Entity
 
             var dist = memberPosition.Distance2D(leaderPosition);
 
-            if (dist <= MaxDistance)
-                return 1;
+            if (dist >= MaxDistance * 2.0f)
+                return 0.0f;
 
-            return 1 - (dist - MaxDistance) / MaxDistance;
+            if (dist <= MaxDistance)
+                return 1.0f;
+
+            var scalar = 1 - (dist - MaxDistance) / MaxDistance;
+
+            return Math.Max(0.0f, scalar);
         }
 
         /// <summary>

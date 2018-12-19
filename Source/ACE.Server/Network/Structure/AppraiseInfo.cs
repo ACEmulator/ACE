@@ -140,6 +140,9 @@ namespace ACE.Server.Network.Structure
         {
             SpellBook = new List<AppraisalSpellBook>();
 
+            if (wo is Creature)
+                return;
+
             // add primary spell, if exists
             if (wo.SpellDID.HasValue)
                 SpellBook.Add(new AppraisalSpellBook { SpellId = (ushort)wo.SpellDID.Value, EnchantmentState = AppraisalSpellBook._EnchantmentState.Off });

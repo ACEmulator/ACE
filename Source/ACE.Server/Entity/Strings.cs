@@ -27,7 +27,7 @@ namespace ACE.Server.Entity
             new DeathMessage(
                 "{0} is torn to ribbons by your assault!",
                 "You are torn to ribbons by {1}'s assault!",
-                "{0} is torn to ribbons by {0]'s assault!"),
+                "{0} is torn to ribbons by {1}'s assault!"),
 
             new DeathMessage(
                 "Your killing blow nearly turns {0} inside-out!",

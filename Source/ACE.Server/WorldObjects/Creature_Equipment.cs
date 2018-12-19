@@ -330,8 +330,10 @@ namespace ACE.Server.WorldObjects
                     if (item.Shade > 0)
                         wo.Shade = item.Shade;
 
-                    if (wo.ValidLocations != null)
-                        TryEquipObjectWithBroadcasting(wo, (int) wo.ValidLocations.Value);
+                    //if (wo.ValidLocations != null)
+                        //TryEquipObject(wo, (int) wo.ValidLocations.Value);
+
+                    TryAddToInventory(wo);
                 }
             }
         }
