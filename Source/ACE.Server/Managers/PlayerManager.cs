@@ -206,6 +206,31 @@ namespace ACE.Server.Managers
             return results;
         }
 
+        /// <summary>
+        /// This will return null if the player wasn't found.
+        /// </summary>
+        public static IPlayer GetPlayer(ObjectGuid guid)
+        {
+            var player = GetOnlinePlayer(guid.Full);
+
+            if (player == null)
+                return GetOfflinePlayer(guid.Full);
+            else
+                return player;
+        }
+
+        /// <summary>
+        /// This will return null if the player wasn't found.
+        /// </summary>
+        public static IPlayer GetPlayer(uint guid)
+        {
+            var player = GetOnlinePlayer(guid);
+
+            if (player == null)
+                return GetOfflinePlayer(guid);
+            else
+                return player;
+        }
 
         /// <summary>
         /// This will return true if the player was successfully added.

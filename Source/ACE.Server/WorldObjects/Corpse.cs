@@ -93,17 +93,33 @@ namespace ACE.Server.WorldObjects
         public override void Open(Player player)
         {
             // check for looting permission
-            if (Name != null && Name.StartsWith("Corpse of "))
+            if (!HasPermission(player))
             {
-                var corpseName = Name.Replace("Corpse of ", "");
-                if (!player.Name.Equals(corpseName) && AllowedActivator != null && player.Guid.Full != AllowedActivator)
-                {
-                    player.Session.Network.EnqueueSend(new GameMessageSystemChat("You don't have permission to loot the " + Name, ChatMessageType.Broadcast));
-                    return;
-                }
+                player.Session.Network.EnqueueSend(new GameMessageSystemChat("You don't have permission to loot the " + Name, ChatMessageType.Broadcast));
+                player.SendUseDoneEvent();
+                return;
             }
-
             base.Open(player);
+        }
+
+        /// <summary>
+        /// Returns TRUE if input player has permission to loot this corpse
+        /// </summary>
+        public bool HasPermission(Player player)
+        {
+            // players can loot their own corpses
+            if (player.Guid.Full == OwnerId)
+                return true;
+
+            // players can loot monsters they killed
+            if (AllowedActivator != null && player.Guid.Full == AllowedActivator)
+                return true;
+
+            // players can /permit other players to loot their corpse
+            if (player.HasLootPermission(new ObjectGuid(OwnerId.Value)))
+                return true;
+
+            return false;
         }
     }
 }
