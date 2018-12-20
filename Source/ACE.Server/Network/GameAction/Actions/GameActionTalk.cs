@@ -2,11 +2,16 @@ using ACE.Common.Extensions;
 using ACE.Entity.Enum;
 using ACE.Server.Command;
 using ACE.Server.Network.GameMessages.Messages;
+using System;
+
+using log4net;
 
 namespace ACE.Server.Network.GameAction.Actions
 {
     public static class GameActionTalk
     {
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         [GameAction(GameActionType.Talk)]
         public static void Handle(ClientMessage clientMessage, Session session)
         {
@@ -14,18 +19,52 @@ namespace ACE.Server.Network.GameAction.Actions
             
             if (message.StartsWith("@"))
             {
-                CommandManager.ParseCommand(message.Remove(0, 1), out var command, out var parameters);
-
-                var response = CommandManager.GetCommandHandler(session, command, parameters, out var commandHandler);
+                string commandRaw = message.Remove(0, 1);
+                CommandHandlerResponse response = CommandHandlerResponse.InvalidCommand;
+                CommandHandlerInfo commandHandler = null;
+                string command = null;
+                string[] parameters = null;
+                try
+                {
+                    CommandManager.ParseCommand(message.Remove(0, 1), out command, out parameters);
+                }
+                catch (Exception ex)
+                {
+                    log.Error($"Exception while parsing command: {commandRaw}", ex);
+                    return;
+                }
+                try
+                {
+                    response = CommandManager.GetCommandHandler(session, command, parameters, out commandHandler);
+                }
+                catch (Exception ex)
+                {
+                    log.Error($"Exception while getting command handler for: {commandRaw}", ex);
+                }
                 if (response == CommandHandlerResponse.Ok)
-                    ((CommandHandler)commandHandler.Handler).Invoke(session, parameters);
+                {
+                    try
+                    {
+                        ((CommandHandler)commandHandler.Handler).Invoke(session, parameters);
+                    }
+                    catch (Exception ex)
+                    {
+                        log.Error($"Exception while invoking command handler for: {commandRaw}", ex);
+                    }
+                }
                 else if (response == CommandHandlerResponse.SudoOk)
                 {
                     string[] sudoParameters = new string[parameters.Length - 1];
                     for (int i = 1; i < parameters.Length; i++)
                         sudoParameters[i - 1] = parameters[i];
-
-                    ((CommandHandler)commandHandler.Handler).Invoke(session, sudoParameters);
+                    try
+                    {
+                        ((CommandHandler)commandHandler.Handler).Invoke(session, sudoParameters);
+                    }
+                    catch (Exception ex)
+                    {
+                        log.Error($"Exception while invoking command handler for: {commandRaw}", ex);
+                    }
                 }
                 else
                 {

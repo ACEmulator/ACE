@@ -791,7 +791,7 @@ namespace ACE.Server.Command.Handlers
                     },
                     new CommandParameterHelpers.ACECommandParameter()
                     {
-                        Type = CommandParameterHelpers.ACECommandParameterType.ULong,
+                        Type = CommandParameterHelpers.ACECommandParameterType.PositiveLong,
                         Required = true,
                         ErrorMessage = "You must specify the amount of xp."
                     }
@@ -800,7 +800,7 @@ namespace ACE.Server.Command.Handlers
                 {
                     try
                     {
-                        var xp = (long)aceParams[1].AsULong;
+                        var xp = (long)aceParams[1].AsLong;
                         aceParams[0].AsPlayer.GrantXP(xp);
                         return;
                     }

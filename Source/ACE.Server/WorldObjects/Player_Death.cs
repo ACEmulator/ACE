@@ -19,6 +19,12 @@ namespace ACE.Server.WorldObjects
     partial class Player
     {
         /// <summary>
+        /// A list of players who have granted corpse looting permissions
+        /// with /permit
+        /// </summary>
+        public Dictionary<ObjectGuid, DateTime> LootPermission;
+
+        /// <summary>
         /// Called when a player dies, in conjunction with Die()
         /// </summary>
         /// <param name="lastDamager">The last damager that landed the death blow</param>
@@ -467,6 +473,190 @@ namespace ACE.Server.WorldObjects
                 msg += "!";
 
             return msg;
+        }
+
+        public static TimeSpan PermitTime = TimeSpan.FromHours(1);
+
+        public void HandleActionAddPlayerPermission(string playerName)
+        {
+            // is this player online?
+            var player = PlayerManager.GetOnlinePlayer(playerName);
+            if (player == null)
+            {
+                playerName = "+" + playerName;
+                player = PlayerManager.GetOnlinePlayer(playerName);
+                if (player == null)
+                    playerName = playerName.Substring(1);
+            }
+
+            if (player == null)
+            {
+                Session.Network.EnqueueSend(new GameMessageSystemChat($"{playerName} is not online.", ChatMessageType.Broadcast));
+                return;
+            }
+
+            // check for self-permit
+            if (Name.Equals(playerName))
+            {
+                Session.Network.EnqueueSend(new GameMessageSystemChat($"You already have permission to loot your corpse.", ChatMessageType.Broadcast));
+                return;
+            }
+
+            // verify other player has /consent on
+            if (!player.GetCharacterOption(CharacterOption.AcceptCorpseLootingPermissions))
+            {
+                Session.Network.EnqueueSend(new GameMessageSystemChat($"{playerName} is not accepting corpse looting permissions from other players.", ChatMessageType.Broadcast));
+                return;
+            }
+
+            // do they already have permission?
+            if (player.HasLootPermission(Guid))
+            {
+                Session.Network.EnqueueSend(new GameMessageSystemChat($"{playerName} already has permission to loot your corpse.", ChatMessageType.Broadcast));
+                return;
+            }
+
+            player.LootPermission.Add(Guid, DateTime.UtcNow + PermitTime);
+
+            // send messages to both players
+            player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{Name} has given you permission to loot one of his or her corpses. This permission will last one hour.", ChatMessageType.Broadcast));
+
+            Session.Network.EnqueueSend(new GameMessageSystemChat($"You have given permission to {playerName} to loot one of your corpses. This permission will last one hour.", ChatMessageType.Broadcast));
+        }
+
+        public void HandleActionRemovePlayerPermission(string playerName)
+        {
+            // is this player online?
+            var player = PlayerManager.GetOnlinePlayer(playerName);
+
+            if (player == null)
+            {
+                playerName = "+" + playerName;
+                player = PlayerManager.GetOnlinePlayer(playerName);
+                if (player == null)
+                    playerName = playerName.Substring(1);
+            }
+
+            // check for self-revoke
+            if (Name.Equals(playerName))
+            {
+                Session.Network.EnqueueSend(new GameMessageSystemChat($"You always have permission to loot your corpse.", ChatMessageType.Broadcast));
+                return;
+            }
+
+            // do they already have permission?
+            if (player == null || !player.HasLootPermission(Guid))
+            {
+                Session.Network.EnqueueSend(new GameMessageSystemChat($"{playerName} doesn't have permission to loot your corpse.", ChatMessageType.Broadcast));
+                return;
+            }
+
+            // remove looting permissions
+            player.LootPermission.Remove(Guid);
+
+            // send messages to both players
+            player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{Name} has revoked permission to loot one of his or her corpses.", ChatMessageType.Broadcast));
+
+            Session.Network.EnqueueSend(new GameMessageSystemChat($"{playerName}'s permission to loot your corpse has been revoked.", ChatMessageType.Broadcast));
+        }
+
+        /// <summary>
+        /// Cleans out any expired permissions
+        /// </summary>
+        public void PrunePermissions()
+        {
+            LootPermission = LootPermission.Where(p => p.Value >= DateTime.UtcNow).ToDictionary(p => p.Key, p => p.Value);
+        }
+
+        public bool HasLootPermission(ObjectGuid guid)
+        {
+            PrunePermissions();
+
+            return LootPermission.ContainsKey(guid);
+        }
+
+        public void HandleActionDisplayPlayerConsentList()
+        {
+            PrunePermissions();
+
+            if (LootPermission.Count == 0)
+            {
+                Session.Network.EnqueueSend(new GameMessageSystemChat($"You do not have permission to loot anyone's corpse.", ChatMessageType.Broadcast));
+                return;
+            }
+
+            var playerNames = new List<string>();
+
+            foreach (var playerGuid in LootPermission.Keys)
+            {
+                // is the granter required to stay online?
+                var player = PlayerManager.FindByGuid(playerGuid);
+
+                if (player == null)
+                {
+                    Console.WriteLine($"{Name}.HandleActionDisplayPlayerConsentList(): couldn't find player guid {playerGuid}");
+                    continue;
+                }
+                playerNames.Add(player.Name);
+            }
+            Session.Network.EnqueueSend(new GameMessageSystemChat("You have permissions to loot a corpse from these players:\n" + string.Join("\n", playerNames), ChatMessageType.Broadcast));
+        }
+
+        public void HandleActionClearPlayerConsentList()
+        {
+            PrunePermissions();
+
+            if (LootPermission.Count == 0)
+            {
+                Session.Network.EnqueueSend(new GameMessageSystemChat($"You do not have permission to loot anyone's corpse.", ChatMessageType.Broadcast));
+                return;
+            }
+
+            LootPermission.Clear();
+
+            Session.Network.EnqueueSend(new GameMessageSystemChat($"You have cleared your consent list. Players will have to permit you again to allow you access to their corpse.", ChatMessageType.Broadcast));
+        }
+
+        /// <summary>
+        /// A player can remove corpse looting permissions that were granted to them.
+        /// </summary>
+        /// <param name="playerName">The granter name</param>
+        public void HandleActionRemoveFromPlayerConsentList(string playerName)
+        {
+            var player = PlayerManager.FindByName(playerName);
+
+            if (player == null)
+            {
+                playerName = "+" + playerName;
+                player = PlayerManager.FindByName(playerName);
+                if (player == null)
+                    playerName = playerName.Substring(1);
+            }
+
+            if (player == null)
+            {
+                Session.Network.EnqueueSend(new GameMessageSystemChat($"{playerName} is not online.", ChatMessageType.Broadcast));
+                return;
+            }
+
+            // check for self-revoke
+            if (Name.Equals(playerName))
+            {
+                Session.Network.EnqueueSend(new GameMessageSystemChat($"You always have permission to loot your corpse.", ChatMessageType.Broadcast));
+                return;
+            }
+
+            // do we have permissions?
+            if (!HasLootPermission(player.Guid))
+            {
+                Session.Network.EnqueueSend(new GameMessageSystemChat($"You don't have permission to loot {playerName}'s corpse.", ChatMessageType.Broadcast));
+                return;
+            }
+
+            // remove looting permissions
+            LootPermission.Remove(player.Guid);
+
+            Session.Network.EnqueueSend(new GameMessageSystemChat($"You have removed your permissions to loot {playerName}'s corpse.", ChatMessageType.Broadcast));
         }
     }
 }

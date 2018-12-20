@@ -25,6 +25,7 @@ namespace ACE.Server.Network.Sequence
         PrivateUpdatePropertyDataID,
         PrivateUpdatePropertyInstanceID,
         PrivateUpdatePropertyString,
+        PrivateUpdatePosition,
 
         PrivateUpdateAttribute2ndLevelHealth,
         PrivateUpdateAttribute2ndLevelStamina,
@@ -37,6 +38,7 @@ namespace ACE.Server.Network.Sequence
         PublicUpdatePropertyDataID,
         PublicUpdatePropertyInstanceId,
         PublicUpdatePropertyString,
+        PublicUpdatePosition,
 
         SetStackSize,
 

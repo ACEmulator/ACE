@@ -166,9 +166,18 @@ namespace ACE.Server.Network.GameEvent.Events
             {
             }*/
 
-            /*if ((propertyFlags & DescriptionPropertyFlag.Position) != 0)
+            var lastOutsideDeath = Session.Player.GetPosition(PositionType.LastOutsideDeath);
+
+            if (lastOutsideDeath != null)
             {
-            }*/
+                propertyFlags |= DescriptionPropertyFlag.Position;
+
+                Writer.Write((ushort)1);
+                Writer.Write((ushort)0x20);
+
+                Writer.Write((uint)PositionType.LastOutsideDeath);
+                lastOutsideDeath.Serialize(Writer);
+            }
 
             Writer.WritePosition((uint)propertyFlags, propertyFlagsPos);
 
