@@ -1,14 +1,13 @@
-using ACE.DatLoader;
-using ACE.DatLoader.FileTypes;
-using ACE.Entity;
-using ACE.Entity.Enum;
-using ACE.Server.Managers;
-using ACE.Server.Network;
-using ACE.Server.WorldObjects;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
+using ACE.Entity;
+using ACE.Entity.Enum;
+using ACE.Server.Entity;
+using ACE.Server.Managers;
+using ACE.Server.Network;
+using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Command
 {
@@ -260,11 +259,11 @@ namespace ACE.Server.Command
             try
             {
                 position = new Position(coordNS, coordEW);
-                var cellLandblock = DatManager.CellDat.ReadFromDat<CellLandblock>(position.Cell >> 16 | 0xFFFF);
-                position.PositionZ = cellLandblock.GetZ(position.PositionX, position.PositionY);
+                position.AdjustMapCoords();
             }
-            catch (System.Exception)
+            catch (Exception e)
             {
+                Console.WriteLine(e);
                 errorMessage = $"There was a problem with that location (bad coordinates?).";
                 return false;
             }

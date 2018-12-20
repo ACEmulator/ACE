@@ -132,6 +132,8 @@ namespace ACE.Server.WorldObjects
 
         public void Teleport(Position newPosition)
         {
+            //Console.WriteLine($"{Name}.Teleport() - Sending to {newPosition.ToLOCString()}");
+
             Teleporting = true;
 
             Session.Network.EnqueueSend(new GameMessagePlayerTeleport(this));
