@@ -1,6 +1,9 @@
-﻿using ACE.Common.Extensions;
-using ACE.Entity;
+﻿using System;
+using ACE.Common.Extensions;
 using ACE.Entity.Enum;
+using ACE.Server.Entity;
+using ACE.Server.Physics.Common;
+using Position = ACE.Entity.Position;
 
 namespace ACE.Server.Network.GameAction.Actions
 {
@@ -15,14 +18,21 @@ namespace ACE.Server.Network.GameAction.Actions
             if (!session.Player.IsAdmin && !session.Player.IsArch && !session.Player.IsPsr)
                 return;
 
-            uint cell = position.LandblockId.Raw;
-            uint cellX = (cell >> 3);
+            //Console.WriteLine($"Handle minimap teleport");
+            //Console.WriteLine($"Client sent position: {position}");
 
-            // TODO: Wrap command in a check to confirm session.character IsAdvocate or higher access level
+            // Check if water block
+            var landblock = LScape.get_landblock(position.LandblockId.Raw);
+            if (landblock.WaterType == LandDefs.WaterType.EntirelyWater)
+            {
+                ChatPacket.SendServerMessage(session, $"Landblock 0x{position.LandblockId.Landblock:X4} is entirely filled with water, and is impassable", ChatMessageType.Broadcast);
+                return;
+            }
 
-            // TODO: Maybe output to chat window coords teleported to.
-            // ChatPacket.SendSystemMessage(session, $"Teleporting to: 0.0[N/S], 0.0[E/W]");
-            ChatPacket.SendServerMessage(session, "Teleporting...", ChatMessageType.Broadcast);
+            // update z / indoor cell
+            position.AdjustMapCoords();
+
+            ChatPacket.SendServerMessage(session, $"Teleporting to: ({position.GetMapCoordStr()})", ChatMessageType.Broadcast);
             session.Player.Teleport(position);
         }
     }

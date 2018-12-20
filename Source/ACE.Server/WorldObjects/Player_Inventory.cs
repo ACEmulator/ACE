@@ -235,6 +235,9 @@ namespace ACE.Server.WorldObjects
             var rotateTime = GetRotateDelay(angle);
             pickUpItemChain.AddDelaySeconds(rotateTime);*/
 
+            var sourceContainer = targetLocation as Container;
+            var motionPickup = sourceContainer != null ? sourceContainer.MotionPickup : MotionCommand.Pickup;
+
             pickUpItemChain.AddAction(this, () =>
             {
                 /*if (thisMoveToChainNumberCopy != moveToChainCounter)
@@ -246,13 +249,13 @@ namespace ACE.Server.WorldObjects
                 }*/
 
                 // start picking up item animation
-                var motion = new Motion(CurrentMotionState.Stance, MotionCommand.Pickup);
+                var motion = new Motion(CurrentMotionState.Stance, motionPickup);
                 EnqueueBroadcast(new GameMessageUpdatePosition(this), new GameMessageUpdateMotion(this, motion));
             });
 
             // Wait for animation to progress
             var motionTable = DatManager.PortalDat.ReadFromDat<MotionTable>(MotionTableId);
-            var pickupAnimationLength = motionTable.GetAnimationLength(CurrentMotionState.Stance, MotionCommand.Pickup, MotionCommand.Ready);
+            var pickupAnimationLength = motionTable.GetAnimationLength(CurrentMotionState.Stance, motionPickup, MotionCommand.Ready);
             pickUpItemChain.AddDelaySeconds(pickupAnimationLength);
 
             // pick up item
@@ -621,9 +624,31 @@ namespace ACE.Server.WorldObjects
             }
 
             // if were are still here, this needs to do a pack pack or main pack move.
-            MoveItemWithNetworking(item, container, placement);
 
-            container.OnAddItem();
+            // if container is not owned by player (landblock container)
+
+            // start pickup motion
+            var motionPickup = container.MotionPickup;
+            EnqueueBroadcast(new GameMessageUpdateMotion(this, new Motion(CurrentMotionState.Stance, motionPickup)));
+
+            // wait for animation to progress
+            var motionTable = DatManager.PortalDat.ReadFromDat<MotionTable>(MotionTableId);
+            var animLength = motionTable.GetAnimationLength(CurrentMotionState.Stance, motionPickup, MotionCommand.Ready);
+            var actionChain = new ActionChain();
+            actionChain.AddDelaySeconds(animLength);
+
+            actionChain.AddAction(this, () =>
+            {
+                // put item into container
+                MoveItemWithNetworking(item, container, placement);
+
+                container.OnAddItem();
+
+                // return to previous stance
+                actionChain.AddAction(this, () => EnqueueBroadcastMotion(new Motion(CurrentMotionState.Stance)));
+            });
+
+            actionChain.EnqueueChain();
         }
 
         /// <summary>

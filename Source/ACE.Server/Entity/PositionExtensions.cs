@@ -205,5 +205,46 @@ namespace ACE.Server.Entity
             return string.Format("{0:0.0}", Math.Abs(mapCoords.Value.Y) - 0.05f) + northSouth + ", "
                  + string.Format("{0:0.0}", Math.Abs(mapCoords.Value.X) - 0.05f) + eastWest;
         }
+
+        public static void AdjustMapCoords(this Position pos)
+        {
+            // adjust Z to terrain height
+            pos.PositionZ = pos.GetTerrainZ();
+
+            // adjust to building height, if applicable
+            var sortCell = LScape.get_landcell(pos.Cell) as SortCell;
+            if (sortCell != null && sortCell.has_building())
+            {
+                var building = sortCell.Building;
+
+                building.get_building_cells();
+                var minZ = building.GetMinZ();
+                if (minZ > 0)
+                    pos.PositionZ += minZ;
+
+                pos.LandblockId = new LandblockId(pos.GetCell());
+            }
+        }
+
+        public static float GetTerrainZ(this Position p)
+        {
+            var landblock = LScape.get_landblock(p.LandblockId.Raw);
+
+            var cellID = GetOutdoorCell(p);
+            var landcell = (LandCell)LScape.get_landcell(cellID);
+
+            if (landcell == null)
+                return p.Pos.Z;
+
+            Physics.Polygon walkable = null;
+            if (!landcell.find_terrain_poly(p.Pos, ref walkable))
+                return p.Pos.Z;
+
+            Vector3 terrainPos = p.Pos;
+            walkable.Plane.set_height(ref terrainPos);
+
+            return terrainPos.Z;
+        }
+
     }
 }

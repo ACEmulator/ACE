@@ -919,7 +919,9 @@ namespace ACE.Server.WorldObjects
                 }
 
                 var soundEvent = new GameMessageSound(Guid, sound, 1.0f);
-                Session.Network.EnqueueSend(soundEvent, buffMessage);
+                EnqueueBroadcast(soundEvent);
+
+                Session.Network.EnqueueSend(buffMessage);
 
                 // return to original stance
                 var returnStance = new Motion(CurrentMotionState.Stance);

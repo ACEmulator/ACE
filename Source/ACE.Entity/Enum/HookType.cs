@@ -5,11 +5,11 @@ namespace ACE.Entity.Enum
     [Flags]
     public enum HookType
     {
-        Undef   = 0,
-        Floor   = (1 << 0),
-        Wall    = (1 << 1),
-        Ceiling = (1 << 2),
-        Yard    = (1 << 3),
-        Roof    = (1 << 4)
+        Undef   = 0x00,
+        Floor   = 0x01,
+        Wall    = 0x02,
+        Ceiling = 0x04,
+        Yard    = 0x08,
+        Roof    = 0x10
     }
 }

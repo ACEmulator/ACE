@@ -1,16 +1,9 @@
-using ACE.DatLoader;
-using ACE.DatLoader.FileTypes;
-using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
-using ACE.Server.Managers;
 using ACE.Server.Network;
 using ACE.Server.Network.GameMessages.Messages;
-using ACE.Server.WorldObjects;
-using System;
+using ACE.Server.Physics.Common;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text.RegularExpressions;
 
 namespace ACE.Server.Command.Handlers
 {
@@ -100,7 +93,13 @@ namespace ACE.Server.Command.Handlers
             };
             if (!CommandParameterHelpers.ResolveACEParameters(session, parameters, aceParams)) return;
 
-            // TODO: Check if water block?
+            // Check if water block
+            var landblock = LScape.get_landblock(aceParams[1].AsPosition.LandblockId.Raw);
+            if (landblock.WaterType == LandDefs.WaterType.EntirelyWater)
+            {
+                ChatPacket.SendServerMessage(session, $"Landblock 0x{aceParams[1].AsPosition.LandblockId.Landblock:X4} is entirely filled with water, and is impassable", ChatMessageType.Broadcast);
+                return;
+            }
 
             ChatPacket.SendServerMessage(session, $"Position: [Cell: 0x{aceParams[1].AsPosition.LandblockId.Landblock:X4} | Offset: {aceParams[1].AsPosition.PositionX}, "+
                 $"{aceParams[1].AsPosition.PositionY}, {aceParams[1].AsPosition.PositionZ} | Facing: {aceParams[1].AsPosition.RotationX}, {aceParams[1].AsPosition.RotationY}, " +
