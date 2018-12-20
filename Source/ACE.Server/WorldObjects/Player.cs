@@ -109,6 +109,7 @@ namespace ACE.Server.WorldObjects
             Sequences.SetSequence(SequenceType.PrivateUpdatePropertyDataID, new ByteSequence(false));
             Sequences.SetSequence(SequenceType.PrivateUpdatePropertyInstanceID, new ByteSequence(false));
             Sequences.SetSequence(SequenceType.PrivateUpdatePropertyString, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PrivateUpdatePosition, new ByteSequence(false));
 
             Sequences.SetSequence(SequenceType.PrivateUpdateAttribute2ndLevelHealth, new ByteSequence(false));
             Sequences.SetSequence(SequenceType.PrivateUpdateAttribute2ndLevelStamina, new ByteSequence(false));
@@ -222,6 +223,8 @@ namespace ACE.Server.WorldObjects
             QuestManager = new QuestManager(this);
 
             LastUseTracker = new Dictionary<int, DateTime>();
+
+            LootPermission = new Dictionary<ObjectGuid, DateTime>();
 
             return; // todo
             /* todo fix for new EF model

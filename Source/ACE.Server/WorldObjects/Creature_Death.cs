@@ -138,7 +138,8 @@ namespace ACE.Server.WorldObjects
 
             corpse.Location = DatManager.PortalDat.ReadFromDat<MotionTable>(MotionTableId).GetAnimationFinalPositionFromStart(Location, ObjScale ?? 1, MotionCommand.Dead);
             //corpse.Location.PositionZ = corpse.Location.PositionZ - .5f; // Adding BaseDescriptionFlags |= ObjectDescriptionFlag.Corpse to Corpse objects made them immune to gravity.. this seems to fix floating corpse...
-            
+
+            corpse.OwnerId = Guid.Full;
             corpse.Name = $"Corpse of {Name}";
 
             LandblockManager.AddObject(corpse);
@@ -146,20 +147,15 @@ namespace ACE.Server.WorldObjects
             // set 'killed by' for looting rights
             if (Killer.HasValue && Killer != 0)
             {
-                
                 var killer = corpse.CurrentLandblock?.GetObject(new ObjectGuid(Killer ?? 0));
 
                 if (killer != null)
                 {
                     corpse.LongDesc = $"Killed by {killer.Name}.";
                     if (killer is CombatPet)
-                    {
-                        corpse.SetProperty(PropertyInstanceId.AllowedActivator, killer.PetOwner.Value);
-                    }
+                        corpse.AllowedActivator = killer.PetOwner.Value;
                     else
-                    {
-                        corpse.SetProperty(PropertyInstanceId.AllowedActivator, Killer.Value);
-                    }
+                        corpse.AllowedActivator = Killer.Value;
                 }
                 else
                     corpse.LongDesc = $"Killed by misadventure.";
@@ -169,8 +165,17 @@ namespace ACE.Server.WorldObjects
             if (player != null)
             {
                 corpse.SetPosition(PositionType.Location, corpse.Location);
-                player.CalculateDeathItems(corpse);
+                var dropped = player.CalculateDeathItems(corpse);
                 corpse.RecalculateDecayTime(player);
+
+                if ((player.Location.Cell & 0xFFFF) < 0x100)
+                {
+                    player.SetPosition(PositionType.LastOutsideDeath, new Position(corpse.Location));
+                    player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePosition(player, PositionType.LastOutsideDeath, corpse.Location));
+
+                    if (dropped.Count > 0)
+                        player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Your corpse is located at ({corpse.Location.GetMapCoordStr()}).", ChatMessageType.Broadcast));
+                }
             }
             else
             {

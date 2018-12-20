@@ -1,8 +1,10 @@
+using System;
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Server.Entity;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 
@@ -123,16 +125,30 @@ namespace ACE.Server.WorldObjects
             MinLevel = MinLevel ?? 0;
             MaxLevel = MaxLevel ?? 0;
             PortalBitmask = PortalBitmask ?? 0;
+
+            if (PortalShowDestination ?? true)
+            {
+                AppraisalPortalDestination = Name;
+
+                if (Destination != null)
+                {
+                    var destCoords = Destination.GetMapCoordStr();
+                    if (destCoords != null)
+                        AppraisalPortalDestination += $" ({destCoords}).";
+                }
+            }
         }
 
         public string AppraisalPortalDestination
         {
-            get;
+            get => GetProperty(PropertyString.AppraisalPortalDestination);
+            set { if (value == null) RemoveProperty(PropertyString.AppraisalPortalDestination); else SetProperty(PropertyString.AppraisalPortalDestination, value); }
         }
 
-        public bool PortalShowDestination
+        public bool? PortalShowDestination
         {
-            get;
+            get => GetProperty(PropertyBool.PortalShowDestination);
+            set { if (!value.HasValue) RemoveProperty(PropertyBool.PortalShowDestination); else SetProperty(PropertyBool.PortalShowDestination, value.Value); }
         }
 
         private int? MinLevel

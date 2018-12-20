@@ -206,6 +206,7 @@ namespace ACE.Server.WorldObjects
             Sequences.SetSequence(SequenceType.PublicUpdatePropertyDataID, new ByteSequence(false));
             Sequences.SetSequence(SequenceType.PublicUpdatePropertyInstanceId, new ByteSequence(false));
             Sequences.SetSequence(SequenceType.PublicUpdatePropertyString, new ByteSequence(false));
+            Sequences.SetSequence(SequenceType.PublicUpdatePosition, new ByteSequence(false));
 
             Sequences.SetSequence(SequenceType.SetStackSize, new ByteSequence(false));
         }
