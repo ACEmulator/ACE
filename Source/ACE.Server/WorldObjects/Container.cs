@@ -560,5 +560,7 @@ namespace ACE.Server.WorldObjects
         {
             // empty base
         }
+
+        public virtual MotionCommand MotionPickup => MotionCommand.Pickup;
     }
 }

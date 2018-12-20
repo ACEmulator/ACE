@@ -5,6 +5,7 @@ using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
+using ACE.Server.Managers;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.Structure;
 
@@ -46,6 +47,15 @@ namespace ACE.Server.WorldObjects
 
             // sent house profile
             var houseProfile = new HouseProfile();
+            houseProfile.DwellingID = HouseId.Value;
+            if (HouseOwner != null)
+            {
+                var ownerId = HouseOwner.Value;
+                var owner = PlayerManager.FindByGuid(ownerId);
+
+                houseProfile.OwnerID = new ObjectGuid(ownerId);
+                houseProfile.OwnerName = owner.Name;
+            }
             houseProfile.SetBuyItems(GetBuyItems());
             houseProfile.SetRentItems(GetRentItems());
 
