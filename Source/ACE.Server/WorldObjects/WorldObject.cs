@@ -90,7 +90,6 @@ namespace ACE.Server.WorldObjects
             Biota = weenie.CreateCopyAsBiota(guid.Full);
             Guid = guid;
 
-            InitializeSequences();
             InitializePropertyDictionaries();
             SetEphemeralValues();
 
@@ -108,7 +107,6 @@ namespace ACE.Server.WorldObjects
 
             biotaOriginatedFromDatabase = true;
 
-            InitializeSequences();
             InitializePropertyDictionaries();
             SetEphemeralValues();
         }
@@ -183,32 +181,6 @@ namespace ACE.Server.WorldObjects
             SetPosition(PositionType.Home, new Position(Location));
 
             return true;
-        }
-
-        protected virtual void InitializeSequences()
-        {
-            Sequences.SetSequence(SequenceType.ObjectPosition, new UShortSequence());
-            Sequences.SetSequence(SequenceType.ObjectMovement, new UShortSequence());
-            Sequences.SetSequence(SequenceType.ObjectState, new UShortSequence());
-            Sequences.SetSequence(SequenceType.ObjectVector, new UShortSequence());
-            Sequences.SetSequence(SequenceType.ObjectTeleport, new UShortSequence());
-            Sequences.SetSequence(SequenceType.ObjectServerControl, new UShortSequence());
-            Sequences.SetSequence(SequenceType.ObjectForcePosition, new UShortSequence());
-            Sequences.SetSequence(SequenceType.ObjectVisualDesc, new UShortSequence());
-            Sequences.SetSequence(SequenceType.ObjectInstance, new UShortSequence());
-
-            Sequences.SetSequence(SequenceType.Motion, new UShortSequence(1, 0x7FFF)); // MSB is reserved, so set max value to exclude it.
-
-            Sequences.SetSequence(SequenceType.PublicUpdatePropertyInt, new ByteSequence(false));
-            Sequences.SetSequence(SequenceType.PublicUpdatePropertyInt64, new ByteSequence(false));
-            Sequences.SetSequence(SequenceType.PublicUpdatePropertyBool, new ByteSequence(false));
-            Sequences.SetSequence(SequenceType.PublicUpdatePropertyDouble, new ByteSequence(false));
-            Sequences.SetSequence(SequenceType.PublicUpdatePropertyDataID, new ByteSequence(false));
-            Sequences.SetSequence(SequenceType.PublicUpdatePropertyInstanceId, new ByteSequence(false));
-            Sequences.SetSequence(SequenceType.PublicUpdatePropertyString, new ByteSequence(false));
-            Sequences.SetSequence(SequenceType.PublicUpdatePosition, new ByteSequence(false));
-
-            Sequences.SetSequence(SequenceType.SetStackSize, new ByteSequence(false));
         }
 
         private void InitializePropertyDictionaries()
