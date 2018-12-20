@@ -8,7 +8,7 @@ namespace ACE.Server.Network.GameMessages.Messages
         public GameMessagePrivateUpdateAttribute2ndLevel(WorldObject worldObject, Vital vital, uint value)
             : base(GameMessageOpcode.PrivateUpdateAttribute2ndLevel, GameMessageGroup.UIQueue)
         {
-            Writer.Write(worldObject.Sequences.GetNextSequence(Sequence.SequenceType.PrivateUpdateAttribute2ndLevel, vital));
+            Writer.Write(worldObject.Sequences.GetNextSequence(Sequence.SequenceType.UpdateAttribute2ndLevel, vital));
             Writer.Write((uint)vital);
             Writer.Write(value);
         }

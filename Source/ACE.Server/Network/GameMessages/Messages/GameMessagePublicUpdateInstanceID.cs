@@ -10,7 +10,7 @@ namespace ACE.Server.Network.GameMessages.Messages
         public GameMessagePublicUpdateInstanceID(WorldObject worldObject, PropertyInstanceId property, ObjectGuid instanceGuid)
             : base(GameMessageOpcode.PublicUpdateInstanceId, GameMessageGroup.UIQueue)
         {
-            Writer.Write(worldObject.Sequences.GetNextSequence(SequenceType.PublicUpdatePropertyInstanceId, property));
+            Writer.Write(worldObject.Sequences.GetNextSequence(SequenceType.UpdatePropertyInstanceID, property));
             Writer.WriteGuid(worldObject.Guid);
             Writer.Write((uint)property);
             Writer.WriteGuid(instanceGuid);

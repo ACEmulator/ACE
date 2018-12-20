@@ -9,7 +9,7 @@ namespace ACE.Server.Network.GameMessages.Messages
         public GameMessagePrivateUpdateAttribute(WorldObject worldObject, PropertyAttribute attribute, uint ranks, uint baseValue, uint totalInvestment)
             : base(GameMessageOpcode.PrivateUpdateAttribute, GameMessageGroup.UIQueue)
         {
-            Writer.Write(worldObject.Sequences.GetNextSequence(Sequence.SequenceType.PrivateUpdateAttribute, attribute));
+            Writer.Write(worldObject.Sequences.GetNextSequence(Sequence.SequenceType.UpdateAttribute, attribute));
             Writer.Write((uint)attribute);
             Writer.Write(ranks);
             Writer.Write(baseValue);

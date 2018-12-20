@@ -22,7 +22,7 @@ namespace ACE.Server.Network.GameMessages.Messages
 
         public void UpdateSkill(WorldObject worldObject, Skill skill, SkillAdvancementClass status, uint ranks, uint bonus, uint totalInvestment)
         {
-            Writer.Write(worldObject.Sequences.GetNextSequence(Sequence.SequenceType.PrivateUpdateSkill, skill));
+            Writer.Write(worldObject.Sequences.GetNextSequence(Sequence.SequenceType.UpdateSkill, skill));
 
             ushort adjustPP = 1;            // If this is not 0, it appears to trigger the initLevel to be treated as extra XP applied to the skill
             uint resistanceOfLastCheck = 0; // last use difficulty;

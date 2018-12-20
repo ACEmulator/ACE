@@ -14,30 +14,20 @@ namespace ACE.Server.Network.Sequence
 
         Motion,
 
-        PrivateUpdateAttribute,
-        PrivateUpdateAttribute2ndLevel,
-        PrivateUpdateSkill,
+        UpdatePropertyInt,
+        UpdatePropertyInt64,        
+        UpdatePropertyBool,
+        UpdatePropertyDouble,        
+        UpdatePropertyDataID,
+        UpdatePropertyInstanceID,
+        UpdatePropertyString,
+        UpdatePosition,
 
-        PrivateUpdatePropertyInt,
-        PrivateUpdatePropertyInt64,        
-        PrivateUpdatePropertyBool,
-        PrivateUpdatePropertyDouble,        
-        PrivateUpdatePropertyDataID,
-        PrivateUpdatePropertyInstanceID,
-        PrivateUpdatePropertyString,
-        PrivateUpdatePosition,
-
-        PublicUpdatePropertyInt,
-        PublicUpdatePropertyInt64,
-        PublicUpdatePropertyBool,
-        PublicUpdatePropertyDouble,
-        PublicUpdatePropertyDataID,
-        PublicUpdatePropertyInstanceId,
-        PublicUpdatePropertyString,
-        PublicUpdatePosition,
+        UpdateAttribute,
+        UpdateAttribute2ndLevel,
+        UpdateSkill,
 
         SetStackSize,
-
         Confirmation,
     }
 }
