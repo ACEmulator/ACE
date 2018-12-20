@@ -27,7 +27,6 @@ namespace ACE.Server.Network.Sequence
         UpdateAttribute2ndLevel,
         UpdateSkill,
 
-        SetStackSize,
         Confirmation,
     }
 }
