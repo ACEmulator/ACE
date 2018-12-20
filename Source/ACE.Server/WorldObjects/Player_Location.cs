@@ -99,6 +99,14 @@ namespace ACE.Server.WorldObjects
 
         public void Teleport(Position newPosition)
         {
+            if (!VerifyPosition(newPosition))
+            {
+                Session.Network.EnqueueSend(new GameMessageSystemChat($"{newPosition.Cell:X8} is entirely water", ChatMessageType.Broadcast));
+                return;
+            }
+
+            //Console.WriteLine($"{Name}.Teleport() - Sending to {newPosition.ToLOCString()}");
+
             Teleporting = true;
 
             Session.Network.EnqueueSend(new GameMessagePlayerTeleport(this));
@@ -116,6 +124,15 @@ namespace ACE.Server.WorldObjects
 
             // force out of hotspots
             PhysicsObj.report_collision_end(true);
+        }
+
+        public bool VerifyPosition(Position newPos)
+        {
+            // verify passable landblock
+
+            // impassable if completely filled with water
+            var landblock = Physics.Common.LScape.get_landblock(newPos.Cell);
+            return landblock.WaterType != Physics.Common.LandDefs.WaterType.EntirelyWater;
         }
 
         public void OnTeleportComplete()
