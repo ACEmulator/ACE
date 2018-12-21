@@ -624,18 +624,20 @@ namespace ACE.Server.WorldObjects
             }
 
             // if were are still here, this needs to do a pack pack or main pack move.
-
-            // if container is not owned by player (landblock container)
-
-            // start pickup motion
-            var motionPickup = container.MotionPickup;
-            EnqueueBroadcast(new GameMessageUpdateMotion(this, new Motion(CurrentMotionState.Stance, motionPickup)));
-
-            // wait for animation to progress
-            var motionTable = DatManager.PortalDat.ReadFromDat<MotionTable>(MotionTableId);
-            var animLength = motionTable.GetAnimationLength(CurrentMotionState.Stance, motionPickup, MotionCommand.Ready);
             var actionChain = new ActionChain();
-            actionChain.AddDelaySeconds(animLength);
+
+            // is destination container owned by player?
+            if (!containerOwnedByPlayer)
+            {
+                // start pickup motion
+                var motionPickup = container.MotionPickup;
+                EnqueueBroadcast(new GameMessageUpdateMotion(this, new Motion(CurrentMotionState.Stance, motionPickup)));
+
+                // wait for animation to progress
+                var motionTable = DatManager.PortalDat.ReadFromDat<MotionTable>(MotionTableId);
+                var animLength = motionTable.GetAnimationLength(CurrentMotionState.Stance, motionPickup, MotionCommand.Ready);
+                actionChain.AddDelaySeconds(animLength);
+            }
 
             actionChain.AddAction(this, () =>
             {
@@ -645,7 +647,8 @@ namespace ACE.Server.WorldObjects
                 container.OnAddItem();
 
                 // return to previous stance
-                actionChain.AddAction(this, () => EnqueueBroadcastMotion(new Motion(CurrentMotionState.Stance)));
+                if (!containerOwnedByPlayer)
+                    actionChain.AddAction(this, () => EnqueueBroadcastMotion(new Motion(CurrentMotionState.Stance)));
             });
 
             actionChain.EnqueueChain();
