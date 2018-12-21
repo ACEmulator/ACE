@@ -26,7 +26,5 @@ namespace ACE.Server.Network.Sequence
         UpdateAttribute,
         UpdateAttribute2ndLevel,
         UpdateSkill,
-
-        Confirmation,
     }
 }
