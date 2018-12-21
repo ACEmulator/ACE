@@ -50,6 +50,8 @@ namespace ACE.Server.Network
 
         private bool bootSession;
 
+        public string BootSessionReason { get; private set; }
+
 
         public Session(IPEndPoint endPoint, ushort clientId, ushort serverId)
         {
@@ -218,9 +220,12 @@ namespace ACE.Server.Network
             State = SessionState.AuthConnected;
         }
 
-        public void BootPlayer()
+        public void BootSession(string reason = "", params GameMessages.GameMessage[] messages)
         {
-            Network.EnqueueSend(new GameMessageBootAccount(this));
+            Network.EnqueueSend(messages);
+
+            if (!string.IsNullOrEmpty(reason))
+                BootSessionReason = reason;
 
             bootSession = true;
         }

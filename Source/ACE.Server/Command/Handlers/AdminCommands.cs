@@ -185,7 +185,7 @@ namespace ACE.Server.Command.Handlers
                 {
                     string bootText = $"account or player: {bootName} id: {bootId}";
                     // Boot the player
-                    playerSession.BootPlayer();
+                    playerSession.BootSession("Account Booted", new GameMessageBootAccount(playerSession));
 
                     // Send an update to the admin, but prevent sending too if the admin was the player being booted
                     if (session != null)
