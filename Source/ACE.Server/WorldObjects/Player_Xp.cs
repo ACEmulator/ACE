@@ -54,10 +54,11 @@ namespace ACE.Server.WorldObjects
                 AvailableExperience += amount;
                 TotalExperience += amount;
 
-                CheckForLevelup();
                 var xpTotalUpdate = new GameMessagePrivateUpdatePropertyInt64(this, PropertyInt64.TotalExperience, TotalExperience ?? 0);
                 var xpAvailUpdate = new GameMessagePrivateUpdatePropertyInt64(this, PropertyInt64.AvailableExperience, AvailableExperience ?? 0);
                 Session.Network.EnqueueSend(xpTotalUpdate, xpAvailUpdate);
+
+                CheckForLevelup();
             }
 
             if (HasVitae)
@@ -193,11 +194,9 @@ namespace ACE.Server.WorldObjects
 
             if (Level > startingLevel)
             {
-                string levelUpMessageText = (Level == maxLevel) ? $"You have reached the maximum level of {Level}!" : $"You are now level {Level}!";
-                var levelUpMessage = new GameMessageSystemChat(levelUpMessageText, ChatMessageType.Advancement);
+                var message = (Level == maxLevel) ? $"You have reached the maximum level of {Level}!" : $"You are now level {Level}!";
 
-                string xpUpdateText = (AvailableSkillCredits > 0) ? $"You have {AvailableExperience:#,###0} experience points and {AvailableSkillCredits} skill credits available to raise skills and attributes." : $"You have {AvailableExperience:#,###0} experience points available to raise skills and attributes.";
-                var xpUpdateMessage = new GameMessageSystemChat(xpUpdateText, ChatMessageType.Advancement);
+                message += (AvailableSkillCredits > 0) ? $"\nYou have {AvailableExperience:#,###0} experience points and {AvailableSkillCredits} skill credits available to raise skills and attributes." : $"\nYou have {AvailableExperience:#,###0} experience points available to raise skills and attributes.";
 
                 var levelUp = new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.Level, Level ?? 1);
                 var currentCredits = new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.AvailableSkillCredits, AvailableSkillCredits ?? 0);
@@ -214,21 +213,20 @@ namespace ACE.Server.WorldObjects
                             break;
                         }
                     }
-
-                    string nextCreditAtText = $"You will earn another skill credit at {nextLevelWithCredits}";
-                    var nextCreditMessage = new GameMessageSystemChat(nextCreditAtText, ChatMessageType.Advancement);
-                    Session.Network.EnqueueSend(levelUp, levelUpMessage, xpUpdateMessage, currentCredits, nextCreditMessage);
-                }
-                else
-                {
-                    Session.Network.EnqueueSend(levelUp, levelUpMessage, xpUpdateMessage, currentCredits);
+                    message += $"\nYou will earn another skill credit at level {nextLevelWithCredits}.";
                 }
 
                 if (Fellowship != null)
                     Fellowship.OnFellowLevelUp();
 
+                Session.Network.EnqueueSend(levelUp);
+
+                SetMaxVitals();
+
                 // play level up effect
                 PlayParticleEffect(ACE.Entity.Enum.PlayScript.LevelUp, Guid);
+
+                Session.Network.EnqueueSend(new GameMessageSystemChat(message, ChatMessageType.Advancement), currentCredits);
             }
         }
 
@@ -315,7 +313,7 @@ namespace ACE.Server.WorldObjects
                 UpdateXpAndLevel(amount);
 
             if (message)
-                Session.Network.EnqueueSend(new GameMessageSystemChat($"{amount} experience granted.", ChatMessageType.Advancement));
+                Session.Network.EnqueueSend(new GameMessageSystemChat($"{amount:N0} experience granted.", ChatMessageType.Advancement));
         }
 
         /// <summary>
@@ -345,7 +343,7 @@ namespace ACE.Server.WorldObjects
             AvailableLuminance += amount;
 
             var luminance = new GameMessagePrivateUpdatePropertyInt64(this, PropertyInt64.AvailableLuminance, AvailableLuminance ?? 0);
-            var message = new GameMessageSystemChat($"{amount} luminance granted.", ChatMessageType.Advancement);
+            var message = new GameMessageSystemChat($"{amount:N0} luminance granted.", ChatMessageType.Advancement);
             Session.Network.EnqueueSend(luminance, message);
         }
     }
