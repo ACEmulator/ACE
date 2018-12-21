@@ -110,7 +110,7 @@ namespace ACE.Server.Entity
             // http://www.postcount.net/forum/showthread.php?79784-death-item-formula
             // according to this post, it could be +/- 10%
 
-            var variance = Physics.Common.Random.RollDice(-MaxVariance, MaxVariance);
+            var variance = ThreadSafeRandom.Next(-MaxVariance, MaxVariance);
 
             return (int)(value + value * variance);
         }

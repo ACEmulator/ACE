@@ -532,7 +532,7 @@ namespace ACE.Server.WorldObjects
             if (magicSkill > 0 && magicSkill >= (int)difficulty - 50)
             {
                 var chance = 1.0f - SkillCheck.GetMagicSkillChance((int)magicSkill, (int)difficulty);
-                var rng = Physics.Common.Random.RollDice(0.0f, 1.0f);
+                var rng = ThreadSafeRandom.Next(0.0f, 1.0f);
                 if (chance < rng)
                     castingPreCheckStatus = CastingPreCheckStatus.Success;
             }
@@ -542,7 +542,7 @@ namespace ACE.Server.WorldObjects
                 spell.School == MagicSchool.WarMagic && LastSuccessCast_School == MagicSchool.VoidMagic)
             {
                 // roll each time?
-                var timeLimit = Physics.Common.Random.RollDice(3.0f, 5.0f);
+                var timeLimit = ThreadSafeRandom.Next(3.0f, 5.0f);
 
                 if (Time.GetUnixTime() - LastSuccessCast_Time < timeLimit)
                 {
@@ -840,7 +840,7 @@ namespace ACE.Server.WorldObjects
             // Grab player's skill level in the spell's Magic School
             var magicSkill = GetCreatureSkill(spell.School).Current;
 
-            if ((Physics.Common.Random.RollDice(0.0f, 1.0f) > (1.0f - SkillCheck.GetMagicSkillChance((int)magicSkill, (int)spell.Power)))
+            if ((ThreadSafeRandom.Next(0.0f, 1.0f) > (1.0f - SkillCheck.GetMagicSkillChance((int)magicSkill, (int)spell.Power)))
                 && (magicSkill >= (int)spell.Power - 50) && (magicSkill > 0))
                 castingPreCheckStatus = CastingPreCheckStatus.Success;
 

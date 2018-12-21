@@ -237,8 +237,8 @@ namespace ACE.Server.Entity
                 case RegenLocationType.ScatterTreasure:
 
                     float genRadius = (float)(_generator.GetProperty(PropertyFloat.GeneratorRadius) ?? 0f);
-                    var random_x = Physics.Common.Random.RollDice(-genRadius, genRadius);
-                    var random_y = Physics.Common.Random.RollDice(-genRadius, genRadius);
+                    var random_x = ThreadSafeRandom.Next(-genRadius, genRadius);
+                    var random_y = ThreadSafeRandom.Next(-genRadius, genRadius);
                     wo.Location = new ACE.Entity.Position(_generator.Location);
                     var newPos = wo.Location.Pos + new Vector3(random_x, random_y, 0.0f);
                     if (!_generator.Location.Indoors)
