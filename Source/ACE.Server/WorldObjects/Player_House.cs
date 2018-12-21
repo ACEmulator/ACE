@@ -5,8 +5,13 @@ using ACE.Common;
 using ACE.Database;
 using ACE.Database.Models.Shard;
 using ACE.Entity;
+using ACE.Entity.Enum;
+using ACE.Entity.Enum.Properties;
+using ACE.Server.Entity;
 using ACE.Server.Factories;
+using ACE.Server.Managers;
 using ACE.Server.Network.GameEvent.Events;
+using ACE.Server.Network.GameMessages.Messages;
 
 namespace ACE.Server.WorldObjects
 {
@@ -20,7 +25,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void HandleActionBuyHouse(uint slumlord_id, List<uint> item_ids)
         {
-            Console.WriteLine("\nHandleActionBuyHouse()");
+            Console.WriteLine($"\n{Name}.HandleActionBuyHouse()");
 
             var slumlord = (SlumLord)CurrentLandblock.GetObject(slumlord_id);
             if (slumlord == null)
@@ -44,6 +49,43 @@ namespace ACE.Server.WorldObjects
             SetHouseOwner(slumlord);
         }
 
+        public void HandleActionAbandonHouse()
+        {
+            Console.WriteLine($"\n{Name}.HandleActionAbandonHouse()");
+
+            var house = GetHouse();
+            if (house != null)
+            {
+                house.HouseOwner = null;
+                house.SaveBiotaToDatabase();
+
+                // relink
+                house.UpdateLinks();
+
+                // player slumlord 'off' animation
+                var slumlord = house.SlumLord;
+                slumlord.EnqueueBroadcastMotion(new Motion(MotionStance.Invalid, MotionCommand.Off));
+
+                // reset slumlord name
+                var weenie = DatabaseManager.World.GetCachedWeenie(slumlord.WeenieClassId);
+                var wo = WorldObjectFactory.CreateWorldObject(weenie, new ObjectGuid(0));
+                slumlord.Name = wo.Name;
+
+                slumlord.EnqueueBroadcast(new GameMessagePublicUpdatePropertyString(slumlord, PropertyString.Name, wo.Name));
+            }
+
+            HouseId = null;
+            HouseInstance = null;
+            HousePurchaseTimestamp = null;
+
+            House = null;
+
+            // send text message
+            Session.Network.EnqueueSend(new GameMessageSystemChat("You abandon your house!", ChatMessageType.Broadcast));
+
+            HandleActionQueryHouse();
+        }
+
         /// <summary>
         /// Sets this player as the owner of a house
         /// </summary>
@@ -62,7 +104,18 @@ namespace ACE.Server.WorldObjects
             house.HouseOwner = Guid.Full;
             house.SaveBiotaToDatabase();
 
+            // relink
+            house.UpdateLinks();
+
             // notify client w/ HouseID
+            Session.Network.EnqueueSend(new GameMessageSystemChat("Congratulations!  You now own this dwelling.", ChatMessageType.Broadcast));
+
+            // player slumlord 'on' animation
+            slumlord.EnqueueBroadcastMotion(new Motion(MotionStance.Invalid, MotionCommand.On));
+
+            // set house name
+            slumlord.Name = $"{Name}'s {slumlord.Name}";
+            slumlord.EnqueueBroadcast(new GameMessagePublicUpdatePropertyString(slumlord, PropertyString.Name, slumlord.Name));
 
             // set house data
             //var house = new HouseData();
@@ -267,6 +320,24 @@ namespace ACE.Server.WorldObjects
             house.ActivateLinks(instances, new List<Biota>() { biota });
             House = house;
             return house;
+        }
+
+        public House GetHouse()
+        {
+            if (HouseInstance == null)
+                return House;
+
+            var houseGuid = HouseInstance.Value;
+            var landblock = (ushort)((houseGuid >> 12) & 0xFFFF);
+
+            var landblockId = new LandblockId((uint)(landblock << 16 | 0xFFFF));
+            var isLoaded = LandblockManager.IsLoaded(landblockId);
+
+            if (!isLoaded)
+                return House;
+
+            var loaded = LandblockManager.GetLandblock(landblockId, false);
+            return loaded.GetObject(new ObjectGuid(houseGuid)) as House;
         }
     }
 }

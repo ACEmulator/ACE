@@ -1096,6 +1096,12 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyInstanceId.House); else SetProperty(PropertyInstanceId.House, value.Value); }
         }
 
+        public int? HouseType
+        {
+            get => GetProperty(PropertyInt.HouseType);
+            set { if (value.HasValue) RemoveProperty(PropertyInt.HouseType); else SetProperty(PropertyInt.HouseType, value.Value); }
+        }
+
         /// <summary>
         /// Housing links to another packet, that needs sent.. The HouseRestrictions ACL Control list that contains all the housing data
         /// </summary>
@@ -1120,6 +1126,12 @@ namespace ACE.Server.WorldObjects
         {
             get => GetProperty(PropertyInt.HookItemType);
             set { if (!value.HasValue) RemoveProperty(PropertyInt.HookItemType); else SetProperty(PropertyInt.HookItemType, value.Value); }
+        }
+
+        public int? HookPlacement
+        {
+            get => GetProperty(PropertyInt.HookPlacement);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.HookPlacement); else SetProperty(PropertyInt.HookPlacement, value.Value); }
         }
 
         public uint? Monarch

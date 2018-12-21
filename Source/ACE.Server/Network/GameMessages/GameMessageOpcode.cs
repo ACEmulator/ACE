@@ -23,6 +23,8 @@ namespace ACE.Server.Network.GameMessages
         PublicUpdatePropertyDataID      = 0x02D8,
         PrivateUpdatePropertyInstanceID = 0x02D9,
         PublicUpdateInstanceId          = 0x02DA,
+        PrivateUpdatePosition           = 0x02DB,
+        PublicUpdatePosition            = 0x02DC,
         PrivateUpdateSkill              = 0x02DD,
         PublicUpdateSkill               = 0x02DE,
         PrivateUpdateSkillLevel         = 0x02DF,

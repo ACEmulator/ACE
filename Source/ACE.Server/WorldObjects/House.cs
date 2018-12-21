@@ -7,7 +7,10 @@ using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
+using ACE.Entity.Enum.Properties;
+using ACE.Server.Entity;
 using ACE.Server.Network.Structure;
+using ACE.Server.Network.GameMessages.Messages;
 
 namespace ACE.Server.WorldObjects
 {
@@ -44,7 +47,7 @@ namespace ACE.Server.WorldObjects
         {
             var houseData = new HouseData();
             houseData.Position = Location;
-            houseData.Type = HouseType.Cottage;
+            houseData.Type = (HouseType)HouseType;
 
             if (SlumLord == null)
             {
@@ -82,6 +85,8 @@ namespace ACE.Server.WorldObjects
 
             // calculate # of full periods in offset
             var rentIntervalSecs = (uint)RentInterval.TotalSeconds;
+            if (IsApartment)
+                rentIntervalSecs *= 3;      // apartment maintenance every 90 days
             var periods = offset / rentIntervalSecs;
 
             // return beginning of current period
@@ -94,7 +99,24 @@ namespace ACE.Server.WorldObjects
             wo.HouseOwner = HouseOwner;
             wo.HouseInstance = HouseInstance;
 
-            //Console.WriteLine($"{Name}.SetLinkProperties({wo.Name}) - houseID: {HouseId}, owner: {HouseOwner}, instance: {HouseInstance}");
+            if (HouseOwner != null && wo is SlumLord)
+                wo.CurrentMotionState = new Motion(MotionStance.Invalid, MotionCommand.On);
+
+            //if (HouseOwner != null)
+                //Console.WriteLine($"{Name}.SetLinkProperties({wo.Name}) - houseID: {HouseId:X8}, owner: {HouseOwner:X8}, instance: {HouseInstance:X8}");
         }
+
+        public override void UpdateLinkProperties(WorldObject wo)
+        {
+            if (wo.HouseOwner != HouseOwner)
+            {
+                //Console.WriteLine($"{Name}.UpdateLinkProperties({wo.Name} - {wo.Guid}) - HouseOwner: {HouseOwner:X8}");
+                wo.EnqueueBroadcast(new GameMessagePublicUpdateInstanceID(wo, PropertyInstanceId.HouseOwner, new ObjectGuid(HouseOwner ?? 0)));
+            }
+
+            SetLinkProperties(wo);
+        }
+
+        public bool IsApartment => HouseType != null && (HouseType)HouseType.Value == ACE.Entity.Enum.HouseType.Apartment;
     }
 }

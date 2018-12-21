@@ -8,7 +8,7 @@ namespace ACE.Server.Network.GameMessages.Messages
         public GameMessagePrivateUpdatePropertyFloat(WorldObject worldObject, PropertyFloat property, double value)
             : base(GameMessageOpcode.PrivateUpdatePropertyFloat, GameMessageGroup.UIQueue)
         {
-            Writer.Write(worldObject.Sequences.GetNextSequence(Sequence.SequenceType.PrivateUpdatePropertyDouble));
+            Writer.Write(worldObject.Sequences.GetNextSequence(Sequence.SequenceType.UpdatePropertyDouble, property));
             Writer.Write((uint)property);
             Writer.Write(value);
         }

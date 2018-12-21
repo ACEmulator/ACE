@@ -107,6 +107,12 @@ namespace ACE.Server.Managers
             newBlock.AddWorldObjectForPhysics(worldObject);
         }
 
+        public static bool IsLoaded(LandblockId landblockId)
+        {
+            lock (landblockMutex)
+                return landblocks[landblockId.LandblockX, landblockId.LandblockY] != null;
+        }
+
         /// <summary>
         /// Returns a reference to a landblock, loading the landblock if not already active
         /// </summary>

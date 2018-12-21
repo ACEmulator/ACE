@@ -1302,18 +1302,7 @@ namespace ACE.Server.Command.Handlers
             // @heal - Heals yourself(or the selected creature).
 
             // TODO: Check if player has a selected target, heal target otherwise heal player.
-
-            // TODO: When buffs are implemented, we'll need to revisit this command to make sure it takes those into account and restores vitals to 100%
-
-            session.Player.Health.Current = session.Player.Health.MaxValue;
-            session.Player.Stamina.Current = session.Player.Stamina.MaxValue;
-            session.Player.Mana.Current = session.Player.Mana.MaxValue;
-
-            var updatePlayersHealth = new GameMessagePrivateUpdateAttribute2ndLevel(session.Player, Vital.Health, session.Player.Health.Current);
-            var updatePlayersStamina = new GameMessagePrivateUpdateAttribute2ndLevel(session.Player, Vital.Stamina, session.Player.Stamina.Current);
-            var updatePlayersMana = new GameMessagePrivateUpdateAttribute2ndLevel(session.Player, Vital.Mana, session.Player.Mana.Current);
-
-            session.Network.EnqueueSend(updatePlayersHealth, updatePlayersStamina, updatePlayersMana);
+            session.Player.SetMaxVitals();
         }
 
         // housekeep

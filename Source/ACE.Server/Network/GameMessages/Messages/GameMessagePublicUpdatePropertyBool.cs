@@ -17,7 +17,7 @@ namespace ACE.Server.Network.GameMessages.Messages
         public GameMessagePublicUpdatePropertyBool(WorldObject worldObject, PropertyBool property, bool value)
             : base(GameMessageOpcode.PublicUpdatePropertyBool, GameMessageGroup.UIQueue)
         {
-            Writer.Write(worldObject.Sequences.GetNextSequence(SequenceType.PublicUpdatePropertyBool));
+            Writer.Write(worldObject.Sequences.GetNextSequence(SequenceType.UpdatePropertyBool, property));
             Writer.WriteGuid(worldObject.Guid);
             Writer.Write((uint)property);
             Writer.Write(Convert.ToUInt32(value));

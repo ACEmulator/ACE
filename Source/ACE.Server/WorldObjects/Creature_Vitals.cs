@@ -15,6 +15,13 @@ namespace ACE.Server.WorldObjects
         public CreatureVital Stamina => Vitals[PropertyAttribute2nd.MaxStamina];
         public CreatureVital Mana => Vitals[PropertyAttribute2nd.MaxMana];
 
+        public virtual void SetMaxVitals()
+        {
+            Health.Current = Health.MaxValue;
+            Stamina.Current = Stamina.MaxValue;
+            Mana.Current = Mana.MaxValue;
+        }
+
         public uint GetCurrentCreatureVital(PropertyAttribute2nd vital)
         {
             switch (vital)

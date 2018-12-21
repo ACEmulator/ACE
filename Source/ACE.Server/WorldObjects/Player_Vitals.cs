@@ -153,6 +153,17 @@ namespace ACE.Server.WorldObjects
             return false;
         }
 
+        public override void SetMaxVitals()
+        {
+            base.SetMaxVitals();
+
+            var health = new GameMessagePrivateUpdateAttribute2ndLevel(this, Vital.Health, Health.Current);
+            var stamina = new GameMessagePrivateUpdateAttribute2ndLevel(this, Vital.Stamina, Stamina.Current);
+            var mana = new GameMessagePrivateUpdateAttribute2ndLevel(this, Vital.Mana, Mana.Current);
+
+            Session.Network.EnqueueSend(health, stamina, mana);
+        }
+
         /// <summary>
         /// Sets the current vital to a new value
         /// </summary>

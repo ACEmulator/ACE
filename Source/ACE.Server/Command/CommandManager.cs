@@ -7,10 +7,14 @@ using System.Threading;
 using ACE.Entity.Enum;
 using ACE.Server.Network;
 
+using log4net;
+
 namespace ACE.Server.Command
 {
     public static class CommandManager
     {
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         private static Dictionary<string, CommandHandlerInfo> commandHandlers;
 
         public static IEnumerable<CommandHandlerInfo> GetCommands()
@@ -65,18 +69,47 @@ namespace ACE.Server.Command
                 if (string.IsNullOrWhiteSpace(commandLine))
                     continue;
 
-                ParseCommand(commandLine, out var command, out var parameters);
-
-                if (GetCommandHandler(null, command, parameters, out var commandHandler) == CommandHandlerResponse.Ok)
+                string command = null;
+                string[] parameters = null;
+                try
                 {
-                    // Add command to world manager's main thread...
-                    ((CommandHandler)commandHandler.Handler).Invoke(null, parameters);
+                    ParseCommand(commandLine, out command, out parameters);
+                }
+                catch (Exception ex)
+                {
+                    log.Error($"Exception while parsing command: {commandLine}", ex);
+                    return;
+                }
+                try
+                {
+                    if (GetCommandHandler(null, command, parameters, out var commandHandler) == CommandHandlerResponse.Ok)
+                    {
+                        try
+                        {
+                            // Add command to world manager's main thread...
+                            ((CommandHandler)commandHandler.Handler).Invoke(null, parameters);
+                        }
+                        catch (Exception ex)
+                        {
+                            log.Error($"Exception while invoking command handler for: {commandLine}", ex);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    log.Error($"Exception while getting command handler for: {commandLine}", ex);
                 }
             }
         }
 
         public static void ParseCommand(string commandLine, out string command, out string[] parameters)
         {
+            if (commandLine == "/" || commandLine == "")
+            {
+                command = null;
+                parameters = null;
+                return;
+            }
             var commandSplit = commandLine.Split(' ',StringSplitOptions.RemoveEmptyEntries);
             command = commandSplit[0];
             parameters = new string[commandSplit.Length - 1];
@@ -112,6 +145,11 @@ namespace ACE.Server.Command
 
         public static CommandHandlerResponse GetCommandHandler(Session session, string command, string[] parameters, out CommandHandlerInfo commandInfo)
         {
+            if (command == null || parameters == null)
+            {
+                commandInfo = null;
+                return CommandHandlerResponse.InvalidCommand;
+            }
             bool isSUDOauthorized = false;
 
             if (command.ToLower() == "sudo")
