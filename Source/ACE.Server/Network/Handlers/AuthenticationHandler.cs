@@ -87,18 +87,25 @@ namespace ACE.Server.Network.Handlers
 
             if (loginRequest.NetAuthType < NetAuthType.AccountPassword)
             {
-                log.Info($"client {loginRequest.Account} connected with no Password or GlsTicket included so booting");
+                if (loginRequest.Account == "acservertracker:jj9h26hcsggc")
+                {
+                    log.Info($"Incoming ping from a Thwarg-Launcher client... Sending Pong...");
 
-                session.SendCharacterError(CharacterError.AccountInUse);
-                session.State = SessionState.NetworkTimeout;
+                    session.BootSession("Pong sent, closing connection.", new GameMessageCharacterError(CharacterError.Undefined));
+
+                    return;
+                }
+
+                log.Info($"client {loginRequest.Account} connected with no Password or GlsTicket included so booting");
+               
+                session.BootSession("Not Authorized: No password or GlsTicket included in login request", new GameMessageCharacterError(CharacterError.AccountInUse));
 
                 return;
             }
 
             if (account == null)
             {
-                session.SendCharacterError(CharacterError.AccountDoesntExist);
-                session.State = SessionState.NetworkTimeout;
+                session.BootSession("Not Authorized: Account Not Found", new GameMessageCharacterError(CharacterError.AccountDoesntExist));
                 return;
             }
 
@@ -109,7 +116,7 @@ namespace ACE.Server.Network.Handlers
                 if (foundSession.State == SessionState.AuthConnected)
                 {
                     session.SendCharacterError(CharacterError.AccountInUse);
-                    session.State = SessionState.NetworkTimeout;
+                    session.BootSession("Account In Use: Found another session already logged in for this account.", new GameMessageCharacterError(CharacterError.AccountInUse));
                 }
                 return;
             }
@@ -120,8 +127,7 @@ namespace ACE.Server.Network.Handlers
                 {
                     log.Info($"client {loginRequest.Account} connected with non matching password does so booting");
 
-                    session.SendCharacterError(CharacterError.AccountInUse);
-                    session.State = SessionState.NetworkTimeout;
+                    session.BootSession("Not Authorized: Password does not match.", new GameMessageCharacterError(CharacterError.AccountInUse));
 
                     // TO-DO: temporary lockout of account preventing brute force password discovery
                     // exponential duration of lockout for targeted account
@@ -136,7 +142,7 @@ namespace ACE.Server.Network.Handlers
                 log.Info($"client {loginRequest.Account} connected with GlsTicket which is not implemented yet so booting");
 
                 session.SendCharacterError(CharacterError.AccountInUse);
-                session.State = SessionState.NetworkTimeout;
+                session.BootSession("Not Authorized: GlsTicket is not implemented to process login request", new GameMessageCharacterError(CharacterError.AccountInUse));
 
                 return;
             }
