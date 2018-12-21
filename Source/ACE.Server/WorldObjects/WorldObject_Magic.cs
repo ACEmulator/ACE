@@ -206,7 +206,7 @@ namespace ACE.Server.WorldObjects
         {
             // uses regular 0.03 factor, and not magic casting 0.07 factor
             var chance = SkillCheck.GetSkillChance((int)casterMagicSkill, (int)targetMagicDefenseSkill);
-            var rng = Common.ThreadSafeRandom.Next(0.0f, 1.0f);
+            var rng = ThreadSafeRandom.Next(0.0f, 1.0f);
 
             return chance <= rng;
         }
@@ -291,7 +291,7 @@ namespace ACE.Server.WorldObjects
                     int minBoostValue = Math.Min(spell.Boost, spell.MaxBoost);
                     int maxBoostValue = Math.Max(spell.Boost, spell.MaxBoost);
 
-                    int tryBoost = Common.ThreadSafeRandom.Next(minBoostValue, maxBoostValue);
+                    int tryBoost = ThreadSafeRandom.Next(minBoostValue, maxBoostValue);
                     int boost = tryBoost;
                     damage = tryBoost < 0 ? (uint)Math.Abs(tryBoost) : 0;
 

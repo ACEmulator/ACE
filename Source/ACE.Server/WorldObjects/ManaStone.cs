@@ -173,7 +173,7 @@ namespace ACE.Server.WorldObjects
                 return false;
 
             // TODO: special handling for "Eternal Mana Charge"
-            var dice = Common.ThreadSafeRandom.Next(0.0f, 1.0f);
+            var dice = ThreadSafeRandom.Next(0.0f, 1.0f);
 
             if (dice < DestroyChance)
             {

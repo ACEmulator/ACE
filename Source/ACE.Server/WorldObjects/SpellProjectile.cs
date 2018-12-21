@@ -315,7 +315,7 @@ namespace ACE.Server.WorldObjects
 
             // critical hit
             var critical = GetWeaponMagicCritFrequencyModifier(source);
-            if (Common.ThreadSafeRandom.Next(0.0f, 1.0f) < critical)
+            if (ThreadSafeRandom.Next(0.0f, 1.0f) < critical)
                 criticalHit = true;
 
             bool isPVP = sourcePlayer != null && targetPlayer != null;
@@ -364,7 +364,7 @@ namespace ACE.Server.WorldObjects
                         warSkillBonus = Spell.MinDamage * percentageBonus;
                     }
                 }
-                var baseDamage = Common.ThreadSafeRandom.Next(Spell.MinDamage, Spell.MaxDamage);
+                var baseDamage = ThreadSafeRandom.Next(Spell.MinDamage, Spell.MaxDamage);
 
                 finalDamage = baseDamage + damageBonus + warSkillBonus;
                 finalDamage *= target.GetNaturalResistance(resistanceType, GetWeaponResistanceModifier(source, Spell.DamageType));

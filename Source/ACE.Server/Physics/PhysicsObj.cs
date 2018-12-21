@@ -266,7 +266,7 @@ namespace ACE.Server.Physics
                 return;
             }
             var upperBound = (float)delta;
-            var randp = ACE.Common.ThreadSafeRandom.Next(0.0f, upperBound);
+            var randp = ACE.ThreadSafeRandom.Next(0.0f, upperBound);
             var hook = new FPHook(PhysicsHookType.Velocity | PhysicsHookType.MotionTable | PhysicsHookType.Setup, PhysicsTimer_CurrentTime, randp, 0.0f, 1.0f, pes);
             Hooks.AddLast(hook);
         }
@@ -1281,8 +1281,8 @@ namespace ACE.Server.Physics
                 var origin = newPos.Frame.Origin;
                 newPos = setPos.Pos;    // ??
 
-                newPos.Frame.Origin.X += ACE.Common.ThreadSafeRandom.Next(-1.0f, 1.0f) * setPos.RadX;
-                newPos.Frame.Origin.Y += ACE.Common.ThreadSafeRandom.Next(-1.0f, 1.0f) * setPos.RadY;
+                newPos.Frame.Origin.X += ACE.ThreadSafeRandom.Next(-1.0f, 1.0f) * setPos.RadX;
+                newPos.Frame.Origin.Y += ACE.ThreadSafeRandom.Next(-1.0f, 1.0f) * setPos.RadY;
 
                 result = SetPositionInternal(newPos, setPos, transition);
                 if (result == SetPositionError.OK) break;

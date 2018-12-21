@@ -1,4 +1,4 @@
-namespace ACE.Common
+namespace ACE
 {
     // important class, ensure unit tests pass for this
     public static class ThreadSafeRandom

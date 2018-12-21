@@ -56,7 +56,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void QueueFirstHeartbeat(double currentUnixTime)
         {
-            var delay = Common.ThreadSafeRandom.Next(0.0f, DefaultHeartbeatInterval);
+            var delay = ThreadSafeRandom.Next(0.0f, DefaultHeartbeatInterval);
 
             var firstHeartbeat = currentUnixTime + delay;
 

@@ -1023,7 +1023,7 @@ namespace ACE.Server.Managers
             if (wcid != null)
                 emoteSet = emoteSet.Where(e => e.WeenieClassId == wcid.Value);
             if (useRNG)
-                emoteSet = emoteSet.Where(e => e.Probability >= Common.ThreadSafeRandom.Next(0.0f, 1.0f));
+                emoteSet = emoteSet.Where(e => e.Probability >= ThreadSafeRandom.Next(0.0f, 1.0f));
 
             return emoteSet.FirstOrDefault();
         }

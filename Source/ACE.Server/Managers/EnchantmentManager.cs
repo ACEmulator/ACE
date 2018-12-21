@@ -525,7 +525,7 @@ namespace ACE.Server.Managers
                 var minDispelNum = (int)Math.Round(dispelNum * numberVariance);
 
                 // factor in rng variance
-                dispelNum = Common.ThreadSafeRandom.Next(minDispelNum, maxDispelNum);
+                dispelNum = ThreadSafeRandom.Next(minDispelNum, maxDispelNum);
             }
 
             // randomize the filtered spell list

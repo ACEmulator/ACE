@@ -85,7 +85,7 @@ namespace ACE.Server.WorldObjects
             //Console.WriteLine("Angle: " + angle);
 
             // turn / moveto if required
-            if (IsStickyDistance(target))
+            if (IsMeleeDistance(target))
             {
                 var rotateTime = Rotate(target);
                 var actionChain = new ActionChain();
@@ -252,7 +252,8 @@ namespace ACE.Server.WorldObjects
                         {
                             if (action.Contains("Double") || action.Contains("Triple"))
                                 action = action.Replace("Thrust", "Slash");
-                        } else if (CurrentMotionState.Stance == MotionStance.SwordShieldCombat)
+                        }
+                        else if (CurrentMotionState.Stance == MotionStance.SwordShieldCombat)
                         {
                             if (action.Contains("Double") || action.Contains("Triple"))
                                 action = action.Replace("Slash", "Thrust");
@@ -286,14 +287,6 @@ namespace ACE.Server.WorldObjects
                 target.PhysicsObj.GetRadius(), target.PhysicsObj.GetHeight(), target.PhysicsObj.Position);
 
             return cylDist <= 0.6f;
-        }
-
-        public bool IsStickyDistance(WorldObject target)
-        {
-            var cylDist = (float)Physics.Common.Position.CylinderDistance(PhysicsObj.GetRadius(), PhysicsObj.GetHeight(), PhysicsObj.Position,
-                target.PhysicsObj.GetRadius(), target.PhysicsObj.GetHeight(), target.PhysicsObj.Position);
-
-            return cylDist <= 4.0f;
         }
     }
 }
