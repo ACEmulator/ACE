@@ -211,7 +211,7 @@ namespace ACE.Server.WorldObjects
             weapons.Shuffle();
             return weapons.FirstOrDefault();
 
-            /*var rng = Common.Random.RollDice(0, weapons.Count);
+            /*var rng = ThreadSafeRandom.Next(0, weapons.Count);
             if (rng == weapons.Count)
                 return null;    // choose no weapon? lugians should have ~33% chance to select rock, according to retail pcaps
 

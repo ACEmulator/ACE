@@ -531,7 +531,7 @@ namespace ACE.Server.Factories
                                 break;
                             //case 6:
                             //    //coalesced mana
-                            //    chance = Common.Random.RollDice(1, 100);
+                            //    chance = ThreadSafeRandom.Next(1, 100);
                             //    if (chance < 90)
                             //    {
                             //        //Coalecsed Mana (Yellow)
@@ -712,7 +712,7 @@ namespace ACE.Server.Factories
                                 break;
                             //case 6:
                             //    //coalesced mana
-                            //    chance = Common.Random.RollDice(1, 100);
+                            //    chance = ThreadSafeRandom.Next(1, 100);
                             //    if (chance < 50)
                             //    {
                             //        //Coalesced Mana (Yellow)
@@ -898,7 +898,7 @@ namespace ACE.Server.Factories
                                 break;
                             //case 6:
                             //    //coalesced mana
-                            //    chance = Common.Random.RollDice(1, 100);
+                            //    chance = ThreadSafeRandom.Next(1, 100);
                             //    if (chance < 50)
                             //    {
                             //        //Coalesced Mana (Yellow)
@@ -1079,7 +1079,7 @@ namespace ACE.Server.Factories
                                 break;
                             //case 6:
                             //    //coalesced mana
-                            //    chance = Common.Random.RollDice(1, 100);
+                            //    chance = ThreadSafeRandom.Next(1, 100);
                             //    if (chance < 50)
                             //    {
                             //        //Coalesced Mana (Yellow)
@@ -1260,7 +1260,7 @@ namespace ACE.Server.Factories
                                 break;
                             //case 6:
                             //    //coalesced mana
-                            //    chance = Common.Random.RollDice(1, 100);
+                            //    chance = ThreadSafeRandom.Next(1, 100);
                             //    if (chance < 50)
                             //    {
                             //        //Coalesced Mana (Yellow)
@@ -1441,7 +1441,7 @@ namespace ACE.Server.Factories
                                 break;
                             //case 6:
                             //    //coalesced mana
-                            //    chance = Common.Random.RollDice(1, 100);
+                            //    chance = ThreadSafeRandom.Next(1, 100);
                             //    if (chance < 50)
                             //    {
                             //        //Coalesced Mana (Yellow)
@@ -1460,7 +1460,7 @@ namespace ACE.Server.Factories
                             //    break;
                             //case 7:
                             //    //spell components
-                            //    chance = Common.Random.RollDice(1, 170);
+                            //    chance = ThreadSafeRandom.Next(1, 170);
                             //    if (chance < 100)
                             //    {
                             //        //Quill of Infliction
@@ -4052,7 +4052,7 @@ namespace ACE.Server.Factories
                     //    weaponDefense = GetMaxDamageMod(tier, 20);
                     //    weaponOffense = GetMaxDamageMod(tier, 20);
                     //    ////There are 2 subtypes of UA
-                    //    int subUAType = Common.Random.RollDice(0, 1);
+                    //    int subUAType = ThreadSafeRandom.Next(0, 1);
                     //    if (subUAType == 0)
                     //    {
                     //        ////Claw
@@ -4072,7 +4072,7 @@ namespace ACE.Server.Factories
                 //wieldSkillType = 41;
                 //        damageVariance = GetVariance(3, 1);
                 //        damage = GetMaxDamage(3, wieldDiff, 1);
-                //        subType = Common.Random.RollDice(0, 4);
+                //        subType = ThreadSafeRandom.Next(0, 4);
                 //        if (subType == 0)
                 //        {
                 //            damageVariance = GetVariance(2, 1);
@@ -4080,7 +4080,7 @@ namespace ACE.Server.Factories
 
                 //            weaponDefense = GetMaxDamageMod(tier, 20);
                 //            weaponOffense = GetMaxDamageMod(tier, 20);
-                //            int subSwordType = Common.Random.RollDice(0, 2);
+                //            int subSwordType = ThreadSafeRandom.Next(0, 2);
                 //            if (subSwordType == 0)
                 //            {
                 //                ////Nodachi
@@ -4102,7 +4102,7 @@ namespace ACE.Server.Factories
                 //            ////There are 4 subtypes of Maces
                 //            weaponDefense = GetMaxDamageMod(tier, 22);
                 //            weaponOffense = GetMaxDamageMod(tier, 18);
-                //            int subMaceType = Common.Random.RollDice(0, 3);
+                //            int subMaceType = ThreadSafeRandom.Next(0, 3);
                 //            if (subMaceType == 0)
                 //            {
                 //                ////Great Star Mace
@@ -4129,7 +4129,7 @@ namespace ACE.Server.Factories
                 //            ////There are 1 subtypes of axes
                 //            weaponDefense = GetMaxDamageMod(tier, 18);
                 //            weaponOffense = GetMaxDamageMod(tier, 22);
-                //            int subAxeType = Common.Random.RollDice(0, 0);
+                //            int subAxeType = ThreadSafeRandom.Next(0, 0);
                 //            if (subAxeType == 0)
                 //            {
                 //                ////Greataxe
@@ -4142,7 +4142,7 @@ namespace ACE.Server.Factories
                 //            damage = GetMaxDamage(3, wieldDiff, 2);
                 //            weaponDefense = GetMaxDamageMod(tier, 15);
                 //            weaponOffense = GetMaxDamageMod(tier, 25);
-                //            int subSpearType = Common.Random.RollDice(0, 3);
+                //            int subSpearType = ThreadSafeRandom.Next(0, 3);
                 //            if (subSpearType == 0)
                 //            {
                 //                ////Assagai
@@ -4179,10 +4179,10 @@ namespace ACE.Server.Factories
             }
             //if (wieldDiff > 0)
             //{
-            //    elementalChance = Common.Random.RollDice(0, 100);
+            //    elementalChance = ThreadSafeRandom.Next(0, 100);
             //    if (elementalChance > 90)
             //    {
-            //        int chance = Common.Random.RollDice(0, 3);
+            //        int chance = ThreadSafeRandom.Next(0, 3);
             //        switch (chance)
             //        {
 
@@ -10463,7 +10463,7 @@ namespace ACE.Server.Factories
                     //////Knorr Academy Armor
                     //if (armorType == 15)
                     //{
-                    //    int armorPiece = Common.Random.RollDice(0, 8);
+                    //    int armorPiece = ThreadSafeRandom.Next(0, 8);
                     //    if (armorPiece == 0)
                     //    {
                     //        armorWeenie = 43053;
@@ -10525,7 +10525,7 @@ namespace ACE.Server.Factories
                     //////Sedgemail Leather Armor
                     //if (armorType == 16)
                     //{
-                    //    int armorPiece = Common.Random.RollDice(0, 6);
+                    //    int armorPiece = ThreadSafeRandom.Next(0, 6);
                     //    if (armorPiece == 0)
                     //    {
                     //        armorWeenie = 43829;
@@ -10573,7 +10573,7 @@ namespace ACE.Server.Factories
                     //////Haebrean
                     //if (armorType == 17)
                     //{
-                    //    int armorPiece = Common.Random.RollDice(0, 9);
+                    //    int armorPiece = ThreadSafeRandom.Next(0, 9);
                     //    if (armorPiece == 0)
                     //    {
                     //        armorWeenie = 42755;
@@ -12003,7 +12003,7 @@ namespace ACE.Server.Factories
                     ////Knorr Academy Armor
                     //if (armorType == 15)
                     //{
-                    //    int armorPiece = Common.Random.RollDice(0, 8);
+                    //    int armorPiece = ThreadSafeRandom.Next(0, 8);
                     //    if (armorPiece == 0)
                     //    {
                     //        armorWeenie = 43053;
@@ -12065,7 +12065,7 @@ namespace ACE.Server.Factories
                     //////Sedgemail Leather Armor
                     //if (armorType == 16)
                     //{
-                    //    int armorPiece = Common.Random.RollDice(0, 6);
+                    //    int armorPiece = ThreadSafeRandom.Next(0, 6);
                     //    if (armorPiece == 0)
                     //    {
                     //        armorWeenie = 43829;
@@ -12113,7 +12113,7 @@ namespace ACE.Server.Factories
                     //////Haebrean
                     //if (armorType == 17)
                     //{
-                    //    int armorPiece = Common.Random.RollDice(0, 9);
+                    //    int armorPiece = ThreadSafeRandom.Next(0, 9);
                     //    if (armorPiece == 0)
                     //    {
                     //        armorWeenie = 42755;
@@ -13544,7 +13544,7 @@ namespace ACE.Server.Factories
                     //////Knorr Academy Armor
                     //if (armorType == 15)
                     //{
-                    //    int armorPiece = Common.Random.RollDice(0, 8);
+                    //    int armorPiece = ThreadSafeRandom.Next(0, 8);
                     //    if (armorPiece == 0)
                     //    {
                     //        armorWeenie = 43053;
@@ -13606,7 +13606,7 @@ namespace ACE.Server.Factories
                     //////Sedgemail Leather Armor
                     //if (armorType == 16)
                     //{
-                    //    int armorPiece = Common.Random.RollDice(0, 6);
+                    //    int armorPiece = ThreadSafeRandom.Next(0, 6);
                     //    if (armorPiece == 0)
                     //    {
                     //        armorWeenie = 43829;
@@ -13654,7 +13654,7 @@ namespace ACE.Server.Factories
                     //////Haebrean
                     //if (armorType == 17)
                     //{
-                    //    int armorPiece = Common.Random.RollDice(0, 9);
+                    //    int armorPiece = ThreadSafeRandom.Next(0, 9);
                     //    if (armorPiece == 0)
                     //    {
                     //        armorWeenie = 42755;
@@ -13723,7 +13723,7 @@ namespace ACE.Server.Factories
                     //////Olthoi Alduressa
                     //if (armorType == 18)
                     //{
-                    //    int armorPiece = Common.Random.RollDice(0, 5);
+                    //    int armorPiece = ThreadSafeRandom.Next(0, 5);
                     //    if (armorPiece == 0)
                     //    {
                     //        armorWeenie = 37207;
@@ -13769,7 +13769,7 @@ namespace ACE.Server.Factories
                     //////Olthoi Amuli
                     //if (armorType == 19)
                     //{
-                    //    int armorPiece = Common.Random.RollDice(0, 5);
+                    //    int armorPiece = ThreadSafeRandom.Next(0, 5);
                     //    if (armorPiece == 0)
                     //    {
                     //        armorWeenie = 37208;
@@ -13815,7 +13815,7 @@ namespace ACE.Server.Factories
                     //////Olthoi Celdon
                     //if (armorType == 20)
                     //{
-                    //    int armorPiece = Common.Random.RollDice(0, 7);
+                    //    int armorPiece = ThreadSafeRandom.Next(0, 7);
                     //    if (armorPiece == 0)
                     //    {
                     //        armorWeenie = 37209;
@@ -13877,7 +13877,7 @@ namespace ACE.Server.Factories
                     //////Olthoi Celdon
                     //if (armorType == 21)
                     //{
-                    //    int armorPiece = Common.Random.RollDice(0, 5);
+                    //    int armorPiece = ThreadSafeRandom.Next(0, 5);
                     //    if (armorPiece == 0)
                     //    {
                     //        armorWeenie = 37215;

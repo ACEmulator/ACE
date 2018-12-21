@@ -73,7 +73,7 @@ namespace ACE.Server.WorldObjects
             //Console.WriteLine("Spell probability: " + probability);
 
             var rng = ThreadSafeRandom.Next(0.0f, 100.0f);
-            //var rng = Common.Random.RollDice(0.0f, probability);
+            //var rng = ThreadSafeRandom.Next(0.0f, probability);
             return rng < probability;
         }
 
