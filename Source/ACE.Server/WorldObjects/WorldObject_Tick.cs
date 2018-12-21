@@ -56,7 +56,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void QueueFirstHeartbeat(double currentUnixTime)
         {
-            var delay = Physics.Common.Random.RollDice(0.0f, DefaultHeartbeatInterval);
+            var delay = Common.Random.RollDice(0.0f, DefaultHeartbeatInterval);
 
             var firstHeartbeat = currentUnixTime + delay;
 

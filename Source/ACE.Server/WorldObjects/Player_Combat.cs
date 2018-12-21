@@ -146,7 +146,7 @@ namespace ACE.Server.WorldObjects
                 Session.Network.EnqueueSend(new GameMessageSound(target.Guid, Sound.HitFlesh1, 0.5f));
                 if (damage >= target.Health.MaxValue * 0.25f)
                 {
-                    var painSound = (Sound)Enum.Parse(typeof(Sound), "Wound" + Physics.Common.Random.RollDice(1, 3), true);
+                    var painSound = (Sound)Enum.Parse(typeof(Sound), "Wound" + Common.Random.RollDice(1, 3), true);
                     Session.Network.EnqueueSend(new GameMessageSound(target.Guid, painSound, 1.0f));
                 }
                 var splatter = (PlayScript)Enum.Parse(typeof(PlayScript), "Splatter" + GetSplatterHeight() + GetSplatterDir(target));
@@ -246,7 +246,7 @@ namespace ACE.Server.WorldObjects
                     var enduranceCap = 400;
                     var effective = Math.Min(enduranceBase, enduranceCap);
                     var noStaminaUseChance = effective / enduranceCap * 0.75f;
-                    if (noStaminaUseChance < Physics.Common.Random.RollDice(0.0f, 1.0f))
+                    if (noStaminaUseChance < Common.Random.RollDice(0.0f, 1.0f))
                         UpdateVitalDelta(Stamina, -1);
                 }
                 else
@@ -279,12 +279,12 @@ namespace ACE.Server.WorldObjects
 
             // evasion chance
             var evadeChance = GetEvadeChance(target);
-            if (Physics.Common.Random.RollDice(0.0f, 1.0f) < evadeChance)
+            if (Common.Random.RollDice(0.0f, 1.0f) < evadeChance)
                 return 0.0f;
 
             // get weapon base damage
             var baseDamageRange = GetBaseDamage();
-            var baseDamage = Physics.Common.Random.RollDice(baseDamageRange.Min, baseDamageRange.Max);
+            var baseDamage = Common.Random.RollDice(baseDamageRange.Min, baseDamageRange.Max);
 
             // get damage mods
             var attackType = GetAttackType();
@@ -301,7 +301,7 @@ namespace ACE.Server.WorldObjects
 
             // critical hit
             var critical = GetWeaponPhysicalCritFrequencyModifier(this);
-            if (Physics.Common.Random.RollDice(0.0f, 1.0f) < critical)
+            if (Common.Random.RollDice(0.0f, 1.0f) < critical)
             {
                 damage = baseDamageRange.Max * attributeMod * powerAccuracyMod * sneakAttackMod * (2.0f + GetWeaponCritMultiplierModifier(this));
                 criticalHit = true;

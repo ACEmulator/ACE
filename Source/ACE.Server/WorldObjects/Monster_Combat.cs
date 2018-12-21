@@ -76,7 +76,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public AttackHeight ChooseAttackHeight()
         {
-            var rng = Physics.Common.Random.RollDice(0, AttackHeights.Count - 1);
+            var rng = Common.Random.RollDice(0, AttackHeights.Count - 1);
             return AttackHeights[rng];
         }
 
@@ -232,7 +232,7 @@ namespace ACE.Server.WorldObjects
 
             if (amount >= Health.MaxValue * 0.25f)
             {
-                var painSound = (Sound)Enum.Parse(typeof(Sound), "Wound" + Physics.Common.Random.RollDice(1, 3), true);
+                var painSound = (Sound)Enum.Parse(typeof(Sound), "Wound" + Common.Random.RollDice(1, 3), true);
                 EnqueueBroadcast(new GameMessageSound(Guid, painSound, 1.0f));
             }
         }
@@ -315,7 +315,7 @@ namespace ACE.Server.WorldObjects
             target.EnqueueBroadcast(new GameMessageSound(target.Guid, Sound.HitFlesh1, 0.5f));
             if (damage >= target.Health.MaxValue * 0.25f)
             {
-                var painSound = (Sound)Enum.Parse(typeof(Sound), "Wound" + Physics.Common.Random.RollDice(1, 3), true);
+                var painSound = (Sound)Enum.Parse(typeof(Sound), "Wound" + Common.Random.RollDice(1, 3), true);
                 target.EnqueueBroadcast(new GameMessageSound(target.Guid, painSound, 1.0f));
             }
             var splatter = (PlayScript)Enum.Parse(typeof(PlayScript), "Splatter" + GetSplatterHeight() + GetSplatterDir(target));

@@ -266,7 +266,7 @@ namespace ACE.Server.Physics
                 return;
             }
             var upperBound = (float)delta;
-            var randp = Common.Random.RollDice(0.0f, upperBound);
+            var randp = ACE.Common.Random.RollDice(0.0f, upperBound);
             var hook = new FPHook(PhysicsHookType.Velocity | PhysicsHookType.MotionTable | PhysicsHookType.Setup, PhysicsTimer_CurrentTime, randp, 0.0f, 1.0f, pes);
             Hooks.AddLast(hook);
         }
@@ -1281,8 +1281,8 @@ namespace ACE.Server.Physics
                 var origin = newPos.Frame.Origin;
                 newPos = setPos.Pos;    // ??
 
-                newPos.Frame.Origin.X += Common.Random.RollDice(-1.0f, 1.0f) * setPos.RadX;
-                newPos.Frame.Origin.Y += Common.Random.RollDice(-1.0f, 1.0f) * setPos.RadY;
+                newPos.Frame.Origin.X += ACE.Common.Random.RollDice(-1.0f, 1.0f) * setPos.RadX;
+                newPos.Frame.Origin.Y += ACE.Common.Random.RollDice(-1.0f, 1.0f) * setPos.RadY;
 
                 result = SetPositionInternal(newPos, setPos, transition);
                 if (result == SetPositionError.OK) break;

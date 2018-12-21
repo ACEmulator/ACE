@@ -410,10 +410,10 @@ namespace ACE.Server.WorldObjects
                 return 0;
 
             if (level >= 11 && level <= 20)
-                return Physics.Common.Random.RollDice(0, 1);
+                return Common.Random.RollDice(0, 1);
 
             // level 21+
-            var numItemsDropped = (level / 20) + Physics.Common.Random.RollDice(0, 2);
+            var numItemsDropped = (level / 20) + Common.Random.RollDice(0, 2);
 
             numItemsDropped = Math.Min(numItemsDropped, MaxItemsDropped);   // is this really a max cap?
 
