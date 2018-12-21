@@ -538,12 +538,7 @@ namespace ACE.Server.Managers
                 var deadSessions = sessions.FindAll(s => s.State == SessionState.NetworkTimeout);
 
                 foreach (var session in deadSessions)
-                {
-                    if (session.BootSessionReason == "")
-                        session.DropSession("Network Timeout");
-                    else
-                        session.DropSession(session.BootSessionReason);
-                }
+                    session.DropSession(string.IsNullOrEmpty(session.BootSessionReason) ? "Network Timeout" : session.BootSessionReason);
             }
             finally
             {
