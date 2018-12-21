@@ -3,6 +3,7 @@
 ### 2018-12-21
 [Ripley]
 * Add Session.BootSession to expand DropSession beyond "Network Timeout" and allow for launcher pings.
+* Wired up EmoteType.SetSanctuaryPosition (No more free rides back to Training Academy after leaving)
 
 ### 2018-12-09
 [Ripley]
