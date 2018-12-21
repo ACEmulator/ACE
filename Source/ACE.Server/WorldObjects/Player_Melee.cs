@@ -85,7 +85,7 @@ namespace ACE.Server.WorldObjects
             //Console.WriteLine("Angle: " + angle);
 
             // turn / moveto if required
-            if (IsStickyDistance(target))
+            if (IsStickyDistance(target) && IsDirectVisible(target))
             {
                 var rotateTime = Rotate(target);
                 var actionChain = new ActionChain();
