@@ -78,7 +78,7 @@ namespace ACE.Server.WorldObjects
                 var variance = CycleTime * CycleTimeVariance;
                 var min = CycleTime - variance;
                 var max = CycleTime + variance;
-                return (double)Common.Random.RollDice((float)min, (float)max);
+                return (double)Common.ThreadSafeRandom.Next((float)min, (float)max);
             }
         }
         public double? CycleTime
@@ -96,7 +96,7 @@ namespace ACE.Server.WorldObjects
             get
             {
                 var r = GetBaseDamage();
-                var p = Common.Random.RollDice(r.Min, r.Max);
+                var p = Common.ThreadSafeRandom.Next(r.Min, r.Max);
                 return p;
             }
         }

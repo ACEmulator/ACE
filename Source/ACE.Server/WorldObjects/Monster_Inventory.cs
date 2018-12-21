@@ -226,7 +226,7 @@ namespace ACE.Server.WorldObjects
                 return null;
 
             // select a random shield
-            var rng = Common.Random.RollDice(0, shields.Count - 1);
+            var rng = Common.ThreadSafeRandom.Next(0, shields.Count - 1);
             return shields[rng];
         }
 

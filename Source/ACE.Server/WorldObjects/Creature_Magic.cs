@@ -110,7 +110,7 @@ namespace ACE.Server.WorldObjects
 
             if (preCost < 1) preCost = 1;
 
-            uint manaUsed = Common.Random.RollDice(1, preCost);
+            uint manaUsed = Common.ThreadSafeRandom.Next(1, preCost);
             return manaUsed;
         }
     }

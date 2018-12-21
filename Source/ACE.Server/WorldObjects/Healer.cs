@@ -132,7 +132,7 @@ namespace ACE.Server.WorldObjects
             difficulty = (int)Math.Round((target.Health.MaxValue - target.Health.Current) * 2 * combatMod);
 
             var skillCheck = SkillCheck.GetSkillChance(effectiveSkill, difficulty);
-            return skillCheck >= Common.Random.RollDice(0.0f, 1.0f);
+            return skillCheck >= Common.ThreadSafeRandom.Next(0.0f, 1.0f);
         }
 
         /// <summary>
@@ -147,13 +147,13 @@ namespace ACE.Server.WorldObjects
             // todo: determine applicable range from pcaps
             var healMin = healBase * 0.2f;      // ??
             var healMax = healBase * 0.5f;
-            var healAmount = Common.Random.RollDice(healMin, healMax);
+            var healAmount = Common.ThreadSafeRandom.Next(healMin, healMax);
 
             // verify this scales healing amount, and not difficulty
             healAmount *= target.EnchantmentManager.GetHealingResistRatingMod();
 
             // chance for critical healing
-            criticalHeal = Common.Random.RollDice(0.0f, 1.0f) < 0.1f;
+            criticalHeal = Common.ThreadSafeRandom.Next(0.0f, 1.0f) < 0.1f;
             if (criticalHeal) healAmount *= 2;
 
             // cap to missing health

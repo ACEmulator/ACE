@@ -608,7 +608,7 @@ namespace ACE.Server.WorldObjects
             }
             //Console.WriteLine($"Sneak attack {(behind ? "behind" : "front")}, chance {Math.Round(chance * 100)}%");
 
-            var rng = Common.Random.RollDice(0.0f, 1.0f);
+            var rng = Common.ThreadSafeRandom.Next(0.0f, 1.0f);
             if (rng > chance)
                 return 1.0f;
 
@@ -704,7 +704,7 @@ namespace ACE.Server.WorldObjects
                 chance *= (float)dirtySkill.Current / attackSkill.Current;
             }
 
-            var rng = Common.Random.RollDice(0.0f, 1.0f);
+            var rng = Common.ThreadSafeRandom.Next(0.0f, 1.0f);
             if (rng > chance)
                 return;
 

@@ -320,7 +320,7 @@ namespace ACE.Server.WorldObjects
 
         public void GenerateWieldedTreasureSet(TreasureWieldedSet set)
         {
-            var rng = Common.Random.RollDice(0.0f, set.TotalProbability);
+            var rng = Common.ThreadSafeRandom.Next(0.0f, set.TotalProbability);
             var probability = 0.0f;
 
             foreach (var item in set.Items)
@@ -367,7 +367,7 @@ namespace ACE.Server.WorldObjects
                 {
                     var minStack = (int)Math.Round(item.StackSize * item.StackSizeVariance);
                     var maxStack = item.StackSize;
-                    stackSize = Common.Random.RollDice(minStack, maxStack);
+                    stackSize = Common.ThreadSafeRandom.Next(minStack, maxStack);
                 }
                 wo.StackSize = (ushort)stackSize;
             }

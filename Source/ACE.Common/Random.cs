@@ -1,16 +1,21 @@
 namespace ACE.Common
 {
     // important class, ensure unit tests pass for this
-    public static class Random
+    public static class ThreadSafeRandom
     {
+        private static readonly object randomMutex = new object();
+        private static readonly System.Random random = new System.Random();
         /// <summary>
         /// Returns a random number between min and max
         /// </summary>
-        public static float RollDice(float min, float max)
+        public static float Next(float min, float max)
         {
             // todo: implement exactly the way AC handles it
             // inclusive/exclusive?
-            return (float)(new System.Random().NextDouble() * (max - min) + min);
+            lock (randomMutex)
+            {
+                return (float)(random.NextDouble() * (max - min) + min);
+            }
         }
 
         /// <summary>
@@ -18,14 +23,20 @@ namespace ACE.Common
         /// </summary>
         /// <param name="min">The minimum possible value to return</param>
         /// <param name="max">The maximum possible value to return</param>
-        public static int RollDice(int min, int max)
+        public static int Next(int min, int max)
         {
-            return new System.Random().Next(min, max + 1);
+            lock (randomMutex)
+            {
+                return random.Next(min, max + 1);
+            }
         }
 
-        public static uint RollDice(uint min, uint max)
+        public static uint Next(uint min, uint max)
         {
-            return (uint)new System.Random().Next((int)min, (int)(max + 1));
+            lock (randomMutex)
+            {
+                return (uint)random.Next((int)min, (int)(max + 1));
+            }
         }
     }
 }

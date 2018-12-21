@@ -151,7 +151,7 @@ namespace ACE.Server.Entity
                 // component burn rate = spell base rate * component destruction modifier
                 var burnRate = baseRate * spellComponent.CDM;
 
-                var rng = Common.Random.RollDice(0.0f, 1.0f);
+                var rng = Common.ThreadSafeRandom.Next(0.0f, 1.0f);
                 if (rng < burnRate)
                     consumed.Add(component);
             }

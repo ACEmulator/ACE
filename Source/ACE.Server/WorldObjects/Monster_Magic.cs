@@ -72,7 +72,7 @@ namespace ACE.Server.WorldObjects
             var probability = GetSpellProbability();
             //Console.WriteLine("Spell probability: " + probability);
 
-            var rng = Common.Random.RollDice(0.0f, 100.0f);
+            var rng = Common.ThreadSafeRandom.Next(0.0f, 100.0f);
             //var rng = Common.Random.RollDice(0.0f, probability);
             return rng < probability;
         }
@@ -221,7 +221,7 @@ namespace ACE.Server.WorldObjects
         public BiotaPropertiesSpellBook GetRandomSpell()
         {
             var probability = GetSpellProbability();
-            var rng = Common.Random.RollDice(0.0f, probability);
+            var rng = Common.ThreadSafeRandom.Next(0.0f, probability);
 
             var currentSpell = 0.0f;
             foreach (var spell in Biota.BiotaPropertiesSpellBook)

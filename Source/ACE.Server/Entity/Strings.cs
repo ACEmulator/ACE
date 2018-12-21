@@ -485,13 +485,13 @@ namespace ACE.Server.Entity
             {
                 //var damageType = killer.GetDamageType();
                 DeathMessages.TryGetValue(damageType, out var messages);
-                var idx = Common.Random.RollDice(0, messages.Count - 1);
+                var idx = Common.ThreadSafeRandom.Next(0, messages.Count - 1);
                 return messages[idx];
             }
             else
             {
                 var messages = Critical;
-                var idx = Common.Random.RollDice(0, messages.Count - 1);
+                var idx = Common.ThreadSafeRandom.Next(0, messages.Count - 1);
                 return messages[idx];
             }
         }

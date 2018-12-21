@@ -117,7 +117,7 @@ namespace ACE.Server.WorldObjects
                     break;
 
                 case AggroType.Random:
-                    var rng = Common.Random.RollDice(0, players.Count - 1);
+                    var rng = Common.ThreadSafeRandom.Next(0, players.Count - 1);
                     AttackTarget = players[rng];
                     break;
 
