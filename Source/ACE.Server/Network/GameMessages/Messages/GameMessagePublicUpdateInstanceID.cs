@@ -7,13 +7,13 @@ namespace ACE.Server.Network.GameMessages.Messages
 {
     public class GameMessagePublicUpdateInstanceID : GameMessage
     {
-        public GameMessagePublicUpdateInstanceID(WorldObject worldObject, PropertyInstanceId iidPropertyId, ObjectGuid instanceGuid)
+        public GameMessagePublicUpdateInstanceID(WorldObject worldObject, PropertyInstanceId property, ObjectGuid instanceGuid)
             : base(GameMessageOpcode.PublicUpdateInstanceId, GameMessageGroup.UIQueue)
         {
-            Writer.Write(worldObject.Sequences.GetNextSequence(SequenceType.PublicUpdatePropertyInstanceId));  // wts
-            Writer.WriteGuid(worldObject.Guid); // sender
-            Writer.Write((uint)iidPropertyId);
-            Writer.WriteGuid(instanceGuid); // new value of the container id
+            Writer.Write(worldObject.Sequences.GetNextSequence(SequenceType.UpdatePropertyInstanceID, property));
+            Writer.WriteGuid(worldObject.Guid);
+            Writer.Write((uint)property);
+            Writer.WriteGuid(instanceGuid);
         }
     }
 }

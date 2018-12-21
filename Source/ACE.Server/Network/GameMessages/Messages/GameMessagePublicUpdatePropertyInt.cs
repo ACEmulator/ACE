@@ -16,7 +16,7 @@ namespace ACE.Server.Network.GameMessages.Messages
         public GameMessagePublicUpdatePropertyInt(WorldObject worldObject, PropertyInt property, int value)
             : base(GameMessageOpcode.PublicUpdatePropertyInt, GameMessageGroup.UIQueue)
         {
-            Writer.Write(worldObject.Sequences.GetNextSequence(SequenceType.PublicUpdatePropertyInt));
+            Writer.Write(worldObject.Sequences.GetNextSequence(SequenceType.UpdatePropertyInt, property));
             Writer.WriteGuid(worldObject.Guid);
             Writer.Write((uint)property);
             Writer.Write(value);

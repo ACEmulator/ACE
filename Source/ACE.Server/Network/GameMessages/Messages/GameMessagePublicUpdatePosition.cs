@@ -9,7 +9,7 @@ namespace ACE.Server.Network.GameMessages.Messages
         public GameMessagePublicUpdatePosition(WorldObject worldObject, PositionType positionType, Position pos)
             : base(GameMessageOpcode.PublicUpdatePosition, GameMessageGroup.UIQueue)
         {
-            Writer.Write(worldObject.Sequences.GetNextSequence(Sequence.SequenceType.PublicUpdatePosition));
+            Writer.Write(worldObject.Sequences.GetNextSequence(Sequence.SequenceType.UpdatePosition, positionType));
             Writer.WriteGuid(worldObject.Guid);
             Writer.Write((uint)positionType);
             pos.Serialize(Writer);

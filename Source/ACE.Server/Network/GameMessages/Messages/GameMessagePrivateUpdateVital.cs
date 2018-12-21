@@ -12,20 +12,7 @@ namespace ACE.Server.Network.GameMessages.Messages
         public GameMessagePrivateUpdateVital(WorldObject worldObject, PropertyAttribute2nd attribute, uint ranks, uint baseValue, uint totalInvestment, uint currentValue)
             : base(GameMessageOpcode.PrivateUpdateVital, GameMessageGroup.UIQueue)
         {
-            switch (attribute)
-            {
-                case PropertyAttribute2nd.MaxHealth:
-                    Writer.Write(worldObject.Sequences.GetNextSequence(Sequence.SequenceType.PrivateUpdateAttribute2ndLevelHealth));
-                    break;
-                case PropertyAttribute2nd.MaxStamina:
-                    Writer.Write(worldObject.Sequences.GetNextSequence(Sequence.SequenceType.PrivateUpdateAttribute2ndLevelStamina));
-                    break;
-                case PropertyAttribute2nd.MaxMana:
-                    Writer.Write(worldObject.Sequences.GetNextSequence(Sequence.SequenceType.PrivateUpdateAttribute2ndLevelMana));
-                    break;
-                default:
-                    throw new ArgumentException("invalid ability specified");
-            }
+            Writer.Write(worldObject.Sequences.GetNextSequence(Sequence.SequenceType.UpdateAttribute2ndLevel, attribute));
 
             Writer.Write((uint)attribute);
             Writer.Write(ranks);
