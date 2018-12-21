@@ -21,10 +21,10 @@ namespace ACE.Server.Network.Sequence
         UpdatePropertyDataID,
         UpdatePropertyInstanceID,
         UpdatePropertyString,
-        UpdatePosition,
 
         UpdateAttribute,
         UpdateAttribute2ndLevel,
+        UpdatePosition,
         UpdateSkill,
     }
 }
