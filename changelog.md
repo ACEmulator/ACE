@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2018-12-21
+[Ripley]
+* Add Session.BootSession to expand DropSession beyond "Network Timeout" and allow for launcher pings.
+
 ### 2018-12-09
 [Ripley]
 * Move Spell enum from server to Entity and rename SpellId
