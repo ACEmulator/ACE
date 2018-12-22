@@ -15,10 +15,10 @@ namespace ACE.Server.WorldObjects
     {
         private readonly ActionQueue actionQueue = new ActionQueue();
 
-        private const int DefaultHeartbeatInterval = 5;
+        public const int DefaultHeartbeatInterval = 5;
 
-        private double? cachedHeartbeatTimestamp;
-        private double cachedHeartbeatInterval;
+        protected double? cachedHeartbeatTimestamp;
+        protected double cachedHeartbeatInterval;
 
         public virtual void Tick(double currentUnixTime)
         {

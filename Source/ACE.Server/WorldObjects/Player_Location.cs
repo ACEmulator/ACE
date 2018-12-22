@@ -151,6 +151,9 @@ namespace ACE.Server.WorldObjects
 
             // force out of hotspots
             PhysicsObj.report_collision_end(true);
+
+            if (UnderLifestoneProtection)
+                LifestoneProtectionDispel();
         }
 
         public void OnTeleportComplete()

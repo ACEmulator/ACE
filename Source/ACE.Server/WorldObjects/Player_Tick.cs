@@ -43,6 +43,10 @@ namespace ACE.Server.WorldObjects
 
             ManaConsumersTick();
 
+            HandleTargetVitals();
+
+            LifestoneProtectionTick();
+
             // Check if we're due for our periodic SavePlayer
             if (LastRequestedDatabaseSave == DateTime.MinValue)
                 LastRequestedDatabaseSave = DateTime.UtcNow;
