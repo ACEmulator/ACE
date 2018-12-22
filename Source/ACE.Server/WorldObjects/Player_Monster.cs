@@ -70,7 +70,7 @@ namespace ACE.Server.WorldObjects
             Console.WriteLine("Tolerance: " + tolerance);
             Console.WriteLine("HasTolerance: " + hasTolerance);*/
 
-            if (monster.MonsterState == State.Idle && !tolerance.HasFlag(Tolerance.NoAttack))
+            if (monster.MonsterState != State.Awake && !tolerance.HasFlag(Tolerance.NoAttack))
             {
                 monster.AttackTarget = this;
                 monster.WakeUp();

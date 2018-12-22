@@ -21,7 +21,8 @@ namespace ACE.Server.WorldObjects
         public enum State
         {
             Idle,
-            Awake
+            Awake,
+            Return
         };
 
         /// <summary>

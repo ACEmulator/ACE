@@ -25,7 +25,9 @@ namespace ACE.Server.WorldObjects
 
             HandleFindTarget();
 
-            if (AttackTarget == null) return;
+            CheckMissHome();    // tickrate?
+
+            if (AttackTarget == null && MonsterState != State.Return) return;
 
             IsMonster = true;
 
