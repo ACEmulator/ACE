@@ -123,6 +123,8 @@ namespace ACE.Server.WorldObjects
             dieChain.AddAction(this, CreateCorpse);
             dieChain.AddAction(this, TeleportOnDeath);
             dieChain.AddAction(this, SetLifestoneProtection);
+            dieChain.AddAction(this, SetMinimumTimeSincePK);
+
             dieChain.EnqueueChain();
         }
 
@@ -713,6 +715,50 @@ namespace ACE.Server.WorldObjects
             LifestoneProtectionTimestamp = null;
 
             Session.Network.EnqueueSend(new GameMessageSystemChat("Your actions have dispelled the Lifestone's magic!", ChatMessageType.Magic));
+        }
+
+        public double? MinimumTimeSincePk
+        {
+            get => GetProperty(PropertyFloat.MinimumTimeSincePk) ?? null;
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.MinimumTimeSincePk); else SetProperty(PropertyFloat.MinimumTimeSincePk, value.Value); }
+        }
+
+        public void SetMinimumTimeSincePK()
+        {
+            if ((PlayerKillerStatus & PlayerKillerStatus.PK) == 0 && MinimumTimeSincePk == null)
+                return;
+
+            var prevStatus = PlayerKillerStatus;
+
+            PlayerKillerStatus &= ~PlayerKillerStatus.PK;
+            PlayerKillerStatus |= PlayerKillerStatus.NPK;
+            MinimumTimeSincePk = 0;
+
+            if ((prevStatus & PlayerKillerStatus.PK) != 0)
+            {
+                EnqueueBroadcast(new GameMessagePublicUpdatePropertyInt(this, PropertyInt.PlayerKillerStatus, (int)PlayerKillerStatus));
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouAreTemporarilyNoLongerPK));
+            }
+        }
+
+        public static TimeSpan TemporaryNPKTime = TimeSpan.FromMinutes(5);
+
+        public void PK_DeathTick()
+        {
+            if (MinimumTimeSincePk == null)
+                return;
+
+            MinimumTimeSincePk += cachedHeartbeatInterval;
+
+            if (MinimumTimeSincePk < TemporaryNPKTime.TotalSeconds)
+                return;
+
+            PlayerKillerStatus &= ~PlayerKillerStatus.NPK;
+            PlayerKillerStatus |= PlayerKillerStatus.PK;
+            MinimumTimeSincePk = null;
+
+            EnqueueBroadcast(new GameMessagePublicUpdatePropertyInt(this, PropertyInt.PlayerKillerStatus, (int)PlayerKillerStatus));
+            Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouArePKAgain));
         }
     }
 }

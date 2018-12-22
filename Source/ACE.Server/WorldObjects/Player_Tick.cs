@@ -47,6 +47,8 @@ namespace ACE.Server.WorldObjects
 
             LifestoneProtectionTick();
 
+            PK_DeathTick();
+
             // Check if we're due for our periodic SavePlayer
             if (LastRequestedDatabaseSave == DateTime.MinValue)
                 LastRequestedDatabaseSave = DateTime.UtcNow;

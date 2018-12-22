@@ -143,14 +143,14 @@ namespace ACE.Server.Entity
         public static List<DeathMessage> Lightning = new List<DeathMessage>()
         {
             new DeathMessage(
-                "Electricity tears {0} apart!",
-                "{1}'s electricity tears you apart!",
-                "{1}'s electricity tears {0} apart!"),
-
-            new DeathMessage(
                 "Blistered by lightning, {0} falls!",
                 "Blistered by {1}'s lightning, you die!",
                 "Blistered by {1}'s lightning, {0} dies!"),
+
+            new DeathMessage(
+                "Electricity tears {0} apart!",
+                "Electricity from {1}'s attack tears you apart!",
+                "Electricity from {1}'s attack tears {0} apart!"),
 
             new DeathMessage(
                 "Your lightning coruscates over {0}'s mortal remains!",
