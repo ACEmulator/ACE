@@ -88,7 +88,7 @@ namespace ACE.Server.WorldObjects
             //Console.WriteLine("Angle: " + angle);
 
             // turn / moveto if required
-            if (IsMeleeDistance(target))
+            if (IsStickyDistance(target) && IsDirectVisible(target))
             {
                 var rotateTime = Rotate(target);
                 var actionChain = new ActionChain();
@@ -290,6 +290,14 @@ namespace ACE.Server.WorldObjects
                 target.PhysicsObj.GetRadius(), target.PhysicsObj.GetHeight(), target.PhysicsObj.Position);
 
             return cylDist <= 0.6f;
+        }
+
+        public bool IsStickyDistance(WorldObject target)
+        {
+            var cylDist = (float)Physics.Common.Position.CylinderDistance(PhysicsObj.GetRadius(), PhysicsObj.GetHeight(), PhysicsObj.Position,
+                target.PhysicsObj.GetRadius(), target.PhysicsObj.GetHeight(), target.PhysicsObj.Position);
+
+            return cylDist <= 4.0f;
         }
     }
 }
