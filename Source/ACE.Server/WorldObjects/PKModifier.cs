@@ -31,6 +31,8 @@ namespace ACE.Server.WorldObjects
 
         private void SetEphemeralValues()
         {
+            CurrentMotionState = new Motion(MotionStance.Invalid);
+
             if (PkLevelModifier == -1)
                 BaseDescriptionFlags |= ObjectDescriptionFlag.NpkSwitch;
 

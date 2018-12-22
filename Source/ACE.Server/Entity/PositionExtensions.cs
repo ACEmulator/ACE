@@ -217,9 +217,9 @@ namespace ACE.Server.Entity
             {
                 var building = sortCell.Building;
 
-                building.get_building_cells();
                 var minZ = building.GetMinZ();
-                if (minZ > 0)
+
+                if (minZ > 0 && minZ < float.MaxValue)
                     pos.PositionZ += minZ;
 
                 pos.LandblockId = new LandblockId(pos.GetCell());
