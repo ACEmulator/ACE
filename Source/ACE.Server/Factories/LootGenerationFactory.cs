@@ -1874,7 +1874,6 @@ namespace ACE.Server.Factories
             int spellChance = 0;
             int gemType = 0;
             int workmanship = 0;
-            int value = 100;
             int rank = 0;
             int difficulty = 0;
             int mana_cost = 0;
@@ -3636,16 +3635,16 @@ namespace ACE.Server.Factories
                                     damageType = 1;
                                     break;
                                 case 1:
-                                    weaponWeenie = 30901;
+                                    weaponWeenie = 3901;
                                     break;
                                 case 2:
-                                    weaponWeenie = 30902;
+                                    weaponWeenie = 3902;
                                     break;
                                 case 3:
-                                    weaponWeenie = 30903;
+                                    weaponWeenie = 3903;
                                     break;
                                 default:
-                                    weaponWeenie = 30904;
+                                    weaponWeenie = 3904;
                                     break;
                             }
 
