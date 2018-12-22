@@ -64,8 +64,8 @@ namespace ACE.Server.Physics
                     A = a;
                     B = b;
 
-                    var ra = Common.Random.RollDice(-(float)Math.PI, (float)Math.PI);
-                    var po = Common.Random.RollDice(-(float)Math.PI, (float)Math.PI);
+                    var ra = ACE.ThreadSafeRandom.Next(-(float)Math.PI, (float)Math.PI);
+                    var po = ACE.ThreadSafeRandom.Next(-(float)Math.PI, (float)Math.PI);
                     var rb = Math.Cos(po);
 
                     C.X = (float)(Math.Cos(ra) * c.X * rb);

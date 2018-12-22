@@ -68,7 +68,7 @@ namespace ACE.Server.Network.GameEvent.Events
             Writer.Write(fellow.Mana.Current);
 
             // todo: share loot with this fellow?
-            Writer.Write((uint)0x1); // TODO: shareLoot - if 0 then noSharePhatLoot, if 16(0x0010) then sharePhatLoot
+            Writer.Write((uint)0x10); // TODO: shareLoot - if 0 then noSharePhatLoot, if 16(0x0010) then sharePhatLoot
 
             Writer.WriteString16L(fellow.Name);
         }

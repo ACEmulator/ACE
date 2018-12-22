@@ -55,7 +55,7 @@ namespace ACE.Server.WorldObjects
             //Eventually these case statements would be linked to indivual treasure generators. Each one should be a different profile, but currently it will be the complete appropriate tier profile.
             for (int i = 0; i < GeneratorProfiles.Count; i++)
             {
-                int amount = ACE.Server.Physics.Common.Random.RollDice(2, 14);  //r.Next(2, 14);
+                int amount = ThreadSafeRandom.Next(2, 14);  //r.Next(2, 14);
                 var generator = GeneratorProfiles[i];
                 switch(generator.Biota.WeenieClassId)
                 {

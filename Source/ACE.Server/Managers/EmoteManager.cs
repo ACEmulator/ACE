@@ -836,8 +836,8 @@ namespace ACE.Server.Managers
                     break;
                 case EmoteType.SetSanctuaryPosition:
 
-                    //if (player != null)
-                        //player.Sanctuary = emote.Position;
+                    if (player != null && emote.ObjCellId.HasValue && emote.OriginX.HasValue && emote.OriginY.HasValue && emote.OriginZ.HasValue && emote.AnglesW.HasValue && emote.AnglesX.HasValue && emote.AnglesY.HasValue && emote.AnglesZ.HasValue)
+                        player.Sanctuary = new Position(emote.ObjCellId.Value, emote.OriginX.Value, emote.OriginY.Value, emote.OriginZ.Value, emote.AnglesX.Value, emote.AnglesY.Value, emote.AnglesZ.Value, emote.AnglesW.Value);
                     break;
 
                 case EmoteType.Sound:
@@ -1023,7 +1023,7 @@ namespace ACE.Server.Managers
             if (wcid != null)
                 emoteSet = emoteSet.Where(e => e.WeenieClassId == wcid.Value);
             if (useRNG)
-                emoteSet = emoteSet.Where(e => e.Probability >= Physics.Common.Random.RollDice(0.0f, 1.0f));
+                emoteSet = emoteSet.Where(e => e.Probability >= ThreadSafeRandom.Next(0.0f, 1.0f));
 
             return emoteSet.FirstOrDefault();
         }

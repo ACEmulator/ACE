@@ -101,7 +101,7 @@ namespace ACE.Server.WorldObjects
             actionChain.EnqueueChain();
 
             // TODO: figure out exact speed / delay formula
-            var meleeDelay = Physics.Common.Random.RollDice(MeleeDelayMin, MeleeDelayMax);
+            var meleeDelay = ThreadSafeRandom.Next(MeleeDelayMin, MeleeDelayMax);
             NextAttackTime = Timers.RunningTime + animLength + meleeDelay;;
             return animLength;
         }
@@ -135,7 +135,7 @@ namespace ACE.Server.WorldObjects
 
             while (true)    // limiter?
             {
-                var rng = Physics.Common.Random.RollDice(0, stanceManeuvers.Count - 1);
+                var rng = ThreadSafeRandom.Next(0, stanceManeuvers.Count - 1);
                 //Console.WriteLine("Selecting combat maneuver #" + rng);
 
                 var combatManeuver = stanceManeuvers[rng];
@@ -275,14 +275,14 @@ namespace ACE.Server.WorldObjects
         {
             // evasion chance
             var evadeChance = GetEvadeChance();
-            if (Physics.Common.Random.RollDice(0.0f, 1.0f) < evadeChance)
+            if (ThreadSafeRandom.Next(0.0f, 1.0f) < evadeChance)
                 return 0.0f;
 
             // get base damage
             var attackPart = GetAttackPart(maneuver);
             damageType = GetDamageType(attackPart);
             var damageRange = GetBaseDamage(attackPart);
-            var baseDamage = Physics.Common.Random.RollDice(damageRange.Min, damageRange.Max);
+            var baseDamage = ThreadSafeRandom.Next(damageRange.Min, damageRange.Max);
 
             var damageRatingMod = GetRatingMod(EnchantmentManager.GetDamageRating());
 
@@ -301,7 +301,7 @@ namespace ACE.Server.WorldObjects
 
             // critical hit
             var critical = 0.1f;
-            if (Physics.Common.Random.RollDice(0.0f, 1.0f) < critical)
+            if (ThreadSafeRandom.Next(0.0f, 1.0f) < critical)
                 criticalHit = true;
 
             // attribute damage modifier (verify)
@@ -482,7 +482,7 @@ namespace ACE.Server.WorldObjects
             if (parts == null)
                 parts = Biota.BiotaPropertiesBodyPart.Where(b => b.DVal != 0 && b.BH != 0).ToList();
 
-            var part = parts[Physics.Common.Random.RollDice(0, parts.Count - 1)];
+            var part = parts[ThreadSafeRandom.Next(0, parts.Count - 1)];
 
             return part;
         }

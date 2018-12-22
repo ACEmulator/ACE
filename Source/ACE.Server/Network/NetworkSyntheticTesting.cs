@@ -26,7 +26,7 @@ namespace ACE.Server.Network
             }
             else if (Instance._JunkyConnectionC2S)
             {
-                if (Physics.Common.Random.RollDice(0f, 1f) > 0.1)
+                if (ThreadSafeRandom.Next(0f, 1f) > 0.1)
                 {
                     return packetBytes;
                 }
@@ -41,7 +41,7 @@ namespace ACE.Server.Network
                 {
                     continue;// keep header intact
                 }
-                packetBytes[i] = (byte)Physics.Common.Random.RollDice(0, 255);
+                packetBytes[i] = (byte)ThreadSafeRandom.Next(0, 255);
             }
             return packetBytes;
         }
@@ -60,7 +60,7 @@ namespace ACE.Server.Network
             }
             else if (Instance._JunkyConnectionS2C)
             {
-                if (Physics.Common.Random.RollDice(0f, 1f) > 0.1)
+                if (ThreadSafeRandom.Next(0f, 1f) > 0.1)
                 {
                     return packetBytes;
                 }
@@ -75,7 +75,7 @@ namespace ACE.Server.Network
                 {
                     continue;// keep header intact
                 }
-                packetBytes[i] = (byte)Physics.Common.Random.RollDice(0, 255);
+                packetBytes[i] = (byte)ThreadSafeRandom.Next(0, 255);
             }
             return packetBytes;
         }

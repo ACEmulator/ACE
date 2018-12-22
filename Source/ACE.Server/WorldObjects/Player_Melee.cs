@@ -71,7 +71,10 @@ namespace ACE.Server.WorldObjects
             }
 
             if (MeleeTarget == null)
+            {
                 MeleeTarget = target;
+                AttackTarget = MeleeTarget;
+            }
             else
                 return;
 
@@ -252,7 +255,8 @@ namespace ACE.Server.WorldObjects
                         {
                             if (action.Contains("Double") || action.Contains("Triple"))
                                 action = action.Replace("Thrust", "Slash");
-                        } else if (CurrentMotionState.Stance == MotionStance.SwordShieldCombat)
+                        }
+                        else if (CurrentMotionState.Stance == MotionStance.SwordShieldCombat)
                         {
                             if (action.Contains("Double") || action.Contains("Triple"))
                                 action = action.Replace("Slash", "Thrust");

@@ -212,7 +212,7 @@ namespace ACE.Server.WorldObjects
             weapons.Shuffle();
             return weapons.FirstOrDefault();
 
-            /*var rng = Physics.Common.Random.RollDice(0, weapons.Count);
+            /*var rng = ThreadSafeRandom.Next(0, weapons.Count);
             if (rng == weapons.Count)
                 return null;    // choose no weapon? lugians should have ~33% chance to select rock, according to retail pcaps
 
@@ -227,7 +227,7 @@ namespace ACE.Server.WorldObjects
                 return null;
 
             // select a random shield
-            var rng = Physics.Common.Random.RollDice(0, shields.Count - 1);
+            var rng = ThreadSafeRandom.Next(0, shields.Count - 1);
             return shields[rng];
         }
 
