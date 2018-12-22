@@ -1211,6 +1211,27 @@ namespace ACE.Server.WorldObjects
             return nearbyPlayers;
         }
 
+        public List<Player> EnqueueBroadcast(List<Player> excludePlayers, bool sendSelf = true, params GameMessage[] msgs)
+        {
+            if (PhysicsObj == null) return null;
+
+            if (sendSelf)
+            {
+                if (this is Player self)
+                    self.Session.Network.EnqueueSend(msgs);
+            }
+
+            var nearbyPlayers = PhysicsObj.ObjMaint.VoyeurTable.Values.Select(v => (Player)v.WeenieObj.WorldObject).ToList();
+            foreach (var player in nearbyPlayers.Except(excludePlayers))
+            {
+                if (Visibility && !player.Adminvision)
+                    continue;
+
+                player.Session.Network.EnqueueSend(msgs);
+            }
+            return nearbyPlayers;
+        }
+
         /// <summary>
         /// Called when a new PhysicsObj enters the world
         /// </summary>

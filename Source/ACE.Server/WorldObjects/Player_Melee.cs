@@ -192,6 +192,9 @@ namespace ACE.Server.WorldObjects
             });
 
             actionChain.EnqueueChain();
+
+            if (UnderLifestoneProtection)
+                LifestoneProtectionDispel();
         }
 
         /// <summary>

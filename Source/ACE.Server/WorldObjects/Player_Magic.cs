@@ -116,6 +116,9 @@ namespace ACE.Server.WorldObjects
                 actionChain.AddAction(this, () => CreatePlayerSpell(target, targetCategory, spellId));
                 actionChain.EnqueueChain();
             }
+
+            if (UnderLifestoneProtection)
+                LifestoneProtectionDispel();
         }
 
         /// <summary>
@@ -124,6 +127,9 @@ namespace ACE.Server.WorldObjects
         public void HandleActionMagicCastUnTargetedSpell(uint spellId)
         {
             CreatePlayerSpell(spellId);
+
+            if (UnderLifestoneProtection)
+                LifestoneProtectionDispel();
         }
 
         /// <summary>

@@ -305,6 +305,13 @@ namespace ACE.Server.WorldObjects
             if (target.Health.Current <= 0)
                 return -1;
 
+            // check lifestone protection
+            if (targetPlayer != null && targetPlayer.UnderLifestoneProtection)
+            {
+                targetPlayer.HandleLifestoneProtection();
+                return null;
+            }
+
             double damageBonus = 0.0f, warSkillBonus = 0.0f, finalDamage = 0.0f;
 
             var resistanceType = GetResistanceType(Spell.DamageType);

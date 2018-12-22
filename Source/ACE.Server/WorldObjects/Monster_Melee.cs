@@ -74,19 +74,19 @@ namespace ACE.Server.WorldObjects
                 var shieldMod = 1.0f;
                 var damage = CalculateDamage(ref damageType, maneuver, bodyPart, ref critical, ref shieldMod);
 
-                if (damage > 0.0f)
+                if (damage != null)
                 {
                     if (combatPet != null || targetPet != null)
                     {
                         // combat pet inflicting or receiving damage
                         //Console.WriteLine($"{target.Name} taking {Math.Round(damage)} {damageType} damage from {Name}");
-                        target.TakeDamage(this, damageType, damage);
-                        EmitSplatter(target, damage);
+                        target.TakeDamage(this, damageType, damage.Value);
+                        EmitSplatter(target, damage.Value);
                     }
                     else
                     {
                         // this is a player taking damage
-                        targetPlayer.TakeDamage(this, damageType, damage, bodyPart, critical);
+                        targetPlayer.TakeDamage(this, damageType, damage.Value, bodyPart, critical);
 
                         if (shieldMod != 1.0f)
                         {
@@ -271,12 +271,20 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         /// <param name="bodyPart">The creature body part the monster is targeting</param>
         /// <param name="criticalHit">Is TRUE if monster rolls a critical hit</param>
-        public float CalculateDamage(ref DamageType damageType, CombatManeuver maneuver, BodyPart bodyPart, ref bool criticalHit, ref float shieldMod)
+        public float? CalculateDamage(ref DamageType damageType, CombatManeuver maneuver, BodyPart bodyPart, ref bool criticalHit, ref float shieldMod)
         {
+            // check lifestone protection
+            var player = AttackTarget as Player;
+            if (player != null && player.UnderLifestoneProtection)
+            {
+                player.HandleLifestoneProtection();
+                return null;
+            }
+
             // evasion chance
             var evadeChance = GetEvadeChance();
             if (ThreadSafeRandom.Next(0.0f, 1.0f) < evadeChance)
-                return 0.0f;
+                return null;
 
             // get base damage
             var attackPart = GetAttackPart(maneuver);
@@ -286,7 +294,6 @@ namespace ACE.Server.WorldObjects
 
             var damageRatingMod = GetRatingMod(EnchantmentManager.GetDamageRating());
 
-            var player = AttackTarget as Player;
             var recklessnessMod = player != null ? player.GetRecklessnessMod() : 1.0f;
             var target = AttackTarget as Creature;
             var targetPet = AttackTarget as CombatPet;

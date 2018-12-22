@@ -133,9 +133,14 @@ namespace ACE.Server.WorldObjects
                     target.TakeDamage(this, damageType, damage.Value, critical);
             }
             else
-                Session.Network.EnqueueSend(new GameMessageSystemChat($"{target.Name} evaded your attack.", ChatMessageType.CombatSelf));
+            {
+                if (targetPlayer != null && targetPlayer.UnderLifestoneProtection)
+                    Session.Network.EnqueueSend(new GameMessageSystemChat($"The Lifestone's magic protects {target.Name} from the attack!", ChatMessageType.Magic));
+                else
+                    Session.Network.EnqueueSend(new GameMessageSystemChat($"{target.Name} evaded your attack.", ChatMessageType.CombatSelf));
+            }
 
-            if (target.Health.Current > 0)
+            if (damage != null && target.Health.Current > 0)
             {
                 var recklessnessMod = critical ? 1.0f : GetRecklessnessMod();
 
@@ -246,6 +251,9 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public override void OnEvade(WorldObject attacker, AttackType attackType)
         {
+            if (UnderLifestoneProtection)
+                return;
+
             // http://asheron.wikia.com/wiki/Attributes
 
             // Endurance will also make it less likely that you use a point of stamina to successfully evade a missile or melee attack.
@@ -301,6 +309,13 @@ namespace ACE.Server.WorldObjects
             var targetPlayer = target as Player;
             if (targetPlayer == null)
                 return null;
+
+            // check lifestone protection
+            if (targetPlayer.UnderLifestoneProtection)
+            {
+                targetPlayer.HandleLifestoneProtection();
+                return null;
+            }
 
             // evasion chance
             var evadeChance = GetEvadeChance(target);
@@ -546,6 +561,13 @@ namespace ACE.Server.WorldObjects
         {
             if (Invincible ?? false || IsDead) return;
 
+            // check lifestone protection
+            if (UnderLifestoneProtection)
+            {
+                HandleLifestoneProtection();
+                return;
+            }
+
             var amount = (uint)Math.Round(_amount);
             var percent = (float)amount / Health.MaxValue;
 
@@ -585,6 +607,13 @@ namespace ACE.Server.WorldObjects
         public void TakeDamage(WorldObject source, DamageType damageType, float _amount, BodyPart bodyPart, bool crit = false)
         {
             if (Invincible ?? false) return;
+
+            // check lifestone protection
+            if (UnderLifestoneProtection)
+            {
+                HandleLifestoneProtection();
+                return;
+            }
 
             var amount = (uint)Math.Round(_amount);
             var percent = (float)amount / Health.MaxValue;
