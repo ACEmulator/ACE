@@ -57,7 +57,10 @@ namespace ACE.Server.WorldObjects
                 return;
             }
             if (MissileTarget == null)
+            {
+                AttackTarget = target;
                 MissileTarget = target;
+            }
             else
                 return;
 

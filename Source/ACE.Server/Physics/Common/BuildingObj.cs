@@ -127,6 +127,8 @@ namespace ACE.Server.Physics.Common
 
         public float GetMinZ()
         {
+            get_building_cells();
+
             var minZ = float.MaxValue;
 
             foreach (var buildingCell in BuildingCells)

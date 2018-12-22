@@ -71,7 +71,10 @@ namespace ACE.Server.WorldObjects
             }
 
             if (MeleeTarget == null)
+            {
                 MeleeTarget = target;
+                AttackTarget = MeleeTarget;
+            }
             else
                 return;
 
