@@ -171,7 +171,7 @@ namespace ACE.Server.WorldObjects
             Debug.WriteLine($"{pickChance.FormatChance()} chance of UnlockSuccess");
 #endif
 
-            var dice = Physics.Common.Random.RollDice(0.0f, 1.0f);
+            var dice = ThreadSafeRandom.Next(0.0f, 1.0f);
             if (dice > pickChance)
                 return UnlockResults.PickLockFailed;
 

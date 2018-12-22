@@ -51,7 +51,7 @@ namespace ACE.Server.Entity
             var parts = GetFlags(bodyParts);
 
             // return a random part within list
-            return parts.ToList()[Physics.Common.Random.RollDice(0, parts.Count() - 1)];
+            return parts.ToList()[ThreadSafeRandom.Next(0, parts.Count() - 1)];
         }
 
         public static BiotaPropertiesBodyPart GetBodyPart(WorldObject target, AttackHeight height)
@@ -65,7 +65,7 @@ namespace ACE.Server.Entity
             if (heightParts.Count == 0) return null;
 
             // get random body part
-            var rng = Physics.Common.Random.RollDice(0, heightParts.Count - 1);
+            var rng = ThreadSafeRandom.Next(0, heightParts.Count - 1);
             var part = heightParts[rng];
             return part;
         }

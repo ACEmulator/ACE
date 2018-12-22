@@ -12,7 +12,7 @@ namespace ACE.Server.Physics.Extensions
             while (n > 1)
             {
                 n--;
-                int k = Random.RollDice(0, n);
+                int k = ACE.ThreadSafeRandom.Next(0, n);
                 T value = list[k];
                 list[k] = list[n];
                 list[n] = value;

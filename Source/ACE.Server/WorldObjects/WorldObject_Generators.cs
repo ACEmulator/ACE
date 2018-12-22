@@ -100,7 +100,7 @@ namespace ACE.Server.WorldObjects
                 if (StopConditionsInit) return;
 
                 var totalProbability = rng_selected ? GetTotalProbability() : 1.0f;
-                var rng = Physics.Common.Random.RollDice(0.0f, totalProbability);
+                var rng = ThreadSafeRandom.Next(0.0f, totalProbability);
 
                 for (var i = 0; i < GeneratorProfiles.Count; i++)
                 {
@@ -146,7 +146,7 @@ namespace ACE.Server.WorldObjects
 
             // only roll once here?
             var totalProbability = GetTotalProbability();
-            var rng = Physics.Common.Random.RollDice(0.0f, totalProbability);
+            var rng = ThreadSafeRandom.Next(0.0f, totalProbability);
 
             for (var i = 0; i < GeneratorProfiles.Count; i++)
             {
