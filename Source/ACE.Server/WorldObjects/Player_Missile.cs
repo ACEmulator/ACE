@@ -159,6 +159,9 @@ namespace ACE.Server.WorldObjects
             });
 
             actionChain.EnqueueChain();
+
+            if (UnderLifestoneProtection)
+                LifestoneProtectionDispel();
         }
 
         // TODO: the damage pipeline currently uses the creature ammo instead of the projectile

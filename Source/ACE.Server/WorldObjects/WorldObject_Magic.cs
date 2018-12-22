@@ -238,8 +238,17 @@ namespace ACE.Server.WorldObjects
             //Console.WriteLine($"{target.Name}.ResistSpell({Name}, {spell.Name}): magicSkill: {magicSkill}, difficulty: {targetMagicDefenseSkill}");
             bool resisted = MagicDefenseCheck(magicSkill, targetMagicDefenseSkill);
 
-            if (targetPlayer != null && targetPlayer.Invincible == true)
-                resisted = true;
+            if (targetPlayer != null)
+            {
+                if (targetPlayer.Invincible == true)
+                    resisted = true;
+
+                if (targetPlayer.UnderLifestoneProtection)
+                {
+                    targetPlayer.HandleLifestoneProtection();
+                    resisted = true;
+                }
+            }
 
             if (resisted)
             {
