@@ -135,7 +135,7 @@ namespace ACE.Server.WorldObjects
             else
                 Session.Network.EnqueueSend(new GameMessageSystemChat($"{target.Name} evaded your attack.", ChatMessageType.CombatSelf));
 
-            if (target.Health.Current > 0)
+            if (damage != null && target.Health.Current > 0)
             {
                 var recklessnessMod = critical ? 1.0f : GetRecklessnessMod();
 

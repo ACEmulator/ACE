@@ -52,12 +52,15 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Transitions a monster from idle to awake state
         /// </summary>
-        public void WakeUp()
+        public void WakeUp(bool alertNearby = true)
         {
             MonsterState = State.Awake;
             IsAwake = true;
             //DoAttackStance();
             EmoteManager.OnAttack(AttackTarget as Creature);
+
+            if (alertNearby)
+                AlertFriendly();
         }
 
         /// <summary>
@@ -192,6 +195,42 @@ namespace ACE.Server.WorldObjects
         {
             PhysicsObj.ObjMaint.RemoveAllObjects();
             PhysicsObj.handle_visible_cells();
+        }
+
+        /// <summary>
+        /// Monsters can only be alerted once?
+        /// </summary>
+        public bool IsAlerted = false;
+
+        public static float AlertRadius = 12.0f;    // TODO: find alert radius from retail
+        public static float AlertRadiusSq = AlertRadius * AlertRadius;
+
+        public void AlertFriendly()
+        {
+            var visibleObjs = PhysicsObj.ObjMaint.GetVisibleObjects(PhysicsObj.CurCell);
+
+            foreach (var obj in visibleObjs)
+            {
+                var nearbyCreature = obj.WeenieObj.WorldObject as Creature;
+                if (nearbyCreature == null || nearbyCreature.IsAwake || nearbyCreature.IsAlerted)
+                    continue;
+
+                if (CreatureType != null && CreatureType == nearbyCreature.CreatureType ||
+                      FriendType != null && FriendType == nearbyCreature.CreatureType)
+                {
+                    // clamp radius if outdoors
+                    if ((Location.Cell & 0xFFFF) < 0x100)
+                    {
+                        var distSq = Vector3.DistanceSquared(Location.ToGlobal(), nearbyCreature.Location.ToGlobal());
+                        if (distSq > AlertRadiusSq)
+                            continue;
+                    }
+                    nearbyCreature.AttackTarget = AttackTarget;
+                    nearbyCreature.WakeUp(false);
+
+                    nearbyCreature.IsAlerted = true;
+                }
+            }
         }
     }
 }
