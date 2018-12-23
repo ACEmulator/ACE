@@ -143,10 +143,12 @@ namespace ACE.Server.Physics
             }
         }
 
-        ~PhysicsObj()
+        // calling DestroyObject() twice can be bad - especially if a new object has been re-created for it,
+        // such as the player already relogging back in
+        /*~PhysicsObj()
         {
             DestroyObject();
-        }
+        }*/
 
         public void Destroy()
         {
