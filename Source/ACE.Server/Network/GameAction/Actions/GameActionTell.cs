@@ -18,16 +18,20 @@ namespace ACE.Server.Network.GameAction.Actions
 
             if (targetPlayer == null)
             {
-                var statusMessage = new GameEventWeenieError(session, WeenieError.CharacterNotAvailable);
-                session.Network.EnqueueSend(statusMessage);
-            }
-            else
-            {
-                if (session.Player != targetPlayer)
-                    session.Network.EnqueueSend(new GameMessageSystemChat($"You tell {target}, \"{message}\"", ChatMessageType.OutgoingTell));
+                targetPlayer = PlayerManager.GetOnlinePlayer("+" + target);
+                if (targetPlayer == null)
+                {
+                    var statusMessage = new GameEventWeenieError(session, WeenieError.CharacterNotAvailable);
+                    session.Network.EnqueueSend(statusMessage);
+                }
+                else
+                {
+                    if (session.Player != targetPlayer)
+                        session.Network.EnqueueSend(new GameMessageSystemChat($"You tell {target}, \"{message}\"", ChatMessageType.OutgoingTell));
 
-                var tell = new GameEventTell(targetPlayer.Session, message, session.Player.Name, session.Player.Guid.Full, targetPlayer.Guid.Full, ChatMessageType.Tell);
-                targetPlayer.Session.Network.EnqueueSend(tell);
+                    var tell = new GameEventTell(targetPlayer.Session, message, session.Player.Name, session.Player.Guid.Full, targetPlayer.Guid.Full, ChatMessageType.Tell);
+                    targetPlayer.Session.Network.EnqueueSend(tell);
+                }
             }
         }
     }
