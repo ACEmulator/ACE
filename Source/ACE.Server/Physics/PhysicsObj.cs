@@ -907,6 +907,15 @@ namespace ACE.Server.Physics
             MovementManager.PerformMovement(mvs);
         }
 
+        public void MoveToPosition(Position pos, MovementParameters movementParams)
+        {
+            var mvs = new MovementStruct();
+            mvs.Position = new Position(pos);
+            mvs.Type = MovementType.MoveToPosition;
+            mvs.Params = movementParams;
+            MovementManager.PerformMovement(mvs);
+        }
+
         public void RemoveLinkAnimations()
         {
             if (PartArray != null)

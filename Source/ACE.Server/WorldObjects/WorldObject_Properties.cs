@@ -1630,6 +1630,12 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyInt.CreatureType); else SetProperty(PropertyInt.CreatureType, (int)value.Value); }
         }
 
+        public CreatureType? FriendType
+        {
+            get => (CreatureType?)GetProperty(PropertyInt.FriendType);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.FriendType); else SetProperty(PropertyInt.FriendType, (int)value.Value); }
+        }
+
         public string LongDesc
         {
             get => GetProperty(PropertyString.LongDesc);

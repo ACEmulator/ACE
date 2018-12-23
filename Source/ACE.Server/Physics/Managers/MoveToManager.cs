@@ -346,7 +346,6 @@ namespace ACE.Server.Physics.Animation
                 }
                 else
                     CleanUpAndCallWeenie(WeenieError.None);
-
             }
         }
 
@@ -442,7 +441,13 @@ namespace ACE.Server.Physics.Animation
                     }
                 }
                 else
+                {
+                    // custom: sync for server ticrate
+                    if (AuxCommand != 0)
+                        PhysicsObj.set_heading(heading, true);
+
                     stop_aux_command(movementParams);
+                }
             }
             else
                 stop_aux_command(movementParams);

@@ -230,7 +230,7 @@ namespace ACE.Server.WorldObjects
         public virtual void MoveTo(WorldObject target, float runRate = 1.0f)
         {
             if (DebugMove)
-                Console.WriteLine($"{Name}.MoveTo({target.Name}, {runRate})");
+                Console.WriteLine($"{Name}.MoveTo({target.Name}, {runRate}) - CurPos: {Location.ToLOCString()} - DestPos: {AttackTarget.Location.ToLOCString()} - TargetDist: {Vector3.Distance(Location.ToGlobal(), AttackTarget.Location.ToGlobal())}");
 
             if (this is Player) return;
 
@@ -261,7 +261,7 @@ namespace ACE.Server.WorldObjects
             motion.MoveToParameters.MovementParameters |= MovementParams.UseFinalHeading;
 
             // todo: use better movement system
-            Location = position;
+            Location = new Position(position);
 
             EnqueueBroadcastMotion(motion);
         }
