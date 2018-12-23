@@ -59,12 +59,19 @@ namespace ACE.Server.WorldObjects
             // select random body part @ current attack height
             var bodyPart = BodyParts.GetBodyPart(AttackHeight.Value);
 
-            DoSwingMotion(AttackTarget, maneuver, out float animLength);
+            DoSwingMotion(AttackTarget, maneuver, out float animLength, out var attackFrames);
             PhysicsObj.stick_to_object(AttackTarget.PhysicsObj.ID);
 
             var actionChain = new ActionChain();
             var delayFactor = combatPet != null ? 1.5f : 3.0f;
-            actionChain.AddDelaySeconds(animLength / delayFactor);     // TODO: get attack frame?
+
+            var delayTime = animLength / delayFactor;
+            if (attackFrames.Count == 1)
+                delayTime = attackFrames[0] * animLength;
+            else
+                log.Warn($"{Name}.GetAttackFrames(): MotionTableId: {MotionTableId:X8}, MotionStance: {CurrentMotionState.Stance}, Motion: {maneuver.Motion:X8}, AttackFrames.Count({attackFrames.Count}) != 1");
+
+            actionChain.AddDelaySeconds(delayTime);
             actionChain.AddAction(this, () =>
             {
                 if (AttackTarget == null) return;
@@ -163,10 +170,12 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Perform the melee attack swing animation
         /// </summary>
-        public void DoSwingMotion(WorldObject target, CombatManeuver maneuver, out float animLength)
+        public void DoSwingMotion(WorldObject target, CombatManeuver maneuver, out float animLength, out List<float> attackFrames)
         {
             var animSpeed = GetAnimSpeed();
             animLength = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, maneuver.Motion, animSpeed);
+
+            attackFrames = MotionTable.GetAttackFrames(MotionTableId, CurrentMotionState.Stance, maneuver.Motion);
 
             var motion = new Motion(this, maneuver.Motion, animSpeed);
             motion.MotionState.TurnSpeed = 2.25f;

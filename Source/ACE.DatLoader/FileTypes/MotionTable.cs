@@ -77,25 +77,67 @@ namespace ACE.DatLoader.FileTypes
             return length;
         }
 
-        public float GetAnimationLength(MotionStance stance, MotionCommand motion, MotionCommand currentMotion)
+        public List<float> GetAttackFrames(uint motionTableId, MotionStance stance, MotionCommand motion, MotionCommand? currentMotion = null)
         {
+            var motionTable = DatManager.PortalDat.ReadFromDat<MotionTable>(motionTableId);
+
+            if (currentMotion == null)
+                currentMotion = GetDefaultMotion(stance);
+
+            var animData = GetAnimData(stance, motion, currentMotion.Value);
+
+            var frameNums = new List<int>();
+            var totalFrames = 0;
+
+            foreach (var anim in animData)
+            {
+                var animation = DatManager.PortalDat.ReadFromDat<Animation>(anim.AnimId);
+
+                foreach (var frame in animation.PartFrames)
+                {
+                    foreach (var hook in frame.Hooks)
+                    {
+                        if (hook.HookType == AnimationHookType.Attack)
+                            frameNums.Add(totalFrames);
+                    }
+                    totalFrames++;
+                }
+            }
+            var attackFrames = new List<float>();
+            foreach (var frameNum in frameNums)
+                attackFrames.Add((float)frameNum / totalFrames);    // div 0?
+
+            // cache?
+            return attackFrames;
+        }
+
+        public List<AnimData> GetAnimData(MotionStance stance, MotionCommand motion, MotionCommand currentMotion)
+        {
+            var animData = new List<AnimData>();
+
             uint motionHash = (uint)stance << 16 | (uint)currentMotion & 0xFFFFF;
 
             Links.TryGetValue(motionHash, out var link);
-            if (link == null) return 0.0f;
+            if (link == null) return animData;
 
             link.TryGetValue((uint)motion, out var motionData);
             if (motionData == null)
             {
                 motionHash = (uint)stance << 16;
                 Links.TryGetValue(motionHash, out link);
-                if (link == null) return 0.0f;
+                if (link == null) return animData;
                 link.TryGetValue((uint)motion, out motionData);
-                if (motionData == null) return 0.0f;
+                if (motionData == null) return animData;
             }
+            return motionData.Anims;
+        }
+
+        public float GetAnimationLength(MotionStance stance, MotionCommand motion, MotionCommand currentMotion)
+        {
+            var animData = GetAnimData(stance, motion, currentMotion);
 
             var length = 0.0f;
-            foreach (var anim in motionData.Anims)
+            foreach (var anim in animData)
                 length += GetAnimationLength(anim);
 
             return length;

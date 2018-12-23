@@ -1,4 +1,5 @@
 using System;
+using ACE.Server.Network.Structure;
 using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Network.Enum
@@ -16,59 +17,59 @@ namespace ACE.Server.Network.Enum
 
     public static class WeaponMaskHelper
     {
-        public static WeaponMask GetHighlightMask(WorldObject weapon, WorldObject wielder)
+        public static WeaponMask GetHighlightMask(WeaponProfile profile)
         {
             WeaponMask highlightMask = 0;
 
-            if (wielder == null)
-                return highlightMask;
+            var wielder = profile.Wielder;
+            var weapon = profile.Weapon;
 
             // Enchant applies to all weapons
-            if (wielder.EnchantmentManager.GetDefenseMod() != 0)
+            if (wielder != null && wielder.EnchantmentManager.GetDefenseMod() != 0)
                 highlightMask |= WeaponMask.MeleeDefense;
 
             // Following enchants do not apply to caster weapons
             if (weapon.WeenieType != ACE.Entity.Enum.WeenieType.Caster)
             {
-                if (wielder.EnchantmentManager.GetAttackMod() != 0)
+                if (profile.Enchantment_WeaponOffense != 0)
                     highlightMask |= WeaponMask.AttackSkill;
-                if (wielder.EnchantmentManager.GetWeaponSpeedMod() != 0)
+                if (profile.Enchantment_WeaponTime != 0)
                     highlightMask |= WeaponMask.Speed;
-                if (wielder.EnchantmentManager.GetDamageMod() != 0)
+                if (profile.Enchantment_Damage != 0)
                     highlightMask |= WeaponMask.Damage;
-                if (wielder.EnchantmentManager.GetVarianceMod() != 1.0f)
+                if (profile.Enchantment_DamageVariance != 1.0f)
                     highlightMask |= WeaponMask.DamageVariance;
-                if (wielder.EnchantmentManager.GetDamageModifier() != 1.0f)
+                if (profile.Enchantment_DamageMod != 1.0f)
                     highlightMask |= WeaponMask.DamageMod;
             }
 
             return highlightMask;
         }
 
-        public static WeaponMask GetColorMask(WorldObject weapon, WorldObject wielder)
+        public static WeaponMask GetColorMask(WeaponProfile profile)
         {
             WeaponMask colorMask = 0;
 
-            if (wielder == null)
-                return colorMask;
+            var weapon = profile.Weapon;
+            var wielder = profile.Wielder;
 
             // Enchant applies to all weapons
-            if (wielder.EnchantmentManager.GetDefenseMod() > 0)
+            if (wielder != null && wielder.EnchantmentManager.GetDefenseMod() > 0)
                 colorMask |= WeaponMask.MeleeDefense;
 
             // Following enchants do not apply to caster weapons
             if (weapon.WeenieType != ACE.Entity.Enum.WeenieType.Caster)
             {
                 // item enchanments are currently being cast on wielder
-                if (wielder.EnchantmentManager.GetAttackMod() > 0)
+                if (profile.Enchantment_WeaponOffense > 0)
                     colorMask |= WeaponMask.AttackSkill;
-                if (wielder.EnchantmentManager.GetWeaponSpeedMod() < 0)
+                if (profile.Enchantment_WeaponTime < 0)
                     colorMask |= WeaponMask.Speed;
-                if (wielder.EnchantmentManager.GetDamageMod() > 0)
+                if (profile.Enchantment_Damage > 0)
                     colorMask |= WeaponMask.Damage;
-                if (wielder.EnchantmentManager.GetVarianceMod() < 1.0f)
+                if (profile.Enchantment_DamageVariance < 1.0f)
                     colorMask |= WeaponMask.DamageVariance;
-                if (wielder.EnchantmentManager.GetDamageModifier() > 1.0f)
+                if (profile.Enchantment_DamageMod > 1.0f)
                     colorMask |= WeaponMask.DamageMod;
             }
 

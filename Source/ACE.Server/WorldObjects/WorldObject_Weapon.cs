@@ -56,12 +56,12 @@ namespace ACE.Server.WorldObjects
         {
             WorldObject weapon = GetWeapon(wielder as Player);
 
-            if (weapon == null)
-                return defaultSpeed;
+            var baseSpeed = weapon != null ? weapon.GetProperty(PropertyInt.WeaponTime) ?? (int)defaultSpeed : (int)defaultSpeed;
 
-            var baseSpeed = weapon.GetProperty(PropertyInt.WeaponTime) ?? (int)defaultSpeed;
-            var speedMod = wielder != null ? wielder.EnchantmentManager.GetWeaponSpeedMod() : 0;
-            return (uint)Math.Max(0, baseSpeed + speedMod);
+            var speedMod = weapon != null ? weapon.EnchantmentManager.GetWeaponSpeedMod() : 0;
+            var auraSpeedMod = wielder != null ? wielder.EnchantmentManager.GetWeaponSpeedMod() : 0;
+
+            return (uint)Math.Max(0, baseSpeed + speedMod + auraSpeedMod);
         }
 
         /// <summary>

@@ -272,11 +272,15 @@ namespace ACE.Server.Network.Structure
 
         private void BuildWeapon(WorldObject weapon, WorldObject wielder)
         {
-            if ((weapon as Caster) == null)
-                WeaponProfile = new WeaponProfile(weapon, wielder);
+            var weaponProfile = new WeaponProfile(weapon, wielder);
 
-            WeaponHighlight = WeaponMaskHelper.GetHighlightMask(weapon, wielder);
-            WeaponColor = WeaponMaskHelper.GetColorMask(weapon, wielder);
+            //WeaponHighlight = WeaponMaskHelper.GetHighlightMask(weapon, wielder);
+            //WeaponColor = WeaponMaskHelper.GetColorMask(weapon, wielder);
+            WeaponHighlight = WeaponMaskHelper.GetHighlightMask(weaponProfile);
+            WeaponColor = WeaponMaskHelper.GetColorMask(weaponProfile);
+
+            if (!(weapon is Caster))
+                WeaponProfile = weaponProfile;
 
             // item enchantments can also be on wielder currently
             AddSpells(SpellBook, weapon, wielder);
