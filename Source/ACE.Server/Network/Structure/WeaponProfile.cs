@@ -11,6 +11,9 @@ namespace ACE.Server.Network.Structure
     /// </summary>
     public class WeaponProfile
     {
+        public WorldObject Weapon;
+        public WorldObject Wielder;
+
         public DamageType DamageType;
         public uint WeaponTime;             // the weapon speed
         public Skill WeaponSkill;
@@ -22,8 +25,20 @@ namespace ACE.Server.Network.Structure
         public double WeaponOffense;        // the attack skill bonus of the weapon
         public uint MaxVelocityEstimated;   // ??
 
+        public int Enchantment_WeaponTime;
+        public int Enchantment_Damage;
+        public double Enchantment_DamageVariance;
+        public double Enchantment_DamageMod;
+        public double Enchantment_WeaponOffense;
+
         public WeaponProfile(WorldObject weapon, WorldObject wielder)
         {
+            Weapon = weapon;
+            Wielder = wielder;
+
+            if (weapon is Caster)
+                return;
+
             DamageType = (DamageType)(weapon.GetProperty(PropertyInt.DamageType) ?? 0);
             if (DamageType == 0)
                 Console.WriteLine("Warning: WeaponProfile undefined damage type for " + weapon.Guid);
@@ -45,8 +60,10 @@ namespace ACE.Server.Network.Structure
         public uint GetDamage(WorldObject weapon, WorldObject wielder)
         {
             var baseDamage = weapon.GetProperty(PropertyInt.Damage) ?? 0;
-            var damageMod = wielder != null ? wielder.EnchantmentManager.GetDamageMod() : 0;
-            return (uint)Math.Max(0, baseDamage + damageMod);
+            var damageMod = weapon.EnchantmentManager.GetDamageMod();
+            var auraDamageMod = wielder != null ? wielder.EnchantmentManager.GetDamageMod() : 0;
+            Enchantment_Damage = damageMod + auraDamageMod;
+            return (uint)Math.Max(0, baseDamage + Enchantment_Damage);
         }
 
         /// <summary>
@@ -55,8 +72,10 @@ namespace ACE.Server.Network.Structure
         public uint GetWeaponSpeed(WorldObject weapon, WorldObject wielder)
         {
             var baseSpeed = weapon.GetProperty(PropertyInt.WeaponTime) ?? 0;   // safe to assume defaults here?
-            var speedMod = wielder != null ? wielder.EnchantmentManager.GetWeaponSpeedMod() : 0;
-            return (uint)Math.Max(0, baseSpeed + speedMod);
+            var speedMod = weapon.EnchantmentManager.GetWeaponSpeedMod();
+            var auraSpeedMod = wielder != null ? wielder.EnchantmentManager.GetWeaponSpeedMod() : 0;
+            Enchantment_WeaponTime = speedMod + auraSpeedMod;
+            return (uint)Math.Max(0, baseSpeed + Enchantment_WeaponTime);
         }
 
         /// <summary>
@@ -66,8 +85,10 @@ namespace ACE.Server.Network.Structure
         {
             // are there any spells which modify damage variance?
             var baseVariance = weapon.GetProperty(PropertyFloat.DamageVariance) ?? 1.0f;   // safe to assume defaults here?
-            var varianceMod = wielder != null ? wielder.EnchantmentManager.GetVarianceMod() : 1.0f;
-            return (float)(baseVariance * varianceMod);
+            var varianceMod = weapon.EnchantmentManager.GetVarianceMod();
+            var auraVarianceMod = wielder != null ? wielder.EnchantmentManager.GetVarianceMod() : 1.0f;
+            Enchantment_DamageVariance = varianceMod * auraVarianceMod;
+            return (float)(baseVariance * Enchantment_DamageVariance);
         }
 
         /// <summary>
@@ -76,8 +97,10 @@ namespace ACE.Server.Network.Structure
         public float GetDamageMultiplier(WorldObject weapon, WorldObject wielder)
         {
             var baseMultiplier = weapon.GetProperty(PropertyFloat.DamageMod) ?? 1.0f;
-            var multiplierMod = wielder != null ? wielder.EnchantmentManager.GetDamageModifier() : 1.0f;
-            return (float)(baseMultiplier * multiplierMod);
+            var multiplierMod = weapon.EnchantmentManager.GetDamageModifier();
+            var auraMultiplierMod = wielder != null ? wielder.EnchantmentManager.GetDamageModifier() : 1.0f;
+            Enchantment_DamageMod = multiplierMod * auraMultiplierMod;
+            return (float)(baseMultiplier * Enchantment_DamageMod);
         }
 
         /// <summary>
@@ -87,8 +110,10 @@ namespace ACE.Server.Network.Structure
         {
             if (weapon is Ammunition) return 1.0f;
 
+            // always aura?
             var baseOffense = weapon.GetProperty(PropertyFloat.WeaponOffense) ?? 1.0f;
             var offenseMod = wielder != null ? wielder.EnchantmentManager.GetAttackMod() : 0.0f;
+            Enchantment_WeaponOffense = offenseMod;
             return (float)(baseOffense + offenseMod);
         }
     }

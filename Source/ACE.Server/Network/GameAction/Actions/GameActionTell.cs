@@ -20,11 +20,12 @@ namespace ACE.Server.Network.GameAction.Actions
             {
                 var statusMessage = new GameEventWeenieError(session, WeenieError.CharacterNotAvailable);
                 session.Network.EnqueueSend(statusMessage);
+                return;
             }
             else
             {
                 if (session.Player != targetPlayer)
-                    session.Network.EnqueueSend(new GameMessageSystemChat($"You tell {target}, \"{message}\"", ChatMessageType.OutgoingTell));
+                    session.Network.EnqueueSend(new GameMessageSystemChat($"You tell {targetPlayer.Name}, \"{message}\"", ChatMessageType.OutgoingTell));
 
                 var tell = new GameEventTell(targetPlayer.Session, message, session.Player.Name, session.Player.Guid.Full, targetPlayer.Guid.Full, ChatMessageType.Tell);
                 targetPlayer.Session.Network.EnqueueSend(tell);

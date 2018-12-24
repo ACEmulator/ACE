@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Server.Entity;
@@ -88,7 +89,7 @@ namespace ACE.Server.WorldObjects
             //Console.WriteLine("Angle: " + angle);
 
             // turn / moveto if required
-            if (IsMeleeDistance(target))
+            if (IsStickyDistance(target) && IsDirectVisible(target))
             {
                 var rotateTime = Rotate(target);
                 var actionChain = new ActionChain();
@@ -130,7 +131,7 @@ namespace ACE.Server.WorldObjects
             if (creature == null || !creature.IsAlive)
                 return;
 
-            var animLength = DoSwingMotion(target);
+            var animLength = DoSwingMotion(target, out var attackFrames);
             if (animLength == 0)
                 return;
 
@@ -146,11 +147,20 @@ namespace ACE.Server.WorldObjects
             var staminaCost = GetAttackStamina(GetPowerRange());
             UpdateVitalDelta(Stamina, -staminaCost);
 
+            if (numStrikes != attackFrames.Count)
+            {
+                //log.Warn($"{Name}.GetAttackFrames(): MotionTableId: {MotionTableId:X8}, MotionStance: {CurrentMotionState.Stance}, Motion: {GetSwingAnimation()}, AttackFrames.Count({attackFrames.Count}) != NumStrikes({numStrikes})");
+                numStrikes = attackFrames.Count;
+            }
+
+            var prevTime = 0.0f;
             for (var i = 0; i < numStrikes; i++)
             {
                 // are there animation hooks for damage frames?
-                if (numStrikes > 1 && !TwoHandedCombat)
-                    actionChain.AddDelaySeconds(swingTime);
+                //if (numStrikes > 1 && !TwoHandedCombat)
+                //actionChain.AddDelaySeconds(swingTime);
+                actionChain.AddDelaySeconds(attackFrames[i] * animLength - prevTime);
+                prevTime = attackFrames[i] * animLength;
 
                 actionChain.AddAction(this, () =>
                 {
@@ -164,11 +174,12 @@ namespace ACE.Server.WorldObjects
                     }
                 });
 
-                if (numStrikes == 1 || TwoHandedCombat)
-                    actionChain.AddDelaySeconds(swingTime);
+                //if (numStrikes == 1 || TwoHandedCombat)
+                    //actionChain.AddDelaySeconds(swingTime);
             }
 
-            actionChain.AddDelaySeconds(animLength - swingTime * numStrikes);
+            //actionChain.AddDelaySeconds(animLength - swingTime * numStrikes);
+            actionChain.AddDelaySeconds(animLength - prevTime);
 
             actionChain.AddAction(this, () =>
             {
@@ -192,12 +203,15 @@ namespace ACE.Server.WorldObjects
             });
 
             actionChain.EnqueueChain();
+
+            if (UnderLifestoneProtection)
+                LifestoneProtectionDispel();
         }
 
         /// <summary>
         /// Performs the player melee swing animation
         /// </summary>
-        public float DoSwingMotion(WorldObject target)
+        public float DoSwingMotion(WorldObject target, out List<float> attackFrames)
         {
             // get the proper animation speed for this attack,
             // based on weapon speed and player quickness
@@ -207,6 +221,10 @@ namespace ACE.Server.WorldObjects
 
             var swingAnimation = GetSwingAnimation();
             var animLength = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, swingAnimation, animSpeed);
+            //Console.WriteLine($"AnimSpeed: {animSpeed}, AnimLength: {animLength}");
+
+            attackFrames = MotionTable.GetAttackFrames(MotionTableId, CurrentMotionState.Stance, swingAnimation);
+            //Console.WriteLine($"Attack frames: {string.Join(",", attackFrames)}");
 
             // broadcast player swing animation to clients
             var motion = new Motion(this, swingAnimation, animSpeed);
@@ -290,6 +308,14 @@ namespace ACE.Server.WorldObjects
                 target.PhysicsObj.GetRadius(), target.PhysicsObj.GetHeight(), target.PhysicsObj.Position);
 
             return cylDist <= 0.6f;
+        }
+
+        public bool IsStickyDistance(WorldObject target)
+        {
+            var cylDist = (float)Physics.Common.Position.CylinderDistance(PhysicsObj.GetRadius(), PhysicsObj.GetHeight(), PhysicsObj.Position,
+                target.PhysicsObj.GetRadius(), target.PhysicsObj.GetHeight(), target.PhysicsObj.Position);
+
+            return cylDist <= 4.0f;
         }
     }
 }

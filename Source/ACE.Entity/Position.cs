@@ -462,5 +462,10 @@ namespace ACE.Entity
         public static readonly int BlockLength = 192;
         public static readonly int CellSide = 8;
         public static readonly int CellLength = 24;
+
+        public bool Equals(Position p)
+        {
+            return Cell == p.Cell && Pos.Equals(p.Pos) && Rotation.Equals(p.Rotation);
+        }
     }
 }

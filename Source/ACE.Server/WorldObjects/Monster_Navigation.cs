@@ -3,6 +3,7 @@ using System.Numerics;
 
 using ACE.Entity;
 using ACE.Entity.Enum;
+using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
 using ACE.Server.Managers;
 using ACE.Server.Physics.Animation;
@@ -135,6 +136,12 @@ namespace ACE.Server.WorldObjects
             if (DebugMove)
                 Console.WriteLine($"{Name} ({Guid}) - OnMoveComplete");
 
+            if (status != WeenieError.None)
+                return;
+
+            if (MonsterState == State.Return)
+                Sleep();
+
             PhysicsObj.CachedVelocity = Vector3.Zero;   // ??
             IsMoving = false;
         }
@@ -184,6 +191,9 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public float GetDistanceToTarget()
         {
+            if (AttackTarget == null)
+                return float.MaxValue;
+
             var dist = (AttackTarget.Location.ToGlobal() - Location.ToGlobal()).Length();
             var radialDist = dist - (AttackTarget.PhysicsObj.GetRadius() + PhysicsObj.GetRadius());
 
@@ -220,7 +230,7 @@ namespace ACE.Server.WorldObjects
             //if (!IsRanged)
                 UpdatePosition();
 
-            if (GetDistanceToTarget() >= MaxChaseRange)
+            if (GetDistanceToTarget() >= MaxChaseRange && MonsterState != State.Return)
                 Sleep();
         }
 
@@ -236,7 +246,8 @@ namespace ACE.Server.WorldObjects
                 SendUpdatePosition();
 
             if (DebugMove)
-                Console.WriteLine($"{Name} ({Guid}) - UpdatePosition (velocity: {PhysicsObj.CachedVelocity.Length()})");
+                //Console.WriteLine($"{Name} ({Guid}) - UpdatePosition (velocity: {PhysicsObj.CachedVelocity.Length()})");
+                Console.WriteLine($"{Name} ({Guid}) - UpdatePosition: {Location.ToLOCString()}");
         }
 
         /// <summary>
@@ -364,6 +375,36 @@ namespace ACE.Server.WorldObjects
         {
             //Console.WriteLine($"{Name} ({Guid}) - OnUnsticky");
             Sticky = false;
+        }
+
+        public static float HomeDist = 192.0f;
+        public static float HomeDistSq = HomeDist * HomeDist;
+
+        public void CheckMissHome()
+        {
+            if (MonsterState == State.Return)
+                return;
+
+            var homeDistSq = Vector3.DistanceSquared(Location.ToGlobal(), GetPosition(PositionType.Home).ToGlobal());
+
+            if (homeDistSq > HomeDistSq)
+                MoveToHome();
+        }
+
+        public void MoveToHome()
+        {
+            MonsterState = State.Return;
+            AttackTarget = null;
+
+            var home = GetPosition(PositionType.Home);
+
+            if (Location.Equals(home))
+                return;
+
+            MoveTo(home, RunRate);
+
+            PhysicsObj.MoveToPosition(new Physics.Common.Position(home), GetMovementParameters());
+            IsMoving = true;
         }
     }
 }

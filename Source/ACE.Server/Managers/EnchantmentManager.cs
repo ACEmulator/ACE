@@ -681,7 +681,7 @@ namespace ACE.Server.Managers
             var enchantments = GetEnchantments_TopLayer(EnchantmentTypeFlags.Additive, (uint)statModKey);
 
             var modifier = 0;
-            foreach (var enchantment in enchantments)
+            foreach (var enchantment in enchantments.Where(e => ((EnchantmentTypeFlags)e.StatModType & EnchantmentTypeFlags.Skill) == 0))
                 modifier += (int)enchantment.StatModValue;
 
             return modifier;

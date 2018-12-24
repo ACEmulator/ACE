@@ -592,6 +592,7 @@ namespace ACE.Server.Managers
 
                     if (WorldObject == null || WorldObject.CurrentMotionState == null) break;
 
+                    // TODO: refactor me!
                     if (emoteSet.Category != (uint)EmoteCategory.Vendor && emoteSet.Style != null)
                     {
                         var startingMotion = new Motion((MotionStance)emoteSet.Style, (MotionCommand)emoteSet.Substyle);
@@ -654,12 +655,23 @@ namespace ACE.Server.Managers
                     }
                     else
                     {
+                        // vendor / other motions
+                        var startingMotion = new Motion(MotionStance.NonCombat, MotionCommand.Ready);
+                        var motionTable = DatManager.PortalDat.ReadFromDat<DatLoader.FileTypes.MotionTable>(WorldObject.MotionTableId);
+                        var animLength = motionTable.GetAnimationLength(WorldObject.CurrentMotionState.Stance, (MotionCommand)emote.Motion, MotionCommand.Ready);
+
                         motion = new Motion(MotionStance.NonCombat, (MotionCommand)emote.Motion, emote.Extent);
 
                         if (Debug)
                             Console.WriteLine($"{WorldObject.Name} running motion (block 2) {MotionStance.NonCombat}, {(MotionCommand)(emote.Motion ?? 0)}");
 
                         WorldObject.ExecuteMotion(motion);
+
+                        var motionChain = new ActionChain();
+                        motionChain.AddDelaySeconds(animLength);
+                        motionChain.AddAction(WorldObject, () => WorldObject.ExecuteMotion(startingMotion, false));
+
+                        motionChain.EnqueueChain();
                     }
 
                     break;

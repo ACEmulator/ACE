@@ -172,10 +172,12 @@ namespace ACE.Server.Managers
         /// </summary>
         public static Player GetOnlinePlayer(string name)
         {
+            var admin = "+" + name;
+
             playersLock.EnterReadLock();
             try
             {
-                var onlinePlayer = onlinePlayers.Values.FirstOrDefault(p => p.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+                var onlinePlayer = onlinePlayers.Values.FirstOrDefault(p => p.Name.Equals(name, StringComparison.OrdinalIgnoreCase) || p.Name.Equals(admin, StringComparison.OrdinalIgnoreCase));
 
                 if (onlinePlayer != null)
                     return onlinePlayer;
@@ -307,10 +309,12 @@ namespace ACE.Server.Managers
         /// </summary>
         public static IPlayer FindByName(string name, out bool isOnline)
         {
+            var admin = "+" + name;
+
             playersLock.EnterReadLock();
             try
             {
-                var onlinePlayer = onlinePlayers.Values.FirstOrDefault(p => p.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+                var onlinePlayer = onlinePlayers.Values.FirstOrDefault(p => p.Name.Equals(name, StringComparison.OrdinalIgnoreCase) || p.Name.Equals(admin, StringComparison.OrdinalIgnoreCase));
 
                 if (onlinePlayer != null)
                 {
@@ -320,7 +324,7 @@ namespace ACE.Server.Managers
 
                 isOnline = false;
 
-                var offlinePlayer = offlinePlayers.Values.FirstOrDefault(p => p.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
+                var offlinePlayer = offlinePlayers.Values.FirstOrDefault(p => p.Name.Equals(name, StringComparison.OrdinalIgnoreCase) || p.Name.Equals(name, StringComparison.OrdinalIgnoreCase));
 
                 if (offlinePlayer != null)
                     return offlinePlayer;

@@ -1,9 +1,11 @@
 using System;
 
 using ACE.DatLoader;
+using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Network;
+using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.WorldObjects.Entity;
@@ -183,6 +185,27 @@ namespace ACE.Server.WorldObjects
 
             }
             return change;
+        }
+
+        /// <summary>
+        /// Called on Player heartbeat
+        /// Sends a packet containing the latest health info for the selected target
+        /// </summary>
+        public void HandleTargetVitals()
+        {
+            if (selectedTarget == ObjectGuid.Invalid)
+                return;
+
+            var target = CurrentLandblock?.GetObject(selectedTarget) as Creature;
+            if (target == null)
+                return;
+
+            if (target.Health.Current == 0)
+                return;
+
+            var healthPercent = (float)target.Health.Current / target.Health.MaxValue;
+
+            Session.Network.EnqueueSend(new GameEventUpdateHealth(Session, selectedTarget.Full, healthPercent));
         }
     }
 }

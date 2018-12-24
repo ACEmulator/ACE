@@ -143,10 +143,12 @@ namespace ACE.Server.Physics
             }
         }
 
-        ~PhysicsObj()
+        // calling DestroyObject() twice can be bad - especially if a new object has been re-created for it,
+        // such as the player already relogging back in
+        /*~PhysicsObj()
         {
             DestroyObject();
-        }
+        }*/
 
         public void Destroy()
         {
@@ -902,6 +904,15 @@ namespace ACE.Server.Physics
             mvs.Params = movementParams;
             mvs.Type = MovementType.MoveToObject;
             mvs.Height = objHeight;
+            MovementManager.PerformMovement(mvs);
+        }
+
+        public void MoveToPosition(Position pos, MovementParameters movementParams)
+        {
+            var mvs = new MovementStruct();
+            mvs.Position = new Position(pos);
+            mvs.Type = MovementType.MoveToPosition;
+            mvs.Params = movementParams;
             MovementManager.PerformMovement(mvs);
         }
 
