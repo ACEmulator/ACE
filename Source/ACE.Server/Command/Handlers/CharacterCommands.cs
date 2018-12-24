@@ -2,6 +2,7 @@ using System;
 
 using ACE.Database;
 using ACE.Entity.Enum;
+using ACE.Server.Command.Handlers.Processors;
 using ACE.Server.Network;
 
 namespace ACE.Server.Command.Handlers
@@ -39,6 +40,14 @@ namespace ACE.Server.Command.Handlers
                     CommandHandlerHelper.WriteOutputInfo(session, "There is no character by the name of " + characterName + " found in the database. Has it been deleted?", ChatMessageType.Broadcast);
                 }
             }));
+        }
+
+        // set-characteraccess charactername (accesslevel)
+        [CommandHandler("export-char", AccessLevel.Player, CommandHandlerFlag.None, 0, "Export the currently logged in character.")]
+        public static void HandleCharacterExport(Session session, params string[] parameters)
+        {
+            var processor = new InterServer();
+            processor.RunAsync(session);
         }
     }
 }
