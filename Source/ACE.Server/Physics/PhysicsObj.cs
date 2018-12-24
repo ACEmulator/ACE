@@ -2395,7 +2395,7 @@ namespace ACE.Server.Physics
             }
             else
             {
-                Velocity = Vector3.Zero;
+                //Velocity = Vector3.Zero;  // gets objects stuck in falling state?
                 if (collisions.FramesStationaryFall == 3)
                 {
                     TransientState &= ~TransientStateFlags.StationaryComplete;
