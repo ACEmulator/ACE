@@ -131,6 +131,8 @@ namespace ACE.Server.Entity
         /// </summary>
         public bool IsHarmful { get => !IsBeneficial; }
 
+        public bool IsProjectile => NumProjectiles > 0;
+
         public List<uint> TryBurnComponents()
         {
             var consumed = new List<uint>();
