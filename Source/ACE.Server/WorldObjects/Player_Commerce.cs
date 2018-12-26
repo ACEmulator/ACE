@@ -56,7 +56,6 @@ namespace ACE.Server.WorldObjects
             const uint coinWeenieId = 273;
             WorldObject wochk = WorldObjectFactory.CreateNewWorldObject(coinWeenieId);
             ushort maxstacksize = wochk.MaxStackSize.Value;
-            wochk = null;
 
             List<WorldObject> payout = new List<WorldObject>();
 
@@ -255,9 +254,7 @@ namespace ACE.Server.WorldObjects
                 item.SaveBiotaToDatabase();
             }
 
-            var vendor = CurrentLandblock?.GetObject(vendorId) as Vendor;
-
-            if (vendor != null)
+            if (CurrentLandblock?.GetObject(vendorId) is Vendor vendor)
                 vendor.SellItemsValidateTransaction(this, purchaselist);
         }
     }

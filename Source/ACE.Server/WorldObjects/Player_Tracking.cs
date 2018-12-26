@@ -4,7 +4,6 @@ using System.Linq;
 
 using ACE.Entity;
 using ACE.Entity.Enum;
-using ACE.Entity.Enum.Properties;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Physics.Common;
 
@@ -38,7 +37,7 @@ namespace ACE.Server.WorldObjects
         /// This is the system from client physics that tracks known objects, visible objects,
         /// and objects that have been occluded for less than 25s that are pending destruction
         /// </summary>
-        public ObjectMaint ObjMaint { get => PhysicsObj.ObjMaint; }
+        public ObjectMaint ObjMaint => PhysicsObj.ObjMaint;
 
         /// <summary>
         /// Tracks Interactive world object you are have interacted with recently.  this should be
@@ -139,8 +138,7 @@ namespace ACE.Server.WorldObjects
             if (remove)
             {
                 Session.Network.EnqueueSend(new GameMessageDeleteObject(worldObject));
-                var creature = worldObject as Creature;
-                if (creature != null)
+                if (worldObject is Creature creature)
                     TrackEquippedObjects(creature, true);
             }
             return true;

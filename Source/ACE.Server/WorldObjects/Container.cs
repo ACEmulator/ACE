@@ -129,8 +129,7 @@ namespace ACE.Server.WorldObjects
                 Value += container.Value; // This value includes the containers value itself + all child items
             }
 
-            var hook = this as Hook;
-            if (hook != null)
+            if (this is Hook hook)
                 hook.OnAddItem();
         }
 
@@ -283,7 +282,7 @@ namespace ACE.Server.WorldObjects
             {
                 containerItems = Inventory.Values.Where(i => i.UseBackpackSlot).ToList();
 
-                if ((ContainerCapacity ?? 0) <= containerItems.Count())
+                if ((ContainerCapacity ?? 0) <= containerItems.Count)
                 {
                     container = null;
                     return false;
@@ -293,7 +292,7 @@ namespace ACE.Server.WorldObjects
             {
                 containerItems = Inventory.Values.Where(i => !i.UseBackpackSlot).ToList();
 
-                if ((ItemCapacity ?? 0) <= containerItems.Count())
+                if ((ItemCapacity ?? 0) <= containerItems.Count)
                 {
                     // Can we add this to any side pack?
                     if (!limitToMainPackOnly)
@@ -321,8 +320,7 @@ namespace ACE.Server.WorldObjects
             var oldContainer = CurrentLandblock?.GetObject(worldObject.ContainerId ?? 0);
             if (oldContainer != null)
             {
-                var hook = oldContainer as Hook;
-                if (hook != null)
+                if (oldContainer is Hook hook)
                     hook.OnRemoveItem();
             }
 

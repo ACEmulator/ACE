@@ -124,6 +124,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// If isFromMergeEvent is false, update messages will be sent for EncumbranceVal and if WeenieType is Coin, CoinValue will be updated and update messages will be sent for CoinValue.
         /// </summary>
+        [Obsolete]
         public bool TryRemoveFromInventoryWithNetworking(ObjectGuid objectGuid, out WorldObject item, bool isFromMergeEvent = false)
         {
             if (!TryRemoveFromInventory(objectGuid, out item))
@@ -146,6 +147,7 @@ namespace ACE.Server.WorldObjects
         /// This method is used to remove X number of items from a stack.<para />
         /// If amount to remove is greater or equal to the current stacksize, the stack will be destroyed..
         /// </summary>
+        [Obsolete]
         public bool TryRemoveItemFromInventoryWithNetworkingWithDestroy(WorldObject item, ushort amount)
         {
             if (amount >= (item.StackSize ?? 1))
@@ -704,143 +706,7 @@ namespace ACE.Server.WorldObjects
             PickupItemWithNetworking(this, itemGuid, wieldLocation, PropertyInstanceId.Wielder);*/
         }
 
-        private bool TryWieldItem(WorldObject item, int wieldLocation, bool preCheck = false)
-        {
-            //Console.WriteLine($"TryWieldItem({item.Name}, {(EquipMask)wieldLocation})");
-
-            var wieldError = CheckWieldRequirement(item);
-
-            if (wieldError != WeenieError.None)
-            {
-                var containerId = (uint)item.ContainerId;
-                var container = GetInventoryItem(new ObjectGuid(containerId));
-                if (container == null) container = this;
-
-                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, errorType: wieldError));
-                Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, container));
-                return false;
-            }
-
-            // unwield wand / missile launcher if dual wielding
-            if ((EquipMask)wieldLocation == EquipMask.Shield && !item.IsShield)
-            {
-                var mainWeapon = EquippedObjects.Values.FirstOrDefault(e => e.CurrentWieldedLocation == EquipMask.MissileWeapon || e.CurrentWieldedLocation == EquipMask.Held);
-                if (mainWeapon != null)
-                {
-                    if (!UnwieldItemWithNetworking(this, mainWeapon))
-                        return false;
-                }
-            }
-
-            TryRemoveFromInventory(item.Guid, out var containerItem);
-
-            if (!TryEquipObjectWithNetworking(item, wieldLocation))
-            {
-                log.Error("Player_Inventory HandleActionGetAndWieldItem TryEquipObject failed");
-                return false;
-            }
-
-            CreateEquippedItemSpells(item);
-
-            // TODO: I think we need to recalc our SetupModel here. see CalculateObjDesc()
-            var msgWieldItem = new GameEventWieldItem(Session, item.Guid.Full, wieldLocation);
-            var sound = new GameMessageSound(Guid, Sound.WieldObject, 1.0f);
-
-            if ((EquipMask)wieldLocation != EquipMask.MissileAmmo)
-            {
-                var updateContainer = new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Container, new ObjectGuid(0));
-                var updateWielder = new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Wielder, Guid);
-                var updateWieldLoc = new GameMessagePublicUpdatePropertyInt(item, PropertyInt.CurrentWieldedLocation, wieldLocation);
-
-                if (((EquipMask)wieldLocation & EquipMask.Selectable) == 0)
-                {
-                    EnqueueBroadcast(msgWieldItem, sound, updateContainer, updateWielder, updateWieldLoc, new GameMessageObjDescEvent(this));
-                    return true;
-                }
-
-                // TODO: wait for HandleQueueStance() here?
-                EnqueueBroadcast(new GameMessageParentEvent(this, item, (int?)item.ParentLocation ?? 0, (int?)item.Placement ?? 0), msgWieldItem, sound, updateContainer, updateWielder, updateWieldLoc);
-
-                if (CombatMode == CombatMode.NonCombat || CombatMode == CombatMode.Undef)
-                    return true;
-
-                switch ((EquipMask)wieldLocation)
-                {
-                    case EquipMask.MissileWeapon:
-                        SetCombatMode(CombatMode.Missile);
-                        break;
-                    case EquipMask.Held:
-                        SetCombatMode(CombatMode.Magic);
-                        break;
-                    default:
-                        SetCombatMode(CombatMode.Melee);
-                        break;
-                }
-            }
-            else
-            {
-                Session.Network.EnqueueSend(msgWieldItem, sound);
-
-                // new ammo becomes visible
-                // FIXME: can't get this to work without breaking client
-                // existing functionality also broken while swapping multiple arrows in missile combat mode
-                /*if (CombatMode == CombatMode.Missile)
-                {
-                    EnqueueBroadcast(new GameMessageParentEvent(this, item, (int)ACE.Entity.Enum.ParentLocation.RightHand, (int)ACE.Entity.Enum.Placement.RightHandCombat));
-                }*/
-            }
-
-            return true;
-        }
-
         private bool UseWieldRequirement = true;
-
-        private WeenieError CheckWieldRequirement(WorldObject item)
-        {
-            if (!UseWieldRequirement)
-                return WeenieError.None;
-
-            var itemWieldReq = (WieldRequirement)(item.GetProperty(PropertyInt.WieldRequirements) ?? 0);
-
-            switch (itemWieldReq)
-            {
-                case WieldRequirement.RawSkill:
-                    // Check WieldDifficulty property against player's Skill level, defined by item's WieldSkilltype property
-                    var itemSkillReq = ConvertToMoASkill((Skill)(item.GetProperty(PropertyInt.WieldSkilltype) ?? 0));
-
-                    if (itemSkillReq != Skill.None)
-                    {
-                        var playerSkill = GetCreatureSkill(itemSkillReq).Current;
-
-                        var skillDifficulty = (uint)(item.GetProperty(PropertyInt.WieldDifficulty) ?? 0);
-
-                        if (playerSkill < skillDifficulty)
-                            return WeenieError.SkillTooLow;
-                    }
-                    break;
-
-                case WieldRequirement.Level:
-                    // Check WieldDifficulty property against player's level
-                    if (Level < (uint)(item.GetProperty(PropertyInt.WieldDifficulty) ?? 0))
-                        return WeenieError.LevelTooLow;
-                    break;
-
-                case WieldRequirement.Attrib:
-                    // Check WieldDifficulty property against player's Attribute, defined by item's WieldSkilltype property
-                    var itemAttributeReq = (PropertyAttribute)(item.GetProperty(PropertyInt.WieldSkilltype) ?? 0);
-
-                    if (itemAttributeReq != PropertyAttribute.Undef)
-                    {
-                        var playerAttribute = Attributes[itemAttributeReq].Current;
-
-                        if (playerAttribute < (uint)(item.GetProperty(PropertyInt.WieldDifficulty) ?? 0))
-                            return WeenieError.SkillTooLow;
-                    }
-                    break;
-            }
-
-            return WeenieError.None;
-        }
 
         public Skill ConvertToMoASkill(Skill skill)
         {
@@ -853,41 +719,6 @@ namespace ACE.Server.WorldObjects
             }
 
             return skill;
-        }
-
-        /// <summary>
-        /// create spells by an equipped item
-        /// </summary>
-        /// <param name="item">the equipped item doing the spell creation</param>
-        /// <param name="suppressSpellChatText">prevent spell text from being sent to the player's chat windows</param>
-        /// <param name="ignoreRequirements">disregard item activation requirements</param>
-        /// <returns>if any spells were created or not</returns>
-        private bool CreateEquippedItemSpells(WorldObject item, bool suppressSpellChatText = false, bool ignoreRequirements = false)
-        {
-            bool spellCreated = false;
-
-            if (item.Biota.BiotaPropertiesSpellBook != null)
-            {
-                // TODO: Once Item Current Mana is fixed for loot generated items, '|| item.ItemCurMana == null' can be removed
-                if (item.ItemCurMana > 1 || item.ItemCurMana == null)
-                {
-                    for (int i = 0; i < item.Biota.BiotaPropertiesSpellBook.Count; i++)
-                    {
-                        if (CreateItemSpell(item.Guid, (uint)item.Biota.BiotaPropertiesSpellBook.ElementAt(i).Spell, suppressSpellChatText, ignoreRequirements))
-                            spellCreated = true;
-                    }
-
-                    item.IsAffecting = spellCreated;
-
-                    if (item.IsAffecting ?? false)
-                    {
-                        if (item.ItemCurMana.HasValue)
-                            item.ItemCurMana--;
-                    }
-                }
-            }
-
-            return spellCreated;
         }
 
 
@@ -1516,6 +1347,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Removes an item from either the player's inventory, or equipped items, and sends network messages
         /// </summary>
+        [Obsolete]
         public bool TryRemoveItemWithNetworking(WorldObject item)
         {
             if (item.CurrentWieldedLocation != null)
@@ -1535,6 +1367,7 @@ namespace ACE.Server.WorldObjects
         /// It sets the appropriate properties, sends out response messages  and handles switching stances - for example if you have a bow wielded and are in bow combat stance,
         /// when you unwield the bow, this also sends the messages needed to go into unarmed combat mode. Og II
         /// </summary>
+        [Obsolete]
         private bool UnwieldItemWithNetworking(Container container, WorldObject item, int placement = 0)
         {
             EquipMask? oldLocation = item.CurrentWieldedLocation;

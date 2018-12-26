@@ -67,7 +67,7 @@ namespace ACE.Server.WorldObjects
         public WorldObject GetEquippedWeapon()
         {
             var meleeWeapon = GetEquippedMeleeWeapon();
-            return meleeWeapon != null ? meleeWeapon : GetEquippedMissileWeapon();
+            return meleeWeapon ?? GetEquippedMissileWeapon();
         }
 
         /// <summary>
@@ -241,7 +241,6 @@ namespace ACE.Server.WorldObjects
             Placement placement;
             ParentLocation parentLocation;
 
-            // TODO: I think there is a state missing - it is one of the edge cases. I need to revist this.   Og II
             switch ((EquipMask)placementPosition)
             {
                 case EquipMask.MeleeWeapon:

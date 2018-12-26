@@ -1,3 +1,5 @@
+using System;
+
 using log4net;
 
 using ACE.Database;
@@ -11,9 +13,6 @@ using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.WorldObjects.Entity;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Factories;
-
-using System;
-using System.Linq;
 
 namespace ACE.Server.Managers
 {
