@@ -429,25 +429,23 @@ namespace ACE.Server.Managers
                     target.ItemMaxMana += 500;
                     break;
                 case MaterialType.Silver:
-                    // change wield requirement: melee defense -> missile defense (reduced)
+
                     if (target.WieldSkillType != Skill.MeleeDefense)
                         return;
-
-                    // linear regression estimated
+                    // change wield requirement: melee defense -> missile defense (reduced)
                     target.WieldSkillType = Skill.MissileDefense;
                     if (target.ItemSkillLevelLimit.HasValue)
-                        target.ItemSkillLevelLimit = (int)Math.Round(target.ItemSkillLevelLimit.Value * 0.8655172 - 12.67241);
-
+                        target.ItemSkillLevelLimit = (int)Math.Round(target.ItemSkillLevelLimit.Value * 0.85f);
                     break;
+
                 case MaterialType.Copper:
-                    // change wield requirement: missile defense -> melee defense (increased)
+
                     if (target.WieldSkillType != Skill.MissileDefense)
                         return;
-
-                    // linear regression estimated
+                    // change wield requirement: missile defense -> melee defense (increased)
                     target.WieldSkillType = Skill.MeleeDefense;
                     if (target.ItemSkillLevelLimit.HasValue)
-                        target.ItemSkillLevelLimit = (int)Math.Round(target.ItemSkillLevelLimit.Value * 1.169285 + 11.87942);
+                        target.ItemSkillLevelLimit = (int)Math.Round(target.ItemSkillLevelLimit.Value * 1.2f);
                     break;
 
                 case MaterialType.Silk:
