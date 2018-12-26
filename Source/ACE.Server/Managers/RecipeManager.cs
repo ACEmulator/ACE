@@ -297,8 +297,6 @@ namespace ACE.Server.Managers
             //if (tool.WeenieClassId >= 30094 && tool.WeenieClassId <= 30106)
                 //successChance = 1.0f;
 
-            Console.WriteLine($"Success chance: {successChance}");
-
             // check for player option: 'Use Crafting Chance of Success Dialog'
             if (player.GetCharacterOption(CharacterOption.UseCraftingChanceOfSuccessDialog) && !confirmed)
             {
@@ -320,8 +318,6 @@ namespace ACE.Server.Managers
                 player.SendUseDoneEvent();
                 return;
             }
-
-            Console.WriteLine("Performing tinkering...");
 
             var animLength = DoCraftMotion(player);
 
