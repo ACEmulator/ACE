@@ -1148,7 +1148,6 @@ namespace ACE.Database.Models.Shard
             {
                 rwLock.ExitReadLock();
             }
-
         }
 
         public static List<BiotaPropertiesEnchantmentRegistry> GetEnchantments(this Biota biota, ReaderWriterLockSlim rwLock)
@@ -1345,6 +1344,60 @@ namespace ACE.Database.Models.Shard
                     {
                         biota.BiotaPropertiesSpellBook.Remove(entity);
                         entity.Object = null;
+                        return true;
+                    }
+                    finally
+                    {
+                        rwLock.ExitWriteLock();
+                    }
+                }
+                return false;
+            }
+            finally
+            {
+                rwLock.ExitUpgradeableReadLock();
+            }
+        }
+
+        public static List<HousePermission> GetHousePermission(this Biota biota, ReaderWriterLockSlim rwLock)
+        {
+            rwLock.EnterReadLock();
+            try
+            {
+                return biota.HousePermission.ToList();
+            }
+            finally
+            {
+                rwLock.ExitReadLock();
+            }
+        }
+
+        public static void AddHousePermission(this Biota biota, HousePermission entity, ReaderWriterLockSlim rwLock)
+        {
+            rwLock.EnterWriteLock();
+            try
+            {
+                biota.HousePermission.Add(entity);
+            }
+            finally
+            {
+                rwLock.ExitWriteLock();
+            }
+        }
+
+        public static bool TryRemoveHousePermission(this Biota biota, uint playerGuid, out HousePermission entity, ReaderWriterLockSlim rwLock)
+        {
+            rwLock.EnterUpgradeableReadLock();
+            try
+            {
+                entity = biota.HousePermission.FirstOrDefault(x => x.PlayerGuid == playerGuid);
+                if (entity != null)
+                {
+                    rwLock.EnterWriteLock();
+                    try
+                    {
+                        biota.HousePermission.Remove(entity);
+                        entity.House = null;
                         return true;
                     }
                     finally

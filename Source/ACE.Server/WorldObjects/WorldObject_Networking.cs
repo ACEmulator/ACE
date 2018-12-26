@@ -155,8 +155,10 @@ namespace ACE.Server.WorldObjects
                 writer.Write(HouseOwner ?? 0);
 
             if ((weenieFlags & WeenieHeaderFlag.HouseRestrictions) != 0)
-                //writer.Write(HouseRestrictions ?? 0u);
-                writer.Write(new RestrictionDB());
+            {
+                var house = this as House;
+                writer.Write(new RestrictionDB(house));
+            }
 
             if ((weenieFlags & WeenieHeaderFlag.HookItemTypes) != 0)
                 writer.Write((uint?)HookItemType ?? 0);
@@ -716,9 +718,9 @@ namespace ACE.Server.WorldObjects
             if (HouseOwner != null)
                 weenieHeaderFlag |= WeenieHeaderFlag.HouseOwner;
 
-            //TODO: HousingRestriction ACL property
             //if (HouseRestrictions != null)
-            //    weenieHeaderFlag |= WeenieHeaderFlag.HouseRestrictions;
+            if (this is House)
+                weenieHeaderFlag |= WeenieHeaderFlag.HouseRestrictions;
 
             var hookItemTypeInt = GetProperty(PropertyInt.HookItemType);
             if (hookItemTypeInt != null)

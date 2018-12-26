@@ -1,5 +1,4 @@
-using System;
-using ACE.Server.Network.Structure;
+using ACE.Common.Extensions;
 
 namespace ACE.Server.Network.GameAction.Actions
 {
@@ -13,7 +12,9 @@ namespace ACE.Server.Network.GameAction.Actions
         {
             //Console.WriteLine("Received 0x245 - HouseAddPermanentGuest");
 
-            var guestName = message.Payload.ReadString();
+            var guestName = message.Payload.ReadString16L();
+
+            session.Player.HandleActionAddGuest(guestName);
         }
     }
 }

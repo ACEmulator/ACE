@@ -69,7 +69,7 @@ namespace ACE.Server.WorldObjects
             if (attackFrames.Count == 1)
                 delayTime = attackFrames[0] * animLength;
             else
-                log.Warn($"{Name}.GetAttackFrames(): MotionTableId: {MotionTableId:X8}, MotionStance: {CurrentMotionState.Stance}, Motion: {maneuver.Motion:X8}, AttackFrames.Count({attackFrames.Count}) != 1");
+                log.Warn($"{Name}.GetAttackFrames(): MotionTableId: {MotionTableId:X8}, MotionStance: {CurrentMotionState.Stance}, Motion: {maneuver.Motion}, AttackFrames.Count({attackFrames.Count}) != 1");
 
             actionChain.AddDelaySeconds(delayTime);
             actionChain.AddAction(this, () =>
