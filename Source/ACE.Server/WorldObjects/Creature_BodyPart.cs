@@ -10,17 +10,24 @@ namespace ACE.Server.WorldObjects
     {
         public Creature Creature;
         public BiotaPropertiesBodyPart Biota;
+
         public float WeaponResistanceMod;
+
+        public bool IgnoreMagicArmor;   // impen, bane
+        public bool IgnoreMagicResist;  // armor, protection
 
         public EnchantmentManager EnchantmentManager => Creature.EnchantmentManager;
 
-        public Creature_BodyPart(Creature creature, BiotaPropertiesBodyPart biota)
+        public Creature_BodyPart(Creature creature, BiotaPropertiesBodyPart biota, bool ignoreMagicArmor = false, bool ignoreMagicResist = false)
         {
             Creature = creature;
             Biota = biota;
+
+            IgnoreMagicArmor = ignoreMagicArmor;
+            IgnoreMagicResist = ignoreMagicResist;
         }
 
-        public int BaseArmorMod => Biota.BaseArmor + EnchantmentManager.GetBodyArmorMod();
+        public int BaseArmorMod => Biota.BaseArmor + (IgnoreMagicResist ? 0 : EnchantmentManager.GetBodyArmorMod());
         public int ArmorVsSlash => GetArmorVsType(DamageType.Slash, Biota.ArmorVsSlash);
         public int ArmorVsPierce => GetArmorVsType(DamageType.Pierce, Biota.ArmorVsPierce);
         public int ArmorVsBludgeon => GetArmorVsType(DamageType.Bludgeon, Biota.ArmorVsBludgeon);
@@ -37,8 +44,8 @@ namespace ACE.Server.WorldObjects
                 resistance = 1.0f;
 
             float mod;
-            var spellVuln = EnchantmentManager.GetVulnerabilityResistanceMod(damageType);
-            var spellProt = EnchantmentManager.GetProtectionResistanceMod(damageType);
+            var spellVuln = IgnoreMagicResist ? 1.0f : EnchantmentManager.GetVulnerabilityResistanceMod(damageType);    // ignore vuln?
+            var spellProt = IgnoreMagicResist ? 1.0f : EnchantmentManager.GetProtectionResistanceMod(damageType);
 
             if (WeaponResistanceMod < spellVuln)
                 mod = WeaponResistanceMod * spellProt;
