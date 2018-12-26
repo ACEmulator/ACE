@@ -64,9 +64,6 @@ namespace ACE.Server.WorldObjects
                 lifestoneBlock.EnqueueBroadcast(excludePlayers, true, broadcastMsg);
             }
 
-            // reset damage history for this player
-            DamageHistory.Reset();
-
             return deathMessage;
         }
 
@@ -103,16 +100,21 @@ namespace ACE.Server.WorldObjects
             var msgVitaeCpPool = new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.VitaeCpPool, VitaeCpPool.Value);
             var msgPurgeEnchantments = new GameEventMagicPurgeEnchantments(Session);
 
-            // update vitae
-            var vitae = EnchantmentManager.UpdateVitae();
-
-            var spellID = (uint)SpellId.Vitae;
-            var spell = new Spell(spellID);
-            var vitaeEnchantment = new Enchantment(this, Guid, spellID, spell.Duration, 0, (EnchantmentMask)spell.StatModType, vitae);
-            var msgVitaeEnchantment = new GameEventMagicUpdateEnchantment(Session, vitaeEnchantment);
-
             // send network messages for player death
-            Session.Network.EnqueueSend(msgHealthUpdate, msgNumDeaths, msgDeathLevel, msgVitaeCpPool, msgPurgeEnchantments, msgVitaeEnchantment);
+            Session.Network.EnqueueSend(msgHealthUpdate, msgNumDeaths, msgDeathLevel, msgVitaeCpPool, msgPurgeEnchantments);
+
+            // update vitae
+            // players who died in a PKLite fight do not accrue vitae
+            var pkLiteKiller = GetKiller_PKLite();
+            if (pkLiteKiller == null)
+            {
+                var vitae = EnchantmentManager.UpdateVitae();
+
+                var spellID = (uint)SpellId.Vitae;
+                var spell = new Spell(spellID);
+                var vitaeEnchantment = new Enchantment(this, Guid, spellID, spell.Duration, 0, (EnchantmentMask)spell.StatModType, vitae);
+                Session.Network.EnqueueSend(new GameEventMagicUpdateEnchantment(Session, vitaeEnchantment));
+            }
 
             // wait for the death animation to finish
             var dieChain = new ActionChain();
@@ -159,7 +161,11 @@ namespace ACE.Server.WorldObjects
 
                 // Stand back up
                 SetStance(MotionStance.NonCombat);
+
+                // reset damage history for this player
+                DamageHistory.Reset();
             });
+
             teleportChain.EnqueueChain();
         }
 
@@ -298,6 +304,20 @@ namespace ACE.Server.WorldObjects
             // The Changing of the Ways (May 2001) - Players are now given the coordinates of their characters' corpses when they die.
             // Hidden Vein (May 2002) - Many changes made on the way item loss on death works. See http://acpedia.org/wiki/Hidden_Vein and http://acpedia.org/wiki/Announcements_-_2002/05_-_Hidden_Vein#Letter_to_the_Players for more details
             // Throne of Destiny expansion (July 2005) - The formula used for working out how many items a character drops was updated. For details on the old formula and how it changed see http://acpedia.org/wiki/Announcements_-_2005/07_-_Throne_of_Destiny_(expansion)#FAQ_-_AC:TD_Level_Cap_Update
+
+            // if player dies in a PKLite battle,
+            // they don't drop any items, and revert back to NPK status
+
+            if (PlayerKillerStatus == PlayerKillerStatus.PKLite)
+            {
+                var killer = CurrentLandblock?.GetObject(new ObjectGuid(Killer ?? 0));
+                if (killer is Player)
+                {
+                    PlayerKillerStatus = PlayerKillerStatus.NPK;
+                    EnqueueBroadcast(new GameMessagePublicUpdatePropertyInt(this, PropertyInt.PlayerKillerStatus, (int)PlayerKillerStatus));
+                    return new List<WorldObject>();
+                }
+            }
 
             var numItemsDropped = GetNumItemsDropped();
 

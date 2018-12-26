@@ -17,7 +17,6 @@ using ACE.Server.Network;
 using ACE.Server.Network.Enum;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
-using ACE.Server.Network.Sequence;
 using ACE.Server.Network.Structure;
 using ACE.Server.WorldObjects.Entity;
 using ACE.Server.Physics.Animation;
@@ -517,6 +516,9 @@ namespace ACE.Server.WorldObjects
                 // remove the player from landblock management -- after the animation has run
                 logoutChain.AddAction(this, () =>
                 {
+                    if (PlayerKillerStatus == PlayerKillerStatus.PKLite)
+                        PlayerKillerStatus = PlayerKillerStatus.NPK;
+
                     CurrentLandblock?.RemoveWorldObject(Guid, false);
                     SetPropertiesAtLogOut();
                     SavePlayerToDatabase();
@@ -977,6 +979,37 @@ namespace ACE.Server.WorldObjects
         public void SendMessage(string msg)
         {
             Session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
+        }
+
+        public void HandleActionEnterPkLite()
+        {
+            // ensure permanent npk
+            if (PlayerKillerStatus != PlayerKillerStatus.NPK || MinimumTimeSincePk != null)
+            {
+                Session.Network.EnqueueSend(new GameMessageSystemChat("Only Non-Player Killers may enter PK Lite. Please see @help pklite for more details about this command.", ChatMessageType.Broadcast));
+                return;
+            }
+
+            // perform pk lite entry motion / effect
+            var motion = new Motion(MotionStance.NonCombat, MotionCommand.EnterPKLite);
+            EnqueueBroadcastMotion(motion);
+
+            var motionTable = DatManager.PortalDat.ReadFromDat<MotionTable>(MotionTableId);
+            var animLength = motionTable.GetAnimationLength(MotionStance.NonCombat, MotionCommand.EnterPKLite);
+
+            var actionChain = new ActionChain();
+            actionChain.AddDelaySeconds(animLength);
+            actionChain.AddAction(this, () =>
+            {
+                PlayerKillerStatus = PlayerKillerStatus.PKLite;
+
+                var status = new GameMessagePublicUpdatePropertyInt(this, PropertyInt.PlayerKillerStatus, (int)PlayerKillerStatus);
+                var msg = new GameMessageSystemChat($"{Name} is looking for a fight!", ChatMessageType.Broadcast);
+
+                EnqueueBroadcast(status, msg);
+
+            });
+            actionChain.EnqueueChain();
         }
     }
 }
