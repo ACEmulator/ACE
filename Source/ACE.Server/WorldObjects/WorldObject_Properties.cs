@@ -2082,8 +2082,8 @@ namespace ACE.Server.WorldObjects
         {
             get
             {
-                var darktide = PropertyManager.GetBool("darktide").Item;
-                if (darktide && GetProperty(PropertyFloat.MinimumTimeSincePk) == null)
+                var pk_server = PropertyManager.GetBool("pk_server").Item;
+                if (pk_server && GetProperty(PropertyFloat.MinimumTimeSincePk) == null)
                     return PlayerKillerStatus.PK;
                 else
                     return _playerKillerStatus;

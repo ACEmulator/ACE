@@ -435,7 +435,7 @@ namespace ACE.Server.Managers
         public static readonly ReadOnlyDictionary<string, bool> DefaultBooleanProperties =
             DictOf(
                 ("alwaysshowwelcome", false),
-                ("darktide", false)
+                ("pk_server", false)
                 );
 
         public static readonly ReadOnlyDictionary<string, long> DefaultLongProperties = DictOf<string, long>();
