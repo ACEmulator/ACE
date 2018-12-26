@@ -949,6 +949,7 @@ namespace ACE.Server.WorldObjects
             }
         }
 
+
         public Usable? Usable
         {
             get => (Usable?)GetProperty(PropertyInt.ItemUseable);
@@ -977,6 +978,66 @@ namespace ACE.Server.WorldObjects
         {
             get => (CombatUse?)GetProperty(PropertyInt.CombatUse);
             set { if (!value.HasValue) RemoveProperty(PropertyInt.CombatUse); else SetProperty(PropertyInt.CombatUse, (int)value.Value); }
+        }
+
+        public int? Damage
+        {
+            get => GetProperty(PropertyInt.Damage);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.Damage); else SetProperty(PropertyInt.Damage, value.Value); }
+        }
+
+        public double? DamageMod
+        {
+            get => GetProperty(PropertyFloat.DamageMod);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.DamageMod); else SetProperty(PropertyFloat.DamageMod, value.Value); }
+        }
+
+        public double? DamageVariance
+        {
+            get => GetProperty(PropertyFloat.DamageVariance);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.DamageVariance); else SetProperty(PropertyFloat.DamageVariance, value.Value); }
+        }
+
+        public int? WeaponTime
+        {
+            get => GetProperty(PropertyInt.WeaponTime);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.WeaponTime); else SetProperty(PropertyInt.WeaponTime, value.Value); }
+        }
+
+        public double? WeaponDefense
+        {
+            get => GetProperty(PropertyFloat.WeaponDefense);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.WeaponDefense); else SetProperty(PropertyFloat.WeaponDefense, value.Value); }
+        }
+
+        public double? WeaponOffense
+        {
+            get => GetProperty(PropertyFloat.WeaponOffense);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.WeaponOffense); else SetProperty(PropertyFloat.WeaponOffense, value.Value); }
+        }
+
+        public double? ManaConversionMod
+        {
+            get => GetProperty(PropertyFloat.ManaConversionMod);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.ManaConversionMod); else SetProperty(PropertyFloat.ManaConversionMod, value.Value); }
+        }
+
+        public double? ElementalDamageMod
+        {
+            get => GetProperty(PropertyFloat.ElementalDamageMod);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.ElementalDamageMod); else SetProperty(PropertyFloat.ElementalDamageMod, value.Value); }
+        }
+
+        public Skill WieldSkillType
+        {
+            get => (Skill)(GetProperty(PropertyInt.WieldSkillType) ?? 0);
+            set { if (value == Skill.None) RemoveProperty(PropertyInt.WieldSkillType); else SetProperty(PropertyInt.WieldSkillType, (int)value); }
+        }
+
+        public int? ItemAllegianceRankLimit
+        {
+            get => GetProperty(PropertyInt.ItemAllegianceRankLimit);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.ItemAllegianceRankLimit); else SetProperty(PropertyInt.ItemAllegianceRankLimit, value.Value); }
         }
 
         /// <summary>
@@ -1293,7 +1354,13 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyInt.Gender); else SetProperty(PropertyInt.Gender, value.Value); }
         }
 
-        public string HeritageGroup
+        public HeritageGroup HeritageGroup
+        {
+            get => (HeritageGroup)(GetProperty(PropertyInt.HeritageGroup) ?? 0);
+            set { if (value == HeritageGroup.Invalid) RemoveProperty(PropertyInt.HeritageGroup); else SetProperty(PropertyInt.HeritageGroup, (int)value); }
+        }
+
+        public string HeritageGroupName
         {
             get => GetProperty(PropertyString.HeritageGroup);
             set { if (value == null) RemoveProperty(PropertyString.HeritageGroup); else SetProperty(PropertyString.HeritageGroup, value); }
@@ -1819,6 +1886,11 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyFloat.Shade); else SetProperty(PropertyFloat.Shade, value.Value); }
         }
 
+        public int NumTimesTinkered
+        {
+            get => GetProperty(PropertyInt.NumTimesTinkered) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.NumTimesTinkered); else SetProperty(PropertyInt.NumTimesTinkered, value); }
+        }
 
 
         // ========================================

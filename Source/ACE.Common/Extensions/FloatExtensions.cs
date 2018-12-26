@@ -8,5 +8,12 @@ namespace ACE.Common.Extensions
         {
             return (int)Math.Round(num, decimalPlaces, MidpointRounding.AwayFromZero);
         }
+
+        public static float Truncate(this float num, int decimalPlaces)
+        {
+            var multiplier = Math.Pow(10, decimalPlaces);
+
+            return (float)(Math.Truncate(num * multiplier) / multiplier);
+        }
     }
 }

@@ -63,10 +63,7 @@ namespace ACE.Server.Entity
                 }
                 else
                 {
-                    Confirmation confirm = new Confirmation(ConfirmationType.Fellowship,
-                            $"{inviter.Name} invites to you join a fellowship.", inviter.Guid.Full,
-                            newMember.Guid.Full);
-
+                    var confirm = new Confirmation(ConfirmationType.Fellowship, $"{inviter.Name} invites to you join a fellowship.", inviter, newMember);
                     ConfirmationManager.AddConfirmation(confirm);
 
                     newMember.Session.Network.EnqueueSend(new GameEventConfirmationRequest(newMember.Session, ConfirmationType.Fellowship,

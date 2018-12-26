@@ -1,4 +1,4 @@
-using ACE.Server.Network.Enum;
+using ACE.Entity.Enum;
 
 namespace ACE.Server.Network.GameEvent.Events
 {

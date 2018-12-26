@@ -126,8 +126,8 @@ namespace ACE.Entity.Enum
         [CharacterOptions1(CharacterOptions1.ShowAllegianceLogons)]
         ShowAllegianceLogons,
 
-        [CharacterOptions1(CharacterOptions1.UseCraftingChangeOfSuccessDialog)]
-        UseCraftingChangeOfSuccessDialog,
+        [CharacterOptions1(CharacterOptions1.UseCraftingChanceOfSuccessDialog)]
+        UseCraftingChanceOfSuccessDialog,
 
         [CharacterOptions2(CharacterOptions2.AlwaysDaylightOutdoors)]
         AlwaysDaylightOutdoors,

@@ -4306,7 +4306,7 @@ namespace ACE.Server.Factories
                 wo.SetProperty(PropertyInt.ItemWorkmanship, workmanship);
                 wo.SetProperty(PropertyInt.WieldDifficulty, wieldDiff);
                 wo.SetProperty(PropertyInt.WieldRequirements, wieldRequirments);
-                wo.SetProperty(PropertyInt.WieldSkilltype, wieldSkillType);
+                wo.SetProperty(PropertyInt.WieldSkillType, wieldSkillType);
                 wo.SetProperty(PropertyInt.AppraisalLongDescDecoration, longDescDecoration);
                 wo.SetProperty(PropertyFloat.DamageVariance, damageVariance);
                 wo.SetProperty(PropertyFloat.WeaponDefense, weaponDefense);
@@ -4326,7 +4326,7 @@ namespace ACE.Server.Factories
                 {
                     wo.RemoveProperty(PropertyInt.WieldDifficulty);
                     wo.RemoveProperty(PropertyInt.WieldRequirements);
-                    wo.RemoveProperty(PropertyInt.WieldSkilltype);
+                    wo.RemoveProperty(PropertyInt.WieldSkillType);
                 }
 
                 return wo;
@@ -15756,7 +15756,7 @@ namespace ACE.Server.Factories
             wo.SetProperty(PropertyInt.ItemSkillLevelLimit, itemSkillLevelLimit);
             wo.SetProperty(PropertyInt.WeaponSkill, weaponSkillInt);
             wo.SetProperty(PropertyInt.WieldRequirements, wieldRequirements);
-            wo.SetProperty(PropertyInt.WieldSkilltype, wieldSkillType);
+            wo.SetProperty(PropertyInt.WieldSkillType, wieldSkillType);
             wo.SetProperty(PropertyString.LongDesc, getLongDesc(wo.GetProperty(PropertyString.Name), gemType, gemCount));
             if (numSpells == 0)
             {
@@ -15774,7 +15774,7 @@ namespace ACE.Server.Factories
             {
                 wo.RemoveProperty(PropertyInt.WieldDifficulty);
                 wo.RemoveProperty(PropertyInt.WieldRequirements);
-                wo.RemoveProperty(PropertyInt.WieldSkilltype);
+                wo.RemoveProperty(PropertyInt.WieldSkillType);
             }
             return wo;
         }
@@ -16145,7 +16145,7 @@ namespace ACE.Server.Factories
             if(wield > 0)
             {
                 wo.SetProperty(PropertyInt.WieldRequirements, wieldReqs);
-                wo.SetProperty(PropertyInt.WieldSkilltype, wieldSkillType);
+                wo.SetProperty(PropertyInt.WieldSkillType, wieldSkillType);
                 wo.SetProperty(PropertyInt.WieldDifficulty, wield);
             }
             else
