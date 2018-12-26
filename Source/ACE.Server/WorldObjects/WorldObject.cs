@@ -29,7 +29,7 @@ using Position = ACE.Entity.Position;
 
 namespace ACE.Server.WorldObjects
 {
-    public abstract partial class WorldObject : IActor, IComparable<WorldObject>
+    public abstract partial class WorldObject : IActor
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -845,23 +845,6 @@ namespace ACE.Server.WorldObjects
         public string GetPluralName()
         {
             return Name + "s";
-        }
-
-        public int CompareTo(WorldObject wo)
-        {
-            return Guid.Full.CompareTo(wo.Guid.Full);
-        }
-
-        public override bool Equals(object obj)
-        {
-            var wo = obj as WorldObject;
-            if (wo == null) return false;
-            return Guid.Full.Equals(wo.Guid.Full);
-        }
-
-        public override int GetHashCode()
-        {
-            return Guid.Full.GetHashCode();
         }
 
         /// <summary>

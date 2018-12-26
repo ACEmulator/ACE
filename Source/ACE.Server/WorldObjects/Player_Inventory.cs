@@ -289,9 +289,7 @@ namespace ACE.Server.WorldObjects
 
             if (searchLocations.HasFlag(SearchLocations.LastUsedContainer))
             {
-                var lastUsedContainer = CurrentLandblock?.GetObject(lastUsedContainerId) as Container;
-
-                if (lastUsedContainer != null)
+                if (CurrentLandblock?.GetObject(lastUsedContainerId) is Container lastUsedContainer)
                 {
                     result = lastUsedContainer.GetInventoryItem(objectGuid, out foundInContainer);
 
