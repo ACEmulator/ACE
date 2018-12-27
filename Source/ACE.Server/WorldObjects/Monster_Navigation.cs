@@ -80,7 +80,9 @@ namespace ACE.Server.WorldObjects
             IsTurning = true;
 
             // send network actions
-            if (IsRanged)
+            var targetDist = GetDistanceToTarget();
+            var turnTo = IsRanged || (CurrentAttack == AttackType.Magic && targetDist <= GetSpellMaxRange());
+            if (turnTo)
                 TurnTo(AttackTarget);
             else
                 MoveTo(AttackTarget, RunRate);
@@ -90,7 +92,7 @@ namespace ACE.Server.WorldObjects
             IsMoving = true;
 
             var mvp = GetMovementParameters();
-            if (IsRanged)
+            if (turnTo)
                 PhysicsObj.TurnToObject(AttackTarget.PhysicsObj.ID, mvp);
             else
                 PhysicsObj.MoveToObject(AttackTarget.PhysicsObj, mvp);
@@ -280,6 +282,7 @@ namespace ACE.Server.WorldObjects
                 //else
                     //Console.WriteLine("Moving " + Name + " to " + Location.LandblockId.Raw.ToString("X8"));
             }
+
             Location.Pos = newPos.Frame.Origin;
             Location.Rotation = newPos.Frame.Orientation;
 
@@ -359,7 +362,10 @@ namespace ACE.Server.WorldObjects
 
             // set non-default params for monster movement
             mvp.Flags &= ~MovementParamFlags.CanWalk;
-            if (!IsRanged)
+
+            var turnTo = IsRanged || (CurrentAttack == AttackType.Magic && GetDistanceToTarget() <= GetSpellMaxRange());
+
+            if (!turnTo)
                 mvp.Flags |= MovementParamFlags.FailWalk | MovementParamFlags.UseFinalHeading | MovementParamFlags.Sticky | MovementParamFlags.MoveAway;
 
             return mvp;
