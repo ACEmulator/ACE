@@ -191,6 +191,8 @@ namespace ACE.Server.WorldObjects
             worldObject.RemoveProperty(PropertyInt.CurrentWieldedLocation);
             worldObject.RemoveProperty(PropertyInstanceId.Wielder);
 
+            worldObject.IsAffecting = false;
+
             EncumbranceVal -= worldObject.EncumbranceVal;
             Value -= worldObject.Value;
 
@@ -217,9 +219,8 @@ namespace ACE.Server.WorldObjects
             if (!droppingToLandscape)
             {
                 // This should only be called if the object is going to the private storage, not when dropped on the landscape
-                EnqueueBroadcast(new GameMessagePickupEvent(worldObject));
-
-                // todo: remove the object from internal tracking
+                var wo = worldObject;
+                EnqueueActionBroadcast(p => p.RemoveTrackedObject(wo, true));
             }
 
             return true;

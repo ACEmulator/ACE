@@ -539,34 +539,10 @@ namespace ACE.Server.WorldObjects
         }
 
 
-        // SetPropertiesForWorld, SetPropertiesForContainer, SetPropertiesForVendor
-        #region Utility Functions
-        internal void SetPropertiesForWorld(WorldObject objectToPlaceInRelationTo, double distanceInFront, bool rotate180 = false)
-        {
-            var newLocation = objectToPlaceInRelationTo.Location.InFrontOf(distanceInFront, rotate180);
-
-            SetPropertiesForWorld(newLocation);
-        }
-
-        internal void SetPropertiesForWorld(Position location)
-        {
-            Location = new Position(location);
-
-            // should be sent automatically
-            //PositionFlags = PositionFlags.IsGrounded | PositionFlags.HasPlacementID | PositionFlags.OrientationHasNoX | PositionFlags.OrientationHasNoY;
-
-            Placement = ACE.Entity.Enum.Placement.Resting; // This is needed to make items lay flat on the ground.
-            PlacementPosition = null;
-
-            ContainerId = null;
-            WielderId = null;
-            CurrentWieldedLocation = null;
-        }
-
+        [Obsolete]
         internal void SetPropertiesForContainer()
         {
             Location = null;
-            PositionFlags = PositionFlags.None;
 
             Placement = ACE.Entity.Enum.Placement.Resting;
             if (PlacementPosition == null)
@@ -577,10 +553,10 @@ namespace ACE.Server.WorldObjects
             CurrentWieldedLocation = null;
         }
 
+        [Obsolete]
         internal void SetPropertiesForVendor()
         {
             Location = null;
-            PositionFlags = PositionFlags.None;
 
             Placement = ACE.Entity.Enum.Placement.Resting; // This is needed to make items lay flat on the ground.
             PlacementPosition = null;
@@ -589,7 +565,7 @@ namespace ACE.Server.WorldObjects
             WielderId = null;
             CurrentWieldedLocation = null;
         }
-        #endregion
+
 
 
         // ========================================

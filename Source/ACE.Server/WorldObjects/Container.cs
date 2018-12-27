@@ -324,6 +324,9 @@ namespace ACE.Server.WorldObjects
                     hook.OnRemoveItem();
             }
 
+            worldObject.Location = null;
+            worldObject.Placement = null;
+
             worldObject.OwnerId = Guid.Full;
             worldObject.ContainerId = Guid.Full;
             worldObject.PlacementPosition = placementPosition; // Server only variable that we use to remember/restore the order in which items exist in a container

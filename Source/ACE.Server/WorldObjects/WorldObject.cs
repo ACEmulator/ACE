@@ -50,8 +50,6 @@ namespace ACE.Server.WorldObjects
 
         public ObjectDescriptionFlag BaseDescriptionFlags { get; protected set; }
 
-        public PositionFlags PositionFlags { get; protected set; }
-
         public SequenceManager Sequences { get; } = new SequenceManager();
 
         public virtual float ListeningRadius { get; protected set; } = 5f;
@@ -454,8 +452,6 @@ namespace ACE.Server.WorldObjects
                         var weenieFlags2 = CalculatedWeenieHeaderFlag2();
                         sb.AppendLine($"{prop.Name} = {weenieFlags2.ToString()}" + " (" + (uint)weenieFlags2 + ")");
                         break;
-                    case "positionflag":
-                        sb.AppendLine($"{prop.Name} = {obj.PositionFlags.ToString()}" + " (" + (uint)obj.PositionFlags + ")");
                         break;
                     case "itemtype":
                         sb.AppendLine($"{prop.Name} = {obj.ItemType.ToString()}" + " (" + (uint)obj.ItemType + ")");

@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using ACE.Entity;
 
 namespace ACE.Server.WorldObjects
 {
@@ -87,7 +88,8 @@ namespace ACE.Server.WorldObjects
                 {
                     if (corpse.TryRemoveFromInventory(guid, out var item))
                     {
-                        item.SetPropertiesForWorld(corpse.Location);
+                        item.Location = new Position(corpse.Location);
+                        item.Placement = ACE.Entity.Enum.Placement.Resting; // This is needed to make items lay flat on the ground.
                         CurrentLandblock.AddWorldObject(item);
                     }
                 }

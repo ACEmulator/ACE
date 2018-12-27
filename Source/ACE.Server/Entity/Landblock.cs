@@ -349,9 +349,9 @@ namespace ACE.Server.Entity
             wo.NotifyPlayers();
         }
 
-        public void RemoveWorldObject(ObjectGuid objectId, bool adjacencyMove = false)
+        public void RemoveWorldObject(ObjectGuid objectId, bool adjacencyMove = false, bool fromPickup = false)
         {
-            RemoveWorldObjectInternal(objectId, adjacencyMove);
+            RemoveWorldObjectInternal(objectId, adjacencyMove, fromPickup);
         }
 
         /// <summary>
@@ -364,37 +364,7 @@ namespace ACE.Server.Entity
             RemoveWorldObjectInternal(objectId, adjacencyMove);
         }
 
-        /// <summary>
-        /// This will also set the item.Location to null.
-        /// </summary>
-        public bool RemoveWorldObjectFromPickup(ObjectGuid objectGuid)
-        {
-            // Find owner of wo
-            var lb = GetOwner(objectGuid);
-
-            if (lb == null)
-            {
-                log.Error("Landblock QueueItemRemove failed to GetOwner");
-                return false;
-            }
-
-            var item = GetObject(objectGuid);
-
-            if (item == null)
-            {
-                log.Error("Landblock QueueItemRemove failed to GetObject");
-                return false;
-            }
-
-            RemoveWorldObjectInternal(objectGuid, true);
-            //item.PhysicsObj.DestroyObject();    // destroy physicsobj, but do not remove from tracking
-
-            item.Location = null;
-
-            return true;
-        }
-
-        private void RemoveWorldObjectInternal(ObjectGuid objectId, bool adjacencyMove = false)
+        private void RemoveWorldObjectInternal(ObjectGuid objectId, bool adjacencyMove = false, bool fromPickup = false)
         {
             //log.Debug($"LB {Id.Landblock:X}: removing {objectId.Full:X}");
 
@@ -411,7 +381,7 @@ namespace ACE.Server.Entity
             if (!adjacencyMove)
             {
                 // really remove it - send message to client to remove object
-                wo.EnqueueActionBroadcast((Player p) => p.RemoveTrackedObject(wo, true));
+                wo.EnqueueActionBroadcast(p => p.RemoveTrackedObject(wo, fromPickup));
 
                 wo.PhysicsObj.DestroyObject();
             }

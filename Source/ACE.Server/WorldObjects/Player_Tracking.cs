@@ -129,18 +129,20 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// This will return true of the object was being tracked and has successfully been removed.
         /// </summary>
-        public bool RemoveTrackedObject(WorldObject worldObject, bool remove)
+        public bool RemoveTrackedObject(WorldObject worldObject, bool fromPickup)
         {
             //Console.WriteLine($"Player {Name} - RemoveTrackedObject({remove})");
 
             ObjMaint.RemoveObject(worldObject.PhysicsObj);
 
-            if (remove)
-            {
+            if (fromPickup)
+                Session.Network.EnqueueSend(new GameMessagePickupEvent(worldObject));
+            else
                 Session.Network.EnqueueSend(new GameMessageDeleteObject(worldObject));
-                if (worldObject is Creature creature)
-                    TrackEquippedObjects(creature, true);
-            }
+
+            if (worldObject is Creature creature)
+                TrackEquippedObjects(creature, true);
+
             return true;
         }
     }

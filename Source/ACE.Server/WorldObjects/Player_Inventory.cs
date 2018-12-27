@@ -92,7 +92,10 @@ namespace ACE.Server.WorldObjects
         {
             None,
             WieldedToPack,
-            DropItem
+            WieldedToOffPlayerContainer,
+            DropItem,
+            PlaceItemInLandblockContainer,
+            ConsumeItem
         }
 
         public bool TryRemoveFromInventoryWithNetworking(ObjectGuid objectGuid, out WorldObject item, RemoveFromInventoryAction removeFromInventoryAction)
@@ -100,82 +103,21 @@ namespace ACE.Server.WorldObjects
             if (!TryRemoveFromInventory(objectGuid, out item))
                 return false;
 
-            if (removeFromInventoryAction == RemoveFromInventoryAction.DropItem)
-            {
-                item.ContainerId = null;
-
-                Session.Network.EnqueueSend(
-                    new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0),
-                    new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Container, new ObjectGuid(0)));
-
-                if (item.WeenieType == WeenieType.Coin)
-                    UpdateCoinValue();
-
-                // We must update the database with the latest ContainerId and WielderId properties.
-                // If we don't, the player can drop the item, log out, and log back in. If the landblock hasn't queued a database save in that time,
-                // the player will end up loading with this object in their inventory even though the landblock is the true owner. This is because
-                // when we load player inventory, the database still has the record that shows this player as the ContainerId for the item.
-                item.SaveBiotaToDatabase();
-            }
-
-            return true;
-        }
-
-        /// <summary>
-        /// If isFromMergeEvent is false, update messages will be sent for EncumbranceVal and if WeenieType is Coin, CoinValue will be updated and update messages will be sent for CoinValue.
-        /// </summary>
-        [Obsolete]
-        public bool TryRemoveFromInventoryWithNetworking(ObjectGuid objectGuid, out WorldObject item, bool isFromMergeEvent = false)
-        {
-            if (!TryRemoveFromInventory(objectGuid, out item))
-                return false;
-
-            Session.Network.EnqueueSend(new GameEventInventoryRemoveObject(Session, item));
-
-            if (!isFromMergeEvent)
-            {
-                Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
-
-                if (item.WeenieType == WeenieType.Coin)
-                    UpdateCoinValue();
-            }
-
-            return true;
-        }
-
-        /// <summary>
-        /// This method is used to remove X number of items from a stack.<para />
-        /// If amount to remove is greater or equal to the current stacksize, the stack will be destroyed..
-        /// </summary>
-        [Obsolete]
-        public bool TryRemoveItemFromInventoryWithNetworkingWithDestroy(WorldObject item, ushort amount)
-        {
-            if (amount >= (item.StackSize ?? 1))
-            {
-                if (TryRemoveFromInventoryWithNetworking(item.Guid, out _))
-                {
-                    item.Destroy();
-                    return true;
-                }
-
-                return false;
-            }
-
-            item.StackSize -= amount;
-
-            Session.Network.EnqueueSend(new GameMessageSetStackSize(item));
-
-            EncumbranceVal = (EncumbranceVal - (item.StackUnitEncumbrance * amount));
-            Value = (Value - (item.StackUnitValue * amount));
-
-            Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
+            Session.Network.EnqueueSend(
+                new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Container, new ObjectGuid(0)),
+                new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
 
             if (item.WeenieType == WeenieType.Coin)
                 UpdateCoinValue();
 
+            // We must update the database with the latest ContainerId and WielderId properties.
+            // If we don't, the player can drop the item, log out, and log back in. If the landblock hasn't queued a database save in that time,
+            // the player will end up loading with this object in their inventory even though the landblock is the true owner. This is because
+            // when we load player inventory, the database still has the record that shows this player as the ContainerId for the item.
+            item.SaveBiotaToDatabase();
+
             return true;
         }
-
 
         /// <summary>
         /// This will set the CurrentWieldedLocation property to wieldedLocation and the Wielder property to this guid and will add it to the EquippedObjects dictionary.<para />
@@ -193,7 +135,7 @@ namespace ACE.Server.WorldObjects
 
         /// <summary>
         /// This will remove the Wielder and CurrentWieldedLocation properties on the item and will remove it from the EquippedObjects dictionary.<para />
-        /// It does not add it to inventory as you could be unwielding to the ground or a chest. Og II<para />
+        /// It does not add it to inventory as you could be unwielding to the ground or a chest.<para />
         /// It will also decrease the EncumbranceVal and Value.
         /// </summary>
         public bool TryDequipObjectWithNetworking(ObjectGuid objectGuid, out WorldObject item, RemoveFromInventoryAction removeFromInventoryAction)
@@ -201,7 +143,12 @@ namespace ACE.Server.WorldObjects
             if (!TryDequipObjectWithBroadcasting(objectGuid, out item, (removeFromInventoryAction == RemoveFromInventoryAction.DropItem)))
                 return false;
 
-            Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
+            // If item has any spells, remove them from the registry on unequip
+            if (item.Biota.BiotaPropertiesSpellBook != null)
+            {
+                for (int i = 0; i < item.Biota.BiotaPropertiesSpellBook.Count; i++)
+                    DispelItemSpell(item.Guid, (uint)item.Biota.BiotaPropertiesSpellBook.ElementAt(i).Spell);
+            }
 
             if (removeFromInventoryAction == RemoveFromInventoryAction.DropItem)
             {
@@ -209,6 +156,8 @@ namespace ACE.Server.WorldObjects
                     new GameMessageObjDescEvent(this),
                     new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Wielder, ObjectGuid.Invalid),
                     new GameMessagePublicUpdatePropertyInt(item, PropertyInt.CurrentWieldedLocation, 0));
+
+                Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
 
                 // We must update the database with the latest ContainerId and WielderId properties.
                 // If we don't, the player can drop the item, log out, and log back in. If the landblock hasn't queued a database save in that time,
@@ -362,47 +311,13 @@ namespace ACE.Server.WorldObjects
         /// - move an item around in our inventory.
         /// - dequip an item.
         /// - Pickup an item off of the landblock or a container on the landblock
+        /// - Put an item into a container on the landblock
+        /// - Move an item between containers on a landblock
         /// </summary>
         public void HandleActionPutItemInContainer(ObjectGuid itemGuid, ObjectGuid containerGuid, int placement = 0)
         {
-            /* PCapped Examples
-             *
-             * Moving an item ? to same or different container?
-             * new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0)
-             * new GameEventItemServerSaysContainId(Session, item, container)
-             * new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Container, container.Guid)
-             *
-             * Picking up an item
-             * [Update Position if applicable]
-             * MotionCommand.Pickup
-             * new GameMessageSound(Guid, Sound.PickUpItem)
-             * new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0)
-             * new GameEventItemServerSaysContainId(Session, item, container)
-             * return movement
-             * new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Container, container.Guid)
-             *
-             * Picking up a container
-             * [Update Position if applicable]
-             * MotionCommand.Pickup
-             * new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0)
-             * new GameEventViewContents(player.Session, container)
-             * new GameEventItemServerSaysContainId(Session, item, container)
-
-             * new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Container, container.Guid)
-             *
-             * Dequipping an item
-             * new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0)
-             * new GameEventItemServerSaysContainId(Session, item, container)
-             * new GameMessageSound(Guid, Sound.UnwieldObject)
-             * EnqueueBroadcast(new GameMessagePickupEvent(worldObject))
-             * new GameMessagePublicUpdateInstanceID(worldObject, PropertyInstanceId.Wielder, ObjectGuid.Invalid)
-             * new GameMessagePublicUpdatePropertyInt(worldObject, PropertyInt.CurrentWieldedLocation, 0)
-             * new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Container, ObjectGuid.Invalid)
-             * EnqueueBroadcast(new GameMessagePickupEvent(worldObject))
-             */
-
             var item = FindObject(itemGuid, SearchLocations.Everywhere, out var itemFoundInContainer, out var itemRootOwner, out var itemWasEquipped);
-            var container = FindObject(itemGuid, SearchLocations.MyInventory | SearchLocations.Landblock | SearchLocations.LastUsedContainer, out var containerFoundInContainer, out var containerRootOwner, out _);
+            var container = FindObject(containerGuid, SearchLocations.MyInventory | SearchLocations.Landblock | SearchLocations.LastUsedContainer, out var containerFoundInContainer, out var containerRootOwner, out _) as Container;
 
             if (item == null)
             {
@@ -444,8 +359,10 @@ namespace ACE.Server.WorldObjects
 
             if (itemRootOwner != this || containerRootOwner != this) // Either the source or destination is not possessed by the player
             {
+                Container itemAsContainer = item as Container;
+
                 // Checking to see if item to pick is an container itself and IsOpen
-                if (item.WeenieType == WeenieType.Container && item.IsOpen && item is Container itemAsContainer)
+                if (itemAsContainer != null && itemAsContainer.IsOpen)
                 {
                     if (itemAsContainer.Viewer == Session.Player.Guid.Full)
                     {
@@ -465,15 +382,92 @@ namespace ACE.Server.WorldObjects
 
                 actionChain.AddAction(this, () =>
                 {
-                    // todo
+                    var questSolve = false;
+
+                    if (itemRootOwner != this && containerRootOwner == this && item.Quest != null) // We're picking up a quest item
+                    {
+                        if (!QuestManager.CanSolve(item.Quest))
+                        {
+                            QuestManager.HandleSolveError(item.Quest);
+                            return;
+                        }
+
+                        questSolve = true;
+                    }
+
+                    if (item.CurrentLandblock != null) // Movement is an item pickup off the landblock
+                    {
+                        item.CurrentLandblock.RemoveWorldObject(item.Guid, false, true);
+                        item.Location = null;
+                    }
+                    else if (itemWasEquipped) // Movement is an equipped item to a container on the landblock
+                    {
+                        // todo
+                    }
+                    else if (itemRootOwner == this) // Movement is an inventory item to a container on the landblock
+                    {
+                        if (!TryRemoveFromInventoryWithNetworking(item.Guid, out _, RemoveFromInventoryAction.PlaceItemInLandblockContainer))
+                        {
+                            Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "Failed to remove item from inventory!")); // Custom error message
+                            Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, WeenieError.None));
+                            return;
+                        }
+                    }
+                    else // Movement is within the same pack or between packs in a container on the landblock
+                    {
+                        if (!itemFoundInContainer.TryRemoveFromInventory(item.Guid))
+                        {
+                            Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "TryRemoveFromInventory Failed!")); // Custom error message
+                            Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, WeenieError.None));
+                        }
+                    }
+
+                    if (container.TryAddToInventory(item, placement, true))
+                    {
+                        Session.Network.EnqueueSend(
+                            new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Container, container.Guid),
+                            new GameEventItemServerSaysContainId(Session, item, container));
+
+                        if (itemRootOwner != this && containerRootOwner == this) // We've picked up an item
+                        { 
+                            if (itemAsContainer != null) // We're picking up a pack
+                            {
+                                Session.Network.EnqueueSend(new GameEventViewContents(Session, itemAsContainer));
+
+                                foreach (var packItem in itemAsContainer.Inventory)
+                                    Session.Network.EnqueueSend(new GameMessageCreateObject(packItem.Value));
+                            }
+
+                            Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
+
+                            if (item.WeenieType == WeenieType.Coin)
+                                UpdateCoinValue();
+
+                            EnqueueBroadcast(new GameMessageSound(Guid, Sound.PickUpItem));
+
+                            item.NotifyOfEvent(RegenerationType.PickUp);
+
+                            if (questSolve)
+                                QuestManager.Update(item.Quest);
+                        }
+                        else if (itemRootOwner == this && containerRootOwner != this) // We've dropped up an item
+                        {
+                            Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
+
+                            if (item.WeenieType == WeenieType.Coin)
+                                UpdateCoinValue();
+
+                            EnqueueBroadcast(new GameMessageSound(Guid, Sound.DropItem));
+                        }
+                    }
+                    else
+                    {
+                        Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "AddToInventory Failed!")); // Custom error message
+                        Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, WeenieError.None));
+                    }
 
                     var returnStance = new Motion(CurrentMotionState.Stance);
                     EnqueueBroadcastMotion(returnStance);
-
-                    // This is a pickup or drop
-                    //PickupItemWithNetworking(container, itemGuid, placement, PropertyInstanceId.Container);
-
-                    // todo
                 });
 
                 actionChain.EnqueueChain();
@@ -482,62 +476,39 @@ namespace ACE.Server.WorldObjects
             {
                 if (itemWasEquipped) // Movement is an equipped item to a local pack
                 {
-                    /*// Was I equiped? If so, lets take care of that and unequip
-                    if (item.WielderId != null)
+                    //TryDequipObjectWithNetworking(item.Guid, out _, RemoveFromInventoryAction.WieldedToPack);
+
+                    // todo
+                }
+                else // Movement is within the same pack or between packs
+                {
+                    if (!itemFoundInContainer.TryRemoveFromInventory(item.Guid) || !container.TryAddToInventory(item, placement))
                     {
-                        UnwieldItemWithNetworking(container, item, placement);
-                        item.IsAffecting = false;
-                        return;
-                    }*/
-                }
-                else if (itemFoundInContainer == container) // Move  is within the same pack
-                {
-                    // if were are still here, this needs to do a pack pack or main pack move.
-                    // MoveItemWithNetworking(item, container, placement);
-                }
-                else // Move is between packs
-                {
-                    // if were are still here, this needs to do a pack pack or main pack move.
-                    // MoveItemWithNetworking(item, container, placement);
+                        Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "TryRemoveFromInventory or TryAddToInventory Failed!")); // Custom error message
+                        Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, WeenieError.None));
+                    }
+
+                    // If we've moved the item from the main pack to a side pack, we must increment our main EncumbranceValue and Value
+                    if (itemFoundInContainer == this && container != this)
+                    {
+                        EncumbranceVal += item.EncumbranceVal;
+                        Value += item.Value;
+                    }
+
+                    Session.Network.EnqueueSend(
+                        new GameEventItemServerSaysContainId(Session, item, container),
+                        new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Container, container.Guid));
                 }
             }
         }
 
         /// <summary>
         /// This is raised when we:
-        /// - drop an item from inventory
         /// - drop an equipped item
+        /// - drop an item from inventory
         /// </summary>
         public void HandleActionDropItem(ObjectGuid itemGuid)
         {
-            /* PCapped Examples
-             *
-             * Dropping an equipped item
-             * new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0)
-             * new GameMessageObjDescEvent(this)
-             * new GameMessageSound(Guid, Sound.UnwieldObject)
-             * MotionCommand.Pickup
-             * new GameMessagePublicUpdateInstanceID(worldObject, PropertyInstanceId.Wielder, ObjectGuid.Invalid)
-             * new GameMessagePublicUpdatePropertyInt(worldObject, PropertyInt.CurrentWieldedLocation, 0)
-             * - wait for animation -
-             * new GameEventItemServerSaysMoveItem(Session, item)
-             * return movement
-             * new GameMessageSound(Guid, Sound.DropItem)
-             * new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Container, ObjectGuid.Invalid)
-             * new GameMessageUpdatePosition(item)
-             *
-             * Dropping an item from inventory
-             * new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0)
-             * MotionCommand.Pickup
-             * new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Container, ObjectGuid.Invalid)
-             * - wait for animation -
-             * new GameEventItemServerSaysMoveItem(Session, item)
-             * return movement
-             * new GameMessageSound(Guid, Sound.DropItem)
-             * new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Container, ObjectGuid.Invalid)
-             * new GameMessageUpdatePosition(item)
-             */
-
             var item = FindObject(itemGuid, SearchLocations.MyInventory | SearchLocations.MyEquippedItems, out _, out _, out var wasEquipped);
 
             if (item == null)
@@ -553,20 +524,20 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if (!wasEquipped)
+            if (wasEquipped)
             {
-                if (!TryRemoveFromInventoryWithNetworking(itemGuid, out item, RemoveFromInventoryAction.DropItem))
+                if (!TryDequipObjectWithNetworking(itemGuid, out item, RemoveFromInventoryAction.DropItem))
                 {
-                    Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "Failed to remove item from inventory!")); // Custom error message
+                    Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "Failed to dequip item!")); // Custom error message
                     Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, WeenieError.None));
                     return;
                 }
             }
             else
             {
-                if (!TryDequipObjectWithNetworking(itemGuid, out item, RemoveFromInventoryAction.DropItem))
+                if (!TryRemoveFromInventoryWithNetworking(itemGuid, out item, RemoveFromInventoryAction.DropItem))
                 {
-                    Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "Failed to dequip item!")); // Custom error message
+                    Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "Failed to remove item from inventory!")); // Custom error message
                     Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, WeenieError.None));
                     return;
                 }
@@ -576,20 +547,17 @@ namespace ACE.Server.WorldObjects
 
             actionChain.AddAction(this, () =>
             {
-                // This is the sequence magic - adds back into 3d space seem to be treated like teleport.
-                item.Sequences.GetNextSequence(SequenceType.ObjectTeleport);
-                item.Sequences.GetNextSequence(SequenceType.ObjectVector);
-
-                item.SetPropertiesForWorld(this, 1.1f);
+                item.Location = new Position(Location.InFrontOf(1.1f));
+                item.Placement = ACE.Entity.Enum.Placement.Resting; // This is needed to make items lay flat on the ground.
 
                 CurrentLandblock?.AddWorldObject(item);
 
                 Session.Network.EnqueueSend(new GameEventItemServerSaysMoveItem(Session, item));
 
+                EnqueueBroadcast(new GameMessageSound(Guid, Sound.DropItem));
+
                 var returnStance = new Motion(CurrentMotionState.Stance);
                 EnqueueBroadcastMotion(returnStance);
-
-                EnqueueBroadcast(new GameMessageSound(Guid, Sound.DropItem));
 
                 // todo: These messages should really be sent by the tracking code.
                 // todo: The equipped items should already be tracked/known by other players.
@@ -612,29 +580,6 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void HandleActionGetAndWieldItem(uint itemGuid, int wieldLocation)
         {
-            /* PCapped Examples
-             *
-             * Wielding an armor item from inventory
-             * new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0)
-             * cast enchantments: CURRENT_ATTACKER_IID + Spells
-             * new GameEventWieldItem(Session, item.Guid.Full, wieldLocation)
-             * EnqueueBroadcast(new GameMessageSound(Guid, Sound.WieldObject))
-             * new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Container, new ObjectGuid.Invalid)
-             * new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Wielder, Guid)
-             * objdesc
-             * new GameMessagePublicUpdatePropertyInt(item, PropertyInt.CurrentWieldedLocation, wieldLocation)
-             *
-             * Wielding a weapon from inventory
-             * new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0)
-             * cast enchantments: CURRENT_ATTACKER_IID + Spells
-             * new GameEventWieldItem(Session, item.Guid.Full, wieldLocation)
-             * EnqueueBroadcast(new GameMessageSound(Guid, Sound.WieldObject))
-             * new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Container, new ObjectGuid.Invalid)
-             * new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Wielder, Guid)
-             * new GameMessagePublicUpdatePropertyInt(item, PropertyInt.CurrentWieldedLocation, wieldLocation)
-             * physics parent event
-             */
-
             var item = FindObject(new ObjectGuid(itemGuid), SearchLocations.MyInventory | SearchLocations.Landblock | SearchLocations.LastUsedContainer, out var foundInContainer, out var rootOwner, out var wasEquipped);
 
             if (item == null)
@@ -644,7 +589,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if (rootOwner == null || rootOwner != this) // Item is on the landscape, or in a landblock chest
+            if (rootOwner != this) // Item is on the landscape, or in a landblock chest
             {
                 var moveToChain = CreateMoveToChain(item, out var thisMoveToChainNumber);
 
@@ -702,21 +647,6 @@ namespace ACE.Server.WorldObjects
             // We don't have possession of the item so we must pick it up.
             // should this be wielding the item afterwards?
             PickupItemWithNetworking(this, itemGuid, wieldLocation, PropertyInstanceId.Wielder);*/
-        }
-
-        private bool UseWieldRequirement = true;
-
-        public Skill ConvertToMoASkill(Skill skill)
-        {
-            if (this is Player player)
-            {
-                if (SkillExtensions.RetiredMelee.Contains(skill))
-                    return player.GetHighestMeleeSkill();
-                if (SkillExtensions.RetiredMissile.Contains(skill))
-                    return Skill.MissileWeapons;
-            }
-
-            return skill;
         }
 
 
@@ -1162,7 +1092,8 @@ namespace ACE.Server.WorldObjects
                 newStack.Sequences.GetNextSequence(SequenceType.ObjectTeleport);
                 newStack.Sequences.GetNextSequence(SequenceType.ObjectVector);
 
-                newStack.SetPropertiesForWorld(this, 1.1f);
+                newStack.Location = new Position(Location.InFrontOf(1.1f));
+                newStack.Placement = ACE.Entity.Enum.Placement.Resting; // This is needed to make items lay flat on the ground.
 
                 CurrentLandblock.AddWorldObject(newStack);
             });
@@ -1340,6 +1271,61 @@ namespace ACE.Server.WorldObjects
 
 
 
+
+        /// <summary>
+        /// If isFromMergeEvent is false, update messages will be sent for EncumbranceVal and if WeenieType is Coin, CoinValue will be updated and update messages will be sent for CoinValue.
+        /// </summary>
+        [Obsolete]
+        public bool TryRemoveFromInventoryWithNetworking(ObjectGuid objectGuid, out WorldObject item, bool isFromMergeEvent = false)
+        {
+            if (!TryRemoveFromInventory(objectGuid, out item))
+                return false;
+
+            Session.Network.EnqueueSend(new GameEventInventoryRemoveObject(Session, item));
+
+            if (!isFromMergeEvent)
+            {
+                Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
+
+                if (item.WeenieType == WeenieType.Coin)
+                    UpdateCoinValue();
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// This method is used to remove X number of items from a stack.<para />
+        /// If amount to remove is greater or equal to the current stacksize, the stack will be destroyed..
+        /// </summary>
+        [Obsolete]
+        public bool TryRemoveItemFromInventoryWithNetworkingWithDestroy(WorldObject item, ushort amount)
+        {
+            if (amount >= (item.StackSize ?? 1))
+            {
+                if (TryRemoveFromInventoryWithNetworking(item.Guid, out _))
+                {
+                    item.Destroy();
+                    return true;
+                }
+
+                return false;
+            }
+
+            item.StackSize -= amount;
+
+            Session.Network.EnqueueSend(new GameMessageSetStackSize(item));
+
+            EncumbranceVal = (EncumbranceVal - (item.StackUnitEncumbrance * amount));
+            Value = (Value - (item.StackUnitValue * amount));
+
+            Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
+
+            if (item.WeenieType == WeenieType.Coin)
+                UpdateCoinValue();
+
+            return true;
+        }
 
         // TODO this function doesn't really fit the model. It needs to be re-evaluated 2018-12-16 Mag-nus
         /// <summary>
