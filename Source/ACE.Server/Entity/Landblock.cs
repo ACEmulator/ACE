@@ -637,5 +637,21 @@ namespace ACE.Server.Entity
                 return isDungeon.Value;
             }
         }
+
+        private bool? isHouseDungeon;
+
+        public bool IsHouseDungeon
+        {
+            get
+            {
+                // return cached value
+                if (isHouseDungeon != null)
+                    return isHouseDungeon.Value;
+
+                isHouseDungeon = IsDungeon ? DatabaseManager.World.GetHousePortalsByLandblock(Id.Landblock).Count > 0 : false;
+
+                return isHouseDungeon.Value;
+            }
+        }
     }
 }

@@ -57,7 +57,7 @@ namespace ACE.Server.WorldObjects
             if (player == null) return;
 
             // verify permissions to use hook
-            if (!House.HasPermission(player))
+            if (!House.HasPermission(player, true))
             {
                 player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, $"The {Name} is locked"));
                 player.SendUseDoneEvent();

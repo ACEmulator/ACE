@@ -102,6 +102,11 @@ namespace ACE.Database
             return _wrappedDatabase.GetBiota(id);
         }
 
+        public List<Biota> GetBiotasByWcid(uint id)
+        {
+            return _wrappedDatabase.GetBiotasByWcid(id);
+        }
+
         public void GetBiota(uint id, Action<Biota> callback)
         {
             _queue.Add(new Task(() =>

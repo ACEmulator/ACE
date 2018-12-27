@@ -1,22 +1,25 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using ACE.Common;
+using ACE.Database;
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
+using ACE.Server.Factories;
 using ACE.Server.Managers;
 using ACE.Server.Network.Structure;
 using ACE.Server.Network.GameMessages.Messages;
 
 namespace ACE.Server.WorldObjects
 {
-    public class House: WorldObject
+    public class House : WorldObject
     {
-        public Dictionary<IPlayer, bool> Guests;
+        public Dictionary<ObjectGuid, bool> Guests;
 
         public static int MaxGuests = 32;
 
@@ -33,9 +36,11 @@ namespace ACE.Server.WorldObjects
         public SlumLord SlumLord { get => ChildLinks.FirstOrDefault(l => l as SlumLord != null) as SlumLord; }
         public List<Hook> Hooks { get => ChildLinks.Where(l => l is Hook).Select(l => l as Hook).ToList(); }
         public List<Storage> Storage { get => ChildLinks.Where(l => l is Storage).Select(l => l as Storage).ToList(); }
+        public HashSet<ObjectGuid> StorageAccess => Guests.Where(i => i.Value).Select(i => i.Key).ToHashSet();
         public WorldObject BootSpot => ChildLinks.FirstOrDefault(i => i.WeenieType == WeenieType.BootSpot);
 
-        public HashSet<IPlayer> StorageAccess => Guests.Where(i => i.Value).Select(i => i.Key).ToHashSet();
+        public HousePortal HousePortal { get => ChildLinks.FirstOrDefault(l => l as HousePortal != null) as HousePortal;  }
+        public List<WorldObject> Linkspots => ChildLinks.Where(l => l.WeenieType == WeenieType.Generic && l.WeenieClassName.Equals("portaldestination")).ToList();
 
         /// <summary>
         /// A new biota be created taking all of its values from weenie.
@@ -87,6 +92,36 @@ namespace ACE.Server.WorldObjects
             return houseData;
         }
 
+        public static House Load(uint houseGuid)
+        {
+            var landblock = (ushort)((houseGuid >> 12) & 0xFFFF);
+
+            var biota = DatabaseManager.Shard.GetBiota(houseGuid);
+            var instances = DatabaseManager.World.GetCachedInstancesByLandblock(landblock);
+
+            if (instances == null || instances.Count == 0 || biota == null)
+            {
+                //Console.WriteLine($"{Name} sent HouseInstance={HouseInstance:X8}, instances={instances}, biota={biota}");
+                return null;
+            }
+
+            var objects = WorldObjectFactory.CreateNewWorldObjects(instances, new List<Biota>() { biota }, houseGuid);
+            if (objects.Count == 0)
+            {
+                //Console.WriteLine($"{Name} sent HouseInstance={HouseInstance:X8}, found instances and biota, but object count=0");
+                return null;
+            }
+
+            var house = objects[0] as House;
+            if (house == null)
+            {
+                //Console.WriteLine($"{Name} sent HouseInstance={HouseInstance:X8}, found instances and biota, but type {objects[0].WeenieType}");
+                return null;
+            }
+            house.ActivateLinks(instances, new List<Biota>() { biota });
+            return house;
+        }
+
         /// <summary>
         /// The client automatically adds this amount of time to the beginning of the current maintenance period
         /// </summary>
@@ -115,11 +150,23 @@ namespace ACE.Server.WorldObjects
 
         public override void SetLinkProperties(WorldObject wo)
         {
-            wo.HouseId = HouseId;
-            wo.HouseOwner = HouseOwner;
-            wo.HouseInstance = HouseInstance;
+            // for house dungeons, link to outdoor house properties
+            var house = this;
+            if (CurrentLandblock != null && CurrentLandblock.IsDungeon)
+            {
+                var biota = DatabaseManager.Shard.GetBiotasByWcid(WeenieClassId).FirstOrDefault(b => b.BiotaPropertiesPosition.FirstOrDefault(p => p.PositionType == (ushort)PositionType.Location).ObjCellId >> 16 != Location.Landblock);
+                if (biota != null)
+                {
+                    house = WorldObjectFactory.CreateWorldObject(biota) as House;
+                    HouseOwner = house.HouseOwner;
+                }
+            }
 
-            if (HouseOwner != null && wo is SlumLord)
+            wo.HouseId = house.HouseId;
+            wo.HouseOwner = house.HouseOwner;
+            wo.HouseInstance = house.HouseInstance;
+
+            if (house.HouseOwner != null && wo is SlumLord)
                 wo.CurrentMotionState = new Motion(MotionStance.Invalid, MotionCommand.On);
 
             // the inventory items haven't been loaded yet
@@ -129,8 +176,22 @@ namespace ACE.Server.WorldObjects
                 wo.UiHidden = true;
             }
 
+            if (wo.IsLinkSpot)
+            {
+                var housePortals = GetHousePortals();
+                if (housePortals.Count == 0)
+                {
+                    Console.WriteLine($"{Name}.SetLinkProperties({wo.Name}): found LinkSpot, but empty HousePortals");
+                    return;
+                }
+                var i = housePortals[0];
+                var destination = new Position(i.ObjCellId, new Vector3(i.OriginX, i.OriginY, i.OriginZ), new Quaternion(i.AnglesX, i.AnglesY, i.AnglesZ, i.AnglesW));
+
+                wo.SetPosition(PositionType.Destination, destination);
+            }
+
             //if (HouseOwner != null)
-            //Console.WriteLine($"{Name}.SetLinkProperties({wo.Name}) - houseID: {HouseId:X8}, owner: {HouseOwner:X8}, instance: {HouseInstance:X8}");
+                //Console.WriteLine($"{Name}.SetLinkProperties({wo.Name}) - houseID: {HouseId:X8}, owner: {HouseOwner:X8}, instance: {HouseInstance:X8}");
         }
 
         public override void UpdateLinkProperties(WorldObject wo)
@@ -147,9 +208,9 @@ namespace ACE.Server.WorldObjects
         public bool IsApartment => HouseType != null && (HouseType)HouseType.Value == ACE.Entity.Enum.HouseType.Apartment;
 
         /// <summary>
-        /// Returns TRUE if this player has storage access
+        /// Returns TRUE if this player has guest or storage access
         /// </summary>
-        public bool HasPermission(Player player)
+        public bool HasPermission(Player player, bool storage = false)
         {
             if (HouseOwner == null)
                 return false;
@@ -157,7 +218,10 @@ namespace ACE.Server.WorldObjects
             if (player.Guid.Full == HouseOwner.Value)
                 return true;
 
-            return StorageAccess.Contains(player);
+            if (storage)
+                return StorageAccess.Contains(player.Guid);
+            else
+                return Guests.ContainsKey(player.Guid);
         }
 
         public bool? HouseHooksVisible
@@ -168,7 +232,7 @@ namespace ACE.Server.WorldObjects
 
         public void BuildGuests()
         {
-            Guests = new Dictionary<IPlayer, bool>();
+            Guests = new Dictionary<ObjectGuid, bool>();
 
             var housePermissions = Biota.GetHousePermission(BiotaDatabaseLock);
 
@@ -180,7 +244,7 @@ namespace ACE.Server.WorldObjects
                     Console.WriteLine($"{Name}.BuildGuests(): couldn't find guest {housePermission.PlayerGuid}");
                     continue;
                 }
-                Guests.Add(player, housePermission.Storage);
+                Guests.Add(player.Guid, housePermission.Storage);
             }
         }
 
@@ -222,6 +286,50 @@ namespace ACE.Server.WorldObjects
                 Console.WriteLine($"{Name}.FindGuest({guest.Guid}): couldn't find {guest.Name}");
 
             return existing;
+        }
+
+        /// <summary>
+        /// Returns the database HousePortals for a HouseID
+        /// </summary>
+        public List<Database.Models.World.HousePortal> GetHousePortals()
+        {
+            // the database house portals are different from the HousePortal weenie objects
+            // the db info contains the portal destinations
+
+            return DatabaseManager.World.GetHousePortals(HouseId.Value);
+        }
+
+        public bool HasDungeon => HousePortal != null;
+
+        private uint? _dungeonLandblockID;
+
+        public uint DungeonLandblockID
+        {
+            get
+            {
+                if (_dungeonLandblockID == null)
+                {
+                    var housePortal = GetHousePortals();
+                    _dungeonLandblockID = housePortal[0].ObjCellId | 0xFFFF;
+                }
+                return _dungeonLandblockID.Value;
+            }
+        }
+
+        private uint? _dungeonHouseGuid;
+
+        public uint DungeonHouseGuid
+        {
+            get
+            {
+                if (_dungeonHouseGuid == null)
+                {
+                    var housePortals = GetHousePortals();
+                    _dungeonHouseGuid = housePortals[0].Id;
+
+                }
+                return _dungeonHouseGuid.Value;
+            }
         }
     }
 }

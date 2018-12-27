@@ -4,7 +4,6 @@ using System.Linq;
 using System.Text;
 using ACE.Common;
 using ACE.Database;
-using ACE.Database.Models.Shard;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
@@ -21,7 +20,7 @@ namespace ACE.Server.WorldObjects
     {
         public House House;
 
-        public Dictionary<IPlayer, bool> Guests => House.Guests;
+        public Dictionary<ObjectGuid, bool> Guests => House.Guests;
 
         /// <summary>
         /// Called when player clicks the 'Buy house' button,
@@ -296,34 +295,9 @@ namespace ACE.Server.WorldObjects
                 return House;
 
             var houseGuid = HouseInstance.Value;
-            var landblock = (ushort)((houseGuid >> 12) & 0xFFFF);
+            House = House.Load(houseGuid);
 
-            var biota = DatabaseManager.Shard.GetBiota(houseGuid);
-            var instances = DatabaseManager.World.GetCachedInstancesByLandblock(landblock);
-
-            if (instances == null || instances.Count == 0 || biota == null)
-            {
-                Console.WriteLine($"{Name} sent HouseInstance={HouseInstance:X8}, instances={instances}, biota={biota}");
-                return null;
-            }
-
-            var objects = WorldObjectFactory.CreateNewWorldObjects(instances, new List<Biota>() { biota }, houseGuid);
-            if (objects.Count == 0)
-            {
-                Console.WriteLine($"{Name} sent HouseInstance={HouseInstance:X8}, found instances and biota, but object count=0");
-                return null;
-            }
-
-            var house = objects[0] as House;
-            if (house == null)
-            {
-                Console.WriteLine($"{Name} sent HouseInstance={HouseInstance:X8}, found instances and biota, but type {objects[0].WeenieType}");
-                return null;
-            }
-
-            house.ActivateLinks(instances, new List<Biota>() { biota });
-            House = house;
-            return house;
+            return House;
         }
 
         public House GetHouse()
@@ -344,12 +318,25 @@ namespace ACE.Server.WorldObjects
             return loaded.GetObject(new ObjectGuid(houseGuid)) as House;
         }
 
+        public House GetDungeonHouse()
+        {
+            var landblockId = new LandblockId(House.DungeonLandblockID);
+            var isLoaded = LandblockManager.IsLoaded(landblockId);
+
+            if (!isLoaded)
+                return null;
+
+            var loaded = LandblockManager.GetLandblock(landblockId, false);
+            var wos = loaded.GetWorldObjectsForPhysicsHandling();
+            return wos.FirstOrDefault(wo => wo.WeenieClassId == House.WeenieClassId) as House;
+        }
+
         public void AddHouseGuest(IPlayer guest, bool storage)
         {
             var house = GetHouse();
             house.AddGuest(guest, storage);
 
-            Guests.Add(guest, storage);
+            Guests.Add(guest.Guid, storage);
             UpdateRestrictionDB();
         }
 
@@ -358,7 +345,7 @@ namespace ACE.Server.WorldObjects
             var house = GetHouse();
             house.UpdateGuest(guest, storage);
 
-            Guests[guest] = storage;
+            Guests[guest.Guid] = storage;
             UpdateRestrictionDB();
         }
 
@@ -367,7 +354,7 @@ namespace ACE.Server.WorldObjects
             var house = GetHouse();
             house.RemoveGuest(guest);
 
-            Guests.Remove(guest);
+            Guests.Remove(guest.Guid);
             UpdateRestrictionDB();
         }
 
@@ -396,7 +383,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if (Guests.ContainsKey(guest))
+            if (Guests.ContainsKey(guest.Guid))
             {
                 Session.Network.EnqueueSend(new GameMessageSystemChat($"{guest.Name} is already on your guest list.", ChatMessageType.Broadcast));
                 return;
@@ -438,7 +425,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if (!Guests.ContainsKey(guest))
+            if (!Guests.ContainsKey(guest.Guid))
             {
                 Session.Network.EnqueueSend(new GameMessageSystemChat($"{guest.Name} isn't on your guest list.", ChatMessageType.Broadcast));
                 return;
@@ -456,7 +443,7 @@ namespace ACE.Server.WorldObjects
 
                 // if guest access is removed while player is in house,
                 // they will be stuck in restriction space
-                if (onlineGuest.Location.GetOutdoorCell() == House.Location.GetOutdoorCell())
+                if (OnProperty(onlineGuest))
                     HandleActionBoot(onlineGuest.Name);
             }
         }
@@ -471,8 +458,11 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            foreach (var guest in Guests.Keys)
+            foreach (var guid in Guests.Keys.ToList())
+            {
+                var guest = PlayerManager.FindByGuid(guid);
                 HandleActionRemoveGuest(guest.Name);
+            }
         }
 
         public void HandleActionGuestList()
@@ -486,10 +476,11 @@ namespace ACE.Server.WorldObjects
             }
 
             var sb = new StringBuilder($"{Name}'s {House.SlumLord.Name} guest list:\n");
-            foreach (var guest in Guests)
+            foreach (var kvp in Guests)
             {
-                var storage = guest.Value ? "* " : "";
-                sb.Append(storage + guest.Key.Name + "\n");
+                var guest = PlayerManager.FindByGuid(kvp.Key);
+                var storage = kvp.Value ? "* " : "";
+                sb.Append(storage + guest.Name + "\n");
             }
 
             Session.Network.EnqueueSend(new GameMessageSystemChat(sb.ToString(), ChatMessageType.Broadcast));
@@ -547,7 +538,20 @@ namespace ACE.Server.WorldObjects
                 var setState = new GameMessageSetState(hook, state);
                 var update = new GameMessagePublicUpdatePropertyBool(hook, PropertyBool.UiHidden, !visible);
 
-                house.SlumLord.EnqueueBroadcast(setState, update);
+                house.EnqueueBroadcast(setState, update);
+            }
+
+            // if house has dungeon, repeat this process
+            if (house.HasDungeon)
+            {
+                var dungeonHouse = GetDungeonHouse();
+                foreach (var hook in dungeonHouse.Hooks.Where(i => i.Inventory.Count == 0))
+                {
+                    var setState = new GameMessageSetState(hook, state);
+                    var update = new GameMessagePublicUpdatePropertyBool(hook, PropertyBool.UiHidden, !visible);
+
+                    dungeonHouse.EnqueueBroadcast(setState, update);
+                }
             }
         }
 
@@ -569,7 +573,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            var existing = Guests.TryGetValue(storage, out var storageAccess);
+            var existing = Guests.TryGetValue(storage.Guid, out var storageAccess);
             if (hasPermission)
             {
                 if (!existing)
@@ -643,8 +647,11 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            foreach (var guest in noStorage)
-                HandleActionModifyStorage(guest.Key.Name, true);
+            foreach (var guid in noStorage)
+            {
+                var guest = PlayerManager.FindByGuid(guid.Key);
+                HandleActionModifyStorage(guest.Name, true);
+            }
         }
 
         public void HandleActionRemoveAllStorage()
@@ -665,8 +672,11 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            foreach (var guest in storage)
-                HandleActionModifyStorage(guest.Key.Name, false);
+            foreach (var guid in storage)
+            {
+                var guest = PlayerManager.FindByGuid(guid.Key);
+                HandleActionModifyStorage(guest.Name, false);
+            }
         }
 
         public void HandleActionBoot(string playerName)
@@ -682,7 +692,7 @@ namespace ACE.Server.WorldObjects
             }
 
             // is this player in the house landcell?
-            if (player.Location.GetOutdoorCell() != House.Location.GetOutdoorCell())
+            if (!OnProperty(player))
             {
                 Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name} is not on your property.", ChatMessageType.Broadcast));
                 return;
@@ -704,7 +714,6 @@ namespace ACE.Server.WorldObjects
             var players = PlayerManager.GetAllOnline();
 
             var houseLandblock = House.Location.Landblock;
-            var houseCell = House.Location.GetOutdoorCell();
 
             var booted = 0;
             foreach (var player in players)
@@ -712,15 +721,10 @@ namespace ACE.Server.WorldObjects
                 // exclude self
                 if (player.Equals(this)) continue;
 
-                // quick test
-                if (player.Location.Landblock != houseLandblock)
-                    continue;
-
-                if (player.Location.GetOutdoorCell() != houseCell)
-                    continue;
+                if (!OnProperty(player)) continue;
 
                 // keep guests if closing house
-                if (!guests && Guests.ContainsKey(player))
+                if (!guests && Guests.ContainsKey(player.Guid))
                     continue;
 
                 HandleActionBoot(player.Name);
@@ -729,15 +733,30 @@ namespace ACE.Server.WorldObjects
 
             if (guests && booted == 0)
             {
-                var elseStr = Location.GetOutdoorCell() == houseCell ? "else " : "";
+                var elseStr = OnProperty(this) ? "else " : "";
                 Session.Network.EnqueueSend(new GameMessageSystemChat($"There is no one {elseStr}on your property.", ChatMessageType.Broadcast));
             }
         }
+
 
         public void HandleActionListAvailable(HouseType houseType)
         {
             Console.WriteLine($"{Name}.HandleActionListAvailable({houseType})");
         }
+
+        public bool OnProperty(Player player)
+        {
+            if (player.Location.GetOutdoorCell() == House.Location.GetOutdoorCell())
+                return true;
+
+            if (House.HasDungeon)
+            {
+                if ((player.Location.Cell | 0xFFFF) == House.DungeonLandblockID)
+                    return true;
+            }
+            return false;
+        }
+
 
         // allegiance guest permissions
 
@@ -745,19 +764,38 @@ namespace ACE.Server.WorldObjects
 
         public void UpdateRestrictionDB()
         {
+            var restrictions = new RestrictionDB(House);
+
             // fix event broadcast so it doesn't require a player session beforehand
             var house = GetHouse();
-            if (house.PhysicsObj == null) return;
+            if (house.PhysicsObj != null)
+            {
+                HouseSequence++;
 
-            HouseSequence++;
+                Sync(house);
 
-            Sync(house);
+                restrictions = new RestrictionDB(house);
 
-            var restrictions = new RestrictionDB(house);
+                var nearbyPlayers = house.PhysicsObj.ObjMaint.VoyeurTable.Values.Select(v => (Player)v.WeenieObj.WorldObject).ToList();
+                foreach (var player in nearbyPlayers)
+                    player.Session.Network.EnqueueSend(new GameEventHouseUpdateRestrictions(player.Session, house.Guid, restrictions, HouseSequence));
+            }
 
-            var nearbyPlayers = house.PhysicsObj.ObjMaint.VoyeurTable.Values.Select(v => (Player)v.WeenieObj.WorldObject).ToList();
-            foreach (var player in nearbyPlayers)
-                player.Session.Network.EnqueueSend(new GameEventHouseUpdateRestrictions(player.Session, house.Guid, restrictions, HouseSequence));
+            // if house has a dungeon instance,
+            // repeat this process
+            if (house.HasDungeon)
+            {
+                var dungeonHouse = GetDungeonHouse();
+                if (dungeonHouse == null || dungeonHouse.PhysicsObj == null) return;
+
+                HouseSequence++;
+
+                Sync(dungeonHouse);
+
+                var nearbyPlayers = dungeonHouse.PhysicsObj.ObjMaint.VoyeurTable.Values.Select(v => (Player)v.WeenieObj.WorldObject).ToList();
+                foreach (var player in nearbyPlayers)
+                    player.Session.Network.EnqueueSend(new GameEventHouseUpdateRestrictions(player.Session, dungeonHouse.Guid, restrictions, HouseSequence));
+            }
         }
     }
 }

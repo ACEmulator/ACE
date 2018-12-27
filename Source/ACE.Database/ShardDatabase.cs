@@ -197,6 +197,20 @@ namespace ACE.Database
             return biota;
         }
 
+        public List<Biota> GetBiotasByWcid(uint wcid)
+        {
+            using (var context = new ShardDbContext())
+            {
+                var results = context.Biota.Where(r => r.WeenieClassId == wcid);
+
+                var biotas = new List<Biota>();
+                foreach (var result in results)
+                    biotas.Add(GetBiota(context, result.Id));
+
+                return biotas;
+            }
+        }
+
         public bool SaveBiota(Biota biota, ReaderWriterLockSlim rwLock)
         {
             if (BiotaContexts.TryGetValue(biota, out var cachedContext))
