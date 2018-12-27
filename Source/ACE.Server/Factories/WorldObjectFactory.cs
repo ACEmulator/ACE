@@ -236,7 +236,7 @@ namespace ACE.Server.Factories
         /// <summary>
         /// This will create a list of WorldObjects, all with new GUIDs and for every position provided.
         /// </summary>
-        public static List<WorldObject> CreateNewWorldObjects(List<LandblockInstance> sourceObjects, List<Biota> biotas, uint? restrictGuid = null)
+        public static List<WorldObject> CreateNewWorldObjects(List<LandblockInstance> sourceObjects, List<Biota> biotas, uint? restrict_wcid = null)
         {
             var results = new List<WorldObject>();
 
@@ -248,7 +248,7 @@ namespace ACE.Server.Factories
                 if (weenie == null)
                     continue;
 
-                if (restrictGuid != null && restrictGuid.Value != instance.Guid)
+                if (restrict_wcid != null && restrict_wcid.Value != instance.WeenieClassId)
                     continue;
 
                 var guid = new ObjectGuid(instance.Guid);

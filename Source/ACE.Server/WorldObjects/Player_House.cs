@@ -748,8 +748,14 @@ namespace ACE.Server.WorldObjects
 
         public bool OnProperty(Player player)
         {
+            var house = GetHouse();
+
             if (player.Location.GetOutdoorCell() == House.Location.GetOutdoorCell())
                 return true;
+
+            foreach (var linkedHouse in house.LinkedHouses)
+                if (player.Location.GetOutdoorCell() == linkedHouse.Location.GetOutdoorCell())
+                    return true;
 
             if (House.HasDungeon)
             {
@@ -759,7 +765,6 @@ namespace ACE.Server.WorldObjects
             return false;
         }
 
-
         // allegiance guest permissions
 
         public byte HouseSequence;
@@ -768,36 +773,34 @@ namespace ACE.Server.WorldObjects
         {
             var restrictions = new RestrictionDB(House);
 
-            // fix event broadcast so it doesn't require a player session beforehand
+            // update house
             var house = GetHouse();
             if (house.PhysicsObj != null)
-            {
-                HouseSequence++;
+                UpdateRestrictionDB(restrictions, house);
 
-                Sync(house);
+            // for mansions, update the linked houses
+            foreach (var linkedHouse in house.LinkedHouses)
+                UpdateRestrictionDB(restrictions, linkedHouse);
 
-                restrictions = new RestrictionDB(house);
-
-                var nearbyPlayers = house.PhysicsObj.ObjMaint.VoyeurTable.Values.Select(v => (Player)v.WeenieObj.WorldObject).ToList();
-                foreach (var player in nearbyPlayers)
-                    player.Session.Network.EnqueueSend(new GameEventHouseUpdateRestrictions(player.Session, house.Guid, restrictions, HouseSequence));
-            }
-
-            // if house has a dungeon instance,
-            // repeat this process
+            // update house dungeon
             if (house.HasDungeon)
             {
                 var dungeonHouse = GetDungeonHouse();
                 if (dungeonHouse == null || dungeonHouse.PhysicsObj == null) return;
 
-                HouseSequence++;
-
-                Sync(dungeonHouse);
-
-                var nearbyPlayers = dungeonHouse.PhysicsObj.ObjMaint.VoyeurTable.Values.Select(v => (Player)v.WeenieObj.WorldObject).ToList();
-                foreach (var player in nearbyPlayers)
-                    player.Session.Network.EnqueueSend(new GameEventHouseUpdateRestrictions(player.Session, dungeonHouse.Guid, restrictions, HouseSequence));
+                UpdateRestrictionDB(restrictions, dungeonHouse);
             }
+        }
+
+        public void UpdateRestrictionDB(RestrictionDB restrictions, House house)
+        {
+            HouseSequence++;
+
+            Sync(house);
+
+            var nearbyPlayers = house.PhysicsObj.ObjMaint.VoyeurTable.Values.Select(v => (Player)v.WeenieObj.WorldObject).ToList();
+            foreach (var player in nearbyPlayers)
+                player.Session.Network.EnqueueSend(new GameEventHouseUpdateRestrictions(player.Session, house.Guid, restrictions, HouseSequence));
         }
     }
 }
