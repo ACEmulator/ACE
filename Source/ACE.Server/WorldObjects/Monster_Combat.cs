@@ -136,14 +136,28 @@ namespace ACE.Server.WorldObjects
 
         public float GetMaxRange()
         {
-            if (CurrentAttack == AttackType.Magic)
+            while (CurrentAttack == AttackType.Magic)
             {
                 // select a magic spell
                 CurrentSpell = GetRandomSpell();
+                var currentSpell = GetCurrentSpell();
 
+                if (currentSpell.IsProjectile)
+                {
+                    // ensure direct los
+                    if (!IsDirectVisible(AttackTarget))
+                    {
+                        // reroll attack type
+                        CurrentAttack = GetAttackType();
+                        continue;
+
+                        // max iterations to melee?
+                    }
+                }
                 return GetSpellMaxRange();
             }
-            else if (CurrentAttack == AttackType.Missile)
+
+            if (CurrentAttack == AttackType.Missile)
             {
                 var weapon = GetEquippedWeapon();
                 if (weapon == null) return MaxMissileRange;

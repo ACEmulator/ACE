@@ -4010,7 +4010,7 @@ namespace ACE.Server.Factories
                                     weaponWeenie = 3869;
                                     break;
                                 case 2:
-                                    weaponWeenie = 3970;
+                                    weaponWeenie = 3870;
                                     break;
                                 case 3:
                                     weaponWeenie = 3871;
