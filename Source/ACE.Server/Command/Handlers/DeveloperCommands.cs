@@ -912,14 +912,13 @@ namespace ACE.Server.Command.Handlers
                 if (loot == null) // weenie doesn't exist
                     continue;
 
-                if (stackSize == null)
-                    stackSize = loot.MaxStackSize;
+                var stackSizeForThisWeenieId = stackSize ?? loot.MaxStackSize;
 
-                if (stackSize > 1)
+                if (stackSizeForThisWeenieId > 1)
                 {
-                    loot.StackSize = stackSize;
-                    loot.EncumbranceVal = (loot.StackUnitEncumbrance ?? 0) * (stackSize ?? 1);
-                    loot.Value = (loot.StackUnitValue ?? 0) * (stackSize ?? 1);
+                    loot.StackSize = stackSizeForThisWeenieId;
+                    loot.EncumbranceVal = (loot.StackUnitEncumbrance ?? 0) * (stackSizeForThisWeenieId ?? 1);
+                    loot.Value = (loot.StackUnitValue ?? 0) * (stackSizeForThisWeenieId ?? 1);
                 }
 
                 session.Player.TryCreateInInventoryWithNetworking(loot);
@@ -929,7 +928,7 @@ namespace ACE.Server.Command.Handlers
         [CommandHandler("weapons", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Creates testing items in your inventory.")]
         public static void HandleWeapons(Session session, params string[] parameters)
         {
-            HashSet<uint> weenieIds = new HashSet<uint> { 93, 127, 130, 148, 300, 307, 311, 326, 338, 348, 350, 7765, 12748, 12463, 31812 };
+            HashSet<uint> weenieIds = new HashSet<uint> { 93, 148, 300, 307, 311, 326, 338, 348, 350, 7765, 12748, 12463, 31812 };
 
             AddWeeniesToInventory(session, weenieIds);
         }
