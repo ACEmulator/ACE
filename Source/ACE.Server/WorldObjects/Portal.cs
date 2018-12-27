@@ -1,4 +1,5 @@
 using System;
+using System.Numerics;
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.Entity;
@@ -367,6 +368,12 @@ namespace ACE.Server.WorldObjects
 
                 player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session));
             }
+        }
+
+        public override void SetLinkProperties(WorldObject wo)
+        {
+            if (wo.IsLinkSpot)
+                SetPosition(PositionType.Destination, new Position(wo.Location));
         }
     }
 }
