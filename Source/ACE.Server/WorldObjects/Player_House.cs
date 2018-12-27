@@ -545,6 +545,8 @@ namespace ACE.Server.WorldObjects
             if (house.HasDungeon)
             {
                 var dungeonHouse = GetDungeonHouse();
+                if (dungeonHouse == null) return;
+
                 foreach (var hook in dungeonHouse.Hooks.Where(i => i.Inventory.Count == 0))
                 {
                     var setState = new GameMessageSetState(hook, state);
