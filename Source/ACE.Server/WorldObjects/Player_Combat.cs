@@ -1,4 +1,5 @@
 using System;
+using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
@@ -777,6 +778,14 @@ namespace ACE.Server.WorldObjects
             var recklessnessMod = GetDamageRating(damageRating);    // trained DR 1.10 = 10% additional damage
                                                                     // specialized DR 1.20 = 20% additional damage
             return recklessnessMod;
+        }
+
+        public Player GetKiller_PKLite()
+        {
+            if (PlayerKillerStatus == PlayerKillerStatus.PKLite)
+                return CurrentLandblock?.GetObject(new ObjectGuid(Killer ?? 0)) as Player;
+            else
+                return null;
         }
     }
 }

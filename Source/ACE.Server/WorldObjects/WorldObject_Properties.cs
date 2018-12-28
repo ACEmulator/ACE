@@ -9,6 +9,7 @@ using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
+using ACE.Server.Managers;
 
 namespace ACE.Server.WorldObjects
 {
@@ -2072,10 +2073,23 @@ namespace ACE.Server.WorldObjects
             set { if (value == -1) RemoveProperty(PropertyInt.PkLevelModifier); else SetProperty(PropertyInt.PkLevelModifier, value); }
         }
 
-        public PlayerKillerStatus PlayerKillerStatus
+        private PlayerKillerStatus _playerKillerStatus
         {
             get => (PlayerKillerStatus?)GetProperty(PropertyInt.PlayerKillerStatus) ?? PlayerKillerStatus.NPK;
             set => SetProperty(PropertyInt.PlayerKillerStatus, (int)value);
+        }
+
+        public PlayerKillerStatus PlayerKillerStatus
+        {
+            get
+            {
+                var pk_server = PropertyManager.GetBool("pk_server").Item;
+                if (pk_server && GetProperty(PropertyFloat.MinimumTimeSincePk) == null)
+                    return PlayerKillerStatus.PK;
+                else
+                    return _playerKillerStatus;
+            }
+            set => _playerKillerStatus = value;
         }
 
         public CloakStatus? CloakStatus
