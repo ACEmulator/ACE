@@ -349,14 +349,14 @@ namespace ACE.Server.WorldObjects
             ActionChain pickupChain = new ActionChain();
 
             // start picking up item animation
-            var motion = new Motion(CurrentMotionState.Stance, MotionCommand.Pickup);
+            var motion = new Motion(CurrentMotionState.Stance, MotionPickup);
             EnqueueBroadcast(
                 new GameMessageUpdatePosition(this),
                 new GameMessageUpdateMotion(this, motion));
 
             // Wait for animation to progress
             var motionTable = DatManager.PortalDat.ReadFromDat<MotionTable>(MotionTableId);
-            var pickupAnimationLength = motionTable.GetAnimationLength(CurrentMotionState.Stance, MotionCommand.Pickup, MotionCommand.Ready);
+            var pickupAnimationLength = motionTable.GetAnimationLength(CurrentMotionState.Stance, MotionPickup, MotionCommand.Ready);
             pickupChain.AddDelaySeconds(pickupAnimationLength);
 
             return pickupChain;
@@ -374,7 +374,7 @@ namespace ACE.Server.WorldObjects
                     return;
 
                 // start picking up item animation
-                var motion = new Motion(CurrentMotionState.Stance, MotionCommand.Pickup);
+                var motion = new Motion(CurrentMotionState.Stance, MotionPickup);
                 EnqueueBroadcast(
                     new GameMessageUpdatePosition(this),
                     new GameMessageUpdateMotion(this, motion));
@@ -382,7 +382,7 @@ namespace ACE.Server.WorldObjects
 
             // Wait for animation to progress
             var motionTable = DatManager.PortalDat.ReadFromDat<MotionTable>(MotionTableId);
-            var pickupAnimationLength = motionTable.GetAnimationLength(CurrentMotionState.Stance, MotionCommand.Pickup, MotionCommand.Ready);
+            var pickupAnimationLength = motionTable.GetAnimationLength(CurrentMotionState.Stance, MotionPickup, MotionCommand.Ready);
             moveToChain.AddDelaySeconds(pickupAnimationLength);
         }
 
