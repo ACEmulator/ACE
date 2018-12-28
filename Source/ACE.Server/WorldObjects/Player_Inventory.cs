@@ -501,6 +501,8 @@ namespace ACE.Server.WorldObjects
                         return;
                     }
 
+                    var returnStance = new Motion(CurrentMotionState.Stance);
+
                     var questSolve = false;
 
                     if (itemRootOwner != this && containerRootOwner == this && item.Quest != null) // We're picking up a quest item
@@ -508,52 +510,24 @@ namespace ACE.Server.WorldObjects
                         if (!QuestManager.CanSolve(item.Quest))
                         {
                             QuestManager.HandleSolveError(item.Quest);
+                            EnqueueBroadcastMotion(returnStance);
                             return;
                         }
 
                         questSolve = true;
                     }
 
-                    if (item.CurrentLandblock != null) // Movement is an item pickup off the landblock
+                    if (DoHandleActionPutItemInContainer(item, itemFoundInContainer, itemRootOwner, itemWasEquipped, container, containerRootOwner, placement))
                     {
-                        item.CurrentLandblock.RemoveWorldObject(item.Guid, false, true);
-                        item.Location = null;
-                    }
-                    else if (itemWasEquipped) // Movement is an equipped item to a container on the landblock
-                    {
-                        if (!TryDequipObjectWithNetworking(item.Guid, out _, DequipObjectAction.DequipToOffPlayerContainer))
-                        {
-                            Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "TryDequipObjectWithNetworking failed!")); // Custom error message
-                            Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session));
-                            return;
-                        }
-                    }
-                    else if (itemRootOwner == this) // Movement is an inventory item to a container on the landblock
-                    {
-                        if (!TryRemoveFromInventoryWithNetworking(item.Guid, out _, RemoveFromInventoryAction.PlaceItemInLandblockContainer))
-                        {
-                            Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "Failed to remove item from inventory!")); // Custom error message
-                            Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session));
-                            return;
-                        }
-                    }
-                    else // Movement is within the same pack or between packs in a container on the landblock
-                    {
-                        if (!itemFoundInContainer.TryRemoveFromInventory(item.Guid))
-                        {
-                            Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "TryRemoveFromInventory failed!")); // Custom error message
-                            Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session));
-                        }
-                    }
+                        Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
 
-                    if (container.TryAddToInventory(item, placement, true))
-                    {
-                        Session.Network.EnqueueSend(
-                            new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Container, container.Guid),
-                            new GameEventItemServerSaysContainId(Session, item, container));
+                        if (item.WeenieType == WeenieType.Coin)
+                            UpdateCoinValue();
 
-                        if (itemRootOwner != this && containerRootOwner == this) // We've picked up an item
-                        { 
+                        if (itemRootOwner == this)
+                            EnqueueBroadcast(new GameMessageSound(Guid, Sound.DropItem));
+                        else if (containerRootOwner == this)
+                        {
                             if (itemAsContainer != null) // We're picking up a pack
                             {
                                 Session.Network.EnqueueSend(new GameEventViewContents(Session, itemAsContainer));
@@ -562,11 +536,6 @@ namespace ACE.Server.WorldObjects
                                     Session.Network.EnqueueSend(new GameMessageCreateObject(packItem.Value));
                             }
 
-                            Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
-
-                            if (item.WeenieType == WeenieType.Coin)
-                                UpdateCoinValue();
-
                             EnqueueBroadcast(new GameMessageSound(Guid, Sound.PickUpItem));
 
                             item.NotifyOfEvent(RegenerationType.PickUp);
@@ -574,25 +543,8 @@ namespace ACE.Server.WorldObjects
                             if (questSolve)
                                 QuestManager.Update(item.Quest);
                         }
-                        else if (itemRootOwner == this && containerRootOwner != this) // We've dropped up an item
-                        {
-                            Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
-
-                            if (item.WeenieType == WeenieType.Coin)
-                                UpdateCoinValue();
-
-                            EnqueueBroadcast(new GameMessageSound(Guid, Sound.DropItem));
-                        }
-                    }
-                    else
-                    {
-                        Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "AddToInventory failed!")); // Custom error message
-                        Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session));
-
-                        // todo: So the item isn't lost, we should try to put the item in the players inventory, or if that's full, on the landblock.
                     }
 
-                    var returnStance = new Motion(CurrentMotionState.Stance);
                     EnqueueBroadcastMotion(returnStance);
                 });
 
@@ -600,51 +552,56 @@ namespace ACE.Server.WorldObjects
             }
             else // This is a self-contained movement
             {
-                if (itemWasEquipped) // Movement is an equipped item to a local pack
-                {
-                    if (!TryDequipObjectWithNetworking(item.Guid, out _, DequipObjectAction.DequipToPack))
-                    {
-                        Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "TryDequipObjectWithNetworking failed!")); // Custom error message
-                        Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session));
-                        return;
-                    }
-                }
-                else // Movement is within the same pack or between packs
-                {
-                    if (!itemFoundInContainer.TryRemoveFromInventory(item.Guid))
-                    {
-                        Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "TryRemoveFromInventory failed!")); // Custom error message
-                        Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session));
-                        return;
-                    }
-                }
-
-                if (!container.TryAddToInventory(item, placement))
-                {
-                    Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "TryAddToInventory failed!")); // Custom error message
-                    Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session));
-
-                    // todo: So the item isn't lost, we should try to put the item in the players inventory, or if that's full, on the landblock.
-
-                    return;
-                }
-
-                // If we've moved the item from the main pack to a side pack, we must increment our main EncumbranceValue and Value
-                if (itemFoundInContainer == this && container != this)
-                {
-                    EncumbranceVal += item.EncumbranceVal;
-                    Value += item.Value;
-                }
-
-                Session.Network.EnqueueSend(
-                    new GameEventItemServerSaysContainId(Session, item, container),
-                    new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Container, container.Guid));
+                DoHandleActionPutItemInContainer(item, itemFoundInContainer, itemRootOwner, itemWasEquipped, container, containerRootOwner, placement);
             }
         }
 
-        private void DoHandleActionPutItemInContainer()
+        private bool DoHandleActionPutItemInContainer(WorldObject item, Container itemFoundInContainer, Container itemRootOwner, bool itemWasEquipped, Container container, Container containerRootOwner, int placement)
         {
+            if (item.CurrentLandblock != null) // Movement is an item pickup off the landblock
+            {
+                item.CurrentLandblock.RemoveWorldObject(item.Guid, false, true);
+                item.Location = null;
+            }
+            else if (itemWasEquipped) // Movement is an equipped item to a container on the landblock
+            {
+                if (!TryDequipObjectWithNetworking(item.Guid, out _, DequipObjectAction.DequipToOffPlayerContainer))
+                {
+                    Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "TryDequipObjectWithNetworking failed!")); // Custom error message
+                    Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session));
+                    return false;
+                }
+            }
+            else // Movement is within the same pack or between packs in a container on the landblock
+            {
+                if (!itemRootOwner.TryRemoveFromInventory(item.Guid))
+                {
+                    Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "TryRemoveFromInventory failed!")); // Custom error message
+                    Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session));
+                }
+            }
 
+            if (!container.TryAddToInventory(item, placement, true))
+            {
+                Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "AddToInventory failed!")); // Custom error message
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session));
+
+                // todo: So the item isn't lost, we should try to put the item in the players inventory, or if that's full, on the landblock.
+
+                return false;
+            }
+
+            if (container != containerRootOwner && containerRootOwner != null)
+            {
+                containerRootOwner.EncumbranceVal += item.EncumbranceVal;
+                containerRootOwner.Value += item.Value;
+            }
+
+            Session.Network.EnqueueSend(
+                new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Container, container.Guid),
+                new GameEventItemServerSaysContainId(Session, item, container));
+
+            return true;
         }
 
         /// <summary>
@@ -999,17 +956,18 @@ namespace ACE.Server.WorldObjects
                         return;
                     }
 
-                    DoHandleActionStackableSplitToContainer(stack, stackFoundInContainer, stackRootOwner, container, containerRootOwner, newStack, placementPosition, amount);
+                    if (DoHandleActionStackableSplitToContainer(stack, stackFoundInContainer, stackRootOwner, container, containerRootOwner, newStack, placementPosition, amount))
+                    {
+                        Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
 
-                    Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
+                        if (stack.WeenieType == WeenieType.Coin)
+                            UpdateCoinValue();
 
-                    if (stack.WeenieType == WeenieType.Coin)
-                        UpdateCoinValue();
-
-                    if (stackRootOwner == this)
-                        EnqueueBroadcast(new GameMessageSound(Guid, Sound.DropItem));
-                    else if (containerRootOwner == this)
-                        EnqueueBroadcast(new GameMessageSound(Guid, Sound.PickUpItem));
+                        if (stackRootOwner == this)
+                            EnqueueBroadcast(new GameMessageSound(Guid, Sound.DropItem));
+                        else if (containerRootOwner == this)
+                            EnqueueBroadcast(new GameMessageSound(Guid, Sound.PickUpItem));
+                    }
 
                     var returnStance = new Motion(CurrentMotionState.Stance);
                     EnqueueBroadcastMotion(returnStance);
@@ -1023,14 +981,14 @@ namespace ACE.Server.WorldObjects
             }
         }
 
-        private void DoHandleActionStackableSplitToContainer(WorldObject stack, Container stackFoundInContainer, Container stackRootOwner, Container container, Container containerRootOwner, WorldObject newStack, int placementPosition, int amount)
+        private bool DoHandleActionStackableSplitToContainer(WorldObject stack, Container stackFoundInContainer, Container stackRootOwner, Container container, Container containerRootOwner, WorldObject newStack, int placementPosition, int amount)
         {
             // Before we modify the original stack, we make sure we can add the new stack
             if (!container.TryAddToInventory(newStack, placementPosition, true))
             {
                 Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "TryAddToInventory failed!")); // Custom error message
                 Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session));
-                return;
+                return false;
             }
 
             if (container != containerRootOwner && containerRootOwner != null)
@@ -1044,6 +1002,8 @@ namespace ACE.Server.WorldObjects
 
             AdjustStack(stack, -amount, stackFoundInContainer, stackRootOwner);
             Session.Network.EnqueueSend(new GameMessageSetStackSize(stack));
+
+            return true;
         }
 
         /// <summary>
@@ -1192,17 +1152,18 @@ namespace ACE.Server.WorldObjects
                         return;
                     }
 
-                    DoHandleActionStackableMerge(sourceStack, sourceStackFoundInContainer, sourceStackRootOwner, targetStack, targetStackFoundInContainer, targetStackRootOwner, amount);
+                    if (DoHandleActionStackableMerge(sourceStack, sourceStackFoundInContainer, sourceStackRootOwner, targetStack, targetStackFoundInContainer, targetStackRootOwner, amount))
+                    {
+                        Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
 
-                    Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
+                        if (sourceStack.WeenieType == WeenieType.Coin)
+                            UpdateCoinValue();
 
-                    if (sourceStack.WeenieType == WeenieType.Coin)
-                        UpdateCoinValue();
-
-                    if (sourceStackRootOwner == this)
-                        EnqueueBroadcast(new GameMessageSound(Guid, Sound.DropItem));
-                    else if (targetStackRootOwner == this)
-                        EnqueueBroadcast(new GameMessageSound(Guid, Sound.PickUpItem));
+                        if (sourceStackRootOwner == this)
+                            EnqueueBroadcast(new GameMessageSound(Guid, Sound.DropItem));
+                        else if (targetStackRootOwner == this)
+                            EnqueueBroadcast(new GameMessageSound(Guid, Sound.PickUpItem));
+                    }
 
                     var returnStance = new Motion(CurrentMotionState.Stance);
                     EnqueueBroadcastMotion(returnStance);
@@ -1216,33 +1177,23 @@ namespace ACE.Server.WorldObjects
             }
         }
 
-        private void DoHandleActionStackableMerge(WorldObject sourceStack, Container sourceStackFoundInContainer, Container sourceStackRootOwner, WorldObject targetStack, Container targetStackFoundInContainer, Container targetStackRootOwner, int amount)
+        private bool DoHandleActionStackableMerge(WorldObject sourceStack, Container sourceStackFoundInContainer, Container sourceStackRootOwner, WorldObject targetStack, Container targetStackFoundInContainer, Container targetStackRootOwner, int amount)
         {
             if (amount == sourceStack.StackSize && sourceStack.StackSize + targetStack.StackSize <= targetStack.MaxStackSize) // The merge will consume the entire source stack
             {
-                if (sourceStackRootOwner == this)
+                if (!sourceStackRootOwner.TryRemoveFromInventory(sourceStack.Guid, out _))
                 {
-                    if (!TryConsumeFromInventoryWithNetworking(sourceStack, amount))
-                    {
-                        Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "TryConsumeFromInventoryWithNetworking failed!")); // Custom error message
-                        Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session));
-                        return;
-                    }
+                    Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "TryRemoveFromInventory failed!")); // Custom error message
+                    Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session));
+                    return false;
                 }
+
+                if (sourceStackRootOwner == this)
+                    Session.Network.EnqueueSend(new GameEventInventoryRemoveObject(Session, sourceStack));
                 else
-                {
-                    if (!sourceStackRootOwner.TryRemoveFromInventory(sourceStack.Guid, out _))
-                    {
-                        Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "TryRemoveFromInventory failed!")); // Custom error message
-                        Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session));
-                        return;
-
-                    }
-
                     Session.Network.EnqueueSend(new GameMessageDeleteObject(sourceStack));
 
-                    sourceStack.Destroy();
-                }
+                sourceStack.Destroy();
 
                 AdjustStack(targetStack, amount, targetStackFoundInContainer, targetStackRootOwner);
                 Session.Network.EnqueueSend(new GameMessageSetStackSize(targetStack));
@@ -1255,6 +1206,8 @@ namespace ACE.Server.WorldObjects
                 AdjustStack(targetStack, amount, targetStackFoundInContainer, targetStackRootOwner);
                 Session.Network.EnqueueSend(new GameMessageSetStackSize(targetStack));
             }
+
+            return true;
         }
 
 
