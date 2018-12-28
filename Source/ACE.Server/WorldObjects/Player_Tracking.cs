@@ -4,6 +4,7 @@ using System.Linq;
 
 using ACE.Entity;
 using ACE.Entity.Enum;
+using ACE.Entity.Enum.Properties;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Physics.Common;
 
@@ -63,6 +64,7 @@ namespace ACE.Server.WorldObjects
             return ObjMaint.ObjectTable.Values.Select(o => o.WeenieObj.WorldObject).ToList();
         }
 
+
         /// <summary>
         /// Sends a network message to player for CreateObject, if applicable
         /// </summary>
@@ -82,32 +84,10 @@ namespace ACE.Server.WorldObjects
 
             // add creature equipped objects / wielded items
             if (worldObject is Creature creature)
-                TrackEquippedObjects(creature);
-        }
-
-        /// <summary>
-        /// Adds/updates the tracking list for creature wielded items
-        /// </summary>
-        public void TrackEquippedObjects(Creature creature, bool remove = false)
-        {
-            foreach (var wieldedItem in creature.EquippedObjects.Values)
-                TrackEquippedObject(creature, wieldedItem, remove);
-        }
-
-        public void TrackEquippedObject(Creature creature, WorldObject wieldedItem, bool remove = false)
-        {
-            //Console.WriteLine($"Player {Name} - TrackEquippedObject({wieldedItem.Name}) on Creature {creature.Name}, remove: {remove}");
-
-            var selectable = (wieldedItem.ValidLocations.Value & EquipMask.Selectable) != 0;
-            var missileCombat = creature.CombatMode == CombatMode.Missile && (wieldedItem.ValidLocations.Value & EquipMask.MissileAmmo) != 0;
-
-            if (!selectable && !missileCombat)
-                return;
-
-            if (!remove)
-                Session.Network.EnqueueSend(new GameMessageCreateObject(wieldedItem));
-            else
-                Session.Network.EnqueueSend(new GameMessageDeleteObject(wieldedItem));
+            {
+                foreach (var wieldedItem in creature.EquippedObjects.Values)
+                    TrackEquippedObject(creature, wieldedItem);
+            }
         }
 
         public bool AddTrackedObject(WorldObject worldObject)
@@ -141,9 +121,50 @@ namespace ACE.Server.WorldObjects
                 Session.Network.EnqueueSend(new GameMessageDeleteObject(worldObject));
 
             if (worldObject is Creature creature)
-                TrackEquippedObjects(creature, true);
+            {
+                foreach (var wieldedItem in creature.EquippedObjects.Values)
+                    RemoveTrackedEquippedObject(creature, wieldedItem);
+            }
 
             return true;
+        }
+
+
+        public void TrackEquippedObject(Creature wielder, WorldObject wieldedItem)
+        {
+            //Console.WriteLine($"Player {Name} - TrackEquippedObject({wieldedItem.Name}) on Wielder {wielder.Name}");
+
+            // We make sure the item is actually wielded and selectable
+            if ((wieldedItem.CurrentWieldedLocation ?? 0 & EquipMask.Selectable) == 0)
+                return;
+
+            // The wielder already knows about this object
+            if (wielder == this)
+                return;
+
+            // todo: In the future we should remember what objecst the non-wielder client may still know about so we don't have to send a full CreateObject message
+            // todo: Instead, we can send the property updates like the following:
+            /*Session.Network.EnqueueSend(
+                new GameMessagePublicUpdateInstanceID(wieldedItem, PropertyInstanceId.Container, ObjectGuid.Invalid),
+                new GameMessagePublicUpdateInstanceID(wieldedItem, PropertyInstanceId.Wielder, Guid),
+                new GameMessagePublicUpdatePropertyInt(wieldedItem, PropertyInt.CurrentWieldedLocation, (int?)wieldedItem.CurrentWieldedLocation ?? 0));*/
+
+            Session.Network.EnqueueSend(new GameMessageCreateObject(wieldedItem));
+        }
+
+        public void RemoveTrackedEquippedObject(Creature formerWielder, WorldObject worldObject)
+        {
+            //Console.WriteLine($"Player {Name} - RemoveTrackedEquippedObject({worldObject.Name}) on Former Wielder {formerWielder.Name}");
+
+            // We don't need to remove objects that couldn't have been tracked in the first place
+            if ((worldObject.ValidLocations ?? 0 & EquipMask.Selectable) == 0)
+                return;
+
+            // The former wielder already knows about this object was removed
+            if (formerWielder == this)
+                return;
+
+            Session.Network.EnqueueSend(new GameMessagePickupEvent(worldObject));
         }
     }
 }

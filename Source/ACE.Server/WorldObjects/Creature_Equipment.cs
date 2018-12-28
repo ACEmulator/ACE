@@ -173,7 +173,7 @@ namespace ACE.Server.WorldObjects
             EnqueueBroadcast(new GameMessageSound(Guid, Sound.WieldObject));
 
             // Notify viewers in the area that we've equipped the item
-            EnqueueActionBroadcast(p => p.TrackObject(worldObject));
+            EnqueueActionBroadcast(p => p.TrackEquippedObject(this, worldObject));
 
             return true;
         }
@@ -220,7 +220,7 @@ namespace ACE.Server.WorldObjects
             {
                 // This should only be called if the object is going to the private storage, not when dropped on the landscape
                 var wo = worldObject;
-                EnqueueActionBroadcast(p => p.RemoveTrackedObject(wo, true));
+                EnqueueActionBroadcast(p => p.RemoveTrackedEquippedObject(this, wo));
             }
 
             return true;

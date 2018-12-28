@@ -177,16 +177,6 @@ namespace ACE.Server.WorldObjects
                 }
             }
 
-            var ammo = (this as Player)?.GetEquippedAmmo();
-            if (ammo != null)
-            {
-                if (ammo.Guid == objectGuid)
-                {
-                    container = null;
-                    return ammo;
-                }
-            }
-
             container = null;
             return null;
         }
@@ -315,13 +305,6 @@ namespace ACE.Server.WorldObjects
                     container = null;
                     return false;
                 }
-            }
-
-            var oldContainer = CurrentLandblock?.GetObject(worldObject.ContainerId ?? 0);
-            if (oldContainer != null)
-            {
-                if (oldContainer is Hook hook)
-                    hook.OnRemoveItem();
             }
 
             worldObject.Location = null;

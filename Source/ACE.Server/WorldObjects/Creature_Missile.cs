@@ -112,8 +112,8 @@ namespace ACE.Server.WorldObjects
             if (ammo.StackSize == 0)
             {
                 TryDequipObjectWithBroadcasting(ammo.Guid, out _);
-                EnqueueActionBroadcast(p => p.RemoveTrackedObject(ammo, false));
-                TryRemoveFromInventory(ammo.Guid);
+
+                ammo.Destroy();
             }
             else
             {
