@@ -86,8 +86,8 @@ namespace ACE.Server.WorldObjects
                 CurrentAttack = GetAttackType();
                 MaxRange = GetMaxRange();
 
-                if (CurrentAttack == AttackType.Magic)
-                    MaxRange = MaxMeleeRange;   // FIXME: server position sync
+                //if (CurrentAttack == AttackType.Magic)
+                    //MaxRange = MaxMeleeRange;   // FIXME: server position sync
             }
 
             // get distance to target
@@ -99,7 +99,7 @@ namespace ACE.Server.WorldObjects
 
             if (CurrentAttack != AttackType.Missile)
             {
-                if (targetDist > MaxRange || !IsFacing(AttackTarget))
+                if (targetDist > MaxRange || (!IsFacing(AttackTarget) && !IsSelfCast()))
                 {
                     // turn / move towards
                     if (!IsTurning && !IsMoving)

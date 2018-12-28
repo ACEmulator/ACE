@@ -747,13 +747,34 @@ namespace ACE.Server.WorldObjects
         public Range GetDamageMod(Creature wielder)
         {
             var baseDamage = GetBaseDamage();
-            var damageMod = wielder.EnchantmentManager.GetDamageMod();
-            var varianceMod = wielder.EnchantmentManager.GetVarianceMod();
+            var weapon = wielder.GetEquippedWeapon();
+
+            var damageMod = 0;
+            var varianceMod = 1.0f;
+
+            // get weapon item enchantments and wielder auras
+            if (weapon == null)
+            {
+                damageMod = wielder.EnchantmentManager.GetDamageMod();
+                varianceMod = wielder.EnchantmentManager.GetVarianceMod();
+            }
+            else if (weapon.IsEnchantable)
+            {
+                damageMod = weapon.EnchantmentManager.GetDamageMod() + wielder.EnchantmentManager.GetDamageMod();
+                varianceMod = weapon.EnchantmentManager.GetVarianceMod() * wielder.EnchantmentManager.GetVarianceMod();
+            }
 
             var baseVariance = 1.0f - (baseDamage.Min / baseDamage.Max);
 
-            var weapon = wielder.GetEquippedWeapon();
             var damageBonus = weapon != null ? (float)(weapon.GetProperty(PropertyFloat.DamageMod) ?? 1.0f) : 1.0f;
+            if (weapon == null)
+            {
+                damageBonus *= wielder.EnchantmentManager.GetDamageModifier();
+            }
+            else if (weapon.IsEnchantable)
+            {
+                damageBonus *= wielder.EnchantmentManager.GetDamageModifier() * weapon.EnchantmentManager.GetDamageModifier();
+            }
 
             // additives first, then multipliers?
             var maxDamageMod = (baseDamage.Max + damageMod) * damageBonus;
