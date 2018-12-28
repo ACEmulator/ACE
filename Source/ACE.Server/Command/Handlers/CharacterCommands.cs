@@ -47,7 +47,15 @@ namespace ACE.Server.Command.Handlers
         public static void HandleCharacterExport(Session session, params string[] parameters)
         {
             var processor = new InterServer();
-            processor.RunAsync(session);
+            processor.RunExportAsync(session);
+        }
+
+        // set-characteraccess charactername (accesslevel)
+        [CommandHandler("import-char", AccessLevel.Player, CommandHandlerFlag.None, 0, "Import a character with a given cookie.")]
+        public static void HandleCharacterImport(Session session, params string[] parameters)
+        {
+            var processor = new InterServer();
+            processor.RunExportAsync(session);
         }
     }
 }

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 
 using ACE.Entity.Enum;
+using ACE.Server.Managers;
 using ACE.Server.Network;
 using ACE.Server.Network.GameMessages.Messages;
 
@@ -109,6 +110,20 @@ namespace ACE.Server.Command.Handlers
                     session.Network.EnqueueSend(new GameMessageSystemChat(message, ChatMessageType.Broadcast));
                 else
                     Console.WriteLine(message);
+            }
+        }
+        // acecommands
+        [CommandHandler("thumbprint", AccessLevel.Player, CommandHandlerFlag.None, 0, "Reveals the server certificate thumbprint.")]
+        public static void HandleThumbprint(Session session, params string[] parameters)
+        {
+            string print = $"Server certificate thumbprint: {CryptoManager.Certificate.Thumbprint}";
+            if (session != null)
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat(print, ChatMessageType.Broadcast));
+            }
+            else
+            {
+                Console.WriteLine(print);
             }
         }
     }

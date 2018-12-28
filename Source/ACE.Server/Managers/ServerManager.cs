@@ -5,6 +5,7 @@ using log4net;
 
 using ACE.Common;
 using ACE.Database;
+using System.IO;
 
 namespace ACE.Server.Managers
 {
@@ -67,6 +68,52 @@ namespace ACE.Server.Managers
         public static void CancelShutdown()
         {
             ShutdownInitiated = false;
+        }
+
+        public static string CertificatePath
+        {
+            get
+            {
+                var u = Path.Combine(BasePath, "Certificates");
+                if (!Directory.Exists(u))
+                    try
+                    {
+                        Directory.CreateDirectory(u);
+                        log.Info($"Created directory {u}");
+                    }
+                    catch { }
+                return u;
+            }
+        }
+        public static string TransferPath
+        {
+            get
+            {
+                var u = Path.Combine(BasePath, "Transfers");
+                if (!Directory.Exists(u))
+                    try
+                    {
+                        Directory.CreateDirectory(u);
+                        log.Info($"Created directory {u}");
+                    }
+                    catch { }
+                return u;
+            }
+        }
+        public static string BasePath
+        {
+            get
+            {
+                var u = Path.Combine(Path.GetTempPath(), "ACEmulator");
+                if (!Directory.Exists(u))
+                    try
+                    {
+                        Directory.CreateDirectory(u);
+                        log.Info($"Created directory {u}");
+                    }
+                    catch { }
+                return u;
+            }
         }
 
         /// <summary>

@@ -17,6 +17,8 @@ namespace ACE.Common
 
         public string DatFilesDirectory { get; set; }
 
+        public List<string> TrustedServerCertThumbprints { get; set; }
+
         [System.ComponentModel.DefaultValue(false)]
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
         public bool WorldDatabasePrecaching { get; set; }

@@ -1,3 +1,5 @@
+using System.Text;
+
 namespace ACE
 {
     // important class, ensure unit tests pass for this
@@ -37,6 +39,19 @@ namespace ACE
             {
                 return (uint)random.Next((int)min, (int)(max + 1));
             }
+        }
+        public const string CookieChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        public static string NextCookie(int cookieLen)
+        {
+            StringBuilder product = new StringBuilder();
+            lock (randomMutex)
+            {
+                for (int i = 0; i < cookieLen; i++)
+                {
+                    product.Append(CookieChars[random.Next(0, CookieChars.Length + 1)]);
+                }
+            }
+            return product.ToString();
         }
     }
 }
