@@ -1,4 +1,5 @@
 using System;
+using ACE.Common.Extensions;
 using ACE.Server.Network.Structure;
 
 namespace ACE.Server.Network.GameAction.Actions
@@ -13,7 +14,9 @@ namespace ACE.Server.Network.GameAction.Actions
         {
             //Console.WriteLine("Received 0x246 - HouseRemovePermanentGuest");
 
-            var guestName = message.Payload.ReadString();
+            var guestName = message.Payload.ReadString16L();
+
+            session.Player.HandleActionRemoveGuest(guestName);
         }
     }
 }

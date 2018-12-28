@@ -1,4 +1,4 @@
-using System;
+using ACE.Common.Extensions;
 
 namespace ACE.Server.Network.GameAction.Actions
 {
@@ -12,7 +12,9 @@ namespace ACE.Server.Network.GameAction.Actions
         {
             //Console.WriteLine("Received 0x24A - BootSpecificHouseGuest");
 
-            var guestName = message.Payload.ReadString();   // player name to boot from your house
+            var playerName = message.Payload.ReadString16L();   // player name to boot from your house
+
+            session.Player.HandleActionBoot(playerName);
         }
     }
 }

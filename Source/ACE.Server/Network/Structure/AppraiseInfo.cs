@@ -154,7 +154,7 @@ namespace ACE.Server.Network.Structure
         private void AddSpells(List<AppraisalSpellBook> activeSpells, WorldObject worldObject, WorldObject wielder = null)
         {
             List<BiotaPropertiesEnchantmentRegistry> wielderEnchantments = null;
-            if (worldObject == null) return;
+            if (worldObject == null || !worldObject.IsEnchantable) return;
 
             // get all currently active item enchantments on the item
             var woEnchantments = worldObject.EnchantmentManager.GetEnchantments(MagicSchool.ItemEnchantment);

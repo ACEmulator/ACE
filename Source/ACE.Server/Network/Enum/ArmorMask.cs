@@ -24,7 +24,7 @@ namespace ACE.Server.Network.Enum
         {
             ArmorMask highlightMask = 0;
 
-            if (armor == null)
+            if (armor == null || !armor.IsEnchantable)
                 return highlightMask;
 
             // item enchanments are currently being cast on wielder
@@ -55,7 +55,7 @@ namespace ACE.Server.Network.Enum
         {
             ArmorMask colorMask = 0;
 
-            if (armor == null)
+            if (armor == null || !armor.IsEnchantable)
                 return colorMask;
 
             if (armor.EnchantmentManager.GetArmorMod() > 0)

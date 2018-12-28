@@ -1,4 +1,5 @@
 using System;
+using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
@@ -113,7 +114,7 @@ namespace ACE.Server.WorldObjects
             float? damage = null;
             if (targetPlayer != null)
             {
-                damage = CalculateDamagePVP(target, damageType, ref critical, ref sneakAttack, ref bodyPart);
+                damage = CalculateDamagePVP(target, damageSource, damageType, ref critical, ref sneakAttack, ref bodyPart);
 
                 // TODO: level up shield mod?
                 if (targetPlayer.Invincible ?? false)
@@ -303,7 +304,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Calculates the creature damage for a physical monster attack
         /// </summary>
-        public float? CalculateDamagePVP(WorldObject target, DamageType damageType, ref bool criticalHit, ref bool sneakAttack, ref BodyPart bodyPart)
+        public float? CalculateDamagePVP(WorldObject target, WorldObject damageSource, DamageType damageType, ref bool criticalHit, ref bool sneakAttack, ref BodyPart bodyPart)
         {
             // verify target player killer
             var targetPlayer = target as Player;
@@ -354,10 +355,10 @@ namespace ACE.Server.WorldObjects
             var armor = GetArmor(bodyPart);
 
             // get armor modifiers
-            var armorMod = GetArmorMod(armor, damageType);
+            var armorMod = GetArmorMod(armor, damageSource, damageType);
 
             // get resistance modifiers (protect/vuln)
-            var resistanceMod = AttackTarget.EnchantmentManager.GetResistanceMod(damageType);
+            var resistanceMod = damageSource != null && damageSource.IgnoreMagicResist ? 1.0f : AttackTarget.EnchantmentManager.GetResistanceMod(damageType);
 
             // weapon resistance mod?
             var damageResistRatingMod = GetNegativeRatingMod(AttackTarget.EnchantmentManager.GetDamageResistRating());
@@ -413,7 +414,7 @@ namespace ACE.Server.WorldObjects
             var bodyPart = BodyParts.GetBodyPart(target, AttackHeight.Value);
             if (bodyPart == null) return null;
 
-            var creaturePart = new Creature_BodyPart(creature, bodyPart);
+            var creaturePart = new Creature_BodyPart(creature, bodyPart, damageSource != null ? damageSource.IgnoreMagicArmor : false, damageSource != null ? damageSource.IgnoreMagicResist : false);
 
             // get target armor
             var armor = creaturePart.BaseArmorMod;
@@ -777,6 +778,14 @@ namespace ACE.Server.WorldObjects
             var recklessnessMod = GetDamageRating(damageRating);    // trained DR 1.10 = 10% additional damage
                                                                     // specialized DR 1.20 = 20% additional damage
             return recklessnessMod;
+        }
+
+        public Player GetKiller_PKLite()
+        {
+            if (PlayerKillerStatus == PlayerKillerStatus.PKLite)
+                return CurrentLandblock?.GetObject(new ObjectGuid(Killer ?? 0)) as Player;
+            else
+                return null;
         }
     }
 }

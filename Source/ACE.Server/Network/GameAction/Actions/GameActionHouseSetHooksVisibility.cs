@@ -13,6 +13,8 @@ namespace ACE.Server.Network.GameAction.Actions
             //Console.WriteLine("Received 0x266 - House - SetHooksVisibility");
 
             var visible = Convert.ToBoolean(message.Payload.ReadUInt32());
+
+            session.Player.HandleActionSetHooksVisible(visible);
         }
     }
 }

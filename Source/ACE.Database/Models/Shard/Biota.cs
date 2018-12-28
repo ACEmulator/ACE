@@ -29,6 +29,7 @@ namespace ACE.Database.Models.Shard
             BiotaPropertiesSpellBook = new HashSet<BiotaPropertiesSpellBook>();
             BiotaPropertiesString = new HashSet<BiotaPropertiesString>();
             BiotaPropertiesTextureMap = new HashSet<BiotaPropertiesTextureMap>();
+            HousePermission = new HashSet<HousePermission>();
         }
 
         public uint Id { get; set; }
@@ -59,5 +60,6 @@ namespace ACE.Database.Models.Shard
         public ICollection<BiotaPropertiesSpellBook> BiotaPropertiesSpellBook { get; set; }
         public ICollection<BiotaPropertiesString> BiotaPropertiesString { get; set; }
         public ICollection<BiotaPropertiesTextureMap> BiotaPropertiesTextureMap { get; set; }
+        public ICollection<HousePermission> HousePermission { get; set; }
     }
 }

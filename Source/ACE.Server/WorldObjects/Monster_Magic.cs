@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
+using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Network.GameMessages.Messages;
@@ -22,7 +23,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// The next spell the monster will attempt to cast
         /// </summary>
-        public BiotaPropertiesSpellBook CurrentSpell;
+        public BiotaPropertiesSpellBook CurrentSpell { get; set; }
 
         /// <summary>
         /// The delay after casting a magic spell
@@ -36,7 +37,7 @@ namespace ACE.Server.WorldObjects
         public uint GetMagicSkill()
         {
             var currentSpell = GetCurrentSpell();
-            return GetCreatureSkill((MagicSchool)currentSpell.School).Current;
+            return GetCreatureSkill(currentSpell.School).Current;
         }
 
         /// <summary>
@@ -47,7 +48,7 @@ namespace ACE.Server.WorldObjects
         public uint GetMagicSkillForRangeCheck()
         {
             var currentSpell = GetCurrentSpell();
-            var skill = GetCreatureSkill((MagicSchool)currentSpell.School);
+            var skill = GetCreatureSkill(currentSpell.School);
             return skill.InitLevel + skill.Ranks;
         }
 
@@ -127,6 +128,10 @@ namespace ACE.Server.WorldObjects
 
             var spell = GetCurrentSpell();
             //Console.WriteLine(spell.Name);
+            //Console.WriteLine($"BaseRangeConstant: {spell.BaseRangeConstant}, BaseRangeMod: {spell.BaseRangeMod}");
+            //Console.WriteLine($"MaxRange: {GetSpellMaxRange()}");
+
+            if (AiUsesMana && !UseMana()) return;
 
             var preCastTime = PreCastMotion(AttackTarget);
 
@@ -134,7 +139,7 @@ namespace ACE.Server.WorldObjects
             actionChain.AddDelaySeconds(preCastTime);
             actionChain.AddAction(this, () =>
             {
-                CastSpell();
+                CastSpell(spell);
                 PostCastMotion();
             });
             actionChain.EnqueueChain();
@@ -144,18 +149,19 @@ namespace ACE.Server.WorldObjects
 
             //Console.WriteLine($"{Name}.MagicAttack(): preCastTime({preCastTime}), postCastTime({postCastTime})");
 
-            NextAttackTime = Timers.RunningTime + animTime + MagicDelay;;
+            NextAttackTime = Timers.RunningTime + animTime + MagicDelay;
+            NextMoveTime = NextAttackTime - 1.0f;
         }
 
         /// <summary>
         /// Casts the current monster spell on target
         /// </summary>
-        public void CastSpell()
+        public void CastSpell(Spell spell)
         {
             if (AttackTarget == null) return;
 
             bool? resisted;
-            var spell = GetCurrentSpell();
+            //var spell = GetCurrentSpell();
 
             var targetSelf = spell.Flags.HasFlag(SpellFlags.SelfTargeted);
             var target = targetSelf ? this : AttackTarget;
@@ -255,6 +261,35 @@ namespace ACE.Server.WorldObjects
         public Spell GetCurrentSpell()
         {
             return new Spell(CurrentSpell.Spell);
+        }
+
+        public bool UseMana()
+        {
+            // do any monsters have mana conversion?
+            var currentSpell = GetCurrentSpell();
+
+            var target = GetSpellMaxRange() < float.PositiveInfinity ? AttackTarget : this;
+
+            var manaUsed = CalculateManaUsage(this, currentSpell, target);
+            if (manaUsed > Mana.Current)
+                return false;
+
+            Mana.Current -= manaUsed;
+            return true;
+        }
+
+        public bool AiUsesMana
+        {
+            get => GetProperty(PropertyBool.AiUsesMana) ?? true;    // default?
+            set { if (!value) RemoveProperty(PropertyBool.AiUsesMana); else SetProperty(PropertyBool.AiUsesMana, value); }
+        }
+
+        public bool IsSelfCast()
+        {
+            if (CurrentAttack != AttackType.Magic)
+                return false;
+
+            return GetSpellMaxRange() == float.PositiveInfinity;
         }
     }
 }

@@ -129,8 +129,9 @@ namespace ACE.Server.WorldObjects
                 Value += container.Value; // This value includes the containers value itself + all child items
             }
 
-            if (this is Hook hook)
-                hook.OnAddItem();
+
+            if (WeenieType == WeenieType.Hook && this is Hook hook)
+                hook.OnLoad();
         }
 
         /// <summary>

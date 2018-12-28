@@ -107,7 +107,7 @@ namespace ACE.Server.Entity
         /// <summary>
         /// Gets an outdoor cell ID for a position within a landblock
         /// </summary>
-        private static uint GetOutdoorCell(this Position p)
+        public static uint GetOutdoorCell(this Position p)
         {
             var cellX = (uint)p.PositionX / Position.CellLength;
             var cellY = (uint)p.PositionY / Position.CellLength;
@@ -245,6 +245,5 @@ namespace ACE.Server.Entity
 
             return terrainPos.Z;
         }
-
     }
 }
