@@ -5,6 +5,7 @@ using log4net;
 
 using ACE.Common.Extensions;
 using ACE.Database;
+using ACE.Database.Models.World;
 using ACE.DatLoader;
 using ACE.DatLoader.FileTypes;
 using ACE.Entity.Enum;
@@ -46,6 +47,10 @@ namespace ACE.Server.Managers
                 player.SendUseDoneEvent();
                 return;
             }
+
+            // verify requirements
+            if (!VerifyRequirements(recipe.Recipe, player, source, target))
+                return;
 
             if (source.ItemType == ItemType.TinkeringMaterial)
             {
@@ -131,7 +136,7 @@ namespace ACE.Server.Managers
                             target.Destroy();
                         }
 
-                        if (!String.IsNullOrEmpty(recipe.Recipe.SuccessDestroyTargetMessage))
+                        if (!string.IsNullOrEmpty(recipe.Recipe.SuccessDestroyTargetMessage))
                         {
                             var destroyMessage = new GameMessageSystemChat(recipe.Recipe.SuccessDestroyTargetMessage, ChatMessageType.Craft);
                             player.Session.Network.EnqueueSend(destroyMessage);
@@ -154,7 +159,7 @@ namespace ACE.Server.Managers
                             source.Destroy();
                         }
 
-                        if (!String.IsNullOrEmpty(recipe.Recipe.SuccessDestroySourceMessage))
+                        if (!string.IsNullOrEmpty(recipe.Recipe.SuccessDestroySourceMessage))
                         {
                             var destroyMessage = new GameMessageSystemChat(recipe.Recipe.SuccessDestroySourceMessage, ChatMessageType.Craft);
                             player.Session.Network.EnqueueSend(destroyMessage);
@@ -198,7 +203,7 @@ namespace ACE.Server.Managers
                             target.Destroy();
                         }
 
-                        if (!String.IsNullOrEmpty(recipe.Recipe.FailDestroyTargetMessage))
+                        if (!string.IsNullOrEmpty(recipe.Recipe.FailDestroyTargetMessage))
                         {
                             var destroyMessage = new GameMessageSystemChat(recipe.Recipe.FailDestroyTargetMessage, ChatMessageType.Craft);
                             player.Session.Network.EnqueueSend(destroyMessage);
@@ -221,7 +226,7 @@ namespace ACE.Server.Managers
                             source.Destroy();
                         }
 
-                        if (!String.IsNullOrEmpty(recipe.Recipe.FailDestroySourceMessage))
+                        if (!string.IsNullOrEmpty(recipe.Recipe.FailDestroySourceMessage))
                         {
                             var destroyMessage = new GameMessageSystemChat(recipe.Recipe.FailDestroySourceMessage, ChatMessageType.Craft);
                             player.Session.Network.EnqueueSend(destroyMessage);
@@ -265,26 +270,26 @@ namespace ACE.Server.Managers
         {
             Console.WriteLine($"{player.Name}.HandleTinkering({tool.Name}, {target.Name})");
 
-            // verify usage requirements
-
             // calculate % success chance
 
-            // tinkers / imbues
             var toolWorkmanship = tool.Workmanship ?? 0;
             var itemWorkmanship = target.Workmanship ?? 0;
+
             var tinkeredCount = target.NumTimesTinkered;
-            var materialType = tool.MaterialType.Value;
             var attemptMod = TinkeringDifficulty[tinkeredCount];
 
-            // ensure tinkered count < 10
-
+            var materialType = tool.MaterialType.Value;
             var salvageMod = GetMaterialMod(materialType);
+
             var workmanshipMod = 1.0f;
             if (toolWorkmanship >= itemWorkmanship)
                 workmanshipMod = 2.0f;
 
-            // todo: get appropriate tinkering skill
-            var skill = player.GetCreatureSkill(Skill.ArmorTinkering);
+            var recipe = DatabaseManager.World.GetCachedCookbook(tool.WeenieClassId, target.WeenieClassId);
+            var recipeSkill = (Skill)recipe.Recipe.Skill;
+            Console.WriteLine($"Recipe skill: {recipeSkill}");
+
+            var skill = player.GetCreatureSkill(recipeSkill);
 
             // thanks to Endy's Tinkering Calculator for this formula!
             var difficulty = (int)Math.Floor(((salvageMod * 5.0f) + (itemWorkmanship * salvageMod * 2.0f) - (toolWorkmanship * workmanshipMod * salvageMod / 5.0f)) * attemptMod);
@@ -632,5 +637,183 @@ namespace ACE.Server.Managers
             4.0f,   // 9
             4.5f    // 10
         };
+
+        // todo: verify
+        public enum CompareType
+        {
+            GreaterThan,        // 0
+            LessThanEqual,      // 1
+            LessThan,           // 2
+            GreaterThanEqual,   // 3
+            NotEqual,           // 4
+            NotEqualNotExist,   // 5
+            Equal,              // 6
+            NotExist,           // 7
+            Exist               // 8
+        };
+
+        public static bool VerifyRequirements(Recipe recipe, Player player, WorldObject source, WorldObject target)
+        {
+            // as opposed to having a recipe requirements field for the object being compared...
+            if (!VerifyRequirements(recipe, player, player)) return false;
+
+            if (!VerifyRequirements(recipe, player, source)) return false;
+
+            if (!VerifyRequirements(recipe, player, target)) return false;
+
+            return true;
+        }
+
+        public static bool VerifyRequirements(Recipe recipe, Player player, WorldObject obj)
+        {
+            foreach (var requirement in recipe.RecipeRequirementsBool)
+            {
+                bool? value = obj.GetProperty((PropertyBool)requirement.Stat);
+                double? normalized = value != null ? (double?)Convert.ToDouble(value.Value) : null;
+
+                if (!VerifyRequirement(player, (CompareType)requirement.Enum, normalized, Convert.ToDouble(requirement.Value), requirement.Message))
+                    return false;
+            }
+
+            foreach (var requirement in recipe.RecipeRequirementsInt)
+            {
+                int? value = obj.GetProperty((PropertyInt)requirement.Stat);
+                double? normalized = value != null ? (double?)Convert.ToDouble(value.Value) : null;
+
+                if (!VerifyRequirement(player, (CompareType)requirement.Enum, normalized, Convert.ToDouble(requirement.Value), requirement.Message))
+                    return false;
+            }
+
+            foreach (var requirement in recipe.RecipeRequirementsFloat)
+            {
+                double? value = obj.GetProperty((PropertyFloat)requirement.Stat);
+
+                if (!VerifyRequirement(player, (CompareType)requirement.Enum, value, requirement.Value, requirement.Message))
+                    return false;
+            }
+
+            foreach (var requirement in recipe.RecipeRequirementsString)
+            {
+                string value = obj.GetProperty((PropertyString)requirement.Stat);
+
+                if (!VerifyRequirement(player, (CompareType)requirement.Enum, value, requirement.Value, requirement.Message))
+                    return false;
+            }
+
+            foreach (var requirement in recipe.RecipeRequirementsIID)
+            {
+                uint? value = obj.GetProperty((PropertyInstanceId)requirement.Stat);
+                double? normalized = value != null ? (double?)Convert.ToDouble(value.Value) : null;
+
+                if (!VerifyRequirement(player, (CompareType)requirement.Enum, normalized, Convert.ToDouble(requirement.Value), requirement.Message))
+                    return false;
+            }
+
+            foreach (var requirement in recipe.RecipeRequirementsDID)
+            {
+                uint? value = obj.GetProperty((PropertyDataId)requirement.Stat);
+                double? normalized = value != null ? (double?)Convert.ToDouble(value.Value) : null;
+
+                if (!VerifyRequirement(player, (CompareType)requirement.Enum, normalized, Convert.ToDouble(requirement.Value), requirement.Message))
+                    return false;
+            }
+            return true;
+        }
+
+        public static bool VerifyRequirement(Player player, CompareType compareType, double? prop, double val, string failMsg)
+        {
+            var success = true;
+
+            switch (compareType)
+            {
+                case CompareType.GreaterThan:
+                    if (prop != null && prop.Value > val)
+                        success = false;
+                    break;
+
+                case CompareType.LessThanEqual:
+                    if (prop != null && prop.Value <= val)
+                        success = false;
+                    break;
+
+                case CompareType.LessThan:
+                    if (prop != null && prop.Value < val)
+                        success = false;
+                    break;
+
+                case CompareType.GreaterThanEqual:
+                    if (prop != null && prop.Value >= val)
+                        success = false;
+                    break;
+
+                case CompareType.NotEqual:
+                    if (prop != null && prop.Value != val)
+                        success = false;
+                    break;
+
+                case CompareType.NotEqualNotExist:
+                    if (prop == null || prop.Value != val)
+                        success = false;
+                    break;
+
+                case CompareType.Equal:
+                    if (prop != null && prop.Value == val)
+                        success = false;
+                    break;
+
+                case CompareType.NotExist:
+                    if (prop == null)
+                        success = false;
+                    break;
+
+                case CompareType.Exist:
+                    if (prop != null)
+                        success = false;
+                    break;
+            }
+
+            if (!success)
+                player.Session.Network.EnqueueSend(new GameMessageSystemChat(failMsg, ChatMessageType.Craft));
+
+            return success;
+        }
+
+        public static bool VerifyRequirement(Player player, CompareType compareType, string prop, string val, string failMsg)
+        {
+            var success = true;
+
+            switch (compareType)
+            {
+                case CompareType.NotEqual:
+                    if (prop != null && !prop.Equals(val))
+                        success = false;
+                    break;
+
+                case CompareType.NotEqualNotExist:
+                    if (prop == null || !prop.Equals(val))
+                        success = false;
+                    break;
+
+                case CompareType.Equal:
+                    if (prop != null && prop.Equals(val))
+                        success = false;
+                    break;
+
+                case CompareType.NotExist:
+                    if (prop == null)
+                        success = false;
+                    break;
+
+                case CompareType.Exist:
+                    if (prop != null)
+                        success = false;
+                    break;
+            }
+
+            if (!success)
+                player.Session.Network.EnqueueSend(new GameMessageSystemChat(failMsg, ChatMessageType.Craft));
+
+            return success;
+        }
     }
 }
