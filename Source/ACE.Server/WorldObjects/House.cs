@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
 using ACE.Common;
+using ACE.Database;
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.Entity;
