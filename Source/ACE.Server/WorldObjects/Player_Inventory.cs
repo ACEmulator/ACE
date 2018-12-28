@@ -87,6 +87,40 @@ namespace ACE.Server.WorldObjects
             return true;
         }
 
+        public bool TryConsumeFromInventoryWithNetworking(WorldObject item, int amount)
+        {
+            if (amount >= (item.StackSize ?? 1))
+            {
+                if (!TryRemoveFromInventory(item.Guid, out item))
+                    return false;
+
+                Session.Network.EnqueueSend(new GameEventInventoryRemoveObject(Session, item));
+
+                item.Destroy();
+            }
+            else
+            {
+                item.StackSize -= amount;
+
+                Session.Network.EnqueueSend(new GameMessageSetStackSize(item));
+
+                if (item.ContainerId != Guid.Full)
+                {
+                    // todo
+                }
+
+                EncumbranceVal -= (item.StackUnitEncumbrance * amount);
+                Value -= (item.StackUnitValue * amount);
+            }
+
+            Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
+
+            if (item.WeenieType == WeenieType.Coin)
+                UpdateCoinValue();
+
+            return true;
+        }
+
         public enum RemoveFromInventoryAction
         {
             None,
@@ -95,8 +129,6 @@ namespace ACE.Server.WorldObjects
 
             DropItem,
             PlaceItemInLandblockContainer,
-
-            ConsumeItem
         }
 
         public bool TryRemoveFromInventoryWithNetworking(ObjectGuid objectGuid, out WorldObject item, RemoveFromInventoryAction removeFromInventoryAction)
@@ -879,6 +911,7 @@ namespace ACE.Server.WorldObjects
         /// This method processes the Game Action (F7B1) Stackable Split To Container (0x0055)
         /// This is raised when we:
         /// - try to split a stack into the same container
+        /// - try to split a stack off of the landblock into a container
         /// - try to split a stack into a different container that doesn't already have a stack that can support a merge
         /// </summary>
         public void HandleActionStackableSplitToContainer(uint stackId, uint containerId, int placementPosition, ushort amount)
@@ -1123,7 +1156,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if (sourceStack.StackSize < amount || targetStack.StackSize + amount > targetStack.MaxStackSize)
+            if (sourceStack.StackSize < amount)
             {
                 Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "Merge amount not valid!")); // Custom error message
                 Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session));
@@ -1159,146 +1192,60 @@ namespace ACE.Server.WorldObjects
             }
             else // This is a self-contained movement
             {
-                /*
-                var newStack = WorldObjectFactory.CreateNewWorldObject(stack.WeenieClassId);
-                newStack.StackSize = amount;
-                newStack.EncumbranceVal = (newStack.StackUnitEncumbrance ?? 0) * (newStack.StackSize ?? 1);
-                newStack.Value = (newStack.StackUnitValue ?? 0) * (newStack.StackSize ?? 1);
-
-                // Before we modify the original stack, we make sure we can add the new stack
-                if (!container.TryAddToInventory(newStack, placementPosition, true))
+                if (amount == sourceStack.StackSize && sourceStack.StackSize + targetStack.StackSize <= targetStack.MaxStackSize) // The merge will consume the entire source stack
                 {
-                    Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "TryAddToInventory failed!")); // Custom error message
-                    Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session));
-                    return;
+                    if (!TryConsumeFromInventoryWithNetworking(sourceStack, amount))
+                    {
+                        Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "TryConsumeFromInventoryWithNetworking failed!")); // Custom error message
+                        Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session));
+                        return;
+                    }
+
+                    AdjustStack(targetStack, amount, targetStackFoundInContainer);
+                    Session.Network.EnqueueSend(new GameMessageSetStackSize(targetStack));
+
+                    if (targetStackFoundInContainer != this)
+                    {
+                        // Add back the removed encumbrance since we merged to a side pack
+                        EncumbranceVal -= (targetStack.StackUnitEncumbrance * amount);
+                        Value -= (targetStack.StackUnitValue * amount);
+                    }
                 }
-
-                Session.Network.EnqueueSend(new GameMessageCreateObject(newStack));
-                Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, newStack, container));
-
-                stack.StackSize -= amount;
-                stack.EncumbranceVal = (stack.StackUnitEncumbrance ?? 0) * (stack.StackSize ?? 1);
-                stack.Value = (stack.StackUnitValue ?? 0) * (stack.StackSize ?? 1);
-
-                Session.Network.EnqueueSend(new GameMessageSetStackSize(stack));
-
-                stackFoundInContainer.EncumbranceVal -= newStack.EncumbranceVal;
-                stackFoundInContainer.Value -= newStack.Value;
-
-                if (stackFoundInContainer != this && container == this)
+                else // The merge will reduce the size of the source stack
                 {
-                    // Remove the added encumbrance since we split from a side pack to the main pack
-                    EncumbranceVal -= newStack.EncumbranceVal;
-                    Value -= newStack.Value;
+                    AdjustStack(sourceStack, -amount, sourceStackFoundInContainer);
+                    Session.Network.EnqueueSend(new GameMessageSetStackSize(sourceStack));
+
+                    AdjustStack(targetStack, amount, targetStackFoundInContainer);
+                    Session.Network.EnqueueSend(new GameMessageSetStackSize(targetStack));
+
+                    if (sourceStackFoundInContainer != this && targetStackFoundInContainer == this)
+                    {
+                        // Remove the added encumbrance since we merged from a side pack to the main pack
+                        EncumbranceVal -= (targetStack.StackUnitEncumbrance * amount);
+                        Value -= (targetStack.StackUnitValue * amount);
+                    }
+                    else if (sourceStackFoundInContainer == this && targetStackFoundInContainer != this)
+                    {
+                        // Add back the removed encumbrance since we merged from the main pack to a side pack
+                        EncumbranceVal += (targetStack.StackUnitEncumbrance * amount);
+                        Value += (targetStack.StackUnitValue * amount);
+                    }
                 }
-                else if (stackFoundInContainer == this && container != this)
-                {
-                    // Add back the removed encumbrance since we split from the main pack to a side pack
-                    EncumbranceVal += newStack.EncumbranceVal;
-                    Value += newStack.Value;
-                }*/
             }
-
-            // is this something I already have? If not, it has to be a pickup - do the pickup and out.
-            /*if (!HasInventoryItem(mergeFromGuid))
-            {
-                // This is a pickup into our main pack.
-                HandleActionPutItemInContainer(mergeFromGuid, Guid);
-                return;
-            }
-
-            var fromItem = GetInventoryItem(mergeFromGuid);
-            var toItem = GetInventoryItem(mergeToGuid);
-
-            if (fromItem == null || toItem == null)
-                return;
-
-            // Check to see if we are trying to merge into a full stack. If so, nothing to do here.
-            // Check this and see if I need to call UpdateToStack to clear the action with an amount of 0 Og II
-            if (toItem.MaxStackSize == toItem.StackSize)
-                return;
-
-            var missileAmmo = toItem.ItemType == ItemType.MissileWeapon;
-
-            if (toItem.MaxStackSize >= (ushort)((toItem.StackSize ?? 0) + amount))
-            {
-                // The toItem has enoguh capacity to take the full amount
-                UpdateToStack(fromItem, toItem, amount, missileAmmo);
-
-                // Ok did we merge it all? If so, let's remove the item.
-                if (fromItem.StackSize == amount)
-                    TryRemoveFromInventoryWithNetworking(fromItem.Guid, out _, true);
-                else
-                    UpdateFromStack(fromItem, amount);
-            }
-            else
-            {
-                // The toItem does not have enough capacity to take the full amount. Just add what we can and adjust both.
-                Debug.Assert(toItem.MaxStackSize != null, "toWo.MaxStackSize != null");
-
-                var amtToFill = (toItem.MaxStackSize ?? 0) - (toItem.StackSize ?? 0);
-
-                UpdateToStack(fromItem, toItem, amtToFill, missileAmmo);
-                UpdateFromStack(toItem, amtToFill);
-            }*/
         }
 
-        /// <summary>
-        /// This method handles the second part of the merge if we have not merged ALL of the fromWo into the toWo - split out for code reuse.
-        /// It calculates the updated values for stack size, value and burden, creates the needed client messages and sends them.
-        /// This must be called from within an action chain. Og II
-        /// </summary>
-        /// <param name="fromWo">World object of the item are we merging from</param>
-        /// <param name="amount">How many are we merging fromWo into the toWo</param>
-        private void UpdateFromStack(WorldObject fromWo, int amount)
+        private void AdjustStack(WorldObject stack, int amount, Container container)
         {
-            Debug.Assert(fromWo.Value != null, "fromWo.Value != null");
-            Debug.Assert(fromWo.StackSize != null, "fromWo.StackSize != null");
-            Debug.Assert(fromWo.EncumbranceVal != null, "fromWo.EncumbranceVal != null");
+            stack.StackSize += amount;
+            stack.EncumbranceVal = (stack.StackUnitEncumbrance ?? 0) * (stack.StackSize ?? 1);
+            stack.Value = (stack.StackUnitValue ?? 0) * (stack.StackSize ?? 1);
 
-            // ok, there are some left, we need up update the stack size, value and burden of the fromWo
-            int newFromValue = (int)(fromWo.Value + ((fromWo.Value / fromWo.StackSize) * -amount));
-            uint newFromBurden = (uint)(fromWo.EncumbranceVal + ((fromWo.EncumbranceVal / fromWo.StackSize) * -amount));
-
-            int oldFromStackSize = (int)fromWo.StackSize;
-            fromWo.StackSize -= (ushort)amount;
-            fromWo.Value = newFromValue;
-            fromWo.EncumbranceVal = (int)newFromBurden;
-
-            // Build the needed messages to the client.
-            EnqueueBroadcast(new GameMessageSetStackSize(fromWo));
-        }
-
-        /// <summary>
-        /// This method handles the first part of the merge - split out for code reuse.
-        /// It calculates the updated values for stack size, value and burden, creates the needed client messages and sends them.
-        /// This must be called from within an action chain. Og II
-        /// </summary>
-        /// <param name="fromWo">World object of the item are we merging from</param>
-        /// <param name="toWo">World object of the item we are merging into</param>
-        /// <param name="amount">How many are we merging fromWo into the toWo</param>
-        private void UpdateToStack(WorldObject fromWo, WorldObject toWo, int amount, bool missileAmmo = false)
-        {
-            Debug.Assert(toWo.Value != null, "toWo.Value != null");
-            Debug.Assert(fromWo.Value != null, "fromWo.Value != null");
-            Debug.Assert(toWo.StackSize != null, "toWo.StackSize != null");
-            Debug.Assert(fromWo.StackSize != null, "fromWo.StackSize != null");
-            Debug.Assert(toWo.EncumbranceVal != null, "toWo.EncumbranceVal != null");
-            Debug.Assert(fromWo.EncumbranceVal != null, "fromWo.EncumbranceVal != null");
-
-            int newValue = (int)(toWo.Value + ((fromWo.Value / fromWo.StackSize) * amount));
-            uint newBurden = (uint)(toWo.EncumbranceVal + ((fromWo.EncumbranceVal / fromWo.StackSize) * amount));
-
-            int oldStackSize = (int)toWo.StackSize;
-            toWo.StackSize += (ushort)amount;
-            toWo.Value = newValue;
-            toWo.EncumbranceVal = (int)newBurden;
-
-            // Build the needed messages to the client.
-            if (missileAmmo)
-                EnqueueBroadcast(new GameMessageSetStackSize(toWo));
-            else
-                EnqueueBroadcast(new GameEventItemServerSaysContainId(Session, toWo, this), new GameMessageSetStackSize(toWo));
+            if (container != null)
+            {
+                container.EncumbranceVal -= (stack.StackUnitEncumbrance * amount);
+                container.Value -= (stack.StackUnitValue * amount);
+            }
         }
 
 
