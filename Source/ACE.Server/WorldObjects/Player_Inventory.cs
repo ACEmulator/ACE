@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Diagnostics;
 
 using ACE.DatLoader;
 using ACE.DatLoader.FileTypes;
@@ -100,17 +99,12 @@ namespace ACE.Server.WorldObjects
             }
             else
             {
-                item.StackSize -= amount;
+                var stack = FindObject(item.Guid, SearchLocations.MyInventory | SearchLocations.MyEquippedItems, out var stackFoundInContainer, out var stackRootOwner, out _);
 
-                Session.Network.EnqueueSend(new GameMessageSetStackSize(item));
+                if (stack == null || stackFoundInContainer == null || stackRootOwner == null)
+                    return false;
 
-                if (item.ContainerId != Guid.Full)
-                {
-                    // todo
-                }
-
-                EncumbranceVal -= (item.StackUnitEncumbrance * amount);
-                Value -= (item.StackUnitValue * amount);
+                AdjustStack(stack, amount, stackFoundInContainer, stackRootOwner);
             }
 
             Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
@@ -392,6 +386,25 @@ namespace ACE.Server.WorldObjects
             moveToChain.AddDelaySeconds(pickupAnimationLength);
         }
 
+        private void AdjustStack(WorldObject stack, int amount, Container container, Container rootContainer)
+        {
+            stack.StackSize += amount;
+            stack.EncumbranceVal = (stack.StackUnitEncumbrance ?? 0) * (stack.StackSize ?? 1);
+            stack.Value = (stack.StackUnitValue ?? 0) * (stack.StackSize ?? 1);
+
+            if (container != null)
+            {
+                container.EncumbranceVal -= (stack.StackUnitEncumbrance * amount);
+                container.Value -= (stack.StackUnitValue * amount);
+
+                if (rootContainer != container)
+                {
+                    rootContainer.EncumbranceVal -= (stack.StackUnitEncumbrance * amount);
+                    rootContainer.Value -= (stack.StackUnitValue * amount);
+                }
+            }
+        }
+
 
         // =========================================
         // Game Action Handlers - Inventory Movement 
@@ -414,6 +427,14 @@ namespace ACE.Server.WorldObjects
             if (item == null)
             {
                 Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "Source item not found!")); // Custom error message
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session));
+                return;
+            }
+
+            if (!item.Guid.IsDynamic() || item is Creature)
+            {
+                log.WarnFormat("Player 0x{0:X8}:{1} tried to move item 0x{2:X8}:{3}.", Guid.Full, Name, item.Guid.Full, item.Name);
+                Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "You can't move that!")); // Custom error message
                 Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session));
                 return;
             }
@@ -942,6 +963,7 @@ namespace ACE.Server.WorldObjects
 
             if (stack.StackSize == null || stack.StackSize == 0)
             {
+                log.WarnFormat("Player 0x{0:X8}:{1} tried to split invalid item 0x{2:X8}:{3}.", Guid.Full, Name, stack.Guid.Full, stack.Name);
                 Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "Stack not valid!")); // Custom error message
                 Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session));
                 return;
@@ -949,10 +971,16 @@ namespace ACE.Server.WorldObjects
 
             if (stack.StackSize < amount)
             {
+                log.WarnFormat("Player 0x{0:X8}:{1} tried to split item with invalid amount 0x{2:X8}:{3}.", Guid.Full, Name, stack.Guid.Full, stack.Name);
                 Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "Split amount not valid!")); // Custom error message
                 Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session));
                 return;
             }
+
+            var newStack = WorldObjectFactory.CreateNewWorldObject(stack.WeenieClassId);
+            newStack.StackSize = amount;
+            newStack.EncumbranceVal = (newStack.StackUnitEncumbrance ?? 0) * (newStack.StackSize ?? 1);
+            newStack.Value = (newStack.StackUnitValue ?? 0) * (newStack.StackSize ?? 1);
 
             if (stackRootOwner != this || containerRootOwner != this) // Either the source or destination is not possessed by the player
             {
@@ -966,14 +994,38 @@ namespace ACE.Server.WorldObjects
                         return;
                     }
 
-                    // todo ***********************************************************************************************************
-                    // todo ***********************************************************************************************************
-                    // todo ***********************************************************************************************************
-                    // todo ***********************************************************************************************************
-                    // todo ***********************************************************************************************************
-                    // todo ***********************************************************************************************************
-                    // todo ***********************************************************************************************************
-                    // todo ***********************************************************************************************************
+                    // Before we modify the original stack, we make sure we can add the new stack
+                    if (!container.TryAddToInventory(newStack, placementPosition, true))
+                    {
+                        Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "TryAddToInventory failed!")); // Custom error message
+                        Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session));
+                        return;
+                    }
+
+                    if (container != containerRootOwner && containerRootOwner != null)
+                    {
+                        containerRootOwner.EncumbranceVal += (stack.StackUnitEncumbrance * amount);
+                        containerRootOwner.Value += (stack.StackUnitValue * amount);
+                    }
+
+                    Session.Network.EnqueueSend(new GameMessageCreateObject(newStack));
+                    Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, newStack, container));
+
+                    AdjustStack(stack, -amount, stackFoundInContainer, stackRootOwner);
+                    Session.Network.EnqueueSend(new GameMessageSetStackSize(stack));
+
+                    if (stackRootOwner == this || containerRootOwner == this)
+                    {
+                        Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
+
+                        if (stack.WeenieType == WeenieType.Coin)
+                            UpdateCoinValue();
+
+                        if (stackRootOwner == this)
+                            EnqueueBroadcast(new GameMessageSound(Guid, Sound.DropItem));
+                        else if (containerRootOwner == this)
+                            EnqueueBroadcast(new GameMessageSound(Guid, Sound.PickUpItem));
+                    }
 
                     var returnStance = new Motion(CurrentMotionState.Stance);
                     EnqueueBroadcastMotion(returnStance);
@@ -983,11 +1035,6 @@ namespace ACE.Server.WorldObjects
             }
             else // This is a self-contained movement
             {
-                var newStack = WorldObjectFactory.CreateNewWorldObject(stack.WeenieClassId);
-                newStack.StackSize = amount;
-                newStack.EncumbranceVal = (newStack.StackUnitEncumbrance ?? 0) * (newStack.StackSize ?? 1);
-                newStack.Value = (newStack.StackUnitValue ?? 0) * (newStack.StackSize ?? 1);
-
                 // Before we modify the original stack, we make sure we can add the new stack
                 if (!container.TryAddToInventory(newStack, placementPosition, true))
                 {
@@ -996,30 +1043,17 @@ namespace ACE.Server.WorldObjects
                     return;
                 }
 
+                if (container != containerRootOwner)
+                {
+                    containerRootOwner.EncumbranceVal += (stack.StackUnitEncumbrance * amount);
+                    containerRootOwner.Value += (stack.StackUnitValue * amount);
+                }
+
                 Session.Network.EnqueueSend(new GameMessageCreateObject(newStack));
                 Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, newStack, container));
 
-                stack.StackSize -= amount;
-                stack.EncumbranceVal = (stack.StackUnitEncumbrance ?? 0) * (stack.StackSize ?? 1);
-                stack.Value = (stack.StackUnitValue ?? 0) * (stack.StackSize ?? 1);
-
+                AdjustStack(stack, -amount, stackFoundInContainer, stackRootOwner);
                 Session.Network.EnqueueSend(new GameMessageSetStackSize(stack));
-
-                stackFoundInContainer.EncumbranceVal -= newStack.EncumbranceVal;
-                stackFoundInContainer.Value -= newStack.Value;
-
-                if (stackFoundInContainer != this && container == this)
-                {
-                    // Remove the added encumbrance since we split from a side pack to the main pack
-                    EncumbranceVal -= newStack.EncumbranceVal;
-                    Value -= newStack.Value;
-                }
-                else if (stackFoundInContainer == this && container != this)
-                {
-                    // Add back the removed encumbrance since we split from the main pack to a side pack
-                    EncumbranceVal += newStack.EncumbranceVal;
-                    Value += newStack.Value;
-                }
             }
         }
 
@@ -1028,7 +1062,7 @@ namespace ACE.Server.WorldObjects
         /// This is raised when we:
         /// - try to split a stack onto the landblock
         /// </summary>
-        public void HandleActionStackableSplitTo3D(uint stackId, uint amount)
+        public void HandleActionStackableSplitTo3D(uint stackId, int amount)
         {
             if (amount == 0)
             {
@@ -1037,7 +1071,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            var stack = FindObject(new ObjectGuid(stackId), SearchLocations.MyInventory | SearchLocations.MyEquippedItems, out var stackFoundInContainer, out _, out _);
+            var stack = FindObject(new ObjectGuid(stackId), SearchLocations.MyInventory | SearchLocations.MyEquippedItems, out var stackFoundInContainer, out var stackRootOwner, out _);
 
             if (stack == null)
             {
@@ -1048,6 +1082,7 @@ namespace ACE.Server.WorldObjects
 
             if (stack.StackSize == null || stack.StackSize == 0)
             {
+                log.WarnFormat("Player 0x{0:X8}:{1} tried to split invalid item 0x{2:X8}:{3}.", Guid.Full, Name, stack.Guid.Full, stack.Name);
                 Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "Stack not valid!")); // Custom error message
                 Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session));
                 return;
@@ -1055,6 +1090,7 @@ namespace ACE.Server.WorldObjects
 
             if (stack.StackSize < amount)
             {
+                log.WarnFormat("Player 0x{0:X8}:{1} tried to split item with invalid amount 0x{2:X8}:{3}.", Guid.Full, Name, stack.Guid.Full, stack.Name);
                 Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "Split amount not valid!")); // Custom error message
                 Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session));
                 return;
@@ -1070,25 +1106,13 @@ namespace ACE.Server.WorldObjects
                     return;
                 }
 
-                stack.StackSize -= (ushort)amount;
-                stack.EncumbranceVal = (stack.StackUnitEncumbrance ?? 0) * (stack.StackSize ?? 1);
-                stack.Value = (stack.StackUnitValue ?? 0) * (stack.StackSize ?? 1);
-
+                AdjustStack(stack, -amount, stackFoundInContainer, stackRootOwner);
                 Session.Network.EnqueueSend(new GameMessageSetStackSize(stack));
 
                 var newStack = WorldObjectFactory.CreateNewWorldObject(stack.WeenieClassId);
                 newStack.StackSize = (ushort)amount;
                 newStack.EncumbranceVal = (newStack.StackUnitEncumbrance ?? 0) * (newStack.StackSize ?? 1);
                 newStack.Value = (newStack.StackUnitValue ?? 0) * (newStack.StackSize ?? 1);
-
-                stackFoundInContainer.EncumbranceVal -= newStack.EncumbranceVal;
-                stackFoundInContainer.Value -= newStack.Value;
-
-                if (stackFoundInContainer != this)
-                {
-                    EncumbranceVal -= newStack.EncumbranceVal;
-                    Value -= newStack.Value;
-                }
 
                 Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
 
@@ -1114,6 +1138,7 @@ namespace ACE.Server.WorldObjects
         /// This is raised when we:
         /// - try to merge two stacks stack in the same container
         /// - try to merge two stacks stack in different container
+        /// - try to merge a stack fron the landblock into a container
         /// - try to split a stack into a different container that has a stack that can support a merge
         /// </summary>
         public void HandleActionStackableMerge(ObjectGuid mergeFromGuid, ObjectGuid mergeToGuid, int amount)
@@ -1144,6 +1169,7 @@ namespace ACE.Server.WorldObjects
 
             if (sourceStack.StackSize == null || sourceStack.StackSize == 0)
             {
+                log.WarnFormat("Player 0x{0:X8}:{1} tried to merge invalid source item 0x{2:X8}:{3}.", Guid.Full, Name, sourceStack.Guid.Full, sourceStack.Name);
                 Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "Stack not valid!")); // Custom error message
                 Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session));
                 return;
@@ -1151,6 +1177,7 @@ namespace ACE.Server.WorldObjects
 
             if (targetStack.StackSize == null || targetStack.StackSize == 0 || targetStack.StackSize == targetStack.MaxStackSize)
             {
+                log.WarnFormat("Player 0x{0:X8}:{1} tried to merge invalid target item 0x{2:X8}:{3}.", Guid.Full, Name, targetStack.Guid.Full, targetStack.Name);
                 Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "Target not valid!")); // Custom error message
                 Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session));
                 return;
@@ -1158,6 +1185,7 @@ namespace ACE.Server.WorldObjects
 
             if (sourceStack.StackSize < amount)
             {
+                log.WarnFormat("Player 0x{0}:{1} tried to merge item with invalid amount 0x{2:X8}:{3}.", Guid.Full, Name, sourceStack.Guid.Full, sourceStack.Name);
                 Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "Merge amount not valid!")); // Custom error message
                 Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session));
                 return;
@@ -1175,14 +1203,56 @@ namespace ACE.Server.WorldObjects
                         return;
                     }
 
-                    // todo ***********************************************************************************************************
-                    // todo ***********************************************************************************************************
-                    // todo ***********************************************************************************************************
-                    // todo ***********************************************************************************************************
-                    // todo ***********************************************************************************************************
-                    // todo ***********************************************************************************************************
-                    // todo ***********************************************************************************************************
-                    // todo ***********************************************************************************************************
+                    if (amount == sourceStack.StackSize && sourceStack.StackSize + targetStack.StackSize <= targetStack.MaxStackSize) // The merge will consume the entire source stack
+                    {
+                        if (sourceStackRootOwner == this)
+                        {
+                            if (!TryConsumeFromInventoryWithNetworking(sourceStack, amount))
+                            {
+                                Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "TryConsumeFromInventoryWithNetworking failed!")); // Custom error message
+                                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session));
+                                return;
+                            }
+                        }
+                        else
+                        {
+                            if (!sourceStackRootOwner.TryRemoveFromInventory(sourceStack.Guid, out _))
+                            {
+                                Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "TryRemoveFromInventory failed!")); // Custom error message
+                                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session));
+                                return;
+
+                            }
+
+                            Session.Network.EnqueueSend(new GameMessageDeleteObject(sourceStack));
+
+                            sourceStack.Destroy();
+                        }
+
+                        AdjustStack(targetStack, amount, targetStackFoundInContainer, targetStackRootOwner);
+                        Session.Network.EnqueueSend(new GameMessageSetStackSize(targetStack));
+                    }
+                    else // The merge will reduce the size of the source stack
+                    {
+                        AdjustStack(sourceStack, -amount, sourceStackFoundInContainer, sourceStackRootOwner);
+                        Session.Network.EnqueueSend(new GameMessageSetStackSize(sourceStack));
+
+                        AdjustStack(targetStack, amount, targetStackFoundInContainer, targetStackRootOwner);
+                        Session.Network.EnqueueSend(new GameMessageSetStackSize(targetStack));
+                    }
+
+                    if (sourceStackRootOwner == this || targetStackRootOwner == this)
+                    {
+                        Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
+
+                        if (sourceStack.WeenieType == WeenieType.Coin)
+                            UpdateCoinValue();
+
+                        if (sourceStackRootOwner == this)
+                            EnqueueBroadcast(new GameMessageSound(Guid, Sound.DropItem));
+                        else if (targetStackRootOwner == this)
+                            EnqueueBroadcast(new GameMessageSound(Guid, Sound.PickUpItem));
+                    }
 
                     var returnStance = new Motion(CurrentMotionState.Stance);
                     EnqueueBroadcastMotion(returnStance);
@@ -1201,50 +1271,17 @@ namespace ACE.Server.WorldObjects
                         return;
                     }
 
-                    AdjustStack(targetStack, amount, targetStackFoundInContainer);
+                    AdjustStack(targetStack, amount, targetStackFoundInContainer, targetStackRootOwner);
                     Session.Network.EnqueueSend(new GameMessageSetStackSize(targetStack));
-
-                    if (targetStackFoundInContainer != this)
-                    {
-                        // Add back the removed encumbrance since we merged to a side pack
-                        EncumbranceVal -= (targetStack.StackUnitEncumbrance * amount);
-                        Value -= (targetStack.StackUnitValue * amount);
-                    }
                 }
                 else // The merge will reduce the size of the source stack
                 {
-                    AdjustStack(sourceStack, -amount, sourceStackFoundInContainer);
+                    AdjustStack(sourceStack, -amount, sourceStackFoundInContainer, sourceStackRootOwner);
                     Session.Network.EnqueueSend(new GameMessageSetStackSize(sourceStack));
 
-                    AdjustStack(targetStack, amount, targetStackFoundInContainer);
+                    AdjustStack(targetStack, amount, targetStackFoundInContainer, targetStackRootOwner);
                     Session.Network.EnqueueSend(new GameMessageSetStackSize(targetStack));
-
-                    if (sourceStackFoundInContainer != this && targetStackFoundInContainer == this)
-                    {
-                        // Remove the added encumbrance since we merged from a side pack to the main pack
-                        EncumbranceVal -= (targetStack.StackUnitEncumbrance * amount);
-                        Value -= (targetStack.StackUnitValue * amount);
-                    }
-                    else if (sourceStackFoundInContainer == this && targetStackFoundInContainer != this)
-                    {
-                        // Add back the removed encumbrance since we merged from the main pack to a side pack
-                        EncumbranceVal += (targetStack.StackUnitEncumbrance * amount);
-                        Value += (targetStack.StackUnitValue * amount);
-                    }
                 }
-            }
-        }
-
-        private void AdjustStack(WorldObject stack, int amount, Container container)
-        {
-            stack.StackSize += amount;
-            stack.EncumbranceVal = (stack.StackUnitEncumbrance ?? 0) * (stack.StackSize ?? 1);
-            stack.Value = (stack.StackUnitValue ?? 0) * (stack.StackSize ?? 1);
-
-            if (container != null)
-            {
-                container.EncumbranceVal -= (stack.StackUnitEncumbrance * amount);
-                container.Value -= (stack.StackUnitValue * amount);
             }
         }
 
