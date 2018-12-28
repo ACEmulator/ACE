@@ -116,7 +116,7 @@ namespace ACE.Server.Physics.Common
                     continue;
 
                 // clip through dynamic non-target objects
-                if (target != null && !obj.Equals(target) && !obj.State.HasFlag(PhysicsState.Static))
+                if (target != null && !obj.Equals(target) && /*!obj.State.HasFlag(PhysicsState.Static)*/ obj.WeenieObj.IsCreature())
                     continue;
 
                 var state = obj.FindObjCollisions(transition);

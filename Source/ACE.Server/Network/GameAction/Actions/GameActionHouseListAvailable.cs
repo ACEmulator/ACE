@@ -15,6 +15,8 @@ namespace ACE.Server.Network.GameAction.Actions
 
             // type of house being listed
             var houseType = (HouseType)message.Payload.ReadUInt32();
+
+            session.Player.HandleActionListAvailable(houseType);
         }
     }
 }

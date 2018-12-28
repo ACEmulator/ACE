@@ -817,6 +817,9 @@ namespace ACE.Server.Managers
         /// </summary>
         public virtual int GetDamageMod()
         {
+            if (!WorldObject.IsEnchantable)
+                return 0;
+
             // BD8 seems to be the only one with aura in db?
             var aura = GetAdditiveMod(PropertyInt.WeaponAuraDamage);
             if (aura != 0) return aura;
@@ -829,6 +832,9 @@ namespace ACE.Server.Managers
         /// </summary>
         public virtual float GetDamageModifier()
         {
+            if (!WorldObject.IsEnchantable)
+                return 1.0f;
+
             return GetMultiplicativeMod(PropertyFloat.DamageMod);
         }
 
@@ -837,6 +843,9 @@ namespace ACE.Server.Managers
         /// </summary>
         public virtual float GetAttackMod()
         {
+            if (!WorldObject.IsEnchantable)
+                return 0.0f;
+
             var aura = GetAdditiveMod(PropertyFloat.WeaponAuraOffense);
             if (aura != 0) return aura;
 
@@ -848,6 +857,9 @@ namespace ACE.Server.Managers
         /// </summary>
         public virtual int GetWeaponSpeedMod()
         {
+            if (!WorldObject.IsEnchantable)
+                return 0;
+
             var aura = GetAdditiveMod(PropertyInt.WeaponAuraSpeed);
             if (aura != 0) return aura;
 
@@ -859,6 +871,9 @@ namespace ACE.Server.Managers
         /// </summary>
         public virtual float GetDefenseMod()
         {
+            if (!WorldObject.IsEnchantable)
+                return 0;
+
             var aura = GetAdditiveMod(PropertyFloat.WeaponAuraDefense);
             if (aura != 0) return aura;
 
@@ -870,6 +885,9 @@ namespace ACE.Server.Managers
         /// </summary>
         public virtual float GetVarianceMod()
         {
+            if (!WorldObject.IsEnchantable)
+                return 1.0f;
+
             return GetMultiplicativeMod(PropertyFloat.DamageVariance);
         }
 
@@ -878,6 +896,9 @@ namespace ACE.Server.Managers
         /// </summary>
         public virtual int GetArmorMod()
         {
+            if (!WorldObject.IsEnchantable)
+                return 0;
+
             return GetAdditiveMod(PropertyInt.ArmorLevel);
         }
 
@@ -886,6 +907,9 @@ namespace ACE.Server.Managers
         /// </summary>
         public virtual float GetArmorModVsType(DamageType damageType)
         {
+            if (!WorldObject.IsEnchantable)
+                return 0.0f;
+
             var typeFlags = EnchantmentTypeFlags.Float | EnchantmentTypeFlags.SingleStat | EnchantmentTypeFlags.Additive;
             var key = GetImpenBaneKey(damageType);
             var enchantments = GetEnchantments_TopLayer(typeFlags, (uint)key);

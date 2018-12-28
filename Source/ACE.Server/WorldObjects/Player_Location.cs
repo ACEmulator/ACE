@@ -142,7 +142,7 @@ namespace ACE.Server.WorldObjects
             //Location = newPosition;
             //SendUpdatePosition();
 
-            UpdatePlayerPhysics(newPosition, true);
+            UpdatePlayerPhysics(new Position(newPosition), true);
 
             Hidden = true;
             IgnoreCollisions = true;

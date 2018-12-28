@@ -14,6 +14,8 @@ namespace ACE.Server.Network.GameAction.Actions
             //Console.WriteLine("Received 0x247 - SetOpenHouseStatus");
 
             var openHouse = Convert.ToBoolean(message.Payload.ReadUInt32());
+
+            session.Player.HandleActionSetOpenStatus(openHouse);
         }
     }
 }

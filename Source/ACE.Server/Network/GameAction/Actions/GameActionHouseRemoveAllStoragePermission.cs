@@ -11,6 +11,7 @@ namespace ACE.Server.Network.GameAction.Actions
         public static void Handle(ClientMessage message, Session session)
         {
             //Console.WriteLine("Received 0x24C - House - RemoveAllStoragePermission");
+            session.Player.HandleActionRemoveAllStorage();
         }
     }
 }
