@@ -813,7 +813,17 @@ namespace ACE.Server.WorldObjects
             }
             else if (wasEquipped) // Movement is an equipped item to another equipped item slot
             {
-                // todo don't dequip, just shift
+                if (!WieldedLocationIsAvailable(wieldLocation))
+                {
+                    Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "Wield location is not available!")); // Custom error message
+                    Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session));
+                    return false;
+                }
+
+                item.CurrentWieldedLocation = (EquipMask)wieldLocation;
+                Session.Network.EnqueueSend(new GameMessagePublicUpdatePropertyInt(item, PropertyInt.CurrentWieldedLocation, wieldLocation));
+
+                Session.Network.EnqueueSend(new GameEventWieldItem(Session, item.Guid.Full, wieldLocation));
             }
             else // Movement is within the same pack or between packs in a container on the landblock
             {
