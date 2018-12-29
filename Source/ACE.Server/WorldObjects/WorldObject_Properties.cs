@@ -1094,10 +1094,10 @@ namespace ACE.Server.WorldObjects
             set { if (value == 0) RemoveProperty(PropertyInt.HouseStatus); else SetProperty(PropertyInt.HouseStatus, value); }
         }
 
-        public int? HouseType
+        public HouseType? HouseType
         {
-            get => GetProperty(PropertyInt.HouseType);
-            set { if (value.HasValue) RemoveProperty(PropertyInt.HouseType); else SetProperty(PropertyInt.HouseType, value.Value); }
+            get => (HouseType?)GetProperty(PropertyInt.HouseType);
+            set { if (value.HasValue) RemoveProperty(PropertyInt.HouseType); else SetProperty(PropertyInt.HouseType, (int)value.Value); }
         }
 
         public int? HookItemType

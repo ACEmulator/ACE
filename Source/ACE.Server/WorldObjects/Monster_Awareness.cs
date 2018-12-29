@@ -197,6 +197,18 @@ namespace ACE.Server.WorldObjects
             PhysicsObj.handle_visible_cells();
         }
 
+        public double? VisualAwarenessRange
+        {
+            get => GetProperty(PropertyFloat.VisualAwarenessRange);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.VisualAwarenessRange); else SetProperty(PropertyFloat.VisualAwarenessRange, value.Value); }
+        }
+
+        public double? AuralAwarenessRange
+        {
+            get => GetProperty(PropertyFloat.AuralAwarenessRange);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.AuralAwarenessRange); else SetProperty(PropertyFloat.AuralAwarenessRange, value.Value); }
+        }
+
         /// <summary>
         /// Monsters can only alert other monsters once?
         /// </summary>
@@ -221,12 +233,17 @@ namespace ACE.Server.WorldObjects
                       FriendType != null && FriendType == nearbyCreature.CreatureType)
                 {
                     // clamp radius if outdoors
-                    if ((Location.Cell & 0xFFFF) < 0x100)
+                    /*if ((Location.Cell & 0xFFFF) < 0x100)
                     {
                         var distSq = Vector3.DistanceSquared(Location.ToGlobal(), nearbyCreature.Location.ToGlobal());
                         if (distSq > AlertRadiusSq)
                             continue;
-                    }
+                    }*/
+
+                    var dist = Vector3.Distance(Location.ToGlobal(), nearbyCreature.Location.ToGlobal());
+                    if (dist > (nearbyCreature.VisualAwarenessRange ?? AlertRadius))
+                        continue;
+
                     Alerted = true;
                     nearbyCreature.AttackTarget = AttackTarget;
                     nearbyCreature.WakeUp(false);

@@ -102,29 +102,7 @@ namespace ACE.Server.Entity
         /// <summary>
         /// Returns TRUE if this is a beneficial spell
         /// </summary>
-        public bool IsBeneficial
-        {
-            get
-            {
-                // TODO: item enchantment?
-                // is all of this logic even needed,
-                // or can SpellFlags.Beneficial just be used?
-
-                // All War and Void spells are harmful
-                if (School == MagicSchool.WarMagic || School == MagicSchool.VoidMagic)
-                    return false;
-
-                // Life Magic spells that don't have bit three of their bitfield property set are harmful
-                if (School == MagicSchool.LifeMagic && !Flags.HasFlag(SpellFlags.Beneficial))
-                    return false;
-
-                // Creature Magic spells that don't have bit three of their bitfield property set are harmful
-                if (School == MagicSchool.CreatureEnchantment && !Flags.HasFlag(SpellFlags.Beneficial))
-                    return false;
-
-                return true;
-            }
-        }
+        public bool IsBeneficial => Flags.HasFlag(SpellFlags.Beneficial);
 
         /// <summary>
         /// Returns TRUE if this is a hamrful spell

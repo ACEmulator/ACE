@@ -44,10 +44,10 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public override void UseItem(Player player)
         {
-            Player.ConsumableBuffType buffType;
+            var buffType = Player.ConsumableBuffType.Stamina;
 
-            //if (Food)
-            //{
+            if (BoostEnum != null)
+            {
                 switch (BoostEnum)
                 {
                     case (int)Player.ConsumableBuffType.Health:
@@ -56,13 +56,11 @@ namespace ACE.Server.WorldObjects
                     case (int)Player.ConsumableBuffType.Mana:
                         buffType = Player.ConsumableBuffType.Mana;
                         break;
-                    default:
-                        buffType = Player.ConsumableBuffType.Stamina;
+                    case (int)Player.ConsumableBuffType.Spell:
+                        buffType = Player.ConsumableBuffType.Spell;
                         break;
                 }
-            //}
-            //else
-            //    buffType = WorldObjects.Player.ConsumableBuffType.Spell;
+            }
 
             player.ApplyConsumable(Name, GetSoundDid(), buffType, (uint)Boost, SpellDID);
 

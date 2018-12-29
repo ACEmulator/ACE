@@ -28,7 +28,7 @@ namespace ACE.Server.Network.Structure
 
             Table = new Dictionary<ObjectGuid, uint>();
             foreach (var guest in house.Guests)
-                Table.Add(guest.Key.Guid, Convert.ToUInt32(guest.Value));
+                Table.Add(guest.Key, Convert.ToUInt32(guest.Value));
         }
     }
 
