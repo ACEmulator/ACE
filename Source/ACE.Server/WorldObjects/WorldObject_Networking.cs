@@ -153,7 +153,15 @@ namespace ACE.Server.WorldObjects
                 writer.Write((ushort?)SpellDID ?? 0);
 
             if ((weenieFlags & WeenieHeaderFlag.HouseOwner) != 0)
-                writer.Write(HouseOwner ?? 0);
+            {
+                // if mansion, send house owner from master copy
+                var houseOwner = HouseOwner;
+                var house = this as House;
+                if (house != null && house.HouseType == ACE.Entity.Enum.HouseType.Mansion)
+                    houseOwner = house.LinkedHouses[0].HouseOwner;
+
+                writer.Write(houseOwner ?? 0);
+            }
 
             if ((weenieFlags & WeenieHeaderFlag.HouseRestrictions) != 0)
             {
@@ -171,6 +179,13 @@ namespace ACE.Server.WorldObjects
                         house.BuildGuests();
                     }
                 }
+                else
+                {
+                    // if mansion, send permissions from master copy
+                    if (house.HouseType == ACE.Entity.Enum.HouseType.Mansion)
+                        house = house.LinkedHouses[0];
+                }
+
                 writer.Write(new RestrictionDB(house));
             }
 
@@ -729,12 +744,18 @@ namespace ACE.Server.WorldObjects
             if ((SpellDID != null) && (SpellDID != 0))
                 weenieHeaderFlag |= WeenieHeaderFlag.Spell;
 
-            if (HouseOwner != null)
-                weenieHeaderFlag |= WeenieHeaderFlag.HouseOwner;
-
-            //if (HouseRestrictions != null)
-            if (this is House)
+            var houseOwner = HouseOwner;
+            var house = this as House;
+            if (house != null)
+            {
                 weenieHeaderFlag |= WeenieHeaderFlag.HouseRestrictions;
+
+                if (house.HouseType == ACE.Entity.Enum.HouseType.Mansion)
+                    houseOwner = house.LinkedHouses[0].HouseOwner;
+            }
+
+            if (houseOwner != null)
+                weenieHeaderFlag |= WeenieHeaderFlag.HouseOwner;
 
             var hookItemTypeInt = GetProperty(PropertyInt.HookItemType);
             if (hookItemTypeInt != null)

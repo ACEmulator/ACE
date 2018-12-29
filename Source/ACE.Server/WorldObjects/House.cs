@@ -33,6 +33,11 @@ namespace ACE.Server.WorldObjects
             set => HouseStatus = Convert.ToInt32(value);
         }
 
+        /// <summary>
+        /// For linking mansions
+        /// </summary>
+        public List<House> LinkedHouses;
+
         public SlumLord SlumLord { get => ChildLinks.FirstOrDefault(l => l as SlumLord != null) as SlumLord; }
         public List<Hook> Hooks { get => ChildLinks.Where(l => l is Hook).Select(l => l as Hook).ToList(); }
         public List<Storage> Storage { get => ChildLinks.Where(l => l is Storage).Select(l => l as Storage).ToList(); }
@@ -63,6 +68,8 @@ namespace ACE.Server.WorldObjects
             DefaultScriptId = (uint)ACE.Entity.Enum.PlayScript.RestrictionEffectBlue;
 
             BuildGuests();
+
+            LinkedHouses = new List<House>();
         }
 
         /// <summary>
@@ -99,27 +106,12 @@ namespace ACE.Server.WorldObjects
             var biota = DatabaseManager.Shard.GetBiota(houseGuid);
             var instances = DatabaseManager.World.GetCachedInstancesByLandblock(landblock);
 
-            if (instances == null || instances.Count == 0 || biota == null)
-            {
-                //Console.WriteLine($"{Name} sent HouseInstance={HouseInstance:X8}, instances={instances}, biota={biota}");
-                return null;
-            }
+            var linkedHouses = WorldObjectFactory.CreateNewWorldObjects(instances, new List<Biota>() { biota }, biota.WeenieClassId);
 
-            var objects = WorldObjectFactory.CreateNewWorldObjects(instances, new List<Biota>() { biota }, houseGuid);
-            if (objects.Count == 0)
-            {
-                //Console.WriteLine($"{Name} sent HouseInstance={HouseInstance:X8}, found instances and biota, but object count=0");
-                return null;
-            }
+            foreach (var linkedHouse in linkedHouses)
+                linkedHouse.ActivateLinks(instances, new List<Biota>() { biota }, linkedHouses[0]);
 
-            var house = objects[0] as House;
-            if (house == null)
-            {
-                //Console.WriteLine($"{Name} sent HouseInstance={HouseInstance:X8}, found instances and biota, but type {objects[0].WeenieType}");
-                return null;
-            }
-            house.ActivateLinks(instances, new List<Biota>() { biota });
-            return house;
+            return (House)linkedHouses[0];
         }
 
         /// <summary>
