@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 
@@ -1543,10 +1543,10 @@ namespace ACE.Database.Models.Shard
                 entity.ToTable("house_permission");
 
                 entity.HasIndex(e => e.HouseId)
-                    .HasName("house_Id_idx");
+                    .HasName("biota_Id_house_Id_idx");
 
                 entity.HasIndex(e => new { e.HouseId, e.PlayerGuid })
-                    .HasName("house_Id_player_Guid_uidx")
+                    .HasName("biota_Id_house_Id_player_Guid_uidx")
                     .IsUnique();
 
                 entity.Property(e => e.Id).HasColumnName("id");
@@ -1562,7 +1562,7 @@ namespace ACE.Database.Models.Shard
                 entity.HasOne(d => d.House)
                     .WithMany(p => p.HousePermission)
                     .HasForeignKey(d => d.HouseId)
-                    .HasConstraintName("house_Guid");
+                    .HasConstraintName("biota_Id_house_Id");
             });
         }
     }
