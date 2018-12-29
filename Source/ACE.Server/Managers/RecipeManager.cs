@@ -345,6 +345,7 @@ namespace ACE.Server.Managers
                 case MaterialType.Bloodstone:
                 case MaterialType.Azurite:
                 case MaterialType.Agate:
+                    return;
 
                 // weapon tinkering
 
