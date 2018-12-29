@@ -240,13 +240,13 @@ namespace ACE.Server.Managers
                     target.ArmorModVsElectric = Math.Min((target.ArmorModVsElectric ?? 0) + 0.4f, 2.0f);
                     break;
                 case MaterialType.Peridot:
-                    AddImbuedEffect(target, ImbuedEffectType.MeleeDefense);
+                    AddImbuedEffect(player, target, ImbuedEffectType.MeleeDefense);
                     break;
                 case MaterialType.YellowTopaz:
-                    AddImbuedEffect(target, ImbuedEffectType.MissileDefense);
+                    AddImbuedEffect(player, target, ImbuedEffectType.MissileDefense);
                     break;
                 case MaterialType.Zircon:
-                    AddImbuedEffect(target, ImbuedEffectType.MagicDefense);
+                    AddImbuedEffect(player, target, ImbuedEffectType.MagicDefense);
                     break;
 
                 // item tinkering
@@ -318,13 +318,13 @@ namespace ACE.Server.Managers
                 // magic item tinkering
 
                 case MaterialType.Sunstone:
-                    AddImbuedEffect(target, ImbuedEffectType.ArmorRending);
+                    AddImbuedEffect(player, target, ImbuedEffectType.ArmorRending);
                     break;
                 case MaterialType.FireOpal:
-                    AddImbuedEffect(target, ImbuedEffectType.CripplingBlow);
+                    AddImbuedEffect(player, target, ImbuedEffectType.CripplingBlow);
                     break;
                 case MaterialType.BlackOpal:
-                    AddImbuedEffect(target, ImbuedEffectType.CriticalStrike);
+                    AddImbuedEffect(player, target, ImbuedEffectType.CriticalStrike);
                     break;
                 case MaterialType.Opal:
                     target.ManaConversionMod += 0.01f;
@@ -370,25 +370,25 @@ namespace ACE.Server.Managers
 
                 // only 1 imbue can be applied per piece of armor?
                 case MaterialType.Emerald:
-                    AddImbuedEffect(target, ImbuedEffectType.AcidRending);
+                    AddImbuedEffect(player, target, ImbuedEffectType.AcidRending);
                     break;
                 case MaterialType.WhiteSapphire:
-                    AddImbuedEffect(target, ImbuedEffectType.BludgeonRending);
+                    AddImbuedEffect(player, target, ImbuedEffectType.BludgeonRending);
                     break;
                 case MaterialType.Aquamarine:
-                    AddImbuedEffect(target, ImbuedEffectType.ColdRending);
+                    AddImbuedEffect(player, target, ImbuedEffectType.ColdRending);
                     break;
                 case MaterialType.Jet:
-                    AddImbuedEffect(target, ImbuedEffectType.ElectricRending);
+                    AddImbuedEffect(player, target, ImbuedEffectType.ElectricRending);
                     break;
                 case MaterialType.RedGarnet:
-                    AddImbuedEffect(target, ImbuedEffectType.FireRending);
+                    AddImbuedEffect(player, target, ImbuedEffectType.FireRending);
                     break;
                 case MaterialType.BlackGarnet:
-                    AddImbuedEffect(target, ImbuedEffectType.PierceRending);
+                    AddImbuedEffect(player, target, ImbuedEffectType.PierceRending);
                     break;
                 case MaterialType.ImperialTopaz:
-                    AddImbuedEffect(target, ImbuedEffectType.SlashRending);
+                    AddImbuedEffect(player, target, ImbuedEffectType.SlashRending);
                     break;
                 default:
                     Console.WriteLine($"Unknown material type: {materialType}");
@@ -398,7 +398,7 @@ namespace ACE.Server.Managers
             target.NumTimesTinkered++;
         }
 
-        public static bool AddImbuedEffect(WorldObject target, ImbuedEffectType effect)
+        public static bool AddImbuedEffect(Player player, WorldObject target, ImbuedEffectType effect)
         {
             var imbuedEffects = GetImbuedEffects(target);
 
@@ -426,7 +426,10 @@ namespace ACE.Server.Managers
                 return false;
 
             if (IconUnderlay.TryGetValue(effect, out var icon))
+            {
                 target.SetProperty(PropertyDataId.IconUnderlay, icon);
+                player.Session.Network.EnqueueSend(new GameMessagePublicUpdatePropertyDataID(target, PropertyDataId.IconUnderlay, icon));
+            }
 
             return true;
         }
