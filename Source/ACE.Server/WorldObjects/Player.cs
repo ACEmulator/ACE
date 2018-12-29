@@ -343,19 +343,19 @@ namespace ACE.Server.WorldObjects
 
             // if local, examine it
             if (wo != null)
-                wo.Examine(Session);
+                Examine(wo);
             else
             {
                 // examine item on landblock
                 wo = CurrentLandblock?.GetObject(examinationId);
                 if (wo != null)
-                    wo.Examine(Session);
+                    Examine(wo);
                 else
                 {
                     // search creature equipped weapons on nearby landblocks
                     wo = CurrentLandblock?.GetWieldedObject(examinationId);
                     if (wo != null)
-                        wo.Examine(Session);
+                        Examine(wo);
                     else
                     {
                         // At this point, the object wasn't found.
@@ -369,6 +369,33 @@ namespace ACE.Server.WorldObjects
 
             RequestedAppraisalTarget = examinationId.Full;
             CurrentAppraisalTarget = examinationId.Full;
+        }
+
+        public void Examine(WorldObject obj)
+        {
+            var success = true;
+            var creature = obj as Creature;
+            Player player = null;
+
+            if (creature != null)
+            {
+                player = obj as Player;
+                var skill = player != null ? Skill.AssessPerson : Skill.AssessCreature;
+
+                var currentSkill = (int)GetCreatureSkill(skill).Current;
+                int difficulty = (int)creature.GetCreatureSkill(Skill.Deception).Current;
+
+                var chance = SkillCheck.GetSkillChance(currentSkill, difficulty);
+
+                if (player != null && !player.GetCharacterOption(CharacterOption.AttemptToDeceiveOtherPlayers))
+                    chance = 1.0f;
+
+                success = chance >= ThreadSafeRandom.Next(0.0f, 1.0f);
+            }
+            Session.Network.EnqueueSend(new GameEventIdentifyObjectResponse(Session, obj, success));
+
+            if (!success && player != null)
+                player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{Name} tried and failed to assess you!", ChatMessageType.Appraisal));
         }
 
         public override void OnCollideObject(WorldObject target)

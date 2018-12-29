@@ -388,14 +388,6 @@ namespace ACE.Server.WorldObjects
             }
         }
 
-        public void Examine(Session examiner)
-        {
-            // TODO : calculate if we were successful
-            var success = true;
-            GameEventIdentifyObjectResponse identifyResponse = new GameEventIdentifyObjectResponse(examiner, this, success);
-            examiner.Network.EnqueueSend(identifyResponse);
-        }
-
         public void ReadBookPage(Session reader, uint pageNum)
         {
             //PageData pageData = new PageData();
