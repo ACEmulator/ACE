@@ -425,8 +425,26 @@ namespace ACE.Server.Managers
             else
                 return false;
 
+            if (IconUnderlay.TryGetValue(effect, out var icon))
+                target.SetProperty(PropertyDataId.IconUnderlay, icon);
+
             return true;
         }
+
+        // derrick's input => output mappings
+        public static Dictionary<ImbuedEffectType, uint> IconUnderlay = new Dictionary<ImbuedEffectType, uint>()
+        {
+            { ImbuedEffectType.ColdRending,     0x06003353 },
+            { ImbuedEffectType.PierceRending,   0x06003358 },
+            { ImbuedEffectType.CriticalStrike,  0x06003357 },
+            { ImbuedEffectType.AcidRending,     0x06003355 },
+            { ImbuedEffectType.CripplingBlow,   0x06003357 },
+            { ImbuedEffectType.SlashRending,    0x0600335c },
+            { ImbuedEffectType.ElectricRending, 0x06003354 },
+            { ImbuedEffectType.FireRending,     0x06003359 },
+            { ImbuedEffectType.ArmorRending,    0x06003356 },
+            { ImbuedEffectType.BludgeonRending, 0x0600335a }
+        };
 
         public static ImbuedEffectType GetImbuedEffects(WorldObject target)
         {
