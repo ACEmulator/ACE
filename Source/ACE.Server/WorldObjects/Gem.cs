@@ -59,11 +59,14 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public override void UseItem(Player player)
         {
+            // TODO: verify use requirements
+
             if (UseCreateContractId == null)
             {
                 //var spell = new Spell((uint)SpellDID);
-/*
-                ////These if statements are to catch spells with an apostrophe in the dat file which throws off the client in reading it from the dat.
+
+                /*
+                //These if statements are to catch spells with an apostrophe in the dat file which throws off the client in reading it from the dat.
                 if (spell.MetaSpellId == 3810)
                     castMessage = "The gem casts Asheron's Benediction on you";
                 if (spell.MetaSpellId == 3811)
@@ -72,10 +75,13 @@ namespace ACE.Server.WorldObjects
                     castMessage = "The gem casts Carraida's Benediction on you";
                 if (spell.MetaSpellId == 4024)
                     castMessage = "The gem casts Asheron's Lesser Benediction on you";
-*/
+                */
+
                 player.CreateItemSpell(Guid, (uint)SpellDID);
 
-                ////session.Player.HandleActionRemoveItemFromInventory(Guid.Full, (uint)ContainerId, 1); This is commented out to aid in testing. Will be uncommented later.
+                // always consume gem?
+                player.TryRemoveFromInventoryWithNetworking(this);
+
                 player.SendUseDoneEvent();
                 return;
             }

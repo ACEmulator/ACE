@@ -796,7 +796,10 @@ namespace ACE.Server.WorldObjects
         {
             HouseSequence++;
 
-            Sync(house);
+                var nearbyPlayers = house.PhysicsObj.ObjMaint.VoyeurTable.Values.Select(v => (Player)v.WeenieObj.WorldObject).ToList();
+                foreach (var player in nearbyPlayers)
+                    player.Session.Network.EnqueueSend(new GameEventHouseUpdateRestrictions(player.Session, house.Guid, restrictions, HouseSequence));
+            }
 
             var nearbyPlayers = house.PhysicsObj.ObjMaint.VoyeurTable.Values.Select(v => (Player)v.WeenieObj.WorldObject).ToList();
             foreach (var player in nearbyPlayers)

@@ -183,7 +183,7 @@ namespace ACE.Server.WorldObjects
             }
 
             //if (HouseOwner != null)
-            //Console.WriteLine($"{Name}.SetLinkProperties({wo.Name}) - houseID: {HouseId:X8}, owner: {HouseOwner:X8}, instance: {HouseInstance:X8}");
+                //Console.WriteLine($"{Name}.SetLinkProperties({wo.Name}) - houseID: {HouseId:X8}, owner: {HouseOwner:X8}, instance: {HouseInstance:X8}");
         }
 
         public override void UpdateLinkProperties(WorldObject wo)
