@@ -1,3 +1,4 @@
+using System;
 using System.Threading;
 
 using ACE.Entity;
@@ -15,7 +16,10 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         private ObjectGuid lastUsedContainerId;
 
+        private TimeSpan defaultMoveToTimeout = TimeSpan.FromSeconds(15); // This is just a starting point number. It may be far off from retail.
+
         private int moveToChainCounter;
+        private DateTime moveToChainStartTime;
 
         private int GetNextMoveToChainNumber()
         {
@@ -190,6 +194,8 @@ namespace ACE.Server.WorldObjects
 
             var thisMoveToChainNumberCopy = thisMoveToChainNumber;
 
+            moveToChainStartTime = DateTime.UtcNow;
+
             moveToChain.AddLoop(this, () =>
             {
                 if (thisMoveToChainNumberCopy != moveToChainCounter)
@@ -202,7 +208,12 @@ namespace ACE.Server.WorldObjects
                     return false;
                 }
 
-                // todo: Have we timed out?
+                // Have we timed out?
+                if (moveToChainStartTime + defaultMoveToTimeout <= DateTime.UtcNow)
+                {
+                    StopExistingMoveToChains(); // This increments our moveToChainCounter and thus, should stop any additional actions in this chain
+                    return false;
+                }
 
                 // Are we within use radius?
                 bool ret = !CurrentLandblock.WithinUseRadius(this, target.Guid, out var valid);
