@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Numerics;
 
+using ACE.Database;
 using ACE.DatLoader;
 using ACE.DatLoader.Entity;
 using ACE.DatLoader.FileTypes;
@@ -157,6 +158,19 @@ namespace ACE.Server.WorldObjects
             if ((weenieFlags & WeenieHeaderFlag.HouseRestrictions) != 0)
             {
                 var house = this as House;
+
+                // if house object is in dungeon,
+                // send the permissions from the outdoor house
+                if (house.CurrentLandblock.IsDungeon)
+                {
+                    var biota = DatabaseManager.Shard.GetBiotasByWcid(WeenieClassId).FirstOrDefault(b => b.BiotaPropertiesPosition.FirstOrDefault(p => p.PositionType == (ushort)PositionType.Location).ObjCellId >> 16 != Location.Landblock);
+                    if (biota != null)
+                    {
+                        var outdoorHouseGuid = biota.Id;
+                        house = House.Load(outdoorHouseGuid);
+                        house.BuildGuests();
+                    }
+                }
                 writer.Write(new RestrictionDB(house));
             }
 

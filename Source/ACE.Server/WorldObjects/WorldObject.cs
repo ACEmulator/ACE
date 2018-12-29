@@ -156,6 +156,9 @@ namespace ACE.Server.WorldObjects
 
             AdjustDungeon(Location);
 
+            // exclude linkspots from spawning
+            if (WeenieClassId == 10762) return true;
+
             var cell = LScape.get_landcell(Location.Cell);
             if (cell == null) return false;
 
@@ -940,5 +943,12 @@ namespace ACE.Server.WorldObjects
             if (broadcast)
                 EnqueueBroadcastMotion(CurrentMotionState);
         }
+
+        /// <summary>
+        /// Returns TRUE if this WorldObject is a generic linkspot
+        /// Linkspots are used for things like Houses,
+        /// where the portal destination should be populated at runtime.
+        /// </summary>
+        public bool IsLinkSpot => WeenieType == WeenieType.Generic && WeenieClassName.Equals("portaldestination");
     }
 }
