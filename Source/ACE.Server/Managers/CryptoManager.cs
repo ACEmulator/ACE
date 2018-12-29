@@ -1,12 +1,10 @@
+using ACE.Common;
+using log4net;
 using System;
 using System.IO;
 using System.Net;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
-
-using log4net;
-
-using ACE.Common;
 
 namespace ACE.Server.Managers
 {
@@ -23,12 +21,19 @@ namespace ACE.Server.Managers
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
+        /// <summary>
+        /// The thumbprint of the certified public key
+        /// </summary>
+        public static string Thumbprint => Certificate.Thumbprint;
+        private static X509Certificate2 Certificate { get; set; } = null;
+        private const string CertFileName = "server.pfx";
+
         public static void Initialize()
         {
-            var CertFile = Path.Combine(ServerManager.CertificatePath, CertFileName);
+            string CertFile = Path.Combine(ServerManager.CertificatePath, CertFileName);
             if (!File.Exists(CertFile))
             {
-                var newCert = BuildSelfSignedServerCertificate("ACEmulator");
+                X509Certificate2 newCert = BuildSelfSignedServerCertificate("ACEmulator");
                 File.WriteAllBytes(CertFile, newCert.Export(X509ContentType.Pkcs12));
                 log.Info($"New certificate generated and saved to {CertFile}");
                 newCert.Dispose();
@@ -36,19 +41,18 @@ namespace ACE.Server.Managers
             Certificate = new X509Certificate2(CertFile);
             log.Info($"Server certificate thumbprint: {Certificate.Thumbprint}");
 
-            var trustedCount = ConfigManager.Config.Server.TrustedServerCertThumbprints.Count;
-            var plural = (trustedCount > 1 || trustedCount == 0) ? "s" : "";
+            int trustedCount = ConfigManager.Config.Server.TrustedServerCertThumbprints.Count;
+            string plural = (trustedCount > 1 || trustedCount == 0) ? "s" : "";
             log.Info($"Found {trustedCount} trusted server{plural} in TrustedServerCertThumbprints configuration.");
 
-            foreach(var trusted in ConfigManager.Config.Server.TrustedServerCertThumbprints)
+            foreach (string trusted in ConfigManager.Config.Server.TrustedServerCertThumbprints)
             {
                 log.Debug($"Trusted server certificate thumbprint: {trusted}");
             }
         }
-        public static X509Certificate2 Certificate { get; private set; } = null;
-        public const string CertFileName = "server.pfx";
 
         /// <summary>
+        /// Generate a new 2048 bit RSA keypair and self sign the public key with the private key
         /// https://stackoverflow.com/a/50138133/6620171
         /// </summary>
         /// <param name="CommonName"></param>
@@ -75,5 +79,28 @@ namespace ACE.Server.Managers
             }
         }
 
+        /// <summary>
+        /// Save the signed public key as an X.509 certificate file
+        /// </summary>
+        /// <param name="filePath"></param>
+        public static void ExportCert(string filePath)
+        {
+            File.WriteAllBytes(filePath, Certificate.Export(X509ContentType.Cert));
+        }
+
+        /// <summary>
+        /// Sign a file with the private key and save the signature in a file alongside
+        /// the signed file with the same file name as the signed file and a file extension of '.signature'
+        /// </summary>
+        /// <param name="filePath"></param>
+        public static void SignFile(string filePath)
+        {
+            RSA csp = Certificate.GetRSAPrivateKey();
+            string sigPath = Path.Combine(Path.GetDirectoryName(filePath), Path.GetFileNameWithoutExtension(filePath) + ".signature");
+            using (FileStream fs = File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
+            {
+                File.WriteAllBytes(sigPath, csp.SignData(fs, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1));
+            }
+        }
     }
 }

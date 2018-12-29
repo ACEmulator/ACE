@@ -146,7 +146,7 @@ namespace ACE.Server
 
             PropertyManager.StopUpdating();
             DatabaseManager.Stop();
-
+            TransferManager.Stop();
             // Do system specific cleanup here
             try
             {

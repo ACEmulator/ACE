@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
-
+using System.Linq;
+using ACE.Common;
 using ACE.Entity.Enum;
 using ACE.Server.Managers;
 using ACE.Server.Network;
@@ -112,11 +113,24 @@ namespace ACE.Server.Command.Handlers
                     Console.WriteLine(message);
             }
         }
-        // acecommands
-        [CommandHandler("thumbprint", AccessLevel.Player, CommandHandlerFlag.None, 0, "Reveals the server certificate thumbprint.")]
-        public static void HandleThumbprint(Session session, params string[] parameters)
+        [CommandHandler("cert", AccessLevel.Player, CommandHandlerFlag.None, 0, "Reveals this server's certificate thumbprint.")]
+        public static void HandleCert(Session session, params string[] parameters)
         {
-            string print = $"Server certificate thumbprint: {CryptoManager.Certificate.Thumbprint}";
+            string print = $"Server certificate thumbprint: {CryptoManager.Thumbprint}";
+            if (session != null)
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat(print, ChatMessageType.Broadcast));
+            }
+            else
+            {
+                Console.WriteLine(print);
+            }
+        }
+        [CommandHandler("trustedcerts", AccessLevel.Player, CommandHandlerFlag.None, 0, "Reveals this server's trusted server certificate thumbprints.")]
+        public static void HandleTrustedCerts(Session session, params string[] parameters)
+        {
+            string prints = ConfigManager.Config.Server.TrustedServerCertThumbprints.DefaultIfEmpty("").Aggregate((a, b) => a + Environment.NewLine + b);
+            string print = $"{ConfigManager.Config.Server.TrustedServerCertThumbprints.Count} trusted server certificate thumbprints:{Environment.NewLine}{prints}".TrimEnd();
             if (session != null)
             {
                 session.Network.EnqueueSend(new GameMessageSystemChat(print, ChatMessageType.Broadcast));

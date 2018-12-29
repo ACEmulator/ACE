@@ -40,7 +40,7 @@ namespace ACE
                 return (uint)random.Next((int)min, (int)(max + 1));
             }
         }
-        public const string CookieChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        public const string CookieChars = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
         public static string NextCookie(int cookieLen)
         {
             StringBuilder product = new StringBuilder();
@@ -48,7 +48,7 @@ namespace ACE
             {
                 for (int i = 0; i < cookieLen; i++)
                 {
-                    product.Append(CookieChars[random.Next(0, CookieChars.Length + 1)]);
+                    product.Append(CookieChars[random.Next(0, CookieChars.Length)]);
                 }
             }
             return product.ToString();
