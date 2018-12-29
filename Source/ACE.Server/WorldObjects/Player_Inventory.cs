@@ -1253,7 +1253,7 @@ namespace ACE.Server.WorldObjects
         public void HandleActionGiveObjectRequest(ObjectGuid targetID, ObjectGuid itemGuid, int amount)
         {
             var target = FindObject(targetID, SearchLocations.Landblock, out _, out _, out _) as Container;
-            var item = FindObject(itemGuid, SearchLocations.MyInventory | SearchLocations.MyEquippedItems, out var itemFoundInContainer, out _, out var itemWasEquipped);
+            var item = FindObject(itemGuid, SearchLocations.MyInventory | SearchLocations.MyEquippedItems, out var itemFoundInContainer, out var itemRootOwner, out var itemWasEquipped);
 
             if (target == null)
             {
@@ -1301,16 +1301,16 @@ namespace ACE.Server.WorldObjects
                 }
 
                 if (target is Player targetAsPlayer)
-                    GiveObjecttoPlayer(targetAsPlayer, item, amount, itemWasEquipped);
+                    GiveObjecttoPlayer(targetAsPlayer, item, itemFoundInContainer, itemRootOwner, itemWasEquipped, amount);
                 else
-                    GiveObjecttoNPC(target, item, amount, itemWasEquipped, moveToChain);
+                    GiveObjecttoNPC(target, item, itemFoundInContainer, itemRootOwner, itemWasEquipped, amount, moveToChain);
 
             });
 
             moveToChain.EnqueueChain();
         }
 
-        private void GiveObjecttoPlayer(Player target, WorldObject item, int amount, bool itemWasEquipped)
+        private void GiveObjecttoPlayer(Player target, WorldObject item, Container itemFoundInContainer, Container itemRootOwner, bool itemWasEquipped, int amount)
         {
             if ((item.Attuned ?? 0) == 1)
             {
@@ -1325,10 +1325,10 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if (!RemoveItemForGive(item, amount, itemWasEquipped))
+            if (!RemoveItemForGive(item, itemFoundInContainer, itemWasEquipped, itemRootOwner, amount, out WorldObject itemToGive))
                 return;
 
-            if (!target.TryCreateInInventoryWithNetworking(item))
+            if (!target.TryCreateInInventoryWithNetworking(itemToGive))
             {
                 Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "TryCreateInInventoryWithNetworking failed!")); // Custom error message
 
@@ -1337,15 +1337,17 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, target));
-            Session.Network.EnqueueSend(new GameMessageSystemChat($"You give {target.Name} {item.Name}.", ChatMessageType.Broadcast));
+            if (item == itemToGive)
+                Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, target));
+
+            Session.Network.EnqueueSend(new GameMessageSystemChat($"You give {target.Name} {itemToGive.Name}.", ChatMessageType.Broadcast));
             Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.ReceiveItem));
 
-            target.Session.Network.EnqueueSend(new GameMessageSystemChat($"{Name} gives you {item.Name}.", ChatMessageType.Broadcast));
+            target.Session.Network.EnqueueSend(new GameMessageSystemChat($"{Name} gives you {itemToGive.Name}.", ChatMessageType.Broadcast));
             target.Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.ReceiveItem));
         }
 
-        private void GiveObjecttoNPC(WorldObject target, WorldObject item, int amount, bool itemWasEquipped, ActionChain actionChain)
+        private void GiveObjecttoNPC(WorldObject target, WorldObject item, Container itemFoundInContainer, Container itemRootOwner, bool itemWasEquipped, int amount, ActionChain actionChain)
         {
             if (target == null || item == null) return;
 
@@ -1358,7 +1360,7 @@ namespace ACE.Server.WorldObjects
             if (target.GetProperty(PropertyBool.AiAcceptEverything) ?? false)
             {
                 // NPC accepts any item
-                if (RemoveItemForGive(item, amount, itemWasEquipped, true))
+                if (RemoveItemForGive(item, itemFoundInContainer, itemWasEquipped, itemRootOwner, amount, out _, true))
                 {
                     Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, target));
                     Session.Network.EnqueueSend(new GameMessageSystemChat($"You give {target.Name} {item.Name}.", ChatMessageType.Broadcast));
@@ -1387,7 +1389,7 @@ namespace ACE.Server.WorldObjects
                 if (result.Category == (uint)EmoteCategory.Give)
                 {
                     // Item accepted by collector/NPC
-                    if (RemoveItemForGive(item, amount, itemWasEquipped, true))
+                    if (RemoveItemForGive(item, itemFoundInContainer, itemWasEquipped, itemRootOwner, amount, out _, true))
                     {
                         Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, target));
                         Session.Network.EnqueueSend(new GameMessageSystemChat($"You give {target.Name} {item.Name}.", ChatMessageType.Broadcast));
@@ -1408,40 +1410,57 @@ namespace ACE.Server.WorldObjects
             }
         }
 
-        private bool RemoveItemForGive(WorldObject item, int amount, bool itemWasEquipped, bool destroy = false)
+        private bool RemoveItemForGive(WorldObject item, Container itemFoundInContainer, bool itemWasEquipped, Container itemRootOwner, int amount, out WorldObject itemToGive, bool destroy = false)
         {
             if (item.StackSize > 1 && amount < item.StackSize) // We're splitting a stack
             {
-                // TODO!!!!!!!!!!!!!!!!
-                Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "Give partial stack not implemented!")); // Custom error message
-                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session));
-                return false;
-                // TODO!!!!!!!!!!!!!!!!
-            }
-            else // We're giving the whole object
-            {
-                if (itemWasEquipped)
-                {
-                    if (!TryDequipObjectWithNetworking(item.Guid, out _, DequipObjectAction.GiveItem))
-                    {
-                        Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "TryDequipObjectWithNetworking failed!")); // Custom error message
-                        Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session));
-                        return false;
-                    }
-                }
-                else
-                {
-                    if (!TryRemoveFromInventoryWithNetworking(item.Guid, out _, RemoveFromInventoryAction.GiveItem))
-                    {
-                        Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "TryRemoveFromInventoryWithNetworking failed!")); // Custom error message
-                        Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session));
-                        return false;
-                    }
-                }
+                AdjustStack(item, -amount, itemFoundInContainer, itemRootOwner);
+                Session.Network.EnqueueSend(new GameMessageSetStackSize(item));
 
-                if (destroy)
-                    item.Destroy();
+                var newStack = WorldObjectFactory.CreateNewWorldObject(item.WeenieClassId);
+                newStack.StackSize = (ushort)amount;
+                newStack.EncumbranceVal = (newStack.StackUnitEncumbrance ?? 0) * (newStack.StackSize ?? 1);
+                newStack.Value = (newStack.StackUnitValue ?? 0) * (newStack.StackSize ?? 1);
+
+                Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
+
+                if (item.WeenieType == WeenieType.Coin)
+                    UpdateCoinValue();
+
+                itemToGive = newStack;
+
+                return true;
             }
+
+            // We're giving the whole object
+            if (itemWasEquipped)
+            {
+                if (!TryDequipObjectWithNetworking(item.Guid, out _, DequipObjectAction.GiveItem))
+                {
+                    Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "TryDequipObjectWithNetworking failed!")); // Custom error message
+                    Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session));
+                    itemToGive = null;
+                    return false;
+                }
+            }
+            else
+            {
+                if (!TryRemoveFromInventoryWithNetworking(item.Guid, out _, RemoveFromInventoryAction.GiveItem))
+                {
+                    Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "TryRemoveFromInventoryWithNetworking failed!")); // Custom error message
+                    Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session));
+                    itemToGive = null;
+                    return false;
+                }
+            }
+
+            if (destroy)
+            {
+                item.Destroy();
+                itemToGive = null;
+            }
+            else
+                itemToGive = item;
 
             return true;
         }
