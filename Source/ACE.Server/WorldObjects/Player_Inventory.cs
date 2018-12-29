@@ -86,7 +86,7 @@ namespace ACE.Server.WorldObjects
             return true;
         }
 
-        public bool TryConsumeFromInventoryWithNetworking(WorldObject item, int amount)
+        public bool TryConsumeFromInventoryWithNetworking(WorldObject item, int amount = int.MaxValue)
         {
             if (amount >= (item.StackSize ?? 1))
             {
@@ -253,6 +253,10 @@ namespace ACE.Server.WorldObjects
             }
             else if (dequipObjectAction == DequipObjectAction.GiveItem)
             {
+                Session.Network.EnqueueSend(
+                    new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Wielder, ObjectGuid.Invalid),
+                    new GameMessagePublicUpdatePropertyInt(item, PropertyInt.CurrentWieldedLocation, 0));
+
                 Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
 
                 // We must update the database with the latest ContainerId and WielderId properties.
@@ -1250,6 +1254,21 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
+            if (amount == 0)
+            {
+                Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "Give amount not valid!")); // Custom error message
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session));
+                return;
+            }
+
+            if (item.StackSize < amount)
+            {
+                log.WarnFormat("Player 0x{0:X8}:{1} tried to Give item with invalid amount 0x{2:X8}:{3}.", Guid.Full, Name, item.Guid.Full, item.Name);
+                Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "Give amount not valid!")); // Custom error message
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session));
+                return;
+            }
+
             var moveToChain = CreateMoveToChain(target, out var thisMoveToChainNumber);
 
             moveToChain.AddAction(this, () =>
@@ -1472,60 +1491,9 @@ namespace ACE.Server.WorldObjects
 
 
 
-        /// <summary>
-        /// If isFromMergeEvent is false, update messages will be sent for EncumbranceVal and if WeenieType is Coin, CoinValue will be updated and update messages will be sent for CoinValue.
-        /// </summary>
-        [Obsolete]
-        public bool TryRemoveFromInventoryWithNetworking(ObjectGuid objectGuid, out WorldObject item, bool isFromMergeEvent = false)
-        {
-            if (!TryRemoveFromInventory(objectGuid, out item))
-                return false;
 
-            Session.Network.EnqueueSend(new GameEventInventoryRemoveObject(Session, item));
 
-            if (!isFromMergeEvent)
-            {
-                Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
 
-                if (item.WeenieType == WeenieType.Coin)
-                    UpdateCoinValue();
-            }
-
-            return true;
-        }
-
-        /// <summary>
-        /// This method is used to remove X number of items from a stack.<para />
-        /// If amount to remove is greater or equal to the current stacksize, the stack will be destroyed..
-        /// </summary>
-        [Obsolete]
-        public bool TryRemoveItemFromInventoryWithNetworkingWithDestroy(WorldObject item, ushort amount)
-        {
-            if (amount >= (item.StackSize ?? 1))
-            {
-                if (TryRemoveFromInventoryWithNetworking(item.Guid, out _))
-                {
-                    item.Destroy();
-                    return true;
-                }
-
-                return false;
-            }
-
-            item.StackSize -= amount;
-
-            Session.Network.EnqueueSend(new GameMessageSetStackSize(item));
-
-            EncumbranceVal = (EncumbranceVal - (item.StackUnitEncumbrance * amount));
-            Value = (Value - (item.StackUnitValue * amount));
-
-            Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
-
-            if (item.WeenieType == WeenieType.Coin)
-                UpdateCoinValue();
-
-            return true;
-        }
 
         // TODO this function doesn't really fit the model. It needs to be re-evaluated 2018-12-16 Mag-nus
         /// <summary>
@@ -1543,7 +1511,7 @@ namespace ACE.Server.WorldObjects
                 }
             }
 
-            return TryRemoveFromInventoryWithNetworking(item.Guid, out _);
+            return TryConsumeFromInventoryWithNetworking(item);
         }
 
         /// <summary>

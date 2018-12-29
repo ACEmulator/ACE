@@ -1181,7 +1181,7 @@ namespace ACE.Server.WorldObjects
                 if (item.StackSize > 0)
                     Session.Network.EnqueueSend(new GameMessageSetStackSize(item));
                 else
-                    TryRemoveFromInventoryWithNetworking(item.Guid, out _);
+                    TryConsumeFromInventoryWithNetworking(item);
             }
 
             // send message to player

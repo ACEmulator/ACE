@@ -166,7 +166,7 @@ namespace ACE.Server.WorldObjects
                         double multiplier = (salvageSkill / 225.0);
                         double multiplier2 = .6 > multiplier ? .6 : multiplier;
                         amount += (int)Math.Ceiling(workmanship * multiplier2);
-                        TryRemoveItemFromInventoryWithNetworkingWithDestroy(item, 1);
+                        TryConsumeFromInventoryWithNetworking(item, 1);
                         salvageBags[counter] = WorldObjectFactory.CreateNewWorldObject((uint)dict[materials[counter]]);
                         salvageBags[counter].SetProperty(PropertyInt.Structure, amount);
                         salvageBags[counter].SetProperty(PropertyInt.NumItemsInMaterial, numItems);
@@ -197,7 +197,7 @@ namespace ACE.Server.WorldObjects
                         double multiplier = (salvageSkill / 225.0);
                         double multiplier2 = .6 > multiplier ? .6 : multiplier;
                         amount += (int)Math.Ceiling(workmanship * multiplier2);
-                        TryRemoveItemFromInventoryWithNetworkingWithDestroy(item, 1);
+                        TryConsumeFromInventoryWithNetworking(item, 1);
                         salvageBags[materialsPlace].SetProperty(PropertyInt.Structure, amount);
                         salvageBags[materialsPlace].SetProperty(PropertyInt.NumItemsInMaterial, numItems);
                         salvageBags[materialsPlace].SetProperty(PropertyInt.ItemWorkmanship, amount);
@@ -241,7 +241,7 @@ namespace ACE.Server.WorldObjects
                     double multiplier = (salvageSkill / 225.0);
                     double multiplier2 = .6 > multiplier ? .6 : multiplier;
                     amount += (int)Math.Ceiling(workmanship * multiplier2);
-                    TryRemoveItemFromInventoryWithNetworkingWithDestroy(item, 1);
+                    TryConsumeFromInventoryWithNetworking(item, 1);
                 }
 
                 WorldObject wo = WorldObjectFactory.CreateNewWorldObject((uint)dict[materialType]);

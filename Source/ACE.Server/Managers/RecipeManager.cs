@@ -108,7 +108,7 @@ namespace ACE.Server.Managers
                     {
                         if (target.OwnerId == player.Guid.Full  || player.GetInventoryItem(target.Guid) != null)
                         {
-                            player.TryRemoveItemFromInventoryWithNetworkingWithDestroy(target, (ushort)recipe.Recipe.SuccessDestroyTargetAmount);
+                            player.TryConsumeFromInventoryWithNetworking(target, (int)recipe.Recipe.SuccessDestroyTargetAmount);
                         }
                         else if (target.WielderId == player.Guid.Full)
                         {
@@ -131,7 +131,7 @@ namespace ACE.Server.Managers
                     {
                         if (source.OwnerId == player.Guid.Full || player.GetInventoryItem(target.Guid) != null)
                         {
-                            player.TryRemoveItemFromInventoryWithNetworkingWithDestroy(source, (ushort)recipe.Recipe.SuccessDestroySourceAmount);
+                            player.TryConsumeFromInventoryWithNetworking(source, (int)recipe.Recipe.SuccessDestroySourceAmount);
                         }
                         else if (source.WielderId == player.Guid.Full)
                         {
@@ -175,7 +175,7 @@ namespace ACE.Server.Managers
                     {
                         if (target.OwnerId == player.Guid.Full || player.GetInventoryItem(target.Guid) != null)
                         {
-                            player.TryRemoveItemFromInventoryWithNetworkingWithDestroy(target, (ushort)recipe.Recipe.FailDestroyTargetAmount);
+                            player.TryConsumeFromInventoryWithNetworking(target, (int)recipe.Recipe.FailDestroyTargetAmount);
                         }
                         else if (target.WielderId == player.Guid.Full)
                         {
@@ -198,7 +198,7 @@ namespace ACE.Server.Managers
                     {
                         if (source.OwnerId == player.Guid.Full || player.GetInventoryItem(target.Guid) != null)
                         {
-                            player.TryRemoveItemFromInventoryWithNetworkingWithDestroy(source, (ushort)recipe.Recipe.FailDestroySourceAmount);
+                            player.TryConsumeFromInventoryWithNetworking(source, (int)recipe.Recipe.FailDestroySourceAmount);
                         }
                         else if (source.WielderId == player.Guid.Full)
                         {

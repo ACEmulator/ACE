@@ -129,10 +129,7 @@ namespace ACE.Server.WorldObjects
 
                 // destroy all stacks of currency required / sale
                 foreach (WorldObject wo in cost)
-                {
-                    if (TryRemoveFromInventoryWithNetworking(wo.Guid, out _))
-                        wo.Destroy();
-                }
+                    TryConsumeFromInventoryWithNetworking(wo);
 
                 // if there is change - readd - do this at the end to try to prevent exploiting
                 if (change > 0)
@@ -233,7 +230,7 @@ namespace ACE.Server.WorldObjects
                 else
                 {
                     // remove item from inventory.
-                    TryRemoveFromInventoryWithNetworking(item.Guid, out _);
+                    TryConsumeFromInventoryWithNetworking(item);
                 }
 
                 if (item == null)

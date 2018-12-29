@@ -153,7 +153,7 @@ namespace ACE.Server.WorldObjects
 
                         if (wo != null)
                         {
-                            session.Player.TryRemoveFromInventoryWithNetworking(wo.Guid, out _);
+                            session.Player.TryConsumeFromInventoryWithNetworking(wo);
 
                             target.TryCreateInInventoryWithNetworking(wo);
 
@@ -168,7 +168,7 @@ namespace ACE.Server.WorldObjects
 
                         if (wo != null)
                         {
-                            target.TryRemoveFromInventoryWithNetworking(wo.Guid, out _);
+                            target.TryConsumeFromInventoryWithNetworking(wo);
 
                             session.Player.TryCreateInInventoryWithNetworking(wo);
 
