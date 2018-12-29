@@ -102,5 +102,26 @@ namespace ACE.Server.Managers
                 File.WriteAllBytes(sigPath, csp.SignData(fs, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1));
             }
         }
+
+        /// <summary>
+        /// Verify the signature of a file using the signature file alongside
+        /// the signed file with the same file name as the signed file and a file extension of '.signature'
+        /// </summary>
+        /// <param name="filePath"></param>
+        /// <param name="signer"></param>
+        /// <returns></returns>
+        public static bool VerifySignature(string filePath, X509Certificate2 signer)
+        {
+            string sigPath = Path.Combine(Path.GetDirectoryName(filePath), Path.GetFileNameWithoutExtension(filePath) + ".signature");
+            if (!File.Exists(sigPath))
+            {
+                return false;
+            }
+            RSA csp = signer.GetRSAPublicKey();
+            using (FileStream fsData = File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
+            {
+                return csp.VerifyData(fsData, File.ReadAllBytes(sigPath), HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+            }
+        }
     }
 }

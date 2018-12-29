@@ -11,6 +11,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
 using System.Linq;
+using System.Net;
+using System.Security.Cryptography.X509Certificates;
 using System.Threading.Tasks;
 
 namespace ACE.Server.Managers
@@ -104,6 +106,7 @@ namespace ACE.Server.Managers
             {
                 string filePath = Path.Combine(ServerManager.TransferPath, cookie + ".zip");
                 File.Delete(filePath);
+                // also delete character here?
             }
             catch (Exception ex)
             {
@@ -113,6 +116,54 @@ namespace ACE.Server.Managers
 
         public static async Task<string> Import(Session session, params string[] parameters)
         {
+            if (parameters.Length != 1)
+            {
+                return null;
+            }
+
+            string tmpFilePath = Path.GetTempFileName();
+            DirectoryInfo diTmpDirPath = Directory.CreateDirectory(Path.Combine(Path.GetDirectoryName(tmpFilePath), Path.GetFileNameWithoutExtension(tmpFilePath)));
+            string signerCertPath = Path.Combine(diTmpDirPath.FullName, "signer.crt");
+
+            using (WebClient client = new WebClient())
+            {
+                client.DownloadFile(parameters[0], tmpFilePath);
+            }
+            using (ZipArchive zip = ZipFile.OpenRead(tmpFilePath))
+            {
+                zip.ExtractToDirectory(diTmpDirPath.FullName);
+            }
+            File.Delete(tmpFilePath);
+
+            if (!File.Exists(signerCertPath))
+            {
+                Directory.Delete(diTmpDirPath.FullName, true);
+                return null;
+            }
+
+            using (X509Certificate2 signer = new X509Certificate2(signerCertPath))
+            {
+                //verify that the signer is in the trusted signers list
+                if (!ConfigManager.Config.Server.TrustedServerCertThumbprints.Any(k => k == signer.Thumbprint))
+                {
+                    Directory.Delete(diTmpDirPath.FullName, true);
+                    session.WorldBroadcast($"The originating server isn't trusted.  Please contact the server operator and provide the thumbprint {signer.Thumbprint} so they can add it to the trusted server cert thumbprints list.");
+                    log.Info($"Untrusted transfer attempted.  Thumbprint: {signer.Thumbprint}");
+                    return null;
+                }
+                //verify that the signatures are valid
+                FileInfo[] files = diTmpDirPath.GetFiles("*.json");
+                foreach (FileInfo fil in files)
+                {
+                    if (!CryptoManager.VerifySignature(fil.FullName, signer))
+                    {
+                        Directory.Delete(diTmpDirPath.FullName, true);
+                        return null;
+                    }
+                }
+            }
+
+
             return "";
         }
         public static async Task<string> Export(Session session)
@@ -160,7 +211,7 @@ namespace ACE.Server.Managers
             // delete temporary files
             Directory.Delete(basePath, true);
 
-            return cookie;
+            return $"http://{ConfigManager.Config.Server.ExternalIPAddressOrDomainName}:{ConfigManager.Config.Server.Network.Port + 2}/?get={cookie}";
         }
 
         private static readonly JsonSerializerSettings serializationSettings = new JsonSerializerSettings()
@@ -170,7 +221,7 @@ namespace ACE.Server.Managers
             PreserveReferencesHandling = PreserveReferencesHandling.None
         };
 
-       
+
     }
     public class CharacterSnapshot
     {

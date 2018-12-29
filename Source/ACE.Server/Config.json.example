@@ -15,6 +15,7 @@
         },
         "TrustedServerCertThumbprints": [
         ],
+        "ExternalIPAddressOrDomainName": "",
         "DatFilesDirectory": "c:\\ACE\\",
         "ShutdownInterval": "60",
         "WorldDatabasePrecaching": false,
