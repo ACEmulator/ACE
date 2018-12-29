@@ -122,7 +122,9 @@ namespace ACE.Server.WorldObjects
             ToWieldedSlot,
 
             DropItem,
-            GiveItem
+            GiveItem,
+
+            ToCorpseOnDeath
         }
 
         public bool TryRemoveFromInventoryWithNetworking(ObjectGuid objectGuid, out WorldObject item, RemoveFromInventoryAction removeFromInventoryAction)
@@ -1477,95 +1479,6 @@ namespace ACE.Server.WorldObjects
                 // Send some cool you cannot inscribe that item message. Not sure how that was handled live, I could not find a pcap of a failed inscription. Og II
                 ChatPacket.SendServerMessage(Session, "Target item cannot be inscribed.", ChatMessageType.System);
             }
-        }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        // TODO this function doesn't really fit the model. It needs to be re-evaluated 2018-12-16 Mag-nus
-        /// <summary>
-        /// Removes an item from either the player's inventory, or equipped items, and sends network messages
-        /// </summary>
-        [Obsolete]
-        public bool TryRemoveItemWithNetworking(WorldObject item)
-        {
-            if (item.CurrentWieldedLocation != null)
-            {
-                if (!UnwieldItemWithNetworking(this, item))
-                {
-                    log.Warn($"Player_Inventory.TryRemoveItemWithNetworking: couldn't unwield item from {Name} ({item.Name})");
-                    return false;
-                }
-            }
-
-            return TryConsumeFromInventoryWithNetworking(item);
-        }
-
-        /// <summary>
-        /// This method is called in response to a put item in container message. It is used when the item going into a container was wielded.
-        /// It sets the appropriate properties, sends out response messages  and handles switching stances - for example if you have a bow wielded and are in bow combat stance,
-        /// when you unwield the bow, this also sends the messages needed to go into unarmed combat mode. Og II
-        /// </summary>
-        [Obsolete]
-        private bool UnwieldItemWithNetworking(Container container, WorldObject item, int placement = 0)
-        {
-            EquipMask? oldLocation = item.CurrentWieldedLocation;
-
-            // If item has any spells, remove them from the registry on unequip
-            if (item.Biota.BiotaPropertiesSpellBook != null)
-            {
-                for (int i = 0; i < item.Biota.BiotaPropertiesSpellBook.Count; i++)
-                    DispelItemSpell(item.Guid, (uint)item.Biota.BiotaPropertiesSpellBook.ElementAt(i).Spell);
-            }
-
-            if (!TryDequipObjectWithNetworking(item.Guid, out _, DequipObjectAction.DequipToPack))
-            {
-                log.Error("Player_Inventory UnwieldItemWithNetworking TryDequipObject failed");
-                return false;
-            }
-
-            item.SetPropertiesForContainer();
-
-            if (!container.TryAddToInventory(item, placement))
-            {
-                log.Error("Player_Inventory UnwieldItemWithNetworking TryAddToInventory failed");
-                return false;
-            }
-
-            // If we've unwielded the item to a side pack, we must increment our main EncumbranceValue and Value
-            if (container != this && container.ContainerId == Guid.Full)
-            {
-                EncumbranceVal += item.EncumbranceVal;
-                Value += item.Value;
-            }
-            // todo I think we need to recalc our SetupModel here. see CalculateObjDesc()
-
-            EnqueueBroadcast(new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Wielder, new ObjectGuid(0)),
-                new GameMessagePublicUpdatePropertyInt(item, PropertyInt.CurrentWieldedLocation, 0),
-                new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Container, container.Guid),
-                new GameMessagePickupEvent(item),
-                new GameMessageSound(Guid, Sound.UnwieldObject, (float)1.0),
-                new GameEventItemServerSaysContainId(Session, item, container),
-                new GameMessageObjDescEvent(this));
-
-            if (CombatMode == CombatMode.NonCombat || (oldLocation != EquipMask.MeleeWeapon && oldLocation != EquipMask.MissileWeapon && oldLocation != EquipMask.Held && oldLocation != EquipMask.Shield))
-                return true;
-
-            SetCombatMode(CombatMode.Melee);
-            return true;
         }
     }
 }

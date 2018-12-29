@@ -191,10 +191,7 @@ namespace ACE.Server.WorldObjects
                     player.EnqueueBroadcastMotion(motionReady);
 
                     if (player.TryConsumeFromInventoryWithNetworking(this))
-                    {
                         player.Session.Network.EnqueueSend(new GameMessageSystemChat("The scroll is destroyed.", ChatMessageType.Magic));
-                        Destroy();
-                    }
                 });
             }
             else
