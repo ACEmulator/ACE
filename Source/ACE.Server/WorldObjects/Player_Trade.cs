@@ -149,30 +149,20 @@ namespace ACE.Server.WorldObjects
 
                     foreach (ObjectGuid itemGuid in session.Player.ItemsInTradeWindow)
                     {
-                        WorldObject wo = GetInventoryItem(itemGuid);
-
-                        if (wo != null)
+                        if (session.Player.TryRemoveFromInventoryWithNetworking(itemGuid, out var wo, RemoveFromInventoryAction.TradeItem) || session.Player.TryDequipObjectWithNetworking(itemGuid, out wo, DequipObjectAction.TradeItem))
                         {
-                            session.Player.TryConsumeFromInventoryWithNetworking(wo);
-
                             target.TryCreateInInventoryWithNetworking(wo);
 
-                            wo.SaveBiotaToDatabase(false);
                             tradedItems.Add((wo.Biota, wo.BiotaDatabaseLock));
                         }
                     }
 
                     foreach (ObjectGuid itemGuid in target.ItemsInTradeWindow)
                     {
-                        WorldObject wo = target.GetInventoryItem(itemGuid);
-
-                        if (wo != null)
+                        if (target.TryRemoveFromInventoryWithNetworking(itemGuid, out var wo, RemoveFromInventoryAction.TradeItem) || target.TryDequipObjectWithNetworking(itemGuid, out wo, DequipObjectAction.TradeItem))
                         {
-                            target.TryConsumeFromInventoryWithNetworking(wo);
-
                             session.Player.TryCreateInInventoryWithNetworking(wo);
 
-                            wo.SaveBiotaToDatabase(false);
                             tradedItems.Add((wo.Biota, wo.BiotaDatabaseLock));
                         }
                     }

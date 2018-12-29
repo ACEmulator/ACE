@@ -123,6 +123,7 @@ namespace ACE.Server.WorldObjects
 
             DropItem,
             GiveItem,
+            TradeItem,
 
             ToCorpseOnDeath
         }
@@ -134,8 +135,13 @@ namespace ACE.Server.WorldObjects
 
             Session.Network.EnqueueSend(new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Container, new ObjectGuid(0)));
 
+            if (removeFromInventoryAction == RemoveFromInventoryAction.TradeItem)
+                Session.Network.EnqueueSend(new GameEventInventoryRemoveObject(Session, item));
+
             if (removeFromInventoryAction != RemoveFromInventoryAction.ToWieldedSlot)
             {
+                // The item has gone off-player, so we must do some additional work
+
                 Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
 
                 if (item.WeenieType == WeenieType.Coin)
@@ -216,7 +222,8 @@ namespace ACE.Server.WorldObjects
             DequipToOffPlayerContainer,
 
             DropItem,
-            GiveItem
+            GiveItem,
+            TradeItem
         }
 
         /// <summary>
@@ -240,6 +247,8 @@ namespace ACE.Server.WorldObjects
 
             if (dequipObjectAction == DequipObjectAction.DropItem)
             {
+                // The item has gone off-player, so we must do some additional work
+
                 EnqueueBroadcast(
                     new GameMessageObjDescEvent(this),
                     new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Wielder, ObjectGuid.Invalid),
@@ -255,6 +264,8 @@ namespace ACE.Server.WorldObjects
             }
             else if (dequipObjectAction == DequipObjectAction.GiveItem)
             {
+                // The item has gone off-player, so we must do some additional work
+
                 Session.Network.EnqueueSend(
                     new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Wielder, ObjectGuid.Invalid),
                     new GameMessagePublicUpdatePropertyInt(item, PropertyInt.CurrentWieldedLocation, 0));
