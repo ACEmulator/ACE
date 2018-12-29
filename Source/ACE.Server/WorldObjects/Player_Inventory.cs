@@ -41,17 +41,16 @@ namespace ACE.Server.WorldObjects
 
         public int GetEncumbranceCapacity()
         {
-            return int.MaxValue; // fix
-            /*var encumbranceAgumentations = 0; // todo
-
             var strength = Attributes[PropertyAttribute.Strength].Current;
 
-            return (int)((150 * strength) + (encumbranceAgumentations * 30 * strength));*/
+            var encumbranceAgumentations = 0; // todo
+
+            return (int)((150 * strength) + (encumbranceAgumentations * 30 * strength));
         }
 
         public bool HasEnoughBurdenToAddToInventory(WorldObject worldObject)
         {
-            return (EncumbranceVal + worldObject.EncumbranceVal <= GetEncumbranceCapacity());
+            return (EncumbranceVal + worldObject.EncumbranceVal <= (GetEncumbranceCapacity() * 3));
         }
 
 
@@ -298,7 +297,6 @@ namespace ACE.Server.WorldObjects
         [Flags]
         private enum SearchLocations
         {
-            None                = 0x00,
             MyInventory         = 0x01,
             MyEquippedItems     = 0x02,
             Landblock           = 0x04,
@@ -466,6 +464,13 @@ namespace ACE.Server.WorldObjects
                 log.WarnFormat("Player 0x{0:X8}:{1} tried to move item 0x{2:X8}:{3}.", Guid.Full, Name, item.Guid.Full, item.Name);
                 Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "You can't move that!")); // Custom error message
                 Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session));
+                return;
+            }
+
+            if (itemRootOwner != this && containerRootOwner == this && !HasEnoughBurdenToAddToInventory(item))
+            {
+                Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "You are too encumbered to carry that!"));
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, WeenieError.YouAreTooEncumbered));
                 return;
             }
 
@@ -724,6 +729,13 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
+            if (rootOwner != this && !HasEnoughBurdenToAddToInventory(item))
+            {
+                Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "You are too encumbered to carry that!"));
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, WeenieError.YouAreTooEncumbered));
+                return;
+            }
+
             // todo ***********************************************************************************************************
             // todo ***********************************************************************************************************
             // todo ***********************************************************************************************************
@@ -945,6 +957,13 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
+            if (stackRootOwner != this && containerRootOwner == this && !HasEnoughBurdenToAddToInventory(stack))
+            {
+                Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "You are too encumbered to carry that!"));
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, WeenieError.YouAreTooEncumbered));
+                return;
+            }
+
             if (container == null)
             {
                 Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "Target container not found!")); // Custom error message
@@ -1135,6 +1154,13 @@ namespace ACE.Server.WorldObjects
             {
                 Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "Source stack not found!")); // Custom error message
                 Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session));
+                return;
+            }
+
+            if (sourceStackRootOwner != this && targetStackRootOwner == this && !HasEnoughBurdenToAddToInventory(sourceStack))
+            {
+                Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "You are too encumbered to carry that!"));
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, WeenieError.YouAreTooEncumbered));
                 return;
             }
 
