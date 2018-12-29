@@ -8,6 +8,6 @@ create table house_permission
 	`storage` bit(1) not null,
 	primary key (`id`),
 	unique key `house_Id_player_Guid_uidx` (`house_Id`, `player_Guid`),
-	key `house_Id_idx` (`house_Id`)
-	constraint `house_Id` foreign key (`object_Id`) references `biota` (`id`) on delete cascade
+	key `house_Id_idx` (`house_Id`),
+	constraint `house_Guid` foreign key (`house_Id`) references `biota` (`id`) on delete cascade
 );
