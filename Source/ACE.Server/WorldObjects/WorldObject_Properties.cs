@@ -198,6 +198,17 @@ namespace ACE.Server.WorldObjects
                     ChangesDetected = true;
             }
         }
+        public void IncProperty(PropertyFloat property, double value)
+        {
+            if (ephemeralPropertyFloats.ContainsKey(property))
+                ephemeralPropertyFloats[property] += value;
+            else
+            {
+                Biota.SetProperty(property, value, BiotaDatabaseLock, biotaPropertyFloats, out var biotaChanged);
+                if (biotaChanged)
+                    ChangesDetected = true;
+            }
+        }
         public void SetProperty(PropertyInstanceId property, uint value)
         {
             if (ephemeralPropertyInstanceIds.ContainsKey(property))
@@ -213,6 +224,17 @@ namespace ACE.Server.WorldObjects
         {
             if (ephemeralPropertyInts.ContainsKey(property))
                 ephemeralPropertyInts[property] = value;
+            else
+            {
+                Biota.SetProperty(property, value, BiotaDatabaseLock, biotaPropertyInts, out var biotaChanged);
+                if (biotaChanged)
+                    ChangesDetected = true;
+            }
+        }
+        public void IncProperty(PropertyInt property, int value)
+        {
+            if (ephemeralPropertyInts.ContainsKey(property))
+                ephemeralPropertyInts[property] += value;
             else
             {
                 Biota.SetProperty(property, value, BiotaDatabaseLock, biotaPropertyInts, out var biotaChanged);

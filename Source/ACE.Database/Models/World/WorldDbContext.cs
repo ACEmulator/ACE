@@ -440,7 +440,7 @@ namespace ACE.Database.Models.World
                     .HasColumnName("stat")
                     .HasColumnType("int(10)");
 
-                entity.Property(e => e.Unknown1)
+                entity.Property(e => e.Source)
                     .HasColumnName("unknown_1")
                     .HasColumnType("int(10)");
 
@@ -473,7 +473,7 @@ namespace ACE.Database.Models.World
                     .HasColumnName("stat")
                     .HasColumnType("int(10)");
 
-                entity.Property(e => e.Unknown1)
+                entity.Property(e => e.Source)
                     .HasColumnName("unknown_1")
                     .HasColumnType("int(10)");
 
@@ -504,7 +504,7 @@ namespace ACE.Database.Models.World
                     .HasColumnName("stat")
                     .HasColumnType("int(10)");
 
-                entity.Property(e => e.Unknown1)
+                entity.Property(e => e.Source)
                     .HasColumnName("unknown_1")
                     .HasColumnType("int(10)");
 
@@ -535,7 +535,7 @@ namespace ACE.Database.Models.World
                     .HasColumnName("stat")
                     .HasColumnType("int(10)");
 
-                entity.Property(e => e.Unknown1)
+                entity.Property(e => e.Source)
                     .HasColumnName("unknown_1")
                     .HasColumnType("int(10)");
 
@@ -566,7 +566,7 @@ namespace ACE.Database.Models.World
                     .HasColumnName("stat")
                     .HasColumnType("int(10)");
 
-                entity.Property(e => e.Unknown1)
+                entity.Property(e => e.Source)
                     .HasColumnName("unknown_1")
                     .HasColumnType("int(10)");
 
@@ -599,7 +599,7 @@ namespace ACE.Database.Models.World
                     .HasColumnName("stat")
                     .HasColumnType("int(10)");
 
-                entity.Property(e => e.Unknown1)
+                entity.Property(e => e.Source)
                     .HasColumnName("unknown_1")
                     .HasColumnType("int(10)");
 

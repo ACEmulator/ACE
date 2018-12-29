@@ -4,6 +4,7 @@ using log4net;
 
 using ACE.Common.Extensions;
 using ACE.Database;
+using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.DatLoader;
 using ACE.DatLoader.FileTypes;
@@ -414,7 +415,7 @@ namespace ACE.Server.Managers
             imbuedEffects |= target.GetProperty(PropertyInt.ImbuedEffect3) ?? 0;
             imbuedEffects |= target.GetProperty(PropertyInt.ImbuedEffect4) ?? 0;
             imbuedEffects |= target.GetProperty(PropertyInt.ImbuedEffect5) ?? 0;
-            
+
             return (ImbuedEffectType)imbuedEffects;
         }
 
@@ -692,28 +693,33 @@ namespace ACE.Server.Managers
             var createItem = success ? recipe.SuccessWCID : recipe.FailWCID;
             var createAmount = success ? recipe.SuccessAmount : recipe.FailAmount;
 
+            WorldObject result = null;
+
             if (createItem > 0)
-                CreateItem(player, createItem, createAmount);
+                result = CreateItem(player, createItem, createAmount);
+
+            ModifyItem(player, recipe, source, target, result);
 
             var message = success ? recipe.SuccessMessage : recipe.FailMessage;
 
             player.Session.Network.EnqueueSend(new GameMessageSystemChat(message, ChatMessageType.Craft));
         }
 
-        public static void CreateItem(Player player, uint wcid, uint amount)
+        public static WorldObject CreateItem(Player player, uint wcid, uint amount)
         {
             var wo = WorldObjectFactory.CreateNewWorldObject(wcid);
 
             if (wo == null)
             {
                 log.Warn($"RecipeManager.CreateItem({player.Name}, {wcid}, {amount}): failed to create {wcid}");
-                return;
+                return null;
             }
 
             if (amount > 1)
                 wo.StackSize = (ushort)amount;
 
             player.TryCreateInInventoryWithNetworking(wo);
+            return wo;
         }
 
         public static void DestroyItem(Player player, Recipe recipe, WorldObject item, uint amount, string msg)
@@ -736,6 +742,215 @@ namespace ACE.Server.Managers
             {
                 var destroyMessage = new GameMessageSystemChat(msg, ChatMessageType.Craft);
                 player.Session.Network.EnqueueSend(destroyMessage);
+            }
+        }
+
+        public enum ModifyOp
+        {
+            None,       // 0
+            SetValue,   // 1
+            Add,        // 2
+            CopyTarget, // 3
+            CopyCreate, // 4
+            Unknown1,   // 5
+            Unknown2,   // 6
+            AddSpell    // 7
+        }
+
+        public static void ModifyItem(Player player, Recipe recipe, WorldObject source, WorldObject target, WorldObject result)
+        {
+            foreach (var mod in recipe.RecipeMod)
+            {
+                // apply base mod
+
+                // apply type mods
+                foreach (var boolMod in mod.RecipeModsBool)
+                    ModifyBool(boolMod, source, target);
+
+                foreach (var intMod in mod.RecipeModsInt)
+                    ModifyInt(player, intMod, source, target, result);
+
+                foreach (var floatMod in mod.RecipeModsFloat)
+                    ModifyFloat(player, floatMod, source, target, result);
+
+                foreach (var stringMod in mod.RecipeModsString)
+                    ModifyString(player, stringMod, source, target, result);
+
+                foreach (var iidMod in mod.RecipeModsIID)
+                    ModifyInstanceID(player, iidMod, source, target, result);
+
+                foreach (var didMod in mod.RecipeModsDID)
+                    ModifyDataID(player, didMod, source, target, result);
+            }
+        }
+
+        public static void ModifyBool(RecipeModsBool boolMod, WorldObject source, WorldObject target)
+        {
+            var op = (ModifyOp)boolMod.Enum;
+            var prop = (PropertyBool)boolMod.Stat;
+            var value = boolMod.Value;
+
+            // always SetValue?
+            if (op != ModifyOp.SetValue)
+            {
+                log.Warn($"RecipeManager.ModifyBool({source.Name}, {target.Name}): unhandled operation {op}");
+                return;
+            }
+            target.SetProperty(prop, value);
+        }
+
+        public enum SourceType
+        {
+            Player  = 0,
+            Source  = 1,
+            Dye     = 60
+        };
+
+        public static WorldObject GetSourceMod(SourceType sourceType, Player player, WorldObject source)
+        {
+            switch (sourceType)
+            {
+                case SourceType.Player:
+                    return player;
+                case SourceType.Source:
+                    return source;
+            }
+            log.Warn($"RecipeManager.GetSourceMod({sourceType}, {player.Name}, {source.Name}) - unknown source type");
+            return null;
+        }
+
+        public static void ModifyInt(Player player, RecipeModsInt intMod, WorldObject source, WorldObject target, WorldObject result)
+        {
+            var op = (ModifyOp)intMod.Enum;
+            var prop = (PropertyInt)intMod.Stat;
+            var value = intMod.Value;
+
+            var sourceMod = GetSourceMod((SourceType)intMod.Source, player, source);
+
+            switch (op)
+            {
+                case ModifyOp.SetValue:
+                    target.SetProperty(prop, value);
+                    break;
+                case ModifyOp.Add:
+                    target.IncProperty(prop, value);
+                    break;
+                case ModifyOp.CopyTarget:
+                    target.SetProperty(prop, sourceMod.GetProperty(prop) ?? 0);
+                    break;
+                case ModifyOp.CopyCreate:
+                    result.SetProperty(prop, sourceMod.GetProperty(prop) ?? 0);
+                    break;
+                case ModifyOp.AddSpell:
+                    target.Biota.GetOrAddKnownSpell(value, target.BiotaDatabaseLock, out var added);
+                    target.ChangesDetected = true;
+                    break;
+                default:
+                    log.Warn($"RecipeManager.ModifyInt({source.Name}, {target.Name}): unhandled operation {op}");
+                    break;
+            }
+        }
+
+        public static void ModifyFloat(Player player, RecipeModsFloat floatMod, WorldObject source, WorldObject target, WorldObject result)
+        {
+            var op = (ModifyOp)floatMod.Enum;
+            var prop = (PropertyFloat)floatMod.Stat;
+            var value = floatMod.Value;
+
+            var sourceMod = GetSourceMod((SourceType)floatMod.Source, player, source);
+
+            switch (op)
+            {
+                case ModifyOp.SetValue:
+                    target.SetProperty(prop, value);
+                    break;
+                case ModifyOp.Add:
+                    target.IncProperty(prop, value);
+                    break;
+                case ModifyOp.CopyTarget:
+                    target.SetProperty(prop, sourceMod.GetProperty(prop) ?? 0);
+                    break;
+                case ModifyOp.CopyCreate:
+                    result.SetProperty(prop, sourceMod.GetProperty(prop) ?? 0);
+                    break;
+                default:
+                    log.Warn($"RecipeManager.ModifyFloat({source.Name}, {target.Name}): unhandled operation {op}");
+                    break;
+            }
+        }
+
+        public static void ModifyString(Player player, RecipeModsString stringMod, WorldObject source, WorldObject target, WorldObject result)
+        {
+            var op = (ModifyOp)stringMod.Enum;
+            var prop = (PropertyString)stringMod.Stat;
+            var value = stringMod.Value;
+
+            var sourceMod = GetSourceMod((SourceType)stringMod.Source, player, source);
+
+            switch (op)
+            {
+                case ModifyOp.SetValue:
+                    target.SetProperty(prop, value);
+                    break;
+                case ModifyOp.CopyTarget:
+                    target.SetProperty(prop, sourceMod.GetProperty(prop) ?? sourceMod.Name);
+                    break;
+                case ModifyOp.CopyCreate:
+                    result.SetProperty(prop, sourceMod.GetProperty(prop) ?? sourceMod.Name);
+                    break;
+                default:
+                    log.Warn($"RecipeManager.ModifyString({source.Name}, {target.Name}): unhandled operation {op}");
+                    break;
+            }
+        }
+
+        public static void ModifyInstanceID(Player player, RecipeModsIID iidMod, WorldObject source, WorldObject target, WorldObject result)
+        {
+            var op = (ModifyOp)iidMod.Enum;
+            var prop = (PropertyInstanceId)iidMod.Stat;
+            var value = iidMod.Value;
+
+            var sourceMod = GetSourceMod((SourceType)iidMod.Source, player, source);
+
+            switch (op)
+            {
+                case ModifyOp.SetValue:
+                    target.SetProperty(prop, value);
+                    break;
+                case ModifyOp.CopyTarget:
+                    target.SetProperty(prop, sourceMod.GetProperty(prop) ?? 0);
+                    break;
+                case ModifyOp.CopyCreate:
+                    result.SetProperty(prop, sourceMod.GetProperty(prop) ?? 0);
+                    break;
+                default:
+                    log.Warn($"RecipeManager.ModifyInstanceID({source.Name}, {target.Name}): unhandled operation {op}");
+                    break;
+            }
+        }
+
+        public static void ModifyDataID(Player player, RecipeModsDID didMod, WorldObject source, WorldObject target, WorldObject result)
+        {
+            var op = (ModifyOp)didMod.Enum;
+            var prop = (PropertyDataId)didMod.Stat;
+            var value = didMod.Value;
+
+            var sourceMod = GetSourceMod((SourceType)didMod.Source, player, source);
+
+            switch (op)
+            {
+                case ModifyOp.SetValue:
+                    target.SetProperty(prop, value);
+                    break;
+                case ModifyOp.CopyTarget:
+                    target.SetProperty(prop, sourceMod.GetProperty(prop) ?? 0);
+                    break;
+                case ModifyOp.CopyCreate:
+                    result.SetProperty(prop, sourceMod.GetProperty(prop) ?? 0);
+                    break;
+                default:
+                    log.Warn($"RecipeManager.ModifyDataID({source.Name}, {target.Name}): unhandled operation {op}");
+                    break;
             }
         }
     }
