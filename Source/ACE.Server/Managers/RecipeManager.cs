@@ -257,7 +257,7 @@ namespace ACE.Server.Managers
                     target.Value *= (int)Math.Round((target.Value ?? 1) * 1.25f);
                     break;
                 case MaterialType.Linen:
-                    target.EncumbranceVal = (int)Math.Round((target.EncumbranceVal ?? 1) * 0.85f);
+                    target.EncumbranceVal = (int)Math.Round((target.EncumbranceVal ?? 1) * 0.75f);
                     break;
                 case MaterialType.Ivory:
                     target.SetProperty(PropertyInt.Attuned, 1);
