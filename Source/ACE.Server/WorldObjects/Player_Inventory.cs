@@ -223,7 +223,9 @@ namespace ACE.Server.WorldObjects
 
             DropItem,
             GiveItem,
-            TradeItem
+            TradeItem,
+
+            ToCorpseOnDeath
         }
 
         /// <summary>

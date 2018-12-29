@@ -381,9 +381,9 @@ namespace ACE.Server.WorldObjects
                 if (dropItem.WeenieType == WeenieType.Coin)
                     continue;
 
-                if (!TryRemoveFromInventoryWithNetworking(dropItem.Guid, out _, RemoveFromInventoryAction.ToCorpseOnDeath))
+                if (!TryRemoveFromInventoryWithNetworking(dropItem.Guid, out _, RemoveFromInventoryAction.ToCorpseOnDeath) && !TryDequipObjectWithNetworking(dropItem.Guid, out _, DequipObjectAction.ToCorpseOnDeath))
                 {
-                    Console.WriteLine($"Player_Death: couldn't remove item from {Name}'s inventory: {dropItem.Name}");
+                    Console.WriteLine($"Player_Death: couldn't remove item from {Name}'s possessions: {dropItem.Name}");
                     continue;
                 }
                 if (!corpse.TryAddToInventory(dropItem))
