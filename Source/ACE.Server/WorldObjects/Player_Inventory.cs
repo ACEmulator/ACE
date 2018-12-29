@@ -528,9 +528,11 @@ namespace ACE.Server.WorldObjects
                     }
                 }
 
-                var actionChain = StartPickupChain();
+                var moveToChain = CreateMoveToChain(itemRootOwner ?? item, out var thisMoveToChainNumber);
 
-                actionChain.AddAction(this, () =>
+                AddPickupChainToMoveToChain(moveToChain, thisMoveToChainNumber);
+
+                moveToChain.AddAction(this, () =>
                 {
                     if (CurrentLandblock == null) // Maybe we were teleported as we were motioning to pick up the item
                     {
@@ -539,6 +541,13 @@ namespace ACE.Server.WorldObjects
                     }
 
                     var returnStance = new Motion(CurrentMotionState.Stance);
+
+                    if (thisMoveToChainNumber != moveToChainCounter)
+                    {
+                        Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, WeenieError.ActionCancelled));
+                        EnqueueBroadcastMotion(returnStance);
+                        return;
+                    }
 
                     var questSolve = false;
 
@@ -585,7 +594,7 @@ namespace ACE.Server.WorldObjects
                     EnqueueBroadcastMotion(returnStance);
                 });
 
-                actionChain.EnqueueChain();
+                moveToChain.EnqueueChain();
             }
             else // This is a self-contained movement
             {
@@ -624,6 +633,7 @@ namespace ACE.Server.WorldObjects
                 Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session));
 
                 // todo: So the item isn't lost, we should try to put the item in the players inventory, or if that's full, on the landblock.
+                log.WarnFormat("Item 0x{0:X8}:{1} for player {2} lost from DoHandleActionPutItemInContainer failure.", item.Guid.Full, item.Name, Name);
 
                 return false;
             }
@@ -738,20 +748,9 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            // todo ***********************************************************************************************************
-            // todo ***********************************************************************************************************
-            // todo ***********************************************************************************************************
-            // todo ***********************************************************************************************************
-            // todo ***********************************************************************************************************
-            // todo ***********************************************************************************************************
-            // todo ***********************************************************************************************************
-            // todo ***********************************************************************************************************
-
-            WeenieError wieldError;
-
             if (rootOwner != this) // Item is on the landscape, or in a landblock chest
             {
-                var moveToChain = CreateMoveToChain(item, out var thisMoveToChainNumber);
+                var moveToChain = CreateMoveToChain(rootOwner ?? item, out var thisMoveToChainNumber);
 
                 AddPickupChainToMoveToChain(moveToChain, thisMoveToChainNumber);
 
@@ -768,39 +767,11 @@ namespace ACE.Server.WorldObjects
                     if (thisMoveToChainNumber != moveToChainCounter)
                     {
                         Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, WeenieError.ActionCancelled));
-
                         EnqueueBroadcastMotion(returnStance);
-
                         return;
                     }
 
-                    wieldError = CheckWieldRequirement(item);
-
-                    if (wieldError != WeenieError.None)
-                    {
-                        Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, wieldError));
-
-                        EnqueueBroadcastMotion(returnStance);
-
-                        return;
-                    }
-
-                    // todo dequip item if needed
-
-                    if (item.CurrentLandblock != null) // Item is resting on the landblock
-                    {
-                        item.CurrentLandblock.RemoveWorldObject(item.Guid, false, true);
-                        item.Location = null;
-                    }
-                    else // Item is in a landblock container
-                    {
-                        if (!foundInContainer.TryRemoveFromInventory(item.Guid))
-                        {
-                            Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "TryRemoveFromInventory failed!")); // Custom error message
-                            Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session));
-                            return;
-                        }
-                    }
+                    DoHandleActionGetAndWieldItem(item, wasEquipped, wieldLocation);
 
                     // todo
                     /*Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
@@ -813,16 +784,21 @@ namespace ACE.Server.WorldObjects
                 });
 
                 moveToChain.EnqueueChain();
-
-                return;
             }
+            else
+            {
+                DoHandleActionGetAndWieldItem(item, wasEquipped, wieldLocation);
+            }
+        }
 
-            wieldError = CheckWieldRequirement(item);
+        private bool DoHandleActionGetAndWieldItem(WorldObject item, bool wasEquipped, int wieldLocation)
+        {
+            var wieldError = CheckWieldRequirement(item);
 
             if (wieldError != WeenieError.None)
             {
                 Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, wieldError));
-                return;
+                return false;
             }
 
             // todo dequip item if needed
@@ -840,7 +816,7 @@ namespace ACE.Server.WorldObjects
                     Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "TryRemoveFromInventoryWithNetworking failed!")); // Custom error message
                     Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session));
 
-                    return;
+                    return false;
                 }
                 // TryRemoveFromInventoryWithNetworking
                 // TryEquipObjectWithNetworking
@@ -852,36 +828,12 @@ namespace ACE.Server.WorldObjects
                 Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session));
 
                 // todo: So the item isn't lost, we should try to put the item in the players inventory, or if that's full, on the landblock.
+                log.WarnFormat("Item 0x{0:X8}:{1} for player {2} lost from HandleActionGetAndWieldItem failure.", item.Guid.Full, item.Name, Name);
 
-                return;
+                return false;
             }
 
-            // WERROR WITH STRING ACTIVATION SKILL TOO LOW
-
-            /*var itemGuid = new ObjectGuid(itemId);
-
-            // handle inventory item -> weapon/shield slot
-            var item = GetInventoryItem(itemGuid);
-            if (item != null)
-            {
-                //Console.WriteLine($"HandleActionGetAndWieldItem({item.Name})");
-
-                var result = TryWieldItem(item, wieldLocation);
-                return;
-            }
-
-            // handle 1 wielded slot -> the other wielded slot
-            // (weapon swap)
-            var wieldedItem = GetEquippedItem(itemGuid);
-            if (wieldedItem != null)
-            {
-                var result = TryWieldItem(wieldedItem, wieldLocation);
-                return;
-            }
-
-            // We don't have possession of the item so we must pick it up.
-            // should this be wielding the item afterwards?
-            PickupItemWithNetworking(this, itemGuid, wieldLocation, PropertyInstanceId.Wielder);*/
+            return true;
         }
 
         private WeenieError CheckWieldRequirement(WorldObject item)
@@ -996,13 +948,31 @@ namespace ACE.Server.WorldObjects
 
             if ((stackRootOwner == this && containerRootOwner != this)  || (stackRootOwner != this && containerRootOwner == this)) // Movement is between the player and the world
             {
-                var actionChain = StartPickupChain();
+                WorldObject moveToObject;
 
-                actionChain.AddAction(this, () =>
+                if (stackRootOwner == this)
+                    moveToObject = containerRootOwner ?? container;
+                else
+                    moveToObject = stackRootOwner ?? stack;
+
+                var moveToChain = CreateMoveToChain(moveToObject, out var thisMoveToChainNumber);
+
+                AddPickupChainToMoveToChain(moveToChain, thisMoveToChainNumber);
+
+                moveToChain.AddAction(this, () =>
                 {
                     if (CurrentLandblock == null) // Maybe we were teleported as we were motioning to slit the item
                     {
                         Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, WeenieError.ActionCancelled));
+                        return;
+                    }
+
+                    var returnStance = new Motion(CurrentMotionState.Stance);
+
+                    if (thisMoveToChainNumber != moveToChainCounter)
+                    {
+                        Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, WeenieError.ActionCancelled));
+                        EnqueueBroadcastMotion(returnStance);
                         return;
                     }
 
@@ -1019,11 +989,10 @@ namespace ACE.Server.WorldObjects
                             EnqueueBroadcast(new GameMessageSound(Guid, Sound.PickUpItem));
                     }
 
-                    var returnStance = new Motion(CurrentMotionState.Stance);
                     EnqueueBroadcastMotion(returnStance);
                 });
 
-                actionChain.EnqueueChain();
+                moveToChain.EnqueueChain();
             }
             else // This is a self-contained movement
             {
@@ -1199,13 +1168,31 @@ namespace ACE.Server.WorldObjects
 
             if ((sourceStackRootOwner == this && targetStackRootOwner != this)  || (sourceStackRootOwner != this && targetStackRootOwner == this)) // Movement is between the player and the world
             {
-                var actionChain = StartPickupChain();
+                WorldObject moveToObject;
 
-                actionChain.AddAction(this, () =>
+                if (sourceStackRootOwner == this)
+                    moveToObject = targetStackRootOwner ?? targetStack;
+                else
+                    moveToObject = sourceStackRootOwner ?? sourceStack;
+
+                var moveToChain = CreateMoveToChain(moveToObject, out var thisMoveToChainNumber);
+
+                AddPickupChainToMoveToChain(moveToChain, thisMoveToChainNumber);
+
+                moveToChain.AddAction(this, () =>
                 {
                     if (CurrentLandblock == null) // Maybe we were teleported as we were motioning to slit the item
                     {
                         Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, WeenieError.ActionCancelled));
+                        return;
+                    }
+
+                    var returnStance = new Motion(CurrentMotionState.Stance);
+
+                    if (thisMoveToChainNumber != moveToChainCounter)
+                    {
+                        Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, WeenieError.ActionCancelled));
+                        EnqueueBroadcastMotion(returnStance);
                         return;
                     }
 
@@ -1222,11 +1209,10 @@ namespace ACE.Server.WorldObjects
                             EnqueueBroadcast(new GameMessageSound(Guid, Sound.PickUpItem));
                     }
 
-                    var returnStance = new Motion(CurrentMotionState.Stance);
                     EnqueueBroadcastMotion(returnStance);
                 });
 
-                actionChain.EnqueueChain();
+                moveToChain.EnqueueChain();
             }
             else // This is a self-contained movement
             {
@@ -1361,6 +1347,7 @@ namespace ACE.Server.WorldObjects
                 Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "TryCreateInInventoryWithNetworking failed!")); // Custom error message
 
                 // todo: So the item isn't lost, we should try to put the item in the players inventory, or if that's full, on the landblock.
+                log.WarnFormat("Item 0x{0:X8}:{1} for player {2} lost from GiveObjecttoPlayer failure.", item.Guid.Full, item.Name, Name);
 
                 return;
             }
