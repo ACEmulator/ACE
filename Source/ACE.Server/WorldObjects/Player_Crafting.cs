@@ -11,11 +11,10 @@ namespace ACE.Server.WorldObjects
 {
     partial class Player
     {
-                /// <summary>
+        /// <summary>
         /// Dictionary for salvage bags/material types
         /// TODO: This list needs to go somewhere else
         /// </summary>
-
         static Dictionary<int, int> dict = new Dictionary<int, int>()
                                                             {
                                                                 {1, 20983},
