@@ -154,7 +154,7 @@ namespace ACE.Server.WorldObjects
             EncumbranceVal += worldObject.EncumbranceVal;
             Value += worldObject.Value;
 
-            TrySetChild(worldObject, wieldedLocation);
+            TrySetChild(worldObject);
 
             worldObject.EmoteManager.OnWield(this);
 
@@ -234,7 +234,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         /// <param name="item">The child item - we link them together</param>
         /// <param name="placementPosition">Where is this on the parent - where is it equipped</param>
-        private bool TrySetChild(WorldObject item, int placementPosition)
+        private bool TrySetChild(WorldObject item)
         {
             if (item.CurrentWieldedLocation == null || ((EquipMask)item.CurrentWieldedLocation & EquipMask.Selectable) == 0)
                 return false;
@@ -242,7 +242,7 @@ namespace ACE.Server.WorldObjects
             Placement placement;
             ParentLocation parentLocation;
 
-            switch ((EquipMask)placementPosition)
+            switch (item.CurrentWieldedLocation)
             {
                 case EquipMask.MeleeWeapon:
                     placement = ACE.Entity.Enum.Placement.RightHandCombat;
@@ -311,7 +311,7 @@ namespace ACE.Server.WorldObjects
             foreach (var item in EquippedObjects.Values)
             {
                 if (item.CurrentWieldedLocation != null)
-                    TrySetChild(item, (int)item.CurrentWieldedLocation);
+                    TrySetChild(item);
             }
         }
 

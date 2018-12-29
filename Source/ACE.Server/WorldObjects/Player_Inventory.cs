@@ -355,12 +355,15 @@ namespace ACE.Server.WorldObjects
             {
                 if (CurrentLandblock?.GetObject(lastUsedContainerId) is Container lastUsedContainer)
                 {
-                    result = lastUsedContainer.GetInventoryItem(objectGuid, out foundInContainer);
-
-                    if (result != null)
+                    if (lastUsedContainer.IsOpen)
                     {
-                        rootOwner = lastUsedContainer;
-                        return result;
+                        result = lastUsedContainer.GetInventoryItem(objectGuid, out foundInContainer);
+
+                        if (result != null)
+                        {
+                            rootOwner = lastUsedContainer;
+                            return result;
+                        }
                     }
                 }
             }
@@ -732,7 +735,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void HandleActionGetAndWieldItem(uint itemGuid, int wieldLocation)
         {
-            var item = FindObject(new ObjectGuid(itemGuid), SearchLocations.Everywhere, out var foundInContainer, out var rootOwner, out var wasEquipped);
+            var item = FindObject(new ObjectGuid(itemGuid), SearchLocations.Everywhere, out _, out var rootOwner, out var wasEquipped);
 
             if (item == null)
             {
@@ -771,14 +774,14 @@ namespace ACE.Server.WorldObjects
                         return;
                     }
 
-                    DoHandleActionGetAndWieldItem(item, wasEquipped, wieldLocation);
+                    if (DoHandleActionGetAndWieldItem(item, rootOwner, wasEquipped, wieldLocation))
+                    {
+                        Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
 
-                    // todo
-                    /*Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
+                        EnqueueBroadcast(new GameMessageSound(Guid, Sound.PickUpItem));
 
-                    EnqueueBroadcast(new GameMessageSound(Guid, Sound.PickUpItem));
-
-                    item.NotifyOfEvent(RegenerationType.PickUp);*/
+                        item.NotifyOfEvent(RegenerationType.PickUp);
+                    }
 
                     EnqueueBroadcastMotion(returnStance);
                 });
@@ -787,11 +790,11 @@ namespace ACE.Server.WorldObjects
             }
             else
             {
-                DoHandleActionGetAndWieldItem(item, wasEquipped, wieldLocation);
+                DoHandleActionGetAndWieldItem(item, rootOwner, wasEquipped, wieldLocation);
             }
         }
 
-        private bool DoHandleActionGetAndWieldItem(WorldObject item, bool wasEquipped, int wieldLocation)
+        private bool DoHandleActionGetAndWieldItem(WorldObject item, Container itemRootOwner, bool wasEquipped, int wieldLocation)
         {
             var wieldError = CheckWieldRequirement(item);
 
@@ -801,28 +804,27 @@ namespace ACE.Server.WorldObjects
                 return false;
             }
 
-            // todo dequip item if needed
+            // todo dequip existing item in wieldLocation if needed
 
-            if (wasEquipped) // We're moving a wielded item to another wield location
+            if (item.CurrentLandblock != null) // Movement is an item pickup off the landblock
             {
-                // TryRemoveFromInventoryWithNetworking
-                // TryDequipObjectWithNetworking
-                // TryEquipObjectWithNetworking
+                item.CurrentLandblock.RemoveWorldObject(item.Guid, false, true);
+                item.Location = null;
             }
-            else // Item is in our inventory
+            else if (wasEquipped) // Movement is an equipped item to another equipped item slot
             {
-                if (!TryRemoveFromInventoryWithNetworking(item.Guid, out _, RemoveFromInventoryAction.ToWieldedSlot))
+                // todo don't dequip, just shift
+            }
+            else // Movement is within the same pack or between packs in a container on the landblock
+            {
+                if (!itemRootOwner.TryRemoveFromInventory(item.Guid))
                 {
-                    Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "TryRemoveFromInventoryWithNetworking failed!")); // Custom error message
+                    Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "TryRemoveFromInventory failed!")); // Custom error message
                     Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session));
-
-                    return false;
                 }
-                // TryRemoveFromInventoryWithNetworking
-                // TryEquipObjectWithNetworking
             }
 
-            if (!TryEquipObjectWithNetworking(item, wieldLocation))
+            if (!wasEquipped && !TryEquipObjectWithNetworking(item, wieldLocation))
             {
                 Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "TryEquipObjectWithNetworking failed!")); // Custom error message
                 Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session));
@@ -832,6 +834,8 @@ namespace ACE.Server.WorldObjects
 
                 return false;
             }
+
+            // Network message to update item to new location
 
             return true;
         }
