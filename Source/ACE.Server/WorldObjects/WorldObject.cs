@@ -146,7 +146,7 @@ namespace ACE.Server.WorldObjects
 
             PhysicsObj.State = defaultState;
 
-            if (creature != null) AllowEdgeSlide = true;
+            //if (creature != null) AllowEdgeSlide = true;
         }
 
         public bool AddPhysicsObj()

@@ -24,7 +24,7 @@ namespace ACE.Server.WorldObjects
             var wieldedWeapons = SelectWieldedWeapons();
             var wieldedShield = SelectWieldedShield();
 
-            if (wieldedShield != null)
+            if (wieldedShield != null && (wieldedWeapons.Count == 0 || !wieldedWeapons[0].IsAmmoLauncher))
                 wieldedWeapons.Add(wieldedShield);
 
             return wieldedWeapons;
@@ -267,8 +267,8 @@ namespace ACE.Server.WorldObjects
                 {
                     //Console.WriteLine($"{Name} equipping {item.Name}");
 
-                    if (item.ValidLocations != null)
-                        TryEquipObject(item, (int)item.ValidLocations);
+                    if (item.ValidLocations != null && TryEquipObject(item, (int)item.ValidLocations))
+                        SetChild(item, (int)item.ValidLocations, out var placementID, out var parentLocation);
                 }
             }
         }
