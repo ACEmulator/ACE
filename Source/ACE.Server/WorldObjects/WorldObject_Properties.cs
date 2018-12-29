@@ -1249,6 +1249,18 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyInt.MaterialType); else SetProperty(PropertyInt.MaterialType, (int)value.Value); }
         }
 
+        public int? Attuned
+        {
+            get => GetProperty(PropertyInt.Attuned);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.Attuned); else SetProperty(PropertyInt.Attuned, value.Value); }
+        }
+
+        public int? Bonded
+        {
+            get => GetProperty(PropertyInt.Bonded);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.Bonded); else SetProperty(PropertyInt.Bonded, value.Value); }
+        }
+
 
         // ========================================
         // ====== Weenie Header 2 Properties ======

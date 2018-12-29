@@ -214,14 +214,24 @@ namespace ACE.Server.Managers
 
             switch (materialType)
             {
+                // armor tinkering
                 case MaterialType.Steel:
                     target.ArmorLevel += 20;
+                    break;
+                case MaterialType.Alabaster:
+                    target.ArmorModVsPierce = Math.Min((target.ArmorModVsPierce ?? 0) + 0.2f, 2.0f);
+                    break;
+                case MaterialType.Bronze:
+                    target.ArmorModVsSlash = Math.Min((target.ArmorModVsSlash ?? 0) + 0.2f, 2.0f);
+                    break;
+                case MaterialType.Marble:
+                    target.ArmorModVsBludgeon = Math.Min((target.ArmorModVsBludgeon ?? 0) + 0.2f, 2.0f);
                     break;
                 case MaterialType.ArmoredilloHide:
                     target.ArmorModVsAcid = Math.Min((target.ArmorModVsAcid ?? 0) + 0.4f, 2.0f);
                     break;
-                case MaterialType.Marble:
-                    target.ArmorModVsBludgeon = Math.Min((target.ArmorModVsBludgeon ?? 0) + 0.4f, 2.0f);
+                case MaterialType.Ceramic:
+                    target.ArmorModVsFire = Math.Min((target.ArmorModVsFire ?? 0) + 0.4f, 2.0f);
                     break;
                 case MaterialType.Wool:
                     target.ArmorModVsCold = Math.Min((target.ArmorModVsCold ?? 0) + 0.4f, 2.0f);
@@ -229,18 +239,115 @@ namespace ACE.Server.Managers
                 case MaterialType.ReedSharkHide:
                     target.ArmorModVsElectric = Math.Min((target.ArmorModVsElectric ?? 0) + 0.4f, 2.0f);
                     break;
-                case MaterialType.Ceramic:
-                    target.ArmorModVsFire = Math.Min((target.ArmorModVsFire ?? 0) + 0.4f, 2.0f);
+                case MaterialType.Peridot:
+                    AddImbuedEffect(target, ImbuedEffectType.MeleeDefense);
                     break;
-                case MaterialType.Alabaster:
-                    target.ArmorModVsPierce = Math.Min((target.ArmorModVsPierce ?? 0) + 0.4f, 2.0f);
+                case MaterialType.YellowTopaz:
+                    AddImbuedEffect(target, ImbuedEffectType.MissileDefense);
                     break;
-                case MaterialType.Bronze:
-                    target.ArmorModVsSlash = Math.Min((target.ArmorModVsSlash ?? 0) + 0.4f, 2.0f);
+                case MaterialType.Zircon:
+                    AddImbuedEffect(target, ImbuedEffectType.MagicDefense);
+                    break;
+
+                // item tinkering
+                case MaterialType.Pine:
+                    target.Value *= (int)Math.Round((target.Value ?? 1) * 0.75f);
+                    break;
+                case MaterialType.Gold:
+                    target.Value *= (int)Math.Round((target.Value ?? 1) * 1.25f);
                     break;
                 case MaterialType.Linen:
                     target.EncumbranceVal = (int)Math.Round((target.EncumbranceVal ?? 1) * 0.85f);
                     break;
+                case MaterialType.Ivory:
+                    target.SetProperty(PropertyInt.Attuned, 1);
+                    break;
+                case MaterialType.Leather:
+                    target.SetProperty(PropertyInt.Bonded, 1);  // retained?
+                    break;
+                case MaterialType.Moonstone:
+                    target.ItemMaxMana += 500;
+                    break;
+                case MaterialType.Teak:
+                    target.HeritageGroup = HeritageGroup.Aluvian;
+                    break;
+                case MaterialType.Ebony:
+                    target.HeritageGroup = HeritageGroup.Gharundim;
+                    break;
+                case MaterialType.Porcelain:
+                    target.HeritageGroup = HeritageGroup.Sho;
+                    break;
+                case MaterialType.Satin:
+                    target.HeritageGroup = HeritageGroup.Viamontian;
+                    break;
+                case MaterialType.Copper:
+
+                    if (target.WieldSkillType != Skill.MissileDefense)
+                        return;
+                    // change wield requirement: missile defense -> melee defense (increased)
+                    target.WieldSkillType = Skill.MeleeDefense;
+                    if (target.ItemSkillLevelLimit.HasValue)
+                        target.ItemSkillLevelLimit = (int)Math.Round(target.ItemSkillLevelLimit.Value * 1.2f);
+                    break;
+
+                case MaterialType.Silver:
+
+                    if (target.WieldSkillType != Skill.MeleeDefense)
+                        return;
+                    // change wield requirement: melee defense -> missile defense (reduced)
+                    target.WieldSkillType = Skill.MissileDefense;
+                    if (target.ItemSkillLevelLimit.HasValue)
+                        target.ItemSkillLevelLimit = (int)Math.Round(target.ItemSkillLevelLimit.Value * 0.85f);
+                    break;
+
+                case MaterialType.Silk:
+
+                    // remove allegiance rank limit, increase item difficulty by spellcraft?
+                    target.ItemAllegianceRankLimit = null;
+                    target.ItemDifficulty = (target.ItemDifficulty ?? 0) + target.ItemSpellcraft;
+                    break;
+
+                case MaterialType.Amber:
+                case MaterialType.Diamond:
+                case MaterialType.GromnieHide:
+                case MaterialType.Pyreal:
+                case MaterialType.Ruby:
+                case MaterialType.Sapphire:
+                    return;
+
+                // magic item tinkering
+
+                case MaterialType.Sunstone:
+                    AddImbuedEffect(target, ImbuedEffectType.ArmorRending);
+                    break;
+                case MaterialType.FireOpal:
+                    AddImbuedEffect(target, ImbuedEffectType.CripplingBlow);
+                    break;
+                case MaterialType.BlackOpal:
+                    AddImbuedEffect(target, ImbuedEffectType.CriticalStrike);
+                    break;
+                case MaterialType.Opal:
+                    target.ManaConversionMod += 0.01f;
+                    break;
+                case MaterialType.GreenGarnet:
+                    target.ElementalDamageMod += 0.01f;     // + 1% vs. monsters, + 0.25% vs. players
+                    break;
+
+                case MaterialType.SmokeyQuartz:
+                case MaterialType.RoseQuartz:
+                case MaterialType.RedJade:
+                case MaterialType.Malachite:
+                case MaterialType.LavenderJade:
+                case MaterialType.LapisLazuli:
+                case MaterialType.Hematite:
+                case MaterialType.Citrine:
+                case MaterialType.Carnelian:
+                case MaterialType.Bloodstone:
+                case MaterialType.Azurite:
+                case MaterialType.Agate:
+
+                // weapon tinkering
+
                 case MaterialType.Iron:
                     target.Damage += 1;
                     break;
@@ -253,69 +360,14 @@ namespace ACE.Server.Managers
                 case MaterialType.Oak:
                     target.WeaponTime = Math.Max(0, (target.WeaponTime ?? 0) - 50);
                     break;
-                case MaterialType.Pine:
-                    target.Value *= (int)Math.Round((target.Value ?? 1) * 0.75f);
-                    break;
-                case MaterialType.Gold:
-                    target.Value *= (int)Math.Round((target.Value ?? 1) * 1.25f);
-                    break;
                 case MaterialType.Brass:
                     target.WeaponDefense += 0.01f;
                     break;
                 case MaterialType.Velvet:
                     target.WeaponOffense += 0.01f;
                     break;
-                case MaterialType.BlackOpal:
-                    AddImbuedEffect(target, ImbuedEffectType.CriticalStrike);
-                    break;
-                case MaterialType.FireOpal:
-                    AddImbuedEffect(target, ImbuedEffectType.CripplingBlow);
-                    break;
-                case MaterialType.Sunstone:
-                    AddImbuedEffect(target, ImbuedEffectType.ArmorRending);
-                    break;
-                case MaterialType.Opal:
-                    target.ManaConversionMod += 0.01f;
-                    break;
-                case MaterialType.Moonstone:
-                    target.ItemMaxMana += 500;
-                    break;
-                case MaterialType.Silver:
 
-                    if (target.WieldSkillType != Skill.MeleeDefense)
-                        return;
-                    // change wield requirement: melee defense -> missile defense (reduced)
-                    target.WieldSkillType = Skill.MissileDefense;
-                    if (target.ItemSkillLevelLimit.HasValue)
-                        target.ItemSkillLevelLimit = (int)Math.Round(target.ItemSkillLevelLimit.Value * 0.85f);
-                    break;
-
-                case MaterialType.Copper:
-
-                    if (target.WieldSkillType != Skill.MissileDefense)
-                        return;
-                    // change wield requirement: missile defense -> melee defense (increased)
-                    target.WieldSkillType = Skill.MeleeDefense;
-                    if (target.ItemSkillLevelLimit.HasValue)
-                        target.ItemSkillLevelLimit = (int)Math.Round(target.ItemSkillLevelLimit.Value * 1.2f);
-                    break;
-
-                case MaterialType.Silk:
-
-                    // remove allegiance rank limit, increase item difficulty by spellcraft?
-                    target.ItemAllegianceRankLimit = null;
-                    target.ItemDifficulty = (target.ItemDifficulty ?? 0) + target.ItemSpellcraft;
-                    break;
-
-                case MaterialType.Zircon:
-                    AddImbuedEffect(target, ImbuedEffectType.MagicDefense);
-                    break;
-                case MaterialType.Peridot:
-                    AddImbuedEffect(target, ImbuedEffectType.MeleeDefense);
-                    break;
-                case MaterialType.YellowTopaz:
-                    AddImbuedEffect(target, ImbuedEffectType.MissileDefense);
-                    break;
+                // only 1 imbue can be applied per piece of armor?
                 case MaterialType.Emerald:
                     AddImbuedEffect(target, ImbuedEffectType.AcidRending);
                     break;
@@ -337,37 +389,6 @@ namespace ACE.Server.Managers
                 case MaterialType.ImperialTopaz:
                     AddImbuedEffect(target, ImbuedEffectType.SlashRending);
                     break;
-                case MaterialType.Azurite:
-                case MaterialType.Malachite:
-                case MaterialType.Citrine:
-                case MaterialType.Hematite:
-                case MaterialType.LavenderJade:
-                case MaterialType.RedJade:
-                case MaterialType.Carnelian:
-                case MaterialType.LapisLazuli:
-                case MaterialType.Agate:
-                case MaterialType.RoseQuartz:
-                case MaterialType.SmokeyQuartz:
-                case MaterialType.Bloodstone:
-                    return;  // ??
-                case MaterialType.Ebony:
-                    target.HeritageGroup = HeritageGroup.Gharundim;
-                    break;
-                case MaterialType.Porcelain:
-                    target.HeritageGroup = HeritageGroup.Sho;
-                    break;
-                case MaterialType.Teak:
-                    target.HeritageGroup = HeritageGroup.Aluvian;
-                    break;
-                case MaterialType.Leather:
-                    target.Retained = true;
-                    break;
-                case MaterialType.GreenGarnet:
-                    target.ElementalDamageMod += 0.01f;
-                    break;
-                //case MaterialType.DarkIdol:
-                //AddImbuedEffect(target, ImbuedEffectType.IgnoreSomeMagicProjectileDamage);
-                //break;
                 default:
                     Console.WriteLine($"Unknown material type: {materialType}");
                     return;
@@ -698,7 +719,7 @@ namespace ACE.Server.Managers
             if (createItem > 0)
                 result = CreateItem(player, createItem, createAmount);
 
-            ModifyItem(player, recipe, source, target, result);
+            ModifyItem(player, recipe, source, target, result, success);
 
             var message = success ? recipe.SuccessMessage : recipe.FailMessage;
 
@@ -757,10 +778,13 @@ namespace ACE.Server.Managers
             AddSpell    // 7
         }
 
-        public static void ModifyItem(Player player, Recipe recipe, WorldObject source, WorldObject target, WorldObject result)
+        public static void ModifyItem(Player player, Recipe recipe, WorldObject source, WorldObject target, WorldObject result, bool success)
         {
             foreach (var mod in recipe.RecipeMod)
             {
+                if (mod.ExecutesOnSuccess != success)
+                    continue;
+
                 // apply base mod
 
                 // apply type mods
