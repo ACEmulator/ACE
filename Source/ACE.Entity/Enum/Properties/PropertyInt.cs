@@ -563,7 +563,7 @@ namespace ACE.Entity.Enum.Properties
                 case PropertyInt.AttackHeight:
                     return System.Enum.GetName(typeof(AttackHeight), value);
                 case PropertyInt.AttackType:
-                    return System.Enum.GetName(typeof(MAttackType), value);
+                    return System.Enum.GetName(typeof(AttackType), value);
                 case PropertyInt.Attuned:
                     return System.Enum.GetName(typeof(AttunedStatus), value);
                 case PropertyInt.AmmoType:

@@ -6,10 +6,10 @@ namespace ACE.Server.WorldObjects
 {
     partial class WorldObject
     {
-        public MAttackType MAttackType
+        public AttackType MAttackType
         {
-            get => (MAttackType)(GetProperty(PropertyInt.AttackType) ?? 0);
-            set { if (value == MAttackType.Undef) RemoveProperty(PropertyInt.AttackType); else SetProperty(PropertyInt.AttackType, (int)value); }
+            get => (AttackType)(GetProperty(PropertyInt.AttackType) ?? 0);
+            set { if (value == AttackType.Undef) RemoveProperty(PropertyInt.AttackType); else SetProperty(PropertyInt.AttackType, (int)value); }
         }
 
         /// <summary>

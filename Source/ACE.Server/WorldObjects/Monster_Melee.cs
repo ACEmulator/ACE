@@ -103,7 +103,7 @@ namespace ACE.Server.WorldObjects
                         }
                     }
                     else
-                        target.OnEvade(this, AttackType.Melee);
+                        target.OnEvade(this, CombatType.Melee);
                 });
             }
             actionChain.EnqueueChain();
@@ -153,14 +153,14 @@ namespace ACE.Server.WorldObjects
 
                 // todo: use motion mapping, avoid string search
 
-                if (motion.Contains("Slash") && (weapon == null || (weapon.MAttackType & MAttackType.Slash) == 0))
+                if (motion.Contains("Slash") && (weapon == null || (weapon.MAttackType & AttackType.Slash) == 0))
                     continue;
-                if (motion.Contains("Thrust") && (weapon == null || (weapon.MAttackType & MAttackType.Thrust) == 0))
+                if (motion.Contains("Thrust") && (weapon == null || (weapon.MAttackType & AttackType.Thrust) == 0))
                     continue;
 
-                if (motion.StartsWith("Double") && (weapon == null || (weapon.MAttackType & MAttackType.DoubleStrike) == 0))
+                if (motion.StartsWith("Double") && (weapon == null || (weapon.MAttackType & AttackType.DoubleStrike) == 0))
                     continue;
-                if (motion.StartsWith("Triple") && (weapon == null || (weapon.MAttackType & MAttackType.TripleStrike) == 0))
+                if (motion.StartsWith("Triple") && (weapon == null || (weapon.MAttackType & AttackType.TripleStrike) == 0))
                     continue;
 
                 // ensure combat maneuver exists for this monster's motion table
@@ -239,7 +239,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public Range GetBaseDamage(BiotaPropertiesBodyPart attackPart)
         {
-            if (CurrentAttack == AttackType.Missile && GetMissileAmmo() != null)
+            if (CurrentAttack == CombatType.Missile && GetMissileAmmo() != null)
                 return GetMissileDamage();
 
             // use weapon damage for every attack?
@@ -275,7 +275,7 @@ namespace ACE.Server.WorldObjects
                 //attackSkill = GetExhaustedSkill(attackSkill);
 
             // get creature defense skill
-            var defenseSkill = CurrentAttack == AttackType.Missile ? Skill.MissileDefense : Skill.MeleeDefense;
+            var defenseSkill = CurrentAttack == CombatType.Missile ? Skill.MissileDefense : Skill.MeleeDefense;
             var defenseMod = defenseSkill == Skill.MeleeDefense ? GetWeaponMeleeDefenseModifier(AttackTarget as Creature) : 1.0f;
             var difficulty = (uint)Math.Round(target.GetCreatureSkill(defenseSkill).Current * defenseMod);
 
@@ -337,7 +337,7 @@ namespace ACE.Server.WorldObjects
                 criticalHit = true;
 
             // attribute damage modifier (verify)
-            var attributeMod = GetAttributeMod(AttackType.Melee);
+            var attributeMod = GetAttributeMod(CombatType.Melee);
 
             // get armor piece
             var armor = GetArmor(bodyPart);

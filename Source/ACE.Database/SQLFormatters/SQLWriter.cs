@@ -121,7 +121,7 @@ namespace ACE.Database.SQLFormatters
                 case PropertyInt.AiAllowedCombatStyle:
                     return ((CombatStyle)value).ToString();
                 case PropertyInt.AttackType:
-                    return ((MAttackType)value).ToString();
+                    return ((AttackType)value).ToString();
                 case PropertyInt.ChannelsActive:
                 case PropertyInt.ChannelsAllowed:
                     return ((Channel)value).ToString();

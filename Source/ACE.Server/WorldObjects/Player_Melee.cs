@@ -257,7 +257,7 @@ namespace ACE.Server.WorldObjects
                         var weapon = GetEquippedMeleeWeapon();
                         var attackType = GetWeaponAttackType(weapon);
 
-                        var action = PowerLevel < 0.33f && attackType.HasFlag(MAttackType.Thrust) ? "Thrust" : "Slash";
+                        var action = PowerLevel < 0.33f && attackType.HasFlag(AttackType.Thrust) ? "Thrust" : "Slash";
 
                         // handle multistrike weapons
                         action = MultiStrike(attackType, action);

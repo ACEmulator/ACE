@@ -3,7 +3,7 @@ using System;
 namespace ACE.Entity.Enum
 {
     [Flags]
-    public enum MAttackType
+    public enum AttackType
     {
         Undef               = 0x0,
         Punch               = 0x0001,
