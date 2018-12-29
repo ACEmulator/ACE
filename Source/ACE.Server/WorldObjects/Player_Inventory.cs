@@ -464,7 +464,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if (!item.Guid.IsDynamic() || item is Creature)
+            if (!item.Guid.IsDynamic() || item is Creature || (item.BaseDescriptionFlags & ObjectDescriptionFlag.Stuck) != 0)
             {
                 log.WarnFormat("Player 0x{0:X8}:{1} tried to move item 0x{2:X8}:{3}.", Guid.Full, Name, item.Guid.Full, item.Name);
                 Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "You can't move that!")); // Custom error message
