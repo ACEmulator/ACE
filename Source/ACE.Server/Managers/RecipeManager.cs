@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using log4net;
 
 using ACE.Common.Extensions;
@@ -12,21 +11,17 @@ using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
-using ACE.Server.Managers;
 using ACE.Server.WorldObjects;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.WorldObjects.Entity;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Factories;
 
-
 namespace ACE.Server.Managers
 {
     public class RecipeManager
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-
-        private static readonly Random _random = new Random();
 
         public static void UseObjectOnTarget(Player player, WorldObject source, WorldObject target)
         {
@@ -60,7 +55,7 @@ namespace ACE.Server.Managers
 
             ActionChain craftChain = new ActionChain();
             CreatureSkill skill = null;
-            bool skillSuccess = true; // assume success, unless there's a skill check
+            bool success = true; // assume success, unless there's a skill check
             double percentSuccess = 1;
 
             var motion = new Motion(MotionStance.NonCombat, MotionCommand.ClapHands);
@@ -110,145 +105,11 @@ namespace ACE.Server.Managers
                     }
                 }
 
-                // straight skill check, if applicable
+                // perform skill check, if applicable
                 if (skill != null)
-                    skillSuccess = _random.NextDouble() < percentSuccess;
+                    success = ThreadSafeRandom.Next(0.0f, 1.0f) <= percentSuccess;
 
-
-                if (skillSuccess)
-                {
-                    bool destroyTarget = _random.NextDouble() < recipe.Recipe.SuccessDestroyTargetChance;
-                    bool destroySource = _random.NextDouble() < recipe.Recipe.SuccessDestroySourceChance;
-
-                    if (destroyTarget)
-                    {
-                        if (target.OwnerId == player.Guid.Full  || player.GetInventoryItem(target.Guid) != null)
-                        {
-                            player.TryRemoveItemFromInventoryWithNetworkingWithDestroy(target, (ushort)recipe.Recipe.SuccessDestroyTargetAmount);
-                        }
-                        else if (target.WielderId == player.Guid.Full)
-                        {
-                            if (!player.TryRemoveItemWithNetworking(target))
-                                throw new Exception($"Failed to remove {target.Name} from player inventory.");
-                        }
-                        else
-                        {
-                            target.Destroy();
-                        }
-
-                        if (!string.IsNullOrEmpty(recipe.Recipe.SuccessDestroyTargetMessage))
-                        {
-                            var destroyMessage = new GameMessageSystemChat(recipe.Recipe.SuccessDestroyTargetMessage, ChatMessageType.Craft);
-                            player.Session.Network.EnqueueSend(destroyMessage);
-                        }
-                    }
-
-                    if (destroySource)
-                    {
-                        if (source.OwnerId == player.Guid.Full || player.GetInventoryItem(target.Guid) != null)
-                        {
-                            player.TryRemoveItemFromInventoryWithNetworkingWithDestroy(source, (ushort)recipe.Recipe.SuccessDestroySourceAmount);
-                        }
-                        else if (source.WielderId == player.Guid.Full)
-                        {
-                            if (!player.TryRemoveItemWithNetworking(source))
-                                throw new Exception($"Failed to remove {source.Name} from player inventory.");
-                        }
-                        else
-                        {
-                            source.Destroy();
-                        }
-
-                        if (!string.IsNullOrEmpty(recipe.Recipe.SuccessDestroySourceMessage))
-                        {
-                            var destroyMessage = new GameMessageSystemChat(recipe.Recipe.SuccessDestroySourceMessage, ChatMessageType.Craft);
-                            player.Session.Network.EnqueueSend(destroyMessage);
-                        }
-                    }
-
-                    if (recipe.Recipe.SuccessWCID > 0)
-                    {
-                        var wo = WorldObjectFactory.CreateNewWorldObject(recipe.Recipe.SuccessWCID);
-
-                        if (wo != null)
-                        {
-                            if (recipe.Recipe.SuccessAmount > 1)
-                                wo.StackSize = (ushort)recipe.Recipe.SuccessAmount;
-
-                            player.TryCreateInInventoryWithNetworking(wo);
-                        }
-                    }
-
-                    var message = new GameMessageSystemChat(recipe.Recipe.SuccessMessage, ChatMessageType.Craft);
-                    player.Session.Network.EnqueueSend(message);
-                }
-                else
-                {
-                    bool destroyTarget = _random.NextDouble() < recipe.Recipe.FailDestroyTargetChance;
-                    bool destroySource = _random.NextDouble() < recipe.Recipe.FailDestroySourceChance;
-
-                    if (destroyTarget)
-                    {
-                        if (target.OwnerId == player.Guid.Full || player.GetInventoryItem(target.Guid) != null)
-                        {
-                            player.TryRemoveItemFromInventoryWithNetworkingWithDestroy(target, (ushort)recipe.Recipe.FailDestroyTargetAmount);
-                        }
-                        else if (target.WielderId == player.Guid.Full)
-                        {
-                            if (!player.TryRemoveItemWithNetworking(target))
-                                throw new Exception($"Failed to remove {target.Name} from player inventory.");
-                        }
-                        else
-                        {
-                            target.Destroy();
-                        }
-
-                        if (!string.IsNullOrEmpty(recipe.Recipe.FailDestroyTargetMessage))
-                        {
-                            var destroyMessage = new GameMessageSystemChat(recipe.Recipe.FailDestroyTargetMessage, ChatMessageType.Craft);
-                            player.Session.Network.EnqueueSend(destroyMessage);
-                        }
-                    }
-
-                    if (destroySource)
-                    {
-                        if (source.OwnerId == player.Guid.Full || player.GetInventoryItem(target.Guid) != null)
-                        {
-                            player.TryRemoveItemFromInventoryWithNetworkingWithDestroy(source, (ushort)recipe.Recipe.FailDestroySourceAmount);
-                        }
-                        else if (source.WielderId == player.Guid.Full)
-                        {
-                            if (!player.TryRemoveItemWithNetworking(source))
-                                throw new Exception($"Failed to remove {source.Name} from player inventory.");
-                        }
-                        else
-                        {
-                            source.Destroy();
-                        }
-
-                        if (!string.IsNullOrEmpty(recipe.Recipe.FailDestroySourceMessage))
-                        {
-                            var destroyMessage = new GameMessageSystemChat(recipe.Recipe.FailDestroySourceMessage, ChatMessageType.Craft);
-                            player.Session.Network.EnqueueSend(destroyMessage);
-                        }
-                    }
-
-                    if (recipe.Recipe.FailWCID > 0)
-                    {
-                        var wo = WorldObjectFactory.CreateNewWorldObject(recipe.Recipe.FailWCID);
-
-                        if (wo != null)
-                        {
-                            if (recipe.Recipe.FailAmount > 1)
-                                wo.StackSize = (ushort)recipe.Recipe.FailAmount;
-
-                            player.TryCreateInInventoryWithNetworking(wo);
-                        }
-                    }
-
-                    var message = new GameMessageSystemChat(recipe.Recipe.FailMessage, ChatMessageType.Craft);
-                    player.Session.Network.EnqueueSend(message);
-                }
+                CreateDestroyItems(player, recipe.Recipe, source, target, success);
 
                 player.SendUseDoneEvent();
             });
@@ -287,8 +148,6 @@ namespace ACE.Server.Managers
 
             var recipe = DatabaseManager.World.GetCachedCookbook(tool.WeenieClassId, target.WeenieClassId);
             var recipeSkill = (Skill)recipe.Recipe.Skill;
-            Console.WriteLine($"Recipe skill: {recipeSkill}");
-
             var skill = player.GetCreatureSkill(recipeSkill);
 
             // thanks to Endy's Tinkering Calculator for this formula!
@@ -332,24 +191,15 @@ namespace ACE.Server.Managers
             actionChain.EnqueueChain();
         }
 
-        public static void DoTinkering(Player player, WorldObject tool, WorldObject target, float successChance)
+        public static void DoTinkering(Player player, WorldObject tool, WorldObject target, float chance)
         {
-            var rng = ThreadSafeRandom.Next(0.0f, 1.0f);
+            var success = ThreadSafeRandom.Next(0.0f, 1.0f) <= chance;
 
-            if (rng <= successChance)
-            {
-                // tinkering success!
+            if (success)
                 Tinkering_ModifyItem(player, tool, target);
 
-                player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You successfully apply the {tool.Name} to the {target.Name}.", ChatMessageType.Craft));
-            }
-            else
-            {
-                // tinkering failure
-
-                // send message
-                player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.UnableToMakeCraftReq));
-            }
+            var recipe = DatabaseManager.World.GetCachedCookbook(tool.WeenieClassId, target.WeenieClassId);
+            CreateDestroyItems(player, recipe.Recipe, tool, target, success);
 
             if (!player.GetCharacterOption(CharacterOption.UseCraftingChanceOfSuccessDialog))
                 player.SendUseDoneEvent();
@@ -809,11 +659,84 @@ namespace ACE.Server.Managers
                         success = false;
                     break;
             }
-
             if (!success)
                 player.Session.Network.EnqueueSend(new GameMessageSystemChat(failMsg, ChatMessageType.Craft));
 
             return success;
+        }
+
+        public static void CreateDestroyItems(Player player, Recipe recipe, WorldObject source, WorldObject target, bool success)
+        {
+            var destroyTargetChance = success ? recipe.SuccessDestroyTargetChance : recipe.FailDestroyTargetChance;
+            var destroySourceChance = success ? recipe.SuccessDestroySourceChance : recipe.FailDestroySourceChance;
+
+            var destroyTarget = ThreadSafeRandom.Next(0.0f, 1.0f) <= destroyTargetChance;
+            var destroySource = ThreadSafeRandom.Next(0.0f, 1.0f) <= destroySourceChance;
+
+            if (destroyTarget)
+            {
+                var destroyTargetAmount = success ? recipe.SuccessDestroyTargetAmount : recipe.FailDestroyTargetAmount;
+                var destroyTargetMessage = success ? recipe.SuccessDestroyTargetMessage : recipe.FailDestroyTargetMessage;
+
+                DestroyItem(player, recipe, target, destroyTargetAmount, destroyTargetMessage);
+            }
+
+            if (destroySource)
+            {
+                var destroySourceAmount = success ? recipe.SuccessDestroySourceAmount : recipe.FailDestroySourceAmount;
+                var destroySourceMessage = success ? recipe.SuccessDestroySourceMessage : recipe.FailDestroySourceMessage;
+
+                DestroyItem(player, recipe, source, destroySourceAmount, destroySourceMessage);
+            }
+
+            var createItem = success ? recipe.SuccessWCID : recipe.FailWCID;
+            var createAmount = success ? recipe.SuccessAmount : recipe.FailAmount;
+
+            if (createItem > 0)
+                CreateItem(player, createItem, createAmount);
+
+            var message = success ? recipe.SuccessMessage : recipe.FailMessage;
+
+            player.Session.Network.EnqueueSend(new GameMessageSystemChat(message, ChatMessageType.Craft));
+        }
+
+        public static void CreateItem(Player player, uint wcid, uint amount)
+        {
+            var wo = WorldObjectFactory.CreateNewWorldObject(wcid);
+
+            if (wo == null)
+            {
+                log.Warn($"RecipeManager.CreateItem({player.Name}, {wcid}, {amount}): failed to create {wcid}");
+                return;
+            }
+
+            if (amount > 1)
+                wo.StackSize = (ushort)amount;
+
+            player.TryCreateInInventoryWithNetworking(wo);
+        }
+
+        public static void DestroyItem(Player player, Recipe recipe, WorldObject item, uint amount, string msg)
+        {
+            if (item.OwnerId == player.Guid.Full || player.GetInventoryItem(item.Guid) != null)
+            {
+                if (!player.TryRemoveItemFromInventoryWithNetworkingWithDestroy(item, (ushort)amount))
+                    log.Warn($"RecipeManager.DestroyItem({player.Name}, {item.Name}, {amount}, {msg}): failed to remove {item.Name}");
+            }
+            else if (item.WielderId == player.Guid.Full)
+            {
+                if (!player.TryRemoveItemWithNetworking(item))
+                    log.Warn($"RecipeManager.DestroyItem({player.Name}, {item.Name}, {amount}, {msg}): failed to remove {item.Name}");
+            }
+            else
+            {
+                item.Destroy();
+            }
+            if (!string.IsNullOrEmpty(msg))
+            {
+                var destroyMessage = new GameMessageSystemChat(msg, ChatMessageType.Craft);
+                player.Session.Network.EnqueueSend(destroyMessage);
+            }
         }
     }
 }
