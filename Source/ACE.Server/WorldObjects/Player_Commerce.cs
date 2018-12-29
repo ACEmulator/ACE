@@ -216,39 +216,16 @@ namespace ACE.Server.WorldObjects
 
             foreach (ItemProfile profile in itemprofiles)
             {
-                // check packs of item.
-                WorldObject item = GetInventoryItem(profile.Guid);
-
-                if (item == null)
+                if (TryRemoveFromInventoryWithNetworking(profile.Guid, out var item, RemoveFromInventoryAction.SellItem) || TryDequipObjectWithNetworking(profile.Guid, out item, DequipObjectAction.SellItem))
                 {
-                    // check to see if this item is wielded
-                    item = GetEquippedItem(profile.Guid);
+                    Session.Network.EnqueueSend(new GameMessageDeleteObject(item));
 
-                    if (item != null)
-                        TryDequipObjectWithBroadcasting(item.Guid, out _);
+                    purchaselist.Add(item);
                 }
                 else
                 {
-                    // remove item from inventory.
-                    TryConsumeFromInventoryWithNetworking(item);
-                }
-
-                if (item == null)
-                {
                     // todo give the client an error message
-                    return;
                 }
-
-                //Session.Network.EnqueueSend(new GameMessagePrivateUpdateInstanceId(profile, PropertyInstanceId.Container, new ObjectGuid(0).Full));
-
-                item.SetPropertiesForVendor();
-                Session.Network.EnqueueSend(new GameMessageDeleteObject(item));
-                purchaselist.Add(item);
-                // We must update the database with the latest ContainerId.
-                // If we don't, the player can drop the item, log out, and log back in. If the landblock hasn't queued a database save in that time,
-                // the player will end up loading with this object in their inventory even though the landblock is the true owner. This is because
-                // when we load player inventory, the database still has the record that shows this player as the ContainerId for the item.
-                item.SaveBiotaToDatabase();
             }
 
             if (CurrentLandblock?.GetObject(vendorId) is Vendor vendor)

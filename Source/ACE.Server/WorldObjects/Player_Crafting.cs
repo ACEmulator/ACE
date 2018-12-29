@@ -99,13 +99,13 @@ namespace ACE.Server.WorldObjects
 
         /// <summary>
         /// This code handles salvaginng materials with the Ust.
-        /// </summary>
-        /// ///FORMULA FOR VALUE
-        ///(skill) / 387 * (1.0 + (augmentations)
-        ////WHERE
+        /// FORMULA FOR VALUE
+        /// (skill) / 387 * (1.0 + (augmentations)
+        /// WHERE
         /// skill = Salvaging Skill
-        ////augmentations = 0.0 for no augmentations, 0.25 for one, 0.5 for two, 
-        ///0.75 for three, 1.0 for four
+        /// augmentations = 0.0 for no augmentations, 0.25 for one, 0.5 for two, 
+        /// 0.75 for three, 1.0 for four
+        /// </summary>
         public void HandleTinkeringTool(List<ObjectGuid> list)
         {
             

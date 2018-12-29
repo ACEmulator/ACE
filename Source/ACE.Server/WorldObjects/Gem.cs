@@ -76,7 +76,7 @@ namespace ACE.Server.WorldObjects
                 player.CreateItemSpell(Guid, (uint)SpellDID);
 
                 // always consume gem?
-                player.TryRemoveFromInventoryWithNetworking(this);
+                player.TryConsumeFromInventoryWithNetworking(this);
 
                 player.SendUseDoneEvent();
                 return;

@@ -540,35 +540,6 @@ namespace ACE.Server.WorldObjects
         }
 
 
-        [Obsolete]
-        internal void SetPropertiesForContainer()
-        {
-            Location = null;
-
-            Placement = ACE.Entity.Enum.Placement.Resting;
-            if (PlacementPosition == null)
-                PlacementPosition = 0;
-
-            ParentLocation = null;
-            WielderId = null;
-            CurrentWieldedLocation = null;
-        }
-
-        [Obsolete]
-        internal void SetPropertiesForVendor()
-        {
-            Location = null;
-
-            Placement = ACE.Entity.Enum.Placement.Resting; // This is needed to make items lay flat on the ground.
-            PlacementPosition = null;
-
-            ContainerId = null;
-            WielderId = null;
-            CurrentWieldedLocation = null;
-        }
-
-
-
         // ========================================
         // ======== Physics Desc Properties =======
         // ========================================

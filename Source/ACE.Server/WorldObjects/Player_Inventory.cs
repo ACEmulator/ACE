@@ -123,6 +123,7 @@ namespace ACE.Server.WorldObjects
             DropItem,
             GiveItem,
             TradeItem,
+            SellItem,
 
             ToCorpseOnDeath
         }
@@ -223,6 +224,7 @@ namespace ACE.Server.WorldObjects
             DropItem,
             GiveItem,
             TradeItem,
+            SellItem,
 
             ToCorpseOnDeath
         }
