@@ -276,9 +276,10 @@ namespace ACE.Entity.Enum
         SelectSelf                            = 0x900010d,
         SkillHealSelf                         = 0x1000010e,
         //WoahDuplicate1                      = 0x1000010f,  // ushort collision with NextMonster?
+        SkillHealOther                        = 0x1000010f,
         //MimeDrinkDuplicate1                 = 0x10000110,  // ushort collision with PreviousMonster?
         //MimeDrinkDuplicate2                 = 0x10000111,  // ushort collision with ClosestMonster?
-        NextMonster                           = 0x900010f,
+        //NextMonster                         = 0x900010f,
         PreviousMonster                       = 0x9000110,
         ClosestMonster                        = 0x9000111,
         NextPlayer                            = 0x9000112,
