@@ -196,7 +196,7 @@ namespace ACE.Server.WorldObjects
         /// <param name="item">An item to search for, using stack size as the minimum amount</param>
         public bool HasItem(List<WorldObject> sentItems, WorldObject buyItem)
         {
-            var stackStr = buyItem.StackSize != null && buyItem.StackSize > 1 ? buyItem.StackSize.ToString() + " ": "";
+            var stackStr = buyItem.StackSize != null && buyItem.StackSize > 1 ? buyItem.StackSize.ToString() + " " : "";
             Console.WriteLine($"Checking for item: {stackStr}{buyItem.Name}");
 
             // get all items of this wcid from inventory
@@ -796,10 +796,7 @@ namespace ACE.Server.WorldObjects
         {
             HouseSequence++;
 
-                var nearbyPlayers = house.PhysicsObj.ObjMaint.VoyeurTable.Values.Select(v => (Player)v.WeenieObj.WorldObject).ToList();
-                foreach (var player in nearbyPlayers)
-                    player.Session.Network.EnqueueSend(new GameEventHouseUpdateRestrictions(player.Session, house.Guid, restrictions, HouseSequence));
-            }
+            Sync(house);
 
             var nearbyPlayers = house.PhysicsObj.ObjMaint.VoyeurTable.Values.Select(v => (Player)v.WeenieObj.WorldObject).ToList();
             foreach (var player in nearbyPlayers)
