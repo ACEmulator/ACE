@@ -169,7 +169,8 @@ namespace ACE.Server.WorldObjects
             Session.Network.EnqueueSend(
                 new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Wielder, ObjectGuid.Invalid),
                 new GameMessagePublicUpdatePropertyInt(item, PropertyInt.CurrentWieldedLocation, 0),
-                new GameEventWieldItem(Session, item.Guid.Full, wieldedLocation));
+                new GameEventWieldItem(Session, item.Guid.Full, wieldedLocation),
+                new GameMessageSound(Guid, Sound.WieldObject));
 
             // If item has any spells, cast them on the wielder
             if (item.ItemCurMana > 1 || item.ItemCurMana == null) // TODO: Once Item Current Mana is fixed for loot generated items, '|| item.ItemCurMana == null' can be removed
@@ -235,7 +236,8 @@ namespace ACE.Server.WorldObjects
             Session.Network.EnqueueSend(
                 new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Wielder, ObjectGuid.Invalid),
                 new GameMessagePublicUpdatePropertyInt(item, PropertyInt.CurrentWieldedLocation, 0),
-                new GameMessagePickupEvent(item));
+                new GameMessagePickupEvent(item),
+                new GameMessageSound(Guid, Sound.UnwieldObject));
 
             // If item has any spells, remove them from the registry on unequip
             if (item.Biota.BiotaPropertiesSpellBook != null)

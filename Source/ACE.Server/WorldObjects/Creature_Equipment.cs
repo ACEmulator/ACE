@@ -171,11 +171,10 @@ namespace ACE.Server.WorldObjects
                 return false;
 
             if ((wieldedLocation & (int)EquipMask.Selectable) != 0) // Is this equipped item visible to others?
-            {
-                EnqueueBroadcast(new GameMessageSound(Guid, Sound.WieldObject));
+                EnqueueBroadcast(false, new GameMessageSound(Guid, Sound.WieldObject));
 
+            if (worldObject.ParentLocation != null)
                 EnqueueBroadcast(new GameMessageParentEvent(this, worldObject, (int?)worldObject.ParentLocation ?? 0, (int?)worldObject.Placement ?? 0));
-            }
 
             EnqueueBroadcast(new GameMessageObjDescEvent(this));
 
@@ -229,7 +228,7 @@ namespace ACE.Server.WorldObjects
                 return false;
 
             if ((wieldedLocation & (int)EquipMask.Selectable) != 0) // Is this equipped item visible to others?
-                EnqueueBroadcast(new GameMessageSound(Guid, Sound.UnwieldObject));
+                EnqueueBroadcast(false, new GameMessageSound(Guid, Sound.UnwieldObject));
 
             EnqueueBroadcast(new GameMessageObjDescEvent(this));
 
