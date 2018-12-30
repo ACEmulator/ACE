@@ -170,7 +170,7 @@ namespace ACE.Server.WorldObjects
             if (!TryEquipObject(worldObject, wieldedLocation))
                 return false;
 
-            if ((wieldedLocation & (int)EquipMask.Selectable) != 0) // Is this equipped item visible to others?
+            if (IsInChildLocation(worldObject)) // Is this equipped item visible to others?
                 EnqueueBroadcast(false, new GameMessageSound(Guid, Sound.WieldObject));
 
             if (worldObject.ParentLocation != null)
@@ -243,6 +243,20 @@ namespace ACE.Server.WorldObjects
         }
 
 
+        private bool IsInChildLocation(WorldObject item)
+        {
+            if (item.CurrentWieldedLocation == null)
+                return false;
+
+            if (((EquipMask)item.CurrentWieldedLocation & EquipMask.Selectable) != 0)
+                return true;
+
+            if (((EquipMask)item.CurrentWieldedLocation & EquipMask.MissileAmmo) != 0)
+                return true;
+
+            return false;
+        }
+
         /// <summary>
         /// This method sets properties needed for items that will be child items.<para />
         /// Items here are only items equipped in the hands.<para />
@@ -251,7 +265,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         private bool TrySetChild(WorldObject item)
         {
-            if (item.CurrentWieldedLocation == null || ((EquipMask) item.CurrentWieldedLocation & EquipMask.Selectable) == 0)
+            if (!IsInChildLocation(item))
             {
                 ClearChild(item);
                 return false;
