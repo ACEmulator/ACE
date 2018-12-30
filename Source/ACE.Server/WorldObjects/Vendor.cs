@@ -201,7 +201,7 @@ namespace ACE.Server.WorldObjects
                 }
             }
 
-            // convert profile to wold objects / stack logic does not include unique items.
+            // convert profile to world objects / stack logic does not include unique items.
             foreach (ItemProfile fitem in filteredlist)
             {
                 genlist.AddRange(ItemProfileToWorldObjects(fitem));
@@ -210,14 +210,14 @@ namespace ACE.Server.WorldObjects
             // calculate price. (both unique and item profile)
             foreach (WorldObject wo in uqlist)
             {
-                goldcost = goldcost + (uint)Math.Ceiling((SellPrice ?? 1) * (wo.Value ?? 0) * (wo.StackSize ?? 1) - 0.1);
+                goldcost = goldcost + (uint)Math.Ceiling((SellPrice ?? 1) * (wo.Value ?? 0) - 0.1);
                 wo.Value = wo.Value;                    // Also set the stack's value for unique items, using the builtin WO calculations
                 wo.EncumbranceVal = wo.EncumbranceVal;  // Also set the stack's encumbrance for unique items, using the builtin WO calculations
             }
 
             foreach (WorldObject wo in genlist)
             {
-                goldcost = goldcost + (uint)Math.Ceiling((SellPrice ?? 1) * (wo.Value ?? 0) * (wo.StackSize ?? 1) - 0.1);
+                goldcost = goldcost + (uint)Math.Ceiling((SellPrice ?? 1) * (wo.Value ?? 0) - 0.1);
                 wo.Value = wo.Value;                    // Also set the stack's value for stock items, using the builtin WO calculations
                 wo.EncumbranceVal = wo.EncumbranceVal;  // Also set the stack's encumbrance for stock items, using the builtin WO calculations
             }
