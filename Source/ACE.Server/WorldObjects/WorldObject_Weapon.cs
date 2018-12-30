@@ -6,6 +6,12 @@ namespace ACE.Server.WorldObjects
 {
     partial class WorldObject
     {
+        public AttackType MAttackType
+        {
+            get => (AttackType)(GetProperty(PropertyInt.AttackType) ?? 0);
+            set { if (value == AttackType.Undef) RemoveProperty(PropertyInt.AttackType); else SetProperty(PropertyInt.AttackType, (int)value); }
+        }
+
         /// <summary>
         /// Returns TRUE if this weapon cleaves
         /// </summary>

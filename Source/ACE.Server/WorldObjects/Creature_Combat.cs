@@ -346,11 +346,11 @@ namespace ACE.Server.WorldObjects
         /// Returns the attribute damage bonus for a physical attack
         /// </summary>
         /// <param name="attackType">Uses strength for melee, coordination for missile</param>
-        public float GetAttributeMod(AttackType attackType)
+        public float GetAttributeMod(CombatType attackType)
         {
-            if (attackType == AttackType.Melee)
+            if (attackType == CombatType.Melee)
                 return SkillFormula.GetAttributeMod(PropertyAttribute.Strength, (int)Strength.Current);
-            else if (attackType == AttackType.Missile)
+            else if (attackType == CombatType.Missile)
                 return SkillFormula.GetAttributeMod(PropertyAttribute.Coordination, (int)Coordination.Current);
             else
                 return 1.0f;
@@ -404,7 +404,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Called when a creature evades an attack
         /// </summary>
-        public virtual void OnEvade(WorldObject attacker, AttackType attackType)
+        public virtual void OnEvade(WorldObject attacker, CombatType attackType)
         {
             // empty base for non-player creatures?
         }
@@ -412,7 +412,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Called when a creature hits a target
         /// </summary>
-        public virtual void OnDamageTarget(WorldObject target, AttackType attackType)
+        public virtual void OnDamageTarget(WorldObject target, CombatType attackType)
         {
             // empty base for non-player creatures?
         }

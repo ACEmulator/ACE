@@ -30,7 +30,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// The next type of attack (melee/range/magic)
         /// </summary>
-        public AttackType? CurrentAttack;
+        public CombatType? CurrentAttack;
 
         /// <summary>
         /// The maximum distance for the next attack
@@ -80,19 +80,19 @@ namespace ACE.Server.WorldObjects
             return AttackHeights[rng];
         }
 
-        public virtual AttackType GetAttackType()
+        public virtual CombatType GetAttackType()
         {
             if (CombatTable == null)
                 GetCombatTable();
 
             if (IsRanged)
-                return AttackType.Missile;
+                return CombatType.Missile;
 
             // if caster, roll for spellcasting chance
             if (!IsCaster || !RollCastMagic())
-                return AttackType.Melee;
+                return CombatType.Melee;
             else
-                return AttackType.Magic;
+                return CombatType.Magic;
         }
 
         /// <summary>
@@ -136,7 +136,7 @@ namespace ACE.Server.WorldObjects
 
         public float GetMaxRange()
         {
-            while (CurrentAttack == AttackType.Magic)
+            while (CurrentAttack == CombatType.Magic)
             {
                 // select a magic spell
                 CurrentSpell = GetRandomSpell();
@@ -157,7 +157,7 @@ namespace ACE.Server.WorldObjects
                 return GetSpellMaxRange();
             }
 
-            if (CurrentAttack == AttackType.Missile)
+            if (CurrentAttack == CombatType.Missile)
             {
                 var weapon = GetEquippedWeapon();
                 if (weapon == null) return MaxMissileRange;
@@ -188,13 +188,13 @@ namespace ACE.Server.WorldObjects
 
             switch (CurrentAttack)
             {
-                case AttackType.Melee:
+                case CombatType.Melee:
                     MeleeAttack();
                     break;
-                case AttackType.Missile:
+                case CombatType.Missile:
                     RangeAttack();
                     break;
-                case AttackType.Magic:
+                case CombatType.Magic:
                     MagicAttack();
                     break;
             }
@@ -207,7 +207,7 @@ namespace ACE.Server.WorldObjects
         public void ResetAttack()
         {
             // wait for missile to strike
-            if (CurrentAttack == AttackType.Missile)
+            if (CurrentAttack == CombatType.Missile)
                 return;
 
             IsTurning = false;

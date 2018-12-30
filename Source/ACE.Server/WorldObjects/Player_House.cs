@@ -20,7 +20,7 @@ namespace ACE.Server.WorldObjects
     {
         public House House;
 
-        public Dictionary<ObjectGuid, bool> Guests => House.Guests;
+        public Dictionary<ObjectGuid, bool> Guests => House?.Guests;
 
         /// <summary>
         /// Called when player clicks the 'Buy house' button,
