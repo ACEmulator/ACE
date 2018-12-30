@@ -170,10 +170,12 @@ namespace ACE.Server.WorldObjects
             if (!TryEquipObject(worldObject, wieldedLocation))
                 return false;
 
-            if ((worldObject.ValidLocations ?? 0 & EquipMask.Selectable) != 0) // Is this equipped item visible to others?
+            if ((wieldedLocation & (int)EquipMask.Selectable) != 0) // Is this equipped item visible to others?
+            {
                 EnqueueBroadcast(new GameMessageSound(Guid, Sound.WieldObject));
 
-            EnqueueBroadcast(new GameMessageParentEvent(this, worldObject, (int?)worldObject.ParentLocation ?? 0, (int?)worldObject.Placement ?? 0));
+                EnqueueBroadcast(new GameMessageParentEvent(this, worldObject, (int?)worldObject.ParentLocation ?? 0, (int?)worldObject.Placement ?? 0));
+            }
 
             EnqueueBroadcast(new GameMessageObjDescEvent(this));
 
@@ -226,7 +228,7 @@ namespace ACE.Server.WorldObjects
             if (!TryDequipObject(objectGuid, out worldObject, out wieldedLocation))
                 return false;
 
-            if ((worldObject.ValidLocations ?? 0 & EquipMask.Selectable) != 0) // Is this equipped item visible to others?
+            if ((wieldedLocation & (int)EquipMask.Selectable) != 0) // Is this equipped item visible to others?
                 EnqueueBroadcast(new GameMessageSound(Guid, Sound.UnwieldObject));
 
             EnqueueBroadcast(new GameMessageObjDescEvent(this));
