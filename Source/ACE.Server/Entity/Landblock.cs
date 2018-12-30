@@ -132,12 +132,29 @@ namespace ACE.Server.Entity
             var shardObjects = DatabaseManager.Shard.GetStaticObjectsByLandblock(Id.Landblock);
             var factoryObjects = WorldObjectFactory.CreateNewWorldObjects(objects, shardObjects);
 
+            // for mansion linking
+            var houses = new List<House>();
+
             actionQueue.EnqueueAction(new ActionEventDelegate(() =>
             {
                 foreach (var fo in factoryObjects)
                 {
+                    WorldObject parent = null;
+                    if (fo.WeenieType == ACE.Entity.Enum.WeenieType.House && fo.HouseType == ACE.Entity.Enum.HouseType.Mansion)
+                    {
+                        var house = fo as House;
+                        houses.Add(house);
+                        house.LinkedHouses.Add(houses[0]);
+
+                        if (houses.Count > 1)
+                        {
+                            houses[0].LinkedHouses.Add(house);
+                            parent = houses[0];
+                        }
+                    }
+
                     AddWorldObject(fo);
-                    fo.ActivateLinks(objects, shardObjects);
+                    fo.ActivateLinks(objects, shardObjects, parent);
                 }
             }));
         }
@@ -635,6 +652,22 @@ namespace ACE.Server.Entity
                 }
                 isDungeon = LandblockInfo != null && LandblockInfo.NumCells > 0 && LandblockInfo.Buildings != null && LandblockInfo.Buildings.Count == 0;
                 return isDungeon.Value;
+            }
+        }
+
+        private bool? isHouseDungeon;
+
+        public bool IsHouseDungeon
+        {
+            get
+            {
+                // return cached value
+                if (isHouseDungeon != null)
+                    return isHouseDungeon.Value;
+
+                isHouseDungeon = IsDungeon ? DatabaseManager.World.GetHousePortalsByLandblock(Id.Landblock).Count > 0 : false;
+
+                return isHouseDungeon.Value;
             }
         }
     }

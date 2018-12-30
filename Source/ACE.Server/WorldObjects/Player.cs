@@ -17,7 +17,6 @@ using ACE.Server.Network;
 using ACE.Server.Network.Enum;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
-using ACE.Server.Network.Sequence;
 using ACE.Server.Network.Structure;
 using ACE.Server.WorldObjects.Entity;
 using ACE.Server.Physics.Animation;
@@ -344,19 +343,19 @@ namespace ACE.Server.WorldObjects
 
             // if local, examine it
             if (wo != null)
-                wo.Examine(Session);
+                Examine(wo);
             else
             {
                 // examine item on landblock
                 wo = CurrentLandblock?.GetObject(examinationId);
                 if (wo != null)
-                    wo.Examine(Session);
+                    Examine(wo);
                 else
                 {
                     // search creature equipped weapons on nearby landblocks
                     wo = CurrentLandblock?.GetWieldedObject(examinationId);
                     if (wo != null)
-                        wo.Examine(Session);
+                        Examine(wo);
                     else
                     {
                         // At this point, the object wasn't found.
@@ -370,6 +369,33 @@ namespace ACE.Server.WorldObjects
 
             RequestedAppraisalTarget = examinationId.Full;
             CurrentAppraisalTarget = examinationId.Full;
+        }
+
+        public void Examine(WorldObject obj)
+        {
+            var success = true;
+            var creature = obj as Creature;
+            Player player = null;
+
+            if (creature != null)
+            {
+                player = obj as Player;
+                var skill = player != null ? Skill.AssessPerson : Skill.AssessCreature;
+
+                var currentSkill = (int)GetCreatureSkill(skill).Current;
+                int difficulty = (int)creature.GetCreatureSkill(Skill.Deception).Current;
+
+                var chance = SkillCheck.GetSkillChance(currentSkill, difficulty);
+
+                if (player != null && !player.GetCharacterOption(CharacterOption.AttemptToDeceiveOtherPlayers))
+                    chance = 1.0f;
+
+                success = chance >= ThreadSafeRandom.Next(0.0f, 1.0f);
+            }
+            Session.Network.EnqueueSend(new GameEventIdentifyObjectResponse(Session, obj, success));
+
+            if (!success && player != null)
+                player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{Name} tried and failed to assess you!", ChatMessageType.Appraisal));
         }
 
         public override void OnCollideObject(WorldObject target)
@@ -517,6 +543,9 @@ namespace ACE.Server.WorldObjects
                 // remove the player from landblock management -- after the animation has run
                 logoutChain.AddAction(this, () =>
                 {
+                    if (PlayerKillerStatus == PlayerKillerStatus.PKLite)
+                        PlayerKillerStatus = PlayerKillerStatus.NPK;
+
                     CurrentLandblock?.RemoveWorldObject(Guid, false);
                     SetPropertiesAtLogOut();
                     SavePlayerToDatabase();
@@ -883,7 +912,7 @@ namespace ACE.Server.WorldObjects
                     if (result)
                     {
                         var spell = new Server.Entity.Spell(spellId);
-                        buffMessage = new GameMessageSystemChat($"{consumableName} applies {spell.Name} on you.", ChatMessageType.Craft);
+                        buffMessage = new GameMessageSystemChat($"{consumableName} casts {spell.Name} on you.", ChatMessageType.Magic);
                     }
                     else
                         buffMessage = new GameMessageSystemChat($"Consuming {consumableName} attempted to apply a spell not yet fully implemented.", ChatMessageType.System);
@@ -977,6 +1006,37 @@ namespace ACE.Server.WorldObjects
         public void SendMessage(string msg)
         {
             Session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
+        }
+
+        public void HandleActionEnterPkLite()
+        {
+            // ensure permanent npk
+            if (PlayerKillerStatus != PlayerKillerStatus.NPK || MinimumTimeSincePk != null)
+            {
+                Session.Network.EnqueueSend(new GameMessageSystemChat("Only Non-Player Killers may enter PK Lite. Please see @help pklite for more details about this command.", ChatMessageType.Broadcast));
+                return;
+            }
+
+            // perform pk lite entry motion / effect
+            var motion = new Motion(MotionStance.NonCombat, MotionCommand.EnterPKLite);
+            EnqueueBroadcastMotion(motion);
+
+            var motionTable = DatManager.PortalDat.ReadFromDat<MotionTable>(MotionTableId);
+            var animLength = motionTable.GetAnimationLength(MotionStance.NonCombat, MotionCommand.EnterPKLite);
+
+            var actionChain = new ActionChain();
+            actionChain.AddDelaySeconds(animLength);
+            actionChain.AddAction(this, () =>
+            {
+                PlayerKillerStatus = PlayerKillerStatus.PKLite;
+
+                var status = new GameMessagePublicUpdatePropertyInt(this, PropertyInt.PlayerKillerStatus, (int)PlayerKillerStatus);
+                var msg = new GameMessageSystemChat($"{Name} is looking for a fight!", ChatMessageType.Broadcast);
+
+                EnqueueBroadcast(status, msg);
+
+            });
+            actionChain.EnqueueChain();
         }
     }
 }

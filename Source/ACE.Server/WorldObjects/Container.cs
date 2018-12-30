@@ -121,9 +121,11 @@ namespace ACE.Server.WorldObjects
                 Value += container.Value; // This value includes the containers value itself + all child items
             }
 
-            var hook = this as Hook;
-            if (hook != null)
-                hook.OnAddItem();
+            if (WeenieType == WeenieType.Hook)
+            {
+                var hook = this as Hook;
+                hook.OnLoad();
+            }
         }
 
         /// <summary>

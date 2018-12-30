@@ -57,7 +57,7 @@ namespace ACE.Server.WorldObjects
             if (player == null) return;
 
             // verify permissions to use hook
-            if (HouseOwner == null || HouseOwner.Value != player.Guid.Full)
+            if (!House.HasPermission(player, true))
             {
                 player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, $"The {Name} is locked"));
                 player.SendUseDoneEvent();
@@ -155,6 +155,16 @@ namespace ACE.Server.WorldObjects
                         return MotionCommand.Pickup20;
                 }
             }
+        }
+
+        public void OnLoad()
+        {
+            var hidden = Inventory.Count == 0 && !(House.HouseHooksVisible ?? true);
+
+            NoDraw = hidden;
+            UiHidden = hidden;
+
+            OnAddItem();
         }
     }
 }

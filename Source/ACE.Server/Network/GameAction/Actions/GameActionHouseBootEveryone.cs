@@ -11,6 +11,8 @@ namespace ACE.Server.Network.GameAction.Actions
         public static void Handle(ClientMessage message, Session session)
         {
             //Console.WriteLine("Received 0x25F - House - BootEveryone");
+
+            session.Player.HandleActionBootAll();
         }
     }
 }

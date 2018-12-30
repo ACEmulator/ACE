@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Numerics;
 
+using ACE.Database;
 using ACE.DatLoader;
 using ACE.DatLoader.Entity;
 using ACE.DatLoader.FileTypes;
@@ -152,11 +153,41 @@ namespace ACE.Server.WorldObjects
                 writer.Write((ushort?)SpellDID ?? 0);
 
             if ((weenieFlags & WeenieHeaderFlag.HouseOwner) != 0)
-                writer.Write(HouseOwner ?? 0);
+            {
+                // if mansion, send house owner from master copy
+                var houseOwner = HouseOwner;
+                var house = this as House;
+                if (house != null && house.HouseType == ACE.Entity.Enum.HouseType.Mansion)
+                    houseOwner = house.LinkedHouses[0].HouseOwner;
+
+                writer.Write(houseOwner ?? 0);
+            }
 
             if ((weenieFlags & WeenieHeaderFlag.HouseRestrictions) != 0)
-                //writer.Write(HouseRestrictions ?? 0u);
-                writer.Write(new RestrictionDB());
+            {
+                var house = this as House;
+
+                // if house object is in dungeon,
+                // send the permissions from the outdoor house
+                if (house.CurrentLandblock.IsDungeon)
+                {
+                    var biota = DatabaseManager.Shard.GetBiotasByWcid(WeenieClassId).FirstOrDefault(b => b.BiotaPropertiesPosition.FirstOrDefault(p => p.PositionType == (ushort)PositionType.Location).ObjCellId >> 16 != Location.Landblock);
+                    if (biota != null)
+                    {
+                        var outdoorHouseGuid = biota.Id;
+                        house = House.Load(outdoorHouseGuid);
+                        house.BuildGuests();
+                    }
+                }
+                else
+                {
+                    // if mansion, send permissions from master copy
+                    if (house.HouseType == ACE.Entity.Enum.HouseType.Mansion)
+                        house = house.LinkedHouses[0];
+                }
+
+                writer.Write(new RestrictionDB(house));
+            }
 
             if ((weenieFlags & WeenieHeaderFlag.HookItemTypes) != 0)
                 writer.Write((uint?)HookItemType ?? 0);
@@ -713,12 +744,18 @@ namespace ACE.Server.WorldObjects
             if ((SpellDID != null) && (SpellDID != 0))
                 weenieHeaderFlag |= WeenieHeaderFlag.Spell;
 
-            if (HouseOwner != null)
-                weenieHeaderFlag |= WeenieHeaderFlag.HouseOwner;
+            var houseOwner = HouseOwner;
+            var house = this as House;
+            if (house != null)
+            {
+                weenieHeaderFlag |= WeenieHeaderFlag.HouseRestrictions;
 
-            //TODO: HousingRestriction ACL property
-            //if (HouseRestrictions != null)
-            //    weenieHeaderFlag |= WeenieHeaderFlag.HouseRestrictions;
+                if (house.HouseType == ACE.Entity.Enum.HouseType.Mansion)
+                    houseOwner = house.LinkedHouses[0].HouseOwner;
+            }
+
+            if (houseOwner != null)
+                weenieHeaderFlag |= WeenieHeaderFlag.HouseOwner;
 
             var hookItemTypeInt = GetProperty(PropertyInt.HookItemType);
             if (hookItemTypeInt != null)

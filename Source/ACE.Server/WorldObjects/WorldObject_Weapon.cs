@@ -6,6 +6,12 @@ namespace ACE.Server.WorldObjects
 {
     partial class WorldObject
     {
+        public AttackType MAttackType
+        {
+            get => (AttackType)(GetProperty(PropertyInt.AttackType) ?? 0);
+            set { if (value == AttackType.Undef) RemoveProperty(PropertyInt.AttackType); else SetProperty(PropertyInt.AttackType, (int)value); }
+        }
+
         /// <summary>
         /// Returns TRUE if this weapon cleaves
         /// </summary>
@@ -88,6 +94,7 @@ namespace ACE.Server.WorldObjects
             if (weapon == null)
                 return defaultBonusModifier;
 
+            // always aura?
             if (wielder.CombatMode != CombatMode.NonCombat)
                 return (float)(weapon.GetProperty(PropertyFloat.WeaponDefense) ?? defaultBonusModifier) + wielder.EnchantmentManager.GetDefenseMod();
 
@@ -104,6 +111,7 @@ namespace ACE.Server.WorldObjects
             if (weapon == null)
                 return defaultBonusModifier;
 
+            // always aura?
             if (wielder.CombatMode != CombatMode.NonCombat)
                 return (float)(weapon.GetProperty(PropertyFloat.WeaponOffense) ?? defaultBonusModifier) + wielder.EnchantmentManager.GetAttackMod();
 
@@ -249,6 +257,29 @@ namespace ACE.Server.WorldObjects
                 if (weaponResistanceModifierType == (int)damageType)
                     modifier = (float)(weapon.GetProperty(PropertyFloat.ResistanceModifier) ?? defaultBonusModifier) + 1.0f;
             return modifier;
+        }
+
+        /// <summary>
+        /// Returns TRUE if this item is enchantable, as per the client formula.
+        /// </summary>
+        public bool IsEnchantable => (ResistMagic ?? 0) < 9999;
+
+        public int? ResistMagic
+        {
+            get => GetProperty(PropertyInt.ResistMagic);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.ResistMagic); else SetProperty(PropertyInt.ResistMagic, value.Value); }
+        }
+
+        public bool IgnoreMagicArmor
+        {
+            get => GetProperty(PropertyBool.IgnoreMagicArmor) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.IgnoreMagicArmor); else SetProperty(PropertyBool.IgnoreMagicArmor, value); }
+        }
+
+        public bool IgnoreMagicResist
+        {
+            get => GetProperty(PropertyBool.IgnoreMagicResist) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.IgnoreMagicResist); else SetProperty(PropertyBool.IgnoreMagicResist, value); }
         }
     }
 }

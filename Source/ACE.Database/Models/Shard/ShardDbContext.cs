@@ -52,6 +52,7 @@ namespace ACE.Database.Models.Shard
         public virtual DbSet<ConfigPropertiesDouble> ConfigPropertiesDouble { get; set; }
         public virtual DbSet<ConfigPropertiesLong> ConfigPropertiesLong { get; set; }
         public virtual DbSet<ConfigPropertiesString> ConfigPropertiesString { get; set; }
+        public virtual DbSet<HousePermission> HousePermission { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -1535,6 +1536,33 @@ namespace ACE.Database.Models.Shard
                     .IsRequired()
                     .HasColumnName("value")
                     .HasColumnType("text");
+            });
+
+            modelBuilder.Entity<HousePermission>(entity =>
+            {
+                entity.ToTable("house_permission");
+
+                entity.HasIndex(e => e.HouseId)
+                    .HasName("biota_Id_house_Id_idx");
+
+                entity.HasIndex(e => new { e.HouseId, e.PlayerGuid })
+                    .HasName("biota_Id_house_Id_player_Guid_uidx")
+                    .IsUnique();
+
+                entity.Property(e => e.Id).HasColumnName("id");
+
+                entity.Property(e => e.HouseId).HasColumnName("house_Id");
+
+                entity.Property(e => e.PlayerGuid).HasColumnName("player_Guid");
+
+                entity.Property(e => e.Storage)
+                    .HasColumnName("storage")
+                    .HasColumnType("bit(1)");
+
+                entity.HasOne(d => d.House)
+                    .WithMany(p => p.HousePermission)
+                    .HasForeignKey(d => d.HouseId)
+                    .HasConstraintName("biota_Id_house_Id");
             });
         }
     }

@@ -6,7 +6,6 @@ using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
 using ACE.Server.Physics;
-using MAttackType = ACE.Entity.Enum.AttackType;
 
 namespace ACE.Server.WorldObjects
 {
@@ -34,13 +33,13 @@ namespace ACE.Server.WorldObjects
         /// Determines if a weapon can double or triple strike,
         /// and appends the appropriate multistrike prefix to a MotionCommand
         /// </summary>
-        public string MultiStrike(MAttackType attackType, string action)
+        public string MultiStrike(AttackType attackType, string action)
         {
-            if ((attackType & MAttackType.MultiStrike) == 0)
+            if ((attackType & AttackType.MultiStrike) == 0)
                 return action;
 
-            var doubleStrike = action.EndsWith("Thrust") ? MAttackType.DoubleThrust : MAttackType.DoubleSlash;
-            var tripleStrike = (MAttackType)((int)doubleStrike * 2);
+            var doubleStrike = action.EndsWith("Thrust") ? AttackType.DoubleThrust : AttackType.DoubleSlash;
+            var tripleStrike = (AttackType)((int)doubleStrike * 2);
 
             if (attackType.HasFlag(tripleStrike))
                 return $"Triple{action}";
@@ -53,11 +52,11 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Returns the attack types for a weapon
         /// </summary>
-        public MAttackType GetWeaponAttackType(WorldObject weapon)
+        public AttackType GetWeaponAttackType(WorldObject weapon)
         {
-            var attackType = MAttackType.Undef;     // unarmed?
+            var attackType = AttackType.Undef;     // unarmed?
             if (weapon != null)
-                attackType = (MAttackType)(weapon.GetProperty(PropertyInt.AttackType) ?? 0);
+                attackType = (AttackType)(weapon.GetProperty(PropertyInt.AttackType) ?? 0);
 
             return attackType;
         }
@@ -77,17 +76,17 @@ namespace ACE.Server.WorldObjects
         /// Returns the number of strikes for an AttackType
         /// between 1-3 strikes
         /// </summary>
-        public int GetNumStrikes(MAttackType attackType)
+        public int GetNumStrikes(AttackType attackType)
         {
             if (CurrentMotionState.Stance == MotionStance.TwoHandedSwordCombat || CurrentMotionState.Stance == MotionStance.TwoHandedStaffCombat)
                 return 2;
 
-            if ((attackType & MAttackType.MultiStrike) == 0)
+            if ((attackType & AttackType.MultiStrike) == 0)
                 return 1;
 
-            if (attackType.HasFlag(MAttackType.TripleSlash) || attackType.HasFlag(MAttackType.TripleThrust) || attackType.HasFlag(MAttackType.OffhandTripleSlash) || attackType.HasFlag(MAttackType.OffhandTripleThrust))
+            if (attackType.HasFlag(AttackType.TripleSlash) || attackType.HasFlag(AttackType.TripleThrust) || attackType.HasFlag(AttackType.OffhandTripleSlash) || attackType.HasFlag(AttackType.OffhandTripleThrust))
                 return 3;
-            else if (attackType.HasFlag(MAttackType.DoubleSlash) || attackType.HasFlag(MAttackType.DoubleThrust) || attackType.HasFlag(MAttackType.OffhandDoubleSlash) || attackType.HasFlag(MAttackType.OffhandDoubleThrust))
+            else if (attackType.HasFlag(AttackType.DoubleSlash) || attackType.HasFlag(AttackType.DoubleThrust) || attackType.HasFlag(AttackType.OffhandDoubleSlash) || attackType.HasFlag(AttackType.OffhandDoubleThrust))
                 return 2;
             else
                 return 1;

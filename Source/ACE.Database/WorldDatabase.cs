@@ -469,6 +469,42 @@ namespace ACE.Database
             }
         }
 
+        public List<LandblockInstance> GetLandblockInstancesByWcid(uint wcid)
+        {
+            using (var context = new WorldDbContext())
+            {
+                return context.LandblockInstance
+                    .AsNoTracking()
+                    .Where(i => i.WeenieClassId == wcid)
+                    .ToList();
+            }
+        }
+
+        public List<HousePortal> GetHousePortals(uint houseId)
+        {
+            using (var context = new WorldDbContext())
+            {
+                var results = context.HousePortal
+                    .AsNoTracking()
+                    .Where(p => p.HouseId == houseId)
+                    .ToList();
+
+                return results;
+            }
+        }
+
+        public List<HousePortal> GetHousePortalsByLandblock(uint landblockId)
+        {
+            using (var context = new WorldDbContext())
+            {
+                var results = context.HousePortal
+                    .AsNoTracking()
+                    .Where(p => landblockId == p.ObjCellId >> 16)
+                    .ToList();
+
+                return results;
+            }
+        }
 
         private readonly ConcurrentDictionary<string, PointsOfInterest> cachedPointsOfInterest = new ConcurrentDictionary<string, PointsOfInterest>();
 

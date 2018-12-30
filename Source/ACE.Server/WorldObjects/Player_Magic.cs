@@ -615,7 +615,7 @@ namespace ACE.Server.WorldObjects
                 TryBurnComponents(spell);
             });
 
-            var checkPKStatusVsTarget = CheckPKStatusVsTarget(player, (target as Player), spell);
+            var checkPKStatusVsTarget = CheckPKStatusVsTarget(player, target, spell);
             if (checkPKStatusVsTarget != null && checkPKStatusVsTarget == false)
                 castingPreCheckStatus = CastingPreCheckStatus.InvalidPKStatus;
 
@@ -783,7 +783,9 @@ namespace ACE.Server.WorldObjects
                             case MagicSchool.ItemEnchantment:
                                 break;  // do nothing
                             default:
-                                EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
+
+                                // not sure if this was in retail for creature and life, seems confusing?
+                                //EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
                                 break;
                         }
                     });

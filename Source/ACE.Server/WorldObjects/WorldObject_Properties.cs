@@ -9,6 +9,7 @@ using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
+using ACE.Server.Managers;
 
 namespace ACE.Server.WorldObjects
 {
@@ -1096,22 +1097,11 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyInstanceId.House); else SetProperty(PropertyInstanceId.House, value.Value); }
         }
 
-        public int? HouseType
-        {
-            get => GetProperty(PropertyInt.HouseType);
-            set { if (value.HasValue) RemoveProperty(PropertyInt.HouseType); else SetProperty(PropertyInt.HouseType, value.Value); }
-        }
-
-        /// <summary>
-        /// Housing links to another packet, that needs sent.. The HouseRestrictions ACL Control list that contains all the housing data
-        /// </summary>
         public uint? HouseOwner
         {
             get => GetProperty(PropertyInstanceId.HouseOwner);
             set { if (!value.HasValue) RemoveProperty(PropertyInstanceId.HouseOwner); else SetProperty(PropertyInstanceId.HouseOwner, value.Value); }
         }
-
-        public uint? HouseRestrictions { get; set; }
 
         /// <summary>
         /// The timestamp the player originally purchased house
@@ -1120,6 +1110,18 @@ namespace ACE.Server.WorldObjects
         {
             get => GetProperty(PropertyInt.HousePurchaseTimestamp);
             set { if (!value.HasValue) RemoveProperty(PropertyInt.HousePurchaseTimestamp); else SetProperty(PropertyInt.HousePurchaseTimestamp, value.Value); }
+        }
+
+        public int HouseStatus
+        {
+            get => GetProperty(PropertyInt.HouseStatus) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.HouseStatus); else SetProperty(PropertyInt.HouseStatus, value); }
+        }
+
+        public HouseType? HouseType
+        {
+            get => (HouseType?)GetProperty(PropertyInt.HouseType);
+            set { if (value.HasValue) RemoveProperty(PropertyInt.HouseType); else SetProperty(PropertyInt.HouseType, (int)value.Value); }
         }
 
         public int? HookItemType
@@ -2071,10 +2073,23 @@ namespace ACE.Server.WorldObjects
             set { if (value == -1) RemoveProperty(PropertyInt.PkLevelModifier); else SetProperty(PropertyInt.PkLevelModifier, value); }
         }
 
-        public PlayerKillerStatus PlayerKillerStatus
+        private PlayerKillerStatus _playerKillerStatus
         {
             get => (PlayerKillerStatus?)GetProperty(PropertyInt.PlayerKillerStatus) ?? PlayerKillerStatus.NPK;
             set => SetProperty(PropertyInt.PlayerKillerStatus, (int)value);
+        }
+
+        public PlayerKillerStatus PlayerKillerStatus
+        {
+            get
+            {
+                var pk_server = PropertyManager.GetBool("pk_server").Item;
+                if (pk_server && GetProperty(PropertyFloat.MinimumTimeSincePk) == null)
+                    return PlayerKillerStatus.PK;
+                else
+                    return _playerKillerStatus;
+            }
+            set => _playerKillerStatus = value;
         }
 
         public CloakStatus? CloakStatus

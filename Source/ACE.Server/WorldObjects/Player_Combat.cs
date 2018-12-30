@@ -1,4 +1,5 @@
 using System;
+using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
@@ -8,7 +9,7 @@ using ACE.Server.Network.GameMessages.Messages;
 
 namespace ACE.Server.WorldObjects
 {
-    public enum AttackType
+    public enum CombatType
     {
         Melee,
         Missile,
@@ -78,14 +79,14 @@ namespace ACE.Server.WorldObjects
             return maxMelee.Skill;
         }
 
-        public override AttackType GetAttackType()
+        public override CombatType GetAttackType()
         {
             var weapon = GetEquippedWeapon();
 
             if (weapon == null || weapon.CurrentWieldedLocation != EquipMask.MissileWeapon)
-                return AttackType.Melee;
+                return CombatType.Melee;
             else
-                return AttackType.Missile;
+                return CombatType.Missile;
         }
 
         public float? DamageTarget(Creature target, WorldObject damageSource)
@@ -113,7 +114,7 @@ namespace ACE.Server.WorldObjects
             float? damage = null;
             if (targetPlayer != null)
             {
-                damage = CalculateDamagePVP(target, damageType, ref critical, ref sneakAttack, ref bodyPart);
+                damage = CalculateDamagePVP(target, damageSource, damageType, ref critical, ref sneakAttack, ref bodyPart);
 
                 // TODO: level up shield mod?
                 if (targetPlayer.Invincible ?? false)
@@ -191,7 +192,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Called when a player hits a target
         /// </summary>
-        public override void OnDamageTarget(WorldObject target, AttackType attackType)
+        public override void OnDamageTarget(WorldObject target, CombatType attackType)
         {
             var attackSkill = GetCreatureSkill(GetCurrentWeaponSkill());
             var difficulty = GetTargetEffectiveDefenseSkill(target);
@@ -204,7 +205,7 @@ namespace ACE.Server.WorldObjects
             var attackType = GetAttackType();
             var attackSkill = GetCreatureSkill(GetCurrentWeaponSkill()).Current;
             var offenseMod = GetWeaponOffenseModifier(this);
-            var accuracyMod = attackType == AttackType.Missile ? AccuracyLevel + 0.6f : 1.0f;
+            var accuracyMod = attackType == CombatType.Missile ? AccuracyLevel + 0.6f : 1.0f;
             attackSkill = (uint)Math.Round(attackSkill * accuracyMod * offenseMod);
 
             //if (IsExhausted)
@@ -222,7 +223,7 @@ namespace ACE.Server.WorldObjects
             if (creature == null) return 0;
 
             var attackType = GetAttackType();
-            var defenseSkill = attackType == AttackType.Missile ? Skill.MissileDefense : Skill.MeleeDefense;
+            var defenseSkill = attackType == CombatType.Missile ? Skill.MissileDefense : Skill.MeleeDefense;
             var defenseMod = defenseSkill == Skill.MeleeDefense ? GetWeaponMeleeDefenseModifier(creature) : 1.0f;
             var effectiveDefense = (uint)Math.Round(creature.GetCreatureSkill(defenseSkill).Current * defenseMod);
 
@@ -249,7 +250,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Called when player successfully avoids an attack
         /// </summary>
-        public override void OnEvade(WorldObject attacker, AttackType attackType)
+        public override void OnEvade(WorldObject attacker, CombatType attackType)
         {
             if (UnderLifestoneProtection)
                 return;
@@ -261,7 +262,7 @@ namespace ACE.Server.WorldObjects
             // in order for this specific ability to work. This benefit is tied to Endurance only, and it caps out at around a 75% chance
             // to avoid losing a point of stamina per successful evasion.
 
-            var defenseSkillType = attackType == AttackType.Missile ? Skill.MissileDefense : Skill.MeleeDefense;
+            var defenseSkillType = attackType == CombatType.Missile ? Skill.MissileDefense : Skill.MeleeDefense;
             var defenseSkill = GetCreatureSkill(defenseSkillType);
 
             if (CombatMode != CombatMode.NonCombat)
@@ -295,7 +296,7 @@ namespace ACE.Server.WorldObjects
         public override Range GetBaseDamage()
         {
             var attackType = GetAttackType();
-            var damageSource = attackType == AttackType.Melee ? GetEquippedWeapon() : GetEquippedAmmo();
+            var damageSource = attackType == CombatType.Melee ? GetEquippedWeapon() : GetEquippedAmmo();
 
             return damageSource != null ? damageSource.GetDamageMod(this) : new Range(1, 5);
         }
@@ -303,7 +304,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Calculates the creature damage for a physical monster attack
         /// </summary>
-        public float? CalculateDamagePVP(WorldObject target, DamageType damageType, ref bool criticalHit, ref bool sneakAttack, ref BodyPart bodyPart)
+        public float? CalculateDamagePVP(WorldObject target, WorldObject damageSource, DamageType damageType, ref bool criticalHit, ref bool sneakAttack, ref BodyPart bodyPart)
         {
             // verify target player killer
             var targetPlayer = target as Player;
@@ -354,10 +355,10 @@ namespace ACE.Server.WorldObjects
             var armor = GetArmor(bodyPart);
 
             // get armor modifiers
-            var armorMod = GetArmorMod(armor, damageType);
+            var armorMod = GetArmorMod(armor, damageSource, damageType);
 
             // get resistance modifiers (protect/vuln)
-            var resistanceMod = AttackTarget.EnchantmentManager.GetResistanceMod(damageType);
+            var resistanceMod = damageSource != null && damageSource.IgnoreMagicResist ? 1.0f : AttackTarget.EnchantmentManager.GetResistanceMod(damageType);
 
             // weapon resistance mod?
             var damageResistRatingMod = GetNegativeRatingMod(AttackTarget.EnchantmentManager.GetDamageResistRating());
@@ -413,7 +414,7 @@ namespace ACE.Server.WorldObjects
             var bodyPart = BodyParts.GetBodyPart(target, AttackHeight.Value);
             if (bodyPart == null) return null;
 
-            var creaturePart = new Creature_BodyPart(creature, bodyPart);
+            var creaturePart = new Creature_BodyPart(creature, bodyPart, damageSource != null ? damageSource.IgnoreMagicArmor : false, damageSource != null ? damageSource.IgnoreMagicResist : false);
 
             // get target armor
             var armor = creaturePart.BaseArmorMod;
@@ -444,9 +445,9 @@ namespace ACE.Server.WorldObjects
         public float GetPowerAccuracyMod()
         {
             var attackType = GetAttackType();
-            if (attackType == AttackType.Melee)
+            if (attackType == CombatType.Melee)
                 return PowerLevel + 0.5f;
-            else if (attackType == AttackType.Missile)
+            else if (attackType == CombatType.Missile)
                 return AccuracyLevel + 0.6f;
             else
                 return 1.0f;
@@ -454,7 +455,7 @@ namespace ACE.Server.WorldObjects
 
         public float GetPowerAccuracyBar()
         {
-            return GetAttackType() == AttackType.Missile ? AccuracyLevel : PowerLevel;
+            return GetAttackType() == CombatType.Missile ? AccuracyLevel : PowerLevel;
         }
 
         public double GetLifeResistance(DamageType damageType)
@@ -777,6 +778,14 @@ namespace ACE.Server.WorldObjects
             var recklessnessMod = GetDamageRating(damageRating);    // trained DR 1.10 = 10% additional damage
                                                                     // specialized DR 1.20 = 20% additional damage
             return recklessnessMod;
+        }
+
+        public Player GetKiller_PKLite()
+        {
+            if (PlayerKillerStatus == PlayerKillerStatus.PKLite)
+                return CurrentLandblock?.GetObject(new ObjectGuid(Killer ?? 0)) as Player;
+            else
+                return null;
         }
     }
 }

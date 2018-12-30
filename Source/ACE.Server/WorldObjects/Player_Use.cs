@@ -56,7 +56,10 @@ namespace ACE.Server.WorldObjects
             else if (invSource.WeenieType == WeenieType.Healer)
             {
                 if (!(worldTarget is Player))
+                {
+                    SendUseDoneEvent(WeenieError.YouCantHealThat);
                     return;
+                }
 
                 var healer = invSource as Healer;
                 healer.HandleActionUseOnTarget(this, worldTarget as Player);
@@ -169,7 +172,7 @@ namespace ACE.Server.WorldObjects
         // TODO: refactor movetochainnumber, this is a confusing and patchwork concept
         // TODO: add proper hooks for canceling an existing moveto event
         // TODO: add reasonable max move time
-        private ActionChain CreateMoveToChain(WorldObject target, out int thisMoveToChainNumber)
+        public ActionChain CreateMoveToChain(WorldObject target, out int thisMoveToChainNumber)
         {
             thisMoveToChainNumber = GetNextMoveToChainNumber();
 

@@ -91,7 +91,7 @@ namespace ACE.Server.Managers
         /// <returns>A boolean value representing the property</returns>
         public static Property<bool> GetBool(string key, bool fallback = false, bool cacheFallback = true)
         {
-            // first, check the cache. If the key exists in the cache, grab it regardless of it's modified value
+            // first, check the cache. If the key exists in the cache, grab it regardless of its modified value
             // then, check the database. if the key exists in the database, grab it and cache it
             // finally, set it to a default of false.
             if (CachedBooleanSettings.ContainsKey(key))
@@ -434,7 +434,8 @@ namespace ACE.Server.Managers
 
         public static readonly ReadOnlyDictionary<string, bool> DefaultBooleanProperties =
             DictOf(
-                ("alwaysshowwelcome", false)
+                ("alwaysshowwelcome", false),
+                ("pk_server", false)
                 );
 
         public static readonly ReadOnlyDictionary<string, long> DefaultLongProperties = DictOf<string, long>();

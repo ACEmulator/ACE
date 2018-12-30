@@ -127,12 +127,21 @@ namespace ACE.Server.WorldObjects
         /// Returns TRUE if player should be allowed to cast the spell on target player
         /// Returns FALSE if player shouldn't be allowed to cast the spell on target player
         /// </returns>
-        protected bool? CheckPKStatusVsTarget(Player player, Player target, Spell spell)
+        protected bool? CheckPKStatusVsTarget(Player player, WorldObject target, Spell spell)
         {
             if (player == null || target == null)
                 return null;
 
             if (player == target)
+                return true;
+
+            var targetPlayer = target as Player;
+            if (targetPlayer == null && target.WielderId != null)
+            {
+                // handle casting item spells
+                targetPlayer = player.CurrentLandblock.GetObject(target.WielderId.Value) as Player;
+            }
+            if (targetPlayer == null)
                 return true;
 
             if (spell == null || spell.IsHarmful)
@@ -142,7 +151,7 @@ namespace ACE.Server.WorldObjects
                     return false;
 
                 // Ensure that a harmful spell isn't being cast on another player that doesn't have the same PK status
-                if (player.PlayerKillerStatus != target.PlayerKillerStatus)
+                if (player.PlayerKillerStatus != targetPlayer.PlayerKillerStatus)
                     return false;
             }
 
@@ -168,6 +177,14 @@ namespace ACE.Server.WorldObjects
             // Invalidate beneficial spells against Creature/Non-player targets
             if (targetCreature != null && targetPlayer == null && spell.IsBeneficial)
                 return true;
+
+            // Invalidate beneficial spells against monster wielded items
+            if (targetCreature == null && spell.IsBeneficial && target.OwnerId != null)
+            {
+                var targetMonster = CurrentLandblock.GetObject(target.OwnerId.Value) as Creature;
+                if (!(targetMonster is Player))
+                    return true;
+            }
 
             // Cannot cast Weapon Aura spells on targets that are not players or creatures
             if ((spell.Name.Contains("Aura of")) && (spell.School == MagicSchool.ItemEnchantment))

@@ -44,16 +44,29 @@ namespace ACE.Server.WorldObjects
         {
             if (target.Health.Current == target.Health.MaxValue)
             {
-                healer.Session.Network.EnqueueSend(new GameEventUseDone(healer.Session, WeenieError.None));
+                healer.Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(healer.Session, WeenieErrorWithString._IsAtFullHealth, target.Name));
+                healer.SendUseDoneEvent();
                 return;
             }
-            DoHealMotion(healer, target);
+
+            if (!healer.Equals(target))
+            {
+                // perform moveto
+                var moveToChain = new ActionChain();
+                moveToChain.AddChain(healer.CreateMoveToChain(target, out var thisMoveToChainNumber));
+                moveToChain.AddAction(healer, () => DoHealMotion(healer, target));
+                moveToChain.EnqueueChain();
+            }
+            else
+                DoHealMotion(healer, target);
         }
 
         public void DoHealMotion(Player healer, Player target)
         {
-            var motion = new Motion(healer, MotionCommand.SkillHealSelf);
-            var animLength = MotionTable.GetAnimationLength(healer.MotionTableId, healer.CurrentMotionState.Stance, MotionCommand.SkillHealSelf);
+            var motionCommand = healer.Equals(target) ? MotionCommand.SkillHealSelf : MotionCommand.SkillHealOther;
+
+            var motion = new Motion(healer, motionCommand);
+            var animLength = MotionTable.GetAnimationLength(healer.MotionTableId, healer.CurrentMotionState.Stance, motionCommand);
 
             var actionChain = new ActionChain();
             actionChain.AddAction(healer, () => healer.EnqueueBroadcastMotion(motion));
