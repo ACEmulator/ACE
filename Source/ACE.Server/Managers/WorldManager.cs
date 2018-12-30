@@ -302,6 +302,15 @@ namespace ACE.Server.Managers
 
             session.SetPlayer(player);
 
+            // If the client is missing a location, we start them off in the starter dungeon
+            if (session.Player.Location == null)
+            {
+                if (session.Player.Instantiation != null)
+                    session.Player.Location = new Position(session.Player.Instantiation);
+                else
+                    session.Player.Location = new Position(2349072813, 12.3199f, -28.482f, 0.0049999995f, 0.0f, 0.0f, -0.9408059f, -0.3389459f);
+            }
+
             session.Player.PlayerEnterWorld();
 
             if (character.TotalLogins <= 1 || PropertyManager.GetBool("alwaysshowwelcome").Item)
@@ -312,10 +321,6 @@ namespace ACE.Server.Managers
 
                 session.Network.EnqueueSend(new GameEventPopupString(session, $"{welcomeHeader}\n{msg}"));
             }
-
-            // If the client is missing a location, we start them off in the starter dungeon
-            // TODO: This doesn't seem to work.. it spawns the player in black space... but at least it doesn't crash the server
-            if (session.Player.Location == null) session.Player.Location = new Position(0x7F0301AD, new Vector3(12.3199f, -28.482f, 0.004999995f), new Quaternion(0.338946f, 0, 0, 0.9408059f));
 
             LandblockManager.AddObject(session.Player, true);
 
