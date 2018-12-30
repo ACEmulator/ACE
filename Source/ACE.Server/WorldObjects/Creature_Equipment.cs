@@ -244,16 +244,18 @@ namespace ACE.Server.WorldObjects
 
 
         /// <summary>
-        /// This method sets properties needed for items that will be child items.
-        /// Items here are only items equipped in the hands.
-        /// This deals with the orientation and positioning for visual appearance of the child items held by the parent. Og II
+        /// This method sets properties needed for items that will be child items.<para />
+        /// Items here are only items equipped in the hands.<para />
+        /// This deals with the orientation and positioning for visual appearance of the child items held by the parent.<para />
+        /// If the item isn't in a valid child state (CurrentWieldedLocation), the child properties will be cleared. (Placement, ParentLocation, Location).
         /// </summary>
-        /// <param name="item">The child item - we link them together</param>
-        /// <param name="placementPosition">Where is this on the parent - where is it equipped</param>
         private bool TrySetChild(WorldObject item)
         {
-            if (item.CurrentWieldedLocation == null || ((EquipMask)item.CurrentWieldedLocation & EquipMask.Selectable) == 0)
+            if (item.CurrentWieldedLocation == null || ((EquipMask) item.CurrentWieldedLocation & EquipMask.Selectable) == 0)
+            {
+                ClearChild(item);
                 return false;
+            }
 
             Placement placement;
             ParentLocation parentLocation;
@@ -317,6 +319,12 @@ namespace ACE.Server.WorldObjects
             return true;
         }
 
+        /// <summary>
+        /// This clears the child properties:<para />
+        /// Placement = ACE.Entity.Enum.Placement.Resting<para />
+        /// ParentLocation = null<para />
+        /// Location = null
+        /// </summary>
         private void ClearChild(WorldObject item)
         {
             item.Placement = ACE.Entity.Enum.Placement.Resting;
