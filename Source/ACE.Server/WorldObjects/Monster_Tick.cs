@@ -73,7 +73,7 @@ namespace ACE.Server.WorldObjects
                     CurrentAttack = null;
                 }
             }
-            if (weapon == null && CurrentAttack != null && CurrentAttack == AttackType.Missile)
+            if (weapon == null && CurrentAttack != null && CurrentAttack == CombatType.Missile)
             {
                 EquipInventoryItems(true);
                 DoAttackStance();
@@ -97,7 +97,7 @@ namespace ACE.Server.WorldObjects
             if (Sticky)
                 UpdatePosition();
 
-            if (CurrentAttack != AttackType.Missile)
+            if (CurrentAttack != CombatType.Missile)
             {
                 if (targetDist > MaxRange || (!IsFacing(AttackTarget) && !IsSelfCast()))
                 {

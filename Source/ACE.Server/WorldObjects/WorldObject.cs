@@ -144,7 +144,7 @@ namespace ACE.Server.WorldObjects
 
             PhysicsObj.State = defaultState;
 
-            if (creature != null) AllowEdgeSlide = true;
+            //if (creature != null) AllowEdgeSlide = true;
         }
 
         public bool AddPhysicsObj()
@@ -792,7 +792,7 @@ namespace ACE.Server.WorldObjects
 
             DamageType damageTypes;
             var attackType = creature.GetAttackType();
-            if (attackType == AttackType.Melee || ammo == null || !weapon.IsAmmoLauncher)
+            if (attackType == CombatType.Melee || ammo == null || !weapon.IsAmmoLauncher)
                 damageTypes = (DamageType)(weapon.GetProperty(PropertyInt.DamageType) ?? 0);
             else
                 damageTypes = (DamageType)(ammo.GetProperty(PropertyInt.DamageType) ?? 0);

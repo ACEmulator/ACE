@@ -286,7 +286,7 @@ namespace ACE.Server.WorldObjects
 
         public bool IsSelfCast()
         {
-            if (CurrentAttack != AttackType.Magic)
+            if (CurrentAttack != CombatType.Magic)
                 return false;
 
             return GetSpellMaxRange() == float.PositiveInfinity;

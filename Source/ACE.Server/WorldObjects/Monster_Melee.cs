@@ -62,54 +62,55 @@ namespace ACE.Server.WorldObjects
             DoSwingMotion(AttackTarget, maneuver, out float animLength, out var attackFrames);
             PhysicsObj.stick_to_object(AttackTarget.PhysicsObj.ID);
 
+            var numStrikes = attackFrames.Count;
+
             var actionChain = new ActionChain();
-            var delayFactor = combatPet != null ? 1.5f : 3.0f;
 
-            var delayTime = animLength / delayFactor;
-            if (attackFrames.Count == 1)
-                delayTime = attackFrames[0] * animLength;
-            else
-                log.Warn($"{Name}.GetAttackFrames(): MotionTableId: {MotionTableId:X8}, MotionStance: {CurrentMotionState.Stance}, Motion: {maneuver.Motion}, AttackFrames.Count({attackFrames.Count}) != 1");
-
-            actionChain.AddDelaySeconds(delayTime);
-            actionChain.AddAction(this, () =>
+            var prevTime = 0.0f;
+            for (var i = 0; i < numStrikes; i++)
             {
-                if (AttackTarget == null) return;
+                actionChain.AddDelaySeconds(attackFrames[i] * animLength - prevTime);
+                prevTime = attackFrames[i] * animLength;
 
-                var critical = false;
-                var damageType = DamageType.Undef;
-                var shieldMod = 1.0f;
-                var damage = CalculateDamage(ref damageType, maneuver, bodyPart, ref critical, ref shieldMod);
-
-                if (damage != null)
+                actionChain.AddAction(this, () =>
                 {
-                    if (combatPet != null || targetPet != null)
-                    {
-                        // combat pet inflicting or receiving damage
-                        //Console.WriteLine($"{target.Name} taking {Math.Round(damage)} {damageType} damage from {Name}");
-                        target.TakeDamage(this, damageType, damage.Value);
-                        EmitSplatter(target, damage.Value);
-                    }
-                    else
-                    {
-                        // this is a player taking damage
-                        targetPlayer.TakeDamage(this, damageType, damage.Value, bodyPart, critical);
+                    if (AttackTarget == null) return;
 
-                        if (shieldMod != 1.0f)
+                    var critical = false;
+                    var damageType = DamageType.Undef;
+                    var shieldMod = 1.0f;
+                    var damage = CalculateDamage(ref damageType, maneuver, bodyPart, ref critical, ref shieldMod);
+
+                    if (damage != null)
+                    {
+                        if (combatPet != null || targetPet != null)
                         {
-                            var shieldSkill = targetPlayer.GetCreatureSkill(Skill.Shield);
-                            Proficiency.OnSuccessUse(targetPlayer, shieldSkill, shieldSkill.Current); // ?
+                            // combat pet inflicting or receiving damage
+                            //Console.WriteLine($"{target.Name} taking {Math.Round(damage)} {damageType} damage from {Name}");
+                            target.TakeDamage(this, damageType, damage.Value);
+                            EmitSplatter(target, damage.Value);
+                        }
+                        else
+                        {
+                            // this is a player taking damage
+                            targetPlayer.TakeDamage(this, damageType, damage.Value, bodyPart, critical);
+
+                            if (shieldMod != 1.0f)
+                            {
+                                var shieldSkill = targetPlayer.GetCreatureSkill(Skill.Shield);
+                                Proficiency.OnSuccessUse(targetPlayer, shieldSkill, shieldSkill.Current); // ?
+                            }
                         }
                     }
-                }
-                else
-                    target.OnEvade(this, AttackType.Melee);
-            });
+                    else
+                        target.OnEvade(this, CombatType.Melee);
+                });
+            }
             actionChain.EnqueueChain();
 
             // TODO: figure out exact speed / delay formula
             var meleeDelay = ThreadSafeRandom.Next(MeleeDelayMin, MeleeDelayMax);
-            NextAttackTime = Timers.RunningTime + animLength + meleeDelay;;
+            NextAttackTime = Timers.RunningTime + animLength + meleeDelay;
             return animLength;
         }
 
@@ -125,6 +126,7 @@ namespace ACE.Server.WorldObjects
             // for some reason, the combat maneuvers table can return stance motions that don't exist in the motion table
             // ie. skeletons (combat maneuvers table 0x30000000, motion table 0x09000025)
             // for sword combat, they have double and triple strikes (dagger / two-handed only?)
+            var weapon = GetEquippedMeleeWeapon();
 
             var stanceManeuvers = CombatTable.CMT.Where(m => m.Style == (MotionCommand)CurrentMotionState.Stance).ToList();
 
@@ -146,6 +148,20 @@ namespace ACE.Server.WorldObjects
                 //Console.WriteLine("Selecting combat maneuver #" + rng);
 
                 var combatManeuver = stanceManeuvers[rng];
+
+                var motion = combatManeuver.Motion.ToString();
+
+                // todo: use motion mapping, avoid string search
+
+                if (motion.Contains("Slash") && (weapon == null || (weapon.MAttackType & AttackType.Slash) == 0))
+                    continue;
+                if (motion.Contains("Thrust") && (weapon == null || (weapon.MAttackType & AttackType.Thrust) == 0))
+                    continue;
+
+                if (motion.StartsWith("Double") && (weapon == null || (weapon.MAttackType & AttackType.DoubleStrike) == 0))
+                    continue;
+                if (motion.StartsWith("Triple") && (weapon == null || (weapon.MAttackType & AttackType.TripleStrike) == 0))
+                    continue;
 
                 // ensure combat maneuver exists for this monster's motion table
                 motions.TryGetValue((uint)combatManeuver.Motion, out var motionData);
@@ -223,7 +239,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public Range GetBaseDamage(BiotaPropertiesBodyPart attackPart)
         {
-            if (CurrentAttack == AttackType.Missile && GetMissileAmmo() != null)
+            if (CurrentAttack == CombatType.Missile && GetMissileAmmo() != null)
                 return GetMissileDamage();
 
             // use weapon damage for every attack?
@@ -259,7 +275,7 @@ namespace ACE.Server.WorldObjects
                 //attackSkill = GetExhaustedSkill(attackSkill);
 
             // get creature defense skill
-            var defenseSkill = CurrentAttack == AttackType.Missile ? Skill.MissileDefense : Skill.MeleeDefense;
+            var defenseSkill = CurrentAttack == CombatType.Missile ? Skill.MissileDefense : Skill.MeleeDefense;
             var defenseMod = defenseSkill == Skill.MeleeDefense ? GetWeaponMeleeDefenseModifier(AttackTarget as Creature) : 1.0f;
             var difficulty = (uint)Math.Round(target.GetCreatureSkill(defenseSkill).Current * defenseMod);
 
@@ -321,7 +337,7 @@ namespace ACE.Server.WorldObjects
                 criticalHit = true;
 
             // attribute damage modifier (verify)
-            var attributeMod = GetAttributeMod(AttackType.Melee);
+            var attributeMod = GetAttributeMod(CombatType.Melee);
 
             // get armor piece
             var armor = GetArmor(bodyPart);

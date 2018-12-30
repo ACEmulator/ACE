@@ -81,7 +81,7 @@ namespace ACE.Server.WorldObjects
 
             // send network actions
             var targetDist = GetDistanceToTarget();
-            var turnTo = IsRanged || (CurrentAttack == AttackType.Magic && targetDist <= GetSpellMaxRange());
+            var turnTo = IsRanged || (CurrentAttack == CombatType.Magic && targetDist <= GetSpellMaxRange());
             if (turnTo)
                 TurnTo(AttackTarget);
             else
@@ -363,7 +363,7 @@ namespace ACE.Server.WorldObjects
             // set non-default params for monster movement
             mvp.Flags &= ~MovementParamFlags.CanWalk;
 
-            var turnTo = IsRanged || (CurrentAttack == AttackType.Magic && GetDistanceToTarget() <= GetSpellMaxRange());
+            var turnTo = IsRanged || (CurrentAttack == CombatType.Magic && GetDistanceToTarget() <= GetSpellMaxRange());
 
             if (!turnTo)
                 mvp.Flags |= MovementParamFlags.FailWalk | MovementParamFlags.UseFinalHeading | MovementParamFlags.Sticky | MovementParamFlags.MoveAway;

@@ -6,7 +6,6 @@ using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Physics.Animation;
-using MAttackType = ACE.Entity.Enum.AttackType;
 
 namespace ACE.Server.WorldObjects
 {
@@ -258,7 +257,7 @@ namespace ACE.Server.WorldObjects
                         var weapon = GetEquippedMeleeWeapon();
                         var attackType = GetWeaponAttackType(weapon);
 
-                        var action = PowerLevel < 0.33f && attackType.HasFlag(MAttackType.Thrust) ? "Thrust" : "Slash";
+                        var action = PowerLevel < 0.33f && attackType.HasFlag(AttackType.Thrust) ? "Thrust" : "Slash";
 
                         // handle multistrike weapons
                         action = MultiStrike(attackType, action);
