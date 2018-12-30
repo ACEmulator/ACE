@@ -260,7 +260,7 @@ namespace ACE.Server.Managers
                     target.EncumbranceVal = (int)Math.Round((target.EncumbranceVal ?? 1) * 0.75f);
                     break;
                 case MaterialType.Ivory:
-                    target.SetProperty(PropertyInt.Attuned, 1);
+                    target.SetProperty(PropertyInt.Attuned, 0);
                     break;
                 case MaterialType.Leather:
                     target.SetProperty(PropertyBool.Retained, true);
