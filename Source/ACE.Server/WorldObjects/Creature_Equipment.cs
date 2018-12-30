@@ -170,7 +170,12 @@ namespace ACE.Server.WorldObjects
             if (!TryEquipObject(worldObject, wieldedLocation))
                 return false;
 
-            EnqueueBroadcast(new GameMessageSound(Guid, Sound.WieldObject));
+            if ((worldObject.ValidLocations ?? 0 & EquipMask.Selectable) != 0) // Is this equipped item visible to others?
+                EnqueueBroadcast(new GameMessageSound(Guid, Sound.WieldObject));
+
+            EnqueueBroadcast(new GameMessageParentEvent(this, worldObject, (int?)worldObject.ParentLocation ?? 0, (int?)worldObject.Placement ?? 0));
+
+            EnqueueBroadcast(new GameMessageObjDescEvent(this));
 
             // Notify viewers in the area that we've equipped the item
             EnqueueActionBroadcast(p => p.TrackEquippedObject(this, worldObject));
@@ -183,10 +188,15 @@ namespace ACE.Server.WorldObjects
         /// It does not add it to inventory as you could be unwielding to the ground or a chest.<para />
         /// It will also decrease the EncumbranceVal and Value.
         /// </summary>
-        private bool TryDequipObject(ObjectGuid objectGuid, out WorldObject worldObject)
+        private bool TryDequipObject(ObjectGuid objectGuid, out WorldObject worldObject, out int wieldedLocation)
         {
             if (!EquippedObjects.Remove(objectGuid, out worldObject))
+            {
+                wieldedLocation = 0;
                 return false;
+            }
+
+            wieldedLocation = worldObject.GetProperty(PropertyInt.CurrentWieldedLocation) ?? 0;
 
             worldObject.RemoveProperty(PropertyInt.CurrentWieldedLocation);
             worldObject.RemoveProperty(PropertyInstanceId.Wielder);
@@ -195,6 +205,8 @@ namespace ACE.Server.WorldObjects
 
             EncumbranceVal -= worldObject.EncumbranceVal;
             Value -= worldObject.Value;
+
+            ClearChild(worldObject);
 
             var wo = worldObject;
             Children.Remove(Children.Find(s => s.Guid == wo.Guid.Full));
@@ -209,12 +221,15 @@ namespace ACE.Server.WorldObjects
         /// It does not add it to inventory as you could be unwielding to the ground or a chest.<para />
         /// It will also decrease the EncumbranceVal and Value.
         /// </summary>
-        protected bool TryDequipObjectWithBroadcasting(ObjectGuid objectGuid, out WorldObject worldObject, bool droppingToLandscape = false)
+        protected bool TryDequipObjectWithBroadcasting(ObjectGuid objectGuid, out WorldObject worldObject, out int wieldedLocation, bool droppingToLandscape = false)
         {
-            if (!TryDequipObject(objectGuid, out worldObject))
+            if (!TryDequipObject(objectGuid, out worldObject, out wieldedLocation))
                 return false;
 
-            EnqueueBroadcast(new GameMessageSound(Guid, Sound.UnwieldObject));
+            if ((worldObject.ValidLocations ?? 0 & EquipMask.Selectable) != 0) // Is this equipped item visible to others?
+                EnqueueBroadcast(new GameMessageSound(Guid, Sound.UnwieldObject));
+
+            EnqueueBroadcast(new GameMessageObjDescEvent(this));
 
             if (!droppingToLandscape)
             {
@@ -299,6 +314,13 @@ namespace ACE.Server.WorldObjects
             item.Location = Location;
 
             return true;
+        }
+
+        private void ClearChild(WorldObject item)
+        {
+            item.Placement = ACE.Entity.Enum.Placement.Resting;
+            item.ParentLocation = null;
+            item.Location = null;
         }
 
         /// <summary>

@@ -166,49 +166,44 @@ namespace ACE.Server.WorldObjects
             if (!TryEquipObjectWithBroadcasting(item, wieldedLocation))
                 return false;
 
-            Session.Network.EnqueueSend(new GameEventWieldItem(Session, item.Guid.Full, wieldedLocation));
+            Session.Network.EnqueueSend(
+                new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Wielder, ObjectGuid.Invalid),
+                new GameMessagePublicUpdatePropertyInt(item, PropertyInt.CurrentWieldedLocation, 0),
+                new GameEventWieldItem(Session, item.Guid.Full, wieldedLocation));
 
-            if ((EquipMask)wieldedLocation != EquipMask.MissileAmmo)
+            // If item has any spells, cast them on the wielder
+            if (item.Biota.BiotaPropertiesSpellBook != null)
             {
-                //var msgWieldItem = new GameEventWieldItem(Session, item.Guid.Full, wieldedLocation);
-
-                Session.Network.EnqueueSend(
-                    new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Container, ObjectGuid.Invalid),
-                    new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Wielder, Guid),
-                    new GameMessagePublicUpdatePropertyInt(item, PropertyInt.CurrentWieldedLocation, wieldedLocation));
-
-                EnqueueBroadcast(new GameMessageParentEvent(this, item, (int?)item.ParentLocation ?? 0, (int?)item.Placement ?? 0));
-
-                EnqueueBroadcast(new GameMessageObjDescEvent(this));
-
-                /*if (((EquipMask)wieldedLocation & EquipMask.Selectable) == 0)
+                if (item.ItemCurMana > 1 || item.ItemCurMana == null) // TODO: Once Item Current Mana is fixed for loot generated items, '|| item.ItemCurMana == null' can be removed
                 {
-                    EnqueueBroadcast(msgWieldItem, updateContainer, updateWielder, updateWieldLoc, new GameMessageObjDescEvent(this));
-                    return true;
+                    for (int i = 0; i < item.Biota.BiotaPropertiesSpellBook.Count; i++)
+                    {
+                        if (CreateItemSpell(item.Guid, (uint)item.Biota.BiotaPropertiesSpellBook.ElementAt(i).Spell))
+                            item.IsAffecting = true;
+                    }
+
+                    if (item.IsAffecting ?? false)
+                    {
+                        if (item.ItemCurMana.HasValue)
+                            item.ItemCurMana--;
+                    }
                 }
+            }
 
-                SetChild(item, wieldedLocation, out var placementId, out var childLocation);
+            if (CombatMode == CombatMode.NonCombat || CombatMode == CombatMode.Undef)
+                return true;
 
-                // TODO: wait for HandleQueueStance() here?
-                EnqueueBroadcast(
-                    new GameMessageParentEvent(this, item, childLocation, placementId),
-                    msgWieldItem, updateContainer, updateWielder, updateWieldLoc);
-
-                if (CombatMode == CombatMode.NonCombat || CombatMode == CombatMode.Undef)
-                    return true;
-
-                switch ((EquipMask)wieldedLocation)
-                {
-                    case EquipMask.MissileWeapon:
-                        SetCombatMode(CombatMode.Missile);
-                        break;
-                    case EquipMask.Held:
-                        SetCombatMode(CombatMode.Magic);
-                        break;
-                    default:
-                        SetCombatMode(CombatMode.Melee);
-                        break;
-                }*/
+            switch ((EquipMask)wieldedLocation)
+            {
+                case EquipMask.MissileWeapon:
+                    SetCombatMode(CombatMode.Missile);
+                    break;
+                case EquipMask.Held:
+                    SetCombatMode(CombatMode.Magic);
+                    break;
+                default:
+                    SetCombatMode(CombatMode.Melee);
+                    break;
             }
 
             return true;
@@ -236,8 +231,13 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public bool TryDequipObjectWithNetworking(ObjectGuid objectGuid, out WorldObject item, DequipObjectAction dequipObjectAction)
         {
-            if (!TryDequipObjectWithBroadcasting(objectGuid, out item, (dequipObjectAction == DequipObjectAction.DropItem)))
+            if (!TryDequipObjectWithBroadcasting(objectGuid, out item, out var wieldedLocation, (dequipObjectAction == DequipObjectAction.DropItem)))
                 return false;
+
+            Session.Network.EnqueueSend(
+                new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Wielder, ObjectGuid.Invalid),
+                new GameMessagePublicUpdatePropertyInt(item, PropertyInt.CurrentWieldedLocation, 0),
+                new GameMessagePickupEvent(item));
 
             // If item has any spells, remove them from the registry on unequip
             if (item.Biota.BiotaPropertiesSpellBook != null)
@@ -246,16 +246,9 @@ namespace ACE.Server.WorldObjects
                     DispelItemSpell(item.Guid, (uint)item.Biota.BiotaPropertiesSpellBook.ElementAt(i).Spell);
             }
 
-            Session.Network.EnqueueSend(new GameMessagePickupEvent(item));
-
-            if (dequipObjectAction == DequipObjectAction.DropItem)
+            if (dequipObjectAction != DequipObjectAction.DequipToPack)
             {
                 // The item has gone off-player, so we must do some additional work
-
-                EnqueueBroadcast(
-                    new GameMessageObjDescEvent(this),
-                    new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Wielder, ObjectGuid.Invalid),
-                    new GameMessagePublicUpdatePropertyInt(item, PropertyInt.CurrentWieldedLocation, 0));
 
                 Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
 
@@ -265,28 +258,11 @@ namespace ACE.Server.WorldObjects
                 // when we load player inventory, the database still has the record that shows this player as the ContainerId for the item.
                 item.SaveBiotaToDatabase();
             }
-            else if (dequipObjectAction == DequipObjectAction.GiveItem)
-            {
-                // The item has gone off-player, so we must do some additional work
 
-                Session.Network.EnqueueSend(
-                    new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Wielder, ObjectGuid.Invalid),
-                    new GameMessagePublicUpdatePropertyInt(item, PropertyInt.CurrentWieldedLocation, 0));
+            if (CombatMode == CombatMode.NonCombat || (wieldedLocation != (int)EquipMask.MeleeWeapon && wieldedLocation != (int)EquipMask.MissileWeapon && wieldedLocation != (int)EquipMask.Held && wieldedLocation != (int)EquipMask.Shield))
+                return true;
 
-                Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
-
-                // We must update the database with the latest ContainerId and WielderId properties.
-                // If we don't, the player can drop the item, log out, and log back in. If the landblock hasn't queued a database save in that time,
-                // the player will end up loading with this object in their inventory even though the landblock is the true owner. This is because
-                // when we load player inventory, the database still has the record that shows this player as the ContainerId for the item.
-                item.SaveBiotaToDatabase();
-            }
-            else
-            {
-                Session.Network.EnqueueSend(
-                    new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Wielder, ObjectGuid.Invalid),
-                    new GameMessagePublicUpdatePropertyInt(item, PropertyInt.CurrentWieldedLocation, 0));
-            }
+            SetCombatMode(CombatMode.Melee);
 
             return true;
         }
@@ -614,7 +590,9 @@ namespace ACE.Server.WorldObjects
             }
             else if (itemWasEquipped) // Movement is an equipped item to a container on the landblock
             {
-                if (!TryDequipObjectWithNetworking(item.Guid, out _, DequipObjectAction.DequipToOffPlayerContainer))
+                var dequipObjectAction = containerRootOwner == this ? DequipObjectAction.DequipToPack : DequipObjectAction.DequipToOffPlayerContainer;
+
+                if (!TryDequipObjectWithNetworking(item.Guid, out _, dequipObjectAction))
                 {
                     Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "TryDequipObjectWithNetworking failed!")); // Custom error message
                     Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session));
@@ -804,26 +782,52 @@ namespace ACE.Server.WorldObjects
                 return false;
             }
 
-            // todo dequip existing item in wieldLocation if needed
+            // Unwield wand/missile launcher if dual wielding
+            if ((EquipMask)wieldLocation == EquipMask.Shield && !item.IsShield)
+            {
+                var mainWeapon = EquippedObjects.Values.FirstOrDefault(e => e.CurrentWieldedLocation == EquipMask.MissileWeapon || e.CurrentWieldedLocation == EquipMask.Held);
+                if (mainWeapon != null)
+                {
+                    if (!TryDequipObjectWithNetworking(mainWeapon.Guid, out var dequippedItem, DequipObjectAction.DequipToPack))
+                    {
+                        Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "Failed to dequip existing weapon!")); // Custom error message
+                        Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session));
+                        return false;
+                    }
+
+                    if (!TryCreateInInventoryWithNetworking(dequippedItem))
+                    {
+                        Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "Failed to add dequip back into inventory!")); // Custom error message
+                        Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session));
+
+                        // todo: if this happens, we should just put back the dequipped item to where it was
+
+                        return false;
+                    }
+                }
+            }
+            
+            if (!WieldedLocationIsAvailable(wieldLocation))
+            {
+                Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "Wield location is not available!")); // Custom error message
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session));
+                return false;
+            }
+
+            if (wasEquipped) // Movement is an equipped item to another equipped item slot
+            {
+                item.CurrentWieldedLocation = (EquipMask)wieldLocation;
+                Session.Network.EnqueueSend(new GameMessagePublicUpdatePropertyInt(item, PropertyInt.CurrentWieldedLocation, wieldLocation));
+
+                Session.Network.EnqueueSend(new GameEventWieldItem(Session, item.Guid.Full, wieldLocation));
+
+                return true;
+            }
 
             if (item.CurrentLandblock != null) // Movement is an item pickup off the landblock
             {
                 item.CurrentLandblock.RemoveWorldObject(item.Guid, false, true);
                 item.Location = null;
-            }
-            else if (wasEquipped) // Movement is an equipped item to another equipped item slot
-            {
-                if (!WieldedLocationIsAvailable(wieldLocation))
-                {
-                    Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "Wield location is not available!")); // Custom error message
-                    Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session));
-                    return false;
-                }
-
-                item.CurrentWieldedLocation = (EquipMask)wieldLocation;
-                Session.Network.EnqueueSend(new GameMessagePublicUpdatePropertyInt(item, PropertyInt.CurrentWieldedLocation, wieldLocation));
-
-                Session.Network.EnqueueSend(new GameEventWieldItem(Session, item.Guid.Full, wieldLocation));
             }
             else // Movement is within the same pack or between packs in a container on the landblock
             {
@@ -834,7 +838,7 @@ namespace ACE.Server.WorldObjects
                 }
             }
 
-            if (!wasEquipped && !TryEquipObjectWithNetworking(item, wieldLocation))
+            if (!TryEquipObjectWithNetworking(item, wieldLocation))
             {
                 Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "TryEquipObjectWithNetworking failed!")); // Custom error message
                 Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session));
@@ -844,8 +848,6 @@ namespace ACE.Server.WorldObjects
 
                 return false;
             }
-
-            // Network message to update item to new location
 
             return true;
         }

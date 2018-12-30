@@ -141,13 +141,6 @@ namespace ACE.Server.WorldObjects
             if (wielder == this)
                 return;
 
-            // todo: In the future we should remember what objecst the non-wielder client may still know about so we don't have to send a full CreateObject message
-            // todo: Instead, we can send the property updates like the following:
-            /*Session.Network.EnqueueSend(
-                new GameMessagePublicUpdateInstanceID(wieldedItem, PropertyInstanceId.Container, ObjectGuid.Invalid),
-                new GameMessagePublicUpdateInstanceID(wieldedItem, PropertyInstanceId.Wielder, Guid),
-                new GameMessagePublicUpdatePropertyInt(wieldedItem, PropertyInt.CurrentWieldedLocation, (int?)wieldedItem.CurrentWieldedLocation ?? 0));*/
-
             Session.Network.EnqueueSend(new GameMessageCreateObject(wieldedItem));
         }
 
