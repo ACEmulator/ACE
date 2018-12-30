@@ -1,83 +1,13 @@
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
-
-using Newtonsoft.Json;
 
 using ACE.Database.Models.World;
 using ACE.Entity.Enum.Properties;
 
 namespace ACE.Adapter.Lifestoned
 {
-    public static class Test
+    public static class LifestonedConverter
     {
-        public static bool TryLoadWeenie(string file, out global::Lifestoned.DataModel.Gdle.Weenie result)
-        {
-            try
-            {
-                var fileText = File.ReadAllText(file);
-
-                result = JsonConvert.DeserializeObject<global::Lifestoned.DataModel.Gdle.Weenie>(fileText);
-
-                return true;
-            }
-            catch
-            {
-                result = null;
-                return false;
-            }
-        }
-
-        public static bool TryLoadWeenies(string folder, out List<global::Lifestoned.DataModel.Gdle.Weenie> results)
-        {
-            results = new List<global::Lifestoned.DataModel.Gdle.Weenie>();
-
-            try
-            {
-                var files = Directory.GetFiles(folder, "*.json", SearchOption.AllDirectories).OrderByDescending(f => new FileInfo(f).CreationTime).ToList();
-
-                foreach (var file in files)
-                {
-                    if (TryLoadWeenie(file, out var result))
-                        results.Add(result);
-                }
-
-                return true;
-            }
-            catch
-            {
-                return false;
-            }
-        }
-
-        public static bool TryLoadWeeniesInParallel(string folder, out List<global::Lifestoned.DataModel.Gdle.Weenie> results)
-        {
-            try
-            {
-                var files = Directory.GetFiles(folder, "*.json", SearchOption.AllDirectories);
-
-                var weenies = new ConcurrentBag<global::Lifestoned.DataModel.Gdle.Weenie>();
-
-                Parallel.ForEach(files, file =>
-                {
-                    if (TryLoadWeenie(file, out var result))
-                        weenies.Add(result);
-                });
-
-                results = new List<global::Lifestoned.DataModel.Gdle.Weenie>(weenies);
-
-                return true;
-            }
-            catch
-            {
-                results = null;
-                return false;
-            }
-        }
-
         public static bool TryConvert(global::Lifestoned.DataModel.Gdle.Weenie input, out Weenie result)
         {
             try
@@ -199,7 +129,122 @@ namespace ACE.Adapter.Lifestoned
                         result.WeeniePropertiesDID.Add(new WeeniePropertiesDID { Type = (ushort)value.Key, Value = value.Value });
                 }
 
-                // WeeniePropertiesEmote
+                if (input.EmoteTable != null)
+                {
+                    foreach (var kvp in input.EmoteTable)
+                    {
+                        // kvp.key not used
+
+                        foreach (var value in kvp.Emotes)
+                        {
+                            var efEmote = new WeeniePropertiesEmote
+                            {
+                                Category = value.Category,
+
+                                Probability = value.Probability ?? 0,
+
+                                WeenieClassId = value.ClassId,
+
+                                Style = value.Style,
+                                Substyle = value.SubStyle,
+
+                                Quest = value.Quest,
+
+                                VendorType = (int?)value.VendorType,
+
+                                MinHealth = value.MinHealth,
+                                MaxHealth = value.MaxHealth
+                            };
+
+                            uint order = 0;
+
+                            foreach (var action in value.Actions)
+                            {
+                                var efAction = new WeeniePropertiesEmoteAction
+                                {
+                                    Order = order, // This is an ACE specific value to maintain the correct order of EmoteActions
+
+                                    Type = action.EmoteActionType,
+                                    Delay = action.Delay ?? 0,
+                                    Extent = action.Extent ?? 0,
+
+                                    Motion = (int?)action.Motion,
+
+                                    Message = action.Message,
+                                    TestString = action.TestString,
+
+                                    Min = (int?)action.Min,
+                                    Max = (int?)action.Max,
+                                    Min64 = action.Minimum64,
+                                    Max64 = action.Maximum64,
+                                    MinDbl = action.FMin,
+                                    MaxDbl = action.FMax,
+
+                                    Stat = (int?)action.Stat,
+                                    Display = action.Display.HasValue ? (action.Display.Value ? 1 : 0) : (int?)null, // todo: Should we convert this to bool?
+
+                                    Amount = (int?)action.Amount,
+                                    Amount64 = (long?)action.Amount64,
+                                    HeroXP64 = (long?)action.HeroXp64,
+
+                                    Percent = action.Percent,
+
+                                    SpellId = (int?)action.SpellId,
+
+                                    WealthRating = (int?)action.WealthRating,
+                                    TreasureClass = (int?)action.TreasureClass,
+                                    TreasureType = action.TreasureType,
+
+                                    PScript = (int?)action.PScript,
+
+                                    Sound = (int?)action.Sound
+                                };
+
+                                order++;
+
+                                if (action.Item != null)
+                                {
+                                    efAction.WeenieClassId = action.Item.WeenieClassId;
+                                    efAction.Palette = (int?)action.Item.Palette;
+                                    efAction.Shade = (float?)action.Item.Shade;
+                                    efAction.DestinationType = (sbyte?)action.Item.Destination;
+                                    efAction.StackSize = action.Item.StackSize;
+                                    efAction.TryToBond = action.Item.TryToBond.HasValue ? (action.Item.TryToBond != 0) : (bool?)null;
+                                }
+
+                                if (action.Frame != null)
+                                {
+                                    efAction.OriginX = action.Frame.Position.X;
+                                    efAction.OriginY = action.Frame.Position.Y;
+                                    efAction.OriginZ = action.Frame.Position.Z;
+
+                                    efAction.AnglesW = action.Frame.Rotations.W;
+                                    efAction.AnglesX = action.Frame.Rotations.X;
+                                    efAction.AnglesY = action.Frame.Rotations.Y;
+                                    efAction.AnglesZ = action.Frame.Rotations.Z;
+                                }
+
+                                if (action.MPosition != null)
+                                {
+                                    efAction.ObjCellId = action.MPosition.LandCellId;
+
+                                    efAction.OriginX = action.MPosition.Frame.Position.X;
+                                    efAction.OriginY = action.MPosition.Frame.Position.Y;
+                                    efAction.OriginZ = action.MPosition.Frame.Position.Z;
+
+                                    efAction.AnglesW = action.MPosition.Frame.Rotations.W;
+                                    efAction.AnglesX = action.MPosition.Frame.Rotations.X;
+                                    efAction.AnglesY = action.MPosition.Frame.Rotations.Y;
+                                    efAction.AnglesZ = action.MPosition.Frame.Rotations.Z;
+                                }
+
+                                efEmote.WeeniePropertiesEmoteAction.Add(efAction);
+                            }
+
+                            result.WeeniePropertiesEmote.Add(efEmote);
+                        }
+                    }
+                }
 
                 // WeeniePropertiesEventFilter
 
@@ -209,7 +254,40 @@ namespace ACE.Adapter.Lifestoned
                         result.WeeniePropertiesFloat.Add(new WeeniePropertiesFloat { Type = (ushort)value.Key, Value = value.Value });
                 }
 
-                // WeeniePropertiesGenerator
+                if (input.GeneratorTable != null)
+                {
+                    foreach (var value in input.GeneratorTable)
+                    {
+                        result.WeeniePropertiesGenerator.Add(new WeeniePropertiesGenerator
+                        {
+                            Probability = (float)value.Probability,
+                            WeenieClassId = value.WeenieClassId,
+                            Delay = value.Delay,
+
+                            InitCreate = (int)value.InitCreate,
+                            MaxCreate = (int)value.MaxNumber,
+
+                            WhenCreate = value.WhenCreate,
+                            WhereCreate = value.WhereCreate,
+
+                            StackSize = value.StackSize,
+
+                            PaletteId = value.PaletteId,
+                            Shade = value.Shade,
+
+                            ObjCellId = value.ObjectCell,
+                            OriginX = value.Frame.Position.X,
+                            OriginY = value.Frame.Position.Y,
+                            OriginZ = value.Frame.Position.Z,
+                            AnglesW = value.Frame.Rotations.W,
+                            AnglesX = value.Frame.Rotations.X,
+                            AnglesY = value.Frame.Rotations.Y,
+                            AnglesZ = value.Frame.Rotations.Z,
+
+                            // Slot
+                        });
+                    }
+                }
 
                 if (input.IidStats != null)
                 {
