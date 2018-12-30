@@ -547,5 +547,23 @@ namespace ACE.Server.WorldObjects
         {
             return !AlwaysTrained.Contains(skill);
         }
+
+        public static Dictionary<HeritageGroup, List<Skill>> HeritageBonuses = new Dictionary<HeritageGroup, List<Skill>>
+        {
+            // contains a bunch of outdated skills, according to heritage select screen description?
+            { ACE.Entity.Enum.HeritageGroup.Aluvian, new List<Skill> { Skill.Dagger, Skill.Bow } },
+            { ACE.Entity.Enum.HeritageGroup.Gharundim, new List<Skill> { Skill.Staff, Skill.WarMagic } }, // magic spells?
+            { ACE.Entity.Enum.HeritageGroup.Sho, new List<Skill> { Skill.UnarmedCombat, Skill.Bow } },
+            { ACE.Entity.Enum.HeritageGroup.Viamontian, new List<Skill> { Skill.Sword, Skill.Crossbow } },
+            { ACE.Entity.Enum.HeritageGroup.Shadowbound, new List<Skill> { Skill.UnarmedCombat, Skill.Crossbow } }, // umbraen?
+            { ACE.Entity.Enum.HeritageGroup.Penumbraen, new List<Skill> { Skill.UnarmedCombat, Skill.Crossbow } },
+            { ACE.Entity.Enum.HeritageGroup.Gearknight, new List<Skill> { Skill.Mace, Skill.Crossbow } },
+            { ACE.Entity.Enum.HeritageGroup.Undead, new List<Skill> { Skill.Axe, Skill.ThrownWeapon } },
+            { ACE.Entity.Enum.HeritageGroup.Empyrean, new List<Skill> { Skill.Sword, Skill.WarMagic } },  // magic?
+            { ACE.Entity.Enum.HeritageGroup.Tumerok, new List<Skill> { Skill.Spear, Skill.ThrownWeapon } },
+            { ACE.Entity.Enum.HeritageGroup.Lugian, new List<Skill> { Skill.Axe, Skill.ThrownWeapon } },
+            { ACE.Entity.Enum.HeritageGroup.Olthoi, new List<Skill>() },    // natural claws and pincers?
+            { ACE.Entity.Enum.HeritageGroup.OlthoiAcid, new List<Skill>() }    // olthoi spitters acidic spit?
+        };
     }
 }
