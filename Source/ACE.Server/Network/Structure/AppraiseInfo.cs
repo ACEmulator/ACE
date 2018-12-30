@@ -66,10 +66,7 @@ namespace ACE.Server.Network.Structure
         public AppraiseInfo(WorldObject wo, Player examiner, bool success = true)
         {
             //Console.WriteLine("Appraise: " + wo.Guid);
-
             Success = success;
-            if (!Success)
-                return;
 
             // get wielder, if applicable
             var wielder = GetWielder(wo);
@@ -261,7 +258,7 @@ namespace ACE.Server.Network.Structure
 
         private void BuildCreature(Creature creature)
         {
-            CreatureProfile = new CreatureProfile(creature);
+            CreatureProfile = new CreatureProfile(creature, Success);
 
             // only creatures?
             ResistHighlight = ResistMaskHelper.GetHighlightMask(creature);
