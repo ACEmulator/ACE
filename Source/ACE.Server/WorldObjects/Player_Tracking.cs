@@ -156,7 +156,10 @@ namespace ACE.Server.WorldObjects
             if (formerWielder == this)
                 return;
 
-            Session.Network.EnqueueSend(new GameMessagePickupEvent(worldObject));
+            // todo: Until we can fix the tracking system better, sending the PickupEvent like retail causes weapon dissapearing bugs on relog
+            //Session.Network.EnqueueSend(new GameMessagePickupEvent(worldObject));
+
+            Session.Network.EnqueueSend(new GameMessageDeleteObject(worldObject));
         }
     }
 }
