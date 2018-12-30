@@ -172,22 +172,20 @@ namespace ACE.Server.WorldObjects
                 new GameEventWieldItem(Session, item.Guid.Full, wieldedLocation));
 
             // If item has any spells, cast them on the wielder
-            if (item.Biota.BiotaPropertiesSpellBook != null)
+            if (item.ItemCurMana > 1 || item.ItemCurMana == null) // TODO: Once Item Current Mana is fixed for loot generated items, '|| item.ItemCurMana == null' can be removed
             {
-                if (item.ItemCurMana > 1 || item.ItemCurMana == null) // TODO: Once Item Current Mana is fixed for loot generated items, '|| item.ItemCurMana == null' can be removed
+                foreach (var spell in item.Biota.BiotaPropertiesSpellBook)
                 {
-                    for (int i = 0; i < item.Biota.BiotaPropertiesSpellBook.Count; i++)
-                    {
-                        if (CreateItemSpell(item.Guid, (uint)item.Biota.BiotaPropertiesSpellBook.ElementAt(i).Spell))
-                            item.IsAffecting = true;
-                    }
-
-                    if (item.IsAffecting ?? false)
-                    {
-                        if (item.ItemCurMana.HasValue)
-                            item.ItemCurMana--;
-                    }
+                    if (CreateItemSpell(item, (uint)spell.Spell))
+                        item.IsAffecting = true;
                 }
+
+                if (item.IsAffecting ?? false)
+                {
+                    if (item.ItemCurMana.HasValue)
+                        item.ItemCurMana--;
+                }
+
             }
 
             if (CombatMode == CombatMode.NonCombat || CombatMode == CombatMode.Undef)
@@ -242,8 +240,8 @@ namespace ACE.Server.WorldObjects
             // If item has any spells, remove them from the registry on unequip
             if (item.Biota.BiotaPropertiesSpellBook != null)
             {
-                for (int i = 0; i < item.Biota.BiotaPropertiesSpellBook.Count; i++)
-                    DispelItemSpell(item.Guid, (uint)item.Biota.BiotaPropertiesSpellBook.ElementAt(i).Spell);
+                foreach (var spell in item.Biota.BiotaPropertiesSpellBook)
+                    DispelItemSpell(item, (uint)spell.Spell);
             }
 
             if (dequipObjectAction != DequipObjectAction.DequipToPack)

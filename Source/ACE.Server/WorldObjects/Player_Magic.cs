@@ -235,29 +235,17 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Method used for handling items casting spells on the player who is either equiping the item, or using a gem in posessions
         /// </summary>
-        /// <param name="guidItem">the GUID of the item casting the spell(s)</param>
+        /// <param name="item">the item casting the spell(s)</param>
         /// <param name="spellId">the spell id</param>
         /// <param name="suppressSpellChatText">prevent spell text from being sent to the player's chat windows (used for already affecting items during Player.EnterWorld)</param>
         /// <param name="ignoreRequirements">disregard item activation requirements (used for already affecting items during Player.EnterWorld)</param>
         /// <returns>FALSE - the spell was NOT created because the spell is invalid or not implemented yet, the item was not found, the item was not either wielded or a gem, or the player did not meet one or more item activation requirements. <para />TRUE - the spell was created or it is surpassed</returns>
-        public bool CreateItemSpell(ObjectGuid guidItem, uint spellId, bool suppressSpellChatText = false, bool ignoreRequirements = false)
+        public bool CreateItemSpell(WorldObject item, uint spellId, bool suppressSpellChatText = false, bool ignoreRequirements = false)
         {
-            var player = this;
-            WorldObject item = player.GetEquippedItem(guidItem);
-
-            if (item == null)
-            {
-                item = player.GetInventoryItem(guidItem);
-                if (item == null)
-                    return false;
-                if (item.WeenieType != WeenieType.Gem)
-                    return false;
-            }
-
-            CreatureSkill arcaneLore = player.GetCreatureSkill(Skill.ArcaneLore);
-            CreatureSkill meleeDefense = player.GetCreatureSkill(Skill.MeleeDefense);
-            CreatureSkill missileDefense = player.GetCreatureSkill(Skill.MissileDefense);
-            CreatureSkill magicDefense = player.GetCreatureSkill(Skill.MagicDefense);
+            CreatureSkill arcaneLore = GetCreatureSkill(Skill.ArcaneLore);
+            CreatureSkill meleeDefense = GetCreatureSkill(Skill.MeleeDefense);
+            CreatureSkill missileDefense = GetCreatureSkill(Skill.MissileDefense);
+            CreatureSkill magicDefense = GetCreatureSkill(Skill.MagicDefense);
 
             if (ignoreRequirements || arcaneLore.Current >= item.ItemDifficulty || item.ItemDifficulty == null)
             {
@@ -303,11 +291,11 @@ namespace ACE.Server.WorldObjects
 
                         if (spell.IsHarmful)
                             break;
-                        enchantmentStatus = CreatureMagic(player, spell, item);
+                        enchantmentStatus = CreatureMagic(this, spell, item);
                         created = true;
                         if (enchantmentStatus.message != null)
                         {
-                            EnqueueBroadcast(new GameMessageScript(player.Guid, spell.TargetEffect, spell.Formula.Scale));
+                            EnqueueBroadcast(new GameMessageScript(Guid, spell.TargetEffect, spell.Formula.Scale));
                             if (!suppressSpellChatText)
                                 Session.Network.EnqueueSend(enchantmentStatus.message);
                         }
@@ -320,11 +308,11 @@ namespace ACE.Server.WorldObjects
                             if (spell.IsHarmful)
                                 break;
                         }
-                        LifeMagic(player, spell, out uint damage, out bool critical, out enchantmentStatus, item);
+                        LifeMagic(this, spell, out uint damage, out bool critical, out enchantmentStatus, item);
                         created = true;
                         if (enchantmentStatus.message != null)
                         {
-                            EnqueueBroadcast(new GameMessageScript(player.Guid, spell.TargetEffect, spell.Formula.Scale));
+                            EnqueueBroadcast(new GameMessageScript(Guid, spell.TargetEffect, spell.Formula.Scale));
                             if (!suppressSpellChatText)
                                 Session.Network.EnqueueSend(enchantmentStatus.message);
                         }
@@ -338,8 +326,8 @@ namespace ACE.Server.WorldObjects
                             || (spell.MetaSpellType == SpellType.PortalSummon))
                         {
                             var playScript = spell.CasterEffect > 0 ? spell.CasterEffect : spell.TargetEffect;
-                            EnqueueBroadcast(new GameMessageScript(player.Guid, playScript, spell.Formula.Scale));
-                            enchantmentStatus = ItemMagic(player, spell, item);
+                            EnqueueBroadcast(new GameMessageScript(Guid, playScript, spell.Formula.Scale));
+                            enchantmentStatus = ItemMagic(this, spell, item);
                         }
                         else
                         {
@@ -350,18 +338,18 @@ namespace ACE.Server.WorldObjects
                                 || (spell.Category == (uint)SpellCategory.AppraisalResistanceLowering)
                                 || (spell.Category == (uint)SpellCategory.SpellDamageRaising))
                             {
-                                enchantmentStatus = ItemMagic(player, spell, item);
+                                enchantmentStatus = ItemMagic(this, spell, item);
                             }
                             else
                                 enchantmentStatus = ItemMagic(item, spell, item);
 
-                            EnqueueBroadcast(new GameMessageScript(player.Guid, spell.TargetEffect, spell.Formula.Scale));
+                            EnqueueBroadcast(new GameMessageScript(Guid, spell.TargetEffect, spell.Formula.Scale));
                         }
                         created = true;
                         if (enchantmentStatus.message != null)
                         {
                             if (!suppressSpellChatText)
-                                player.Session.Network.EnqueueSend(enchantmentStatus.message);
+                                Session.Network.EnqueueSend(enchantmentStatus.message);
                         }
                         break;
 
@@ -376,18 +364,13 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Method for handling the removal of an item's spell from the Enchantment registry, silently
         /// </summary>
-        public void DispelItemSpell(ObjectGuid guidItem, uint spellId)
+        public void DispelItemSpell(WorldObject item, uint spellId)
         {
-            WorldObject item = GetEquippedItem(guidItem);
-
-            if (item == null)
-                return;
-
             var spell = new Spell(spellId);
 
             if (spell._spellBase == null)
             {
-                Session.Network.EnqueueSend(new GameEventUseDone(Session, errorType: WeenieError.MagicInvalidSpellType));
+                Session.Network.EnqueueSend(new GameEventUseDone(Session, WeenieError.MagicInvalidSpellType));
                 return;
             }
 
