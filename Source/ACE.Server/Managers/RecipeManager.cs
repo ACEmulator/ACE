@@ -263,7 +263,7 @@ namespace ACE.Server.Managers
                     target.SetProperty(PropertyInt.Attuned, 1);
                     break;
                 case MaterialType.Leather:
-                    target.SetProperty(PropertyInt.Bonded, 1);  // retained?
+                    target.SetProperty(PropertyBool.Retained, true);
                     break;
                 case MaterialType.Moonstone:
                     target.ItemMaxMana += 500;
