@@ -93,9 +93,9 @@ namespace ACE.Server.WorldObjects
 
             if (!Heritage.HasValue)
             {
-                if (!String.IsNullOrEmpty(HeritageGroup))
+                if (!String.IsNullOrEmpty(HeritageGroupName))
                 {
-                    HeritageGroup parsed = (HeritageGroup)Enum.Parse(typeof(HeritageGroup), HeritageGroup.Replace("'", ""), true);
+                    HeritageGroup parsed = (HeritageGroup)Enum.Parse(typeof(HeritageGroup), HeritageGroupName.Replace("'", ""), true);
                     if (parsed != 0)
                         Heritage = (int)parsed;
                 }

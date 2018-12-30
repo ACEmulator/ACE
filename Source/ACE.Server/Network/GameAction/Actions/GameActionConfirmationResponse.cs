@@ -12,7 +12,6 @@ namespace ACE.Server.Network.GameAction.Actions
             bool response = message.Payload.ReadInt32() > 0;
 
             ConfirmationManager.ProcessConfirmation(context, response);
-            // TODO: do something
         }
     }
 }
