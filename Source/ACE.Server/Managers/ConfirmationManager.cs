@@ -1,9 +1,8 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
-
+using ACE.Entity.Enum;
 using ACE.Server.Entity;
-using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Managers
 {
@@ -23,22 +22,36 @@ namespace ACE.Server.Managers
 
         public static void ProcessConfirmation(uint contextId, bool response)
         {
-            if (confirmations.Remove<uint, Confirmation>(contextId, out var confirmationToProcess))
-            { 
-                Player newMember = PlayerManager.GetOnlinePlayer(confirmationToProcess.Target);
-                Player player = PlayerManager.GetOnlinePlayer(confirmationToProcess.Initiator);
-                switch (confirmationToProcess.ConfirmationType)
-                {
-                    case Network.Enum.ConfirmationType.Fellowship:
-                        player.CompleteConfirmation(confirmationToProcess.ConfirmationType, confirmationToProcess.ConfirmationID);
-                        player.Fellowship.AddConfirmedMember(player, newMember, response);
-                        break;
-                    case Network.Enum.ConfirmationType.SwearAllegiance:
-                        break;
-                    default:
-                        break;
-                }
-                
+            if (!confirmations.Remove(contextId, out var confirm))
+                return;
+
+            switch (confirm.ConfirmationType)
+            {
+                case ConfirmationType.Fellowship:
+
+                    var inviter = PlayerManager.GetOnlinePlayer(confirm.Source.Guid);
+                    var invited = PlayerManager.GetOnlinePlayer(confirm.Target.Guid);
+
+                    inviter.CompleteConfirmation(confirm.ConfirmationType, confirm.ConfirmationID);
+
+                    if (response)
+                        inviter.Fellowship.AddConfirmedMember(inviter, invited, response);
+
+                    break;
+
+                case ConfirmationType.SwearAllegiance:
+                    break;
+
+                case ConfirmationType.CraftInteraction:
+
+                    confirm.Player.CompleteConfirmation(confirm.ConfirmationType, confirm.ConfirmationID);
+
+                    if (response)
+                        RecipeManager.HandleTinkering(confirm.Player, confirm.Source, confirm.Target, true);
+                    break;
+
+                default:
+                    break;
             }
         }
     }

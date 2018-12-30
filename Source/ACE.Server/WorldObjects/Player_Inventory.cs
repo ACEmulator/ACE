@@ -220,7 +220,9 @@ namespace ACE.Server.WorldObjects
             TradeItem,
             SellItem,
 
-            ToCorpseOnDeath
+            ToCorpseOnDeath,
+
+            ConsumeItem
         }
 
         /// <summary>
@@ -859,8 +861,8 @@ namespace ACE.Server.WorldObjects
             switch (itemWieldReq)
             {
                 case WieldRequirement.RawSkill:
-                    // Check WieldDifficulty property against player's Skill level, defined by item's WieldSkilltype property
-                    var itemSkillReq = ConvertToMoASkill((Skill)(item.GetProperty(PropertyInt.WieldSkilltype) ?? 0));
+                    // Check WieldDifficulty property against player's Skill level, defined by item's WieldSkillType property
+                    var itemSkillReq = ConvertToMoASkill((Skill)(item.GetProperty(PropertyInt.WieldSkillType) ?? 0));
 
                     if (itemSkillReq != Skill.None)
                     {
@@ -880,8 +882,8 @@ namespace ACE.Server.WorldObjects
                     break;
 
                 case WieldRequirement.Attrib:
-                    // Check WieldDifficulty property against player's Attribute, defined by item's WieldSkilltype property
-                    var itemAttributeReq = (PropertyAttribute)(item.GetProperty(PropertyInt.WieldSkilltype) ?? 0);
+                    // Check WieldDifficulty property against player's Attribute, defined by item's WieldSkillType property
+                    var itemAttributeReq = (PropertyAttribute)(item.GetProperty(PropertyInt.WieldSkillType) ?? 0);
 
                     if (itemAttributeReq != PropertyAttribute.Undef)
                     {

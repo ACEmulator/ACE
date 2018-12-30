@@ -1063,6 +1063,7 @@ namespace ACE.Server.WorldObjects
             "WarMagicMastery",
             "ManaMastery",
             "ArcaneEnlightenment",
+            "ArcanumSalvaging",
             "ArmorExpertise",
             "ItemExpertise",
             "MagicItemExpertise",

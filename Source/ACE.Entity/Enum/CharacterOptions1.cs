@@ -42,6 +42,6 @@ namespace ACE.Entity.Enum
         UseChargeAttack                         = 0x10000000,
         AutomaticallyAcceptFellowshipRequests   = 0x20000000,
         ListenToAllegianceChat                  = 0x40000000,
-        UseCraftingChangeOfSuccessDialog        = 0x80000000
+        UseCraftingChanceOfSuccessDialog        = 0x80000000
     }
 }

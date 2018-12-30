@@ -756,7 +756,7 @@ namespace ACE.Server.Managers
                             player.Session.Network.EnqueueSend(new GameEventPopupString(player.Session, emote.Message));
                         else
                         {
-                            Confirmation confirm = new Confirmation((ConfirmationType)emote.Stat, emote.Message, WorldObject.Guid.Full, targetObject.Guid.Full);
+                            Confirmation confirm = new Confirmation((ConfirmationType)emote.Stat, emote.Message, WorldObject, targetObject);
                             ConfirmationManager.AddConfirmation(confirm);
                             player.Session.Network.EnqueueSend(new GameEventConfirmationRequest(player.Session, (ConfirmationType)emote.Stat, confirm.ConfirmationID, confirm.Message));
                         }

@@ -202,8 +202,8 @@ namespace ACE.Server.WorldObjects
 
                 if (itemWieldReq == WieldRequirement.RawSkill || itemWieldReq == WieldRequirement.Skill)
                 {
-                    // Check WieldDifficulty property against player's Skill level, defined by item's WieldSkilltype property
-                    var itemSkillReq = player.ConvertToMoASkill((Skill)(equippedItem.GetProperty(PropertyInt.WieldSkilltype) ?? 0));
+                    // Check WieldDifficulty property against player's Skill level, defined by item's WieldSkillType property
+                    var itemSkillReq = player.ConvertToMoASkill((Skill)(equippedItem.GetProperty(PropertyInt.WieldSkillType) ?? 0));
 
                     if (itemSkillReq == SkillToBeAltered)
                     {

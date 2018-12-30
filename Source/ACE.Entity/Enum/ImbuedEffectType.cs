@@ -3,27 +3,27 @@ using System;
 namespace ACE.Entity.Enum
 {
     [Flags]
-    public enum ImbuedEffectType
+    public enum ImbuedEffectType: uint
     {
         Undef                           = 0,
-        CriticalStrike                  = (1 << 0),
-        CripplingBlow                   = (1 << 1),
-        ArmorRending                    = (1 << 2),
-        SlashRending                    = (1 << 3),
-        PierceRending                   = (1 << 4),
-        BludgeonRending                 = (1 << 5),
-        AcidRending                     = (1 << 6),
-        ColdRending                     = (1 << 7),
-        ElectricRending                 = (1 << 8),
-        FireRending                     = (1 << 9),
-        MeleeDefense                    = (1 << 10),
-        MissileDefense                  = (1 << 11),
-        MagicDefense                    = (1 << 12),
-        Spellbook                       = (1 << 13),
-        NetherRending                   = (1 << 14),
+        CriticalStrike                  = 0x0001,
+        CripplingBlow                   = 0x0002,
+        ArmorRending                    = 0x0004,
+        SlashRending                    = 0x0008,
+        PierceRending                   = 0x0010,
+        BludgeonRending                 = 0x0020,
+        AcidRending                     = 0x0040,
+        ColdRending                     = 0x0080,
+        ElectricRending                 = 0x0100,
+        FireRending                     = 0x0200,
+        MeleeDefense                    = 0x0400,
+        MissileDefense                  = 0x0800,
+        MagicDefense                    = 0x1000,
+        Spellbook                       = 0x2000,
+        NetherRending                   = 0x4000,
 
-        IgnoreSomeMagicProjectileDamage = (1 << 29),
-        AlwaysCritical                  = (1 << 30),
-        IgnoreAllArmor                  = (1 << 31)
+        IgnoreSomeMagicProjectileDamage = 0x20000000,
+        AlwaysCritical                  = 0x40000000,
+        IgnoreAllArmor                  = 0x80000000
     }
 }

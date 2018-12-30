@@ -213,7 +213,7 @@ namespace ACE.Entity.Enum.Properties
         PickupEmoteOffset                        = 156,
         WeenieIteration                          = 157,
         WieldRequirements                        = 158,
-        WieldSkilltype                           = 159,
+        WieldSkillType                           = 159,
         WieldDifficulty                          = 160,
         HouseMaxHooksUsable                      = 161,
         HouseCurrentHooksUsable                  = 162,
@@ -335,13 +335,13 @@ namespace ACE.Entity.Enum.Properties
         RemainingLifespan                        = 268,
         UseCreateQuantity                        = 269,
         WieldRequirements2                       = 270,
-        WieldSkilltype2                          = 271,
+        WieldSkillType2                          = 271,
         WieldDifficulty2                         = 272,
         WieldRequirements3                       = 273,
-        WieldSkilltype3                          = 274,
+        WieldSkillType3                          = 274,
         WieldDifficulty3                         = 275,
         WieldRequirements4                       = 276,
-        WieldSkilltype4                          = 277,
+        WieldSkillType4                          = 277,
         WieldDifficulty4                         = 278,
         Unique                                   = 279,
         SharedCooldown                           = 280,
@@ -642,10 +642,10 @@ namespace ACE.Entity.Enum.Properties
                 case PropertyInt.RadarBlipColor:
                     return System.Enum.GetName(typeof(RadarColor), value);
                 case PropertyInt.WeaponSkill:
-                case PropertyInt.WieldSkilltype2:
-                case PropertyInt.WieldSkilltype3:
-                case PropertyInt.WieldSkilltype4:
-                case PropertyInt.WieldSkilltype:
+                case PropertyInt.WieldSkillType:
+                case PropertyInt.WieldSkillType2:
+                case PropertyInt.WieldSkillType3:
+                case PropertyInt.WieldSkillType4:
                     return System.Enum.GetName(typeof(Skill), value);
                 case PropertyInt.AccountRequirements:
                     return System.Enum.GetName(typeof(SubscriptionStatus), value);
@@ -657,10 +657,10 @@ namespace ACE.Entity.Enum.Properties
                     return System.Enum.GetName(typeof(Usable), value);
                 case PropertyInt.WeaponType:
                     return System.Enum.GetName(typeof(WeaponType), value);
+                case PropertyInt.WieldRequirements:
                 case PropertyInt.WieldRequirements2:
                 case PropertyInt.WieldRequirements3:
                 case PropertyInt.WieldRequirements4:
-                case PropertyInt.WieldRequirements:
                     return System.Enum.GetName(typeof(WieldRequirement), value);
 
                 case PropertyInt.GeneratorStartTime:
