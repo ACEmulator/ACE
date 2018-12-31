@@ -701,6 +701,15 @@ namespace ACE.Database.Models.Shard
 
                 entity.ToTable("biota_properties_enchantment_registry");
 
+                entity.HasIndex(e => e.LayerId)
+                    .HasName("layer_Id_idx");
+
+                entity.HasIndex(e => e.PowerLevel)
+                    .HasName("power_Level_idx");
+
+                entity.HasIndex(e => e.SpellCategory)
+                    .HasName("spell_Category_idx");
+
                 entity.HasIndex(e => new { e.ObjectId, e.SpellId, e.LayerId })
                     .HasName("wcid_enchantmentregistry_objectId_spellId_layerId_uidx")
                     .IsUnique();
