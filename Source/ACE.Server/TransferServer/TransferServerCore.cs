@@ -21,12 +21,10 @@ namespace ACE.Server.TransferServer
         public TcpListener server = null;
         public void Listen(string address, int port)
         {
-
             try
             {
                 server = new TcpListener(IPAddress.Parse(address), port);
                 server.Start();
-
             }
             catch (Exception ex)
             {
@@ -59,9 +57,8 @@ namespace ACE.Server.TransferServer
                 // Set the event to nonsignaled state.
                 tcpClientConnected.Reset();
                 // Start to listen for connections from a client.
-                //Console.WriteLine("Waiting for a connection...");
                 // Accept the connection. 
-                // BeginAcceptSocket() creates the accepted socket.
+                // create the accepted socket.
                 listener.BeginAcceptTcpClient(
                     new AsyncCallback(DoAcceptTcpClientCallback),
                     listener);
@@ -78,8 +75,6 @@ namespace ACE.Server.TransferServer
         public void DoAcceptTcpClientCallback(IAsyncResult iar)
         {
             // Get the listener that handles the client request.
-            //TcpListener listener = (TcpListener)ar.AsyncState;
-
             TcpListener l = (TcpListener)iar.AsyncState;
             TcpClient c;
             try
@@ -106,10 +101,7 @@ namespace ACE.Server.TransferServer
             }
             catch (SocketException)
             {
-                //Console.WriteLine("Error accepting TCP connection: {0}", ex.Message);
-
                 // unrecoverable
-                //_doneEvent.Set();
                 tcpClientConnected.Set();
                 return;
             }
@@ -118,7 +110,6 @@ namespace ACE.Server.TransferServer
                 // The listener was Stop()'d, disposing the underlying socket and
                 // triggering the completion of the callback. We're already exiting,
                 // so just return.
-                //Console.WriteLine("Listen canceled.");
                 tcpClientConnected.Set();
                 return;
             }

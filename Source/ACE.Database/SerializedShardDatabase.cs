@@ -42,7 +42,7 @@ namespace ACE.Database
             {
                 try
                 {
-                    Task t = _queue.Take();
+                    Task t = _queue.Take(); // when exiting - System.InvalidOperationException: 'The collection argument is empty and has been marked as complete with regards to additions.'
 
                     try
                     {

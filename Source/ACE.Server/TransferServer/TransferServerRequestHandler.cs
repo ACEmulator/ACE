@@ -10,6 +10,7 @@ using System.Text;
 
 namespace ACE.Server.TransferServer
 {
+    // TO-DO: strip out unneeded session and browser cookie stuff and use a single instance/session
     internal class TransferServerRequestHandler
     {
         public static bool Shutdown = false;

@@ -83,10 +83,19 @@ namespace ACE.Server.Managers
         /// </summary>
         public static void AddOfflinePlayer(Player player)
         {
+            AddOfflinePlayer(player.Biota);
+        }
+
+        /// <summary>
+        /// This would be used when a new player is created after the server has started.
+        /// When a new Player is created, they're created in an offline state, and then set to online shortly after as the login sequence continues.
+        /// </summary>
+        public static void AddOfflinePlayer(Biota bioPlayer)
+        {
             playersLock.EnterWriteLock();
             try
             {
-                var offlinePlayer = new OfflinePlayer(player.Biota);
+                var offlinePlayer = new OfflinePlayer(bioPlayer);
                 offlinePlayers[offlinePlayer.Guid.Full] = offlinePlayer;
             }
             finally

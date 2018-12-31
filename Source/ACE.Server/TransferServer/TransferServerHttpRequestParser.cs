@@ -3,6 +3,7 @@ using System;
 
 namespace ACE.Server.TransferServer
 {
+    //TO-DO: verify HttpMachine is compatible with linux
     public class TransferServerHttpRequestParser : IHttpParserHandler
     {
         public TransferServerHttpRequestParser(Action<TransferServerHttpRequest> RequestHandler)

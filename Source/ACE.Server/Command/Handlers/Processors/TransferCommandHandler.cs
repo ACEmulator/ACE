@@ -1,6 +1,7 @@
 using ACE.Server.Managers;
 using ACE.Server.Network;
 using log4net;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace ACE.Server.Command.Handlers.Processors
@@ -19,20 +20,43 @@ namespace ACE.Server.Command.Handlers.Processors
         {
             Task.Run(() => RunImport(session, parameters));
         }
-        private async Task RunImport(Session session, params string[] parameters)
+        private void RunImport(Session session, params string[] parameters)
         {
-            string charName = await TransferManager.Import(session, parameters);
+
+            List<CommandParameterHelpers.ACECommandParameter> aceParams = new List<CommandParameterHelpers.ACECommandParameter>()
+            {
+                new CommandParameterHelpers.ACECommandParameter() {
+                    Type = CommandParameterHelpers.ACECommandParameterType.PlayerName,
+                    Required = true,
+                    ErrorMessage = "You must supply a new character name for this import."
+                },
+                new CommandParameterHelpers.ACECommandParameter()
+                {
+                    Type = CommandParameterHelpers.ACECommandParameterType.Uri,
+                    Required = true,
+                    ErrorMessage = "You must supply the URL to the zip file download containing the character to import."
+                }
+            };
+            if (!CommandParameterHelpers.ResolveACEParameters(session, parameters, aceParams)) return;
+
+
+            string charName = TransferManager.Import(session, aceParams[0].AsString, aceParams[1].AsUri);
             if (charName != null)
             {
                 session.WorldBroadcast($"Character {charName} imported.");
+            }
+            else
+            {
+                session.WorldBroadcast($"Character import failed.");
             }
         }
         private async Task RunExport(Session session, params string[] parameters)
         {
             string url = await TransferManager.Export(session);
-            session.WorldBroadcast($"Character ready for transfer.  A secret cookie has been assigned for this transfer.  " +
-                "Use the secret cookie to either download your character or transfer your character to another server by logging into " + "" +
-                $"the target server and entering the command: @import-char {url}");
+            session.WorldBroadcast($"Character ready for transfer.  A secret one-time cookie has been assigned for this transfer." +
+                "\nTo use the secret cookie to either download your character with a browser or transfer your character to another server by" +
+                "\nlogging into the target server and entering the command (replacing <name> with desired character name):" +
+                $"\n@import-char <name> {url}");
         }
     }
 }
