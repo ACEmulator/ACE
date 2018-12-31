@@ -59,6 +59,10 @@ namespace ACE.Database.Models.Shard
             var config = Common.ConfigManager.Config.MySql.Shard;
 
             optionsBuilder.UseMySql($"server={config.Host};port={config.Port};user={config.Username};password={config.Password};database={config.Database}");
+
+#if DEBUG
+            optionsBuilder.EnableSensitiveDataLogging(true);
+#endif
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -700,15 +704,6 @@ namespace ACE.Database.Models.Shard
                 entity.HasKey(e => new { e.ObjectId, e.EnchantmentCategory, e.SpellId, e.LayerId });
 
                 entity.ToTable("biota_properties_enchantment_registry");
-
-                entity.HasIndex(e => e.LayerId)
-                    .HasName("layer_Id_idx");
-
-                entity.HasIndex(e => e.PowerLevel)
-                    .HasName("power_Level_idx");
-
-                entity.HasIndex(e => e.SpellCategory)
-                    .HasName("spell_Category_idx");
 
                 entity.HasIndex(e => new { e.ObjectId, e.SpellId, e.LayerId })
                     .HasName("wcid_enchantmentregistry_objectId_spellId_layerId_uidx")
