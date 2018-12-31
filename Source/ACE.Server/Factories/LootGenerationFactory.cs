@@ -17613,7 +17613,7 @@ namespace ACE.Server.Factories
             ///weaponType: 1 Heavy, 2 Finesse/Light, 3 two-handed
             ///baseWeapon: 1 Axe, 2 Dagger, 3 DaggerMulti, 4 Mace, 5 Spear, 6 Sword, 7 SwordMulti, 8 Staff, 9 UA
             int wieldPlace = 0;
-            if(wieldPlace == 250)
+            if (wieldPlace == 250)
             {
                 wieldPlace = 1;
             }
@@ -17675,7 +17675,8 @@ namespace ACE.Server.Factories
                 { 14, 19, 23, 28, 33, 37, 42, 45, 48 }
             };
             int tieredDamage = 0;
-            switch(weaponType)
+            int finalDamage = 0;
+            switch (weaponType)
             {
                 case 1:
                     tieredDamage = heavyWeaponDamageTable[baseWeapon - 1, wieldPlace];
@@ -17687,7 +17688,63 @@ namespace ACE.Server.Factories
                     tieredDamage = twohandedWeaponDamageTable[baseWeapon - 1, wieldPlace];
                     break;
             }
-            return tieredDamage;
+            double chance = ThreadSafeRandom.Next(0, 1);
+            if (tieredDamage < 10)
+            {
+
+                if (chance < .026)
+                {
+                    finalDamage = tieredDamage - 3;
+                }
+                else if (chance < .5)
+                {
+                    finalDamage = tieredDamage - 2;
+                }
+                else if (chance < .977)
+                {
+                    finalDamage = tieredDamage - 1;
+                }
+                else
+                {
+                    finalDamage = tieredDamage;
+                }
+            }
+            else
+            {
+                if (chance < .005)
+                {
+                    finalDamage = tieredDamage - 7;
+                }
+                else if (chance < .026)
+                {
+                    finalDamage = tieredDamage - 6;
+                }
+                else if (chance < .162)
+                {
+                    finalDamage = tieredDamage - 5;
+                }
+                else if (chance < .5)
+                {
+                    finalDamage = tieredDamage - 4;
+                }
+                else if (chance < .841)
+                {
+                    finalDamage = tieredDamage - 3;
+                }
+                else if (chance < .977)
+                {
+                    finalDamage = tieredDamage - 2;
+                }
+                else if (chance < .995)
+                {
+                    finalDamage = tieredDamage - 1;
+                }
+                else
+                {
+                    finalDamage = tieredDamage;
+                }
+            }
+            return finalDamage;
         }
 
         public static int GetLowSpellTier(int tier)
