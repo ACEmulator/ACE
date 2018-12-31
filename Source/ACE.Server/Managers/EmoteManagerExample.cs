@@ -464,7 +464,7 @@ namespace ACE.Server.Managers
                     break;
 
                 case EmoteType.PopUp:
-                    ConfirmationManager.AddConfirmation(new Confirmation((ConfirmationType)emote.Stat, emote.Message, WorldObject.Guid.Full, target.Guid.Full));
+                    ConfirmationManager.AddConfirmation(new Confirmation((ConfirmationType)emote.Stat, emote.Message, WorldObject, target));
                     break;
 
                 case EmoteType.RemoveContract:

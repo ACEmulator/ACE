@@ -1,4 +1,4 @@
-﻿namespace ACE.Server.Network.Enum
+namespace ACE.Entity.Enum
 {
      public enum ConfirmationType : uint
      {

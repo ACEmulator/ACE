@@ -27,7 +27,7 @@ namespace ACE.Server.WorldObjects
                 actionChain = new ActionChain();
 
             var animLength = 0.0f;
-            if (weapon.IsBow)
+            if (weapon.IsAmmoLauncher)
             {
                 animLength = EnqueueMotion(actionChain, MotionCommand.Reload);   // start pulling out next arrow
                 EnqueueMotion(actionChain, MotionCommand.Ready);    // finish reloading
