@@ -227,7 +227,8 @@ namespace ACE.Server.Managers
                         }
 
                         // item cast spell of equal power should override an existing spell, especially one with a duration
-                        if ((caster as Creature) == null)
+                        // This causes duplicate 
+                        /*if ((caster as Creature) == null)
                         {
                             enchantment.Layer = entry.LayerId; // Should be a higher layer than existing enchant
 
@@ -237,7 +238,7 @@ namespace ACE.Server.Managers
                             WorldObject.ChangesDetected = true;
                             result = StackType.Refresh;
                             break;
-                        }
+                        }*/
 
                         // refresh existing spell
                         entry.StartTime = 0;
