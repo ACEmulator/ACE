@@ -689,14 +689,19 @@ namespace ACE.Server.WorldObjects
                 item.Location = new Position(Location.InFrontOf(1.1f));
                 item.Placement = ACE.Entity.Enum.Placement.Resting; // This is needed to make items lay flat on the ground.
 
-                CurrentLandblock.AddWorldObject(item);
+                if (CurrentLandblock.AddWorldObject(item))
+                {
+                    Session.Network.EnqueueSend(
+                        new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Container, new ObjectGuid(0)),
+                        new GameEventItemServerSaysMoveItem(Session, item),
+                        new GameMessageUpdatePosition(item));
 
-                Session.Network.EnqueueSend(
-                    new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Container, new ObjectGuid(0)),
-                    new GameEventItemServerSaysMoveItem(Session, item),
-                    new GameMessageUpdatePosition(item));
-
-                EnqueueBroadcast(new GameMessageSound(Guid, Sound.DropItem));
+                    EnqueueBroadcast(new GameMessageSound(Guid, Sound.DropItem));
+                }
+                else
+                {
+                    // todo: if this happens, we should just put back the dropped item into inventory
+                }
 
                 var returnStance = new Motion(CurrentMotionState.Stance);
                 EnqueueBroadcastMotion(returnStance);
@@ -1108,9 +1113,14 @@ namespace ACE.Server.WorldObjects
                 newStack.Location = new Position(Location.InFrontOf(1.1f));
                 newStack.Placement = ACE.Entity.Enum.Placement.Resting; // This is needed to make items lay flat on the ground.
 
-                CurrentLandblock.AddWorldObject(newStack);
-
-                EnqueueBroadcast(new GameMessageSound(Guid, Sound.DropItem));
+                if (CurrentLandblock.AddWorldObject(newStack))
+                {
+                    EnqueueBroadcast(new GameMessageSound(Guid, Sound.DropItem));
+                }
+                else
+                {
+                    // todo: if this happens, we should just put split amount into the original stack
+                }
 
                 var returnStance = new Motion(CurrentMotionState.Stance);
                 EnqueueBroadcastMotion(returnStance);
