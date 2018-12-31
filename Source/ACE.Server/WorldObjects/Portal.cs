@@ -13,95 +13,7 @@ namespace ACE.Server.WorldObjects
 {
     public class Portal : WorldObject
     {
-        //public Position Destination { get; private set; }
-
         // private byte portalSocietyId;
-
-        private enum SpecialPortalWCID : ushort
-        {
-            /// <summary>
-            /// Training Academy's Central Courtyard's portal weenieClassID
-            /// </summary>
-            CentralCourtyard = 31061,
-
-            /// <summary>
-            /// Training Academy's Outer Courtyard's portal weenieClassID
-            /// </summary>
-            OuterCourtyard = 29334
-        }
-
-        private enum SpecialPortalLandblockID : uint
-        {
-            /// <summary>
-            /// Shoushi :: Training Academy's Central Courtyard's portal raw LandblockID
-            /// </summary>
-            ShoushiCCLaunch = 0x7f030273,
-
-            /// <summary>
-            /// Shoushi :: Training Academy's Central Courtyard's portal destination raw LandblockID
-            /// </summary>
-            ShoushiCCLanding = 0x7f03021e,
-
-            /// <summary>
-            /// Yaraq :: Training Academy's Central Courtyard's portal raw LandblockID
-            /// </summary>
-            YaraqCCLaunch = 0x8c040273,
-
-            /// <summary>
-            /// Yaraq :: Training Academy's Central Courtyard's portal destination raw LandblockID
-            /// </summary>
-            YaraqCCLanding = 0x8c04021e,
-
-            /// <summary>
-            /// Sanamar :: Training Academy's Central Courtyard's portal raw LandblockID
-            /// </summary>
-            SanamarCCLaunch = 0x72030273,
-
-            /// <summary>
-            /// Sanamar :: Training Academy's Central Courtyard's portal destination raw LandblockID
-            /// </summary>
-            SanamarCCLanding = 0x7203021e,
-
-            /// <summary>
-            /// Holtburg :: Training Academy's Central Courtyard's portal destination raw LandblockID
-            /// </summary>
-            HoltburgCCLanding = 0x8603021e,
-
-            /// <summary>
-            /// Shoushi :: Training Academy's Outer Courtyard's portal raw LandblockID
-            /// </summary>
-            ShoushiOCLaunch = 0x7f030331,
-
-            /// <summary>
-            /// Shoushi :: Training Academy's Outer Courtyard's portal destination raw LandblockID
-            /// </summary>
-            ShoushiOCLanding = 0x7f0302c3,
-
-            /// <summary>
-            /// Yaraq :: Training Academy's Outer Courtyard's portal raw LandblockID
-            /// </summary>
-            YaraqOCLaunch = 0x8c040331,
-
-            /// <summary>
-            /// Yaraq :: Training Academy's Outer Courtyard's portal destination raw LandblockID
-            /// </summary>
-            YaraqOCLanding = 0x8c0402c3,
-
-            /// <summary>
-            /// Sanamar :: Training Academy's Outer Courtyard's portal raw LandblockID
-            /// </summary>
-            SanamarOCLaunch = 0x72030331,
-
-            /// <summary>
-            /// Sanamar :: Training Academy's Outer Courtyard's portal destination raw LandblockID
-            /// </summary>
-            SanamarOCLanding = 0x720302c3,
-
-            /// <summary>
-            /// Holtburg :: Training Academy's Outer Courtyard's portal destination raw LandblockID
-            /// </summary>
-            HoltburgOCLanding = 0x860302c3
-        }
 
         /// <summary>
         /// A new biota be created taking all of its values from weenie.
@@ -192,87 +104,6 @@ namespace ACE.Server.WorldObjects
 
         public bool NoTie => NoRecall;
 
-        private void AdjustPortalDestination(Player player, Position portalDest)
-        {
-            switch (WeenieClassId)
-            {
-                // Setup correct racial portal destination for the Central Courtyard in the Training Academy
-                case (ushort)SpecialPortalWCID.CentralCourtyard:
-                    {
-                        uint playerLandblockId = player.Location.LandblockId.Raw;
-                        switch (playerLandblockId)
-                        {
-                            case (uint)SpecialPortalLandblockID.ShoushiCCLaunch:    // Shoushi
-                                {
-                                    portalDest.LandblockId = new LandblockId((uint)SpecialPortalLandblockID.ShoushiCCLanding);
-                                    break;
-                                }
-                            case (uint)SpecialPortalLandblockID.YaraqCCLaunch:    // Yaraq
-                                {
-                                    portalDest.LandblockId = new LandblockId((uint)SpecialPortalLandblockID.YaraqCCLanding);
-                                    break;
-                                }
-                            case (uint)SpecialPortalLandblockID.SanamarCCLaunch:    // Sanamar
-                                {
-                                    portalDest.LandblockId = new LandblockId((uint)SpecialPortalLandblockID.SanamarCCLanding);
-                                    break;
-                                }
-                            default:            // Holtburg
-                                {
-                                    portalDest.LandblockId = new LandblockId((uint)SpecialPortalLandblockID.HoltburgCCLanding);
-                                    break;
-                                }
-                        }
-
-                        portalDest.PositionX = Destination.PositionX;
-                        portalDest.PositionY = Destination.PositionY;
-                        portalDest.PositionZ = Destination.PositionZ;
-                        portalDest.RotationX = Destination.RotationX;
-                        portalDest.RotationY = Destination.RotationY;
-                        portalDest.RotationZ = Destination.RotationZ;
-                        portalDest.RotationW = Destination.RotationW;
-                        break;
-                    }
-                // Setup correct racial portal destination for the Outer Courtyard in the Training Academy
-                case (ushort)SpecialPortalWCID.OuterCourtyard:
-                    {
-                        uint playerLandblockId = player.Location.LandblockId.Raw;
-                        switch (playerLandblockId)
-                        {
-                            case (uint)SpecialPortalLandblockID.ShoushiOCLaunch:    // Shoushi
-                                {
-                                    portalDest.LandblockId = new LandblockId((uint)SpecialPortalLandblockID.ShoushiOCLanding);
-                                    break;
-                                }
-                            case (uint)SpecialPortalLandblockID.YaraqOCLaunch:    // Yaraq
-                                {
-                                    portalDest.LandblockId = new LandblockId((uint)SpecialPortalLandblockID.YaraqOCLanding);
-                                    break;
-                                }
-                            case (uint)SpecialPortalLandblockID.SanamarOCLaunch:    // Sanamar
-                                {
-                                    portalDest.LandblockId = new LandblockId((uint)SpecialPortalLandblockID.SanamarOCLanding);
-                                    break;
-                                }
-                            default:            // Holtburg
-                                {
-                                    portalDest.LandblockId = new LandblockId((uint)SpecialPortalLandblockID.HoltburgOCLanding);
-                                    break;
-                                }
-                        }
-
-                        portalDest.PositionX = Destination.PositionX;
-                        portalDest.PositionY = Destination.PositionY;
-                        portalDest.PositionZ = Destination.PositionZ;
-                        portalDest.RotationX = Destination.RotationX;
-                        portalDest.RotationY = Destination.RotationY;
-                        portalDest.RotationZ = Destination.RotationZ;
-                        portalDest.RotationW = Destination.RotationW;
-                        break;
-                    }
-            }
-        }
-
         private void ActivatePortal(Player player)
         {
             if (player.Teleporting) return;
@@ -338,7 +169,6 @@ namespace ACE.Server.WorldObjects
 #endif
             var portalDest = new Position(Destination);
             player.AdjustDungeon(portalDest);
-            AdjustPortalDestination(player, portalDest);
 
             player.Teleport(portalDest);
 
