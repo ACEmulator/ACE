@@ -655,14 +655,13 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         ///  Sends object description if the client requests it
         /// </summary>
-        /// <param name="item"></param>
-        public void HandleActionForceObjDescSend(ObjectGuid item)
+        public void HandleActionForceObjDescSend(uint itemGuid)
         {
-            WorldObject wo = GetInventoryItem(item);
+            WorldObject wo = GetInventoryItem(new ObjectGuid(itemGuid));
             if (wo != null)
                 EnqueueBroadcast(new GameMessageObjDescEvent(wo));
             else
-                log.Debug($"HandleActionForceObjDescSend() - couldn't find inventory item {item}");
+                log.Debug($"HandleActionForceObjDescSend() - couldn't find inventory item {itemGuid:X8}");
         }
 
 
