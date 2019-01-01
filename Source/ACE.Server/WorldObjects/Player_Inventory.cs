@@ -135,7 +135,7 @@ namespace ACE.Server.WorldObjects
 
             Session.Network.EnqueueSend(new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Container, new ObjectGuid(0)));
 
-            if (removeFromInventoryAction == RemoveFromInventoryAction.TradeItem)
+            if (removeFromInventoryAction == RemoveFromInventoryAction.TradeItem || removeFromInventoryAction == RemoveFromInventoryAction.ToCorpseOnDeath)
                 Session.Network.EnqueueSend(new GameEventInventoryRemoveObject(Session, item));
 
             if (removeFromInventoryAction != RemoveFromInventoryAction.ToWieldedSlot)
@@ -241,6 +241,9 @@ namespace ACE.Server.WorldObjects
                 new GameMessagePickupEvent(item),
                 new GameMessageSound(Guid, Sound.UnwieldObject));
 
+            if (dequipObjectAction == DequipObjectAction.ToCorpseOnDeath)
+                Session.Network.EnqueueSend(new GameMessageDeleteObject(item));
+
             // If item has any spells, remove them from the registry on unequip
             if (item.Biota.BiotaPropertiesSpellBook != null)
             {
@@ -261,10 +264,13 @@ namespace ACE.Server.WorldObjects
                 item.SaveBiotaToDatabase();
             }
 
-            if (CombatMode == CombatMode.NonCombat || (wieldedLocation != (int)EquipMask.MeleeWeapon && wieldedLocation != (int)EquipMask.MissileWeapon && wieldedLocation != (int)EquipMask.Held && wieldedLocation != (int)EquipMask.Shield))
-                return true;
+            if (dequipObjectAction != DequipObjectAction.ToCorpseOnDeath)
+            {
+                if (CombatMode == CombatMode.NonCombat || (wieldedLocation != (int)EquipMask.MeleeWeapon && wieldedLocation != (int)EquipMask.MissileWeapon && wieldedLocation != (int)EquipMask.Held && wieldedLocation != (int)EquipMask.Shield))
+                    return true;
 
-            SetCombatMode(CombatMode.Melee);
+                SetCombatMode(CombatMode.Melee);
+            }
 
             return true;
         }
@@ -1370,7 +1376,7 @@ namespace ACE.Server.WorldObjects
             if (!RemoveItemForGive(item, itemFoundInContainer, itemWasEquipped, itemRootOwner, amount, out WorldObject itemToGive))
                 return;
 
-            if (!target.TryCreateInInventoryWithNetworking(itemToGive))
+            if (!target.TryCreateInInventoryWithNetworking(itemToGive, out var targetContainer))
             {
                 Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "TryCreateInInventoryWithNetworking failed!")); // Custom error message
 
@@ -1388,6 +1394,14 @@ namespace ACE.Server.WorldObjects
 
             target.Session.Network.EnqueueSend(new GameMessageSystemChat($"{Name} gives you {itemToGive.Name}.", ChatMessageType.Broadcast));
             target.Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.ReceiveItem));
+
+            // This is a hack because our Player_Tracking->RemoveTrackedEquippedObject() is doing GameMessageDeleteObject, not GameMessagePickupEvent
+            // Without this, when you give an equipped item to a player, the player won't see it appear in their inventory
+            new ActionChain(target, () =>
+            {
+                target.Session.Network.EnqueueSend(new GameMessageCreateObject(item));
+                target.Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, targetContainer));
+            }).EnqueueChain();
         }
 
         private void GiveObjecttoNPC(WorldObject target, WorldObject item, Container itemFoundInContainer, Container itemRootOwner, bool itemWasEquipped, int amount, ActionChain actionChain)
