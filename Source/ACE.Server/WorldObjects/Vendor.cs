@@ -327,6 +327,13 @@ namespace ACE.Server.WorldObjects
             if (LastPlayer == null)
                 return;
 
+            // handles player logging out at vendor
+            if (LastPlayer.CurrentLandblock == null)
+            {
+                LastPlayer = null;
+                return;
+            }
+
             var dist = Vector3.Distance(Location.ToGlobal(), LastPlayer.Location.ToGlobal());
             if (dist > UseRadius)
             {
