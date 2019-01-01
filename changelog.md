@@ -1,6 +1,6 @@
 # ACEmulator Change Log
 
-### 2018-01-01
+### 2019-01-01
 [Ripley]
 * Fix issue with trap door switches (Switch linked to another Switch)
 
