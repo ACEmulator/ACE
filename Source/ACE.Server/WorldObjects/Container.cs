@@ -404,7 +404,9 @@ namespace ACE.Server.WorldObjects
             }
             else
             {
-                if (Viewer == player.Guid.Full)
+                if (Viewer == 0)
+                    Close(null);
+                else if (Viewer == player.Guid.Full)
                     Close(player);
 
                 // else error msg?
@@ -450,15 +452,18 @@ namespace ACE.Server.WorldObjects
         {
             if (!IsOpen) return;
 
-            player.Session.Network.EnqueueSend(new GameEventCloseGroundContainer(player.Session, this));
+            if (player != null)
+            {
+                player.Session.Network.EnqueueSend(new GameEventCloseGroundContainer(player.Session, this));
 
-            // send deleteobject for all objects in this container's inventory to player
-            var itemsToSend = new List<GameMessage>();
+                // send deleteobject for all objects in this container's inventory to player
+                var itemsToSend = new List<GameMessage>();
 
-            foreach (var item in Inventory.Values)
-                itemsToSend.Add(new GameMessageDeleteObject(item));
+                foreach (var item in Inventory.Values)
+                    itemsToSend.Add(new GameMessageDeleteObject(item));
 
-            player.Session.Network.EnqueueSend(itemsToSend.ToArray());
+                player.Session.Network.EnqueueSend(itemsToSend.ToArray());
+            }
 
             DoOnCloseMotionChanges();
 
