@@ -17,16 +17,6 @@ namespace ACE.Common
 
         public string DatFilesDirectory { get; set; }
 
-        /// <summary>
-        /// List of trusted server cert thumbprints this server will accept character transfers from
-        /// </summary>
-        public List<string> TrustedServerCertThumbprints { get; set; }
-
-        /// <summary>
-        /// Used to form a URI for use with character transfers.
-        /// </summary>
-        public string ExternalIPAddressOrDomainName { get; set; }
-
         [System.ComponentModel.DefaultValue(false)]
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
         public bool WorldDatabasePrecaching { get; set; }

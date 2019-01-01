@@ -3,6 +3,7 @@ using System;
 using ACE.Database;
 using ACE.Entity.Enum;
 using ACE.Server.Command.Handlers.Processors;
+using ACE.Server.Managers;
 using ACE.Server.Network;
 
 namespace ACE.Server.Command.Handlers
@@ -42,20 +43,16 @@ namespace ACE.Server.Command.Handlers
             }));
         }
 
-        // set-characteraccess charactername (accesslevel)
-        [CommandHandler("export-char", AccessLevel.Player, CommandHandlerFlag.None, 0, "Export the currently logged in character.")]
+        [CommandHandler("export-char", AccessLevel.Player, CommandHandlerFlag.RequiresWorld, 0, "Export the currently logged in character.")]
         public static void HandleCharacterExport(Session session, params string[] parameters)
         {
-            var processor = new TransferCommandHandler();
-            processor.RunExportAsync(session,parameters);
+            TransferManager.Export(session, parameters);
         }
 
-        // set-characteraccess charactername (accesslevel)
-        [CommandHandler("import-char", AccessLevel.Player, CommandHandlerFlag.None, 0, "Import a character with a given cookie.")]
+        [CommandHandler("import-char", AccessLevel.Player, CommandHandlerFlag.RequiresWorld, 2, "Import a character from a given URL.")]
         public static void HandleCharacterImport(Session session, params string[] parameters)
         {
-            var processor = new TransferCommandHandler();
-            processor.RunImportAsync(session, parameters);
+            TransferManager.Import(session, parameters);
         }
     }
 }

@@ -1,17 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
-using System.IO;
-using System.IO.Compression;
-using System.Linq;
-using System.Net;
-using System.Security.Cryptography.X509Certificates;
-using System.Threading;
-using System.Threading.Tasks;
-
-using log4net;
-using Newtonsoft.Json;
-
 using ACE.Common;
 using ACE.Database;
 using ACE.Database.Entity;
@@ -20,9 +6,23 @@ using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Server.Command;
 using ACE.Server.Network;
 using ACE.Server.TransferServer;
 using ACE.Server.WorldObjects;
+using log4net;
+using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.IO;
+using System.IO.Compression;
+using System.Linq;
+using System.Net;
+using System.Security.Cryptography.X509Certificates;
+using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace ACE.Server.Managers
 {
@@ -31,8 +31,53 @@ namespace ACE.Server.Managers
     /// </summary>
     public static class TransferManager
     {
+        public const int CookieLength = 8;
+        public const string CookieChars = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        public const string CookieRegex = @"[0-9a-zA-Z]{8}";
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         private static TransferServerWrapper Server = null;
+        private static readonly JsonSerializerSettings serializationSettings = new JsonSerializerSettings()
+        {
+            ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
+            Formatting = Formatting.Indented,
+            PreserveReferencesHandling = PreserveReferencesHandling.None
+        };
+        private static readonly Action<TransferServerHttpRequest> HTTPRequestHandler = new Action<TransferServerHttpRequest>((req) =>
+        {
+            try
+            {
+                switch (req.Path)
+                {
+                    case "":
+                        Dictionary<string, string> query = TransferServerWrapper.ParseQueryString(req.QueryString);
+                        KeyValuePair<string, string> tuple = query.FirstOrDefault(k => k.Key == "get");
+                        if (tuple.Key == null)
+                        {
+                            break;
+                        }
+                        string cookie = tuple.Value;
+                        string filePath = GetTransferPackageFilePath(cookie);
+                        if (filePath == null)
+                        {
+                            break;
+                        }
+                        TransferServerWrapper.ServeZipFile(filePath, req.NetworkStream);
+                        log.Info($"transfer {cookie} uploaded to {req.Client.Client.RemoteEndPoint}");
+                        DeleteTransferPackageFile(cookie);
+                        // also delete original character (and log it out if neccessary) here?
+                        break;
+                    default:
+                        byte[] byaResp3 = Encoding.UTF8.GetBytes("HTTP/1.1 404 Not Found\r\n\r\n");
+                        req.NetworkStream.Write(byaResp3, 0, byaResp3.Length);
+                        break;
+                }
+            }
+            catch (Exception ex)
+            {
+                log.Error(ex);
+            }
+        });
+
         public static void Initialize()
         {
             DirectoryInfo di = new DirectoryInfo(ServerManager.TransferPath);
@@ -62,7 +107,7 @@ namespace ACE.Server.Managers
             log.Info($"Binding transfer server to {listeningHost}:{listeningPort}");
             try
             {
-                Server.Listen(listeningHost, listeningPort);
+                Server.Listen(listeningHost, listeningPort, HTTPRequestHandler);
             }
             catch (Exception exception)
             {
@@ -76,21 +121,62 @@ namespace ACE.Server.Managers
             Server.Dispose();
         }
 
-        private static bool CookieIngredientsOK(string cookie)
+        public static void Export(Session session, params string[] parameters)
         {
-            foreach (char c in cookie)
+            Task.Run(() => ExportInner(session, parameters));
+        }
+        public static void Import(Session session, params string[] parameters)
+        {
+            Task.Run(() => ImportInner(session, parameters));
+        }
+        private static void ImportInner(Session session, params string[] parameters)
+        {
+            List<CommandParameterHelpers.ACECommandParameter> aceParams = new List<CommandParameterHelpers.ACECommandParameter>()
             {
-                if (!ThreadSafeRandom.CookieChars.Contains(c))
+                new CommandParameterHelpers.ACECommandParameter() {
+                    Type = CommandParameterHelpers.ACECommandParameterType.PlayerName,
+                    Required = true,
+                    ErrorMessage = "You must supply a new character name for this import."
+                },
+                new CommandParameterHelpers.ACECommandParameter()
                 {
-                    return false;
+                    Type = CommandParameterHelpers.ACECommandParameterType.Uri,
+                    Required = true,
+                    ErrorMessage = "You must supply the URL to the zip file download containing the character to import."
                 }
+            };
+            if (!CommandParameterHelpers.ResolveACEParameters(session, parameters, aceParams))
+            {
+                return;
             }
-            return true;
+
+            string charName = Import(session, aceParams[0].AsString, aceParams[1].AsUri);
+            if (charName != null)
+            {
+                session.WorldBroadcast($"Character {charName} imported.");
+            }
+            else
+            {
+                session.WorldBroadcast($"Character import failed.");
+            }
+        }
+        private static async Task ExportInner(Session session, params string[] parameters)
+        {
+            string url = await Export(session);
+            session.WorldBroadcast($"Character ready for transfer.  A secret one-time cookie has been assigned for this transfer." +
+                "\nTo use the secret cookie to either download your character with a browser or transfer your character to another server by" +
+                "\nlogging into the target server and entering the command (replacing <name> with desired character name):" +
+                $"\n@import-char <name> {url}");
         }
 
-        public static string GetTransferFilePath(string cookie)
+        /// <summary>
+        /// Checks for the existence of a transfer package file
+        /// </summary>
+        /// <param name="cookie"></param>
+        /// <returns>null if non-existent, or if existent the path to the transfer package file</returns>
+        public static string GetTransferPackageFilePath(string cookie)
         {
-            if (!CookieIngredientsOK(cookie))
+            if (!CookieIsWellFormed(cookie))
             {
                 return null;
             }
@@ -105,9 +191,13 @@ namespace ACE.Server.Managers
             }
         }
 
-        public static void DeleteTransfer(string cookie)
+        /// <summary>
+        /// destroy an existent transfer package file
+        /// </summary>
+        /// <param name="cookie"></param>
+        public static void DeleteTransferPackageFile(string cookie)
         {
-            if (!CookieIngredientsOK(cookie))
+            if (!CookieIsWellFormed(cookie))
             {
                 return;
             }
@@ -115,7 +205,7 @@ namespace ACE.Server.Managers
             {
                 string filePath = Path.Combine(ServerManager.TransferPath, cookie + ".zip");
                 File.Delete(filePath);
-                // also delete character here?
+
             }
             catch (Exception ex)
             {
@@ -130,7 +220,7 @@ namespace ACE.Server.Managers
         /// <param name="charName">name for the imported character</param>
         /// <param name="importUrl">The source URL</param>
         /// <returns></returns>
-        public static string Import(Session session, string charName, Uri importUrl)
+        private static string Import(Session session, string charName, Uri importUrl)
         {
             bool NameIsGood = false;
             TaskCompletionSource<object> tsc = new TaskCompletionSource<object>();
@@ -174,7 +264,7 @@ namespace ACE.Server.Managers
             {
                 signerThumbprint = signer.Thumbprint;
                 // verify that the signer is in the trusted signers list
-                if (!ConfigManager.Config.Server.TrustedServerCertThumbprints.Any(k => k == signerThumbprint))
+                if (!ConfigManager.Config.Transfer.TrustedServerCertThumbprints.Any(k => k == signerThumbprint))
                 {
                     session.WorldBroadcast($"The originating server isn't trusted.  Please contact the server operator and provide the thumbprint {signerThumbprint} so they can add it to the trusted server cert thumbprints list.");
                     log.Info($"Untrusted transfer attempted.  Thumbprint: {signerThumbprint}");
@@ -308,14 +398,14 @@ namespace ACE.Server.Managers
         /// </summary>
         /// <param name="session"></param>
         /// <returns></returns>
-        public static async Task<string> Export(Session session)
+        private static async Task<string> Export(Session session)
         {
-            string cookie = ThreadSafeRandom.NextCookie(8);
+            string cookie = ThreadSafeRandom.NextString(CookieChars, CookieLength);
             uint accountId = session.AccountId;
             uint charId = session.Player.Guid.Full;
-            CharacterSnapshot snapshot = new CharacterSnapshot();
 
             // obtain character snapshot
+            CharacterSnapshot snapshot = new CharacterSnapshot();
             TaskCompletionSource<object> tsc = new TaskCompletionSource<object>();
             DatabaseManager.Shard.GetCharacters(accountId, false, new Action<List<Character>>(new Action<List<Character>>((chars) =>
             {
@@ -352,15 +442,8 @@ namespace ACE.Server.Managers
             // cleanup
             Directory.Delete(basePath, true);
 
-            return $"http://{ConfigManager.Config.Server.ExternalIPAddressOrDomainName}:{ConfigManager.Config.Server.Network.Port + 2}/?get={cookie}";
+            return $"http://{ConfigManager.Config.Transfer.ExternalIPAddressOrDomainName}:{ConfigManager.Config.Server.Network.Port + 2}/?get={cookie}";
         }
-
-        private static readonly JsonSerializerSettings serializationSettings = new JsonSerializerSettings()
-        {
-            ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
-            Formatting = Formatting.Indented,
-            PreserveReferencesHandling = PreserveReferencesHandling.None
-        };
 
         /// <summary>
         /// copied from Biota.Clone extension method and modified
@@ -777,12 +860,35 @@ namespace ACE.Server.Managers
 
             return result;
         }
+
+        /// <summary>
+        /// Check to make sure the form and composition of the cookie is good
+        /// </summary>
+        /// <param name="cookie"></param>
+        /// <returns></returns>
+        private static bool CookieIsWellFormed(string cookie)
+        {
+            if (cookie == null || cookie.Length != CookieLength)
+            {
+                return false;
+            }
+            foreach (char c in cookie)
+            {
+                if (!CookieChars.Contains(c))
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        private class CharacterSnapshot
+        {
+            public CharacterSnapshot() { }
+            public Character Character { get; set; }
+            public Biota Player { get; set; }
+            public PossessedBiotas PossessedBiotas { get; set; }
+        }
     }
-    public class CharacterSnapshot
-    {
-        public CharacterSnapshot() { }
-        public Character Character { get; set; }
-        public Biota Player { get; set; }
-        public PossessedBiotas PossessedBiotas { get; set; }
-    }
+
 }

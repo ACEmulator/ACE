@@ -1,4 +1,3 @@
-using HttpMachine;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -136,7 +135,7 @@ namespace ACE.Server.TransferServer
                     while (clnt.Connected && clientStream.DataAvailable)
                     {
                         int p = clientStream.Read(q, 0, 8192);
-                        parser.Execute(new ArraySegment<byte>(q.Take(p).ToArray()));
+                        if (!parser.Execute(new ArraySegment<byte>(q.Take(p).ToArray()))) return; // ignore the rest of the data if the parser tosses a fit
                     }
                     Thread.Sleep(100);
                 }

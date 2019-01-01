@@ -40,15 +40,15 @@ namespace ACE
                 return (uint)random.Next((int)min, (int)(max + 1));
             }
         }
-        public const string CookieChars = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
-        public static string NextCookie(int cookieLen)
+
+        public static string NextString(string charSelection, int stringLength)
         {
             StringBuilder product = new StringBuilder();
             lock (randomMutex)
             {
-                for (int i = 0; i < cookieLen; i++)
+                for (int i = 0; i < stringLength; i++)
                 {
-                    product.Append(CookieChars[random.Next(0, CookieChars.Length)]);
+                    product.Append(charSelection[random.Next(0, charSelection.Length)]);
                 }
             }
             return product.ToString();

@@ -1,7 +1,10 @@
 using log4net;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Net.Sockets;
+using System.Text;
 
 namespace ACE.Server.TransferServer
 {
@@ -17,40 +20,18 @@ namespace ACE.Server.TransferServer
                 server.server.Stop();
             }
             catch (Exception) { }
-            TransferServerRequestHandler.Shutdown = true;
         }
         private TransferServerCore server = null;
-        private static Dictionary<string, string> GetCookies(TransferServerHttpRequest req)
+
+        public void Listen(string address, int port, Action<TransferServerHttpRequest> reqHandler)
         {
-            if (req.Headers.ContainsKey("Cookie"))
-            {
-                return req.Headers["Cookie"].Split(';')
-                    .Where(i => i.Contains("="))
-                    .Select(i => i.Trim().Split('='))
-                    .ToDictionary(i => i.First(), i => i.Last());
-            }
-            return new Dictionary<string, string>();
-        }
-        public void Listen(string address, int port)
-        {
-            TransferServerRequestHandler.Shutdown = false;
             server = new TransferServerCore
             {
-
                 RequestHandler = (req) =>
                 {
                     try
                     {
-                        Dictionary<string, string> cookies = GetCookies(req);
-                        if (!cookies.ContainsKey("session") || TransferServerRequestHandler.GetSession(cookies["session"]) == null)
-                        {
-                            TransferServerRequestHandler newSess = TransferServerRequestHandler.GetSession();
-                            newSess.HandleRequest(req, new Tuple<string, string>[] { new Tuple<string, string>("Set-Cookie", "session=" + newSess.Name + @";path=/") });
-                        }
-                        else
-                        {
-                            TransferServerRequestHandler.GetSession(cookies["session"]).HandleRequest(req);
-                        }
+                        reqHandler(req);
 
                         if (req.Client.Connected)
                         {
@@ -71,6 +52,34 @@ namespace ACE.Server.TransferServer
             };
             server.OnLogMessage += (what) => { log.Info(what); };
             server.Listen(address, port);
+        }
+
+        public static void ServeZipFile(string filePath, NetworkStream ns)
+        {
+            FileInfo fi = new FileInfo(filePath);
+            string header = $@"HTTP/1.1 200 OK
+Pragma: public
+Expires: 0
+Cache-Control: must-revalidate, post-check=0, pre-check=0
+Cache-Control: public
+Content-Description: File Transfer
+Content-type: application/octet-stream
+Content-Disposition: attachment; filename=""{fi.Name}""
+Content-Transfer-Encoding: binary
+Content-Length: {fi.Length}{"\r\n\r\n"}";
+            byte[] headerBytes = Encoding.UTF8.GetBytes(header);
+            ns.Write(headerBytes, 0, headerBytes.Length);
+            using (FileStream fs = File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
+            {
+                fs.CopyTo(ns);
+            }
+        }
+        public static Dictionary<string, string> ParseQueryString(string queryStr)
+        {
+            return queryStr.Split('&')
+                .Where(i => i.Contains("="))
+                .Select(i => i.Trim().Split('='))
+                .ToDictionary(i => i.First(), i => i.Last());
         }
     }
 }
