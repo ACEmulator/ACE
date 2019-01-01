@@ -97,6 +97,12 @@ namespace ACE.Server.WorldObjects
             if (Sticky)
                 UpdatePosition();
 
+            if (MonsterState == State.Return)
+            {
+                Movement();
+                return;
+            }
+
             if (CurrentAttack != CombatType.Missile)
             {
                 if (targetDist > MaxRange || (!IsFacing(AttackTarget) && !IsSelfCast()))
