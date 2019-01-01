@@ -214,7 +214,7 @@ namespace ACE.Server.WorldObjects
 
             foreach (ItemProfile profile in itemprofiles)
             {
-                if (TryRemoveFromInventoryWithNetworking(profile.Guid, out var item, RemoveFromInventoryAction.SellItem) || TryDequipObjectWithNetworking(profile.Guid, out item, DequipObjectAction.SellItem))
+                if (TryRemoveFromInventoryWithNetworking(profile.ObjectGuid, out var item, RemoveFromInventoryAction.SellItem) || TryDequipObjectWithNetworking(profile.ObjectGuid, out item, DequipObjectAction.SellItem))
                 {
                     Session.Network.EnqueueSend(new GameMessageDeleteObject(item));
 

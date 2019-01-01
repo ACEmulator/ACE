@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 
-using ACE.Entity;
 using ACE.Server.Entity;
 
 namespace ACE.Server.Network.GameAction.Actions
@@ -22,7 +21,7 @@ namespace ACE.Server.Network.GameAction.Actions
                 item.Amount = message.Payload.ReadUInt32();
                 // item.Amount = item.Amount & 0xFFFFFF;
 
-                item.Guid = new ObjectGuid(message.Payload.ReadUInt32());
+                item.ObjectGuid = message.Payload.ReadUInt32();
                 items.Add(item);
             }
 
