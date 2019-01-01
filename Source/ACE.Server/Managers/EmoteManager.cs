@@ -1029,7 +1029,7 @@ namespace ACE.Server.Managers
 
             // optional criteria
             if (questName != null)
-                emoteSet = emoteSet.Where(e => e.Quest.Equals(questName));
+                emoteSet = emoteSet.Where(e => e.Quest.Equals(questName, StringComparison.OrdinalIgnoreCase));
             if (vendorType != null)
                 emoteSet = emoteSet.Where(e => e.VendorType != null && e.VendorType.Value == (uint)vendorType);
             if (wcid != null)
