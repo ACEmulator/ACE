@@ -24,7 +24,7 @@ namespace ACE.Database.Models.Auth
 
             optionsBuilder.UseMySql($"server={config.Host};port={config.Port};user={config.Username};password={config.Password};database={config.Database}");
 
-#if DEBUG
+#if EFAUTHDEBUG
             optionsBuilder.EnableSensitiveDataLogging(true);
 #endif
         }
