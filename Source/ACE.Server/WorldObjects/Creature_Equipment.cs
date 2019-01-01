@@ -173,7 +173,7 @@ namespace ACE.Server.WorldObjects
             if (IsInChildLocation(worldObject)) // Is this equipped item visible to others?
                 EnqueueBroadcast(false, new GameMessageSound(Guid, Sound.WieldObject));
 
-            if (worldObject.ParentLocation != null)
+            if (worldObject.ParentLocation != null && wieldedLocation != (int)EquipMask.MissileAmmo)
                 EnqueueBroadcast(new GameMessageParentEvent(this, worldObject, (int?)worldObject.ParentLocation ?? 0, (int?)worldObject.Placement ?? 0));
 
             EnqueueBroadcast(new GameMessageObjDescEvent(this));
