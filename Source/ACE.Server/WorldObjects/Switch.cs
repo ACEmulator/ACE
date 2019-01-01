@@ -81,7 +81,7 @@ namespace ACE.Server.WorldObjects
                         player.SendUseDoneEvent();
                     }
 
-                    if (Usable.HasValue && Usable == ACE.Entity.Enum.Usable.No && (ActivationResponse & ActivationResponse.CastSpell) != 0)
+                    if (Usable.HasValue && Usable == ACE.Entity.Enum.Usable.No && SpellDID.HasValue && (ActivationResponse & ActivationResponse.CastSpell) != 0)
                     {
                         var spell = new Server.Entity.Spell((uint)SpellDID);
 
