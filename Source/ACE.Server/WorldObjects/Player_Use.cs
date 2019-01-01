@@ -36,15 +36,15 @@ namespace ACE.Server.WorldObjects
         // ===============================
         // These are raised by client actions
 
-        public void HandleActionUseWithTarget(ObjectGuid sourceObjectId, ObjectGuid targetObjectId)
+        public void HandleActionUseWithTarget(uint sourceObjectGuid, uint targetObjectGuid)
         {
             StopExistingMoveToChains();
 
-            var invSource = GetInventoryItem(sourceObjectId);
-            var invTarget = GetInventoryItem(targetObjectId);
-            var invWielded = GetEquippedItem(targetObjectId);
+            var invSource = GetInventoryItem(sourceObjectGuid);
+            var invTarget = GetInventoryItem(targetObjectGuid);
+            var invWielded = GetEquippedItem(targetObjectGuid);
 
-            var worldTarget = (invTarget == null) ? CurrentLandblock?.GetObject(targetObjectId) : null;
+            var worldTarget = (invTarget == null) ? CurrentLandblock?.GetObject(targetObjectGuid) : null;
 
             if (invTarget != null)
             {
@@ -78,7 +78,7 @@ namespace ACE.Server.WorldObjects
                 var lp = invSource as Lockpick;
                 lp.HandleActionUseOnTarget(this, worldTarget);
             }
-            else if (targetObjectId == Guid)
+            else if (targetObjectGuid == Guid.Full)
             {
                 // using something on ourselves
                 if (invSource.WeenieType == WeenieType.ManaStone)
@@ -105,19 +105,19 @@ namespace ACE.Server.WorldObjects
             }
         }
 
-        public void HandleActionUseItem(ObjectGuid usedItemId)
+        public void HandleActionUseItem(uint itemGuid)
         {
             StopExistingMoveToChains();
 
             // Search our inventory first
-            var item = GetInventoryItem(usedItemId);
+            var item = GetInventoryItem(itemGuid);
 
             if (item != null)
                 item.UseItem(this);
             else
             {
                 // Search the world second
-                item = CurrentLandblock?.GetObject(usedItemId);
+                item = CurrentLandblock?.GetObject(itemGuid);
 
                 if (item == null)
                 {
@@ -128,7 +128,7 @@ namespace ACE.Server.WorldObjects
                 var moveTo = true;
                 if (item is Container container)
                 {
-                    lastUsedContainerId = usedItemId;
+                    lastUsedContainerId = new ObjectGuid(itemGuid);
 
                     // if the container is already open by this player,
                     // this packet indicates to close the container.

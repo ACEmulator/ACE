@@ -1,4 +1,3 @@
-using ACE.Entity;
 using ACE.Server.Network.Structure;
 
 namespace ACE.Server.Network.GameAction.Actions
@@ -10,10 +9,8 @@ namespace ACE.Server.Network.GameAction.Actions
         {
             var jumpPack = new JumpPack(message.Payload);
 
-            var objectId = message.Payload.ReadUInt32();
+            var objectGuid = message.Payload.ReadUInt32();
             var spellId = message.Payload.ReadUInt32();
-
-            ObjectGuid guid = new ObjectGuid(objectId);
 
             session.Player.HandleActionJump(jumpPack);
         }

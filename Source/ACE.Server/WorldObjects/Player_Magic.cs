@@ -67,14 +67,14 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Handles player targeted casting message
         /// </summary>
-        public void HandleActionCastTargetedSpell(ObjectGuid targetGuid, uint spellId)
+        public void HandleActionCastTargetedSpell(uint targetGuid, uint spellId)
         {
             var target = CurrentLandblock?.GetObject(targetGuid);
             var targetCategory = TargetCategory.UnDef;
 
             if (target != null)
             {
-                if (targetGuid == Guid)
+                if (targetGuid == Guid.Full)
                     targetCategory = TargetCategory.Self;
                 else
                     targetCategory = TargetCategory.WorldObject;

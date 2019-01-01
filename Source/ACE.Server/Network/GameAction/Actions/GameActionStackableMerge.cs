@@ -1,4 +1,3 @@
-using ACE.Entity;
 
 namespace ACE.Server.Network.GameAction.Actions
 {
@@ -11,11 +10,11 @@ namespace ACE.Server.Network.GameAction.Actions
         [GameAction(GameActionType.StackableMerge)]
         public static void Handle(ClientMessage message, Session session)
         {
-            uint mergeFromId = message.Payload.ReadUInt32();
-            uint mergeToId = message.Payload.ReadUInt32();
+            uint mergeFromGuid = message.Payload.ReadUInt32();
+            uint mergeToGuid = message.Payload.ReadUInt32();
             int amount = message.Payload.ReadInt32();
 
-            session.Player.HandleActionStackableMerge(new ObjectGuid(mergeFromId), new ObjectGuid(mergeToId), amount);
+            session.Player.HandleActionStackableMerge(mergeFromGuid, mergeToGuid, amount);
         }
     }
 }

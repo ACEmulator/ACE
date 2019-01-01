@@ -105,7 +105,7 @@ namespace ACE.Server.WorldObjects
         /// augmentations = 0.0 for no augmentations, 0.25 for one, 0.5 for two, 
         /// 0.75 for three, 1.0 for four
         /// </summary>
-        public void HandleTinkeringTool(List<ObjectGuid> list)
+        public void HandleTinkeringTool(List<uint /*ObjectGuid*/> list)
         {
             
             //CreatureSkill skill = GetCreatureSkill(Skill.Salvaging);
@@ -122,10 +122,10 @@ namespace ACE.Server.WorldObjects
                 WorldObject[] salvageBags = new WorldObject[list.Count()];
                 WorldObject[] items = new WorldObject[list.Count()];
                 int[] materials = new int[list.Count()];
-                foreach (ObjectGuid guid in list)
+                foreach (var guid in list)
                 {
                     bool inMaterialsList = false;
-                    WorldObject item = GetInventoryItem(guid) as WorldObject;
+                    var item = GetInventoryItem(guid);
                     items[objectCounter] = item;
                     objectCounter++;
                     int materialsPlace = 0;
@@ -217,9 +217,9 @@ namespace ACE.Server.WorldObjects
             else
             {
 
-                foreach (ObjectGuid guid in list)
+                foreach (var guid in list)
                 {
-                    WorldObject item = GetInventoryItem(guid) as WorldObject;
+                    var item = GetInventoryItem(guid);
                     materialType = item.GetProperty(PropertyInt.MaterialType) ?? 0;
                     int workmanship = item.GetProperty(PropertyInt.ItemWorkmanship) ?? 0;
                     int numItemsinThisItem = item.GetProperty(PropertyInt.NumItemsInMaterial) ?? 1;

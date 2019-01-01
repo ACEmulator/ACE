@@ -399,7 +399,7 @@ namespace ACE.Server.Command.Handlers
             WorldObject loot = WorldObjectFactory.CreateNewWorldObject(trainingWandTarget);
             LootGenerationFactory.Spawn(loot, session.Player.Location.InFrontOf(distance));
 
-            session.Player.HandleActionPutItemInContainer(loot.Guid, session.Player.Guid);
+            session.Player.HandleActionPutItemInContainer(loot.Guid.Full, session.Player.Guid.Full);
         }
 
         /// <summary>

@@ -197,20 +197,18 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Fired from the client / client is sending us a Buy transaction to vendor
         /// </summary>
-        /// <param name="vendorId"></param>
+        /// <param name="vendorGuid"></param>
         /// <param name="items"></param>
-        public void HandleActionBuyItem(ObjectGuid vendorId, List<ItemProfile> items)
+        public void HandleActionBuyItem(uint vendorGuid, List<ItemProfile> items)
         {
-            var vendor = (CurrentLandblock?.GetObject(vendorId) as Vendor);
-
-            if (vendor != null)
-                vendor.BuyValidateTransaction(vendorId, items, this);
+            if (CurrentLandblock?.GetObject(vendorGuid) is Vendor vendor)
+                vendor.BuyValidateTransaction(vendorGuid, items, this);
         }
 
         /// <summary>
         /// Client Calls this when Sell is clicked.
         /// </summary>
-        public void HandleActionSellItem(List<ItemProfile> itemprofiles, ObjectGuid vendorId)
+        public void HandleActionSellItem(List<ItemProfile> itemprofiles, uint vendorGuid)
         {
             var purchaselist = new List<WorldObject>();
 
@@ -228,7 +226,7 @@ namespace ACE.Server.WorldObjects
                 }
             }
 
-            if (CurrentLandblock?.GetObject(vendorId) is Vendor vendor)
+            if (CurrentLandblock?.GetObject(vendorGuid) is Vendor vendor)
                 vendor.SellItemsValidateTransaction(this, purchaselist);
         }
     }

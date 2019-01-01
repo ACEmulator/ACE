@@ -168,10 +168,10 @@ namespace ACE.Server.WorldObjects
         /// Player has started a buy transaction
         /// Create objects, send object to player for final validation.
         /// </summary>
-        /// <param name="vendorid">GUID of Vendor</param>
+        /// <param name="vendorGuid">GUID of Vendor</param>
         /// <param name="items">Item Profile, Ammount and ID</param>
         /// <param name="player"></param>
-        public void BuyValidateTransaction(ObjectGuid vendorid, List<ItemProfile> items, Player player)
+        public void BuyValidateTransaction(uint vendorGuid, List<ItemProfile> items, Player player)
         {
             // que transactions.
             List<ItemProfile> filteredlist = new List<ItemProfile>();

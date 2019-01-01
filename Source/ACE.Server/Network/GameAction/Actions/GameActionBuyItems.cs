@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 
-using ACE.Entity;
 using ACE.Server.Entity;
 
 namespace ACE.Server.Network.GameAction.Actions
@@ -10,7 +9,7 @@ namespace ACE.Server.Network.GameAction.Actions
         [GameAction(GameActionType.Buy)]
         public static void Handle(ClientMessage message, Session session)
         {
-            ObjectGuid vendorId = new ObjectGuid(message.Payload.ReadUInt32());
+            var vendorGuid = message.Payload.ReadUInt32();
 
             uint itemcount = message.Payload.ReadUInt32();
 
@@ -31,7 +30,7 @@ namespace ACE.Server.Network.GameAction.Actions
             uint i_alternateCurrencyID = message.Payload.ReadUInt32();
 
             // todo: take into account other currencyIds other then assuming default
-            session.Player.HandleActionBuyItem(vendorId, items);
+            session.Player.HandleActionBuyItem(vendorGuid, items);
         }
     }
 }

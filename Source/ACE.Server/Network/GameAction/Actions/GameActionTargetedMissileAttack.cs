@@ -1,4 +1,3 @@
-using ACE.Entity;
 
 namespace ACE.Server.Network.GameAction.Actions
 {
@@ -7,13 +6,11 @@ namespace ACE.Server.Network.GameAction.Actions
         [GameAction(GameActionType.TargetedMissileAttack)]
         public static void Handle(ClientMessage message, Session session)
         {
-            var objectId = message.Payload.ReadUInt32();
+            var targetGuid = message.Payload.ReadUInt32();
             var attackHeight = message.Payload.ReadUInt32();
             var accuracyLevel = message.Payload.ReadSingle();
 
-            ObjectGuid guid = new ObjectGuid(objectId);
-
-            session.Player.HandleActionTargetedMissileAttack(guid, attackHeight, accuracyLevel);
+            session.Player.HandleActionTargetedMissileAttack(targetGuid, attackHeight, accuracyLevel);
         }
     }
 }
