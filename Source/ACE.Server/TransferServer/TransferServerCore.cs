@@ -7,6 +7,11 @@ using System.Threading;
 
 namespace ACE.Server.TransferServer
 {
+    /// <summary>
+    /// host for extraserver functionality such as character transfers
+    /// TO-DO: replace with System.Web.Hosting.SimpleWorkerRequest once it's verified it works with Core 2.1
+    /// https://docs.microsoft.com/en-us/dotnet/api/system.web.hosting.simpleworkerrequest?view=netframework-4.7.2
+    /// </summary>
     public class TransferServerCore
     {
         public Action<TransferServerHttpRequest> RequestHandler = null;
