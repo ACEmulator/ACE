@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2018-01-01
+[Ripley]
+* Fix issue with trap door switches (Switch linked to another Switch)
+
 ### 2018-12-21
 [Ripley]
 * Add Session.BootSession to expand DropSession beyond "Network Timeout" and allow for launcher pings.
