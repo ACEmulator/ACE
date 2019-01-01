@@ -14,6 +14,7 @@ namespace ACE.Server.Network.GameAction.Actions
         {
             var groupChatType = (Channel)clientMessage.Payload.ReadUInt32();
             var message = clientMessage.Payload.ReadString16L();
+
             switch (groupChatType)
             {
                 case Channel.Abuse:

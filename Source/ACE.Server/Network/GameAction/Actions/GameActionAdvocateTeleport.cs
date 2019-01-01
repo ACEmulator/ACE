@@ -1,8 +1,10 @@
-﻿using System;
+using System;
+
 using ACE.Common.Extensions;
 using ACE.Entity.Enum;
 using ACE.Server.Entity;
 using ACE.Server.Physics.Common;
+
 using Position = ACE.Entity.Position;
 
 namespace ACE.Server.Network.GameAction.Actions

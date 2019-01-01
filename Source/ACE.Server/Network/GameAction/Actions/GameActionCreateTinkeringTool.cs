@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 
 using ACE.Entity;
-using ACE.Server.Entity;
 
 namespace ACE.Server.Network.GameAction.Actions
 {
