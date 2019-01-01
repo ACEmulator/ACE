@@ -22,7 +22,7 @@ namespace ACE.Server.Network.GameAction.Actions
                 item.Amount = message.Payload.ReadUInt32();
                 // item.Amount = item.Amount & 0xFFFFFF;
 
-                item.ObjectGuid = message.Payload.ReadGuid();
+                item.ObjectGuid = message.Payload.ReadUInt32();
                 items.Add(item);
             }
             

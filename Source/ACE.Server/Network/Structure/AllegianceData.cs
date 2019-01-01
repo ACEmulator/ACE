@@ -1,7 +1,6 @@
 using System;
 using System.IO;
 
-using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Server.Entity;
 using ACE.Server.Network.Enum;
@@ -44,7 +43,7 @@ namespace ACE.Server.Network.Structure
             // uint - allegianceAge
 
             // string - name
-            var characterID = new ObjectGuid(0);
+            uint characterID = 0;
             uint cpCached = 0;
             uint cpTithed = 0;
             var bitfield = AllegianceIndex.HasAllegianceAge | AllegianceIndex.HasPackedLevel | AllegianceIndex.LoggedIn;
@@ -64,7 +63,7 @@ namespace ACE.Server.Network.Structure
                 var node = data.Node;
                 var player = node.Player;
 
-                characterID = player.Guid;
+                characterID = player.Guid.Full;
                 gender = (Gender)player.Gender;
                 hg = (HeritageGroup)player.Heritage;
                 rank = (ushort)node.Rank;
@@ -74,7 +73,7 @@ namespace ACE.Server.Network.Structure
                 name = player.Name;
             }
 
-            writer.Write(characterID.Full);
+            writer.Write(characterID);
             writer.Write(cpCached);
             writer.Write(cpTithed);
             writer.Write((uint)bitfield);

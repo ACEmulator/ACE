@@ -1016,7 +1016,7 @@ namespace ACE.Server.WorldObjects
             }
 
             // create enchantment
-            var enchantment = new Enchantment(target, caster.Guid, spell.Id, duration, 1, EnchantmentMask.CreatureSpells);
+            var enchantment = new Enchantment(target, caster.Guid.Full, spell.Id, duration, 1, EnchantmentMask.CreatureSpells);
             var addResult = target.EnchantmentManager.Add(enchantment, caster);
 
             var player = this as Player;
