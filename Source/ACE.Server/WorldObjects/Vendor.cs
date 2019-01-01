@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.Entity;
@@ -31,6 +32,8 @@ namespace ACE.Server.WorldObjects
         private Dictionary<ObjectGuid, WorldObject> uniqueItemsForSale = new Dictionary<ObjectGuid, WorldObject>();
 
         private bool inventoryloaded;
+
+        public Player LastPlayer;
 
         /// <summary>
         /// A new biota be created taking all of its values from weenie.
@@ -71,6 +74,16 @@ namespace ACE.Server.WorldObjects
             actionChain.AddDelaySeconds(rotateTime);
             actionChain.AddAction(this, () => ApproachVendor(player, VendorType.Open));
             actionChain.EnqueueChain();
+
+            if (LastPlayer == null)
+            {
+                var closeChain = new ActionChain();
+                closeChain.AddDelaySeconds(CloseInterval);
+                closeChain.AddAction(this, CheckClose);
+                closeChain.EnqueueChain();
+            }
+
+            LastPlayer = player;
         }
 
         /// <summary>
@@ -305,6 +318,28 @@ namespace ACE.Server.WorldObjects
                     log.Warn($"Vendor.DoVendorEmote - Encountered Unhandled VendorType {vendorType} for {Name} ({WeenieClassId})");
                     break;
             }
+        }
+
+        public float CloseInterval = 1.5f;
+
+        public void CheckClose()
+        {
+            if (LastPlayer == null)
+                return;
+
+            var dist = Vector3.Distance(Location.ToGlobal(), LastPlayer.Location.ToGlobal());
+            if (dist > UseRadius)
+            {
+                EmoteManager.DoVendorEmote(VendorType.Close, LastPlayer);
+                LastPlayer = null;
+
+                return;
+            }
+
+            var closeChain = new ActionChain();
+            closeChain.AddDelaySeconds(CloseInterval);
+            closeChain.AddAction(this, CheckClose);
+            closeChain.EnqueueChain();
         }
     }
 }
