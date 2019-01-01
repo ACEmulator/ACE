@@ -707,6 +707,7 @@ namespace ACE.Server.WorldObjects
                 else
                 {
                     // todo: if this happens, we should just put back the dropped item into inventory
+                    log.WarnFormat("Item 0x{0:X8}:{1} for player {2} lost from HandleActionDropItem failure.", item.Guid.Full, item.Name, Name);
                 }
 
                 var returnStance = new Motion(CurrentMotionState.Stance);
@@ -857,7 +858,7 @@ namespace ACE.Server.WorldObjects
                 Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session));
 
                 // todo: So the item isn't lost, we should try to put the item in the players inventory, or if that's full, on the landblock.
-                log.WarnFormat("Item 0x{0:X8}:{1} for player {2} lost from HandleActionGetAndWieldItem failure.", item.Guid.Full, item.Name, Name);
+                log.WarnFormat("Item 0x{0:X8}:{1} for player {2} lost from DoHandleActionGetAndWieldItem failure.", item.Guid.Full, item.Name, Name);
 
                 return false;
             }
@@ -1125,7 +1126,8 @@ namespace ACE.Server.WorldObjects
                 }
                 else
                 {
-                    // todo: if this happens, we should just put split amount into the original stack
+                    // todo: if this happens, we should just put split amount back into the original stack
+                    log.WarnFormat("Partial stack 0x{0:X8}:{1} for player {2} lost from HandleActionStackableSplitTo3D failure.", stack.Guid.Full, stack.Name, Name);
                 }
 
                 var returnStance = new Motion(CurrentMotionState.Stance);
