@@ -1,19 +1,277 @@
 # ACEmulator Change Log
 
-### 2018-12-21
-[Ripley]
-* Add Session.BootSession to expand DropSession beyond "Network Timeout" and allow for launcher pings.
-* Wired up EmoteType.SetSanctuaryPosition (No more free rides back to Training Academy after leaving)
+### 2018-12-31
+[Mag-nus]
+* Added ACE.Adapter project for supporting Lifestoned json data importing
 
-### 2018-12-09
+### 2018-12-30
+[gmriggs]
+* Adding initial reload animation to atlatl combat
+* Fixed vendor prices for stacks. Players no longer get ripped off (as much)
+* Upgraded RecipeManager, added Tinkering and Imbues to crafting system
+* The emulator now has 100% of the player skills available!
+
+### 2018-12-29
+[gmriggs]
+* Adding house portals / dungeons
+* Added support for mansions
+* Updated food consumables for spellcasting
+* Improved healing other target distances and animations
+* Improved item spell handling for NPKs and monsters
+* Fixed a bug where item buffs could be cast on monster-wielded items
+* Added skill checks for assess person / creature
+* Added support for monsters using multistrike weapons (properly)
+* Fixed a bug where monsters could wield shield with bow equipped
+* Fixed a bug where monsters could slash with non-slash weapons, and pierce with non-pierce weapons.
+- Removed EdgeSlide property from monsters. Now they will jump down from ledges to chase the player
+
+### 2018-12-28
+[gmriggs]
+* Added complete PKLite system
+* Added config option for PK-only servers.
+  - Server admins can change the PK status of the server via /modifybool pk_server true|false
+
+* Added hollow weapons, and unenchantable items
+
+* Added house guest and storage permissions, open/closed, hook visibility, and boot system
+  - @house boot - Removes a player from your house.
+  - @house boot -all - Removes everyone from your house.
+  - @house guest add - Adds players to your house guest list.
+  - @house guest remove - Removes players from your house guest list.
+  - @house guest remove_all - Removes all guests from your house guest list.
+  - @house guest list - Shows the current guest list.
+  - @house storage add - Gives a player permission to use your house storage.
+  - @house storage remove - Removes permission to use your house storage from a player.
+  - @house storage remove_all - Removes all storage permissions from guests.
+  - @house open - Creates an open house.
+  - @house close - Closes your house.
+  - @house hooks on|off - Makes the hooks in your house visible or invisible.
+
+* The shard patch for this update is located in: Database/Updates/Shard/2018-12-29-00-House_Permission.sql
+
+### 2018-12-27
+[gmriggs]
+* Improving monster AI for ranged spellcasting
+
+### 2018-12-24
+[gmriggs]
+* Fixed the elusive monster stuck / falling bug
+
+[dgatewood]
+* Updated LootGenerationFactory with item updates
+
+### 2018-12-23
+[gmriggs]
+* Fixed the elusive null position bug, once and for all.
+* Fixed some NPCs not returning to default MotionStance.
+* Improving monster AI to send alerts to nearby friends
+* Monsters will now return to their starting positions if they wander too far away from home.
+* Added 'Aura Other' spells to 16PY-Patches
+* Fixed a bug with some enchantments not being registered properly
+* Updated PlayerManager to work with both Player and +Player formats sent by client.
+  - This fixes some issues across the codebase, such as /tell with admin characters
+
+[gmriggs + Optimshi + Miach]
+* Improving per-animation attack frame timing for players and monsters.
+
+### 2018-12-22
+[dgatewood]
+* Updated some of the items in LootGenerationFactory
+
+[gmriggs]
+* Added lifestone protection system
+* Fixing PK death message broadcasts
+* Added instant updates to player health bar changes for selected target
+
+[gmriggs + fartwhif]
+* Adding sticky melee distance to charge attacks
+
+### 2018-12-21
+[gmriggs]
+* Added full PVP damage formulas / calculations for physical combat
+
+[Ripley]
+* Fixed a bug where server wasn't reporting back to ThwargLauncher correctly
+* Added Session.BootSession to expand DropSession beyond "Network Timeout" and allow for launcher pings.
+* Added EmoteType.SetSanctuaryPosition (No more free rides back to Training Academy after leaving)
+
+[fartwhif]
+* Redesigned the project Random class -> ThreadSafeRandom
+  - Replaced the thread discriminator with a lock
+
+### 2018-12-20
+[gmriggs]
+* Improved corpse system, added /corpse, /permit, /consent
+* Added function to convert landblock coords into map coordinates
+* Added destination coordinates to portal appraisals
+* Added LastOutsideDeath to login packet
+* Added UpdatePosition opcodes / sequences
+* Fixed a bug with InboundMessageManager displaying the wrong opcodes for GameActionType
+* Improved corpse looting permissions system - now adds player /permits
+* Added /corpse command
+* Added LootPermission table for players to /permit other players to loot their corpses.
+* Added handlers for commands:
+  - /permit add &lt;namegt; - Allows another player to loot your corpse.
+  - /permit remove &lt;namegt; - Removes permission to access your corpse from the named character.
+  - /consent on - Turns on your ability to accept permissions from other players.
+  - /consent off - Turns off your ability to accept permissions from other players. (default)
+  - /consent who - Lists those who have given you permission to loot their corpses.
+  - /consent remove &lt;name&gt; - Removes the permission a player granted to you.
+  - /consent clear - Clears your entire consent list.
+
+* Improved housing system
+  - Added handler /house abandon
+  - Added /house recall, /hr
+  - Improved animations for placing items on hooks
+  - Updated apartment maintenance
+  - Added SlumLord 'on/off' activation, indicating house ownership
+  - Added player names to house appraisals
+  - Fixed a bug where hooks/storage were not immediately available for player
+
+* Improved /tele &lt;mapcoords&gt; and minimap click teleporting
+  - Teleporting to locations directly inside of buildings now works
+  - Teleporting to impassable water landblocks is now detected beforehand
+
+* SequenceManager has been redesigned for keying from PropertyType + Property. This should fix some network issues where the client was previously ignoring some updates from the server
+* Added SetMaxVitals to Player on level up
+* Additional bug fixes for some objects not spawning in indoor environments
+
+[dgatewood]
+* Updated LootGenerationFactory for standardized RNG methods
+  
+### 2018-12-19
+[fartwhif]
+* Improved resiliency for Command parser
+
+### 2018-12-18
+[gmriggs]
+* Added melee charging attacks
+* Added CreateList to monster inventories.
+* Adjusted IsExhausted attack penalty to minimum power/accuracy bar, as per retail
+* Re-adding physics initial update system.
+* Omitting spellbook from creature appraisal. This should avoid a lot of the spam with certain decal plugins
+* Fixed corpse looting in vtank
+
+### 2018-12-17
+[gmriggs]
+* Fixed a bug where Fellowship XP wasn't being calculated correctly for some distances
+
+### 2018-12-16
+[gmriggs]
+* Fixed various issues with some objects not spawning properly
+
+[Ripley]
+* Updated Readme for latest version of ACE-World-16PY-Patches
+
+### 2018-12-15
+[Ripley]
+* Updated DownloadACEWorld.bat with latest ACE-World-16PY-Patches release for Summoning
+
+[mcreedjr + gmriggs]
+* Added complete Summoning player skill system!
+* Added full set of Essences. These are currently linking to existing monsters in the game
+* Added support for monsters fighting other monsters
+* Added support for different aggro profiles for mobs
+
+### 2018-12-14
 [Ripley]
 * Move Spell enum from server to Entity and rename SpellId
+* Updated the AppVeyor downloader for new DB repo format 16PY-Patches
+* Updated Readme instructions for new installs
+
+[gmriggs]
+* Broadcasting CreateObject / DeleteObject packets on item drop and pickup.
+  - This differs from retail, but this fixes some bugs with object visibility when relogging, until the special cases with relogging and ObjMaint are figured out for this
+
+### 2018-12-13
+[gmriggs]
+* Added spell component burning system
+* Fixed a walk / run movement speed bug in multiplayer
+
+[Mag-nus]
+* Various improvements resulting from excessive load testing
+  - Added thread safety to ObjectMaint / ServerObjects
+  - Added a null check before logout removal
+  - Cleanup more edge cases with network sessions
+  - Cleanup SocketManager
+  - Improved Vector3 handling
+  - Updated InterpolationManager.PositionQueue from a Queue to LinkedList
+  - Updated a couple of Enum.HasFlag's to & != 0 in performance critical sections
+  - LinkedList.First != null instead of .Count > 0
+  - Other various performance improvements for Debug builds
+
+### 2018-12-11
+[Mag-nus]
+* Added a null check to LScape.get_landcell() in GetCell()
+* Improved graceful handling for logout and session drops
+
+### 2018-12-10
+[Mag-nus]
+* Fixed a bug where ServerPackets could be built with too many fragments, exceeding the MTU
+
+[gmriggs]
+* Fixing IsGrounded for players, and some object visibility issues
+
+### 2018-12-09
+[Mag-nus]
+* Added /teleallto admin command - teleports all players on server to admin player
+
+[fartwhif]
+* Improved network architecture for WAN connections
+  - client connections from behind specific rare firewall configurations should have a greater success rate
+  - changed port strategy from 2 uni-directional ports, to a single bi-directional port (with the exception of the connect response packet)
+
+* Improved network security by using CRNG init vectors for the CRC stream ciphers
+
+### 2018-12-08
+[Mag-nus]
+* Improving player logout, save, and session drop flows
+* Fixing heritage group skill cost overrides during character creation
 
 ### 2018-12-07
 [Ripley]
-* Added some properties so the SQL writers could annotate them for readability (PCAP imported properties, used for dev reference only)
-* Updated Creature.CalculateObjDesc to support reading in of PCAP'd ObjDesc data. This bootstraps weenie appearance without the need to divine clothing data (base and objects(palette + shade))
-* Fix issue with telepoi command
+* Updated DownloadACEWorld.bat with latest ACE-World-16PY release
+
+* Changes to support PCAP export data being used in the database
+  - Added PCAPRecorded properties and enums
+  - Adjusted CalculatedObjDesc to read and use Biota data if present and no EquippedObjects are found
+  - Fixed an issue with /telepoi command
+
+### 2018-12-04
+[Mag-nus]
+* Improved GetWorldObjectsForPhysics() iteration, and network listener exception handling
+
+[Ripley]
+* Updated AppVeyor for unit tests
+
+[dgatewood]
+* Fixed a bug where monsters were being incorrectly being reported as 'Killed by misadventure.'
+
+### 2018-12-03
+[Mag-nus]
+* Performance improvements from profiling:
+  - Removed the PhysicsObj != null check from Landblock.GetWorldObjectsForPhysics(). This reduces CPU demand by about 6%.
+  - Removed the last of the reflection-based skill lookups. Now all skill lookups go through the portal.dat. This reduces CPU demand by about 2% or more.
+
+[dgatewood]
+* Added RNG treasure generation for loot chests
+
+### 2018-12-02
+[Mag-nus]
+* Added PlayerManager architecture. This manages both online and offline players, and enables various subsystems to access data for offline players in a consistent manner.
+* Integrated Friends and Allegiance system with new PlayerManager
+* Updated DATLoader to use base DatDatabase for loading Highres and Language data
+
+[dgatewood]
+* Fixed a bug with vendors not sending network updates
+
+### 2018-12-01
+[gmriggs]
+* Improved DAT loader performance and memory usage
+
+### 2018-11-30
+[Mag-nus]
+* Fixed a memory leak where StaticAnimatingObjects was holding onto PhysicsObj references
 
 ### 2018-11-29
 [Mag-nus]
