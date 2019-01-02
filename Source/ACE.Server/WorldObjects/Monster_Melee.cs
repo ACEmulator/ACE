@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+
+using ACE.Common.Extensions;
 using ACE.Database.Models.Shard;
 using ACE.DatLoader;
 using ACE.DatLoader.Entity;
@@ -142,12 +144,12 @@ namespace ACE.Server.WorldObjects
             if (motions == null)
                 return null;
 
-            while (true)    // limiter?
-            {
-                var rng = ThreadSafeRandom.Next(0, stanceManeuvers.Count - 1);
-                //Console.WriteLine("Selecting combat maneuver #" + rng);
+            var shuffledStanceManeuvers = new List<CombatManeuver>(stanceManeuvers);
+            shuffledStanceManeuvers.Shuffle();
 
-                var combatManeuver = stanceManeuvers[rng];
+            for (int i = 0; i < shuffledStanceManeuvers.Count; i++)
+            {
+                var combatManeuver = shuffledStanceManeuvers[i];
 
                 var motion = combatManeuver.Motion.ToString();
 
@@ -164,10 +166,13 @@ namespace ACE.Server.WorldObjects
                     continue;
 
                 // ensure combat maneuver exists for this monster's motion table
-                motions.TryGetValue((uint)combatManeuver.Motion, out var motionData);
-                if (motionData != null)
+                if (motions.TryGetValue((uint)combatManeuver.Motion, out var motionData) && motionData != null)
                     return combatManeuver;
-            };
+            }
+
+            // No match was found
+            log.WarnFormat("No valid combat maneuver found for {0} using weapon {1}. CurrentMotionState.Stance: {2}", Name, (weapon != null ? weapon.Name : "null"), CurrentMotionState.Stance);
+            return null;
         }
 
         /// <summary>
