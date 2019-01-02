@@ -17688,7 +17688,7 @@ namespace ACE.Server.Factories
                     tieredDamage = twohandedWeaponDamageTable[baseWeapon - 1, wieldPlace];
                     break;
             }
-            double chance = ThreadSafeRandom.Next(0, 1);
+            double chance = ThreadSafeRandom.Next(0.000f, 1.000f);
             if (tieredDamage < 10)
             {
 
