@@ -232,5 +232,10 @@ namespace ACE.Server.Physics.Common
         {
             return ObjCellID == pos.ObjCellID && Frame.Equals(pos.Frame);
         }
+
+        public override string ToString()
+        {
+            return $"{ObjCellID:X8} {Frame}";
+        }
     }
 }

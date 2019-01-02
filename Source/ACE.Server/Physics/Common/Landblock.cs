@@ -570,15 +570,22 @@ namespace ACE.Server.Physics.Common
         {
             if (adjacents != null && !reload) return adjacents;
 
+            // dungeons have no adjacents
+            if (IsDungeon)
+            {
+                adjacents = new List<Landblock>();
+                return adjacents;
+            }
+
             var lbx = ID >> 24;
             var lby = ID >> 16 & 0xFF;
 
             var _adjacents = LandblockManager.GetAdjacents(new LandblockId((byte)lbx, (byte)lby));
 
-            adjacents = new List<Landblock>();
+            if (_adjacents == null)
+                return null;
 
-            // dungeons have no adjacents
-            if (IsDungeon || _adjacents == null) return adjacents;
+            adjacents = new List<Landblock>();
 
             var startX = lbx > 0 ? lbx - 1 : lbx;
             var startY = lby > 0 ? lby - 1 : lby;

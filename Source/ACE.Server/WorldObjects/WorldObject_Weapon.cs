@@ -34,7 +34,7 @@ namespace ACE.Server.WorldObjects
 
         const float defaultPhysicalCritFrequency = 0.10f;
         const float defaultMagicCritFrequency = 0.02f;
-        const float defaultCritMultiplier = 0.0f;
+        const float defaultCritMultiplier = 1.0f;
         const float defaultBonusModifier = 1.0f;
         const uint defaultSpeed = 40;   // TODO: find default speed
 

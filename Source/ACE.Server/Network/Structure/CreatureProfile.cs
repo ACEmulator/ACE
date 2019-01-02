@@ -83,17 +83,20 @@ namespace ACE.Server.Network.Structure
             writer.Write(profile.HealthMax);
 
             // has flags & 0x8?
-            writer.Write(profile.Strength);
-            writer.Write(profile.Endurance);
-            writer.Write(profile.Quickness);
-            writer.Write(profile.Coordination);
-            writer.Write(profile.Focus);
-            writer.Write(profile.Self);
+            if (profile.Flags.HasFlag(CreatureProfileFlags.ShowAttributes))
+            {
+                writer.Write(profile.Strength);
+                writer.Write(profile.Endurance);
+                writer.Write(profile.Quickness);
+                writer.Write(profile.Coordination);
+                writer.Write(profile.Focus);
+                writer.Write(profile.Self);
 
-            writer.Write(profile.Stamina);
-            writer.Write(profile.Mana);
-            writer.Write(profile.StaminaMax);
-            writer.Write(profile.ManaMax);
+                writer.Write(profile.Stamina);
+                writer.Write(profile.Mana);
+                writer.Write(profile.StaminaMax);
+                writer.Write(profile.ManaMax);
+            }
 
             // has flags & 0x1?
             if (profile.Flags.HasFlag(CreatureProfileFlags.HasBuffsDebuffs))
