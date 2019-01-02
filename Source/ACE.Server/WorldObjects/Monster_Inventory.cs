@@ -1,10 +1,11 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+
+using ACE.Common.Extensions;
 using ACE.Database;
 using ACE.Database.Models.World;
 using ACE.Entity.Enum;
-using ACE.Server.Physics.Extensions;
 
 namespace ACE.Server.WorldObjects
 {
