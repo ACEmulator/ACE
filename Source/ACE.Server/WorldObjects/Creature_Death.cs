@@ -228,8 +228,11 @@ namespace ACE.Server.WorldObjects
             if (DeathTreasure?.Tier > 0)
                 tier = DeathTreasure.Tier;
 
+            bool hasCreateList = false;
+
             foreach (var trophy in Biota.BiotaPropertiesCreateList.Where(x => x.DestinationType == (int)DestinationType.Contain || x.DestinationType == (int)DestinationType.Treasure || x.DestinationType == (int)DestinationType.ContainTreasure || x.DestinationType == (int)DestinationType.ShopTreasure || x.DestinationType == (int)DestinationType.WieldTreasure).OrderBy(x => x.Shade))
             {
+                hasCreateList = true;
                 if (random.NextDouble() < trophy.Shade || trophy.Shade == 1 || trophy.Shade == 0) // Shade in this context is Probability
                                                                                                   // Should there be rolls for each item or one roll to rule them all?
                 {
@@ -264,6 +267,18 @@ namespace ACE.Server.WorldObjects
 
                         corpse.TryAddToInventory(wo);
                     }
+                }
+            }
+
+            //If creature didnt have a CreateList, then this creates the loot.
+            if(!hasCreateList && Level > 3)
+            {
+                int amount = ThreadSafeRandom.Next(1, 5);
+                for(int i = 0; i < amount; i++)
+                {
+                    var wo = LootGenerationFactory.CreateRandomLootObjects(tier);
+
+                    corpse.TryAddToInventory(wo);
                 }
             }
         }
