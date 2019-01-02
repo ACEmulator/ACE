@@ -166,18 +166,12 @@ namespace ACE.Server.WorldObjects
                     continue;
 
                 // ensure combat maneuver exists for this monster's motion table
-                motions.TryGetValue((uint)combatManeuver.Motion, out var motionData);
-                if (motionData != null)
+                if (motions.TryGetValue((uint)combatManeuver.Motion, out var motionData) && motionData != null)
                     return combatManeuver;
-
-                if (i == shuffledStanceManeuvers.Count - 1)
-                {
-                    log.WarnFormat("No valid combat maneuver found for {0} using weapon {1}. CurrentMotionState.Stance: {2}", Name, (weapon != null ? weapon.Name : "null"), CurrentMotionState.Stance);
-                    return null;
-                    // No match was found
-                }
             }
 
+            // No match was found
+            log.WarnFormat("No valid combat maneuver found for {0} using weapon {1}. CurrentMotionState.Stance: {2}", Name, (weapon != null ? weapon.Name : "null"), CurrentMotionState.Stance);
             return null;
         }
 
