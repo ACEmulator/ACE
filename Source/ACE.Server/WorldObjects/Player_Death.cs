@@ -97,8 +97,6 @@ namespace ACE.Server.WorldObjects
         {
             UpdateVital(Health, 0);
             NumDeaths++;
-            //DeathLevel = Level; // for calculating vitae XP
-            //VitaeCpPool = 0;    // reset vitae XP earned
 
             // killer = top damager for looting rights
             if (topDamager != null)
@@ -118,12 +116,9 @@ namespace ACE.Server.WorldObjects
             // TODO: death sounds? seems to play automatically in client
             // var msgDeathSound = new GameMessageSound(Guid, Sound.Death1, 1.0f);
             var msgNumDeaths = new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.NumDeaths, NumDeaths ?? 0);
-            //var msgDeathLevel = new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.DeathLevel, DeathLevel ?? 0);
-            //var msgVitaeCpPool = new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.VitaeCpPool, VitaeCpPool.Value);
             var msgPurgeEnchantments = new GameEventMagicPurgeEnchantments(Session);
 
             // send network messages for player death
-            //Session.Network.EnqueueSend(msgHealthUpdate, msgNumDeaths, msgDeathLevel, msgVitaeCpPool, msgPurgeEnchantments);
             Session.Network.EnqueueSend(msgHealthUpdate, msgNumDeaths, msgPurgeEnchantments);
 
             // update vitae
@@ -131,12 +126,6 @@ namespace ACE.Server.WorldObjects
             var pkLiteKiller = GetKiller_PKLite();
             if (pkLiteKiller == null)
             {
-                //var vitae = EnchantmentManager.UpdateVitae();
-
-                //var spellID = (uint)SpellId.Vitae;
-                //var spell = new Spell(spellID);
-                //var vitaeEnchantment = new Enchantment(this, Guid, spellID, spell.Duration, 0, (EnchantmentMask)spell.StatModType, vitae);
-                //Session.Network.EnqueueSend(new GameEventMagicUpdateEnchantment(Session, vitaeEnchantment));
                 InflictVitae();
             }
 
