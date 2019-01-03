@@ -339,6 +339,9 @@ namespace ACE.Server.WorldObjects
             // exclude bonded items
             inventory = inventory.Where(i => (i.GetProperty(PropertyInt.Bonded) ?? 0) == 0).ToList();
 
+            // handle items with BondedStatus.Destroy
+            var destroyedItems = HandleDestroyBonded();
+
             // construct the list of death items
             var sorted = new DeathItems(inventory);
 
@@ -374,6 +377,10 @@ namespace ACE.Server.WorldObjects
                 dropItems.Add(dropItem);
             }
 
+            // handle items with BondedStatus.Slippery: always drop on death
+            var slipperyItems = GetSlipperyItems();
+            dropItems.AddRange(slipperyItems);
+
             // add items to corpse
             foreach (var dropItem in dropItems)
             {
@@ -394,6 +401,9 @@ namespace ACE.Server.WorldObjects
                         Console.WriteLine($"Player_Death: couldn't re-add item to {Name}'s inventory: {dropItem.Name}");
                 }
             }
+
+            // notify player of destroyed items?
+            dropItems.AddRange(destroyedItems);
 
             // send network messages
             var dropList = DropMessage(dropItems);
@@ -756,6 +766,26 @@ namespace ACE.Server.WorldObjects
 
             EnqueueBroadcast(new GameMessagePublicUpdatePropertyInt(this, PropertyInt.PlayerKillerStatus, (int)PlayerKillerStatus));
             Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouArePKAgain));
+        }
+
+        public List<WorldObject> GetSlipperyItems()
+        {
+            var allPossessions = GetAllPossessions();
+
+            return allPossessions.Where(i => (i.Bonded ?? 0) == (int)BondedStatus.Slippery).ToList();
+        }
+
+        public List<WorldObject> HandleDestroyBonded()
+        {
+            var destroyedItems = new List<WorldObject>();
+
+            var allPossessions = GetAllPossessions();
+            foreach (var destroyItem in allPossessions.Where(i => (i.Bonded ?? 0) == (int)BondedStatus.Destroy).ToList())
+            {
+                TryRemoveItemFromInventoryWithNetworkingWithDestroy(destroyItem, (ushort)(destroyItem.StackSize ?? 1));
+                destroyedItems.Add(destroyItem);
+            }
+            return destroyedItems;
         }
     }
 }
