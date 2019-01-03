@@ -11,7 +11,6 @@ namespace ACE.Adapter.GDLE
 {
     public static class GDLELoader
     {
-        // 1 worldspawns
         // 2 events quests spells
         // 3 recipes
 
@@ -62,6 +61,50 @@ namespace ACE.Adapter.GDLE
             {
                 results = null;
                 links = null;
+                return false;
+            }
+        }
+
+
+        public static bool TryLoadEvents(string file, out List<Models.Event> results)
+        {
+            try
+            {
+                var fileText = File.ReadAllText(file);
+
+                results = JsonConvert.DeserializeObject<List<Models.Event>>(fileText);
+
+                return true;
+            }
+            catch
+            {
+                results = null;
+                return false;
+            }
+        }
+
+        public static bool TryLoadEventsConverted(string file, out List<Database.Models.World.Event> results)
+        {
+            try
+            {
+                var fileText = File.ReadAllText(file);
+
+                var gdleModel = JsonConvert.DeserializeObject<List<Models.Event>>(fileText);
+
+                results = new List<Database.Models.World.Event>();
+
+                foreach (var value in gdleModel)
+                {
+                    if (GDLEConverter.TryConvert(value, out var result))
+                        results.Add(result);
+                }
+
+                return true;
+
+            }
+            catch
+            {
+                results = null;
                 return false;
             }
         }

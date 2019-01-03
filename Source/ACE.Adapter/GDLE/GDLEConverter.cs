@@ -57,5 +57,29 @@ namespace ACE.Adapter.GDLE
                 return false;
             }
         }
+
+
+        public static bool TryConvert(Models.Event input, out Database.Models.World.Event result)
+        {
+            try
+            {
+                result = new Database.Models.World.Event();
+
+                // result.Id // TODO!!! is this id'd by index? If so, the parent caller needs to set the id... or this function could take an argument that specifies the id.
+
+                result.Name = input.key;
+
+                result.StartTime = input.value.startTime;
+                result.EndTime = input.value.endTime;
+                result.State = input.value.eventState;
+
+                return true;
+            }
+            catch
+            {
+                result = null;
+                return false;
+            }
+        }
     }
 }
