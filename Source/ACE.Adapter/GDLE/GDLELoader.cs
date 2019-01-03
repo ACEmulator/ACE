@@ -42,7 +42,7 @@ namespace ACE.Adapter.GDLE
                 results = new List<LandblockInstance>();
                 links = new List<LandblockInstanceLink>();
 
-                foreach (var value in gdleModel.landblocks)
+                foreach (var value in gdleModel.Landblocks)
                 {
                     if (GDLEConverter.TryConvert(value, out var part1, out var part2))
                     {

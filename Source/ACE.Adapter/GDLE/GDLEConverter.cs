@@ -15,34 +15,34 @@ namespace ACE.Adapter.GDLE
                 results = new List<LandblockInstance>();
                 links = new List<LandblockInstanceLink>();
 
-                foreach (var value in input.value.weenies)
+                foreach (var value in input.Value.Weenies)
                 {
                     var result = new LandblockInstance();
 
-                    result.Guid = value.id;     // TODO!!! I think we need to scale these to fit ACE model
+                    result.Guid = value.Id;     // TODO!!! I think we need to scale these to fit ACE model
                     //result.Landblock = input.key; ACE uses a virtual column here of (result.ObjCellId >> 16)
-                    result.WeenieClassId = value.wcid;
+                    result.WeenieClassId = value.WCID;
 
-                    result.ObjCellId = value.pos.objcell_id;
-                    result.OriginX = (float)value.pos.frame.origin.x;
-                    result.OriginY = (float)value.pos.frame.origin.y;
-                    result.OriginZ = (float)value.pos.frame.origin.z;
-                    result.AnglesW = (float)value.pos.frame.angles.w;
-                    result.AnglesX = (float)value.pos.frame.angles.x;
-                    result.AnglesY = (float)value.pos.frame.angles.y;
-                    result.AnglesZ = (float)value.pos.frame.angles.z;
+                    result.ObjCellId = value.Position.ObjCellId;
+                    result.OriginX = (float)value.Position.Frame.Origin.X;
+                    result.OriginY = (float)value.Position.Frame.Origin.Y;
+                    result.OriginZ = (float)value.Position.Frame.Origin.Z;
+                    result.AnglesW = (float)value.Position.Frame.Angles.W;
+                    result.AnglesX = (float)value.Position.Frame.Angles.X;
+                    result.AnglesY = (float)value.Position.Frame.Angles.Y;
+                    result.AnglesZ = (float)value.Position.Frame.Angles.Z;
 
                     results.Add(result);
                 }
 
-                if (input.value.links != null)
+                if (input.Value.Links != null)
                 {
-                    foreach (var value in input.value.links)
+                    foreach (var value in input.Value.Links)
                     {
                         var result = new LandblockInstanceLink();
 
-                        result.ParentGuid = value.source;   // TODO!!! I'm not sure about the order of these.. is source the parent, or child?
-                        result.ChildGuid = value.target;    // TODO!!! I'm not sure about the order of these.. is source the parent, or child?
+                        result.ParentGuid = value.Source;   // TODO!!! I'm not sure about the order of these.. is source the parent, or child?
+                        result.ChildGuid = value.Target;    // TODO!!! I'm not sure about the order of these.. is source the parent, or child?
 
                         links.Add(result);
                     }

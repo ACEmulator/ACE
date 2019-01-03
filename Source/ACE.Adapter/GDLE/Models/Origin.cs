@@ -1,10 +1,17 @@
 
+using Newtonsoft.Json;
+
 namespace ACE.Adapter.GDLE.Models
 {
     public class Origin
     {
-        public double x { get; set; }
-        public double y { get; set; }
-        public double z { get; set; }
+        [JsonProperty("x")]
+        public double X { get; set; }
+
+        [JsonProperty("y")]
+        public double Y { get; set; }
+
+        [JsonProperty("z")]
+        public double Z { get; set; }
     }
 }

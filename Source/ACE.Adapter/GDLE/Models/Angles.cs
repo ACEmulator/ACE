@@ -1,11 +1,20 @@
 
+using Newtonsoft.Json;
+
 namespace ACE.Adapter.GDLE.Models
 {
     public class Angles
     {
-        public double w { get; set; }
-        public double x { get; set; }
-        public double y { get; set; }
-        public double z { get; set; }
+        [JsonProperty("w", NullValueHandling = NullValueHandling.Ignore)]
+        public double W { get; set; }
+
+        [JsonProperty("x")]
+        public double X { get; set; }
+
+        [JsonProperty("y")]
+        public double Y { get; set; }
+
+        [JsonProperty("z")]
+        public double Z { get; set; }
     }
 }
