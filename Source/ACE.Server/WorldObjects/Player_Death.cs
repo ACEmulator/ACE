@@ -794,7 +794,7 @@ namespace ACE.Server.WorldObjects
             var allPossessions = GetAllPossessions();
             foreach (var destroyItem in allPossessions.Where(i => (i.Bonded ?? 0) == (int)BondedStatus.Destroy).ToList())
             {
-                TryRemoveItemFromInventoryWithNetworkingWithDestroy(destroyItem, (ushort)(destroyItem.StackSize ?? 1));
+                TryConsumeFromInventoryWithNetworking(destroyItem, (destroyItem.StackSize ?? 1));
                 destroyedItems.Add(destroyItem);
             }
             return destroyedItems;
