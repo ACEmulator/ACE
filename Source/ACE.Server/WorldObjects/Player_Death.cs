@@ -70,7 +70,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Inflicts vitae
         /// </summary>
-        public void InflictVitae(int amount = 5)
+        public void InflictVitaePenalty(int amount = 5)
         {
             DeathLevel = Level; // for calculating vitae XP
             VitaeCpPool = 0;    // reset vitae XP earned
@@ -116,18 +116,21 @@ namespace ACE.Server.WorldObjects
             // TODO: death sounds? seems to play automatically in client
             // var msgDeathSound = new GameMessageSound(Guid, Sound.Death1, 1.0f);
             var msgNumDeaths = new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.NumDeaths, NumDeaths ?? 0);
-            var msgPurgeEnchantments = new GameEventMagicPurgeEnchantments(Session);
 
             // send network messages for player death
-            Session.Network.EnqueueSend(msgHealthUpdate, msgNumDeaths, msgPurgeEnchantments);
+            Session.Network.EnqueueSend(msgHealthUpdate, msgNumDeaths);
 
             // update vitae
             // players who died in a PKLite fight do not accrue vitae
             var pkLiteKiller = GetKiller_PKLite();
             if (pkLiteKiller == null)
             {
-                InflictVitae();
+                InflictVitaePenalty();
             }
+
+            var msgPurgeEnchantments = new GameEventMagicPurgeEnchantments(Session);
+            EnchantmentManager.RemoveAllEnchantments();
+            Session.Network.EnqueueSend(msgPurgeEnchantments);
 
             // wait for the death animation to finish
             var dieChain = new ActionChain();

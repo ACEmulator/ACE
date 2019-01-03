@@ -321,7 +321,7 @@ namespace ACE.Server.Managers
 
                 case EmoteType.InflictVitaePenalty:
                     if (player != null)
-                        player.InflictVitae(emote.Amount ?? 5);
+                        player.InflictVitaePenalty(emote.Amount ?? 5);
                     break;
 
                 case EmoteType.InqAttributeStat:

@@ -349,9 +349,7 @@ namespace ACE.Server.Managers
             var minVitae = GetMinVitae((uint)Player.Level);
 
             if (vitae.StatModValue < minVitae)
-                vitae.StatModValue = minVitae;
-
-            RemoveAllEnchantments();
+                vitae.StatModValue = minVitae;            
 
             return vitae.StatModValue;
         }
