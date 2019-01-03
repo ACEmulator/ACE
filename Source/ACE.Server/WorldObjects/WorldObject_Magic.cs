@@ -1016,8 +1016,7 @@ namespace ACE.Server.WorldObjects
             }
 
             // create enchantment
-            var enchantment = new Enchantment(target, caster.Guid, spell.Id, duration, 1, EnchantmentMask.CreatureSpells);
-            var addResult = target.EnchantmentManager.Add(enchantment, caster);
+            var addResult = target.EnchantmentManager.Add(spell, caster);
 
             var player = this as Player;
             var playerTarget = target as Player;
@@ -1025,64 +1024,54 @@ namespace ACE.Server.WorldObjects
 
             // build message
             var suffix = "";
-            switch (addResult.stackType)
+            switch (addResult.StackType)
             {
-                case StackType.Refresh:
-                    suffix = $", refreshing {spell.Name}";
-                    break;
                 case StackType.Surpass:
-                    suffix = $", surpassing {addResult.surpass.Name}";
+                    suffix = $", surpassing {addResult.SurpassSpell.Name}";
+                    break;
+                case StackType.Refresh:
+                    suffix = $", refreshing {addResult.RefreshSpell.Name}";
                     break;
                 case StackType.Surpassed:
-                    suffix = $", but it is surpassed by {addResult.surpass.Name}";
+                    suffix = $", but it is surpassed by {addResult.SurpassedSpell.Name}";
                     break;
             }
 
             var targetName = this == target ? "yourself" : target.Name;
 
-            string message;
-            if (addResult.stackType == StackType.Undef)
-                message = null;
-            else
+            string message = null;
+
+            if (spell.Duration != -1)
             {
-                if (addResult.stackType == StackType.None)
-                    message = null;
+                if (caster is Creature)
+                {
+                    if (caster.Guid == Guid)
+                        message = $"You cast {spell.Name} on {targetName}{suffix}";
+                    else
+                        message = $"{caster.Name} casts {spell.Name} on {targetName}{suffix}"; // for the sentinel command `/buff [target player name]`
+                }
                 else
                 {
-                    if (caster is Creature)
-                    {
-                        if (caster.Guid == Guid)
-                            message = $"You cast {spell.Name} on {targetName}{suffix}";
-                        else
-                            message = $"{caster.Name} casts {spell.Name} on {targetName}{suffix}"; // for the sentinel command `/buff [target player name]`
-                    }
+                    if (target.Name != caster.Name)
+                        message = $"{caster.Name} casts {spell.Name} on you{suffix}";
                     else
-                    {
-                        if (target.Name != caster.Name)
-                            message = $"{caster.Name} casts {spell.Name} on you{suffix}";
-                        else
-                            message = null;
-                    }
+                        message = null;
                 }
             }
-
             if (target is Player)
             {
-                if (addResult.stackType != StackType.Undef)
-                {
-                    if (addResult.stackType != StackType.Surpassed)
-                        playerTarget.Session.Network.EnqueueSend(new GameEventMagicUpdateEnchantment(playerTarget.Session, enchantment));
+                playerTarget.Session.Network.EnqueueSend(new GameEventMagicUpdateEnchantment(playerTarget.Session, new Enchantment(playerTarget, addResult.Enchantment)));
 
-                    if (playerTarget != this)
-                        playerTarget.Session.Network.EnqueueSend(new GameMessageSystemChat($"{Name} cast {spell.Name} on you{suffix}", ChatMessageType.Magic));
-                }
+                if (playerTarget != this)
+                    playerTarget.Session.Network.EnqueueSend(new GameMessageSystemChat($"{Name} cast {spell.Name} on you{suffix}", ChatMessageType.Magic));
             }
 
             if (message != null)
                 enchantmentStatus.message = new GameMessageSystemChat(message, ChatMessageType.Magic);
             else
                 enchantmentStatus.message = null;
-            enchantmentStatus.stackType = addResult.stackType;
+
+            enchantmentStatus.stackType = addResult.StackType;
             return enchantmentStatus;
         }
 
