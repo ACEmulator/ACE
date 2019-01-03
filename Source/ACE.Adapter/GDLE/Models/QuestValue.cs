@@ -1,10 +1,17 @@
 
+using Newtonsoft.Json;
+
 namespace ACE.Adapter.GDLE.Models
 {
     public class QuestValue
     {
-        public int mindelta { get; set; }
-        public int maxsolves { get; set; }
-        public string fullname { get; set; }
+        [JsonProperty("mindelta")]
+        public int MinDelta { get; set; }
+
+        [JsonProperty("maxsolves")]
+        public int MaxSolves { get; set; }
+
+        [JsonProperty("fullname")]
+        public string FullName { get; set; }
     }
 }

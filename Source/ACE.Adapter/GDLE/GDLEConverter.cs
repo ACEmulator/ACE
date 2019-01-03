@@ -91,11 +91,11 @@ namespace ACE.Adapter.GDLE
 
                 // result.Id // TODO!!! is this id'd by index? If so, the parent caller needs to set the id... or this function could take an argument that specifies the id.
 
-                result.Name = input.key;
+                result.Name = input.Key;
 
-                result.MinDelta = (uint)input.value.mindelta; // TODO!!! Should we convert the ACE property to an int
-                result.MaxSolves = input.value.maxsolves;
-                result.Message = input.value.fullname;
+                result.MinDelta = (uint)input.Value.MinDelta; // TODO!!! Should we convert the ACE property to an int
+                result.MaxSolves = input.Value.MaxSolves;
+                result.Message = input.Value.FullName;
 
                 return true;
             }
