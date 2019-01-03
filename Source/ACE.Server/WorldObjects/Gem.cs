@@ -6,6 +6,7 @@ using ACE.Database.Models.World;
 using ACE.DatLoader.Entity;
 using ACE.Entity;
 using ACE.Entity.Enum;
+using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
 using ACE.Server.Network;
 using ACE.Server.Network.Structure;
@@ -75,8 +76,8 @@ namespace ACE.Server.WorldObjects
 
                 player.CreateItemSpell(this, (uint)SpellDID);
 
-                // always consume gem?
-                player.TryConsumeFromInventoryWithNetworking(this);
+                if ((GetProperty(PropertyBool.UnlimitedUse) ?? false) == false)
+                    player.TryConsumeFromInventoryWithNetworking(this);
 
                 player.SendUseDoneEvent();
                 return;
