@@ -1435,12 +1435,6 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if ((item.Attuned ?? 0) == 1)
-            {
-                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, WeenieError.AttunedItem));
-                return;
-            }
-
             var result = target.Biota.BiotaPropertiesEmote.FirstOrDefault(emote => emote.WeenieClassId == item.WeenieClassId);
 
             if (result != null && target.HandleNPCReceiveItem(item, this, actionChain))
