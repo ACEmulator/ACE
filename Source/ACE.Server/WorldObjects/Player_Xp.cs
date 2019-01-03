@@ -108,7 +108,11 @@ namespace ACE.Server.WorldObjects
             {
                 var actionChain = new ActionChain();
                 actionChain.AddDelaySeconds(2.0f);
-                actionChain.AddAction(this, () => EnchantmentManager.RemoveVitae());
+                actionChain.AddAction(this, () =>
+                {
+                    if (EnchantmentManager.GetVitae().StatModValue == 1.0f)
+                        EnchantmentManager.RemoveVitae();
+                });
                 actionChain.EnqueueChain();
             }
         }
