@@ -9,7 +9,10 @@
 
 ### 2019-01-01
 [Ripley]
-* Fix issue with trap door switches (Switch linked to another Switch)
+* Fix issue with switches
+  - Changed code to use TryCastSpell so that it works with all schools of magic.
+  - Added check for Emote and use Activation Emote if called for.
+* Update @delete command to work correctly.
 
 ### 2018-12-31
 [Mag-nus]

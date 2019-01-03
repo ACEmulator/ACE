@@ -70,26 +70,19 @@ namespace ACE.Server.WorldObjects
                 var player = creature as Player;
                 if (player != null)
                 {
-                    if (Usable.HasValue && Usable == ACE.Entity.Enum.Usable.ViewedRemote && SpellDID.HasValue)
-                    {
-                        var spell = new Server.Entity.Spell((uint)SpellDID);
-                        var enchantmentStatus = default(EnchantmentStatus);
-
-                        LifeMagic(player, spell, out uint damage, out bool critical, out enchantmentStatus);    // always life magic?
-                        player.PlayParticleEffect(spell.TargetEffect, player.Guid);
-
-                        player.SendUseDoneEvent();
-                    }
-
-                    if (Usable.HasValue && Usable == ACE.Entity.Enum.Usable.No && SpellDID.HasValue && (ActivationResponse & ActivationResponse.CastSpell) != 0)
+                    if (SpellDID.HasValue && (ActivationResponse & ActivationResponse.CastSpell) != 0)
                     {
                         var spell = new Server.Entity.Spell((uint)SpellDID);
 
-                        ItemMagic(player, spell, this);    // always item magic?
-                        player.PlayParticleEffect(spell.TargetEffect, player.Guid);
-
-                        player.SendUseDoneEvent();
+                        TryCastSpell(spell, player);
                     }
+
+                    if ((ActivationResponse & ActivationResponse.Emote) != 0)
+                    {
+                        EmoteManager.OnActivation(player);
+                    }
+
+                    player.SendUseDoneEvent();
                 }
             });
             actionChain.EnqueueChain();
