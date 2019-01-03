@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netstandard2.0</TargetFramework>
+        <Platforms>x64</Platforms>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\ACE.Database\ACE.Database.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Reference Include="Lifestoned.DataModel">
+        <HintPath>..\lib\Lifestoned.DataModel.dll</HintPath>
+      </Reference>
+    </ItemGroup>
+
+</Project>

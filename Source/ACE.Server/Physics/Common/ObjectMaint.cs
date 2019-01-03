@@ -268,9 +268,11 @@ namespace ACE.Server.Physics.Common
             var visibleObjs = new List<PhysicsObj>(PhysicsObj.CurLandblock.ServerObjects);
 
             var adjacents = PhysicsObj.CurLandblock.get_adjacents();
-
-            foreach (var adjacent in adjacents)
-                visibleObjs.AddRange(adjacent.ServerObjects);
+            if (adjacents != null)
+            {
+                foreach (var adjacent in adjacents)
+                    visibleObjs.AddRange(adjacent.ServerObjects);
+            }
 
             return visibleObjs.Where(i => i.ID != PhysicsObj.ID).ToList();
 

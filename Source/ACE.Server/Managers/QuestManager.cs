@@ -74,7 +74,7 @@ namespace ACE.Server.Managers
         /// </summary>
         public CharacterPropertiesQuestRegistry GetQuest(string questName)
         {
-            return Quests.FirstOrDefault(q => q.QuestName.Equals(questName));
+            return Quests.FirstOrDefault(q => q.QuestName.Equals(questName, StringComparison.OrdinalIgnoreCase));
         }
 
         /// <summary>
@@ -84,7 +84,7 @@ namespace ACE.Server.Managers
         {
             var questName = GetQuestName(quest);
 
-            var existing = Quests.FirstOrDefault(q => q.QuestName == questName);
+            var existing = Quests.FirstOrDefault(q => q.QuestName.Equals(questName, StringComparison.OrdinalIgnoreCase));
 
             if (existing == null)
             {
@@ -185,7 +185,7 @@ namespace ACE.Server.Managers
 
             var questName = GetQuestName(questFormat);
 
-            var quests = Quests.Where(q => q.QuestName.Equals(questName)).ToList();
+            var quests = Quests.Where(q => q.QuestName.Equals(questName, StringComparison.OrdinalIgnoreCase)).ToList();
             foreach (var quest in quests)
                 Quests.Remove(quest);
         }
