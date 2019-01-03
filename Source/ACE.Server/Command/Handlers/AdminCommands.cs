@@ -260,7 +260,7 @@ namespace ACE.Server.Command.Handlers
                     return;
 
                 if (wo != null)
-                    LandblockManager.RemoveObject(wo);
+                    wo.Destroy();
             }
         }
 
