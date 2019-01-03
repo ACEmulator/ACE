@@ -4,23 +4,21 @@ using System.IO;
 
 using Newtonsoft.Json;
 
-using ACE.Adapter.GDLE.Models;
 using ACE.Database.Models.World;
 
 namespace ACE.Adapter.GDLE
 {
     public static class GDLELoader
     {
-        // 2 spells
         // 3 recipes
 
-        public static bool TryLoadWorldSpawns(string file, out WorldSpawns result)
+        public static bool TryLoadWorldSpawns(string file, out Models.WorldSpawns result)
         {
             try
             {
                 var fileText = File.ReadAllText(file);
 
-                result = JsonConvert.DeserializeObject<WorldSpawns>(fileText);
+                result = JsonConvert.DeserializeObject<Models.WorldSpawns>(fileText);
 
                 return true;
             }
@@ -37,7 +35,7 @@ namespace ACE.Adapter.GDLE
             {
                 var fileText = File.ReadAllText(file);
 
-                var gdleModel = JsonConvert.DeserializeObject<WorldSpawns>(fileText);
+                var gdleModel = JsonConvert.DeserializeObject<Models.WorldSpawns>(fileText);
 
                 results = new List<LandblockInstance>();
                 links = new List<LandblockInstanceLink>();
@@ -140,6 +138,50 @@ namespace ACE.Adapter.GDLE
                 foreach (var value in gdleModel)
                 {
                     if (GDLEConverter.TryConvert(value, out var result))
+                        results.Add(result);
+                }
+
+                return true;
+
+            }
+            catch
+            {
+                results = null;
+                return false;
+            }
+        }
+
+
+        public static bool TryLoadSpells(string file, out Models.Spells result)
+        {
+            try
+            {
+                var fileText = File.ReadAllText(file);
+
+                result = JsonConvert.DeserializeObject<Models.Spells>(fileText);
+
+                return true;
+            }
+            catch
+            {
+                result = null;
+                return false;
+            }
+        }
+
+        public static bool TryLoadSpellsConverted(string file, out List<Database.Models.World.Spell> results)
+        {
+            try
+            {
+                var fileText = File.ReadAllText(file);
+
+                var gdleModel = JsonConvert.DeserializeObject<Models.Spells>(fileText);
+
+                results = new List<Database.Models.World.Spell>();
+
+                foreach (var value in gdleModel.Table.SpellBaseHash)
+                {
+                    if (GDLEConverter.TryConvert(value.Key, value.Value, out var result))
                         results.Add(result);
                 }
 
