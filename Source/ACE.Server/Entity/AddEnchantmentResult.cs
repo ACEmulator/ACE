@@ -82,8 +82,8 @@ namespace ACE.Server.Entity
                     // the self-cast would find the existing spell from the item, but it wouldn't refresh that one
                     // it should cast to its own layer?
 
-                    if (Refresh.Count > 1)
-                        Console.WriteLine($"AddEnchantmentResult.BuildStack(): multiple refresh entries");
+                    //if (Refresh.Count > 1)
+                        //Console.WriteLine($"AddEnchantmentResult.BuildStack(): multiple refresh entries");
                 }
                 else if (powerLevel < entry.PowerLevel)
                 {
@@ -130,8 +130,8 @@ namespace ACE.Server.Entity
             {
                 if (refresh.Duration != -1)
                 {
-                    if (RefreshCreature != null)
-                        Console.WriteLine($"AddEnchantmentResult.GetCreatureRefresh(): found multiple duration spells");
+                    //if (RefreshCreature != null)
+                        //Console.WriteLine($"AddEnchantmentResult.GetCreatureRefresh(): found multiple duration spells");
 
                     RefreshCreature = refresh;
                 }
