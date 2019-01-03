@@ -6,6 +6,7 @@
   - This eliminates, in theory, record caps for this table.
   - More tables in Shard will be converted to this format if this proves stable long term
   - **You must apply the 2018-12-30-00-Enchantment_Registry_Comp_Key.sql script to update your shard database**
+* Update EmoteManager to support InflictVitaePenalty
 
 ### 2019-01-01
 [Ripley]

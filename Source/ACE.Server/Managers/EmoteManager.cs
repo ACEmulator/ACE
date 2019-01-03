@@ -320,7 +320,8 @@ namespace ACE.Server.Managers
                     break;
 
                 case EmoteType.InflictVitaePenalty:
-                    if (player != null) player.VitaeCpPool++;   // TODO: full path
+                    if (player != null)
+                        player.InflictVitae(emote.Amount ?? 5);
                     break;
 
                 case EmoteType.InqAttributeStat:
