@@ -1507,5 +1507,14 @@ namespace ACE.Server.Command.Handlers
             else
                 session.Network.EnqueueSend(new GameMessageSystemChat("Your spell components will now be consumed when casting spells.", ChatMessageType.Broadcast));
         }
+
+        /// <summary>
+        /// Shows the current player location, from the server perspective
+        /// </summary>
+        [CommandHandler("myloc", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Shows the current player location, from the server perspective", "/myloc")]
+        public static void HandleMyLoc(Session session, params string[] parameters)
+        {
+            session.Network.EnqueueSend(new GameMessageSystemChat($"Location: {session.Player.PhysicsObj.Position}", ChatMessageType.Broadcast));
+        }
     }
 }
