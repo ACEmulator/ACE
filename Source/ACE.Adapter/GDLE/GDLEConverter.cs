@@ -81,5 +81,29 @@ namespace ACE.Adapter.GDLE
                 return false;
             }
         }
+
+
+        public static bool TryConvert(Models.Quest input, out Database.Models.World.Quest result)
+        {
+            try
+            {
+                result = new Database.Models.World.Quest();
+
+                // result.Id // TODO!!! is this id'd by index? If so, the parent caller needs to set the id... or this function could take an argument that specifies the id.
+
+                result.Name = input.key;
+
+                result.MinDelta = (uint)input.value.mindelta; // TODO!!! Should we convert the ACE property to an int
+                result.MaxSolves = input.value.maxsolves;
+                result.Message = input.value.fullname;
+
+                return true;
+            }
+            catch
+            {
+                result = null;
+                return false;
+            }
+        }
     }
 }
