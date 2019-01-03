@@ -38,6 +38,12 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
+            if (MonsterState == State.Return)
+            {
+                Movement();
+                return;
+            }
+
             var creatureTarget = AttackTarget as Creature;
             if (creatureTarget != null && (creatureTarget.IsDead || (pet == null && !creatureTarget.IsVisible(this))))
             {
