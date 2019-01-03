@@ -338,7 +338,7 @@ namespace ACE.Server.WorldObjects
                             if (boost >= 0)
                                 spellTarget.DamageHistory.OnHeal((uint)boost);
                             else
-                                spellTarget.DamageHistory.Add(this, DamageType.Health, damage);
+                                spellTarget.DamageHistory.Add(this, DamageType.Health, (uint)-boost);
                             break;
                     }
 
