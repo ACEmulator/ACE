@@ -4,12 +4,12 @@ using Newtonsoft.Json;
 
 namespace ACE.Adapter.GDLE.Models
 {
-    public class RequirementClass
+    public class RecipeRequirements
     {
         [JsonProperty("BoolRequirements", NullValueHandling = NullValueHandling.Ignore)]
-        public List<Requirement> BoolRequirements { get; set; }
+        public List<DoubleRequirement> BoolRequirements { get; set; }
 
         [JsonProperty("IntRequirements", NullValueHandling = NullValueHandling.Ignore)]
-        public List<Requirement> IntRequirements { get; set; }
+        public List<DoubleRequirement> IntRequirements { get; set; }
     }
 }

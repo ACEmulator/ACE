@@ -6,12 +6,6 @@ namespace ACE.Adapter.GDLE.Models
 {
     public class Mod
     {
-        [JsonProperty("DIDRequirements", NullValueHandling = NullValueHandling.Ignore)]
-        public List<Requirement> DidRequirements { get; set; }
-
-        [JsonProperty("FloatRequirements", NullValueHandling = NullValueHandling.Ignore)]
-        public List<Requirement> FloatRequirements { get; set; }
-
         [JsonProperty("ModificationScriptId")]
         public int ModificationScriptId { get; set; }
 
@@ -33,9 +27,6 @@ namespace ACE.Adapter.GDLE.Models
         [JsonProperty("RequiresStamina")]
         public int RequiresStamina { get; set; }
 
-        [JsonProperty("StringRequirements", NullValueHandling = NullValueHandling.Ignore)]
-        public List<StringRequirement> StringRequirements { get; set; }
-
         [JsonProperty("Unknown10")]
         public int Unknown10 { get; set; }
 
@@ -45,10 +36,20 @@ namespace ACE.Adapter.GDLE.Models
         [JsonProperty("Unknown9")]
         public int Unknown9 { get; set; }
 
+
+        [JsonProperty("DIDRequirements", NullValueHandling = NullValueHandling.Ignore)]
+        public List<DoubleRequirement> DidRequirements { get; set; }
+
+        [JsonProperty("FloatRequirements", NullValueHandling = NullValueHandling.Ignore)]
+        public List<DoubleRequirement> FloatRequirements { get; set; }
+
+        [JsonProperty("StringRequirements", NullValueHandling = NullValueHandling.Ignore)]
+        public List<StringRequirement> StringRequirements { get; set; }
+
         [JsonProperty("BoolRequirements", NullValueHandling = NullValueHandling.Ignore)]
-        public List<Requirement> BoolRequirements { get; set; }
+        public List<DoubleRequirement> BoolRequirements { get; set; }
 
         [JsonProperty("IntRequirements", NullValueHandling = NullValueHandling.Ignore)]
-        public List<Requirement> IntRequirements { get; set; }
+        public List<DoubleRequirement> IntRequirements { get; set; }
     }
 }

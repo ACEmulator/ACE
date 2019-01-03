@@ -276,6 +276,254 @@ namespace ACE.Adapter.GDLE
             {
                 result = new Recipe();
 
+                result.Id = input.RecipeId;
+
+                // TODO: We're missing SkillCheckFormulaType and Unknown
+
+                //result.Unknown1 = input.unknown_1;
+                result.Skill = input.Skill;
+                result.Difficulty = input.Difficulty;
+                //result.SalvageType = input.SalvageType;
+
+                result.SuccessWCID = input.SuccessWcid;
+                result.SuccessAmount = input.SuccessAmount;
+                result.SuccessMessage = input.SuccessMessage;
+
+                result.FailWCID = input.FailWcid;
+                result.FailAmount = input.FailAmount;
+                result.FailMessage = input.FailMessage;
+
+                result.SuccessDestroyTargetChance = input.SuccessConsumeTargetChance;
+                result.SuccessDestroyTargetAmount = input.SuccessConsumeTargetAmount;
+                result.SuccessDestroyTargetMessage = input.SuccessConsumeTargetMessage;
+
+                result.SuccessDestroySourceChance = input.SuccessConsumeToolChance;
+                result.SuccessDestroySourceAmount = input.SuccessConsumeToolAmount;
+                result.SuccessDestroySourceMessage = input.SuccessConsumeToolMessage;
+
+                result.FailDestroyTargetChance = input.FailureConsumeTargetChance;
+                result.FailDestroyTargetAmount = input.FailureConsumeTargetAmount;
+                result.FailDestroyTargetMessage = input.FailureConsumeTargetMessage;
+
+                result.FailDestroySourceChance = input.FailureConsumeToolChance;
+                result.FailDestroySourceAmount = input.FailureConsumeToolAmount;
+                result.FailDestroySourceMessage = input.FailureConsumeToolMessage;
+
+                result.DataId = input.DataId;
+
+                foreach (var value in input.Requirements)
+                {
+                    if (value == null)
+                        continue;
+
+                    // TODO!!! GDLE only has 2 requirements, int and bool. Why do we have all of them defined?
+                    // TODO!!! GDLE requirements also define properties OperationType and Unknown
+
+                    if (value.IntRequirements != null)
+                    {
+                        foreach (var requirement in value.IntRequirements)
+                        {
+                            result.RecipeRequirementsInt.Add(new RecipeRequirementsInt
+                            {
+                                Stat = requirement.Stat,
+                                Value = (int)requirement.Value,
+                                //Enum = requirement.Enum, // TODO!!!
+                                Message = requirement.Message
+                            });
+                        }
+                    }
+
+                    /*if (value.DIDRequirements != null)
+                    {
+                        foreach (var requirement in value.DIDRequirements)
+                        {
+                            result.RecipeRequirementsDID.Add(new RecipeRequirementsDID
+                            {
+                                Stat = requirement.Stat,
+                                Value = requirement.Value,
+                                Enum = requirement.Enum,
+                                Message = requirement.Message
+                            });
+                        }
+                    }
+
+                    if (value.IIDRequirements != null)
+                    {
+                        foreach (var requirement in value.IIDRequirements)
+                        {
+                            result.RecipeRequirementsIID.Add(new RecipeRequirementsIID
+                            {
+                                Stat = requirement.Stat,
+                                Value = requirement.Value,
+                                Enum = requirement.Enum,
+                                Message = requirement.Message
+                            });
+                        }
+                    }
+
+                    if (value.FloatRequirements != null)
+                    {
+                        foreach (var requirement in value.FloatRequirements)
+                        {
+                            result.RecipeRequirementsFloat.Add(new RecipeRequirementsFloat
+                            {
+                                Stat = requirement.Stat,
+                                Value = requirement.Value,
+                                Enum = requirement.Enum,
+                                Message = requirement.Message
+                            });
+                        }
+                    }
+
+                    if (value.StringRequirements != null)
+                    {
+                        foreach (var requirement in value.StringRequirements)
+                        {
+                            result.RecipeRequirementsString.Add(new RecipeRequirementsString
+                            {
+                                Stat = requirement.Stat,
+                                Value = requirement.Value,
+                                Enum = requirement.Enum,
+                                Message = requirement.Message
+                            });
+                        }
+                    }*/
+
+                    if (value.BoolRequirements != null)
+                    {
+                        foreach (var requirement in value.BoolRequirements)
+                        {
+                            result.RecipeRequirementsBool.Add(new RecipeRequirementsBool
+                            {
+                                Stat = requirement.Stat,
+                                Value = (requirement.Value != 0),
+                                //Enum = requirement.Enum, // TODO!!!
+                                Message = requirement.Message
+                            });
+                        }
+                    }
+                }
+
+                for (int i = 0; i < 8; i++) // Must be 8
+                {
+                    var recipeMod = new RecipeMod();
+
+                    var value = input.Mods[i];
+
+                    if (value == null)
+                        continue;
+
+                    if (value.IntRequirements != null)
+                    {
+                        foreach (var mod in value.IntRequirements)
+                        {
+                            recipeMod.RecipeModsInt.Add(new RecipeModsInt
+                            {
+                                Stat = mod.Stat,
+                                Value = (int)mod.Value,
+                                //Enum = mod.Enum, // TODO!!!
+                                //Unknown1 = mod.Unknown1 // TODO!!!
+                            });
+                        }
+                    }
+
+                    if (value.DidRequirements != null)
+                    {
+                        foreach (var mod in value.DidRequirements)
+                        {
+                            recipeMod.RecipeModsDID.Add(new RecipeModsDID
+                            {
+                                Stat = mod.Stat,
+                                Value = (uint)mod.Value,
+                                //Enum = mod.Enum, // TODO!!!
+                                //Unknown1 = mod.Unknown1 // TODO!!!
+                            });
+                        }
+                    }
+
+                    // TODO!!!! GDLE doesn't have this
+                    /*if (value.IIDMods != null)
+                    {
+                        foreach (var mod in value.IIDMods)
+                        {
+                            recipeMod.RecipeModsIID.Add(new RecipeModsIID
+                            {
+                                Stat = mod.Stat,
+                                Value = mod.Value,
+                                Enum = mod.Enum,
+                                Unknown1 = mod.Unknown1
+                            });
+                        }
+                    }*/
+
+                    if (value.FloatRequirements != null)
+                    {
+                        foreach (var mod in value.FloatRequirements)
+                        {
+                            recipeMod.RecipeModsFloat.Add(new RecipeModsFloat
+                            {
+                                Stat = mod.Stat,
+                                Value = mod.Value,
+                                //Enum = mod.Enum, // TODO!!!
+                                //Unknown1 = mod.Unknown1 // TODO!!!
+                            });
+                        }
+                    }
+
+                    if (value.StringRequirements != null)
+                    {
+                        foreach (var mod in value.StringRequirements)
+                        {
+                            recipeMod.RecipeModsString.Add(new RecipeModsString
+                            {
+                                Stat = mod.Stat,
+                                Value = mod.Value,
+                                //Enum = mod.Enum, // TODO!!!
+                                //Unknown1 = mod.Unknown1 // TODO!!!
+                            });
+                        }
+                    }
+
+                    if (value.BoolRequirements != null)
+                    {
+                        foreach (var mod in value.BoolRequirements)
+                        {
+                            recipeMod.RecipeModsBool.Add(new RecipeModsBool
+                            {
+                                Stat = mod.Stat,
+                                Value = (mod.Value != 0),
+                                //Enum = mod.Enum, // TODO!!!
+                                //Unknown1 = mod.Unknown1 // TODO!!!
+                            });
+                        }
+                    }
+
+                    recipeMod.RecipeId = result.Id;
+
+                    recipeMod.ExecutesOnSuccess = (i <= 3); // The first 4 are "act on success", the second 4 are "act on failure"
+
+                    // TODO!!! missing ModificationScriptId
+
+                    // TODO!!!
+                    //recipeMod.Health = value.ModifyHealth;
+                    //recipeMod.Stamina = value.ModifyStamina;
+                    //recipeMod.Mana = value.ModifyMana;
+                    // TODO!!! we're missing the following RequiresHealth, RequiresStamina, RequiresMana
+
+                    recipeMod.Unknown7 = value.Unknown7;
+                    //recipeMod.DataId = value.DataID;
+
+                    recipeMod.Unknown9 = value.Unknown9;
+                    //recipeMod.InstanceId = value.InstanceID; // TODO!!! is this value.Unknown10 ???
+
+                    bool add = (recipeMod.Health > 0 || recipeMod.Stamina > 0 || recipeMod.Mana > 0);
+                    add = (add || recipeMod.Unknown7 || recipeMod.DataId > 0 || recipeMod.Unknown9 > 0 || recipeMod.InstanceId > 0);
+                    add = (add || recipeMod.RecipeModsBool.Count > 0 || recipeMod.RecipeModsDID.Count > 0 || recipeMod.RecipeModsFloat.Count > 0 || recipeMod.RecipeModsIID.Count > 0 || recipeMod.RecipeModsInt.Count > 0 || recipeMod.RecipeModsString.Count > 0);
+
+                    if (add)
+                        result.RecipeMod.Add(recipeMod);
+                }
+
                 return true;
             }
             catch

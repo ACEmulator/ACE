@@ -3,7 +3,7 @@ using Newtonsoft.Json;
 
 namespace ACE.Adapter.GDLE.Models
 {
-    public class Requirement
+    public class DoubleRequirement
     {
         [JsonProperty("OperationType")]
         public int OperationType { get; set; }
