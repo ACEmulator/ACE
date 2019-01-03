@@ -703,10 +703,6 @@ namespace ACE.Server.WorldObjects
                                 {
                                     creatureTarget.OnDeath(this, DamageType.Health, false); 
                                     creatureTarget.Die();
-
-                                    // TODO: refactor to common Creature.OnDeath()
-                                    if ((creatureTarget as Player) == null)
-                                        player.EarnXP((long)target.XpOverride, true);
                                 }
                                 else
                                 {
