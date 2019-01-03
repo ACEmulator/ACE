@@ -10,8 +10,6 @@ namespace ACE.Adapter.GDLE
 {
     public static class GDLELoader
     {
-        // 3 recipes
-
         public static bool TryLoadWorldSpawns(string file, out Models.WorldSpawns result)
         {
             try
@@ -182,6 +180,50 @@ namespace ACE.Adapter.GDLE
                 foreach (var value in gdleModel.Table.SpellBaseHash)
                 {
                     if (GDLEConverter.TryConvert(value.Key, value.Value, out var result))
+                        results.Add(result);
+                }
+
+                return true;
+
+            }
+            catch
+            {
+                results = null;
+                return false;
+            }
+        }
+
+
+        public static bool TryLoadRecipes(string file, out List<Models.Recipe> results)
+        {
+            try
+            {
+                var fileText = File.ReadAllText(file);
+
+                results = JsonConvert.DeserializeObject<List<Models.Recipe>>(fileText);
+
+                return true;
+            }
+            catch
+            {
+                results = null;
+                return false;
+            }
+        }
+
+        public static bool TryLoadRecipesConverted(string file, out List<Database.Models.World.Recipe> results)
+        {
+            try
+            {
+                var fileText = File.ReadAllText(file);
+
+                var gdleModel = JsonConvert.DeserializeObject<List<Models.Recipe>>(fileText);
+
+                results = new List<Database.Models.World.Recipe>();
+
+                foreach (var value in gdleModel)
+                {
+                    if (GDLEConverter.TryConvert(value, out var result))
                         results.Add(result);
                 }
 

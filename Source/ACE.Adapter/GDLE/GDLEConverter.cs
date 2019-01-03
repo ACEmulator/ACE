@@ -268,5 +268,21 @@ namespace ACE.Adapter.GDLE
                 return false;
             }
         }
+
+
+        public static bool TryConvert(Models.Recipe input, out Database.Models.World.Recipe result)
+        {
+            try
+            {
+                result = new Recipe();
+
+                return true;
+            }
+            catch
+            {
+                result = null;
+                return false;
+            }
+        }
     }
 }
