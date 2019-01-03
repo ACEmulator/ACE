@@ -170,6 +170,8 @@ namespace ACE.Server.WorldObjects
 
                     foreach (var gen in genlist)
                         TryCreateInInventoryWithNetworking(gen);
+
+                    Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.PickUpItem));
                 }
                 else // not enough cash.
                 {
@@ -177,7 +179,7 @@ namespace ACE.Server.WorldObjects
                 }
             }
 
-            vendor.BuyItemsFinalTransaction(this, uqlist, valid);
+            vendor.BuyItems_FinalTransaction(this, uqlist, valid);
         }
 
         public void FinalizeSellTransaction(WorldObject vendor, bool valid, List<WorldObject> purchaselist, uint payout)
@@ -186,6 +188,8 @@ namespace ACE.Server.WorldObjects
             if (valid)
             {
                 CreateCurrency(WeenieType.Coin, payout);
+
+                Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.PickUpItem));
             }
         }
 
@@ -204,7 +208,7 @@ namespace ACE.Server.WorldObjects
             var vendor = (CurrentLandblock?.GetObject(vendorId) as Vendor);
 
             if (vendor != null)
-                vendor.BuyValidateTransaction(vendorId, items, this);
+                vendor.BuyItems_ValidateTransaction(vendorId, items, this);
         }
 
         /// <summary>
@@ -228,8 +232,10 @@ namespace ACE.Server.WorldObjects
                 }
             }
 
-            if (CurrentLandblock?.GetObject(vendorId) is Vendor vendor)
-                vendor.SellItemsValidateTransaction(this, purchaselist);
+            var vendor = CurrentLandblock?.GetObject(vendorId) as Vendor;
+
+            if (vendor != null)
+                vendor.SellItems_ValidateTransaction(this, purchaselist);
         }
     }
 }

@@ -318,6 +318,9 @@ namespace ACE.Server.WorldObjects
 
             // get base damage
             var attackPart = GetAttackPart(maneuver);
+            if (attackPart == null)
+                return 0.0f;
+
             damageType = GetDamageType(attackPart);
             var damageRange = GetBaseDamage(attackPart);
             var baseDamage = ThreadSafeRandom.Next(damageRange.Min, damageRange.Max);
@@ -518,6 +521,14 @@ namespace ACE.Server.WorldObjects
             }
             if (parts == null)
                 parts = Biota.BiotaPropertiesBodyPart.Where(b => b.DVal != 0 && b.BH != 0).ToList();
+
+            if (parts.Count == 0)
+            {
+                log.Warn($"{Name}.GetAttackPart() failed");
+                log.Warn($"Combat table ID: {CombatTable.Id:X8}");
+                log.Warn($"{maneuver.Style} - {maneuver.Motion} - {maneuver.AttackHeight}");
+                return null;
+            }
 
             var part = parts[ThreadSafeRandom.Next(0, parts.Count - 1)];
 

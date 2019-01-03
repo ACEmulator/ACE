@@ -65,7 +65,7 @@ namespace ACE.Server.Network.Structure
         }
     }
 
-    public static class EnchantmentExtentions
+    public static class EnchantmentExtensions
     {
         public static readonly double LastTimeDegraded = 0;
         public static readonly float DefaultStatMod = 35.0f;
