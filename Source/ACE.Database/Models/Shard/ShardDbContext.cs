@@ -59,6 +59,10 @@ namespace ACE.Database.Models.Shard
             var config = Common.ConfigManager.Config.MySql.Shard;
 
             optionsBuilder.UseMySql($"server={config.Host};port={config.Port};user={config.Username};password={config.Password};database={config.Database}");
+
+#if DEBUG
+            optionsBuilder.EnableSensitiveDataLogging(true);
+#endif
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -697,13 +701,30 @@ namespace ACE.Database.Models.Shard
 
             modelBuilder.Entity<BiotaPropertiesEnchantmentRegistry>(entity =>
             {
+                entity.HasKey(e => new { e.ObjectId, e.EnchantmentCategory, e.SpellId, e.LayerId });
+
                 entity.ToTable("biota_properties_enchantment_registry");
 
                 entity.HasIndex(e => new { e.ObjectId, e.SpellId, e.LayerId })
                     .HasName("wcid_enchantmentregistry_objectId_spellId_layerId_uidx")
                     .IsUnique();
 
-                entity.Property(e => e.Id).HasColumnName("id");
+                entity.Property(e => e.ObjectId)
+                    .HasColumnName("object_Id")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.EnchantmentCategory)
+                    .HasColumnName("enchantment_Category")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.SpellId)
+                    .HasColumnName("spell_Id")
+                    .HasColumnType("int(10)")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.LayerId)
+                    .HasColumnName("layer_Id")
+                    .HasDefaultValueSql("'0'");
 
                 entity.Property(e => e.CasterObjectId)
                     .HasColumnName("caster_Object_Id")
@@ -721,10 +742,6 @@ namespace ACE.Database.Models.Shard
                     .HasColumnName("duration")
                     .HasDefaultValueSql("'0'");
 
-                entity.Property(e => e.EnchantmentCategory)
-                    .HasColumnName("enchantment_Category")
-                    .HasDefaultValueSql("'0'");
-
                 entity.Property(e => e.HasSpellSetId)
                     .HasColumnName("has_Spell_Set_Id")
                     .HasColumnType("bit(1)");
@@ -733,25 +750,12 @@ namespace ACE.Database.Models.Shard
                     .HasColumnName("last_Time_Degraded")
                     .HasDefaultValueSql("'0'");
 
-                entity.Property(e => e.LayerId)
-                    .HasColumnName("layer_Id")
-                    .HasDefaultValueSql("'0'");
-
-                entity.Property(e => e.ObjectId)
-                    .HasColumnName("object_Id")
-                    .HasDefaultValueSql("'0'");
-
                 entity.Property(e => e.PowerLevel)
                     .HasColumnName("power_Level")
                     .HasDefaultValueSql("'0'");
 
                 entity.Property(e => e.SpellCategory)
                     .HasColumnName("spell_Category")
-                    .HasDefaultValueSql("'0'");
-
-                entity.Property(e => e.SpellId)
-                    .HasColumnName("spell_Id")
-                    .HasColumnType("int(10)")
                     .HasDefaultValueSql("'0'");
 
                 entity.Property(e => e.SpellSetId)
