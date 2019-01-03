@@ -32,10 +32,10 @@ namespace ACE.Adapter.Lifestoned
 
         public static bool TryLoadWeenies(string folder, out List<global::Lifestoned.DataModel.Gdle.Weenie> results)
         {
-            results = new List<global::Lifestoned.DataModel.Gdle.Weenie>();
-
             try
             {
+                results = new List<global::Lifestoned.DataModel.Gdle.Weenie>();
+
                 var files = Directory.GetFiles(folder, "*.json", SearchOption.AllDirectories).OrderByDescending(f => new FileInfo(f).CreationTime).ToList();
 
                 foreach (var file in files)
@@ -48,6 +48,7 @@ namespace ACE.Adapter.Lifestoned
             }
             catch
             {
+                results = null;
                 return false;
             }
         }
@@ -97,10 +98,10 @@ namespace ACE.Adapter.Lifestoned
 
         public static bool TryLoadWeeniesConverted(string folder, out List<Weenie> results)
         {
-            results = new List<Weenie>();
-
             try
             {
+                results = new List<Weenie>();
+
                 var files = Directory.GetFiles(folder, "*.json", SearchOption.AllDirectories).OrderByDescending(f => new FileInfo(f).CreationTime).ToList();
 
                 foreach (var file in files)
@@ -113,6 +114,7 @@ namespace ACE.Adapter.Lifestoned
             }
             catch
             {
+                results = null;
                 return false;
             }
         }
