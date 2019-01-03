@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.Entity;
@@ -14,12 +15,14 @@ using log4net;
 namespace ACE.Server.WorldObjects
 {
     /// <summary>
-    /// ** Usage Data Flow **
-    ///     HandleActionApproachVendor
     /// ** Buy Data Flow **
-    /// Player.HandleActionBuy->Vendor.BuyItemsValidateTransaction->Player.HandleActionBuyFinalTransaction->Vendor.BuyItemsFinalTransaction
+    ///
+    /// Player.HandleActionBuyItem -> Vendor.BuyItems_ValidateTransaction -> Player.FinalizeBuyTransaction -> Vendor.BuyItems_FinalTransaction
+    ///     
     /// ** Sell Data Flow **
-    /// Player.HandleActionSell->Vendor.SellItemsValidateTransaction->Player.HandleActionSellFinalTransaction->Vendor.SellItemsFinalTransaction
+    ///
+    /// Player.HandleActionSellItem -> Vendor.SellItems_ValidateTransaction -> Player.FinalizeSellTransaction -> Vendor.SellItems_FinalTransaction
+    /// 
     /// </summary>
     public class Vendor : Creature
     {
@@ -29,6 +32,8 @@ namespace ACE.Server.WorldObjects
         private Dictionary<ObjectGuid, WorldObject> uniqueItemsForSale = new Dictionary<ObjectGuid, WorldObject>();
 
         private bool inventoryloaded;
+
+        public Player LastPlayer;
 
         /// <summary>
         /// A new biota be created taking all of its values from weenie.
@@ -51,7 +56,6 @@ namespace ACE.Server.WorldObjects
             BaseDescriptionFlags |= ObjectDescriptionFlag.Vendor;
         }
 
-
         /// <summary>
         /// This is raised by Player.HandleActionUseItem.<para />
         /// The item does not exist in the players possession.<para />
@@ -68,8 +72,18 @@ namespace ACE.Server.WorldObjects
             var actionChain = new ActionChain();
             var rotateTime = Rotate(player);    // vendor rotates towards player
             actionChain.AddDelaySeconds(rotateTime);
-            actionChain.AddAction(this, () => ApproachVendor(player));
+            actionChain.AddAction(this, () => ApproachVendor(player, VendorType.Open));
             actionChain.EnqueueChain();
+
+            if (LastPlayer == null)
+            {
+                var closeChain = new ActionChain();
+                closeChain.AddDelaySeconds(CloseInterval);
+                closeChain.AddAction(this, CheckClose);
+                closeChain.EnqueueChain();
+            }
+
+            LastPlayer = player;
         }
 
         /// <summary>
@@ -95,7 +109,6 @@ namespace ACE.Server.WorldObjects
                         defaultItemsForSale.Add(wo.Guid, wo);
                     }
                 }
-
                 inventoryloaded = true;
             }
         }
@@ -141,10 +154,11 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Sends Vendor Inventory to player
+        /// Sends the latest vendor inventory list to player,
+        /// rotates vendor towards player, and performs the appropriate emote.
         /// </summary>
-        /// <param name="player"></param>
-        private void ApproachVendor(Player player)
+        /// <param name="action">The action performed by the player</param>
+        private void ApproachVendor(Player player, VendorType action = VendorType.Undef)
         {
             // default inventory
             List<WorldObject> vendorlist = new List<WorldObject>();
@@ -160,20 +174,20 @@ namespace ACE.Server.WorldObjects
             player.ApproachVendor(this, vendorlist);
 
             var rotateTime = Rotate(player); // vendor rotates to player
-            DoVendorEmote(VendorType.Open, player);
+
+            if (action != VendorType.Undef)
+            {
+                DoVendorEmote(action, player);
+            }
         }
 
 
         /// <summary>
-        /// Player has started a buy transaction
-        /// Create objects, send object to player for final validation.
+        /// Handles validation for player buying items from vendor
         /// </summary>
-        /// <param name="vendorid">GUID of Vendor</param>
-        /// <param name="items">Item Profile, Ammount and ID</param>
-        /// <param name="player"></param>
-        public void BuyValidateTransaction(ObjectGuid vendorid, List<ItemProfile> items, Player player)
+        public void BuyItems_ValidateTransaction(ObjectGuid vendorid, List<ItemProfile> items, Player player)
         {
-            // que transactions.
+            // queue transactions
             List<ItemProfile> filteredlist = new List<ItemProfile>();
             List<WorldObject> uqlist = new List<WorldObject>();
             List<WorldObject> genlist = new List<WorldObject>();
@@ -210,16 +224,20 @@ namespace ACE.Server.WorldObjects
             // calculate price. (both unique and item profile)
             foreach (WorldObject wo in uqlist)
             {
-                goldcost = goldcost + (uint)Math.Ceiling((SellPrice ?? 1) * (wo.Value ?? 0) - 0.1);
-                wo.Value = wo.Value;                    // Also set the stack's value for unique items, using the builtin WO calculations
-                wo.EncumbranceVal = wo.EncumbranceVal;  // Also set the stack's encumbrance for unique items, using the builtin WO calculations
+                var sellRate = SellPrice ?? 1.0;
+                if (wo.ItemType == ItemType.PromissoryNote)
+                    sellRate = 1.15;
+
+                goldcost += (uint)Math.Ceiling((wo.Value ?? 0) * sellRate - 0.1);
             }
 
             foreach (WorldObject wo in genlist)
             {
-                goldcost = goldcost + (uint)Math.Ceiling((SellPrice ?? 1) * (wo.Value ?? 0) - 0.1);
-                wo.Value = wo.Value;                    // Also set the stack's value for stock items, using the builtin WO calculations
-                wo.EncumbranceVal = wo.EncumbranceVal;  // Also set the stack's encumbrance for stock items, using the builtin WO calculations
+                var sellRate = SellPrice ?? 1.0;
+                if (wo.ItemType == ItemType.PromissoryNote)
+                    sellRate = 1.15;
+
+                goldcost += (uint)Math.Ceiling((wo.Value ?? 0) * sellRate - 0.1);
             }
 
             // send transaction to player for further processing and.
@@ -227,10 +245,10 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Handles the final phase of the transaction.. removing unique items and updating players local
-        /// from vendors items list.
+        /// Handles the final phase of the transaction
+        ///  for player buying items from vendor
         /// </summary>
-        public void BuyItemsFinalTransaction(Player player, List<WorldObject> uqlist, bool valid)
+        public void BuyItems_FinalTransaction(Player player, List<WorldObject> uqlist, bool valid)
         {
             if (!valid) // re-add unique temp stock items.
             {
@@ -240,12 +258,13 @@ namespace ACE.Server.WorldObjects
                         uniqueItemsForSale.Add(wo.Guid, wo);
                 }
             }
-
-            ApproachVendor(player);
+            ApproachVendor(player, VendorType.Buy);
         }
 
-
-        public void SellItemsValidateTransaction(Player player, List<WorldObject> items)
+        /// <summary>
+        /// Handles validation for player selling items to vendor
+        /// </summary>
+        public void SellItems_ValidateTransaction(Player player, List<WorldObject> items)
         {
             // todo: filter rejected / accepted send item spec result back to player
             uint payout = 0;
@@ -254,9 +273,12 @@ namespace ACE.Server.WorldObjects
 
             foreach (WorldObject wo in items)
             {
+                var buyRate = BuyPrice ?? 1;
+                if (wo.ItemType == ItemType.PromissoryNote)
+                    buyRate = 1.0;
+
                 // payout scaled by the vendor's buy rate
-                //for each looks at each item, stack or not, so no need to multiple by stack size.
-                payout = payout + (uint)Math.Floor((BuyPrice ?? 1) * (wo.Value ?? 0) + 0.1);
+                payout += (uint)Math.Floor((wo.Value ?? 0) * buyRate + 0.1);
 
                 if (!wo.MaxStackSize.HasValue & !wo.MaxStructure.HasValue)
                 {
@@ -265,15 +287,14 @@ namespace ACE.Server.WorldObjects
                     wo.PlacementPosition = null;
                     wo.WielderId = null;
                     wo.CurrentWieldedLocation = null;
-                    // TODO: create enum for this once we understand this better.
-                    // This is needed to make items lay flat on the ground.
-                    wo.Placement = global::ACE.Entity.Enum.Placement.Resting;
+                    wo.Placement = ACE.Entity.Enum.Placement.Resting;
                     uniqueItemsForSale.Add(wo.Guid, wo);
                 }
                 accepted.Add(wo);
             }
 
-            ApproachVendor(player);
+            ApproachVendor(player, VendorType.Sell);
+
             player.FinalizeSellTransaction(this, true, accepted, payout);
         }
 
@@ -285,10 +306,47 @@ namespace ACE.Server.WorldObjects
                     EmoteManager.DoVendorEmote(vendorType, player);
                     break;
 
+                case VendorType.Buy:    // player buys item from vendor
+                    EmoteManager.DoVendorEmote(vendorType, player);
+                    break;
+
+                case VendorType.Sell:   // player sells item to vendor
+                    EmoteManager.DoVendorEmote(vendorType, player);
+                    break;
+
                 default:
                     log.Warn($"Vendor.DoVendorEmote - Encountered Unhandled VendorType {vendorType} for {Name} ({WeenieClassId})");
                     break;
             }
+        }
+
+        public float CloseInterval = 1.5f;
+
+        public void CheckClose()
+        {
+            if (LastPlayer == null)
+                return;
+
+            // handles player logging out at vendor
+            if (LastPlayer.CurrentLandblock == null)
+            {
+                LastPlayer = null;
+                return;
+            }
+
+            var dist = Vector3.Distance(Location.ToGlobal(), LastPlayer.Location.ToGlobal());
+            if (dist > UseRadius)
+            {
+                EmoteManager.DoVendorEmote(VendorType.Close, LastPlayer);
+                LastPlayer = null;
+
+                return;
+            }
+
+            var closeChain = new ActionChain();
+            closeChain.AddDelaySeconds(CloseInterval);
+            closeChain.AddAction(this, CheckClose);
+            closeChain.EnqueueChain();
         }
     }
 }
