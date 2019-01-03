@@ -142,13 +142,8 @@ namespace ACE.Server.WorldObjects
             if (motions == null)
                 return null;
 
-            var i = 0;
             while (true)    // limiter?
             {
-                i++;
-                if (i > 20)
-                    return null;
-
                 var rng = ThreadSafeRandom.Next(0, stanceManeuvers.Count - 1);
                 //Console.WriteLine("Selecting combat maneuver #" + rng);
 
