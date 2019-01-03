@@ -67,11 +67,11 @@ namespace ACE.Adapter.GDLE
 
                 // result.Id // TODO!!! is this id'd by index? If so, the parent caller needs to set the id... or this function could take an argument that specifies the id.
 
-                result.Name = input.key;
+                result.Name = input.Key;
 
-                result.StartTime = input.value.startTime;
-                result.EndTime = input.value.endTime;
-                result.State = input.value.eventState;
+                result.StartTime = input.Value.StartTime;
+                result.EndTime = input.Value.EndTime;
+                result.State = input.Value.EventState;
 
                 return true;
             }
