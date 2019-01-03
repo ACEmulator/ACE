@@ -6,7 +6,6 @@
   - This eliminates, in theory, record caps for this table.
   - More tables in Shard will be converted to this format if this proves stable long term
   - **You must apply the 2018-12-30-00-Enchantment_Registry_Comp_Key.sql script to update your shard database**
-* Update EmoteManager to support InflictVitaePenalty
 
 ### 2019-01-01
 [Ripley]
@@ -14,6 +13,7 @@
   - Changed code to use TryCastSpell so that it works with all schools of magic.
   - Added check for Emote and use Activation Emote if called for.
 * Update @delete command to work correctly.
+* Update EmoteManager to support InflictVitaePenalty
 
 ### 2018-12-31
 [Mag-nus]
