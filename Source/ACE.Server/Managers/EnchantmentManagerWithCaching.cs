@@ -23,9 +23,9 @@ namespace ACE.Server.Managers
         /// <summary>
         /// Add/update an enchantment in this object's registry
         /// </summary>
-        public override (StackType stackType, Spell surpass) Add(Enchantment enchantment, WorldObject caster)
+        public override AddEnchantmentResult Add(Spell spell, WorldObject caster)
         {
-            var result = base.Add(enchantment, caster);
+            var result = base.Add(spell, caster);
 
             ClearCache();
 
