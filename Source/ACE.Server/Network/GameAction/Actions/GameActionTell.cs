@@ -13,6 +13,7 @@ namespace ACE.Server.Network.GameAction.Actions
         {
             var message = clientMessage.Payload.ReadString16L(); // The client seems to do the trimming for us
             var target = clientMessage.Payload.ReadString16L(); // Needs to be trimmed because it may contain white spaces after the name and before the ,
+
             target = target.Trim();
             var targetPlayer = PlayerManager.GetOnlinePlayer(target);
 
@@ -22,14 +23,12 @@ namespace ACE.Server.Network.GameAction.Actions
                 session.Network.EnqueueSend(statusMessage);
                 return;
             }
-            else
-            {
-                if (session.Player != targetPlayer)
-                    session.Network.EnqueueSend(new GameMessageSystemChat($"You tell {targetPlayer.Name}, \"{message}\"", ChatMessageType.OutgoingTell));
 
-                var tell = new GameEventTell(targetPlayer.Session, message, session.Player.Name, session.Player.Guid.Full, targetPlayer.Guid.Full, ChatMessageType.Tell);
-                targetPlayer.Session.Network.EnqueueSend(tell);
-            }
+            if (session.Player != targetPlayer)
+                session.Network.EnqueueSend(new GameMessageSystemChat($"You tell {targetPlayer.Name}, \"{message}\"", ChatMessageType.OutgoingTell));
+
+            var tell = new GameEventTell(targetPlayer.Session, message, session.Player.Name, session.Player.Guid.Full, targetPlayer.Guid.Full, ChatMessageType.Tell);
+            targetPlayer.Session.Network.EnqueueSend(tell);
         }
     }
 }

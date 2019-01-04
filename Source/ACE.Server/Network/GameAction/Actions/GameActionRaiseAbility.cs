@@ -1,4 +1,3 @@
-using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 
 namespace ACE.Server.Network.GameAction.Actions

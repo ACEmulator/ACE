@@ -1,4 +1,3 @@
-using ACE.Entity;
 
 namespace ACE.Server.Network.GameAction.Actions
 {
@@ -7,10 +6,10 @@ namespace ACE.Server.Network.GameAction.Actions
         [GameAction(GameActionType.UseWithTarget)]
         public static void Handle(ClientMessage message, Session session)
         {
-            uint sourceObjectId = message.Payload.ReadUInt32();
-            uint targetObjectId = message.Payload.ReadUInt32();
+            uint sourceObjectGuid = message.Payload.ReadUInt32();
+            uint targetObjectGuid = message.Payload.ReadUInt32();
 
-            session.Player.HandleActionUseWithTarget(new ObjectGuid(sourceObjectId), new ObjectGuid(targetObjectId));
+            session.Player.HandleActionUseWithTarget(sourceObjectGuid, targetObjectGuid);
         }
     }
 }

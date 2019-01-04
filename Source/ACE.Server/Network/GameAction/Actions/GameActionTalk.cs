@@ -1,10 +1,11 @@
+using System;
+
+using log4net;
+
 using ACE.Common.Extensions;
 using ACE.Entity.Enum;
 using ACE.Server.Command;
 using ACE.Server.Network.GameMessages.Messages;
-using System;
-
-using log4net;
 
 namespace ACE.Server.Network.GameAction.Actions
 {
@@ -24,6 +25,7 @@ namespace ACE.Server.Network.GameAction.Actions
                 CommandHandlerInfo commandHandler = null;
                 string command = null;
                 string[] parameters = null;
+
                 try
                 {
                     CommandManager.ParseCommand(message.Remove(0, 1), out command, out parameters);
@@ -33,6 +35,7 @@ namespace ACE.Server.Network.GameAction.Actions
                     log.Error($"Exception while parsing command: {commandRaw}", ex);
                     return;
                 }
+
                 try
                 {
                     response = CommandManager.GetCommandHandler(session, command, parameters, out commandHandler);
@@ -41,6 +44,7 @@ namespace ACE.Server.Network.GameAction.Actions
                 {
                     log.Error($"Exception while getting command handler for: {commandRaw}", ex);
                 }
+
                 if (response == CommandHandlerResponse.Ok)
                 {
                     try

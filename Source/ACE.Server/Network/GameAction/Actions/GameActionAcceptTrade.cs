@@ -1,5 +1,3 @@
-using ACE.Entity;
-using ACE.Server.Managers;
 
 namespace ACE.Server.Network.GameAction.Actions
 {

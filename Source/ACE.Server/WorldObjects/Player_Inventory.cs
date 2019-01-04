@@ -128,6 +128,11 @@ namespace ACE.Server.WorldObjects
             ToCorpseOnDeath
         }
 
+        public bool TryRemoveFromInventoryWithNetworking(uint objectGuid, out WorldObject item, RemoveFromInventoryAction removeFromInventoryAction)
+        {
+            return TryRemoveFromInventoryWithNetworking(new ObjectGuid(objectGuid), out item, removeFromInventoryAction); // todo fix
+        }
+
         public bool TryRemoveFromInventoryWithNetworking(ObjectGuid objectGuid, out WorldObject item, RemoveFromInventoryAction removeFromInventoryAction)
         {
             if (!TryRemoveFromInventory(objectGuid, out item))
@@ -225,6 +230,11 @@ namespace ACE.Server.WorldObjects
             ConsumeItem
         }
 
+        public bool TryDequipObjectWithNetworking(uint objectGuid, out WorldObject item, DequipObjectAction dequipObjectAction)
+        {
+            return TryDequipObjectWithNetworking(new ObjectGuid(objectGuid), out item, dequipObjectAction); // todo fix this
+        }
+
         /// <summary>
         /// This will remove the Wielder and CurrentWieldedLocation properties on the item and will remove it from the EquippedObjects dictionary.<para />
         /// It does not add it to inventory as you could be unwielding to the ground or a chest.<para />
@@ -294,6 +304,11 @@ namespace ACE.Server.WorldObjects
             Landblock           = 0x04,
             LastUsedContainer   = 0x08,
             Everywhere          = 0xFF
+        }
+
+        private WorldObject FindObject(uint objectGuid, SearchLocations searchLocations, out Container foundInContainer, out Container rootOwner, out bool wasEquipped)
+        {
+            return FindObject(new ObjectGuid(objectGuid), searchLocations, out foundInContainer, out rootOwner, out wasEquipped); // todo Fix this so it's not creating a new ObjectGuid
         }
 
         private WorldObject FindObject(ObjectGuid objectGuid, SearchLocations searchLocations, out Container foundInContainer, out Container rootOwner, out bool wasEquipped)
@@ -442,7 +457,7 @@ namespace ACE.Server.WorldObjects
         /// - Put an item into a container on the landblock
         /// - Move an item between containers on a landblock
         /// </summary>
-        public void HandleActionPutItemInContainer(ObjectGuid itemGuid, ObjectGuid containerGuid, int placement = 0)
+        public void HandleActionPutItemInContainer(uint itemGuid, uint containerGuid, int placement = 0)
         {
             var item = FindObject(itemGuid, SearchLocations.Everywhere, out _, out var itemRootOwner, out var itemWasEquipped);
             var container = FindObject(containerGuid, SearchLocations.MyInventory | SearchLocations.Landblock | SearchLocations.LastUsedContainer, out _, out var containerRootOwner, out _) as Container;
@@ -652,7 +667,7 @@ namespace ACE.Server.WorldObjects
         /// - drop an equipped item
         /// - drop an item from inventory
         /// </summary>
-        public void HandleActionDropItem(ObjectGuid itemGuid)
+        public void HandleActionDropItem(uint itemGuid)
         {
             var item = FindObject(itemGuid, SearchLocations.MyInventory | SearchLocations.MyEquippedItems, out _, out _, out var wasEquipped);
 
@@ -1151,7 +1166,7 @@ namespace ACE.Server.WorldObjects
         /// - try to merge a stack fron the landblock into a container
         /// - try to split a stack into a different container that has a stack that can support a merge
         /// </summary>
-        public void HandleActionStackableMerge(ObjectGuid mergeFromGuid, ObjectGuid mergeToGuid, int amount)
+        public void HandleActionStackableMerge(uint mergeFromGuid, uint mergeToGuid, int amount)
         {
             if (amount == 0)
             {
@@ -1306,9 +1321,9 @@ namespace ACE.Server.WorldObjects
         /// - try to give an object to another player
         /// - try to give an object to an NPC
         /// </summary>
-        public void HandleActionGiveObjectRequest(ObjectGuid targetID, ObjectGuid itemGuid, int amount)
+        public void HandleActionGiveObjectRequest(uint targetGuid, uint itemGuid, int amount)
         {
-            var target = FindObject(targetID, SearchLocations.Landblock, out _, out _, out _) as Container;
+            var target = FindObject(targetGuid, SearchLocations.Landblock, out _, out _, out _) as Container;
             var item = FindObject(itemGuid, SearchLocations.MyInventory | SearchLocations.MyEquippedItems, out var itemFoundInContainer, out var itemRootOwner, out var itemWasEquipped);
 
             if (target == null)
@@ -1534,7 +1549,7 @@ namespace ACE.Server.WorldObjects
         /// This is raised when we:
         /// - try to inscribe an item
         /// </summary>
-        public void HandleActionSetInscription(ObjectGuid itemGuid, string inscriptionText)
+        public void HandleActionSetInscription(uint itemGuid, string inscriptionText)
         {
             var item = FindObject(itemGuid, SearchLocations.MyInventory | SearchLocations.MyEquippedItems, out _, out _, out _);
 

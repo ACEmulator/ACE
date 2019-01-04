@@ -1,3 +1,4 @@
+
 namespace ACE.Server.Network.GameAction.Actions
 {
     // Death feels is less morbid then suicide as a human, used "Die" instead.

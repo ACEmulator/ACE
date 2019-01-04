@@ -1,4 +1,3 @@
-using ACE.Entity;
 
 namespace ACE.Server.Network.GameAction.Actions
 {
@@ -7,8 +6,7 @@ namespace ACE.Server.Network.GameAction.Actions
         [GameAction(GameActionType.BreakAllegiance)]
         public static void Handle(ClientMessage message, Session session)
         {
-            var target = message.Payload.ReadUInt32();
-            var targetGuid = new ObjectGuid(target);
+            var targetGuid = message.Payload.ReadUInt32();
 
             session.Player.HandleActionBreakAllegiance(targetGuid);
         }

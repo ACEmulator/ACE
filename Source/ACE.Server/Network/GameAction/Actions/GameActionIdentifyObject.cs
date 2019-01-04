@@ -1,4 +1,3 @@
-﻿using ACE.Entity;
 
 namespace ACE.Server.Network.GameAction.Actions
 {
@@ -7,11 +6,9 @@ namespace ACE.Server.Network.GameAction.Actions
         [GameAction(GameActionType.IdentifyObject)]
         public static void Handle(ClientMessage message, Session session)
         {
-            var id = message.Payload.ReadUInt32();
+            var objectGuid = message.Payload.ReadUInt32();
 
-            ObjectGuid guid = new ObjectGuid(id);
-
-            session.Player.ExamineObject(guid);
+            session.Player.ExamineObject(objectGuid);
         }
     }
 }

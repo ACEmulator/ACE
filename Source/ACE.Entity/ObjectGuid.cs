@@ -33,6 +33,10 @@ namespace ACE.Entity
         public static uint DynamicMin { get; } = 0x80000000;
         public static uint DynamicMax { get; } = 0xFFFFFFFE; // Ends at E because uint.Max is reserved for "invalid"
 
+        public static bool IsPlayer(uint guid) { return (guid >= PlayerMin && guid <= PlayerMax); }
+        public static bool IsStatic(uint guid) { return (guid >= StaticObjectMin && guid <= StaticObjectMax); }
+        public static bool IsDynamic(uint guid) { return (guid >= DynamicMin && guid <= DynamicMax); }
+
         public uint Full { get; }
         public uint Low => Full & 0xFFFFFF;
         public uint High => (Full >> 24);
@@ -42,11 +46,11 @@ namespace ACE.Entity
         {
             Full = full;
 
-            if (Full >= PlayerMin && Full <= PlayerMax)
+            if (IsPlayer(full))
                 Type = GuidType.Player;
-            else if (Full >= StaticObjectMin && Full <= StaticObjectMax)
+            else if (IsStatic(full))
                 Type = GuidType.Static;
-            else if (Full >= DynamicMin && Full <= DynamicMax)
+            else if (IsDynamic(full))
                 Type = GuidType.Dynamic;
             else
                 Type = GuidType.Undef;

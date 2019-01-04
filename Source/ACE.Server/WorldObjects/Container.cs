@@ -37,7 +37,7 @@ namespace ACE.Server.WorldObjects
             SetEphemeralValues();
 
             // A player has their possessions passed via the ctor. All other world objects must load their own inventory
-            if (!(this is Player) && !(new ObjectGuid(ContainerId ?? 0).IsPlayer()))
+            if (!(this is Player) && !ObjectGuid.IsPlayer(ContainerId ?? 0))
             {
                 DatabaseManager.Shard.GetInventoryInParallel(biota.Id, false, biotas =>
                 {
@@ -150,6 +150,15 @@ namespace ACE.Server.WorldObjects
         public WorldObject GetInventoryItem(ObjectGuid objectGuid)
         {
             return GetInventoryItem(objectGuid, out _);
+        }
+
+        /// <summary>
+        /// This method will check all containers in our possession
+        /// in main inventory or any side packs
+        /// </summary>
+        public WorldObject GetInventoryItem(uint objectGuid)
+        {
+            return GetInventoryItem(new ObjectGuid(objectGuid), out _); // todo remove this so it doesnt' create a new ObjectGuid
         }
 
         /// <summary>
