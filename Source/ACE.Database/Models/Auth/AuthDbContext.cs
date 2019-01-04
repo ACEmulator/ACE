@@ -23,6 +23,10 @@ namespace ACE.Database.Models.Auth
             var config = Common.ConfigManager.Config.MySql.Authentication;
 
             optionsBuilder.UseMySql($"server={config.Host};port={config.Port};user={config.Username};password={config.Password};database={config.Database}");
+
+#if EFAUTHDEBUG
+            optionsBuilder.EnableSensitiveDataLogging(true);
+#endif
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

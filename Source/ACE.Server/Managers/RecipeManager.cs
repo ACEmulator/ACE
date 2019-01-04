@@ -776,8 +776,6 @@ namespace ACE.Server.Managers
             {
                 if (!player.TryDequipObjectWithNetworking(item.Guid, out _, Player.DequipObjectAction.ConsumeItem))
                     log.Warn($"RecipeManager.DestroyItem({player.Name}, {item.Name}, {amount}, {msg}): failed to remove {item.Name}");
-                else
-                    item.Destroy();
             }
             else
             {

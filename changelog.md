@@ -1,5 +1,12 @@
 # ACEmulator Change Log
 
+### 2018-01-03
+[Ripley]
+* Changed the Enchantment Registry in Shard Database to use a composite key instead of a single primary key for each record.
+  - This eliminates, in theory, record caps for this table.
+  - More tables in Shard will be converted to this format if this proves stable long term
+  - **You must apply the 2018-12-30-00-Enchantment_Registry_Comp_Key.sql script to update your shard database**
+
 ### 2018-12-31
 [Mag-nus]
 * Added ACE.Adapter project for supporting Lifestoned json data importing

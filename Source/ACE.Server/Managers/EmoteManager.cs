@@ -169,7 +169,7 @@ namespace ACE.Server.Managers
 
                     if (creature != null)
                     {
-                        var spell = new Entity.Spell((uint)emote.SpellId);
+                        var spell = new Spell((uint)emote.SpellId);
                         if (targetObject != null && spell.TargetEffect > 0)
                             creature.CreateCreatureSpell(targetObject.Guid, (uint)emote.SpellId);
                         else

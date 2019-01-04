@@ -14,7 +14,6 @@ using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Managers;
 using ACE.Server.Network;
-using ACE.Server.Network.Enum;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Structure;
@@ -387,7 +386,7 @@ namespace ACE.Server.WorldObjects
 
                 var chance = SkillCheck.GetSkillChance(currentSkill, difficulty);
 
-                if (player != null && !player.GetCharacterOption(CharacterOption.AttemptToDeceiveOtherPlayers))
+                if (difficulty == 0 || player != null && !player.GetCharacterOption(CharacterOption.AttemptToDeceiveOtherPlayers))
                     chance = 1.0f;
 
                 success = chance >= ThreadSafeRandom.Next(0.0f, 1.0f);
