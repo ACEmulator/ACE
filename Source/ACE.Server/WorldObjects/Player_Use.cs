@@ -44,6 +44,22 @@ namespace ACE.Server.WorldObjects
             var invTarget = GetInventoryItem(targetObjectId);
             var invWielded = GetEquippedItem(targetObjectId);
 
+            if (invSource == null)
+            {
+                // is this caster with a built-in spell?
+                var caster = GetEquippedItem(sourceObjectId);
+                if (caster != null && caster.SpellDID != null)
+                {
+                    HandleActionCastTargetedSpell(targetObjectId, caster.SpellDID ?? 0);
+                    return;
+                }
+                else
+                {
+                    log.Warn($"{Name}.HandleActionUseWithTarget({sourceObjectId}, {targetObjectId}): couldn't find {sourceObjectId}");
+                    SendUseDoneEvent(WeenieError.None);
+                }
+            }
+
             var worldTarget = (invTarget == null) ? CurrentLandblock?.GetObject(targetObjectId) : null;
 
             if (invTarget != null)
