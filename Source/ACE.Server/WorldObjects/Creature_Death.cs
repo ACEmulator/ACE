@@ -269,31 +269,34 @@ namespace ACE.Server.WorldObjects
                     }
                 }
             }
-
-            for(int i = DeathTreasure.ItemMinAmount; i <= DeathTreasure.ItemMaxAmount; i++)
+            Console.WriteLine("Monster name " + Name);
+            if (Level >  3 && !Name.Equals("Chicken"))
             {
-                if (ThreadSafeRandom.Next(0, 100) <= DeathTreasure.ItemChance)
+                for (int i = DeathTreasure.ItemMinAmount; i <= DeathTreasure.ItemMaxAmount; i++)
                 {
-                    var wo = LootGenerationFactory.CreateRandomLootObjects(tier, false);
-                    corpse.TryAddToInventory(wo);
+                    if (ThreadSafeRandom.Next(0, 100) <= DeathTreasure.ItemChance)
+                    {
+                        var wo = LootGenerationFactory.CreateRandomLootObjects(tier, false);
+                        corpse.TryAddToInventory(wo);
+                    }
                 }
-            }
 
-            for (int i = DeathTreasure.MagicItemMinAmount; i < DeathTreasure.MagicItemMaxAmount; i++)
-            {
-                if (ThreadSafeRandom.Next(0, 100) <= DeathTreasure.MagicItemChance)
+                for (int i = DeathTreasure.MagicItemMinAmount; i < DeathTreasure.MagicItemMaxAmount; i++)
                 {
-                    var wo = LootGenerationFactory.CreateRandomLootObjects(tier, true);
-                    corpse.TryAddToInventory(wo);
+                    if (ThreadSafeRandom.Next(0, 100) <= DeathTreasure.MagicItemChance)
+                    {
+                        var wo = LootGenerationFactory.CreateRandomLootObjects(tier, true);
+                        corpse.TryAddToInventory(wo);
+                    }
                 }
-            }
 
-            for (int i = DeathTreasure.MundaneItemMinAmount; i < DeathTreasure.MundaneItemMaxAmount; i++)
-            {
-                if (ThreadSafeRandom.Next(0, 100) <= DeathTreasure.MundaneItemChance)
+                for (int i = DeathTreasure.MundaneItemMinAmount; i < DeathTreasure.MundaneItemMaxAmount; i++)
                 {
-                    var wo = LootGenerationFactory.CreateMundaneObjects(tier);
-                    corpse.TryAddToInventory(wo);
+                    if (ThreadSafeRandom.Next(0, 100) <= DeathTreasure.MundaneItemChance)
+                    {
+                        var wo = LootGenerationFactory.CreateMundaneObjects(tier);
+                        corpse.TryAddToInventory(wo);
+                    }
                 }
             }
 
