@@ -729,7 +729,7 @@ namespace ACE.Server.Physics.Animation
             SpherePath.StepDown = false;
 
             if (transitionState == TransitionState.OK && CollisionInfo.ContactPlaneValid && CollisionInfo.ContactPlane.Normal.Z >= zVal &&
-                (!ObjectInfo.State.HasFlag(ObjectInfoState.EdgeSlide) || SpherePath.StepUp || CheckWalkable(zVal)))
+                ((ObjectInfo.State & ObjectInfoState.EdgeSlide) == 0 || SpherePath.StepUp || CheckWalkable(zVal)))
             {
                 SpherePath.Backup = SpherePath.InsertType;
                 SpherePath.InsertType = InsertType.Placement;
@@ -840,7 +840,7 @@ namespace ACE.Server.Physics.Animation
                         }
                         else
                         {
-                            if (CollisionInfo.ContactPlaneValid || !ObjectInfo.State.HasFlag(ObjectInfoState.Contact) ||
+                            if (CollisionInfo.ContactPlaneValid || (ObjectInfo.State & ObjectInfoState.Contact) == 0 ||
                                 SpherePath.StepDown || SpherePath.CheckCell == null || ObjectInfo.StepDown)
                             {
                                 return TransitionState.OK;
@@ -849,7 +849,7 @@ namespace ACE.Server.Physics.Animation
                             var zVal = PhysicsGlobals.LandingZ;
                             var stepDownHeight = 0.039999999f;  // set global
 
-                            if (ObjectInfo.State.HasFlag(ObjectInfoState.OnWalkable))
+                            if ((ObjectInfo.State & ObjectInfoState.OnWalkable) != 0)
                             {
                                 zVal = ObjectInfo.GetWalkableZ();
                                 stepDownHeight = ObjectInfo.StepDownHeight;
