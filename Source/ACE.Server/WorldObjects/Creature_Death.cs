@@ -238,9 +238,9 @@ namespace ACE.Server.WorldObjects
                 {
                     if (trophy.WeenieClassId == 0) // Randomized Loot
                     {
-                        var wo = LootGenerationFactory.CreateRandomLootObjects(tier);
+                        //var wo = LootGenerationFactory.CreateRandomLootObjects(tier);
 
-                        corpse.TryAddToInventory(wo);
+                        //corpse.TryAddToInventory(wo);
 
                         //var book = WorldObjectFactory.CreateNewWorldObject("parchment") as Book;
 
@@ -270,17 +270,33 @@ namespace ACE.Server.WorldObjects
                 }
             }
 
-            //If creature didnt have a CreateList, then this creates the loot.
-            if(!hasCreateList && Level > 3)
+            for(int i = DeathTreasure.ItemMinAmount; i <= DeathTreasure.ItemMaxAmount; i++)
             {
-                int amount = ThreadSafeRandom.Next(1, 5);
-                for(int i = 0; i < amount; i++)
+                if (ThreadSafeRandom.Next(0, 100) <= DeathTreasure.ItemChance)
                 {
-                    var wo = LootGenerationFactory.CreateRandomLootObjects(tier);
-
+                    var wo = LootGenerationFactory.CreateRandomLootObjects(tier, false);
                     corpse.TryAddToInventory(wo);
                 }
             }
+
+            for (int i = DeathTreasure.MagicItemMinAmount; i < DeathTreasure.MagicItemMaxAmount; i++)
+            {
+                if (ThreadSafeRandom.Next(0, 100) <= DeathTreasure.MagicItemChance)
+                {
+                    var wo = LootGenerationFactory.CreateRandomLootObjects(tier, true);
+                    corpse.TryAddToInventory(wo);
+                }
+            }
+
+            for (int i = DeathTreasure.MundaneItemMinAmount; i < DeathTreasure.MundaneItemMaxAmount; i++)
+            {
+                if (ThreadSafeRandom.Next(0, 100) <= DeathTreasure.MundaneItemChance)
+                {
+                    var wo = LootGenerationFactory.CreateMundaneObjects(tier);
+                    corpse.TryAddToInventory(wo);
+                }
+            }
+
         }
     }
 }

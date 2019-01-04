@@ -58,1817 +58,1595 @@ namespace ACE.Server.Factories
             player.HandleAddNewWorldObjectsToInventory(items);*/
         }
 
-        public static WorldObject CreateRandomLootObjects(int tier)
+        public static WorldObject CreateMundaneObjects(int tier)
         {
             WorldObject wo;
+            int id = 0;
+            int chance;
             switch (tier)
             {
                 case 1:
-                    //loot tier 1
-                    wo = CreateTier1Objects();
-                    break;
-                case 2:
-                    //loot tier 2
-                    wo = CreateTier2Objects();
-                    break;
-                case 3:
-                    //loot tier 3
-                    wo = CreateTier3Objects();
-                    break;
-                case 4:
-                    //loot tier 4
-                    wo = CreateTier4Objects();
-                    break;
-                case 5:
-                    //loot tier 5
-                    wo = CreateTier5Objects();
-                    break;
-                case 6:
-                    //loot tier 6
-                    wo = CreateTier6Objects();
-                    break;
-                case 7:
-                    //loot tier 7
-                    wo = CreateTier7Objects();
-                    break;
-                default:
-                    //loot tier 8
-                    wo = CreateTier8Objects();
-                    break;
-            }
-            return wo;
-        }
+                    //mundane items
+                    int mundaneType = ThreadSafeRandom.Next(1, 7);
+                    switch (mundaneType)
+                    {
+                        case 1:
+                            //peas
+                            // Lead Pea
+                            id = 8329;
+                            break;
+                        case 2:
+                            //mana stones
+                            chance = ThreadSafeRandom.Next(1, 100);
+                            if (chance < 75)
+                            {
+                                //Minor Mana Stone
+                                id = 27331;
+                            }
+                            else
+                            {
+                                //Lesser Mana Stone
+                                id = 2434;
+                            }
+                            break;
+                        case 3:
+                            //potions
+                            chance = ThreadSafeRandom.Next(1, 375);
+                            if (chance < 100)
+                            {
+                                //Stamina Potion
+                                id = 378;
+                            }
+                            else if (chance < 200)
+                            {
+                                //Potion of Healing
+                                id = 377;
+                            }
+                            else if (chance < 300)
+                            {
+                                //Mana Potion
+                                id = 379;
+                            }
+                            else if (chance < 325)
+                            {
+                                //Health Draught
+                                id = 2457;
+                            }
+                            else if (chance < 350)
+                            {
+                                //Mana Draught
+                                id = 2460;
+                            }
+                            else
+                            {
+                                //Stamina Tincture
+                                id = 27326;
+                            }
+                            break;
+                        case 4:
+                            //healing kits
+                            chance = ThreadSafeRandom.Next(1, 100);
+                            if (chance < 75)
+                            {
+                                //Handy Healing Kit
+                                id = 628;
+                            }
+                            else
+                            {
+                                //Adept Healing Kit
+                                id = 629;
+                            }
+                            break;
+                        case 5:
+                            //lockpicks
+                            chance = ThreadSafeRandom.Next(1, 100);
+                            if (chance < 75)
+                            {
+                                //Plain Lockpick
+                                id = 513;
+                            }
+                            else
+                            {
+                                //Reliable Lockpick
+                                id = 545;
+                            }
+                            break;
+                        //case 6:
+                        //    //coalesced mana
+                        //    //Yellow Mana
+                        //    id = 42518;
+                        //    break;
+                        case 6:
+                            //Food Items
+                            id = CreateFood();
+                            break;
+                        default:
+                            //spell scrolls level 1-3
+                            wo = CreateRandomScroll(ThreadSafeRandom.Next(1, 3));
+                            return wo;
+                    }
+                    wo = WorldObjectFactory.CreateNewWorldObject((uint)id);
+                    return wo;
 
-        public static WorldObject CreateTier1Objects()
-        {
-            WorldObject wo;
-            int id = 0;
-            int chance;
-                int type = ThreadSafeRandom.Next(1,5); ;
-            switch (type)
-                {
-                    case 1:
-                        //mundane items
-                        int mundaneType = ThreadSafeRandom.Next(1, 7);
-                        switch (mundaneType)
-                        {
-                            case 1:
-                                //peas
-                                // Lead Pea
+                case 2:
+                    //mundane items
+                    mundaneType = ThreadSafeRandom.Next(1, 7);
+                    switch (mundaneType)
+                    {
+                        case 1:
+                            //peas
+                            chance = ThreadSafeRandom.Next(1, 100);
+                            if (chance < 75)
+                            {
+                                //lead pea
                                 id = 8329;
-                                break;
-                            case 2:
-                                //mana stones
-                                chance = ThreadSafeRandom.Next(1, 100);
-                                if(chance < 75)
-                                {
-                                    //Minor Mana Stone
-                                    id = 27331;
-                                }
-                                else
-                                {
-                                    //Lesser Mana Stone
-                                    id = 2434;
-                                }
-                                break;
-                            case 3:
-                                //potions
-                                chance = ThreadSafeRandom.Next(1, 375);
-                                if (chance < 100)
-                                {
-                                    //Stamina Potion
-                                    id = 378;
-                                }
-                                else if (chance < 200)
-                                {
-                                    //Potion of Healing
-                                    id = 377;
-                                }
-                                else if (chance < 300)
-                                {
-                                    //Mana Potion
-                                    id = 379;
-                                }
-                                else if (chance < 325)
-                                {
-                                    //Health Draught
-                                    id = 2457;
-                                }
-                                else if (chance < 350)
-                                {
-                                    //Mana Draught
-                                    id = 2460;
-                                }
-                                else
-                                {
-                                    //Stamina Tincture
-                                    id = 27326;
-                                }
-                                break;
-                            case 4:
-                                //healing kits
-                                chance = ThreadSafeRandom.Next(1, 100);
-                                if (chance < 75)
-                                {
-                                    //Handy Healing Kit
-                                    id = 628;
-                                }
-                                else
-                                {
-                                    //Adept Healing Kit
-                                    id = 629;
-                                }
-                                break;
-                            case 5:
-                                //lockpicks
-                                chance = ThreadSafeRandom.Next(1, 100);
-                                if (chance < 75)
-                                {
-                                    //Plain Lockpick
-                                    id = 513;
-                                }
-                                else
-                                {
-                                    //Reliable Lockpick
-                                    id = 545;
-                                }
-                                break;
-                            //case 6:
-                            //    //coalesced mana
-                            //    //Yellow Mana
-                            //    id = 42518;
-                            //    break;
-                            case 6:
-                                //Food Items
-                                id = CreateFood();
-                                break;
-                            default:
-                                //spell scrolls level 1-3
-                                wo = CreateRandomScroll(ThreadSafeRandom.Next(1, 3));
-                                return wo;
-                        }
+                            }
+                            else
+                            {
+                                //Iron Pea
+                                id = 8328;
+                            }
+                            break;
+                        case 2:
+                            //mana stones
+                            chance = ThreadSafeRandom.Next(1, 100);
+                            if (chance < 75)
+                            {
+                                //Minor Mana Stone
+                                id = 27331;
+                            }
+                            else if (chance < 95)
+                            {
+                                //Less Mana Stone
+                                id = 2434;
+                            }
+                            else
+                            {
+                                //Mana Stone
+                                id = 2435;
+                            }
+                            break;
+                        case 3:
+                            //potions
+                            chance = ThreadSafeRandom.Next(1, 450);
+                            if (chance < 100)
+                            {
+                                //Stamina Potion
+                                id = 378;
+                            }
+                            else if (chance < 200)
+                            {
+                                //Potion of Healing
+                                id = 377;
+                            }
+                            else if (chance < 300)
+                            {
+                                //Mana Potion
+                                id = 379;
+                            }
+                            else if (chance < 325)
+                            {
+                                //Health Draught
+                                id = 2457;
+                            }
+                            else if (chance < 350)
+                            {
+                                //Mana Draught
+                                id = 2460;
+                            }
+                            else if (chance < 375)
+                            {
+                                //Stamina Tincture
+                                id = 27326;
+                            }
+                            else if (chance < 400)
+                            {
+                                //Stamina Elixer
+                                id = 2470;
+                            }
+                            else if (chance < 425)
+                            {
+                                //health Tincture
+                                id = 27319;
+                            }
+                            else
+                            {
+                                //Mana Tincture
+                                id = 27322;
+                            }
+                            break;
+                        case 4:
+                            //healing kits
+                            chance = ThreadSafeRandom.Next(1, 100);
+                            if (chance < 75)
+                            {
+                                //Adept Healing Kit
+                                id = 629;
+                            }
+                            else
+                            {
+                                //Gifted Healing Kit
+                                id = 630;
+                            }
+                            break;
+                        case 5:
+                            //lockpicks
+                            chance = ThreadSafeRandom.Next(1, 105);
+                            if (chance < 75)
+                            {
+                                //Plain Lockpick
+                                id = 513;
+                            }
+                            else if (chance < 100)
+                            {
+                                //Reliable Lockpick
+                                id = 545;
+                            }
+                            else
+                            {
+                                //Good Lockpick
+                                id = 512;
+                            }
+                            break;
+                        //case 6:
+                        //    //coalesced mana
+                        //    //Yellow Mana
+                        //    id = 42518;
+                        //    break;
+                        case 6:
+                            id = CreateFood();
+                            break;
+                        default:
+                            //spell scrolls level 3-5
+                            wo = CreateRandomScroll(ThreadSafeRandom.Next(3, 5));
+                            return wo;
+                    }
                     wo = WorldObjectFactory.CreateNewWorldObject((uint)id);
                     return wo;
-                case 2:
+
+                case 3:
+                    //mundane items
+                    mundaneType = ThreadSafeRandom.Next(1, 7);
+                    switch (mundaneType)
+                    {
+                        case 1:
+                            //peas
+                            chance = ThreadSafeRandom.Next(1, 125);
+                            if (chance < 75)
+                            {
+                                //lead pea
+                                id = 8329;
+                            }
+                            else if (chance < 115)
+                            {
+                                //Iron Pea
+                                id = 8328;
+                            }
+                            else
+                            {
+                                //Copper Pea
+                                id = 8326;
+                            }
+                            break;
+                        case 2:
+                            //mana stones
+                            chance = ThreadSafeRandom.Next(1, 100);
+                            if (chance < 65)
+                            {
+                                //Lesser Mana Stone
+                                id = 2434;
+                            }
+                            else if (chance < 97)
+                            {
+                                //Mana Stone
+                                id = 2435;
+                            }
+                            else
+                            {
+                                //Moderate Mana Stone
+                                id = 27330;
+                            }
+                            break;
+                        case 3:
+                            //potions
+                            chance = ThreadSafeRandom.Next(1, 450);
+                            if (chance < 100)
+                            {
+                                //Stamina Tincture
+                                id = 27326;
+                            }
+                            else if (chance < 200)
+                            {
+                                //Potion of Healing
+                                id = 377;
+                            }
+                            else if (chance < 300)
+                            {
+                                //Mana Elixer
+                                id = 27322;
+                            }
+                            else if (chance < 325)
+                            {
+                                //health Tincture
+                                id = 27319; ;
+                            }
+                            else if (chance < 350)
+                            {
+                                //Mana Draught
+                                id = 2460;
+                            }
+                            else if (chance < 375)
+                            {
+                                //Stamina Elixer
+                                id = 2470;
+                            }
+                            else if (chance < 400)
+                            {
+                                //Stamina Brew
+                                id = 27324;
+                            }
+                            else if (chance < 425)
+                            {
+                                //health Elixer
+                                id = 2458;
+                            }
+                            else
+                            {
+                                //Mana Elixer
+                                id = 2461;
+                            }
+                            break;
+                        case 4:
+                            //healing kits
+                            chance = ThreadSafeRandom.Next(1, 100);
+                            if (chance < 75)
+                            {
+                                //Adept Healing Kit
+                                id = 629;
+                            }
+                            else if (chance < 97)
+                            {
+                                //Gifted Healing Kit
+                                id = 630;
+                            }
+                            else
+                            {
+                                //Excellent Healing Kit
+                                id = 631;
+                            }
+                            break;
+                        case 5:
+                            //lockpicks
+                            chance = ThreadSafeRandom.Next(1, 105);
+                            if (chance < 70)
+                            {
+                                //Reliable Lockpick
+                                id = 545;
+                            }
+                            else if (chance < 100)
+                            {
+                                //Good Lockpick
+                                id = 512;
+                            }
+                            else
+                            {
+                                //Excellent Lockpick
+                                id = 514;
+                            }
+                            break;
+                        //case 6:
+                        //    //coalesced mana
+                        //    chance = ThreadSafeRandom.Next(1, 100);
+                        //    if (chance < 90)
+                        //    {
+                        //        //Coalecsed Mana (Yellow)
+                        //        id = 42518;
+                        //    }
+                        //    else
+                        //    {
+                        //        //Coalecsed Mana (Red)
+                        //        id = 42517;
+                        //    }
+                        //    break;
+                        case 6:
+                            id = CreateFood();
+                            break;
+                        default:
+                            wo = CreateRandomScroll(ThreadSafeRandom.Next(4, 5));
+                            return wo;
+                    }
+                    wo = WorldObjectFactory.CreateNewWorldObject((uint)id);
+                    return wo;
+
+                case 4:
+                    //mundane items
+                    mundaneType = ThreadSafeRandom.Next(1, 8);
+                    switch (mundaneType)
+                    {
+                        case 1:
+                            //peas
+                            chance = ThreadSafeRandom.Next(1, 125);
+                            if (chance < 75)
+                            {
+                                //lead pea
+                                id = 8329;
+                            }
+                            else if (chance < 100)
+                            {
+                                //Iron Pea
+                                id = 8328;
+                            }
+                            else
+                            {
+                                //Copper Pea
+                                id = 8326;
+                            }
+                            break;
+                        case 2:
+                            //mana stones
+                            chance = ThreadSafeRandom.Next(1, 100);
+                            if (chance < 50)
+                            {
+                                //Lesser Mana Stone
+                                id = 2434;
+                            }
+                            else if (chance < 95)
+                            {
+                                //Mana Stone
+                                id = 2435;
+                            }
+                            else
+                            {
+                                //Moderate Mana Stone
+                                id = 27330;
+                            }
+                            break;
+                        case 3:
+                            //potions
+                            chance = ThreadSafeRandom.Next(1, 450);
+                            if (chance < 100)
+                            {
+                                //Stamina Tincture
+                                id = 27326;
+                            }
+                            else if (chance < 200)
+                            {
+                                //Potion of Healing
+                                id = 377;
+                            }
+                            else if (chance < 300)
+                            {
+                                //Mana Elixer
+                                id = 27322;
+                            }
+                            else if (chance < 325)
+                            {
+                                //health Tincture
+                                id = 27319; ;
+                            }
+                            else if (chance < 350)
+                            {
+                                //Mana Draught
+                                id = 2460;
+                            }
+                            else if (chance < 375)
+                            {
+                                //Stamina Elixer
+                                id = 2470;
+                            }
+                            else if (chance < 400)
+                            {
+                                //Stamina Brew
+                                id = 27324;
+                            }
+                            else if (chance < 425)
+                            {
+                                //health Elixer
+                                id = 2458;
+                            }
+                            else
+                            {
+                                //Mana Elixer
+                                id = 2461;
+                            }
+                            break;
+                        case 4:
+                            //healing kits
+                            chance = ThreadSafeRandom.Next(1, 100);
+                            if (chance < 75)
+                            {
+                                //Adept Healing Kit
+                                id = 629;
+                            }
+                            else if (chance < 90)
+                            {
+                                //Gifted Healing Kit
+                                id = 630;
+                            }
+                            else
+                            {
+                                //Excellent Healing Kit
+                                id = 631;
+                            }
+                            break;
+                        case 5:
+                            //lockpicks
+                            chance = ThreadSafeRandom.Next(1, 105);
+                            if (chance < 70)
+                            {
+                                //Reliable Lockpick
+                                id = 545;
+                            }
+                            else if (chance < 100)
+                            {
+                                //Good Lockpick
+                                id = 512;
+                            }
+                            else
+                            {
+                                //Excellent Lockpick
+                                id = 514;
+                            }
+                            break;
+                        //case 6:
+                        //    //coalesced mana
+                        //    chance = ThreadSafeRandom.Next(1, 100);
+                        //    if (chance < 50)
+                        //    {
+                        //        //Coalesced Mana (Yellow)
+                        //        id = 42518;
+                        //    }
+                        //    else if(chance < 85)
+                        //    {
+                        //        //Coalesced Mana (Red)
+                        //        id = 42517;
+                        //    }
+                        //    else
+                        //    {
+                        //        //Coalesced Mana (Blue)
+                        //        id = 42516;
+                        //    }
+                        //    break;
+                        case 6:
+                            id = CreateFood();
+                            break;
+                        default:
+                            wo = CreateRandomScroll(ThreadSafeRandom.Next(4, 5));
+                            return wo;
+                    }
+                    wo = WorldObjectFactory.CreateNewWorldObject((uint)id);
+                    return wo;
+
+                case 5:
+                    //mundane items
+                    mundaneType = ThreadSafeRandom.Next(1, 7);
+                    switch (mundaneType)
+                    {
+                        case 1:
+                            //peas
+                            chance = ThreadSafeRandom.Next(1, 125);
+                            if (chance < 75)
+                            {
+                                //Copper Pea
+                                id = 8326;
+                            }
+                            else if (chance < 120)
+                            {
+                                //Silver Pea
+                                id = 8331;
+                            }
+                            else
+                            {
+                                //Gold Pea
+                                id = 8327;
+                            }
+                            break;
+                        case 2:
+                            //mana stones
+                            chance = ThreadSafeRandom.Next(1, 100);
+                            if (chance < 50)
+                            {
+                                //Moderate Mana Stone
+                                id = 27330;
+                            }
+                            else if (chance < 95)
+                            {
+                                //Greater Mana Stone
+                                id = 2436;
+                            }
+                            else
+                            {
+                                //Major Mana Stone
+                                id = 27328;
+                            }
+                            break;
+                        case 3:
+                            //potions
+                            chance = ThreadSafeRandom.Next(1, 450);
+                            if (chance < 100)
+                            {
+                                //Stamina Brew
+                                id = 27324;
+                            }
+                            else if (chance < 200)
+                            {
+                                //health Elixer
+                                id = 2458;
+                            }
+                            else if (chance < 300)
+                            {
+                                //Mana Elixer
+                                id = 2461;
+                            }
+                            else if (chance < 325)
+                            {
+                                //health Tonic
+                                id = 27320; ;
+                            }
+                            else if (chance < 350)
+                            {
+                                //Mana Tonic
+                                id = 27323;
+                            }
+                            else if (chance < 375)
+                            {
+                                //Stamina Tonic
+                                id = 27327;
+                            }
+                            else if (chance < 400)
+                            {
+                                //Stamina Philtre
+                                id = 27325;
+                            }
+                            else if (chance < 425)
+                            {
+                                //health Philtre
+                                id = 27318;
+                            }
+                            else
+                            {
+                                //Mana Philtre
+                                id = 27321;
+                            }
+                            break;
+                        case 4:
+                            //healing kits
+                            chance = ThreadSafeRandom.Next(1, 100);
+                            if (chance < 75)
+                            {
+                                //Excellent Healing Kit
+                                id = 631;
+                            }
+                            else if (chance < 95)
+                            {
+                                //Peerless Healing Kit
+                                id = 632;
+                            }
+                            else
+                            {
+                                //Treated Healing Kit
+                                id = 9229;
+                            }
+                            break;
+                        case 5:
+                            //lockpicks
+                            chance = ThreadSafeRandom.Next(1, 105);
+                            if (chance < 70)
+                            {
+                                //Excellent Lockpick
+                                id = 514;
+                            }
+                            else if (chance < 100)
+                            {
+                                //Superb Lockpick
+                                id = 515;
+                            }
+                            else
+                            {
+                                //Peerless Lockpick
+                                id = 516;
+                            }
+                            break;
+                        //case 6:
+                        //    //coalesced mana
+                        //    chance = ThreadSafeRandom.Next(1, 100);
+                        //    if (chance < 50)
+                        //    {
+                        //        //Coalesced Mana (Yellow)
+                        //        id = 42518;
+                        //    }
+                        //    else if (chance < 85)
+                        //    {
+                        //        //Coalesced Mana (Red)
+                        //        id = 42517;
+                        //    }
+                        //    else
+                        //    {
+                        //        //Coalesced Mana (Blue)
+                        //        id = 42516;
+                        //    }
+                        //    break;
+                        case 6:
+                            id = CreateFood();
+                            break;
+                        default:
+                            wo = CreateRandomScroll(ThreadSafeRandom.Next(5, 6));
+                            return wo;
+                    }
+                    wo = WorldObjectFactory.CreateNewWorldObject((uint)id);
+                    return wo;
+
+                case 6:
+                    //mundane items
+                    mundaneType = ThreadSafeRandom.Next(1, 7);
+                    switch (mundaneType)
+                    {
+                        case 1:
+                            //peas
+                            chance = ThreadSafeRandom.Next(1, 125);
+                            if (chance < 80)
+                            {
+                                //Silver Pea
+                                id = 8331;
+                            }
+                            else if (chance < 115)
+                            {
+                                //Gold Pea
+                                id = 8327;
+                            }
+                            else
+                            {
+                                //Pyreal Pea
+                                id = 8330;
+                            }
+                            break;
+                        case 2:
+                            //mana stones
+                            chance = ThreadSafeRandom.Next(1, 100);
+                            if (chance < 75)
+                            {
+                                //Greater Mana Stone
+                                id = 2436;
+                            }
+                            else
+                            {
+                                //Major Mana Stone
+                                id = 27328;
+                            }
+                            break;
+                        case 3:
+                            //potions
+                            chance = ThreadSafeRandom.Next(1, 450);
+                            if (chance < 100)
+                            {
+                                //Stamina Brew
+                                id = 27324;
+                            }
+                            else if (chance < 200)
+                            {
+                                //health Elixer
+                                id = 2458;
+                            }
+                            else if (chance < 300)
+                            {
+                                //Mana Elixer
+                                id = 2461;
+                            }
+                            else if (chance < 325)
+                            {
+                                //health Tonic
+                                id = 27320; ;
+                            }
+                            else if (chance < 350)
+                            {
+                                //Mana Tonic
+                                id = 27323;
+                            }
+                            else if (chance < 375)
+                            {
+                                //Stamina Tonic
+                                id = 27327;
+                            }
+                            else if (chance < 400)
+                            {
+                                //Stamina Philtre
+                                id = 27325;
+                            }
+                            else if (chance < 425)
+                            {
+                                //health Philtre
+                                id = 27318;
+                            }
+                            else
+                            {
+                                //Mana Philtre
+                                id = 27321;
+                            }
+                            break;
+                        case 4:
+                            //healing kits
+                            chance = ThreadSafeRandom.Next(1, 100);
+                            if (chance < 75)
+                            {
+                                //Excellent Healing Kit
+                                id = 631;
+                            }
+                            else if (chance < 95)
+                            {
+                                //Peerless Healing Kit
+                                id = 632;
+                            }
+                            else
+                            {
+                                //Treated Healing Kit
+                                id = 9229;
+                            }
+                            break;
+                        case 5:
+                            //lockpicks
+                            chance = ThreadSafeRandom.Next(1, 105);
+                            if (chance < 100)
+                            {
+                                //Excellent Lockpick
+                                id = 514;
+                            }
+                            else if (chance < 100)
+                            {
+                                //Superb Lockpick
+                                id = 515;
+                            }
+                            else
+                            {
+                                //Peerless Lockpick
+                                id = 516;
+                            }
+                            break;
+                        //case 6:
+                        //    //coalesced mana
+                        //    chance = ThreadSafeRandom.Next(1, 100);
+                        //    if (chance < 50)
+                        //    {
+                        //        //Coalesced Mana (Yellow)
+                        //        id = 42518;
+                        //    }
+                        //    else if (chance < 85)
+                        //    {
+                        //        //Coalesced Mana (Red)
+                        //        id = 42517;
+                        //    }
+                        //    else
+                        //    {
+                        //        //Coalesced Mana (Blue)
+                        //        id = 42516;
+                        //    }
+                        //    break;
+                        case 6:
+                            id = CreateFood();
+                            break;
+                        default:
+                            wo = CreateRandomScroll(ThreadSafeRandom.Next(6, 6));
+                            return wo;
+                    }
+                    wo = WorldObjectFactory.CreateNewWorldObject((uint)id);
+                    return wo;
+
+                case 7:
+                    //mundane items
+                    mundaneType = ThreadSafeRandom.Next(1, 7);
+                    switch (mundaneType)
+                    {
+                        case 1:
+                            //peas
+                            chance = ThreadSafeRandom.Next(1, 125);
+                            if (chance < 75)
+                            {
+                                //Silver Pea
+                                id = 8331;
+                            }
+                            else if (chance < 115)
+                            {
+                                //Gold Pea
+                                id = 8327;
+                            }
+                            else
+                            {
+                                //Pyreal Pea
+                                id = 8330;
+                            }
+                            break;
+                        case 2:
+                            //mana stones
+                            chance = ThreadSafeRandom.Next(1, 100);
+                            if (chance < 75)
+                            {
+                                //Greater Mana Stone
+                                id = 2436;
+                            }
+                            else
+                            {
+                                //Major Mana Stone
+                                id = 27328;
+                            }
+                            break;
+                        case 3:
+                            //potions
+                            chance = ThreadSafeRandom.Next(1, 450);
+                            if (chance < 100)
+                            {
+                                //Stamina Brew
+                                id = 27324;
+                            }
+                            else if (chance < 200)
+                            {
+                                //health Elixer
+                                id = 2458;
+                            }
+                            else if (chance < 300)
+                            {
+                                //Mana Elixer
+                                id = 2461;
+                            }
+                            else if (chance < 325)
+                            {
+                                //health Tonic
+                                id = 27320; ;
+                            }
+                            else if (chance < 350)
+                            {
+                                //Mana Tonic
+                                id = 27323;
+                            }
+                            else if (chance < 375)
+                            {
+                                //Stamina Tonic
+                                id = 27327;
+                            }
+                            else if (chance < 400)
+                            {
+                                //Stamina Philtre
+                                id = 27325;
+                            }
+                            else if (chance < 425)
+                            {
+                                //health Philtre
+                                id = 27318;
+                            }
+                            else
+                            {
+                                //Mana Philtre
+                                id = 27321;
+                            }
+                            break;
+                        case 4:
+                            //healing kits
+                            chance = ThreadSafeRandom.Next(1, 100);
+                            if (chance < 75)
+                            {
+                                //Excellent Healing Kit
+                                id = 631;
+                            }
+                            else if (chance < 95)
+                            {
+                                //Peerless Healing Kit
+                                id = 632;
+                            }
+                            else
+                            {
+                                //Treated Healing Kit
+                                id = 9229;
+                            }
+                            break;
+                        case 5:
+                            //lockpicks
+                            chance = ThreadSafeRandom.Next(1, 105);
+                            if (chance < 100)
+                            {
+                                //Excellent Lockpick
+                                id = 514;
+                            }
+                            else if (chance < 100)
+                            {
+                                //Superb Lockpick
+                                id = 515;
+                            }
+                            else
+                            {
+                                //Peerless Lockpick
+                                id = 516;
+                            }
+                            break;
+                        //case 6:
+                        //    //coalesced mana
+                        //    chance = ThreadSafeRandom.Next(1, 100);
+                        //    if (chance < 50)
+                        //    {
+                        //        //Coalesced Mana (Yellow)
+                        //        id = 42518;
+                        //    }
+                        //    else if (chance < 85)
+                        //    {
+                        //        //Coalesced Mana (Red)
+                        //        id = 42517;
+                        //    }
+                        //    else
+                        //    {
+                        //        //Coalesced Mana (Blue)
+                        //        id = 42516;
+                        //    }
+                        //    break;
+                        case 6:
+                            id = CreateFood();
+                            break;
+                        default:
+                            wo = CreateRandomScroll(ThreadSafeRandom.Next(6, 6));
+                            return wo;
+                    }
+                    wo = WorldObjectFactory.CreateNewWorldObject((uint)id);
+                    return wo;
+
+                default:
+                    //mundane items
+                    mundaneType = ThreadSafeRandom.Next(1, 7);
+                    switch (mundaneType)
+                    {
+                        case 1:
+                            //peas
+                            chance = ThreadSafeRandom.Next(1, 125);
+                            if (chance < 75)
+                            {
+                                //Silver Pea
+                                id = 8331;
+                            }
+                            else if (chance < 115)
+                            {
+                                //Gold Pea
+                                id = 8327;
+                            }
+                            else
+                            {
+                                //Pyreal Pea
+                                id = 8330;
+                            }
+                            break;
+                        case 2:
+                            //mana stones
+                            chance = ThreadSafeRandom.Next(1, 100);
+                            if (chance < 75)
+                            {
+                                //Greater Mana Stone
+                                id = 2436;
+                            }
+                            else
+                            {
+                                //Major Mana Stone
+                                id = 27328;
+                            }
+                            break;
+                        case 3:
+                            //potions
+                            chance = ThreadSafeRandom.Next(1, 450);
+                            if (chance < 100)
+                            {
+                                //Stamina Brew
+                                id = 27324;
+                            }
+                            else if (chance < 200)
+                            {
+                                //health Elixer
+                                id = 2458;
+                            }
+                            else if (chance < 300)
+                            {
+                                //Mana Elixer
+                                id = 2461;
+                            }
+                            else if (chance < 325)
+                            {
+                                //health Tonic
+                                id = 27320; ;
+                            }
+                            else if (chance < 350)
+                            {
+                                //Mana Tonic
+                                id = 27323;
+                            }
+                            else if (chance < 375)
+                            {
+                                //Stamina Tonic
+                                id = 27327;
+                            }
+                            else if (chance < 400)
+                            {
+                                //Stamina Philtre
+                                id = 27325;
+                            }
+                            else if (chance < 425)
+                            {
+                                //health Philtre
+                                id = 27318;
+                            }
+                            else
+                            {
+                                //Mana Philtre
+                                id = 27321;
+                            }
+                            break;
+                        case 4:
+                            //healing kits
+                            chance = ThreadSafeRandom.Next(1, 100);
+                            if (chance < 75)
+                            {
+                                //Excellent Healing Kit
+                                id = 631;
+                            }
+                            else if (chance < 90)
+                            {
+                                //Peerless Healing Kit
+                                id = 632;
+                            }
+                            else
+                            {
+                                //Treated Healing Kit
+                                id = 9229;
+                            }
+                            break;
+                        case 5:
+                            //lockpicks
+                            chance = ThreadSafeRandom.Next(1, 105);
+                            if (chance < 100)
+                            {
+                                //Excellent Lockpick
+                                id = 514;
+                            }
+                            else if (chance < 100)
+                            {
+                                //Superb Lockpick
+                                id = 515;
+                            }
+                            else
+                            {
+                                //Peerless Lockpick
+                                id = 516;
+                            }
+                            break;
+                        //case 6:
+                        //    //coalesced mana
+                        //    chance = ThreadSafeRandom.Next(1, 100);
+                        //    if (chance < 50)
+                        //    {
+                        //        //Coalesced Mana (Yellow)
+                        //        id = 42518;
+                        //    }
+                        //    else if (chance < 85)
+                        //    {
+                        //        //Coalesced Mana (Red)
+                        //        id = 42517;
+                        //    }
+                        //    else
+                        //    {
+                        //        //Coalesced Mana (Blue)
+                        //        id = 42516;
+                        //    }
+                        //    break;
+                        //case 7:
+                        //    //spell components
+                        //    chance = ThreadSafeRandom.Next(1, 170);
+                        //    if (chance < 100)
+                        //    {
+                        //        //Quill of Infliction
+                        //        id = 37363;
+                        //    }
+                        //    else if (chance == 100)
+                        //    {
+                        //        //Quill of Benevolence
+                        //        id = 37365;
+                        //    }
+                        //    else if (chance == 101)
+                        //    {
+                        //        //Quill of Extraction
+                        //        id = 37362;
+                        //    }
+                        //    else if (chance == 102)
+                        //    {
+                        //        //Quill of Introspection
+                        //        id = 37364;
+                        //    }
+                        //    else if (chance == 103)
+                        //    {
+                        //        //Ink of Conveyance
+                        //        id = 37360;
+                        //    }
+                        //    else if (chance == 104)
+                        //    {
+                        //        //Ink of direction
+                        //        id = 37361;
+                        //    }
+                        //    else if (chance == 105)
+                        //    {
+                        //        //Ink of Formation
+                        //        id = 37353;
+                        //    }
+                        //    else if (chance == 106)
+                        //    {
+                        //        //Ink of Nullification
+                        //        id = 37354;
+                        //    }
+                        //    else if (chance == 107)
+                        //    {
+                        //        //Ink of Objectification
+                        //        id = 37355;
+                        //    }
+                        //    else if (chance == 108)
+                        //    {
+                        //        //Ink of Partition
+                        //        id = 37357;
+                        //    }
+                        //    else if (chance == 109)
+                        //    {
+                        //        //Ink of Separation
+                        //        id = 37358;
+                        //    }
+                        //    else if (chance == 110)
+                        //    {
+                        //        //Parabolic Ink
+                        //        id = 37356;
+                        //    }
+                        //    else if (chance == 111)
+                        //    {
+                        //        //Alacritous Ink
+                        //        id = 37359;
+                        //    }
+                        //    else if (chance == 112)
+                        //    {
+                        //        //Mana Scarab
+                        //        id = 37115;
+                        //    }
+                        //    else if (chance == 113)
+                        //    {
+                        //        //glyph of alchemy
+                        //        id = 37343;
+                        //    }
+                        //    else if (chance == 114)
+                        //    {
+                        //        //glyph of alchemy
+                        //        id = 37343;
+                        //    }
+                        //    else if (chance == 115)
+                        //    {
+                        //        //glyph of arcane lore
+                        //        id = 37344;
+                        //    }
+                        //    else if (chance == 116)
+                        //    {
+                        //        //glyph of armor
+                        //        id = 37345;
+                        //    }
+                        //    else if (chance == 117)
+                        //    {
+                        //        //glyph of armor tinkering
+                        //        id = 37346;
+                        //    }
+                        //    else if (chance == 118)
+                        //    {
+                        //        //glyph of bludgeoning
+                        //        id = 37347;
+                        //    }
+                        //    else if (chance == 119)
+                        //    {
+                        //        //glyph of cooking
+                        //        id = 37349;
+                        //    }
+                        //    else if (chance == 120)
+                        //    {
+                        //        //glyph of coordination
+                        //        id = 37350;
+                        //    }
+                        //    else if (chance == 121)
+                        //    {
+                        //        //glyph of corrosion
+                        //        id = 37342;
+                        //    }
+                        //    else if (chance == 122)
+                        //    {
+                        //        //glyph of creature enchantment
+                        //        id = 37351;
+                        //    }
+                        //    else if (chance == 123)
+                        //    {
+                        //        //glyph of damage
+                        //        id = 43379;
+                        //    }
+                        //    else if (chance == 124)
+                        //    {
+                        //        //glyph of deception
+                        //        id = 37352;
+                        //    }
+                        //    else if (chance == 125)
+                        //    {
+                        //        //glyph of dirty fighting
+                        //        id = 45370;
+                        //    }
+                        //    else if (chance == 126)
+                        //    {
+                        //        //glyph of dual wield
+                        //        id = 45371;
+                        //    }
+                        //    else if (chance == 127)
+                        //    {
+                        //        //glyph of endurance
+                        //        id = 37300;
+                        //    }
+                        //    else if (chance == 128)
+                        //    {
+                        //        //glyph of finesse weapon
+                        //        id = 37373;
+                        //    }
+                        //    else if (chance == 129)
+                        //    {
+                        //        //glyph of flame
+                        //        id = 37301;
+                        //    }
+                        //    else if (chance == 130)
+                        //    {
+                        //        //glyph of fletching
+                        //        id = 37302;
+                        //    }
+                        //    else if (chance == 131)
+                        //    {
+                        //        //glyph of focus
+                        //        id = 37303;
+                        //    }
+                        //    else if (chance == 132)
+                        //    {
+                        //        //glyph of frost
+                        //        id = 37348;
+                        //    }
+                        //    else if (chance == 133)
+                        //    {
+                        //        //glyph of healing
+                        //        id = 37304;
+                        //    }
+                        //    else if (chance == 134)
+                        //    {
+                        //        //glyph of health
+                        //        id = 37305;
+                        //    }
+                        //    else if (chance == 135)
+                        //    {
+                        //        //glyph of heavy weapons
+                        //        id = 37369;
+                        //    }
+                        //    else if (chance == 136)
+                        //    {
+                        //        //glyph of item enchantment
+                        //        id = 37309;
+                        //    }
+                        //    else if (chance == 137)
+                        //    {
+                        //        //glyph of item tinnkering
+                        //        id = 37310;
+                        //    }
+                        //    else if (chance == 138)
+                        //    {
+                        //        //glyph of jump
+                        //        id = 37311;
+                        //    }
+                        //    else if (chance == 139)
+                        //    {
+                        //        //glyph of leadership
+                        //        id = 37312;
+                        //    }
+                        //    else if (chance == 140)
+                        //    {
+                        //        //glyph of life magic
+                        //        id = 37313;
+                        //    }
+                        //    else if (chance == 141)
+                        //    {
+                        //        //glyph of light weapons
+                        //        id = 37339;
+                        //    }
+                        //    else if (chance == 142)
+                        //    {
+                        //        //glyph of lightning
+                        //        id = 37314;
+                        //    }
+                        //    else if (chance == 143)
+                        //    {
+                        //        //glyph of lockpick
+                        //        id = 37315;
+                        //    }
+                        //    else if (chance == 144)
+                        //    {
+                        //        //glyph of loyalty
+                        //        id = 37316;
+                        //    }
+                        //    else if (chance == 145)
+                        //    {
+                        //        //glyph of magic defense
+                        //        id = 37317;
+                        //    }
+                        //    else if (chance == 146)
+                        //    {
+                        //        //glyph of magic item tinkering
+                        //        id = 38760;
+                        //    }
+                        //    else if (chance == 147)
+                        //    {
+                        //        //glyph of mana
+                        //        id = 37318;
+                        //    }
+                        //    else if (chance == 148)
+                        //    {
+                        //        //glyph of mana conversion
+                        //        id = 37319;
+                        //    }
+                        //    else if (chance == 149)
+                        //    {
+                        //        //glyph of mana regeneration
+                        //        id = 37321;
+                        //    }
+                        //    else if (chance == 150)
+                        //    {
+                        //        //glyph of melee defense
+                        //        id = 37323;
+                        //    }
+                        //    else if (chance == 151)
+                        //    {
+                        //        //glyph of missile defense
+                        //        id = 37324;
+                        //    }
+                        //    else if (chance == 152)
+                        //    {
+                        //        //glyph of Missile weapons
+                        //        id = 37338;
+                        //    }
+                        //    else if (chance == 153)
+                        //    {
+                        //        //glyph of monster appraisal
+                        //        id = 37325;
+                        //    }
+                        //    else if (chance == 154)
+                        //    {
+                        //        //glyph of nether
+                        //        id = 43387;
+                        //    }
+                        //    else if (chance == 155)
+                        //    {
+                        //        //glyph of person appraisal
+                        //        id = 37326;
+                        //    }
+                        //    else if (chance == 156)
+                        //    {
+                        //        //glyph of piercing
+                        //        id = 37327;
+                        //    }
+                        //    else if (chance == 157)
+                        //    {
+                        //        //glyph of quickness
+                        //        id = 37328;
+                        //    }
+                        //    else if (chance == 158)
+                        //    {
+                        //        //glyph of recklessness
+                        //        id = 45372;
+                        //    }
+                        //    else if (chance == 159)
+                        //    {
+                        //        //glyph of regeneration
+                        //        id = 37307;
+                        //    }
+                        //    else if (chance == 160)
+                        //    {
+                        //        //glyph of run
+                        //        id = 37329;
+                        //    }
+                        //    else if (chance == 161)
+                        //    {
+                        //        //glyph of salvaging
+                        //        id = 37330;
+                        //    }
+                        //    else if (chance == 162)
+                        //    {
+                        //        //glyph of self
+                        //        id = 37331;
+                        //    }
+                        //    else if (chance == 163)
+                        //    {
+                        //        //glyph of shield
+                        //        id = 45373;
+                        //    }
+                        //    else if (chance == 164)
+                        //    {
+                        //        //glyph of slashing
+                        //        id = 37332;
+                        //    }
+                        //    else if (chance == 165)
+                        //    {
+                        //        //glyph of sneak attack
+                        //        id = 45374;
+                        //    }
+                        //    else if (chance == 166)
+                        //    {
+                        //        //glyph of stamina
+                        //        id = 37333;
+                        //    }
+                        //    else if (chance == 167)
+                        //    {
+                        //        //glyph of stamina regeneration
+                        //        id = 37336;
+                        //    }
+                        //    else if (chance == 168)
+                        //    {
+                        //        //glyph of strength
+                        //        id = 37337;
+                        //    }
+                        //    else if (chance == 169)
+                        //    {
+                        //        //glyph of summoning
+                        //        id = 49455;
+                        //    }
+                        //    else if (chance == 170)
+                        //    {
+                        //        //glyph of two handed combat
+                        //        id = 41747;
+                        //    }
+                        //    else if (chance == 171)
+                        //    {
+                        //        //glyph of void magic
+                        //        id = 43380;
+                        //    }
+                        //    else if (chance == 172)
+                        //    {
+                        //        //glyph of war magic
+                        //        id = 37340;
+                        //    }
+                        //    else if (chance == 173)
+                        //    {
+                        //        //glyph of weapon tinkering
+                        //        id = 37341;
+                        //    }
+                        //    break;
+                        case 6:
+                            id = CreateFood();
+                            break;
+                        case 7:
+                            wo = CreateRandomScroll(7);
+                            return wo;
+                        default:
+                            break;
+                    }
+                    wo = WorldObjectFactory.CreateNewWorldObject((uint)id);
+                    return wo;
+            }
+        }
+
+        public static WorldObject CreateRandomLootObjects(int tier, bool isMagical)
+        {
+            WorldObject wo;
+            int type = ThreadSafeRandom.Next(1, 4); ;
+            switch (type)
+            {
+                case 1:
                     //jewels
-                    wo = CreateJewels(1);
+                    wo = CreateJewels(tier, isMagical);
+                    return wo;
+                case 2:
+                    //armor
+                    wo = CreateArmor(tier, isMagical);
                     return wo;
                 case 3:
-                    //armor
-                    wo = CreateArmor(1);
-                    return wo;
-                case 4:
                     //weapons
-                    wo = CreateWeapon(1);
+                    wo = CreateWeapon(tier, isMagical);
                     return wo;
                 default:
                     //jewelry
-                    wo = CreateJewelry(1);
+                    wo = CreateJewelry(tier, isMagical);
                     return wo;
             }
         }
 
-        public static WorldObject CreateTier2Objects()
-        {
-            int id = 0;
-            int chance;
-            WorldObject wo;
-            
-                int type = ThreadSafeRandom.Next(1, 5);
-                switch (type)
-                {
-                    case 1:
-                        //mundane items
-                        int mundaneType = ThreadSafeRandom.Next(1, 7);
-                        switch (mundaneType)
-                        {
-                            case 1:
-                                //peas
-                                chance = ThreadSafeRandom.Next(1, 100);
-                                if (chance < 75)
-                                {
-                                    //lead pea
-                                    id = 8329;
-                                }
-                                else
-                                {
-                                    //Iron Pea
-                                    id = 8328;
-                                }
-                                break;
-                            case 2:
-                                //mana stones
-                                chance = ThreadSafeRandom.Next(1, 100);
-                                if (chance < 75)
-                                {
-                                    //Minor Mana Stone
-                                    id = 27331;
-                                }
-                                else if (chance < 95)
-                                {
-                                    //Less Mana Stone
-                                    id = 2434;
-                                }
-                                else
-                                {
-                                    //Mana Stone
-                                    id = 2435;
-                                }
-                                break;
-                            case 3:
-                                //potions
-                                chance = ThreadSafeRandom.Next(1, 450);
-                                if (chance < 100)
-                                {
-                                    //Stamina Potion
-                                    id = 378;
-                                }
-                                else if (chance < 200)
-                                {
-                                    //Potion of Healing
-                                    id = 377;
-                                }
-                                else if (chance < 300)
-                                {
-                                    //Mana Potion
-                                    id = 379;
-                                }
-                                else if (chance < 325)
-                                {
-                                    //Health Draught
-                                    id = 2457;
-                                }
-                                else if (chance < 350)
-                                {
-                                    //Mana Draught
-                                    id = 2460;
-                                }
-                                else if (chance < 375)
-                                {
-                                    //Stamina Tincture
-                                    id = 27326;
-                                }
-                                else if (chance < 400)
-                                {
-                                    //Stamina Elixer
-                                    id = 2470;
-                                }
-                                else if (chance < 425)
-                                {
-                                    //health Tincture
-                                    id = 27319;
-                                }
-                                else
-                                {
-                                    //Mana Tincture
-                                    id = 27322;
-                                }
-                                break;
-                            case 4:
-                                //healing kits
-                                chance = ThreadSafeRandom.Next(1, 100);
-                                if (chance < 75)
-                                {
-                                    //Adept Healing Kit
-                                    id = 629;
-                                }
-                                else
-                                {
-                                    //Gifted Healing Kit
-                                    id = 630;
-                                }
-                                break;
-                            case 5:
-                                //lockpicks
-                                chance = ThreadSafeRandom.Next(1, 105);
-                                if (chance < 75)
-                                {
-                                    //Plain Lockpick
-                                    id = 513;
-                                }
-                                else if(chance < 100)
-                                {
-                                    //Reliable Lockpick
-                                    id = 545;
-                                }
-                                else
-                                {
-                                    //Good Lockpick
-                                    id = 512;
-                                }
-                                break;
-                            //case 6:
-                            //    //coalesced mana
-                            //    //Yellow Mana
-                            //    id = 42518;
-                            //    break;
-                            case 6:
-                                id = CreateFood();
-                                break;
-                            default:
-                                //spell scrolls level 3-5
-                                wo = CreateRandomScroll(ThreadSafeRandom.Next(3, 5));
-                                return wo;
-                        }
-                    wo = WorldObjectFactory.CreateNewWorldObject((uint)id);
-                    return wo;
-                case 2:
-                    //jewels
-                    wo = CreateJewels(2);
-                    return wo;
-                case 3:
-                    //armor
-                    wo = CreateArmor(2);
-                    return wo;
-                case 4:
-                    //weapons
-                    wo = CreateWeapon(2);
-                    return wo;
-                default:
-                    //jewelry
-                    wo = CreateJewelry(2);
-                    return wo;
-            }
-        }
-
-        public static WorldObject CreateTier3Objects()
-        {
-            int id = 0;
-            int chance;
-            WorldObject wo;
-                int type = ThreadSafeRandom.Next(1, 5);
-                switch (type)
-                {
-                    case 1:
-                        //mundane items
-                        int mundaneType = ThreadSafeRandom.Next(1, 7);
-                        switch (mundaneType)
-                        {
-                            case 1:
-                                //peas
-                                chance = ThreadSafeRandom.Next(1, 125);
-                                if (chance < 75)
-                                {
-                                    //lead pea
-                                    id = 8329;
-                                }
-                                else if(chance < 115)
-                                {
-                                    //Iron Pea
-                                    id = 8328;
-                                }
-                                else
-                                {
-                                    //Copper Pea
-                                    id = 8326;
-                                }
-                                break;
-                            case 2:
-                                //mana stones
-                                chance = ThreadSafeRandom.Next(1, 100);
-                                if (chance < 65)
-                                {
-                                    //Lesser Mana Stone
-                                    id = 2434;
-                                }
-                                else if (chance < 97)
-                                {
-                                    //Mana Stone
-                                    id = 2435;
-                                }
-                                else
-                                {
-                                    //Moderate Mana Stone
-                                    id = 27330;
-                                }
-                                break;
-                            case 3:
-                                //potions
-                                chance = ThreadSafeRandom.Next(1, 450);
-                                if (chance < 100)
-                                {
-                                    //Stamina Tincture
-                                    id = 27326;
-                                }
-                                else if (chance < 200)
-                                {
-                                    //Potion of Healing
-                                    id = 377;
-                                }
-                                else if (chance < 300)
-                                {
-                                    //Mana Elixer
-                                    id = 27322;
-                                }
-                                else if (chance < 325)
-                                {
-                                    //health Tincture
-                                    id = 27319; ;
-                                }
-                                else if (chance < 350)
-                                {
-                                    //Mana Draught
-                                    id = 2460;
-                                }
-                                else if (chance < 375)
-                                {
-                                    //Stamina Elixer
-                                    id = 2470;
-                                }
-                                else if (chance < 400)
-                                {
-                                    //Stamina Brew
-                                    id = 27324;
-                                }
-                                else if (chance < 425)
-                                {
-                                    //health Elixer
-                                    id = 2458;
-                                }
-                                else
-                                {
-                                    //Mana Elixer
-                                    id = 2461;
-                                }
-                                break;
-                            case 4:
-                                //healing kits
-                                chance = ThreadSafeRandom.Next(1, 100);
-                                if (chance < 75)
-                                {
-                                    //Adept Healing Kit
-                                    id = 629;
-                                }
-                                else if (chance < 97)
-                                {
-                                    //Gifted Healing Kit
-                                    id = 630;
-                                }
-                                else
-                                {
-                                    //Excellent Healing Kit
-                                    id = 631;
-                                }
-                                break;
-                            case 5:
-                                //lockpicks
-                                chance = ThreadSafeRandom.Next(1, 105);
-                                if (chance < 70)
-                                {
-                                    //Reliable Lockpick
-                                    id = 545;
-                                }
-                                else if (chance < 100)
-                                {
-                                    //Good Lockpick
-                                    id = 512;
-                                }
-                                else
-                                {
-                                    //Excellent Lockpick
-                                    id = 514;
-                                }
-                                break;
-                            //case 6:
-                            //    //coalesced mana
-                            //    chance = ThreadSafeRandom.Next(1, 100);
-                            //    if (chance < 90)
-                            //    {
-                            //        //Coalecsed Mana (Yellow)
-                            //        id = 42518;
-                            //    }
-                            //    else
-                            //    {
-                            //        //Coalecsed Mana (Red)
-                            //        id = 42517;
-                            //    }
-                            //    break;
-                            case 6:
-                                id = CreateFood();
-                                break;
-                            default:
-                                wo = CreateRandomScroll(ThreadSafeRandom.Next(4, 5));
-                                return wo;
-                        }
-                    wo = WorldObjectFactory.CreateNewWorldObject((uint)id);
-                    return wo;
-                case 2:
-                    //jewels
-                    wo = CreateJewels(3);
-                    return wo;
-                case 3:
-                    //armor
-                    wo = CreateArmor(3);
-                    return wo;
-                case 4:
-                    //weapons
-                    wo = CreateWeapon(3);
-                    return wo;
-                default:
-                    //jewelry
-                    wo = CreateJewelry(3);
-                    return wo;
-            }
-        }
-
-        public static WorldObject CreateTier4Objects()
-        {
-            int id = 0;
-            int chance;
-            WorldObject wo;
-            
-                int type = ThreadSafeRandom.Next(1, 6);
-                switch (type)
-                {
-                    case 1:
-                        //mundane items
-                        int mundaneType = ThreadSafeRandom.Next(1, 8);
-                        switch (mundaneType)
-                        {
-                            case 1:
-                                //peas
-                                chance = ThreadSafeRandom.Next(1, 125);
-                                if (chance < 75)
-                                {
-                                    //lead pea
-                                    id = 8329;
-                                }
-                                else if (chance < 100)
-                                {
-                                    //Iron Pea
-                                    id = 8328;
-                                }
-                                else
-                                {
-                                    //Copper Pea
-                                    id = 8326;
-                                }
-                                break;
-                            case 2:
-                                //mana stones
-                                chance = ThreadSafeRandom.Next(1, 100);
-                                if (chance < 50)
-                                {
-                                    //Lesser Mana Stone
-                                    id = 2434;
-                                }
-                                else if (chance < 95)
-                                {
-                                    //Mana Stone
-                                    id = 2435;
-                                }
-                                else
-                                {
-                                    //Moderate Mana Stone
-                                    id = 27330;
-                                }
-                                break;
-                            case 3:
-                                //potions
-                                chance = ThreadSafeRandom.Next(1, 450);
-                                if (chance < 100)
-                                {
-                                    //Stamina Tincture
-                                    id = 27326;
-                                }
-                                else if (chance < 200)
-                                {
-                                    //Potion of Healing
-                                    id = 377;
-                                }
-                                else if (chance < 300)
-                                {
-                                    //Mana Elixer
-                                    id = 27322;
-                                }
-                                else if (chance < 325)
-                                {
-                                    //health Tincture
-                                    id = 27319; ;
-                                }
-                                else if (chance < 350)
-                                {
-                                    //Mana Draught
-                                    id = 2460;
-                                }
-                                else if (chance < 375)
-                                {
-                                    //Stamina Elixer
-                                    id = 2470;
-                                }
-                                else if (chance < 400)
-                                {
-                                    //Stamina Brew
-                                    id = 27324;
-                                }
-                                else if (chance < 425)
-                                {
-                                    //health Elixer
-                                    id = 2458;
-                                }
-                                else
-                                {
-                                    //Mana Elixer
-                                    id = 2461;
-                                }
-                                break;
-                            case 4:
-                                //healing kits
-                                chance = ThreadSafeRandom.Next(1, 100);
-                                if (chance < 75)
-                                {
-                                    //Adept Healing Kit
-                                    id = 629;
-                                }
-                                else if (chance < 90)
-                                {
-                                    //Gifted Healing Kit
-                                    id = 630;
-                                }
-                                else
-                                {
-                                    //Excellent Healing Kit
-                                    id = 631;
-                                }
-                                break;
-                            case 5:
-                                //lockpicks
-                                chance = ThreadSafeRandom.Next(1, 105);
-                                if (chance < 70)
-                                {
-                                    //Reliable Lockpick
-                                    id = 545;
-                                }
-                                else if (chance < 100)
-                                {
-                                    //Good Lockpick
-                                    id = 512;
-                                }
-                                else
-                                {
-                                    //Excellent Lockpick
-                                    id = 514;
-                                }
-                                break;
-                            //case 6:
-                            //    //coalesced mana
-                            //    chance = ThreadSafeRandom.Next(1, 100);
-                            //    if (chance < 50)
-                            //    {
-                            //        //Coalesced Mana (Yellow)
-                            //        id = 42518;
-                            //    }
-                            //    else if(chance < 85)
-                            //    {
-                            //        //Coalesced Mana (Red)
-                            //        id = 42517;
-                            //    }
-                            //    else
-                            //    {
-                            //        //Coalesced Mana (Blue)
-                            //        id = 42516;
-                            //    }
-                            //    break;
-                            case 6:
-                                id = CreateFood();
-                                break;
-                            default:
-                                wo = CreateRandomScroll(ThreadSafeRandom.Next(4, 5));
-                                return wo;
-                        }
-                    wo = WorldObjectFactory.CreateNewWorldObject((uint)id);
-                    return wo;
-                case 2:
-                    //jewels
-                    wo = CreateJewels(4);
-                    return wo;
-                case 3:
-                    //armor
-                    wo = CreateArmor(4);
-                    return wo;
-                case 4:
-                    //weapons
-                    wo = CreateWeapon(4);
-                    return wo;
-                default:
-                    //jewelry
-                    wo = CreateJewelry(4);
-                    return wo;
-            }
-        }
-
-        public static WorldObject CreateTier5Objects()
-        {
-            int id = 0;
-            int chance;
-            WorldObject wo;
-            
-                int type = ThreadSafeRandom.Next(1, 6);
-                switch (type)
-                {
-                    case 1:
-                        //mundane items
-                        int mundaneType = ThreadSafeRandom.Next(1, 7);
-                        switch (mundaneType)
-                        {
-                            case 1:
-                                //peas
-                                chance = ThreadSafeRandom.Next(1, 125);
-                                if (chance < 75)
-                                {
-                                    //Copper Pea
-                                    id = 8326;
-                                }
-                                else if (chance < 120)
-                                {
-                                    //Silver Pea
-                                    id = 8331;
-                                }
-                                else
-                                {
-                                    //Gold Pea
-                                    id = 8327;
-                                }
-                                break;
-                            case 2:
-                                //mana stones
-                                chance = ThreadSafeRandom.Next(1, 100);
-                                if (chance < 50)
-                                {
-                                    //Moderate Mana Stone
-                                    id = 27330;
-                                }
-                                else if (chance < 95)
-                                {
-                                    //Greater Mana Stone
-                                    id = 2436;
-                                }
-                                else
-                                {
-                                    //Major Mana Stone
-                                    id = 27328;
-                                }
-                                break;
-                            case 3:
-                                //potions
-                                chance = ThreadSafeRandom.Next(1, 450);
-                                if (chance < 100)
-                                {
-                                    //Stamina Brew
-                                    id = 27324;
-                                }
-                                else if (chance < 200)
-                                {
-                                    //health Elixer
-                                    id = 2458;
-                                }
-                                else if (chance < 300)
-                                {
-                                    //Mana Elixer
-                                    id = 2461;
-                                }
-                                else if (chance < 325)
-                                {
-                                    //health Tonic
-                                    id = 27320; ;
-                                }
-                                else if (chance < 350)
-                                {
-                                    //Mana Tonic
-                                    id = 27323;
-                                }
-                                else if (chance < 375)
-                                {
-                                    //Stamina Tonic
-                                    id = 27327;
-                                }
-                                else if (chance < 400)
-                                {
-                                    //Stamina Philtre
-                                    id = 27325;
-                                }
-                                else if (chance < 425)
-                                {
-                                    //health Philtre
-                                    id = 27318;
-                                }
-                                else
-                                {
-                                    //Mana Philtre
-                                    id = 27321;
-                                }
-                                break;
-                            case 4:
-                                //healing kits
-                                chance = ThreadSafeRandom.Next(1, 100);
-                                if (chance < 75)
-                                {
-                                    //Excellent Healing Kit
-                                    id = 631;
-                                }
-                                else if (chance < 95)
-                                {
-                                    //Peerless Healing Kit
-                                    id = 632;
-                                }
-                                else
-                                {
-                                    //Treated Healing Kit
-                                    id = 9229;
-                                }
-                                break;
-                            case 5:
-                                //lockpicks
-                                chance = ThreadSafeRandom.Next(1, 105);
-                                if (chance < 70)
-                                {
-                                    //Excellent Lockpick
-                                    id = 514;
-                                }
-                                else if (chance < 100)
-                                {
-                                    //Superb Lockpick
-                                    id = 515;
-                                }
-                                else
-                                {
-                                    //Peerless Lockpick
-                                    id = 516;
-                                }
-                                break;
-                            //case 6:
-                            //    //coalesced mana
-                            //    chance = ThreadSafeRandom.Next(1, 100);
-                            //    if (chance < 50)
-                            //    {
-                            //        //Coalesced Mana (Yellow)
-                            //        id = 42518;
-                            //    }
-                            //    else if (chance < 85)
-                            //    {
-                            //        //Coalesced Mana (Red)
-                            //        id = 42517;
-                            //    }
-                            //    else
-                            //    {
-                            //        //Coalesced Mana (Blue)
-                            //        id = 42516;
-                            //    }
-                            //    break;
-                            case 6:
-                                id = CreateFood();
-                                break;
-                            default:
-                                wo = CreateRandomScroll(ThreadSafeRandom.Next(5, 6));
-                                return wo;
-                        }
-                        wo = WorldObjectFactory.CreateNewWorldObject((uint)id);
-                        return wo;
-                    case 2:
-                        //jewels
-                        wo = CreateJewels(5);
-                        return wo;
-                    case 3:
-                        //armor
-                        wo = CreateArmor(5);
-                        return wo;
-                    case 4:
-                        //weapons
-                        wo = CreateWeapon(5);
-                        return wo;
-                    default:
-                        //jewelry
-                        wo = CreateJewelry(5);
-                        return wo;
-                }
-            }
-
-        public static WorldObject CreateTier6Objects()
-        {
-            int id = 0;
-            int chance;
-            WorldObject wo;
-            
-                int type = ThreadSafeRandom.Next(1, 5);
-                switch (type)
-                {
-                    case 1:
-                        //mundane items
-                        int mundaneType = ThreadSafeRandom.Next(1, 7);
-                        switch (mundaneType)
-                        {
-                            case 1:
-                                //peas
-                                chance = ThreadSafeRandom.Next(1, 125);
-                                if (chance < 80)
-                                {
-                                    //Silver Pea
-                                    id = 8331;
-                                }
-                                else if (chance < 115)
-                                {
-                                    //Gold Pea
-                                    id = 8327;
-                                }
-                                else
-                                {
-                                    //Pyreal Pea
-                                    id = 8330;
-                                }
-                                break;
-                            case 2:
-                                //mana stones
-                                chance = ThreadSafeRandom.Next(1, 100);
-                                if (chance < 75)
-                                {
-                                    //Greater Mana Stone
-                                    id = 2436;
-                                }
-                                else
-                                {
-                                    //Major Mana Stone
-                                    id = 27328;
-                                }
-                                break;
-                            case 3:
-                                //potions
-                                chance = ThreadSafeRandom.Next(1, 450);
-                                if (chance < 100)
-                                {
-                                    //Stamina Brew
-                                    id = 27324;
-                                }
-                                else if (chance < 200)
-                                {
-                                    //health Elixer
-                                    id = 2458;
-                                }
-                                else if (chance < 300)
-                                {
-                                    //Mana Elixer
-                                    id = 2461;
-                                }
-                                else if (chance < 325)
-                                {
-                                    //health Tonic
-                                    id = 27320; ;
-                                }
-                                else if (chance < 350)
-                                {
-                                    //Mana Tonic
-                                    id = 27323;
-                                }
-                                else if (chance < 375)
-                                {
-                                    //Stamina Tonic
-                                    id = 27327;
-                                }
-                                else if (chance < 400)
-                                {
-                                    //Stamina Philtre
-                                    id = 27325;
-                                }
-                                else if (chance < 425)
-                                {
-                                    //health Philtre
-                                    id = 27318;
-                                }
-                                else
-                                {
-                                    //Mana Philtre
-                                    id = 27321;
-                                }
-                                break;
-                            case 4:
-                                //healing kits
-                                chance = ThreadSafeRandom.Next(1, 100);
-                                if (chance < 75)
-                                {
-                                    //Excellent Healing Kit
-                                    id = 631;
-                                }
-                                else if (chance < 95)
-                                {
-                                    //Peerless Healing Kit
-                                    id = 632;
-                                }
-                                else
-                                {
-                                    //Treated Healing Kit
-                                    id = 9229;
-                                }
-                                break;
-                            case 5:
-                                //lockpicks
-                                chance = ThreadSafeRandom.Next(1, 105);
-                                if (chance < 100)
-                                {
-                                    //Excellent Lockpick
-                                    id = 514;
-                                }
-                                else if (chance < 100)
-                                {
-                                    //Superb Lockpick
-                                    id = 515;
-                                }
-                                else
-                                {
-                                    //Peerless Lockpick
-                                    id = 516;
-                                }
-                                break;
-                            //case 6:
-                            //    //coalesced mana
-                            //    chance = ThreadSafeRandom.Next(1, 100);
-                            //    if (chance < 50)
-                            //    {
-                            //        //Coalesced Mana (Yellow)
-                            //        id = 42518;
-                            //    }
-                            //    else if (chance < 85)
-                            //    {
-                            //        //Coalesced Mana (Red)
-                            //        id = 42517;
-                            //    }
-                            //    else
-                            //    {
-                            //        //Coalesced Mana (Blue)
-                            //        id = 42516;
-                            //    }
-                            //    break;
-                            case 6:
-                                id = CreateFood();
-                                break;
-                            default:
-                                wo = CreateRandomScroll(ThreadSafeRandom.Next(6 , 6));
-                                return wo;
-                        }
-                        wo = WorldObjectFactory.CreateNewWorldObject((uint)id);
-                        return wo;
-                    case 2:
-                        //jewels
-                        wo = CreateJewels(6);
-                        return wo;
-                    case 3:
-                        //armor
-                        wo = CreateArmor(6);
-                        return wo;
-                    case 4:
-                        //weapons
-                        wo = CreateWeapon(6);
-                        return wo;
-                    default:
-                        //jewelry
-                        wo = CreateJewelry(6);
-                        return wo;
-                }
-            }
-
-        public static WorldObject CreateTier7Objects()
-        {
-            int id = 0;
-            int chance;
-            WorldObject wo;
-            
-                int type = ThreadSafeRandom.Next(1, 5);
-                switch (type)
-                {
-                    case 1:
-                        //mundane items
-                        int mundaneType = ThreadSafeRandom.Next(1, 7);
-                        switch (mundaneType)
-                        {
-                            case 1:
-                                //peas
-                                chance = ThreadSafeRandom.Next(1, 125);
-                                if (chance < 75)
-                                {
-                                    //Silver Pea
-                                    id = 8331;
-                                }
-                                else if (chance < 115)
-                                {
-                                    //Gold Pea
-                                    id = 8327;
-                                }
-                                else
-                                {
-                                    //Pyreal Pea
-                                    id = 8330;
-                                }
-                                break;
-                            case 2:
-                                //mana stones
-                                chance = ThreadSafeRandom.Next(1, 100);
-                                if (chance < 75)
-                                {
-                                    //Greater Mana Stone
-                                    id = 2436;
-                                }
-                                else
-                                {
-                                    //Major Mana Stone
-                                    id = 27328;
-                                }
-                                break;
-                            case 3:
-                                //potions
-                                chance = ThreadSafeRandom.Next(1, 450);
-                                if (chance < 100)
-                                {
-                                    //Stamina Brew
-                                    id = 27324;
-                                }
-                                else if (chance < 200)
-                                {
-                                    //health Elixer
-                                    id = 2458;
-                                }
-                                else if (chance < 300)
-                                {
-                                    //Mana Elixer
-                                    id = 2461;
-                                }
-                                else if (chance < 325)
-                                {
-                                    //health Tonic
-                                    id = 27320; ;
-                                }
-                                else if (chance < 350)
-                                {
-                                    //Mana Tonic
-                                    id = 27323;
-                                }
-                                else if (chance < 375)
-                                {
-                                    //Stamina Tonic
-                                    id = 27327;
-                                }
-                                else if (chance < 400)
-                                {
-                                    //Stamina Philtre
-                                    id = 27325;
-                                }
-                                else if (chance < 425)
-                                {
-                                    //health Philtre
-                                    id = 27318;
-                                }
-                                else
-                                {
-                                    //Mana Philtre
-                                    id = 27321;
-                                }
-                                break;
-                            case 4:
-                                //healing kits
-                                chance = ThreadSafeRandom.Next(1, 100);
-                                if (chance < 75)
-                                {
-                                    //Excellent Healing Kit
-                                    id = 631;
-                                }
-                                else if (chance < 95)
-                                {
-                                    //Peerless Healing Kit
-                                    id = 632;
-                                }
-                                else
-                                {
-                                    //Treated Healing Kit
-                                    id = 9229;
-                                }
-                                break;
-                            case 5:
-                                //lockpicks
-                                chance = ThreadSafeRandom.Next(1, 105);
-                                if (chance < 100)
-                                {
-                                    //Excellent Lockpick
-                                    id = 514;
-                                }
-                                else if (chance < 100)
-                                {
-                                    //Superb Lockpick
-                                    id = 515;
-                                }
-                                else
-                                {
-                                    //Peerless Lockpick
-                                    id = 516;
-                                }
-                                break;
-                            //case 6:
-                            //    //coalesced mana
-                            //    chance = ThreadSafeRandom.Next(1, 100);
-                            //    if (chance < 50)
-                            //    {
-                            //        //Coalesced Mana (Yellow)
-                            //        id = 42518;
-                            //    }
-                            //    else if (chance < 85)
-                            //    {
-                            //        //Coalesced Mana (Red)
-                            //        id = 42517;
-                            //    }
-                            //    else
-                            //    {
-                            //        //Coalesced Mana (Blue)
-                            //        id = 42516;
-                            //    }
-                            //    break;
-                            case 6:
-                                id = CreateFood();
-                                break;
-                            default:
-                                wo = CreateRandomScroll(ThreadSafeRandom.Next(6,6));
-                                return wo;
-                        }
-                        wo = WorldObjectFactory.CreateNewWorldObject((uint)id);
-                        return wo;
-                    case 2:
-                        //jewels
-                        wo = CreateJewels(7);
-                        return wo;
-                    case 3:
-                        //armor
-                        wo = CreateArmor(7);
-                        return wo;
-                    case 4:
-                        //weapons
-                        wo = CreateWeapon(7);
-                        return wo;
-                    default:
-                        //jewelry
-                        wo = CreateJewelry(7);
-                        return wo;
-                }
-            }
-
-        public static WorldObject CreateTier8Objects()
-        {
-            int id = 0;
-            int chance;
-            WorldObject wo;
-            
-                int type = ThreadSafeRandom.Next(1, 5);
-                switch (type)
-                {
-                    case 1:
-                        //mundane items
-                        int mundaneType = ThreadSafeRandom.Next(1, 7);
-                        switch (mundaneType)
-                        {
-                            case 1:
-                                //peas
-                                chance = ThreadSafeRandom.Next(1, 125);
-                                if (chance < 75)
-                                {
-                                    //Silver Pea
-                                    id = 8331;
-                                }
-                                else if (chance < 115)
-                                {
-                                    //Gold Pea
-                                    id = 8327;
-                                }
-                                else
-                                {
-                                    //Pyreal Pea
-                                    id = 8330;
-                                }
-                                break;
-                            case 2:
-                                //mana stones
-                                chance = ThreadSafeRandom.Next(1, 100);
-                                if (chance < 75)
-                                {
-                                    //Greater Mana Stone
-                                    id = 2436;
-                                }
-                                else
-                                {
-                                    //Major Mana Stone
-                                    id = 27328;
-                                }
-                                break;
-                            case 3:
-                                //potions
-                                chance = ThreadSafeRandom.Next(1, 450);
-                                if (chance < 100)
-                                {
-                                    //Stamina Brew
-                                    id = 27324;
-                                }
-                                else if (chance < 200)
-                                {
-                                    //health Elixer
-                                    id = 2458;
-                                }
-                                else if (chance < 300)
-                                {
-                                    //Mana Elixer
-                                    id = 2461;
-                                }
-                                else if (chance < 325)
-                                {
-                                    //health Tonic
-                                    id = 27320; ;
-                                }
-                                else if (chance < 350)
-                                {
-                                    //Mana Tonic
-                                    id = 27323;
-                                }
-                                else if (chance < 375)
-                                {
-                                    //Stamina Tonic
-                                    id = 27327;
-                                }
-                                else if (chance < 400)
-                                {
-                                    //Stamina Philtre
-                                    id = 27325;
-                                }
-                                else if (chance < 425)
-                                {
-                                    //health Philtre
-                                    id = 27318;
-                                }
-                                else
-                                {
-                                    //Mana Philtre
-                                    id = 27321;
-                                }
-                                break;
-                            case 4:
-                                //healing kits
-                                chance = ThreadSafeRandom.Next(1, 100);
-                                if (chance < 75)
-                                {
-                                    //Excellent Healing Kit
-                                    id = 631;
-                                }
-                                else if (chance < 90)
-                                {
-                                    //Peerless Healing Kit
-                                    id = 632;
-                                }
-                                else
-                                {
-                                    //Treated Healing Kit
-                                    id = 9229;
-                                }
-                                break;
-                            case 5:
-                                //lockpicks
-                                chance = ThreadSafeRandom.Next(1, 105);
-                                if (chance < 100)
-                                {
-                                    //Excellent Lockpick
-                                    id = 514;
-                                }
-                                else if (chance < 100)
-                                {
-                                    //Superb Lockpick
-                                    id = 515;
-                                }
-                                else
-                                {
-                                    //Peerless Lockpick
-                                    id = 516;
-                                }
-                                break;
-                            //case 6:
-                            //    //coalesced mana
-                            //    chance = ThreadSafeRandom.Next(1, 100);
-                            //    if (chance < 50)
-                            //    {
-                            //        //Coalesced Mana (Yellow)
-                            //        id = 42518;
-                            //    }
-                            //    else if (chance < 85)
-                            //    {
-                            //        //Coalesced Mana (Red)
-                            //        id = 42517;
-                            //    }
-                            //    else
-                            //    {
-                            //        //Coalesced Mana (Blue)
-                            //        id = 42516;
-                            //    }
-                            //    break;
-                            //case 7:
-                            //    //spell components
-                            //    chance = ThreadSafeRandom.Next(1, 170);
-                            //    if (chance < 100)
-                            //    {
-                            //        //Quill of Infliction
-                            //        id = 37363;
-                            //    }
-                            //    else if (chance == 100)
-                            //    {
-                            //        //Quill of Benevolence
-                            //        id = 37365;
-                            //    }
-                            //    else if (chance == 101)
-                            //    {
-                            //        //Quill of Extraction
-                            //        id = 37362;
-                            //    }
-                            //    else if (chance == 102)
-                            //    {
-                            //        //Quill of Introspection
-                            //        id = 37364;
-                            //    }
-                            //    else if (chance == 103)
-                            //    {
-                            //        //Ink of Conveyance
-                            //        id = 37360;
-                            //    }
-                            //    else if (chance == 104)
-                            //    {
-                            //        //Ink of direction
-                            //        id = 37361;
-                            //    }
-                            //    else if (chance == 105)
-                            //    {
-                            //        //Ink of Formation
-                            //        id = 37353;
-                            //    }
-                            //    else if (chance == 106)
-                            //    {
-                            //        //Ink of Nullification
-                            //        id = 37354;
-                            //    }
-                            //    else if (chance == 107)
-                            //    {
-                            //        //Ink of Objectification
-                            //        id = 37355;
-                            //    }
-                            //    else if (chance == 108)
-                            //    {
-                            //        //Ink of Partition
-                            //        id = 37357;
-                            //    }
-                            //    else if (chance == 109)
-                            //    {
-                            //        //Ink of Separation
-                            //        id = 37358;
-                            //    }
-                            //    else if (chance == 110)
-                            //    {
-                            //        //Parabolic Ink
-                            //        id = 37356;
-                            //    }
-                            //    else if (chance == 111)
-                            //    {
-                            //        //Alacritous Ink
-                            //        id = 37359;
-                            //    }
-                            //    else if (chance == 112)
-                            //    {
-                            //        //Mana Scarab
-                            //        id = 37115;
-                            //    }
-                            //    else if (chance == 113)
-                            //    {
-                            //        //glyph of alchemy
-                            //        id = 37343;
-                            //    }
-                            //    else if (chance == 114)
-                            //    {
-                            //        //glyph of alchemy
-                            //        id = 37343;
-                            //    }
-                            //    else if (chance == 115)
-                            //    {
-                            //        //glyph of arcane lore
-                            //        id = 37344;
-                            //    }
-                            //    else if (chance == 116)
-                            //    {
-                            //        //glyph of armor
-                            //        id = 37345;
-                            //    }
-                            //    else if (chance == 117)
-                            //    {
-                            //        //glyph of armor tinkering
-                            //        id = 37346;
-                            //    }
-                            //    else if (chance == 118)
-                            //    {
-                            //        //glyph of bludgeoning
-                            //        id = 37347;
-                            //    }
-                            //    else if (chance == 119)
-                            //    {
-                            //        //glyph of cooking
-                            //        id = 37349;
-                            //    }
-                            //    else if (chance == 120)
-                            //    {
-                            //        //glyph of coordination
-                            //        id = 37350;
-                            //    }
-                            //    else if (chance == 121)
-                            //    {
-                            //        //glyph of corrosion
-                            //        id = 37342;
-                            //    }
-                            //    else if (chance == 122)
-                            //    {
-                            //        //glyph of creature enchantment
-                            //        id = 37351;
-                            //    }
-                            //    else if (chance == 123)
-                            //    {
-                            //        //glyph of damage
-                            //        id = 43379;
-                            //    }
-                            //    else if (chance == 124)
-                            //    {
-                            //        //glyph of deception
-                            //        id = 37352;
-                            //    }
-                            //    else if (chance == 125)
-                            //    {
-                            //        //glyph of dirty fighting
-                            //        id = 45370;
-                            //    }
-                            //    else if (chance == 126)
-                            //    {
-                            //        //glyph of dual wield
-                            //        id = 45371;
-                            //    }
-                            //    else if (chance == 127)
-                            //    {
-                            //        //glyph of endurance
-                            //        id = 37300;
-                            //    }
-                            //    else if (chance == 128)
-                            //    {
-                            //        //glyph of finesse weapon
-                            //        id = 37373;
-                            //    }
-                            //    else if (chance == 129)
-                            //    {
-                            //        //glyph of flame
-                            //        id = 37301;
-                            //    }
-                            //    else if (chance == 130)
-                            //    {
-                            //        //glyph of fletching
-                            //        id = 37302;
-                            //    }
-                            //    else if (chance == 131)
-                            //    {
-                            //        //glyph of focus
-                            //        id = 37303;
-                            //    }
-                            //    else if (chance == 132)
-                            //    {
-                            //        //glyph of frost
-                            //        id = 37348;
-                            //    }
-                            //    else if (chance == 133)
-                            //    {
-                            //        //glyph of healing
-                            //        id = 37304;
-                            //    }
-                            //    else if (chance == 134)
-                            //    {
-                            //        //glyph of health
-                            //        id = 37305;
-                            //    }
-                            //    else if (chance == 135)
-                            //    {
-                            //        //glyph of heavy weapons
-                            //        id = 37369;
-                            //    }
-                            //    else if (chance == 136)
-                            //    {
-                            //        //glyph of item enchantment
-                            //        id = 37309;
-                            //    }
-                            //    else if (chance == 137)
-                            //    {
-                            //        //glyph of item tinnkering
-                            //        id = 37310;
-                            //    }
-                            //    else if (chance == 138)
-                            //    {
-                            //        //glyph of jump
-                            //        id = 37311;
-                            //    }
-                            //    else if (chance == 139)
-                            //    {
-                            //        //glyph of leadership
-                            //        id = 37312;
-                            //    }
-                            //    else if (chance == 140)
-                            //    {
-                            //        //glyph of life magic
-                            //        id = 37313;
-                            //    }
-                            //    else if (chance == 141)
-                            //    {
-                            //        //glyph of light weapons
-                            //        id = 37339;
-                            //    }
-                            //    else if (chance == 142)
-                            //    {
-                            //        //glyph of lightning
-                            //        id = 37314;
-                            //    }
-                            //    else if (chance == 143)
-                            //    {
-                            //        //glyph of lockpick
-                            //        id = 37315;
-                            //    }
-                            //    else if (chance == 144)
-                            //    {
-                            //        //glyph of loyalty
-                            //        id = 37316;
-                            //    }
-                            //    else if (chance == 145)
-                            //    {
-                            //        //glyph of magic defense
-                            //        id = 37317;
-                            //    }
-                            //    else if (chance == 146)
-                            //    {
-                            //        //glyph of magic item tinkering
-                            //        id = 38760;
-                            //    }
-                            //    else if (chance == 147)
-                            //    {
-                            //        //glyph of mana
-                            //        id = 37318;
-                            //    }
-                            //    else if (chance == 148)
-                            //    {
-                            //        //glyph of mana conversion
-                            //        id = 37319;
-                            //    }
-                            //    else if (chance == 149)
-                            //    {
-                            //        //glyph of mana regeneration
-                            //        id = 37321;
-                            //    }
-                            //    else if (chance == 150)
-                            //    {
-                            //        //glyph of melee defense
-                            //        id = 37323;
-                            //    }
-                            //    else if (chance == 151)
-                            //    {
-                            //        //glyph of missile defense
-                            //        id = 37324;
-                            //    }
-                            //    else if (chance == 152)
-                            //    {
-                            //        //glyph of Missile weapons
-                            //        id = 37338;
-                            //    }
-                            //    else if (chance == 153)
-                            //    {
-                            //        //glyph of monster appraisal
-                            //        id = 37325;
-                            //    }
-                            //    else if (chance == 154)
-                            //    {
-                            //        //glyph of nether
-                            //        id = 43387;
-                            //    }
-                            //    else if (chance == 155)
-                            //    {
-                            //        //glyph of person appraisal
-                            //        id = 37326;
-                            //    }
-                            //    else if (chance == 156)
-                            //    {
-                            //        //glyph of piercing
-                            //        id = 37327;
-                            //    }
-                            //    else if (chance == 157)
-                            //    {
-                            //        //glyph of quickness
-                            //        id = 37328;
-                            //    }
-                            //    else if (chance == 158)
-                            //    {
-                            //        //glyph of recklessness
-                            //        id = 45372;
-                            //    }
-                            //    else if (chance == 159)
-                            //    {
-                            //        //glyph of regeneration
-                            //        id = 37307;
-                            //    }
-                            //    else if (chance == 160)
-                            //    {
-                            //        //glyph of run
-                            //        id = 37329;
-                            //    }
-                            //    else if (chance == 161)
-                            //    {
-                            //        //glyph of salvaging
-                            //        id = 37330;
-                            //    }
-                            //    else if (chance == 162)
-                            //    {
-                            //        //glyph of self
-                            //        id = 37331;
-                            //    }
-                            //    else if (chance == 163)
-                            //    {
-                            //        //glyph of shield
-                            //        id = 45373;
-                            //    }
-                            //    else if (chance == 164)
-                            //    {
-                            //        //glyph of slashing
-                            //        id = 37332;
-                            //    }
-                            //    else if (chance == 165)
-                            //    {
-                            //        //glyph of sneak attack
-                            //        id = 45374;
-                            //    }
-                            //    else if (chance == 166)
-                            //    {
-                            //        //glyph of stamina
-                            //        id = 37333;
-                            //    }
-                            //    else if (chance == 167)
-                            //    {
-                            //        //glyph of stamina regeneration
-                            //        id = 37336;
-                            //    }
-                            //    else if (chance == 168)
-                            //    {
-                            //        //glyph of strength
-                            //        id = 37337;
-                            //    }
-                            //    else if (chance == 169)
-                            //    {
-                            //        //glyph of summoning
-                            //        id = 49455;
-                            //    }
-                            //    else if (chance == 170)
-                            //    {
-                            //        //glyph of two handed combat
-                            //        id = 41747;
-                            //    }
-                            //    else if (chance == 171)
-                            //    {
-                            //        //glyph of void magic
-                            //        id = 43380;
-                            //    }
-                            //    else if (chance == 172)
-                            //    {
-                            //        //glyph of war magic
-                            //        id = 37340;
-                            //    }
-                            //    else if (chance == 173)
-                            //    {
-                            //        //glyph of weapon tinkering
-                            //        id = 37341;
-                            //    }
-                            //    break;
-                            case 6:
-                                id = CreateFood();
-                                break;
-                            case 7:
-                                wo = CreateRandomScroll(7);
-                                return wo;
-                            default:
-                                break;
-                        }
-                        wo = WorldObjectFactory.CreateNewWorldObject((uint)id);
-                        return wo;
-                    case 2:
-                        //jewels
-                        wo = CreateJewels(8);
-                        return wo;
-                    case 3:
-                        //armor
-                        wo = CreateArmor(8);
-                        return wo;
-                    case 4:
-                        //weapons
-                        wo = CreateWeapon(8);
-                        return wo;
-                    default:
-                        //jewelry
-                        wo = CreateJewelry(8);
-                        return wo;
-                }
-            
-        }
-
-        public static WorldObject CreateJewels(int tier)
+        public static WorldObject CreateJewels(int tier, bool isMagical)
         {
             
             int spellChance = 0;
@@ -1907,7 +1685,7 @@ namespace ACE.Server.Factories
                 case 1:
                     //tier 1
                     gemType = t1gems[ThreadSafeRandom.Next(0, t1gems.Length-1)];
-                    if(ThreadSafeRandom.Next(0,1) == 1)
+                    if(isMagical)
                     {
                         spellChance = ThreadSafeRandom.Next(0, 100);
                         if(spellChance < 30)
@@ -1958,7 +1736,7 @@ namespace ACE.Server.Factories
                 case 2:
                     //tier 2
                     gemType = t2gems[ThreadSafeRandom.Next(0, t2gems.Length-1)];
-                    if (ThreadSafeRandom.Next(0, 1) == 1)
+                    if (isMagical)
                     {
                         spellChance = ThreadSafeRandom.Next(0, 100);
                         if (spellChance < 30)
@@ -2009,7 +1787,7 @@ namespace ACE.Server.Factories
                 case 3:
                     //tier 3
                     gemType = t3gems[ThreadSafeRandom.Next(0, t3gems.Length-1)];
-                    if (ThreadSafeRandom.Next(0, 1) == 1)
+                    if (isMagical)
                     {
                         spellChance = ThreadSafeRandom.Next(0, 100);
                         if (spellChance < 30)
@@ -2060,7 +1838,7 @@ namespace ACE.Server.Factories
                 case 4:
                     //tier 4
                     gemType = t4gems[ThreadSafeRandom.Next(0, t4gems.Length-1)];
-                    if (ThreadSafeRandom.Next(0, 1) == 1)
+                    if (isMagical)
                     {
                         if (spellChance < 35)
                         {
@@ -2096,7 +1874,7 @@ namespace ACE.Server.Factories
                 case 5:
                     //tier 5
                     gemType = t5gems[ThreadSafeRandom.Next(0, t5gems.Length-1)];
-                    if (ThreadSafeRandom.Next(0, 1) == 1)
+                    if (isMagical)
                     {
                         spellChance = ThreadSafeRandom.Next(0, 100);
                         if (spellChance < 30)
@@ -2147,7 +1925,7 @@ namespace ACE.Server.Factories
                 case 6:
                     //tier 6
                     gemType = t5gems[ThreadSafeRandom.Next(0, t5gems.Length-1)];
-                    if (ThreadSafeRandom.Next(0, 1) == 1)
+                    if (isMagical)
                     {
                         if (spellChance < 35)
                         {
@@ -2183,7 +1961,7 @@ namespace ACE.Server.Factories
                 case 7:
                     //tier 7
                     gemType = t5gems[ThreadSafeRandom.Next(0, t5gems.Length-1)];
-                    if (ThreadSafeRandom.Next(0, 1) == 1)
+                    if (isMagical)
                     {
                         spellChance = ThreadSafeRandom.Next(0, 100);
                         if (spellChance < 30)
@@ -2234,7 +2012,7 @@ namespace ACE.Server.Factories
                 default:
                     //tier 8
                     gemType = t5gems[ThreadSafeRandom.Next(0, t5gems.Length-1)];
-                    if (ThreadSafeRandom.Next(0, 2) == 1)
+                    if (isMagical)
                     {
                         if (spellChance < 35)
                         {
@@ -2324,7 +2102,7 @@ namespace ACE.Server.Factories
             return wo;
         }
 
-        public static WorldObject CreateJewelry(int tier)
+        public static WorldObject CreateJewelry(int tier, bool isMagical)
         {
             
             int[][] JewelrySpells = LootHelper.JewelrySpells;
@@ -2348,7 +2126,10 @@ namespace ACE.Server.Factories
             int spellcraft = 0; 
             lowSpellTier = GetLowSpellTier(tier);
             highSpellTier = GetHighSpellTier(tier);
-            numSpells = GetNumSpells(tier);
+            if (isMagical)
+            {
+                numSpells = GetNumSpells(tier);
+            }
             numCantrips = minorCantrips + majorCantrips + epicCantrips + legendaryCantrips;
             if(numCantrips > 10)
             {
@@ -2461,13 +2242,17 @@ namespace ACE.Server.Factories
             }
         }
 
-        public static WorldObject CreateWeapon(int tier)
+        public static WorldObject CreateWeapon(int tier, bool isMagical)
         {
             
             int weaponWeenie = 0;
             int weaponType = 0;
             ///Properties for weapons
-            int numSpells = GetNumSpells(tier);
+            int numSpells = 0;
+            if (isMagical)
+            {
+                numSpells = GetNumSpells(tier);
+            }
             int damageType = 0;  //
             int damage = 0; //
             double damageVariance = 0; //
@@ -4332,7 +4117,7 @@ namespace ACE.Server.Factories
                 return wo;
             }
 
-        public static WorldObject CreateArmor(int tier)
+        public static WorldObject CreateArmor(int tier, bool isMagical)
         {
             
             int lowSpellTier = 0;
@@ -14333,7 +14118,11 @@ namespace ACE.Server.Factories
             wo.SetProperty(PropertyInt.EquipmentSetId, equipSetId);
             wo.SetProperty(PropertyInt.AppraisalLongDescDecoration, 1);
             ////Encumberance will be added based on item in the future
-            int numSpells = GetNumSpells(tier);
+            int numSpells = 0;
+            if (isMagical)
+            {
+                numSpells = GetNumSpells(tier);
+            }
             maxMana = GetMaxMana(numSpells, tier);
             curMana = maxMana;
             wo.SetProperty(PropertyInt.ItemMaxMana, maxMana);
@@ -14957,8 +14746,6 @@ namespace ACE.Server.Factories
             {
                 case 1:
                     ////1-3, minor cantrips
-                    if (ThreadSafeRandom.Next(0, 100) > 60)
-                    {
                         chance = ThreadSafeRandom.Next(1, 100);
                         if (chance < 50)
                         {
@@ -14972,12 +14759,9 @@ namespace ACE.Server.Factories
                         {
                             numSpells = 3;
                         }
-                    }
                     break;
                 case 2:
                     ////3-5 minor, and major
-                    if (ThreadSafeRandom.Next(0, 100) > 60)
-                    {
                         chance = ThreadSafeRandom.Next(1, 1000);
                         if (chance < 500)
                         {
@@ -14999,12 +14783,9 @@ namespace ACE.Server.Factories
                         {
                             numSpells = 5;
                         }
-                    }
                     break;
                 case 3:
                     //4-6, major/minor
-                    if (ThreadSafeRandom.Next(0, 100) > 60)
-                    {
                         chance = ThreadSafeRandom.Next(1, 1000);
                         if (chance < 500)
                         {
@@ -15030,12 +14811,9 @@ namespace ACE.Server.Factories
                         {
                             numSpells = 6;
                         }
-                    }
                     break;
                 case 4:
                     //5-6, major and minor
-                    if (ThreadSafeRandom.Next(0, 100) > 60)
-                    {
                         chance = ThreadSafeRandom.Next(1, 1000);
                         if (chance < 500)
                         {
@@ -15061,12 +14839,9 @@ namespace ACE.Server.Factories
                         {
                             numSpells = 6;
                         }
-                    }
                     break;
                 case 5:
                     //5-7 major/minor
-                    if (ThreadSafeRandom.Next(0, 100) > 60)
-                    {
                         chance = ThreadSafeRandom.Next(1, 1000);
                         if (chance < 500)
                         {
@@ -15096,12 +14871,9 @@ namespace ACE.Server.Factories
                         {
                             numSpells = 7;
                         }
-                    }
                     break;
                 case 6:
                     //6-7, minor(4 total) major(2 total)
-                    if (ThreadSafeRandom.Next(0, 100) > 60)
-                    {
                         chance = ThreadSafeRandom.Next(1, 1000);
                         if (chance < 200)
                         {
@@ -15135,12 +14907,9 @@ namespace ACE.Server.Factories
                         {
                             numSpells = 8;
                         }
-                    }
                     break;
                 case 7:
                     ///6-8, minor(4), major(5), epic(3)
-                    if (ThreadSafeRandom.Next(0, 100) > 60)
-                    {
                         chance = ThreadSafeRandom.Next(1, 1000);
                         if (chance < 200)
                         {
@@ -15174,12 +14943,9 @@ namespace ACE.Server.Factories
                         {
                             numSpells = 8;
                         }
-                    }
                     break;
                 default:
                     //6-8, minor(4), major(5), epic(3), legendary(2)
-                    if (ThreadSafeRandom.Next(0, 100) > 60)
-                    {
                         chance = ThreadSafeRandom.Next(1, 1000);
                         if (chance < 200)
                         {
@@ -15213,7 +14979,6 @@ namespace ACE.Server.Factories
                         {
                             numSpells = 8;
                         }
-                    }
                     break;
 
             }
