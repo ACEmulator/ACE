@@ -698,7 +698,8 @@ namespace ACE.Server.WorldObjects
                         if (recall != PositionType.Undef)
                         {
                             ActionChain portalRecallChain = new ActionChain();
-                            //portalRecallChain.AddDelaySeconds(2.0f);  // 2 second delay
+                            portalRecallChain.AddAction(targetPlayer, () => player.DoPreTeleportHide());
+                            portalRecallChain.AddDelaySeconds(2.0f);  // 2 second delay
                             portalRecallChain.AddAction(targetPlayer, () => player.TeleToPosition(recall));
                             portalRecallChain.EnqueueChain();
                         }
@@ -708,6 +709,7 @@ namespace ACE.Server.WorldObjects
                         {
                             ActionChain portalSendingChain = new ActionChain();
                             //portalSendingChain.AddDelaySeconds(2.0f);  // 2 second delay
+                            portalSendingChain.AddAction(targetPlayer, () => targetPlayer.DoPreTeleportHide());
                             portalSendingChain.AddAction(targetPlayer, () => targetPlayer.Teleport(spell.Position));
                             portalSendingChain.EnqueueChain();
                         }
