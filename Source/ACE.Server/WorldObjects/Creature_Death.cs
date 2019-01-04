@@ -269,7 +269,6 @@ namespace ACE.Server.WorldObjects
                     }
                 }
             }
-            Console.WriteLine("Monster name " + Name);
             if (Level >  3 && !Name.Equals("Chicken"))
             {
                 for (int i = DeathTreasure.ItemMinAmount; i <= DeathTreasure.ItemMaxAmount; i++)
