@@ -15,5 +15,13 @@ namespace ACE.Common.Extensions
 
             return (float)(Math.Truncate(num * multiplier) / multiplier);
         }
+
+        public static bool EpsilonEquals(this float num, float val/*, int decimalPlaces = 4*/)
+        {
+            //var epsilon = 1.0f / Math.Pow(10, decimalPlaces);
+            var epsilon = 0.0001f;
+
+            return Math.Abs(num - val) < epsilon;
+        }
     }
 }
