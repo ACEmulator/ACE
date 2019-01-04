@@ -493,6 +493,11 @@ namespace ACE.Server.WorldObjects
             else
                 player.IsBusy = true;
 
+            // TODO: if casting implement has spell built in,
+            // use spellcraft from the item, instead of player's magic skill?
+            var caster = GetEquippedWand();
+            var isWeaponSpell = IsWeaponSpell(spell);
+
             // Grab player's skill level in the spell's Magic School
             var magicSkill = player.GetCreatureSkill(spell.School).Current;
 
@@ -548,7 +553,11 @@ namespace ACE.Server.WorldObjects
             // Calculate mana usage
             uint manaUsed = CalculateManaUsage(player, spell, target);
 
-            if (manaUsed > player.Mana.Current)
+            var currentMana = player.Mana.Current;
+            if (isWeaponSpell)
+                currentMana = (uint)(caster.ItemCurMana ?? 0);
+
+            if (manaUsed > currentMana)
             {
                 player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.YouDontHaveEnoughManaToCast));
                 IsBusy = false; // delay?
@@ -557,7 +566,11 @@ namespace ACE.Server.WorldObjects
 
             // begin spellcasting
             Proficiency.OnSuccessUse(player, player.GetCreatureSkill(Skill.ManaConversion), spell.PowerMod);
-            player.UpdateVitalDelta(player.Mana, -(int)manaUsed);
+
+            if (!isWeaponSpell)
+                player.UpdateVitalDelta(player.Mana, -(int)manaUsed);
+            else
+                caster.ItemCurMana -= (int)manaUsed;
 
             spell.Formula.GetPlayerFormula(player);
 
@@ -1188,6 +1201,19 @@ namespace ACE.Server.WorldObjects
         {
             var wcid = FociWCIDs[school];
             return Inventory.Values.FirstOrDefault(i => i.WeenieClassId == wcid) != null;
+        }
+
+        /// <summary>
+        /// Returns TRUE if the currently equipped casting implement
+        /// has a built-in spell
+        /// </summary>
+        public bool IsWeaponSpell(Spell spell)
+        {
+            var caster = GetEquippedWand();
+            if (caster == null || caster.SpellDID == null)
+                return false;
+
+            return caster.SpellDID == spell.Id;
         }
     }
 }
