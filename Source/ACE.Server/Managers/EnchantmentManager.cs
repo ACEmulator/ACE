@@ -147,7 +147,7 @@ namespace ACE.Server.Managers
                 newEntry.LayerId = 1;
                 WorldObject.Biota.AddEnchantment(newEntry, WorldObject.BiotaDatabaseLock);
                 WorldObject.ChangesDetected = true;
-                WorldObject.SaveBiotaToDatabase();
+                //WorldObject.SaveBiotaToDatabase();
 
                 result.Enchantment = newEntry;
                 result.StackType = StackType.Initial;
@@ -344,6 +344,7 @@ namespace ACE.Server.Managers
                 // update existing vitae
                 vitae = GetVitae();
                 vitae.StatModValue -= (float)PropertyManager.GetDouble("vitae_penalty").Item;
+                WorldObject.ChangesDetected = true;
             }
 
             var minVitae = GetMinVitae((uint)Player.Level);
