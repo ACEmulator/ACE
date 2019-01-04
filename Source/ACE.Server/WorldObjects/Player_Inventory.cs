@@ -916,6 +916,21 @@ namespace ACE.Server.WorldObjects
             return WeenieError.None;
         }
 
+        private Skill CheckActivationRequirement(WorldObject item)
+        {
+            if (item.ItemDifficulty != null)
+            {
+                if (GetCreatureSkill(Skill.ArcaneLore).Current < item.ItemDifficulty.Value)
+                    return Skill.ArcaneLore;
+            }
+
+            if (item.ItemSkillLimit != null && item.ItemSkillLevelLimit != null)
+            {
+                if (GetCreatureSkill((Skill)item.ItemSkillLimit.Value).Current < item.ItemSkillLevelLimit.Value)
+                    return (Skill)item.ItemSkillLimit.Value;
+            }
+            return Skill.None;
+        }
 
         // =========================================
         // Game Action Handlers - Inventory Stacking 

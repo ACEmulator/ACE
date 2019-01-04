@@ -50,6 +50,14 @@ namespace ACE.Server.WorldObjects
                 var caster = GetEquippedItem(sourceObjectId);
                 if (caster != null && caster.SpellDID != null)
                 {
+                    // check activation requirements
+                    var skillFailed = CheckActivationRequirement(caster);
+                    if (skillFailed != Skill.None)
+                    {
+                        Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(Session, WeenieErrorWithString.Your_IsTooLowToUseItemMagic, skillFailed.ToSentence()));
+                        SendUseDoneEvent(WeenieError.SkillTooLow);
+                        return;
+                    }
                     HandleActionCastTargetedSpell(targetObjectId, caster.SpellDID ?? 0);
                     return;
                 }

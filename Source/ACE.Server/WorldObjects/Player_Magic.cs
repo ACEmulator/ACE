@@ -493,13 +493,15 @@ namespace ACE.Server.WorldObjects
             else
                 player.IsBusy = true;
 
-            // TODO: if casting implement has spell built in,
+            // if casting implement has spell built in,
             // use spellcraft from the item, instead of player's magic skill?
             var caster = GetEquippedWand();
             var isWeaponSpell = IsWeaponSpell(spell);
 
             // Grab player's skill level in the spell's Magic School
             var magicSkill = player.GetCreatureSkill(spell.School).Current;
+            if (isWeaponSpell && caster.ItemSpellcraft != null)
+                magicSkill = (uint)caster.ItemSpellcraft;
 
             if (targetCategory == TargetCategory.WorldObject)
             {
@@ -600,7 +602,11 @@ namespace ACE.Server.WorldObjects
             // cast spell
             spellChain.AddAction(this, () =>
             {
-                var motionCastSpell = new Motion(MotionStance.Magic, spell.Formula.CastGesture, castSpeed);
+                var castGesture = spell.Formula.CastGesture;
+                if (isWeaponSpell && caster.UseUserAnimation != 0)
+                    castGesture = caster.UseUserAnimation;
+
+                var motionCastSpell = new Motion(MotionStance.Magic, castGesture, castSpeed);
                 EnqueueBroadcastMotion(motionCastSpell);
             });
 
