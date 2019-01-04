@@ -87,7 +87,8 @@ namespace ACE.Server.Network.Structure
             var statModKey = spell.StatModKey;
 
             writer.Write((ushort)enchantment.Spell.Id);
-            writer.Write(enchantment.Layer);
+            var layer = (spell.Id == (uint)SpellId.Vitae) ? (ushort)0 : enchantment.Layer; // this line is to force vitae to be layer 0 to match retail pcaps. We save it as layer 1 to make EF Core happy.
+            writer.Write(layer);
             writer.Write((ushort)enchantment.Spell.Category);
             writer.Write(HasSpellSetId);
             writer.Write(enchantment.Spell.Power);
