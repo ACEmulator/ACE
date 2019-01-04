@@ -46,15 +46,20 @@ namespace ACE.Server.WorldObjects
             var actionChain = new ActionChain();
 
             // creature rotates towards switch
-            var rotateTime = creature.Rotate(this);
-            actionChain.AddDelaySeconds(rotateTime);
+            if (!Visibility)
+            {
+                var rotateTime = creature.Rotate(this);
+                actionChain.AddDelaySeconds(rotateTime);
+            }
+
+            actionChain.AddAction(creature, () => EnqueueBroadcast(new Network.GameMessages.Messages.GameMessageSound(creature.Guid, Sound.TriggerActivated)));
 
             // switch activate animation
             if (MotionTableId != 0)
             {
                 var useAnimation = UseTargetAnimation != null ? (MotionCommand)UseTargetAnimation : MotionCommand.Twitch1;
                 EnqueueMotion(actionChain, useAnimation);
-            }
+            }            
 
             var sendUseDone = true;
             actionChain.AddAction(creature, () =>
@@ -81,7 +86,7 @@ namespace ACE.Server.WorldObjects
                     }
 
                     if ((ActivationResponse & ActivationResponse.Emote) != 0)
-                    {
+                    {                        
                         EmoteManager.OnActivation(player);
                     }
 
