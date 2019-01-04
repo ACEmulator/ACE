@@ -69,7 +69,7 @@ namespace ACE.Server.Entity
 
             // outside - could be on landscape, in building, or underground cave
             var cellID = GetOutdoorCell(p);
-            var landcell = (LandCell)LScape.get_landcell(cellID);
+            var landcell = LScape.get_landcell(cellID) as LandCell;
 
             if (landcell == null)
                 return cellID;
