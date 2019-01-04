@@ -56,7 +56,6 @@ namespace ACE.Server.WorldObjects
             const uint coinWeenieId = 273;
             WorldObject wochk = WorldObjectFactory.CreateNewWorldObject(coinWeenieId);
             ushort maxstacksize = wochk.MaxStackSize.Value;
-            wochk = null;
 
             List<WorldObject> payout = new List<WorldObject>();
 
@@ -130,10 +129,7 @@ namespace ACE.Server.WorldObjects
 
                 // destroy all stacks of currency required / sale
                 foreach (WorldObject wo in cost)
-                {
-                    if (TryRemoveFromInventoryWithNetworking(wo))
-                        wo.Destroy();
-                }
+                    TryConsumeFromInventoryWithNetworking(wo);
 
                 // if there is change - readd - do this at the end to try to prevent exploiting
                 if (change > 0)
@@ -224,41 +220,16 @@ namespace ACE.Server.WorldObjects
 
             foreach (ItemProfile profile in itemprofiles)
             {
-                // check packs of item.
-                WorldObject item = GetInventoryItem(profile.Guid);
-
-                if (item == null)
+                if (TryRemoveFromInventoryWithNetworking(profile.Guid, out var item, RemoveFromInventoryAction.SellItem) || TryDequipObjectWithNetworking(profile.Guid, out item, DequipObjectAction.SellItem))
                 {
-                    // check to see if this item is wielded
-                    item = GetWieldedItem(profile.Guid);
+                    Session.Network.EnqueueSend(new GameMessageDeleteObject(item));
 
-                    if (item != null)
-                    {
-                        TryDequipObject(item.Guid);
-
-                        Session.Network.EnqueueSend(
-                           new GameMessageSound(Guid, Sound.WieldObject, (float)1.0),
-                           new GameMessageObjDescEvent(this),
-                           new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Wielder, new ObjectGuid(0)),
-                           new GameMessagePublicUpdatePropertyInt(item, PropertyInt.CurrentWieldedLocation, 0));
-                    }
+                    purchaselist.Add(item);
                 }
                 else
                 {
-                    // remove item from inventory.
-                    TryRemoveFromInventoryWithNetworking(item);
+                    // todo give the client an error message
                 }
-
-                //Session.Network.EnqueueSend(new GameMessagePrivateUpdateInstanceId(profile, PropertyInstanceId.Container, new ObjectGuid(0).Full));
-
-                item.SetPropertiesForVendor();
-                Session.Network.EnqueueSend(new GameMessageDeleteObject(item));
-                purchaselist.Add(item);
-                // We must update the database with the latest ContainerId.
-                // If we don't, the player can drop the item, log out, and log back in. If the landblock hasn't queued a database save in that time,
-                // the player will end up loading with this object in their inventory even though the landblock is the true owner. This is because
-                // when we load player inventory, the database still has the record that shows this player as the ContainerId for the item.
-                item.SaveBiotaToDatabase();
             }
 
             var vendor = CurrentLandblock?.GetObject(vendorId) as Vendor;

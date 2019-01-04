@@ -331,7 +331,7 @@ namespace ACE.Server.WorldObjects
 
             // search wielded items
             if (wo == null)
-                wo = GetWieldedItem(examinationId);
+                wo = GetEquippedItem(examinationId);
 
             // search interactive objects
             if (wo == null)
@@ -386,7 +386,7 @@ namespace ACE.Server.WorldObjects
 
                 var chance = SkillCheck.GetSkillChance(currentSkill, difficulty);
 
-                if (player != null && !player.GetCharacterOption(CharacterOption.AttemptToDeceiveOtherPlayers))
+                if (difficulty == 0 || player != null && !player.GetCharacterOption(CharacterOption.AttemptToDeceiveOtherPlayers))
                     chance = 1.0f;
 
                 success = chance >= ThreadSafeRandom.Next(0.0f, 1.0f);

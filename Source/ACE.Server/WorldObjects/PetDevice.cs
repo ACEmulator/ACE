@@ -74,7 +74,7 @@ namespace ACE.Server.WorldObjects
 
                 // decrease remaining uses
                 if (--Structure <= 0)
-                    player.TryRemoveItemFromInventoryWithNetworkingWithDestroy(this, 1);
+                    player.TryConsumeFromInventoryWithNetworking(this, 1);
 
                 player.Session.Network.EnqueueSend(new GameMessagePublicUpdatePropertyInt(this, PropertyInt.Structure, Structure.Value));
             }

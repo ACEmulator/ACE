@@ -63,14 +63,14 @@ namespace ACE.Server.WorldObjects
             if (pants.Count > 0)
             {
                 var item = pants[0];
-                TryEquipObject(item, (int)item.ValidLocations);
+                TryEquipObjectWithBroadcasting(item, (int)item.ValidLocations);
                 equipped.Add(item);
             }
 
             if (shirts.Count > 0)
             {
                 var item = shirts[0];
-                TryEquipObject(item, (int)item.ValidLocations);
+                TryEquipObjectWithBroadcasting(item, (int)item.ValidLocations);
                 equipped.Add(item);
             }
             return equipped;
@@ -117,7 +117,7 @@ namespace ACE.Server.WorldObjects
             var sorted = head.Concat(chest).Concat(upperArms).Concat(lowerArms).Concat(hands).Concat(upperLegs).Concat(lowerLegs).Concat(feet).ToList();
 
             foreach (var item in sorted)
-                if (TryEquipObject(item, (int)item.ValidLocations))
+                if (TryEquipObjectWithBroadcasting(item, (int)item.ValidLocations))
                     equipped.Add(item);
 
             return equipped;
@@ -268,8 +268,8 @@ namespace ACE.Server.WorldObjects
                 {
                     //Console.WriteLine($"{Name} equipping {item.Name}");
 
-                    if (item.ValidLocations != null && TryEquipObject(item, (int)item.ValidLocations))
-                        SetChild(item, (int)item.ValidLocations, out var placementID, out var parentLocation);
+                    if (item.ValidLocations != null)
+                        TryEquipObjectWithBroadcasting(item, (int)item.ValidLocations);
                 }
             }
         }

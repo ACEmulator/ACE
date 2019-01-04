@@ -1426,7 +1426,7 @@ namespace ACE.Server.Command.Handlers
                     worldObject.PaletteTemplate = wearable.Palette;
                 if (wearable.Shade > 0)
                     worldObject.Shade = wearable.Shade;
-                player.TryEquipObject(worldObject, worldObject.GetProperty(PropertyInt.ValidLocations) ?? 0);
+                player.TryEquipObjectWithNetworking(worldObject, worldObject.GetProperty(PropertyInt.ValidLocations) ?? 0);
             }
 
             var containables = weenie.WeeniePropertiesCreateList.Where(x => x.DestinationType == (int)DestinationType.Contain || x.DestinationType == (int)DestinationType.Shop

@@ -132,19 +132,6 @@ namespace ACE.Server.Entity.Actions
             return this;
         }
 
-        public ActionChain AddDelayTicks(double timeInTicks)
-        {
-            if (Double.IsNaN(timeInTicks))
-            {
-                Console.WriteLine("WARNING: ActionChain.AddDelayTicks(" + timeInTicks + ")");
-                return this;
-            }
-
-            AddAction(WorldManager.DelayManager, new DelayAction(timeInTicks));
-
-            return this;
-        }
-
         public void EnqueueChain()
         {
             if (FirstElement != null)

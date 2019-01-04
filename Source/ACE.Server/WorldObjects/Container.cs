@@ -109,6 +109,14 @@ namespace ACE.Server.WorldObjects
                 }
             }
 
+            // Make sure placement positions are correct. They could get out of sync from a client issue, server issue, or orphaned biota
+            var mainPackItems = Inventory.Values.Where(wo => !wo.UseBackpackSlot).OrderBy(wo => wo.PlacementPosition).ToList();
+            for (int i = 0; i < mainPackItems.Count; i++)
+                mainPackItems[i].PlacementPosition = i;
+            var sidPackItems = Inventory.Values.Where(wo => wo.UseBackpackSlot).OrderBy(wo => wo.PlacementPosition).ToList();
+            for (int i = 0; i < sidPackItems.Count; i++)
+                sidPackItems[i].PlacementPosition = i;
+
             InventoryLoaded = true;
 
             // All that should be left are side pack sub contents.
@@ -121,11 +129,9 @@ namespace ACE.Server.WorldObjects
                 Value += container.Value; // This value includes the containers value itself + all child items
             }
 
-            if (WeenieType == WeenieType.Hook)
-            {
-                var hook = this as Hook;
+
+            if (WeenieType == WeenieType.Hook && this is Hook hook)
                 hook.OnLoad();
-            }
         }
 
         /// <summary>
@@ -169,16 +175,6 @@ namespace ACE.Server.WorldObjects
                 {
                     container = (Container)sideContainer;
                     return containerItem;
-                }
-            }
-
-            var ammo = (this as Player)?.GetEquippedAmmo();
-            if (ammo != null)
-            {
-                if (ammo.Guid == objectGuid)
-                {
-                    container = null;
-                    return ammo;
                 }
             }
 
@@ -277,7 +273,7 @@ namespace ACE.Server.WorldObjects
             {
                 containerItems = Inventory.Values.Where(i => i.UseBackpackSlot).ToList();
 
-                if ((ContainerCapacity ?? 0) <= containerItems.Count())
+                if ((ContainerCapacity ?? 0) <= containerItems.Count)
                 {
                     container = null;
                     return false;
@@ -287,7 +283,7 @@ namespace ACE.Server.WorldObjects
             {
                 containerItems = Inventory.Values.Where(i => !i.UseBackpackSlot).ToList();
 
-                if ((ItemCapacity ?? 0) <= containerItems.Count())
+                if ((ItemCapacity ?? 0) <= containerItems.Count)
                 {
                     // Can we add this to any side pack?
                     if (!limitToMainPackOnly)
@@ -312,13 +308,8 @@ namespace ACE.Server.WorldObjects
                 }
             }
 
-            var oldContainer = CurrentLandblock?.GetObject(worldObject.ContainerId ?? 0);
-            if (oldContainer != null)
-            {
-                var hook = oldContainer as Hook;
-                if (hook != null)
-                    hook.OnRemoveItem();
-            }
+            worldObject.Location = null;
+            worldObject.Placement = null;
 
             worldObject.OwnerId = Guid.Full;
             worldObject.ContainerId = Guid.Full;
@@ -343,12 +334,9 @@ namespace ACE.Server.WorldObjects
         /// This will clear the ContainerId and PlacementPosition properties.<para />
         /// It will also subtract the EncumbranceVal and Value.
         /// </summary>
-        public bool TryRemoveFromInventory(ObjectGuid objectGuid, bool withClear = true)
+        public bool TryRemoveFromInventory(ObjectGuid objectGuid)
         {
-            if (withClear)
-                return TryRemoveFromInventory(objectGuid, out _);
-
-            return TryRemoveFromInventoryWithoutClear(objectGuid, out _);
+            return TryRemoveFromInventory(objectGuid, out _);
         }
 
         /// <summary>
@@ -365,45 +353,6 @@ namespace ACE.Server.WorldObjects
                 item.OwnerId = null;
                 item.ContainerId = null;
                 item.PlacementPosition = null;
-
-                // Move all the existing items PlacementPosition over.
-                if (!item.UseBackpackSlot)
-                    Inventory.Values.Where(i => !i.UseBackpackSlot && i.PlacementPosition > removedItemsPlacementPosition).ToList().ForEach(i => i.PlacementPosition--);
-                else
-                    Inventory.Values.Where(i => i.UseBackpackSlot && i.PlacementPosition > removedItemsPlacementPosition).ToList().ForEach(i => i.PlacementPosition--);
-
-                EncumbranceVal -= item.EncumbranceVal;
-                Value -= item.Value;
-
-                return true;
-            }
-
-            // next search all containers for item.. run function again for each container.
-            var sideContainers = Inventory.Values.Where(i => i.WeenieType == WeenieType.Container).ToList();
-            foreach (var container in sideContainers)
-            {
-                if (((Container)container).TryRemoveFromInventory(objectGuid, out item))
-                {
-                    EncumbranceVal -= item.EncumbranceVal;
-                    Value -= item.Value;
-
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        /// <summary>
-        /// Remove the object from the Inventory dictionary.<para />
-        /// It will also subtract the EncumbranceVal and Value.
-        /// </summary>
-        public bool TryRemoveFromInventoryWithoutClear(ObjectGuid objectGuid, out WorldObject item)
-        {
-            // first search me / add all items of type.
-            if (Inventory.Remove(objectGuid, out item))
-            {
-                int removedItemsPlacementPosition = item.PlacementPosition ?? 0;
 
                 // Move all the existing items PlacementPosition over.
                 if (!item.UseBackpackSlot)
@@ -455,7 +404,9 @@ namespace ACE.Server.WorldObjects
             }
             else
             {
-                if (Viewer == player.Guid.Full)
+                if (Viewer == 0)
+                    Close(null);
+                else if (Viewer == player.Guid.Full)
                     Close(player);
 
                 // else error msg?
@@ -501,15 +452,18 @@ namespace ACE.Server.WorldObjects
         {
             if (!IsOpen) return;
 
-            player.Session.Network.EnqueueSend(new GameEventCloseGroundContainer(player.Session, this));
+            if (player != null)
+            {
+                player.Session.Network.EnqueueSend(new GameEventCloseGroundContainer(player.Session, this));
 
-            // send deleteobject for all objects in this container's inventory to player
-            var itemsToSend = new List<GameMessage>();
+                // send deleteobject for all objects in this container's inventory to player
+                var itemsToSend = new List<GameMessage>();
 
-            foreach (var item in Inventory.Values)
-                itemsToSend.Add(new GameMessageDeleteObject(item));
+                foreach (var item in Inventory.Values)
+                    itemsToSend.Add(new GameMessageDeleteObject(item));
 
-            player.Session.Network.EnqueueSend(itemsToSend.ToArray());
+                player.Session.Network.EnqueueSend(itemsToSend.ToArray());
+            }
 
             DoOnCloseMotionChanges();
 

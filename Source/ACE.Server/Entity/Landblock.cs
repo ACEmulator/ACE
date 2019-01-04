@@ -14,6 +14,7 @@ using ACE.Database.Models.World;
 using ACE.DatLoader;
 using ACE.DatLoader.FileTypes;
 using ACE.Entity;
+using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
@@ -365,9 +366,9 @@ namespace ACE.Server.Entity
             wo.NotifyPlayers();
         }
 
-        public void RemoveWorldObject(ObjectGuid objectId, bool adjacencyMove = false)
+        public void RemoveWorldObject(ObjectGuid objectId, bool adjacencyMove = false, bool fromPickup = false)
         {
-            RemoveWorldObjectInternal(objectId, adjacencyMove);
+            RemoveWorldObjectInternal(objectId, adjacencyMove, fromPickup);
         }
 
         /// <summary>
@@ -380,37 +381,7 @@ namespace ACE.Server.Entity
             RemoveWorldObjectInternal(objectId, adjacencyMove);
         }
 
-        /// <summary>
-        /// This will also set the item.Location to null.
-        /// </summary>
-        public bool RemoveWorldObjectFromPickup(ObjectGuid objectGuid)
-        {
-            // Find owner of wo
-            var lb = GetOwner(objectGuid);
-
-            if (lb == null)
-            {
-                log.Error("Landblock QueueItemRemove failed to GetOwner");
-                return false;
-            }
-
-            var item = GetObject(objectGuid);
-
-            if (item == null)
-            {
-                log.Error("Landblock QueueItemRemove failed to GetObject");
-                return false;
-            }
-
-            RemoveWorldObjectInternal(objectGuid, true);
-            //item.PhysicsObj.DestroyObject();    // destroy physicsobj, but do not remove from tracking
-
-            item.Location = null;
-
-            return true;
-        }
-
-        private void RemoveWorldObjectInternal(ObjectGuid objectId, bool adjacencyMove = false)
+        private void RemoveWorldObjectInternal(ObjectGuid objectId, bool adjacencyMove = false, bool fromPickup = false)
         {
             //log.Debug($"LB {Id.Landblock:X}: removing {objectId.Full:X}");
 
@@ -427,7 +398,7 @@ namespace ACE.Server.Entity
             if (!adjacencyMove)
             {
                 // really remove it - send message to client to remove object
-                wo.EnqueueActionBroadcast((Player p) => p.RemoveTrackedObject(wo, true));
+                wo.EnqueueActionBroadcast(p => p.RemoveTrackedObject(wo, fromPickup));
 
                 wo.PhysicsObj.DestroyObject();
             }
@@ -502,12 +473,17 @@ namespace ACE.Server.Entity
         public WorldObject GetWieldedObject(ObjectGuid guid, bool searchAdjacents = true)
         {
             // search creature wielded items in current landblock
-            var creatures = worldObjects.Values.Where(wo => wo is Creature);
+            var creatures = worldObjects.Values.OfType<Creature>();
             foreach (var creature in creatures)
             {
-                var wieldedItem = ((Creature)creature).GetWieldedItem(guid);
+                var wieldedItem = creature.GetEquippedItem(guid);
                 if (wieldedItem != null)
-                    return wieldedItem;     // found it
+                {
+                    if ((wieldedItem.CurrentWieldedLocation & EquipMask.Selectable) != 0)
+                        return wieldedItem;
+
+                    return null;
+                }
             }
 
             // try searching adjacent landblocks if not found

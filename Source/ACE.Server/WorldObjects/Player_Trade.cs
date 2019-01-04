@@ -91,13 +91,16 @@ namespace ACE.Server.WorldObjects
 
             if (item != ObjectGuid.Invalid && target != null)
             {
-                IsAttuned(item, out bool isAttuned);
+                WorldObject wo = GetInventoryItem(item);
 
-                if (!isAttuned)
+                if (wo != null)
                 {
-                    WorldObject wo = GetInventoryItem(item);
-
-                    if (wo != null)
+                    if ((wo.Attuned ?? 0) == 1)
+                    {
+                        session.Network.EnqueueSend(new GameEventCommunicationTransientString(session, "You cannot trade that!"));
+                        session.Network.EnqueueSend(new GameEventTradeFailure(session, item, WeenieError.AttunedItem));
+                    }
+                    else
                     {
                         session.Player.ItemsInTradeWindow.Add(item);
 
@@ -107,12 +110,6 @@ namespace ACE.Server.WorldObjects
 
                         target.Session.Network.EnqueueSend(new GameEventAddToTrade(target.Session, item, TradeSide.Partner));
                     }
-                    
-                }
-                else
-                {
-                    session.Network.EnqueueSend(new GameEventCommunicationTransientString(session, "You cannot trade that!"));
-                    session.Network.EnqueueSend(new GameEventTradeFailure(session, item, WeenieError.AttunedItem));
                 }
             }
         }
@@ -152,30 +149,20 @@ namespace ACE.Server.WorldObjects
 
                     foreach (ObjectGuid itemGuid in session.Player.ItemsInTradeWindow)
                     {
-                        WorldObject wo = GetInventoryItem(itemGuid);
-
-                        if (wo != null)
+                        if (session.Player.TryRemoveFromInventoryWithNetworking(itemGuid, out var wo, RemoveFromInventoryAction.TradeItem) || session.Player.TryDequipObjectWithNetworking(itemGuid, out wo, DequipObjectAction.TradeItem))
                         {
-                            session.Player.TryRemoveFromInventoryWithNetworking(wo);
-
                             target.TryCreateInInventoryWithNetworking(wo);
 
-                            wo.SaveBiotaToDatabase(false);
                             tradedItems.Add((wo.Biota, wo.BiotaDatabaseLock));
                         }
                     }
 
                     foreach (ObjectGuid itemGuid in target.ItemsInTradeWindow)
                     {
-                        WorldObject wo = target.GetInventoryItem(itemGuid);
-
-                        if (wo != null)
+                        if (target.TryRemoveFromInventoryWithNetworking(itemGuid, out var wo, RemoveFromInventoryAction.TradeItem) || target.TryDequipObjectWithNetworking(itemGuid, out wo, DequipObjectAction.TradeItem))
                         {
-                            target.TryRemoveFromInventoryWithNetworking(wo);
-
                             session.Player.TryCreateInInventoryWithNetworking(wo);
 
-                            wo.SaveBiotaToDatabase(false);
                             tradedItems.Add((wo.Biota, wo.BiotaDatabaseLock));
                         }
                     }
