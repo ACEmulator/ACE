@@ -155,9 +155,9 @@ namespace ACE.Server.WorldObjects
 
                 // todo: use motion mapping, avoid string search
 
-                if (motion.Contains("Slash") && (weapon == null || (weapon.MAttackType & AttackType.Slash) == 0))
+                if (motion.Contains("Slash") && (weapon == null || (weapon.MAttackType & (AttackType.Slash | AttackType.DoubleSlash | AttackType.TripleSlash)) == 0))
                     continue;
-                if (motion.Contains("Thrust") && (weapon == null || (weapon.MAttackType & AttackType.Thrust) == 0))
+                if (motion.Contains("Thrust") && (weapon == null || (weapon.MAttackType & (AttackType.Thrust | AttackType.DoubleThrust | AttackType.TripleThrust)) == 0))
                     continue;
 
                 if (motion.StartsWith("Double") && (weapon == null || (weapon.MAttackType & AttackType.DoubleStrike) == 0))
