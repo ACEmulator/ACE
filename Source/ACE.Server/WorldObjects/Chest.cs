@@ -55,7 +55,9 @@ namespace ACE.Server.WorldObjects
             //Eventually these case statements would be linked to indivual treasure generators. Each one should be a different profile, but currently it will be the complete appropriate tier profile.
             for (int i = 0; i < GeneratorProfiles.Count; i++)
             {
-                int amount = ThreadSafeRandom.Next(2, 14);  //r.Next(2, 14);
+                int mundaneAmount = ThreadSafeRandom.Next(1, 2);
+                int magicalAmount = ThreadSafeRandom.Next(2, 7);
+                int nonmagicalAmount = ThreadSafeRandom.Next(2, 7);
                 var generator = GeneratorProfiles[i];
                 switch(generator.Biota.WeenieClassId)
                 {
@@ -65,9 +67,19 @@ namespace ACE.Server.WorldObjects
                     case 6:
                     case 18:
                     case 465:
-                        for (int j = 0; j < amount; j++)
+                        for (int j = 0; j < mundaneAmount; j++)
                         {
-                            var wo = LootGenerationFactory.CreateRandomLootObjects(1);
+                            var wo = LootGenerationFactory.CreateMundaneObjects(1);
+                            TryAddToInventory(wo);
+                        }
+                        for (int j = 0; j < nonmagicalAmount; j++)
+                        {
+                            var wo = LootGenerationFactory.CreateRandomLootObjects(1, false);
+                            TryAddToInventory(wo);
+                        }
+                        for (int j = 0; j < magicalAmount; j++)
+                        {
+                            var wo = LootGenerationFactory.CreateRandomLootObjects(1, true);
                             TryAddToInventory(wo);
                         }
                         break;
@@ -78,9 +90,19 @@ namespace ACE.Server.WorldObjects
                     case 4:
                     case 463:
                     case 395:
-                        for (int j = 0; j < amount; j++)
+                        for (int j = 0; j < mundaneAmount; j++)
                         {
-                            var wo = LootGenerationFactory.CreateRandomLootObjects(2);
+                            var wo = LootGenerationFactory.CreateMundaneObjects(2);
+                            TryAddToInventory(wo);
+                        }
+                        for (int j = 0; j < nonmagicalAmount; j++)
+                        {
+                            var wo = LootGenerationFactory.CreateRandomLootObjects(2, false);
+                            TryAddToInventory(wo);
+                        }
+                        for (int j = 0; j < magicalAmount; j++)
+                        {
+                            var wo = LootGenerationFactory.CreateRandomLootObjects(2, true);
                             TryAddToInventory(wo);
                         }
                         break;
@@ -92,9 +114,19 @@ namespace ACE.Server.WorldObjects
                     case 456:
                     case 340:
                     case 365:
-                        for (int j = 0; j < amount; j++)
+                        for (int j = 0; j < mundaneAmount; j++)
                         {
-                            var wo = LootGenerationFactory.CreateRandomLootObjects(3);
+                            var wo = LootGenerationFactory.CreateMundaneObjects(3);
+                            TryAddToInventory(wo);
+                        }
+                        for (int j = 0; j < nonmagicalAmount; j++)
+                        {
+                            var wo = LootGenerationFactory.CreateRandomLootObjects(3, false);
+                            TryAddToInventory(wo);
+                        }
+                        for (int j = 0; j < magicalAmount; j++)
+                        {
+                            var wo = LootGenerationFactory.CreateRandomLootObjects(3, true);
                             TryAddToInventory(wo);
                         }
                         break;
@@ -105,18 +137,38 @@ namespace ACE.Server.WorldObjects
                     case 13:
                     case 59:
                     case 339:
-                        for (int j = 0; j < amount; j++)
+                        for (int j = 0; j < mundaneAmount; j++)
                         {
-                            var wo = LootGenerationFactory.CreateRandomLootObjects(4);
+                            var wo = LootGenerationFactory.CreateMundaneObjects(4);
+                            TryAddToInventory(wo);
+                        }
+                        for (int j = 0; j < nonmagicalAmount; j++)
+                        {
+                            var wo = LootGenerationFactory.CreateRandomLootObjects(4, false);
+                            TryAddToInventory(wo);
+                        }
+                        for (int j = 0; j < magicalAmount; j++)
+                        {
+                            var wo = LootGenerationFactory.CreateRandomLootObjects(4, true);
                             TryAddToInventory(wo);
                         }
                         break;
                     case 334:
                     case 341:
                     case 317:
-                        for (int j = 0; j < amount; j++)
+                        for (int j = 0; j < mundaneAmount; j++)
                         {
-                            var wo = LootGenerationFactory.CreateRandomLootObjects(5);
+                            var wo = LootGenerationFactory.CreateMundaneObjects(5);
+                            TryAddToInventory(wo);
+                        }
+                        for (int j = 0; j < nonmagicalAmount; j++)
+                        {
+                            var wo = LootGenerationFactory.CreateRandomLootObjects(5, false);
+                            TryAddToInventory(wo);
+                        }
+                        for (int j = 0; j < magicalAmount; j++)
+                        {
+                            var wo = LootGenerationFactory.CreateRandomLootObjects(5, true);
                             TryAddToInventory(wo);
                         }
                         break;
@@ -128,9 +180,19 @@ namespace ACE.Server.WorldObjects
                     case 351:
                     case 422:
                     case 338:
-                        for (int j = 0; j < amount; j++)
+                        for (int j = 0; j < mundaneAmount; j++)
                         {
-                            var wo = LootGenerationFactory.CreateRandomLootObjects(6);
+                            var wo = LootGenerationFactory.CreateMundaneObjects(6);
+                            TryAddToInventory(wo);
+                        }
+                        for (int j = 0; j < nonmagicalAmount; j++)
+                        {
+                            var wo = LootGenerationFactory.CreateRandomLootObjects(6, false);
+                            TryAddToInventory(wo);
+                        }
+                        for (int j = 0; j < magicalAmount; j++)
+                        {
+                            var wo = LootGenerationFactory.CreateRandomLootObjects(6, true);
                             TryAddToInventory(wo);
                         }
                         break;
