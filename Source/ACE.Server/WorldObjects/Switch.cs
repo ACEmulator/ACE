@@ -56,6 +56,7 @@ namespace ACE.Server.WorldObjects
                 EnqueueMotion(actionChain, useAnimation);
             }
 
+            var sendUseDone = true;
             actionChain.AddAction(creature, () =>
             {
                 // switch activates target
@@ -64,6 +65,8 @@ namespace ACE.Server.WorldObjects
                     var target = CurrentLandblock?.GetObject(new ObjectGuid(ActivationTarget));
 
                     target.ActOnUse(creature);
+
+                    sendUseDone = false;
                 }
 
                 // only affects players?
@@ -82,7 +85,8 @@ namespace ACE.Server.WorldObjects
                         EmoteManager.OnActivation(player);
                     }
 
-                    player.SendUseDoneEvent();
+                    if (sendUseDone)
+                        player.SendUseDoneEvent();
                 }
             });
             actionChain.EnqueueChain();
