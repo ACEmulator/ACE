@@ -8,7 +8,7 @@ using ACE.Server.Entity.Actions;
 using ACE.Server.Managers;
 using ACE.Server.Physics;
 using ACE.Server.Physics.Common;
-using ACE.Server.Physics.Extensions;
+
 namespace ACE.Server.WorldObjects
 {
     partial class WorldObject
@@ -164,7 +164,7 @@ namespace ACE.Server.WorldObjects
                 return false;
 
             // arrows / spell projectiles
-            var isMissile = Missile.HasValue && Missile.Value;
+            var isMissile = Missile ?? false;
 
             //var contactPlane = (PhysicsObj.State & PhysicsState.Gravity) != 0 && MotionTableId != 0 && (PhysicsObj.TransientState & TransientStateFlags.Contact) == 0;
 

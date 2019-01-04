@@ -258,7 +258,7 @@ namespace ACE.Server.WorldObjects
 
             // Death items
 
-            // You can protect important items like your armor and weapons by carrying death items. THese are items that are
+            // You can protect important items like your armor and weapons by carrying death items. These are items that are
             // ideally light weight as well as high in value. You can tinker loot items with bags of Salvaged Gold to raise their
             // face value. Although tinkering special items can remove some of the beneift, as you feel obligated to recover
             // them. Items that can be purchased can just be left if the corpse would be too difficult to recover.
@@ -355,26 +355,43 @@ namespace ACE.Server.WorldObjects
                 //Console.WriteLine($"Dropping {numCoinsDropped} pyreals");
             }
 
+            // Remove the items from inventory
             for (var i = 0; i < numItemsDropped && i < sorted.Inventory.Count; i++)
             {
                 var deathItem = sorted.Inventory[i];
 
                 // split stack if needed
-                var stackSize = deathItem.WorldObject.StackSize ?? 1;
-                var stackMsg = stackSize > 1 ? " (stack)" : "";
-
-                var dropItem = deathItem.WorldObject;
-                if (stackSize > 1)
+                if ((deathItem.WorldObject.StackSize ?? 1) > 1)
                 {
-                    deathItem.WorldObject.StackSize--;
-                    Session.Network.EnqueueSend(new GameMessageUpdateObject(deathItem.WorldObject));
+                    var stack = FindObject(deathItem.WorldObject.Guid, SearchLocations.MyInventory | SearchLocations.MyEquippedItems, out var foundInContainer, out var rootContainer, out _);
 
-                    dropItem = WorldObjectFactory.CreateNewWorldObject(deathItem.WorldObject.WeenieClassId);
-                    TryAddToInventory(dropItem);
+                    if (stack != null)
+                    {
+                        AdjustStack(stack, -1, foundInContainer, rootContainer);
+                        Session.Network.EnqueueSend(new GameMessageSetStackSize(stack));
+
+                        var dropItem = WorldObjectFactory.CreateNewWorldObject(deathItem.WorldObject.WeenieClassId);
+
+                        //Console.WriteLine("Dropping " + deathItem.WorldObject.Name + " (stack)");
+                        dropItems.Add(dropItem);
+                    }
+                    else
+                    {
+                        log.WarnFormat("Couldn't find death item stack 0x{0:X8}:{1} for player {2}", deathItem.WorldObject.Guid.Full, deathItem.WorldObject.Name, Name);
+                    }
                 }
-
-                //Console.WriteLine("Dropping " + deathItem.WorldObject.Name + stackMsg);
-                dropItems.Add(dropItem);
+                else
+                {
+                    if (TryRemoveFromInventoryWithNetworking(deathItem.WorldObject.Guid, out _, RemoveFromInventoryAction.ToCorpseOnDeath) || TryDequipObjectWithNetworking(deathItem.WorldObject.Guid, out _, DequipObjectAction.ToCorpseOnDeath))
+                    {
+                        //Console.WriteLine("Dropping " + deathItem.WorldObject.Name);
+                        dropItems.Add(deathItem.WorldObject);
+                    }
+                    else
+                    {
+                        log.WarnFormat("Couldn't find death item 0x{0:X8}:{1} for player {2}", deathItem.WorldObject.Guid.Full, deathItem.WorldObject.Name, Name);
+                    }
+                }
             }
 
             // handle items with BondedStatus.Slippery: always drop on death
@@ -388,17 +405,12 @@ namespace ACE.Server.WorldObjects
                 if (dropItem.WeenieType == WeenieType.Coin)
                     continue;
 
-                if (!TryRemoveItemWithNetworking(dropItem))
-                {
-                    Console.WriteLine($"Player_Death: couldn't remove item from {Name}'s inventory: {dropItem.Name}");
-                    continue;
-                }
                 if (!corpse.TryAddToInventory(dropItem))
                 {
-                    Console.WriteLine($"Player_Death: couldn't add item to {Name}'s corpse: {dropItem.Name}");
+                    log.Warn($"Player_Death: couldn't add item to {Name}'s corpse: {dropItem.Name}");
 
                     if (!TryAddToInventory(dropItem))
-                        Console.WriteLine($"Player_Death: couldn't re-add item to {Name}'s inventory: {dropItem.Name}");
+                        log.Warn($"Player_Death: couldn't re-add item to {Name}'s inventory: {dropItem.Name}");
                 }
             }
 
@@ -782,7 +794,7 @@ namespace ACE.Server.WorldObjects
             var allPossessions = GetAllPossessions();
             foreach (var destroyItem in allPossessions.Where(i => (i.Bonded ?? 0) == (int)BondedStatus.Destroy).ToList())
             {
-                TryRemoveItemFromInventoryWithNetworkingWithDestroy(destroyItem, (ushort)(destroyItem.StackSize ?? 1));
+                TryConsumeFromInventoryWithNetworking(destroyItem, (destroyItem.StackSize ?? 1));
                 destroyedItems.Add(destroyItem);
             }
             return destroyedItems;

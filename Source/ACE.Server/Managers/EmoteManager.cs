@@ -214,7 +214,12 @@ namespace ACE.Server.Managers
 
                 case EmoteType.DeleteSelf:
 
-                    WorldObject.Destroy();
+                    var destroyChain = new ActionChain();
+                    destroyChain.AddAction(WorldObject, () => WorldObject.ApplyVisualEffects(PlayScript.Destroy));
+                    destroyChain.AddDelaySeconds(3);
+                    destroyChain.AddAction(WorldObject, () => WorldObject.Destroy());
+                    destroyChain.EnqueueChain();
+
                     break;
 
                 case EmoteType.DirectBroadcast:
@@ -893,7 +898,7 @@ namespace ACE.Server.Managers
                         item = WorldObjectFactory.CreateNewWorldObject((uint)emote.WeenieClassId);
                         if (item == null) break;
 
-                        success = player.TryRemoveItemFromInventoryWithNetworkingWithDestroy(item, (ushort)emote.Amount);
+                        success = player.TryConsumeFromInventoryWithNetworking(item, emote.Amount ?? 0);
                     }
                     break;
 

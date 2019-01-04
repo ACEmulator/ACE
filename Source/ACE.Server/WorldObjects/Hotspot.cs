@@ -1,13 +1,13 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity.Actions;
-using ACE.Server.Network.GameMessages.Messages;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 
 namespace ACE.Server.WorldObjects
 {
@@ -28,7 +28,7 @@ namespace ACE.Server.WorldObjects
         {
             var player = wo as Player;
             if (player == null) return;
-            if (Players.Any(k => k.Equals(player)))
+            if (Players.Any(k => k == player))
                 Players.Remove(player);
         }
         private List<Player> Players = new List<Player>();
@@ -37,7 +37,7 @@ namespace ACE.Server.WorldObjects
         {
             var player = wo as Player;
             if (player == null) return;
-            if (!Players.Any(k => k.Equals(player)))
+            if (!Players.Any(k => k == player))
                 Players.Add(player);
             if (ActionLoop == null)
             {

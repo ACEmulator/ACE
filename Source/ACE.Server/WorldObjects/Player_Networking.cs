@@ -50,24 +50,6 @@ namespace ACE.Server.WorldObjects
             HandleDBUpdates();
         }
 
-        /// <summary>
-        /// This is called prior to SendSelf to load up the child list for wielded items that are held in a hand.
-        /// </summary>
-        private void SetChildren()
-        {
-            Children.Clear();
-
-            foreach (var item in EquippedObjects.Values)
-            {
-                if ((item.CurrentWieldedLocation != null) && (((EquipMask)item.CurrentWieldedLocation & EquipMask.Selectable) != 0))
-                {
-                    int placementId;
-                    int parentLocation;
-                    SetChild(item, (int)item.CurrentWieldedLocation, out placementId, out parentLocation);
-                }
-            }
-        }
-
         private void SendSelf()
         {
             var player = new GameEventPlayerDescription(Session);
@@ -76,7 +58,6 @@ namespace ACE.Server.WorldObjects
 
             Session.Network.EnqueueSend(player, title, friends);
 
-            SetChildren();
             // Player objects don't get a placement
             Placement = null;
             Session.Network.EnqueueSend(new GameMessagePlayerCreate(Guid), new GameMessageCreateObject(this));
@@ -108,26 +89,7 @@ namespace ACE.Server.WorldObjects
             }
 
             foreach (var item in EquippedObjects.Values)
-            {
-                if (item.CurrentWieldedLocation != null
-                    && ((EquipMask)item.CurrentWieldedLocation & EquipMask.Selectable) != 0
-                    && item.CurrentWieldedLocation != EquipMask.MissileAmmo)
-                {
-                    int placementId;
-                    int parentLocation;
-                    SetChild(item, (int)item.CurrentWieldedLocation, out placementId, out parentLocation);
-                    item.CurrentMotionState = null;
-                }
-
-                // We don't want missile ammo to appear in the players right hand on login.
-                if (item.CurrentWieldedLocation == EquipMask.MissileAmmo)
-                {
-                    item.ParentLocation = null;
-                    item.Placement = ACE.Entity.Enum.Placement.Resting;
-                    item.Location = null;
-                }
                 Session.Network.EnqueueSend(new GameMessageCreateObject(item));
-            }
         }
 
         /// <summary>

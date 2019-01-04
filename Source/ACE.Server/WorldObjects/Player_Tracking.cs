@@ -37,7 +37,7 @@ namespace ACE.Server.WorldObjects
         /// This is the system from client physics that tracks known objects, visible objects,
         /// and objects that have been occluded for less than 25s that are pending destruction
         /// </summary>
-        public ObjectMaint ObjMaint { get => PhysicsObj.ObjMaint; }
+        public ObjectMaint ObjMaint => PhysicsObj.ObjMaint;
 
         /// <summary>
         /// Tracks Interactive world object you are have interacted with recently.  this should be
@@ -63,6 +63,7 @@ namespace ACE.Server.WorldObjects
             return ObjMaint.ObjectTable.Values.Select(o => o.WeenieObj.WorldObject).ToList();
         }
 
+
         /// <summary>
         /// Sends a network message to player for CreateObject, if applicable
         /// </summary>
@@ -77,47 +78,25 @@ namespace ACE.Server.WorldObjects
             if (worldObject.Visibility && !Adminvision)
                 return;
 
-            //Console.WriteLine($"TrackObject({worldObject.Name})");
+            //Console.WriteLine($"Player {Name} - TrackObject({worldObject.Name})");
             Session.Network.EnqueueSend(new GameMessageCreateObject(worldObject));
 
             // add creature equipped objects / wielded items
             if (worldObject is Creature creature)
-                TrackEquippedObjects(creature);
-        }
-
-        /// <summary>
-        /// Adds/updates the tracking list for creature wielded items
-        /// </summary>
-        public void TrackEquippedObjects(Creature creature, bool remove = false)
-        {
-            foreach (var wieldedItem in creature.EquippedObjects.Values)
-                TrackEquippedObject(creature, wieldedItem, remove);
-        }
-
-        public void TrackEquippedObject(Creature creature, WorldObject wieldedItem, bool remove = false)
-        {
-            //Console.WriteLine($"TrackEquippedObject({wieldedItem.Name})");
-
-            var selectable = (wieldedItem.ValidLocations.Value & EquipMask.Selectable) != 0;
-            var missileCombat = creature.CombatMode == CombatMode.Missile && (wieldedItem.ValidLocations.Value & EquipMask.MissileAmmo) != 0;
-
-            if (!selectable && !missileCombat)
-                return;
-
-            if (creature.Location == null || creature.Placement == null || creature.ParentLocation == null)
-                creature.SetChild(wieldedItem, (int)wieldedItem.CurrentWieldedLocation, out var placementId, out var parentLocation);
-
-            if (!remove)
-                Session.Network.EnqueueSend(new GameMessageCreateObject(wieldedItem));
-            else
-                Session.Network.EnqueueSend(new GameMessageDeleteObject(wieldedItem));
+            {
+                foreach (var wieldedItem in creature.EquippedObjects.Values)
+                    TrackEquippedObject(creature, wieldedItem);
+            }
         }
 
         public bool AddTrackedObject(WorldObject worldObject)
         {
             // does this work for equipped objects?
             if (ObjMaint.ObjectTable.Values.Contains(worldObject.PhysicsObj))
+            {
+                //Console.WriteLine($"Player {Name} - AddTrackedObject({worldObject}) skipped, already tracked");
                 return false;
+            }
 
             ObjMaint.AddObject(worldObject.PhysicsObj);
             ObjMaint.AddVisibleObject(worldObject.PhysicsObj);
@@ -129,20 +108,58 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// This will return true of the object was being tracked and has successfully been removed.
         /// </summary>
-        public bool RemoveTrackedObject(WorldObject worldObject, bool remove)
+        public bool RemoveTrackedObject(WorldObject worldObject, bool fromPickup)
         {
-            //Console.WriteLine($"RemoveTrackedObject({remove})");
+            //Console.WriteLine($"Player {Name} - RemoveTrackedObject({remove})");
 
             ObjMaint.RemoveObject(worldObject.PhysicsObj);
 
-            if (remove)
-            {
+            if (fromPickup)
+                Session.Network.EnqueueSend(new GameMessagePickupEvent(worldObject));
+            else
                 Session.Network.EnqueueSend(new GameMessageDeleteObject(worldObject));
-                var creature = worldObject as Creature;
-                if (creature != null)
-                    TrackEquippedObjects(creature, true);
+
+            if (worldObject is Creature creature)
+            {
+                foreach (var wieldedItem in creature.EquippedObjects.Values)
+                    RemoveTrackedEquippedObject(creature, wieldedItem);
             }
+
             return true;
+        }
+
+
+        public void TrackEquippedObject(Creature wielder, WorldObject wieldedItem)
+        {
+            //Console.WriteLine($"Player {Name} - TrackEquippedObject({wieldedItem.Name}) on Wielder {wielder.Name}");
+
+            // We make sure the item is actually wielded and selectable
+            if ((wieldedItem.CurrentWieldedLocation ?? 0 & EquipMask.Selectable) == 0)
+                return;
+
+            // The wielder already knows about this object
+            if (wielder == this)
+                return;
+
+            Session.Network.EnqueueSend(new GameMessageCreateObject(wieldedItem));
+        }
+
+        public void RemoveTrackedEquippedObject(Creature formerWielder, WorldObject worldObject)
+        {
+            //Console.WriteLine($"Player {Name} - RemoveTrackedEquippedObject({worldObject.Name}) on Former Wielder {formerWielder.Name}");
+
+            // We don't need to remove objects that couldn't have been tracked in the first place
+            if ((worldObject.ValidLocations ?? 0 & EquipMask.Selectable) == 0)
+                return;
+
+            // The former wielder already knows about this object was removed
+            if (formerWielder == this)
+                return;
+
+            // todo: Until we can fix the tracking system better, sending the PickupEvent like retail causes weapon dissapearing bugs on relog
+            //Session.Network.EnqueueSend(new GameMessagePickupEvent(worldObject));
+
+            Session.Network.EnqueueSend(new GameMessageDeleteObject(worldObject));
         }
     }
 }

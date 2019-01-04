@@ -1,5 +1,6 @@
 using System;
 using System.Numerics;
+
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
@@ -36,7 +37,7 @@ namespace ACE.Server.WorldObjects
             // ensure ammo visibility for players
             actionChain.AddAction(this, () =>
             {
-                EnqueueActionBroadcast((Player p) => p.TrackEquippedObject(this, ammo));
+                EnqueueActionBroadcast(p => p.TrackEquippedObject(this, ammo));
                 EnqueueBroadcast(new GameMessageParentEvent(this, ammo, (int)ACE.Entity.Enum.ParentLocation.RightHand, (int)ACE.Entity.Enum.Placement.RightHandCombat));
             });
 
@@ -86,7 +87,7 @@ namespace ACE.Server.WorldObjects
             LandblockManager.AddObject(proj);
 
             var player = this as Player;
-            var pkStatus = player == null ? PlayerKillerStatus.Creature : player.PlayerKillerStatus;
+            var pkStatus = player?.PlayerKillerStatus ?? PlayerKillerStatus.Creature;
 
             proj.EnqueueBroadcast(new GameMessagePublicUpdatePropertyInt(proj, PropertyInt.PlayerKillerStatus, (int)pkStatus));
             proj.EnqueueBroadcast(new GameMessageScript(proj.Guid, ACE.Entity.Enum.PlayScript.Launch, 0f));
@@ -110,9 +111,9 @@ namespace ACE.Server.WorldObjects
 
             if (ammo.StackSize == 0)
             {
-                TryDequipObject(ammo.Guid);
-                EnqueueActionBroadcast(p => p.RemoveTrackedObject(ammo, true));
-                TryRemoveFromInventory(ammo.Guid);
+                TryDequipObjectWithBroadcasting(ammo.Guid, out _, out _);
+
+                ammo.Destroy();
             }
             else
             {
@@ -125,11 +126,9 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public Vector3 GetProjectileVelocity(WorldObject target, Vector3 origin, Vector3 dir, Vector3 dest, float speed, out float time, bool useGravity = true)
         {
-            var velocity = dir * speed;
-
             time = 0.0f;
-            Vector3 s0, s1;
-            float t0, t1;
+            Vector3 s0;
+            float t0;
 
             var gravity = useGravity ? -PhysicsGlobals.Gravity : 0.00001f;
 
@@ -137,14 +136,14 @@ namespace ACE.Server.WorldObjects
             if (!targetVelocity.Equals(Vector3.Zero))
             {
                 // use movement quartic solver
-                var numSolutions = Trajectory.solve_ballistic_arc(origin, speed, dest, targetVelocity, gravity, out s0, out s1, out time);
+                var numSolutions = Trajectory.solve_ballistic_arc(origin, speed, dest, targetVelocity, gravity, out s0, out _, out time);
 
                 if (numSolutions > 0)
                     return s0;
             }
 
             // use stationary solver
-            Trajectory.solve_ballistic_arc(origin, speed, dest, gravity, out s0, out s1, out t0, out t1);
+            Trajectory.solve_ballistic_arc(origin, speed, dest, gravity, out s0, out _, out t0, out _);
 
             time = t0;
             return s0;

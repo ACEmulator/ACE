@@ -331,7 +331,7 @@ namespace ACE.Server.WorldObjects
 
             // search wielded items
             if (wo == null)
-                wo = GetWieldedItem(examinationId);
+                wo = GetEquippedItem(examinationId);
 
             // search interactive objects
             if (wo == null)

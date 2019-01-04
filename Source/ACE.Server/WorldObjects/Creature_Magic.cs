@@ -1,10 +1,7 @@
 using System;
+
 using ACE.Entity;
 using ACE.Entity.Enum;
-using ACE.DatLoader;
-using ACE.DatLoader.FileTypes;
-using ACE.DatLoader.Entity;
-using ACE.Database;
 using ACE.Server.Entity;
 using ACE.Server.Network.GameMessages.Messages;
 
@@ -99,10 +96,7 @@ namespace ACE.Server.WorldObjects
 
                 int numTargetItems = 1;
                 if (targetPlayer != null)
-                {
-                    var targetItems = targetPlayer.GetAllWieldedItems();
-                    numTargetItems = targetItems.Count;
-                }
+                    numTargetItems = targetPlayer.EquippedObjects.Count;
                 preCost = (uint)Math.Round((spell.BaseMana + (spell.ManaMod * numTargetItems)) * baseManaPercent);
             }
             else

@@ -38,6 +38,8 @@ namespace ACE.Server.WorldObjects
             }
 
             EquippedObjectsLoaded = true;
+
+            SetChildren();
         }
 
         public bool WieldedLocationIsAvailable(int wieldedLocation)
@@ -46,7 +48,7 @@ namespace ACE.Server.WorldObjects
             return true;
         }
 
-        public bool HasWieldedItem(ObjectGuid objectGuid)
+        public bool HasEquippedItem(ObjectGuid objectGuid)
         {
             return EquippedObjects.ContainsKey(objectGuid);
         }
@@ -54,7 +56,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Get Wielded Item. Returns null if not found.
         /// </summary>
-        public WorldObject GetWieldedItem(ObjectGuid objectGuid)
+        public WorldObject GetEquippedItem(ObjectGuid objectGuid)
         {
             return EquippedObjects.TryGetValue(objectGuid, out var item) ? item : null;
         }
@@ -65,7 +67,7 @@ namespace ACE.Server.WorldObjects
         public WorldObject GetEquippedWeapon()
         {
             var meleeWeapon = GetEquippedMeleeWeapon();
-            return meleeWeapon != null ? meleeWeapon : GetEquippedMissileWeapon();
+            return meleeWeapon ?? GetEquippedMissileWeapon();
         }
 
         /// <summary>
@@ -76,8 +78,8 @@ namespace ACE.Server.WorldObjects
         {
             if (!IsDualWieldAttack || DualWieldAlternate)
                 return EquippedObjects.Values.FirstOrDefault(e => e.ParentLocation == ACE.Entity.Enum.ParentLocation.RightHand && (e.CurrentWieldedLocation == EquipMask.MeleeWeapon || e.CurrentWieldedLocation == EquipMask.TwoHanded));
-            else
-                return GetDualWieldWeapon();
+
+            return GetDualWieldWeapon();
         }
 
         /// <summary>
@@ -131,8 +133,8 @@ namespace ACE.Server.WorldObjects
 
             if (weapon != null && weapon.IsAmmoLauncher)
                 return GetEquippedAmmo();
-            else
-                return weapon;
+
+            return weapon;
         }
 
         /// <summary>
@@ -146,12 +148,13 @@ namespace ACE.Server.WorldObjects
 
             worldObject.CurrentWieldedLocation = (EquipMask)wieldedLocation;
             worldObject.WielderId = Biota.Id;
+
             EquippedObjects[worldObject.Guid] = worldObject;
 
             EncumbranceVal += worldObject.EncumbranceVal;
             Value += worldObject.Value;
 
-            EnqueueActionBroadcast((Player p) => p.TrackObject(this));
+            TrySetChild(worldObject);
 
             worldObject.EmoteManager.OnWield(this);
 
@@ -159,115 +162,204 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// This will remove the Wielder and CurrentWieldedLocation properties on the item and will remove it from the EquippedObjects dictionary.<para />
-        /// It does not add it to inventory as you could be unwielding to the ground or a chest. Og II<para />
-        /// It will also decrease the EncumbranceVal and Value.
+        /// This will set the CurrentWieldedLocation property to wieldedLocation and the Wielder property to this guid and will add it to the EquippedObjects dictionary.<para />
+        /// It will also increase the EncumbranceVal and Value.
         /// </summary>
-        public bool TryDequipObject(ObjectGuid objectGuid)
+        protected bool TryEquipObjectWithBroadcasting(WorldObject worldObject, int wieldedLocation)
         {
-            return TryDequipObject(objectGuid, out _);
+            if (!TryEquipObject(worldObject, wieldedLocation))
+                return false;
+
+            if (IsInChildLocation(worldObject)) // Is this equipped item visible to others?
+                EnqueueBroadcast(false, new GameMessageSound(Guid, Sound.WieldObject));
+
+            if (worldObject.ParentLocation != null && wieldedLocation != (int)EquipMask.MissileAmmo)
+                EnqueueBroadcast(new GameMessageParentEvent(this, worldObject, (int?)worldObject.ParentLocation ?? 0, (int?)worldObject.Placement ?? 0));
+
+            EnqueueBroadcast(new GameMessageObjDescEvent(this));
+
+            // Notify viewers in the area that we've equipped the item
+            EnqueueActionBroadcast(p => p.TrackEquippedObject(this, worldObject));
+
+            return true;
         }
 
         /// <summary>
         /// This will remove the Wielder and CurrentWieldedLocation properties on the item and will remove it from the EquippedObjects dictionary.<para />
-        /// It does not add it to inventory as you could be unwielding to the ground or a chest. Og II<para />
+        /// It does not add it to inventory as you could be unwielding to the ground or a chest.<para />
         /// It will also decrease the EncumbranceVal and Value.
         /// </summary>
-        public bool TryDequipObject(ObjectGuid objectGuid, out WorldObject worldObject)
+        private bool TryDequipObject(ObjectGuid objectGuid, out WorldObject worldObject, out int wieldedLocation)
         {
-            if (EquippedObjects.Remove(objectGuid, out worldObject))
+            if (!EquippedObjects.Remove(objectGuid, out worldObject))
             {
-                worldObject.RemoveProperty(PropertyInt.CurrentWieldedLocation);
-                worldObject.RemoveProperty(PropertyInstanceId.Wielder);
-
-                EncumbranceVal -= worldObject.EncumbranceVal;
-                Value -= worldObject.Value;
-
-                //EnqueueActionBroadcast((Player p) => p.TrackObject(this));
-                EnqueueBroadcast(new GameMessagePickupEvent(worldObject));
-
-                worldObject.EmoteManager.OnUnwield(this);
-
-                return true;
+                wieldedLocation = 0;
+                return false;
             }
+
+            wieldedLocation = worldObject.GetProperty(PropertyInt.CurrentWieldedLocation) ?? 0;
+
+            worldObject.RemoveProperty(PropertyInt.CurrentWieldedLocation);
+            worldObject.RemoveProperty(PropertyInstanceId.Wielder);
+
+            worldObject.IsAffecting = false;
+
+            EncumbranceVal -= worldObject.EncumbranceVal;
+            Value -= worldObject.Value;
+
+            ClearChild(worldObject);
+
+            var wo = worldObject;
+            Children.Remove(Children.Find(s => s.Guid == wo.Guid.Full));
+
+            worldObject.EmoteManager.OnUnwield(this);
+
+            return true;
+        }
+
+        /// <summary>
+        /// This will remove the Wielder and CurrentWieldedLocation properties on the item and will remove it from the EquippedObjects dictionary.<para />
+        /// It does not add it to inventory as you could be unwielding to the ground or a chest.<para />
+        /// It will also decrease the EncumbranceVal and Value.
+        /// </summary>
+        protected bool TryDequipObjectWithBroadcasting(ObjectGuid objectGuid, out WorldObject worldObject, out int wieldedLocation, bool droppingToLandscape = false)
+        {
+            if (!TryDequipObject(objectGuid, out worldObject, out wieldedLocation))
+                return false;
+
+            if ((wieldedLocation & (int)EquipMask.Selectable) != 0) // Is this equipped item visible to others?
+                EnqueueBroadcast(false, new GameMessageSound(Guid, Sound.UnwieldObject));
+
+            EnqueueBroadcast(new GameMessageObjDescEvent(this));
+
+            if (!droppingToLandscape)
+            {
+                // This should only be called if the object is going to the private storage, not when dropped on the landscape
+                var wo = worldObject;
+                EnqueueActionBroadcast(p => p.RemoveTrackedEquippedObject(this, wo));
+            }
+
+            return true;
+        }
+
+
+        private bool IsInChildLocation(WorldObject item)
+        {
+            if (item.CurrentWieldedLocation == null)
+                return false;
+
+            if (((EquipMask)item.CurrentWieldedLocation & EquipMask.Selectable) != 0)
+                return true;
+
+            if (((EquipMask)item.CurrentWieldedLocation & EquipMask.MissileAmmo) != 0)
+                return true;
 
             return false;
         }
 
-
         /// <summary>
-        /// This method sets properties needed for items that will be child items.
-        /// Items here are only items equipped in the hands.
-        /// This deals with the orientation and positioning for visual appearance of the child items held by the parent. Og II
+        /// This method sets properties needed for items that will be child items.<para />
+        /// Items here are only items equipped in the hands.<para />
+        /// This deals with the orientation and positioning for visual appearance of the child items held by the parent.<para />
+        /// If the item isn't in a valid child state (CurrentWieldedLocation), the child properties will be cleared. (Placement, ParentLocation, Location).
         /// </summary>
-        /// <param name="item">The child item - we link them together</param>
-        /// <param name="placementPosition">Where is this on the parent - where is it equipped</param>
-        /// <param name="placementId">out parameter - this deals with the orientation of the child item as it relates to parent model</param>
-        /// <param name="parentLocation">out parameter - this is another part of the orientation data for correct visual display</param>
-        public void SetChild(WorldObject item, int placementPosition, out int placementId, out int parentLocation)
+        private bool TrySetChild(WorldObject item)
         {
-            placementId = 0;
-            parentLocation = 0;
+            if (!IsInChildLocation(item))
+            {
+                ClearChild(item);
+                return false;
+            }
 
-            // TODO: I think there is a state missing - it is one of the edge cases. I need to revist this.   Og II
-            switch ((EquipMask)placementPosition)
+            Placement placement;
+            ParentLocation parentLocation;
+
+            switch (item.CurrentWieldedLocation)
             {
                 case EquipMask.MeleeWeapon:
-                    placementId = (int)ACE.Entity.Enum.Placement.RightHandCombat;
-                    parentLocation = (int)ACE.Entity.Enum.ParentLocation.RightHand;
+                    placement = ACE.Entity.Enum.Placement.RightHandCombat;
+                    parentLocation = ACE.Entity.Enum.ParentLocation.RightHand;
                     break;
 
                 case EquipMask.Shield:
                     if (item.ItemType == ItemType.Armor)
                     {
-                        placementId = (int)ACE.Entity.Enum.Placement.Shield;
-                        parentLocation = (int)ACE.Entity.Enum.ParentLocation.Shield;
+                        placement = ACE.Entity.Enum.Placement.Shield;
+                        parentLocation = ACE.Entity.Enum.ParentLocation.Shield;
                     }
                     else
                     {
-                        placementId = (int)ACE.Entity.Enum.Placement.RightHandCombat;
-                        parentLocation = (int)ACE.Entity.Enum.ParentLocation.LeftWeapon;
+                        placement = ACE.Entity.Enum.Placement.RightHandCombat;
+                        parentLocation = ACE.Entity.Enum.ParentLocation.LeftWeapon;
                     }
                     break;
 
                 case EquipMask.MissileWeapon:
-                    if (item.DefaultCombatStyle == CombatStyle.Bow ||
-                        item.DefaultCombatStyle == CombatStyle.Crossbow)
+                    if (item.DefaultCombatStyle == CombatStyle.Bow || item.DefaultCombatStyle == CombatStyle.Crossbow)
                     {
-                        placementId = (int)ACE.Entity.Enum.Placement.LeftHand;
-                        parentLocation = (int)ACE.Entity.Enum.ParentLocation.LeftHand;
+                        placement = ACE.Entity.Enum.Placement.LeftHand;
+                        parentLocation = ACE.Entity.Enum.ParentLocation.LeftHand;
                     }
                     else
                     {
-                        placementId = (int)ACE.Entity.Enum.Placement.RightHandCombat;
-                        parentLocation = (int)ACE.Entity.Enum.ParentLocation.RightHand;
+                        placement = ACE.Entity.Enum.Placement.RightHandCombat;
+                        parentLocation = ACE.Entity.Enum.ParentLocation.RightHand;
                     }
                     break;
 
                 case EquipMask.MissileAmmo:
                     // quiver = 5 for arrows/bolts?
-                    placementId = (int)ACE.Entity.Enum.Placement.RightHandCombat;
-                    parentLocation = (int)ACE.Entity.Enum.ParentLocation.RightHand;
+                    placement = ACE.Entity.Enum.Placement.RightHandCombat;
+                    parentLocation = ACE.Entity.Enum.ParentLocation.RightHand;
                     break;
 
                 case EquipMask.Held:
-                    placementId = (int)ACE.Entity.Enum.Placement.RightHandCombat;
-                    parentLocation = (int)ACE.Entity.Enum.ParentLocation.RightHand;
+                    placement = ACE.Entity.Enum.Placement.RightHandCombat;
+                    parentLocation = ACE.Entity.Enum.ParentLocation.RightHand;
                     break;
 
                 default:
-                    placementId = (int)ACE.Entity.Enum.Placement.Default;
-                    parentLocation = (int)ACE.Entity.Enum.ParentLocation.None;
+                    placement = ACE.Entity.Enum.Placement.Default;
+                    parentLocation = ACE.Entity.Enum.ParentLocation.None;
                     break;
             }
 
-            if (item.CurrentWieldedLocation != null)
-                Children.Add(new HeldItem(item.Guid.Full, parentLocation, (EquipMask)item.CurrentWieldedLocation));
+            Children.Add(new HeldItem(item.Guid.Full, (int)parentLocation, (EquipMask)item.CurrentWieldedLocation));
 
-            item.Placement = (Placement)placementId;
-            item.ParentLocation = (ParentLocation)parentLocation;
+            item.Placement = placement;
+            item.ParentLocation = parentLocation;
             item.Location = Location;
+
+            return true;
         }
+
+        /// <summary>
+        /// This clears the child properties:<para />
+        /// Placement = ACE.Entity.Enum.Placement.Resting<para />
+        /// ParentLocation = null<para />
+        /// Location = null
+        /// </summary>
+        private void ClearChild(WorldObject item)
+        {
+            item.Placement = ACE.Entity.Enum.Placement.Resting;
+            item.ParentLocation = null;
+            item.Location = null;
+        }
+
+        /// <summary>
+        /// This is called prior to SendSelf to load up the child list for wielded items that are held in a hand.
+        /// </summary>
+        private void SetChildren()
+        {
+            Children.Clear();
+
+            foreach (var item in EquippedObjects.Values)
+            {
+                if (item.CurrentWieldedLocation != null)
+                    TrySetChild(item);
+            }
+        }
+
 
         public void GenerateWieldList()
         {
@@ -303,8 +395,8 @@ namespace ACE.Server.WorldObjects
             {
                 if (WieldedTreasureType.HasValue)
                     return DatabaseManager.World.GetCachedWieldedTreasure(WieldedTreasureType.Value);
-                else
-                    return null;
+
+                return null;
             }
         }
 

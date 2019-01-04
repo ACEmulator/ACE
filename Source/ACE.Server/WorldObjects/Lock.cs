@@ -1,11 +1,12 @@
+using System;
+using System.Diagnostics;
+
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
-using System;
-using System.Diagnostics;
 
 namespace ACE.Server.WorldObjects
 {
@@ -30,7 +31,7 @@ namespace ACE.Server.WorldObjects
             // to-do don't consume "Limitless Lockpick" rare.
             unlocker.Structure--;
             if (unlocker.Structure < 1)
-                player.TryRemoveItemFromInventoryWithNetworkingWithDestroy(unlocker, 1);
+                player.TryConsumeFromInventoryWithNetworking(unlocker, 1);
             player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session));
             player.Session.Network.EnqueueSend(new GameMessagePublicUpdatePropertyInt(unlocker, PropertyInt.Structure, (int)unlocker.Structure));
             player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Your lockpicks have {unlocker.Structure} uses left.", ChatMessageType.Craft));
