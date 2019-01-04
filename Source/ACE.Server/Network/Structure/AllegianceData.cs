@@ -4,6 +4,7 @@ using System.IO;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Server.Entity;
+using ACE.Server.Managers;
 using ACE.Server.Network.Enum;
 
 namespace ACE.Server.Network.Structure
@@ -62,7 +63,8 @@ namespace ACE.Server.Network.Structure
             if (data.Node != null)
             {
                 var node = data.Node;
-                var player = node.Player;
+                var playerGuid = node.PlayerGuid;
+                var player = PlayerManager.FindByGuid(playerGuid);
 
                 characterID = player.Guid;
                 gender = (Gender)player.Gender;

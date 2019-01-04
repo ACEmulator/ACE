@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-
+using ACE.Entity;
 using ACE.Server.Managers;
 
 namespace ACE.Server.Entity
@@ -20,12 +20,12 @@ namespace ACE.Server.Entity
         /// <summary>
         /// A lookup table of Players => AllegianceNodes
         /// </summary>
-        public Dictionary<IPlayer, AllegianceNode> Members;
+        public Dictionary<ObjectGuid, AllegianceNode> Members;
 
         /// <summary>
         /// Constructs a new Allegiance from a Monarch
         /// </summary>
-        public Allegiance(IPlayer monarch)
+        public Allegiance(ObjectGuid monarch)
         {
             Monarch = new AllegianceNode(monarch, this);
 
@@ -43,10 +43,10 @@ namespace ACE.Server.Entity
         /// </summary>
         public void BuildMembers(AllegianceNode node)
         {
-            if (Monarch.Player.Equals(node.Player))
-                Members = new Dictionary<IPlayer, AllegianceNode>();
+            if (Monarch.PlayerGuid.Equals(node.PlayerGuid))
+                Members = new Dictionary<ObjectGuid, AllegianceNode>();
 
-            Members.Add(node.Player, node);
+            Members.Add(node.PlayerGuid, node);
 
             foreach (var vassal in node.Vassals)
                 BuildMembers(vassal);
@@ -55,17 +55,17 @@ namespace ACE.Server.Entity
         /// <summary>
         /// An allegiance is defined by its monarch
         /// </summary>
-        public override bool Equals(Object obj)
+        public override bool Equals(object obj)
         {
             if (obj is Allegiance allegiance)
-                return Monarch.Player.Guid.Full == allegiance.Monarch.Player.Guid.Full;
+                return Monarch.PlayerGuid.Full == allegiance.Monarch.PlayerGuid.Full;
 
             return false;
         }
 
         public override int GetHashCode()
         {
-            return Monarch.Player.Guid.Full.GetHashCode();
+            return Monarch.PlayerGuid.Full.GetHashCode();
         }
     }
 }

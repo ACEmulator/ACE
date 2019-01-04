@@ -90,8 +90,10 @@ namespace ACE.Server.Network.Structure
                 }
                 //Console.WriteLine("Records: " + recordCount);
 
-                chatRoomID = allegiance.Monarch.Player.Guid.Full;
-                allegianceName = allegiance.Monarch.Player.Name;
+                var monarch = allegiance.Monarch.Player;
+
+                chatRoomID = monarch.Guid.Full;
+                allegianceName = monarch.Name;
 
                 // monarch
                 monarchData = new AllegianceData(allegiance.Monarch);
@@ -103,18 +105,18 @@ namespace ACE.Server.Network.Structure
                     // patron
                     if (node.Patron != null && !node.Patron.IsMonarch)
                     {
-                        records.Add(new Tuple<ObjectGuid, AllegianceData>(node.Monarch.Player.Guid, new AllegianceData(node.Patron)));
+                        records.Add(new Tuple<ObjectGuid, AllegianceData>(node.Monarch.PlayerGuid, new AllegianceData(node.Patron)));
                     }
 
                     // self
                     if (!node.IsMonarch)
-                        records.Add(new Tuple<ObjectGuid, AllegianceData>(node.Patron.Player.Guid, new AllegianceData(node)));
+                        records.Add(new Tuple<ObjectGuid, AllegianceData>(node.Patron.PlayerGuid, new AllegianceData(node)));
 
                     // vassals
                     if (node.TotalVassals > 0)
                     {
                         foreach (var vassal in node.Vassals)
-                            records.Add(new Tuple<ObjectGuid, AllegianceData>(node.Player.Guid, new AllegianceData(vassal)));
+                            records.Add(new Tuple<ObjectGuid, AllegianceData>(node.PlayerGuid, new AllegianceData(vassal)));
                     }
                 }
             }
