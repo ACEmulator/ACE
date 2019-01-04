@@ -609,7 +609,8 @@ namespace ACE.Server.WorldObjects
 
             spellChain.AddAction(this, () =>
             {
-                TryBurnComponents(spell);
+                if (!isWeaponSpell)
+                    TryBurnComponents(spell);
             });
 
             var checkPKStatusVsTarget = CheckPKStatusVsTarget(player, target, spell);
