@@ -915,5 +915,7 @@ namespace ACE.Server.WorldObjects
         /// where the portal destination should be populated at runtime.
         /// </summary>
         public bool IsLinkSpot => WeenieType == WeenieType.Generic && WeenieClassName.Equals("portaldestination");
+
+        public static readonly float LocalBroadcastRange = 96.0f;
     }
 }
