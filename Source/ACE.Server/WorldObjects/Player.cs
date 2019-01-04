@@ -794,17 +794,17 @@ namespace ACE.Server.WorldObjects
 
         public void HandleActionTalk(string message)
         {
-            EnqueueBroadcast(new GameMessageCreatureMessage(message, Name, Guid.Full, ChatMessageType.Speech));
+            EnqueueBroadcast(new GameMessageCreatureMessage(message, Name, Guid.Full, ChatMessageType.Speech), LocalBroadcastRange);
         }
 
         public void HandleActionEmote(string message)
         {
-            EnqueueBroadcast(new GameMessageEmoteText(Guid.Full, Name, message));
+            EnqueueBroadcast(new GameMessageEmoteText(Guid.Full, Name, message), LocalBroadcastRange);
         }
 
         public void HandleActionSoulEmote(string message)
         {
-            EnqueueBroadcast(new GameMessageSoulEmote(Guid.Full, Name, message));
+            EnqueueBroadcast(new GameMessageSoulEmote(Guid.Full, Name, message), LocalBroadcastRange);
         }
 
         public void HandleActionJump(JumpPack jump)
