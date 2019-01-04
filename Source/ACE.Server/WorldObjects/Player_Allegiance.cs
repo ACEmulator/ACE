@@ -151,7 +151,7 @@ namespace ACE.Server.WorldObjects
                 // prevent any loops in the allegiance chain
                 if (selfNode != null && selfNode.IsMonarch)
                 {
-                    if (selfNode.Player.Guid.Full == targetNode.Monarch.Player.Guid.Full)
+                    if (selfNode.PlayerGuid == targetNode.Monarch.PlayerGuid)
                     {
                         //Console.WriteLine(Name + " tried to swear to someone already in Allegiance: " + target.Name);
                         return false;
@@ -198,20 +198,14 @@ namespace ACE.Server.WorldObjects
         /// <param name="showMsg">Set to TRUE if player is logging in</param>
         public void AddCPPoolToUnload(bool showMsg = false)
         {
-            var patron = PlayerManager.GetOnlinePlayer(Guid);
+            if (AllegianceCPPool == 0) return;
 
-            // is player logged in?
-            if (patron == null) return;
-
-            if (CPPoolToUnload == 0) return;
-
-            // FIXME: should be uint?
-            patron.EarnXP((long)CPPoolToUnload, false);
+            EarnXP((long)CPPoolToUnload, false);
 
             if (showMsg)
-                patron.Session.Network.EnqueueSend(new GameMessageSystemChat($"Your Vassals have produced experience points for you.\nTaking your skills as a leader into account, you gain {CPPoolToUnload} xp.", ChatMessageType.Broadcast));
+                Session.Network.EnqueueSend(new GameMessageSystemChat($"Your Vassals have produced experience points for you.\nTaking your skills as a leader into account, you gain {CPPoolToUnload} xp.", ChatMessageType.Broadcast));
 
-            CPPoolToUnload = 0;     // force save?
+            AllegianceCPPool = 0;
         }
     }
 }

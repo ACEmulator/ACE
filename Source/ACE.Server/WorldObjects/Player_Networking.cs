@@ -43,9 +43,7 @@ namespace ACE.Server.WorldObjects
             Session.Network.EnqueueSend(setTurbineChatChannels, general, trade, lfg, roleplay);
 
             // check if vassals earned XP while offline
-            /* TODO HACK FIX var offlinePlayer = PlayerManager.GetOfflinePlayerOld(Guid);
-            if (offlinePlayer != null)
-                offlinePlayer.AddCPPoolToUnload(true);*/
+            AddCPPoolToUnload(true);
 
             HandleDBUpdates();
         }
