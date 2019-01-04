@@ -1,12 +1,15 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using ACE.Entity;
+using ACE.Server.Managers;
 
 namespace ACE.Server.Entity
 {
     public class AllegianceNode
     {
-        public readonly IPlayer Player;
+        public readonly ObjectGuid PlayerGuid;
+        public IPlayer Player => PlayerManager.FindByGuid(PlayerGuid);
 
         public readonly Allegiance Allegiance;
 
@@ -35,9 +38,9 @@ namespace ACE.Server.Entity
             }
         }
 
-        public AllegianceNode(IPlayer player, Allegiance allegiance, AllegianceNode monarch = null, AllegianceNode patron = null)
+        public AllegianceNode(ObjectGuid playerGuid, Allegiance allegiance, AllegianceNode monarch = null, AllegianceNode patron = null)
         {
-            Player = player;
+            PlayerGuid = playerGuid;
             Allegiance = allegiance;
             Monarch = monarch ?? this;
             Patron = patron;
@@ -45,13 +48,13 @@ namespace ACE.Server.Entity
 
         public void BuildChain(Allegiance allegiance, List<IPlayer> players)
         {
-            var vassals = players.Where(p => p.Patron == Player.Guid.Full).ToList();
+            var vassals = players.Where(p => p.Patron == PlayerGuid.Full).ToList();
 
             Vassals = new List<AllegianceNode>();
 
             foreach (var vassal in vassals)
             {
-                var node = new AllegianceNode(vassal, allegiance, Monarch, this);
+                var node = new AllegianceNode(vassal.Guid, allegiance, Monarch, this);
                 node.BuildChain(allegiance, players);
 
                 Vassals.Add(node);

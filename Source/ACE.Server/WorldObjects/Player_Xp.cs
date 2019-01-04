@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 
+using ACE.Common.Extensions;
 using ACE.DatLoader;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
@@ -104,11 +105,16 @@ namespace ACE.Server.WorldObjects
                 EnchantmentManager.SendUpdateVitae();
             }
 
-            if (vitaePenalty == 1.0f)
+            if (vitaePenalty.EpsilonEquals(1.0f))
             {
                 var actionChain = new ActionChain();
                 actionChain.AddDelaySeconds(2.0f);
-                actionChain.AddAction(this, () => EnchantmentManager.RemoveVitae());
+                actionChain.AddAction(this, () =>
+                {
+                    var curPenalty = EnchantmentManager.GetVitae().StatModValue;
+                    if (curPenalty.EpsilonEquals(1.0f))
+                        EnchantmentManager.RemoveVitae();
+                });
                 actionChain.EnqueueChain();
             }
         }

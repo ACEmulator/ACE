@@ -185,7 +185,10 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Handles validation for player buying items from vendor
         /// </summary>
-        public void BuyItems_ValidateTransaction(ObjectGuid vendorid, List<ItemProfile> items, Player player)
+        /// <param name="vendorGuid">GUID of Vendor</param>
+        /// <param name="items">Item Profile, Ammount and ID</param>
+        /// <param name="player"></param>
+        public void BuyItems_ValidateTransaction(uint vendorGuid, List<ItemProfile> items, Player player)
         {
             // queue transactions
             List<ItemProfile> filteredlist = new List<ItemProfile>();
@@ -198,19 +201,19 @@ namespace ACE.Server.WorldObjects
             foreach (ItemProfile item in items)
             {
                 // check default items for id
-                if (defaultItemsForSale.ContainsKey(item.Guid))
+                if (defaultItemsForSale.ContainsKey(new ObjectGuid(item.ObjectGuid)))
                 {
-                    item.WeenieClassId = defaultItemsForSale[item.Guid].WeenieClassId;
+                    item.WeenieClassId = defaultItemsForSale[new ObjectGuid(item.ObjectGuid)].WeenieClassId;
                     filteredlist.Add(item);
                 }
 
                 // check unique items / add unique items to purchaselist / remove from vendor list
-                if (uniqueItemsForSale.ContainsKey(item.Guid))
+                if (uniqueItemsForSale.ContainsKey(new ObjectGuid(item.ObjectGuid)))
                 {
-                    if (uniqueItemsForSale.TryGetValue(item.Guid, out var wo))
+                    if (uniqueItemsForSale.TryGetValue(new ObjectGuid(item.ObjectGuid), out var wo))
                     {
                         uqlist.Add(wo);
-                        uniqueItemsForSale.Remove(item.Guid);
+                        uniqueItemsForSale.Remove(new ObjectGuid(item.ObjectGuid));
                     }
                 }
             }

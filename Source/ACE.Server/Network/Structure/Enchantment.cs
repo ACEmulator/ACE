@@ -12,7 +12,7 @@ namespace ACE.Server.Network.Structure
     public class Enchantment
     {
         public WorldObject Target;
-        public ACE.Entity.ObjectGuid CasterGuid;
+        public uint CasterGuid;
         public Spell Spell;
         public ushort Layer;
         public EnchantmentMask EnchantmentMask;
@@ -20,15 +20,10 @@ namespace ACE.Server.Network.Structure
         public double Duration;
         public float? StatMod;
 
-        public Enchantment(WorldObject target, ACE.Entity.ObjectGuid? casterGuid, uint spellId, double duration, ushort layer, EnchantmentMask enchantmentMask, float? statMod = null)
+        public Enchantment(WorldObject target, uint casterGuid, uint spellId, double duration, ushort layer, EnchantmentMask enchantmentMask, float? statMod = null)
         {
             Target = target;
-
-            if (casterGuid == null)
-                CasterGuid = ACE.Entity.ObjectGuid.Invalid;
-            else
-                CasterGuid = (ACE.Entity.ObjectGuid)casterGuid;
-
+            CasterGuid = casterGuid;
             Spell = new Spell(spellId);
             Layer = layer;
             Duration = duration;
@@ -36,15 +31,10 @@ namespace ACE.Server.Network.Structure
             StatMod = statMod ?? Spell.StatModVal;
         }
 
-        public Enchantment(WorldObject target, ACE.Entity.ObjectGuid? casterGuid, SpellBase spellBase, double duration, ushort layer, EnchantmentMask enchantmentMask, float? statMod = null)
+        public Enchantment(WorldObject target, uint casterGuid, SpellBase spellBase, double duration, ushort layer, EnchantmentMask enchantmentMask, float? statMod = null)
         {
             Target = target;
-
-            if (casterGuid == null)
-                CasterGuid = ACE.Entity.ObjectGuid.Invalid;
-            else
-                CasterGuid = (ACE.Entity.ObjectGuid)casterGuid;
-
+            CasterGuid = casterGuid;
             Spell = new Spell(spellBase.MetaSpellId);
             Layer = layer;
             Duration = duration;
@@ -55,7 +45,7 @@ namespace ACE.Server.Network.Structure
         public Enchantment(WorldObject target, BiotaPropertiesEnchantmentRegistry entry)
         {
             Target = target;
-            CasterGuid = new ACE.Entity.ObjectGuid(entry.CasterObjectId);
+            CasterGuid = entry.CasterObjectId;
             Spell = new Spell((uint)entry.SpellId);
             Layer = entry.LayerId;
             StartTime = entry.StartTime;
@@ -87,13 +77,14 @@ namespace ACE.Server.Network.Structure
             var statModKey = spell.StatModKey;
 
             writer.Write((ushort)enchantment.Spell.Id);
-            writer.Write(enchantment.Layer);
+            var layer = (spell.Id == (uint)SpellId.Vitae) ? (ushort)0 : enchantment.Layer; // this line is to force vitae to be layer 0 to match retail pcaps. We save it as layer 1 to make EF Core happy.
+            writer.Write(layer);
             writer.Write((ushort)enchantment.Spell.Category);
             writer.Write(HasSpellSetId);
             writer.Write(enchantment.Spell.Power);
             writer.Write(enchantment.StartTime);
             writer.Write(enchantment.Duration);
-            writer.Write(enchantment.CasterGuid.Full);
+            writer.Write(enchantment.CasterGuid);
             writer.Write(enchantment.Spell.DegradeModifier);
             writer.Write(enchantment.Spell.DegradeLimit);
             writer.Write(LastTimeDegraded);     // always 0 / spell economy?

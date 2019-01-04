@@ -68,6 +68,28 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
+        /// Inflicts vitae
+        /// </summary>
+        public void InflictVitaePenalty(int amount = 5)
+        {
+            DeathLevel = Level; // for calculating vitae XP
+            VitaeCpPool = 0;    // reset vitae XP earned
+
+            var msgDeathLevel = new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.DeathLevel, DeathLevel ?? 0);
+            var msgVitaeCpPool = new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.VitaeCpPool, VitaeCpPool.Value);
+
+            Session.Network.EnqueueSend(msgDeathLevel, msgVitaeCpPool);
+
+            var vitae = EnchantmentManager.UpdateVitae();
+
+            var spellID = (uint)SpellId.Vitae;
+            var spell = new Spell(spellID);
+            var vitaeEnchantment = new Enchantment(this, Guid.Full, spellID, spell.Duration, 0, (EnchantmentMask)spell.StatModType, vitae);
+            Session.Network.EnqueueSend(new GameEventMagicUpdateEnchantment(Session, vitaeEnchantment));
+        }
+
+
+        /// <summary>
         /// Broadcasts the player death animation, updates vitae, and sends network messages for player death
         /// Queues the action to call TeleportOnDeath and enter portal space soon
         /// </summary>
@@ -75,8 +97,6 @@ namespace ACE.Server.WorldObjects
         {
             UpdateVital(Health, 0);
             NumDeaths++;
-            DeathLevel = Level; // for calculating vitae XP
-            VitaeCpPool = 0;    // reset vitae XP earned
 
             // killer = top damager for looting rights
             if (topDamager != null)
@@ -96,25 +116,21 @@ namespace ACE.Server.WorldObjects
             // TODO: death sounds? seems to play automatically in client
             // var msgDeathSound = new GameMessageSound(Guid, Sound.Death1, 1.0f);
             var msgNumDeaths = new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.NumDeaths, NumDeaths ?? 0);
-            var msgDeathLevel = new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.DeathLevel, DeathLevel ?? 0);
-            var msgVitaeCpPool = new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.VitaeCpPool, VitaeCpPool.Value);
-            var msgPurgeEnchantments = new GameEventMagicPurgeEnchantments(Session);
 
             // send network messages for player death
-            Session.Network.EnqueueSend(msgHealthUpdate, msgNumDeaths, msgDeathLevel, msgVitaeCpPool, msgPurgeEnchantments);
+            Session.Network.EnqueueSend(msgHealthUpdate, msgNumDeaths);
 
             // update vitae
             // players who died in a PKLite fight do not accrue vitae
             var pkLiteKiller = GetKiller_PKLite();
             if (pkLiteKiller == null)
             {
-                var vitae = EnchantmentManager.UpdateVitae();
-
-                var spellID = (uint)SpellId.Vitae;
-                var spell = new Spell(spellID);
-                var vitaeEnchantment = new Enchantment(this, Guid, spellID, spell.Duration, 0, (EnchantmentMask)spell.StatModType, vitae);
-                Session.Network.EnqueueSend(new GameEventMagicUpdateEnchantment(Session, vitaeEnchantment));
+                InflictVitaePenalty();
             }
+
+            var msgPurgeEnchantments = new GameEventMagicPurgeEnchantments(Session);
+            EnchantmentManager.RemoveAllEnchantments();
+            Session.Network.EnqueueSend(msgPurgeEnchantments);
 
             // wait for the death animation to finish
             var dieChain = new ActionChain();

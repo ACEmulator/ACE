@@ -201,26 +201,26 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Fired from the client / client is sending us a Buy transaction to vendor
         /// </summary>
-        /// <param name="vendorId"></param>
+        /// <param name="vendorGuid"></param>
         /// <param name="items"></param>
-        public void HandleActionBuyItem(ObjectGuid vendorId, List<ItemProfile> items)
+        public void HandleActionBuyItem(uint vendorGuid, List<ItemProfile> items)
         {
-            var vendor = (CurrentLandblock?.GetObject(vendorId) as Vendor);
+            var vendor = (CurrentLandblock?.GetObject(vendorGuid) as Vendor);
 
             if (vendor != null)
-                vendor.BuyItems_ValidateTransaction(vendorId, items, this);
+                vendor.BuyItems_ValidateTransaction(vendorGuid, items, this);
         }
 
         /// <summary>
         /// Client Calls this when Sell is clicked.
         /// </summary>
-        public void HandleActionSellItem(List<ItemProfile> itemprofiles, ObjectGuid vendorId)
+        public void HandleActionSellItem(List<ItemProfile> itemprofiles, uint vendorGuid)
         {
             var purchaselist = new List<WorldObject>();
 
             foreach (ItemProfile profile in itemprofiles)
             {
-                if (TryRemoveFromInventoryWithNetworking(profile.Guid, out var item, RemoveFromInventoryAction.SellItem) || TryDequipObjectWithNetworking(profile.Guid, out item, DequipObjectAction.SellItem))
+                if (TryRemoveFromInventoryWithNetworking(profile.ObjectGuid, out var item, RemoveFromInventoryAction.SellItem) || TryDequipObjectWithNetworking(profile.ObjectGuid, out item, DequipObjectAction.SellItem))
                 {
                     Session.Network.EnqueueSend(new GameMessageDeleteObject(item));
 
@@ -232,7 +232,7 @@ namespace ACE.Server.WorldObjects
                 }
             }
 
-            var vendor = CurrentLandblock?.GetObject(vendorId) as Vendor;
+            var vendor = CurrentLandblock?.GetObject(vendorGuid) as Vendor;
 
             if (vendor != null)
                 vendor.SellItems_ValidateTransaction(this, purchaselist);

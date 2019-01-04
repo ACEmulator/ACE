@@ -698,6 +698,7 @@ namespace ACE.Server.WorldObjects
                         if (recall != PositionType.Undef)
                         {
                             ActionChain portalRecallChain = new ActionChain();
+                            portalRecallChain.AddAction(targetPlayer, () => player.DoPreTeleportHide());
                             portalRecallChain.AddDelaySeconds(2.0f);  // 2 second delay
                             portalRecallChain.AddAction(targetPlayer, () => player.TeleToPosition(recall));
                             portalRecallChain.EnqueueChain();
@@ -707,7 +708,8 @@ namespace ACE.Server.WorldObjects
                         if (targetPlayer != null)
                         {
                             ActionChain portalSendingChain = new ActionChain();
-                            portalSendingChain.AddDelaySeconds(2.0f);  // 2 second delay
+                            //portalSendingChain.AddDelaySeconds(2.0f);  // 2 second delay
+                            portalSendingChain.AddAction(targetPlayer, () => targetPlayer.DoPreTeleportHide());
                             portalSendingChain.AddAction(targetPlayer, () => targetPlayer.Teleport(spell.Position));
                             portalSendingChain.EnqueueChain();
                         }
@@ -808,22 +810,22 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         protected void SummonPortal(uint portalId, Position destination, double portalLifetime)
         {
-            var portal = WorldObjectFactory.CreateNewWorldObject(portalId);
-            portal.SetupTableId = 33556212;
-            portal.RadarBehavior = ACE.Entity.Enum.RadarBehavior.ShowNever;
-            portal.Name = "Gateway";
+            var portal = WorldObjectFactory.CreateNewWorldObject("portalgateway");
             portal.Location = Location.InFrontOf(3.0f);
+           
+            portal.Destination = destination;
 
-            if (portalId == 1955)
-                portal.Destination = destination;
+            portal.TimeToRot = portalLifetime;
+
+            portal.SetProperty(PropertyInt.PortalBitmask, (int)(PortalBitmask.Unrestricted | PortalBitmask.NoSummon));
 
             portal.EnterWorld();
 
             // Create portal decay
-            ActionChain despawnChain = new ActionChain();
-            despawnChain.AddDelaySeconds(portalLifetime);
-            despawnChain.AddAction(portal, () => portal.CurrentLandblock?.RemoveWorldObject(portal.Guid, false));
-            despawnChain.EnqueueChain();
+            //ActionChain despawnChain = new ActionChain();
+            //despawnChain.AddDelaySeconds(portalLifetime);
+            //despawnChain.AddAction(portal, () => portal.CurrentLandblock?.RemoveWorldObject(portal.Guid, false));
+            //despawnChain.EnqueueChain();
         }
 
         /// <summary>

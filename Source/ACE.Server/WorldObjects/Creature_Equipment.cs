@@ -56,6 +56,14 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Get Wielded Item. Returns null if not found.
         /// </summary>
+        public WorldObject GetEquippedItem(uint objectGuid)
+        {
+            return EquippedObjects.TryGetValue(new ObjectGuid(objectGuid), out var item) ? item : null; // todo fix this so it doesn't instantiate a new ObjectGuid
+        }
+
+        /// <summary>
+        /// Get Wielded Item. Returns null if not found.
+        /// </summary>
         public WorldObject GetEquippedItem(ObjectGuid objectGuid)
         {
             return EquippedObjects.TryGetValue(objectGuid, out var item) ? item : null;

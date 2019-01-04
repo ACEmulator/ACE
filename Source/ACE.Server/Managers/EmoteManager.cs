@@ -325,7 +325,8 @@ namespace ACE.Server.Managers
                     break;
 
                 case EmoteType.InflictVitaePenalty:
-                    if (player != null) player.VitaeCpPool++;   // TODO: full path
+                    if (player != null)
+                        player.InflictVitaePenalty(emote.Amount ?? 5);
                     break;
 
                 case EmoteType.InqAttributeStat:
@@ -783,7 +784,7 @@ namespace ACE.Server.Managers
 
                 case EmoteType.Say:
 
-                    WorldObject.EnqueueBroadcast(new GameMessageCreatureMessage(emote.Message, WorldObject.Name, WorldObject.Guid.Full, ChatMessageType.Emote));
+                    WorldObject.EnqueueBroadcast(new GameMessageCreatureMessage(emote.Message, WorldObject.Name, WorldObject.Guid.Full, ChatMessageType.Emote), WorldObject.LocalBroadcastRange);
                     break;
 
                 case EmoteType.SetAltRacialSkills:

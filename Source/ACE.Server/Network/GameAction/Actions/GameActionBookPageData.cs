@@ -1,4 +1,3 @@
-using ACE.Entity;
 
 namespace ACE.Server.Network.GameAction.Actions
 {
@@ -7,12 +6,10 @@ namespace ACE.Server.Network.GameAction.Actions
         [GameAction(GameActionType.BookPageData)]
         public static void Handle(ClientMessage message, Session session)
         {
-            var objectId = message.Payload.ReadUInt32();
+            var bookGuid = message.Payload.ReadUInt32();
             var pageNum = message.Payload.ReadUInt32();
 
-            ObjectGuid guid = new ObjectGuid(objectId);
-
-            session.Player.ReadBookPage(guid, pageNum);
+            session.Player.ReadBookPage(bookGuid, pageNum);
         }
     }
 }

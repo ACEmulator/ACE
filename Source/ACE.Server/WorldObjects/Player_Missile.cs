@@ -1,5 +1,5 @@
 using System;
-using ACE.Entity;
+
 using ACE.Entity.Enum;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Network.GameEvent.Events;
@@ -33,10 +33,10 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Called by network packet handler 0xA - GameActionTargetedMissileAttack
         /// </summary>
-        /// <param name="guid">The target guid</param>
+        /// <param name="targetGuid">The target guid</param>
         /// <param name="attackHeight">The attack height 1-3</param>
         /// <param name="accuracyLevel">The 0-1 accuracy bar level</param>
-        public void HandleActionTargetedMissileAttack(ObjectGuid guid, uint attackHeight, float accuracyLevel)
+        public void HandleActionTargetedMissileAttack(uint targetGuid, uint attackHeight, float accuracyLevel)
         {
             var weapon = GetEquippedMissileWeapon();
             var ammo = GetEquippedAmmo();
@@ -50,10 +50,10 @@ namespace ACE.Server.WorldObjects
             AccuracyLevel = accuracyLevel;
 
             // get world object of target guid
-            var target = CurrentLandblock?.GetObject(guid);
+            var target = CurrentLandblock?.GetObject(targetGuid);
             if (target == null)
             {
-                log.Warn("Unknown target guid " + guid.Full.ToString("X8"));
+                log.Warn("Unknown target guid " + targetGuid.ToString("X8"));
                 return;
             }
             if (MissileTarget == null)

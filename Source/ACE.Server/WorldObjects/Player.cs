@@ -311,11 +311,11 @@ namespace ACE.Server.WorldObjects
 
         public MotionStance stance = MotionStance.NonCombat;
 
-        public void ExamineObject(ObjectGuid examinationId)
+        public void ExamineObject(uint examinationId)
         {
             // TODO: Throttle this request?. The live servers did this, likely for a very good reason, so we should, too.
 
-            if (examinationId.Full == 0)
+            if (examinationId == 0)
             {
                 // Deselect the formerly selected Target
                 // selectedTarget = ObjectGuid.Invalid;
@@ -336,8 +336,8 @@ namespace ACE.Server.WorldObjects
             // search interactive objects
             if (wo == null)
             {
-                if (interactiveWorldObjects.ContainsKey(examinationId))
-                    wo = interactiveWorldObjects[examinationId];
+                if (interactiveWorldObjects.ContainsKey(new ObjectGuid(examinationId)))
+                    wo = interactiveWorldObjects[new ObjectGuid(examinationId)];
             }
 
             // if local, examine it
@@ -366,8 +366,8 @@ namespace ACE.Server.WorldObjects
                 }
             }
 
-            RequestedAppraisalTarget = examinationId.Full;
-            CurrentAppraisalTarget = examinationId.Full;
+            RequestedAppraisalTarget = examinationId;
+            CurrentAppraisalTarget = examinationId;
         }
 
         public void Examine(WorldObject obj)
@@ -416,9 +416,9 @@ namespace ACE.Server.WorldObjects
                 (target as Hotspot).OnCollideObjectEnd(this);
         }
 
-        public void HandleActionQueryHealth(ObjectGuid queryId)
+        public void HandleActionQueryHealth(uint objectGuid)
         {
-            if (queryId.Full == 0)
+            if (objectGuid == 0)
             {
                 // Deselect the formerly selected Target
                 selectedTarget = ObjectGuid.Invalid;
@@ -427,43 +427,36 @@ namespace ACE.Server.WorldObjects
             }
 
             // Remember the selected Target
-            selectedTarget = queryId;
-            HealthQueryTarget = queryId.Full;
-            var obj = CurrentLandblock?.GetObject(queryId);
+            selectedTarget = new ObjectGuid(objectGuid);
+            HealthQueryTarget = objectGuid;
+            var obj = CurrentLandblock?.GetObject(objectGuid);
             if (obj != null)
                 obj.QueryHealth(Session);
         }
 
-        public void HandleActionQueryItemMana(ObjectGuid queryId)
+        public void HandleActionQueryItemMana(uint itemGuid)
         {
-            if (queryId.Full == 0)
+            if (itemGuid == 0)
             {
                 ManaQueryTarget = null;
                 return;
             }
 
             // the object could be in the world or on the player, first check player
-            WorldObject wo = GetInventoryItem(queryId);
-            if (wo != null)
-            {
-                wo.QueryItemMana(Session);
-            }
-            else
-            {
-                // We could be wielded - let's check that next.
-                if (EquippedObjects.TryGetValue(queryId, out wo))
-                    wo.QueryItemMana(Session);
-            }
+            var item = GetInventoryItem(itemGuid) ?? GetEquippedItem(itemGuid);
 
-            ManaQueryTarget = queryId.Full;
+            if (item != null)
+                item.QueryItemMana(Session);
+
+            ManaQueryTarget = itemGuid;
         }
 
-        public void ReadBookPage(ObjectGuid bookId, uint pageNum)
+        public void ReadBookPage(uint bookGuid, uint pageNum)
         {
             // TODO: Do we want to throttle this request, like appraisals?
             // The object can be in two spots... on the player or on the landblock
             // First check the player
-            WorldObject wo = GetInventoryItem(bookId);
+            WorldObject wo = GetInventoryItem(bookGuid);
             // book is in the player's inventory...
             if (wo != null)
             {
@@ -471,7 +464,7 @@ namespace ACE.Server.WorldObjects
             }
             else
             {
-                CurrentLandblock?.GetObject(bookId).ReadBookPage(Session, pageNum);
+                CurrentLandblock?.GetObject(bookGuid).ReadBookPage(Session, pageNum);
             }
         }
 
@@ -661,14 +654,13 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         ///  Sends object description if the client requests it
         /// </summary>
-        /// <param name="item"></param>
-        public void HandleActionForceObjDescSend(ObjectGuid item)
+        public void HandleActionForceObjDescSend(uint itemGuid)
         {
-            WorldObject wo = GetInventoryItem(item);
+            WorldObject wo = GetInventoryItem(new ObjectGuid(itemGuid));
             if (wo != null)
                 EnqueueBroadcast(new GameMessageObjDescEvent(wo));
             else
-                log.Debug($"HandleActionForceObjDescSend() - couldn't find inventory item {item}");
+                log.Debug($"HandleActionForceObjDescSend() - couldn't find inventory item {itemGuid:X8}");
         }
 
 
@@ -802,17 +794,17 @@ namespace ACE.Server.WorldObjects
 
         public void HandleActionTalk(string message)
         {
-            EnqueueBroadcast(new GameMessageCreatureMessage(message, Name, Guid.Full, ChatMessageType.Speech));
+            EnqueueBroadcast(new GameMessageCreatureMessage(message, Name, Guid.Full, ChatMessageType.Speech), LocalBroadcastRange);
         }
 
         public void HandleActionEmote(string message)
         {
-            EnqueueBroadcast(new GameMessageEmoteText(Guid.Full, Name, message));
+            EnqueueBroadcast(new GameMessageEmoteText(Guid.Full, Name, message), LocalBroadcastRange);
         }
 
         public void HandleActionSoulEmote(string message)
         {
-            EnqueueBroadcast(new GameMessageSoulEmote(Guid.Full, Name, message));
+            EnqueueBroadcast(new GameMessageSoulEmote(Guid.Full, Name, message), LocalBroadcastRange);
         }
 
         public void HandleActionJump(JumpPack jump)

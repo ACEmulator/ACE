@@ -246,7 +246,8 @@ namespace ACE.Server.Managers
 
             if (Player != null)
             {
-                Player.Session.Network.EnqueueSend(new GameEventMagicRemoveEnchantment(Player.Session, (ushort)entry.SpellId, entry.LayerId));
+                var layer = (entry.SpellId == (uint)SpellId.Vitae) ? (ushort)0 : entry.LayerId; // this line is to force vitae to be layer 0 to match retail pcaps. We save it as layer 1 to make EF Core happy.
+                Player.Session.Network.EnqueueSend(new GameEventMagicRemoveEnchantment(Player.Session, (ushort)entry.SpellId, layer));
 
                 if (sound)
                     Player.Session.Network.EnqueueSend(new GameMessageSound(Player.Guid, Sound.SpellExpire, 1.0f));
@@ -333,7 +334,7 @@ namespace ACE.Server.Managers
 
                 vitae = BuildEntry(spell);
                 vitae.EnchantmentCategory = (uint)EnchantmentMask.Vitae;
-                vitae.LayerId = 0;
+                vitae.LayerId = 1; // This should be 0 but EF Core seems to be very unhappy with 0 as the layer id now that we're using layer as part of the composite key.
                 vitae.StatModValue = 1.0f - (float)PropertyManager.GetDouble("vitae_penalty").Item;
                 WorldObject.Biota.AddEnchantment(vitae, WorldObject.BiotaDatabaseLock);
                 WorldObject.ChangesDetected = true;
@@ -343,14 +344,13 @@ namespace ACE.Server.Managers
                 // update existing vitae
                 vitae = GetVitae();
                 vitae.StatModValue -= (float)PropertyManager.GetDouble("vitae_penalty").Item;
+                WorldObject.ChangesDetected = true;
             }
 
             var minVitae = GetMinVitae((uint)Player.Level);
 
             if (vitae.StatModValue < minVitae)
-                vitae.StatModValue = minVitae;
-
-            RemoveAllEnchantments();
+                vitae.StatModValue = minVitae;            
 
             return vitae.StatModValue;
         }
