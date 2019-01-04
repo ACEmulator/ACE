@@ -241,14 +241,20 @@ namespace ACE.Server.WorldObjects
                 new GameMessagePickupEvent(item),
                 new GameMessageSound(Guid, Sound.UnwieldObject));
 
-            if (dequipObjectAction == DequipObjectAction.ToCorpseOnDeath)
-                Session.Network.EnqueueSend(new GameMessageDeleteObject(item));
-
             // If item has any spells, remove them from the registry on unequip
             if (item.Biota.BiotaPropertiesSpellBook != null)
             {
                 foreach (var spell in item.Biota.BiotaPropertiesSpellBook)
                     DispelItemSpell(item, (uint)spell.Spell);
+            }
+
+            if (dequipObjectAction == DequipObjectAction.ToCorpseOnDeath)
+                Session.Network.EnqueueSend(new GameMessageDeleteObject(item));
+
+            if (dequipObjectAction == DequipObjectAction.ConsumeItem)
+            {
+                Session.Network.EnqueueSend(new GameMessageDeleteObject(item));
+                item.Destroy();
             }
 
             if (dequipObjectAction != DequipObjectAction.DequipToPack)
