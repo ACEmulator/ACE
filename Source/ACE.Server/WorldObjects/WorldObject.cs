@@ -265,12 +265,22 @@ namespace ACE.Server.WorldObjects
 
         public bool HandleNPCReceiveItem(WorldObject item, WorldObject giver, ActionChain actionChain)
         {
-            var emoteSet = EmoteManager.GetEmoteSet(EmoteCategory.Give, null, null, item.WeenieClassId);
-            if (emoteSet == null)
-                return false;
+            // NPC accepts this item
+            var giveItem = EmoteManager.GetEmoteSet(EmoteCategory.Give, null, null, item.WeenieClassId);
+            if (giveItem != null)
+            {
+                EmoteManager.ExecuteEmoteSet(giveItem, giver, actionChain, true);
+                return true;
+            }
 
-            EmoteManager.ExecuteEmoteSet(emoteSet, giver, actionChain, true);
-            return true;
+            // NPC refuses this item, with a custom response
+            var refuseItem = EmoteManager.GetEmoteSet(EmoteCategory.Refuse, null, null, item.WeenieClassId);
+            if (refuseItem != null)
+            {
+                EmoteManager.ExecuteEmoteSet(refuseItem, giver, actionChain, true);
+                return true;
+            }
+            return false;
         }
 
         /// <summary>
@@ -905,5 +915,7 @@ namespace ACE.Server.WorldObjects
         /// where the portal destination should be populated at runtime.
         /// </summary>
         public bool IsLinkSpot => WeenieType == WeenieType.Generic && WeenieClassName.Equals("portaldestination");
+
+        public static readonly float LocalBroadcastRange = 96.0f;
     }
 }
