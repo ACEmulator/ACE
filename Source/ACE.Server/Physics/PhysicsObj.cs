@@ -81,6 +81,11 @@ namespace ACE.Server.Physics
         public double PhysicsTimer_CurrentTime;
         public bool DatObject = false;
 
+        /// <summary>
+        /// This is managed by MovementManager.MotionInterpreter, and should not be updated anywhere else.
+        /// </summary>
+        public bool IsAnimating;
+
         // server
         public Position RequestPos;
 
@@ -2588,11 +2593,6 @@ namespace ACE.Server.Physics
             particle.State = PhysicsState.Static | PhysicsState.ReportCollisions;
             particle.PartArray = PartArray.CreateParticle(particle, numParts, sortingSphere);
             return particle;
-        }
-
-        public bool motions_pending()
-        {
-            return MovementManager != null && MovementManager.motions_pending();
         }
 
         public bool movement_is_autonomous()

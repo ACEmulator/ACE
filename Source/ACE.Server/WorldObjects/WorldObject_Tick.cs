@@ -176,7 +176,7 @@ namespace ACE.Server.WorldObjects
             // determine if updates should be run for object
             //var runUpdate = !monster && (isMissile || !PhysicsObj.IsGrounded);
             //var runUpdate = isMissile;
-            var runUpdate = !monster && (isMissile || /*IsMoving ||*/ /*!PhysicsObj.IsGrounded || */ PhysicsObj.InitialUpdates <= 1 || IsAnimating /*|| contactPlane*/);
+            var runUpdate = !monster && (isMissile || /*IsMoving ||*/ /*!PhysicsObj.IsGrounded || */ PhysicsObj.InitialUpdates <= 1 || PhysicsObj.IsAnimating /*|| contactPlane*/);
 
             if (creature != null)
             {
