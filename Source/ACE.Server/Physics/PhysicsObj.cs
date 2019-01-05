@@ -2848,7 +2848,7 @@ namespace ACE.Server.Physics
 
         public void remove_shadows_from_cells()
         {
-            foreach (var shadowObj in ShadowObjects.Values.ToList())
+            foreach (var shadowObj in ShadowObjects.Values)
             {
                 if (shadowObj.Cell == null) continue;
                 var cell = shadowObj.Cell;
