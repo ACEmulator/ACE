@@ -8,6 +8,7 @@ using ACE.Server.Entity.Actions;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
+using ACE.Server.WorldObjects.Entity;
 
 namespace ACE.Server.WorldObjects
 {
@@ -320,8 +321,13 @@ namespace ACE.Server.WorldObjects
             if (resisted != null && resisted == true)
                 return null;
 
+            CreatureSkill attackSkill = null;
+            var sourceCreature = source as Creature;
+            if (sourceCreature != null)
+                attackSkill = sourceCreature.GetCreatureSkill(Spell.School);
+
             // critical hit
-            var critical = GetWeaponMagicCritFrequencyModifier(source);
+            var critical = GetWeaponMagicCritFrequencyModifier(source, attackSkill);
             if (ThreadSafeRandom.Next(0.0f, 1.0f) < critical)
                 criticalHit = true;
 
@@ -340,7 +346,7 @@ namespace ACE.Server.WorldObjects
                 // could life magic projectiles crit?
                 // if so, did they use the same 1.5x formula as war magic, instead of 2.0x?
                 if (criticalHit)
-                    damageBonus = lifeMagicDamage * 0.5f * GetWeaponCritMultiplierModifier(source);
+                    damageBonus = lifeMagicDamage * 0.5f * GetWeaponCritMultiplierModifier(source, attackSkill);
 
                 finalDamage = (lifeMagicDamage + damageBonus) * elementalDmgBonus * slayerBonus;
                 return finalDamage;
@@ -355,7 +361,9 @@ namespace ACE.Server.WorldObjects
                     else   // PvE: 50% of the MAX damage added to normal damage roll
                         damageBonus = Spell.MaxDamage * 0.5f;
 
-                    damageBonus *= GetWeaponCritMultiplierModifier(source);
+                    var critDamageMod = GetWeaponCritMultiplierModifier(source, attackSkill);
+
+                    damageBonus *= critDamageMod;
                 }
 
                 /* War Magic skill-based damage bonus
@@ -374,7 +382,8 @@ namespace ACE.Server.WorldObjects
                 var baseDamage = ThreadSafeRandom.Next(Spell.MinDamage, Spell.MaxDamage);
 
                 finalDamage = baseDamage + damageBonus + warSkillBonus;
-                finalDamage *= target.GetNaturalResistance(resistanceType, GetWeaponResistanceModifier(source, Spell.DamageType));
+                finalDamage *= target.GetNaturalResistance(resistanceType, GetWeaponResistanceModifier(source, attackSkill, Spell.DamageType))
+                    * elementalDmgBonus * slayerBonus;
 
                 return finalDamage;
             }
