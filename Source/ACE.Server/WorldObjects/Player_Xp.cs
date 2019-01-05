@@ -21,11 +21,13 @@ namespace ACE.Server.WorldObjects
         /// <param name="fixedAmount">For fellowships, is the XP bonus applied?</param>
         public void EarnXP(long amount, bool sharable = true, bool fixedAmount = false)
         {
+            //Console.WriteLine($"{Name}.EarnXP({amount}, {sharable}, {fixedAmount})");
+
             // apply xp modifier
             var modifier = PropertyManager.GetDouble("xp_modifier").Item;
             var m_amount = (long)(amount * modifier);
 
-            if (m_amount < 0 || m_amount > 1000000000)
+            if (m_amount < 0)
             {
                 log.Warn($"{Name}.EarnXP({amount}, {sharable}, {fixedAmount})");
                 log.Warn($"Modifier: {modifier}, m_amount: {m_amount}");
