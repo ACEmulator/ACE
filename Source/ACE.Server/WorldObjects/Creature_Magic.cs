@@ -81,6 +81,13 @@ namespace ACE.Server.WorldObjects
 
         public uint CalculateManaUsage(Creature caster, Spell spell, WorldObject target = null)
         {
+            var baseCost = spell.BaseMana;
+
+            // for casting spells built into a casting implement, use the ItemManaCost
+            var castItem = caster.GetEquippedWand();
+            if (castItem != null && (castItem.SpellDID ?? 0) == spell.Id)
+                baseCost = (uint)(castItem.ItemManaCost ?? 0);
+
             uint mana_conversion_skill = caster.GetCreatureSkill(Skill.ManaConversion).Current;
             uint difficulty = spell.PowerMod;   // modified power difficulty
 
@@ -97,10 +104,10 @@ namespace ACE.Server.WorldObjects
                 int numTargetItems = 1;
                 if (targetPlayer != null)
                     numTargetItems = targetPlayer.EquippedObjects.Count;
-                preCost = (uint)Math.Round((spell.BaseMana + (spell.ManaMod * numTargetItems)) * baseManaPercent);
+                preCost = (uint)Math.Round((baseCost + (spell.ManaMod * numTargetItems)) * baseManaPercent);
             }
             else
-                preCost = (uint)Math.Round(spell.BaseMana * baseManaPercent);
+                preCost = (uint)Math.Round(baseCost * baseManaPercent);
 
             if (preCost < 1) preCost = 1;
 
