@@ -467,6 +467,11 @@ namespace ACE.Server.Entity
             return null;
         }
 
+        public WorldObject GetWieldedObject(uint objectGuid, bool searchAdjacents = true)
+        {
+            return GetWieldedObject(new ObjectGuid(objectGuid), searchAdjacents); // todo fix
+        }
+
         /// <summary>
         /// Searches this landblock (and possibly adjacents) for an ObjectGuid wielded by a creature
         /// </summary>

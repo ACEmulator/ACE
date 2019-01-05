@@ -10,6 +10,7 @@ namespace ACE.Server.Network.GameAction.Actions
         {
             var option = (CharacterOption)message.Payload.ReadUInt32();
             var optionValue = message.Payload.ReadUInt32() != 0;
+
             switch (option)
             {
                 case CharacterOption.AppearOffline:

@@ -1,3 +1,4 @@
+
 namespace ACE.Server.Network.GameAction.Actions
 {
     public static class GameActionGameQuit

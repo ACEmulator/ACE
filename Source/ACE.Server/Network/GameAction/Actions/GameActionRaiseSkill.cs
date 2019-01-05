@@ -1,4 +1,4 @@
-﻿using ACE.Entity.Enum;
+using ACE.Entity.Enum;
 
 namespace ACE.Server.Network.GameAction.Actions
 {
@@ -9,6 +9,7 @@ namespace ACE.Server.Network.GameAction.Actions
         {
             var skill = (Skill)message.Payload.ReadUInt32();
             var xpSpent = message.Payload.ReadUInt32();
+
             session.Player.RaiseSkillGameAction(skill, xpSpent);
         }
     }

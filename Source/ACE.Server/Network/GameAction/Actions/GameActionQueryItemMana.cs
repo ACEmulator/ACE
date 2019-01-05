@@ -1,4 +1,3 @@
-using ACE.Entity;
 
 namespace ACE.Server.Network.GameAction.Actions
 {
@@ -7,11 +6,9 @@ namespace ACE.Server.Network.GameAction.Actions
         [GameAction(GameActionType.QueryItemMana)]
         public static void Handle(ClientMessage message, Session session)
         {
-            uint fullId = message.Payload.ReadUInt32();
+            uint objectGuid = message.Payload.ReadUInt32();
 
-            ObjectGuid guid = new ObjectGuid(fullId);
-
-            session.Player.HandleActionQueryItemMana(guid);
+            session.Player.HandleActionQueryItemMana(objectGuid);
         }
     }
 }

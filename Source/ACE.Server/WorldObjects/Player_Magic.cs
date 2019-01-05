@@ -67,14 +67,14 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Handles player targeted casting message
         /// </summary>
-        public void HandleActionCastTargetedSpell(ObjectGuid targetGuid, uint spellId)
+        public void HandleActionCastTargetedSpell(uint targetGuid, uint spellId)
         {
             var target = CurrentLandblock?.GetObject(targetGuid);
             var targetCategory = TargetCategory.UnDef;
 
             if (target != null)
             {
-                if (targetGuid == Guid)
+                if (targetGuid == Guid.Full)
                     targetCategory = TargetCategory.Self;
                 else
                     targetCategory = TargetCategory.WorldObject;
@@ -1133,7 +1133,7 @@ namespace ACE.Server.WorldObjects
             BuffMessage buff = new BuffMessage();
             buff.Spell = new Spell(spellID);
             if (buff.Spell.NotFound) return null;
-            buff.Enchantment = new Enchantment(null, null, spellID, buff.Spell.Duration, 1, (EnchantmentMask)buff.Spell.StatModType, buff.Spell.StatModVal);
+            buff.Enchantment = new Enchantment(null, 0, spellID, buff.Spell.Duration, 1, (EnchantmentMask)buff.Spell.StatModType, buff.Spell.StatModVal);
             return buff;
         }
 
