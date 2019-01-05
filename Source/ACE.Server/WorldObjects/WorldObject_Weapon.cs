@@ -290,21 +290,61 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Quest weapon fixed Resistance Cleaving equivalent to Level 5 Life Vulnerability spell
         /// </summary>
-        public static float GetWeaponResistanceModifier(Creature wielder, DamageType damageType)
+        public static float GetWeaponResistanceModifier(Creature wielder, CreatureSkill skill, DamageType damageType)
         {
-            float modifier = defaultBonusModifier;
+            float resistMod = defaultBonusModifier;
 
             WorldObject weapon = GetWeapon(wielder as Player);
 
             if (weapon == null)
                 return defaultBonusModifier;
 
-            // TODO: Resistance Rending imbue that scales with player's skill
             var weaponResistanceModifierType = weapon.GetProperty(PropertyInt.ResistanceModifierType) ?? (int)DamageType.Undef;
             if (weaponResistanceModifierType != (int)DamageType.Undef)
                 if (weaponResistanceModifierType == (int)damageType)
-                    modifier = (float)(weapon.GetProperty(PropertyFloat.ResistanceModifier) ?? defaultBonusModifier) + 1.0f;
-            return modifier;
+                    resistMod = (float)(weapon.GetProperty(PropertyFloat.ResistanceModifier) ?? defaultBonusModifier) + 1.0f;
+
+            // handle rends
+
+            // should this be combined with weapon resistance, or elemental damage mod?
+            // i think its the latter, but its already here, and resistance mod is already being handled in both physical and magic damage calcs,
+            // and it seems like the calcs should work out the same (although the cap is now applied in different places)
+
+            var rendDamageType = GetRendDamageType(damageType);
+            if (rendDamageType != ImbuedEffectType.Undef && weapon.HasImbuedEffect(rendDamageType) && skill != null)
+            {
+                var rendingMod = GetRendingMod(skill);
+                resistMod *= rendingMod;
+            }
+
+            // caps at 250% here?
+            resistMod = Math.Min(resistMod, 2.5f);
+
+            return resistMod;
+        }
+
+        public static ImbuedEffectType GetRendDamageType(DamageType damageType)
+        {
+            switch (damageType)
+            {
+                case DamageType.Slash:
+                    return ImbuedEffectType.SlashRending;
+                case DamageType.Pierce:
+                    return ImbuedEffectType.PierceRending;
+                case DamageType.Bludgeon:
+                    return ImbuedEffectType.BludgeonRending;
+                case DamageType.Fire:
+                    return ImbuedEffectType.FireRending;
+                case DamageType.Cold:
+                    return ImbuedEffectType.ColdRending;
+                case DamageType.Acid:
+                    return ImbuedEffectType.AcidRending;
+                case DamageType.Electric:
+                    return ImbuedEffectType.ElectricRending;
+                default:
+                    Console.WriteLine($"GetRendDamageType({damageType}) unexpected damage type");
+                    return ImbuedEffectType.Undef;
+            }
         }
 
         /// <summary>
