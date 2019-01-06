@@ -14,7 +14,7 @@ namespace ACE.Server.WorldObjects
 {
     partial class WorldObject
     {
-        private readonly ActionQueue actionQueue = new ActionQueue();
+        private ActionQueue actionQueue;
 
         public const int DefaultHeartbeatInterval = 5;
 
@@ -29,7 +29,8 @@ namespace ACE.Server.WorldObjects
 
         public virtual void Tick(double currentUnixTime)
         {
-            actionQueue.RunActions();
+            if (actionQueue != null)
+                actionQueue.RunActions();
 
             if (NextHeartBeatTime <= currentUnixTime)
                 HeartBeat(currentUnixTime);
@@ -41,7 +42,8 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         void IActor.RunActions()
         {
-            actionQueue.RunActions();
+            if (actionQueue != null)
+                actionQueue.RunActions();
         }
 
         /// <summary>
@@ -49,6 +51,9 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void EnqueueAction(IAction action)
         {
+            if (actionQueue == null)
+                actionQueue = new ActionQueue();
+
             actionQueue.EnqueueAction(action);
         }
 
