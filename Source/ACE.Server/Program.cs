@@ -69,8 +69,8 @@ namespace ACE.Server
             log.Info("Initializing CryptoManager...");
             CryptoManager.Initialize();
 
-            log.Info("Initializing TransferManager...");
-            TransferManager.Initialize();
+            log.Info("Initializing Web...");
+            WebManager.Initialize();
 
             log.Info("Initializing DatManager...");
             DatManager.Initialize(ConfigManager.Config.Server.DatFilesDirectory, true);
@@ -146,7 +146,7 @@ namespace ACE.Server
 
             PropertyManager.StopUpdating();
             DatabaseManager.Stop();
-            TransferManager.Stop();
+            WebManager.Shutdown();
             // Do system specific cleanup here
             try
             {

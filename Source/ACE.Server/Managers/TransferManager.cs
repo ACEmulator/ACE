@@ -8,7 +8,6 @@ using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Command;
 using ACE.Server.Network;
-using ACE.Server.TransferServer;
 using ACE.Server.WorldObjects;
 using log4net;
 using Newtonsoft.Json;
@@ -20,7 +19,6 @@ using System.IO.Compression;
 using System.Linq;
 using System.Net;
 using System.Security.Cryptography.X509Certificates;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -35,48 +33,48 @@ namespace ACE.Server.Managers
         public const string CookieChars = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
         public const string CookieRegex = @"[0-9a-zA-Z]{8}";
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-        private static TransferServerWrapper Server = null;
+
         private static readonly JsonSerializerSettings serializationSettings = new JsonSerializerSettings()
         {
             ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
             Formatting = Formatting.Indented,
             PreserveReferencesHandling = PreserveReferencesHandling.None
         };
-        private static readonly Action<TransferServerHttpRequest> HTTPRequestHandler = new Action<TransferServerHttpRequest>((req) =>
-        {
-            try
-            {
-                switch (req.Path)
-                {
-                    case "":
-                        Dictionary<string, string> query = TransferServerWrapper.ParseQueryString(req.QueryString);
-                        KeyValuePair<string, string> tuple = query.FirstOrDefault(k => k.Key == "get");
-                        if (tuple.Key == null)
-                        {
-                            break;
-                        }
-                        string cookie = tuple.Value;
-                        string filePath = GetTransferPackageFilePath(cookie);
-                        if (filePath == null)
-                        {
-                            break;
-                        }
-                        TransferServerWrapper.ServeZipFile(filePath, req.NetworkStream);
-                        log.Info($"transfer {cookie} uploaded to {req.Client.Client.RemoteEndPoint}");
-                        DeleteTransferPackageFile(cookie);
-                        // also delete original character (and log it out if neccessary) here?
-                        break;
-                    default:
-                        byte[] byaResp3 = Encoding.UTF8.GetBytes("HTTP/1.1 404 Not Found\r\n\r\n");
-                        req.NetworkStream.Write(byaResp3, 0, byaResp3.Length);
-                        break;
-                }
-            }
-            catch (Exception ex)
-            {
-                log.Error(ex);
-            }
-        });
+        //private static readonly Action<TransferServerHttpRequest> HTTPRequestHandler = new Action<TransferServerHttpRequest>((req) =>
+        //{
+        //    try
+        //    {
+        //        switch (req.Path)
+        //        {
+        //            case "":
+        //                Dictionary<string, string> query = TransferServerWrapper.ParseQueryString(req.QueryString);
+        //                KeyValuePair<string, string> tuple = query.FirstOrDefault(k => k.Key == "get");
+        //                if (tuple.Key == null)
+        //                {
+        //                    break;
+        //                }
+        //                string cookie = tuple.Value;
+        //                string filePath = GetTransferPackageFilePath(cookie);
+        //                if (filePath == null)
+        //                {
+        //                    break;
+        //                }
+        //                TransferServerWrapper.ServeZipFile(filePath, req.NetworkStream);
+        //                log.Info($"transfer {cookie} uploaded to {req.Client.Client.RemoteEndPoint}");
+        //                DeleteTransferPackageFile(cookie);
+        //                // also delete original character (and log it out if neccessary) here?
+        //                break;
+        //            default:
+        //                byte[] byaResp3 = Encoding.UTF8.GetBytes("HTTP/1.1 404 Not Found\r\n\r\n");
+        //                req.NetworkStream.Write(byaResp3, 0, byaResp3.Length);
+        //                break;
+        //        }
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        log.Error(ex);
+        //    }
+        //});
 
         public static void Initialize()
         {
@@ -100,25 +98,6 @@ namespace ACE.Server.Managers
                     log.Debug($"{deletionCount} stale transfer{plural} deleted.");
                 }
             }
-
-            Server = new TransferServerWrapper();
-            string listeningHost = ConfigManager.Config.Server.Network.Host;
-            int listeningPort = (int)ConfigManager.Config.Server.Network.Port + 2;
-            log.Info($"Binding transfer server to {listeningHost}:{listeningPort}");
-            try
-            {
-                Server.Listen(listeningHost, listeningPort, HTTPRequestHandler);
-            }
-            catch (Exception exception)
-            {
-                log.FatalFormat("Transfer server has thrown: {0}", exception.Message);
-            }
-        }
-
-        public static void Stop()
-        {
-            log.Info($"Shutting down transfer server.");
-            Server.Dispose();
         }
 
         public static void Export(Session session, params string[] parameters)
@@ -176,7 +155,7 @@ namespace ACE.Server.Managers
         /// <returns>null if non-existent, or if existent the path to the transfer package file</returns>
         public static string GetTransferPackageFilePath(string cookie)
         {
-            if (!CookieIsWellFormed(cookie))
+            if (!CookieContainsInvalidChars(cookie))
             {
                 return null;
             }
@@ -197,7 +176,7 @@ namespace ACE.Server.Managers
         /// <param name="cookie"></param>
         public static void DeleteTransferPackageFile(string cookie)
         {
-            if (!CookieIsWellFormed(cookie))
+            if (!CookieContainsInvalidChars(cookie))
             {
                 return;
             }
@@ -674,7 +653,7 @@ namespace ACE.Server.Managers
             {
                 result.BiotaPropertiesEnchantmentRegistry.Add(new BiotaPropertiesEnchantmentRegistry
                 {
-                    Id = 0,
+                    //Id = 0,
                     ObjectId = guid,
                     EnchantmentCategory = value.EnchantmentCategory,
                     SpellId = value.SpellId,
@@ -684,7 +663,7 @@ namespace ACE.Server.Managers
                     PowerLevel = value.PowerLevel,
                     StartTime = value.StartTime,
                     Duration = value.Duration,
-                    CasterObjectId = value.CasterObjectId,
+                    CasterObjectId = value.CasterObjectId,//perhaps this needs foreign PK to be scrubbed out as well
                     DegradeModifier = value.DegradeModifier,
                     DegradeLimit = value.DegradeLimit,
                     LastTimeDegraded = value.LastTimeDegraded,
@@ -862,13 +841,13 @@ namespace ACE.Server.Managers
         }
 
         /// <summary>
-        /// Check to make sure the form and composition of the cookie is good
+        /// Check to see if the composition of the cookie is not good.
         /// </summary>
         /// <param name="cookie"></param>
-        /// <returns></returns>
-        private static bool CookieIsWellFormed(string cookie)
+        /// <returns>If cookie is null returns false.  If cookie is not null and contains one or more invalid characters returns true.</returns>
+        public static bool CookieContainsInvalidChars(string cookie)
         {
-            if (cookie == null || cookie.Length != CookieLength)
+            if (cookie == null)
             {
                 return false;
             }
@@ -876,10 +855,10 @@ namespace ACE.Server.Managers
             {
                 if (!CookieChars.Contains(c))
                 {
-                    return false;
+                    return true;
                 }
             }
-            return true;
+            return false;
         }
 
         private class CharacterSnapshot

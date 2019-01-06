@@ -25,7 +25,7 @@ namespace ACE.Server.Managers
         /// The thumbprint of the certified public key
         /// </summary>
         public static string Thumbprint => Certificate.Thumbprint;
-        private static X509Certificate2 Certificate { get; set; } = null;
+        public static X509Certificate2 Certificate { get; private set; } = null;
         private const string CertFileName = "server.pfx";
 
         public static void Initialize()
