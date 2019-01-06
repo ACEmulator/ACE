@@ -5,21 +5,21 @@ namespace ACE.Server.WorldObjects
 {
     partial class Creature
     {
-        private static readonly TimeSpan monsterTickInterval = TimeSpan.FromMilliseconds(200);
+        private const double monsterTickInterval = 0.2;
 
-        private DateTime lastMonsterTick;
+        private double nextMonsterTickTime;
 
-        private bool FirstUpdate = true;
+        private bool firstUpdate = true;
 
         /// <summary>
         /// Primary dispatch for monster think
         /// </summary>
         private void Monster_Tick(double currentUnixTime)
         {
-            if (lastMonsterTick + monsterTickInterval > DateTime.UtcNow)
+            if (nextMonsterTickTime > currentUnixTime)
                 return;
 
-            lastMonsterTick = DateTime.UtcNow;
+            nextMonsterTickTime = currentUnixTime + monsterTickInterval;
 
             if (!IsAwake || IsDead) return;
 
@@ -51,7 +51,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if (FirstUpdate)
+            if (firstUpdate)
             {
                 if (CurrentMotionState.Stance == MotionStance.NonCombat)
                     DoAttackStance();
@@ -63,7 +63,7 @@ namespace ACE.Server.WorldObjects
                     return;
                 }
 
-                FirstUpdate = false;
+                firstUpdate = false;
             }
 
             // select a new weapon if missile launcher is out of ammo
