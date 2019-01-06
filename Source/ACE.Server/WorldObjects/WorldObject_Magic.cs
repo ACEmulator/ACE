@@ -791,7 +791,7 @@ namespace ACE.Server.WorldObjects
                             else
                             {
                                 if (itemCaster.Location != null)
-                                    summonLoc = itemCaster.Location;
+                                    summonLoc = itemCaster.Location.InFrontOf(3.0f);
                                 else if (itemCaster.OwnerId.HasValue)
                                 {
                                     player = PlayerManager.GetOnlinePlayer(new ObjectGuid(itemCaster.OwnerId.Value));
