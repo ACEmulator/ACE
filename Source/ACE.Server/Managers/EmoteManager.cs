@@ -628,7 +628,7 @@ namespace ACE.Server.Managers
                                 var motionTable = DatManager.PortalDat.ReadFromDat<DatLoader.FileTypes.MotionTable>(WorldObject.MotionTableId);
                                 var animLength = motionTable.GetAnimationLength(WorldObject.CurrentMotionState.Stance, (MotionCommand)emote.Motion, MotionCommand.Ready);
 
-                                WorldObject.ExecuteMotion(motion, true, maxRange);
+                                WorldObject.ExecuteMotion(motion, true, maxRange, true);
 
                                 var motionChain = new ActionChain();
                                 motionChain.AddDelaySeconds(animLength);

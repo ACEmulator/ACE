@@ -163,6 +163,9 @@ namespace ACE.Server.WorldObjects
             if (PhysicsObj == null || !PhysicsObj.is_active())
                 return false;
 
+            if (PhysicsObj.IsAnimatingDone)
+                return false;
+
             // arrows / spell projectiles
             var isMissile = Missile ?? false;
 
