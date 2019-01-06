@@ -19,6 +19,7 @@ namespace ACE.Server.WorldObjects
 
         protected double? cachedHeartbeatTimestamp;
         protected double cachedHeartbeatInterval;
+        public double nextHeartbeatTimestamp;
 
         public virtual void Tick(double currentUnixTime)
         {
@@ -29,7 +30,8 @@ namespace ACE.Server.WorldObjects
                 cachedHeartbeatInterval = HeartbeatInterval ?? DefaultHeartbeatInterval;
                 QueueFirstHeartbeat(currentUnixTime);
             }
-            else if (cachedHeartbeatTimestamp + cachedHeartbeatInterval <= currentUnixTime)
+            //else if (cachedHeartbeatTimestamp + cachedHeartbeatInterval <= currentUnixTime)
+            else if (nextHeartbeatTimestamp <= currentUnixTime)
                 HeartBeat(currentUnixTime);
         }
 
@@ -58,9 +60,9 @@ namespace ACE.Server.WorldObjects
         {
             var delay = ThreadSafeRandom.Next(0.0f, DefaultHeartbeatInterval);
 
-            var firstHeartbeat = currentUnixTime + delay;
+            nextHeartbeatTimestamp = currentUnixTime + delay;
 
-            cachedHeartbeatTimestamp = firstHeartbeat - cachedHeartbeatInterval;
+            cachedHeartbeatTimestamp = nextHeartbeatTimestamp - cachedHeartbeatInterval;
         }
 
         /// <summary>
@@ -68,13 +70,16 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public virtual void HeartBeat(double currentUnixTime)
         {
-            Generator_HeartBeat();
+            if (IsGenerator)
+                Generator_HeartBeat();
 
-            EmoteManager.HeartBeat();
+            EmoteManager.HeartBeat();   // only needed for creatures?
 
             EnchantmentManager.HeartBeat();
 
             cachedHeartbeatTimestamp = currentUnixTime;
+            nextHeartbeatTimestamp = currentUnixTime + cachedHeartbeatInterval;
+
             SetProperty(PropertyFloat.HeartbeatTimestamp, currentUnixTime);
         }
 

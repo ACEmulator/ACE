@@ -279,7 +279,7 @@ namespace ACE.Server.Entity
             var wos = worldObjects.Values.ToList();
 
             // When a WorldObject Ticks, it can end up adding additional WorldObjects to this landblock
-            foreach (var wo in wos)
+            foreach (var wo in wos.Where(wo => wo.nextHeartbeatTimestamp <= currentUnixTime))
                 wo.Tick(currentUnixTime);
 
             // Heartbeat
