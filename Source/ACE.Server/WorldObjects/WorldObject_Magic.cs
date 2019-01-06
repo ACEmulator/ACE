@@ -782,11 +782,6 @@ namespace ACE.Server.WorldObjects
                             break;
                         }
 
-                        //if (destination != null)
-                        //    SummonPortal(portalId, destination, spell.PortalLifetime);
-                        //else
-                        //    SummonPortal(portalId, spell.PortalLifetime);
-
                         if (player != null)
                             summonLoc = player.Location.InFrontOf(3.0f);
                         else if (itemCaster != null)
@@ -795,8 +790,9 @@ namespace ACE.Server.WorldObjects
                                 summonLoc = PortalSummonLoc;
                             else
                             {
-                                //summonLoc = itemCaster.Location;
-                                if (itemCaster.OwnerId.HasValue)
+                                if (itemCaster.Location != null)
+                                    summonLoc = itemCaster.Location;
+                                else if (itemCaster.OwnerId.HasValue)
                                 {
                                     player = PlayerManager.GetOnlinePlayer(new ObjectGuid(itemCaster.OwnerId.Value));
                                     summonLoc = player.Location.InFrontOf(3.0f);
@@ -840,9 +836,6 @@ namespace ACE.Server.WorldObjects
             if (gateway == null || !(gateway is Portal)) return false;
             gateway.Location = new Position(location);
 
-            //var destination = weenie.WeeniePropertiesPosition.Where(x => x.PositionType == (ushort)PositionType.Destination).FirstOrDefault();
-            //if (destination == null) return false;
-            //portal.Destination = new Position(destination.ObjCellId, destination.OriginX, destination.OriginY, destination.OriginZ, destination.AnglesX, destination.AnglesY, destination.AnglesZ, destination.AnglesW);
             gateway.UpdatePortalDestination(new Position(portal.Destination));
 
             gateway.TimeToRot = portalLifetime;

@@ -37,7 +37,6 @@ namespace ACE.Server.WorldObjects
 
             MinLevel = MinLevel ?? 0;
             MaxLevel = MaxLevel ?? 0;
-            //PortalRestrictions = PortalBitmask ?? ACE.Entity.Enum.PortalBitmask.Unrestricted;
 
             UpdatePortalDestination(Destination);
         }
@@ -92,22 +91,8 @@ namespace ACE.Server.WorldObjects
         public int SocietyId => 0;
 
         public bool NoRecall => (PortalRestrictions & PortalBitmask.NoRecall) != 0;
-        //{
-        //    get
-        //    {
-        //        if ((((int)PortalBitmask & (int)ACE.Entity.Enum.PortalBitmask.NoRecall) >> 5) == 1) return true;
-        //        else return false;
-        //    }
-        //}
 
         public bool NoSummon => (PortalRestrictions & PortalBitmask.NoSummon) != 0;
-        //{
-        //    get
-        //    {
-        //        if ((((int)PortalBitmask & (int)ACE.Entity.Enum.PortalBitmask.NoSummon) >> 4) == 1) return true;
-        //        else return false;
-        //    }
-        //}
 
         public bool NoTie => NoRecall;
 
