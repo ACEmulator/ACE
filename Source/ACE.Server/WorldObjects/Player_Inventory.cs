@@ -1072,7 +1072,10 @@ namespace ACE.Server.WorldObjects
             Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, newStack, container));
 
             AdjustStack(stack, -amount, stackFoundInContainer, stackRootOwner);
-            Session.Network.EnqueueSend(new GameMessageSetStackSize(stack));
+            if (stackRootOwner == null)
+                EnqueueBroadcast(new GameMessageSetStackSize(stack));
+            else
+                Session.Network.EnqueueSend(new GameMessageSetStackSize(stack));
 
             return true;
         }
@@ -1307,7 +1310,10 @@ namespace ACE.Server.WorldObjects
             else // The merge will reduce the size of the source stack
             {
                 AdjustStack(sourceStack, -amount, sourceStackFoundInContainer, sourceStackRootOwner);
-                Session.Network.EnqueueSend(new GameMessageSetStackSize(sourceStack));
+                if (sourceStackRootOwner == null)
+                    EnqueueBroadcast(new GameMessageSetStackSize(sourceStack));
+                else
+                    Session.Network.EnqueueSend(new GameMessageSetStackSize(sourceStack));
 
                 AdjustStack(targetStack, amount, targetStackFoundInContainer, targetStackRootOwner);
                 Session.Network.EnqueueSend(new GameMessageSetStackSize(targetStack));
