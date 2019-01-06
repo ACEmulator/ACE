@@ -71,8 +71,6 @@ namespace ACE.Server.WorldObjects
             if (IsGenerator)
                 Generator_HeartBeat();
 
-            EmoteManager.HeartBeat();
-
             EnchantmentManager.HeartBeat();
 
             cachedHeartbeatTimestamp = currentUnixTime;

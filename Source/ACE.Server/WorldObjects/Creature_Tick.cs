@@ -20,7 +20,7 @@ namespace ACE.Server.WorldObjects
         {
             VitalHeartBeat();
 
-            // item enchantment ticks?
+            EmoteManager.HeartBeat();
 
             base.HeartBeat(currentUnixTime);
         }
