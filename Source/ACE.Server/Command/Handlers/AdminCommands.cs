@@ -1761,7 +1761,24 @@ namespace ACE.Server.Command.Handlers
 
             // todo, expand this
             var activeLandblocks = LandblockManager.GetActiveLandblocks();
-            sb.Append($"{activeLandblocks.Count:N0} active landblocks.{'\n'}"); // 11 total blocks loaded. 11 active. 0 pending dormancy. 0 dormant. 314 unloaded.
+            int players = 0, creatures = 0, missiles = 0, other = 0, total = 0;
+            foreach (var landblock in activeLandblocks)
+            {
+                foreach (var worldObject in landblock.GetAllWorldObjectsForDiagnostics())
+                {
+                    if (worldObject is Player)
+                        players++;
+                    else if (worldObject is Creature)
+                        creatures++;
+                    else if (worldObject.Missile ?? false)
+                        missiles++;
+                    else
+                        other++;
+
+                    total++;
+                }
+            }
+            sb.Append($"{activeLandblocks.Count:N0} active landblocks - Players: {players:N0}, Creatures: {creatures:N0}, Missiles: {missiles:N0}, Other: {other:N0}, Total: {total:N0}.{'\n'}"); // 11 total blocks loaded. 11 active. 0 pending dormancy. 0 dormant. 314 unloaded.
             // 11 total blocks loaded. 11 active. 0 pending dormancy. 0 dormant. 314 unloaded.
 
             sb.Append($"World DB Cache Counts - Weenies: {DatabaseManager.World.GetWeenieCacheCount():N0}, LandblockInstances: {DatabaseManager.World.GetLandblockInstancesCacheCount():N0}, PointsOfInterest: {DatabaseManager.World.GetPointsOfInterestCacheCount():N0}, Cookbooks: {DatabaseManager.World.GetCookbookCacheCount():N0}, Spells: {DatabaseManager.World.GetSpellCacheCount():N0}, Encounters: {DatabaseManager.World.GetEncounterCacheCount():N0}, Events: {DatabaseManager.World.GetEventsCacheCount():N0}{'\n'}");
