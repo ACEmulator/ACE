@@ -298,7 +298,7 @@ namespace ACE.Server.WorldObjects
             GameMessageSystemChat targetMsg = null;
 
             var player = this as Player;
-            var creature = this as Creature;            
+            var creature = this as Creature;
 
             var spellTarget = spell.BaseRangeConstant > 0 ? target as Creature : creature;
 
