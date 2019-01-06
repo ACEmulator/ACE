@@ -510,7 +510,7 @@ namespace ACE.Server.Physics.Animation
                 return false;
             }
 
-            if (ObjectInfo.State.HasFlag(ObjectInfoState.FreeRotate))
+            if ((ObjectInfo.State & ObjectInfoState.FreeRotate) != 0)
                 SpherePath.CurPos.Frame.set_rotate(SpherePath.EndPos.Frame.Orientation);
 
             SpherePath.SetCheckPos(SpherePath.CurPos, SpherePath.CurCell);
@@ -518,7 +518,7 @@ namespace ACE.Server.Physics.Animation
             var redo = 0;
             if (numSteps <= 0)
             {
-                if (!ObjectInfo.State.HasFlag(ObjectInfoState.FreeRotate))  // ?
+                if ((ObjectInfo.State & ObjectInfoState.FreeRotate) == 0)  // ?
                     SpherePath.CurPos.Frame.set_rotate(SpherePath.EndPos.Frame.Orientation);
 
                 SpherePath.CellArrayValid = true;
@@ -531,7 +531,7 @@ namespace ACE.Server.Physics.Animation
 
             for (var step = 0; step < numSteps; step++)
             {
-                if (ObjectInfo.State.HasFlag(ObjectInfoState.IsViewer))
+                if ((ObjectInfo.State & ObjectInfoState.IsViewer) != 0)
                 {
                     var lastStep = numSteps - 1;
 
@@ -546,14 +546,14 @@ namespace ACE.Server.Physics.Animation
                     }
                 }
                 SpherePath.GlobalOffset = AdjustOffset(offsetPerStep);
-                if (!ObjectInfo.State.HasFlag(ObjectInfoState.IsViewer))
+                if ((ObjectInfo.State & ObjectInfoState.IsViewer) == 0)
                 {
                     if (SpherePath.GlobalOffset.LengthSquared() < PhysicsGlobals.EPSILON * PhysicsGlobals.EPSILON)
                     {
                         return (step != 0 && transitionState == TransitionState.OK);
                     }
                 }
-                if (!ObjectInfo.State.HasFlag(ObjectInfoState.FreeRotate))
+                if ((ObjectInfo.State & ObjectInfoState.FreeRotate) == 0)
                 {
                     redo = step + 1;
                     var delta = (float)redo / numSteps;
@@ -587,7 +587,7 @@ namespace ACE.Server.Physics.Animation
                     if (CollisionInfo.FramesStationaryFall > 0) break;
                 }
 
-                if (CollisionInfo.CollisionNormalValid && ObjectInfo.State.HasFlag(ObjectInfoState.PathClipped)) break;
+                if (CollisionInfo.CollisionNormalValid && (ObjectInfo.State & ObjectInfoState.PathClipped) != 0) break;
             }
 
             return transitionState == TransitionState.OK;
@@ -729,7 +729,7 @@ namespace ACE.Server.Physics.Animation
             SpherePath.StepDown = false;
 
             if (transitionState == TransitionState.OK && CollisionInfo.ContactPlaneValid && CollisionInfo.ContactPlane.Normal.Z >= zVal &&
-                (!ObjectInfo.State.HasFlag(ObjectInfoState.EdgeSlide) || SpherePath.StepUp || CheckWalkable(zVal)))
+                ((ObjectInfo.State & ObjectInfoState.EdgeSlide) == 0 || SpherePath.StepUp || CheckWalkable(zVal)))
             {
                 SpherePath.Backup = SpherePath.InsertType;
                 SpherePath.InsertType = InsertType.Placement;
@@ -840,7 +840,7 @@ namespace ACE.Server.Physics.Animation
                         }
                         else
                         {
-                            if (CollisionInfo.ContactPlaneValid || !ObjectInfo.State.HasFlag(ObjectInfoState.Contact) ||
+                            if (CollisionInfo.ContactPlaneValid || (ObjectInfo.State & ObjectInfoState.Contact) == 0 ||
                                 SpherePath.StepDown || SpherePath.CheckCell == null || ObjectInfo.StepDown)
                             {
                                 return TransitionState.OK;
@@ -849,7 +849,7 @@ namespace ACE.Server.Physics.Animation
                             var zVal = PhysicsGlobals.LandingZ;
                             var stepDownHeight = 0.039999999f;  // set global
 
-                            if (ObjectInfo.State.HasFlag(ObjectInfoState.OnWalkable))
+                            if ((ObjectInfo.State & ObjectInfoState.OnWalkable) != 0)
                             {
                                 zVal = ObjectInfo.GetWalkableZ();
                                 stepDownHeight = ObjectInfo.StepDownHeight;
