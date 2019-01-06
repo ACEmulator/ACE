@@ -1,35 +1,33 @@
 using System;
 using ACE.Entity.Enum;
+using ACE.Server.Entity.Actions;
 
 namespace ACE.Server.WorldObjects
 {
     partial class Creature
     {
-        private static readonly TimeSpan monsterTickInterval = TimeSpan.FromMilliseconds(200);
-
-        private DateTime lastMonsterTick;
+        private static readonly float monsterTickInterval = 0.2f;
 
         private bool FirstUpdate = true;
 
         /// <summary>
         /// Primary dispatch for monster think
         /// </summary>
-        private void Monster_Tick(double currentUnixTime)
+        private void Monster_Tick()
         {
-            if (lastMonsterTick + monsterTickInterval > DateTime.UtcNow)
-                return;
-
-            lastMonsterTick = DateTime.UtcNow;
-
             if (!IsAwake || IsDead) return;
+
+            IsMonster = true;
 
             HandleFindTarget();
 
             CheckMissHome();    // tickrate?
 
-            if (AttackTarget == null && MonsterState != State.Return) return;
-
-            IsMonster = true;
+            if (AttackTarget == null && MonsterState != State.Return)
+            {
+                Sleep();
+                return;
+            }
 
             var pet = this as CombatPet;
             if (pet != null && DateTime.UtcNow >= pet.ExpirationTime)
@@ -41,6 +39,7 @@ namespace ACE.Server.WorldObjects
             if (MonsterState == State.Return)
             {
                 Movement();
+                EnqueueNextMonsterTick();
                 return;
             }
 
@@ -60,6 +59,7 @@ namespace ACE.Server.WorldObjects
                 {
                     //PhysicsObj.ShowPendingMotions();
                     PhysicsObj.update_object();
+                    EnqueueNextMonsterTick();
                     return;
                 }
 
@@ -125,6 +125,7 @@ namespace ACE.Server.WorldObjects
                 if (IsTurning || IsMoving)
                 {
                     Movement();
+                    EnqueueNextMonsterTick();
                     return;
                 }
 
@@ -143,6 +144,16 @@ namespace ACE.Server.WorldObjects
             // pets drawing aggro
             if (pet != null)
                 pet.PetCheckMonsters();
+
+            EnqueueNextMonsterTick();
+        }
+
+        public void EnqueueNextMonsterTick()
+        {
+            var actionChain = new ActionChain(this);
+            actionChain.AddDelaySeconds(monsterTickInterval);
+            actionChain.AddAction(Monster_Tick);
+            actionChain.EnqueueChain();
         }
     }
 }

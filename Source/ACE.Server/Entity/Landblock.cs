@@ -274,15 +274,16 @@ namespace ACE.Server.Entity
 
         public void Tick(double currentUnixTime)
         {
-            actionQueue.RunActions();
+            if (actionQueue.NextActionTime <= currentUnixTime)
+                actionQueue.RunActions();
 
             // FIXME, THIS LINE IS A HUGE PROBLEM!
             // this is making a copy of every WO in the world 60x per second....
             //var wos = worldObjects.Values.ToList();
 
             // When a WorldObject Ticks, it can end up adding additional WorldObjects to this landblock
-            foreach (var wo in worldObjects.Values.Where(wo => wo.nextHeartbeatTimestamp <= currentUnixTime || wo.actionQueue.NextActionTime <= currentUnixTime).ToList())
-                wo.Tick(currentUnixTime);
+            foreach (var wo in worldObjects.Values.Where(wo => wo.ActionQueue.NextActionTime <= currentUnixTime).ToList())
+                wo.ActionQueue.RunActions();
 
             // Heartbeat
             if (lastHeartBeat + heartbeatInterval <= DateTime.UtcNow)

@@ -377,9 +377,13 @@ namespace ACE.Server.Managers
 
                 PlayerManager.Tick();
 
-                InboundClientMessageQueue.RunActions();
+                var currentTime = Time.GetUnixTime();
 
-                playerEnterWorldQueue.RunActions();
+                if (InboundClientMessageQueue.NextActionTime <= currentTime)
+                    InboundClientMessageQueue.RunActions();
+
+                if (playerEnterWorldQueue.NextActionTime <= currentTime)
+                    playerEnterWorldQueue.RunActions();
 
                 //DelayManager.RunActions();
 

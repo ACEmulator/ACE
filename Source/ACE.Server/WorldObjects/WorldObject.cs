@@ -30,7 +30,7 @@ using Position = ACE.Entity.Position;
 
 namespace ACE.Server.WorldObjects
 {
-    public abstract partial class WorldObject/* : IActor*/
+    public abstract partial class WorldObject
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -219,7 +219,9 @@ namespace ACE.Server.WorldObjects
         }
 
         private void SetEphemeralValues()
-        { 
+        {
+            ActionQueue = new ActionQueue(this);
+
             foreach (var x in Biota.BiotaPropertiesBool.Where(i => EphemeralProperties.PropertiesBool.Contains(i.Type)).ToList())
                 ephemeralPropertyBools[(PropertyBool)x.Type] = x.Value;
             foreach (var x in Biota.BiotaPropertiesDID.Where(i => EphemeralProperties.PropertiesDataId.Contains(i.Type)).ToList())
@@ -257,6 +259,7 @@ namespace ACE.Server.WorldObjects
                 Placement = ACE.Entity.Enum.Placement.Resting;
 
             //CurrentMotionState = new Motion(MotionStance.Invalid, new MotionItem(MotionCommand.Invalid));
+            QueueFirstHeartbeat();
         }
 
         /// <summary>

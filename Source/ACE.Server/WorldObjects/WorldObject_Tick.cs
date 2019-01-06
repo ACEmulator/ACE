@@ -1,6 +1,7 @@
 using System;
 using System.Numerics;
 
+using ACE.Common;
 using ACE.Entity;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
@@ -13,83 +14,56 @@ namespace ACE.Server.WorldObjects
 {
     partial class WorldObject
     {
-        public readonly ActionQueue actionQueue = new ActionQueue();
+        public ActionQueue ActionQueue;
 
-        public const int DefaultHeartbeatInterval = 5;
+        public const float DefaultHeartbeatInterval = 5.0f;
 
-        protected double? cachedHeartbeatTimestamp;
         protected double cachedHeartbeatInterval;
-        public double nextHeartbeatTimestamp;
-
-        public virtual void Tick(double currentUnixTime)
-        {
-            actionQueue.RunActions();
-
-            if (cachedHeartbeatTimestamp == null)
-            {
-                cachedHeartbeatInterval = HeartbeatInterval ?? DefaultHeartbeatInterval;
-                QueueFirstHeartbeat(currentUnixTime);
-            }
-            //else if (cachedHeartbeatTimestamp + cachedHeartbeatInterval <= currentUnixTime)
-            else if (nextHeartbeatTimestamp <= currentUnixTime)
-                HeartBeat(currentUnixTime);
-        }
-
 
         /// <summary>
-        /// Runs all actions pending on this WorldObject
+        /// Called every ~5 seconds for WorldObject base
         /// </summary>
-        /*void IActor.RunActions()
+        public virtual void HeartBeat()
         {
-            actionQueue.RunActions();
-        }*/
+            if (IsGenerator)
+                Generator_HeartBeat();
 
-        /// <summary>
-        /// Prepare new action to run on this object
-        /// </summary>
-        /*public void EnqueueAction(IAction action)
-        {
-            actionQueue.EnqueueAction(action);
-        }*/
+            EnchantmentManager.HeartBeat();
 
-        public void EnqueueAction(Action action)
-        {
-            actionQueue.EnqueueAction(this, action);
-        }
+            var currentUnixTime = Time.GetUnixTime();
 
-        public void EnqueueChain(ActionChain actionChain)
-        {
-            actionQueue.EnqueueChain(actionChain);
+            //SetProperty(PropertyFloat.HeartbeatTimestamp, currentUnixTime);
+
+            var actionChain = new ActionChain(this);
+            actionChain.AddDelaySeconds(cachedHeartbeatInterval);
+            actionChain.AddAction(HeartBeat);
+            actionChain.EnqueueChain();
         }
 
         /// <summary>
         /// Enqueues the first heartbeat on a staggered 0-5s delay
         /// </summary>
-        public void QueueFirstHeartbeat(double currentUnixTime)
+        public void QueueFirstHeartbeat()
         {
+            cachedHeartbeatInterval = HeartbeatInterval ?? DefaultHeartbeatInterval;
+
             var delay = ThreadSafeRandom.Next(0.0f, DefaultHeartbeatInterval);
 
-            nextHeartbeatTimestamp = currentUnixTime + delay;
-
-            cachedHeartbeatTimestamp = nextHeartbeatTimestamp - cachedHeartbeatInterval;
+            var actionChain = new ActionChain(this);
+            actionChain.AddDelaySeconds(delay);
+            actionChain.AddAction(HeartBeat);
+            actionChain.EnqueueChain();
         }
 
-        /// <summary>
-        /// Called every ~5 seconds for WorldObject base
-        /// </summary>
-        public virtual void HeartBeat(double currentUnixTime)
+
+        public void EnqueueAction(Action action)
         {
-            if (IsGenerator)
-                Generator_HeartBeat();
+            ActionQueue.EnqueueAction(action);
+        }
 
-            EmoteManager.HeartBeat();   // only needed for creatures?
-
-            EnchantmentManager.HeartBeat();
-
-            cachedHeartbeatTimestamp = currentUnixTime;
-            nextHeartbeatTimestamp = currentUnixTime + cachedHeartbeatInterval;
-
-            SetProperty(PropertyFloat.HeartbeatTimestamp, currentUnixTime);
+        public void EnqueueChain(ActionChain actionChain)
+        {
+            ActionQueue.EnqueueChain(actionChain);
         }
 
 

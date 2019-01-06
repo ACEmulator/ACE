@@ -17,7 +17,7 @@ namespace ACE.Server.Entity.Actions
 
         public double NextActionTime => Actions.Count > 0 ? Actions.First().RunTime : double.MaxValue;
 
-        public bool IsComplete => !Actions.Any();
+        public bool IsComplete => Actions.Count == 0;
 
         public ActionChain()
         {
@@ -96,17 +96,23 @@ namespace ACE.Server.Entity.Actions
             WorldObject.EnqueueChain(this);
         }
 
-        public void RunActions()
+        public bool RunActions()
         {
-            var success = Actions.TryPeek(out var nextAction);
+            var hasActions = Actions.TryPeek(out var nextAction);
 
-            while (success && nextAction.RunTime <= Time.GetUnixTime())
+            if (!hasActions)
+                return false;
+
+            while (nextAction.RunTime <= Time.GetUnixTime())
             {
                 nextAction.Action.Invoke();
                 Actions.Dequeue();
 
-                success = Actions.TryPeek(out nextAction);
+                hasActions = Actions.TryPeek(out nextAction);
+                if (!hasActions)
+                    return false;
             }
+            return true;
         }
     }
 }

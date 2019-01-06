@@ -12,8 +12,36 @@ namespace ACE.Server.WorldObjects
 
         private DateTime lastSendAgeIntUpdateTime;
 
-        public override void Tick(double currentUnixTime)
+        /// <summary>
+        /// Called every ~5 seconds for Players
+        /// </summary>
+        public override void HeartBeat()
         {
+            NotifyLandblocks();
+
+            ManaConsumersTick();
+
+            HandleTargetVitals();
+
+            LifestoneProtectionTick();
+
+            PK_DeathTick();
+
+            AgeTick();
+
+            // Check if we're due for our periodic SavePlayer
+            if (LastRequestedDatabaseSave == DateTime.MinValue)
+                LastRequestedDatabaseSave = DateTime.UtcNow;
+
+            if (LastRequestedDatabaseSave + PlayerSaveInterval <= DateTime.UtcNow)
+                SavePlayerToDatabase();
+
+            base.HeartBeat();
+        }
+
+        public void AgeTick()
+        {
+            // fixme: separate age action, with ageTickInterval delay
             if (initialAgeTime == DateTime.MinValue)
             {
                 initialAge = Age ?? 1;
@@ -30,33 +58,6 @@ namespace ACE.Server.WorldObjects
                 Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.Age, Age ?? 1));
                 lastSendAgeIntUpdateTime = DateTime.UtcNow;
             }
-
-            base.Tick(currentUnixTime);
-        }
-
-        /// <summary>
-        /// Called every ~5 seconds for Players
-        /// </summary>
-        public override void HeartBeat(double currentUnixTime)
-        {
-            NotifyLandblocks();
-
-            ManaConsumersTick();
-
-            HandleTargetVitals();
-
-            LifestoneProtectionTick();
-
-            PK_DeathTick();
-
-            // Check if we're due for our periodic SavePlayer
-            if (LastRequestedDatabaseSave == DateTime.MinValue)
-                LastRequestedDatabaseSave = DateTime.UtcNow;
-
-            if (LastRequestedDatabaseSave + PlayerSaveInterval <= DateTime.UtcNow)
-                SavePlayerToDatabase();
-
-            base.HeartBeat(currentUnixTime);
         }
     }
 }
