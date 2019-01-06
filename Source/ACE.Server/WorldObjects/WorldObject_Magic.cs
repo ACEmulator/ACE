@@ -50,16 +50,13 @@ namespace ACE.Server.WorldObjects
                     WarMagic(target, spell);
                     break;
                 case MagicSchool.LifeMagic:
-                    LifeMagic(target, spell, out uint damage, out bool critical, out status);
+                    LifeMagic(target, spell, out uint damage, out bool critical, out status, caster);
                     break;
                 case MagicSchool.CreatureEnchantment:
-                    status = CreatureMagic(target, spell);
+                    status = CreatureMagic(target, spell, caster);
                     break;
                 case MagicSchool.ItemEnchantment:
-                    if (caster == null)
-                        status = ItemMagic(target, spell);
-                    else
-                        status = ItemMagic(target, spell, caster);
+                    status = ItemMagic(target, spell, caster);
                     break;
                 case MagicSchool.VoidMagic:
                     VoidMagic(target, spell);
