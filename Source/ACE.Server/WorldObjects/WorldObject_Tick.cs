@@ -1,6 +1,7 @@
 using System;
 using System.Numerics;
 
+using ACE.Common;
 using ACE.Entity;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
@@ -17,19 +18,20 @@ namespace ACE.Server.WorldObjects
 
         public const int DefaultHeartbeatInterval = 5;
 
-        protected double? cachedHeartbeatTimestamp;
-        protected double cachedHeartbeatInterval;
+        protected double CachedHeartbeatInterval;
+        protected double? NextHeartBeatTime;
+
+        private void InitializeTick()
+        {
+            CachedHeartbeatInterval = HeartbeatInterval ?? DefaultHeartbeatInterval;
+            QueueFirstHeartbeat(Time.GetUnixTime());
+        }
 
         public virtual void Tick(double currentUnixTime)
         {
             actionQueue.RunActions();
 
-            if (cachedHeartbeatTimestamp == null)
-            {
-                cachedHeartbeatInterval = HeartbeatInterval ?? DefaultHeartbeatInterval;
-                QueueFirstHeartbeat(currentUnixTime);
-            }
-            else if (cachedHeartbeatTimestamp + cachedHeartbeatInterval <= currentUnixTime)
+            if (NextHeartBeatTime <= currentUnixTime)
                 HeartBeat(currentUnixTime);
         }
 
@@ -56,11 +58,9 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void QueueFirstHeartbeat(double currentUnixTime)
         {
-            var delay = ThreadSafeRandom.Next(0.0f, DefaultHeartbeatInterval);
+            var delay = ThreadSafeRandom.Next(0.0f, (float)CachedHeartbeatInterval);
 
-            var firstHeartbeat = currentUnixTime + delay;
-
-            cachedHeartbeatTimestamp = firstHeartbeat - cachedHeartbeatInterval;
+            NextHeartBeatTime = currentUnixTime + delay;
         }
 
         /// <summary>
@@ -73,8 +73,8 @@ namespace ACE.Server.WorldObjects
 
             EnchantmentManager.HeartBeat();
 
-            cachedHeartbeatTimestamp = currentUnixTime;
             SetProperty(PropertyFloat.HeartbeatTimestamp, currentUnixTime);
+            NextHeartBeatTime = currentUnixTime + CachedHeartbeatInterval;
         }
 
 
