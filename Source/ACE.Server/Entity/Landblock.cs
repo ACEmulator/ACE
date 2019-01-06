@@ -278,10 +278,10 @@ namespace ACE.Server.Entity
 
             // FIXME, THIS LINE IS A HUGE PROBLEM!
             // this is making a copy of every WO in the world 60x per second....
-            var wos = worldObjects.Values.ToList();
+            //var wos = worldObjects.Values.ToList();
 
             // When a WorldObject Ticks, it can end up adding additional WorldObjects to this landblock
-            foreach (var wo in wos.Where(wo => wo.nextHeartbeatTimestamp <= currentUnixTime || wo.actionQueue.NextActionTime <= currentUnixTime))
+            foreach (var wo in worldObjects.Values.Where(wo => wo.nextHeartbeatTimestamp <= currentUnixTime || wo.actionQueue.NextActionTime <= currentUnixTime).ToList())
                 wo.Tick(currentUnixTime);
 
             // Heartbeat
@@ -290,10 +290,9 @@ namespace ACE.Server.Entity
                 var thisHeartBeat = DateTime.UtcNow;
 
                 // Decay world objects
-                foreach (var wo in wos)
+                foreach (var wo in worldObjects.Values.Where(wo => wo.IsDecayable()).ToList())
                 {
-                    if (wo.IsDecayable())
-                        wo.Decay(thisHeartBeat - lastHeartBeat);
+                    wo.Decay(thisHeartBeat - lastHeartBeat);
                 }
 
                 if (!Permaload && lastActiveTime + unloadInterval < thisHeartBeat)
