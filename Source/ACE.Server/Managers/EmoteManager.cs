@@ -162,7 +162,11 @@ namespace ACE.Server.Managers
 
                     // todo: missing windup?
                     if (creature != null && targetObject != null)
-                        creature.CreateCreatureSpell(targetObject.Guid, (uint)emote.SpellId);
+                    {
+                        //creature.CreateCreatureSpell(targetObject.Guid, (uint)emote.SpellId);
+                        var spell = new Spell((uint)emote.SpellId);
+                        creature.TryCastSpell(spell, targetObject, creature);
+                    }
                     break;
 
                 case EmoteType.CastSpellInstant:
