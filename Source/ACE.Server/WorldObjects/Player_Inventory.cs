@@ -887,8 +887,13 @@ namespace ACE.Server.WorldObjects
             return true;
         }
 
+        public static bool UseWieldRequirements = true;
+
         private WeenieError CheckWieldRequirement(WorldObject item)
         {
+            if (!UseWieldRequirements)
+                return WeenieError.None;
+
             var itemWieldReq = (WieldRequirement)(item.GetProperty(PropertyInt.WieldRequirements) ?? 0);
 
             switch (itemWieldReq)
