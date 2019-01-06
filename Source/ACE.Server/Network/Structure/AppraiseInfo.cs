@@ -131,6 +131,9 @@ namespace ACE.Server.Network.Structure
 
             if (wielder != null && PropertiesFloat.ContainsKey(PropertyFloat.WeaponDefense) && !(wo is Ammunition))
                 PropertiesFloat[PropertyFloat.WeaponDefense] += wielder.EnchantmentManager.GetDefenseMod();
+
+            if (wo.ItemSkillLimit != null)
+                PropertiesInt[PropertyInt.AppraisalItemSkill] = (int)wo.ItemSkillLimit;
         }
 
         private void BuildSpells(WorldObject wo)

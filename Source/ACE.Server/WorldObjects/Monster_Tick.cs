@@ -38,6 +38,12 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
+            if (MonsterState == State.Return)
+            {
+                Movement();
+                return;
+            }
+
             var creatureTarget = AttackTarget as Creature;
             if (creatureTarget != null && (creatureTarget.IsDead || (pet == null && !creatureTarget.IsVisible(this))))
             {
@@ -67,7 +73,7 @@ namespace ACE.Server.WorldObjects
                 var ammo = GetEquippedAmmo();
                 if (ammo == null)
                 {
-                    TryDequipObject(weapon.Guid);
+                    TryDequipObjectWithBroadcasting(weapon.Guid, out _, out _);
                     EquipInventoryItems(true);
                     DoAttackStance();
                     CurrentAttack = null;

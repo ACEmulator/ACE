@@ -1,4 +1,5 @@
 using System;
+
 using ACE.Entity.Enum;
 using ACE.Server.Entity;
 using ACE.Server.Network.GameMessages.Messages;
@@ -32,7 +33,7 @@ namespace ACE.Server.WorldObjects
 
             //Console.WriteLine(string.Format("Projectile.OnCollideObject({0} - {1} || {2} - {3})", Guid.Full.ToString("X8"), Name, target.Guid.Full.ToString("X8"), target.Name));
 
-            if (ProjectileTarget == null || !ProjectileTarget.Equals(target))
+            if (ProjectileTarget == null || ProjectileTarget != target)
             {
                 //Console.WriteLine("Unintended projectile target! (should be " + ProjectileTarget.Guid.Full.ToString("X8") + " - " + ProjectileTarget.Name + ")");
                 OnCollideEnvironment();

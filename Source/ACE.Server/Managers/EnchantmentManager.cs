@@ -8,7 +8,7 @@ using ACE.Common.Extensions;
 using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
-using ACE.Server.Network.Enum;
+using ACE.Server.Entity;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.Structure;
@@ -17,18 +17,15 @@ using ACE.Server.Physics.Extensions;
 using ACE.Server.WorldObjects;
 using ACE.Server.WorldObjects.Entity;
 
-using SpellEnchantment = ACE.Server.Entity.SpellEnchantment;
-
 namespace ACE.Server.Managers
 {
     public enum StackType
     {
-        Undef,
         None,
         Initial,
+        Surpass,
         Refresh,
         Surpassed,
-        Surpass
     };
 
     public class EnchantmentManager
@@ -86,7 +83,7 @@ namespace ACE.Server.Managers
 
             foreach (var enchantment in enchantments)
             {
-                var spell = new Entity.Spell(enchantment.SpellId);
+                var spell = new Spell(enchantment.SpellId);
 
                 if (spell.School == magicSchool)
                     spells.Add(enchantment);
@@ -111,7 +108,8 @@ namespace ACE.Server.Managers
             var results = from e in enchantments
                 group e by e.SpellCategory
                 into categories
-                select categories.OrderByDescending(c => c.LayerId).First();
+                //select categories.OrderByDescending(c => c.LayerId).First();
+                select categories.OrderByDescending(c => c.PowerLevel).First();
 
             return results.ToList();
         }
@@ -132,14 +130,71 @@ namespace ACE.Server.Managers
             return GetEnchantments_TopLayer(WorldObject.Biota.GetEnchantmentsByStatModType((uint)statModType, WorldObject.BiotaDatabaseLock).Where(e => e.StatModKey == statModKey).ToList());
         }
 
+        /// <summary>
+        /// Add/update an enchantment in this object's registry
+        /// </summary>
+        public virtual AddEnchantmentResult Add(Spell spell, WorldObject caster)
+        {
+            var result = new AddEnchantmentResult();
+
+            // check for existing spell in this category
+            var entries = GetEnchantments(spell.Category);
+
+            // if none, add new record
+            if (entries.Count == 0)
+            {
+                var newEntry = BuildEntry(spell, caster);
+                newEntry.LayerId = 1;
+                WorldObject.Biota.AddEnchantment(newEntry, WorldObject.BiotaDatabaseLock);
+                WorldObject.ChangesDetected = true;
+
+                result.Enchantment = newEntry;
+                result.StackType = StackType.Initial;
+                return result;
+            }
+
+            result.BuildStack(entries, spell);
+
+            // handle cases:
+            // surpassing: new spell is written to next layer
+            // refreshing: - if creature caster, reset timer for existing spell
+            //             - if item caster, always add new layer?
+            // surpassed:  - underpowered spell is written to next layer?
+
+            // note that these cases are not exclusive,
+            // consider case: strength 3 -> strength 6 -> strength 3
+            // for the 2nd cast of strength 3, it would have 1 refresh and 1 surpassed
+            // would 2nd cast of strength 3 refresh the 1st, but still be surpassed by 6?
+
+            var refresh = result.Refresh.Count > 0 && caster is Creature;
+            var refreshSpell = refresh ? result.RefreshCreature : null;
+
+            if (refreshSpell == null)
+            {
+                var newEntry = BuildEntry(spell, caster);
+                newEntry.LayerId = result.NextLayerId;
+                WorldObject.Biota.AddEnchantment(newEntry, WorldObject.BiotaDatabaseLock);
+
+                result.Enchantment = newEntry;
+            }
+            else
+            {
+                refreshSpell.StartTime = 0;
+                result.Enchantment = refreshSpell;
+            }
+            WorldObject.ChangesDetected = true;
+
+            // output message is from StackType,
+            // which is the largest of the combined StackTypes
+
+            return result;
+        }
 
         /// <summary>
         /// Builds an enchantment registry entry from a spell ID
         /// </summary>
-        private BiotaPropertiesEnchantmentRegistry BuildEntry(uint spellID, WorldObject caster = null)
+        private BiotaPropertiesEnchantmentRegistry BuildEntry(Spell spell, WorldObject caster = null)
         {
-            var spell = new Entity.Spell(spellID);
-
             var entry = new BiotaPropertiesEnchantmentRegistry();
 
             entry.EnchantmentCategory = (uint)spell.MetaSpellType;
@@ -179,104 +234,6 @@ namespace ACE.Server.Managers
         }
 
         /// <summary>
-        /// Add/update an enchantment in this object's registry
-        /// </summary>
-        public virtual (StackType stackType, Entity.Spell surpass) Add(Enchantment enchantment, WorldObject caster)
-        {
-            StackType result = StackType.Undef;
-            Entity.Spell surpass = null;
-
-            // check for existing spell in this category
-            var entries = GetEnchantments(enchantment.Spell.Category);
-
-            // if none, add new record
-            if (entries.Count == 0)
-            {
-                var newEntry = BuildEntry(enchantment.Spell.Id, caster);
-                newEntry.LayerId = enchantment.Layer;
-
-                WorldObject.Biota.AddEnchantment(newEntry, WorldObject.BiotaDatabaseLock);
-                WorldObject.ChangesDetected = true;
-
-                return (StackType.Initial, null);
-            }
-
-            // Check for existing spells in registry that are superior
-            foreach (var entry in entries)
-            {
-                if (enchantment.Spell.Power < entry.PowerLevel)
-                {
-                    // superior existing spell
-                    surpass = new Entity.Spell(entry.SpellId);
-                    result = StackType.Surpassed;
-                }
-            }
-
-            if (result != StackType.Surpassed)
-            {
-                // Check for existing spells in registry that are equal to
-                foreach (var entry in entries)
-                {
-                    if (enchantment.Spell.Power == entry.PowerLevel)
-                    {
-                        if (entry.Duration == -1)
-                        {
-                            result = StackType.None;
-
-                            break;
-                        }
-
-                        // item cast spell of equal power should override an existing spell, especially one with a duration
-                        if ((caster as Creature) == null)
-                        {
-                            enchantment.Layer = entry.LayerId; // Should be a higher layer than existing enchant
-
-                            var newEntry = BuildEntry(enchantment.Spell.Id, caster);
-                            newEntry.LayerId = enchantment.Layer;
-                            WorldObject.Biota.AddEnchantment(newEntry, WorldObject.BiotaDatabaseLock);
-                            WorldObject.ChangesDetected = true;
-                            result = StackType.Refresh;
-                            break;
-                        }
-
-                        // refresh existing spell
-                        entry.StartTime = 0;
-
-                        result = StackType.Refresh;
-
-                        break;
-                    }
-                }
-
-                // Previous check didn't return any result
-                if (result == StackType.Undef)
-                {
-                    ushort layerBuffer = 1;
-                    // Check for highest existing spell in registry that is inferior
-                    foreach (var entry in entries)
-                    {
-                        if (enchantment.Spell.Power > entry.PowerLevel)
-                        {
-                            // surpass existing spell
-                            surpass = new Entity.Spell((uint)entry.SpellId);
-                            layerBuffer = entry.LayerId;
-                        }
-                    }
-
-                    enchantment.Layer = (ushort)(layerBuffer + 1); // Should be a higher layer than existing enchant
-
-                    var newEntry = BuildEntry(enchantment.Spell.Id, caster);
-                    newEntry.LayerId = enchantment.Layer;
-                    WorldObject.Biota.AddEnchantment(newEntry, WorldObject.BiotaDatabaseLock);
-                    WorldObject.ChangesDetected = true;
-                    result = StackType.Surpass;
-                }
-            }
-
-            return (result, surpass);
-        }
-
-        /// <summary>
         /// Removes a spell from the enchantment registry, and
         /// sends the relevant network messages for spell removal
         /// </summary>
@@ -289,7 +246,8 @@ namespace ACE.Server.Managers
 
             if (Player != null)
             {
-                Player.Session.Network.EnqueueSend(new GameEventMagicRemoveEnchantment(Player.Session, (ushort)entry.SpellId, entry.LayerId));
+                var layer = (entry.SpellId == (uint)SpellId.Vitae) ? (ushort)0 : entry.LayerId; // this line is to force vitae to be layer 0 to match retail pcaps. We save it as layer 1 to make EF Core happy.
+                Player.Session.Network.EnqueueSend(new GameEventMagicRemoveEnchantment(Player.Session, (ushort)entry.SpellId, layer));
 
                 if (sound)
                     Player.Session.Network.EnqueueSend(new GameMessageSound(Player.Guid, Sound.SpellExpire, 1.0f));
@@ -304,7 +262,7 @@ namespace ACE.Server.Managers
 
                     if (owner != null)
                     {
-                        var spell = new Entity.Spell(spellID);
+                        var spell = new Spell(spellID);
 
                         owner.Session.Network.EnqueueSend(new GameMessageSystemChat($"The spell {spell.Name} on {WorldObject.Name} has expired.", ChatMessageType.Magic));
 
@@ -372,9 +330,11 @@ namespace ACE.Server.Managers
                 // TODO refactor this so it uses the existing Add() method.
 
                 // add entry for new vitae
-                vitae = BuildEntry((uint)SpellId.Vitae);
+                var spell = new Spell(SpellId.Vitae);
+
+                vitae = BuildEntry(spell);
                 vitae.EnchantmentCategory = (uint)EnchantmentMask.Vitae;
-                vitae.LayerId = 0;
+                vitae.LayerId = 1; // This should be 0 but EF Core seems to be very unhappy with 0 as the layer id now that we're using layer as part of the composite key.
                 vitae.StatModValue = 1.0f - (float)PropertyManager.GetDouble("vitae_penalty").Item;
                 WorldObject.Biota.AddEnchantment(vitae, WorldObject.BiotaDatabaseLock);
                 WorldObject.ChangesDetected = true;
@@ -384,14 +344,13 @@ namespace ACE.Server.Managers
                 // update existing vitae
                 vitae = GetVitae();
                 vitae.StatModValue -= (float)PropertyManager.GetDouble("vitae_penalty").Item;
+                WorldObject.ChangesDetected = true;
             }
 
             var minVitae = GetMinVitae((uint)Player.Level);
 
             if (vitae.StatModValue < minVitae)
-                vitae.StatModValue = minVitae;
-
-            RemoveAllEnchantments();
+                vitae.StatModValue = minVitae;            
 
             return vitae.StatModValue;
         }
@@ -467,7 +426,7 @@ namespace ACE.Server.Managers
         /// Selects a list of spells to dispel
         /// </summary>
         /// <param name="spell">The dispel spell</param>
-        public List<SpellEnchantment> SelectDispel(Entity.Spell spell)
+        public List<SpellEnchantment> SelectDispel(Spell spell)
         {
             // NOTE: in the default 16PY db,
             // there are a lot of dispels where the actual #s do not match up with the spell descriptions...
@@ -990,7 +949,7 @@ namespace ACE.Server.Managers
             var totalRating = 0.0f;
             foreach (var netherDot in netherDots)
             {
-                var spell = new Entity.Spell(netherDot.SpellId);
+                var spell = new Spell(netherDot.SpellId);
 
                 var baseDamage = Math.Max(0.5f, spell.Formula.Level - 1);
 

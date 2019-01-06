@@ -69,7 +69,7 @@ namespace ACE.Server.WorldObjects
                         useResult = WeenieError.ActionCancelled;
                     else
                     {
-                        if (!player.TryRemoveItemWithNetworking(target))
+                        if (!player.TryConsumeFromInventoryWithNetworking(target))
                         {
                             log.Error($"Failed to remove {target.Name} from player inventory.");
                             return;
@@ -77,8 +77,6 @@ namespace ACE.Server.WorldObjects
                         ItemCurMana = (int)Math.Round(Efficiency.Value * target.ItemCurMana.Value);
                         player.Session.Network.EnqueueSend(new GameMessageSystemChat($"The {Name} drains {ItemCurMana.Value.ToString("N0")} points of mana from the {target.Name}.\nThe {target.Name} is destroyed.", ChatMessageType.Broadcast));
                         SetUiEffect(player, ACE.Entity.Enum.UiEffects.Magical);
-
-                        target.Destroy();
                     }
                 }
                 else
@@ -177,10 +175,9 @@ namespace ACE.Server.WorldObjects
 
             if (dice < DestroyChance)
             {
-                if (player.TryRemoveFromInventoryWithNetworking(this))
+                player.TryConsumeFromInventoryWithNetworking(this);
                 {
                     player.Session.Network.EnqueueSend(new GameMessageSystemChat($"The {Name} is destroyed.", ChatMessageType.Broadcast));
-                    Destroy();
                     return true;
                 }
             }

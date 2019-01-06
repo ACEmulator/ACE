@@ -734,9 +734,7 @@ namespace ACE.Server.WorldObjects
             var spell = new Spell(spellID);
             if (spell.NotFound) return;  // TODO: friendly message to install DF patch
 
-            var enchantment = new Enchantment(target, Guid, (uint)spellID, 20, 1, EnchantmentMask.CreatureSpells);
-
-            target.EnchantmentManager.Add(enchantment, this);
+            target.EnchantmentManager.Add(spell, this);
             target.EnqueueBroadcast(new GameMessageScript(target.Guid, ACE.Entity.Enum.PlayScript.DirtyFightingDefenseDebuff));
 
             FightDirty_SendMessage(target, spell);
@@ -755,9 +753,7 @@ namespace ACE.Server.WorldObjects
             var spell = new Spell(spellID);
             if (spell.NotFound) return;  // TODO: friendly message to install DF patch
 
-            var enchantment = new Enchantment(target, Guid, (uint)spellID, 20, 1, EnchantmentMask.CreatureSpells);
-
-            target.EnchantmentManager.Add(enchantment, this);
+            target.EnchantmentManager.Add(spell, this);
 
             // only send if not already applied?
             target.EnqueueBroadcast(new GameMessageScript(target.Guid, ACE.Entity.Enum.PlayScript.DirtyFightingDamageOverTime));
@@ -778,9 +774,7 @@ namespace ACE.Server.WorldObjects
             var spell = new Spell(spellID);
             if (spell.NotFound) return;  // TODO: friendly message to install DF patch
 
-            var enchantment = new Enchantment(target, Guid, (uint)spellID, 20, 1, EnchantmentMask.CreatureSpells);
-
-            target.EnchantmentManager.Add(enchantment, this);
+            target.EnchantmentManager.Add(spell, this);
             target.EnqueueBroadcast(new GameMessageScript(target.Guid, ACE.Entity.Enum.PlayScript.DirtyFightingAttackDebuff));
 
             FightDirty_SendMessage(target, spell);
@@ -792,9 +786,7 @@ namespace ACE.Server.WorldObjects
             spell = new Spell(spellID);
             if (spell.NotFound) return;  // TODO: friendly message to install DF patch
 
-            enchantment = new Enchantment(target, Guid, (uint)spellID, 20, 1, EnchantmentMask.CreatureSpells);
-
-            target.EnchantmentManager.Add(enchantment, this);
+            target.EnchantmentManager.Add(spell, this);
             target.EnqueueBroadcast(new GameMessageScript(target.Guid, ACE.Entity.Enum.PlayScript.DirtyFightingHealDebuff));
 
             FightDirty_SendMessage(target, spell);

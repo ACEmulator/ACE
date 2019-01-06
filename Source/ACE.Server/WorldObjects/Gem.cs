@@ -1,19 +1,16 @@
 using System;
 using System.Diagnostics;
 
-using ACE.Database;
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
-using ACE.DatLoader;
 using ACE.DatLoader.Entity;
 using ACE.Entity;
 using ACE.Entity.Enum;
+using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
-using ACE.Server.Entity.Actions;
 using ACE.Server.Network;
 using ACE.Server.Network.Structure;
 using ACE.Server.Network.GameEvent.Events;
-using ACE.Server.Network.GameMessages.Messages;
 
 namespace ACE.Server.WorldObjects
 {
@@ -77,10 +74,10 @@ namespace ACE.Server.WorldObjects
                     castMessage = "The gem casts Asheron's Lesser Benediction on you";
                 */
 
-                player.CreateItemSpell(Guid, (uint)SpellDID);
+                player.CreateItemSpell(this, (uint)SpellDID);
 
-                // always consume gem?
-                player.TryRemoveFromInventoryWithNetworking(this);
+                if ((GetProperty(PropertyBool.UnlimitedUse) ?? false) == false)
+                    player.TryConsumeFromInventoryWithNetworking(this, 1);
 
                 player.SendUseDoneEvent();
                 return;
@@ -137,12 +134,12 @@ namespace ACE.Server.WorldObjects
                 //const uint spellCategory = 0x8000; // FIXME: Not sure where we get this from
                 var spellBase = new SpellBase(0, CooldownDuration.Value, 0, -666);
                 // cooldown not being used in network packet?
-                var gem = new Enchantment(player, player.Guid, spellBase, spellBase.Duration, layer, /*CooldownId.Value,*/ EnchantmentMask.Cooldown);
+                var gem = new Enchantment(player, player.Guid.Full, spellBase, spellBase.Duration, layer, /*CooldownId.Value,*/ EnchantmentMask.Cooldown);
                 player.Session.Network.EnqueueSend(new GameEventMagicUpdateEnchantment(player.Session, gem));
 
                 // Ok this was not known to us, so we used the contract - now remove it from inventory.
                 // HandleActionRemoveItemFromInventory is has it's own action chain.
-                player.TryRemoveItemFromInventoryWithNetworkingWithDestroy(this, 1);
+                player.TryConsumeFromInventoryWithNetworking(this, 1);
             }
             else
                 ChatPacket.SendServerMessage(player.Session, "You already have this quest tracked: " + contractTracker.ContractDetails.ContractName, ChatMessageType.Broadcast);

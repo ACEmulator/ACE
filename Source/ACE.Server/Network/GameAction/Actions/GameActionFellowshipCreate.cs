@@ -1,6 +1,5 @@
 using ACE.Common.Extensions;
 using ACE.Server.Network.GameEvent.Events;
-using ACE.Server.Network.GameMessages.Messages;
 
 namespace ACE.Server.Network.GameAction.Actions
 {

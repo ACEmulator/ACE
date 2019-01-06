@@ -16,7 +16,6 @@ namespace ACE.Server.Network.GameAction.Actions
                 //Close the trade window for the trade partner
                 target.HandleActionCloseTradeNegotiations(target.Session);
             }
-            
         }
     }
 }

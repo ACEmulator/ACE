@@ -457,9 +457,6 @@ namespace ACE.Server.WorldObjects
                 {
                     target.OnDeath(ProjectileSource, Spell.DamageType, critical);
                     target.Die();
-
-                    if (player != null)
-                        player.EarnXP((long)target.XpOverride);     // TODO: refactor to common Creature.OnDeath()
                 }
             }
         }

@@ -40,8 +40,8 @@ namespace ACE.Server.Network.Structure
                 return;
 
             DamageType = (DamageType)(weapon.GetProperty(PropertyInt.DamageType) ?? 0);
-            if (DamageType == 0)
-                Console.WriteLine("Warning: WeaponProfile undefined damage type for " + weapon.Guid);
+            //if (DamageType == 0)
+                //Console.WriteLine($"Warning: WeaponProfile undefined damage type for {weapon.Name} ({weapon.Guid})");
 
             WeaponTime = GetWeaponSpeed(weapon, wielder);
             WeaponSkill = (Skill)(weapon.GetProperty(PropertyInt.WeaponSkill) ?? 0);

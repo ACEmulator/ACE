@@ -1,4 +1,3 @@
-using ACE.Server.Managers;
 
 namespace ACE.Server.Network.GameAction.Actions
 {
@@ -7,7 +6,7 @@ namespace ACE.Server.Network.GameAction.Actions
         [GameAction(GameActionType.DeclineTrade)]
         public static void Handle(ClientMessage message, Session session)
         {
-               session.Player.HandleActionDeclineTrade(session);
+            session.Player.HandleActionDeclineTrade(session);
         }
     }
 }

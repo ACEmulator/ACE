@@ -769,12 +769,12 @@ namespace ACE.Server.Managers
         {
             if (item.OwnerId == player.Guid.Full || player.GetInventoryItem(item.Guid) != null)
             {
-                if (!player.TryRemoveItemFromInventoryWithNetworkingWithDestroy(item, (ushort)amount))
+                if (!player.TryConsumeFromInventoryWithNetworking(item, (int)amount))
                     log.Warn($"RecipeManager.DestroyItem({player.Name}, {item.Name}, {amount}, {msg}): failed to remove {item.Name}");
             }
             else if (item.WielderId == player.Guid.Full)
             {
-                if (!player.TryRemoveItemWithNetworking(item))
+                if (!player.TryDequipObjectWithNetworking(item.Guid, out _, Player.DequipObjectAction.ConsumeItem))
                     log.Warn($"RecipeManager.DestroyItem({player.Name}, {item.Name}, {amount}, {msg}): failed to remove {item.Name}");
             }
             else

@@ -1,11 +1,11 @@
-﻿using ACE.Entity;
+using ACE.Entity;
 
 namespace ACE.Server.Entity
 {
     public class ItemProfile
     {
         public uint Amount;
-        public ObjectGuid Guid;
+        public uint ObjectGuid;
         public uint WeenieClassId;
     }
 }

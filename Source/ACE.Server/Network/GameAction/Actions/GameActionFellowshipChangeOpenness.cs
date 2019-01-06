@@ -1,6 +1,6 @@
+
 namespace ACE.Server.Network.GameAction.Actions
 {
-     
     public static class GameActionFellowshipChangeOpenness
     {
         [GameAction(GameActionType.FellowshipChangeOpenness)]

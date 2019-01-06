@@ -399,7 +399,7 @@ namespace ACE.Server.Command.Handlers
             WorldObject loot = WorldObjectFactory.CreateNewWorldObject(trainingWandTarget);
             LootGenerationFactory.Spawn(loot, session.Player.Location.InFrontOf(distance));
 
-            session.Player.HandleActionPutItemInContainer(loot.Guid, session.Player.Guid);
+            session.Player.HandleActionPutItemInContainer(loot.Guid.Full, session.Player.Guid.Full);
         }
 
         /// <summary>
@@ -912,14 +912,13 @@ namespace ACE.Server.Command.Handlers
                 if (loot == null) // weenie doesn't exist
                     continue;
 
-                if (stackSize == null)
-                    stackSize = loot.MaxStackSize;
+                var stackSizeForThisWeenieId = stackSize ?? loot.MaxStackSize;
 
-                if (stackSize > 1)
+                if (stackSizeForThisWeenieId > 1)
                 {
-                    loot.StackSize = stackSize;
-                    loot.EncumbranceVal = (loot.StackUnitEncumbrance ?? 0) * (stackSize ?? 1);
-                    loot.Value = (loot.StackUnitValue ?? 0) * (stackSize ?? 1);
+                    loot.StackSize = stackSizeForThisWeenieId;
+                    loot.EncumbranceVal = (loot.StackUnitEncumbrance ?? 0) * (stackSizeForThisWeenieId ?? 1);
+                    loot.Value = (loot.StackUnitValue ?? 0) * (stackSizeForThisWeenieId ?? 1);
                 }
 
                 session.Player.TryCreateInInventoryWithNetworking(loot);
@@ -929,7 +928,7 @@ namespace ACE.Server.Command.Handlers
         [CommandHandler("weapons", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Creates testing items in your inventory.")]
         public static void HandleWeapons(Session session, params string[] parameters)
         {
-            HashSet<uint> weenieIds = new HashSet<uint> { 93, 127, 130, 148, 300, 307, 311, 326, 338, 348, 350, 7765, 12748, 12463, 31812 };
+            HashSet<uint> weenieIds = new HashSet<uint> { 93, 148, 300, 307, 311, 326, 338, 348, 350, 7765, 12748, 12463, 31812 };
 
             AddWeeniesToInventory(session, weenieIds);
         }
@@ -1506,6 +1505,15 @@ namespace ACE.Server.Command.Handlers
                 session.Network.EnqueueSend(new GameMessageSystemChat("Your spell components are now safe, and will not be consumed when casting spells.", ChatMessageType.Broadcast));
             else
                 session.Network.EnqueueSend(new GameMessageSystemChat("Your spell components will now be consumed when casting spells.", ChatMessageType.Broadcast));
+        }
+
+        /// <summary>
+        /// Shows the current player location, from the server perspective
+        /// </summary>
+        [CommandHandler("myloc", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Shows the current player location, from the server perspective", "/myloc")]
+        public static void HandleMyLoc(Session session, params string[] parameters)
+        {
+            session.Network.EnqueueSend(new GameMessageSystemChat($"Location: {session.Player.PhysicsObj.Position}", ChatMessageType.Broadcast));
         }
     }
 }

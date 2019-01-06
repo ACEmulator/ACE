@@ -144,16 +144,37 @@ namespace ACE.Server.WorldObjects
 
             UpdatePlayerPhysics(new Position(newPosition), true);
 
-            Hidden = true;
-            IgnoreCollisions = true;
-            ReportCollisions = false;
-            EnqueueBroadcastPhysicsState();
+            DoTeleportPhysicsStateChanges();
 
             // force out of hotspots
             PhysicsObj.report_collision_end(true);
 
             if (UnderLifestoneProtection)
                 LifestoneProtectionDispel();
+        }
+
+        public void DoPreTeleportHide()
+        {
+            PlayParticleEffect(ACE.Entity.Enum.PlayScript.Hide, Guid);
+        }
+
+        public void DoTeleportPhysicsStateChanges()
+        {
+            var broadcastUpdate = false;
+
+            var oldHidden = Hidden.Value;
+            var oldIgnore = IgnoreCollisions.Value;
+            var oldReport = ReportCollisions.Value;
+
+            Hidden = true;
+            IgnoreCollisions = true;
+            ReportCollisions = false;
+
+            if (Hidden != oldHidden || IgnoreCollisions != oldIgnore || ReportCollisions != oldReport)
+                broadcastUpdate = true;
+
+            if (broadcastUpdate)
+                EnqueueBroadcastPhysicsState();
         }
 
         public void OnTeleportComplete()

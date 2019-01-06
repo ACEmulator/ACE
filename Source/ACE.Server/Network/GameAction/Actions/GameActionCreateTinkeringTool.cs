@@ -1,8 +1,5 @@
 using System.Collections.Generic;
 
-using ACE.Entity;
-using ACE.Server.Entity;
-
 namespace ACE.Server.Network.GameAction.Actions
 {
     public static class GameActionCreateTinkeringTool
@@ -10,17 +7,15 @@ namespace ACE.Server.Network.GameAction.Actions
         [GameAction(GameActionType.CreateTinkeringTool)]
         public static void Handle(ClientMessage message, Session session)
         {
-            ObjectGuid vendorId = new ObjectGuid(message.Payload.ReadUInt32());
+            var vendorGuid = message.Payload.ReadUInt32();
             uint itemcount = message.Payload.ReadUInt32();
 
-            List<ObjectGuid> items = new List<ObjectGuid>();
+            var items = new List<uint>();
 
             while (itemcount > 0)
             {
                 itemcount--;
-                ObjectGuid item = new ObjectGuid();
-                item = new ObjectGuid(message.Payload.ReadUInt32());
-                items.Add(item);
+                items.Add(message.Payload.ReadUInt32());
             }
 
             session.Player.HandleTinkeringTool(items);

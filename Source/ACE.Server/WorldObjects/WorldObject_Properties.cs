@@ -562,59 +562,6 @@ namespace ACE.Server.WorldObjects
         }
 
 
-        // SetPropertiesForWorld, SetPropertiesForContainer, SetPropertiesForVendor
-        #region Utility Functions
-        internal void SetPropertiesForWorld(WorldObject objectToPlaceInRelationTo, double distanceInFront, bool rotate180 = false)
-        {
-            var newLocation = objectToPlaceInRelationTo.Location.InFrontOf(distanceInFront, rotate180);
-
-            SetPropertiesForWorld(newLocation);
-        }
-
-        internal void SetPropertiesForWorld(Position location)
-        {
-            Location = new Position(location);
-
-            // should be sent automatically
-            //PositionFlags = PositionFlags.IsGrounded | PositionFlags.HasPlacementID | PositionFlags.OrientationHasNoX | PositionFlags.OrientationHasNoY;
-
-            Placement = ACE.Entity.Enum.Placement.Resting; // This is needed to make items lay flat on the ground.
-            PlacementPosition = null;
-
-            ContainerId = null;
-            WielderId = null;
-            CurrentWieldedLocation = null;
-        }
-
-        internal void SetPropertiesForContainer()
-        {
-            Location = null;
-            PositionFlags = PositionFlags.None;
-
-            Placement = ACE.Entity.Enum.Placement.Resting;
-            if (PlacementPosition == null)
-                PlacementPosition = 0;
-
-            ParentLocation = null;
-            WielderId = null;
-            CurrentWieldedLocation = null;
-        }
-
-        internal void SetPropertiesForVendor()
-        {
-            Location = null;
-            PositionFlags = PositionFlags.None;
-
-            Placement = ACE.Entity.Enum.Placement.Resting; // This is needed to make items lay flat on the ground.
-            PlacementPosition = null;
-
-            ContainerId = null;
-            WielderId = null;
-            CurrentWieldedLocation = null;
-        }
-        #endregion
-
-
         // ========================================
         // ======== Physics Desc Properties =======
         // ========================================
@@ -1697,6 +1644,12 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyFloat.ManaRate); else SetProperty(PropertyFloat.ManaRate, value.Value); }
         }
 
+        public int? ItemManaCost
+        {
+            get => GetProperty(PropertyInt.ItemManaCost);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.ItemManaCost); else SetProperty(PropertyInt.ItemManaCost, value.Value); }
+        }
+
         public int? ItemDifficulty
         {
             get => GetProperty(PropertyInt.ItemDifficulty);
@@ -1707,6 +1660,12 @@ namespace ACE.Server.WorldObjects
         {
             get => GetProperty(PropertyInt.AppraisalItemSkill);
             set { if (!value.HasValue) RemoveProperty(PropertyInt.AppraisalItemSkill); else SetProperty(PropertyInt.AppraisalItemSkill, value.Value); }
+        }
+
+        public uint? ItemSkillLimit
+        {
+            get => GetProperty(PropertyDataId.ItemSkillLimit);
+            set { if (!value.HasValue) RemoveProperty(PropertyDataId.ItemSkillLimit); else SetProperty(PropertyDataId.ItemSkillLimit, value.Value); }
         }
 
         public int? ItemSkillLevelLimit
@@ -1763,10 +1722,10 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyDataId.Spell); else SetProperty(PropertyDataId.Spell, value.Value); }
         }
 
-        public int ItemSpellcraft
+        public int? ItemSpellcraft
         {
-            get => GetProperty(PropertyInt.ItemSpellcraft) ?? 0;
-            set { if (value == 0) RemoveProperty(PropertyInt.ItemSpellcraft); else SetProperty(PropertyInt.ItemSpellcraft, value); }
+            get => GetProperty(PropertyInt.ItemSpellcraft);
+            set { if (value.HasValue) RemoveProperty(PropertyInt.ItemSpellcraft); else SetProperty(PropertyInt.ItemSpellcraft, value.Value); }
         }
 
         public int? BoostEnum

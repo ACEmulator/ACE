@@ -8,7 +8,7 @@ using ACE.Server.Entity.Actions;
 using ACE.Server.Managers;
 using ACE.Server.Physics;
 using ACE.Server.Physics.Common;
-using ACE.Server.Physics.Extensions;
+
 namespace ACE.Server.WorldObjects
 {
     partial class WorldObject
@@ -164,7 +164,7 @@ namespace ACE.Server.WorldObjects
                 return false;
 
             // arrows / spell projectiles
-            var isMissile = Missile.HasValue && Missile.Value;
+            var isMissile = Missile ?? false;
 
             //var contactPlane = (PhysicsObj.State & PhysicsState.Gravity) != 0 && MotionTableId != 0 && (PhysicsObj.TransientState & TransientStateFlags.Contact) == 0;
 
@@ -176,7 +176,7 @@ namespace ACE.Server.WorldObjects
             // determine if updates should be run for object
             //var runUpdate = !monster && (isMissile || !PhysicsObj.IsGrounded);
             //var runUpdate = isMissile;
-            var runUpdate = !monster && (isMissile || /*IsMoving ||*/ /*!PhysicsObj.IsGrounded || */ PhysicsObj.InitialUpdates <= 1 || IsAnimating /*|| contactPlane*/);
+            var runUpdate = !monster && (isMissile || /*IsMoving ||*/ /*!PhysicsObj.IsGrounded || */ PhysicsObj.InitialUpdates <= 1 || PhysicsObj.IsAnimating /*|| contactPlane*/);
 
             if (creature != null)
             {

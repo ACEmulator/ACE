@@ -169,7 +169,7 @@ namespace ACE.Server.Managers
 
                     if (creature != null)
                     {
-                        var spell = new Entity.Spell((uint)emote.SpellId);
+                        var spell = new Spell((uint)emote.SpellId);
                         if (targetObject != null && spell.TargetEffect > 0)
                             creature.CreateCreatureSpell(targetObject.Guid, (uint)emote.SpellId);
                         else
@@ -214,7 +214,12 @@ namespace ACE.Server.Managers
 
                 case EmoteType.DeleteSelf:
 
-                    WorldObject.Destroy();
+                    var destroyChain = new ActionChain();
+                    destroyChain.AddAction(WorldObject, () => WorldObject.ApplyVisualEffects(PlayScript.Destroy));
+                    destroyChain.AddDelaySeconds(3);
+                    destroyChain.AddAction(WorldObject, () => WorldObject.Destroy());
+                    destroyChain.EnqueueChain();
+
                     break;
 
                 case EmoteType.DirectBroadcast:
@@ -320,7 +325,8 @@ namespace ACE.Server.Managers
                     break;
 
                 case EmoteType.InflictVitaePenalty:
-                    if (player != null) player.VitaeCpPool++;   // TODO: full path
+                    if (player != null)
+                        player.InflictVitaePenalty(emote.Amount ?? 5);
                     break;
 
                 case EmoteType.InqAttributeStat:
@@ -778,7 +784,7 @@ namespace ACE.Server.Managers
 
                 case EmoteType.Say:
 
-                    WorldObject.EnqueueBroadcast(new GameMessageCreatureMessage(emote.Message, WorldObject.Name, WorldObject.Guid.Full, ChatMessageType.Emote));
+                    WorldObject.EnqueueBroadcast(new GameMessageCreatureMessage(emote.Message, WorldObject.Name, WorldObject.Guid.Full, ChatMessageType.Emote), WorldObject.LocalBroadcastRange);
                     break;
 
                 case EmoteType.SetAltRacialSkills:
@@ -893,7 +899,7 @@ namespace ACE.Server.Managers
                         item = WorldObjectFactory.CreateNewWorldObject((uint)emote.WeenieClassId);
                         if (item == null) break;
 
-                        success = player.TryRemoveItemFromInventoryWithNetworkingWithDestroy(item, (ushort)emote.Amount);
+                        success = player.TryConsumeFromInventoryWithNetworking(item, emote.Amount ?? 0);
                     }
                     break;
 
@@ -1029,7 +1035,7 @@ namespace ACE.Server.Managers
 
             // optional criteria
             if (questName != null)
-                emoteSet = emoteSet.Where(e => e.Quest.Equals(questName));
+                emoteSet = emoteSet.Where(e => e.Quest.Equals(questName, StringComparison.OrdinalIgnoreCase));
             if (vendorType != null)
                 emoteSet = emoteSet.Where(e => e.VendorType != null && e.VendorType.Value == (uint)vendorType);
             if (wcid != null)

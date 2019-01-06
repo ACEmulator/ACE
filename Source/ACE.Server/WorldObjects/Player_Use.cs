@@ -1,3 +1,4 @@
+using System;
 using System.Threading;
 
 using ACE.Entity;
@@ -15,7 +16,10 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         private ObjectGuid lastUsedContainerId;
 
+        private TimeSpan defaultMoveToTimeout = TimeSpan.FromSeconds(15); // This is just a starting point number. It may be far off from retail.
+
         private int moveToChainCounter;
+        private DateTime moveToChainStartTime;
 
         private int GetNextMoveToChainNumber()
         {
@@ -32,15 +36,39 @@ namespace ACE.Server.WorldObjects
         // ===============================
         // These are raised by client actions
 
-        public void HandleActionUseWithTarget(ObjectGuid sourceObjectId, ObjectGuid targetObjectId)
+        public void HandleActionUseWithTarget(uint sourceObjectGuid, uint targetObjectGuid)
         {
             StopExistingMoveToChains();
 
-            var invSource = GetInventoryItem(sourceObjectId);
-            var invTarget = GetInventoryItem(targetObjectId);
-            var invWielded = GetWieldedItem(targetObjectId);
+            var invSource = GetInventoryItem(sourceObjectGuid);
+            var invTarget = GetInventoryItem(targetObjectGuid);
+            var invWielded = GetEquippedItem(targetObjectGuid);
 
-            var worldTarget = (invTarget == null) ? CurrentLandblock?.GetObject(targetObjectId) : null;
+            if (invSource == null)
+            {
+                // is this caster with a built-in spell?
+                var caster = GetEquippedItem(sourceObjectGuid);
+                if (caster != null && caster.SpellDID != null)
+                {
+                    // check activation requirements
+                    var skillFailed = CheckActivationRequirement(caster);
+                    if (skillFailed != Skill.None)
+                    {
+                        Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(Session, WeenieErrorWithString.Your_IsTooLowToUseItemMagic, skillFailed.ToSentence()));
+                        SendUseDoneEvent(WeenieError.SkillTooLow);
+                    }
+                    else
+                        HandleActionCastTargetedSpell(targetObjectGuid, caster.SpellDID ?? 0);
+                }
+                else
+                {
+                    log.Warn($"{Name}.HandleActionUseWithTarget({sourceObjectGuid:X8}, {targetObjectGuid:X8}): couldn't find {sourceObjectGuid:X8}");
+                    SendUseDoneEvent(WeenieError.None);
+                }
+                return;
+            }
+
+            var worldTarget = (invTarget == null) ? CurrentLandblock?.GetObject(targetObjectGuid) : null;
 
             if (invTarget != null)
             {
@@ -74,7 +102,7 @@ namespace ACE.Server.WorldObjects
                 var lp = invSource as Lockpick;
                 lp.HandleActionUseOnTarget(this, worldTarget);
             }
-            else if (targetObjectId == Guid)
+            else if (targetObjectGuid == Guid.Full)
             {
                 // using something on ourselves
                 if (invSource.WeenieType == WeenieType.ManaStone)
@@ -101,19 +129,35 @@ namespace ACE.Server.WorldObjects
             }
         }
 
-        public void HandleActionUseItem(ObjectGuid usedItemId)
+        private Skill CheckActivationRequirement(WorldObject item)
+        {
+            if (item.ItemDifficulty != null)
+            {
+                if (GetCreatureSkill(Skill.ArcaneLore).Current < item.ItemDifficulty.Value)
+                    return Skill.ArcaneLore;
+            }
+
+            if (item.ItemSkillLimit != null && item.ItemSkillLevelLimit != null)
+            {
+                if (GetCreatureSkill((Skill)item.ItemSkillLimit.Value).Current < item.ItemSkillLevelLimit.Value)
+                    return (Skill)item.ItemSkillLimit.Value;
+            }
+            return Skill.None;
+        }
+
+        public void HandleActionUseItem(uint itemGuid)
         {
             StopExistingMoveToChains();
 
             // Search our inventory first
-            var item = GetInventoryItem(usedItemId);
+            var item = GetInventoryItem(itemGuid);
 
             if (item != null)
                 item.UseItem(this);
             else
             {
                 // Search the world second
-                item = CurrentLandblock?.GetObject(usedItemId);
+                item = CurrentLandblock?.GetObject(itemGuid);
 
                 if (item == null)
                 {
@@ -122,10 +166,9 @@ namespace ACE.Server.WorldObjects
                 }
 
                 var moveTo = true;
-                var container = item as Container;
-                if (container != null)
+                if (item is Container container)
                 {
-                    lastUsedContainerId = usedItemId;
+                    lastUsedContainerId = new ObjectGuid(itemGuid);
 
                     // if the container is already open by this player,
                     // this packet indicates to close the container.
@@ -144,10 +187,8 @@ namespace ACE.Server.WorldObjects
                 }
 
                 // if required, move to
-                var moveToChain = CreateMoveToChain(item, out var thisMoveToChainNumber);
+                var actionChain = CreateMoveToChain(item, out var thisMoveToChainNumber);
 
-                var actionChain = new ActionChain();
-                actionChain.AddChain(moveToChain);
                 actionChain.AddAction(item, () =>
                 {
                     if (thisMoveToChainNumber == moveToChainCounter)
@@ -164,14 +205,11 @@ namespace ACE.Server.WorldObjects
 
                         Session.Network.EnqueueSend(new GameEventUseDone(Session));
                     }
-                }); 
+                });
                 actionChain.EnqueueChain();
             }
         }
 
-        // TODO: refactor movetochainnumber, this is a confusing and patchwork concept
-        // TODO: add proper hooks for canceling an existing moveto event
-        // TODO: add reasonable max move time
         public ActionChain CreateMoveToChain(WorldObject target, out int thisMoveToChainNumber)
         {
             thisMoveToChainNumber = GetNextMoveToChainNumber();
@@ -193,10 +231,13 @@ namespace ACE.Server.WorldObjects
             });
 
             // poll for arrival every .1 seconds
+            // Ideally, this should be switched away from using the DelayManager, and instead be checked on every Player Tick()
             ActionChain moveToBody = new ActionChain();
             moveToBody.AddDelaySeconds(.1);
 
             var thisMoveToChainNumberCopy = thisMoveToChainNumber;
+
+            moveToChainStartTime = DateTime.UtcNow;
 
             moveToChain.AddLoop(this, () =>
             {
@@ -205,59 +246,32 @@ namespace ACE.Server.WorldObjects
 
                 // Break loop if CurrentLandblock == null (we portaled or logged out)
                 if (CurrentLandblock == null)
+                {
+                    StopExistingMoveToChains(); // This increments our moveToChainCounter and thus, should stop any additional actions in this chain
                     return false;
+                }
+
+                // Have we timed out?
+                if (moveToChainStartTime + defaultMoveToTimeout <= DateTime.UtcNow)
+                {
+                    StopExistingMoveToChains(); // This increments our moveToChainCounter and thus, should stop any additional actions in this chain
+                    return false;
+                }
 
                 // Are we within use radius?
-                var valid = false;
-                bool ret = CurrentLandblock != null ? !CurrentLandblock.WithinUseRadius(this, target.Guid, out valid) : false;
+                bool ret = !CurrentLandblock.WithinUseRadius(this, target.Guid, out var valid);
 
                 // If one of the items isn't on a landblock
                 if (!valid)
+                {
                     ret = false;
+                    StopExistingMoveToChains(); // This increments our moveToChainCounter and thus, should stop any additional actions in this chain
+                }
 
                 return ret;
             }, moveToBody);
 
             return moveToChain;
-        }
-
-        // TODO: deprecate this
-        // it is not the responsibility of Player_Use to convert ObjectGuids into WorldObjects
-        // this should be done much earlier, at the beginning of the HandleAction methods
-        private ActionChain CreateMoveToChain(ObjectGuid targetGuid, out int thisMoveToChainNumber)
-        {
-            var targetObject = FindItemLocation(targetGuid);
-            if (targetObject == null)
-            {
-                thisMoveToChainNumber = moveToChainCounter;
-                return null;
-            }
-            return CreateMoveToChain(targetObject, out thisMoveToChainNumber);
-        }
-
-        /// <summary>
-        /// Finds the location of an item in the world
-        /// If item is within a container or corpse, returns the location of the parent
-        /// </summary>
-        private WorldObject FindItemLocation(ObjectGuid targetGuid)
-        {
-            var targetObject = CurrentLandblock?.GetObject(targetGuid);
-
-            if (targetObject == null)
-            {
-                // Is the item we're trying to move to in the container we have open?
-                var lastUsedContainer = CurrentLandblock?.GetObject(lastUsedContainerId) as Container;
-
-                if (lastUsedContainer != null)
-                {
-                    if (lastUsedContainer.Inventory.ContainsKey(targetGuid))
-                        targetObject = lastUsedContainer;
-                }
-            }
-            if (targetObject == null)
-                log.Error($"{Name}.FindItemLocation({targetGuid}): couldn't find item location on landblock"); ;
-
-            return targetObject;
         }
 
         public void SendUseDoneEvent(WeenieError errorType = WeenieError.None)

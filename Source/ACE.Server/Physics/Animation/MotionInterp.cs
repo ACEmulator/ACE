@@ -169,6 +169,7 @@ namespace ACE.Server.Physics.Animation
                 }
             }
             PendingMotions.Clear();
+            if (PhysicsObj != null) PhysicsObj.IsAnimating = false;
         }
 
         public void HitGround()
@@ -225,7 +226,10 @@ namespace ACE.Server.Physics.Animation
 
                 motionData = PendingMotions.First;
                 if (motionData != null)
+                {
                     PendingMotions.Remove(motionData);
+                    PhysicsObj.IsAnimating = PendingMotions.Count > 0;
+                }
             }
         }
 
@@ -384,6 +388,7 @@ namespace ACE.Server.Physics.Animation
         public void add_to_queue(int contextID, uint motion, WeenieError jumpErrorCode)
         {
             PendingMotions.AddLast(new MotionNode(contextID, motion, jumpErrorCode));
+            PhysicsObj.IsAnimating = true;
         }
 
         public void adjust_motion(ref uint motion, ref float speed, HoldKey holdKey)
@@ -773,6 +778,9 @@ namespace ACE.Server.Physics.Animation
             return WeenieError.None;
         }
 
+        /// <summary>
+        /// Alternatively, you can use PhysicsObj.IsAnimating for better performance.
+        /// </summary>
         public bool motions_pending()
         {
             return PendingMotions.Count > 0;

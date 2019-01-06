@@ -108,7 +108,7 @@ namespace ACE.Server.Physics.Common
             var target = transition.ObjectInfo.Object.ProjectileTarget;
 
             // TODO: find out what is causing the exception when .ToList() is not used.
-            foreach (var shadowObj in ShadowObjectList.ToList())
+            foreach (var shadowObj in ShadowObjectList)
             {
                 var obj = shadowObj.PhysicsObj;
 
@@ -123,7 +123,7 @@ namespace ACE.Server.Physics.Common
                 if (state != TransitionState.OK)
                 {
                     // custom: fix hellfire spawn colliding with volcano heat, and possibly other placements
-                    if (path.InsertType == InsertType.Placement && obj.State.HasFlag(PhysicsState.Ethereal))
+                    if (path.InsertType == InsertType.Placement && (obj.State & PhysicsState.Ethereal) != 0)
                         continue;
 
                     return state;

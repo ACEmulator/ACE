@@ -1,8 +1,6 @@
 using System.Collections.Generic;
-using System.Linq;
-using ACE.Server.Physics.Common;
 
-namespace ACE.Server.Physics.Extensions
+namespace ACE.Common.Extensions
 {
     public static class ListExtensions
     {
@@ -12,7 +10,7 @@ namespace ACE.Server.Physics.Extensions
             while (n > 1)
             {
                 n--;
-                int k = ACE.ThreadSafeRandom.Next(0, n);
+                int k = ThreadSafeRandom.Next(0, n);
                 T value = list[k];
                 list[k] = list[n];
                 list[n] = value;

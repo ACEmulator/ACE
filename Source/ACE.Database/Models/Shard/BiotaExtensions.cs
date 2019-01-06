@@ -1638,7 +1638,7 @@ namespace ACE.Database.Models.Shard
             {
                 result.BiotaPropertiesEnchantmentRegistry.Add(new BiotaPropertiesEnchantmentRegistry
                 {
-                    Id = value.Id,
+                    //Id = value.Id,
                     ObjectId = value.ObjectId,
                     EnchantmentCategory = value.EnchantmentCategory,
                     SpellId = value.SpellId,

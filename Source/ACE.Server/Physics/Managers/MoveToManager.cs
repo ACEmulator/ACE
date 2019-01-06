@@ -420,7 +420,7 @@ namespace ACE.Server.Physics.Animation
             movementParams.Speed = MovementParams.Speed;
             movementParams.HoldKeyToApply = MovementParams.HoldKeyToApply;
 
-            if (!PhysicsObj.motions_pending())
+            if (!PhysicsObj.IsAnimating)
             {
                 var heading = MovementParams.get_desired_heading(CurrentCommand, MovingAway) + curPos.heading(CurrentTargetPosition);
                 if (heading >= 360.0f) heading -= 360.0f;
@@ -456,7 +456,7 @@ namespace ACE.Server.Physics.Animation
 
             if (!CheckProgressMade(dist))
             {
-                if (!PhysicsObj.IsInterpolating() && !PhysicsObj.motions_pending())
+                if (!PhysicsObj.IsInterpolating() && !PhysicsObj.IsAnimating)
                     FailProgressCount++;
             }
             else
@@ -604,7 +604,7 @@ namespace ACE.Server.Physics.Animation
             {
                 PreviousHeading = heading;
 
-                if (!PhysicsObj.IsInterpolating() && !PhysicsObj.motions_pending())
+                if (!PhysicsObj.IsInterpolating() && !PhysicsObj.IsAnimating)
                     FailProgressCount++;
             }
         }
