@@ -77,7 +77,7 @@ namespace ACE.Server.WorldObjects
                 player.CreateItemSpell(this, (uint)SpellDID);
 
                 if ((GetProperty(PropertyBool.UnlimitedUse) ?? false) == false)
-                    player.TryConsumeFromInventoryWithNetworking(this);
+                    player.TryConsumeFromInventoryWithNetworking(this, 1);
 
                 player.SendUseDoneEvent();
                 return;
