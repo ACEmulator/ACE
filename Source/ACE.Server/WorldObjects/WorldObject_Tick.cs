@@ -68,7 +68,8 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public virtual void HeartBeat(double currentUnixTime)
         {
-            Generator_HeartBeat();
+            if (IsGenerator)
+                Generator_HeartBeat();
 
             EmoteManager.HeartBeat();
 
