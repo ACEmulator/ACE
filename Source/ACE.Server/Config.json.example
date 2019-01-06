@@ -61,9 +61,6 @@
         "DeleteUponExport": true,
         "AllowRepeatedImport": false,
         "ExternalIPAddressOrDomainName": "",
-        "_comment1": "To prevent exploitation a ring of servers should be made with the tail server trusting to the head server.",
-        "_comment2": "A ring/chain/circle, and NOT a mesh.  Every server trusts the next server in the chain.",
-        "_comment3": "No server can trust any more than the next server in the chain.  DeleteUponExport must be true. AllowRepeatedImport must be false.",
         "TrustedServerCertThumbprints": [
         ]
     },
