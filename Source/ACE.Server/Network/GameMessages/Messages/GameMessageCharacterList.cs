@@ -2,7 +2,6 @@ using System.Collections.Generic;
 
 using ACE.Common;
 using ACE.Database.Models.Shard;
-using ACE.Entity;
 
 namespace ACE.Server.Network.GameMessages.Messages
 {
@@ -15,7 +14,7 @@ namespace ACE.Server.Network.GameMessages.Messages
 
             foreach (var character in characters)
             {                
-                Writer.WriteGuid(new ObjectGuid(character.Id));
+                Writer.Write(character.Id);
                 if (ConfigManager.Config.Server.Accounts.OverrideCharacterPermissions && session.AccessLevel > ACE.Entity.Enum.AccessLevel.Advocate)
                     Writer.WriteString16L("+" + character.Name);
                 else if (character.IsPlussed)

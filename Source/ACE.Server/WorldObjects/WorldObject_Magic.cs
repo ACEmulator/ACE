@@ -240,7 +240,7 @@ namespace ACE.Server.WorldObjects
                 magicSkill = caster.GetCreatureSkill(spell.School).Current;
             else
                 // Retrieve casting item's spellcraft
-                magicSkill = (uint)ItemSpellcraft;
+                magicSkill = (uint)(ItemSpellcraft ?? 0);
 
             var player = caster as Player;
             var targetPlayer = target as Player;
@@ -338,7 +338,7 @@ namespace ACE.Server.WorldObjects
                             if (boost >= 0)
                                 spellTarget.DamageHistory.OnHeal((uint)boost);
                             else
-                                spellTarget.DamageHistory.Add(this, DamageType.Health, damage);
+                                spellTarget.DamageHistory.Add(this, DamageType.Health, (uint)-boost);
                             break;
                     }
 
@@ -698,6 +698,7 @@ namespace ACE.Server.WorldObjects
                         if (recall != PositionType.Undef)
                         {
                             ActionChain portalRecallChain = new ActionChain();
+                            portalRecallChain.AddAction(targetPlayer, () => player.DoPreTeleportHide());
                             portalRecallChain.AddDelaySeconds(2.0f);  // 2 second delay
                             portalRecallChain.AddAction(targetPlayer, () => player.TeleToPosition(recall));
                             portalRecallChain.EnqueueChain();
@@ -707,7 +708,8 @@ namespace ACE.Server.WorldObjects
                         if (targetPlayer != null)
                         {
                             ActionChain portalSendingChain = new ActionChain();
-                            portalSendingChain.AddDelaySeconds(2.0f);  // 2 second delay
+                            //portalSendingChain.AddDelaySeconds(2.0f);  // 2 second delay
+                            portalSendingChain.AddAction(targetPlayer, () => targetPlayer.DoPreTeleportHide());
                             portalSendingChain.AddAction(targetPlayer, () => targetPlayer.Teleport(spell.Position));
                             portalSendingChain.EnqueueChain();
                         }
@@ -808,22 +810,22 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         protected void SummonPortal(uint portalId, Position destination, double portalLifetime)
         {
-            var portal = WorldObjectFactory.CreateNewWorldObject(portalId);
-            portal.SetupTableId = 33556212;
-            portal.RadarBehavior = ACE.Entity.Enum.RadarBehavior.ShowNever;
-            portal.Name = "Gateway";
+            var portal = WorldObjectFactory.CreateNewWorldObject("portalgateway");
             portal.Location = Location.InFrontOf(3.0f);
+           
+            portal.Destination = destination;
 
-            if (portalId == 1955)
-                portal.Destination = destination;
+            portal.TimeToRot = portalLifetime;
+
+            portal.SetProperty(PropertyInt.PortalBitmask, (int)(PortalBitmask.Unrestricted | PortalBitmask.NoSummon));
 
             portal.EnterWorld();
 
             // Create portal decay
-            ActionChain despawnChain = new ActionChain();
-            despawnChain.AddDelaySeconds(portalLifetime);
-            despawnChain.AddAction(portal, () => portal.CurrentLandblock?.RemoveWorldObject(portal.Guid, false));
-            despawnChain.EnqueueChain();
+            //ActionChain despawnChain = new ActionChain();
+            //despawnChain.AddDelaySeconds(portalLifetime);
+            //despawnChain.AddAction(portal, () => portal.CurrentLandblock?.RemoveWorldObject(portal.Guid, false));
+            //despawnChain.EnqueueChain();
         }
 
         /// <summary>
@@ -1016,8 +1018,7 @@ namespace ACE.Server.WorldObjects
             }
 
             // create enchantment
-            var enchantment = new Enchantment(target, caster.Guid, spell.Id, duration, 1, EnchantmentMask.CreatureSpells);
-            var addResult = target.EnchantmentManager.Add(enchantment, caster);
+            var addResult = target.EnchantmentManager.Add(spell, caster);
 
             var player = this as Player;
             var playerTarget = target as Player;
@@ -1025,64 +1026,54 @@ namespace ACE.Server.WorldObjects
 
             // build message
             var suffix = "";
-            switch (addResult.stackType)
+            switch (addResult.StackType)
             {
-                case StackType.Refresh:
-                    suffix = $", refreshing {spell.Name}";
-                    break;
                 case StackType.Surpass:
-                    suffix = $", surpassing {addResult.surpass.Name}";
+                    suffix = $", surpassing {addResult.SurpassSpell.Name}";
+                    break;
+                case StackType.Refresh:
+                    suffix = $", refreshing {addResult.RefreshSpell.Name}";
                     break;
                 case StackType.Surpassed:
-                    suffix = $", but it is surpassed by {addResult.surpass.Name}";
+                    suffix = $", but it is surpassed by {addResult.SurpassedSpell.Name}";
                     break;
             }
 
             var targetName = this == target ? "yourself" : target.Name;
 
-            string message;
-            if (addResult.stackType == StackType.Undef)
-                message = null;
-            else
+            string message = null;
+
+            if (spell.Duration != -1)
             {
-                if (addResult.stackType == StackType.None)
-                    message = null;
+                if (caster is Creature)
+                {
+                    if (caster.Guid == Guid)
+                        message = $"You cast {spell.Name} on {targetName}{suffix}";
+                    else
+                        message = $"{caster.Name} casts {spell.Name} on {targetName}{suffix}"; // for the sentinel command `/buff [target player name]`
+                }
                 else
                 {
-                    if (caster is Creature)
-                    {
-                        if (caster.Guid == Guid)
-                            message = $"You cast {spell.Name} on {targetName}{suffix}";
-                        else
-                            message = $"{caster.Name} casts {spell.Name} on {targetName}{suffix}"; // for the sentinel command `/buff [target player name]`
-                    }
+                    if (target.Name != caster.Name)
+                        message = $"{caster.Name} casts {spell.Name} on you{suffix}";
                     else
-                    {
-                        if (target.Name != caster.Name)
-                            message = $"{caster.Name} casts {spell.Name} on you{suffix}";
-                        else
-                            message = null;
-                    }
+                        message = null;
                 }
             }
-
             if (target is Player)
             {
-                if (addResult.stackType != StackType.Undef)
-                {
-                    if (addResult.stackType != StackType.Surpassed)
-                        playerTarget.Session.Network.EnqueueSend(new GameEventMagicUpdateEnchantment(playerTarget.Session, enchantment));
+                playerTarget.Session.Network.EnqueueSend(new GameEventMagicUpdateEnchantment(playerTarget.Session, new Enchantment(playerTarget, addResult.Enchantment)));
 
-                    if (playerTarget != this)
-                        playerTarget.Session.Network.EnqueueSend(new GameMessageSystemChat($"{Name} cast {spell.Name} on you{suffix}", ChatMessageType.Magic));
-                }
+                if (playerTarget != this)
+                    playerTarget.Session.Network.EnqueueSend(new GameMessageSystemChat($"{Name} cast {spell.Name} on you{suffix}", ChatMessageType.Magic));
             }
 
             if (message != null)
                 enchantmentStatus.message = new GameMessageSystemChat(message, ChatMessageType.Magic);
             else
                 enchantmentStatus.message = null;
-            enchantmentStatus.stackType = addResult.stackType;
+
+            enchantmentStatus.stackType = addResult.StackType;
             return enchantmentStatus;
         }
 

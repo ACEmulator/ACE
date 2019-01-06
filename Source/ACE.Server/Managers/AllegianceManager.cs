@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-
+using ACE.Entity;
 using ACE.Server.Entity;
 using ACE.Server.WorldObjects;
 
@@ -14,7 +14,7 @@ namespace ACE.Server.Managers
         /// <summary>
         /// A mapping of all Players on the server => their AllegianceNodes
         /// </summary>
-        public static readonly Dictionary<IPlayer, AllegianceNode> Players = new Dictionary<IPlayer, AllegianceNode>();
+        public static readonly Dictionary<ObjectGuid, AllegianceNode> Players = new Dictionary<ObjectGuid, AllegianceNode>();
 
         /// <summary>
         /// Returns the monarch for a player
@@ -40,10 +40,10 @@ namespace ACE.Server.Managers
             if (monarch == null) return null;
 
             // is this allegiance already loaded / cached?
-            if (Players.ContainsKey(monarch))
-                return Players[monarch].Allegiance;
+            if (Players.ContainsKey(monarch.Guid))
+                return Players[monarch.Guid].Allegiance;
 
-            var allegiance = new Allegiance(monarch);
+            var allegiance = new Allegiance(monarch.Guid);
             if (allegiance.TotalMembers == 1)
                 return null;
 
@@ -56,16 +56,16 @@ namespace ACE.Server.Managers
         /// </summary>
         public static AllegianceNode GetAllegianceNode(IPlayer player)
         {
-            Players.TryGetValue(player, out var allegianceNode);
+            Players.TryGetValue(player.Guid, out var allegianceNode);
             return allegianceNode;
         }
 
         /// <summary>
         /// Returns a list of all players under a monarch
         /// </summary>
-        public static List<IPlayer> FindAllPlayers(IPlayer monarch)
+        public static List<IPlayer> FindAllPlayers(ObjectGuid monarchGuid)
         {
-            return PlayerManager.FindAllByMonarch(monarch.Guid);
+            return PlayerManager.FindAllByMonarch(monarchGuid);
         }
 
         /// <summary>
@@ -92,7 +92,7 @@ namespace ACE.Server.Managers
             // relink players
             foreach (var member in allegiance.Members.Keys)
             {
-                var player = PlayerManager.FindByGuid(member.Guid);
+                var player = PlayerManager.FindByGuid(member);
                 if (player == null) continue;
 
                 LoadPlayer(player);
@@ -220,8 +220,8 @@ namespace ACE.Server.Managers
             var received = (factor1 + factor2 * (leadership / SkillCap) * (1.0f + vassalFactor * (timeRealAvg / RealCap) * (timeGameAvg / GameCap))) * 0.01f;
             var passup = generated * received;
 
-            var generatedAmount = (ulong)(amount * generated);
-            var passupAmount = (ulong)(amount * passup);
+            var generatedAmount = (uint)(amount * generated);
+            var passupAmount = (uint)(amount * passup);
 
             /*Console.WriteLine("---");
             Console.WriteLine("AllegianceManager.PassXP(" + amount + ")");
@@ -237,11 +237,15 @@ namespace ACE.Server.Managers
 
             if (passupAmount > 0)
             {
-                /* TODO HACK FIX vassal.CPTithed += generatedAmount;
-                patron.CPCached += passupAmount;
-                patron.CPPoolToUnload += passupAmount;
+                //vassal.CPTithed += generatedAmount;
+                //patron.CPCached += passupAmount;
+                //patron.CPPoolToUnload += passupAmount;
 
-                patron.AddCPPoolToUnload(false);*/
+                patron.AllegianceCPPool += (int)passupAmount;
+
+                var onlinePatron = PlayerManager.GetOnlinePlayer(patron.Guid);
+                if (onlinePatron != null)
+                    onlinePatron.AddCPPoolToUnload(false);
 
                 // call recursively
                 PassXP(patronNode, passupAmount, false);

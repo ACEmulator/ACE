@@ -43,7 +43,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Called when a player first initiates a melee attack
         /// </summary>
-        public void HandleActionTargetedMeleeAttack(ObjectGuid guid, uint attackHeight, float powerLevel)
+        public void HandleActionTargetedMeleeAttack(uint targetGuid, uint attackHeight, float powerLevel)
         {
             /*Console.WriteLine("HandleActionTargetedMeleeAttack");
             Console.WriteLine("Target ID: " + guid.Full.ToString("X8"));
@@ -57,16 +57,16 @@ namespace ACE.Server.WorldObjects
             PowerLevel = powerLevel;
 
             // get world object of target guid
-            var target = CurrentLandblock?.GetObject(guid);
+            var target = CurrentLandblock?.GetObject(targetGuid);
             if (target == null)
             {
-                log.Warn("Unknown target guid " + guid);
+                log.Warn("Unknown target guid " + targetGuid);
                 return;
             }
             var creatureTarget = target as Creature;
             if (creatureTarget == null)
             {
-                log.Warn("Target GUID not creature " + guid);
+                log.Warn("Target GUID not creature " + targetGuid);
                 return;
             }
 

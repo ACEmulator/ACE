@@ -171,7 +171,7 @@ namespace ACE.Server.Network.Handlers
         [GameMessage(GameMessageOpcode.CharacterEnterWorld, SessionState.AuthConnected)]
         public static void CharacterEnterWorld(ClientMessage message, Session session)
         {
-            ObjectGuid guid = message.Payload.ReadGuid();
+            var guid = message.Payload.ReadUInt32();
 
             string clientString = message.Payload.ReadString16L();
 
@@ -181,7 +181,7 @@ namespace ACE.Server.Network.Handlers
                 return;
             }
 
-            var character = session.Characters.SingleOrDefault(c => c.Id == guid.Full);
+            var character = session.Characters.SingleOrDefault(c => c.Id == guid);
             if (character == null)
             {
                 session.SendCharacterError(CharacterError.EnterGameCharacterNotOwned);
@@ -253,9 +253,9 @@ namespace ACE.Server.Network.Handlers
         [GameMessage(GameMessageOpcode.CharacterRestore, SessionState.AuthConnected)]
         public static void CharacterRestore(ClientMessage message, Session session)
         {
-            ObjectGuid guid = message.Payload.ReadGuid();
+            var guid = message.Payload.ReadUInt32();
 
-            var character = session.Characters.SingleOrDefault(c => c.Id == guid.Full);
+            var character = session.Characters.SingleOrDefault(c => c.Id == guid);
             if (character == null)
                 return;
 

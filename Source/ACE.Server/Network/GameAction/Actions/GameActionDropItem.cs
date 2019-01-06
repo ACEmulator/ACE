@@ -1,4 +1,3 @@
-using ACE.Entity;
 
 namespace ACE.Server.Network.GameAction.Actions
 {
@@ -8,9 +7,9 @@ namespace ACE.Server.Network.GameAction.Actions
 
         public static void Handle(ClientMessage message, Session session)
         {
-            var objectGuid = new ObjectGuid(message.Payload.ReadUInt32());
+            var itemGuid = message.Payload.ReadUInt32();
 
-            session.Player.HandleActionDropItem(objectGuid);
+            session.Player.HandleActionDropItem(itemGuid);
         }
     }
 }

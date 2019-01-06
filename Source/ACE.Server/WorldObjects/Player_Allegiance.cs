@@ -1,6 +1,5 @@
 using System;
 
-using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Server.Entity;
 using ACE.Server.Managers;
@@ -25,13 +24,13 @@ namespace ACE.Server.WorldObjects
         /// Called when a player tries to Swear Allegiance to a target
         /// </summary>
         /// <param name="targetGuid">The target this player is attempting to swear allegiance to</param>
-        public void HandleActionSwearAllegiance(ObjectGuid targetGuid)
+        public void HandleActionSwearAllegiance(uint targetGuid)
         {
             if (!IsPledgable(targetGuid)) return;
 
             var patron = PlayerManager.GetOnlinePlayer(targetGuid);
 
-            Patron = targetGuid.Full;
+            Patron = targetGuid;
             Monarch = AllegianceManager.GetMonarch(patron).Guid.Full;
 
             //Console.WriteLine("Patron: " + PlayerManager.GetOfflinePlayerByGuidId(Patron.Value).Name);
@@ -59,7 +58,7 @@ namespace ACE.Server.WorldObjects
         /// Called when a player tries to break Allegiance to a target
         /// </summary>
         /// <param name="targetGuid">The target this player is attempting to break allegiance from</param>
-        public void HandleActionBreakAllegiance(ObjectGuid targetGuid)
+        public void HandleActionBreakAllegiance(uint targetGuid)
         {
             if (!IsBreakable(targetGuid)) return;
 
@@ -104,10 +103,10 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Returns TRUE if this player can swear to the target guid
         /// </summary>
-        public bool IsPledgable(ObjectGuid targetGuid)
+        public bool IsPledgable(uint targetGuid)
         {
             // ensure target player is online, and within range
-            var target = PlayerManager.FindByGuid(targetGuid.Full);
+            var target = PlayerManager.FindByGuid(targetGuid);
             if (target == null)
             {
                 //Console.WriteLine(Name + " tried to swear to an unknown player guid: " + targetGuid.Full.ToString("X8"));
@@ -122,7 +121,7 @@ namespace ACE.Server.WorldObjects
             }
 
             // player can't swear to themselves
-            if (targetGuid.Full == Guid.Full)
+            if (targetGuid == Guid.Full)
             {
                 //Console.WriteLine(Name + " tried to swear to themselves");
                 return false;
@@ -151,7 +150,7 @@ namespace ACE.Server.WorldObjects
                 // prevent any loops in the allegiance chain
                 if (selfNode != null && selfNode.IsMonarch)
                 {
-                    if (selfNode.Player.Guid.Full == targetNode.Monarch.Player.Guid.Full)
+                    if (selfNode.PlayerGuid == targetNode.Monarch.PlayerGuid)
                     {
                         //Console.WriteLine(Name + " tried to swear to someone already in Allegiance: " + target.Name);
                         return false;
@@ -168,7 +167,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Returns TRUE if this player can break allegiance to the target guid
         /// </summary>
-        public bool IsBreakable(ObjectGuid targetGuid)
+        public bool IsBreakable(uint targetGuid)
         {
             // players can break from either vassals or patrons
 
@@ -198,20 +197,14 @@ namespace ACE.Server.WorldObjects
         /// <param name="showMsg">Set to TRUE if player is logging in</param>
         public void AddCPPoolToUnload(bool showMsg = false)
         {
-            var patron = PlayerManager.GetOnlinePlayer(Guid);
+            if (AllegianceCPPool == 0) return;
 
-            // is player logged in?
-            if (patron == null) return;
-
-            if (CPPoolToUnload == 0) return;
-
-            // FIXME: should be uint?
-            patron.EarnXP((long)CPPoolToUnload, false);
+            EarnXP((long)CPPoolToUnload, false);
 
             if (showMsg)
-                patron.Session.Network.EnqueueSend(new GameMessageSystemChat($"Your Vassals have produced experience points for you.\nTaking your skills as a leader into account, you gain {CPPoolToUnload} xp.", ChatMessageType.Broadcast));
+                Session.Network.EnqueueSend(new GameMessageSystemChat($"Your Vassals have produced experience points for you.\nTaking your skills as a leader into account, you gain {CPPoolToUnload} xp.", ChatMessageType.Broadcast));
 
-            CPPoolToUnload = 0;     // force save?
+            AllegianceCPPool = 0;
         }
     }
 }

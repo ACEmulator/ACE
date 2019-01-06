@@ -1,5 +1,4 @@
 using System;
-using ACE.Server.Network.Structure;
 
 namespace ACE.Server.Network.GameAction.Actions
 {

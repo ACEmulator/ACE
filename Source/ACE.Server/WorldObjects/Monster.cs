@@ -35,20 +35,5 @@ namespace ACE.Server.WorldObjects
 
             return attackable && !tolerance.HasFlag(Tolerance.NoAttack);
         }
-
-        /// <summary>
-        /// Called on monster death, before Die()
-        /// </summary>
-        public void OnDeath()
-        {
-            IsTurning = false;
-            IsMoving = false;
-
-            EmoteManager.OnDeath(DamageHistory);
-
-            // handle summoning portals on creature death
-            if (LinkedPortalOneDID != null)
-                SummonPortal(LinkedPortalOneDID.Value);
-        }
     }
 }

@@ -29,7 +29,7 @@ using Position = ACE.Entity.Position;
 
 namespace ACE.Server.WorldObjects
 {
-    public abstract partial class WorldObject : IActor, IComparable<WorldObject>
+    public abstract partial class WorldObject : IActor
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -49,8 +49,6 @@ namespace ACE.Server.WorldObjects
         public bool InitPhysics { get; protected set; }
 
         public ObjectDescriptionFlag BaseDescriptionFlags { get; protected set; }
-
-        public PositionFlags PositionFlags { get; protected set; }
 
         public SequenceManager Sequences { get; } = new SequenceManager();
 
@@ -267,12 +265,22 @@ namespace ACE.Server.WorldObjects
 
         public bool HandleNPCReceiveItem(WorldObject item, WorldObject giver, ActionChain actionChain)
         {
-            var emoteSet = EmoteManager.GetEmoteSet(EmoteCategory.Give, null, null, item.WeenieClassId);
-            if (emoteSet == null)
-                return false;
+            // NPC accepts this item
+            var giveItem = EmoteManager.GetEmoteSet(EmoteCategory.Give, null, null, item.WeenieClassId);
+            if (giveItem != null)
+            {
+                EmoteManager.ExecuteEmoteSet(giveItem, giver, actionChain, true);
+                return true;
+            }
 
-            EmoteManager.ExecuteEmoteSet(emoteSet, giver, actionChain, true);
-            return true;
+            // NPC refuses this item, with a custom response
+            var refuseItem = EmoteManager.GetEmoteSet(EmoteCategory.Refuse, null, null, item.WeenieClassId);
+            if (refuseItem != null)
+            {
+                EmoteManager.ExecuteEmoteSet(refuseItem, giver, actionChain, true);
+                return true;
+            }
+            return false;
         }
 
         /// <summary>
@@ -449,8 +457,6 @@ namespace ACE.Server.WorldObjects
                         var weenieFlags2 = CalculatedWeenieHeaderFlag2();
                         sb.AppendLine($"{prop.Name} = {weenieFlags2.ToString()}" + " (" + (uint)weenieFlags2 + ")");
                         break;
-                    case "positionflag":
-                        sb.AppendLine($"{prop.Name} = {obj.PositionFlags.ToString()}" + " (" + (uint)obj.PositionFlags + ")");
                         break;
                     case "itemtype":
                         sb.AppendLine($"{prop.Name} = {obj.ItemType.ToString()}" + " (" + (uint)obj.ItemType + ")");
@@ -837,47 +843,14 @@ namespace ACE.Server.WorldObjects
                     item.Destroy();
             }
 
-            if (Location != null)
-            {
-                ActionChain destroyChain = new ActionChain();
-                destroyChain.AddAction(this, () => ApplyVisualEffects(ACE.Entity.Enum.PlayScript.Destroy));
-                destroyChain.AddDelaySeconds(3);
-                destroyChain.AddAction(this, () =>
-                {
-                    NotifyOfEvent(RegenerationType.Destruction);
-                    CurrentLandblock?.RemoveWorldObject(Guid, false);
-                    RemoveBiotaFromDatabase();
-                });
-                destroyChain.EnqueueChain();
-            }
-            else
-            {
-                NotifyOfEvent(RegenerationType.Destruction);
-                CurrentLandblock?.RemoveWorldObject(Guid, false);
-                RemoveBiotaFromDatabase();
-            }
+            NotifyOfEvent(RegenerationType.Destruction);
+            CurrentLandblock?.RemoveWorldObject(Guid);
+            RemoveBiotaFromDatabase();
         }
 
         public string GetPluralName()
         {
             return Name + "s";
-        }
-
-        public int CompareTo(WorldObject wo)
-        {
-            return Guid.Full.CompareTo(wo.Guid.Full);
-        }
-
-        public override bool Equals(object obj)
-        {
-            var wo = obj as WorldObject;
-            if (wo == null) return false;
-            return Guid.Full.Equals(wo.Guid.Full);
-        }
-
-        public override int GetHashCode()
-        {
-            return Guid.Full.GetHashCode();
         }
 
         /// <summary>
@@ -942,5 +915,7 @@ namespace ACE.Server.WorldObjects
         /// where the portal destination should be populated at runtime.
         /// </summary>
         public bool IsLinkSpot => WeenieType == WeenieType.Generic && WeenieClassName.Equals("portaldestination");
+
+        public static readonly float LocalBroadcastRange = 96.0f;
     }
 }

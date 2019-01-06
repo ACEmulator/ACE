@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Net;
+using System.Numerics;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -300,6 +301,15 @@ namespace ACE.Server.Managers
                 player = new Player(playerBiota, possessedBiotas.Inventory, possessedBiotas.WieldedItems, character, session);
 
             session.SetPlayer(player);
+
+            // If the client is missing a location, we start them off in the starter dungeon
+            if (session.Player.Location == null)
+            {
+                if (session.Player.Instantiation != null)
+                    session.Player.Location = new Position(session.Player.Instantiation);
+                else
+                    session.Player.Location = new Position(2349072813, 12.3199f, -28.482f, 0.0049999995f, 0.0f, 0.0f, -0.9408059f, -0.3389459f);
+            }
 
             session.Player.PlayerEnterWorld();
 

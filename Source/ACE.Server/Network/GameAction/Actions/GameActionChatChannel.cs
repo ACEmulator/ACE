@@ -14,6 +14,7 @@ namespace ACE.Server.Network.GameAction.Actions
         {
             var groupChatType = (Channel)clientMessage.Payload.ReadUInt32();
             var message = clientMessage.Payload.ReadString16L();
+
             switch (groupChatType)
             {
                 case Channel.Abuse:
@@ -229,8 +230,7 @@ namespace ACE.Server.Network.GameAction.Actions
 
                         foreach (var vassal in session.Player.AllegianceNode.Vassals)
                         {
-                            string vassalName = vassal.Player.Name;
-                            var vassalPlayer = PlayerManager.GetOnlinePlayer(vassalName);
+                            var vassalPlayer = PlayerManager.GetOnlinePlayer(vassal.PlayerGuid);
 
                             if (vassalPlayer != null)
                                 vassalPlayer.Session.Network.EnqueueSend(new GameEventChannelBroadcast(vassalPlayer.Session, groupChatType, session.Player.Name, message));
@@ -254,8 +254,7 @@ namespace ACE.Server.Network.GameAction.Actions
                             break;
                         }
 
-                        string patronName = session.Player.AllegianceNode.Patron.Player.Name;
-                        var patronPlayer = PlayerManager.GetOnlinePlayer(patronName);
+                        var patronPlayer = PlayerManager.GetOnlinePlayer(session.Player.AllegianceNode.Patron.PlayerGuid);
 
                         if (patronPlayer != null)
                             patronPlayer.Session.Network.EnqueueSend(new GameEventChannelBroadcast(patronPlayer.Session, groupChatType, session.Player.Name, message));
@@ -279,8 +278,7 @@ namespace ACE.Server.Network.GameAction.Actions
                             break;
                         }
 
-                        string monarchName = session.Player.AllegianceNode.Monarch.Player.Name;
-                        var monarchPlayer = PlayerManager.GetOnlinePlayer(monarchName);
+                        var monarchPlayer = PlayerManager.GetOnlinePlayer(session.Player.AllegianceNode.Monarch.PlayerGuid);
 
                         if (monarchPlayer != null)
                             monarchPlayer.Session.Network.EnqueueSend(new GameEventChannelBroadcast(monarchPlayer.Session, Channel.Patron, session.Player.Name, message));
@@ -304,23 +302,20 @@ namespace ACE.Server.Network.GameAction.Actions
                             break;
                         }
 
-                        string patronName = session.Player.AllegianceNode.Patron.Player.Name;
-                        var patronPlayer = PlayerManager.GetOnlinePlayer(patronName);
+                        var patronPlayer = PlayerManager.GetOnlinePlayer(session.Player.AllegianceNode.Patron.PlayerGuid);
 
                         if (patronPlayer != null)
                             patronPlayer.Session.Network.EnqueueSend(new GameEventChannelBroadcast(patronPlayer.Session, Channel.Patron, session.Player.Name, message));
 
                         foreach (var covassal in session.Player.AllegianceNode.Patron.Vassals)
                         {
-                            string vassalName = covassal.Player.Name;
-
-                            if (vassalName == session.Player.Name)
+                            if (covassal.PlayerGuid.Full == session.Player.Guid.Full)
                             {
                                 session.Network.EnqueueSend(new GameEventChannelBroadcast(session, groupChatType, "", message));
                             }
                             else
                             {
-                                var covassalPlayer = PlayerManager.GetOnlinePlayer(vassalName);
+                                var covassalPlayer = PlayerManager.GetOnlinePlayer(covassal.PlayerGuid);
 
                                 if (covassalPlayer != null)
                                     covassalPlayer.Session.Network.EnqueueSend(new GameEventChannelBroadcast(covassalPlayer.Session, groupChatType, session.Player.Name, message));

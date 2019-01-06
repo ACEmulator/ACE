@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+
+using ACE.Common.Extensions;
 using ACE.Database.Models.Shard;
 using ACE.DatLoader;
 using ACE.DatLoader.Entity;
@@ -142,20 +144,20 @@ namespace ACE.Server.WorldObjects
             if (motions == null)
                 return null;
 
-            while (true)    // limiter?
-            {
-                var rng = ThreadSafeRandom.Next(0, stanceManeuvers.Count - 1);
-                //Console.WriteLine("Selecting combat maneuver #" + rng);
+            var shuffledStanceManeuvers = new List<CombatManeuver>(stanceManeuvers);
+            shuffledStanceManeuvers.Shuffle();
 
-                var combatManeuver = stanceManeuvers[rng];
+            for (int i = 0; i < shuffledStanceManeuvers.Count; i++)
+            {
+                var combatManeuver = shuffledStanceManeuvers[i];
 
                 var motion = combatManeuver.Motion.ToString();
 
                 // todo: use motion mapping, avoid string search
 
-                if (motion.Contains("Slash") && (weapon == null || (weapon.MAttackType & AttackType.Slash) == 0))
+                if (motion.Contains("Slash") && (weapon == null || (weapon.MAttackType & (AttackType.Slash | AttackType.DoubleSlash | AttackType.TripleSlash)) == 0))
                     continue;
-                if (motion.Contains("Thrust") && (weapon == null || (weapon.MAttackType & AttackType.Thrust) == 0))
+                if (motion.Contains("Thrust") && (weapon == null || (weapon.MAttackType & (AttackType.Thrust | AttackType.DoubleThrust | AttackType.TripleThrust)) == 0))
                     continue;
 
                 if (motion.StartsWith("Double") && (weapon == null || (weapon.MAttackType & AttackType.DoubleStrike) == 0))
@@ -164,10 +166,13 @@ namespace ACE.Server.WorldObjects
                     continue;
 
                 // ensure combat maneuver exists for this monster's motion table
-                motions.TryGetValue((uint)combatManeuver.Motion, out var motionData);
-                if (motionData != null)
+                if (motions.TryGetValue((uint)combatManeuver.Motion, out var motionData) && motionData != null)
                     return combatManeuver;
-            };
+            }
+
+            // No match was found
+            log.WarnFormat("No valid combat maneuver found for {0} using weapon {1}. CurrentMotionState.Stance: {2}", Name, (weapon != null ? weapon.Name : "null"), CurrentMotionState.Stance);
+            return null;
         }
 
         /// <summary>
@@ -313,6 +318,9 @@ namespace ACE.Server.WorldObjects
 
             // get base damage
             var attackPart = GetAttackPart(maneuver);
+            if (attackPart == null)
+                return 0.0f;
+
             damageType = GetDamageType(attackPart);
             var damageRange = GetBaseDamage(attackPart);
             var baseDamage = ThreadSafeRandom.Next(damageRange.Min, damageRange.Max);
@@ -513,6 +521,14 @@ namespace ACE.Server.WorldObjects
             }
             if (parts == null)
                 parts = Biota.BiotaPropertiesBodyPart.Where(b => b.DVal != 0 && b.BH != 0).ToList();
+
+            if (parts.Count == 0)
+            {
+                log.Warn($"{Name}.GetAttackPart() failed");
+                log.Warn($"Combat table ID: {CombatTable.Id:X8}");
+                log.Warn($"{maneuver.Style} - {maneuver.Motion} - {maneuver.AttackHeight}");
+                return null;
+            }
 
             var part = parts[ThreadSafeRandom.Next(0, parts.Count - 1)];
 

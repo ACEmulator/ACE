@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 
-using ACE.Entity;
 using ACE.Server.Entity;
 
 namespace ACE.Server.Network.GameAction.Actions
@@ -10,7 +9,7 @@ namespace ACE.Server.Network.GameAction.Actions
         [GameAction(GameActionType.Sell)]
         public static void Handle(ClientMessage message, Session session)
         {
-            ObjectGuid vendorId = new ObjectGuid(message.Payload.ReadUInt32());
+            var vendorGuid = message.Payload.ReadUInt32();
             uint itemcount = message.Payload.ReadUInt32();
 
             List<ItemProfile> items = new List<ItemProfile>();
@@ -22,7 +21,7 @@ namespace ACE.Server.Network.GameAction.Actions
                 item.Amount = message.Payload.ReadUInt32();
                 // item.Amount = item.Amount & 0xFFFFFF;
 
-                item.Guid = new ObjectGuid(message.Payload.ReadUInt32());
+                item.ObjectGuid = message.Payload.ReadUInt32();
                 items.Add(item);
             }
 
@@ -30,7 +29,7 @@ namespace ACE.Server.Network.GameAction.Actions
             // uint i_alternateCurrencyID = message.Payload.ReadUInt32();
 
             // todo: take into account other currencyIds other then assuming default
-            session.Player.HandleActionSellItem(items, vendorId);
+            session.Player.HandleActionSellItem(items, vendorGuid);
         }
     }
 }

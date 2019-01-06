@@ -1,5 +1,20 @@
 # ACEmulator Change Log
 
+### 2018-01-03
+[Ripley]
+* Changed the Enchantment Registry in Shard Database to use a composite key instead of a single primary key for each record.
+  - This eliminates, in theory, record caps for this table.
+  - More tables in Shard will be converted to this format if this proves stable long term
+  - **You must apply the 2018-12-30-00-Enchantment_Registry_Comp_Key.sql script to update your shard database**
+
+### 2019-01-01
+[Ripley]
+* Fix issue with switches
+  - Changed code to use TryCastSpell so that it works with all schools of magic.
+  - Added check for Emote and use Activation Emote if called for.
+* Update @delete command to work correctly.
+* Update EmoteManager to support InflictVitaePenalty
+
 ### 2018-12-31
 [Mag-nus]
 * Added ACE.Adapter project for supporting Lifestoned json data importing

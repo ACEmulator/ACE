@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+
 using ACE.Common;
 using ACE.Database;
 using ACE.DatLoader;
@@ -66,21 +67,21 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Handles player targeted casting message
         /// </summary>
-        public void HandleActionCastTargetedSpell(ObjectGuid targetGuid, uint spellId)
+        public void HandleActionCastTargetedSpell(uint targetGuid, uint spellId)
         {
             var target = CurrentLandblock?.GetObject(targetGuid);
             var targetCategory = TargetCategory.UnDef;
 
             if (target != null)
             {
-                if (targetGuid == Guid)
+                if (targetGuid == Guid.Full)
                     targetCategory = TargetCategory.Self;
                 else
                     targetCategory = TargetCategory.WorldObject;
             }
             else
             {
-                target = GetWieldedItem(targetGuid);
+                target = GetEquippedItem(targetGuid);
                 if (target != null)
                     targetCategory = TargetCategory.Wielded;
                 else
@@ -234,29 +235,17 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Method used for handling items casting spells on the player who is either equiping the item, or using a gem in posessions
         /// </summary>
-        /// <param name="guidItem">the GUID of the item casting the spell(s)</param>
+        /// <param name="item">the item casting the spell(s)</param>
         /// <param name="spellId">the spell id</param>
         /// <param name="suppressSpellChatText">prevent spell text from being sent to the player's chat windows (used for already affecting items during Player.EnterWorld)</param>
         /// <param name="ignoreRequirements">disregard item activation requirements (used for already affecting items during Player.EnterWorld)</param>
         /// <returns>FALSE - the spell was NOT created because the spell is invalid or not implemented yet, the item was not found, the item was not either wielded or a gem, or the player did not meet one or more item activation requirements. <para />TRUE - the spell was created or it is surpassed</returns>
-        public bool CreateItemSpell(ObjectGuid guidItem, uint spellId, bool suppressSpellChatText = false, bool ignoreRequirements = false)
+        public bool CreateItemSpell(WorldObject item, uint spellId, bool suppressSpellChatText = false, bool ignoreRequirements = false)
         {
-            var player = this;
-            WorldObject item = player.GetWieldedItem(guidItem);
-
-            if (item == null)
-            {
-                item = player.GetInventoryItem(guidItem);
-                if (item == null)
-                    return false;
-                if (item.WeenieType != WeenieType.Gem)
-                    return false;
-            }
-
-            CreatureSkill arcaneLore = player.GetCreatureSkill(Skill.ArcaneLore);
-            CreatureSkill meleeDefense = player.GetCreatureSkill(Skill.MeleeDefense);
-            CreatureSkill missileDefense = player.GetCreatureSkill(Skill.MissileDefense);
-            CreatureSkill magicDefense = player.GetCreatureSkill(Skill.MagicDefense);
+            CreatureSkill arcaneLore = GetCreatureSkill(Skill.ArcaneLore);
+            CreatureSkill meleeDefense = GetCreatureSkill(Skill.MeleeDefense);
+            CreatureSkill missileDefense = GetCreatureSkill(Skill.MissileDefense);
+            CreatureSkill magicDefense = GetCreatureSkill(Skill.MagicDefense);
 
             if (ignoreRequirements || arcaneLore.Current >= item.ItemDifficulty || item.ItemDifficulty == null)
             {
@@ -302,11 +291,11 @@ namespace ACE.Server.WorldObjects
 
                         if (spell.IsHarmful)
                             break;
-                        enchantmentStatus = CreatureMagic(player, spell, item);
+                        enchantmentStatus = CreatureMagic(this, spell, item);
                         created = true;
                         if (enchantmentStatus.message != null)
                         {
-                            EnqueueBroadcast(new GameMessageScript(player.Guid, spell.TargetEffect, spell.Formula.Scale));
+                            EnqueueBroadcast(new GameMessageScript(Guid, spell.TargetEffect, spell.Formula.Scale));
                             if (!suppressSpellChatText)
                                 Session.Network.EnqueueSend(enchantmentStatus.message);
                         }
@@ -319,11 +308,11 @@ namespace ACE.Server.WorldObjects
                             if (spell.IsHarmful)
                                 break;
                         }
-                        LifeMagic(player, spell, out uint damage, out bool critical, out enchantmentStatus, item);
+                        LifeMagic(this, spell, out uint damage, out bool critical, out enchantmentStatus, item);
                         created = true;
                         if (enchantmentStatus.message != null)
                         {
-                            EnqueueBroadcast(new GameMessageScript(player.Guid, spell.TargetEffect, spell.Formula.Scale));
+                            EnqueueBroadcast(new GameMessageScript(Guid, spell.TargetEffect, spell.Formula.Scale));
                             if (!suppressSpellChatText)
                                 Session.Network.EnqueueSend(enchantmentStatus.message);
                         }
@@ -337,8 +326,8 @@ namespace ACE.Server.WorldObjects
                             || (spell.MetaSpellType == SpellType.PortalSummon))
                         {
                             var playScript = spell.CasterEffect > 0 ? spell.CasterEffect : spell.TargetEffect;
-                            EnqueueBroadcast(new GameMessageScript(player.Guid, playScript, spell.Formula.Scale));
-                            enchantmentStatus = ItemMagic(player, spell, item);
+                            EnqueueBroadcast(new GameMessageScript(Guid, playScript, spell.Formula.Scale));
+                            enchantmentStatus = ItemMagic(this, spell, item);
                         }
                         else
                         {
@@ -349,18 +338,18 @@ namespace ACE.Server.WorldObjects
                                 || (spell.Category == (uint)SpellCategory.AppraisalResistanceLowering)
                                 || (spell.Category == (uint)SpellCategory.SpellDamageRaising))
                             {
-                                enchantmentStatus = ItemMagic(player, spell, item);
+                                enchantmentStatus = ItemMagic(this, spell, item);
                             }
                             else
                                 enchantmentStatus = ItemMagic(item, spell, item);
 
-                            EnqueueBroadcast(new GameMessageScript(player.Guid, spell.TargetEffect, spell.Formula.Scale));
+                            EnqueueBroadcast(new GameMessageScript(Guid, spell.TargetEffect, spell.Formula.Scale));
                         }
                         created = true;
                         if (enchantmentStatus.message != null)
                         {
                             if (!suppressSpellChatText)
-                                player.Session.Network.EnqueueSend(enchantmentStatus.message);
+                                Session.Network.EnqueueSend(enchantmentStatus.message);
                         }
                         break;
 
@@ -375,18 +364,13 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Method for handling the removal of an item's spell from the Enchantment registry, silently
         /// </summary>
-        public void DispelItemSpell(ObjectGuid guidItem, uint spellId)
+        public void DispelItemSpell(WorldObject item, uint spellId)
         {
-            WorldObject item = GetWieldedItem(guidItem);
-
-            if (item == null)
-                return;
-
             var spell = new Spell(spellId);
 
             if (spell._spellBase == null)
             {
-                Session.Network.EnqueueSend(new GameEventUseDone(Session, errorType: WeenieError.MagicInvalidSpellType));
+                Session.Network.EnqueueSend(new GameEventUseDone(Session, WeenieError.MagicInvalidSpellType));
                 return;
             }
 
@@ -423,7 +407,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void RemoveItemSpell(ObjectGuid guidItem, uint spellId)
         {
-            WorldObject item = GetWieldedItem(guidItem);
+            WorldObject item = GetEquippedItem(guidItem);
 
             if (item == null)
                 return;
@@ -509,8 +493,15 @@ namespace ACE.Server.WorldObjects
             else
                 player.IsBusy = true;
 
+            // if casting implement has spell built in,
+            // use spellcraft from the item, instead of player's magic skill?
+            var caster = GetEquippedWand();
+            var isWeaponSpell = IsWeaponSpell(spell);
+
             // Grab player's skill level in the spell's Magic School
             var magicSkill = player.GetCreatureSkill(spell.School).Current;
+            if (isWeaponSpell && caster.ItemSpellcraft != null)
+                magicSkill = (uint)caster.ItemSpellcraft;
 
             if (targetCategory == TargetCategory.WorldObject)
             {
@@ -564,7 +555,11 @@ namespace ACE.Server.WorldObjects
             // Calculate mana usage
             uint manaUsed = CalculateManaUsage(player, spell, target);
 
-            if (manaUsed > player.Mana.Current)
+            var currentMana = player.Mana.Current;
+            if (isWeaponSpell)
+                currentMana = (uint)(caster.ItemCurMana ?? 0);
+
+            if (manaUsed > currentMana)
             {
                 player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.YouDontHaveEnoughManaToCast));
                 IsBusy = false; // delay?
@@ -573,7 +568,11 @@ namespace ACE.Server.WorldObjects
 
             // begin spellcasting
             Proficiency.OnSuccessUse(player, player.GetCreatureSkill(Skill.ManaConversion), spell.PowerMod);
-            player.UpdateVitalDelta(player.Mana, -(int)manaUsed);
+
+            if (!isWeaponSpell)
+                player.UpdateVitalDelta(player.Mana, -(int)manaUsed);
+            else
+                caster.ItemCurMana -= (int)manaUsed;
 
             spell.Formula.GetPlayerFormula(player);
 
@@ -603,7 +602,11 @@ namespace ACE.Server.WorldObjects
             // cast spell
             spellChain.AddAction(this, () =>
             {
-                var motionCastSpell = new Motion(MotionStance.Magic, spell.Formula.CastGesture, castSpeed);
+                var castGesture = spell.Formula.CastGesture;
+                if (isWeaponSpell && caster.UseUserAnimation != 0)
+                    castGesture = caster.UseUserAnimation;
+
+                var motionCastSpell = new Motion(MotionStance.Magic, castGesture, castSpeed);
                 EnqueueBroadcastMotion(motionCastSpell);
             });
 
@@ -612,7 +615,8 @@ namespace ACE.Server.WorldObjects
 
             spellChain.AddAction(this, () =>
             {
-                TryBurnComponents(spell);
+                if (!isWeaponSpell)
+                    TryBurnComponents(spell);
             });
 
             var checkPKStatusVsTarget = CheckPKStatusVsTarget(player, target, spell);
@@ -703,10 +707,6 @@ namespace ACE.Server.WorldObjects
                                 {
                                     creatureTarget.OnDeath(this, DamageType.Health, false); 
                                     creatureTarget.Die();
-
-                                    // TODO: refactor to common Creature.OnDeath()
-                                    if ((creatureTarget as Player) == null)
-                                        player.EarnXP((long)target.XpOverride, true);
                                 }
                                 else
                                 {
@@ -749,7 +749,7 @@ namespace ACE.Server.WorldObjects
                                     else
                                     {
                                         // Impen/bane targeted at a player
-                                        var items = (target as Player).GetAllWieldedItems();
+                                        var items = ((Player)target).EquippedObjects.Values;
                                         foreach (var item in items)
                                         {
                                             if (item.WeenieType == WeenieType.Clothing)
@@ -1033,7 +1033,7 @@ namespace ACE.Server.WorldObjects
                 if (buffMessages.Any(k => k.Bane))
                 {
                     // Impen/bane
-                    var items = (targetPlayer as Player).GetAllWieldedItems();
+                    var items = targetPlayer.EquippedObjects.Values.ToList();
                     var itembuffs = buffMessages.Where(k => k.Bane).ToList();
                     foreach (var itemBuff in itembuffs)
                     {
@@ -1149,7 +1149,7 @@ namespace ACE.Server.WorldObjects
             BuffMessage buff = new BuffMessage();
             buff.Spell = new Spell(spellID);
             if (buff.Spell.NotFound) return null;
-            buff.Enchantment = new Enchantment(null, null, spellID, buff.Spell.Duration, 1, (EnchantmentMask)buff.Spell.StatModType, buff.Spell.StatModVal);
+            buff.Enchantment = new Enchantment(null, 0, spellID, buff.Spell.Duration, 1, (EnchantmentMask)buff.Spell.StatModType, buff.Spell.StatModVal);
             return buff;
         }
 
@@ -1183,7 +1183,7 @@ namespace ACE.Server.WorldObjects
                 if (item.StackSize > 0)
                     Session.Network.EnqueueSend(new GameMessageSetStackSize(item));
                 else
-                    TryRemoveFromInventoryWithNetworking(item);
+                    TryConsumeFromInventoryWithNetworking(item);
             }
 
             // send message to player
@@ -1204,6 +1204,19 @@ namespace ACE.Server.WorldObjects
         {
             var wcid = FociWCIDs[school];
             return Inventory.Values.FirstOrDefault(i => i.WeenieClassId == wcid) != null;
+        }
+
+        /// <summary>
+        /// Returns TRUE if the currently equipped casting implement
+        /// has a built-in spell
+        /// </summary>
+        public bool IsWeaponSpell(Spell spell)
+        {
+            var caster = GetEquippedWand();
+            if (caster == null || caster.SpellDID == null)
+                return false;
+
+            return caster.SpellDID == spell.Id;
         }
     }
 }

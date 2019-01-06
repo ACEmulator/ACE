@@ -37,7 +37,7 @@ namespace ACE.Server.Entity
         /// <param name="source">The attacker to add up the damage for</param>
         public static ulong GetTotalDamage(List<AttackDamage> attacks, WorldObject source)
         {
-            return (ulong)attacks.Where(a => a.Source.Equals(source)).Sum(a => a.Amount);
+            return (ulong)attacks.Where(a => a.Source == source).Sum(a => a.Amount);
         }
 
         /// <summary>

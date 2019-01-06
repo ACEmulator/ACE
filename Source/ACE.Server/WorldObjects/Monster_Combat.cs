@@ -294,31 +294,9 @@ namespace ACE.Server.WorldObjects
 
             if (Health.Current <= 0)
             {
-                OnDeath();
+                OnDeath(DamageHistory.LastDamager, damageType, crit);
+
                 Die();
-
-                // this should only probably go to the last damager
-                var lastDamager = DamageHistory.LastDamager as Player;
-                if (lastDamager != null)
-                {
-                    var deathMessage = Strings.GetDeathMessage(damageType, crit);
-                    lastDamager.Session.Network.EnqueueSend(new GameMessageSystemChat(string.Format(deathMessage.Killer, Name), ChatMessageType.Broadcast));
-                }
-
-                // split xp between players in damage history?
-                foreach (var kvp in DamageHistory.TotalDamage)
-                {
-                    var damager = kvp.Key;
-                    var totalDamage = kvp.Value;
-
-                    var playerDamager = damager as Player;
-                    if (playerDamager == null) continue;
-
-                    var damagePercent = totalDamage / Health.MaxValue;
-                    var totalXP = (XpOverride ?? 0) * damagePercent;
-
-                    playerDamager.EarnXP((long)Math.Round(totalXP));
-                }
             }
         }
 

@@ -106,7 +106,7 @@ namespace ACE.Server.Network.Managers
             }
             else
             {
-                log.Warn($"Received unhandled fragment opcode: 0x{(uint)opcode:X}");
+                log.Warn($"Received unhandled fragment opcode: 0x{(int)opcode:X4} - {opcode}");
             }
         }
 
@@ -121,7 +121,7 @@ namespace ACE.Server.Network.Managers
             }
             else
             {
-                log.Warn($"Received unhandled GameActionType: 0x{(uint)opcode:X}");
+                log.Warn($"Received unhandled GameActionType: 0x{(int)opcode:X4} - {opcode}");
             }
         }
     }

@@ -7,14 +7,11 @@ namespace ACE.Server.Network.GameAction.Actions
         [GameAction(GameActionType.Join)]
         public static void Handle(ClientMessage message, Session session)
         {
-            var gameId = message.Payload.ReadGuid(); // object id of gameboard
+            var gameGuid = message.Payload.ReadUInt32(); // object id of gameboard
             var whichTeam = message.Payload.ReadUInt32(); // expecting 0xFFFFFFFF here
 
-            Game wo = session.Player.CurrentLandblock?.GetObject(gameId) as Game;
-            if (wo != null)
-            {
-                wo.ActOnJoin(session.Player.Guid);
-            }
+            if (session.Player.CurrentLandblock?.GetObject(gameGuid) is Game game)
+                game.ActOnJoin(session.Player.Guid);
         }
     }
 }

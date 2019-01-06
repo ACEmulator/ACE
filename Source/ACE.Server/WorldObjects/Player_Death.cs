@@ -68,6 +68,28 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
+        /// Inflicts vitae
+        /// </summary>
+        public void InflictVitaePenalty(int amount = 5)
+        {
+            DeathLevel = Level; // for calculating vitae XP
+            VitaeCpPool = 0;    // reset vitae XP earned
+
+            var msgDeathLevel = new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.DeathLevel, DeathLevel ?? 0);
+            var msgVitaeCpPool = new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.VitaeCpPool, VitaeCpPool.Value);
+
+            Session.Network.EnqueueSend(msgDeathLevel, msgVitaeCpPool);
+
+            var vitae = EnchantmentManager.UpdateVitae();
+
+            var spellID = (uint)SpellId.Vitae;
+            var spell = new Spell(spellID);
+            var vitaeEnchantment = new Enchantment(this, Guid.Full, spellID, spell.Duration, 0, (EnchantmentMask)spell.StatModType, vitae);
+            Session.Network.EnqueueSend(new GameEventMagicUpdateEnchantment(Session, vitaeEnchantment));
+        }
+
+
+        /// <summary>
         /// Broadcasts the player death animation, updates vitae, and sends network messages for player death
         /// Queues the action to call TeleportOnDeath and enter portal space soon
         /// </summary>
@@ -75,8 +97,6 @@ namespace ACE.Server.WorldObjects
         {
             UpdateVital(Health, 0);
             NumDeaths++;
-            DeathLevel = Level; // for calculating vitae XP
-            VitaeCpPool = 0;    // reset vitae XP earned
 
             // killer = top damager for looting rights
             if (topDamager != null)
@@ -96,25 +116,21 @@ namespace ACE.Server.WorldObjects
             // TODO: death sounds? seems to play automatically in client
             // var msgDeathSound = new GameMessageSound(Guid, Sound.Death1, 1.0f);
             var msgNumDeaths = new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.NumDeaths, NumDeaths ?? 0);
-            var msgDeathLevel = new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.DeathLevel, DeathLevel ?? 0);
-            var msgVitaeCpPool = new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.VitaeCpPool, VitaeCpPool.Value);
-            var msgPurgeEnchantments = new GameEventMagicPurgeEnchantments(Session);
 
             // send network messages for player death
-            Session.Network.EnqueueSend(msgHealthUpdate, msgNumDeaths, msgDeathLevel, msgVitaeCpPool, msgPurgeEnchantments);
+            Session.Network.EnqueueSend(msgHealthUpdate, msgNumDeaths);
 
             // update vitae
             // players who died in a PKLite fight do not accrue vitae
             var pkLiteKiller = GetKiller_PKLite();
             if (pkLiteKiller == null)
             {
-                var vitae = EnchantmentManager.UpdateVitae();
-
-                var spellID = (uint)SpellId.Vitae;
-                var spell = new Spell(spellID);
-                var vitaeEnchantment = new Enchantment(this, Guid, spellID, spell.Duration, 0, (EnchantmentMask)spell.StatModType, vitae);
-                Session.Network.EnqueueSend(new GameEventMagicUpdateEnchantment(Session, vitaeEnchantment));
+                InflictVitaePenalty();
             }
+
+            var msgPurgeEnchantments = new GameEventMagicPurgeEnchantments(Session);
+            EnchantmentManager.RemoveAllEnchantments();
+            Session.Network.EnqueueSend(msgPurgeEnchantments);
 
             // wait for the death animation to finish
             var dieChain = new ActionChain();
@@ -258,7 +274,7 @@ namespace ACE.Server.WorldObjects
 
             // Death items
 
-            // You can protect important items like your armor and weapons by carrying death items. THese are items that are
+            // You can protect important items like your armor and weapons by carrying death items. These are items that are
             // ideally light weight as well as high in value. You can tinker loot items with bags of Salvaged Gold to raise their
             // face value. Although tinkering special items can remove some of the beneift, as you feel obligated to recover
             // them. Items that can be purchased can just be left if the corpse would be too difficult to recover.
@@ -339,6 +355,9 @@ namespace ACE.Server.WorldObjects
             // exclude bonded items
             inventory = inventory.Where(i => (i.GetProperty(PropertyInt.Bonded) ?? 0) == 0).ToList();
 
+            // handle items with BondedStatus.Destroy
+            var destroyedItems = HandleDestroyBonded();
+
             // construct the list of death items
             var sorted = new DeathItems(inventory);
 
@@ -352,27 +371,48 @@ namespace ACE.Server.WorldObjects
                 //Console.WriteLine($"Dropping {numCoinsDropped} pyreals");
             }
 
+            // Remove the items from inventory
             for (var i = 0; i < numItemsDropped && i < sorted.Inventory.Count; i++)
             {
                 var deathItem = sorted.Inventory[i];
 
                 // split stack if needed
-                var stackSize = deathItem.WorldObject.StackSize ?? 1;
-                var stackMsg = stackSize > 1 ? " (stack)" : "";
-
-                var dropItem = deathItem.WorldObject;
-                if (stackSize > 1)
+                if ((deathItem.WorldObject.StackSize ?? 1) > 1)
                 {
-                    deathItem.WorldObject.StackSize--;
-                    Session.Network.EnqueueSend(new GameMessageUpdateObject(deathItem.WorldObject));
+                    var stack = FindObject(deathItem.WorldObject.Guid, SearchLocations.MyInventory | SearchLocations.MyEquippedItems, out var foundInContainer, out var rootContainer, out _);
 
-                    dropItem = WorldObjectFactory.CreateNewWorldObject(deathItem.WorldObject.WeenieClassId);
-                    TryAddToInventory(dropItem);
+                    if (stack != null)
+                    {
+                        AdjustStack(stack, -1, foundInContainer, rootContainer);
+                        Session.Network.EnqueueSend(new GameMessageSetStackSize(stack));
+
+                        var dropItem = WorldObjectFactory.CreateNewWorldObject(deathItem.WorldObject.WeenieClassId);
+
+                        //Console.WriteLine("Dropping " + deathItem.WorldObject.Name + " (stack)");
+                        dropItems.Add(dropItem);
+                    }
+                    else
+                    {
+                        log.WarnFormat("Couldn't find death item stack 0x{0:X8}:{1} for player {2}", deathItem.WorldObject.Guid.Full, deathItem.WorldObject.Name, Name);
+                    }
                 }
-
-                //Console.WriteLine("Dropping " + deathItem.WorldObject.Name + stackMsg);
-                dropItems.Add(dropItem);
+                else
+                {
+                    if (TryRemoveFromInventoryWithNetworking(deathItem.WorldObject.Guid, out _, RemoveFromInventoryAction.ToCorpseOnDeath) || TryDequipObjectWithNetworking(deathItem.WorldObject.Guid, out _, DequipObjectAction.ToCorpseOnDeath))
+                    {
+                        //Console.WriteLine("Dropping " + deathItem.WorldObject.Name);
+                        dropItems.Add(deathItem.WorldObject);
+                    }
+                    else
+                    {
+                        log.WarnFormat("Couldn't find death item 0x{0:X8}:{1} for player {2}", deathItem.WorldObject.Guid.Full, deathItem.WorldObject.Name, Name);
+                    }
+                }
             }
+
+            // handle items with BondedStatus.Slippery: always drop on death
+            var slipperyItems = GetSlipperyItems();
+            dropItems.AddRange(slipperyItems);
 
             // add items to corpse
             foreach (var dropItem in dropItems)
@@ -381,19 +421,17 @@ namespace ACE.Server.WorldObjects
                 if (dropItem.WeenieType == WeenieType.Coin)
                     continue;
 
-                if (!TryRemoveItemWithNetworking(dropItem))
-                {
-                    Console.WriteLine($"Player_Death: couldn't remove item from {Name}'s inventory: {dropItem.Name}");
-                    continue;
-                }
                 if (!corpse.TryAddToInventory(dropItem))
                 {
-                    Console.WriteLine($"Player_Death: couldn't add item to {Name}'s corpse: {dropItem.Name}");
+                    log.Warn($"Player_Death: couldn't add item to {Name}'s corpse: {dropItem.Name}");
 
                     if (!TryAddToInventory(dropItem))
-                        Console.WriteLine($"Player_Death: couldn't re-add item to {Name}'s inventory: {dropItem.Name}");
+                        log.Warn($"Player_Death: couldn't re-add item to {Name}'s inventory: {dropItem.Name}");
                 }
             }
+
+            // notify player of destroyed items?
+            dropItems.AddRange(destroyedItems);
 
             // send network messages
             var dropList = DropMessage(dropItems);
@@ -756,6 +794,26 @@ namespace ACE.Server.WorldObjects
 
             EnqueueBroadcast(new GameMessagePublicUpdatePropertyInt(this, PropertyInt.PlayerKillerStatus, (int)PlayerKillerStatus));
             Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouArePKAgain));
+        }
+
+        public List<WorldObject> GetSlipperyItems()
+        {
+            var allPossessions = GetAllPossessions();
+
+            return allPossessions.Where(i => (i.Bonded ?? 0) == (int)BondedStatus.Slippery).ToList();
+        }
+
+        public List<WorldObject> HandleDestroyBonded()
+        {
+            var destroyedItems = new List<WorldObject>();
+
+            var allPossessions = GetAllPossessions();
+            foreach (var destroyItem in allPossessions.Where(i => (i.Bonded ?? 0) == (int)BondedStatus.Destroy).ToList())
+            {
+                TryConsumeFromInventoryWithNetworking(destroyItem, (destroyItem.StackSize ?? 1));
+                destroyedItems.Add(destroyItem);
+            }
+            return destroyedItems;
         }
     }
 }

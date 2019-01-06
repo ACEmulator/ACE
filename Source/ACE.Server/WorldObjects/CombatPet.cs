@@ -17,6 +17,8 @@ namespace ACE.Server.WorldObjects
 
         public DamageType DamageType;
 
+        public Player P_PetOwner;
+
         /// <summary>
         /// A new biota be created taking all of its values from weenie.
         /// </summary>
@@ -45,6 +47,7 @@ namespace ACE.Server.WorldObjects
             ExpirationTime = DateTime.UtcNow + TimeSpan.FromSeconds(45);
             Location = player.Location.InFrontOf(5f);   // FIXME: get correct cell
             Name = player.Name + "'s " + Name;
+            P_PetOwner = player;
             PetOwner = player.Guid.Full;
             SetCombatMode(CombatMode.Melee);
             EnterWorld();

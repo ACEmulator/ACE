@@ -162,10 +162,10 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Remove a single friend and update the database.
         /// </summary>
-        /// <param name="friendId">The ObjectGuid of the friend that is being removed</param>
-        public void HandleActionRemoveFriend(ObjectGuid friendId)
+        /// <param name="friendGuid">The ObjectGuid of the friend that is being removed</param>
+        public void HandleActionRemoveFriend(uint friendGuid)
         {
-            if (!Character.TryRemoveFriend(friendId.Full, out var friendToRemove, CharacterDatabaseLock))
+            if (!Character.TryRemoveFriend(friendGuid, out var friendToRemove, CharacterDatabaseLock))
             {
                 ChatPacket.SendServerMessage(Session, "That character is not in your friends list!", ChatMessageType.Broadcast);
                 return;

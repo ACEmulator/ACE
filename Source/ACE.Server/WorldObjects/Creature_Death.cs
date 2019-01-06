@@ -18,6 +18,7 @@ namespace ACE.Server.WorldObjects
     partial class Creature
     {
         public TreasureDeath DeathTreasure { get => DeathTreasureType.HasValue ? DatabaseManager.World.GetCachedDeathTreasure(DeathTreasureType.Value) : null; }
+
         /// <summary>
         /// Called when a monster or player dies, in conjunction with Die()
         /// </summary>
@@ -29,8 +30,20 @@ namespace ACE.Server.WorldObjects
             IsTurning = false;
             IsMoving = false;
 
-            //SetFinalPosition();
+            EmoteManager.OnDeath(DamageHistory);
 
+            // handle summoning portals on creature death
+            if (LinkedPortalOneDID != null)
+                SummonPortal(LinkedPortalOneDID.Value);
+
+            OnDeath_GrantXP();
+
+            return GetDeathMessage(lastDamager, damageType, criticalHit);
+        }
+
+
+        public DeathMessage GetDeathMessage(WorldObject lastDamager, DamageType damageType, bool criticalHit = false)
+        {
             var deathMessage = Strings.GetDeathMessage(damageType, criticalHit);
 
             // if killed by a player, send them a message
@@ -42,7 +55,6 @@ namespace ACE.Server.WorldObjects
                 // todo: verify message type
                 playerKiller.Session.Network.EnqueueSend(new GameMessageSystemChat(killerMsg, ChatMessageType.Broadcast));
             }
-
             return deathMessage;
         }
 
@@ -93,6 +105,43 @@ namespace ACE.Server.WorldObjects
             // deal remaining damage?
             OnDeath();
             Die(smiter, smiter);
+        }
+
+        public void OnDeath()
+        {
+            OnDeath(null, DamageType.Undef);
+        }
+
+        /// <summary>
+        /// Grants XP to players in damage history
+        /// </summary>
+        public void OnDeath_GrantXP()
+        {
+            if (this is Player && PlayerKillerStatus == PlayerKillerStatus.PKLite)
+                return;
+
+            foreach (var kvp in DamageHistory.TotalDamage)
+            {
+                var damager = kvp.Key;
+                var totalDamage = kvp.Value;
+
+                var playerDamager = damager as Player;
+                if (playerDamager == null)
+                {
+                    var petDamager = damager as CombatPet;
+                    if (petDamager == null)
+                        continue;
+
+                    playerDamager = petDamager.P_PetOwner;
+                    if (playerDamager == null)
+                        continue;
+                }
+
+                var damagePercent = totalDamage / Health.MaxValue;
+                var totalXP = (XpOverride ?? 0) * damagePercent;
+
+                playerDamager.EarnXP((long)Math.Round(totalXP));
+            }
         }
 
         /// <summary>
