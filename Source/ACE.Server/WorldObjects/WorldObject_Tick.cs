@@ -13,7 +13,7 @@ namespace ACE.Server.WorldObjects
 {
     partial class WorldObject
     {
-        private readonly ActionQueue actionQueue = new ActionQueue();
+        public readonly ActionQueue actionQueue = new ActionQueue();
 
         public const int DefaultHeartbeatInterval = 5;
 
@@ -39,19 +39,28 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Runs all actions pending on this WorldObject
         /// </summary>
-        void IActor.RunActions()
+        /*void IActor.RunActions()
         {
             actionQueue.RunActions();
-        }
+        }*/
 
         /// <summary>
         /// Prepare new action to run on this object
         /// </summary>
-        public void EnqueueAction(IAction action)
+        /*public void EnqueueAction(IAction action)
         {
             actionQueue.EnqueueAction(action);
+        }*/
+
+        public void EnqueueAction(Action action)
+        {
+            actionQueue.EnqueueAction(this, action);
         }
 
+        public void EnqueueChain(ActionChain actionChain)
+        {
+            actionQueue.EnqueueChain(actionChain);
+        }
 
         /// <summary>
         /// Enqueues the first heartbeat on a staggered 0-5s delay

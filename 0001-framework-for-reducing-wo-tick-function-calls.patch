@@ -1,0 +1,79 @@
+From b8de8ce4cda7c69eed02a4ca59b95b46165ef020 Mon Sep 17 00:00:00 2001
+From: gmriggs <gmriggs@gmail.com>
+Date: Sat, 5 Jan 2019 23:07:32 -0500
+Subject: [PATCH] framework for reducing wo tick function calls
+
+---
+ Source/ACE.Server/Entity/Landblock.cs              |  2 +-
+ Source/ACE.Server/WorldObjects/WorldObject_Tick.cs | 15 ++++++++++-----
+ 2 files changed, 11 insertions(+), 6 deletions(-)
+
+diff --git a/Source/ACE.Server/Entity/Landblock.cs b/Source/ACE.Server/Entity/Landblock.cs
+index 22c09fb3..c3a5b5c0 100644
+--- a/Source/ACE.Server/Entity/Landblock.cs
++++ b/Source/ACE.Server/Entity/Landblock.cs
+@@ -279,7 +279,7 @@ public void Tick(double currentUnixTime)
+             var wos = worldObjects.Values.ToList();
+ 
+             // When a WorldObject Ticks, it can end up adding additional WorldObjects to this landblock
+-            foreach (var wo in wos)
++            foreach (var wo in wos.Where(wo => wo.nextHeartbeatTimestamp <= currentUnixTime))
+                 wo.Tick(currentUnixTime);
+ 
+             // Heartbeat
+diff --git a/Source/ACE.Server/WorldObjects/WorldObject_Tick.cs b/Source/ACE.Server/WorldObjects/WorldObject_Tick.cs
+index ad7b23a0..7d269239 100644
+--- a/Source/ACE.Server/WorldObjects/WorldObject_Tick.cs
++++ b/Source/ACE.Server/WorldObjects/WorldObject_Tick.cs
+@@ -19,6 +19,7 @@ partial class WorldObject
+ 
+         protected double? cachedHeartbeatTimestamp;
+         protected double cachedHeartbeatInterval;
++        public double nextHeartbeatTimestamp;
+ 
+         public virtual void Tick(double currentUnixTime)
+         {
+@@ -29,7 +30,8 @@ public virtual void Tick(double currentUnixTime)
+                 cachedHeartbeatInterval = HeartbeatInterval ?? DefaultHeartbeatInterval;
+                 QueueFirstHeartbeat(currentUnixTime);
+             }
+-            else if (cachedHeartbeatTimestamp + cachedHeartbeatInterval <= currentUnixTime)
++            //else if (cachedHeartbeatTimestamp + cachedHeartbeatInterval <= currentUnixTime)
++            else if (nextHeartbeatTimestamp <= currentUnixTime)
+                 HeartBeat(currentUnixTime);
+         }
+ 
+@@ -58,9 +60,9 @@ public void QueueFirstHeartbeat(double currentUnixTime)
+         {
+             var delay = ThreadSafeRandom.Next(0.0f, DefaultHeartbeatInterval);
+ 
+-            var firstHeartbeat = currentUnixTime + delay;
++            nextHeartbeatTimestamp = currentUnixTime + delay;
+ 
+-            cachedHeartbeatTimestamp = firstHeartbeat - cachedHeartbeatInterval;
++            cachedHeartbeatTimestamp = nextHeartbeatTimestamp - cachedHeartbeatInterval;
+         }
+ 
+         /// <summary>
+@@ -68,13 +70,16 @@ public void QueueFirstHeartbeat(double currentUnixTime)
+         /// </summary>
+         public virtual void HeartBeat(double currentUnixTime)
+         {
+-            Generator_HeartBeat();
++            if (IsGenerator)
++                Generator_HeartBeat();
+ 
+-            EmoteManager.HeartBeat();
++            EmoteManager.HeartBeat();   // only needed for creatures?
+ 
+             EnchantmentManager.HeartBeat();
+ 
+             cachedHeartbeatTimestamp = currentUnixTime;
++            nextHeartbeatTimestamp = currentUnixTime + cachedHeartbeatInterval;
++
+             SetProperty(PropertyFloat.HeartbeatTimestamp, currentUnixTime);
+         }
+ 
+-- 
+2.16.2.windows.1
+

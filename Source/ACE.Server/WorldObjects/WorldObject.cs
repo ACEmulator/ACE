@@ -30,7 +30,7 @@ using Position = ACE.Entity.Position;
 
 namespace ACE.Server.WorldObjects
 {
-    public abstract partial class WorldObject : IActor
+    public abstract partial class WorldObject/* : IActor*/
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -862,7 +862,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Returns TRUE if this object has non-cyclic animations in progress
         /// </summary>
-        public bool IsAnimating { get => PhysicsObj != null && !PhysicsObj.IsAnimatingDone; }
+        public bool IsAnimating { get => PhysicsObj != null && PhysicsObj.IsAnimating; }
 
         /// <summary>
         /// Executes a motion/animation for this object

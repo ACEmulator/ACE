@@ -41,7 +41,8 @@ namespace ACE.Server.WorldObjects
             {
                 DatabaseManager.Shard.GetInventoryInParallel(biota.Id, false, biotas =>
                 {
-                    EnqueueAction(new ActionEventDelegate(() => SortBiotasIntoInventory(biotas)));
+                    //EnqueueAction(new ActionEventDelegate(() => SortBiotasIntoInventory(biotas)));
+                    EnqueueAction(() => SortBiotasIntoInventory(biotas));
                 });
             }
         }

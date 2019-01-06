@@ -1,5 +1,5 @@
 
-namespace ACE.Server.Entity.Actions
+namespace ACE.Server.Entity.ActionsLegacy
 {
     public interface IActor
     {

@@ -1,6 +1,6 @@
 using System;
 
-namespace ACE.Server.Entity.Actions
+namespace ACE.Server.Entity.ActionsLegacy
 {
     /// <summary>
     /// Action that will not return until Timer.PortalYearTicks >= EndTime

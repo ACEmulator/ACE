@@ -65,7 +65,7 @@ namespace ACE.Server.Managers
         /// </summary>
         public static readonly ActionQueue InboundClientMessageQueue = new ActionQueue();
         private static readonly ActionQueue playerEnterWorldQueue = new ActionQueue();
-        public static readonly DelayManager DelayManager = new DelayManager(); // TODO get rid of this. Each WO should have its own delayManager
+        //public static readonly DelayManager DelayManager = new DelayManager(); // TODO get rid of this. Each WO should have its own delayManager
 
         static WorldManager()
         {
@@ -285,7 +285,7 @@ namespace ACE.Server.Managers
             {
                 log.Debug($"GetPossessedBiotasInParallel for {character.Name} took {(DateTime.UtcNow - start).TotalMilliseconds:N0} ms");
 
-                playerEnterWorldQueue.EnqueueAction(new ActionEventDelegate(() => DoPlayerEnterWorld(session, character, offlinePlayer.Biota, biotas)));
+                playerEnterWorldQueue.EnqueueAction(() => DoPlayerEnterWorld(session, character, offlinePlayer.Biota, biotas));
             });
         }
 
@@ -381,7 +381,7 @@ namespace ACE.Server.Managers
 
                 playerEnterWorldQueue.RunActions();
 
-                DelayManager.RunActions();
+                //DelayManager.RunActions();
 
                 var gameWorldUpdated = UpdateGameWorld();
 

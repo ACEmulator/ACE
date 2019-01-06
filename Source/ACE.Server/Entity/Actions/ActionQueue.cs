@@ -1,31 +1,48 @@
 using System;
-using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Entity.Actions
 {
-    public class ActionQueue : IActor
+    public class ActionQueue
     {
-        protected ConcurrentQueue<IAction> Queue { get; } = new ConcurrentQueue<IAction>();
+        public List<ActionChain> ActionChains;
+
+        public double NextActionTime;
+
+        public ActionQueue()
+        {
+            ActionChains = new List<ActionChain>();
+        }
+
+        public void EnqueueChain(ActionChain actionChain)
+        {
+            ActionChains.Add(actionChain);
+
+            GetNextActionTime();
+        }
+
+        public void EnqueueAction(WorldObject wo, Action action)
+        {
+            ActionChains.Add(new ActionChain(wo, action));
+        }
+
+        public void EnqueueAction(Action action)
+        {
+            ActionChains.Add(new ActionChain(action));
+        }
+
+        public void GetNextActionTime()
+        {
+            NextActionTime = ActionChains.Select(i => i.NextActionTime).OrderBy(i => i).First();
+        }
 
         public void RunActions()
         {
-            var count = Queue.Count;
-
-            for (int i = 0; i < count; i++)
-            {
-                if (Queue.TryDequeue(out var result))
-                {
-                    Tuple<IActor, IAction> enqueue = result.Act();
-
-                    if (enqueue != null)
-                        enqueue.Item1.EnqueueAction(enqueue.Item2);
-                }
-            }
-        }
-
-        public void EnqueueAction(IAction action)
-        {
-            Queue.Enqueue(action);
+            foreach (var actionChain in ActionChains.ToList())
+                actionChain.RunActions();
         }
     }
 }

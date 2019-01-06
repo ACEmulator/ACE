@@ -242,20 +242,20 @@ namespace ACE.Server.WorldObjects
             moveToChain.AddLoop(this, () =>
             {
                 if (thisMoveToChainNumberCopy != moveToChainCounter)
-                    return false;
+                    return/* false*/;
 
                 // Break loop if CurrentLandblock == null (we portaled or logged out)
                 if (CurrentLandblock == null)
                 {
                     StopExistingMoveToChains(); // This increments our moveToChainCounter and thus, should stop any additional actions in this chain
-                    return false;
+                    return/* false*/;
                 }
 
                 // Have we timed out?
                 if (moveToChainStartTime + defaultMoveToTimeout <= DateTime.UtcNow)
                 {
                     StopExistingMoveToChains(); // This increments our moveToChainCounter and thus, should stop any additional actions in this chain
-                    return false;
+                    return/* false*/;
                 }
 
                 // Are we within use radius?
@@ -268,7 +268,7 @@ namespace ACE.Server.WorldObjects
                     StopExistingMoveToChains(); // This increments our moveToChainCounter and thus, should stop any additional actions in this chain
                 }
 
-                return ret;
+                return/* ret*/;
             }, moveToBody);
 
             return moveToChain;

@@ -136,12 +136,12 @@ namespace ACE.Server.Entity
             // for mansion linking
             var houses = new List<House>();
 
-            actionQueue.EnqueueAction(new ActionEventDelegate(() =>
+            actionQueue.EnqueueAction(() =>
             {
                 foreach (var fo in factoryObjects)
                 {
                     WorldObject parent = null;
-                    if (fo.WeenieType == ACE.Entity.Enum.WeenieType.House && fo.HouseType == ACE.Entity.Enum.HouseType.Mansion)
+                    if (fo.WeenieType == WeenieType.House && fo.HouseType == HouseType.Mansion)
                     {
                         var house = fo as House;
                         houses.Add(house);
@@ -157,7 +157,7 @@ namespace ACE.Server.Entity
                     AddWorldObject(fo);
                     fo.ActivateLinks(objects, shardObjects, parent);
                 }
-            }));
+            });
         }
 
         /// <summary>
@@ -169,11 +169,11 @@ namespace ACE.Server.Entity
             var dynamics = DatabaseManager.Shard.GetDynamicObjectsByLandblock(Id.Landblock);
             var factoryShardObjects = WorldObjectFactory.CreateWorldObjects(dynamics);
 
-            actionQueue.EnqueueAction(new ActionEventDelegate(() =>
+            actionQueue.EnqueueAction(() =>
             {
                 foreach (var fso in factoryShardObjects)
                     AddWorldObject(fso);
-            }));
+            });
         }
 
         /// <summary>
@@ -203,10 +203,10 @@ namespace ACE.Server.Entity
 
                 wo.Location = new Position(pos.ObjCellID, pos.Frame.Origin, pos.Frame.Orientation);
 
-                actionQueue.EnqueueAction(new ActionEventDelegate(() =>
+                actionQueue.EnqueueAction(() =>
                 {
                     AddWorldObject(wo);
-                }));
+                });
             }
         }
 
@@ -276,10 +276,12 @@ namespace ACE.Server.Entity
         {
             actionQueue.RunActions();
 
+            // FIXME, THIS LINE IS A HUGE PROBLEM!
+            // this is making a copy of every WO in the world 60x per second....
             var wos = worldObjects.Values.ToList();
 
             // When a WorldObject Ticks, it can end up adding additional WorldObjects to this landblock
-            foreach (var wo in wos.Where(wo => wo.nextHeartbeatTimestamp <= currentUnixTime))
+            foreach (var wo in wos.Where(wo => wo.nextHeartbeatTimestamp <= currentUnixTime || wo.actionQueue.NextActionTime <= currentUnixTime))
                 wo.Tick(currentUnixTime);
 
             // Heartbeat
