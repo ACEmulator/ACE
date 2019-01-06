@@ -71,7 +71,8 @@ namespace ACE.Server.WorldObjects
             if (IsGenerator)
                 Generator_HeartBeat();
 
-            EnchantmentManager.HeartBeat();
+            if (EnchantmentManager.HasEnchantments)
+                EnchantmentManager.HeartBeat();
 
             SetProperty(PropertyFloat.HeartbeatTimestamp, currentUnixTime);
             NextHeartBeatTime = currentUnixTime + CachedHeartbeatInterval;
