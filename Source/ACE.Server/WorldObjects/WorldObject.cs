@@ -457,7 +457,6 @@ namespace ACE.Server.WorldObjects
                         var weenieFlags2 = CalculatedWeenieHeaderFlag2();
                         sb.AppendLine($"{prop.Name} = {weenieFlags2.ToString()}" + " (" + (uint)weenieFlags2 + ")");
                         break;
-                        break;
                     case "itemtype":
                         sb.AppendLine($"{prop.Name} = {obj.ItemType.ToString()}" + " (" + (uint)obj.ItemType + ")");
                         break;
@@ -501,6 +500,9 @@ namespace ACE.Server.WorldObjects
                         break;
                     case "location":
                         sb.AppendLine($"{prop.Name} = {obj.Location.ToLOCString()}");
+                        break;
+                    case "destination":
+                        sb.AppendLine($"{prop.Name} = {obj.Destination.ToLOCString()}");
                         break;
                     case "channelsactive":
                         sb.AppendLine($"{prop.Name} = {(Channel)obj.GetProperty(PropertyInt.ChannelsActive)}" + " (" + (uint)obj.GetProperty(PropertyInt.ChannelsActive) + ")");
