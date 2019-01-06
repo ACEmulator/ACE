@@ -861,7 +861,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Returns TRUE if this object has non-cyclic animations in progress
         /// </summary>
-        public bool IsAnimating { get => PhysicsObj != null && PhysicsObj.MovementManager != null && PhysicsObj.MovementManager.motions_pending(); }
+        public bool IsAnimating { get => PhysicsObj != null && PhysicsObj.IsAnimating; }
 
         /// <summary>
         /// Executes a motion/animation for this object

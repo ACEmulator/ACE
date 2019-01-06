@@ -81,6 +81,11 @@ namespace ACE.Server.Physics
         public double PhysicsTimer_CurrentTime;
         public bool DatObject = false;
 
+        /// <summary>
+        /// This is managed by MovementManager.MotionInterpreter, and should not be updated anywhere else.
+        /// </summary>
+        public bool IsAnimating;
+
         // server
         public Position RequestPos;
 
@@ -1471,10 +1476,10 @@ namespace ACE.Server.Physics
 
         public void UpdateObjectInternal(double quantum)
         {
-            if (!TransientState.HasFlag(TransientStateFlags.Active) || CurCell == null)
+            if ((TransientState & TransientStateFlags.Active) == 0 || CurCell == null)
                 return;
 
-            if (TransientState.HasFlag(TransientStateFlags.CheckEthereal))
+            if ((TransientState & TransientStateFlags.CheckEthereal) != 0)
                 set_ethereal(false, false);
 
             JumpedThisFrame = false;
@@ -1491,12 +1496,12 @@ namespace ACE.Server.Physics
                 }
                 else
                 {
-                    if (State.HasFlag(PhysicsState.AlignPath))
+                    if ((State & PhysicsState.AlignPath) != 0)
                     {
                         var diff = newPos.Frame.Origin - Position.Frame.Origin;
                         newPos.Frame.set_vector_heading(Vector3.Normalize(diff));
                     }
-                    else if (State.HasFlag(PhysicsState.Sledding) && Velocity != Vector3.Zero)
+                    else if ((State & PhysicsState.Sledding) != 0 && Velocity != Vector3.Zero)
                         newPos.Frame.set_vector_heading(Vector3.Normalize(Velocity));
                 }
 
@@ -1517,7 +1522,7 @@ namespace ACE.Server.Physics
             }
             else
             {
-                if (MovementManager == null && TransientState.HasFlag(TransientStateFlags.OnWalkable))
+                if (MovementManager == null && (TransientState & TransientStateFlags.OnWalkable) != 0)
                     TransientState &= ~TransientStateFlags.Active;
 
                 newPos.Frame.Origin = Position.Frame.Origin;
@@ -2590,11 +2595,6 @@ namespace ACE.Server.Physics
             return particle;
         }
 
-        public bool motions_pending()
-        {
-            return MovementManager != null && MovementManager.motions_pending();
-        }
-
         public bool movement_is_autonomous()
         {
             return LastMoveWasAutonomous;
@@ -2848,7 +2848,7 @@ namespace ACE.Server.Physics
 
         public void remove_shadows_from_cells()
         {
-            foreach (var shadowObj in ShadowObjects.Values.ToList())
+            foreach (var shadowObj in ShadowObjects.Values)
             {
                 if (shadowObj.Cell == null) continue;
                 var cell = shadowObj.Cell;
@@ -3665,11 +3665,11 @@ namespace ACE.Server.Physics
 
             trans.InitPath(CurCell, oldPos, newPos);
 
-            if (TransientState.HasFlag(TransientStateFlags.StationaryStuck))
+            if ((TransientState & TransientStateFlags.StationaryStuck) != 0)
                 trans.CollisionInfo.FramesStationaryFall = 3;
-            else if (TransientState.HasFlag(TransientStateFlags.StationaryStop))
+            else if ((TransientState & TransientStateFlags.StationaryStop) != 0)
                 trans.CollisionInfo.FramesStationaryFall = 2;
-            else if (TransientState.HasFlag(TransientStateFlags.StationaryFall))
+            else if ((TransientState & TransientStateFlags.StationaryFall) != 0)
                 trans.CollisionInfo.FramesStationaryFall = 1;
 
             var validPos = trans.FindValidPosition();
