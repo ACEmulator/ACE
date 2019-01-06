@@ -33,8 +33,8 @@ namespace ACE.Server.WorldObjects
             EmoteManager.OnDeath(DamageHistory);
 
             // handle summoning portals on creature death
-            if (LinkedPortalOneDID != null)
-                SummonPortal(LinkedPortalOneDID.Value);
+            //if (LinkedPortalOneDID != null)
+            //    SummonPortal(LinkedPortalOneDID.Value);
 
             OnDeath_GrantXP();
 
