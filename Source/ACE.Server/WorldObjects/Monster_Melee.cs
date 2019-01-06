@@ -11,6 +11,7 @@ using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Physics.Animation;
+using ACE.Server.WorldObjects.Entity;
 
 namespace ACE.Server.WorldObjects
 {
@@ -394,7 +395,7 @@ namespace ACE.Server.WorldObjects
         /// Returns the percent of damage absorbed by layered armor + clothing
         /// </summary>
         /// <param name="armors">The list of armor/clothing covering the targeted body part</param>
-        public float GetArmorMod(List<WorldObject> armors, WorldObject damageSource, DamageType damageType)
+        public float GetArmorMod(List<WorldObject> armors, WorldObject damageSource, DamageType damageType, CreatureSkill skill = null)
         {
             var effectiveAL = 0.0f;
 
@@ -404,6 +405,10 @@ namespace ACE.Server.WorldObjects
             // life spells
             // additive: armor/imperil
             var bodyArmorMod = damageSource != null && damageSource.IgnoreMagicResist ? 0 : AttackTarget.EnchantmentManager.GetBodyArmorMod();
+
+            if (bodyArmorMod > 0 && damageSource != null && skill != null && damageSource.HasImbuedEffect(ImbuedEffectType.ArmorRending))
+                bodyArmorMod = (int)Math.Round(bodyArmorMod * GetArmorRendingMod(skill));
+
             //Console.WriteLine("==");
             //Console.WriteLine("Armor Self: " + bodyArmorMod);
             effectiveAL += bodyArmorMod;
