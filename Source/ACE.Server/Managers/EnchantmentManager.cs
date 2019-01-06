@@ -147,7 +147,6 @@ namespace ACE.Server.Managers
                 newEntry.LayerId = 1;
                 WorldObject.Biota.AddEnchantment(newEntry, WorldObject.BiotaDatabaseLock);
                 WorldObject.ChangesDetected = true;
-                //WorldObject.SaveBiotaToDatabase();
 
                 result.Enchantment = newEntry;
                 result.StackType = StackType.Initial;

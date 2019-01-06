@@ -240,7 +240,7 @@ namespace ACE.Server.WorldObjects
                 magicSkill = caster.GetCreatureSkill(spell.School).Current;
             else
                 // Retrieve casting item's spellcraft
-                magicSkill = (uint)ItemSpellcraft;
+                magicSkill = (uint)(ItemSpellcraft ?? 0);
 
             var player = caster as Player;
             var targetPlayer = target as Player;
@@ -338,7 +338,7 @@ namespace ACE.Server.WorldObjects
                             if (boost >= 0)
                                 spellTarget.DamageHistory.OnHeal((uint)boost);
                             else
-                                spellTarget.DamageHistory.Add(this, DamageType.Health, damage);
+                                spellTarget.DamageHistory.Add(this, DamageType.Health, (uint)-boost);
                             break;
                     }
 

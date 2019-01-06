@@ -44,6 +44,30 @@ namespace ACE.Server.WorldObjects
             var invTarget = GetInventoryItem(targetObjectGuid);
             var invWielded = GetEquippedItem(targetObjectGuid);
 
+            if (invSource == null)
+            {
+                // is this caster with a built-in spell?
+                var caster = GetEquippedItem(sourceObjectGuid);
+                if (caster != null && caster.SpellDID != null)
+                {
+                    // check activation requirements
+                    var skillFailed = CheckActivationRequirement(caster);
+                    if (skillFailed != Skill.None)
+                    {
+                        Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(Session, WeenieErrorWithString.Your_IsTooLowToUseItemMagic, skillFailed.ToSentence()));
+                        SendUseDoneEvent(WeenieError.SkillTooLow);
+                    }
+                    else
+                        HandleActionCastTargetedSpell(targetObjectGuid, caster.SpellDID ?? 0);
+                }
+                else
+                {
+                    log.Warn($"{Name}.HandleActionUseWithTarget({sourceObjectGuid:X8}, {targetObjectGuid:X8}): couldn't find {sourceObjectGuid:X8}");
+                    SendUseDoneEvent(WeenieError.None);
+                }
+                return;
+            }
+
             var worldTarget = (invTarget == null) ? CurrentLandblock?.GetObject(targetObjectGuid) : null;
 
             if (invTarget != null)
@@ -103,6 +127,22 @@ namespace ACE.Server.WorldObjects
             {
                 RecipeManager.UseObjectOnTarget(this, invSource, worldTarget);
             }
+        }
+
+        private Skill CheckActivationRequirement(WorldObject item)
+        {
+            if (item.ItemDifficulty != null)
+            {
+                if (GetCreatureSkill(Skill.ArcaneLore).Current < item.ItemDifficulty.Value)
+                    return Skill.ArcaneLore;
+            }
+
+            if (item.ItemSkillLimit != null && item.ItemSkillLevelLimit != null)
+            {
+                if (GetCreatureSkill((Skill)item.ItemSkillLimit.Value).Current < item.ItemSkillLevelLimit.Value)
+                    return (Skill)item.ItemSkillLimit.Value;
+            }
+            return Skill.None;
         }
 
         public void HandleActionUseItem(uint itemGuid)
