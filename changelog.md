@@ -2,7 +2,7 @@
 
 ### 2018-01-07
 [Ripley]
-* Changed the way recall/summon portal magics works
+* Changed the way recall/summon portal magics work
   - Instead of storing positions, store WCID of portal as a DID property
   - This allows us to do proper cloning of portal for use checks
   - Refactor SummonPortal to use proper clone of portalgateway
