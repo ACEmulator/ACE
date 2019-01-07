@@ -79,21 +79,6 @@ namespace ACE.Server.Entity.Actions
             AddAction(action);
         }
 
-        public void AddChain(ActionChain chain)
-        {
-
-        }
-
-        public void AddLoop(WorldObject wo, Action action)
-        {
-
-        }
-
-        public void AddLoop(WorldObject wo, Action action, ActionChain actionChain)
-        {
-
-        }
-
         public void EnqueueChain()
         {
             WorldObject.EnqueueChain(this);
