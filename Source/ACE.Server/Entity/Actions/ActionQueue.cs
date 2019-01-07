@@ -9,6 +9,9 @@ namespace ACE.Server.Entity.Actions
 
         public void RunActions()
         {
+            if (Queue.IsEmpty)
+                return;
+
             var count = Queue.Count;
 
             for (int i = 0; i < count; i++)
