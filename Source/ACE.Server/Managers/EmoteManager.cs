@@ -160,13 +160,11 @@ namespace ACE.Server.Managers
 
                 case EmoteType.CastSpell:
 
-                    // todo: missing windup?
                     if (creature != null && targetObject != null)
                     {
                         var spell = new Spell((uint)emote.SpellId);
                         if (spell != null)
                         {
-                            //creature.TryCastSpell(spell, targetObject, creature);
                             var preCastTime = creature.PreCastMotion(targetObject);
 
                             var castChain = new ActionChain();
@@ -177,9 +175,6 @@ namespace ACE.Server.Managers
                                 creature.PostCastMotion();
                             });
                             castChain.EnqueueChain();
-
-                            //var postCastTime = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, MotionCommand.CastSpell, MotionCommand.Ready, 1.5f);
-                            //var animTime = preCastTime + postCastTime;
                         }
                     }
                     break;
