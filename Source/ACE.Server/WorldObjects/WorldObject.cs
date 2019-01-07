@@ -504,6 +504,27 @@ namespace ACE.Server.WorldObjects
                     case "destination":
                         sb.AppendLine($"{prop.Name} = {obj.Destination.ToLOCString()}");
                         break;
+                    case "instantiation":
+                        sb.AppendLine($"{prop.Name} = {obj.Instantiation.ToLOCString()}");
+                        break;
+                    case "sanctuary":
+                        sb.AppendLine($"{prop.Name} = {obj.Sanctuary.ToLOCString()}");
+                        break;
+                    case "home":
+                        sb.AppendLine($"{prop.Name} = {obj.Home.ToLOCString()}");
+                        break;
+                    case "portalsummonloc":
+                        sb.AppendLine($"{prop.Name} = {obj.PortalSummonLoc.ToLOCString()}");
+                        break;
+                    case "houseboot":
+                        sb.AppendLine($"{prop.Name} = {obj.HouseBoot.ToLOCString()}");
+                        break;
+                    case "lastoutsidedeath":
+                        sb.AppendLine($"{prop.Name} = {obj.LastOutsideDeath.ToLOCString()}");
+                        break;
+                    case "linkedlifestone":
+                        sb.AppendLine($"{prop.Name} = {obj.LinkedLifestone.ToLOCString()}");
+                        break;                    
                     case "channelsactive":
                         sb.AppendLine($"{prop.Name} = {(Channel)obj.GetProperty(PropertyInt.ChannelsActive)}" + " (" + (uint)obj.GetProperty(PropertyInt.ChannelsActive) + ")");
                         break;
