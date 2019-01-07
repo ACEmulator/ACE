@@ -18,7 +18,7 @@ namespace ACE.Server.WorldObjects
         {
             if (!IsAwake || IsDead) return;
 
-            PerfTimer.StartTimer("Monster");
+            //PerfTimer.StartTimer("Monster");
 
             IsMonster = true;
 
@@ -36,7 +36,7 @@ namespace ACE.Server.WorldObjects
             if (pet != null && DateTime.UtcNow >= pet.ExpirationTime)
             {
                 Destroy();
-                PerfTimer.StopTimer("Monster");
+                //PerfTimer.StopTimer("Monster");
                 return;
             }
 
@@ -158,7 +158,7 @@ namespace ACE.Server.WorldObjects
             actionChain.AddDelaySeconds(monsterTickInterval);
             actionChain.AddAction(Monster_Tick);
             actionChain.EnqueueChain();
-            PerfTimer.StopTimer("Monster");
+            //PerfTimer.StopTimer("Monster");
         }
     }
 }

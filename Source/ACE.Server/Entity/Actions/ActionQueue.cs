@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
+using ACE.Common;
 using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Entity.Actions
@@ -9,9 +11,15 @@ namespace ACE.Server.Entity.Actions
     {
         public WorldObject WorldObject;
 
-        public List<ActionChain> ActionChains = new List<ActionChain>();
+        //private ReaderWriterLockSlim actionQueueLock = new ReaderWriterLockSlim();
 
-        public double NextActionTime;
+        public SortedDictionary<double, List<Action>> Actions = new SortedDictionary<double, List<Action>>();
+
+        public Dictionary<double, List<Action>> pendingActions = new Dictionary<double, List<Action>>();
+
+        public bool IsPending;
+
+        //public double NextActionTime;
 
         public ActionQueue()
         {
@@ -24,31 +32,76 @@ namespace ACE.Server.Entity.Actions
 
         public void EnqueueChain(ActionChain actionChain)
         {
-            ActionChains.Add(actionChain);
+            //lock (actionQueueLock)
+            //{
+                foreach (var action in actionChain.Actions)
+                {
+                    if (pendingActions.TryGetValue(action.Key, out var existing))
+                        existing.AddRange(action.Value);
+                    else
+                        pendingActions.Add(action.Key, action.Value);
+                }
 
-            GetNextActionTime();
+                IsPending = true;
+            //}
         }
 
         public void EnqueueAction(Action action)
         {
-            ActionChains.Add(new ActionChain(WorldObject, action));
+            var currentTime = Time.GetUnixTime();
 
-            GetNextActionTime();
+            //lock (actionQueueLock)
+            //{
+                if (pendingActions.TryGetValue(currentTime, out var existing))
+                    existing.Add(action);
+                else
+                    pendingActions.Add(currentTime, new List<Action>() { action });
+            //}
+
+            IsPending = true;
         }
 
-        public void GetNextActionTime()
+        public void Enqueue(ActionQueue actionQueue)
         {
-            NextActionTime = ActionChains.Count > 0 ? ActionChains.ToList().Select(i => i.NextActionTime).OrderBy(i => i).First() : double.MaxValue;
+            foreach (var action in actionQueue.pendingActions)
+            {
+                if (pendingActions.TryGetValue(action.Key, out var existing))
+                    existing.AddRange(action.Value);
+                else
+                    pendingActions.Add(action.Key, action.Value);
+            }
+            IsPending = true;
         }
 
         public void RunActions()
         {
-            foreach (var actionChain in ActionChains.ToList())
+            if (IsPending)
             {
-                if (!actionChain.RunActions())
-                    ActionChains.Remove(actionChain);
+                foreach (var kvp in pendingActions)
+                {
+                    if (Actions.TryGetValue(kvp.Key, out var existing))
+                        existing.AddRange(kvp.Value);
+                    else
+                        Actions.Add(kvp.Key, kvp.Value);
+                }
+                pendingActions.Clear();
+                IsPending = false;
             }
-            GetNextActionTime();
+
+            var processed = new List<double>();
+            foreach (var action in Actions)
+            {
+                if (action.Key > Time.GetUnixTime())
+                    break;
+
+                foreach (var act in action.Value)
+                    act();
+
+                processed.Add(action.Key);
+            }
+
+            foreach (var p in processed)
+                Actions.Remove(p);
         }
     }
 }

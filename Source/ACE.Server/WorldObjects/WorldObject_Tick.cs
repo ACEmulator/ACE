@@ -14,17 +14,21 @@ namespace ACE.Server.WorldObjects
 {
     partial class WorldObject
     {
-        public ActionQueue ActionQueue;
+        //public ActionQueue ActionQueue;
 
         public const float DefaultHeartbeatInterval = 5.0f;
 
         protected double cachedHeartbeatInterval;
+
+        public ActionQueue pendingActionQueue;
 
         /// <summary>
         /// Called every ~5 seconds for WorldObject base
         /// </summary>
         public virtual void HeartBeat()
         {
+            //PerfTimer.StartTimer("WorldObject_HeartBeat");
+
             if (IsGenerator)
                 Generator_HeartBeat();
 
@@ -38,6 +42,8 @@ namespace ACE.Server.WorldObjects
             actionChain.AddDelaySeconds(cachedHeartbeatInterval);
             actionChain.AddAction(HeartBeat);
             actionChain.EnqueueChain();
+
+            //PerfTimer.StopTimer("WorldObject_HeartBeat");
         }
 
         /// <summary>
@@ -46,6 +52,10 @@ namespace ACE.Server.WorldObjects
         public void QueueFirstHeartbeat()
         {
             cachedHeartbeatInterval = HeartbeatInterval ?? DefaultHeartbeatInterval;
+            if (cachedHeartbeatInterval < 5.0f)
+            {
+                Console.WriteLine($"{Name}.cachedHeartbeatInterval: {cachedHeartbeatInterval}");
+            }
 
             var delay = ThreadSafeRandom.Next(0.0f, DefaultHeartbeatInterval);
 
@@ -58,12 +68,28 @@ namespace ACE.Server.WorldObjects
 
         public void EnqueueAction(Action action)
         {
-            ActionQueue.EnqueueAction(action);
+            if (CurrentLandblock == null)
+            {
+                if (pendingActionQueue == null)
+                    pendingActionQueue = new ActionQueue();
+
+                pendingActionQueue.EnqueueAction(action);
+            }
+            else
+                CurrentLandblock.actionQueue.EnqueueAction(action);
         }
 
         public void EnqueueChain(ActionChain actionChain)
         {
-            ActionQueue.EnqueueChain(actionChain);
+            if (CurrentLandblock == null)
+            {
+                if (pendingActionQueue == null)
+                    pendingActionQueue = new ActionQueue();
+
+                pendingActionQueue.EnqueueChain(actionChain);
+            }
+            else
+                CurrentLandblock.actionQueue.EnqueueChain(actionChain);
         }
 
 

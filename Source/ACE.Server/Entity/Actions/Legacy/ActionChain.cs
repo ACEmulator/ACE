@@ -2,7 +2,7 @@ using System;
 
 using ACE.Server.Managers;
 
-namespace ACE.Server.Entity.ActionsLegacy
+namespace ACE.Server.Entity.Actions.Legacy
 {
     public class ActionChain
     {

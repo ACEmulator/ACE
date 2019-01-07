@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 using log4net;
 
-namespace ACE.Server.Entity.ActionsLegacy
+namespace ACE.Server.Entity.Actions.Legacy
 {
     public class DelayManager : IActor
     {

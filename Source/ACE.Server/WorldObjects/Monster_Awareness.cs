@@ -62,7 +62,7 @@ namespace ACE.Server.WorldObjects
             if (alertNearby)
                 AlertFriendly();
 
-            ActionQueue.EnqueueAction(Monster_Tick);
+            CurrentLandblock.actionQueue.EnqueueAction(Monster_Tick);
         }
 
         /// <summary>
@@ -75,7 +75,7 @@ namespace ACE.Server.WorldObjects
             IsMoving = false;
             MonsterState = State.Idle;
 
-            PerfTimer.StopTimer("Monster");
+            //PerfTimer.StopTimer("Monster");
         }
 
         public double NextFindTarget;

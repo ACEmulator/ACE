@@ -35,7 +35,7 @@ namespace ACE.Server.Entity
             if (!ShowInfo || !WorldManager.Profiling) return;
 
             var methodTimer = GetTimer(methodName);
-            methodTimer.Instances--;
+            methodTimer.Instances = 0;
             if (methodTimer.Instances == 0)
                 methodTimer.Timer.Stop();
         }
@@ -68,8 +68,8 @@ namespace ACE.Server.Entity
 
                 var className = methodName.Contains('.') ? methodName.Substring(0, methodName.IndexOf('.')) : methodName;
 
-                if (ShowInfos.ContainsKey(className) && !ShowInfos[className])
-                    continue;
+                //if (ShowInfos.ContainsKey(className) && !ShowInfos[className])
+                    //continue;
 
                 Console.WriteLine(methodName + ": " + methodTimer.Timer.Elapsed.TotalMilliseconds);
 

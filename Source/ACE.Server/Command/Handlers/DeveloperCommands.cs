@@ -446,11 +446,14 @@ namespace ACE.Server.Command.Handlers
             session.Player.SavePlayerToDatabase();
         }
 
+        public static int startX = 0x7C;
+        public static int startY = 0x64;
+
         /// <summary>
         /// This is a VERY crude test. It should never be used on a live server.
         /// There isn't really much point to this command other than making sure landblocks can load and are semi-efficient.
         /// </summary>
-        [CommandHandler("loadalllandblocks", AccessLevel.Developer, CommandHandlerFlag.None, "Loads all Landblocks. This is VERY crude. Do NOT use it on a live server!!! It will likely crash the server.  Landblock resources will be loaded async and will continue to do work even after all landblocks have been loaded.")]
+        [CommandHandler("loadall", AccessLevel.Developer, CommandHandlerFlag.None, "Loads all Landblocks. This is VERY crude. Do NOT use it on a live server!!! It will likely crash the server.  Landblock resources will be loaded async and will continue to do work even after all landblocks have been loaded.")]
         public static void HandleLoadAllLandblocks(Session session, params string[] parameters)
         {
             CommandHandlerHelper.WriteOutputInfo(session, "Loading landblocks. This will likely crash the server. Landblock resources will be loaded async and will continue to do work even after all landblocks have been loaded.");
@@ -459,21 +462,30 @@ namespace ACE.Server.Command.Handlers
             var i = 0;
             Task.Run(() =>
             {
-                for (int x = 0x7C; x <= 0xFE; x++)
+                int lastX = startX;
+                int lastY = startY;
+
+                for (int x = startX; x <= 0xFE; x++)
                 {
                     //CommandHandlerHelper.WriteOutputInfo(session, $"Loading {numBlocks} landblocks, x = 0x{x:X2} of 0xFE....");
 
-                    for (int y = 0x64; y <= 0xFE; y++)
+                    for (int y = startY; y <= 0xFE; y++)
                     {
                         var blockid = new LandblockId((byte)x, (byte)y);
                         LandblockManager.GetLandblock(blockid, false, false);
                         i++;
+                        lastY = y;
+                        if (y == 0xFE)
+                            startY = 10;
                         if (i >= numBlocks)
                             break;
                     }
+                    lastX = x;
                     if (i >= numBlocks)
                         break;
                 }
+                startX = lastX;
+                startY = lastY;
 
                 CommandHandlerHelper.WriteOutputInfo(session, "Loading landblocks completed. Async landblock resources are likely still loading...");
             });
@@ -1533,6 +1545,24 @@ namespace ACE.Server.Command.Handlers
                 WorldManager.Profiling = false;
             else
                 WorldManager.Profiling = true;
+        }
+
+        /// <summary>
+        /// Shows the current player location, from the server perspective
+        /// </summary>
+        [CommandHandler("debuglandblock", AccessLevel.Developer, CommandHandlerFlag.None, 0, "Enables specific CPU / function profiling", "/profiling")]
+        public static void HandleDebugLandblock(Session session, params string[] parameters)
+        {
+            WorldManager.DebugLandblock = true;
+        }
+
+        /// <summary>
+        /// Shows the current player location, from the server perspective
+        /// </summary>
+        [CommandHandler("debuggen", AccessLevel.Developer, CommandHandlerFlag.None, 0, "Enables specific CPU / function profiling", "/profiling")]
+        public static void HandleDebugGen(Session session, params string[] parameters)
+        {
+            WorldManager.DebugGenerators = true;
         }
     }
 }

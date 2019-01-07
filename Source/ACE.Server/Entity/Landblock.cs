@@ -58,7 +58,7 @@ namespace ACE.Server.Entity
 
         public List<Landblock> Adjacents = new List<Landblock>();
 
-        private readonly ActionQueue actionQueue = new ActionQueue();
+        public readonly ActionQueue actionQueue = new ActionQueue();
 
         /// <summary>
         /// Landblocks heartbeat every 5 seconds
@@ -131,6 +131,9 @@ namespace ACE.Server.Entity
         /// </summary>
         private void CreateWorldObjects()
         {
+            //if (WorldManager.Profiling)
+                //Console.WriteLine($"Landblock({(Id.Raw | 0xFFFF):X8}): CreateWorldObjects");
+
             var objects = DatabaseManager.World.GetCachedInstancesByLandblock(Id.Landblock);
             var shardObjects = DatabaseManager.Shard.GetStaticObjectsByLandblock(Id.Landblock);
             var factoryObjects = WorldObjectFactory.CreateNewWorldObjects(objects, shardObjects);
@@ -140,6 +143,8 @@ namespace ACE.Server.Entity
 
             actionQueue.EnqueueAction(() =>
             {
+                //Console.WriteLine($"Landblock({(Id.Raw | 0xFFFF):X8}): CreateWorldObjects - inner");
+
                 foreach (var fo in factoryObjects)
                 {
                     WorldObject parent = null;
@@ -168,6 +173,9 @@ namespace ACE.Server.Entity
         /// </summary>
         private void SpawnDynamicShardObjects()
         {
+            //if (WorldManager.Profiling)
+                //Console.WriteLine($"Landblock({(Id.Raw | 0xFFFF):X8}): SpawnDynamicShardObjects");
+
             var dynamics = DatabaseManager.Shard.GetDynamicObjectsByLandblock(Id.Landblock);
             var factoryShardObjects = WorldObjectFactory.CreateWorldObjects(dynamics);
 
@@ -184,6 +192,9 @@ namespace ACE.Server.Entity
         /// </summary>
         private void SpawnEncounters()
         {
+            //if (WorldManager.Profiling)
+                //Console.WriteLine($"Landblock({(Id.Raw | 0xFFFF):X8}): SpawnEncounters");
+
             // get the encounter spawns for this landblock
             var encounters = DatabaseManager.World.GetCachedEncountersByLandblock(Id.Landblock);
 
@@ -205,10 +216,10 @@ namespace ACE.Server.Entity
 
                 wo.Location = new Position(pos.ObjCellID, pos.Frame.Origin, pos.Frame.Orientation);
 
-                actionQueue.EnqueueAction(() =>
-                {
+                //actionQueue.EnqueueAction(() =>
+                //{
                     AddWorldObject(wo);
-                });
+                //});
             }
         }
 
@@ -276,18 +287,26 @@ namespace ACE.Server.Entity
 
         public void Tick(double currentUnixTime)
         {
-            if (actionQueue.NextActionTime <= currentUnixTime)
+            //PerfTimer.StartTimer("Landblock.Action");
+            //if (actionQueue.NextActionTime <= currentUnixTime)
                 actionQueue.RunActions();
+            //PerfTimer.StopTimer("Landblock.Action");
 
             // FIXME, THIS LINE IS A HUGE PROBLEM!
             // this is making a copy of every WO in the world 60x per second....
             //var wos = worldObjects.Values.ToList();
 
             // When a WorldObject Ticks, it can end up adding additional WorldObjects to this landblock
-            foreach (var wo in worldObjects.Values.Where(wo => wo.ActionQueue.NextActionTime <= currentUnixTime).ToList())
-                wo.ActionQueue.RunActions();
+            //PerfTimer.StartTimer("Landblock.WO.Action - Query");
+            //var query = worldObjects.Values.Where(wo => wo.ActionQueue.NextActionTime <= currentUnixTime).ToList();
+            //PerfTimer.StopTimer("Landblock.WO.Action - Query");
+            //PerfTimer.StartTimer("Landblock.WO.Action - Iterator");
+            //foreach (var wo in query)
+                //wo.ActionQueue.RunActions();
+            //PerfTimer.StopTimer("Landblock.WO.Action - Iterator");
 
             // Heartbeat
+            //PerfTimer.StartTimer("Landblock.Other");
             if (lastHeartBeat + heartbeatInterval <= DateTime.UtcNow)
             {
                 var thisHeartBeat = DateTime.UtcNow;
@@ -310,6 +329,7 @@ namespace ACE.Server.Entity
                 SaveDB();
                 lastDatabaseSave = DateTime.UtcNow;
             }
+            //PerfTimer.StopTimer("Landblock.Other");
         }
 
         private void AddPlayerTracking(List<WorldObject> wolist, Player player)
@@ -341,6 +361,8 @@ namespace ACE.Server.Entity
 
         private void AddWorldObjectInternal(WorldObject wo)
         {
+            //Console.WriteLine($"AddWorldObjectInternal: {wo.Name}");
+
             worldObjects[wo.Guid] = wo;
 
             wo.CurrentLandblock = this;
@@ -354,8 +376,15 @@ namespace ACE.Server.Entity
                 if (!success)
                 {
                     log.Warn($"AddWorldObjectInternal: couldn't spawn {wo.Name}");
+                    wo.pendingActionQueue = null;
                     return;
                 }
+            }
+
+            if (wo.pendingActionQueue != null)
+            {
+                actionQueue.Enqueue(wo.pendingActionQueue);
+                wo.pendingActionQueue = null;
             }
 
             // if adding a player to this landblock,

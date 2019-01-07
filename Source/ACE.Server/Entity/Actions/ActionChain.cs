@@ -10,12 +10,11 @@ namespace ACE.Server.Entity.Actions
     {
         public WorldObject WorldObject;
 
-        public double StartTime;
-        public double NextTime;
+        private double nextTime;
 
-        public Queue<ChainElement> Actions;
+        public SortedDictionary<double, List<Action>> Actions;
 
-        public double NextActionTime => Actions.Count > 0 ? Actions.First().RunTime : double.MaxValue;
+        public double NextActionTime => Actions.Count != 0 ? Actions.Keys.First() : double.MaxValue;
 
         public bool IsComplete => Actions.Count == 0;
 
@@ -49,10 +48,9 @@ namespace ACE.Server.Entity.Actions
 
         public void Init()
         {
-            StartTime = Time.GetUnixTime();
-            NextTime = StartTime;
+            nextTime = Time.GetUnixTime();
 
-            Actions = new Queue<ChainElement>();
+            Actions = new SortedDictionary<double, List<Action>>();
         }
 
         public void AddDelaySeconds(double timeInSeconds)
@@ -62,12 +60,17 @@ namespace ACE.Server.Entity.Actions
                 Console.WriteLine($"ActionChain.AddDelaySeconds({timeInSeconds}: NaN");
                 return;
             }
-            NextTime = NextTime + timeInSeconds;
+            nextTime += timeInSeconds;
         }
 
         public void AddAction(Action action)
         {
-            Actions.Enqueue(new ChainElement(action, NextTime));
+            Actions.TryGetValue(nextTime, out var existing);
+
+            if (existing == null)
+                Actions.Add(nextTime, new List<Action>() { action });
+            else
+                existing.Add(action);
         }
 
         public void AddAction(WorldObject wo, Action action)
@@ -94,25 +97,6 @@ namespace ACE.Server.Entity.Actions
         public void EnqueueChain()
         {
             WorldObject.EnqueueChain(this);
-        }
-
-        public bool RunActions()
-        {
-            var hasActions = Actions.TryPeek(out var nextAction);
-
-            if (!hasActions)
-                return false;
-
-            while (nextAction.RunTime <= Time.GetUnixTime())
-            {
-                nextAction.Action.Invoke();
-                Actions.Dequeue();
-
-                hasActions = Actions.TryPeek(out nextAction);
-                if (!hasActions)
-                    return false;
-            }
-            return true;
         }
     }
 }

@@ -499,6 +499,11 @@ namespace ACE.Server.WorldObjects
         {
             if (!IsGenerator) return;
 
+            /*if (WorldManager.DebugGenerators)
+                PerfTimer.StartTimer($"Generator_HeartBeat - {Name}");
+            else
+                PerfTimer.StartTimer("Generator_HeartBeat");*/
+
             //Console.WriteLine($"{Name}.Generator_HeartBeat({HeartbeatInterval})");
 
             if (!FirstEnterWorldDone)
@@ -518,6 +523,11 @@ namespace ACE.Server.WorldObjects
 
             foreach (var generator in GeneratorProfiles)
                 generator.HeartBeat();
+
+            /*if (WorldManager.DebugGenerators)
+                PerfTimer.StopTimer($"Generator_HeartBeat - {Name}");
+            else
+                PerfTimer.StopTimer("Generator_HeartBeat");*/
         }
     }
 }

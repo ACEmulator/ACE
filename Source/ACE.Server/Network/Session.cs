@@ -43,7 +43,7 @@ namespace ACE.Server.Network
 
         public Player Player { get; private set; }
 
-        public readonly ActionQueue InboundGameActionQueue = new ActionQueue();
+        public readonly Entity.Actions.Legacy.ActionQueue InboundGameActionQueue = new Entity.Actions.Legacy.ActionQueue();
 
 
         private DateTime logOffRequestTime;

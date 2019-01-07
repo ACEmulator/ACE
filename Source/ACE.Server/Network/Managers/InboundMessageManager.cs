@@ -93,7 +93,7 @@ namespace ACE.Server.Network.Managers
             {
                 if (messageHandlerInfo.Attribute.State == session.State)
                 {
-                    WorldManager.InboundClientMessageQueue.EnqueueAction(() =>
+                    WorldManager.InboundClientMessageQueue.EnqueueAction(new Entity.Actions.Legacy.ActionEventDelegate(() =>
                     {
                         // It's possible that before this work is executed by WorldManager, and after it was enqueued here, the session.Player was set to null
                         // To avoid null reference exceptions, we make sure that the player is valid before the message handler is invoked.
@@ -101,7 +101,7 @@ namespace ACE.Server.Network.Managers
                             return;
 
                         messageHandlerInfo.Handler.Invoke(message, session);
-                    });
+                    }));
                 }
             }
             else
@@ -114,10 +114,10 @@ namespace ACE.Server.Network.Managers
         {
             if (actionHandlers.TryGetValue(opcode, out var actionHandlerInfo))
             {
-                session.InboundGameActionQueue.EnqueueAction(() =>
+                session.InboundGameActionQueue.EnqueueAction(new Entity.Actions.Legacy.ActionEventDelegate(() =>
                 {
                     actionHandlerInfo.Handler.Invoke(message, session);
-                });
+                }));
             }
             else
             {

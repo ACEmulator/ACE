@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Concurrent;
 
-namespace ACE.Server.Entity.ActionsLegacy
+namespace ACE.Server.Entity.Actions.Legacy
 {
     public class ActionQueue : IActor
     {

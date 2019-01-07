@@ -220,7 +220,7 @@ namespace ACE.Server.WorldObjects
 
         private void SetEphemeralValues()
         {
-            ActionQueue = new ActionQueue(this);
+            //ActionQueue = new ActionQueue(this);
 
             foreach (var x in Biota.BiotaPropertiesBool.Where(i => EphemeralProperties.PropertiesBool.Contains(i.Type)).ToList())
                 ephemeralPropertyBools[(PropertyBool)x.Type] = x.Value;
@@ -245,7 +245,7 @@ namespace ACE.Server.WorldObjects
 
             AddGeneratorProfiles();
 
-            if (IsGenerator)
+            if (IsGenerator && RegenerationInterval > 0)
                 HeartbeatInterval = RegenerationInterval;
 
             BaseDescriptionFlags = ObjectDescriptionFlag.Attackable;

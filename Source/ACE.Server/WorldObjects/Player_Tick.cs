@@ -1,6 +1,7 @@
 using System;
 
 using ACE.Entity.Enum.Properties;
+using ACE.Server.Entity;
 using ACE.Server.Network.GameMessages.Messages;
 
 namespace ACE.Server.WorldObjects
@@ -17,6 +18,8 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public override void HeartBeat()
         {
+            //PerfTimer.StartTimer("Player_HeartBeat");
+
             NotifyLandblocks();
 
             ManaConsumersTick();
@@ -35,6 +38,8 @@ namespace ACE.Server.WorldObjects
 
             if (LastRequestedDatabaseSave + PlayerSaveInterval <= DateTime.UtcNow)
                 SavePlayerToDatabase();
+
+            //PerfTimer.StopTimer("Player_HeartBeat");
 
             base.HeartBeat();
         }
