@@ -23,13 +23,17 @@ namespace ACE.Server.WorldObjects
 
             if (!IsAwake || IsDead) return;
 
+            IsMonster = true;
+
             HandleFindTarget();
 
             CheckMissHome();    // tickrate?
 
-            if (AttackTarget == null && MonsterState != State.Return) return;
-
-            IsMonster = true;
+            if (AttackTarget == null && MonsterState != State.Return)
+            {
+                Sleep();
+                return;
+            }
 
             var pet = this as CombatPet;
             if (pet != null && DateTime.UtcNow >= pet.ExpirationTime)
@@ -93,7 +97,7 @@ namespace ACE.Server.WorldObjects
                 MaxRange = GetMaxRange();
 
                 //if (CurrentAttack == AttackType.Magic)
-                    //MaxRange = MaxMeleeRange;   // FIXME: server position sync
+                //MaxRange = MaxMeleeRange;   // FIXME: server position sync
             }
 
             // get distance to target
