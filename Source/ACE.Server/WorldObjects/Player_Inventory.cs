@@ -1434,6 +1434,7 @@ namespace ACE.Server.WorldObjects
             if (target.EmoteManager.IsBusy)
             {
                 Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(Session, WeenieErrorWithString._IsTooBusyToAcceptGifts, target.Name));
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, WeenieError.None));
                 return;
             }
 
@@ -1453,6 +1454,7 @@ namespace ACE.Server.WorldObjects
             if (!target.GetProperty(PropertyBool.AllowGive) ?? false)
             {
                 Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(Session, WeenieErrorWithString._IsNotAcceptingGiftsRightNow, target.Name));
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, WeenieError.None));
                 return;
             }
 

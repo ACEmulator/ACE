@@ -455,17 +455,24 @@ namespace ACE.Server.Command.Handlers
         {
             CommandHandlerHelper.WriteOutputInfo(session, "Loading landblocks. This will likely crash the server. Landblock resources will be loaded async and will continue to do work even after all landblocks have been loaded.");
 
+            var numBlocks = 1000;
+            var i = 0;
             Task.Run(() =>
             {
-                for (int x = 0; x <= 0xFE; x++)
+                for (int x = 0x7C; x <= 0xFE; x++)
                 {
-                    CommandHandlerHelper.WriteOutputInfo(session, $"Loading landblocks, x = 0x{x:X2} of 0xFE....");
+                    //CommandHandlerHelper.WriteOutputInfo(session, $"Loading {numBlocks} landblocks, x = 0x{x:X2} of 0xFE....");
 
-                    for (int y = 0; y <= 0xFE; y++)
+                    for (int y = 0x64; y <= 0xFE; y++)
                     {
                         var blockid = new LandblockId((byte)x, (byte)y);
                         LandblockManager.GetLandblock(blockid, false, false);
+                        i++;
+                        if (i >= numBlocks)
+                            break;
                     }
+                    if (i >= numBlocks)
+                        break;
                 }
 
                 CommandHandlerHelper.WriteOutputInfo(session, "Loading landblocks completed. Async landblock resources are likely still loading...");
@@ -1514,6 +1521,18 @@ namespace ACE.Server.Command.Handlers
         public static void HandleMyLoc(Session session, params string[] parameters)
         {
             session.Network.EnqueueSend(new GameMessageSystemChat($"Location: {session.Player.PhysicsObj.Position}", ChatMessageType.Broadcast));
+        }
+
+        /// <summary>
+        /// Shows the current player location, from the server perspective
+        /// </summary>
+        [CommandHandler("profiling", AccessLevel.Developer, CommandHandlerFlag.None, 0, "Enables specific CPU / function profiling", "/profiling")]
+        public static void HandleProfiling(Session session, params string[] parameters)
+        {
+            if (parameters.Length > 0 && parameters[0] == "off")
+                WorldManager.Profiling = false;
+            else
+                WorldManager.Profiling = true;
         }
     }
 }

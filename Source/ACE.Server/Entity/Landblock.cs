@@ -102,6 +102,8 @@ namespace ACE.Server.Entity
 
         public Landblock(LandblockId id)
         {
+            Console.WriteLine($"Loading landblock {(id.Raw | 0xFFFF):X8}");
+
             Id = id;
 
             CellLandblock = DatManager.CellDat.ReadFromDat<CellLandblock>(Id.Raw >> 16 | 0xFFFF);
@@ -109,8 +111,8 @@ namespace ACE.Server.Entity
 
             lastActiveTime = DateTime.UtcNow;
 
-            Task.Run(() =>
-            {
+            //Task.Run(() =>
+            //{
                 _landblock = LScape.get_landblock(Id.Raw);
 
                 CreateWorldObjects();
@@ -118,7 +120,7 @@ namespace ACE.Server.Entity
                 SpawnDynamicShardObjects();
 
                 SpawnEncounters();
-            });
+            //});
 
             //LoadMeshes(objects);
         }

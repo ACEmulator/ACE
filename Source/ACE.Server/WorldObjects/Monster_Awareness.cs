@@ -74,6 +74,8 @@ namespace ACE.Server.WorldObjects
             IsAwake = false;
             IsMoving = false;
             MonsterState = State.Idle;
+
+            PerfTimer.StopTimer("Monster");
         }
 
         public double NextFindTarget;

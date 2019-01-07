@@ -1,5 +1,6 @@
 using System;
 using ACE.Entity.Enum;
+using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 
 namespace ACE.Server.WorldObjects
@@ -17,6 +18,8 @@ namespace ACE.Server.WorldObjects
         {
             if (!IsAwake || IsDead) return;
 
+            PerfTimer.StartTimer("Monster");
+
             IsMonster = true;
 
             HandleFindTarget();
@@ -33,6 +36,7 @@ namespace ACE.Server.WorldObjects
             if (pet != null && DateTime.UtcNow >= pet.ExpirationTime)
             {
                 Destroy();
+                PerfTimer.StopTimer("Monster");
                 return;
             }
 
@@ -154,6 +158,7 @@ namespace ACE.Server.WorldObjects
             actionChain.AddDelaySeconds(monsterTickInterval);
             actionChain.AddAction(Monster_Tick);
             actionChain.EnqueueChain();
+            PerfTimer.StopTimer("Monster");
         }
     }
 }

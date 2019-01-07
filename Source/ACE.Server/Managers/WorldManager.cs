@@ -67,6 +67,8 @@ namespace ACE.Server.Managers
         private static readonly ActionQueue playerEnterWorldQueue = new ActionQueue();
         //public static readonly DelayManager DelayManager = new DelayManager(); // TODO get rid of this. Each WO should have its own delayManager
 
+        public static bool Profiling;
+
         static WorldManager()
         {
             Physics = new PhysicsEngine(new ObjectMaint(), new SmartBox());
@@ -430,11 +432,15 @@ namespace ACE.Server.Managers
             // Tick all of our Landblocks and WorldObjects
             var activeLandblocks = LandblockManager.GetActiveLandblocks();
 
+            PerfTimer.StartTimer("wo.Tick");
             foreach (var landblock in activeLandblocks)
                 landblock.Tick(Time.GetUnixTime());
+            PerfTimer.StopTimer("wo.Tick");
 
             // clean up inactive landblocks
             LandblockManager.UnloadLandblocks();
+
+            PerfTimer.DoTimers();
 
             return true;
         }
