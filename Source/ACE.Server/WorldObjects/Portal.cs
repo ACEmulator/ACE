@@ -168,6 +168,8 @@ namespace ACE.Server.WorldObjects
             // save the destination coordinates to the LastPortal character position save table
             if (!NoRecall)
                 player.LastPortalDID = WeenieClassId;
+
+            EmoteManager.OnPortal(player);
         }
 
         public virtual void OnCollideObject(Player player)

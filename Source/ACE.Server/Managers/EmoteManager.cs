@@ -1182,6 +1182,11 @@ namespace ACE.Server.Managers
             ExecuteEmoteSet(EmoteCategory.Use, null, activator);
         }
 
+        public void OnPortal(Creature activator)
+        {
+            ExecuteEmoteSet(EmoteCategory.Portal, null, activator);
+        }
+
         public void OnActivation(Creature activator)
         {
             ExecuteEmoteSet(EmoteCategory.Activation, null, activator);

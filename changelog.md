@@ -7,6 +7,7 @@
   - This allows us to do proper cloning of portal for use checks
   - Refactor SummonPortal to use proper clone of portalgateway
 * Update EmoteManager to use TryCastSpell and differentiate between CastSpell (with windup motion) and CastSpellInstant (without windup motion)
+* Update Portal to process Portal emotes post teleport (successful portal)
 
 ### 2018-01-03
 [Ripley]
