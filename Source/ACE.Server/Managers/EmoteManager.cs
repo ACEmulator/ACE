@@ -163,24 +163,34 @@ namespace ACE.Server.Managers
                     // todo: missing windup?
                     if (creature != null && targetObject != null)
                     {
-                        //creature.CreateCreatureSpell(targetObject.Guid, (uint)emote.SpellId);
                         var spell = new Spell((uint)emote.SpellId);
-                        creature.TryCastSpell(spell, targetObject, creature);
+                        if (spell != null)
+                        {
+                            //creature.TryCastSpell(spell, targetObject, creature);
+                            var preCastTime = creature.PreCastMotion(targetObject);
+
+                            var castChain = new ActionChain();
+                            castChain.AddDelaySeconds(preCastTime);
+                            castChain.AddAction(creature, () =>
+                            {
+                                creature.TryCastSpell(spell, targetObject, creature);
+                                creature.PostCastMotion();
+                            });
+                            castChain.EnqueueChain();
+
+                            //var postCastTime = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, MotionCommand.CastSpell, MotionCommand.Ready, 1.5f);
+                            //var animTime = preCastTime + postCastTime;
+                        }
                     }
                     break;
 
                 case EmoteType.CastSpellInstant:
 
-                    if (creature != null)
+                    if (creature != null && targetObject != null)
                     {
                         var spell = new Spell((uint)emote.SpellId);
-                        if (targetObject != null && spell.TargetEffect > 0)
-                            creature.CreateCreatureSpell(targetObject.Guid, (uint)emote.SpellId);
-                        else
-                        {
-                            creature.CreateCreatureSpell((uint)emote.SpellId);
-                            creature.WarMagic(spell);   // only war magic?
-                        }
+                        if (targetObject != null && spell != null)
+                            creature.TryCastSpell(spell, targetObject, creature);
                     }
                     break;
 
@@ -268,7 +278,7 @@ namespace ACE.Server.Managers
 
                     // unfinished - unused in PY16?
                     var wcid = (uint)emote.WeenieClassId;
-                    var item = WorldObjectFactory.CreateNewWorldObject((wcid));
+                    var item = WorldObjectFactory.CreateNewWorldObject(wcid);
                     
                     break;
 
