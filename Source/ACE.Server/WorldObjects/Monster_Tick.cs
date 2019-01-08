@@ -1,4 +1,6 @@
 using System;
+using System.Runtime.CompilerServices;
+
 using ACE.Entity.Enum;
 
 namespace ACE.Server.WorldObjects
@@ -14,6 +16,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Primary dispatch for monster think
         /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void Monster_Tick(double currentUnixTime)
         {
             if (nextMonsterTickTime > currentUnixTime)
