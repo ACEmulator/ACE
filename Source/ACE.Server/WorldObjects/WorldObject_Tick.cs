@@ -19,7 +19,7 @@ namespace ACE.Server.WorldObjects
         public const int DefaultHeartbeatInterval = 5;
 
         protected double CachedHeartbeatInterval;
-        protected double? NextHeartBeatTime;
+        protected double NextHeartBeatTime;
 
         private void InitializeTick()
         {
