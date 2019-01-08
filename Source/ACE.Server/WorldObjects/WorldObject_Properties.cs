@@ -1957,6 +1957,12 @@ namespace ACE.Server.WorldObjects
             set { SetPosition(PositionType.LastPortal, value); }
         }
 
+        public uint? LastPortalDID
+        {
+            get => GetProperty(PropertyDataId.LastPortal);
+            set { if (!value.HasValue) RemoveProperty(PropertyDataId.LastPortal); else SetProperty(PropertyDataId.LastPortal, value.Value); }
+        }
+
         public Position PortalStorm
         {
             get { return GetPosition(PositionType.PortalStorm); }

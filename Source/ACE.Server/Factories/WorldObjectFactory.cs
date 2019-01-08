@@ -23,6 +23,9 @@ namespace ACE.Server.Factories
         /// </summary>
         public static WorldObject CreateWorldObject(Weenie weenie, ObjectGuid guid)
         {
+            if (weenie == null || guid == null)
+                return null;
+
             var objWeenieType = (WeenieType)weenie.Type;
 
             switch (objWeenieType)
