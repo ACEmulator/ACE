@@ -1781,6 +1781,9 @@ namespace ACE.Server.Command.Handlers
             sb.Append($"{activeLandblocks.Count:N0} active landblocks - Players: {players:N0}, Creatures: {creatures:N0}, Missiles: {missiles:N0}, Other: {other:N0}, Total: {total:N0}.{'\n'}"); // 11 total blocks loaded. 11 active. 0 pending dormancy. 0 dormant. 314 unloaded.
             // 11 total blocks loaded. 11 active. 0 pending dormancy. 0 dormant. 314 unloaded.
 
+            sb.Append($"UpdateGameWorld {(DateTime.UtcNow - WorldManager.UpdateGameWorld5MinLastReset).TotalMinutes:N2} min - {WorldManager.UpdateGameWorld5MinRM}.{'\n'}");
+            sb.Append($"UpdateGameWorld {(DateTime.UtcNow - WorldManager.UpdateGameWorld60MinLastReset).TotalMinutes:N2} min - {WorldManager.UpdateGameWorld60MinRM}.{'\n'}");
+
             sb.Append($"World DB Cache Counts - Weenies: {DatabaseManager.World.GetWeenieCacheCount():N0}, LandblockInstances: {DatabaseManager.World.GetLandblockInstancesCacheCount():N0}, PointsOfInterest: {DatabaseManager.World.GetPointsOfInterestCacheCount():N0}, Cookbooks: {DatabaseManager.World.GetCookbookCacheCount():N0}, Spells: {DatabaseManager.World.GetSpellCacheCount():N0}, Encounters: {DatabaseManager.World.GetEncounterCacheCount():N0}, Events: {DatabaseManager.World.GetEventsCacheCount():N0}{'\n'}");
             sb.Append($"Shard DB Counts - Biotas: {DatabaseManager.Shard.GetBiotaCount():N0}{'\n'}");
 
