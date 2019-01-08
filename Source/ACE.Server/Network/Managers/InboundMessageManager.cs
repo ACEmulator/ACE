@@ -4,7 +4,7 @@ using System.Reflection;
 
 using log4net;
 
-using ACE.Server.Entity.Actions;
+using ACE.Server.Entity.Actions.Concurrent;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameAction;
 using ACE.Server.Network.GameMessages;
@@ -13,7 +13,7 @@ namespace ACE.Server.Network.Managers
 {
     public static class InboundMessageManager
     {
-        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         private class MessageHandlerInfo
         {

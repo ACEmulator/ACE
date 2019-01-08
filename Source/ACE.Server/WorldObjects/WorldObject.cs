@@ -29,7 +29,7 @@ using Position = ACE.Entity.Position;
 
 namespace ACE.Server.WorldObjects
 {
-    public abstract partial class WorldObject : IActor
+    public abstract partial class WorldObject
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -242,7 +242,7 @@ namespace ACE.Server.WorldObjects
 
             AddGeneratorProfiles();
 
-            if (IsGenerator)
+            if (IsGenerator && RegenerationInterval > 0)
                 HeartbeatInterval = RegenerationInterval;
 
             BaseDescriptionFlags = ObjectDescriptionFlag.Attackable;
@@ -256,6 +256,7 @@ namespace ACE.Server.WorldObjects
                 Placement = ACE.Entity.Enum.Placement.Resting;
 
             //CurrentMotionState = new Motion(MotionStance.Invalid, new MotionItem(MotionCommand.Invalid));
+            QueueFirstHeartbeat();
         }
 
         /// <summary>
@@ -868,31 +869,36 @@ namespace ACE.Server.WorldObjects
         /// adds to the physics animation system, and broadcasts to nearby players
         /// </summary>
         /// <returns>The amount it takes to execute the motion</returns>
-        public float ExecuteMotion(Motion motion, bool sendClient = true, float? maxRange = null)
+        public float ExecuteMotion(Motion motion, bool sendClient = true, float? maxRange = null, bool timerOnly = false)
         {
             var motionCommand = motion.MotionState.ForwardCommand;
 
             if (motionCommand == MotionCommand.Invalid)
                 motionCommand = (MotionCommand)motion.Stance;
 
-            // run motion command on server through physics animation system
-            if (PhysicsObj != null && motionCommand != MotionCommand.Invalid)
-            {
-                var motionInterp = PhysicsObj.get_minterp();
-
-                var rawState = new RawMotionState();
-                rawState.ForwardCommand = 0;    // always 0? must be this for monster sleep animations (skeletons, golems)
-                                                // else the monster will immediately wake back up..
-                rawState.CurrentHoldKey = HoldKey.Run;
-                rawState.CurrentStyle = (uint)motionCommand;
-
-                motionInterp.RawState = rawState;
-                motionInterp.apply_raw_movement(true, true);
-            }
-
             // hardcoded ready?
             var animLength = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, CurrentMotionState.MotionState.ForwardCommand, motionCommand);
             CurrentMotionState = motion;
+
+            // run motion command on server through physics animation system
+            if (PhysicsObj != null && motionCommand != MotionCommand.Invalid)
+            {
+                if (!timerOnly)
+                {
+                    var motionInterp = PhysicsObj.get_minterp();
+
+                    var rawState = new RawMotionState();
+                    rawState.ForwardCommand = 0;    // always 0? must be this for monster sleep animations (skeletons, golems)
+                                                    // else the monster will immediately wake back up..
+                    rawState.CurrentHoldKey = HoldKey.Run;
+                    rawState.CurrentStyle = (uint)motionCommand;
+
+                    motionInterp.RawState = rawState;
+                    motionInterp.apply_raw_movement(true, true);
+                }
+                else
+                    PhysicsObj.AnimDoneTime = DateTime.UtcNow.AddSeconds(animLength);
+            }
 
             // broadcast to nearby players
             if (sendClient)

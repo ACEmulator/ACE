@@ -1114,7 +1114,7 @@ namespace ACE.Server.WorldObjects
             if (PhysicsObj == null) return;
 
             if (!excludeSelf && this is Player self)
-                self.EnqueueAction(new ActionEventDelegate(() => delegateAction(self)));
+                self.EnqueueAction(() => delegateAction(self));
 
             foreach (var player in PhysicsObj.ObjMaint.VoyeurTable.Values.Select(v => (Player)v.WeenieObj.WorldObject))
             {
@@ -1124,7 +1124,7 @@ namespace ACE.Server.WorldObjects
                 if (excludeSelf && this == player)
                     continue;
 
-                player.EnqueueAction(new ActionEventDelegate(() => delegateAction(player)));
+                player.EnqueueAction(() => delegateAction(player));
             }
         }
 

@@ -61,6 +61,8 @@ namespace ACE.Server.WorldObjects
 
             if (alertNearby)
                 AlertFriendly();
+
+            CurrentLandblock.actionQueue.EnqueueAction(Monster_Tick);
         }
 
         /// <summary>

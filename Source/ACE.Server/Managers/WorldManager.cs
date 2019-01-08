@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Net;
-using System.Numerics;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -16,7 +15,7 @@ using ACE.Database.Entity;
 using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
 using ACE.Server.Entity;
-using ACE.Server.Entity.Actions;
+using ACE.Server.Entity.Actions.Concurrent;
 using ACE.Server.WorldObjects;
 using ACE.Server.Network;
 using ACE.Server.Network.Packets;
@@ -65,7 +64,7 @@ namespace ACE.Server.Managers
         /// </summary>
         public static readonly ActionQueue InboundClientMessageQueue = new ActionQueue();
         private static readonly ActionQueue playerEnterWorldQueue = new ActionQueue();
-        public static readonly DelayManager DelayManager = new DelayManager(); // TODO get rid of this. Each WO should have its own delayManager
+        //public static readonly DelayManager DelayManager = new DelayManager(); // TODO get rid of this. Each WO should have its own delayManager
 
         static WorldManager()
         {
@@ -75,7 +74,11 @@ namespace ACE.Server.Managers
 
         public static void Initialize()
         {
-            var thread = new Thread(UpdateWorld);
+            var thread = new Thread(() =>
+            {
+                LandblockManager.PreloadConfigLandblocks();
+                UpdateWorld();
+            });
             thread.Name = "World Manager";
             thread.Start();
             log.DebugFormat("ServerTime initialized to {0}", Timers.WorldStartLoreTime);
@@ -380,8 +383,6 @@ namespace ACE.Server.Managers
                 InboundClientMessageQueue.RunActions();
 
                 playerEnterWorldQueue.RunActions();
-
-                DelayManager.RunActions();
 
                 var gameWorldUpdated = UpdateGameWorld();
 

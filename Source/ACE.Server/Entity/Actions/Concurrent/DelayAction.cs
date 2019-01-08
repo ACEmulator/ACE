@@ -1,6 +1,6 @@
 using System;
 
-namespace ACE.Server.Entity.Actions
+namespace ACE.Server.Entity.Actions.Concurrent
 {
     /// <summary>
     /// Action that will not return until Timer.PortalYearTicks >= EndTime

@@ -1,6 +1,6 @@
 using System;
 
-namespace ACE.Server.Entity.Actions
+namespace ACE.Server.Entity.Actions.Concurrent
 {
     public abstract class ActionEventBase : IAction
     {

@@ -9,7 +9,7 @@ using ACE.Common;
 using ACE.Database;
 using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
-using ACE.Server.Entity.Actions;
+using ACE.Server.Entity.Actions.Concurrent;
 using ACE.Server.WorldObjects;
 using ACE.Server.Managers;
 using ACE.Server.Network.Enum;

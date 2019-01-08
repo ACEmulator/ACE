@@ -161,7 +161,7 @@ namespace ACE.Server.Network
 
                         if (currentBundle.NeedsSending && DateTime.UtcNow >= nextSend)
                         {
-                            packetLog.DebugFormat("[{0}] Swaping bundle", session.LoggingIdentifier);
+                            packetLog.DebugFormat("[{0}] Swapping bundle", session.LoggingIdentifier);
                             // Swap out bundle so we can process it
                             bundleToSend = currentBundle;
                             currentBundles[i] = new NetworkBundle();
@@ -171,7 +171,7 @@ namespace ACE.Server.Network
                     {
                         if (currentBundle.NeedsSending && DateTime.UtcNow >= nextSend)
                         {
-                            packetLog.DebugFormat("[{0}] Swaping bundle", session.LoggingIdentifier);
+                            packetLog.DebugFormat("[{0}] Swapping bundle", session.LoggingIdentifier);
                             // Swap out bundle so we can process it
                             bundleToSend = currentBundle;
                             currentBundles[i] = new NetworkBundle();
