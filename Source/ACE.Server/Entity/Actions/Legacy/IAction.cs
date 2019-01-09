@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace ACE.Server.Entity.Actions
+namespace ACE.Server.Entity.Actions.Legacy
 {
     public interface IAction
     {

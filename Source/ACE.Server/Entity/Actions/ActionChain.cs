@@ -1,141 +1,87 @@
 using System;
-
-using ACE.Server.Managers;
+using System.Collections.Generic;
+using System.Linq;
+using ACE.Common;
+using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Entity.Actions
 {
     public class ActionChain
     {
-        public class ChainElement
-        {
-            public IAction Action { get; }
-            public IActor Actor { get; }
+        public WorldObject WorldObject;
 
-            public ChainElement(IActor actor, IAction action)
-            {
-                Actor = actor;
-                Action = action;
-            }
-        }
+        private double nextTime;
 
-        public ChainElement FirstElement { get; private set; }
-        private ChainElement lastElement;
+        public SortedDictionary<double, List<Action>> Actions;
+
+        public double NextActionTime => Actions.Count != 0 ? Actions.Keys.First() : double.MaxValue;
+
+        public bool IsComplete => Actions.Count == 0;
 
         public ActionChain()
         {
-            FirstElement = null;
-            lastElement = null;
+            Init();
         }
 
-        public ActionChain(IActor firstActor, Action firstAction)
+        public ActionChain(Action action)
         {
-            FirstElement = new ChainElement(firstActor, new ActionEventDelegate(firstAction));
-            lastElement = FirstElement;
+            Init();
+
+            AddAction(action);
         }
 
-        public ActionChain(IActor firstActor, IAction firstAction)
+        public ActionChain(WorldObject wo)
         {
-            FirstElement = new ChainElement(firstActor, firstAction);
-            lastElement = FirstElement;
+            Init();
+
+            WorldObject = wo;
         }
 
-        public ActionChain(ChainElement elm)
+        public ActionChain(WorldObject wo, Action action)
         {
-            FirstElement = elm;
-            lastElement = FirstElement;
+            Init();
+
+            WorldObject = wo;
+
+            AddAction(action);
         }
 
-        public ActionChain AddAction(IActor actor, Action action)
+        public void Init()
         {
-            ChainElement newElm = new ChainElement(actor, new ActionEventDelegate(action));
-            AddAction(newElm);
+            nextTime = Time.GetUnixTime();
 
-            return this;
+            Actions = new SortedDictionary<double, List<Action>>();
         }
 
-        public ActionChain AddAction(IActor actor, IAction action)
+        public void AddDelaySeconds(double timeInSeconds)
         {
-            ChainElement newElm = new ChainElement(actor, action);
-            AddAction(newElm);
-
-            return this;
-        }
-
-        public ActionChain AddAction(ChainElement elm)
-        {
-            if (FirstElement == null)
+            if (double.IsNaN(timeInSeconds))
             {
-                FirstElement = elm;
-                lastElement = elm;
+                Console.WriteLine($"ActionChain.AddDelaySeconds({timeInSeconds}: NaN");
+                return;
             }
+            nextTime += timeInSeconds;
+        }
+
+        public void AddAction(Action action)
+        {
+            Actions.TryGetValue(nextTime, out var existing);
+
+            if (existing == null)
+                Actions.Add(nextTime, new List<Action>() { action });
             else
-            {
-                lastElement.Action.RunOnFinish(elm.Actor, elm.Action);
-                lastElement = elm;
-            }
-
-            return this;
+                existing.Add(action);
         }
 
-        public ActionChain AddChain(ActionChain chain)
+        public void AddAction(WorldObject wo, Action action)
         {
-            if (chain != null && chain.FirstElement != null)
-            {
-                // If we have a chain of our own
-                if (lastElement != null)
-                {
-                    lastElement.Action.RunOnFinish(chain.FirstElement.Actor, chain.FirstElement.Action);
-                    lastElement = chain.lastElement;
-                }
-                // If we're uninit'd, take their data
-                else
-                {
-                    FirstElement = chain.FirstElement;
-                    lastElement = chain.lastElement;
-                }
-            }
-
-            return this;
-        }
-
-        public ActionChain AddBranch(IActor conditionActor, Func<bool> condition, ChainElement trueBranch, ChainElement falseBranch)
-        {
-            AddBranch(conditionActor, condition, new ActionChain(trueBranch), new ActionChain(falseBranch));
-
-            return this;
-        }
-
-        public ActionChain AddBranch(IActor conditionActor, Func<bool> condition, ActionChain trueBranch, ActionChain falseBranch)
-        {
-            AddAction(new ChainElement(conditionActor, new ConditionalAction(condition, trueBranch, falseBranch)));
-
-            return this;
-        }
-
-        public ActionChain AddLoop(IActor conditionActor, Func<bool> condition, ActionChain body)
-        {
-            AddAction(new ChainElement(conditionActor, new LoopAction(conditionActor, condition, body)));
-
-            return this;
-        }
-
-        public ActionChain AddDelaySeconds(double timeInSeconds)
-        {
-            if (Double.IsNaN(timeInSeconds))
-            {
-                Console.WriteLine("WARNING: ActionChain.AddDelaySeconds(" + timeInSeconds + ")");
-                return this;
-            }
-
-            AddAction(WorldManager.DelayManager, new DelayAction(timeInSeconds));
-
-            return this;
+            WorldObject = wo;
+            AddAction(action);
         }
 
         public void EnqueueChain()
         {
-            if (FirstElement != null)
-                FirstElement.Actor.EnqueueAction(FirstElement.Action);
+            WorldObject.EnqueueChain(this);
         }
     }
 }

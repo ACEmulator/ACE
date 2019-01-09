@@ -1,4 +1,4 @@
-﻿namespace ACE.Server.Entity.Actions
+namespace ACE.Server.Entity.Actions.Legacy
 {
     public class EmptyAction : ActionEventBase
     {

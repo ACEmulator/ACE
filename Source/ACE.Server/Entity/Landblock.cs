@@ -58,7 +58,7 @@ namespace ACE.Server.Entity
 
         public List<Landblock> Adjacents = new List<Landblock>();
 
-        private readonly ActionQueue actionQueue = new ActionQueue();
+        public readonly ActionQueue actionQueue = new ActionQueue();
 
         /// <summary>
         /// Landblocks heartbeat every 5 seconds
@@ -102,6 +102,8 @@ namespace ACE.Server.Entity
 
         public Landblock(LandblockId id)
         {
+            Console.WriteLine($"Loading landblock {(id.Raw | 0xFFFF):X8}");
+
             Id = id;
 
             CellLandblock = DatManager.CellDat.ReadFromDat<CellLandblock>(Id.Raw >> 16 | 0xFFFF);
@@ -109,8 +111,8 @@ namespace ACE.Server.Entity
 
             lastActiveTime = DateTime.UtcNow;
 
-            Task.Run(() =>
-            {
+            //Task.Run(() =>
+            //{
                 _landblock = LScape.get_landblock(Id.Raw);
 
                 CreateWorldObjects();
@@ -118,7 +120,7 @@ namespace ACE.Server.Entity
                 SpawnDynamicShardObjects();
 
                 SpawnEncounters();
-            });
+            //});
 
             //LoadMeshes(objects);
         }
@@ -129,6 +131,9 @@ namespace ACE.Server.Entity
         /// </summary>
         private void CreateWorldObjects()
         {
+            //if (WorldManager.Profiling)
+                //Console.WriteLine($"Landblock({(Id.Raw | 0xFFFF):X8}): CreateWorldObjects");
+
             var objects = DatabaseManager.World.GetCachedInstancesByLandblock(Id.Landblock);
             var shardObjects = DatabaseManager.Shard.GetStaticObjectsByLandblock(Id.Landblock);
             var factoryObjects = WorldObjectFactory.CreateNewWorldObjects(objects, shardObjects);
@@ -136,12 +141,14 @@ namespace ACE.Server.Entity
             // for mansion linking
             var houses = new List<House>();
 
-            actionQueue.EnqueueAction(new ActionEventDelegate(() =>
+            actionQueue.EnqueueAction(() =>
             {
+                //Console.WriteLine($"Landblock({(Id.Raw | 0xFFFF):X8}): CreateWorldObjects - inner");
+
                 foreach (var fo in factoryObjects)
                 {
                     WorldObject parent = null;
-                    if (fo.WeenieType == ACE.Entity.Enum.WeenieType.House && fo.HouseType == ACE.Entity.Enum.HouseType.Mansion)
+                    if (fo.WeenieType == WeenieType.House && fo.HouseType == HouseType.Mansion)
                     {
                         var house = fo as House;
                         houses.Add(house);
@@ -157,7 +164,7 @@ namespace ACE.Server.Entity
                     AddWorldObject(fo);
                     fo.ActivateLinks(objects, shardObjects, parent);
                 }
-            }));
+            });
         }
 
         /// <summary>
@@ -166,14 +173,17 @@ namespace ACE.Server.Entity
         /// </summary>
         private void SpawnDynamicShardObjects()
         {
+            //if (WorldManager.Profiling)
+                //Console.WriteLine($"Landblock({(Id.Raw | 0xFFFF):X8}): SpawnDynamicShardObjects");
+
             var dynamics = DatabaseManager.Shard.GetDynamicObjectsByLandblock(Id.Landblock);
             var factoryShardObjects = WorldObjectFactory.CreateWorldObjects(dynamics);
 
-            actionQueue.EnqueueAction(new ActionEventDelegate(() =>
+            actionQueue.EnqueueAction(() =>
             {
                 foreach (var fso in factoryShardObjects)
                     AddWorldObject(fso);
-            }));
+            });
         }
 
         /// <summary>
@@ -182,6 +192,9 @@ namespace ACE.Server.Entity
         /// </summary>
         private void SpawnEncounters()
         {
+            //if (WorldManager.Profiling)
+                //Console.WriteLine($"Landblock({(Id.Raw | 0xFFFF):X8}): SpawnEncounters");
+
             // get the encounter spawns for this landblock
             var encounters = DatabaseManager.World.GetCachedEncountersByLandblock(Id.Landblock);
 
@@ -203,10 +216,10 @@ namespace ACE.Server.Entity
 
                 wo.Location = new Position(pos.ObjCellID, pos.Frame.Origin, pos.Frame.Orientation);
 
-                actionQueue.EnqueueAction(new ActionEventDelegate(() =>
-                {
+                //actionQueue.EnqueueAction(() =>
+                //{
                     AddWorldObject(wo);
-                }));
+                //});
             }
         }
 
@@ -274,24 +287,34 @@ namespace ACE.Server.Entity
 
         public void Tick(double currentUnixTime)
         {
-            actionQueue.RunActions();
+            //PerfTimer.StartTimer("Landblock.Action");
+            //if (actionQueue.NextActionTime <= currentUnixTime)
+                actionQueue.RunActions();
+            //PerfTimer.StopTimer("Landblock.Action");
 
-            var wos = worldObjects.Values.ToList();
+            // FIXME, THIS LINE IS A HUGE PROBLEM!
+            // this is making a copy of every WO in the world 60x per second....
+            //var wos = worldObjects.Values.ToList();
 
             // When a WorldObject Ticks, it can end up adding additional WorldObjects to this landblock
-            foreach (var wo in wos)
-                wo.Tick(currentUnixTime);
+            //PerfTimer.StartTimer("Landblock.WO.Action - Query");
+            //var query = worldObjects.Values.Where(wo => wo.ActionQueue.NextActionTime <= currentUnixTime).ToList();
+            //PerfTimer.StopTimer("Landblock.WO.Action - Query");
+            //PerfTimer.StartTimer("Landblock.WO.Action - Iterator");
+            //foreach (var wo in query)
+                //wo.ActionQueue.RunActions();
+            //PerfTimer.StopTimer("Landblock.WO.Action - Iterator");
 
             // Heartbeat
+            //PerfTimer.StartTimer("Landblock.Other");
             if (lastHeartBeat + heartbeatInterval <= DateTime.UtcNow)
             {
                 var thisHeartBeat = DateTime.UtcNow;
 
                 // Decay world objects
-                foreach (var wo in wos)
+                foreach (var wo in worldObjects.Values.Where(wo => wo.IsDecayable()).ToList())
                 {
-                    if (wo.IsDecayable())
-                        wo.Decay(thisHeartBeat - lastHeartBeat);
+                    wo.Decay(thisHeartBeat - lastHeartBeat);
                 }
 
                 if (!Permaload && lastActiveTime + unloadInterval < thisHeartBeat)
@@ -306,6 +329,7 @@ namespace ACE.Server.Entity
                 SaveDB();
                 lastDatabaseSave = DateTime.UtcNow;
             }
+            //PerfTimer.StopTimer("Landblock.Other");
         }
 
         private void AddPlayerTracking(List<WorldObject> wolist, Player player)
@@ -337,6 +361,8 @@ namespace ACE.Server.Entity
 
         private void AddWorldObjectInternal(WorldObject wo)
         {
+            //Console.WriteLine($"AddWorldObjectInternal: {wo.Name}");
+
             worldObjects[wo.Guid] = wo;
 
             wo.CurrentLandblock = this;
@@ -350,8 +376,15 @@ namespace ACE.Server.Entity
                 if (!success)
                 {
                     log.Warn($"AddWorldObjectInternal: couldn't spawn {wo.Name}");
+                    wo.pendingActionQueue = null;
                     return;
                 }
+            }
+
+            if (wo.pendingActionQueue != null)
+            {
+                actionQueue.Enqueue(wo.pendingActionQueue);
+                wo.pendingActionQueue = null;
             }
 
             // if adding a player to this landblock,

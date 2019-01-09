@@ -84,7 +84,27 @@ namespace ACE.Server.Physics
         /// <summary>
         /// This is managed by MovementManager.MotionInterpreter, and should not be updated anywhere else.
         /// </summary>
-        public bool IsAnimating;
+        public bool IsAnimating { get; set; }
+
+        public bool IsAnimatingDone
+        {
+            get
+            {
+                if (AnimDoneTime == null)
+                    return true;
+
+                if (DateTime.UtcNow >= AnimDoneTime)
+                {
+                    AnimDoneTime = null;
+                    return true;
+                }
+
+                return false;
+            }
+        }
+
+
+        public DateTime? AnimDoneTime;
 
         // server
         public Position RequestPos;

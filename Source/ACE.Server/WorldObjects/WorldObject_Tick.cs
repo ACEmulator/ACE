@@ -1,6 +1,7 @@
 using System;
 using System.Numerics;
 
+using ACE.Common;
 using ACE.Entity;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
@@ -13,69 +14,82 @@ namespace ACE.Server.WorldObjects
 {
     partial class WorldObject
     {
-        private readonly ActionQueue actionQueue = new ActionQueue();
+        //public ActionQueue ActionQueue;
 
-        public const int DefaultHeartbeatInterval = 5;
+        public const float DefaultHeartbeatInterval = 5.0f;
 
-        protected double? cachedHeartbeatTimestamp;
         protected double cachedHeartbeatInterval;
 
-        public virtual void Tick(double currentUnixTime)
-        {
-            actionQueue.RunActions();
-
-            if (cachedHeartbeatTimestamp == null)
-            {
-                cachedHeartbeatInterval = HeartbeatInterval ?? DefaultHeartbeatInterval;
-                QueueFirstHeartbeat(currentUnixTime);
-            }
-            else if (cachedHeartbeatTimestamp + cachedHeartbeatInterval <= currentUnixTime)
-                HeartBeat(currentUnixTime);
-        }
-
-
-        /// <summary>
-        /// Runs all actions pending on this WorldObject
-        /// </summary>
-        void IActor.RunActions()
-        {
-            actionQueue.RunActions();
-        }
-
-        /// <summary>
-        /// Prepare new action to run on this object
-        /// </summary>
-        public void EnqueueAction(IAction action)
-        {
-            actionQueue.EnqueueAction(action);
-        }
-
-
-        /// <summary>
-        /// Enqueues the first heartbeat on a staggered 0-5s delay
-        /// </summary>
-        public void QueueFirstHeartbeat(double currentUnixTime)
-        {
-            var delay = ThreadSafeRandom.Next(0.0f, DefaultHeartbeatInterval);
-
-            var firstHeartbeat = currentUnixTime + delay;
-
-            cachedHeartbeatTimestamp = firstHeartbeat - cachedHeartbeatInterval;
-        }
+        public ActionQueue pendingActionQueue;
 
         /// <summary>
         /// Called every ~5 seconds for WorldObject base
         /// </summary>
-        public virtual void HeartBeat(double currentUnixTime)
+        public virtual void HeartBeat()
         {
-            Generator_HeartBeat();
+            //PerfTimer.StartTimer("WorldObject_HeartBeat");
 
-            EmoteManager.HeartBeat();
+            if (IsGenerator)
+                Generator_HeartBeat();
 
             EnchantmentManager.HeartBeat();
 
-            cachedHeartbeatTimestamp = currentUnixTime;
-            SetProperty(PropertyFloat.HeartbeatTimestamp, currentUnixTime);
+            var currentUnixTime = Time.GetUnixTime();
+
+            //SetProperty(PropertyFloat.HeartbeatTimestamp, currentUnixTime);
+
+            var actionChain = new ActionChain(this);
+            actionChain.AddDelaySeconds(cachedHeartbeatInterval);
+            actionChain.AddAction(HeartBeat);
+            actionChain.EnqueueChain();
+
+            //PerfTimer.StopTimer("WorldObject_HeartBeat");
+        }
+
+        /// <summary>
+        /// Enqueues the first heartbeat on a staggered 0-5s delay
+        /// </summary>
+        public void QueueFirstHeartbeat()
+        {
+            cachedHeartbeatInterval = HeartbeatInterval ?? DefaultHeartbeatInterval;
+            if (cachedHeartbeatInterval < 5.0f)
+            {
+                Console.WriteLine($"{Name}.cachedHeartbeatInterval: {cachedHeartbeatInterval}");
+            }
+
+            var delay = ThreadSafeRandom.Next(0.0f, DefaultHeartbeatInterval);
+
+            var actionChain = new ActionChain(this);
+            actionChain.AddDelaySeconds(delay);
+            actionChain.AddAction(HeartBeat);
+            actionChain.EnqueueChain();
+        }
+
+
+        public void EnqueueAction(Action action)
+        {
+            if (CurrentLandblock == null)
+            {
+                if (pendingActionQueue == null)
+                    pendingActionQueue = new ActionQueue();
+
+                pendingActionQueue.EnqueueAction(action);
+            }
+            else
+                CurrentLandblock.actionQueue.EnqueueAction(action);
+        }
+
+        public void EnqueueChain(ActionChain actionChain)
+        {
+            if (CurrentLandblock == null)
+            {
+                if (pendingActionQueue == null)
+                    pendingActionQueue = new ActionQueue();
+
+                pendingActionQueue.EnqueueChain(actionChain);
+            }
+            else
+                CurrentLandblock.actionQueue.EnqueueChain(actionChain);
         }
 
 
@@ -161,6 +175,9 @@ namespace ACE.Server.WorldObjects
         public bool UpdateObjectPhysics()
         {
             if (PhysicsObj == null || !PhysicsObj.is_active())
+                return false;
+
+            if (PhysicsObj.IsAnimatingDone)
                 return false;
 
             // arrows / spell projectiles

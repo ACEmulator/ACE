@@ -63,9 +63,13 @@ namespace ACE.Server.Managers
         /// <summary>
         /// Handles ClientMessages in InboundMessageManager
         /// </summary>
-        public static readonly ActionQueue InboundClientMessageQueue = new ActionQueue();
-        private static readonly ActionQueue playerEnterWorldQueue = new ActionQueue();
-        public static readonly DelayManager DelayManager = new DelayManager(); // TODO get rid of this. Each WO should have its own delayManager
+        public static readonly Entity.Actions.Legacy.ActionQueue InboundClientMessageQueue = new Entity.Actions.Legacy.ActionQueue();
+        private static readonly Entity.Actions.Legacy.ActionQueue playerEnterWorldQueue = new Entity.Actions.Legacy.ActionQueue();
+        //public static readonly DelayManager DelayManager = new DelayManager(); // TODO get rid of this. Each WO should have its own delayManager
+
+        public static bool Profiling;
+        public static bool DebugLandblock;
+        public static bool DebugGenerators;
 
         static WorldManager()
         {
@@ -75,7 +79,21 @@ namespace ACE.Server.Managers
 
         public static void Initialize()
         {
-            var thread = new Thread(UpdateWorld);
+            var thread = new Thread(() =>
+            {
+                if (ConfigManager.Config.Server.LandblockPreloading)
+                {
+                    log.Info("Preloading Landblocks...");
+                    LandblockManager.PreloadConfigLandblocks();
+                }
+                else
+                {
+                    log.Info("Preloading Landblocks Disabled...");
+                    log.Warn("Events may not function correctly as Preloading of Landblocks has disabled.");
+                }
+
+                UpdateWorld();
+            });
             thread.Name = "World Manager";
             thread.Start();
             log.DebugFormat("ServerTime initialized to {0}", Timers.WorldStartLoreTime);
@@ -285,7 +303,7 @@ namespace ACE.Server.Managers
             {
                 log.Debug($"GetPossessedBiotasInParallel for {character.Name} took {(DateTime.UtcNow - start).TotalMilliseconds:N0} ms");
 
-                playerEnterWorldQueue.EnqueueAction(new ActionEventDelegate(() => DoPlayerEnterWorld(session, character, offlinePlayer.Biota, biotas)));
+                playerEnterWorldQueue.EnqueueAction(new Entity.Actions.Legacy.ActionEventDelegate(() => DoPlayerEnterWorld(session, character, offlinePlayer.Biota, biotas)));
             });
         }
 
@@ -377,11 +395,15 @@ namespace ACE.Server.Managers
 
                 PlayerManager.Tick();
 
-                InboundClientMessageQueue.RunActions();
+                var currentTime = Time.GetUnixTime();
 
-                playerEnterWorldQueue.RunActions();
+                //if (InboundClientMessageQueue.NextActionTime <= currentTime)
+                    InboundClientMessageQueue.RunActions();
 
-                DelayManager.RunActions();
+                //if (playerEnterWorldQueue.NextActionTime <= currentTime)
+                    playerEnterWorldQueue.RunActions();
+
+                //DelayManager.RunActions();
 
                 var gameWorldUpdated = UpdateGameWorld();
 
@@ -426,11 +448,15 @@ namespace ACE.Server.Managers
             // Tick all of our Landblocks and WorldObjects
             var activeLandblocks = LandblockManager.GetActiveLandblocks();
 
+            //PerfTimer.StartTimer("wo.Tick");
             foreach (var landblock in activeLandblocks)
                 landblock.Tick(Time.GetUnixTime());
+            //PerfTimer.StopTimer("wo.Tick");
 
             // clean up inactive landblocks
             LandblockManager.UnloadLandblocks();
+
+            //PerfTimer.DoTimers();
 
             return true;
         }

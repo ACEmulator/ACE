@@ -60,13 +60,13 @@ namespace ACE.Server.WorldObjects
             var target = CurrentLandblock?.GetObject(targetGuid);
             if (target == null)
             {
-                log.Warn("Unknown target guid " + targetGuid);
+                log.Warn($"Unknown target guid {targetGuid:X8}");
                 return;
             }
             var creatureTarget = target as Creature;
             if (creatureTarget == null)
             {
-                log.Warn("Target GUID not creature " + targetGuid);
+                log.Warn($"Target GUID not creature {targetGuid:X8}");
                 return;
             }
 
