@@ -33,6 +33,8 @@ namespace ACE.Server.WorldObjects
         {
             var deathMessage = base.OnDeath(lastDamager, damageType, criticalHit);
 
+            lastDamager.EmoteManager.OnKill(this);
+
             var playerMsg = string.Format(deathMessage.Victim, Name, lastDamager.Name);
             var msgYourDeath = new GameEventYourDeath(Session, playerMsg);
             Session.Network.EnqueueSend(msgYourDeath);
