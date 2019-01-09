@@ -24,7 +24,7 @@ namespace ACE.Server.WorldObjects
                     attributeMod = CoordinationMod;
                     break;
             }
-            var attributeBonus = 1.0f + (current - 55) * attributeMod;
+            var attributeBonus = Math.Max(1.0f + (current - 55) * attributeMod, 1.0f);
             return attributeBonus;
         }
 

@@ -191,8 +191,8 @@ namespace ACE.Server.Entity
 
                 if (wo == null) continue;
 
-                var xPos = encounter.CellX * 24.0f;
-                var yPos = encounter.CellY * 24.0f;
+                var xPos = Math.Clamp(encounter.CellX * 24.0f, 0.5f, 191.5f);
+                var yPos = Math.Clamp(encounter.CellY * 24.0f, 0.5f, 191.5f);
 
                 var pos = new Physics.Common.Position();
                 pos.ObjCellID = (uint)(Id.Landblock << 16) | 1;
