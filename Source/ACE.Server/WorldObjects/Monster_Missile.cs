@@ -17,7 +17,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Returns TRUE if monster has physical ranged attacks
         /// </summary>
-        public bool IsRanged
+        public new bool IsRanged
         {
             get
             {
@@ -70,7 +70,7 @@ namespace ACE.Server.WorldObjects
             // ensure direct line of sight
             if (!IsDirectVisible(AttackTarget))
             {
-                NextAttackTime = Timers.RunningTime + 1.0f;;
+                NextAttackTime = Timers.RunningTime + 1.0f;
                 return;
             }
 
@@ -107,6 +107,7 @@ namespace ACE.Server.WorldObjects
             // will ammo be depleted?
             if (ammo.StackSize == 1)
             {
+                // compare monsters: lugianmontokrenegade /  sclavusse / zombielichtowerarcher
                 actionChain.EnqueueChain();
                 NextMoveTime = NextAttackTime = Timers.RunningTime + launchTime + MissileDelay;
                 return;
@@ -118,11 +119,20 @@ namespace ACE.Server.WorldObjects
 
             // reset for next projectile
             EnqueueMotion(actionChain, MotionCommand.Ready);
+
             var linkTime = MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, MotionCommand.Reload, MotionCommand.Ready);
-            //Console.WriteLine("LinkTime: " + linkTime);
+
+            if (weapon.IsThrownWeapon)
+            {
+                actionChain.EnqueueChain();
+
+                actionChain = new ActionChain();
+                actionChain.AddDelaySeconds(linkTime);
+            }
+            //Console.WriteLine($"Reload time: launchTime({launchTime}) + reloadTime({reloadTime}) + linkTime({linkTime})");
 
             actionChain.AddAction(this, () => EnqueueBroadcast(new GameMessageParentEvent(this, ammo, (int)ACE.Entity.Enum.ParentLocation.RightHand,
-                (int)ACE.Entity.Enum.Placement.RightHandCombat)));
+                    (int)ACE.Entity.Enum.Placement.RightHandCombat)));
 
             actionChain.EnqueueChain();
 
