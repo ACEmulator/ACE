@@ -71,6 +71,8 @@ namespace ACE.Server.WorldObjects
         public bool IsBow { get => DefaultCombatStyle != null && (DefaultCombatStyle == CombatStyle.Bow || DefaultCombatStyle == CombatStyle.Crossbow); }
         public bool IsAtlatl { get => DefaultCombatStyle != null && DefaultCombatStyle == CombatStyle.Atlatl; }
         public bool IsAmmoLauncher { get => IsBow || IsAtlatl; }
+        public bool IsThrownWeapon { get => DefaultCombatStyle != null && DefaultCombatStyle == CombatStyle.ThrownWeapon; }
+        public bool IsRanged { get => IsAmmoLauncher || IsThrownWeapon; }
 
         public EmoteManager EmoteManager;
         public EnchantmentManagerWithCaching EnchantmentManager;

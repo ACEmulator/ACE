@@ -25,7 +25,7 @@ namespace ACE.Server.WorldObjects
             var wieldedWeapons = SelectWieldedWeapons();
             var wieldedShield = SelectWieldedShield();
 
-            if (wieldedShield != null && (wieldedWeapons.Count == 0 || !wieldedWeapons[0].IsAmmoLauncher))
+            if (wieldedShield != null && (wieldedWeapons.Count == 0 || !wieldedWeapons[0].IsRanged))
                 wieldedWeapons.Add(wieldedShield);
 
             return wieldedWeapons;
