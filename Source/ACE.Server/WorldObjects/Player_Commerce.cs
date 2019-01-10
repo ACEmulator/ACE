@@ -227,7 +227,7 @@ namespace ACE.Server.WorldObjects
 
                 if (item == null) continue;
 
-                if (!(item.GetProperty(PropertyBool.IsSellable) ?? true) || (item.GetProperty(PropertyBool.Retained) ?? false) || (item.GetProperty(PropertyInt.Attuned) ?? 0) > 0)
+                if (!(item.GetProperty(PropertyBool.IsSellable) ?? true) || (item.GetProperty(PropertyBool.Retained) ?? false))
                 {
                     rejected.Add(item);
                     continue;
