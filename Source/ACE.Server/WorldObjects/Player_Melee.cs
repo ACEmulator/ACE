@@ -191,11 +191,11 @@ namespace ACE.Server.WorldObjects
 
                     // powerbar refill timing
                     var refillMod = IsDualWieldAttack ? 0.8f : 1.0f;    // dual wield powerbar refills 20% faster
-                    actionChain.AddDelaySeconds(PowerLevel * refillMod);
-                    actionChain.AddAction(this, () =>
-                    {
-                        Attack(target);
-                    });
+
+                    var nextAttack = new ActionChain();
+                    nextAttack.AddDelaySeconds(PowerLevel * refillMod);
+                    nextAttack.AddAction(this, () => Attack(target));
+                    nextAttack.EnqueueChain();
                 }
                 else
                     MeleeTarget = null;
