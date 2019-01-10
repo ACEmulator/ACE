@@ -33,6 +33,8 @@ namespace ACE.Server.WorldObjects
         {
             var deathMessage = base.OnDeath(lastDamager, damageType, criticalHit);
 
+            lastDamager.EmoteManager.OnKill(this);
+
             var playerMsg = string.Format(deathMessage.Victim, Name, lastDamager.Name);
             var msgYourDeath = new GameEventYourDeath(Session, playerMsg);
             Session.Network.EnqueueSend(msgYourDeath);
@@ -156,6 +158,9 @@ namespace ACE.Server.WorldObjects
 
             Teleport(newPosition);
 
+            // Stand back up
+            SetCombatMode(CombatMode.NonCombat);
+
             var teleportChain = new ActionChain();
             teleportChain.AddDelaySeconds(3.0f);
             teleportChain.AddAction(this, () =>
@@ -174,9 +179,6 @@ namespace ACE.Server.WorldObjects
                 UpdateVital(Mana, newMana);
 
                 Session.Network.EnqueueSend(msgHealthUpdate, msgStaminaUpdate, msgManaUpdate);
-
-                // Stand back up
-                SetStance(MotionStance.NonCombat);
 
                 // reset damage history for this player
                 DamageHistory.Reset();

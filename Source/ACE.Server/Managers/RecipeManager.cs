@@ -46,7 +46,10 @@ namespace ACE.Server.Managers
 
             // verify requirements
             if (!VerifyRequirements(recipe.Recipe, player, source, target))
+            {
+                player.SendUseDoneEvent(WeenieError.YouDoNotPassCraftingRequirements);
                 return;
+            }
 
             if (source.ItemType == ItemType.TinkeringMaterial)
             {

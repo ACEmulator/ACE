@@ -8,8 +8,8 @@ namespace ACE.Server.Network.GameEvent.Events
             : base(GameEventType.StartBarber, GameMessageGroup.UIQueue, session)
         {
             // These are the motion tables for Empyrean float and not-float (one for each gender). They are hard-coded into the client.
-            const uint EmpyreanMaleMotionDID = 0x0900020Eu;
-            const uint EmpyreanFemaleMotionDID = 0x0900020Du;
+            //const uint EmpyreanMaleMotionDID = 0x0900020Eu;
+            //const uint EmpyreanFemaleMotionDID = 0x0900020Du;
             /* todo redo this for the new EF model
             // We will use this function to get the current player's appearance values.
             AceCharacter characterClone = (AceCharacter)Session.Player.GetAceObject();

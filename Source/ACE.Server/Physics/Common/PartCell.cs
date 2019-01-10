@@ -16,7 +16,8 @@ namespace ACE.Server.Physics.Common
         public void AddPart(PhysicsPart part, List<int> planes, AFrame frame, int numShadowParts)
         {
             return;
-            
+
+            /*
             if (part == null) return;
 
             var shadowPart = new ShadowPart();
@@ -26,18 +27,21 @@ namespace ACE.Server.Physics.Common
                 shadowPart = new ShadowPart(null, null, part);
 
             ShadowPartList.Add(shadowPart);
+            */
         }
 
         public void RemovePart(PhysicsPart part)
         {
             return;
 
+            /*
             if (part == null) return;
 
             var shadowPart = ShadowPartList.FirstOrDefault(p => p != null && p.Part != null && p.Part.Equals(part));
 
             if (shadowPart != null)
                 ShadowPartList.Remove(shadowPart);
+            */
         }
     }
 }
