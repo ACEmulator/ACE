@@ -47,7 +47,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Flag indicates monster is moving towards target
         /// </summary>
-        public bool IsMoving = false;
+        public new bool IsMoving = false;
 
         /// <summary>
         /// The last time a movement tick was processed
