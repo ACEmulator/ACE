@@ -293,7 +293,7 @@ namespace ACE.Server.WorldObjects
                     wo.CurrentWieldedLocation = null;
                     wo.Placement = ACE.Entity.Enum.Placement.Resting;
 
-                    if ((wo.GetProperty(PropertyBool.DestroyOnSell) ?? false) == true)
+                    if (!(wo.GetProperty(PropertyBool.DestroyOnSell) ?? false))
                         uniqueItemsForSale.Add(wo.Guid, wo);
                 }
                 accepted.Add(wo);
