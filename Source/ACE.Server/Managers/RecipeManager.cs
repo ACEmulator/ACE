@@ -337,18 +337,41 @@ namespace ACE.Server.Managers
                     break;
 
                 case MaterialType.SmokeyQuartz:
+                    target.AddSpell(SpellId.CANTRIPCOORDINATION1);
+                    break;
                 case MaterialType.RoseQuartz:
+                    target.AddSpell(SpellId.CANTRIPQUICKNESS1);
+                    break;
                 case MaterialType.RedJade:
+                    target.AddSpell(SpellId.CANTRIPHEALTHGAIN1);
+                    break;
                 case MaterialType.Malachite:
+                    target.AddSpell(SpellId.WarriorsVigor);
+                    break;
                 case MaterialType.LavenderJade:
+                    target.AddSpell(SpellId.CANTRIPMANAGAIN1);
+                    break;
                 case MaterialType.LapisLazuli:
+                    target.AddSpell(SpellId.CANTRIPWILLPOWER1);
+                    break;
                 case MaterialType.Hematite:
+                    target.AddSpell(SpellId.WarriorsVitality);
+                    break;
                 case MaterialType.Citrine:
+                    target.AddSpell(SpellId.CANTRIPSTAMINAGAIN1);
+                    break;
                 case MaterialType.Carnelian:
+                    target.AddSpell(SpellId.CANTRIPSTRENGTH1);
+                    break;
                 case MaterialType.Bloodstone:
+                    target.AddSpell(SpellId.CANTRIPENDURANCE1);
+                    break;
                 case MaterialType.Azurite:
+                    target.AddSpell(SpellId.WizardsIntellect);
+                    break;
                 case MaterialType.Agate:
-                    return;
+                    target.AddSpell(SpellId.CANTRIPFOCUS1);
+                    break;
 
                 // weapon tinkering
 
@@ -891,8 +914,11 @@ namespace ACE.Server.Managers
                     result.SetProperty(prop, sourceMod.GetProperty(prop) ?? 0);
                     break;
                 case ModifyOp.AddSpell:
-                    target.Biota.GetOrAddKnownSpell(value, target.BiotaDatabaseLock, out var added);
-                    target.ChangesDetected = true;
+                    if (value != -1)
+                    {
+                        target.Biota.GetOrAddKnownSpell(value, target.BiotaDatabaseLock, out var added);
+                        target.ChangesDetected = true;
+                    }
                     break;
                 default:
                     log.Warn($"RecipeManager.ModifyInt({source.Name}, {target.Name}): unhandled operation {op}");
