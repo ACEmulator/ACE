@@ -197,12 +197,12 @@ namespace ACE.Server.WorldObjects
             salvageBag.Structure = (ushort)(structure + amount);
 
             // add workmanship
+            var item_numItems = item.StackSize ?? 1;
             var workmanship_bag = salvageBag.GetProperty(PropertyInt.ItemWorkmanship) ?? 0;
             var workmanship_item = item.GetProperty(PropertyInt.ItemWorkmanship) ?? 0;
-            salvageBag.SetProperty(PropertyInt.ItemWorkmanship, workmanship_bag + workmanship_item * item.StackSize ?? 1);
+            salvageBag.SetProperty(PropertyInt.ItemWorkmanship, workmanship_bag + workmanship_item * item_numItems);
 
             // increment # of items that went into this salvage bag
-            var item_numItems = item.StackSize ?? 1;
             if (item.WeenieType == WeenieType.CraftTool)
             {
                 item_numItems = item.NumItemsInMaterial ?? 1;
