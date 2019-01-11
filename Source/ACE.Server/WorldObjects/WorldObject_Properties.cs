@@ -1098,17 +1098,31 @@ namespace ACE.Server.WorldObjects
         {
             get
             {
-                if ((ItemWorkmanship != null) && (Structure != null) && (Structure != 0))
-                    return (float)Convert.ToDouble(ItemWorkmanship / (10000 * Structure));
+                if (ItemWorkmanship == null) return null;
 
-                return (ItemWorkmanship);
-            }
-            set
-            {
-                if ((Structure != null) && (Structure != 0))
-                    ItemWorkmanship = Convert.ToInt32(value * 10000 * Structure);
-                else
-                    ItemWorkmanship = Convert.ToInt32(value);
+                var numItemsInMaterial = GetProperty(PropertyInt.NumItemsInMaterial) ?? 1;
+
+                var workmanship = (float)ItemWorkmanship / numItemsInMaterial;
+
+                // try to recover from previous botched formula...
+
+                // TODO: remove this code after awhile
+                if (workmanship < 1.0f || workmanship > 10.0f)
+                {
+                    var prevWorkmanship = workmanship;
+
+                    var structure = Structure ?? 1;
+
+                    workmanship = (float)ItemWorkmanship.Value / 10000 / structure;
+
+                    ItemWorkmanship = (int)Math.Round(workmanship * numItemsInMaterial);
+
+                    workmanship = Math.Clamp(workmanship, 1.0f, 10.0f);
+
+                    //log.Warn($"{Name}.Workmanship: adjusted from {prevWorkmanship} to {workmanship}");
+                }
+
+                return workmanship;
             }
         }
 
