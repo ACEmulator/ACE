@@ -111,9 +111,8 @@ namespace ACE.Server.WorldObjects
             return maxSkill;
         }
 
-        public static List<Skill> SalvageAndTinkeringSkills = new List<Skill>()
+        public static List<Skill> TinkeringSkills = new List<Skill>()
         {
-            Skill.Salvaging,
             Skill.ArmorTinkering,
             Skill.WeaponTinkering,
             Skill.ItemTinkering,
@@ -122,10 +121,6 @@ namespace ACE.Server.WorldObjects
 
         public void HandleSalvaging(List<uint> salvageItems)
         {
-            // TODO: verify this part
-            var maxSkill = GetMaxSkill(SalvageAndTinkeringSkills);
-            var salvageSkill = maxSkill.Current;
-
             var salvageBags = new List<WorldObject>();
 
             foreach (var itemGuid in salvageItems)
@@ -145,10 +140,10 @@ namespace ACE.Server.WorldObjects
 
                 if (item.Workmanship == null || (item.Retained ?? false)) continue;
 
-                AddSalvage(salvageSkill, salvageBags, item);
+                AddSalvage(salvageBags, item);
 
                 // can any salvagable items be stacked?
-                TryConsumeFromInventoryWithNetworking(item, 1);
+                TryConsumeFromInventoryWithNetworking(item);
             }
 
             // add salvage bags
@@ -156,12 +151,12 @@ namespace ACE.Server.WorldObjects
                 TryCreateInInventoryWithNetworking(salvageBag);
         }
 
-        public void AddSalvage(uint salvageSkill, List<WorldObject> salvageBags, WorldObject item)
+        public void AddSalvage(List<WorldObject> salvageBags, WorldObject item)
         {
             var materialType = (MaterialType)item.MaterialType;
 
             // determine the amount of salvage produced (structure)
-            var amountProduced = GetStructure(salvageSkill, item);
+            var amountProduced = GetStructure(item);
 
             var remaining = amountProduced;
 
@@ -178,8 +173,13 @@ namespace ACE.Server.WorldObjects
                 var added = TryAddSalvage(salvageBag, item, remaining);
                 remaining -= added;
 
-                // increase value of salvage bag - is salvage skill factor?
-                var addedValue = (int)Math.Round((item.Value ?? 0) * (float)added / amountProduced);
+                // increase value of salvage bag - salvage skill is a factor,
+                // if bags aren't being combined here
+                var valueFactor = (float)added / amountProduced;
+                if (item.WeenieType != WeenieType.CraftTool)
+                    valueFactor *= GetCreatureSkill(Skill.Salvaging).Current / 387.0f;  // TODO: take augs into account
+
+                var addedValue = (int)Math.Round((item.Value ?? 0) * valueFactor);
 
                 salvageBag.Value = Math.Min((salvageBag.Value ?? 0) + addedValue, 75000);
             }
@@ -202,67 +202,88 @@ namespace ACE.Server.WorldObjects
             // add workmanship
             var workmanship_bag = salvageBag.GetProperty(PropertyInt.ItemWorkmanship) ?? 0;
             var workmanship_item = item.GetProperty(PropertyInt.ItemWorkmanship) ?? 0;
-            salvageBag.SetProperty(PropertyInt.ItemWorkmanship, workmanship_bag + workmanship_item);
+            salvageBag.SetProperty(PropertyInt.ItemWorkmanship, workmanship_bag + workmanship_item * item.StackSize ?? 1);
 
             // increment # of items that went into this salvage bag
-            var item_numItems = item.GetProperty(PropertyInt.NumItemsInMaterial) ?? 1;
-            var bag_numItems = salvageBag.GetProperty(PropertyInt.NumItemsInMaterial) ?? 0;
-            salvageBag.SetProperty(PropertyInt.NumItemsInMaterial, bag_numItems + item_numItems);
+            var item_numItems = item.StackSize ?? 1;
+            if (item.WeenieType == WeenieType.CraftTool)
+            {
+                item_numItems = item.NumItemsInMaterial ?? 1;
+
+                // handle overflows when combining bags
+                if (tryAmount > space)
+                {
+                    var scalar = (float)space / tryAmount;
+                    var newItems = (int)Math.Ceiling(item_numItems * scalar);
+                    scalar = (float)newItems / item_numItems;
+                    item_numItems = newItems;
+
+                    salvageBag.SetProperty(PropertyInt.ItemWorkmanship, salvageBag.GetProperty(PropertyInt.ItemWorkmanship).Value - (int)Math.Round(workmanship_item * (1.0 - scalar)));
+
+                    // and for the next bag...
+                    item.SetProperty(PropertyInt.ItemWorkmanship, item.GetProperty(PropertyInt.ItemWorkmanship).Value - (int)Math.Round(workmanship_item * scalar));
+                    item.NumItemsInMaterial -= newItems;
+                }
+            }
+            salvageBag.NumItemsInMaterial = (salvageBag.NumItemsInMaterial ?? 0) + item_numItems;
 
             salvageBag.Name = $"Salvage ({salvageBag.Structure})";
 
             return amount;
         }
 
-        public int GetStructure(uint salvageSkill, WorldObject salvageItem)
+        public int GetStructure(WorldObject salvageItem)
         {
             // By default, salvaging uses either a tinkering skill, or your salvaging skill that would yield the greatest amount of material.
-
             // Tinkering skills can only yield at most the workmanship number in units of salvage.
-
             // The salvaging skill can produce more units than workmanship.
 
             // You can also significantly increase the amount of material returned by training the Ciandra's Fortune augmentation.
             // This augmentation can be trained 4 times, each time providing an additional 25% bonus to the amount of material returned.
 
-            // this existing formula being used below is probably wrong, verify this...
-
             // is this a bag of salvage?
-            // if so, return its existing structure?
+            // if so, return its existing structure
             if (salvageItem.WeenieType == WeenieType.CraftTool)
                 return salvageItem.Structure.Value;
 
-            var multiplier = Math.Max(0.6f, salvageSkill / 225.0f);
-
             var workmanship = salvageItem.Workmanship ?? 1.0f;
             var stackSize = salvageItem.StackSize ?? 1;
-            var fAmount = workmanship * multiplier * stackSize;
 
-            var structure = fAmount.Round();
-            return structure;
+            // should this be getting the highest tinkering skill,
+            // or the tinkering skill for the material?
+            var salvageSkill = GetCreatureSkill(Skill.Salvaging).Current;
+            var highestTinkeringSkill = GetMaxSkill(TinkeringSkills).Current;
+
+            var salvageMultiplier = Math.Max(0.6f, salvageSkill / 225.0f);
+            var tinkeringMultiplier = Math.Max(0.6f, highestTinkeringSkill / 225.0f);
+
+            // TODO: take augs into account for salvaging only
+            var fSalvageAmount = workmanship * salvageMultiplier * stackSize;
+            var fTinkeringAmount = workmanship * tinkeringMultiplier * stackSize;
+
+            var salvageAmount = fSalvageAmount.Round();
+            var tinkeringAmount = Math.Min(fTinkeringAmount.Round(), (int)Math.Round(salvageItem.Workmanship ?? 1.0f));
+
+            // choose the best one
+            var addStructure = Math.Max(salvageAmount, tinkeringAmount);
+            return addStructure;
         }
 
-        private WorldObject CreateSalvageBag(MaterialType materialType)
-        {
-            var wcid = (uint)MaterialSalvage[(int)materialType];
-
-            return WorldObjectFactory.CreateNewWorldObject(wcid);
-        }
-
-        private WorldObject GetSalvageBag(MaterialType materialType, List<WorldObject> salvageBags)
+        public WorldObject GetSalvageBag(MaterialType materialType, List<WorldObject> salvageBags)
         {
             // first try finding the first non-filled salvage bag, for this material type
             var existing = salvageBags.FirstOrDefault(i => (i.GetProperty(PropertyInt.MaterialType) ?? 0) == (int)materialType && (i.Structure ?? 0) < (i.MaxStructure ?? 0));
 
-            if (existing == null)
-            {
-                var salvageBag = CreateSalvageBag(materialType);
-                salvageBags.Add(salvageBag);
-
-                return salvageBag;
-            }
-            else
+            if (existing != null)
                 return existing;
+
+            // not found - create a new salvage bag
+            var wcid = (uint)MaterialSalvage[(int)materialType];
+            var salvageBag = WorldObjectFactory.CreateNewWorldObject(wcid);
+
+            salvageBags.Add(salvageBag);
+
+            return salvageBag;
         }
     }
 }

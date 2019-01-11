@@ -1094,6 +1094,12 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyInt.ItemWorkmanship); else SetProperty(PropertyInt.ItemWorkmanship, value.Value); }
         }
 
+        public int? NumItemsInMaterial
+        {
+            get => GetProperty(PropertyInt.NumItemsInMaterial);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.NumItemsInMaterial); else SetProperty(PropertyInt.NumItemsInMaterial, value.Value); }
+        }
+
         public float? Workmanship
         {
             get
@@ -1123,6 +1129,17 @@ namespace ACE.Server.WorldObjects
                 }
 
                 return workmanship;
+            }
+            set
+            {
+                if (value != null)
+                {
+                    var numItemsInMaterial = GetProperty(PropertyInt.NumItemsInMaterial) ?? 1;
+
+                    ItemWorkmanship = (int)Math.Round(value.Value * numItemsInMaterial);
+                }
+                else
+                    ItemWorkmanship = null;
             }
         }
 
