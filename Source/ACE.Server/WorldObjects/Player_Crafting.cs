@@ -187,9 +187,6 @@ namespace ACE.Server.WorldObjects
 
         public int TryAddSalvage(WorldObject salvageBag, WorldObject item, int tryAmount)
         {
-            // TODO: combining bags of salvage sort of works,
-            // but overflows aren't handled properly, and other possible issues
-
             var maxStructure = salvageBag.MaxStructure ?? 100;
             var structure = salvageBag.Structure ?? 0;
 
