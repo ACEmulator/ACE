@@ -5994,7 +5994,7 @@ namespace ACE.Entity.Enum
         HermeticLinkOther4,
         HermeticLinkOther5,
         HermeticLinkOther6,
-        HermeticLinkeOther7,
+        HermeticLinkOther7,
         HermeticLinkOther8,
         BloodDrinkerOther1,
         BloodDrinkerOther2,
