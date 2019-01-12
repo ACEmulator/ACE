@@ -1,9 +1,10 @@
-using System.Threading.Tasks;
+using ACE.Server.API.Entity;
 
 namespace ACE.Server.Web.Services
 {
     public interface ICharacterTransferService
     {
-        Task<string> DownloadCharacter(string cookie);
+        CharacterDownload DownloadCharacter(string cookie);
+        string GetServerThumbprint();
     }
 }

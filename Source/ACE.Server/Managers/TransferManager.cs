@@ -6,6 +6,7 @@ using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Server.API.Entity;
 using ACE.Server.Command;
 using ACE.Server.Network;
 using ACE.Server.WorldObjects;
@@ -40,41 +41,24 @@ namespace ACE.Server.Managers
             Formatting = Formatting.Indented,
             PreserveReferencesHandling = PreserveReferencesHandling.None
         };
-        //private static readonly Action<TransferServerHttpRequest> HTTPRequestHandler = new Action<TransferServerHttpRequest>((req) =>
-        //{
-        //    try
-        //    {
-        //        switch (req.Path)
-        //        {
-        //            case "":
-        //                Dictionary<string, string> query = TransferServerWrapper.ParseQueryString(req.QueryString);
-        //                KeyValuePair<string, string> tuple = query.FirstOrDefault(k => k.Key == "get");
-        //                if (tuple.Key == null)
-        //                {
-        //                    break;
-        //                }
-        //                string cookie = tuple.Value;
-        //                string filePath = GetTransferPackageFilePath(cookie);
-        //                if (filePath == null)
-        //                {
-        //                    break;
-        //                }
-        //                TransferServerWrapper.ServeZipFile(filePath, req.NetworkStream);
-        //                log.Info($"transfer {cookie} uploaded to {req.Client.Client.RemoteEndPoint}");
-        //                DeleteTransferPackageFile(cookie);
-        //                // also delete original character (and log it out if neccessary) here?
-        //                break;
-        //            default:
-        //                byte[] byaResp3 = Encoding.UTF8.GetBytes("HTTP/1.1 404 Not Found\r\n\r\n");
-        //                req.NetworkStream.Write(byaResp3, 0, byaResp3.Length);
-        //                break;
-        //        }
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        log.Error(ex);
-        //    }
-        //});
+        public static CharacterDownload DownloadCharacter(string cookie)
+        {
+            string filePath = GetTransferPackageFilePath(cookie);
+            CharacterDownload dl = new CharacterDownload();
+            if (filePath != null)
+            {
+                dl.Valid = true;
+                dl.UploadCompleted = new Action(() =>
+                {
+                    //TransferServerWrapper.ServeZipFile(filePath, req.NetworkStream);
+                    //log.Info($"transfer {cookie} uploaded to {req.Client.Client.RemoteEndPoint}");
+                    //DeleteTransferPackageFile(cookie);
+                    // also delete original character (and log it out if neccessary) here?
+                });
+                dl.FilePath = filePath;
+            }
+            return dl;
+        }
 
         public static void Initialize()
         {
@@ -100,10 +84,6 @@ namespace ACE.Server.Managers
             }
         }
 
-        public static void Export(Session session, params string[] parameters)
-        {
-            Task.Run(() => ExportInner(session, parameters));
-        }
         public static void Import(Session session, params string[] parameters)
         {
             Task.Run(() => ImportInner(session, parameters));
@@ -139,14 +119,6 @@ namespace ACE.Server.Managers
                 session.WorldBroadcast($"Character import failed.");
             }
         }
-        private static async Task ExportInner(Session session, params string[] parameters)
-        {
-            string url = await Export(session);
-            session.WorldBroadcast($"Character ready for transfer.  A secret one-time cookie has been assigned for this transfer." +
-                "\nTo use the secret cookie to either download your character with a browser or transfer your character to another server by" +
-                "\nlogging into the target server and entering the command (replacing <name> with desired character name):" +
-                $"\n@import-char <name> {url}");
-        }
 
         /// <summary>
         /// Checks for the existence of a transfer package file
@@ -155,7 +127,7 @@ namespace ACE.Server.Managers
         /// <returns>null if non-existent, or if existent the path to the transfer package file</returns>
         public static string GetTransferPackageFilePath(string cookie)
         {
-            if (!CookieContainsInvalidChars(cookie))
+            if (CookieContainsInvalidChars(cookie))
             {
                 return null;
             }
@@ -176,7 +148,7 @@ namespace ACE.Server.Managers
         /// <param name="cookie"></param>
         public static void DeleteTransferPackageFile(string cookie)
         {
-            if (!CookieContainsInvalidChars(cookie))
+            if (CookieContainsInvalidChars(cookie))
             {
                 return;
             }
@@ -221,7 +193,27 @@ namespace ACE.Server.Managers
             DirectoryInfo diTmpDirPath = Directory.CreateDirectory(Path.Combine(Path.GetDirectoryName(tmpFilePath), Path.GetFileNameWithoutExtension(tmpFilePath)));
             string signerCertPath = Path.Combine(diTmpDirPath.FullName, "signer.crt");
 
-            using (WebClient client = new WebClient())
+            string sourceServerThumb = null;
+
+            string getThumbUrl = importUrl.Scheme + "://" + importUrl.Authority + "/GetServerThumbsprint";
+
+            using (InsecureWebClient client = new InsecureWebClient())
+            {
+                try { sourceServerThumb = client.DownloadString(getThumbUrl); } catch { }
+            }
+            // try to verify we trust the server before downloading package, since migrations cause source server to destroy the original char upon download of the package
+            if (!string.IsNullOrWhiteSpace(sourceServerThumb))
+            {
+                if (!ConfigManager.Config.Transfer.TrustedServerCertThumbprints.Any(k => k == sourceServerThumb))
+                {
+                    session.WorldBroadcast($"The originating server isn't trusted.  Please contact the server operator and provide the thumbprint {sourceServerThumb} so they can add it to the trusted server cert thumbprints list.");
+                    log.Info($"Untrusted transfer attempted.  Thumbprint: {sourceServerThumb}");
+                    Directory.Delete(diTmpDirPath.FullName, true);
+                    return null;
+                }
+            }
+
+            using (InsecureWebClient client = new InsecureWebClient())
             {
                 client.DownloadFile(importUrl, tmpFilePath);
             }
@@ -263,10 +255,27 @@ namespace ACE.Server.Managers
             }
 
             // deserialize
+
+
+            PackageMetadata packInfo = null;
             List<Biota> snapshot = new List<Biota>();
             foreach (FileInfo fil in diTmpDirPath.GetFiles("*.json"))
             {
-                snapshot.Add(JsonConvert.DeserializeObject<Biota>(File.ReadAllText(fil.FullName), serializationSettings));
+                if (fil.Name == "packinfo.json")
+                {
+                    packInfo = JsonConvert.DeserializeObject<PackageMetadata>(File.ReadAllText(fil.FullName), serializationSettings);
+                }
+                else
+                {
+                    snapshot.Add(JsonConvert.DeserializeObject<Biota>(File.ReadAllText(fil.FullName), serializationSettings));
+                }
+            }
+
+            if (packInfo == null)
+            {
+                log.Info($"packinfo.json not found.  Import cancelled.");
+                Directory.Delete(diTmpDirPath.FullName, true);
+                return null;
             }
 
             // isolate player biota
@@ -373,11 +382,11 @@ namespace ACE.Server.Managers
         }
 
         /// <summary>
-        /// Export the currently logged in character.
+        /// Package the currently logged in character.
         /// </summary>
         /// <param name="session"></param>
         /// <returns></returns>
-        private static async Task<string> Export(Session session)
+        public static async Task<string> CreatePackage(Session session, PackageMetadata metadata)
         {
             string cookie = ThreadSafeRandom.NextString(CookieChars, CookieLength);
             uint accountId = session.AccountId;
@@ -412,6 +421,12 @@ namespace ACE.Server.Managers
                 File.WriteAllText(biotaPath, JsonConvert.SerializeObject(biota, serializationSettings));
                 CryptoManager.SignFile(biotaPath);
             }
+
+            metadata.Cookie = cookie;
+            string metaPath = Path.Combine(basePath, "packinfo.json");
+            File.WriteAllText(metaPath, JsonConvert.SerializeObject(metadata, serializationSettings));
+            CryptoManager.SignFile(metaPath);
+
             CryptoManager.ExportCert(Path.Combine(basePath, "signer.crt"));
 
             // compress
@@ -421,7 +436,7 @@ namespace ACE.Server.Managers
             // cleanup
             Directory.Delete(basePath, true);
 
-            return $"http://{ConfigManager.Config.Transfer.ExternalIPAddressOrDomainName}:{ConfigManager.Config.Server.Network.Port + 2}/?get={cookie}";
+            return $"https://{ConfigManager.Config.Transfer.ExternalIPAddressOrDomainName}:{ConfigManager.Config.Server.Network.Port + 2}/DownloadCharacter?Cookie={cookie}";
         }
 
         /// <summary>
@@ -867,6 +882,19 @@ namespace ACE.Server.Managers
             public Character Character { get; set; }
             public Biota Player { get; set; }
             public PossessedBiotas PossessedBiotas { get; set; }
+        }
+    }
+
+    internal class InsecureWebClient : WebClient
+    {
+        protected override WebRequest GetWebRequest(Uri url)
+        {
+            HttpWebRequest _req = (HttpWebRequest)base.GetWebRequest(url);
+            _req.ServerCertificateValidationCallback = (s, cert, chain, polErr) =>
+            {
+                return true; // chain-of-trust not implemented
+            };
+            return _req;
         }
     }
 
