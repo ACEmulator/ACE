@@ -840,6 +840,36 @@ namespace ACE.Server.Managers
         }
 
         /// <summary>
+        /// Returns the mana conversion bonus modifier, ie. Hermetic Link / Void
+        /// </summary>
+        public virtual float GetManaConvMod()
+        {
+            if (!WorldObject.IsEnchantable)
+                return 1.0f;
+
+            // multiplicative
+            var aura = GetMultiplicativeMod(PropertyFloat.WeaponAuraManaConv);
+            if (aura != 1.0f) return aura;
+
+            return GetMultiplicativeMod(PropertyFloat.ManaConversionMod);
+        }
+
+        /// <summary>
+        /// Returns the elemental damage bonus modifier, ie. Spirit Drinker / Loather
+        /// </summary>
+        public virtual float GetElementalDamageMod()
+        {
+            if (!WorldObject.IsEnchantable)
+                return 0;
+
+            // additive
+            var aura = GetAdditiveMod(PropertyFloat.WeaponAuraElemental);
+            if (aura != 0) return aura;
+
+            return GetAdditiveMod(PropertyFloat.ElementalDamageMod);
+        }
+
+        /// <summary>
         /// Returns the weapon damage variance modifier
         /// </summary>
         public virtual float GetVarianceMod()

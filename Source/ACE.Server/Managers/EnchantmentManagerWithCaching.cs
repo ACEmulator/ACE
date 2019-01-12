@@ -118,6 +118,8 @@ namespace ACE.Server.Managers
             attackModCache = null;
             weaponSpeedModCache = null;
             defenseModCache = null;
+            manaConvModCache = null;
+            elementalDamageModCache = null;
             varianceModCache = null;
             armorModCache = null;
             armorModVsTypeModCache.Clear();
@@ -338,6 +340,36 @@ namespace ACE.Server.Managers
             defenseModCache = base.GetDefenseMod();
 
             return defenseModCache.Value;
+        }
+
+        private float? manaConvModCache;
+
+        /// <summary>
+        /// Returns the mana conversion bonus modifier, ie. Hermetic Link / Void
+        /// </summary>
+        public override float GetManaConvMod()
+        {
+            if (manaConvModCache.HasValue)
+                return manaConvModCache.Value;
+
+            manaConvModCache = base.GetManaConvMod();
+
+            return manaConvModCache.Value;
+        }
+
+        private float? elementalDamageModCache;
+
+        /// <summary>
+        /// Returns the elemental damage bonus modifier, ie. Spirit Drinker / Loather
+        /// </summary>
+        public override float GetElementalDamageMod()
+        {
+            if (elementalDamageModCache.HasValue)
+                return elementalDamageModCache.Value;
+
+            elementalDamageModCache = base.GetElementalDamageMod();
+
+            return elementalDamageModCache.Value;
         }
 
         private float? varianceModCache;
