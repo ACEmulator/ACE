@@ -299,7 +299,7 @@ namespace ACE.Server.WorldObjects
             return PhysicsObj.ObjMaint.VisibleObjectTable.ContainsKey(wo.PhysicsObj.ID);
         }
 
-        public static PhysicsObj SightObj = PhysicsObj.makeObject(0x02000124, 0, false);     // arrow
+        public static PhysicsObj SightObj = PhysicsObj.makeObject(0x02000124, 0, false, true);     // arrow
 
         /// <summary>
         /// Returns TRUE if this object has direct line-of-sight visibility to input object

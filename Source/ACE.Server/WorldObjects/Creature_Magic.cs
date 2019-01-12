@@ -88,7 +88,8 @@ namespace ACE.Server.WorldObjects
             if (castItem != null && (castItem.SpellDID ?? 0) == spell.Id)
                 baseCost = (uint)(castItem.ItemManaCost ?? 0);
 
-            uint mana_conversion_skill = caster.GetCreatureSkill(Skill.ManaConversion).Current;
+            uint mana_conversion_skill = (uint)Math.Round(caster.GetCreatureSkill(Skill.ManaConversion).Current * GetWeaponManaConversionModifier(caster));
+
             uint difficulty = spell.PowerMod;   // modified power difficulty
 
             double baseManaPercent = 1.0;

@@ -346,7 +346,7 @@ namespace ACE.Server.WorldObjects
                 criticalHit = true;
 
             // attribute damage modifier (verify)
-            var attributeMod = GetAttributeMod(CombatType.Melee);
+            var attributeMod = GetAttributeMod(weapon);
 
             // get armor piece
             var armor = GetArmor(bodyPart);
