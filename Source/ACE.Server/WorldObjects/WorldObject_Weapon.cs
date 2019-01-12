@@ -81,8 +81,7 @@ namespace ACE.Server.WorldObjects
             if (weapon == null)
                 return defaultBonusModifier;
 
-            // TODO: Add EnchantmentManager buff/debuff from Hermetic Link/Void to ManaConversion property
-            return (float)(weapon.GetProperty(PropertyFloat.ManaConversionMod) ?? defaultBonusModifier);
+            return defaultBonusModifier + (float)(weapon.GetProperty(PropertyFloat.ManaConversionMod) ?? 0.0f) * wielder.EnchantmentManager.GetManaConvMod();
         }
 
         /// <summary>
@@ -247,7 +246,7 @@ namespace ACE.Server.WorldObjects
                 if (elementalDamageModType != (int)DamageType.Undef && elementalDamageModType == (int)damageType)
                 {
                     // TODO: Add EnchantmentManager buff/debuff from Spirit Drinker/Loather
-                    var casterElementalDmgMod = (float)(weapon.GetProperty(PropertyFloat.ElementalDamageMod) ?? modifier);
+                    var casterElementalDmgMod = (float)(weapon.GetProperty(PropertyFloat.ElementalDamageMod) ?? modifier) + wielder.EnchantmentManager.GetElementalDamageMod();
                     if (casterElementalDmgMod > modifier)
                     {
                         modifier = casterElementalDmgMod;
@@ -278,7 +277,6 @@ namespace ACE.Server.WorldObjects
                 var elementalDamageModType = weapon.GetProperty(PropertyInt.DamageType) ?? (int)DamageType.Undef;
                 if (elementalDamageModType != (int)DamageType.Undef && elementalDamageModType == (int)damageType)
                 {
-                    // TODO: Add EnchantmentManager buff/debuff from Spirit Drinker/Loather
                     var launcherElementalDmgMod = weapon.GetProperty(PropertyInt.ElementalDamageBonus) ?? modifier;
                     modifier = launcherElementalDmgMod;
                 }
