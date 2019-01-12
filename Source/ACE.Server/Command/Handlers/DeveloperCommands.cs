@@ -1114,12 +1114,13 @@ namespace ACE.Server.Command.Handlers
         [CommandHandler("readdat", AccessLevel.Developer, CommandHandlerFlag.ConsoleInvoke, 0, "Tests reading the client_portal.dat")]
         public static void ReadDat(Session session, params string[] parameters)
         {
-            int total = 0;
-            uint min = 0x0E010000;
-            uint max = 0x0E01FFFF;
+            //int total = 0;
+            //uint min = 0x0E010000;
+            //uint max = 0x0E01FFFF;
 
             var test = DatManager.PortalDat.SkillTable;
             return;
+            /*
             foreach (KeyValuePair<uint, DatFile> entry in DatManager.PortalDat.AllFiles)
             {
                 if (entry.Value.ObjectId >= min && entry.Value.ObjectId <= max)
@@ -1155,6 +1156,7 @@ namespace ACE.Server.Command.Handlers
             }
 
             Console.WriteLine(total.ToString() + " files read.");
+            */
         }
 
         // ==================================

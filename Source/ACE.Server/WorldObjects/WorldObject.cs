@@ -71,6 +71,8 @@ namespace ACE.Server.WorldObjects
         public bool IsBow { get => DefaultCombatStyle != null && (DefaultCombatStyle == CombatStyle.Bow || DefaultCombatStyle == CombatStyle.Crossbow); }
         public bool IsAtlatl { get => DefaultCombatStyle != null && DefaultCombatStyle == CombatStyle.Atlatl; }
         public bool IsAmmoLauncher { get => IsBow || IsAtlatl; }
+        public bool IsThrownWeapon { get => DefaultCombatStyle != null && DefaultCombatStyle == CombatStyle.ThrownWeapon; }
+        public bool IsRanged { get => IsAmmoLauncher || IsThrownWeapon; }
 
         public EmoteManager EmoteManager;
         public EnchantmentManagerWithCaching EnchantmentManager;
@@ -242,7 +244,7 @@ namespace ACE.Server.WorldObjects
 
             AddGeneratorProfiles();
 
-            if (IsGenerator)
+            if (IsGenerator && RegenerationInterval > 0)
                 HeartbeatInterval = RegenerationInterval;
 
             BaseDescriptionFlags = ObjectDescriptionFlag.Attackable;
@@ -457,7 +459,6 @@ namespace ACE.Server.WorldObjects
                         var weenieFlags2 = CalculatedWeenieHeaderFlag2();
                         sb.AppendLine($"{prop.Name} = {weenieFlags2.ToString()}" + " (" + (uint)weenieFlags2 + ")");
                         break;
-                        break;
                     case "itemtype":
                         sb.AppendLine($"{prop.Name} = {obj.ItemType.ToString()}" + " (" + (uint)obj.ItemType + ")");
                         break;
@@ -502,6 +503,30 @@ namespace ACE.Server.WorldObjects
                     case "location":
                         sb.AppendLine($"{prop.Name} = {obj.Location.ToLOCString()}");
                         break;
+                    case "destination":
+                        sb.AppendLine($"{prop.Name} = {obj.Destination.ToLOCString()}");
+                        break;
+                    case "instantiation":
+                        sb.AppendLine($"{prop.Name} = {obj.Instantiation.ToLOCString()}");
+                        break;
+                    case "sanctuary":
+                        sb.AppendLine($"{prop.Name} = {obj.Sanctuary.ToLOCString()}");
+                        break;
+                    case "home":
+                        sb.AppendLine($"{prop.Name} = {obj.Home.ToLOCString()}");
+                        break;
+                    case "portalsummonloc":
+                        sb.AppendLine($"{prop.Name} = {obj.PortalSummonLoc.ToLOCString()}");
+                        break;
+                    case "houseboot":
+                        sb.AppendLine($"{prop.Name} = {obj.HouseBoot.ToLOCString()}");
+                        break;
+                    case "lastoutsidedeath":
+                        sb.AppendLine($"{prop.Name} = {obj.LastOutsideDeath.ToLOCString()}");
+                        break;
+                    case "linkedlifestone":
+                        sb.AppendLine($"{prop.Name} = {obj.LinkedLifestone.ToLOCString()}");
+                        break;                    
                     case "channelsactive":
                         sb.AppendLine($"{prop.Name} = {(Channel)obj.GetProperty(PropertyInt.ChannelsActive)}" + " (" + (uint)obj.GetProperty(PropertyInt.ChannelsActive) + ")");
                         break;

@@ -341,10 +341,11 @@ namespace ACE.Server.WorldObjects
             var damage = baseDamage * attributeMod * powerAccuracyMod * damageRatingMod;
 
             // critical hit
-            var critical = GetWeaponPhysicalCritFrequencyModifier(this);
+            var attackSkill = GetCreatureSkill(GetCurrentWeaponSkill());
+            var critical = GetWeaponPhysicalCritFrequencyModifier(this, attackSkill);
             if (ThreadSafeRandom.Next(0.0f, 1.0f) < critical)
             {
-                damage = baseDamageRange.Max * attributeMod * powerAccuracyMod * sneakAttackMod * (2.0f + GetWeaponCritMultiplierModifier(this));
+                damage = baseDamageRange.Max * attributeMod * powerAccuracyMod * sneakAttackMod * (1.0f + GetWeaponCritMultiplierModifier(this, attackSkill));
                 criticalHit = true;
             }
 
@@ -355,7 +356,7 @@ namespace ACE.Server.WorldObjects
             var armor = GetArmor(bodyPart);
 
             // get armor modifiers
-            var armorMod = GetArmorMod(armor, damageSource, damageType);
+            var armorMod = GetArmorMod(armor, damageSource, damageType, attackSkill);
 
             // get resistance modifiers (protect/vuln)
             var resistanceMod = damageSource != null && damageSource.IgnoreMagicResist ? 1.0f : AttackTarget.EnchantmentManager.GetResistanceMod(damageType);
@@ -403,10 +404,12 @@ namespace ACE.Server.WorldObjects
             var damage = baseDamage * attributeMod * powerAccuracyMod * damageRatingMod;
 
             // critical hit
-            var critical = GetWeaponPhysicalCritFrequencyModifier(this);
+            var attackSkill = GetCreatureSkill(GetCurrentWeaponSkill());
+            var critical = GetWeaponPhysicalCritFrequencyModifier(this, attackSkill);
             if (ThreadSafeRandom.Next(0.0f, 1.0f) < critical)
             {
-                damage = baseDamageRange.Max * attributeMod * powerAccuracyMod * sneakAttackMod * (2.0f + GetWeaponCritMultiplierModifier(this));
+                var criticalDamageMod = 1.0f + GetWeaponCritMultiplierModifier(this, attackSkill);
+                damage = baseDamageRange.Max * attributeMod * powerAccuracyMod * sneakAttackMod * criticalDamageMod;
                 criticalHit = true;
             }
 
@@ -415,6 +418,9 @@ namespace ACE.Server.WorldObjects
             if (bodyPart == null) return null;
 
             var creaturePart = new Creature_BodyPart(creature, bodyPart, damageSource != null ? damageSource.IgnoreMagicArmor : false, damageSource != null ? damageSource.IgnoreMagicResist : false);
+            var weapon = GetEquippedWeapon();
+            if (weapon != null && weapon.HasImbuedEffect(ImbuedEffectType.ArmorRending))
+                creaturePart.WeaponArmorMod = GetArmorRendingMod(attackSkill);
 
             // get target armor
             var armor = creaturePart.BaseArmorMod;
@@ -426,7 +432,7 @@ namespace ACE.Server.WorldObjects
             else
                 damageType = GetDamageType();
 
-            creaturePart.WeaponResistanceMod = GetWeaponResistanceModifier(this, damageType);
+            creaturePart.WeaponResistanceMod = GetWeaponResistanceModifier(this, attackSkill, damageType);
             var resistance = GetResistance(creaturePart, damageType);
 
             // ratings
