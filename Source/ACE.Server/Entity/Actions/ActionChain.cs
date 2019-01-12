@@ -13,6 +13,13 @@ namespace ACE.Server.Entity.Actions
 
         private double nextTime;
 
+        /// <summary>
+        /// This is getting messy here - adding this for the current EmoteManager,
+        /// which makes heavy use of nested action chains.
+        /// Ideally these should be refactored, which will fix some other issues in EmoteManager as well...
+        /// </summary>
+        private bool queued;
+
         public ActionChain()
         {
             nextTime = Time.GetUnixTime();
@@ -25,6 +32,10 @@ namespace ACE.Server.Entity.Actions
                 Console.WriteLine($"ActionChain.AddDelaySeconds({timeInSeconds}: NaN");
                 return;
             }
+
+            if (queued)
+                nextTime = Time.GetUnixTime();
+
             nextTime += timeInSeconds;
         }
 
@@ -36,11 +47,18 @@ namespace ACE.Server.Entity.Actions
                 Actions.Add(nextTime, new List<Action>() { action });
             else
                 existing.Add(action);
+
+            if (queued)
+                EnqueueChain();
         }
 
         public void EnqueueChain()
         {
             WorldObject.EnqueueChain(this);
+
+            // for nested chains - refactor this
+            Actions.Clear();
+            queued = true;
         }
     }
 }
