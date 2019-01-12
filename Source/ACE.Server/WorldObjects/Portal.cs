@@ -37,7 +37,13 @@ namespace ACE.Server.WorldObjects
 
             MinLevel = MinLevel ?? 0;
             MaxLevel = MaxLevel ?? 0;
-            PortalBitmask = PortalBitmask ?? 0;
+
+            UpdatePortalDestination(Destination);
+        }
+
+        public void UpdatePortalDestination(Position destination)
+        {
+            Destination = destination;
 
             if (PortalShowDestination ?? true)
             {
@@ -64,43 +70,29 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyBool.PortalShowDestination); else SetProperty(PropertyBool.PortalShowDestination, value.Value); }
         }
 
-        private int? MinLevel
+        public int? MinLevel
         {
             get => GetProperty(PropertyInt.MinLevel);
             set { if (!value.HasValue) RemoveProperty(PropertyInt.MinLevel); else SetProperty(PropertyInt.MinLevel, value.Value); }
         }
 
-        private int? MaxLevel
+        public int? MaxLevel
         {
             get => GetProperty(PropertyInt.MaxLevel);
             set { if (!value.HasValue) RemoveProperty(PropertyInt.MaxLevel); else SetProperty(PropertyInt.MaxLevel, value.Value); }
         }
 
-        private int? PortalBitmask
+        public PortalBitmask PortalRestrictions
         {
-            get => GetProperty(PropertyInt.PortalBitmask);
-            set { if (!value.HasValue) RemoveProperty(PropertyInt.PortalBitmask); else SetProperty(PropertyInt.PortalBitmask, value.Value); }
+            get => (PortalBitmask)(GetProperty(PropertyInt.PortalBitmask) ?? (int)PortalBitmask.Unrestricted);
+            set { if (value == PortalBitmask.Undef) RemoveProperty(PropertyInt.PortalBitmask); else SetProperty(PropertyInt.PortalBitmask, (int)value); }
         }
 
         public int SocietyId => 0;
 
-        public bool NoRecall
-        {
-            get
-            {
-                if ((((int)PortalBitmask & (int)ACE.Entity.Enum.PortalBitmask.NoRecall) >> 5) == 1) return true;
-                else return false;
-            }
-        }
+        public bool NoRecall => (PortalRestrictions & PortalBitmask.NoRecall) != 0;
 
-        public bool NoSummon
-        {
-            get
-            {
-                if ((((int)PortalBitmask & (int)ACE.Entity.Enum.PortalBitmask.NoSummon) >> 4) == 1) return true;
-                else return false;
-            }
-        }
+        public bool NoSummon => (PortalRestrictions & PortalBitmask.NoSummon) != 0;
 
         public bool NoTie => NoRecall;
 
@@ -175,7 +167,9 @@ namespace ACE.Server.WorldObjects
             // If the portal just used is able to be recalled to,
             // save the destination coordinates to the LastPortal character position save table
             if (!NoRecall)
-                player.LastPortal = portalDest;
+                player.LastPortalDID = WeenieClassId;
+
+            EmoteManager.OnPortal(player);
         }
 
         public virtual void OnCollideObject(Player player)

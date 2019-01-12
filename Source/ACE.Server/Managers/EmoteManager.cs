@@ -161,22 +161,32 @@ namespace ACE.Server.Managers
 
                     // todo: missing windup, cast delay?
                     if (creature != null && targetObject != null)
-                        creature.CreateCreatureSpell(targetObject.Guid, (uint)emote.SpellId);
+                    {
+                        var spell = new Spell((uint)emote.SpellId);
+                        if (spell != null)
+                        {
+                            var preCastTime = creature.PreCastMotion(targetObject);
+
+                            var castChain = new ActionChain();
+                            castChain.AddDelaySeconds(preCastTime);
+                            castChain.AddAction(creature, () =>
+                            {
+                                creature.TryCastSpell(spell, targetObject, creature);
+                                creature.PostCastMotion();
+                            });
+                            castChain.EnqueueChain();
+                        }
+                    }
                     break;
 
                 case EmoteType.CastSpellInstant:
 
-                    if (creature != null)
+                    if (creature != null && targetObject != null)
                     {
                         // TODO: this should probably be using WorldObject_Magic.TryCastSpell()
                         var spell = new Spell((uint)emote.SpellId);
-                        if (targetObject != null && spell.TargetEffect > 0)
-                            creature.CreateCreatureSpell(targetObject.Guid, (uint)emote.SpellId);
-                        else
-                        {
-                            creature.CreateCreatureSpell((uint)emote.SpellId);
-                            creature.WarMagic(spell);   // only war magic?
-                        }
+                        if (targetObject != null && spell != null)
+                            creature.TryCastSpell(spell, targetObject, creature);
                     }
                     break;
 
@@ -1163,6 +1173,11 @@ namespace ACE.Server.Managers
             ExecuteEmoteSet(EmoteCategory.Use, null, activator);
         }
 
+        public void OnPortal(Creature activator)
+        {
+            ExecuteEmoteSet(EmoteCategory.Portal, null, activator);
+        }
+
         public void OnActivation(Creature activator)
         {
             ExecuteEmoteSet(EmoteCategory.Activation, null, activator);
@@ -1185,13 +1200,19 @@ namespace ACE.Server.Managers
 
         public void OnDeath(DamageHistory damageHistory)
         {
-            ExecuteEmoteSet(EmoteCategory.KillTaunt, null, damageHistory.TopDamager);
-
             foreach (var damager in damageHistory.Damagers)
                 ExecuteEmoteSet(EmoteCategory.Death, null, damager);
 
             if (damageHistory.Damagers.Count == 0)
                 ExecuteEmoteSet(EmoteCategory.Death, null, null);
+        }
+
+        /// <summary>
+        /// Called when a monster kills a player
+        /// </summary>
+        public void OnKill(Player player)
+        {
+            ExecuteEmoteSet(EmoteCategory.KillTaunt, null, player);
         }
     }
 }

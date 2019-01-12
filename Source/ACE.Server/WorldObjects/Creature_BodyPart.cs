@@ -11,7 +11,8 @@ namespace ACE.Server.WorldObjects
         public Creature Creature;
         public BiotaPropertiesBodyPart Biota;
 
-        public float WeaponResistanceMod;
+        public float WeaponArmorMod = 1.0f;
+        public float WeaponResistanceMod = 1.0f;
 
         public bool IgnoreMagicArmor;   // impen, bane
         public bool IgnoreMagicResist;  // armor, protection
@@ -27,7 +28,16 @@ namespace ACE.Server.WorldObjects
             IgnoreMagicResist = ignoreMagicResist;
         }
 
-        public int BaseArmorMod => Biota.BaseArmor + (IgnoreMagicResist ? 0 : EnchantmentManager.GetBodyArmorMod());
+        public int BaseArmorMod
+        {
+            get
+            {
+                var armorMod = IgnoreMagicResist ? 0 : EnchantmentManager.GetBodyArmorMod();
+
+                return (int)Math.Round((Biota.BaseArmor + armorMod) * WeaponArmorMod);
+            }
+        }
+        
         public int ArmorVsSlash => GetArmorVsType(DamageType.Slash, Biota.ArmorVsSlash);
         public int ArmorVsPierce => GetArmorVsType(DamageType.Pierce, Biota.ArmorVsPierce);
         public int ArmorVsBludgeon => GetArmorVsType(DamageType.Bludgeon, Biota.ArmorVsBludgeon);
@@ -39,7 +49,11 @@ namespace ACE.Server.WorldObjects
 
         public int GetArmorVsType(DamageType damageType, int armorVsType)
         {
-            var resistance = (float)armorVsType / Biota.BaseArmor;
+            // TODO: refactor this class
+            var preScaled = (float)BaseArmorMod / Biota.BaseArmor;
+
+            //var resistance = (float)armorVsType / Biota.BaseArmor;
+            var resistance = (float)armorVsType / Biota.BaseArmor * preScaled;
             if (double.IsNaN(resistance))
                 resistance = 1.0f;
 
@@ -47,7 +61,7 @@ namespace ACE.Server.WorldObjects
             var spellVuln = IgnoreMagicResist ? 1.0f : EnchantmentManager.GetVulnerabilityResistanceMod(damageType);    // ignore vuln?
             var spellProt = IgnoreMagicResist ? 1.0f : EnchantmentManager.GetProtectionResistanceMod(damageType);
 
-            if (WeaponResistanceMod < spellVuln)
+            if (WeaponResistanceMod > spellVuln)
                 mod = WeaponResistanceMod * spellProt;
             else
                 mod = spellVuln * spellProt;

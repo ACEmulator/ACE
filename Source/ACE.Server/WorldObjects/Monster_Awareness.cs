@@ -82,6 +82,7 @@ namespace ACE.Server.WorldObjects
         {
             return;
 
+            /*
             var currentTime = Timers.RunningTime;
 
             if (currentTime < NextFindTarget)
@@ -94,6 +95,7 @@ namespace ACE.Server.WorldObjects
                     return;
             }
             FindNextTarget();
+            */
         }
 
         public void SetNextTargetTime()
