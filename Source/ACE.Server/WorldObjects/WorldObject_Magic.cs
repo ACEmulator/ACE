@@ -32,6 +32,16 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void TryCastSpell(Spell spell, WorldObject target, WorldObject caster = null)
         {
+            // verify spell exists in database
+            if (spell._spell == null)
+            {
+                var targetPlayer = target as Player;
+                if (targetPlayer != null)
+                    targetPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"{spell.Name} spell not implemented, yet!", ChatMessageType.System));
+
+                return;
+            }
+
             // spells only castable on creatures?
             var targetCreature = target as Creature;
             if (targetCreature == null)

@@ -274,6 +274,103 @@ namespace ACE.Server.WorldObjects
             return moveToChain;
         }
 
+        /// <summary>
+        /// Returns the amount of time until this item's cooldown expires
+        /// </summary>
+        public TimeSpan GetCooldown(WorldObject item)
+        {
+            if (!LastUseTracker.TryGetValue(item.CooldownId.Value, out var lastUseTime))
+                return TimeSpan.FromSeconds(0);
+
+            var nextUseTime = lastUseTime + TimeSpan.FromSeconds(item.CooldownDuration.Value);
+
+            if (DateTime.UtcNow < nextUseTime)
+                return nextUseTime - DateTime.UtcNow;
+            else
+                return TimeSpan.FromSeconds(0);
+        }
+
+        /// <summary>
+        /// Returns TRUE if this item can be activated at this time
+        /// </summary>
+        public bool CheckCooldown(WorldObject item)
+        {
+            return GetCooldown(item).TotalSeconds == 0.0f;
+        }
+
+        /// <summary>
+        /// Maintains the cooldown timers for an item
+        /// </summary>
+        public void UpdateCooldown(WorldObject item)
+        {
+            if (!LastUseTracker.ContainsKey(item.CooldownId.Value))
+                LastUseTracker.Add(item.CooldownId.Value, DateTime.UtcNow);
+            else
+                LastUseTracker[item.CooldownId.Value] = DateTime.UtcNow;
+        }
+
+        /// <summary>
+        /// Verifies the use requirements for activating an item
+        /// </summary>
+        public GameEventWeenieErrorWithString CheckUseRequirements(WorldObject item)
+        {
+            // verify arcane lore requirement
+            if (item.ItemDifficulty != null)
+            {
+                // TODO: more specific error messages
+                var arcaneLore = GetCreatureSkill(Skill.ArcaneLore);
+                if (arcaneLore.Current < item.ItemDifficulty.Value)
+                    return new GameEventWeenieErrorWithString(Session, WeenieErrorWithString.Your_IsTooLowToUseItemMagic, arcaneLore.Skill.ToSentence());
+            }
+
+            // verify skill - does this have to be trained, or only in conjunction with UseRequiresSkillLevel?
+            // only seems to be used for summoning so far...
+            if (item.UseRequiresSkill != null)
+            {
+                var skill = (Skill)item.UseRequiresSkill.Value;
+                var playerSkill = GetCreatureSkill(skill);
+
+                if (playerSkill.AdvancementClass < SkillAdvancementClass.Trained)
+                    return new GameEventWeenieErrorWithString(Session, WeenieErrorWithString.Your_SkillMustBeTrained, playerSkill.Skill.ToSentence());
+
+                // verify skill level
+                if (item.UseRequiresSkillLevel != null)
+                {
+                    if (playerSkill.Current < item.UseRequiresSkillLevel.Value)
+                        return new GameEventWeenieErrorWithString(Session, WeenieErrorWithString.Your_IsTooLowToUseItemMagic, playerSkill.Skill.ToSentence());
+                }
+            }
+
+            // verify skill specialized
+            // is this always in conjunction with UseRequiresSkill?
+            // again, only seems to be for summoning so far...
+            if (item.UseRequiresSkillSpec != null)
+            {
+                var skill = (Skill)item.UseRequiresSkillSpec.Value;
+                var playerSkill = GetCreatureSkill(skill);
+
+                if (playerSkill.AdvancementClass < SkillAdvancementClass.Specialized)
+                    return new GameEventWeenieErrorWithString(Session, WeenieErrorWithString.YouMustSpecialize_ToUseItemMagic, playerSkill.Skill.ToSentence());
+
+                // verify skill level
+                if (item.UseRequiresSkillLevel != null)
+                {
+                    if (playerSkill.Current < item.UseRequiresSkillLevel.Value)
+                        return new GameEventWeenieErrorWithString(Session, WeenieErrorWithString.Your_IsTooLowToUseItemMagic, playerSkill.Skill.ToSentence());
+                }
+            }
+
+            // verify player level
+            if (item.UseRequiresLevel != null)
+            {
+                var playerLevel = Level ?? 1;
+                if (playerLevel < item.UseRequiresLevel.Value)
+                    return new GameEventWeenieErrorWithString(Session, WeenieErrorWithString.YouMustBe_ToUseItemMagic, $"level {item.UseRequiresLevel.Value}");
+            }
+
+            return null;
+        }
+
         public void SendUseDoneEvent(WeenieError errorType = WeenieError.None)
         {
             Session.Network.EnqueueSend(new GameEventUseDone(Session, errorType));
