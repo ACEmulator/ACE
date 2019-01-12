@@ -337,40 +337,40 @@ namespace ACE.Server.Managers
                     break;
 
                 case MaterialType.SmokeyQuartz:
-                    player.AddSpell(target, SpellId.CANTRIPCOORDINATION1);
+                    AddSpell(player, target, SpellId.CANTRIPCOORDINATION1);
                     break;
                 case MaterialType.RoseQuartz:
-                    player.AddSpell(target, SpellId.CANTRIPQUICKNESS1);
+                    AddSpell(player, target, SpellId.CANTRIPQUICKNESS1);
                     break;
                 case MaterialType.RedJade:
-                    player.AddSpell(target, SpellId.CANTRIPHEALTHGAIN1);
+                    AddSpell(player, target, SpellId.CANTRIPHEALTHGAIN1);
                     break;
                 case MaterialType.Malachite:
-                    player.AddSpell(target, SpellId.WarriorsVigor);
+                    AddSpell(player, target, SpellId.WarriorsVigor);
                     break;
                 case MaterialType.LavenderJade:
-                    player.AddSpell(target, SpellId.CANTRIPMANAGAIN1);
+                    AddSpell(player, target, SpellId.CANTRIPMANAGAIN1);
                     break;
                 case MaterialType.LapisLazuli:
-                    player.AddSpell(target, SpellId.CANTRIPWILLPOWER1);
+                    AddSpell(player, target, SpellId.CANTRIPWILLPOWER1);
                     break;
                 case MaterialType.Hematite:
-                    player.AddSpell(target, SpellId.WarriorsVitality);
+                    AddSpell(player, target, SpellId.WarriorsVitality);
                     break;
                 case MaterialType.Citrine:
-                    player.AddSpell(target, SpellId.CANTRIPSTAMINAGAIN1);
+                    AddSpell(player, target, SpellId.CANTRIPSTAMINAGAIN1);
                     break;
                 case MaterialType.Carnelian:
-                    player.AddSpell(target, SpellId.CANTRIPSTRENGTH1);
+                    AddSpell(player, target, SpellId.CANTRIPSTRENGTH1);
                     break;
                 case MaterialType.Bloodstone:
-                    player.AddSpell(target, SpellId.CANTRIPENDURANCE1);
+                    AddSpell(player, target, SpellId.CANTRIPENDURANCE1);
                     break;
                 case MaterialType.Azurite:
-                    player.AddSpell(target, SpellId.WizardsIntellect);
+                    AddSpell(player, target, SpellId.WizardsIntellect);
                     break;
                 case MaterialType.Agate:
-                    player.AddSpell(target, SpellId.CANTRIPFOCUS1);
+                    AddSpell(player, target, SpellId.CANTRIPFOCUS1);
                     break;
 
                 // weapon tinkering
@@ -422,6 +422,23 @@ namespace ACE.Server.Managers
             }
             // increase # of times tinkered
             target.NumTimesTinkered++;
+        }
+
+        public static void AddSpell(Player player, WorldObject target, SpellId spell, int difficulty = 25)
+        {
+            target.Biota.GetOrAddKnownSpell((int)spell, target.BiotaDatabaseLock, out var added);
+            target.ChangesDetected = true;
+
+            if (difficulty != 0)
+            {
+                target.ItemSpellcraft = (target.ItemSpellcraft ?? 0) + difficulty;
+                target.ItemDifficulty = (target.ItemDifficulty ?? 0) + difficulty;
+            }
+            if (target.UiEffects == null)
+            {
+                target.UiEffects = UiEffects.Magical;
+                player.Session.Network.EnqueueSend(new GameMessagePublicUpdatePropertyInt(target, PropertyInt.UiEffects, (int)target.UiEffects));
+            }
         }
 
         public static bool AddImbuedEffect(Player player, WorldObject target, ImbuedEffectType effect)
