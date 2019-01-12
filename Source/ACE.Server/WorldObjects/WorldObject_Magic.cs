@@ -5,7 +5,6 @@ using System.Numerics;
 using System.Text;
 
 using ACE.Database;
-using ACE.Database.Models.Shard;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
@@ -1561,18 +1560,6 @@ namespace ACE.Server.WorldObjects
                 return ResistanceType.StaminaBoost;
             else
                 return ResistanceType.HealthBoost;
-        }
-
-        public void AddSpell(SpellId spell, int difficulty = 25)
-        {
-            Biota.GetOrAddKnownSpell((int)spell, BiotaDatabaseLock, out var added);
-            ChangesDetected = true;
-
-            if (difficulty != 0)
-            {
-                ItemSpellcraft = (ItemSpellcraft ?? 0) + difficulty;
-                ItemDifficulty = (ItemDifficulty ?? 0) + difficulty;
-            }
         }
     }
 }

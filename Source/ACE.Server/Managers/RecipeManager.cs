@@ -337,40 +337,40 @@ namespace ACE.Server.Managers
                     break;
 
                 case MaterialType.SmokeyQuartz:
-                    target.AddSpell(SpellId.CANTRIPCOORDINATION1);
+                    player.AddSpell(target, SpellId.CANTRIPCOORDINATION1);
                     break;
                 case MaterialType.RoseQuartz:
-                    target.AddSpell(SpellId.CANTRIPQUICKNESS1);
+                    player.AddSpell(target, SpellId.CANTRIPQUICKNESS1);
                     break;
                 case MaterialType.RedJade:
-                    target.AddSpell(SpellId.CANTRIPHEALTHGAIN1);
+                    player.AddSpell(target, SpellId.CANTRIPHEALTHGAIN1);
                     break;
                 case MaterialType.Malachite:
-                    target.AddSpell(SpellId.WarriorsVigor);
+                    player.AddSpell(target, SpellId.WarriorsVigor);
                     break;
                 case MaterialType.LavenderJade:
-                    target.AddSpell(SpellId.CANTRIPMANAGAIN1);
+                    player.AddSpell(target, SpellId.CANTRIPMANAGAIN1);
                     break;
                 case MaterialType.LapisLazuli:
-                    target.AddSpell(SpellId.CANTRIPWILLPOWER1);
+                    player.AddSpell(target, SpellId.CANTRIPWILLPOWER1);
                     break;
                 case MaterialType.Hematite:
-                    target.AddSpell(SpellId.WarriorsVitality);
+                    player.AddSpell(target, SpellId.WarriorsVitality);
                     break;
                 case MaterialType.Citrine:
-                    target.AddSpell(SpellId.CANTRIPSTAMINAGAIN1);
+                    player.AddSpell(target, SpellId.CANTRIPSTAMINAGAIN1);
                     break;
                 case MaterialType.Carnelian:
-                    target.AddSpell(SpellId.CANTRIPSTRENGTH1);
+                    player.AddSpell(target, SpellId.CANTRIPSTRENGTH1);
                     break;
                 case MaterialType.Bloodstone:
-                    target.AddSpell(SpellId.CANTRIPENDURANCE1);
+                    player.AddSpell(target, SpellId.CANTRIPENDURANCE1);
                     break;
                 case MaterialType.Azurite:
-                    target.AddSpell(SpellId.WizardsIntellect);
+                    player.AddSpell(target, SpellId.WizardsIntellect);
                     break;
                 case MaterialType.Agate:
-                    target.AddSpell(SpellId.CANTRIPFOCUS1);
+                    player.AddSpell(target, SpellId.CANTRIPFOCUS1);
                     break;
 
                 // weapon tinkering

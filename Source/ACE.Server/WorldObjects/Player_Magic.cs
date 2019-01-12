@@ -4,9 +4,11 @@ using System.Linq;
 
 using ACE.Common;
 using ACE.Database;
+using ACE.Database.Models.Shard;
 using ACE.DatLoader;
 using ACE.Entity;
 using ACE.Entity.Enum;
+using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Network.GameEvent.Events;
@@ -1217,6 +1219,23 @@ namespace ACE.Server.WorldObjects
                 return false;
 
             return caster.SpellDID == spell.Id;
+        }
+
+        public void AddSpell(WorldObject target, SpellId spell, int difficulty = 25)
+        {
+            target.Biota.GetOrAddKnownSpell((int)spell, target.BiotaDatabaseLock, out var added);
+            target.ChangesDetected = true;
+
+            if (difficulty != 0)
+            {
+                target.ItemSpellcraft = (target.ItemSpellcraft ?? 0) + difficulty;
+                target.ItemDifficulty = (target.ItemDifficulty ?? 0) + difficulty;
+            }
+            if (target.UiEffects == null)
+            {
+                target.UiEffects = ACE.Entity.Enum.UiEffects.Magical;
+                Session.Network.EnqueueSend(new GameMessagePublicUpdatePropertyInt(target, PropertyInt.UiEffects, (int)target.UiEffects));
+            }
         }
     }
 }
