@@ -285,20 +285,20 @@ namespace ACE.Server.Managers
                     break;
                 case MaterialType.Copper:
 
-                    if (target.WieldSkillType != Skill.MissileDefense)
+                    if ((target.WieldSkillType ?? 0) != (int)Skill.MissileDefense)
                         return;
                     // change wield requirement: missile defense -> melee defense (increased)
-                    target.WieldSkillType = Skill.MeleeDefense;
+                    target.WieldSkillType = (int)Skill.MeleeDefense;
                     if (target.ItemSkillLevelLimit.HasValue)
                         target.ItemSkillLevelLimit = (int)Math.Round(target.ItemSkillLevelLimit.Value * 1.2f);
                     break;
 
                 case MaterialType.Silver:
 
-                    if (target.WieldSkillType != Skill.MeleeDefense)
+                    if ((target.WieldSkillType ?? 0) != (int)Skill.MeleeDefense)
                         return;
                     // change wield requirement: melee defense -> missile defense (reduced)
-                    target.WieldSkillType = Skill.MissileDefense;
+                    target.WieldSkillType = (int)Skill.MissileDefense;
                     if (target.ItemSkillLevelLimit.HasValue)
                         target.ItemSkillLevelLimit = (int)Math.Round(target.ItemSkillLevelLimit.Value * 0.85f);
                     break;

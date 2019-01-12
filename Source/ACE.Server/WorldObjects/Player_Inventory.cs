@@ -814,6 +814,7 @@ namespace ACE.Server.WorldObjects
 
             if (wieldError != WeenieError.None)
             {
+                // client doesnt show specific wieldError here, just '<item> can't be wielded'?
                 Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, wieldError));
                 return false;
             }
@@ -895,42 +896,103 @@ namespace ACE.Server.WorldObjects
             if (!UseWieldRequirements)
                 return WeenieError.None;
 
-            var itemWieldReq = (WieldRequirement)(item.GetProperty(PropertyInt.WieldRequirements) ?? 0);
+            var skillOrAttribute = item.WieldSkillType ?? 0;
+            var difficulty = (uint)(item.WieldDifficulty ?? 0);
 
-            switch (itemWieldReq)
+            switch (item.WieldRequirements)
             {
-                case WieldRequirement.RawSkill:
-                    // Check WieldDifficulty property against player's Skill level, defined by item's WieldSkillType property
-                    var itemSkillReq = ConvertToMoASkill((Skill)(item.GetProperty(PropertyInt.WieldSkillType) ?? 0));
+                case WieldRequirement.Skill:
 
-                    if (itemSkillReq != Skill.None)
-                    {
-                        var playerSkill = GetCreatureSkill(itemSkillReq).Current;
-
-                        var skillDifficulty = (uint)(item.GetProperty(PropertyInt.WieldDifficulty) ?? 0);
-
-                        if (playerSkill < skillDifficulty)
-                            return WeenieError.SkillTooLow;
-                    }
+                    // verify skill level - current / buffed
+                    var skill = GetCreatureSkill(ConvertToMoASkill((Skill)skillOrAttribute));
+                    if (skill.Current < difficulty)
+                        return WeenieError.SkillTooLow;
                     break;
 
-                case WieldRequirement.Level:
-                    // Check WieldDifficulty property against player's level
-                    if (Level < (uint)(item.GetProperty(PropertyInt.WieldDifficulty) ?? 0))
-                        return WeenieError.LevelTooLow;
+                case WieldRequirement.RawSkill:
+
+                    // verify skill level - base
+                    skill = GetCreatureSkill(ConvertToMoASkill((Skill)skillOrAttribute));
+                    if (skill.Base < difficulty)
+                        return WeenieError.SkillTooLow;
                     break;
 
                 case WieldRequirement.Attrib:
-                    // Check WieldDifficulty property against player's Attribute, defined by item's WieldSkillType property
-                    var itemAttributeReq = (PropertyAttribute)(item.GetProperty(PropertyInt.WieldSkillType) ?? 0);
 
-                    if (itemAttributeReq != PropertyAttribute.Undef)
-                    {
-                        var playerAttribute = Attributes[itemAttributeReq].Current;
+                    // verify primary attribute - current / buffed
+                    Attributes.TryGetValue((PropertyAttribute)skillOrAttribute, out var attribute);
+                    if (attribute.Current < difficulty)
+                        return WeenieError.SkillTooLow;
+                    break;
 
-                        if (playerAttribute < (uint)(item.GetProperty(PropertyInt.WieldDifficulty) ?? 0))
-                            return WeenieError.SkillTooLow;
-                    }
+                case WieldRequirement.RawAttrib:
+
+                    // verify primary attribute - base
+                    Attributes.TryGetValue((PropertyAttribute)skillOrAttribute, out attribute);
+                    if (attribute.Base < difficulty)
+                        return WeenieError.SkillTooLow;
+                    break;
+
+                case WieldRequirement.SecondaryAttrib:
+
+                    // verify vital - current maxvalue
+                    Vitals.TryGetValue((PropertyAttribute2nd)skillOrAttribute, out var vital);
+                    if (vital.MaxValue < difficulty)
+                        return WeenieError.SkillTooLow;
+                    break;
+
+                case WieldRequirement.RawSecondaryAttrib:
+
+                    // verify vital - base
+                    Vitals.TryGetValue((PropertyAttribute2nd)skillOrAttribute, out vital);
+                    if (vital.Base < difficulty)
+                        return WeenieError.SkillTooLow;
+                    break;
+
+                case WieldRequirement.Level:
+
+                    // verify player level
+                    if (Level < difficulty)
+                        return WeenieError.LevelTooLow;
+                    break;
+
+                case WieldRequirement.Training:
+
+                    // verify skill is trained / specialized
+                    skill = GetCreatureSkill(ConvertToMoASkill((Skill)skillOrAttribute));
+                    if ((int)skill.AdvancementClass < difficulty)
+                        return WeenieError.SkillTooLow;
+                    break;
+
+                case WieldRequirement.IntStat:      // unused in PY16
+
+                    // verify PropertyInt minimum
+                    var propInt = GetProperty((PropertyInt)skillOrAttribute);
+                    if (propInt < difficulty)
+                        return WeenieError.SkillTooLow;
+                    break;
+
+                case WieldRequirement.BoolStat:     // unused in PY16
+
+                    // verify PropertyBool equal
+                    var propBool = GetProperty((PropertyBool)skillOrAttribute);
+                    if (propBool != Convert.ToBoolean(difficulty))
+                        return WeenieError.SkillTooLow;
+                    break;
+
+                case WieldRequirement.CreatureType:
+
+                    // verify creature type
+                    var creatureType = CreatureType ?? ACE.Entity.Enum.CreatureType.Invalid;
+                    if ((int)creatureType != difficulty)
+                        return WeenieError.SkillTooLow;
+                    break;
+
+                case WieldRequirement.HeritageType:
+
+                    // verify heritage type
+                    if ((int)HeritageGroup != difficulty)
+                        return WeenieError.ArmorRequiresSpecificHeritage;
                     break;
             }
 
