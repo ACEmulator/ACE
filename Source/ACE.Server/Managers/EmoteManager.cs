@@ -55,8 +55,8 @@ namespace ACE.Server.Managers
             var delay = 0.0f;
             var emoteType = (EmoteType)emote.Type;
 
-            if (Debug)
-                Console.WriteLine($"{WorldObject.Name}.ExecuteEmote({emoteType})");
+            //if (Debug)
+                //Console.WriteLine($"{WorldObject.Name}.ExecuteEmote({emoteType})");
 
             var text = emote.Message;
 
@@ -159,13 +159,13 @@ namespace ACE.Server.Managers
 
                 case EmoteType.CastSpell:
 
-                    // todo: missing windup, cast delay?
                     if (creature != null && targetObject != null)
                     {
                         var spell = new Spell((uint)emote.SpellId);
                         if (spell != null)
                         {
                             var preCastTime = creature.PreCastMotion(targetObject);
+                            delay = preCastTime * 2.0f;
 
                             var castChain = new ActionChain();
                             castChain.AddDelaySeconds(preCastTime);
@@ -183,7 +183,6 @@ namespace ACE.Server.Managers
 
                     if (creature != null && targetObject != null)
                     {
-                        // TODO: this should probably be using WorldObject_Magic.TryCastSpell()
                         var spell = new Spell((uint)emote.SpellId);
                         if (targetObject != null && spell != null)
                             creature.TryCastSpell(spell, targetObject, creature);
@@ -621,8 +620,8 @@ namespace ACE.Server.Managers
                         {
                             if (WorldObject.CurrentMotionState.Stance == MotionStance.Invalid)
                             {
-                                if (Debug)
-                                    Console.WriteLine($"{WorldObject.Name} running starting motion {(MotionStance)emoteSet.Style}, {(MotionCommand)emoteSet.Substyle}");
+                                //if (Debug)
+                                    //Console.WriteLine($"{WorldObject.Name} running starting motion {(MotionStance)emoteSet.Style}, {(MotionCommand)emoteSet.Substyle}");
 
                                 delay = WorldObject.ExecuteMotion(startingMotion);
                             }
@@ -631,8 +630,8 @@ namespace ACE.Server.Managers
                         {
                             if (WorldObject.CurrentMotionState.MotionState.ForwardCommand == startingMotion.MotionState.ForwardCommand)
                             {
-                                if (Debug)
-                                    Console.WriteLine($"{WorldObject.Name} running motion {(MotionStance)emoteSet.Style}, {(MotionCommand)emote.Motion}");
+                                //if (Debug)
+                                    //Console.WriteLine($"{WorldObject.Name} running motion {(MotionStance)emoteSet.Style}, {(MotionCommand)emote.Motion}");
 
                                 float? maxRange = ClientMaxAnimRange;
                                 if (MotionQueue.Contains((MotionCommand)emote.Motion))
@@ -657,16 +656,16 @@ namespace ACE.Server.Managers
 
                                     if (!cycles.Contains(WorldObject.CurrentMotionState.MotionState.ForwardCommand))
                                     {
-                                        if (Debug)
-                                            Console.WriteLine($"{WorldObject.Name} running starting motion again {(MotionStance)emoteSet.Style}, {(MotionCommand)emoteSet.Substyle}");
+                                        //if (Debug)
+                                            //Console.WriteLine($"{WorldObject.Name} running starting motion again {(MotionStance)emoteSet.Style}, {(MotionCommand)emoteSet.Substyle}");
 
                                         WorldObject.ExecuteMotion(startingMotion);
                                     }
                                 });
                                 motionChain.EnqueueChain();
 
-                                if (Debug)
-                                    Console.WriteLine($"{WorldObject.Name} appending time to existing chain: " + animLength);
+                                //if (Debug)
+                                    //Console.WriteLine($"{WorldObject.Name} appending time to existing chain: " + animLength);
                             }
                         }
                     }
@@ -679,8 +678,8 @@ namespace ACE.Server.Managers
 
                         motion = new Motion(MotionStance.NonCombat, (MotionCommand)emote.Motion, emote.Extent);
 
-                        if (Debug)
-                            Console.WriteLine($"{WorldObject.Name} running motion (block 2) {MotionStance.NonCombat}, {(MotionCommand)(emote.Motion ?? 0)}");
+                        //if (Debug)
+                            //Console.WriteLine($"{WorldObject.Name} running motion (block 2) {MotionStance.NonCombat}, {(MotionCommand)(emote.Motion ?? 0)}");
 
                         delay = WorldObject.ExecuteMotion(motion);
 
@@ -715,12 +714,34 @@ namespace ACE.Server.Managers
 
                 case EmoteType.MoveHome:
 
-                    if (Debug)
-                        Console.WriteLine(creature.Home.ToLOCString());
-
                     // TODO: call MoveToManager on server, handle delay for this?
                     if (creature != null && creature.Home != null)
-                        creature.MoveTo(creature.Home, creature.GetRunRate());
+                    {
+                        // are we already at home origin?
+                        if (creature.Location.Pos.Equals(creature.Home.Pos))
+                        {
+                            // just turnto if required?
+                            if (Debug)
+                                Console.Write($" - already at home origin, checking rotation");
+
+                            if (!creature.Location.Rotation.Equals(creature.Home.Rotation))
+                            {
+                                if (Debug)
+                                    Console.Write($" - turning to");
+                                delay = creature.TurnTo(creature.Home);
+                            }
+                            else if (Debug)
+                                Console.Write($" - already at home rotation, doing nothing");
+                        }
+                        else
+                        {
+                            if (Debug)
+                                Console.Write($" - {creature.Home.ToLOCString()}");
+
+                            // how to get delay with this, callback required?
+                            creature.MoveTo(creature.Home, creature.GetRunRate());
+                        }
+                    }
                     break;
 
                 case EmoteType.MoveToPos:
@@ -1097,18 +1118,34 @@ namespace ACE.Server.Managers
             var emote = emoteSet.BiotaPropertiesEmoteAction.ElementAt(emoteIdx);
 
             var actionChain = new ActionChain();
-            actionChain.AddDelaySeconds(delay + emote.Delay);
+
+            // post-delay from actual time of previous emote
+            actionChain.AddDelaySeconds(delay);
+
+            // pre-delay for current emote
+            actionChain.AddDelaySeconds(emote.Delay);
+            if (Debug)
+                Console.Write($"{emote.Delay} - ");
+
             actionChain.AddAction(WorldObject, () =>
             {
+                if (Debug)
+                    Console.Write($"{(EmoteType)emote.Type}");
+
                 var nextDelay = ExecuteEmote(emoteSet, emote, targetObject);
 
                 if (Debug)
-                    Console.WriteLine($"{WorldObject.Name}.{(EmoteType)emote.Type} - delay: {nextDelay}");
+                    Console.WriteLine($" - { nextDelay}");
 
                 if (emoteIdx < emoteSet.BiotaPropertiesEmoteAction.Count - 1)
                     Enqueue(emoteSet, targetObject, emoteIdx + 1, nextDelay);
                 else
-                    IsBusy = false;
+                {
+                    var delayChain = new ActionChain();
+                    delayChain.AddDelaySeconds(nextDelay);
+                    delayChain.AddAction(WorldObject, () => IsBusy = false);
+                    delayChain.EnqueueChain();
+                }
             });
             actionChain.EnqueueChain();
         }
