@@ -1382,7 +1382,6 @@ namespace ACE.Server.WorldObjects
                     return;
                 }
 
-
                 if (target is Player targetAsPlayer)
                     GiveObjecttoPlayer(targetAsPlayer, item, itemFoundInContainer, itemRootOwner, itemWasEquipped, amount);
                 else
@@ -1472,9 +1471,7 @@ namespace ACE.Server.WorldObjects
 
             var result = target.Biota.BiotaPropertiesEmote.FirstOrDefault(emote => emote.WeenieClassId == item.WeenieClassId);
 
-            var actionChain = new ActionChain();
-
-            if (result != null && target.HandleNPCReceiveItem(item, this, actionChain))
+            if (result != null && target.HandleNPCReceiveItem(item, this))
             {
                 if (result.Category == (uint)EmoteCategory.Give)
                 {
@@ -1498,7 +1495,6 @@ namespace ACE.Server.WorldObjects
                 Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(Session, (WeenieErrorWithString)WeenieError.TradeAiDoesntWant, target.Name));
                 Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, WeenieError.TradeAiDoesntWant));
             }
-            actionChain.EnqueueChain();
         }
 
         private bool RemoveItemForGive(WorldObject item, Container itemFoundInContainer, bool itemWasEquipped, Container itemRootOwner, int amount, out WorldObject itemToGive, bool destroy = false)

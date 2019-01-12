@@ -34,7 +34,10 @@ namespace ACE.Server.Entity.Actions
             }
 
             if (queued)
+            {
+                Console.WriteLine($"ActionChain.AddDelaySeconds({timeInSeconds}) - nested action chain detected! Please report this, along with actions being performed when it happened");
                 nextTime = Time.GetUnixTime();
+            }
 
             nextTime += timeInSeconds;
         }
@@ -49,12 +52,16 @@ namespace ACE.Server.Entity.Actions
                 existing.Add(action);
 
             if (queued)
+            {
+                Console.WriteLine($"ActionChain.AddAction({wo.Name}) - nested action chain detected! Please report this, along with actions being performed when it happened");
                 EnqueueChain();
+            }
         }
 
         public void EnqueueChain()
         {
-            WorldObject.EnqueueChain(this);
+            if (WorldObject != null)
+                WorldObject.EnqueueChain(this);
 
             // for nested chains - refactor this
             Actions.Clear();

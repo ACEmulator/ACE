@@ -216,10 +216,31 @@ namespace ACE.Server.WorldObjects
         public void CreateMoveToChain(WorldObject target, out int thisMoveToChainNumber, Action<bool> callback)
         {
             thisMoveToChainNumber = GetNextMoveToChainNumber();
+            var thisMoveToChainNumberCopy = thisMoveToChainNumber;
 
             if (target.Location == null)
             {
+                StopExistingMoveToChains();
                 log.Error($"{Name}.CreateMoveToChain({target.Name}): target.Location is null");
+
+                callback(false);
+                return;
+            }
+
+            // already within use distance?
+            var withinUseRadius = CurrentLandblock.WithinUseRadius(this, target.Guid, out var targetValid);
+            if (withinUseRadius)
+            {
+                // send TurnTo motion
+                var rotateTime = Rotate(target);
+                var actionChain = new ActionChain();
+                actionChain.AddDelaySeconds(rotateTime);
+                actionChain.AddAction(this, () =>
+                {
+                    lastCompletedMove = thisMoveToChainNumberCopy;
+                    callback(true);
+                });
+                actionChain.EnqueueChain();
                 return;
             }
 
@@ -227,8 +248,6 @@ namespace ACE.Server.WorldObjects
                 MoveToPosition(target.Location);
             else
                 MoveToObject(target);
-
-            var thisMoveToChainNumberCopy = thisMoveToChainNumber;
 
             moveToChainStartTime = DateTime.UtcNow;
 
