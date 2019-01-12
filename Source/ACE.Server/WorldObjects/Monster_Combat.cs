@@ -159,11 +159,12 @@ namespace ACE.Server.WorldObjects
 
             if (CurrentAttack == CombatType.Missile)
             {
-                var weapon = GetEquippedWeapon();
+                /*var weapon = GetEquippedWeapon();
                 if (weapon == null) return MaxMissileRange;
 
                 var maxRange = weapon.GetProperty(PropertyInt.WeaponRange) ?? MaxMissileRange;
-                return Math.Min(maxRange, MaxMissileRange);     // in-game cap @ 80 yds.
+                return Math.Min(maxRange, MaxMissileRange);     // in-game cap @ 80 yds.*/
+                return GetMaxMissileRange();
             }
             else
                 return MaxMeleeRange;   // distance_to_target?

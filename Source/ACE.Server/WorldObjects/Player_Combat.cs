@@ -324,12 +324,13 @@ namespace ACE.Server.WorldObjects
                 return null;
 
             // get base damage
+            var weapon = GetEquippedWeapon();
             var baseDamageRange = GetBaseDamage();
             var baseDamage = ThreadSafeRandom.Next(baseDamageRange.Min, baseDamageRange.Max);
 
             // get damage mods
             var attackType = GetAttackType();
-            var attributeMod = GetAttributeMod(attackType);
+            var attributeMod = GetAttributeMod(weapon);
             var powerAccuracyMod = GetPowerAccuracyMod();
             var recklessnessMod = GetRecklessnessMod(this, targetPlayer);
             var sneakAttackMod = GetSneakAttackMod(target);
@@ -387,12 +388,13 @@ namespace ACE.Server.WorldObjects
                 return null;
 
             // get weapon base damage
+            var weapon = GetEquippedWeapon();
             var baseDamageRange = GetBaseDamage();
             var baseDamage = ThreadSafeRandom.Next(baseDamageRange.Min, baseDamageRange.Max);
 
             // get damage mods
             var attackType = GetAttackType();
-            var attributeMod = GetAttributeMod(attackType);
+            var attributeMod = GetAttributeMod(weapon);
             var powerAccuracyMod = GetPowerAccuracyMod();
             var recklessnessMod = GetRecklessnessMod(this, creature);
             var sneakAttackMod = GetSneakAttackMod(target);
@@ -418,7 +420,7 @@ namespace ACE.Server.WorldObjects
             if (bodyPart == null) return null;
 
             var creaturePart = new Creature_BodyPart(creature, bodyPart, damageSource != null ? damageSource.IgnoreMagicArmor : false, damageSource != null ? damageSource.IgnoreMagicResist : false);
-            var weapon = GetEquippedWeapon();
+
             if (weapon != null && weapon.HasImbuedEffect(ImbuedEffectType.ArmorRending))
                 creaturePart.WeaponArmorMod = GetArmorRendingMod(attackSkill);
 
