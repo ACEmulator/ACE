@@ -186,7 +186,7 @@ namespace ACE.Server.WorldObjects
                 }
 
                 // already there?
-                if (!moveTo || IsWithinUseRadiusOf(item))
+                if (!moveTo)
                 {
                     item.ActOnUse(this);
                     return;
