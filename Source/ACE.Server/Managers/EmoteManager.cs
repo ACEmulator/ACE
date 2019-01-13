@@ -1206,6 +1206,11 @@ namespace ACE.Server.Managers
             ExecuteEmoteSet(EmoteCategory.PickUp, null, initiator);
         }
 
+        public void OnDrop(Creature dropper)
+        {
+            ExecuteEmoteSet(EmoteCategory.Drop, null, dropper);
+        }
+
         public void OnAttack(Creature attacker)
         {
             ExecuteEmoteSet(EmoteCategory.NewEnemy, null, attacker);

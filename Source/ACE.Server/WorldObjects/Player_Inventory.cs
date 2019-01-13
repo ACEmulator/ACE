@@ -580,7 +580,11 @@ namespace ACE.Server.WorldObjects
                             UpdateCoinValue();
 
                         if (itemRootOwner == this)
+                        {
+                            item.EmoteManager.OnDrop(this);
+
                             EnqueueBroadcast(new GameMessageSound(Guid, Sound.DropItem));
+                        }
                         else if (containerRootOwner == this)
                         {
                             if (itemAsContainer != null) // We're picking up a pack
