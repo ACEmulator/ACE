@@ -85,8 +85,8 @@ namespace ACE.Server.WorldObjects
             dieChain.AddAction(this, () =>
             {
                 NotifyOfEvent(RegenerationType.Destruction);
-                CreateCorpse();
                 LandblockManager.RemoveObject(this);
+                CreateCorpse(topDamager);
             });
 
             dieChain.EnqueueChain();
@@ -143,7 +143,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Create a corpse for both creatures and players currently
         /// </summary>
-        protected void CreateCorpse()
+        protected void CreateCorpse(WorldObject killer)
         {
             if (NoCorpse) return;
 
@@ -182,6 +182,9 @@ namespace ACE.Server.WorldObjects
             }
 
             corpse.Location = DatManager.PortalDat.ReadFromDat<MotionTable>(MotionTableId).GetAnimationFinalPositionFromStart(Location, ObjScale ?? 1, MotionCommand.Dead);
+            corpse.Location.SetLandblock();
+            corpse.Location.SetLandCell();
+
             //corpse.Location.PositionZ = corpse.Location.PositionZ - .5f; // Adding BaseDescriptionFlags |= ObjectDescriptionFlag.Corpse to Corpse objects made them immune to gravity.. this seems to fix floating corpse...
 
             corpse.OwnerId = Guid.Full;
@@ -190,21 +193,16 @@ namespace ACE.Server.WorldObjects
             LandblockManager.AddObject(corpse);
 
             // set 'killed by' for looting rights
-            if (Killer.HasValue && Killer != 0)
+            if (killer != null)
             {
-                var killer = corpse.CurrentLandblock?.GetObject(new ObjectGuid(Killer ?? 0));
-
-                if (killer != null)
-                {
-                    corpse.LongDesc = $"Killed by {killer.Name}.";
-                    if (killer is CombatPet)
-                        corpse.AllowedActivator = killer.PetOwner.Value;
-                    else
-                        corpse.AllowedActivator = Killer.Value;
-                }
+                corpse.LongDesc = $"Killed by {killer.Name}.";
+                if (killer is CombatPet)
+                    corpse.AllowedActivator = killer.PetOwner.Value;
                 else
-                    corpse.LongDesc = $"Killed by misadventure.";
+                    corpse.AllowedActivator = Killer.Value;
             }
+            else
+                corpse.LongDesc = $"Killed by misadventure.";
 
             var player = this as Player;
             if (player != null)
