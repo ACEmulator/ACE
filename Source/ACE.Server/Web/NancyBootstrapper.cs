@@ -1,39 +1,37 @@
+using ACE.Server.Web.Entities;
 using Nancy;
-using Nancy.Authentication.Basic;
+using Nancy.Authentication.Forms;
 using Nancy.Bootstrapper;
-using Nancy.Session;
 using Nancy.TinyIoc;
 
 namespace ACE.Server.Web
 {
     public class NancyBootstrapper : DefaultNancyBootstrapper
     {
-        //private readonly IAppConfiguration appConfig;
         public NancyBootstrapper() { }
 
         protected override void ConfigureApplicationContainer(TinyIoCContainer container)
         {
             base.ConfigureApplicationContainer(container);
-            //container.Register<IAppConfiguration>(appConfig);
         }
 
         protected override void RequestStartup(TinyIoCContainer container, IPipelines pipelines, NancyContext context)
         {
-            //CookieBasedSessions.Enable(pipelines, new CookieBasedSessionsConfiguration
-            //{
-            //    Serializer = new DefaultObjectSerializer(),
-            //    CookieName = "_ace"
-            //});
+            base.RequestStartup(container, pipelines, context);
+            FormsAuthentication.Enable(
+                pipelines,
+                new FormsAuthenticationConfiguration()
+                {
+                    RedirectUrl = "~/login",
+                    UserMapper = container.Resolve<IUserMapper>()
+                }
+            );
         }
 
-        protected override void ApplicationStartup(TinyIoCContainer container, IPipelines pipelines)
+        protected override void ConfigureRequestContainer(TinyIoCContainer container, NancyContext context)
         {
-            base.ApplicationStartup(container, pipelines);
-
-            pipelines.EnableBasicAuthentication(new BasicAuthenticationConfiguration(
-                container.Resolve<IUserValidator>(),
-                "ACEmulator"));
+            base.ConfigureRequestContainer(container, context);
+            container.Register<IUserMapper, UserMapper>();
         }
-
     }
 }

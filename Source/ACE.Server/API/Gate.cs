@@ -5,6 +5,9 @@ using System.Threading;
 
 namespace ACE.Server.API
 {
+    /// <summary>
+    ///  Allows a governor to encapsulate a queue of requests to help prevent requests from adversely affecting the game server.
+    /// </summary>
     internal class Gate
     {
         private static readonly Lazy<Gate> lazy = new Lazy<Gate>(() => new Gate());
@@ -23,7 +26,10 @@ namespace ACE.Server.API
             GateThreadAlive = true;
             GateThread.Start();
         }
-
+        /// <summary>
+        /// Enqueue and run an action against the game server.  Blocks until finished.
+        /// </summary>
+        /// <param name="act">the action to synchronously perform</param>
         public static void RunGatedAction(Action act)
         {
             GatedAction ba = new GatedAction() { Action = act, CompletionToken = new ManualResetEvent(false) };

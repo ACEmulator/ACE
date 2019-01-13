@@ -2,9 +2,9 @@ using ACE.Database.Models.Auth;
 
 namespace ACE.Server.Web.Entities
 {
-    public class IndexModel
+    public class BaseModel
     {
-        public Account Account { get; set; }
-
+        public string AccountName { get; set; }
+        public string AccessLevelName { get; set; }
     }
 }

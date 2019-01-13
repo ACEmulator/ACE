@@ -1,8 +1,8 @@
 namespace ACE.Server.Web.Requests
 {
-    public class LoginRequest
+    public class LoginModel
     {
-        public string User { get; set; }
-        public string Pass { get; set; }
+        public string username { get; set; }
+        public string password { get; set; }
     }
 }

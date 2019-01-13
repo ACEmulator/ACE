@@ -7,6 +7,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Web\Entities\IUserIdentity.cs" />
+    <Compile Remove="Web\Entities\IUserMapper.cs" />
+    <Compile Remove="Web\Entities\UserIdentity.cs" />
+    <Compile Remove="Web\Entities\UserValidator.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <None Remove="Config.json" />
     <None Remove="starterGear.json" />
   </ItemGroup>
@@ -19,7 +26,7 @@
     <PackageReference Include="FluentValidation" Version="8.1.2" />
     <PackageReference Include="log4net" Version="2.0.8" />
     <PackageReference Include="Nancy" Version="2.0.0-clinteastwood" />
-    <PackageReference Include="Nancy.Authentication.Basic" Version="2.0.0-clinteastwood" />
+    <PackageReference Include="Nancy.Authentication.Forms" Version="2.0.0-clinteastwood" />
     <PackageReference Include="Nancy.Validation.FluentValidation" Version="2.0.0-clinteastwood" />
     <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
     <PackageReference Include="System.Text.Encoding.CodePages" Version="4.5.0" />
@@ -40,10 +47,13 @@
     <None Update="start_server.bat">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Views\index.sshtml">
+    <None Update="Views\index.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Views\login.sshtml">
+    <None Update="Views\login.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Views\master.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
