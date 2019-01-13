@@ -1,10 +1,31 @@
+using ACE.Database;
 using ACE.Entity.Enum;
+using ACE.Server.API;
+using ACE.Server.Web.Model;
+using AutoMapper;
 using Nancy.Security;
+using System.Threading.Tasks;
 
 namespace ACE.Server.Web.Modules
 {
     public class IndexModule : BaseModule
     {
+        public async Task<IndexModel> GetModelAsync()
+        {
+            IndexModel model = Mapper.Map<IndexModel>(BaseModel);
+            TaskCompletionSource<object> tsc = new TaskCompletionSource<object>();
+            Gate.RunGatedAction(() =>
+            {
+                DatabaseManager.Shard.GetCharacters(uint.Parse(Context.CurrentUser.FindFirst("AccountId").Value), true, (chars) =>
+                {
+                    model.Characters = chars;
+                    tsc.SetResult(new object());
+                });
+            });
+            await tsc.Task;
+            return model;
+        }
+
         public IndexModule()
         {
             this.RequiresAuthentication();
@@ -17,10 +38,11 @@ namespace ACE.Server.Web.Modules
                 k => k.Type == AccessLevel.Player.ToString(),
                 k => k.Type == AccessLevel.Sentinel.ToString());
 
-            Get("/", parameters =>
-            {
-                return View["index", BaseModel];
-            });
+            Get("/", GetIndexAsync);
+        }
+        private async Task<object> GetIndexAsync(dynamic parameters)
+        {
+            return View["index", await GetModelAsync()];
         }
     }
 }

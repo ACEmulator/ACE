@@ -1,4 +1,6 @@
 using ACE.Server.Managers;
+using ACE.Server.Web.Model;
+using AutoMapper;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using System;
@@ -17,6 +19,10 @@ namespace ACE.Server.Web
             {
                 return;
             }
+
+            //initialize model polymorphism
+            Mapper.Initialize(cfg => cfg.CreateMap<BaseModel, IndexModel>());
+
             hostThread = new Thread(new ThreadStart(() =>
             {
                 host = new WebHostBuilder()

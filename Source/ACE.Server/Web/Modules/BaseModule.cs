@@ -1,4 +1,4 @@
-using ACE.Server.Web.Entities;
+using ACE.Server.Web.Model;
 using Nancy;
 
 namespace ACE.Server.Web.Modules

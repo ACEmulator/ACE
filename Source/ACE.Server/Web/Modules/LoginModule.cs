@@ -1,7 +1,6 @@
 using ACE.Database;
 using ACE.Database.Models.Auth;
 using ACE.Server.API;
-using ACE.Server.Web.Entities;
 using ACE.Server.Web.Requests;
 using Nancy;
 using Nancy.Authentication.Forms;

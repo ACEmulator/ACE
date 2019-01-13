@@ -1,6 +1,6 @@
 using ACE.Database.Models.Auth;
 
-namespace ACE.Server.Web.Entities
+namespace ACE.Server.Web.Model
 {
     public class BaseModel
     {
