@@ -7,10 +7,10 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Remove="Web\Entities\IUserIdentity.cs" />
-    <Compile Remove="Web\Entities\IUserMapper.cs" />
-    <Compile Remove="Web\Entities\UserIdentity.cs" />
-    <Compile Remove="Web\Entities\UserValidator.cs" />
+    <Compile Remove="Web\Model\IUserIdentity.cs" />
+    <Compile Remove="Web\Model\IUserMapper.cs" />
+    <Compile Remove="Web\Model\UserIdentity.cs" />
+    <Compile Remove="Web\Model\UserValidator.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -47,13 +47,13 @@
     <None Update="start_server.bat">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Views\index.html">
+    <None Update="Web\Views\index.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Views\login.html">
+    <None Update="Web\Views\login.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Update="Views\master.html">
+    <None Update="Web\Views\master.html">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>

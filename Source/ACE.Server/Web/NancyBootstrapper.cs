@@ -1,4 +1,3 @@
-using ACE.Server.Web.Entities;
 using Nancy;
 using Nancy.Authentication.Forms;
 using Nancy.Bootstrapper;
@@ -26,6 +25,11 @@ namespace ACE.Server.Web
                     UserMapper = container.Resolve<IUserMapper>()
                 }
             );
+        }
+
+        protected override void ApplicationStartup(TinyIoCContainer container, IPipelines pipelines)
+        {
+            Conventions.ViewLocationConventions.Add((viewName, model, viewLocationContext) => string.Concat("Web/Views/", viewName));
         }
 
         protected override void ConfigureRequestContainer(TinyIoCContainer container, NancyContext context)
