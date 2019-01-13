@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -55,6 +56,8 @@ namespace ACE.Server.Entity
         private DateTime lastActiveTime;
 
         private readonly Dictionary<ObjectGuid, WorldObject> worldObjects = new Dictionary<ObjectGuid, WorldObject>();
+        private readonly Dictionary<ObjectGuid, WorldObject> pendingAdditions = new Dictionary<ObjectGuid, WorldObject>();
+        private readonly List<ObjectGuid> pendingRemovals = new List<ObjectGuid>();
 
         public List<Landblock> Adjacents = new List<Landblock>();
 
@@ -276,10 +279,10 @@ namespace ACE.Server.Entity
         {
             actionQueue.RunActions();
 
-            var wos = worldObjects.Values.ToList();
+            ProcessPendingWorldObjectAdditionsAndRemovals();
 
             // When a WorldObject Ticks, it can end up adding additional WorldObjects to this landblock
-            foreach (var wo in wos)
+            foreach (var wo in worldObjects.Values)
                 wo.Tick(currentUnixTime);
 
             // Heartbeat
@@ -287,8 +290,10 @@ namespace ACE.Server.Entity
             {
                 var thisHeartBeat = DateTime.UtcNow;
 
+                ProcessPendingWorldObjectAdditionsAndRemovals();
+
                 // Decay world objects
-                foreach (var wo in wos)
+                foreach (var wo in worldObjects.Values)
                 {
                     if (wo.IsDecayable())
                         wo.Decay(thisHeartBeat - lastHeartBeat);
@@ -303,8 +308,33 @@ namespace ACE.Server.Entity
             // Database Save
             if (lastDatabaseSave + databaseSaveInterval <= DateTime.UtcNow)
             {
+                ProcessPendingWorldObjectAdditionsAndRemovals();
+
                 SaveDB();
                 lastDatabaseSave = DateTime.UtcNow;
+            }
+        }
+
+        /// <summary>
+        /// This only needs to be called before we iterate over worldObjects to make sure it's up to date.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void ProcessPendingWorldObjectAdditionsAndRemovals()
+        {
+            if (pendingAdditions.Count > 0)
+            {
+                foreach (var kvp in pendingAdditions)
+                    worldObjects[kvp.Key] = kvp.Value;
+
+                pendingAdditions.Clear();
+            }
+
+            if (pendingRemovals.Count > 0)
+            {
+                foreach (var objectGuid in pendingRemovals)
+                    worldObjects.Remove(objectGuid);
+
+                pendingRemovals.Clear();
             }
         }
 
@@ -337,7 +367,8 @@ namespace ACE.Server.Entity
 
         private void AddWorldObjectInternal(WorldObject wo)
         {
-            worldObjects[wo.Guid] = wo;
+            pendingAdditions[wo.Guid] = wo;
+            pendingRemovals.Remove(wo.Guid);
 
             wo.CurrentLandblock = this;
 
@@ -345,7 +376,7 @@ namespace ACE.Server.Entity
                 wo.InitPhysicsObj();
 
             if (wo.PhysicsObj.CurCell == null)
-            { 
+            {
                 var success = wo.AddPhysicsObj();
                 if (!success)
                 {
@@ -384,10 +415,10 @@ namespace ACE.Server.Entity
         private void RemoveWorldObjectInternal(ObjectGuid objectId, bool adjacencyMove = false, bool fromPickup = false)
         {
             //log.Debug($"LB {Id.Landblock:X}: removing {objectId.Full:X}");
+            if (!pendingAdditions.Remove(objectId, out var wo) && !worldObjects.TryGetValue(objectId, out wo))
+                return;
 
-            worldObjects.Remove(objectId, out var wo);
-
-            if (wo == null) return;
+            pendingRemovals.Add(objectId);
 
             wo.CurrentLandblock = null;
 
@@ -422,32 +453,18 @@ namespace ACE.Server.Entity
         /// <summary>
         /// Returns landblock objects with physics initialized
         /// </summary>
-        public List<WorldObject> GetWorldObjectsForPhysicsHandling()
+        public ICollection<WorldObject> GetWorldObjectsForPhysicsHandling()
         {
-            // If a missile is destroyed when it runs it's UpdateObjectPhysics(), it will remove itself from the landblock, thus, modifying the worldObjects collection.
-            return worldObjects.Values.ToList();
+            ProcessPendingWorldObjectAdditionsAndRemovals();
+
+            return worldObjects.Values;
         }
 
-        public List<WorldObject> GetAllWorldObjectsForDiagnostics()
+        public ICollection<WorldObject> GetAllWorldObjectsForDiagnostics()
         {
+            // We do not ProcessPending here, and we return ToList() to avoid cross-thread issues.
+            // This can happen if we "loadalllandblocks" and do a "serverstatus".
             return worldObjects.Values.ToList();
-        }
-
-        /// <summary>
-        /// This will return null if the object was not found in the current or adjacent landblocks.
-        /// </summary>
-        private Landblock GetOwner(ObjectGuid guid)
-        {
-            if (worldObjects.ContainsKey(guid))
-                return this;
-
-            foreach (Landblock lb in Adjacents)
-            {
-                if (lb != null && lb.worldObjects.ContainsKey(guid))
-                    return lb;
-            }
-
-            return null;
         }
 
         public WorldObject GetObject(uint objectId)
@@ -460,12 +477,15 @@ namespace ACE.Server.Entity
         /// </summary>
         public WorldObject GetObject(ObjectGuid guid)
         {
-            if (worldObjects.TryGetValue(guid, out var worldObject))
+            if (pendingRemovals.Contains(guid))
+                return null;
+
+            if (worldObjects.TryGetValue(guid, out var worldObject) || pendingAdditions.TryGetValue(guid, out worldObject))
                 return worldObject;
 
             foreach (Landblock lb in Adjacents)
             {
-                if (lb != null && lb.worldObjects.TryGetValue(guid, out worldObject))
+                if (lb != null && !lb.pendingRemovals.Contains(guid) && (lb.worldObjects.TryGetValue(guid, out worldObject) || lb.pendingAdditions.TryGetValue(guid, out worldObject)))
                     return worldObject;
             }
 
@@ -546,6 +566,8 @@ namespace ACE.Server.Entity
             var landblockID = Id.Raw | 0xFFFF;
 
             log.Debug($"Landblock.Unload({landblockID:X})");
+
+            ProcessPendingWorldObjectAdditionsAndRemovals();
 
             SaveDB();
 
