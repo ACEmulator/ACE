@@ -216,15 +216,28 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void HandleActionSellItem(List<ItemProfile> itemprofiles, uint vendorGuid)
         {
-            var purchaselist = new List<WorldObject>();
+            var sellList = new List<WorldObject>();
+
+            var allPossessions = GetAllPossessions();
+            var rejected = new List<WorldObject>();
 
             foreach (ItemProfile profile in itemprofiles)
             {
-                if (TryRemoveFromInventoryWithNetworking(profile.ObjectGuid, out var item, RemoveFromInventoryAction.SellItem) || TryDequipObjectWithNetworking(profile.ObjectGuid, out item, DequipObjectAction.SellItem))
+                var item = allPossessions.FirstOrDefault(i => i.Guid.Full == profile.ObjectGuid);
+
+                if (item == null) continue;
+
+                if (!(item.GetProperty(PropertyBool.IsSellable) ?? true) || (item.GetProperty(PropertyBool.Retained) ?? false))
+                {
+                    rejected.Add(item);
+                    continue;
+                }
+
+                if (TryRemoveFromInventoryWithNetworking(profile.ObjectGuid, out item, RemoveFromInventoryAction.SellItem) || TryDequipObjectWithNetworking(profile.ObjectGuid, out item, DequipObjectAction.SellItem))
                 {
                     Session.Network.EnqueueSend(new GameMessageDeleteObject(item));
 
-                    purchaselist.Add(item);
+                    sellList.Add(item);
                 }
                 else
                 {
@@ -232,10 +245,25 @@ namespace ACE.Server.WorldObjects
                 }
             }
 
-            var vendor = CurrentLandblock?.GetObject(vendorGuid) as Vendor;
+            if (rejected.Count > 0)
+            {
+                foreach (var item in rejected)
+                {
+                    var itemName = (item.StackSize ?? 1) > 1 ? item.GetPluralName() : item.Name;
+                    Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, $"The {itemName} cannot be sold"));     // TODO: find retail messages
+                }
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session));
+            }
 
-            if (vendor != null)
-                vendor.SellItems_ValidateTransaction(this, purchaselist);
+            if (sellList.Count > 0)
+            {
+                var vendor = CurrentLandblock?.GetObject(vendorGuid) as Vendor;
+
+                if (vendor != null)
+                    vendor.SellItems_ValidateTransaction(this, sellList);
+            }
+            else
+                SendUseDoneEvent();
         }
     }
 }

@@ -132,6 +132,30 @@ namespace ACE.Server.Network.Structure
             if (wielder != null && PropertiesFloat.ContainsKey(PropertyFloat.WeaponDefense) && !(wo is Ammunition))
                 PropertiesFloat[PropertyFloat.WeaponDefense] += wielder.EnchantmentManager.GetDefenseMod();
 
+            if (wielder != null && PropertiesFloat.ContainsKey(PropertyFloat.ManaConversionMod))
+            {
+                var manaConvMod = wielder.EnchantmentManager.GetManaConvMod();
+                if (manaConvMod != 1.0f)
+                {
+                    PropertiesFloat[PropertyFloat.ManaConversionMod] *= manaConvMod;
+
+                    ResistHighlight = ResistMaskHelper.GetHighlightMask(wielder);
+                    ResistColor = ResistMaskHelper.GetColorMask(wielder);
+                }
+            }
+
+            if (wielder != null && PropertiesFloat.ContainsKey(PropertyFloat.ElementalDamageMod))
+            {
+                var elementalDamageMod = wielder.EnchantmentManager.GetElementalDamageMod();
+                if (elementalDamageMod != 0)
+                {
+                    PropertiesFloat[PropertyFloat.ElementalDamageMod] += elementalDamageMod;
+
+                    ResistHighlight = ResistMaskHelper.GetHighlightMask(wielder);
+                    ResistColor = ResistMaskHelper.GetColorMask(wielder);
+                }
+            }
+
             if (wo.ItemSkillLimit != null)
                 PropertiesInt[PropertyInt.AppraisalItemSkill] = (int)wo.ItemSkillLimit;
         }

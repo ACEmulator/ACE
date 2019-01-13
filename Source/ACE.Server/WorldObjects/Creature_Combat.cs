@@ -346,14 +346,12 @@ namespace ACE.Server.WorldObjects
         /// Returns the attribute damage bonus for a physical attack
         /// </summary>
         /// <param name="attackType">Uses strength for melee, coordination for missile</param>
-        public float GetAttributeMod(CombatType attackType)
+        public float GetAttributeMod(WorldObject weapon)
         {
-            if (attackType == CombatType.Melee)
-                return SkillFormula.GetAttributeMod(PropertyAttribute.Strength, (int)Strength.Current);
-            else if (attackType == CombatType.Missile)
+            if (weapon != null && weapon.IsBow)
                 return SkillFormula.GetAttributeMod(PropertyAttribute.Coordination, (int)Coordination.Current);
             else
-                return 1.0f;
+                return SkillFormula.GetAttributeMod(PropertyAttribute.Strength, (int)Strength.Current);
         }
 
         /// <summary>

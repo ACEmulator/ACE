@@ -50,8 +50,10 @@ namespace ACE.Server.Network.Enum
                 highlightMask |= ResistMask.ResistManaDrain;
             if (wo.EnchantmentManager.GetResistanceMod(DamageType.Mana) != 1.0f)
                 highlightMask |= ResistMask.ResistManaBoost;
-            // mana conversion modifier
-            // elemental damage mod
+            if (wo.EnchantmentManager.GetManaConvMod() != 1.0f)     // only for items?
+                highlightMask |= ResistMask.ManaConversionMod;
+            if (wo.EnchantmentManager.GetElementalDamageMod() != 0.0f)
+                highlightMask |= ResistMask.ElementalDamageMod;
             if (wo.EnchantmentManager.GetResistanceMod(DamageType.Nether) != 1.0f)
                 highlightMask |= ResistMask.ResistNether;
 
@@ -84,8 +86,10 @@ namespace ACE.Server.Network.Enum
                 colorMask |= ResistMask.ResistManaDrain;
             if (wo.EnchantmentManager.GetResistanceMod(DamageType.Mana) > 1.0f)
                 colorMask |= ResistMask.ResistManaBoost;
-            // mana conversion modifier
-            // elemental damage mod
+            if (wo.EnchantmentManager.GetManaConvMod() > 1.0f)      // only for items?
+                colorMask |= ResistMask.ManaConversionMod;
+            if (wo.EnchantmentManager.GetElementalDamageMod() > 0.0f)
+                colorMask |= ResistMask.ElementalDamageMod;
             if (wo.EnchantmentManager.GetResistanceMod(DamageType.Nether) > 1.0f)
                 colorMask |= ResistMask.ResistNether;
 

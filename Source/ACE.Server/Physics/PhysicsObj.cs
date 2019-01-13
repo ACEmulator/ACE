@@ -2578,12 +2578,18 @@ namespace ACE.Server.Physics
             return obj;
         }
 
-        public static PhysicsObj makeObject(uint dataDID, uint objectIID, bool dynamic)
+        public bool IsSightObj;
+
+        public static PhysicsObj makeObject(uint dataDID, uint objectIID, bool dynamic, bool sightObj = false)
         {
             var obj = new PhysicsObj();
             obj.InitObjectBegin(objectIID, dynamic);
             obj.InitPartArrayObject(dataDID, true);
             obj.InitObjectEnd();
+
+            // for direct visibility testing
+            obj.IsSightObj = sightObj;
+
             return obj;
         }
 

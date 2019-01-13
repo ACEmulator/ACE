@@ -111,9 +111,13 @@ namespace ACE.Server.WorldObjects
 
             if (ammo.StackSize == 0)
             {
-                TryDequipObjectWithBroadcasting(ammo.Guid, out _, out _);
-
-                ammo.Destroy();
+                if (this is Player player)
+                    player.TryDequipObjectWithNetworking(ammo.Guid, out _, Player.DequipObjectAction.ConsumeItem);
+                else
+                {
+                    TryDequipObjectWithBroadcasting(ammo.Guid, out _, out _);
+                    ammo.Destroy();
+                }
             }
             else
             {
@@ -189,6 +193,36 @@ namespace ACE.Server.WorldObjects
                 default:
                     return Sound.ThrownWeaponRelease1;
             }
+        }
+
+        public static readonly float MetersToYards = 1.094f;    // 1.09361
+        public static readonly float MissileRangeCap = 85.0f / MetersToYards;   // 85 yards = ~77.697 meters w/ ac formula
+        public static readonly float DefaultMaxVelocity = 20.0f;    // ?
+
+        public float GetMaxMissileRange()
+        {
+            var weapon = GetEquippedWeapon();
+            var maxVelocity = weapon != null ? weapon.GetProperty(PropertyFloat.MaximumVelocity) ?? DefaultMaxVelocity : DefaultMaxVelocity;
+
+            //var missileRange = (float)Math.Pow(maxVelocity, 2.0f) * 0.1020408163265306f;
+            var missileRange = (float)Math.Pow(maxVelocity, 2.0f) * 0.0682547266398198f;
+
+            var strengthMod = SkillFormula.GetAttributeMod(PropertyAttribute.Strength, (int)Strength.Current);
+            var maxRange = Math.Min(missileRange * strengthMod, MissileRangeCap);
+
+            // any kind of other caps for monsters specifically?
+            // throwing lugian rocks @ 85 yards seems a bit far...
+
+            //Console.WriteLine($"{Name}.GetMaxMissileRange(): maxVelocity={maxVelocity}, strengthMod={strengthMod}, maxRange={maxRange}");
+
+            // for client display
+            /*var maxRangeYards = maxRange * MetersToYards;
+            if (maxRangeYards >= 10.0f)
+                maxRangeYards -= maxRangeYards % 5.0f;
+            else
+                maxRangeYards = (float)Math.Ceiling(maxRangeYards);*/
+
+            return maxRange;
         }
     }
 }
