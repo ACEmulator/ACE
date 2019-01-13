@@ -593,6 +593,7 @@ namespace ACE.Server.WorldObjects
 
                             EnqueueBroadcast(new GameMessageSound(Guid, Sound.PickUpItem));
 
+                            item.EmoteManager.OnPickup(this);
                             item.NotifyOfEvent(RegenerationType.PickUp);
 
                             if (questSolve)
