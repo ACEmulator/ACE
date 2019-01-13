@@ -111,9 +111,13 @@ namespace ACE.Server.WorldObjects
 
             if (ammo.StackSize == 0)
             {
-                TryDequipObjectWithBroadcasting(ammo.Guid, out _, out _);
-
-                ammo.Destroy();
+                if (this is Player player)
+                    player.TryDequipObjectWithNetworking(ammo.Guid, out _, Player.DequipObjectAction.ConsumeItem);
+                else
+                {
+                    TryDequipObjectWithBroadcasting(ammo.Guid, out _, out _);
+                    ammo.Destroy();
+                }
             }
             else
             {
