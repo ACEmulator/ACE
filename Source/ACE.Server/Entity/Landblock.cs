@@ -428,6 +428,11 @@ namespace ACE.Server.Entity
             return worldObjects.Values.ToList();
         }
 
+        public List<WorldObject> GetAllWorldObjectsForDiagnostics()
+        {
+            return worldObjects.Values.ToList();
+        }
+
         /// <summary>
         /// This will return null if the object was not found in the current or adjacent landblocks.
         /// </summary>

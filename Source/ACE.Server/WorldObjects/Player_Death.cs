@@ -735,7 +735,7 @@ namespace ACE.Server.WorldObjects
             if (!UnderLifestoneProtection)
                 return;
 
-            LifestoneProtectionTimestamp += cachedHeartbeatInterval;
+            LifestoneProtectionTimestamp += CachedHeartbeatInterval;
 
             if (LifestoneProtectionTimestamp < LifestoneProtectionTime.TotalSeconds)
                 return;
@@ -785,7 +785,7 @@ namespace ACE.Server.WorldObjects
             if (MinimumTimeSincePk == null)
                 return;
 
-            MinimumTimeSincePk += cachedHeartbeatInterval;
+            MinimumTimeSincePk += CachedHeartbeatInterval;
 
             if (MinimumTimeSincePk < TemporaryNPKTime.TotalSeconds)
                 return;

@@ -92,6 +92,7 @@ namespace ACE.Server.WorldObjects
 
             InitializePropertyDictionaries();
             SetEphemeralValues();
+            InitializeTick();
 
             CreationTimestamp = (int)Time.GetUnixTime();
         }
@@ -109,6 +110,7 @@ namespace ACE.Server.WorldObjects
 
             InitializePropertyDictionaries();
             SetEphemeralValues();
+            InitializeTick();
         }
 
         /// <summary>

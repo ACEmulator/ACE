@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Runtime.CompilerServices;
 
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
@@ -69,6 +70,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Called every ~5 secs to regenerate vitals
         /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void VitalHeartBeat()
         {
             if (IsDead)
