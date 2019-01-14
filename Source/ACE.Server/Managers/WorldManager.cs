@@ -401,6 +401,11 @@ namespace ACE.Server.Managers
             WorldActive = false;
         }
 
+        public static readonly RateMonitor UpdateGameWorld5MinRM = new RateMonitor();
+        public static DateTime UpdateGameWorld5MinLastReset = DateTime.UtcNow;
+        public static readonly RateMonitor UpdateGameWorld60MinRM = new RateMonitor();
+        public static DateTime UpdateGameWorld60MinLastReset = DateTime.UtcNow;
+
         /// <summary>
         /// Projected to run at a reasonable rate for gameplay (30-60fps)
         /// </summary>
@@ -410,6 +415,9 @@ namespace ACE.Server.Managers
                 return false;
 
             updateGameWorldRateLimiter.RegisterEvent();
+
+            UpdateGameWorld5MinRM.RegisterEventStart();
+            UpdateGameWorld60MinRM.RegisterEventStart();
 
             // update positions through physics engine
             var movedObjects = HandlePhysics(Timers.PortalYearTicks);
@@ -432,6 +440,21 @@ namespace ACE.Server.Managers
 
             // clean up inactive landblocks
             LandblockManager.UnloadLandblocks();
+
+            UpdateGameWorld5MinRM.RegisterEventEnd();
+            UpdateGameWorld60MinRM.RegisterEventEnd();
+
+            if (UpdateGameWorld5MinRM.TotalSeconds > 300)
+            {
+                UpdateGameWorld5MinRM.ClearEventHistory();
+                UpdateGameWorld5MinLastReset = DateTime.UtcNow;
+            }
+
+            if (UpdateGameWorld60MinRM.TotalSeconds > 3600)
+            {
+                UpdateGameWorld60MinRM.ClearEventHistory();
+                UpdateGameWorld60MinLastReset = DateTime.UtcNow;
+            }
 
             return true;
         }

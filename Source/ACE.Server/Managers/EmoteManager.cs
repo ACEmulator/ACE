@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Numerics;
+using System.Runtime.CompilerServices;
 
 using ACE.Database.Models.Shard;
 using ACE.DatLoader;
@@ -1202,6 +1203,7 @@ namespace ACE.Server.Managers
             return result;
         }
 
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void HeartBeat()
         {
             // player didn't do idle emotes in retail?

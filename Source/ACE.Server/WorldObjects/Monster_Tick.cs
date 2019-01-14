@@ -1,19 +1,20 @@
 using System;
+using System.Runtime.CompilerServices;
 using ACE.Entity.Enum;
-using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 
 namespace ACE.Server.WorldObjects
 {
     partial class Creature
     {
-        private static readonly float monsterTickInterval = 0.2f;
+        private const double monsterTickInterval = 0.2;
 
-        private bool FirstUpdate = true;
+        private bool firstUpdate = true;
 
         /// <summary>
         /// Primary dispatch for monster think
         /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void Monster_Tick()
         {
             if (!IsAwake || IsDead) return;
@@ -51,7 +52,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if (FirstUpdate)
+            if (firstUpdate)
             {
                 if (CurrentMotionState.Stance == MotionStance.NonCombat)
                     DoAttackStance();
@@ -64,7 +65,7 @@ namespace ACE.Server.WorldObjects
                     return;
                 }
 
-                FirstUpdate = false;
+                firstUpdate = false;
             }
 
             // select a new weapon if missile launcher is out of ammo

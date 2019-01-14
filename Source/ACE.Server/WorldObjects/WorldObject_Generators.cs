@@ -497,8 +497,6 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void Generator_HeartBeat()
         {
-            if (!IsGenerator) return;
-
             //Console.WriteLine($"{Name}.Generator_HeartBeat({HeartbeatInterval})");
 
             if (!FirstEnterWorldDone)

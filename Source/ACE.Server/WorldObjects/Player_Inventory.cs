@@ -1495,13 +1495,20 @@ namespace ACE.Server.WorldObjects
 
             // This is a hack because our Player_Tracking->RemoveTrackedEquippedObject() is doing GameMessageDeleteObject, not GameMessagePickupEvent
             // Without this, when you give an equipped item to a player, the player won't see it appear in their inventory
-            var actionChain = new ActionChain();
-            actionChain.AddAction(target, () =>
+
+            // A bug still exists in the following scenario:
+            // Player A equips weapon, gives weapon (while equipped) to player B.
+            // Player B then gives weapon back to A. Player B is now bugged. The fix is to fix RemoveTrackedEquippedObject
+            if (itemWasEquipped)
             {
-                target.Session.Network.EnqueueSend(new GameMessageCreateObject(item));
-                target.Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, targetContainer));
-            });
-            actionChain.EnqueueChain();
+                var actionChain = new ActionChain();
+                actionChain.AddAction(target, () =>
+                {
+                    target.Session.Network.EnqueueSend(new GameMessageCreateObject(item));
+                    target.Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, targetContainer));
+                });
+                actionChain.EnqueueChain();
+            }
         }
 
         private void GiveObjecttoNPC(WorldObject target, WorldObject item, Container itemFoundInContainer, Container itemRootOwner, bool itemWasEquipped, int amount)
