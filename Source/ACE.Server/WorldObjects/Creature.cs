@@ -263,7 +263,7 @@ namespace ACE.Server.WorldObjects
             var actionChain = new ActionChain();
             actionChain.AddDelaySeconds(rotateTime);
 
-            EmoteManager.ExecuteEmoteSet(EmoteCategory.Use, null, player, actionChain, true);
+            actionChain.AddAction(this, () => EmoteManager.ExecuteEmoteSet(EmoteCategory.Use, null, player));
             actionChain.EnqueueChain();
 
             player.SendUseDoneEvent();

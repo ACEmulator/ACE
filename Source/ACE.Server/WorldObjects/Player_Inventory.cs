@@ -405,24 +405,22 @@ namespace ACE.Server.WorldObjects
         /// This would be used if your pickup action first requires a MoveTo action
         /// It will add a chain to broadcast the pickup motion and then add a delay for the animation length
         /// </summary>
-        private void AddPickupChainToMoveToChain(ActionChain moveToChain, int existingMoveToChainNumber)
+        private ActionChain AddPickupChainToMoveToChain()
         {
-            moveToChain.AddAction(this, () =>
-            {
-                if (existingMoveToChainNumber != moveToChainCounter)
-                    return;
-
-                // start picking up item animation
-                var motion = new Motion(CurrentMotionState.Stance, MotionPickup);
-                EnqueueBroadcast(
-                    new GameMessageUpdatePosition(this),
-                    new GameMessageUpdateMotion(this, motion));
-            });
+            // start picking up item animation
+            var motion = new Motion(CurrentMotionState.Stance, MotionPickup);
+            EnqueueBroadcast(
+                new GameMessageUpdatePosition(this),
+                new GameMessageUpdateMotion(this, motion));
 
             // Wait for animation to progress
             var motionTable = DatManager.PortalDat.ReadFromDat<MotionTable>(MotionTableId);
             var pickupAnimationLength = motionTable.GetAnimationLength(CurrentMotionState.Stance, MotionPickup, MotionCommand.Ready);
-            moveToChain.AddDelaySeconds(pickupAnimationLength);
+
+            var pickupChain = new ActionChain();
+            pickupChain.AddDelaySeconds(pickupAnimationLength);
+
+            return pickupChain;
         }
 
         private void AdjustStack(WorldObject stack, int amount, Container container, Container rootContainer)
@@ -537,11 +535,7 @@ namespace ACE.Server.WorldObjects
                     }
                 }
 
-                var moveToChain = CreateMoveToChain(itemRootOwner ?? item, out var thisMoveToChainNumber);
-
-                AddPickupChainToMoveToChain(moveToChain, thisMoveToChainNumber);
-
-                moveToChain.AddAction(this, () =>
+                CreateMoveToChain(itemRootOwner ?? item, out var thisMoveToChainNumber, (success) =>
                 {
                     if (CurrentLandblock == null) // Maybe we were teleported as we were motioning to pick up the item
                     {
@@ -551,64 +545,68 @@ namespace ACE.Server.WorldObjects
 
                     var returnStance = new Motion(CurrentMotionState.Stance);
 
-                    if (thisMoveToChainNumber != moveToChainCounter)
+                    if (!success)
                     {
                         Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, WeenieError.ActionCancelled));
                         EnqueueBroadcastMotion(returnStance);
                         return;
                     }
 
-                    var questSolve = false;
+                    var pickupChain = AddPickupChainToMoveToChain();
 
-                    if (itemRootOwner != this && containerRootOwner == this && item.Quest != null) // We're picking up a quest item
+                    pickupChain.AddAction(this, () =>
                     {
-                        if (!QuestManager.CanSolve(item.Quest))
+                        var questSolve = false;
+
+                        if (itemRootOwner != this && containerRootOwner == this && item.Quest != null) // We're picking up a quest item
                         {
-                            QuestManager.HandleSolveError(item.Quest);
-                            EnqueueBroadcastMotion(returnStance);
-                            return;
-                        }
-
-                        questSolve = true;
-                    }
-
-                    if (DoHandleActionPutItemInContainer(item, itemRootOwner, itemWasEquipped, container, containerRootOwner, placement))
-                    {
-                        Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
-
-                        if (item.WeenieType == WeenieType.Coin)
-                            UpdateCoinValue();
-
-                        if (itemRootOwner == this)
-                        {
-                            item.EmoteManager.OnDrop(this);
-
-                            EnqueueBroadcast(new GameMessageSound(Guid, Sound.DropItem));
-                        }
-                        else if (containerRootOwner == this)
-                        {
-                            if (itemAsContainer != null) // We're picking up a pack
+                            if (!QuestManager.CanSolve(item.Quest))
                             {
-                                Session.Network.EnqueueSend(new GameEventViewContents(Session, itemAsContainer));
-
-                                foreach (var packItem in itemAsContainer.Inventory)
-                                    Session.Network.EnqueueSend(new GameMessageCreateObject(packItem.Value));
+                                QuestManager.HandleSolveError(item.Quest);
+                                EnqueueBroadcastMotion(returnStance);
+                                return;
                             }
 
-                            EnqueueBroadcast(new GameMessageSound(Guid, Sound.PickUpItem));
-
-                            item.EmoteManager.OnPickup(this);
-                            item.NotifyOfEvent(RegenerationType.PickUp);
-
-                            if (questSolve)
-                                QuestManager.Update(item.Quest);
+                            questSolve = true;
                         }
-                    }
 
-                    EnqueueBroadcastMotion(returnStance);
+                        if (DoHandleActionPutItemInContainer(item, itemRootOwner, itemWasEquipped, container, containerRootOwner, placement))
+                        {
+                            Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
+
+                            if (item.WeenieType == WeenieType.Coin)
+                                UpdateCoinValue();
+
+                            if (itemRootOwner == this)
+                            {
+                                item.EmoteManager.OnDrop(this);
+                                EnqueueBroadcast(new GameMessageSound(Guid, Sound.DropItem));
+                            }
+
+                            else if (containerRootOwner == this)
+                            {
+                                if (itemAsContainer != null) // We're picking up a pack
+                                {
+                                    Session.Network.EnqueueSend(new GameEventViewContents(Session, itemAsContainer));
+
+                                    foreach (var packItem in itemAsContainer.Inventory)
+                                        Session.Network.EnqueueSend(new GameMessageCreateObject(packItem.Value));
+                                }
+
+                                EnqueueBroadcast(new GameMessageSound(Guid, Sound.PickUpItem));
+
+                                item.EmoteManager.OnPickup(this);
+                                item.NotifyOfEvent(RegenerationType.PickUp);
+
+                                if (questSolve)
+                                    QuestManager.Update(item.Quest);
+                            }
+                        }
+                        EnqueueBroadcastMotion(returnStance);
+                    });
+
+                    pickupChain.EnqueueChain();
                 });
-
-                moveToChain.EnqueueChain();
             }
             else // This is a self-contained movement
             {
@@ -772,11 +770,7 @@ namespace ACE.Server.WorldObjects
 
             if (rootOwner != this) // Item is on the landscape, or in a landblock chest
             {
-                var moveToChain = CreateMoveToChain(rootOwner ?? item, out var thisMoveToChainNumber);
-
-                AddPickupChainToMoveToChain(moveToChain, thisMoveToChainNumber);
-
-                moveToChain.AddAction(this, () =>
+                CreateMoveToChain(rootOwner ?? item, out var thisMoveToChainNumber, (success) =>
                 {
                     if (CurrentLandblock == null) // Maybe we were teleported as we were motioning to pick up the item
                     {
@@ -786,26 +780,30 @@ namespace ACE.Server.WorldObjects
 
                     var returnStance = new Motion(CurrentMotionState.Stance);
 
-                    if (thisMoveToChainNumber != moveToChainCounter)
+                    if (!success)
                     {
                         Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, WeenieError.ActionCancelled));
                         EnqueueBroadcastMotion(returnStance);
                         return;
                     }
 
-                    if (DoHandleActionGetAndWieldItem(item, rootOwner, wasEquipped, wieldLocation))
+                    var pickupChain = AddPickupChainToMoveToChain();
+
+                    pickupChain.AddAction(this, () =>
                     {
-                        Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
+                        if (DoHandleActionGetAndWieldItem(item, rootOwner, wasEquipped, wieldLocation))
+                        {
+                            Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
 
-                        EnqueueBroadcast(new GameMessageSound(Guid, Sound.PickUpItem));
+                            EnqueueBroadcast(new GameMessageSound(Guid, Sound.PickUpItem));
 
-                        item.NotifyOfEvent(RegenerationType.PickUp);
-                    }
+                            item.NotifyOfEvent(RegenerationType.PickUp);
+                        }
+                        EnqueueBroadcastMotion(returnStance);
+                    });
 
-                    EnqueueBroadcastMotion(returnStance);
+                    pickupChain.EnqueueChain();
                 });
-
-                moveToChain.EnqueueChain();
             }
             else
             {
@@ -1079,13 +1077,9 @@ namespace ACE.Server.WorldObjects
                 else
                     moveToObject = stackRootOwner ?? stack;
 
-                var moveToChain = CreateMoveToChain(moveToObject, out var thisMoveToChainNumber);
-
-                AddPickupChainToMoveToChain(moveToChain, thisMoveToChainNumber);
-
-                moveToChain.AddAction(this, () =>
+                CreateMoveToChain(moveToObject, out var thisMoveToChainNumber, (success) =>
                 {
-                    if (CurrentLandblock == null) // Maybe we were teleported as we were motioning to slit the item
+                    if (CurrentLandblock == null) // Maybe we were teleported as we were motioning to split the item
                     {
                         Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, WeenieError.ActionCancelled));
                         return;
@@ -1093,30 +1087,35 @@ namespace ACE.Server.WorldObjects
 
                     var returnStance = new Motion(CurrentMotionState.Stance);
 
-                    if (thisMoveToChainNumber != moveToChainCounter)
+                    if (!success)
                     {
                         Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, WeenieError.ActionCancelled));
                         EnqueueBroadcastMotion(returnStance);
                         return;
                     }
 
-                    if (DoHandleActionStackableSplitToContainer(stack, stackFoundInContainer, stackRootOwner, container, containerRootOwner, newStack, placementPosition, amount))
+                    var pickupChain = AddPickupChainToMoveToChain();
+
+                    pickupChain.AddAction(this, () =>
                     {
-                        Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
+                        if (DoHandleActionStackableSplitToContainer(stack, stackFoundInContainer, stackRootOwner, container, containerRootOwner, newStack, placementPosition, amount))
+                        {
+                            Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
 
-                        if (stack.WeenieType == WeenieType.Coin)
-                            UpdateCoinValue();
+                            if (stack.WeenieType == WeenieType.Coin)
+                                UpdateCoinValue();
 
-                        if (stackRootOwner == this)
-                            EnqueueBroadcast(new GameMessageSound(Guid, Sound.DropItem));
-                        else if (containerRootOwner == this)
-                            EnqueueBroadcast(new GameMessageSound(Guid, Sound.PickUpItem));
-                    }
+                            if (stackRootOwner == this)
+                                EnqueueBroadcast(new GameMessageSound(Guid, Sound.DropItem));
+                            else if (containerRootOwner == this)
+                                EnqueueBroadcast(new GameMessageSound(Guid, Sound.PickUpItem));
+                        }
 
-                    EnqueueBroadcastMotion(returnStance);
+                        EnqueueBroadcastMotion(returnStance);
+                    });
+
+                    pickupChain.EnqueueChain();
                 });
-
-                moveToChain.EnqueueChain();
             }
             else // This is a self-contained movement
             {
@@ -1308,13 +1307,9 @@ namespace ACE.Server.WorldObjects
                 else
                     moveToObject = sourceStackRootOwner ?? sourceStack;
 
-                var moveToChain = CreateMoveToChain(moveToObject, out var thisMoveToChainNumber);
-
-                AddPickupChainToMoveToChain(moveToChain, thisMoveToChainNumber);
-
-                moveToChain.AddAction(this, () =>
+                CreateMoveToChain(moveToObject, out var thisMoveToChainNumber, (success) =>
                 {
-                    if (CurrentLandblock == null) // Maybe we were teleported as we were motioning to slit the item
+                    if (CurrentLandblock == null) // Maybe we were teleported as we were motioning to split the item
                     {
                         Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, WeenieError.ActionCancelled));
                         return;
@@ -1322,30 +1317,35 @@ namespace ACE.Server.WorldObjects
 
                     var returnStance = new Motion(CurrentMotionState.Stance);
 
-                    if (thisMoveToChainNumber != moveToChainCounter)
+                    if (!success)
                     {
                         Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, WeenieError.ActionCancelled));
                         EnqueueBroadcastMotion(returnStance);
                         return;
                     }
 
-                    if (DoHandleActionStackableMerge(sourceStack, sourceStackFoundInContainer, sourceStackRootOwner, targetStack, targetStackFoundInContainer, targetStackRootOwner, amount))
+                    var pickupChain = AddPickupChainToMoveToChain();
+
+                    pickupChain.AddAction(this, () =>
                     {
-                        Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
+                        if (DoHandleActionStackableMerge(sourceStack, sourceStackFoundInContainer, sourceStackRootOwner, targetStack, targetStackFoundInContainer, targetStackRootOwner, amount))
+                        {
+                            Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
 
-                        if (sourceStack.WeenieType == WeenieType.Coin)
-                            UpdateCoinValue();
+                            if (sourceStack.WeenieType == WeenieType.Coin)
+                                UpdateCoinValue();
 
-                        if (sourceStackRootOwner == this)
-                            EnqueueBroadcast(new GameMessageSound(Guid, Sound.DropItem));
-                        else if (targetStackRootOwner == this)
-                            EnqueueBroadcast(new GameMessageSound(Guid, Sound.PickUpItem));
-                    }
+                            if (sourceStackRootOwner == this)
+                                EnqueueBroadcast(new GameMessageSound(Guid, Sound.DropItem));
+                            else if (targetStackRootOwner == this)
+                                EnqueueBroadcast(new GameMessageSound(Guid, Sound.PickUpItem));
+                        }
 
-                    EnqueueBroadcastMotion(returnStance);
+                        EnqueueBroadcastMotion(returnStance);
+                    });
+
+                    pickupChain.EnqueueChain();
                 });
-
-                moveToChain.EnqueueChain();
             }
             else // This is a self-contained movement
             {
@@ -1439,9 +1439,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            var moveToChain = CreateMoveToChain(target, out var thisMoveToChainNumber);
-
-            moveToChain.AddAction(this, () =>
+            CreateMoveToChain(target, out var thisMoveToChainNumber, (success) =>
             {
                 if (CurrentLandblock == null) // Maybe we were teleported as we were motioning to pick up the item
                 {
@@ -1449,7 +1447,7 @@ namespace ACE.Server.WorldObjects
                     return;
                 }
 
-                if (thisMoveToChainNumber != moveToChainCounter)
+                if (!success)
                 {
                     Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, WeenieError.ActionCancelled));
                     return;
@@ -1458,11 +1456,8 @@ namespace ACE.Server.WorldObjects
                 if (target is Player targetAsPlayer)
                     GiveObjecttoPlayer(targetAsPlayer, item, itemFoundInContainer, itemRootOwner, itemWasEquipped, amount);
                 else
-                    GiveObjecttoNPC(target, item, itemFoundInContainer, itemRootOwner, itemWasEquipped, amount, moveToChain);
-
+                    GiveObjecttoNPC(target, item, itemFoundInContainer, itemRootOwner, itemWasEquipped, amount);
             });
-
-            moveToChain.EnqueueChain();
         }
 
         private void GiveObjecttoPlayer(Player target, WorldObject item, Container itemFoundInContainer, Container itemRootOwner, bool itemWasEquipped, int amount)
@@ -1517,7 +1512,7 @@ namespace ACE.Server.WorldObjects
             }
         }
 
-        private void GiveObjecttoNPC(WorldObject target, WorldObject item, Container itemFoundInContainer, Container itemRootOwner, bool itemWasEquipped, int amount, ActionChain actionChain)
+        private void GiveObjecttoNPC(WorldObject target, WorldObject item, Container itemFoundInContainer, Container itemRootOwner, bool itemWasEquipped, int amount)
         {
             if (target == null || item == null) return;
 
@@ -1548,7 +1543,7 @@ namespace ACE.Server.WorldObjects
 
             var result = target.Biota.BiotaPropertiesEmote.FirstOrDefault(emote => emote.WeenieClassId == item.WeenieClassId);
 
-            if (result != null && target.HandleNPCReceiveItem(item, this, actionChain))
+            if (result != null && target.HandleNPCReceiveItem(item, this))
             {
                 if (result.Category == (uint)EmoteCategory.Give)
                 {

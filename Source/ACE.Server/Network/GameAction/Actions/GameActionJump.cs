@@ -13,6 +13,9 @@ namespace ACE.Server.Network.GameAction.Actions
             var spellId = message.Payload.ReadUInt32();
 
             session.Player.HandleActionJump(jumpPack);
+
+            if (session.Player.IsPlayerMovingTo)
+                session.Player.StopExistingMoveToChains();
         }
     }
 }
