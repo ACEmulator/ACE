@@ -54,7 +54,7 @@ namespace ACE.Server.WorldObjects
             if (!CheckRequirements(player))
                 return;
 
-            if (!CheckCooldown(player))
+            if (!player.CheckCooldown(this))
             {
                 // 'You have used this item too recently' error message?
                 player.SendUseDoneEvent();  
@@ -67,10 +67,7 @@ namespace ACE.Server.WorldObjects
             if (SummonCreature(player, wcid, damageType))
             {
                 // track usage for cooldown
-                if (!player.LastUseTracker.ContainsKey(CooldownId.Value))
-                    player.LastUseTracker.Add(CooldownId.Value, DateTime.UtcNow);
-                else
-                    player.LastUseTracker[CooldownId.Value] = DateTime.UtcNow;
+                player.UpdateCooldown(this);
 
                 // decrease remaining uses
                 if (--Structure <= 0)
@@ -120,14 +117,6 @@ namespace ACE.Server.WorldObjects
             // TODO: verify error messages w/ retail
 
             return true;
-        }
-
-        public bool CheckCooldown(Player player)
-        {
-            if (!player.LastUseTracker.TryGetValue(CooldownId.Value, out var lastUseTime))
-                return true;
-
-            return DateTime.UtcNow >= lastUseTime + TimeSpan.FromSeconds(CooldownDuration.Value);
         }
 
         public bool SummonCreature(Player player, uint wcid, DamageType damageType)
