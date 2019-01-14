@@ -604,6 +604,9 @@ namespace ACE.Server.Managers
                 /* plays an animation on the source object */
                 case EmoteType.Motion:
 
+                    if (Debug)
+                        Console.Write($".{(MotionCommand)emote.Motion}");
+
                     // are there players within emote range?
                     if (!WorldObject.PlayersInRange(ClientMaxAnimRange))
                         break;
@@ -817,6 +820,9 @@ namespace ACE.Server.Managers
                     break;
 
                 case EmoteType.Say:
+
+                    if (Debug)
+                        Console.Write($" - {emote.Message}");
 
                     WorldObject.EnqueueBroadcast(new GameMessageCreatureMessage(emote.Message, WorldObject.Name, WorldObject.Guid.Full, ChatMessageType.Emote), WorldObject.LocalBroadcastRange);
                     break;
