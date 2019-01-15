@@ -863,9 +863,8 @@ namespace ACE.Server.Managers
                 case EmoteType.SetQuestCompletions:
                     break;
                 case EmoteType.SetSanctuaryPosition:
-
-                    if (player != null && emote.ObjCellId.HasValue && emote.OriginX.HasValue && emote.OriginY.HasValue && emote.OriginZ.HasValue && emote.AnglesW.HasValue && emote.AnglesX.HasValue && emote.AnglesY.HasValue && emote.AnglesZ.HasValue)
-                        player.Sanctuary = new Position(emote.ObjCellId.Value, emote.OriginX.Value, emote.OriginY.Value, emote.OriginZ.Value, emote.AnglesX.Value, emote.AnglesY.Value, emote.AnglesZ.Value, emote.AnglesW.Value);
+                    if (player != null)
+                        player.SetPosition(PositionType.Sanctuary, new Position(emote.ObjCellId.Value, emote.OriginX.Value, emote.OriginY.Value, emote.OriginZ.Value, emote.AnglesX.Value, emote.AnglesY.Value, emote.AnglesZ.Value, emote.AnglesW.Value));
                     break;
 
                 case EmoteType.Sound:
@@ -1202,6 +1201,16 @@ namespace ACE.Server.Managers
         public void OnUnwield(Creature wielder)
         {
             ExecuteEmoteSet(EmoteCategory.UnWield, null, wielder);
+        }
+
+        public void OnPickup(Creature initiator)
+        {
+            ExecuteEmoteSet(EmoteCategory.PickUp, null, initiator);
+        }
+
+        public void OnDrop(Creature dropper)
+        {
+            ExecuteEmoteSet(EmoteCategory.Drop, null, dropper);
         }
 
         public void OnAttack(Creature attacker)

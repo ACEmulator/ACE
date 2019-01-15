@@ -140,7 +140,7 @@ namespace ACE.Server.WorldObjects
             dieChain.AddDelaySeconds(animLength + 1.0f);
 
             // enter portal space
-            dieChain.AddAction(this, CreateCorpse);
+            dieChain.AddAction(this, () => CreateCorpse(topDamager));
             dieChain.AddAction(this, TeleportOnDeath);
             dieChain.AddAction(this, SetLifestoneProtection);
             dieChain.AddAction(this, SetMinimumTimeSincePK);
