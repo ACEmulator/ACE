@@ -18,7 +18,7 @@ namespace ACE.Server.Network.GameAction.Actions
                 items.Add(message.Payload.ReadUInt32());
             }
 
-            session.Player.HandleTinkeringTool(items);
+            session.Player.HandleSalvaging(items);
         }
     }
 }
