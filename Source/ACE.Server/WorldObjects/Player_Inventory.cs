@@ -1518,34 +1518,25 @@ namespace ACE.Server.WorldObjects
 
             if (target.EmoteManager.IsBusy)
             {
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, WeenieError.ActionCancelled));
                 Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(Session, WeenieErrorWithString._IsTooBusyToAcceptGifts, target.Name));
-                return;
-            }
-
-            if (target.GetProperty(PropertyBool.AiAcceptEverything) ?? false)
-            {
-                // NPC accepts any item
-                if (RemoveItemForGive(item, itemFoundInContainer, itemWasEquipped, itemRootOwner, amount, out _, true))
-                {
-                    Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, target));
-                    Session.Network.EnqueueSend(new GameMessageSystemChat($"You give {target.Name} {item.Name}.", ChatMessageType.Broadcast));
-                    Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.ReceiveItem));
-                }
-
                 return;
             }
 
             if (!target.GetProperty(PropertyBool.AllowGive) ?? false)
             {
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, WeenieError.TradeAiDoesntWant));
                 Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(Session, WeenieErrorWithString._IsNotAcceptingGiftsRightNow, target.Name));
                 return;
             }
 
+            var acceptAll = target.GetProperty(PropertyBool.AiAcceptEverything) ?? false;
+
             var result = target.Biota.BiotaPropertiesEmote.FirstOrDefault(emote => emote.WeenieClassId == item.WeenieClassId);
 
-            if (result != null && target.HandleNPCReceiveItem(item, this))
+            if (result != null && target.HandleNPCReceiveItem(item, this) || acceptAll)
             {
-                if (result.Category == (uint)EmoteCategory.Give)
+                if (acceptAll || result.Category == (uint)EmoteCategory.Give)
                 {
                     // Item accepted by collector/NPC
                     if (RemoveItemForGive(item, itemFoundInContainer, itemWasEquipped, itemRootOwner, amount, out _, true))
