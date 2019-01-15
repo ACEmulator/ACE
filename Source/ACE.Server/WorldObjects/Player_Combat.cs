@@ -795,5 +795,47 @@ namespace ACE.Server.WorldObjects
             else
                 return null;
         }
+
+        /// <summary>
+        /// This method processes the Game Action (F7B1) Change Combat Mode (0x0053)
+        /// </summary>
+        public void HandleGameActionChangeCombatMode(CombatMode newCombatMode)
+        {
+            var currentCombatStance = GetCombatStance();
+
+            switch (newCombatMode)
+            {
+                case CombatMode.Melee:
+                    // todo expand checks
+                    break;
+
+                case CombatMode.Missile:
+                {
+                    switch (currentCombatStance)
+                    {
+                        case MotionStance.BowCombat:
+                        case MotionStance.CrossbowCombat:
+                        case MotionStance.AtlatlCombat:
+                        {
+                            if (GetEquippedAmmo() == null)
+                            {
+                                Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "You are out of ammunition!"));
+                                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, WeenieError.YouAreOutOfAmmunition));
+                                newCombatMode = CombatMode.NonCombat;
+                            }
+                            break;
+                        }
+                    }
+                    break;
+                }
+
+                case CombatMode.Magic:
+                    // todo expand checks
+                    break;
+
+            }
+
+            SetCombatMode(newCombatMode);
+        }
     }
 }

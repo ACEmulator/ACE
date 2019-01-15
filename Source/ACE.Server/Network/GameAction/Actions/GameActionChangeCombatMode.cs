@@ -9,7 +9,7 @@ namespace ACE.Server.Network.GameAction.Actions
         {
             uint newCombatMode = message.Payload.ReadUInt32();
 
-            session.Player.SetCombatMode((CombatMode)newCombatMode);
+            session.Player.HandleGameActionChangeCombatMode((CombatMode)newCombatMode);
         }
     }
 }
