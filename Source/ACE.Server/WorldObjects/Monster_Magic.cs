@@ -101,7 +101,7 @@ namespace ACE.Server.WorldObjects
         /// Perform the animations after casting a spell,
         /// ie. moving arms back in, returning to previous stance
         /// </summary>
-        public void PostCastMotion()
+        public float PostCastMotion()
         {
             var motion = new Motion(this, MotionCommand.Ready, CastSpeed);
             motion.MotionState.TurnSpeed = 2.25f;
@@ -110,6 +110,8 @@ namespace ACE.Server.WorldObjects
             CurrentMotionState = motion;
 
             EnqueueBroadcastMotion(motion);
+
+            return MotionTable.GetAnimationLength(MotionTableId, CurrentMotionState.Stance, MotionCommand.CastSpell, MotionCommand.Ready, CastSpeed);
         }
 
         /// <summary>

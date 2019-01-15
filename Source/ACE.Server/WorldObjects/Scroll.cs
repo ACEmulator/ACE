@@ -179,9 +179,8 @@ namespace ACE.Server.WorldObjects
 
             var actionChain = new ActionChain();
 
-            actionChain
-                .AddAction(player, () => player.EnqueueBroadcastMotion(motionReading))
-                .AddDelaySeconds(2);
+            actionChain.AddAction(player, () => player.EnqueueBroadcastMotion(motionReading));
+            actionChain.AddDelaySeconds(2.0f);
 
             if (success)
             {
@@ -196,17 +195,15 @@ namespace ACE.Server.WorldObjects
             }
             else
             {
-                actionChain
-                    .AddDelaySeconds(2)
-                    .AddAction(player, () =>
-                    {
-                        player.EnqueueBroadcastMotion(motionReady);
-                        player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{failReason}", ChatMessageType.Magic));
-                    });
+                actionChain.AddDelaySeconds(2.0f);
+                actionChain.AddAction(player, () =>
+                {
+                    player.EnqueueBroadcastMotion(motionReady);
+                    player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{failReason}", ChatMessageType.Magic));
+                });
             }
 
-            actionChain
-                .AddAction(player, () => player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session)));
+            actionChain.AddAction(player, () => player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session)));
 
             actionChain.EnqueueChain();
         }
