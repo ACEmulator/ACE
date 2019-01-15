@@ -577,8 +577,12 @@ namespace ACE.Server.WorldObjects
                             if (item.WeenieType == WeenieType.Coin)
                                 UpdateCoinValue();
 
+
                             if (itemRootOwner == this)
+                            {
+                                item.EmoteManager.OnDrop(this);
                                 EnqueueBroadcast(new GameMessageSound(Guid, Sound.DropItem));
+                            }
 
                             else if (containerRootOwner == this)
                             {
@@ -592,6 +596,7 @@ namespace ACE.Server.WorldObjects
 
                                 EnqueueBroadcast(new GameMessageSound(Guid, Sound.PickUpItem));
 
+                                item.EmoteManager.OnPickup(this);
                                 item.NotifyOfEvent(RegenerationType.PickUp);
 
                                 if (questSolve)

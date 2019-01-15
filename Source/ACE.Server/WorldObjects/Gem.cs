@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 
+using ACE.Common.Extensions;
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.DatLoader.Entity;
@@ -11,6 +12,7 @@ using ACE.Server.Entity;
 using ACE.Server.Network;
 using ACE.Server.Network.Structure;
 using ACE.Server.Network.GameEvent.Events;
+using ACE.Server.Network.GameMessages.Messages;
 
 namespace ACE.Server.WorldObjects
 {
@@ -73,6 +75,31 @@ namespace ACE.Server.WorldObjects
                 if (spell.MetaSpellId == 4024)
                     castMessage = "The gem casts Asheron's Lesser Benediction on you";
                 */
+
+                // verify activation requirements
+                var useError = player.CheckUseRequirements(this);
+                if (useError != null)
+                {
+                    player.Session.Network.EnqueueSend(useError);
+                    player.SendUseDoneEvent();
+                    return;
+                }
+
+                // TODO: activation requirements and cooldown timers should probably be checked in player.HandleActionUseItem()
+                if (!player.CheckCooldown(this))
+                {
+                    // TODO: werror/string not found, find exact message
+
+                    /*var cooldown = player.GetCooldown(this);
+                    var timer = cooldown.GetFriendlyString();
+                    player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{Name} can be activated again in {timer}", ChatMessageType.Broadcast));*/
+
+                    player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, "You have used this item too recently"));
+                    player.SendUseDoneEvent();
+                    return;
+                }
+
+                player.UpdateCooldown(this);
 
                 if (SpellDID.HasValue)
                 {
