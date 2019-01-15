@@ -1112,7 +1112,7 @@ namespace ACE.Server.WorldObjects
             "Defender",
             "BloodDrinker",
             "HeartSeeker",
-            "TrueValue", // aura of mystic's blessing
+            "HermeticLink",
             "SpiritDrinker",
             "@Impenetrability",
             "@PiercingBane",
