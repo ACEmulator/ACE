@@ -14,7 +14,10 @@ namespace ACE.Server.Entity
         {
             var landblock = LScape.get_landblock(p.LandblockId.Raw);
 
-            if (landblock.IsDungeon)
+            // TODO: investigate dungeons that are below actual traversable overworld terrain
+            // ex., 010AFFFF
+            //if (landblock.IsDungeon)
+            if (p.Indoors)
                 return p.Pos;
 
             var x = p.LandblockId.LandblockX * Position.BlockLength + p.PositionX;
@@ -28,7 +31,10 @@ namespace ACE.Server.Entity
         {
             var landblock = LScape.get_landblock(p.LandblockId.Raw);
 
-            if (landblock.IsDungeon)
+            // TODO: investigate dungeons that are below actual traversable overworld terrain
+            // ex., 010AFFFF
+            //if (landblock.IsDungeon)
+            if (p.Indoors)
             {
                 var iPos = new Position();
                 iPos.LandblockId = p.LandblockId;
@@ -64,7 +70,10 @@ namespace ACE.Server.Entity
             var landblock = LScape.get_landblock(p.LandblockId.Raw);
 
             // dungeons
-            if (landblock.IsDungeon)
+            // TODO: investigate dungeons that are below actual traversable overworld terrain
+            // ex., 010AFFFF
+            //if (landblock.IsDungeon)
+            if (p.Indoors)
                 return GetIndoorCell(p);
 
             // outside - could be on landscape, in building, or underground cave

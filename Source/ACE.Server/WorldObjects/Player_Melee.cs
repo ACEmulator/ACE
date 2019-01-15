@@ -60,13 +60,13 @@ namespace ACE.Server.WorldObjects
             var target = CurrentLandblock?.GetObject(targetGuid);
             if (target == null)
             {
-                log.Warn("Unknown target guid " + targetGuid);
+                log.Warn($"Unknown target guid {targetGuid:X8}");
                 return;
             }
             var creatureTarget = target as Creature;
             if (creatureTarget == null)
             {
-                log.Warn("Target GUID not creature " + targetGuid);
+                log.Warn($"Target GUID not creature {targetGuid:X8}");
                 return;
             }
 
@@ -191,11 +191,11 @@ namespace ACE.Server.WorldObjects
 
                     // powerbar refill timing
                     var refillMod = IsDualWieldAttack ? 0.8f : 1.0f;    // dual wield powerbar refills 20% faster
-                    actionChain.AddDelaySeconds(PowerLevel * refillMod);
-                    actionChain.AddAction(this, () =>
-                    {
-                        Attack(target);
-                    });
+
+                    var nextAttack = new ActionChain();
+                    nextAttack.AddDelaySeconds(PowerLevel * refillMod);
+                    nextAttack.AddAction(this, () => Attack(target));
+                    nextAttack.EnqueueChain();
                 }
                 else
                     MeleeTarget = null;

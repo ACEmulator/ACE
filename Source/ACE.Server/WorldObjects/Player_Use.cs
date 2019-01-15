@@ -21,14 +21,20 @@ namespace ACE.Server.WorldObjects
         private int moveToChainCounter;
         private DateTime moveToChainStartTime;
 
+        private int lastCompletedMove;
+
+        public bool IsPlayerMovingTo => moveToChainCounter > lastCompletedMove;
+
         private int GetNextMoveToChainNumber()
         {
             return Interlocked.Increment(ref moveToChainCounter);
         }
 
-        private void StopExistingMoveToChains()
+        public void StopExistingMoveToChains()
         {
             Interlocked.Increment(ref moveToChainCounter);
+
+            lastCompletedMove = moveToChainCounter;
         }
 
         // ===============================
@@ -180,18 +186,16 @@ namespace ACE.Server.WorldObjects
                 }
 
                 // already there?
-                if (!moveTo || IsWithinUseRadiusOf(item))
+                if (!moveTo)
                 {
                     item.ActOnUse(this);
                     return;
                 }
 
                 // if required, move to
-                var actionChain = CreateMoveToChain(item, out var thisMoveToChainNumber);
-
-                actionChain.AddAction(item, () =>
+                CreateMoveToChain(item, out var thisMoveToChainNumber, (success) =>
                 {
-                    if (thisMoveToChainNumber == moveToChainCounter)
+                    if (success)
                     {
                         item.ActOnUse(this);
                     }
@@ -206,72 +210,103 @@ namespace ACE.Server.WorldObjects
                         Session.Network.EnqueueSend(new GameEventUseDone(Session));
                     }
                 });
-                actionChain.EnqueueChain();
             }
         }
 
-        public ActionChain CreateMoveToChain(WorldObject target, out int thisMoveToChainNumber)
+        public void CreateMoveToChain(WorldObject target, out int thisMoveToChainNumber, Action<bool> callback)
         {
             thisMoveToChainNumber = GetNextMoveToChainNumber();
-
-            ActionChain moveToChain = new ActionChain();
-
-            moveToChain.AddAction(this, () =>
-            {
-                if (target.Location == null)
-                {
-                    log.Error($"{Name}.CreateMoveToChain({target.Name}): target.Location is null");
-                    return;
-                }
-
-                if (target.WeenieType == WeenieType.Portal)
-                    MoveToPosition(target.Location);
-                else
-                    MoveToObject(target);
-            });
-
-            // poll for arrival every .1 seconds
-            // Ideally, this should be switched away from using the DelayManager, and instead be checked on every Player Tick()
-            ActionChain moveToBody = new ActionChain();
-            moveToBody.AddDelaySeconds(.1);
-
             var thisMoveToChainNumberCopy = thisMoveToChainNumber;
+
+            if (target.Location == null)
+            {
+                StopExistingMoveToChains();
+                log.Error($"{Name}.CreateMoveToChain({target.Name}): target.Location is null");
+
+                callback(false);
+                return;
+            }
+
+            // already within use distance?
+            var withinUseRadius = CurrentLandblock.WithinUseRadius(this, target.Guid, out var targetValid);
+            if (withinUseRadius)
+            {
+                // send TurnTo motion
+                var rotateTime = Rotate(target);
+                var actionChain = new ActionChain();
+                actionChain.AddDelaySeconds(rotateTime);
+                actionChain.AddAction(this, () =>
+                {
+                    lastCompletedMove = thisMoveToChainNumberCopy;
+                    callback(true);
+                });
+                actionChain.EnqueueChain();
+                return;
+            }
+
+            if (target.WeenieType == WeenieType.Portal)
+                MoveToPosition(target.Location);
+            else
+                MoveToObject(target);
 
             moveToChainStartTime = DateTime.UtcNow;
 
-            moveToChain.AddLoop(this, () =>
+            MoveToChain(target, thisMoveToChainNumberCopy, callback);
+        }
+
+        public void MoveToChain(WorldObject target, int thisMoveToChainNumberCopy, Action<bool> callback)
+        {
+            if (thisMoveToChainNumberCopy != moveToChainCounter)
             {
-                if (thisMoveToChainNumberCopy != moveToChainCounter)
-                    return false;
+                if (thisMoveToChainNumberCopy > lastCompletedMove)
+                    lastCompletedMove = thisMoveToChainNumberCopy;
 
-                // Break loop if CurrentLandblock == null (we portaled or logged out)
-                if (CurrentLandblock == null)
-                {
-                    StopExistingMoveToChains(); // This increments our moveToChainCounter and thus, should stop any additional actions in this chain
-                    return false;
-                }
+                callback(false);
+                return;
+            }
 
-                // Have we timed out?
-                if (moveToChainStartTime + defaultMoveToTimeout <= DateTime.UtcNow)
-                {
-                    StopExistingMoveToChains(); // This increments our moveToChainCounter and thus, should stop any additional actions in this chain
-                    return false;
-                }
+            // Break loop if CurrentLandblock == null (we portaled or logged out)
+            if (CurrentLandblock == null)
+            {
+                StopExistingMoveToChains(); // This increments our moveToChainCounter and thus, should stop any additional actions in this chain
+                callback(false);
+                return;
+            }
 
-                // Are we within use radius?
-                bool ret = !CurrentLandblock.WithinUseRadius(this, target.Guid, out var valid);
+            // Have we timed out?
+            if (moveToChainStartTime + defaultMoveToTimeout <= DateTime.UtcNow)
+            {
+                StopExistingMoveToChains(); // This increments our moveToChainCounter and thus, should stop any additional actions in this chain
+                callback(false);
+                return;
+            }
 
-                // If one of the items isn't on a landblock
-                if (!valid)
-                {
-                    ret = false;
-                    StopExistingMoveToChains(); // This increments our moveToChainCounter and thus, should stop any additional actions in this chain
-                }
+            // Are we within use radius?
+            var success = CurrentLandblock.WithinUseRadius(this, target.Guid, out var targetValid);
 
-                return ret;
-            }, moveToBody);
+            // If one of the items isn't on a landblock
+            if (!targetValid)
+            {
+                StopExistingMoveToChains(); // This increments our moveToChainCounter and thus, should stop any additional actions in this chain
+                callback(false);
+                return;
+            }
 
-            return moveToChain;
+            if (!success)
+            {
+                // target not reached yet
+                var actionChain = new ActionChain();
+                actionChain.AddDelaySeconds(0.1f);
+                actionChain.AddAction(this, () => MoveToChain(target, thisMoveToChainNumberCopy, callback));
+                actionChain.EnqueueChain();
+            }
+            else
+            {
+                if (thisMoveToChainNumberCopy > lastCompletedMove)
+                    lastCompletedMove = thisMoveToChainNumberCopy;
+
+                callback(true);
+            }
         }
 
         /// <summary>

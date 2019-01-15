@@ -75,7 +75,11 @@ namespace ACE.Server.Managers
 
         public static void Initialize()
         {
-            var thread = new Thread(UpdateWorld);
+            var thread = new Thread(() =>
+            {
+                LandblockManager.PreloadConfigLandblocks();
+                UpdateWorld();
+            });
             thread.Name = "World Manager";
             thread.Start();
             log.DebugFormat("ServerTime initialized to {0}", Timers.WorldStartLoreTime);

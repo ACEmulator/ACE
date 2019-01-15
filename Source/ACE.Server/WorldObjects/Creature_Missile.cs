@@ -67,10 +67,11 @@ namespace ACE.Server.WorldObjects
             proj.ProjectileSource = this;
             proj.ProjectileTarget = target;
 
-            var origin = Location.ToGlobal();
+            var matchIndoors = Location.Indoors == target.Location.Indoors;
+            var origin = matchIndoors ? Location.ToGlobal() : Location.Pos;
             origin.Z += Height;
 
-            var dest = target.Location.ToGlobal();
+            var dest = matchIndoors ? target.Location.ToGlobal() : target.Location.Pos;
             dest.Z += target.Height / GetAimHeight(target);
 
             var speed = 35.0f;  // TODO: get correct speed
@@ -80,7 +81,9 @@ namespace ACE.Server.WorldObjects
             var velocity = GetProjectileVelocity(target, origin, dir, dest, speed, out time);
             proj.Velocity = new AceVector3(velocity.X, velocity.Y, velocity.Z);
 
-            proj.Location = Location.FromGlobal(origin);
+            proj.Location = matchIndoors ? Location.FromGlobal(origin) : new Position(Location.Cell, origin, Location.Rotation);
+            if (!matchIndoors)
+                proj.Location.LandblockId = new LandblockId(proj.Location.GetCell());
 
             SetProjectilePhysicsState(proj, target);
 
