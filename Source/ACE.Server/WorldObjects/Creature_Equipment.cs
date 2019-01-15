@@ -42,10 +42,10 @@ namespace ACE.Server.WorldObjects
             SetChildren();
         }
 
-        public bool WieldedLocationIsAvailable(EquipMask equipMask)
+        public bool WieldedLocationIsAvailable(EquipMask validLocations)
         {
             // filtering to just armor here, or else trinkets and dual wielding breaks
-            var existing = GetEquippedArmor(equipMask);
+            var existing = GetEquippedArmor(validLocations);
 
             return existing.Count == 0;
         }
