@@ -75,16 +75,9 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Returns a list of equipped items with any overlap with input locations
         /// </summary>
-        public List<WorldObject> GetEquippedArmor(EquipMask equipMask)
+        public List<WorldObject> GetEquippedArmor(EquipMask validLocations)
         {
-            var coverage = EnumHelper.GetFlags(equipMask).Cast<EquipMask>();
-
-            var results = new List<WorldObject>();
-
-            foreach (var area in coverage)
-                results.AddRange(EquippedObjects.Values.Where(i => (i.ValidLocations & EquipMask.Armor) != 0 && (i.ValidLocations & area) != 0));
-
-            return results;
+            return EquippedObjects.Values.Where(i => (i.ValidLocations & EquipMask.Armor) != 0 && (i.ValidLocations & validLocations) != 0).ToList();
         }
 
         /// <summary>
