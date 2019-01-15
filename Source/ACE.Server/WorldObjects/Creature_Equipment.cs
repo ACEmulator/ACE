@@ -338,7 +338,7 @@ namespace ACE.Server.WorldObjects
         /// ParentLocation = null<para />
         /// Location = null
         /// </summary>
-        private void ClearChild(WorldObject item)
+        protected void ClearChild(WorldObject item)
         {
             item.Placement = ACE.Entity.Enum.Placement.Resting;
             item.ParentLocation = null;

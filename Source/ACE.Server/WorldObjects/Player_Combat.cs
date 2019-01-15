@@ -805,6 +805,22 @@ namespace ACE.Server.WorldObjects
 
             switch (newCombatMode)
             {
+                case CombatMode.NonCombat:
+                {
+                    switch (currentCombatStance)
+                    {
+                        case MotionStance.BowCombat:
+                        case MotionStance.CrossbowCombat:
+                        case MotionStance.AtlatlCombat:
+                        {
+                            var equippedAmmo = GetEquippedAmmo();
+                            if (equippedAmmo != null)
+                                ClearChild(equippedAmmo); // We must clear the placement/parent when going back to peace
+                            break;
+                        }
+                    }
+                    break;
+                }
                 case CombatMode.Melee:
                     // todo expand checks
                     break;
@@ -817,11 +833,18 @@ namespace ACE.Server.WorldObjects
                         case MotionStance.CrossbowCombat:
                         case MotionStance.AtlatlCombat:
                         {
-                            if (GetEquippedAmmo() == null)
+                            var equippedAmmo = GetEquippedAmmo();
+                            if (equippedAmmo == null)
                             {
                                 Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "You are out of ammunition!"));
                                 Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, WeenieError.YouAreOutOfAmmunition));
                                 newCombatMode = CombatMode.NonCombat;
+                            }
+                            else
+                            {
+                                // We must set the placement/parent when going into combat
+                                equippedAmmo.Placement = ACE.Entity.Enum.Placement.RightHandCombat;
+                                equippedAmmo.ParentLocation = ACE.Entity.Enum.ParentLocation.RightHand;
                             }
                             break;
                         }
