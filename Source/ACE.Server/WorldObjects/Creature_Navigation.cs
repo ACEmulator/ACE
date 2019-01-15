@@ -29,7 +29,13 @@ namespace ACE.Server.WorldObjects
         public float GetAngle(WorldObject target)
         {
             var currentDir = Location.GetCurrentDir();
-            var targetDir = GetDirection(Location.ToGlobal(), target.Location.ToGlobal());
+
+            var targetDir = Vector3.Zero;
+            if (Location.Indoors == target.Location.Indoors)
+                targetDir = GetDirection(Location.ToGlobal(), target.Location.ToGlobal());
+            else
+                targetDir = GetDirection(Location.Pos, target.Location.Pos);
+
             targetDir.Z = 0.0f;
             targetDir = Vector3.Normalize(targetDir);
             
