@@ -479,7 +479,7 @@ namespace ACE.Server.WorldObjects
             if (itemRootOwner != this && containerRootOwner == this && !HasEnoughBurdenToAddToInventory(item))
             {
                 Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "You are too encumbered to carry that!"));
-                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, itemGuid, WeenieError.YouAreTooEncumbered));
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, itemGuid));
                 return;
             }
 
@@ -530,7 +530,7 @@ namespace ACE.Server.WorldObjects
                     {
                         // We're not who has it open. Can't pick up something someone else is viewing!
                         Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(Session, WeenieErrorWithString.The_IsCurrentlyInUse, item.Name));
-                        Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, itemGuid, WeenieError.Stuck));
+                        Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, itemGuid));
                         return;
                     }
                 }
@@ -764,7 +764,7 @@ namespace ACE.Server.WorldObjects
             if (rootOwner != this && !HasEnoughBurdenToAddToInventory(item))
             {
                 Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "You are too encumbered to carry that!"));
-                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, itemGuid, WeenieError.YouAreTooEncumbered));
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, itemGuid));
                 return;
             }
 
@@ -1041,7 +1041,7 @@ namespace ACE.Server.WorldObjects
             if (stackRootOwner != this && containerRootOwner == this && !HasEnoughBurdenToAddToInventory(stack))
             {
                 Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "You are too encumbered to carry that!"));
-                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, stackId, WeenieError.YouAreTooEncumbered));
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, stackId));
                 return;
             }
 
@@ -1268,7 +1268,7 @@ namespace ACE.Server.WorldObjects
             if (sourceStackRootOwner != this && targetStackRootOwner == this && !HasEnoughBurdenToAddToInventory(sourceStack))
             {
                 Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "You are too encumbered to carry that!"));
-                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, mergeFromGuid, WeenieError.YouAreTooEncumbered));
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, mergeFromGuid));
                 return;
             }
 
@@ -1523,14 +1523,14 @@ namespace ACE.Server.WorldObjects
 
             if (target.EmoteManager.IsBusy)
             {
-                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, target.Guid.Full, WeenieError.ActionCancelled));
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full));
                 Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(Session, WeenieErrorWithString._IsTooBusyToAcceptGifts, target.Name));
                 return;
             }
 
             if (!target.GetProperty(PropertyBool.AllowGive) ?? false)
             {
-                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, target.Guid.Full, WeenieError.TradeAiDoesntWant));
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full));
                 Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(Session, WeenieErrorWithString._IsNotAcceptingGiftsRightNow, target.Name));
                 return;
             }
@@ -1555,13 +1555,13 @@ namespace ACE.Server.WorldObjects
                 {
                     // Item rejected by npc
                     Session.Network.EnqueueSend(new GameMessageSystemChat($"You allow {target.Name} to examine your {item.Name}.", ChatMessageType.Broadcast));
-                    Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, target.Guid.Full, WeenieError.TradeAiRefuseEmote));
+                    Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, target.Guid.Full));
                 }
             }
             else
             {
                 Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(Session, (WeenieErrorWithString)WeenieError.TradeAiDoesntWant, target.Name));
-                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, target.Guid.Full, WeenieError.TradeAiDoesntWant));
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, target.Guid.Full));
             }
         }
 
