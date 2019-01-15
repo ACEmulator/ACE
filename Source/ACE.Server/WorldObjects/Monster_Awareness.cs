@@ -68,6 +68,9 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public virtual void Sleep()
         {
+            if (DebugMove)
+                Console.WriteLine($"{Name}.Sleep()");
+
             AttackTarget = null;
             IsAwake = false;
             IsMoving = false;
