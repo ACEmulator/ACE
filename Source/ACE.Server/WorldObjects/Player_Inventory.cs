@@ -1523,7 +1523,7 @@ namespace ACE.Server.WorldObjects
 
             if (target.EmoteManager.IsBusy)
             {
-                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, target.Guid.Full, (WeenieError)WeenieErrorWithString._IsTooBusyToAcceptGifts));
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, target.Guid.Full, WeenieError.ActionCancelled));
                 Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(Session, WeenieErrorWithString._IsTooBusyToAcceptGifts, target.Name));
                 return;
             }
