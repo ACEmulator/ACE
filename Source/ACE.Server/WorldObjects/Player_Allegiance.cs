@@ -1,7 +1,9 @@
 using System;
 
 using ACE.Entity.Enum;
+using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
+using ACE.Server.Entity.Actions;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
@@ -13,12 +15,25 @@ namespace ACE.Server.WorldObjects
         public Allegiance Allegiance { get; set; }
         public AllegianceNode AllegianceNode { get; set; }
 
-        // TODO: write to db
-        public ulong CPTithed;
-        public ulong CPCached;
-        public ulong CPPoolToUnload { get => (ulong)(AllegianceCPPool ?? 0); set => AllegianceCPPool = (int)value; }
-
         public bool HasAllegiance { get => Allegiance != null && Allegiance.TotalMembers > 1; }
+
+        public ulong AllegianceXPCached
+        {
+            get => (ulong)(GetProperty(PropertyInt64.AllegianceXPCached) ?? 0);
+            set { if (value == 0) RemoveProperty(PropertyInt64.AllegianceXPCached); else SetProperty(PropertyInt64.AllegianceXPCached, (long)value); }
+        }
+
+        public ulong AllegianceXPGenerated
+        {
+            get => (ulong)(GetProperty(PropertyInt64.AllegianceXPGenerated) ?? 0);
+            set { if (value == 0) RemoveProperty(PropertyInt64.AllegianceXPGenerated); else SetProperty(PropertyInt64.AllegianceXPGenerated, (long)value); }
+        }
+
+        public ulong AllegianceXPReceived
+        {
+            get => (ulong)(GetProperty(PropertyInt64.AllegianceXPReceived) ?? 0);
+            set { if (value == 0) RemoveProperty(PropertyInt64.AllegianceXPReceived); else SetProperty(PropertyInt64.AllegianceXPReceived, (long)value); }
+        }
 
         /// <summary>
         /// Called when a player tries to Swear Allegiance to a target
@@ -49,6 +64,8 @@ namespace ACE.Server.WorldObjects
 
             // rebuild allegiance tree structure
             AllegianceManager.OnSwearAllegiance(this);
+
+            AllegianceXPGenerated = 0;
 
             // refresh ui panel
             Session.Network.EnqueueSend(new GameEventAllegianceUpdate(Session, Allegiance, AllegianceNode), new GameEventAllegianceAllegianceUpdateDone(Session));
@@ -192,19 +209,37 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Adds any pending XP in CPPoolToUnload to the player's total XP
+        /// For an online patron, adds the pending allegiance XP stored in AllegianceXPCached
+        /// to their total / unassigned xp
         /// </summary>
         /// <param name="showMsg">Set to TRUE if player is logging in</param>
-        public void AddCPPoolToUnload(bool showMsg = false)
+        public void AddAllegianceXP(bool showMsg = false)
         {
-            if (AllegianceCPPool == 0) return;
-
-            EarnXP((long)CPPoolToUnload, false);
+            if (AllegianceXPCached == 0) return;
 
             if (showMsg)
-                Session.Network.EnqueueSend(new GameMessageSystemChat($"Your Vassals have produced experience points for you.\nTaking your skills as a leader into account, you gain {CPPoolToUnload} xp.", ChatMessageType.Broadcast));
+            {
+                var actionChain = new ActionChain();
+                actionChain.AddDelaySeconds(3.0f);
+                actionChain.AddAction(this, () =>
+                {
+                    Session.Network.EnqueueSend(new GameMessageSystemChat($"Your Vassals have produced experience points for you.\nTaking your skills as a leader into account, you gain {AllegianceXPCached:N0} xp.", ChatMessageType.Broadcast));
+                    AddAllegianceXP_Receive();
+                });
+                actionChain.EnqueueChain();
+            }
+            else
+                AddAllegianceXP_Receive();
+        }
 
-            AllegianceCPPool = 0;
+        private void AddAllegianceXP_Receive()
+        {
+            // TODO: handle ulong -> long?
+            EarnXP((long)AllegianceXPCached, false);
+
+            AllegianceXPReceived += AllegianceXPCached;
+
+            AllegianceXPCached = 0;
         }
     }
 }

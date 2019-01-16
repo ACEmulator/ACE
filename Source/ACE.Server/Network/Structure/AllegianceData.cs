@@ -73,6 +73,8 @@ namespace ACE.Server.Network.Structure
                 loyalty = (ushort)player.GetCurrentLoyalty();
                 leadership = (ushort)player.GetCurrentLeadership();
                 name = player.Name;
+
+                cpTithed = (uint)player.AllegianceXPGenerated;
             }
 
             writer.Write(characterID);
