@@ -8,9 +8,6 @@ namespace ACE.Server.Network.GameAction.Actions
         [GameAction(GameActionType.FellowshipCreate)]
         public static void Handle(ClientMessage message, Session session)
         {
-            // Should create new Fellowship with 1 member
-            // todo: option for sharing XP
-
             var fellowshipName = message.Payload.ReadString16L();
             bool shareXp = message.Payload.ReadUInt32() > 0;
 

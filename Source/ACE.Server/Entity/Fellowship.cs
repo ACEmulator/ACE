@@ -23,6 +23,7 @@ namespace ACE.Server.Entity
         public uint FellowshipLeaderGuid;
 
         public bool ShareXP;    // XP sharing: 0=no, 1=yes
+        public bool ShareLoot;  // Loot sharing: 0=no, 1=yes
         public bool EvenShare;  // XP equal sharing: 0=proportional to level, 1=even
         public bool Open;       // Open fellowship: 0=no, 1=yes
 
@@ -34,6 +35,10 @@ namespace ACE.Server.Entity
         public Fellowship(Player leader, string fellowshipName, bool shareXP)
         {
             ShareXP = shareXP;
+
+            // get loot sharing from leader's character options
+            ShareLoot = leader.GetCharacterOption(CharacterOption.ShareFellowshipLoot);
+
             FellowshipLeaderGuid = leader.Guid.Full;
             FellowshipName = fellowshipName;
             EvenShare = false;
