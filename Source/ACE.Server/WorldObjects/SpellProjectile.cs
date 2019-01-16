@@ -239,7 +239,7 @@ namespace ACE.Server.WorldObjects
             // ensure valid creature target
             // non-target objects will be excluded beforehand from collision detection
             var target = _target as Creature;
-            if (target == null)
+            if (target == null || player == target)
             {
                 OnCollideEnvironment();
                 return;

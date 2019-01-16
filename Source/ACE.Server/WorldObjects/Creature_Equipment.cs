@@ -191,7 +191,7 @@ namespace ACE.Server.WorldObjects
             if (IsInChildLocation(worldObject)) // Is this equipped item visible to others?
                 EnqueueBroadcast(false, new GameMessageSound(Guid, Sound.WieldObject));
 
-            if (worldObject.ParentLocation != null && wieldedLocation != EquipMask.MissileAmmo)
+            if (worldObject.ParentLocation != null)
                 EnqueueBroadcast(new GameMessageParentEvent(this, worldObject, (int?)worldObject.ParentLocation ?? 0, (int?)worldObject.Placement ?? 0));
 
             EnqueueBroadcast(new GameMessageObjDescEvent(this));
@@ -269,9 +269,6 @@ namespace ACE.Server.WorldObjects
             if (((EquipMask)item.CurrentWieldedLocation & EquipMask.Selectable) != 0)
                 return true;
 
-            if (((EquipMask)item.CurrentWieldedLocation & EquipMask.MissileAmmo) != 0)
-                return true;
-
             return false;
         }
 
@@ -325,12 +322,6 @@ namespace ACE.Server.WorldObjects
                     }
                     break;
 
-                case EquipMask.MissileAmmo:
-                    // quiver = 5 for arrows/bolts?
-                    placement = ACE.Entity.Enum.Placement.RightHandCombat;
-                    parentLocation = ACE.Entity.Enum.ParentLocation.RightHand;
-                    break;
-
                 case EquipMask.Held:
                     placement = ACE.Entity.Enum.Placement.RightHandCombat;
                     parentLocation = ACE.Entity.Enum.ParentLocation.RightHand;
@@ -357,7 +348,7 @@ namespace ACE.Server.WorldObjects
         /// ParentLocation = null<para />
         /// Location = null
         /// </summary>
-        private void ClearChild(WorldObject item)
+        protected void ClearChild(WorldObject item)
         {
             item.Placement = ACE.Entity.Enum.Placement.Resting;
             item.ParentLocation = null;

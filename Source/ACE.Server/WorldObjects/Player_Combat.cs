@@ -795,5 +795,69 @@ namespace ACE.Server.WorldObjects
             else
                 return null;
         }
+
+        /// <summary>
+        /// This method processes the Game Action (F7B1) Change Combat Mode (0x0053)
+        /// </summary>
+        public void HandleGameActionChangeCombatMode(CombatMode newCombatMode)
+        {
+            var currentCombatStance = GetCombatStance();
+
+            switch (newCombatMode)
+            {
+                case CombatMode.NonCombat:
+                {
+                    switch (currentCombatStance)
+                    {
+                        case MotionStance.BowCombat:
+                        case MotionStance.CrossbowCombat:
+                        case MotionStance.AtlatlCombat:
+                        {
+                            var equippedAmmo = GetEquippedAmmo();
+                            if (equippedAmmo != null)
+                                ClearChild(equippedAmmo); // We must clear the placement/parent when going back to peace
+                            break;
+                        }
+                    }
+                    break;
+                }
+                case CombatMode.Melee:
+                    // todo expand checks
+                    break;
+
+                case CombatMode.Missile:
+                {
+                    switch (currentCombatStance)
+                    {
+                        case MotionStance.BowCombat:
+                        case MotionStance.CrossbowCombat:
+                        case MotionStance.AtlatlCombat:
+                        {
+                            var equippedAmmo = GetEquippedAmmo();
+                            if (equippedAmmo == null)
+                            {
+                                Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "You are out of ammunition!"));
+                                newCombatMode = CombatMode.NonCombat;
+                            }
+                            else
+                            {
+                                // We must set the placement/parent when going into combat
+                                equippedAmmo.Placement = ACE.Entity.Enum.Placement.RightHandCombat;
+                                equippedAmmo.ParentLocation = ACE.Entity.Enum.ParentLocation.RightHand;
+                            }
+                            break;
+                        }
+                    }
+                    break;
+                }
+
+                case CombatMode.Magic:
+                    // todo expand checks
+                    break;
+
+            }
+
+            SetCombatMode(newCombatMode);
+        }
     }
 }
