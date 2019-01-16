@@ -6,6 +6,7 @@ using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
+using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
@@ -283,7 +284,11 @@ namespace ACE.Server.WorldObjects
                 // payout scaled by the vendor's buy rate
                 payout += (uint)Math.Floor((wo.Value ?? 0) * buyRate + 0.1);
 
-                if (!wo.MaxStackSize.HasValue & !wo.MaxStructure.HasValue)
+                // don't resell DestroyOnSell
+                var destroyOnSell = wo.GetProperty(PropertyBool.DestroyOnSell) ?? false;
+
+                // don't resell stackables?
+                if (wo.MaxStackSize == null && wo.MaxStructure == null && !destroyOnSell)
                 {
                     wo.Location = null;
                     wo.ContainerId = Guid.Full;
@@ -291,8 +296,15 @@ namespace ACE.Server.WorldObjects
                     wo.WielderId = null;
                     wo.CurrentWieldedLocation = null;
                     wo.Placement = ACE.Entity.Enum.Placement.Resting;
+
                     uniqueItemsForSale.Add(wo.Guid, wo);
                 }
+
+                // remove object from shard db, but keep a reference to it in memory
+                // for DestroyOnSell items, these will effectively be destroyed immediately
+                // for other items, if a player re-purchases, it will be added to the shard db again
+                wo.RemoveBiotaFromDatabase();
+
                 accepted.Add(wo);
             }
 

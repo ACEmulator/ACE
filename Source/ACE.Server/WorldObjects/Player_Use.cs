@@ -21,14 +21,20 @@ namespace ACE.Server.WorldObjects
         private int moveToChainCounter;
         private DateTime moveToChainStartTime;
 
+        private int lastCompletedMove;
+
+        public bool IsPlayerMovingTo => moveToChainCounter > lastCompletedMove;
+
         private int GetNextMoveToChainNumber()
         {
             return Interlocked.Increment(ref moveToChainCounter);
         }
 
-        private void StopExistingMoveToChains()
+        public void StopExistingMoveToChains()
         {
             Interlocked.Increment(ref moveToChainCounter);
+
+            lastCompletedMove = moveToChainCounter;
         }
 
         // ===============================
@@ -180,18 +186,16 @@ namespace ACE.Server.WorldObjects
                 }
 
                 // already there?
-                if (!moveTo || IsWithinUseRadiusOf(item))
+                if (!moveTo)
                 {
                     item.ActOnUse(this);
                     return;
                 }
 
                 // if required, move to
-                var actionChain = CreateMoveToChain(item, out var thisMoveToChainNumber);
-
-                actionChain.AddAction(item, () =>
+                CreateMoveToChain(item, out var thisMoveToChainNumber, (success) =>
                 {
-                    if (thisMoveToChainNumber == moveToChainCounter)
+                    if (success)
                     {
                         item.ActOnUse(this);
                     }
@@ -206,72 +210,200 @@ namespace ACE.Server.WorldObjects
                         Session.Network.EnqueueSend(new GameEventUseDone(Session));
                     }
                 });
-                actionChain.EnqueueChain();
             }
         }
 
-        public ActionChain CreateMoveToChain(WorldObject target, out int thisMoveToChainNumber)
+        public void CreateMoveToChain(WorldObject target, out int thisMoveToChainNumber, Action<bool> callback)
         {
             thisMoveToChainNumber = GetNextMoveToChainNumber();
-
-            ActionChain moveToChain = new ActionChain();
-
-            moveToChain.AddAction(this, () =>
-            {
-                if (target.Location == null)
-                {
-                    log.Error($"{Name}.CreateMoveToChain({target.Name}): target.Location is null");
-                    return;
-                }
-
-                if (target.WeenieType == WeenieType.Portal)
-                    MoveToPosition(target.Location);
-                else
-                    MoveToObject(target);
-            });
-
-            // poll for arrival every .1 seconds
-            // Ideally, this should be switched away from using the DelayManager, and instead be checked on every Player Tick()
-            ActionChain moveToBody = new ActionChain();
-            moveToBody.AddDelaySeconds(.1);
-
             var thisMoveToChainNumberCopy = thisMoveToChainNumber;
+
+            if (target.Location == null)
+            {
+                StopExistingMoveToChains();
+                log.Error($"{Name}.CreateMoveToChain({target.Name}): target.Location is null");
+
+                callback(false);
+                return;
+            }
+
+            // already within use distance?
+            var withinUseRadius = CurrentLandblock.WithinUseRadius(this, target.Guid, out var targetValid);
+            if (withinUseRadius)
+            {
+                // send TurnTo motion
+                var rotateTime = Rotate(target);
+                var actionChain = new ActionChain();
+                actionChain.AddDelaySeconds(rotateTime);
+                actionChain.AddAction(this, () =>
+                {
+                    lastCompletedMove = thisMoveToChainNumberCopy;
+                    callback(true);
+                });
+                actionChain.EnqueueChain();
+                return;
+            }
+
+            if (target.WeenieType == WeenieType.Portal)
+                MoveToPosition(target.Location);
+            else
+                MoveToObject(target);
 
             moveToChainStartTime = DateTime.UtcNow;
 
-            moveToChain.AddLoop(this, () =>
+            MoveToChain(target, thisMoveToChainNumberCopy, callback);
+        }
+
+        public void MoveToChain(WorldObject target, int thisMoveToChainNumberCopy, Action<bool> callback)
+        {
+            if (thisMoveToChainNumberCopy != moveToChainCounter)
             {
-                if (thisMoveToChainNumberCopy != moveToChainCounter)
-                    return false;
+                if (thisMoveToChainNumberCopy > lastCompletedMove)
+                    lastCompletedMove = thisMoveToChainNumberCopy;
 
-                // Break loop if CurrentLandblock == null (we portaled or logged out)
-                if (CurrentLandblock == null)
+                callback(false);
+                return;
+            }
+
+            // Break loop if CurrentLandblock == null (we portaled or logged out)
+            if (CurrentLandblock == null)
+            {
+                StopExistingMoveToChains(); // This increments our moveToChainCounter and thus, should stop any additional actions in this chain
+                callback(false);
+                return;
+            }
+
+            // Have we timed out?
+            if (moveToChainStartTime + defaultMoveToTimeout <= DateTime.UtcNow)
+            {
+                StopExistingMoveToChains(); // This increments our moveToChainCounter and thus, should stop any additional actions in this chain
+                callback(false);
+                return;
+            }
+
+            // Are we within use radius?
+            var success = CurrentLandblock.WithinUseRadius(this, target.Guid, out var targetValid);
+
+            // If one of the items isn't on a landblock
+            if (!targetValid)
+            {
+                StopExistingMoveToChains(); // This increments our moveToChainCounter and thus, should stop any additional actions in this chain
+                callback(false);
+                return;
+            }
+
+            if (!success)
+            {
+                // target not reached yet
+                var actionChain = new ActionChain();
+                actionChain.AddDelaySeconds(0.1f);
+                actionChain.AddAction(this, () => MoveToChain(target, thisMoveToChainNumberCopy, callback));
+                actionChain.EnqueueChain();
+            }
+            else
+            {
+                if (thisMoveToChainNumberCopy > lastCompletedMove)
+                    lastCompletedMove = thisMoveToChainNumberCopy;
+
+                callback(true);
+            }
+        }
+
+        /// <summary>
+        /// Returns the amount of time until this item's cooldown expires
+        /// </summary>
+        public TimeSpan GetCooldown(WorldObject item)
+        {
+            if (!LastUseTracker.TryGetValue(item.CooldownId.Value, out var lastUseTime))
+                return TimeSpan.FromSeconds(0);
+
+            var nextUseTime = lastUseTime + TimeSpan.FromSeconds(item.CooldownDuration.Value);
+
+            if (DateTime.UtcNow < nextUseTime)
+                return nextUseTime - DateTime.UtcNow;
+            else
+                return TimeSpan.FromSeconds(0);
+        }
+
+        /// <summary>
+        /// Returns TRUE if this item can be activated at this time
+        /// </summary>
+        public bool CheckCooldown(WorldObject item)
+        {
+            return GetCooldown(item).TotalSeconds == 0.0f;
+        }
+
+        /// <summary>
+        /// Maintains the cooldown timers for an item
+        /// </summary>
+        public void UpdateCooldown(WorldObject item)
+        {
+            if (!LastUseTracker.ContainsKey(item.CooldownId.Value))
+                LastUseTracker.Add(item.CooldownId.Value, DateTime.UtcNow);
+            else
+                LastUseTracker[item.CooldownId.Value] = DateTime.UtcNow;
+        }
+
+        /// <summary>
+        /// Verifies the use requirements for activating an item
+        /// </summary>
+        public GameEventWeenieErrorWithString CheckUseRequirements(WorldObject item)
+        {
+            // verify arcane lore requirement
+            if (item.ItemDifficulty != null)
+            {
+                // TODO: more specific error messages
+                var arcaneLore = GetCreatureSkill(Skill.ArcaneLore);
+                if (arcaneLore.Current < item.ItemDifficulty.Value)
+                    return new GameEventWeenieErrorWithString(Session, WeenieErrorWithString.Your_IsTooLowToUseItemMagic, arcaneLore.Skill.ToSentence());
+            }
+
+            // verify skill - does this have to be trained, or only in conjunction with UseRequiresSkillLevel?
+            // only seems to be used for summoning so far...
+            if (item.UseRequiresSkill != null)
+            {
+                var skill = (Skill)item.UseRequiresSkill.Value;
+                var playerSkill = GetCreatureSkill(skill);
+
+                if (playerSkill.AdvancementClass < SkillAdvancementClass.Trained)
+                    return new GameEventWeenieErrorWithString(Session, WeenieErrorWithString.Your_SkillMustBeTrained, playerSkill.Skill.ToSentence());
+
+                // verify skill level
+                if (item.UseRequiresSkillLevel != null)
                 {
-                    StopExistingMoveToChains(); // This increments our moveToChainCounter and thus, should stop any additional actions in this chain
-                    return false;
+                    if (playerSkill.Current < item.UseRequiresSkillLevel.Value)
+                        return new GameEventWeenieErrorWithString(Session, WeenieErrorWithString.Your_IsTooLowToUseItemMagic, playerSkill.Skill.ToSentence());
                 }
+            }
 
-                // Have we timed out?
-                if (moveToChainStartTime + defaultMoveToTimeout <= DateTime.UtcNow)
+            // verify skill specialized
+            // is this always in conjunction with UseRequiresSkill?
+            // again, only seems to be for summoning so far...
+            if (item.UseRequiresSkillSpec != null)
+            {
+                var skill = (Skill)item.UseRequiresSkillSpec.Value;
+                var playerSkill = GetCreatureSkill(skill);
+
+                if (playerSkill.AdvancementClass < SkillAdvancementClass.Specialized)
+                    return new GameEventWeenieErrorWithString(Session, WeenieErrorWithString.YouMustSpecialize_ToUseItemMagic, playerSkill.Skill.ToSentence());
+
+                // verify skill level
+                if (item.UseRequiresSkillLevel != null)
                 {
-                    StopExistingMoveToChains(); // This increments our moveToChainCounter and thus, should stop any additional actions in this chain
-                    return false;
+                    if (playerSkill.Current < item.UseRequiresSkillLevel.Value)
+                        return new GameEventWeenieErrorWithString(Session, WeenieErrorWithString.Your_IsTooLowToUseItemMagic, playerSkill.Skill.ToSentence());
                 }
+            }
 
-                // Are we within use radius?
-                bool ret = !CurrentLandblock.WithinUseRadius(this, target.Guid, out var valid);
+            // verify player level
+            if (item.UseRequiresLevel != null)
+            {
+                var playerLevel = Level ?? 1;
+                if (playerLevel < item.UseRequiresLevel.Value)
+                    return new GameEventWeenieErrorWithString(Session, WeenieErrorWithString.YouMustBe_ToUseItemMagic, $"level {item.UseRequiresLevel.Value}");
+            }
 
-                // If one of the items isn't on a landblock
-                if (!valid)
-                {
-                    ret = false;
-                    StopExistingMoveToChains(); // This increments our moveToChainCounter and thus, should stop any additional actions in this chain
-                }
-
-                return ret;
-            }, moveToBody);
-
-            return moveToChain;
+            return null;
         }
 
         public void SendUseDoneEvent(WeenieError errorType = WeenieError.None)

@@ -1,35 +1,42 @@
 using System;
+using System.Runtime.CompilerServices;
+
 using ACE.Entity.Enum;
 
 namespace ACE.Server.WorldObjects
 {
     partial class Creature
     {
-        private static readonly TimeSpan monsterTickInterval = TimeSpan.FromMilliseconds(200);
+        private const double monsterTickInterval = 0.2;
 
-        private DateTime lastMonsterTick;
+        private double nextMonsterTickTime;
 
-        private bool FirstUpdate = true;
+        private bool firstUpdate = true;
 
         /// <summary>
         /// Primary dispatch for monster think
         /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void Monster_Tick(double currentUnixTime)
         {
-            if (lastMonsterTick + monsterTickInterval > DateTime.UtcNow)
+            if (nextMonsterTickTime > currentUnixTime)
                 return;
 
-            lastMonsterTick = DateTime.UtcNow;
+            nextMonsterTickTime = currentUnixTime + monsterTickInterval;
 
             if (!IsAwake || IsDead) return;
+
+            IsMonster = true;
 
             HandleFindTarget();
 
             CheckMissHome();    // tickrate?
 
-            if (AttackTarget == null && MonsterState != State.Return) return;
-
-            IsMonster = true;
+            if (AttackTarget == null && MonsterState != State.Return)
+            {
+                Sleep();
+                return;
+            }
 
             var pet = this as CombatPet;
             if (pet != null && DateTime.UtcNow >= pet.ExpirationTime)
@@ -51,7 +58,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if (FirstUpdate)
+            if (firstUpdate)
             {
                 if (CurrentMotionState.Stance == MotionStance.NonCombat)
                     DoAttackStance();
@@ -63,7 +70,7 @@ namespace ACE.Server.WorldObjects
                     return;
                 }
 
-                FirstUpdate = false;
+                firstUpdate = false;
             }
 
             // select a new weapon if missile launcher is out of ammo
@@ -93,7 +100,7 @@ namespace ACE.Server.WorldObjects
                 MaxRange = GetMaxRange();
 
                 //if (CurrentAttack == AttackType.Magic)
-                    //MaxRange = MaxMeleeRange;   // FIXME: server position sync
+                //MaxRange = MaxMeleeRange;   // FIXME: server position sync
             }
 
             // get distance to target

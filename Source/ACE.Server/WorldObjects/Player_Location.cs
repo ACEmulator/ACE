@@ -202,5 +202,16 @@ namespace ACE.Server.WorldObjects
             if (CurrentLandblock != null)
                 CurrentLandblock?.SetActive();
         }
+
+        public static readonly float RunFactor = 1.5f;
+
+        /// <summary>
+        /// Returns the amount of time for player to rotate by the # of degrees
+        /// from the input angle, using the omega speed from its MotionTable
+        /// </summary>
+        public override float GetRotateDelay(float angle)
+        {
+            return base.GetRotateDelay(angle) / RunFactor;
+        }
     }
 }

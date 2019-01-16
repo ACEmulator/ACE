@@ -32,6 +32,16 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void TryCastSpell(Spell spell, WorldObject target, WorldObject caster = null)
         {
+            // verify spell exists in database
+            if (spell._spell == null)
+            {
+                var targetPlayer = target as Player;
+                if (targetPlayer != null)
+                    targetPlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"{spell.Name} spell not implemented, yet!", ChatMessageType.System));
+
+                return;
+            }
+
             // spells only castable on creatures?
             var targetCreature = target as Creature;
             if (targetCreature == null)
@@ -1091,15 +1101,19 @@ namespace ACE.Server.WorldObjects
 
             if (target != null)
             {
-                var globalDest = target.Location.ToGlobal();
+                var matchIndoors = Location.Indoors == target.Location.Indoors;
+                var globalDest = matchIndoors ? target.Location.ToGlobal() : target.Location.Pos;
                 globalDest.Z += target.Height / 2.0f;
-                var globalOrigin = GetSpellProjectileOrigin(this, spellProjectile, globalDest);
+                var globalOrigin = GetSpellProjectileOrigin(this, spellProjectile, globalDest, matchIndoors);
                 float dist = (globalDest - globalOrigin).Length();
                 float speed = GetSpellProjectileSpeed(spellProjectile.SpellType, dist);
 
                 spellProjectile.DistanceToTarget = dist;
-                Position localPos = Location.FromGlobal(globalOrigin);
-                spellProjectile.Location = new Position(localPos.LandblockId.Raw, localPos.Pos, this.Location.Rotation);
+                Position localPos = matchIndoors ? Location.FromGlobal(globalOrigin) : new Position(Location.Cell, globalOrigin, Location.Rotation);
+                if (!matchIndoors)
+                    localPos.LandblockId = new LandblockId(localPos.GetCell());
+
+                spellProjectile.Location = new Position(localPos.LandblockId.Raw, localPos.Pos, Location.Rotation);
                 spellProjectile.Velocity = GetSpellProjectileVelocity(globalOrigin, target, globalDest, speed, useGravity, out var time);
             }
             // We don't have a target and want to override the projectile origin and velocity
@@ -1172,9 +1186,9 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Calculates the spell projectile origin based on the targets global destination.
         /// </summary>
-        private Vector3 GetSpellProjectileOrigin(WorldObject caster, SpellProjectile spellProjectile, Vector3 globalDest)
+        private Vector3 GetSpellProjectileOrigin(WorldObject caster, SpellProjectile spellProjectile, Vector3 globalDest, bool matchIndoors)
         {
-            var globalOrigin = caster.Location.ToGlobal();
+            var globalOrigin = matchIndoors ? caster.Location.ToGlobal() : caster.Location.Pos;
             if (spellProjectile.SpellType == SpellProjectile.ProjectileSpellType.Arc)
                 globalOrigin.Z += caster.Height;
             else

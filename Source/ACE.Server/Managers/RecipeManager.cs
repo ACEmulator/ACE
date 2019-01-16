@@ -285,20 +285,20 @@ namespace ACE.Server.Managers
                     break;
                 case MaterialType.Copper:
 
-                    if (target.WieldSkillType != Skill.MissileDefense)
+                    if ((target.WieldSkillType ?? 0) != (int)Skill.MissileDefense)
                         return;
                     // change wield requirement: missile defense -> melee defense (increased)
-                    target.WieldSkillType = Skill.MeleeDefense;
+                    target.WieldSkillType = (int)Skill.MeleeDefense;
                     if (target.ItemSkillLevelLimit.HasValue)
                         target.ItemSkillLevelLimit = (int)Math.Round(target.ItemSkillLevelLimit.Value * 1.2f);
                     break;
 
                 case MaterialType.Silver:
 
-                    if (target.WieldSkillType != Skill.MeleeDefense)
+                    if ((target.WieldSkillType ?? 0) != (int)Skill.MeleeDefense)
                         return;
                     // change wield requirement: melee defense -> missile defense (reduced)
-                    target.WieldSkillType = Skill.MissileDefense;
+                    target.WieldSkillType = (int)Skill.MissileDefense;
                     if (target.ItemSkillLevelLimit.HasValue)
                         target.ItemSkillLevelLimit = (int)Math.Round(target.ItemSkillLevelLimit.Value * 0.85f);
                     break;
@@ -337,18 +337,41 @@ namespace ACE.Server.Managers
                     break;
 
                 case MaterialType.SmokeyQuartz:
+                    AddSpell(player, target, SpellId.CANTRIPCOORDINATION1);
+                    break;
                 case MaterialType.RoseQuartz:
+                    AddSpell(player, target, SpellId.CANTRIPQUICKNESS1);
+                    break;
                 case MaterialType.RedJade:
+                    AddSpell(player, target, SpellId.CANTRIPHEALTHGAIN1);
+                    break;
                 case MaterialType.Malachite:
+                    AddSpell(player, target, SpellId.WarriorsVigor);
+                    break;
                 case MaterialType.LavenderJade:
+                    AddSpell(player, target, SpellId.CANTRIPMANAGAIN1);
+                    break;
                 case MaterialType.LapisLazuli:
+                    AddSpell(player, target, SpellId.CANTRIPWILLPOWER1);
+                    break;
                 case MaterialType.Hematite:
+                    AddSpell(player, target, SpellId.WarriorsVitality);
+                    break;
                 case MaterialType.Citrine:
+                    AddSpell(player, target, SpellId.CANTRIPSTAMINAGAIN1);
+                    break;
                 case MaterialType.Carnelian:
+                    AddSpell(player, target, SpellId.CANTRIPSTRENGTH1);
+                    break;
                 case MaterialType.Bloodstone:
+                    AddSpell(player, target, SpellId.CANTRIPENDURANCE1);
+                    break;
                 case MaterialType.Azurite:
+                    AddSpell(player, target, SpellId.WizardsIntellect);
+                    break;
                 case MaterialType.Agate:
-                    return;
+                    AddSpell(player, target, SpellId.CANTRIPFOCUS1);
+                    break;
 
                 // weapon tinkering
 
@@ -399,6 +422,23 @@ namespace ACE.Server.Managers
             }
             // increase # of times tinkered
             target.NumTimesTinkered++;
+        }
+
+        public static void AddSpell(Player player, WorldObject target, SpellId spell, int difficulty = 25)
+        {
+            target.Biota.GetOrAddKnownSpell((int)spell, target.BiotaDatabaseLock, out var added);
+            target.ChangesDetected = true;
+
+            if (difficulty != 0)
+            {
+                target.ItemSpellcraft = (target.ItemSpellcraft ?? 0) + difficulty;
+                target.ItemDifficulty = (target.ItemDifficulty ?? 0) + difficulty;
+            }
+            if (target.UiEffects == null)
+            {
+                target.UiEffects = UiEffects.Magical;
+                player.Session.Network.EnqueueSend(new GameMessagePublicUpdatePropertyInt(target, PropertyInt.UiEffects, (int)target.UiEffects));
+            }
         }
 
         public static bool AddImbuedEffect(Player player, WorldObject target, ImbuedEffectType effect)
@@ -891,8 +931,11 @@ namespace ACE.Server.Managers
                     result.SetProperty(prop, sourceMod.GetProperty(prop) ?? 0);
                     break;
                 case ModifyOp.AddSpell:
-                    target.Biota.GetOrAddKnownSpell(value, target.BiotaDatabaseLock, out var added);
-                    target.ChangesDetected = true;
+                    if (value != -1)
+                    {
+                        target.Biota.GetOrAddKnownSpell(value, target.BiotaDatabaseLock, out var added);
+                        target.ChangesDetected = true;
+                    }
                     break;
                 default:
                     log.Warn($"RecipeManager.ModifyInt({source.Name}, {target.Name}): unhandled operation {op}");

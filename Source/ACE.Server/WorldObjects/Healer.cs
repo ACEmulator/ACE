@@ -53,17 +53,16 @@ namespace ACE.Server.WorldObjects
             if (!healer.Equals(target))
             {
                 // perform moveto
-                var moveToChain = new ActionChain();
-                moveToChain.AddChain(healer.CreateMoveToChain(target, out var thisMoveToChainNumber));
-                moveToChain.AddAction(healer, () => DoHealMotion(healer, target));
-                moveToChain.EnqueueChain();
+                healer.CreateMoveToChain(target, out var thisMoveToChainNumber, (success) => DoHealMotion(healer, target, success));
             }
             else
-                DoHealMotion(healer, target);
+                DoHealMotion(healer, target, true);
         }
 
-        public void DoHealMotion(Player healer, Player target)
+        public void DoHealMotion(Player healer, Player target, bool success)
         {
+            if (!success) return;
+
             var motionCommand = healer.Equals(target) ? MotionCommand.SkillHealSelf : MotionCommand.SkillHealOther;
 
             var motion = new Motion(healer, motionCommand);

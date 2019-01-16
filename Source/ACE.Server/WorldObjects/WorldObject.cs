@@ -92,6 +92,7 @@ namespace ACE.Server.WorldObjects
 
             InitializePropertyDictionaries();
             SetEphemeralValues();
+            InitializeTick();
 
             CreationTimestamp = (int)Time.GetUnixTime();
         }
@@ -109,6 +110,7 @@ namespace ACE.Server.WorldObjects
 
             InitializePropertyDictionaries();
             SetEphemeralValues();
+            InitializeTick();
         }
 
         /// <summary>
@@ -265,13 +267,13 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public bool Teleporting { get; set; } = false;
 
-        public bool HandleNPCReceiveItem(WorldObject item, WorldObject giver, ActionChain actionChain)
+        public bool HandleNPCReceiveItem(WorldObject item, WorldObject giver)
         {
             // NPC accepts this item
             var giveItem = EmoteManager.GetEmoteSet(EmoteCategory.Give, null, null, item.WeenieClassId);
             if (giveItem != null)
             {
-                EmoteManager.ExecuteEmoteSet(giveItem, giver, actionChain, true);
+                EmoteManager.ExecuteEmoteSet(giveItem, giver);
                 return true;
             }
 
@@ -279,7 +281,7 @@ namespace ACE.Server.WorldObjects
             var refuseItem = EmoteManager.GetEmoteSet(EmoteCategory.Refuse, null, null, item.WeenieClassId);
             if (refuseItem != null)
             {
-                EmoteManager.ExecuteEmoteSet(refuseItem, giver, actionChain, true);
+                EmoteManager.ExecuteEmoteSet(refuseItem, giver);
                 return true;
             }
             return false;
@@ -298,7 +300,7 @@ namespace ACE.Server.WorldObjects
             return PhysicsObj.ObjMaint.VisibleObjectTable.ContainsKey(wo.PhysicsObj.ID);
         }
 
-        public static PhysicsObj SightObj = PhysicsObj.makeObject(0x02000124, 0, false);     // arrow
+        public static PhysicsObj SightObj = PhysicsObj.makeObject(0x02000124, 0, false, true);     // arrow
 
         /// <summary>
         /// Returns TRUE if this object has direct line-of-sight visibility to input object

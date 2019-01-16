@@ -269,10 +269,12 @@ namespace ACE.Server.WorldObjects
                     //Console.WriteLine($"{Name} equipping {item.Name}");
 
                     if (item.ValidLocations != null)
+                    {
+                        TryRemoveFromInventory(item.Guid);
                         TryEquipObjectWithBroadcasting(item, (int)item.ValidLocations);
+                    }
                 }
             }
         }
-
     }
 }

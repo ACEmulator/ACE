@@ -107,9 +107,14 @@ namespace ACE.Server.Physics.Common
 
             var target = transition.ObjectInfo.Object.ProjectileTarget;
 
-            // TODO: find out what is causing the exception when .ToList() is not used.
-            foreach (var shadowObj in ShadowObjectList)
+            // If we use the following: foreach (var shadowObj in ShadowObjectList), an InvalidOperationException is thrown.
+            // Very rarely though, as we iterate through it, the collection will change.
+            // To avoid the InvalidOperationException, we use a for loop.
+            // We do not yet know why the collection changes.
+            for (int i = ShadowObjectList.Count - 1 ; i >= 0 ; i--)
             {
+                var shadowObj = ShadowObjectList[i];
+
                 var obj = shadowObj.PhysicsObj;
 
                 if (obj.Parent != null || obj.Equals(transition.ObjectInfo.Object))

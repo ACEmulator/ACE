@@ -1,6 +1,7 @@
 using System;
 using System.Numerics;
 
+using ACE.Common;
 using ACE.Entity;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
@@ -13,23 +14,25 @@ namespace ACE.Server.WorldObjects
 {
     partial class WorldObject
     {
-        private readonly ActionQueue actionQueue = new ActionQueue();
+        private ActionQueue actionQueue;
 
         public const int DefaultHeartbeatInterval = 5;
 
-        protected double? cachedHeartbeatTimestamp;
-        protected double cachedHeartbeatInterval;
+        protected double CachedHeartbeatInterval;
+        protected double NextHeartBeatTime;
+
+        private void InitializeTick()
+        {
+            CachedHeartbeatInterval = HeartbeatInterval ?? DefaultHeartbeatInterval;
+            QueueFirstHeartbeat(Time.GetUnixTime());
+        }
 
         public virtual void Tick(double currentUnixTime)
         {
-            actionQueue.RunActions();
+            if (actionQueue != null)
+                actionQueue.RunActions();
 
-            if (cachedHeartbeatTimestamp == null)
-            {
-                cachedHeartbeatInterval = HeartbeatInterval ?? DefaultHeartbeatInterval;
-                QueueFirstHeartbeat(currentUnixTime);
-            }
-            else if (cachedHeartbeatTimestamp + cachedHeartbeatInterval <= currentUnixTime)
+            if (NextHeartBeatTime <= currentUnixTime)
                 HeartBeat(currentUnixTime);
         }
 
@@ -39,7 +42,8 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         void IActor.RunActions()
         {
-            actionQueue.RunActions();
+            if (actionQueue != null)
+                actionQueue.RunActions();
         }
 
         /// <summary>
@@ -47,6 +51,9 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void EnqueueAction(IAction action)
         {
+            if (actionQueue == null)
+                actionQueue = new ActionQueue();
+
             actionQueue.EnqueueAction(action);
         }
 
@@ -56,11 +63,10 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void QueueFirstHeartbeat(double currentUnixTime)
         {
+            // The intention of this code was just to spread the heartbeat ticks out a little over a 0-5s range,
             var delay = ThreadSafeRandom.Next(0.0f, DefaultHeartbeatInterval);
 
-            var firstHeartbeat = currentUnixTime + delay;
-
-            cachedHeartbeatTimestamp = firstHeartbeat - cachedHeartbeatInterval;
+            NextHeartBeatTime = currentUnixTime + delay;
         }
 
         /// <summary>
@@ -68,14 +74,14 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public virtual void HeartBeat(double currentUnixTime)
         {
-            Generator_HeartBeat();
+            if (IsGenerator)
+                Generator_HeartBeat();
 
-            EmoteManager.HeartBeat();
+            if (EnchantmentManager.HasEnchantments)
+                EnchantmentManager.HeartBeat();
 
-            EnchantmentManager.HeartBeat();
-
-            cachedHeartbeatTimestamp = currentUnixTime;
             SetProperty(PropertyFloat.HeartbeatTimestamp, currentUnixTime);
+            NextHeartBeatTime = currentUnixTime + CachedHeartbeatInterval;
         }
 
 

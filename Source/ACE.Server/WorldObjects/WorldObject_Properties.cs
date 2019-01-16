@@ -998,10 +998,25 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyFloat.ElementalDamageMod); else SetProperty(PropertyFloat.ElementalDamageMod, value.Value); }
         }
 
-        public Skill WieldSkillType
+        public WieldRequirement WieldRequirements
         {
-            get => (Skill)(GetProperty(PropertyInt.WieldSkillType) ?? 0);
-            set { if (value == Skill.None) RemoveProperty(PropertyInt.WieldSkillType); else SetProperty(PropertyInt.WieldSkillType, (int)value); }
+            get => (WieldRequirement)(GetProperty(PropertyInt.WieldRequirements) ?? 0);
+            set { if (value == 0) RemoveProperty(PropertyInt.WieldRequirements); else SetProperty(PropertyInt.WieldRequirements, (int)value); }
+        }
+
+        /// <summary>
+        /// can also be used for attributes
+        /// </summary>
+        public int? WieldSkillType
+        {
+            get => GetProperty(PropertyInt.WieldSkillType);
+            set { if (value.HasValue) RemoveProperty(PropertyInt.WieldSkillType); else SetProperty(PropertyInt.WieldSkillType, value.Value); }
+        }
+
+        public int? WieldDifficulty
+        {
+            get => GetProperty(PropertyInt.WieldDifficulty);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.WieldDifficulty); else SetProperty(PropertyInt.WieldDifficulty, (int)value); }
         }
 
         public int? ItemAllegianceRankLimit
@@ -1094,21 +1109,52 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyInt.ItemWorkmanship); else SetProperty(PropertyInt.ItemWorkmanship, value.Value); }
         }
 
+        public int? NumItemsInMaterial
+        {
+            get => GetProperty(PropertyInt.NumItemsInMaterial);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.NumItemsInMaterial); else SetProperty(PropertyInt.NumItemsInMaterial, value.Value); }
+        }
+
         public float? Workmanship
         {
             get
             {
-                if ((ItemWorkmanship != null) && (Structure != null) && (Structure != 0))
-                    return (float)Convert.ToDouble(ItemWorkmanship / (10000 * Structure));
+                if (ItemWorkmanship == null) return null;
 
-                return (ItemWorkmanship);
+                var numItemsInMaterial = GetProperty(PropertyInt.NumItemsInMaterial) ?? 1;
+
+                var workmanship = (float)ItemWorkmanship / numItemsInMaterial;
+
+                // try to recover from previous botched formula...
+
+                // TODO: remove this code after awhile
+                if (workmanship < 1.0f || workmanship > 10.0f)
+                {
+                    var prevWorkmanship = workmanship;
+
+                    var structure = Structure ?? 1;
+
+                    workmanship = (float)ItemWorkmanship.Value / 10000 / structure;
+
+                    ItemWorkmanship = (int)Math.Round(workmanship * numItemsInMaterial);
+
+                    workmanship = Math.Clamp(workmanship, 1.0f, 10.0f);
+
+                    //log.Warn($"{Name}.Workmanship: adjusted from {prevWorkmanship} to {workmanship}");
+                }
+
+                return workmanship;
             }
             set
             {
-                if ((Structure != null) && (Structure != 0))
-                    ItemWorkmanship = Convert.ToInt32(value * 10000 * Structure);
+                if (value != null)
+                {
+                    var numItemsInMaterial = GetProperty(PropertyInt.NumItemsInMaterial) ?? 1;
+
+                    ItemWorkmanship = (int)Math.Round(value.Value * numItemsInMaterial);
+                }
                 else
-                    ItemWorkmanship = Convert.ToInt32(value);
+                    ItemWorkmanship = null;
             }
         }
 

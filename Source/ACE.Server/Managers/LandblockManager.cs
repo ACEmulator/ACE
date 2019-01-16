@@ -46,6 +46,15 @@ namespace ACE.Server.Managers
         /// </summary>
         public static void PreloadConfigLandblocks()
         {
+            if (!ConfigManager.Config.Server.LandblockPreloading)
+            {
+                log.Info("Preloading Landblocks Disabled...");
+                log.Warn("Events may not function correctly as Preloading of Landblocks has disabled.");
+                return;
+            }
+
+            log.Info("Preloading Landblocks...");
+
             if (ConfigManager.Config.Server.PreloadedLandblocks == null)
             {
                 log.Info("No configuration found for PreloadedLandblocks, please refer to Config.json.example");
@@ -71,7 +80,6 @@ namespace ACE.Server.Managers
                     log.DebugFormat("Landblock {0:X4}, ({1}) preloaded. IncludeAdjacents = {2}, Permaload = {3}", landblockID.Landblock, preloadLandblock.Description, preloadLandblock.IncludeAdjacents, preloadLandblock.Permaload);
                 }
             }
-            
         }
 
         /// <summary>
