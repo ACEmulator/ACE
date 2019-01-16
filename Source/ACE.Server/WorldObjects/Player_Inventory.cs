@@ -283,6 +283,12 @@ namespace ACE.Server.WorldObjects
 
             if (dequipObjectAction != DequipObjectAction.ToCorpseOnDeath)
             {
+                if (CombatMode == CombatMode.Missile && wieldedLocation == (int)EquipMask.MissileAmmo)
+                {
+                    SetCombatMode(CombatMode.NonCombat);
+                    return true;
+                }
+
                 if (CombatMode == CombatMode.NonCombat || (wieldedLocation != (int)EquipMask.MeleeWeapon && wieldedLocation != (int)EquipMask.MissileWeapon && wieldedLocation != (int)EquipMask.Held && wieldedLocation != (int)EquipMask.Shield))
                     return true;
 
@@ -752,6 +758,14 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void HandleActionGetAndWieldItem(uint itemGuid, int wieldLocation)
         {
+            // todo fix this, it seems IsAnimating is always true for a player
+            // todo we need to know when a player is busy to avoid additional actions during that time
+            /*if (IsAnimating)
+            {
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, WeenieError.YoureTooBusy));
+                return;
+            }*/
+
             var item = FindObject(new ObjectGuid(itemGuid), SearchLocations.Everywhere, out _, out var rootOwner, out var wasEquipped);
 
             if (item == null)

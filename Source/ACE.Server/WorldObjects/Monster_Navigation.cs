@@ -196,19 +196,19 @@ namespace ACE.Server.WorldObjects
             if (AttackTarget == null)
                 return float.MaxValue;
 
-            var dist = (AttackTarget.Location.ToGlobal() - Location.ToGlobal()).Length();
-            var radialDist = dist - (AttackTarget.PhysicsObj.GetRadius() + PhysicsObj.GetRadius());
+            //var matchIndoors = Location.Indoors == AttackTarget.Location.Indoors;
+            //var targetPos = matchIndoors ? AttackTarget.Location.ToGlobal() : AttackTarget.Location.Pos;
+            //var sourcePos = matchIndoors ? Location.ToGlobal() : Location.Pos;
+
+            //var dist = (targetPos - sourcePos).Length();
+            //var radialDist = dist - (AttackTarget.PhysicsObj.GetRadius() + PhysicsObj.GetRadius());
 
             // always use spheres?
             var cylDist = (float)Physics.Common.Position.CylinderDistance(PhysicsObj.GetRadius(), PhysicsObj.GetHeight(), PhysicsObj.Position,
                 AttackTarget.PhysicsObj.GetRadius(), AttackTarget.PhysicsObj.GetHeight(), AttackTarget.PhysicsObj.Position);
 
-            /*if (DebugMove)
-            {
-                Console.WriteLine($"Raw distance: {dist} ({radialDist}) - Cylinder dist: {cylDist}");
-                Console.WriteLine($"Player radius: {AttackTarget.PhysicsObj.GetRadius()} ({AttackTarget.PhysicsObj.GetPhysicsRadius()})");
-                Console.WriteLine($"Monster radius: {PhysicsObj.GetRadius()} ({PhysicsObj.GetPhysicsRadius()})");
-            }*/
+            if (DebugMove)
+                Console.WriteLine($"{Name}.DistanceToTarget: {cylDist}");
 
             //return radialDist;
             return cylDist;
@@ -292,6 +292,8 @@ namespace ACE.Server.WorldObjects
 
         public void DebugDistance()
         {
+            if (AttackTarget == null) return;
+
             var dist = GetDistanceToTarget();
             var angle = GetAngle(AttackTarget);
             //Console.WriteLine("Dist: " + dist);
@@ -393,7 +395,13 @@ namespace ACE.Server.WorldObjects
             if (MonsterState == State.Return)
                 return;
 
-            var homeDistSq = Vector3.DistanceSquared(Location.ToGlobal(), GetPosition(PositionType.Home).ToGlobal());
+            var homePosition = GetPosition(PositionType.Home);
+            var matchIndoors = Location.Indoors == homePosition.Indoors;
+
+            var globalPos = matchIndoors ? Location.ToGlobal() : Location.Pos;
+            var globalHomePos = matchIndoors ? homePosition.ToGlobal() : homePosition.Pos;
+
+            var homeDistSq = Vector3.DistanceSquared(globalHomePos, globalPos);
 
             if (homeDistSq > HomeDistSq)
                 MoveToHome();
@@ -401,6 +409,9 @@ namespace ACE.Server.WorldObjects
 
         public void MoveToHome()
         {
+            if (DebugMove)
+                Console.WriteLine($"{Name}.MoveToHome()");
+
             MonsterState = State.Return;
             AttackTarget = null;
 
