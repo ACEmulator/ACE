@@ -16,7 +16,6 @@
         <PackageReference Include="Nancy.Authentication.Forms" Version="2.0.0-clinteastwood" />
         <PackageReference Include="Nancy.Validation.FluentValidation" Version="2.0.0-clinteastwood" />
         <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
-        <PackageReference Include="System.Text.Encoding.CodePages" Version="4.5.0" />
         <PackageReference Include="Microsoft.AspNetCore.App" />
     </ItemGroup>
 
