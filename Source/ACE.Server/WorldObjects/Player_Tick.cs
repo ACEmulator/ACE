@@ -1,19 +1,24 @@
 using System;
 
 using ACE.Entity.Enum.Properties;
+using ACE.Server.Entity.Actions;
 using ACE.Server.Network.GameMessages.Messages;
 
 namespace ACE.Server.WorldObjects
 {
     partial class Player
     {
+        private readonly ActionQueue actionQueue = new ActionQueue();
+
         private int initialAge;
         private DateTime initialAgeTime;
 
         private DateTime lastSendAgeIntUpdateTime;
 
-        public override void Tick(double currentUnixTime)
+        public void Player_Tick(double currentUnixTime)
         {
+            actionQueue.RunActions();
+
             if (initialAgeTime == DateTime.MinValue)
             {
                 initialAge = Age ?? 1;
@@ -30,8 +35,6 @@ namespace ACE.Server.WorldObjects
                 Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.Age, Age ?? 1));
                 lastSendAgeIntUpdateTime = DateTime.UtcNow;
             }
-
-            base.Tick(currentUnixTime);
         }
 
         /// <summary>
@@ -57,6 +60,14 @@ namespace ACE.Server.WorldObjects
                 SavePlayerToDatabase();
 
             base.HeartBeat(currentUnixTime);
+        }
+
+        /// <summary>
+        /// Prepare new action to run on this player
+        /// </summary>
+        public override void EnqueueAction(IAction action)
+        {
+            actionQueue.EnqueueAction(action);
         }
     }
 }

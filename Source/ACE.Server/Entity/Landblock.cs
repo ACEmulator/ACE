@@ -279,8 +279,18 @@ namespace ACE.Server.Entity
             var wos = worldObjects.Values.ToList();
 
             // When a WorldObject Ticks, it can end up adding additional WorldObjects to this landblock
+
+            // o(n) method
             foreach (var wo in wos)
-                wo.Tick(currentUnixTime);
+            {
+                if (wo is Player player)
+                    player.Player_Tick(currentUnixTime);
+                else if (wo is Creature creature && creature.NextMonsterTickTime <= currentUnixTime)
+                    creature.Monster_Tick(currentUnixTime);
+
+                if (wo.NextHeartBeatTime <= currentUnixTime)
+                    wo.HeartBeat(currentUnixTime);
+            }
 
             // Heartbeat
             if (lastHeartBeat + heartbeatInterval <= DateTime.UtcNow)
