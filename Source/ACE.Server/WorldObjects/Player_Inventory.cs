@@ -411,17 +411,20 @@ namespace ACE.Server.WorldObjects
         /// This would be used if your pickup action first requires a MoveTo action
         /// It will add a chain to broadcast the pickup motion and then add a delay for the animation length
         /// </summary>
-        private ActionChain AddPickupChainToMoveToChain()
+        private ActionChain AddPickupChainToMoveToChain(Container sourceContainer, Container destContainer)
         {
+            var container = destContainer == this ? sourceContainer : destContainer;
+            var pickupMotion = container != null ? container.MotionPickup : MotionCommand.Pickup;
+
             // start picking up item animation
-            var motion = new Motion(CurrentMotionState.Stance, MotionPickup);
+            var motion = new Motion(CurrentMotionState.Stance, pickupMotion);
             EnqueueBroadcast(
                 new GameMessageUpdatePosition(this),
                 new GameMessageUpdateMotion(this, motion));
 
             // Wait for animation to progress
             var motionTable = DatManager.PortalDat.ReadFromDat<MotionTable>(MotionTableId);
-            var pickupAnimationLength = motionTable.GetAnimationLength(CurrentMotionState.Stance, MotionPickup, MotionCommand.Ready);
+            var pickupAnimationLength = motionTable.GetAnimationLength(CurrentMotionState.Stance, pickupMotion, MotionCommand.Ready);
 
             var pickupChain = new ActionChain();
             pickupChain.AddDelaySeconds(pickupAnimationLength);
@@ -558,7 +561,7 @@ namespace ACE.Server.WorldObjects
                         return;
                     }
 
-                    var pickupChain = AddPickupChainToMoveToChain();
+                    var pickupChain = AddPickupChainToMoveToChain(itemRootOwner, container);
 
                     pickupChain.AddAction(this, () =>
                     {
@@ -587,6 +590,8 @@ namespace ACE.Server.WorldObjects
                             {
                                 item.EmoteManager.OnDrop(this);
                                 EnqueueBroadcast(new GameMessageSound(Guid, Sound.DropItem));
+
+                                container.OnAddItem();  // adding item to container
                             }
 
                             else if (containerRootOwner == this)
@@ -606,6 +611,9 @@ namespace ACE.Server.WorldObjects
 
                                 if (questSolve)
                                     QuestManager.Update(item.Quest);
+
+                                if (itemRootOwner != null)
+                                    itemRootOwner.OnRemoveItem();   // removing item from container
                             }
                         }
                         EnqueueBroadcastMotion(returnStance);
@@ -801,7 +809,7 @@ namespace ACE.Server.WorldObjects
                         return;
                     }
 
-                    var pickupChain = AddPickupChainToMoveToChain();
+                    var pickupChain = AddPickupChainToMoveToChain(rootOwner, this);
 
                     pickupChain.AddAction(this, () =>
                     {
@@ -811,6 +819,7 @@ namespace ACE.Server.WorldObjects
 
                             EnqueueBroadcast(new GameMessageSound(Guid, Sound.PickUpItem));
 
+                            item.EmoteManager.OnPickup(this);
                             item.NotifyOfEvent(RegenerationType.PickUp);
                         }
                         EnqueueBroadcastMotion(returnStance);
@@ -1113,7 +1122,7 @@ namespace ACE.Server.WorldObjects
                         return;
                     }
 
-                    var pickupChain = AddPickupChainToMoveToChain();
+                    var pickupChain = AddPickupChainToMoveToChain(stackRootOwner, containerRootOwner);
 
                     pickupChain.AddAction(this, () =>
                     {
@@ -1343,7 +1352,7 @@ namespace ACE.Server.WorldObjects
                         return;
                     }
 
-                    var pickupChain = AddPickupChainToMoveToChain();
+                    var pickupChain = AddPickupChainToMoveToChain(sourceStackRootOwner, targetStackRootOwner);
 
                     pickupChain.AddAction(this, () =>
                     {

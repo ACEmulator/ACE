@@ -14,7 +14,11 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public bool IsWithinUseRadiusOf(WorldObject wo)
         {
-            var originDist = Vector3.Distance(Location.ToGlobal(), wo.Location.ToGlobal());
+            var matchIndoor = Location.Indoors == wo.Location.Indoors;
+            var globalPos = matchIndoor ? Location.ToGlobal() : Location.Pos;
+            var targetGlobalPos = matchIndoor ? wo.Location.ToGlobal() : wo.Location.Pos;
+
+            var originDist = Vector3.Distance(globalPos, targetGlobalPos);
             var radSum = PhysicsObj.GetRadius() + wo.PhysicsObj.GetRadius();
             var radDist = originDist - radSum;
             var useRadius = wo.UseRadius ?? 0.6f;
