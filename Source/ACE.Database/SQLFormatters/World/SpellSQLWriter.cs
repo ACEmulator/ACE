@@ -28,27 +28,9 @@ namespace ACE.Database.SQLFormatters.World
 
         public void CreateSQLINSERTStatement(Spell input, StreamWriter writer)
         {
-            var spellLineHdr = "INSERT INTO `spell` (`id`, `name`, `description`, `school`, `icon_Id`, `category`, `bitfield`, `mana`, `range_Constant`, `range_Mod`, `power`, `economy_Mod`, `formula_Version`, `component_Loss`, `meta_Spell_Type`, `meta_Spell_Id`, `spell_Formula_Comp_1_Component_Id`, `spell_Formula_Comp_2_Component_Id`, `spell_Formula_Comp_3_Component_Id`, `spell_Formula_Comp_4_Component_Id`, `spell_Formula_Comp_5_Component_Id`, `spell_Formula_Comp_6_Component_Id`, `spell_Formula_Comp_7_Component_Id`, `spell_Formula_Comp_8_Component_Id`, `caster_Effect`, `target_Effect`, `fizzle_Effect`, `recovery_Interval`, `recovery_Amount`, `display_Order`, `non_Component_Target_Type`, `mana_Mod`";
+            var spellLineHdr = "INSERT INTO `spell` (`id`, `name`";
 
-            var spellLine = $"VALUES ({input.Id}, {GetSQLString(input.Name)}, {GetSQLString(input.Description)}, {input.School} /* {Enum.GetName(typeof(MagicSchool), input.School)} */, {input.IconId}, {input.Category}, {input.Bitfield} /* {((SpellFlags)input.Bitfield).ToString()} */, {input.Mana}, {input.RangeConstant}, {input.RangeMod}, {input.Power}, {input.EconomyMod}, {input.FormulaVersion}, {input.ComponentLoss}, {input.MetaSpellType} /* {Enum.GetName(typeof(ACE.Entity.Enum.SpellType), input.MetaSpellType)} */, {input.MetaSpellId}, {input.SpellFormulaComp1ComponentId}, {input.SpellFormulaComp2ComponentId}, {input.SpellFormulaComp3ComponentId}, {input.SpellFormulaComp4ComponentId}, {input.SpellFormulaComp5ComponentId}, {input.SpellFormulaComp6ComponentId}, {input.SpellFormulaComp7ComponentId}, {input.SpellFormulaComp8ComponentId}, {input.CasterEffect}, {input.TargetEffect}, {input.FizzleEffect}, {input.RecoveryInterval}, {input.RecoveryAmount}, {input.DisplayOrder}, {input.NonComponentTargetType}, {input.ManaMod}";
-
-            if (input.Duration.HasValue)
-            {
-                spellLineHdr += ", `duration`";
-                spellLine += $", {input.Duration}";
-            }
-
-            if (input.DegradeModifier.HasValue)
-            {
-                spellLineHdr += ", `degrade_Modifier`";
-                spellLine += $", {input.DegradeModifier}";
-            }
-
-            if (input.DegradeLimit.HasValue)
-            {
-                spellLineHdr += ", `degrade_Limit`";
-                spellLine += $", {input.DegradeLimit}";
-            }
+            var spellLine = $"VALUES ({input.Id}, {GetSQLString(input.Name)}";
 
             if (input.StatModType.HasValue)
             {
@@ -318,12 +300,6 @@ namespace ACE.Database.SQLFormatters.World
             {
                 spellLineHdr += ", `index`";
                 spellLine += $", {input.Index}";
-            }
-
-            if (input.PortalLifetime.HasValue)
-            {
-                spellLineHdr += ", `portal_Lifetime`";
-                spellLine += $", {input.PortalLifetime}";
             }
 
             if (input.Link.HasValue)
