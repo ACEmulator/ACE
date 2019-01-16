@@ -42,10 +42,12 @@ namespace ACE.Server.WorldObjects
             SetChildren();
         }
 
-        public bool WieldedLocationIsAvailable(int wieldedLocation)
+        public bool WieldedLocationIsAvailable(EquipMask validLocations)
         {
-            // todo actually check and stuff
-            return true;
+            // filtering to just armor here, or else trinkets and dual wielding breaks
+            var existing = GetEquippedArmor(validLocations);
+
+            return existing.Count == 0;
         }
 
         public bool HasEquippedItem(ObjectGuid objectGuid)
@@ -67,6 +69,14 @@ namespace ACE.Server.WorldObjects
         public WorldObject GetEquippedItem(ObjectGuid objectGuid)
         {
             return EquippedObjects.TryGetValue(objectGuid, out var item) ? item : null;
+        }
+
+        /// <summary>
+        /// Returns a list of equipped items with any overlap with input locations
+        /// </summary>
+        public List<WorldObject> GetEquippedArmor(EquipMask validLocations)
+        {
+            return EquippedObjects.Values.Where(i => (i.ValidLocations & EquipMask.Armor) != 0 && (i.ValidLocations & validLocations) != 0).ToList();
         }
 
         /// <summary>
@@ -149,12 +159,12 @@ namespace ACE.Server.WorldObjects
         /// This will set the CurrentWieldedLocation property to wieldedLocation and the Wielder property to this guid and will add it to the EquippedObjects dictionary.<para />
         /// It will also increase the EncumbranceVal and Value.
         /// </summary>
-        public bool TryEquipObject(WorldObject worldObject, int wieldedLocation)
+        public bool TryEquipObject(WorldObject worldObject, EquipMask wieldedLocation)
         {
-            if (!WieldedLocationIsAvailable(wieldedLocation))
+            if (!WieldedLocationIsAvailable(worldObject.ValidLocations ?? 0))
                 return false;
 
-            worldObject.CurrentWieldedLocation = (EquipMask)wieldedLocation;
+            worldObject.CurrentWieldedLocation = wieldedLocation;
             worldObject.WielderId = Biota.Id;
 
             EquippedObjects[worldObject.Guid] = worldObject;
@@ -173,7 +183,7 @@ namespace ACE.Server.WorldObjects
         /// This will set the CurrentWieldedLocation property to wieldedLocation and the Wielder property to this guid and will add it to the EquippedObjects dictionary.<para />
         /// It will also increase the EncumbranceVal and Value.
         /// </summary>
-        protected bool TryEquipObjectWithBroadcasting(WorldObject worldObject, int wieldedLocation)
+        protected bool TryEquipObjectWithBroadcasting(WorldObject worldObject, EquipMask wieldedLocation)
         {
             if (!TryEquipObject(worldObject, wieldedLocation))
                 return false;

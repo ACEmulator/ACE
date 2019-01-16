@@ -260,13 +260,13 @@ namespace ACE.Server.Managers
         {
             if (wo is Portal)
             {
-                var error = new GameEventInventoryServerSaveFailed(Player.Session, WeenieError.YouMustCompleteQuestToUsePortal);
+                var error = new GameEventInventoryServerSaveFailed(Player.Session, wo.Guid.Full, WeenieError.YouMustCompleteQuestToUsePortal);
                 var text = new GameMessageSystemChat("You must complete a quest to interact with that portal.", ChatMessageType.Broadcast);
                 Player.Session.Network.EnqueueSend(text, error);
             }
             else
             {
-                var error = new GameEventInventoryServerSaveFailed(Player.Session, WeenieError.ItemRequiresQuestToBePickedUp);
+                var error = new GameEventInventoryServerSaveFailed(Player.Session, wo.Guid.Full, WeenieError.ItemRequiresQuestToBePickedUp);
                 var text = new GameMessageSystemChat("This item requires you to complete a specific quest before you can pick it up!", ChatMessageType.Broadcast);
                 Player.Session.Network.EnqueueSend(text, error);
             }
@@ -279,13 +279,13 @@ namespace ACE.Server.Managers
         {
             if (IsMaxSolves(questName))
             {
-                var error = new GameEventInventoryServerSaveFailed(Player.Session, WeenieError.YouHaveSolvedThisQuestTooManyTimes);
+                var error = new GameEventInventoryServerSaveFailed(Player.Session, 0, WeenieError.YouHaveSolvedThisQuestTooManyTimes);
                 var text = new GameMessageSystemChat("You have solved this quest too many times!", ChatMessageType.Broadcast);
                 Player.Session.Network.EnqueueSend(text, error);
             }
             else
             {
-                var error = new GameEventInventoryServerSaveFailed(Player.Session, WeenieError.YouHaveSolvedThisQuestTooRecently);
+                var error = new GameEventInventoryServerSaveFailed(Player.Session, 0, WeenieError.YouHaveSolvedThisQuestTooRecently);
                 var text = new GameMessageSystemChat("You have solved this quest too recently!", ChatMessageType.Broadcast);
 
                 var remainStr = GetNextSolveTime(questName).GetFriendlyString();
