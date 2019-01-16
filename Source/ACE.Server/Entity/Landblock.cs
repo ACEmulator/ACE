@@ -33,7 +33,7 @@ namespace ACE.Server.Entity
     /// landblock goes from 0 to 192.  "indoor" (dungeon) landblocks have no
     /// functional limit as players can't freely roam in/out of them
     /// </summary>
-    public class Landblock
+    public class Landblock : IActor
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -306,6 +306,11 @@ namespace ACE.Server.Entity
                 SaveDB();
                 lastDatabaseSave = DateTime.UtcNow;
             }
+        }
+
+        public void EnqueueAction(IAction action)
+        {
+            actionQueue.EnqueueAction(action);
         }
 
         private void AddPlayerTracking(List<WorldObject> wolist, Player player)
