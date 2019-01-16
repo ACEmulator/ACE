@@ -1,10 +1,6 @@
 using System;
-using System.Threading.Tasks;
 using ACE.Database;
 using ACE.Entity.Enum;
-using ACE.Server.API.Entity;
-using ACE.Server.Command.Handlers.Processors;
-using ACE.Server.Managers;
 using ACE.Server.Network;
 
 namespace ACE.Server.Command.Handlers
@@ -43,31 +39,5 @@ namespace ACE.Server.Command.Handlers
                 }
             }));
         }
-
-        //[CommandHandler("charexport", AccessLevel.Player, CommandHandlerFlag.RequiresWorld, 0, "Export the currently logged in character.")]
-        //public static async Task HandleCharacterExportAsync(Session session, params string[] parameters)
-        //{
-        //    string url = await TransferManager.CreatePackage(session, new PackageMetadata() { PackageType = PackageType.Export });
-        //    session.WorldBroadcast($"Character ready for download.  A private link assigned for this download.  Do not share it!" +
-        //        "\nTo use the secret cookie to either download your character with a browser or transfer your character to another server by" +
-        //        "\nlogging into the target server and entering the command (replacing <name> with desired character name):" +
-        //        $"\n@charimport {session.Player.Name} {url}");
-        //}
-
-        //[CommandHandler("charmove", AccessLevel.Player, CommandHandlerFlag.RequiresWorld, 0, "Migrate the currently logged in character.")]
-        //public static async Task HandleCharacterMigrateAsync(Session session, params string[] parameters)
-        //{
-        //    string url = await TransferManager.CreatePackage(session, new PackageMetadata() { PackageType = PackageType.Move });
-        //    session.WorldBroadcast($"Character packaged and ready for move.  Upon downloading this packageA secret one-time cookie has been assigned for this download." +
-        //        "\nTo use the secret cookie to either download your character with a browser or transfer your character to another server by" +
-        //        "\nlogging into the target server and entering the command (replacing <name> with desired character name):" +
-        //        $"\n@charimport <name> {url}");
-        //}
-
-        //[CommandHandler("charimport", AccessLevel.Player, CommandHandlerFlag.RequiresWorld, 2, "Import a character from a given URL.")]
-        //public static void HandleCharacterImport(Session session, params string[] parameters)
-        //{
-        //    TransferManager.Import(session, parameters);
-        //}
     }
 }

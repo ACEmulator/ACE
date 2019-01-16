@@ -6,7 +6,6 @@ using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
-using ACE.Server.API.Entity;
 using ACE.Server.Command;
 using ACE.Server.Network;
 using ACE.Server.WorldObjects;
@@ -30,6 +29,13 @@ namespace ACE.Server.Managers
     /// </summary>
     public static class TransferManager
     {
+        public class CharacterDownload
+        {
+            public bool Valid { get; set; } = false;
+            public string FilePath { get; set; } = null;
+            public Action UploadCompleted { get; set; } = null;
+        }
+
         public const int CookieLength = 8;
         public const string CookieChars = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
         public const string CookieRegex = @"[0-9a-zA-Z]{8}";
@@ -379,6 +385,17 @@ namespace ACE.Server.Managers
 
             // done, return character name
             return charName;
+        }
+
+        public enum PackageType
+        {
+            Move,
+            Export
+        }
+        public class PackageMetadata
+        {
+            public PackageType PackageType { get; set; }
+            public string Cookie { get; set; }
         }
 
         /// <summary>

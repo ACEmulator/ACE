@@ -11,10 +11,11 @@ using ACE.DatLoader;
 using ACE.Server.Command;
 using ACE.Server.Managers;
 using ACE.Server.Network.Managers;
+using System.Reflection;
 
 namespace ACE.Server
 {
-    class Program
+    public class Program
     {
         /// <summary>
         /// The timeBeginPeriod function sets the minimum timer resolution for an application or device driver. Used to manipulate the timer frequency.
@@ -34,6 +35,11 @@ namespace ACE.Server
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         public static void Main(string[] args)
+        {
+            Start();
+        }
+
+        public static void Start()
         {
             AppDomain.CurrentDomain.ProcessExit += new EventHandler(OnProcessExit);
 
@@ -57,7 +63,10 @@ namespace ACE.Server
                 log.Error(ex.ToString());
             }
 
-            log.Info("Starting ACEmulator...");
+            var caller = Assembly.GetCallingAssembly().GetName().Name;
+            var txtCalledFrom = (caller == "ACE.Server") ? "" : $" Caller is {caller}";
+
+            log.Info($"Starting ACEmulator.{txtCalledFrom}");
             Console.Title = @"ACEmulator";
 
             log.Info("Initializing ConfigManager...");
@@ -68,9 +77,6 @@ namespace ACE.Server
 
             log.Info("Initializing CryptoManager...");
             CryptoManager.Initialize();
-
-            log.Info("Initializing Web...");
-            WebManager.Initialize();
 
             log.Info("Initializing DatManager...");
             DatManager.Initialize(ConfigManager.Config.Server.DatFilesDirectory, true);
@@ -146,7 +152,7 @@ namespace ACE.Server
 
             PropertyManager.StopUpdating();
             DatabaseManager.Stop();
-            WebManager.Shutdown();
+
             // Do system specific cleanup here
             try
             {
