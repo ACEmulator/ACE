@@ -837,7 +837,6 @@ namespace ACE.Server.WorldObjects
                             if (equippedAmmo == null)
                             {
                                 Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "You are out of ammunition!"));
-                                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, WeenieError.YouAreOutOfAmmunition));
                                 newCombatMode = CombatMode.NonCombat;
                             }
                             else

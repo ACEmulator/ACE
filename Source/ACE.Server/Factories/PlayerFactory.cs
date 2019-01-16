@@ -89,26 +89,26 @@ namespace ACE.Server.Factories
             {
                 var hat = GetClothingObject(sex.GetHeadgearWeenie(characterCreateInfo.Apperance.HeadgearStyle), characterCreateInfo.Apperance.HeadgearColor, characterCreateInfo.Apperance.HeadgearHue);
                 if (hat != null)
-                    player.TryEquipObject(hat, hat.GetProperty(PropertyInt.ValidLocations) ?? 0);
+                    player.TryEquipObject(hat, hat.ValidLocations ?? 0);
                 else
                     CreateIOU(player, sex.GetHeadgearWeenie(characterCreateInfo.Apperance.HeadgearStyle));
             }
 
             var shirt = GetClothingObject(sex.GetShirtWeenie(characterCreateInfo.Apperance.ShirtStyle), characterCreateInfo.Apperance.ShirtColor, characterCreateInfo.Apperance.ShirtHue);
             if (shirt != null)
-                player.TryEquipObject(shirt, shirt.GetProperty(PropertyInt.ValidLocations) ?? 0);
+                player.TryEquipObject(shirt, shirt.ValidLocations ?? 0);
             else
                 CreateIOU(player, sex.GetShirtWeenie(characterCreateInfo.Apperance.ShirtStyle));
 
             var pants = GetClothingObject(sex.GetPantsWeenie(characterCreateInfo.Apperance.PantsStyle), characterCreateInfo.Apperance.PantsColor, characterCreateInfo.Apperance.PantsHue);
             if (pants != null)
-                player.TryEquipObject(pants, pants.GetProperty(PropertyInt.ValidLocations) ?? 0);
+                player.TryEquipObject(pants, pants.ValidLocations ?? 0);
             else
                 CreateIOU(player, sex.GetPantsWeenie(characterCreateInfo.Apperance.PantsStyle));
 
             var shoes = GetClothingObject(sex.GetFootwearWeenie(characterCreateInfo.Apperance.FootwearStyle), characterCreateInfo.Apperance.FootwearColor, characterCreateInfo.Apperance.FootwearHue);
             if (shoes != null)
-                player.TryEquipObject(shoes, shoes.GetProperty(PropertyInt.ValidLocations) ?? 0);
+                player.TryEquipObject(shoes, shoes.ValidLocations ?? 0);
             else
                 CreateIOU(player, sex.GetFootwearWeenie(characterCreateInfo.Apperance.FootwearStyle));
 
