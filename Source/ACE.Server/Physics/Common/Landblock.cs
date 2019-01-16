@@ -548,14 +548,14 @@ namespace ACE.Server.Physics.Common
                 // - all heights being 0
                 // - having at least 1 EnvCell (0x100+)
                 // - contains no buildings
-                foreach (var height in Height)
+                /*foreach (var height in Height)
                 {
                     if (height != 0)
                     {
                         isDungeon = false;
                         return isDungeon.Value;
                     }
-                }
+                }*/
                 isDungeon = Info != null && Info.NumCells > 0 && Info.Buildings != null && Info.Buildings.Count == 0;
                 return isDungeon.Value;
             }
