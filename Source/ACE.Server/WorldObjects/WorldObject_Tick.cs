@@ -38,15 +38,6 @@ namespace ACE.Server.WorldObjects
 
 
         /// <summary>
-        /// Runs all actions pending on this WorldObject
-        /// </summary>
-        void IActor.RunActions()
-        {
-            if (actionQueue != null)
-                actionQueue.RunActions();
-        }
-
-        /// <summary>
         /// Prepare new action to run on this object
         /// </summary>
         public void EnqueueAction(IAction action)
