@@ -32,7 +32,7 @@ using Position = ACE.Entity.Position;
 
 namespace ACE.Server.Managers
 {
-    public class WorldManager : IActor
+    public class WorldManager
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -333,7 +333,7 @@ namespace ACE.Server.Managers
             session.Network.EnqueueSend(new GameMessageSystemChat(motdString, ChatMessageType.Broadcast));
         }
 
-        public void EnqueueAction(IAction action)
+        public static void EnqueueAction(IAction action)
         {
             actionQueue.EnqueueAction(action);
         }
