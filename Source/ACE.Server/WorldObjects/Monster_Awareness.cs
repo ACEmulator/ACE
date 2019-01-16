@@ -231,7 +231,7 @@ namespace ACE.Server.WorldObjects
             foreach (var obj in visibleObjs)
             {
                 var nearbyCreature = obj.WeenieObj.WorldObject as Creature;
-                if (nearbyCreature == null || nearbyCreature.IsAwake/* || nearbyCreature.IsAlerted*/)
+                if (nearbyCreature == null || nearbyCreature.IsAwake/* || nearbyCreature.IsAlerted*/ || !(nearbyCreature.GetProperty(PropertyBool.Attackable) ?? false))
                     continue;
 
                 if (CreatureType != null && CreatureType == nearbyCreature.CreatureType ||
