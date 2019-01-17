@@ -100,7 +100,7 @@ namespace ACE.Server.Entity
         /// The amount of time the spell lasts
         /// usually for EnchantmentSpell / FellowshipEnchantmentSpells
         /// </summary>
-        public double Duration { get => _spellBase.Duration; }// special handling for some spells? (void)
+        public double Duration { get => _spellBase.Duration; } // special handling for some spells? (void)
 
         /// <summary>
         /// Unknown what this does?
