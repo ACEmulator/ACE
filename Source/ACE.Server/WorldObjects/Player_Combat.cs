@@ -586,6 +586,9 @@ namespace ACE.Server.WorldObjects
             // update stamina
             UpdateVitalDelta(Stamina, -1);
 
+            if (Fellowship != null)
+                Fellowship.OnVitalUpdate(this);
+
             // send damage text message
             var nether = damageType == DamageType.Nether ? "nether " : "";
             var text = new GameMessageSystemChat($"You receive {amount} points of periodic {nether}damage.", ChatMessageType.Combat);
@@ -631,15 +634,18 @@ namespace ACE.Server.WorldObjects
             var damageTaken = (uint)-UpdateVitalDelta(Health, (int)-amount);
             DamageHistory.Add(source, damageType, damageTaken);
 
+            // update stamina
+            UpdateVitalDelta(Stamina, -1);
+
+            if (Fellowship != null)
+                Fellowship.OnVitalUpdate(this);
+
             if (Health.Current == 0)
             {
                 OnDeath(source, damageType, crit);
                 Die();
                 return;
             }
-
-            // update stamina
-            UpdateVitalDelta(Stamina, -1);
 
             var damageLocation = (DamageLocation)BodyParts.Indices[bodyPart];
 

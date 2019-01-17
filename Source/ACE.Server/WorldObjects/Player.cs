@@ -934,6 +934,12 @@ namespace ACE.Server.WorldObjects
                     }
 
                     var vitalChange = UpdateVitalDelta(creatureVital, (uint)boostAmount);
+                    if (vitalName == "Health")
+                    {
+                        DamageHistory.OnHeal((uint)vitalChange);
+                        if (Fellowship != null)
+                            Fellowship.OnVitalUpdate(this);
+                    }
 
                     buffMessage = new GameMessageSystemChat($"You regain {vitalChange} {vitalName}.", ChatMessageType.Craft);
                 }

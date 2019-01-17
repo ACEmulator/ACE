@@ -113,9 +113,13 @@ namespace ACE.Server.WorldObjects
                 actionChain.AddDelaySeconds(2.0f);
                 actionChain.AddAction(this, () =>
                 {
-                    var curPenalty = EnchantmentManager.GetVitae().StatModValue;
-                    if (curPenalty.EpsilonEquals(1.0f))
-                        EnchantmentManager.RemoveVitae();
+                    var vitae = EnchantmentManager.GetVitae();
+                    if (vitae != null)
+                    {
+                        var curPenalty = vitae.StatModValue;
+                        if (curPenalty.EpsilonEquals(1.0f))
+                            EnchantmentManager.RemoveVitae();
+                    }
                 });
                 actionChain.EnqueueChain();
             }

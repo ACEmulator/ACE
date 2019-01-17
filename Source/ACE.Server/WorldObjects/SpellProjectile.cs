@@ -439,6 +439,9 @@ namespace ACE.Server.WorldObjects
                     percent = (float)damage / target.Health.MaxValue;
                     amount = (uint)-target.UpdateVitalDelta(target.Health, (int)-Math.Round(damage.Value));
                     target.DamageHistory.Add(ProjectileSource, Spell.DamageType, amount);
+
+                    if (targetPlayer != null && targetPlayer.Fellowship != null)
+                        targetPlayer.Fellowship.OnVitalUpdate(targetPlayer);
                 }
 
                 amount = (uint)Math.Round(damage.Value);    // full amount for debugging

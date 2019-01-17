@@ -106,6 +106,9 @@ namespace ACE.Server.WorldObjects
             target.UpdateVitalDelta(target.Health, healAmount);
             target.DamageHistory.OnHeal(healAmount);
 
+            if (target.Fellowship != null)
+                target.Fellowship.OnVitalUpdate(target);
+
             var healingSkill = healer.GetCreatureSkill(Skill.Healing);
             Proficiency.OnSuccessUse(healer, healingSkill, (uint)difficulty);
 

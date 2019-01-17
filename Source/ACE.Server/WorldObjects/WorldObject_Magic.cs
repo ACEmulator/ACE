@@ -311,6 +311,7 @@ namespace ACE.Server.WorldObjects
             var creature = this as Creature;
 
             var spellTarget = spell.BaseRangeConstant > 0 ? target as Creature : creature;
+            var targetPlayer = spellTarget as Player;
 
             if (this is Gem)
                 spellTarget = target as Creature;
@@ -352,6 +353,10 @@ namespace ACE.Server.WorldObjects
                                 spellTarget.DamageHistory.OnHeal((uint)boost);
                             else
                                 spellTarget.DamageHistory.Add(this, DamageType.Health, (uint)-boost);
+
+                            if (targetPlayer != null && targetPlayer.Fellowship != null)
+                                targetPlayer.Fellowship.OnVitalUpdate(targetPlayer);
+
                             break;
                     }
 
@@ -442,6 +447,11 @@ namespace ACE.Server.WorldObjects
                             srcVitalChange = (uint)-source.UpdateVitalDelta(source.Health, -(int)srcVitalChange);
 
                             source.DamageHistory.Add(this, DamageType.Health, srcVitalChange);
+
+                            var sourcePlayer = source as Player;
+                            if (sourcePlayer != null && sourcePlayer.Fellowship != null)
+                                sourcePlayer.Fellowship.OnVitalUpdate(sourcePlayer);
+
                             break;
                     }
                     damage = srcVitalChange;
@@ -462,6 +472,11 @@ namespace ACE.Server.WorldObjects
                             destVitalChange = (uint)destination.UpdateVitalDelta(destination.Health, destVitalChange);
 
                             destination.DamageHistory.OnHeal(destVitalChange);
+
+                            var destPlayer = destination as Player;
+                            if (destPlayer != null && destPlayer.Fellowship != null)
+                                destPlayer.Fellowship.OnVitalUpdate(destPlayer);
+
                             break;
                     }
 
@@ -530,6 +545,9 @@ namespace ACE.Server.WorldObjects
                         damage = (uint)-caster.UpdateVitalDelta(caster.Health, -tryDamage);
                         caster.DamageHistory.Add(this, DamageType.Health, damage);
                         damageType = DamageType.Health;
+
+                        if (player != null && player.Fellowship != null)
+                            player.Fellowship.OnVitalUpdate(player);
                     }
 
                     var sp = CreateSpellProjectile(spell, target, damage);
@@ -567,7 +585,6 @@ namespace ACE.Server.WorldObjects
                         else
                             enchantmentStatus.message = new GameMessageSystemChat($"You cast {spell.Name} on {target.Name}{suffix}", ChatMessageType.Magic);
                     }
-                    var targetPlayer = target as Player;
                     if (targetPlayer != null && targetPlayer != player)
                     {
                         targetMsg = new GameMessageSystemChat($"{Name} casts {spell.Name} on you{suffix.Replace("and dispel", "and dispels")}", ChatMessageType.Magic);
