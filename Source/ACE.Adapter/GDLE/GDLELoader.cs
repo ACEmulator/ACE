@@ -27,13 +27,53 @@ namespace ACE.Adapter.GDLE
             }
         }
 
-        public static bool TryLoadWorldSpawnsConverted(string file, out List<LandblockInstance> results, out List<LandblockInstanceLink> links)
+        /// <summary>
+        /// This will sanitize the Guids for ACE use to the following format: 0x7LBID### where ### starts from [startingIdOffset]
+        /// </summary>
+        public static bool TryLoadWorldSpawnsConverted(string file, out List<LandblockInstance> results, out List<LandblockInstanceLink> links, ushort startingIdOffset = 0)
         {
             try
             {
                 var fileText = File.ReadAllText(file);
 
                 var gdleModel = JsonConvert.DeserializeObject<Models.WorldSpawns>(fileText);
+
+                var idChanges = new Dictionary<uint /*from*/, uint /*to*/>();
+
+                // First we convert all weenies
+                foreach (var landblock in gdleModel.Landblocks)
+                {
+                    var currentOffset = startingIdOffset;
+
+                    foreach (var weenie in landblock.Value.Weenies)
+                    {
+                        var newGuid = (0x70000000 | ((weenie.Position.ObjCellId & 0xFFFF0000) >> 4) | currentOffset);
+                        currentOffset++;
+
+                        idChanges[weenie.Id] = newGuid;
+                        weenie.Id = newGuid;
+                    }
+                }
+
+                // Then we update all the links
+                foreach (var landblock in gdleModel.Landblocks)
+                {
+                    if (landblock.Value.Links == null)
+                        continue;
+
+                    foreach (var link in landblock.Value.Links)
+                    {
+                        if (idChanges.TryGetValue(link.Source, out var source))
+                            link.Source = source;
+                        else
+                            link.Source = 0;
+
+                        if (idChanges.TryGetValue(link.Source, out var target))
+                            link.Target = target;
+                        else
+                            link.Target = 0;
+                    }
+                }
 
                 results = new List<LandblockInstance>();
                 links = new List<LandblockInstanceLink>();

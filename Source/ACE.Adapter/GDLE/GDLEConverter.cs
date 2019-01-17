@@ -7,6 +7,9 @@ namespace ACE.Adapter.GDLE
 {
     public static class GDLEConverter
     {
+        /// <summary>
+        /// This will not alter the Guid. To sanitize the Guid for ACE usage, you should use GDLELoader.TryLoadWorldSpawnsConverted() instead.
+        /// </summary>
         public static bool TryConvert(Models.Landblock input, out List<Database.Models.World.LandblockInstance> results, out List<Database.Models.World.LandblockInstanceLink> links)
         {
             try
@@ -18,7 +21,7 @@ namespace ACE.Adapter.GDLE
                 {
                     var result = new LandblockInstance();
 
-                    result.Guid = value.Id;     // TODO!!! I think we need to scale these to fit ACE model
+                    result.Guid = value.Id; // Collisions and other errors can be caused by invalid input. Data should be sanitized by the running ACE server.
                     //result.Landblock = input.key; ACE uses a virtual column here of (result.ObjCellId >> 16)
                     result.WeenieClassId = value.WCID;
 
@@ -40,8 +43,8 @@ namespace ACE.Adapter.GDLE
                     {
                         var result = new LandblockInstanceLink();
 
-                        result.ParentGuid = value.Source;   // TODO!!! I'm not sure about the order of these.. is source the parent, or child?
-                        result.ChildGuid = value.Target;    // TODO!!! I'm not sure about the order of these.. is source the parent, or child?
+                        result.ParentGuid = value.Target;
+                        result.ChildGuid = value.Source;
 
                         links.Add(result);
                     }
