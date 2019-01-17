@@ -21,7 +21,7 @@ namespace ACE.Server.WebApi.Web
             }
 
             //initialize model polymorphism
-            Mapper.Initialize(cfg => cfg.CreateMap<BaseModel, IndexModel>());
+            Mapper.Initialize(cfg => cfg.CreateMap<BaseModel, CharacterListModel>());
 
             hostThread = new Thread(new ThreadStart(() =>
             {

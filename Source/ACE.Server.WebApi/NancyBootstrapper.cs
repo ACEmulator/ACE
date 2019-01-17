@@ -1,5 +1,5 @@
 using Nancy;
-using Nancy.Authentication.Forms;
+using Nancy.Authentication.Stateless;
 using Nancy.Bootstrapper;
 using Nancy.TinyIoc;
 
@@ -17,14 +17,7 @@ namespace ACE.Server.WebApi.Web
         protected override void RequestStartup(TinyIoCContainer container, IPipelines pipelines, NancyContext context)
         {
             base.RequestStartup(container, pipelines, context);
-            FormsAuthentication.Enable(
-                pipelines,
-                new FormsAuthenticationConfiguration()
-                {
-                    RedirectUrl = "~/login",
-                    UserMapper = container.Resolve<IUserMapper>()
-                }
-            );
+            StatelessAuthentication.Enable(pipelines, BasicAuth.GetAuthCfg());
         }
 
         protected override void ApplicationStartup(TinyIoCContainer container, IPipelines pipelines)
@@ -35,7 +28,6 @@ namespace ACE.Server.WebApi.Web
         protected override void ConfigureRequestContainer(TinyIoCContainer container, NancyContext context)
         {
             base.ConfigureRequestContainer(container, context);
-            container.Register<IUserMapper, UserMapper>();
         }
     }
 }

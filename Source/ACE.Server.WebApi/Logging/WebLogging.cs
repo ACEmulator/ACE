@@ -2,6 +2,10 @@ using Microsoft.Extensions.Logging;
 
 namespace ACE.Server.WebApi.Logging
 {
+    /// <summary>
+    /// https://stackify.com/net-core-loggerfactory-use-correctly/
+    /// license: ???
+    /// </summary>
     public class WebLogging
     {
         private static ILoggerFactory _Factory = null;

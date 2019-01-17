@@ -43,7 +43,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ACE.Server", "ACE.Server\AC
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ACE.Adapter", "ACE.Adapter\ACE.Adapter.csproj", "{3C925D75-B149-4898-8806-054D3E63A4BE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ACE.Server.WebApi", "ACE.Server.WebApi\ACE.Server.WebApi.csproj", "{F79B3B88-7473-45D6-81FC-FE048254B628}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ACE.Server.WebApi", "ACE.Server.WebApi\ACE.Server.WebApi.csproj", "{F79B3B88-7473-45D6-81FC-FE048254B628}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

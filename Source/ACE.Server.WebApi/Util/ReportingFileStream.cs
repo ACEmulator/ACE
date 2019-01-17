@@ -5,7 +5,11 @@ using System.Linq;
 namespace ACE.Server.WebApi.Util
 {
     /// <summary>
-    /// adaptation of http://mel-green.com/Uploads/ProgressStream.cs
+    /// fires an event once just after the first FileStream.Close()
+    /// adaptation of
+    /// http://mel-green.com/2010/01/progressstream/
+    /// http://mel-green.com/Uploads/ProgressStream.cs
+    /// license: ???
     /// </summary>
     public class ReportingFileStream : Stream
     {

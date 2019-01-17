@@ -7,6 +7,10 @@ using System.Xml;
 
 namespace ACE.Server.WebApi.Logging
 {
+    /// <summary>
+    /// https://dotnetthoughts.net/how-to-use-log4net-with-aspnetcore-for-logging/
+    /// MIT license.
+    /// </summary>
     public class Log4NetLogger : ILogger
     {
         private readonly string _name;

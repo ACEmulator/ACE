@@ -1,7 +1,9 @@
 using ACE.Database;
 using ACE.Entity.Enum;
 using ACE.Server.WebApi.Model;
+using ACE.Server.WebApi.Util;
 using AutoMapper;
+using Nancy;
 using Nancy.Security;
 using System.Threading.Tasks;
 
@@ -9,9 +11,9 @@ namespace ACE.Server.WebApi.Modules
 {
     public class IndexModule : BaseModule
     {
-        public async Task<IndexModel> GetModelAsync()
+        public async Task<CharacterListModel> GetModelCharacterListAsync()
         {
-            IndexModel model = Mapper.Map<IndexModel>(BaseModel);
+            CharacterListModel model = Mapper.Map<CharacterListModel>(BaseModel);
             TaskCompletionSource<object> tsc = new TaskCompletionSource<object>();
             Gate.RunGatedAction(() =>
             {
@@ -37,11 +39,8 @@ namespace ACE.Server.WebApi.Modules
                 k => k.Type == AccessLevel.Player.ToString(),
                 k => k.Type == AccessLevel.Sentinel.ToString());
 
-            Get("/", GetIndexAsync);
-        }
-        private async Task<object> GetIndexAsync(dynamic parameters)
-        {
-            return View["index", await GetModelAsync()];
+            Get("/characters", async (_)=> { return (await GetModelCharacterListAsync()).AsJson(); });
+
         }
     }
 }

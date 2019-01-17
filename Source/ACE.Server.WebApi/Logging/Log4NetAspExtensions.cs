@@ -2,6 +2,10 @@ using Microsoft.Extensions.Logging;
 
 namespace ACE.Server.WebApi.Logging
 {
+    /// <summary>
+    /// https://dotnetthoughts.net/how-to-use-log4net-with-aspnetcore-for-logging/
+    /// MIT license.
+    /// </summary>
     internal static class Log4NetAspExtensions
     {
         public static ILoggerFactory AddLog4Net(this ILoggerFactory factory, string log4NetConfigFile)
