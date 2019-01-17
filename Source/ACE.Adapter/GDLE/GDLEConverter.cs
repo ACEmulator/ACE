@@ -136,14 +136,15 @@ namespace ACE.Adapter.GDLE
                 result.MetaSpellType = input.MetaSpell.Type;
                 result.MetaSpellId = input.MetaSpell.Spell.SpellId; // Just the spell id again
 
-                if (input.Formula.Count >= 1) result.SpellFormulaComp1ComponentId = (uint)input.Formula[0]; // todo how to handle negative numbers
-                if (input.Formula.Count >= 2) result.SpellFormulaComp2ComponentId = (uint)input.Formula[1]; // todo how to handle negative numbers
-                if (input.Formula.Count >= 3) result.SpellFormulaComp3ComponentId = (uint)input.Formula[2]; // todo how to handle negative numbers
-                if (input.Formula.Count >= 4) result.SpellFormulaComp4ComponentId = (uint)input.Formula[3]; // todo how to handle negative numbers
-                if (input.Formula.Count >= 5) result.SpellFormulaComp5ComponentId = (uint)input.Formula[4]; // todo how to handle negative numbers
-                if (input.Formula.Count >= 6) result.SpellFormulaComp6ComponentId = (uint)input.Formula[5]; // todo how to handle negative numbers
-                if (input.Formula.Count >= 7) result.SpellFormulaComp7ComponentId = (uint)input.Formula[6]; // todo how to handle negative numbers
-                if (input.Formula.Count >= 8) result.SpellFormulaComp8ComponentId = (uint)input.Formula[7]; // todo how to handle negative numbers
+                // The jsons can have bugs where the formula values are negative
+                if (input.Formula.Count >= 1) result.SpellFormulaComp1ComponentId = (uint)Math.Max(0, input.Formula[0]);
+                if (input.Formula.Count >= 2) result.SpellFormulaComp2ComponentId = (uint)Math.Max(0, input.Formula[1]);
+                if (input.Formula.Count >= 3) result.SpellFormulaComp3ComponentId = (uint)Math.Max(0, input.Formula[2]);
+                if (input.Formula.Count >= 4) result.SpellFormulaComp4ComponentId = (uint)Math.Max(0, input.Formula[3]);
+                if (input.Formula.Count >= 5) result.SpellFormulaComp5ComponentId = (uint)Math.Max(0, input.Formula[4]);
+                if (input.Formula.Count >= 6) result.SpellFormulaComp6ComponentId = (uint)Math.Max(0, input.Formula[5]);
+                if (input.Formula.Count >= 7) result.SpellFormulaComp7ComponentId = (uint)Math.Max(0, input.Formula[6]);
+                if (input.Formula.Count >= 8) result.SpellFormulaComp8ComponentId = (uint)Math.Max(0, input.Formula[7]);
 
                 result.CasterEffect = input.CasterEffect;
                 result.TargetEffect = input.TargetEffect;

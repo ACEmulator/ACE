@@ -37,7 +37,7 @@ namespace ACE.Adapter.GDLE.Models
         public uint FizzleEffect { get; set; }
 
         [JsonProperty("formula")]
-        public List<double> Formula { get; set; }
+        public List<int> Formula { get; set; }
 
         [JsonProperty("formula_version")]
         public uint FormulaVersion { get; set; }
