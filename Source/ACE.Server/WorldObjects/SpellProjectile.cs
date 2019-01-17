@@ -443,6 +443,9 @@ namespace ACE.Server.WorldObjects
 
                 amount = (uint)Math.Round(damage.Value);    // full amount for debugging
 
+                if (critical)
+                    target.EmoteManager.OnReceiveCritical(player);
+
                 if (target.IsAlive)
                 {
                     string verb = null, plural = null;
