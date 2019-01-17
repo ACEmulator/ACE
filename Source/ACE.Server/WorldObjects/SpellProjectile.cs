@@ -60,7 +60,8 @@ namespace ACE.Server.WorldObjects
             Missile = true;
             AlignPath = true;
             PathClipped = true;
-            Ethereal = false;
+            if (!Spell.Name.Equals("Rolling Death"))
+                Ethereal = false;
             IgnoreCollisions = false;
 
             if (SpellType == ProjectileSpellType.Bolt || SpellType == ProjectileSpellType.Streak
