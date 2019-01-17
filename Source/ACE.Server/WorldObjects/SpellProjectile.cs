@@ -60,7 +60,8 @@ namespace ACE.Server.WorldObjects
             Missile = true;
             AlignPath = true;
             PathClipped = true;
-            Ethereal = false;
+            if (!Spell.Name.Equals("Rolling Death"))
+                Ethereal = false;
             IgnoreCollisions = false;
 
             if (SpellType == ProjectileSpellType.Bolt || SpellType == ProjectileSpellType.Streak
@@ -445,6 +446,9 @@ namespace ACE.Server.WorldObjects
                 }
 
                 amount = (uint)Math.Round(damage.Value);    // full amount for debugging
+
+                if (critical)
+                    target.EmoteManager.OnReceiveCritical(player);
 
                 if (target.IsAlive)
                 {

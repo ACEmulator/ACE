@@ -126,7 +126,7 @@ namespace ACE.Server.WorldObjects
             if (damage != null)
             {
                 var attackType = GetAttackType();
-                OnDamageTarget(target, attackType);
+                OnDamageTarget(target, attackType, critical);
 
                 if (targetPlayer != null)
                     targetPlayer.TakeDamage(this, damageType, damage.Value, bodyPart, critical);
@@ -192,8 +192,11 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Called when a player hits a target
         /// </summary>
-        public override void OnDamageTarget(WorldObject target, CombatType attackType)
+        public override void OnDamageTarget(WorldObject target, CombatType attackType, bool critical)
         {
+            if (critical)
+                target.EmoteManager.OnReceiveCritical(this);
+
             var attackSkill = GetCreatureSkill(GetCurrentWeaponSkill());
             var difficulty = GetTargetEffectiveDefenseSkill(target);
 

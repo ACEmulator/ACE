@@ -43,9 +43,9 @@ namespace ACE.Server.WorldObjects
             }
 
             // spells only castable on creatures?
-            var targetCreature = target as Creature;
+            /*var targetCreature = target as Creature;
             if (targetCreature == null)
-                return;
+                return;*/
 
             // perform resistance check, if applicable
             var resisted = TryResistSpell(spell, target);
@@ -910,6 +910,13 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         protected void WarMagic(WorldObject target, Spell spell)
         {
+            if (target == null)
+            {
+                // handle untargetted spells (Rolling Balls of Death)
+                WarMagic(spell);
+                return;
+            }
+
             var spellType = SpellProjectile.GetProjectileSpellType(spell.Id);
             // Bolt, Streak, Arc
             if (spell.NumProjectiles == 1)

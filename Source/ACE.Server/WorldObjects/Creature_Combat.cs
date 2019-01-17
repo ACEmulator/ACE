@@ -409,7 +409,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Called when a creature hits a target
         /// </summary>
-        public virtual void OnDamageTarget(WorldObject target, CombatType attackType)
+        public virtual void OnDamageTarget(WorldObject target, CombatType attackType, bool critical)
         {
             // empty base for non-player creatures?
         }
