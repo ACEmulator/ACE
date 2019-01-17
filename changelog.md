@@ -4,6 +4,7 @@
 [Ripley]
 * Remove duplicated data from the Spell table in the World Database
   - **This change requires you to update to the latest world database release found in ACE-World-16PY-Patches, v0.9.10 or higher**
+* Renamed a column in Recipe Mods table in the World Database.  
 
 ### 2019-01-07
 [Ripley]

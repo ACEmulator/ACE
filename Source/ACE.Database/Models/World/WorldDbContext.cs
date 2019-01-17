@@ -440,12 +440,12 @@ namespace ACE.Database.Models.World
 
                 entity.Property(e => e.RecipeModId).HasColumnName("recipe_Mod_Id");
 
-                entity.Property(e => e.Stat)
-                    .HasColumnName("stat")
+                entity.Property(e => e.Source)
+                    .HasColumnName("source")
                     .HasColumnType("int(10)");
 
-                entity.Property(e => e.Unknown1)
-                    .HasColumnName("unknown_1")
+                entity.Property(e => e.Stat)
+                    .HasColumnName("stat")
                     .HasColumnType("int(10)");
 
                 entity.Property(e => e.Value)
@@ -473,12 +473,12 @@ namespace ACE.Database.Models.World
 
                 entity.Property(e => e.RecipeModId).HasColumnName("recipe_Mod_Id");
 
-                entity.Property(e => e.Stat)
-                    .HasColumnName("stat")
+                entity.Property(e => e.Source)
+                    .HasColumnName("source")
                     .HasColumnType("int(10)");
 
-                entity.Property(e => e.Unknown1)
-                    .HasColumnName("unknown_1")
+                entity.Property(e => e.Stat)
+                    .HasColumnName("stat")
                     .HasColumnType("int(10)");
 
                 entity.Property(e => e.Value).HasColumnName("value");
@@ -504,12 +504,12 @@ namespace ACE.Database.Models.World
 
                 entity.Property(e => e.RecipeModId).HasColumnName("recipe_Mod_Id");
 
-                entity.Property(e => e.Stat)
-                    .HasColumnName("stat")
+                entity.Property(e => e.Source)
+                    .HasColumnName("source")
                     .HasColumnType("int(10)");
 
-                entity.Property(e => e.Unknown1)
-                    .HasColumnName("unknown_1")
+                entity.Property(e => e.Stat)
+                    .HasColumnName("stat")
                     .HasColumnType("int(10)");
 
                 entity.Property(e => e.Value).HasColumnName("value");
@@ -535,12 +535,12 @@ namespace ACE.Database.Models.World
 
                 entity.Property(e => e.RecipeModId).HasColumnName("recipe_Mod_Id");
 
-                entity.Property(e => e.Stat)
-                    .HasColumnName("stat")
+                entity.Property(e => e.Source)
+                    .HasColumnName("source")
                     .HasColumnType("int(10)");
 
-                entity.Property(e => e.Unknown1)
-                    .HasColumnName("unknown_1")
+                entity.Property(e => e.Stat)
+                    .HasColumnName("stat")
                     .HasColumnType("int(10)");
 
                 entity.Property(e => e.Value).HasColumnName("value");
@@ -566,12 +566,12 @@ namespace ACE.Database.Models.World
 
                 entity.Property(e => e.RecipeModId).HasColumnName("recipe_Mod_Id");
 
-                entity.Property(e => e.Stat)
-                    .HasColumnName("stat")
+                entity.Property(e => e.Source)
+                    .HasColumnName("source")
                     .HasColumnType("int(10)");
 
-                entity.Property(e => e.Unknown1)
-                    .HasColumnName("unknown_1")
+                entity.Property(e => e.Stat)
+                    .HasColumnName("stat")
                     .HasColumnType("int(10)");
 
                 entity.Property(e => e.Value)
@@ -599,12 +599,12 @@ namespace ACE.Database.Models.World
 
                 entity.Property(e => e.RecipeModId).HasColumnName("recipe_Mod_Id");
 
-                entity.Property(e => e.Stat)
-                    .HasColumnName("stat")
+                entity.Property(e => e.Source)
+                    .HasColumnName("source")
                     .HasColumnType("int(10)");
 
-                entity.Property(e => e.Unknown1)
-                    .HasColumnName("unknown_1")
+                entity.Property(e => e.Stat)
+                    .HasColumnName("stat")
                     .HasColumnType("int(10)");
 
                 entity.Property(e => e.Value)
