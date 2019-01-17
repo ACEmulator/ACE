@@ -67,7 +67,7 @@ namespace ACE.Adapter.GDLE
             {
                 result = new Database.Models.World.Event();
 
-                // result.Id // TODO!!! is this id'd by index? If so, the parent caller needs to set the id... or this function could take an argument that specifies the id.
+                //result.Id // This is an Auto Increment field in the ACE schema
 
                 result.Name = input.Key;
 
@@ -91,7 +91,7 @@ namespace ACE.Adapter.GDLE
             {
                 result = new Database.Models.World.Quest();
 
-                // result.Id // TODO!!! is this id'd by index? If so, the parent caller needs to set the id... or this function could take an argument that specifies the id.
+                //result.Id // This is an Auto Increment field in the ACE schema
 
                 result.Name = input.Key;
 
