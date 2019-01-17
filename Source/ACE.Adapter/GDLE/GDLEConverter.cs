@@ -95,7 +95,7 @@ namespace ACE.Adapter.GDLE
 
                 result.Name = input.Key;
 
-                result.MinDelta = (uint)input.Value.MinDelta; // todo the jsons have values of -1 here sometimes
+                result.MinDelta = (input.Value.MinDelta <= 0) ? 0 : (uint)input.Value.MinDelta; // the jsons have values of -1 here sometimes
                 result.MaxSolves = input.Value.MaxSolves;
                 result.Message = input.Value.FullName;
 
