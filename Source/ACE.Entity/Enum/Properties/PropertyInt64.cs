@@ -20,7 +20,15 @@ namespace ACE.Entity.Enum.Properties
         AvailableLuminance  = 6,
         [SendOnLogin]
         MaximumLuminance    = 7,
-        InteractionReqs     = 8
+        InteractionReqs     = 8,
+
+        /* custom */
+        [ServerOnly]
+        AllegianceXPCached    = 9000,
+        [ServerOnly]
+        AllegianceXPGenerated = 9001,
+        [ServerOnly]
+        AllegianceXPReceived  = 9002,
     }
 
     public static class PropertyInt64Extensions
