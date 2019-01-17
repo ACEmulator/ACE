@@ -3,13 +3,13 @@ using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Network.GameMessages.Messages
 {
-    public class GameMessagePrivateUpdateVital : GameMessage
+    public class GameMessagePublicUpdateVital : GameMessage
     {
-        public GameMessagePrivateUpdateVital(WorldObject worldObject, PropertyAttribute2nd attribute, uint ranks, uint baseValue, uint totalInvestment, uint currentValue)
-            : base(GameMessageOpcode.PrivateUpdateVital, GameMessageGroup.UIQueue)
+        public GameMessagePublicUpdateVital(WorldObject worldObject, PropertyAttribute2nd attribute, uint ranks, uint baseValue, uint totalInvestment, uint currentValue)
+            : base(GameMessageOpcode.PublicUpdateVital, GameMessageGroup.UIQueue)
         {
             Writer.Write(worldObject.Sequences.GetNextSequence(Sequence.SequenceType.UpdateAttribute2ndLevel, attribute));
-
+            Writer.WriteGuid(worldObject.Guid);
             Writer.Write((uint)attribute);
             Writer.Write(ranks);
             Writer.Write(baseValue);
