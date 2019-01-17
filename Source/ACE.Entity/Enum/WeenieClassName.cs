@@ -1,7 +1,9 @@
 
 namespace ACE.Entity.Enum
 {
-    // Weenie Classes found in Feb 05 pdb
+    /// <summary>
+    /// Weenie Classes found in Feb 05 pdb
+    /// </summary>
     public enum WeenieClassName : ushort
     {
         UNDEF = 0,
