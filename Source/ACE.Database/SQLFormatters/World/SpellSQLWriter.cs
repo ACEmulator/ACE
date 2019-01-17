@@ -23,7 +23,7 @@ namespace ACE.Database.SQLFormatters.World
 
         public void CreateSQLDELETEStatement(Spell input, StreamWriter writer)
         {
-            writer.WriteLine($"DELETE FROM `spell` WHERE `spell_Id` = {input.Id};");
+            writer.WriteLine($"DELETE FROM `spell` WHERE `id` = {input.Id};");
         }
 
         public void CreateSQLINSERTStatement(Spell input, StreamWriter writer)
@@ -41,6 +41,37 @@ namespace ACE.Database.SQLFormatters.World
             {
                 spellLineHdr += ", `stat_Mod_Key`";
                 spellLine += $", {input.StatModKey}";
+
+                if (input.StatModType.HasValue)
+                {
+                    var smt = (EnchantmentTypeFlags)input.StatModType;
+
+                    if (smt.HasFlag(EnchantmentTypeFlags.Skill))
+                    {
+                        if (Enum.IsDefined(typeof(Skill), (int)input.StatModKey))
+                            spellLine += $" /* {Enum.GetName(typeof(Skill), input.StatModKey)} */";
+                    }
+                    else if (smt.HasFlag(EnchantmentTypeFlags.Attribute))
+                    {
+                        if (Enum.IsDefined(typeof(PropertyAttribute), (ushort)input.StatModKey))
+                            spellLine += $" /* {Enum.GetName(typeof(PropertyAttribute), input.StatModKey)} */";
+                    }
+                    else if (smt.HasFlag(EnchantmentTypeFlags.SecondAtt))
+                    {
+                        if (Enum.IsDefined(typeof(PropertyAttribute2nd), (ushort)input.StatModKey))
+                            spellLine += $" /* {Enum.GetName(typeof(PropertyAttribute2nd), input.StatModKey)} */";
+                    }
+                    else if (smt.HasFlag(EnchantmentTypeFlags.Int))
+                    {
+                        if (Enum.IsDefined(typeof(PropertyInt), (ushort)input.StatModKey))
+                            spellLine += $" /* {Enum.GetName(typeof(PropertyInt), input.StatModKey)} */";
+                    }
+                    else if (smt.HasFlag(EnchantmentTypeFlags.Float))
+                    {
+                        if (Enum.IsDefined(typeof(PropertyFloat), (ushort)input.StatModKey))
+                            spellLine += $" /* {Enum.GetName(typeof(PropertyFloat), input.StatModKey)} */";
+                    }                    
+                }
             }
             if (input.StatModVal.HasValue)
             {

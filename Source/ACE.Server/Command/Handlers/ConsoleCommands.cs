@@ -176,5 +176,95 @@ namespace ACE.Server.Command.Handlers
                 Console.WriteLine($"Exported {totalFiles} total files to {exportDir}.");
             }
         }
+
+        /// <summary>
+        /// Export all spell files to a specific directory.
+        /// </summary>
+        [CommandHandler("spell-export", AccessLevel.Admin, CommandHandlerFlag.ConsoleInvoke, 0, "Export Spell Files")]
+        public static void ExportSpellFiles(Session session, params string[] parameters)
+        {
+            if (parameters?.Length < 1)
+            {
+                Console.WriteLine("spell-export <export-directory-without-spaces>");
+                return;
+            }
+
+            string exportDir = parameters[0] + "\\2 SpellTableExtendedData\\SQL\\";
+           
+            string spellToExport;
+
+            if (parameters?.Length >= 2)
+            {
+                spellToExport = parameters[1];
+            }
+            else
+                spellToExport = "all";
+
+            bool includeDelete = false;
+
+            if (parameters?.Length >= 3)
+            {
+                if (parameters[2] == "true")
+                    includeDelete = true;
+            }
+
+            if (spellToExport == "all")
+            {
+                Console.WriteLine($"Export of all numberhere spells to {exportDir} complete.");
+            }
+            else
+            {
+                if (uint.TryParse(spellToExport, out uint spellId))
+                {
+                    //var spell = Database.DatabaseManager.World.GetCachedSpell(spellId);
+
+                    //for (uint i = 1; i < 7000; i++)
+                    for (uint i = 5982; i < 6031; i++)
+                    {
+                        var spell = Database.DatabaseManager.World.GetCachedSpell(i);
+                        if (spell != null)
+                        {
+                            DatManager.PortalDat.SpellTable.Spells.TryGetValue(i, out var _spellBase);
+
+                            //if (_spellBase != null && _spellBase.School == MagicSchool.CreatureEnchantment)
+                            //if (_spellBase != null && _spellBase.School == MagicSchool.ItemEnchantment && _spellBase.Power > 300)
+                            if (_spellBase != null && _spellBase.School == MagicSchool.ItemEnchantment)
+                                //var s = new Entity.Spell(i);
+                                //if (_spellBase != null && (_spellBase.School == MagicSchool.ItemEnchantment || _spellBase.School == MagicSchool.WarMagic || _spellBase.School == MagicSchool.CreatureEnchantment || _spellBase.School == MagicSchool.LifeMagic) && s.Formula.FirstScarab == Entity.Scarab.Mana)
+                                //if (_spellBase != null && _spellBase.School == MagicSchool.VoidMagic)
+                                //if (spell.StatModType.HasValue && ((EnchantmentTypeFlags)spell.StatModType).HasFlag(EnchantmentTypeFlags.Skill))
+                                //    if ((Skill)spell.StatModKey == Skill.DirtyFighting
+                                //        || (Skill)spell.StatModKey == Skill.DualWield
+                                //        || (Skill)spell.StatModKey == Skill.FinesseWeapons
+                                //        || (Skill)spell.StatModKey == Skill.Gearcraft
+                                //        || (Skill)spell.StatModKey == Skill.HeavyWeapons
+                                //        || (Skill)spell.StatModKey == Skill.LightWeapons
+                                //        || (Skill)spell.StatModKey == Skill.MissileWeapons
+                                //        || (Skill)spell.StatModKey == Skill.Recklessness
+                                //        || (Skill)spell.StatModKey == Skill.Shield
+                                //        || (Skill)spell.StatModKey == Skill.SneakAttack
+                                //        || (Skill)spell.StatModKey == Skill.Summoning
+                                //        || (Skill)spell.StatModKey == Skill.TwoHandedCombat
+                                //        || (Skill)spell.StatModKey == Skill.VoidMagic
+                                //        )
+                                SQLWriters.SpellsSQLWriter.WriteFile(spell, exportDir, null, includeDelete);
+                        }
+                    }
+                }
+
+                Console.WriteLine($"Export of {spellId} to {exportDir} complete.");
+            }
+
+            //Console.WriteLine($"Exporting portal.dat WAV files to {exportDir}.  This may take a while.");
+            //foreach (KeyValuePair<uint, DatFile> entry in DatManager.PortalDat.AllFiles)
+            //{
+            //    if (entry.Value.GetFileType(DatDatabaseType.Portal) == DatFileType.Wave)
+            //    {
+            //        var wave = DatManager.PortalDat.ReadFromDat<Wave>(entry.Value.ObjectId);
+
+            //        wave.ExportWave(exportDir);
+            //    }
+            //}            
+        }
     }
 }
