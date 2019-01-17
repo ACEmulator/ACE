@@ -35,6 +35,7 @@ namespace ACE.Server
 
         public static void Main(string[] args)
         {
+            AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
             AppDomain.CurrentDomain.ProcessExit += new EventHandler(OnProcessExit);
 
             // Init our text encoding options. This will allow us to use more than standard ANSI text, which the client also supports.
@@ -119,6 +120,11 @@ namespace ACE.Server
             // This should be last
             log.Info("Initializing CommandManager...");
             CommandManager.Initialize();
+        }
+
+        private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
+        {
+            log.Error(e.ExceptionObject);
         }
 
         private static void OnProcessExit(object sender, EventArgs e)
