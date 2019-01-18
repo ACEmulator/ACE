@@ -87,10 +87,9 @@ namespace ACE.Server.Network
 
                 bodyChecksum = Hash32.Calculate(body, body.Length);
             }
+
             foreach (ServerPacketFragment fragment in Fragments)
-            {
                 fragmentChecksum += fragment.AddPayloadToBuffer(buffer, ref offset);
-            }
 
             size = offset;
 
