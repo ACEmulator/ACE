@@ -210,7 +210,7 @@ namespace ACE.Server.Managers
             // try to verify we trust the server before downloading package, since migrations cause source server to destroy the original char upon download of the package
             if (!string.IsNullOrWhiteSpace(sourceServerThumb))
             {
-                if (!ConfigManager.Config.Transfer.TrustedServerCertThumbprints.Any(k => k == sourceServerThumb))
+                if (!ConfigManager.Config.Transfer.AllowMigrationFrom.Any(k => k == sourceServerThumb))
                 {
                     session.WorldBroadcast($"The originating server isn't trusted.  Please contact the server operator and provide the thumbprint {sourceServerThumb} so they can add it to the trusted server cert thumbprints list.");
                     log.Info($"Untrusted transfer attempted.  Thumbprint: {sourceServerThumb}");
@@ -241,7 +241,7 @@ namespace ACE.Server.Managers
             {
                 signerThumbprint = signer.Thumbprint;
                 // verify that the signer is in the trusted signers list
-                if (!ConfigManager.Config.Transfer.TrustedServerCertThumbprints.Any(k => k == signerThumbprint))
+                if (!ConfigManager.Config.Transfer.AllowMigrationFrom.Any(k => k == signerThumbprint))
                 {
                     session.WorldBroadcast($"The originating server isn't trusted.  Please contact the server operator and provide the thumbprint {signerThumbprint} so they can add it to the trusted server cert thumbprints list.");
                     log.Info($"Untrusted transfer attempted.  Thumbprint: {signerThumbprint}");
@@ -389,13 +389,16 @@ namespace ACE.Server.Managers
 
         public enum PackageType
         {
-            Move,
-            Export
+            Migrate,
+            Backup
         }
         public class PackageMetadata
         {
             public PackageType PackageType { get; set; }
             public string Cookie { get; set; }
+            public uint CharacterId { get; set; }
+            public uint AccountId { get; set; }
+            public string FilePath { get; set; }
         }
 
         /// <summary>
@@ -403,19 +406,44 @@ namespace ACE.Server.Managers
         /// </summary>
         /// <param name="session"></param>
         /// <returns></returns>
-        public static async Task<string> CreatePackage(Session session, PackageMetadata metadata)
+        public static async Task<PackageMetadata> CreatePackage(PackageMetadata metadata)
         {
-            string cookie = ThreadSafeRandom.NextString(CookieChars, CookieLength);
-            uint accountId = session.AccountId;
-            uint charId = session.Player.Guid.Full;
+            metadata.Cookie = ThreadSafeRandom.NextString(CookieChars, CookieLength);
 
             // obtain character snapshot
             CharacterSnapshot snapshot = new CharacterSnapshot();
             TaskCompletionSource<object> tsc = new TaskCompletionSource<object>();
-            DatabaseManager.Shard.GetCharacters(accountId, false, new Action<List<Character>>(new Action<List<Character>>((chars) =>
+
+            var offlinePlayer = PlayerManager.GetOfflinePlayer(metadata.CharacterId);
+            if (offlinePlayer == null)
             {
-                snapshot.Character = chars.FirstOrDefault(k => k.Id == charId);
-                snapshot.Player = session.Player.Biota;
+                return null; // character must be logged out
+            }
+            snapshot.Player = offlinePlayer.Biota;
+            DatabaseManager.Shard.GetCharacters(metadata.AccountId, false, new Action<List<Character>>(new Action<List<Character>>((chars) =>
+            {
+                snapshot.Character = chars.FirstOrDefault(k => k.Id == metadata.CharacterId);
+
+                if (snapshot.Character == null)
+                {
+                    tsc.SetResult(new object());
+                    return;
+                }
+
+                if (snapshot.Character.IsReadOnly)
+                {
+                    snapshot.Character = null;
+                    tsc.SetResult(new object());
+                    return;
+                }
+
+                if (metadata.PackageType == PackageType.Migrate)
+                {
+                    // place character in migrating state
+                    snapshot.Character.IsReadOnly = true;
+                    DatabaseManager.Shard.SaveCharacter(snapshot.Character, new ReaderWriterLockSlim(), null);
+                }
+
                 DatabaseManager.Shard.GetPossessedBiotasInParallel(snapshot.Character.Id, new Action<PossessedBiotas>((pb) =>
                 {
                     snapshot.PossessedBiotas = pb;
@@ -424,8 +452,13 @@ namespace ACE.Server.Managers
             })));
             await tsc.Task;
 
+            if (snapshot.Character == null)
+            {
+                return null; // character not found
+            }
+
             // prepare scratch directory
-            string basePath = Path.Combine(ServerManager.TransferPath, cookie);
+            string basePath = Path.Combine(ServerManager.TransferPath, metadata.Cookie);
             Directory.CreateDirectory(basePath);
 
             // serialize, save, and sign
@@ -439,7 +472,6 @@ namespace ACE.Server.Managers
                 CryptoManager.SignFile(biotaPath);
             }
 
-            metadata.Cookie = cookie;
             string metaPath = Path.Combine(basePath, "packinfo.json");
             File.WriteAllText(metaPath, JsonConvert.SerializeObject(metadata, serializationSettings));
             CryptoManager.SignFile(metaPath);
@@ -447,13 +479,12 @@ namespace ACE.Server.Managers
             CryptoManager.ExportCert(Path.Combine(basePath, "signer.crt"));
 
             // compress
-            string zipPath = Path.Combine(ServerManager.TransferPath, cookie + ".zip");
-            ZipFile.CreateFromDirectory(basePath, zipPath);
+            metadata.FilePath = Path.Combine(ServerManager.TransferPath, metadata.Cookie + ".zip");
+            ZipFile.CreateFromDirectory(basePath, metadata.FilePath);
 
             // cleanup
             Directory.Delete(basePath, true);
-
-            return $"https://{ConfigManager.Config.Transfer.ExternalIPAddressOrDomainName}:{ConfigManager.Config.Server.Network.Port + 2}/DownloadCharacter?Cookie={cookie}";
+            return metadata;
         }
 
         /// <summary>

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace ACE.Database.Models.Shard
@@ -21,6 +21,7 @@ namespace ACE.Database.Models.Shard
         public string Name { get; set; }
         public bool IsPlussed { get; set; }
         public bool IsDeleted { get; set; }
+        public bool IsReadOnly { get; set; }
         public ulong DeleteTime { get; set; }
         public double LastLoginTimestamp { get; set; }
         public int TotalLogins { get; set; }

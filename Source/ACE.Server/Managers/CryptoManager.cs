@@ -41,11 +41,11 @@ namespace ACE.Server.Managers
             Certificate = new X509Certificate2(CertFile);
             log.Info($"Server certificate thumbprint: {Certificate.Thumbprint}");
 
-            int trustedCount = ConfigManager.Config.Transfer.TrustedServerCertThumbprints.Count;
+            int trustedCount = ConfigManager.Config.Transfer.AllowMigrationFrom.Count;
             string plural = (trustedCount > 1 || trustedCount == 0) ? "s" : "";
             log.Info($"Found {trustedCount} trusted server{plural} in TrustedServerCertThumbprints configuration.");
 
-            foreach (string trusted in ConfigManager.Config.Transfer.TrustedServerCertThumbprints)
+            foreach (string trusted in ConfigManager.Config.Transfer.AllowMigrationFrom)
             {
                 log.Debug($"Trusted server certificate thumbprint: {trusted}");
             }

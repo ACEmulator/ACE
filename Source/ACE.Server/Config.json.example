@@ -56,12 +56,13 @@
         ]
     },
     "Transfer": {
-        "AllowExport": false,
+        "AllowBackup": true,
         "AllowImport": false,
-        "DeleteUponExport": true,
-        "AllowRepeatedImport": false,
-        "ExternalIPAddressOrDomainName": "",
-        "TrustedServerCertThumbprints": [
+        "AllowMigrate": false,
+        "ExternalIPAddressOrDNSName": "",
+        "AllowMigrationFrom": [
+        ],
+        "AllowImportFrom": [
         ]
     },
     "MySql": {

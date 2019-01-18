@@ -129,8 +129,8 @@ namespace ACE.Server.Command.Handlers
         [CommandHandler("trustedcerts", AccessLevel.Player, CommandHandlerFlag.None, 0, "Reveals this server's trusted server certificate thumbprints.")]
         public static void HandleTrustedCerts(Session session, params string[] parameters)
         {
-            string prints = ConfigManager.Config.Transfer.TrustedServerCertThumbprints.DefaultIfEmpty("").Aggregate((a, b) => a + Environment.NewLine + b);
-            string print = $"{ConfigManager.Config.Transfer.TrustedServerCertThumbprints.Count} trusted server certificate thumbprints:{Environment.NewLine}{prints}".TrimEnd();
+            string prints = ConfigManager.Config.Transfer.AllowMigrationFrom.DefaultIfEmpty("").Aggregate((a, b) => a + Environment.NewLine + b);
+            string print = $"{ConfigManager.Config.Transfer.AllowMigrationFrom.Count} trusted server certificate thumbprints:{Environment.NewLine}{prints}".TrimEnd();
             if (session != null)
             {
                 session.Network.EnqueueSend(new GameMessageSystemChat(print, ChatMessageType.Broadcast));
