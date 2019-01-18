@@ -292,10 +292,16 @@ namespace ACE.Server.Entity
             set { if (!value.HasValue) RemoveProperty(PropertyInstanceId.Patron); else SetProperty(PropertyInstanceId.Patron, value.Value); }
         }
 
-        public int? AllegianceCPPool
+        public ulong AllegianceXPCached
         {
-            get => GetProperty(PropertyInt.AllegianceCpPool);
-            set { if (!value.HasValue) RemoveProperty(PropertyInt.AllegianceCpPool); else SetProperty(PropertyInt.AllegianceCpPool, value.Value); }
+            get => (ulong)(GetProperty(PropertyInt64.AllegianceXPCached) ?? 0);
+            set { if (value == 0) RemoveProperty(PropertyInt64.AllegianceXPCached); else SetProperty(PropertyInt64.AllegianceXPCached, (long)value); }
+        }
+
+        public ulong AllegianceXPGenerated
+        {
+            get => (ulong)(GetProperty(PropertyInt64.AllegianceXPGenerated) ?? 0);
+            set { if (value == 0) RemoveProperty(PropertyInt64.AllegianceXPGenerated); else SetProperty(PropertyInt64.AllegianceXPGenerated, (long)value); }
         }
 
 

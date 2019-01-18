@@ -314,10 +314,10 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public TimeSpan GetCooldown(WorldObject item)
         {
-            if (!LastUseTracker.TryGetValue(item.CooldownId.Value, out var lastUseTime))
+            if (!LastUseTracker.TryGetValue(item.CooldownId ?? 0, out var lastUseTime))
                 return TimeSpan.FromSeconds(0);
 
-            var nextUseTime = lastUseTime + TimeSpan.FromSeconds(item.CooldownDuration.Value);
+            var nextUseTime = lastUseTime + TimeSpan.FromSeconds(item.CooldownDuration ?? 0);
 
             if (DateTime.UtcNow < nextUseTime)
                 return nextUseTime - DateTime.UtcNow;
@@ -338,6 +338,8 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void UpdateCooldown(WorldObject item)
         {
+            if (item.CooldownId == null) return;
+
             if (!LastUseTracker.ContainsKey(item.CooldownId.Value))
                 LastUseTracker.Add(item.CooldownId.Value, DateTime.UtcNow);
             else

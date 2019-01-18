@@ -14,19 +14,22 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public bool IsWithinUseRadiusOf(WorldObject wo)
         {
-            var matchIndoor = Location.Indoors == wo.Location.Indoors;
+            /*var matchIndoor = Location.Indoors == wo.Location.Indoors;
             var globalPos = matchIndoor ? Location.ToGlobal() : Location.Pos;
             var targetGlobalPos = matchIndoor ? wo.Location.ToGlobal() : wo.Location.Pos;
 
             var originDist = Vector3.Distance(globalPos, targetGlobalPos);
             var radSum = PhysicsObj.GetRadius() + wo.PhysicsObj.GetRadius();
-            var radDist = originDist - radSum;
+            var radDist = originDist - radSum;*/
             var useRadius = wo.UseRadius ?? 0.6f;
+
+            var cylDist = (float)Physics.Common.Position.CylinderDistance(PhysicsObj.GetRadius(), PhysicsObj.GetHeight(), PhysicsObj.Position,
+                wo.PhysicsObj.GetRadius(), wo.PhysicsObj.GetHeight(), wo.PhysicsObj.Position);
 
             // if (this is Player player)
             //    player.Session.Network.EnqueueSend(new GameMessageSystemChat($"OriginDist: {originDist}, RadDist: {radDist}, MyRadius: {PhysicsObj.GetRadius()}, TargetRadius: {wo.PhysicsObj.GetRadius()}, MyUseRadius: {UseRadius ?? 0}, TargetUseRadius: {wo.UseRadius ?? 0}", ChatMessageType.System));
 
-            return radDist <= useRadius;
+            return cylDist <= useRadius;
         }
 
         /// <summary>

@@ -4,8 +4,9 @@ using System.Linq;
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.Entity;
-using ACE.Server.Entity;
 using ACE.Entity.Enum;
+using ACE.Server.Entity;
+using ACE.Server.Managers;
 using ACE.Server.Network.GameMessages.Messages;
 
 namespace ACE.Server.WorldObjects
@@ -119,6 +120,13 @@ namespace ACE.Server.WorldObjects
             if (player.HasLootPermission(new ObjectGuid(OwnerId.Value)))
                 return true;
 
+            // players in the same fellowship as the killer w/ loot sharing enabled
+            if (player.Fellowship != null && player.Fellowship.ShareLoot)
+            {
+                var onlinePlayer = PlayerManager.GetOnlinePlayer(AllowedActivator ?? 0);
+                if (onlinePlayer != null && onlinePlayer.Fellowship != null && player.Fellowship == onlinePlayer.Fellowship)
+                    return true;
+            }
             return false;
         }
     }

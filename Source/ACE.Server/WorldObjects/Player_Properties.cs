@@ -186,12 +186,6 @@ namespace ACE.Server.WorldObjects
             }
         }
 
-        public int? AllegianceCPPool
-        {
-            get => GetProperty(PropertyInt.AllegianceCpPool);
-            set { if (!value.HasValue) RemoveProperty(PropertyInt.AllegianceCpPool); else SetProperty(PropertyInt.AllegianceCpPool, value.Value); }
-        }
-
         // ========================================
         // ===== Player Properties - Titles========
         // ========================================

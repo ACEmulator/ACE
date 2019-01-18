@@ -241,11 +241,12 @@ namespace ACE.Server.Managers
                 //patron.CPCached += passupAmount;
                 //patron.CPPoolToUnload += passupAmount;
 
-                patron.AllegianceCPPool += (int)passupAmount;
+                vassal.AllegianceXPGenerated += generatedAmount;
+                patron.AllegianceXPCached += passupAmount;
 
                 var onlinePatron = PlayerManager.GetOnlinePlayer(patron.Guid);
                 if (onlinePatron != null)
-                    onlinePatron.AddCPPoolToUnload(false);
+                    onlinePatron.AddAllegianceXP(false);
 
                 // call recursively
                 PassXP(patronNode, passupAmount, false);

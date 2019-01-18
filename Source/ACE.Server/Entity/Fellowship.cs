@@ -4,8 +4,8 @@ using System.Linq;
 
 using ACE.Entity;
 using ACE.Entity.Enum;
+using ACE.Entity.Enum.Properties;
 using ACE.Server.Managers;
-using ACE.Server.Network.Enum;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.WorldObjects;
@@ -23,6 +23,7 @@ namespace ACE.Server.Entity
         public uint FellowshipLeaderGuid;
 
         public bool ShareXP;    // XP sharing: 0=no, 1=yes
+        public bool ShareLoot;  // Loot sharing: 0=no, 1=yes
         public bool EvenShare;  // XP equal sharing: 0=proportional to level, 1=even
         public bool Open;       // Open fellowship: 0=no, 1=yes
 
@@ -34,6 +35,10 @@ namespace ACE.Server.Entity
         public Fellowship(Player leader, string fellowshipName, bool shareXP)
         {
             ShareXP = shareXP;
+
+            // get loot sharing from leader's character options
+            ShareLoot = leader.GetCharacterOption(CharacterOption.ShareFellowshipLoot);
+
             FellowshipLeaderGuid = leader.Guid.Full;
             FellowshipName = fellowshipName;
             EvenShare = false;
@@ -78,7 +83,7 @@ namespace ACE.Server.Entity
             {
                 if (FellowshipMembers.Count == 9)
                 {
-                    inviter.Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name} cannot join as fellowship is full", ACE.Entity.Enum.ChatMessageType.Fellowship));
+                    inviter.Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name} cannot join as fellowship is full", ChatMessageType.Fellowship));
                 }
                 else
                 {
@@ -87,7 +92,7 @@ namespace ACE.Server.Entity
                     foreach (var member in FellowshipMembers)
                     {
                         inviter.Session.Network.EnqueueSend(new GameEventFellowshipUpdateFellow(inviter.Session, player, ShareXP));
-                        inviter.Session.Network.EnqueueSend(new GameEventFellowshipFellowUpdateDone(inviter.Session));
+                        //inviter.Session.Network.EnqueueSend(new GameEventFellowshipFellowUpdateDone(inviter.Session));
                     }
                     player.Fellowship = inviter.Fellowship;
                     SendMessageAndUpdate($"{player.Name} joined the fellowship");
@@ -95,7 +100,7 @@ namespace ACE.Server.Entity
             }
             else
             {
-                inviter.Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name} declines your invite", ACE.Entity.Enum.ChatMessageType.Fellowship));
+                inviter.Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name} declines your invite", ChatMessageType.Fellowship));
             }
         }
         
@@ -104,7 +109,7 @@ namespace ACE.Server.Entity
             foreach (var member in FellowshipMembers)
             {
                 member.Session.Network.EnqueueSend(new GameEventFellowshipDismiss(member.Session, player));
-                member.Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name} dismissed from fellowship", ACE.Entity.Enum.ChatMessageType.Fellowship));
+                member.Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name} dismissed from fellowship", ChatMessageType.Fellowship));
             }
             FellowshipMembers.Remove(player);
             player.Fellowship = null;
@@ -117,7 +122,7 @@ namespace ACE.Server.Entity
             foreach (var member in FellowshipMembers)
             {
                 member.Session.Network.EnqueueSend(new GameEventFellowshipFullUpdate(member.Session));
-                member.Session.Network.EnqueueSend(new GameEventFellowshipFellowUpdateDone(member.Session));
+                //member.Session.Network.EnqueueSend(new GameEventFellowshipFellowUpdateDone(member.Session));
             }
         }
 
@@ -127,7 +132,7 @@ namespace ACE.Server.Entity
             {
                 member.Session.Network.EnqueueSend(new GameMessageSystemChat(message, ChatMessageType.Fellowship));
                 member.Session.Network.EnqueueSend(new GameEventFellowshipFullUpdate(member.Session));
-                member.Session.Network.EnqueueSend(new GameEventFellowshipFellowUpdateDone(member.Session));
+                //member.Session.Network.EnqueueSend(new GameEventFellowshipFellowUpdateDone(member.Session));
             }
         }
 
@@ -142,11 +147,11 @@ namespace ACE.Server.Entity
                         member.Session.Network.EnqueueSend(new GameEventFellowshipQuit(member.Session, member.Guid.Full));
                         if (member.Guid.Full == FellowshipLeaderGuid)
                         {
-                            member.Session.Network.EnqueueSend(new GameMessageSystemChat("You disband the fellowship", ACE.Entity.Enum.ChatMessageType.Fellowship));
+                            member.Session.Network.EnqueueSend(new GameMessageSystemChat("You disband the fellowship", ChatMessageType.Fellowship));
                         }
                         else
                         {
-                            member.Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name} disbanded the fellowship", ACE.Entity.Enum.ChatMessageType.Fellowship));
+                            member.Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name} disbanded the fellowship", ChatMessageType.Fellowship));
                             member.Fellowship = null;
                         }
                     }
@@ -372,6 +377,12 @@ namespace ACE.Server.Entity
         public void OnFellowLevelUp()
         {
             CalculateXPSharing();
+        }
+
+        public void OnVitalUpdate(Player player)
+        {
+            foreach (var fellow in FellowshipMembers)
+                fellow.Session.Network.EnqueueSend(new GameEventFellowshipUpdateFellow(fellow.Session, player, ShareXP, FellowUpdateType.Vitals));
         }
     }
 }
