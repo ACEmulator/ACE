@@ -99,7 +99,7 @@ namespace ACE.Server.WorldObjects
                 }
             }
 
-            if (this is Corpse)
+            if (corpse != null)
             {
                 EnqueueBroadcast(new GameMessageScript(Guid, ACE.Entity.Enum.PlayScript.Destroy));
 
