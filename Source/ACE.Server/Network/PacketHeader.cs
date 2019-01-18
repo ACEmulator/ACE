@@ -1,5 +1,6 @@
-﻿using System.IO;
+using System.IO;
 using System.Runtime.InteropServices;
+
 using ACE.Common.Cryptography;
 
 namespace ACE.Server.Network
@@ -7,7 +8,7 @@ namespace ACE.Server.Network
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
     public class PacketHeader
     {
-        public static uint HeaderSize { get; } = 20u;
+        public static int HeaderSize { get; } = 20;
 
         public uint Sequence { get; set; }
         public PacketHeaderFlags Flags { get; set; }

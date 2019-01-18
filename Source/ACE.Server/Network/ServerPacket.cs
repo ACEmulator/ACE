@@ -70,5 +70,38 @@ namespace ACE.Server.Network
                 }
             }
         }
+
+        public void AddPayloadToBuffer(byte[] buffer, ref int size)
+        {
+            uint bodyChecksum = 0u;
+            uint fragmentChecksum = 0u;
+
+            int offset = PacketHeader.HeaderSize;
+
+            if (Data.Length > 0)
+            {
+                var body = Data.ToArray();
+
+                Buffer.BlockCopy(body, 0, buffer, offset, body.Length);
+                offset += body.Length;
+
+                bodyChecksum = Hash32.Calculate(body, body.Length);
+            }
+            foreach (ServerPacketFragment fragment in Fragments)
+            {
+                fragmentChecksum += fragment.AddPayloadToBuffer(buffer, ref offset);
+            }
+
+            size = offset;
+
+            Header.Size = (ushort)(size - PacketHeader.HeaderSize);
+
+            var headerChecksum = Header.CalculateHash32();
+            uint payloadChecksum = bodyChecksum + fragmentChecksum;
+            Header.Checksum = headerChecksum + (payloadChecksum ^ issacXor);
+
+            var rawHeader = Header.GetRaw();
+            Buffer.BlockCopy(rawHeader, 0, buffer, 0, rawHeader.Length);
+        }
     }
 }
