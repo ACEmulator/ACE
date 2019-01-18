@@ -142,11 +142,14 @@ namespace ACE.Server.WorldObjects
 
             PhysicsObj.SetScaleStatic(ObjScale ?? 1.0f);
 
+            PhysicsObj.State = defaultState;
+
             // gaerlan rolling balls of death
             if (Name.Equals("Rolling Death"))
+            {
                 PhysicsObj.SetScaleStatic(1.0f);
-
-            PhysicsObj.State = defaultState;
+                PhysicsObj.State |= PhysicsState.Ethereal;
+            }
 
             //if (creature != null) AllowEdgeSlide = true;
         }

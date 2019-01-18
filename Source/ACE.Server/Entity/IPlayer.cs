@@ -52,7 +52,9 @@ namespace ACE.Server.Entity
 
         uint? Patron { get; set; }
 
-        int? AllegianceCPPool { get; set; }
+        ulong AllegianceXPCached { get; set; }
+
+        ulong AllegianceXPGenerated { get; set; }
 
 
         uint GetCurrentLoyalty();
