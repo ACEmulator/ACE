@@ -316,8 +316,10 @@ namespace ACE.Server.Network.GameEvent.Events
             if (fillComps.Count > 0)
                 optionFlags |= CharacterOptionDataFlag.DesiredComps;
 
+            optionFlags |= CharacterOptionDataFlag.SpellbookFilters;
+
             Writer.Write((uint)optionFlags);
-            Writer.Write((int)Session.Player.Character.CharacterOptions1);
+            Writer.Write(Session.Player.Character.CharacterOptions1);
 
             if (shortcuts.Count > 0)
                 Writer.Write(shortcuts);
@@ -341,11 +343,11 @@ namespace ACE.Server.Network.GameEvent.Events
             if ((optionFlags & CharacterOptionDataFlag.DesiredComps) != 0)
                 Writer.Write(fillComps);
 
-            if ((optionFlags & CharacterOptionDataFlag.SpellbookFilters) != 0)
-                Writer.Write(0u);
+            //if ((optionFlags & CharacterOptionDataFlag.SpellbookFilters) != 0)
+            Writer.Write(Session.Player.Character.SpellbookFilters);
 
             if ((optionFlags & CharacterOptionDataFlag.CharacterOptions2) != 0)
-                Writer.Write((int)Session.Player.Character.CharacterOptions2);
+                Writer.Write(Session.Player.Character.CharacterOptions2);
 
             /*if ((optionFlags & DescriptionOptionFlag.Unk100) != 0)
             {

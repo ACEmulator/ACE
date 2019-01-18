@@ -1219,6 +1219,12 @@ namespace ACE.Server.WorldObjects
 
             return caster.SpellDID == spell.Id;
         }
+
+        public void HandleSpellbookFilters(SpellBookFilterOptions filters)
+        {
+            Character.SpellbookFilters = (uint)filters;
+        }
+
         public void HandleSetDesiredComponentLevel(uint component_wcid, uint amount)
         {
             // ensure wcid is spell component
