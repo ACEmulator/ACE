@@ -27,6 +27,7 @@ namespace ACE.Database.Models.Shard
         public int CharacterOptions1 { get; set; }
         public int CharacterOptions2 { get; set; }
         public byte[] GameplayOptions { get; set; }
+        public uint SpellbookFilters { get; set; }
         public uint HairTexture { get; set; }
         public uint DefaultHairTexture { get; set; }
 
