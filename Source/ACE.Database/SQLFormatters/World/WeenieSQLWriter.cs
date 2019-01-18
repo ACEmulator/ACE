@@ -603,7 +603,8 @@ namespace ACE.Database.SQLFormatters.World
 
                 if (input[i].WeenieClassId == 0)
                 {
-                    label = GetValueForTreasureData(weenieClassID, true);
+                    //label = GetValueForTreasureData(weenieClassID, true);
+                    label = "nothing";
                 }
 
                 return $"{weenieClassID}, {input[i].DestinationType}, {input[i].WeenieClassId.ToString().PadLeft(5)}, {input[i].StackSize.ToString().PadLeft(2)}, {input[i].Palette}, {input[i].Shade}, {input[i].TryToBond}) /* Create {label ?? "Unknown"} for {Enum.GetName(typeof(DestinationType), input[i].DestinationType)} */";
