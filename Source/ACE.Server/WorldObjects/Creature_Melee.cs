@@ -135,7 +135,7 @@ namespace ACE.Server.WorldObjects
 
                 // only cleave creatures
                 var creature = obj.WeenieObj.WorldObject as Creature;
-                if (creature == null)
+                if (creature == null || !(creature.GetProperty(PropertyBool.Attackable) ?? false))
                     continue;
 
                 // no objects in cleave range

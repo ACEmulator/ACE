@@ -45,8 +45,9 @@ namespace ACE.Server.WorldObjects
         {
             var attackable = monster.GetProperty(PropertyBool.Attackable) ?? false;
             var tolerance = (Tolerance)(monster.GetProperty(PropertyInt.Tolerance) ?? 0);
+            var targetingTactic = monster.GetProperty(PropertyInt.TargetingTactic) ?? 0;
 
-            if (attackable && monster.MonsterState == State.Idle && tolerance == Tolerance.None)
+            if ((attackable || targetingTactic != 0) && monster.MonsterState == State.Idle && tolerance == Tolerance.None)
             {
                 //Console.WriteLine($"[{Timers.RunningTime}] - {monster.Name} ({monster.Guid}) - waking up");
                 monster.AttackTarget = this;

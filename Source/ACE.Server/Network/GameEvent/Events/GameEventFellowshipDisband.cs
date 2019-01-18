@@ -1,15 +1,11 @@
-using ACE.Server.Network.GameMessages;
-
 namespace ACE.Server.Network.GameEvent.Events
 {
-    public class GameEventFellowshipDisband : GameMessage
+    public class GameEventFellowshipDisband : GameEventMessage
     {
         public GameEventFellowshipDisband(Session session) :
-            base(GameMessageOpcode.GameEvent, GameMessageGroup.UIQueue)
+            base(GameEventType.FellowshipDisband, GameMessageGroup.UIQueue, session)
         {
-            //Writer.Write(session.Player.Guid.Full);
-            //Writer.Write(session.GameEventSequence++);
-            //Writer.Write((uint)GameEvent.GameEventType.FellowshipDisband);
+            // empty base
         }
     }
 }

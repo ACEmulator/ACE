@@ -126,7 +126,7 @@ namespace ACE.Server.WorldObjects
             if (damage != null)
             {
                 var attackType = GetAttackType();
-                OnDamageTarget(target, attackType);
+                OnDamageTarget(target, attackType, critical);
 
                 if (targetPlayer != null)
                     targetPlayer.TakeDamage(this, damageType, damage.Value, bodyPart, critical);
@@ -192,8 +192,11 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Called when a player hits a target
         /// </summary>
-        public override void OnDamageTarget(WorldObject target, CombatType attackType)
+        public override void OnDamageTarget(WorldObject target, CombatType attackType, bool critical)
         {
+            if (critical)
+                target.EmoteManager.OnReceiveCritical(this);
+
             var attackSkill = GetCreatureSkill(GetCurrentWeaponSkill());
             var difficulty = GetTargetEffectiveDefenseSkill(target);
 
@@ -586,6 +589,9 @@ namespace ACE.Server.WorldObjects
             // update stamina
             UpdateVitalDelta(Stamina, -1);
 
+            if (Fellowship != null)
+                Fellowship.OnVitalUpdate(this);
+
             // send damage text message
             var nether = damageType == DamageType.Nether ? "nether " : "";
             var text = new GameMessageSystemChat($"You receive {amount} points of periodic {nether}damage.", ChatMessageType.Combat);
@@ -631,15 +637,18 @@ namespace ACE.Server.WorldObjects
             var damageTaken = (uint)-UpdateVitalDelta(Health, (int)-amount);
             DamageHistory.Add(source, damageType, damageTaken);
 
+            // update stamina
+            UpdateVitalDelta(Stamina, -1);
+
+            if (Fellowship != null)
+                Fellowship.OnVitalUpdate(this);
+
             if (Health.Current == 0)
             {
                 OnDeath(source, damageType, crit);
                 Die();
                 return;
             }
-
-            // update stamina
-            UpdateVitalDelta(Stamina, -1);
 
             var damageLocation = (DamageLocation)BodyParts.Indices[bodyPart];
 
@@ -794,6 +803,70 @@ namespace ACE.Server.WorldObjects
                 return CurrentLandblock?.GetObject(new ObjectGuid(Killer ?? 0)) as Player;
             else
                 return null;
+        }
+
+        /// <summary>
+        /// This method processes the Game Action (F7B1) Change Combat Mode (0x0053)
+        /// </summary>
+        public void HandleGameActionChangeCombatMode(CombatMode newCombatMode)
+        {
+            var currentCombatStance = GetCombatStance();
+
+            switch (newCombatMode)
+            {
+                case CombatMode.NonCombat:
+                {
+                    switch (currentCombatStance)
+                    {
+                        case MotionStance.BowCombat:
+                        case MotionStance.CrossbowCombat:
+                        case MotionStance.AtlatlCombat:
+                        {
+                            var equippedAmmo = GetEquippedAmmo();
+                            if (equippedAmmo != null)
+                                ClearChild(equippedAmmo); // We must clear the placement/parent when going back to peace
+                            break;
+                        }
+                    }
+                    break;
+                }
+                case CombatMode.Melee:
+                    // todo expand checks
+                    break;
+
+                case CombatMode.Missile:
+                {
+                    switch (currentCombatStance)
+                    {
+                        case MotionStance.BowCombat:
+                        case MotionStance.CrossbowCombat:
+                        case MotionStance.AtlatlCombat:
+                        {
+                            var equippedAmmo = GetEquippedAmmo();
+                            if (equippedAmmo == null)
+                            {
+                                Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "You are out of ammunition!"));
+                                newCombatMode = CombatMode.NonCombat;
+                            }
+                            else
+                            {
+                                // We must set the placement/parent when going into combat
+                                equippedAmmo.Placement = ACE.Entity.Enum.Placement.RightHandCombat;
+                                equippedAmmo.ParentLocation = ACE.Entity.Enum.ParentLocation.RightHand;
+                            }
+                            break;
+                        }
+                    }
+                    break;
+                }
+
+                case CombatMode.Magic:
+                    // todo expand checks
+                    break;
+
+            }
+
+            SetCombatMode(newCombatMode);
         }
     }
 }

@@ -252,7 +252,7 @@ namespace ACE.Server.WorldObjects
                     var itemName = (item.StackSize ?? 1) > 1 ? item.GetPluralName() : item.Name;
                     Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, $"The {itemName} cannot be sold"));     // TODO: find retail messages
                 }
-                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session));
+                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, Guid.Full));
             }
 
             if (sellList.Count > 0)

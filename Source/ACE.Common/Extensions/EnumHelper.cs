@@ -1,17 +1,18 @@
-using System.Collections;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 
-namespace ACE.Entity.Enum
+namespace ACE.Common.Extensions
 {
     public static class EnumHelper
     {
-        public static T GetAttributeOfType<T>(this System.Enum enumVal) where T : System.Attribute
+        /// <summary>
+        /// Returns a list of flags for enum
+        /// </summary>
+        public static List<Enum> GetFlags(this Enum e)
         {
-            var type = enumVal.GetType();
-            var memInfo = type.GetMember(enumVal.ToString());
-            var attributes = memInfo[0].GetCustomAttributes(typeof(T), false);
-            return (attributes.Length > 0) ? (T)attributes[0] : null;
+            return Enum.GetValues(e.GetType()).Cast<Enum>().Where(e.HasFlag).ToList();
         }
-
 
         /// <summary>
         /// Returns the # of bits set in a Flags enum

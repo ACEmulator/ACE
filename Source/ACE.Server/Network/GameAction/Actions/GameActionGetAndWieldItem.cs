@@ -1,3 +1,4 @@
+using ACE.Entity.Enum;
 
 namespace ACE.Server.Network.GameAction.Actions
 {
@@ -7,7 +8,7 @@ namespace ACE.Server.Network.GameAction.Actions
         public static void Handle(ClientMessage message, Session session)
         {
             uint itemGuid = message.Payload.ReadUInt32();
-            int location = message.Payload.ReadInt32();
+            var location = (EquipMask)message.Payload.ReadInt32();
 
             session.Player.HandleActionGetAndWieldItem(itemGuid, location);
         }

@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 
+using ACE.Adapter.Enum;
 using ACE.Database.Models.World;
+using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 
 namespace ACE.Adapter.Lifestoned
@@ -15,7 +17,14 @@ namespace ACE.Adapter.Lifestoned
                 result = new Weenie();
 
                 result.ClassId = input.WeenieId;
-                //weenie.ClassName;
+
+                if (System.Enum.IsDefined(typeof(WeenieClassId), (ushort)input.WeenieClassId))
+                    result.ClassName = System.Enum.GetName(typeof(WeenieClassId), input.WeenieClassId).ToLower();
+                else if (System.Enum.IsDefined(typeof(WeenieClassName), (ushort)input.WeenieClassId))
+                    result.ClassName = System.Enum.GetName(typeof(WeenieClassName), input.WeenieClassId).ToLower();
+                else
+                    result.ClassName = "ace" + input.WeenieClassId + "-" + input.Name.Replace("'", "").Replace(" ", "").Replace(".", "").Replace("(", "").Replace(")", "").Replace("+", "").Replace(":", "").Replace("_", "").Replace("-", "").Replace(",", "").ToLower();
+
                 result.Type = input.WeenieTypeId;
 
                 if (input.Book != null)

@@ -57,7 +57,7 @@ namespace ACE.Server.Managers
             var emoteType = (EmoteType)emote.Type;
 
             //if (Debug)
-            //Console.WriteLine($"{WorldObject.Name}.ExecuteEmote({emoteType})");
+                //Console.WriteLine($"{WorldObject.Name}.ExecuteEmote({emoteType})");
 
             var text = emote.Message;
 
@@ -89,8 +89,8 @@ namespace ACE.Server.Managers
                 case EmoteType.AddContract:
 
                     //if (player != null)
-                    //Contracts werent in emote table
-                    //player.AddContract(emote.Stat);
+                        //Contracts werent in emote table
+                        //player.AddContract(emote.Stat);
                     break;
 
                 case EmoteType.AdminSpam:
@@ -182,10 +182,10 @@ namespace ACE.Server.Managers
 
                 case EmoteType.CastSpellInstant:
 
-                    if (creature != null && targetObject != null)
+                    if (creature != null)
                     {
                         var spell = new Spell((uint)emote.SpellId);
-                        if (targetObject != null && spell != null)
+                        if (spell != null)
                             creature.TryCastSpell(spell, targetObject, creature);
                     }
                     break;
@@ -1251,6 +1251,11 @@ namespace ACE.Server.Managers
         public void OnAttack(Creature attacker)
         {
             ExecuteEmoteSet(EmoteCategory.NewEnemy, null, attacker);
+        }
+
+        public void OnReceiveCritical(Creature attacker)
+        {
+            ExecuteEmoteSet(EmoteCategory.ReceiveCritical, null, attacker);
         }
 
         public void OnDeath(DamageHistory damageHistory)

@@ -60,7 +60,8 @@ namespace ACE.Server.WorldObjects
             Missile = true;
             AlignPath = true;
             PathClipped = true;
-            Ethereal = false;
+            if (!Spell.Name.Equals("Rolling Death"))
+                Ethereal = false;
             IgnoreCollisions = false;
 
             if (SpellType == ProjectileSpellType.Bolt || SpellType == ProjectileSpellType.Streak
@@ -239,7 +240,7 @@ namespace ACE.Server.WorldObjects
             // ensure valid creature target
             // non-target objects will be excluded beforehand from collision detection
             var target = _target as Creature;
-            if (target == null)
+            if (target == null || player == target)
             {
                 OnCollideEnvironment();
                 return;
@@ -439,9 +440,15 @@ namespace ACE.Server.WorldObjects
                     percent = (float)damage / target.Health.MaxValue;
                     amount = (uint)-target.UpdateVitalDelta(target.Health, (int)-Math.Round(damage.Value));
                     target.DamageHistory.Add(ProjectileSource, Spell.DamageType, amount);
+
+                    if (targetPlayer != null && targetPlayer.Fellowship != null)
+                        targetPlayer.Fellowship.OnVitalUpdate(targetPlayer);
                 }
 
                 amount = (uint)Math.Round(damage.Value);    // full amount for debugging
+
+                if (critical)
+                    target.EmoteManager.OnReceiveCritical(player);
 
                 if (target.IsAlive)
                 {

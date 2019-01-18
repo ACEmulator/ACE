@@ -6,7 +6,6 @@ using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Network.GameMessages.Messages;
-using ACE.Server.Network.Structure;
 using ACE.Server.Physics.Animation;
 
 namespace ACE.Server.WorldObjects
@@ -410,7 +409,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Called when a creature hits a target
         /// </summary>
-        public virtual void OnDamageTarget(WorldObject target, CombatType attackType)
+        public virtual void OnDamageTarget(WorldObject target, CombatType attackType, bool critical)
         {
             // empty base for non-player creatures?
         }
