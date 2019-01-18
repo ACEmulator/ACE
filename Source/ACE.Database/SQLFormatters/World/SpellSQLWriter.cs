@@ -82,7 +82,7 @@ namespace ACE.Database.SQLFormatters.World
             if (input.EType.HasValue)
             {
                 spellLineHdr += ", `e_Type`";
-                spellLine += $", {input.EType}";
+                spellLine += $", {input.EType} /* {Enum.GetName(typeof(DamageType), input.EType)} */";
             }
 
             if (input.BaseIntensity.HasValue)
@@ -101,7 +101,7 @@ namespace ACE.Database.SQLFormatters.World
             {
                 spellLineHdr += ", `wcid`";
 
-                if (WeenieNames != null)
+                if (WeenieNames != null && input.Wcid.Value > 0)
                     spellLine += $", {input.Wcid} /* {WeenieNames[input.Wcid.Value]} */";
                 else
                     spellLine += $", {input.Wcid}";
@@ -324,7 +324,7 @@ namespace ACE.Database.SQLFormatters.World
             if (input.TransferBitfield.HasValue)
             {
                 spellLineHdr += ", `transfer_Bitfield`";
-                spellLine += $", {input.TransferBitfield}";
+                spellLine += $", {input.TransferBitfield} /* {((TransferFlags)input.TransferBitfield).ToString()} */";
             }
 
             if (input.Index.HasValue)

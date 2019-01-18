@@ -204,7 +204,12 @@ namespace ACE.Entity.Enum.Properties
                 case PropertyDataId.DeathTreasureType:
                     // todo
                     break;
-                case PropertyDataId.Spell:
+                case PropertyDataId.Spell:                
+                case PropertyDataId.DeathSpell:
+                case PropertyDataId.ProcSpell:
+                case PropertyDataId.RedSurgeSpell:
+                case PropertyDataId.BlueSurgeSpell:
+                case PropertyDataId.YellowSurgeSpell:
                     return System.Enum.GetName(typeof(SpellId), value);
 
                 case PropertyDataId.PCAPRecordedParentLocation:

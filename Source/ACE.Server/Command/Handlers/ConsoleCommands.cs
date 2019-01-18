@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-
+using System.Linq;
 using ACE.DatLoader;
 using ACE.DatLoader.FileTypes;
 using ACE.Entity.Enum;
@@ -216,12 +216,63 @@ namespace ACE.Server.Command.Handlers
             {
                 if (uint.TryParse(spellToExport, out uint spellId))
                 {
-                    var spell = Database.DatabaseManager.World.GetCachedSpell(spellId);
+                    var weenieNames = new Dictionary<uint, string>();
 
-                    SQLWriters.SpellsSQLWriter.WriteFile(spell, exportDir, null, includeDelete);
+                    //var spell = Database.DatabaseManager.World.GetCachedSpell(spellId);
+
+                    for (uint i = 1; i < 8000; i++)
+                    //for (uint i = 5982; i < 6031; i++)
+                    {
+                        var spell = Database.DatabaseManager.World.GetCachedSpell(i);
+                        if (spell != null)
+                        {
+                            DatManager.PortalDat.SpellTable.Spells.TryGetValue(i, out var _spellBase);
+
+                            if (spell.Wcid.HasValue && spell.Wcid.Value > 0)
+                            {
+                                if (!weenieNames.ContainsKey(spell.Wcid.Value))
+                                {
+                                    var weenie = Database.DatabaseManager.World.GetCachedWeenie(spell.Wcid.Value);
+                                    if (weenie != null)
+                                    {
+                                        var name = weenie.WeeniePropertiesString.Where(x => x.Type == 1).FirstOrDefault().Value;
+                                        if (name != null)
+                                            weenieNames.Add(spell.Wcid.Value, name);
+                                        else
+                                            continue;
+                                    }
+                                    else
+                                        continue;
+                                }
+                            }
+
+                            //if (_spellBase != null && _spellBase.School == MagicSchool.CreatureEnchantment)
+                            //if (_spellBase != null && _spellBase.School == MagicSchool.ItemEnchantment && _spellBase.Power > 300)
+                            //if (_spellBase != null && _spellBase.School == MagicSchool.ItemEnchantment)
+                                //var s = new Entity.Spell(i);
+                                //if (_spellBase != null && (_spellBase.School == MagicSchool.ItemEnchantment || _spellBase.School == MagicSchool.WarMagic || _spellBase.School == MagicSchool.CreatureEnchantment || _spellBase.School == MagicSchool.LifeMagic) && s.Formula.FirstScarab == Entity.Scarab.Mana)
+                                //if (_spellBase != null && _spellBase.School == MagicSchool.VoidMagic)
+                                //if (spell.StatModType.HasValue && ((EnchantmentTypeFlags)spell.StatModType).HasFlag(EnchantmentTypeFlags.Skill))
+                                //    if ((Skill)spell.StatModKey == Skill.DirtyFighting
+                                //        || (Skill)spell.StatModKey == Skill.DualWield
+                                //        || (Skill)spell.StatModKey == Skill.FinesseWeapons
+                                //        || (Skill)spell.StatModKey == Skill.Gearcraft
+                                //        || (Skill)spell.StatModKey == Skill.HeavyWeapons
+                                //        || (Skill)spell.StatModKey == Skill.LightWeapons
+                                //        || (Skill)spell.StatModKey == Skill.MissileWeapons
+                                //        || (Skill)spell.StatModKey == Skill.Recklessness
+                                //        || (Skill)spell.StatModKey == Skill.Shield
+                                //        || (Skill)spell.StatModKey == Skill.SneakAttack
+                                //        || (Skill)spell.StatModKey == Skill.Summoning
+                                //        || (Skill)spell.StatModKey == Skill.TwoHandedCombat
+                                //        || (Skill)spell.StatModKey == Skill.VoidMagic
+                                //        )
+                                SQLWriters.SpellsSQLWriter.WriteFile(spell, exportDir, weenieNames, includeDelete);
+                        }
+                    }
+
+                    Console.WriteLine($"Export of {spellId} to {exportDir} complete.");
                 }
-
-                Console.WriteLine($"Export of {spellId} to {exportDir} complete.");
             }
         }
     }
