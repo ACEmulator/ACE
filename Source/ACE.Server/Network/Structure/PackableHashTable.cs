@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
+using ACE.Database.Models.Shard;
+
 namespace ACE.Server.Network.Structure
 {
     /// <summary>
@@ -14,8 +16,18 @@ namespace ACE.Server.Network.Structure
             var numBits = GetNumBits(numEntries);
             var size = 1 << ((int)numBits - 1);
 
-            writer.Write(numEntries);
+            writer.Write((ushort)numEntries);
             writer.Write((ushort)size);
+        }
+
+        public static void Write(this BinaryWriter writer, List<CharacterPropertiesFillCompBook> fillComps)
+        {
+            WriteHeader(writer, fillComps.Count);
+            foreach (var fillComp in fillComps)
+            {
+                writer.Write((uint)fillComp.SpellComponentId);
+                writer.Write((uint)fillComp.QuantityToRebuy);
+            }
         }
 
         /// <summary>
