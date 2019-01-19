@@ -311,7 +311,7 @@ namespace ACE.Database.Models.World
                         MinDbl = value2.MinDbl,
                         MaxDbl = value2.MaxDbl,
                         Stat = value2.Stat,
-                        //Display = value2.Display,
+                        Display = value2.Display,
                         Amount = value2.Amount,
                         Amount64 = value2.Amount64,
                         HeroXP64 = value2.HeroXP64,

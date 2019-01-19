@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 
@@ -585,7 +585,7 @@ namespace ACE.Database.Models.Shard
 
                 entity.Property(e => e.Display)
                     .HasColumnName("display")
-                    .HasColumnType("int(10)");
+                    .HasColumnType("bit(1)");
 
                 entity.Property(e => e.EmoteId)
                     .HasColumnName("emote_Id")
