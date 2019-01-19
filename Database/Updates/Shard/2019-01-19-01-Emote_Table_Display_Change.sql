@@ -1,4 +1,4 @@
-USE `ace_world`;
+USE `ace_shard`;
 
-ALTER TABLE `weenie_properties_emote_action` 
+ALTER TABLE `biota_properties_emote_action` 
 CHANGE COLUMN `display` `display` BIT(1) NULL DEFAULT NULL ;
