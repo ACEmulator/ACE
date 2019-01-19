@@ -1539,7 +1539,7 @@ namespace ACE.Database.Models.World
 
                 entity.Property(e => e.Display)
                     .HasColumnName("display")
-                    .HasColumnType("int(10)");
+                    .HasColumnType("bit(1)");
 
                 entity.Property(e => e.EmoteId).HasColumnName("emote_Id");
 
