@@ -181,9 +181,8 @@ namespace ACE.Server.WorldObjects
                             var spell = new Spell(gen.SpellDID ?? 0);
                             TryCastSpell(spell, this, null, false, false);
                         }
-
-                        Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.PickUpItem));
                     }
+                    Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.PickUpItem));
                 }
                 else // not enough cash.
                 {
