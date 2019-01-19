@@ -30,7 +30,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Instantly casts a spell for a WorldObject (ie. spell traps)
         /// </summary>
-        public void TryCastSpell(Spell spell, WorldObject target, WorldObject caster = null)
+        public void TryCastSpell(Spell spell, WorldObject target, WorldObject caster = null, bool tryResist = true, bool showMsg = true)
         {
             // verify spell exists in database
             if (spell._spell == null)
@@ -48,7 +48,7 @@ namespace ACE.Server.WorldObjects
                 return;*/
 
             // perform resistance check, if applicable
-            var resisted = TryResistSpell(spell, target);
+            var resisted = tryResist ? TryResistSpell(spell, target) : false;
             if (resisted)
                 return;
 
@@ -75,7 +75,7 @@ namespace ACE.Server.WorldObjects
 
             // send message to player, if applicable
             var player = this as Player;
-            if (player != null && status.message != null)
+            if (player != null && status.message != null && showMsg)
                 player.Session.Network.EnqueueSend(status.message);
 
             // for invisible spell traps,

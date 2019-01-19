@@ -169,16 +169,27 @@ namespace ACE.Server.WorldObjects
                         TryCreateInInventoryWithNetworking(wo);
 
                     foreach (var gen in genlist)
-                        TryCreateInInventoryWithNetworking(gen);
+                    {
+                        var service = gen.GetProperty(PropertyBool.VendorService) ?? false;
 
-                    Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.PickUpItem));
+                        if (!service)
+                        {
+                            TryCreateInInventoryWithNetworking(gen);
+                        }
+                        else
+                        {
+                            var spell = new Spell(gen.SpellDID ?? 0);
+                            TryCastSpell(spell, this, null, false, false);
+                        }
+
+                        Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.PickUpItem));
+                    }
                 }
                 else // not enough cash.
                 {
                     valid = false;
                 }
             }
-
             vendor.BuyItems_FinalTransaction(this, uqlist, valid);
         }
 
