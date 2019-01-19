@@ -18,6 +18,10 @@ namespace ACE.Server.WorldObjects
     {
         public House House { get => ParentLink as House; }
 
+        public bool HasItem => Inventory != null && Inventory.Count > 0;
+
+        public WorldObject Item => Inventory != null ? Inventory.Values.FirstOrDefault() : null;
+
         /// <summary>
         /// Default hook profiles
         /// </summary>

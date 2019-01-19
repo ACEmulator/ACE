@@ -72,14 +72,17 @@ namespace ACE.Server.WorldObjects
             if (topDamager != null)
                 Killer = topDamager.Guid.Full;
 
+            CurrentMotionState = new Motion(MotionStance.NonCombat, MotionCommand.Ready);
+            IsMonster = false;
+
             // broadcast death animation
             var motionDeath = new Motion(MotionStance.NonCombat, MotionCommand.Dead);
-            EnqueueBroadcastMotion(motionDeath);
+            var deathAnimLength = ExecuteMotion(motionDeath);
 
             var dieChain = new ActionChain();
 
             // wait for death animation to finish
-            var deathAnimLength = DatManager.PortalDat.ReadFromDat<MotionTable>(MotionTableId).GetAnimationLength(MotionCommand.Dead);
+            //var deathAnimLength = DatManager.PortalDat.ReadFromDat<MotionTable>(MotionTableId).GetAnimationLength(MotionCommand.Dead);
             dieChain.AddDelaySeconds(deathAnimLength);
 
             dieChain.AddAction(this, () =>
@@ -181,9 +184,12 @@ namespace ACE.Server.WorldObjects
                     corpse.Biota.BiotaPropertiesTextureMap.Add(new Database.Models.Shard.BiotaPropertiesTextureMap { ObjectId = corpse.Guid.Full, Index = textureChange.PartIndex, OldId = textureChange.OldTexture, NewId = textureChange.NewTexture, Order = i++ });
             }
 
-            corpse.Location = DatManager.PortalDat.ReadFromDat<MotionTable>(MotionTableId).GetAnimationFinalPositionFromStart(Location, ObjScale ?? 1, MotionCommand.Dead);
-            corpse.Location.SetLandblock();
-            corpse.Location.SetLandCell();
+            //corpse.Location = DatManager.PortalDat.ReadFromDat<MotionTable>(MotionTableId).GetAnimationFinalPositionFromStart(Location, ObjScale ?? 1, MotionCommand.Dead);
+
+            //corpse.Location.SetLandblock();
+            //corpse.Location.SetLandCell();
+
+            corpse.Location = new Position(Location);
 
             //corpse.Location.PositionZ = corpse.Location.PositionZ - .5f; // Adding BaseDescriptionFlags |= ObjectDescriptionFlag.Corpse to Corpse objects made them immune to gravity.. this seems to fix floating corpse...
 

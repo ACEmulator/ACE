@@ -15,6 +15,91 @@ namespace ACE.Database.Models.Shard
         // CharacterPropertiesFillCompBook
         // =====================================
 
+        public static CharacterPropertiesFillCompBook GetFillComponent(this Character character, uint wcid, ReaderWriterLockSlim rwLock)
+        {
+            rwLock.EnterReadLock();
+            try
+            {
+                return character.CharacterPropertiesFillCompBook.FirstOrDefault(i => i.SpellComponentId == wcid);
+            }
+            finally
+            {
+                rwLock.ExitReadLock();
+            }
+        }
+
+        public static List<CharacterPropertiesFillCompBook> GetFillComponents(this Character character, ReaderWriterLockSlim rwLock)
+        {
+            rwLock.EnterReadLock();
+            try
+            {
+                return character.CharacterPropertiesFillCompBook.ToList();
+            }
+            finally
+            {
+                rwLock.ExitReadLock();
+            }
+        }
+
+        public static CharacterPropertiesFillCompBook AddFillComponent(this Character character, uint wcid, uint amount, ReaderWriterLockSlim rwLock, out bool alreadyExists)
+        {
+            rwLock.EnterUpgradeableReadLock();
+            try
+            {
+                var entity = character.CharacterPropertiesFillCompBook.FirstOrDefault(i => i.SpellComponentId == wcid);
+                if (entity != null)
+                {
+                    alreadyExists = true;
+                    return entity;
+                }
+
+                rwLock.EnterWriteLock();
+                try
+                {
+                    entity = new CharacterPropertiesFillCompBook { CharacterId = character.Id, SpellComponentId = (int)wcid, QuantityToRebuy = (int)amount };
+                    character.CharacterPropertiesFillCompBook.Add(entity);
+                    alreadyExists = false;
+                    return entity;
+                }
+                finally
+                {
+                    rwLock.ExitWriteLock();
+                }
+            }
+            finally
+            {
+                rwLock.ExitUpgradeableReadLock();
+            }
+        }
+
+        public static bool TryRemoveFillComponent(this Character character, uint wcid, out CharacterPropertiesFillCompBook entity, ReaderWriterLockSlim rwLock)
+        {
+            rwLock.EnterUpgradeableReadLock();
+            try
+            {
+                entity = character.CharacterPropertiesFillCompBook.FirstOrDefault(i => i.SpellComponentId == wcid);
+                if (entity != null)
+                {
+                    rwLock.EnterWriteLock();
+                    try
+                    {
+                        character.CharacterPropertiesFillCompBook.Remove(entity);
+                        entity.Character = null;
+                        return true;
+                    }
+                    finally
+                    {
+                        rwLock.ExitWriteLock();
+                    }
+                }
+                return false;
+            }
+            finally
+            {
+                rwLock.ExitUpgradeableReadLock();
+            }
+        }
+
 
         // =====================================
         // CharacterPropertiesFriendList
