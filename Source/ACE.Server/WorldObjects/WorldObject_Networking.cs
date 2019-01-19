@@ -994,6 +994,9 @@ namespace ACE.Server.WorldObjects
 
         public virtual ACE.Entity.ObjDesc CalculateObjDesc()
         {
+            if (this is Hook hook && hook.HasItem)
+                return hook.Item.CalculateObjDesc();
+
             ACE.Entity.ObjDesc objDesc = new ACE.Entity.ObjDesc();
             ClothingTable item;
 

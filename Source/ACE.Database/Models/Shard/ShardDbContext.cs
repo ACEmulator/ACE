@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 
@@ -1250,6 +1250,10 @@ namespace ACE.Database.Models.Shard
                     .IsRequired()
                     .HasColumnName("name")
                     .HasColumnType("varchar(255)");
+
+                entity.Property(e => e.SpellbookFilters)
+                    .HasColumnName("spellbook_Filters")
+                    .HasDefaultValueSql("'16383'");
 
                 entity.Property(e => e.TotalLogins)
                     .HasColumnName("total_Logins")
