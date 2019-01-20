@@ -30,7 +30,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Instantly casts a spell for a WorldObject (ie. spell traps)
         /// </summary>
-        public void TryCastSpell(Spell spell, WorldObject target, WorldObject caster = null)
+        public void TryCastSpell(Spell spell, WorldObject target, WorldObject caster = null, bool tryResist = true, bool showMsg = true)
         {
             // verify spell exists in database
             if (spell._spell == null)
@@ -48,7 +48,7 @@ namespace ACE.Server.WorldObjects
                 return;*/
 
             // perform resistance check, if applicable
-            var resisted = TryResistSpell(spell, target);
+            var resisted = tryResist ? TryResistSpell(spell, target) : false;
             if (resisted)
                 return;
 
@@ -75,7 +75,7 @@ namespace ACE.Server.WorldObjects
 
             // send message to player, if applicable
             var player = this as Player;
-            if (player != null && status.message != null)
+            if (player != null && status.message != null && showMsg)
                 player.Session.Network.EnqueueSend(status.message);
 
             // for invisible spell traps,
@@ -810,13 +810,22 @@ namespace ACE.Server.WorldObjects
                                     if (target.WeenieType == WeenieType.Portal)
                                     {
                                         var targetPortal = target as Portal;
-                                        var targetDID = targetPortal.OriginalPortal == null ? targetPortal.WeenieClassId : targetPortal.OriginalPortal.Value;
+                                        var summoned = targetPortal.OriginalPortal != null;
+
+                                        var targetDID = summoned ? targetPortal.OriginalPortal : targetPortal.WeenieClassId;
+
                                         if (!targetPortal.NoTie)
                                         {
                                             if (isPrimary)
+                                            {
                                                 player.LinkedPortalOneDID = targetDID;
+                                                player.SetProperty(PropertyBool.LinkedPortalOneSummon, summoned);
+                                            }
                                             else
+                                            {
                                                 player.LinkedPortalTwoDID = targetDID;
+                                                player.SetProperty(PropertyBool.LinkedPortalTwoSummon, summoned);
+                                            }
 
                                             player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You have successfully linked with the portal.", ChatMessageType.Magic));
                                         }
@@ -835,11 +844,18 @@ namespace ACE.Server.WorldObjects
                         var source = player != null ? player : itemCaster;
 
                         uint portalId = 0;
+                        bool linkSummoned;
 
                         if (spell.Name.Contains("Primary"))
+                        {
                             portalId = source.LinkedPortalOneDID ?? 0;
+                            linkSummoned = source.GetProperty(PropertyBool.LinkedPortalOneSummon) ?? false;
+                        }
                         else
+                        {
                             portalId = source.LinkedPortalTwoDID ?? 0;
+                            linkSummoned = source.GetProperty(PropertyBool.LinkedPortalTwoSummon) ?? false;
+                        }
 
                         Position summonLoc = null;
 
@@ -853,7 +869,7 @@ namespace ACE.Server.WorldObjects
                             }
 
                             var summonPortal = GetPortal(portalId);
-                            if (summonPortal == null || summonPortal.NoSummon)
+                            if (summonPortal == null || summonPortal.NoSummon || linkSummoned)
                             {
                                 // You cannot summon that portal!
                                 player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouCannotSummonPortal));
@@ -926,7 +942,7 @@ namespace ACE.Server.WorldObjects
             gateway.MinLevel = portal.MinLevel;
             gateway.MaxLevel = portal.MaxLevel;
             gateway.PortalRestrictions = portal.PortalRestrictions;
-            gateway.PortalRestrictions |= PortalBitmask.NoRecall | PortalBitmask.NoSummon;
+            gateway.PortalRestrictions |= PortalBitmask.NoSummon;
 
             gateway.EnterWorld();
 

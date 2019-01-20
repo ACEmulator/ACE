@@ -213,7 +213,7 @@ namespace ACE.Server.WorldObjects
         /// Used for unlocking a door via lockpick, so contains a skill check
         /// player.Skills[Skill.Lockpick].Current should be sent for the skill check
         /// </summary>
-        public UnlockResults Unlock(uint playerLockpickSkillLvl, ref int difficulty)
+        public UnlockResults Unlock(uint unlockerGuid, uint playerLockpickSkillLvl, ref int difficulty)
         {
             return LockHelper.Unlock(this, playerLockpickSkillLvl, ref difficulty);
         }
@@ -221,7 +221,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Used for unlocking a door via a key
         /// </summary>
-        public UnlockResults Unlock(string keyCode)
+        public UnlockResults Unlock(uint unlockerGuid, string keyCode)
         {
             return LockHelper.Unlock(this, keyCode);
         }

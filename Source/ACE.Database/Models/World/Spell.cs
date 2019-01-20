@@ -7,39 +7,6 @@ namespace ACE.Database.Models.World
     {
         public uint Id { get; set; }
         public string Name { get; set; }
-        public string Description { get; set; }
-        public int School { get; set; }
-        public uint IconId { get; set; }
-        public uint Category { get; set; }
-        public uint Bitfield { get; set; }
-        public uint Mana { get; set; }
-        public float RangeConstant { get; set; }
-        public float RangeMod { get; set; }
-        public uint Power { get; set; }
-        public float EconomyMod { get; set; }
-        public uint FormulaVersion { get; set; }
-        public float ComponentLoss { get; set; }
-        public int MetaSpellType { get; set; }
-        public uint MetaSpellId { get; set; }
-        public uint SpellFormulaComp1ComponentId { get; set; }
-        public uint SpellFormulaComp2ComponentId { get; set; }
-        public uint SpellFormulaComp3ComponentId { get; set; }
-        public uint SpellFormulaComp4ComponentId { get; set; }
-        public uint SpellFormulaComp5ComponentId { get; set; }
-        public uint SpellFormulaComp6ComponentId { get; set; }
-        public uint SpellFormulaComp7ComponentId { get; set; }
-        public uint SpellFormulaComp8ComponentId { get; set; }
-        public uint CasterEffect { get; set; }
-        public uint TargetEffect { get; set; }
-        public uint FizzleEffect { get; set; }
-        public double RecoveryInterval { get; set; }
-        public float RecoveryAmount { get; set; }
-        public uint DisplayOrder { get; set; }
-        public uint NonComponentTargetType { get; set; }
-        public uint ManaMod { get; set; }
-        public double? Duration { get; set; }
-        public float? DegradeModifier { get; set; }
-        public float? DegradeLimit { get; set; }
         public uint? StatModType { get; set; }
         public uint? StatModKey { get; set; }
         public float? StatModVal { get; set; }
@@ -86,7 +53,6 @@ namespace ACE.Database.Models.World
         public int? MaxBoostAllowed { get; set; }
         public uint? TransferBitfield { get; set; }
         public int? Index { get; set; }
-        public double? PortalLifetime { get; set; }
         public int? Link { get; set; }
         public uint? PositionObjCellId { get; set; }
         public float? PositionOriginX { get; set; }

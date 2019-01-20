@@ -190,7 +190,7 @@ namespace ACE.Adapter.Lifestoned
                                     MaxDbl = action.FMax,
 
                                     Stat = (int?)action.Stat,
-                                    Display = action.Display.HasValue ? (action.Display.Value ? 1 : 0) : (int?)null, // todo: Should we convert this to bool?
+                                    Display = action.Display,
 
                                     Amount = (int?)action.Amount,
                                     Amount64 = (long?)action.Amount64,
