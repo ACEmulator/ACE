@@ -52,6 +52,7 @@ namespace ACE.Entity.Enum.Properties
         CombatTarget                     = 27,
         [Ephemeral]
         HealthQueryTarget                = 28,
+        [ServerOnly][Ephemeral]
         LastUnlocker                     = 29,
         CrashAndTurnTarget               = 30,
         AllowedActivator                 = 31,
