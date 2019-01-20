@@ -349,7 +349,8 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            var dist = Vector3.Distance(Location.ToGlobal(), LastPlayer.Location.ToGlobal());
+            var dist = GetCylinderDistance(LastPlayer);
+
             if (dist > UseRadius)
             {
                 EmoteManager.DoVendorEmote(VendorType.Close, LastPlayer);

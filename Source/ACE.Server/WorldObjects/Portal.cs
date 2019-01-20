@@ -125,7 +125,7 @@ namespace ACE.Server.WorldObjects
             // If the portal just used is able to be recalled to,
             // save the destination coordinates to the LastPortal character position save table
             if (!NoRecall)
-                player.LastPortalDID = WeenieClassId;
+                player.LastPortalDID = OriginalPortal == null ? WeenieClassId : OriginalPortal;     // if walking through a summoned portal
 
             EmoteManager.OnPortal(player);
         }
