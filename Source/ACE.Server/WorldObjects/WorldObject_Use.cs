@@ -23,13 +23,18 @@ namespace ACE.Server.WorldObjects
             var radDist = originDist - radSum;*/
             var useRadius = wo.UseRadius ?? 0.6f;
 
-            var cylDist = (float)Physics.Common.Position.CylinderDistance(PhysicsObj.GetRadius(), PhysicsObj.GetHeight(), PhysicsObj.Position,
-                wo.PhysicsObj.GetRadius(), wo.PhysicsObj.GetHeight(), wo.PhysicsObj.Position);
+            var cylDist = GetCylinderDistance(wo);
 
             // if (this is Player player)
             //    player.Session.Network.EnqueueSend(new GameMessageSystemChat($"OriginDist: {originDist}, RadDist: {radDist}, MyRadius: {PhysicsObj.GetRadius()}, TargetRadius: {wo.PhysicsObj.GetRadius()}, MyUseRadius: {UseRadius ?? 0}, TargetUseRadius: {wo.UseRadius ?? 0}", ChatMessageType.System));
 
             return cylDist <= useRadius;
+        }
+
+        public float GetCylinderDistance(WorldObject wo)
+        {
+            return (float)Physics.Common.Position.CylinderDistance(PhysicsObj.GetRadius(), PhysicsObj.GetHeight(), PhysicsObj.Position,
+                wo.PhysicsObj.GetRadius(), wo.PhysicsObj.GetHeight(), wo.PhysicsObj.Position);
         }
 
         /// <summary>
