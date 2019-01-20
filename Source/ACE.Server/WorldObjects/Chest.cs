@@ -159,6 +159,12 @@ namespace ACE.Server.WorldObjects
 
                 //UseTimestamp++;
             }
+
+            if (ActivationTalk != null)
+            {
+                // send only to activator?
+                player.Session.Network.EnqueueSend(new GameMessageSystemChat(ActivationTalk, ChatMessageType.Broadcast));
+            }
         }
 
         /// <summary>
