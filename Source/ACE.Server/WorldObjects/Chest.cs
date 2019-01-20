@@ -85,7 +85,6 @@ namespace ACE.Server.WorldObjects
             if (IsLocked)
                 DefaultLocked = true;
 
-            ChestRegenOnClose = true;
             ResetGenerator = true;
         }
 
