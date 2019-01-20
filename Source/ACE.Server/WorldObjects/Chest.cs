@@ -138,7 +138,7 @@ namespace ACE.Server.WorldObjects
             // ResetInterval (default):
 
             // if no ResetInterval is defined, the DefaultResetInterval of 2 mins is used.
-            // when a player opens this chest, a timer starts, and the chest will automatically set in ResetInterval
+            // when a player opens this chest, a timer starts, and the chest will automatically close/reset in ResetInterval
 
             // RegenOnClose (Mana Forge Chest etc.):
 
