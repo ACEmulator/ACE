@@ -21,7 +21,7 @@ namespace ACE.Database.Models.Shard
         public double? MinDbl { get; set; }
         public double? MaxDbl { get; set; }
         public int? Stat { get; set; }
-        public int? Display { get; set; }
+        public bool? Display { get; set; }
         public int? Amount { get; set; }
         public long? Amount64 { get; set; }
         public long? HeroXP64 { get; set; }

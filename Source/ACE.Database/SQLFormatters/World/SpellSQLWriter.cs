@@ -23,32 +23,14 @@ namespace ACE.Database.SQLFormatters.World
 
         public void CreateSQLDELETEStatement(Spell input, StreamWriter writer)
         {
-            writer.WriteLine($"DELETE FROM `spell` WHERE `spell_Id` = {input.Id};");
+            writer.WriteLine($"DELETE FROM `spell` WHERE `id` = {input.Id};");
         }
 
         public void CreateSQLINSERTStatement(Spell input, StreamWriter writer)
         {
-            var spellLineHdr = "INSERT INTO `spell` (`id`, `name`, `description`, `school`, `icon_Id`, `category`, `bitfield`, `mana`, `range_Constant`, `range_Mod`, `power`, `economy_Mod`, `formula_Version`, `component_Loss`, `meta_Spell_Type`, `meta_Spell_Id`, `spell_Formula_Comp_1_Component_Id`, `spell_Formula_Comp_2_Component_Id`, `spell_Formula_Comp_3_Component_Id`, `spell_Formula_Comp_4_Component_Id`, `spell_Formula_Comp_5_Component_Id`, `spell_Formula_Comp_6_Component_Id`, `spell_Formula_Comp_7_Component_Id`, `spell_Formula_Comp_8_Component_Id`, `caster_Effect`, `target_Effect`, `fizzle_Effect`, `recovery_Interval`, `recovery_Amount`, `display_Order`, `non_Component_Target_Type`, `mana_Mod`";
+            var spellLineHdr = "INSERT INTO `spell` (`id`, `name`";
 
-            var spellLine = $"VALUES ({input.Id}, {GetSQLString(input.Name)}, {GetSQLString(input.Description)}, {input.School} /* {Enum.GetName(typeof(MagicSchool), input.School)} */, {input.IconId}, {input.Category}, {input.Bitfield} /* {((SpellFlags)input.Bitfield).ToString()} */, {input.Mana}, {input.RangeConstant}, {input.RangeMod}, {input.Power}, {input.EconomyMod}, {input.FormulaVersion}, {input.ComponentLoss}, {input.MetaSpellType} /* {Enum.GetName(typeof(ACE.Entity.Enum.SpellType), input.MetaSpellType)} */, {input.MetaSpellId}, {input.SpellFormulaComp1ComponentId}, {input.SpellFormulaComp2ComponentId}, {input.SpellFormulaComp3ComponentId}, {input.SpellFormulaComp4ComponentId}, {input.SpellFormulaComp5ComponentId}, {input.SpellFormulaComp6ComponentId}, {input.SpellFormulaComp7ComponentId}, {input.SpellFormulaComp8ComponentId}, {input.CasterEffect}, {input.TargetEffect}, {input.FizzleEffect}, {input.RecoveryInterval}, {input.RecoveryAmount}, {input.DisplayOrder}, {input.NonComponentTargetType}, {input.ManaMod}";
-
-            if (input.Duration.HasValue)
-            {
-                spellLineHdr += ", `duration`";
-                spellLine += $", {input.Duration}";
-            }
-
-            if (input.DegradeModifier.HasValue)
-            {
-                spellLineHdr += ", `degrade_Modifier`";
-                spellLine += $", {input.DegradeModifier}";
-            }
-
-            if (input.DegradeLimit.HasValue)
-            {
-                spellLineHdr += ", `degrade_Limit`";
-                spellLine += $", {input.DegradeLimit}";
-            }
+            var spellLine = $"VALUES ({input.Id}, {GetSQLString(input.Name)}";
 
             if (input.StatModType.HasValue)
             {
@@ -59,6 +41,37 @@ namespace ACE.Database.SQLFormatters.World
             {
                 spellLineHdr += ", `stat_Mod_Key`";
                 spellLine += $", {input.StatModKey}";
+
+                if (input.StatModType.HasValue)
+                {
+                    var smt = (EnchantmentTypeFlags)input.StatModType;
+
+                    if (smt.HasFlag(EnchantmentTypeFlags.Skill))
+                    {
+                        if (Enum.IsDefined(typeof(Skill), (int)input.StatModKey))
+                            spellLine += $" /* {Enum.GetName(typeof(Skill), input.StatModKey)} */";
+                    }
+                    else if (smt.HasFlag(EnchantmentTypeFlags.Attribute))
+                    {
+                        if (Enum.IsDefined(typeof(PropertyAttribute), (ushort)input.StatModKey))
+                            spellLine += $" /* {Enum.GetName(typeof(PropertyAttribute), input.StatModKey)} */";
+                    }
+                    else if (smt.HasFlag(EnchantmentTypeFlags.SecondAtt))
+                    {
+                        if (Enum.IsDefined(typeof(PropertyAttribute2nd), (ushort)input.StatModKey))
+                            spellLine += $" /* {Enum.GetName(typeof(PropertyAttribute2nd), input.StatModKey)} */";
+                    }
+                    else if (smt.HasFlag(EnchantmentTypeFlags.Int))
+                    {
+                        if (Enum.IsDefined(typeof(PropertyInt), (ushort)input.StatModKey))
+                            spellLine += $" /* {Enum.GetName(typeof(PropertyInt), input.StatModKey)} */";
+                    }
+                    else if (smt.HasFlag(EnchantmentTypeFlags.Float))
+                    {
+                        if (Enum.IsDefined(typeof(PropertyFloat), (ushort)input.StatModKey))
+                            spellLine += $" /* {Enum.GetName(typeof(PropertyFloat), input.StatModKey)} */";
+                    }                    
+                }
             }
             if (input.StatModVal.HasValue)
             {
@@ -69,7 +82,7 @@ namespace ACE.Database.SQLFormatters.World
             if (input.EType.HasValue)
             {
                 spellLineHdr += ", `e_Type`";
-                spellLine += $", {input.EType}";
+                spellLine += $", {input.EType} /* {Enum.GetName(typeof(DamageType), input.EType)} */";
             }
 
             if (input.BaseIntensity.HasValue)
@@ -88,7 +101,7 @@ namespace ACE.Database.SQLFormatters.World
             {
                 spellLineHdr += ", `wcid`";
 
-                if (WeenieNames != null)
+                if (WeenieNames != null && input.Wcid.Value > 0)
                     spellLine += $", {input.Wcid} /* {WeenieNames[input.Wcid.Value]} */";
                 else
                     spellLine += $", {input.Wcid}";
@@ -311,19 +324,13 @@ namespace ACE.Database.SQLFormatters.World
             if (input.TransferBitfield.HasValue)
             {
                 spellLineHdr += ", `transfer_Bitfield`";
-                spellLine += $", {input.TransferBitfield}";
+                spellLine += $", {input.TransferBitfield} /* {((TransferFlags)input.TransferBitfield).ToString()} */";
             }
 
             if (input.Index.HasValue)
             {
                 spellLineHdr += ", `index`";
                 spellLine += $", {input.Index}";
-            }
-
-            if (input.PortalLifetime.HasValue)
-            {
-                spellLineHdr += ", `portal_Lifetime`";
-                spellLine += $", {input.PortalLifetime}";
             }
 
             if (input.Link.HasValue)

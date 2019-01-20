@@ -1294,6 +1294,12 @@ namespace ACE.Server.WorldObjects
             set { if (!value) RemoveProperty(PropertyBool.Open); else SetProperty(PropertyBool.Open, value); }
         }
 
+        public uint? LastUnlocker
+        {
+            get => GetProperty(PropertyInstanceId.LastUnlocker);
+            set { if (!value.HasValue) RemoveProperty(PropertyInstanceId.LastUnlocker); else SetProperty(PropertyInstanceId.LastUnlocker, value.Value); }
+        }
+
         public bool IsLocked
         {
             get => GetProperty(PropertyBool.Locked) ?? false;
