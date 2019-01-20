@@ -76,13 +76,6 @@ namespace ACE.WebApiServer.Modules
                 }.AsJson();
             });
 
-            Get("/api/playerLocations", async (_) =>
-            {
-                PlayerLocationsResponseModel resp = new PlayerLocationsResponseModel();
-                Gate.RunGatedAction(() => resp.Locations = PlayerManager.GetAllOnline().Select(k => new PlayerNameAndLocation() { Location = k.Location.ToString(), Name = k.Name }).ToList());
-                return resp.AsJson();
-            });
-
             Get("/api/landblockStatus", async (_) =>
             {
                 LandblockStatusResponseModel resp = new LandblockStatusResponseModel();

@@ -1,9 +1,12 @@
 using ACE.Entity.Enum;
 using ACE.Server.Command;
+using ACE.Server.Managers;
+using ACE.WebApiServer.Model;
 using ACE.WebApiServer.Model.Admin;
 using Nancy;
 using Nancy.ModelBinding;
 using Nancy.Security;
+using System.Linq;
 
 namespace ACE.WebApiServer.Modules
 {
@@ -15,7 +18,7 @@ namespace ACE.WebApiServer.Modules
 
             this.RequiresClaims(k => k.Type == AccessLevel.Admin.ToString());
 
-            Get("/api/admin/command", async (_) =>
+            Get("/api/command", async (_) =>
             {
                 AdminCommandRequestModel request = this.BindAndValidate<AdminCommandRequestModel>();
                 if (!ModelValidationResult.IsValid)
@@ -36,6 +39,13 @@ namespace ACE.WebApiServer.Modules
                     CommandHandlerResponse = result.CommandHandlerResponse?.ToString(),
                     SubmittedCommand = request.Command
                 }.AsJson();
+            });
+
+            Get("/api/playerLocations", async (_) =>
+            {
+                PlayerLocationsResponseModel resp = new PlayerLocationsResponseModel();
+                Gate.RunGatedAction(() => resp.Locations = PlayerManager.GetAllOnline().Select(k => new PlayerNameAndLocation() { Location = k.Location.ToString(), Name = k.Name }).ToList());
+                return resp.AsJson();
             });
         }
     }
