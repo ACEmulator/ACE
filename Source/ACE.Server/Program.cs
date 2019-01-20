@@ -32,7 +32,7 @@ namespace ACE.Server
         [DllImport("winmm.dll", EntryPoint = "timeEndPeriod")]
         public static extern uint MM_EndPeriod(uint uMilliseconds);
 
-        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public static void Main(string[] args)
         {
@@ -47,7 +47,7 @@ namespace ACE.Server
             // Init our text encoding options. This will allow us to use more than standard ANSI text, which the client also supports.
             System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
 
-            var logRepository = LogManager.GetRepository(System.Reflection.Assembly.GetEntryAssembly());
+            var logRepository = LogManager.GetRepository(Assembly.GetEntryAssembly());
             XmlConfigurator.Configure(logRepository, new FileInfo("log4net.config"));
 
             // Do system specific initializations here
