@@ -3,6 +3,7 @@ using ACE.Database;
 using ACE.Database.Entity;
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
+using ACE.DatLoader;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
@@ -70,7 +71,7 @@ namespace ACE.Server.Managers
         /// <returns>null if non-existent, or if existent the path to the transfer package file</returns>
         public static string GetTransferPackageFilePath(string cookie)
         {
-            if (CookieContainsInvalidChars(cookie))
+            if (StringContainsInvalidChars(CookieChars, cookie))
             {
                 return null;
             }
@@ -91,7 +92,7 @@ namespace ACE.Server.Managers
         /// <param name="cookie"></param>
         public static void DeleteTransferPackageFile(string cookie)
         {
-            if (CookieContainsInvalidChars(cookie))
+            if (StringContainsInvalidChars(CookieChars, cookie))
             {
                 return;
             }
@@ -133,6 +134,19 @@ namespace ACE.Server.Managers
             {
                 return new ImportAndMigrateResult() { FailReason = ImportAndMigrateFailiureReason.OperationNotAllowed };
             }
+
+            metadata.NewCharacterName = metadata.NewCharacterName.Trim();
+
+            if (metadata.NewCharacterName.Length < GameConfiguration.CharacterNameMinimumLength || metadata.NewCharacterName.Length > GameConfiguration.CharacterNameMaximumLength)
+            {
+                return new ImportAndMigrateResult() { FailReason = ImportAndMigrateFailiureReason.NameTooShortOrTooLong };
+            }
+
+            if (StringContainsInvalidChars(GameConfiguration.AllowedCharacterNameCharacters, metadata.NewCharacterName))
+            {
+                return new ImportAndMigrateResult() { FailReason = ImportAndMigrateFailiureReason.NameContainsInvalidCharacters };
+            }
+
             bool NameIsGood = false;
             ManualResetEvent mre = new ManualResetEvent(false);
             DatabaseManager.Shard.IsCharacterNameAvailable(metadata.NewCharacterName, isAvailable =>
@@ -143,10 +157,27 @@ namespace ACE.Server.Managers
             mre.WaitOne();
             if (!NameIsGood)
             {
-                // TO-DO: prevent abuse (use to make list of taken names)
-                // TO-DO: implement taboo-table lookup and other char name validation
                 return new ImportAndMigrateResult() { FailReason = ImportAndMigrateFailiureReason.NameIsUnavailable };
             }
+            // TO-DO: restricted and weenie name matching
+            if (DatManager.PortalDat.TabooTable.ContainsBadWord(metadata.NewCharacterName))
+            {
+                return new ImportAndMigrateResult() { FailReason = ImportAndMigrateFailiureReason.NameIsNaughty };
+            }
+
+            mre = new ManualResetEvent(false);
+            var slotCheck = false;
+            DatabaseManager.Shard.GetCharacters(metadata.AccountId, false, new Action<List<Character>>((chars) =>
+            {
+                slotCheck = chars.Count + 1 <= GameConfiguration.SlotCount;
+                mre.Set();
+            }));
+            mre.WaitOne();
+            if (!slotCheck)
+            {
+                return new ImportAndMigrateResult() { FailReason = ImportAndMigrateFailiureReason.NoCharacterSlotsAvailable };
+            }
+
             TransferManagerCharacterMigrationDownloadResponseModel snapshotPack = null;
             CharacterTransfer xfer = null;
             if (importBytes == null)
@@ -160,7 +191,7 @@ namespace ACE.Server.Managers
                 mre.WaitOne();
                 if (xfer != null)
                 {
-                    // don't fail here, prevents inter-account same-server transfers
+                    // don't fail here, prevents inter-account same-server transfers and name changes
                     // return new ImportAndMigrateResult() { FailReason = ImportAndMigrateFailiureReason.CookieAlreadyUsed };
                 }
 
@@ -463,6 +494,10 @@ namespace ACE.Server.Managers
             WrongPackageType,
             PackageTypeNotAllowed,
             NameIsUnavailable,
+            NameIsNaughty,
+            NameContainsInvalidCharacters,
+            NameTooShortOrTooLong,
+            NoCharacterSlotsAvailable,
             FoundMoreThanOneCharacter,
             CannotFindCharacter,
             MalformedCharacterData,
@@ -561,7 +596,7 @@ namespace ACE.Server.Managers
         }
 
         /// <summary>
-        /// Package the currently logged in character.
+        /// generate a snapshot package the specified character and freeze the character if it's a migration.
         /// </summary>
         /// <returns></returns>
         public static async Task<PackageMetadata> CreatePackage(PackageMetadata metadata)
@@ -1073,19 +1108,19 @@ namespace ACE.Server.Managers
         }
 
         /// <summary>
-        /// Check to see if the composition of the cookie is not good.
+        /// Check to see if the composition of the subject is not good based on a character white list.
         /// </summary>
         /// <param name="cookie"></param>
-        /// <returns>If cookie is null returns false.  If cookie is not null and contains one or more invalid characters returns true.</returns>
-        public static bool CookieContainsInvalidChars(string cookie)
+        /// <returns>If subject is null returns false.  If subject is not null and contains one or more invalid characters returns true.</returns>
+        public static bool StringContainsInvalidChars(string validChars, string subject)
         {
-            if (cookie == null)
+            if (subject == null)
             {
                 return false;
             }
-            foreach (char c in cookie)
+            foreach (char c in subject)
             {
-                if (!CookieChars.Contains(c))
+                if (!validChars.Contains(c))
                 {
                     return true;
                 }

@@ -1,3 +1,4 @@
+using ACE.Common;
 using ACE.Server.Managers;
 using FluentValidation;
 
@@ -15,15 +16,26 @@ namespace ACE.Server.WebApi.Model.Character.Migration
         {
             RuleFor(request => request.BaseURL).NotEmpty().WithMessage("You must specify the base URL.");
             RuleFor(request => request.NewCharacterName).NotEmpty().WithMessage("You must specify the character name to use.");
+            RuleFor(request => request.NewCharacterName).Custom((str, _) =>
+            {
+                if (TransferManager.StringContainsInvalidChars(GameConfiguration.AllowedCharacterNameCharacters, str))
+                {
+                    _.AddFailure("The new character name contains invalid characters.");
+                }
+            });
+            RuleFor(request => request.NewCharacterName.Trim())
+                .Length(GameConfiguration.CharacterNameMinimumLength, GameConfiguration.CharacterNameMaximumLength)
+                .WithMessage("The new character name must be 1 to 32 characters in length.");
             RuleFor(request => request.Cookie).NotEmpty().WithMessage("You must specify the character migration cookie.");
             RuleFor(request => request.Cookie).Custom((str, _) =>
             {
-                if (TransferManager.CookieContainsInvalidChars(str))
+                if (TransferManager.StringContainsInvalidChars(TransferManager.CookieChars, str))
                 {
                     _.AddFailure("The cookie contains invalid characters.");
                 }
             });
-            RuleFor(request => request.Cookie).Length(TransferManager.CookieLength).WithMessage($"Cookie must be {TransferManager.CookieLength} characters in length.");
+            RuleFor(request => request.Cookie).Length(TransferManager.CookieLength)
+                .WithMessage($"Cookie must be {TransferManager.CookieLength} characters in length.");
         }
     }
     public class CharacterMigrationCompleteResponseModel

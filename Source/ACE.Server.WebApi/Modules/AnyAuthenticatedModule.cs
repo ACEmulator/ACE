@@ -165,7 +165,7 @@ namespace ACE.Server.WebApi.Modules
                 }
                 TransferManager.PackageMetadata metadata = new TransferManager.PackageMetadata
                 {
-                    NewCharacterName = request.NewCharacterName,
+                    NewCharacterName = request.NewCharacterName.Trim(),
                     Cookie = request.Cookie,
                     AccountId = uint.Parse(Context.CurrentUser.FindFirst("AccountId").Value),
                     ImportUrl = new Uri(request.BaseURL),
@@ -195,14 +195,27 @@ namespace ACE.Server.WebApi.Modules
                 }
                 TransferManager.PackageMetadata metadata = new TransferManager.PackageMetadata
                 {
-                    NewCharacterName = request.NewCharacterName,
+                    NewCharacterName = request.NewCharacterName.Trim(),
                     AccountId = uint.Parse(Context.CurrentUser.FindFirst("AccountId").Value),
                     PackageType = TransferManager.PackageType.Backup
                 };
                 TransferManager.ImportAndMigrateResult result = null;
+                byte[] fileData = null;
+                try
+                {
+                    fileData = Convert.FromBase64String(request.SnapshotPackageBase64);
+                }
+                catch
+                {
+                    return new CharacterImportResponseModel()
+                    {
+                        Success = false,
+                        FailureReason = "SnapshotPackageBase64 is not valid Base64 encoded data."
+                    }.AsJson();
+                }
                 Gate.RunGatedAction(() =>
                 {
-                    result = TransferManager.ImportAndMigrate(metadata, Convert.FromBase64String(request.SnapshotPackageBase64));
+                    result = TransferManager.ImportAndMigrate(metadata, fileData);
                 });
                 return new CharacterImportResponseModel()
                 {

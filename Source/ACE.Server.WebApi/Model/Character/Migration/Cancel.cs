@@ -14,7 +14,7 @@ namespace ACE.Server.WebApi.Model.Character.Migration
             RuleFor(request => request.Cookie).NotEmpty().WithMessage("You must specify the character migration cookie.");
             RuleFor(request => request.Cookie).Custom((str, _) =>
             {
-                if (TransferManager.CookieContainsInvalidChars(str))
+                if (TransferManager.StringContainsInvalidChars(TransferManager.CookieChars, str))
                 {
                     _.AddFailure("The cookie contains invalid characters.");
                 }

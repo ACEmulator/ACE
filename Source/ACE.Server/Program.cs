@@ -41,7 +41,7 @@ namespace ACE.Server
 
         public static void Start()
         {
-			AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
+            AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
             AppDomain.CurrentDomain.ProcessExit += new EventHandler(OnProcessExit);
 
             // Init our text encoding options. This will allow us to use more than standard ANSI text, which the client also supports.
