@@ -914,7 +914,7 @@ namespace ACE.Server.Managers
             var prop = (PropertyInt)intMod.Stat;
             var value = intMod.Value;
 
-            var sourceMod = GetSourceMod((SourceType)intMod.Unknown1, player, source);
+            var sourceMod = GetSourceMod((SourceType)intMod.Source, player, source);
 
             switch (op)
             {
@@ -949,7 +949,7 @@ namespace ACE.Server.Managers
             var prop = (PropertyFloat)floatMod.Stat;
             var value = floatMod.Value;
 
-            var sourceMod = GetSourceMod((SourceType)floatMod.Unknown1, player, source);
+            var sourceMod = GetSourceMod((SourceType)floatMod.Source, player, source);
 
             switch (op)
             {
@@ -977,7 +977,7 @@ namespace ACE.Server.Managers
             var prop = (PropertyString)stringMod.Stat;
             var value = stringMod.Value;
 
-            var sourceMod = GetSourceMod((SourceType)stringMod.Unknown1, player, source);
+            var sourceMod = GetSourceMod((SourceType)stringMod.Source, player, source);
 
             switch (op)
             {
@@ -1002,7 +1002,7 @@ namespace ACE.Server.Managers
             var prop = (PropertyInstanceId)iidMod.Stat;
             var value = iidMod.Value;
 
-            var sourceMod = GetSourceMod((SourceType)iidMod.Unknown1, player, source);
+            var sourceMod = GetSourceMod((SourceType)iidMod.Source, player, source);
 
             switch (op)
             {
@@ -1027,7 +1027,7 @@ namespace ACE.Server.Managers
             var prop = (PropertyDataId)didMod.Stat;
             var value = didMod.Value;
 
-            var sourceMod = GetSourceMod((SourceType)didMod.Unknown1, player, source);
+            var sourceMod = GetSourceMod((SourceType)didMod.Source, player, source);
 
             switch (op)
             {

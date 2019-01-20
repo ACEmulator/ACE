@@ -273,7 +273,7 @@ namespace ACE.Database.SQLFormatters
 
             if (isWeenieClassID)
             {
-                if (Weenies.ContainsKey(weenieOrType))
+                if (Weenies != null && Weenies.ContainsKey(weenieOrType))
                 {
                     deathTreasureType = Weenies[weenieOrType].GetProperty(PropertyDataId.DeathTreasureType);
                     wieldedTreasureType = Weenies[weenieOrType].GetProperty(PropertyDataId.WieldedTreasureType);
@@ -285,24 +285,29 @@ namespace ACE.Database.SQLFormatters
                 wieldedTreasureType = weenieOrType;
             }
 
-            if (deathTreasureType != null)
+            if (deathTreasureType.HasValue && wieldedTreasureType.HasValue)
             {
-                if (TreasureDeath.ContainsKey(deathTreasureType.Value))
+                if (TreasureDeath != null && TreasureDeath.ContainsKey(deathTreasureType.Value))
                 {
-                    label = $"RANDOMLY GENERATED TREASURE from Loot Tier {TreasureDeath[deathTreasureType.Value].Tier}";
+                    label = $"RANDOMLY GENERATED TREASURE from Loot Tier {TreasureDeath[deathTreasureType.Value].Tier} from Death Treasure Table id: {deathTreasureType}";
                 }
-            }
-            else if (wieldedTreasureType != null)
-            {
-                if (TreasureWielded.ContainsKey(wieldedTreasureType.Value))
+                else if (TreasureWielded != null && TreasureWielded.ContainsKey(wieldedTreasureType.Value))
                 {
                     label = "";
                     foreach (var item in TreasureWielded[wieldedTreasureType.Value])
                     {
-                        label += $"{(item.StackSize > 0 ? $"{item.StackSize}" : "1")}x {WeenieNames[item.WeenieClassId]} ({item.WeenieClassId}), ";
+                        var wName = "";
+                        if (WeenieNames != null && WeenieNames.ContainsKey(item.WeenieClassId))
+                            wName = WeenieNames[item.WeenieClassId];
+
+                        label += $"{(item.StackSize > 0 ? $"{item.StackSize}" : "1")}x {wName} ({item.WeenieClassId}), ";
                     }
-                    label = label.Substring(0, label.Length - 2) + " from Wielded Treasure Table";
+                    label = label.Substring(0, label.Length - 2) + $" from Wielded Treasure Table id: {wieldedTreasureType}";
                 }
+            }
+            else
+            {
+                label = "nothing";
             }
 
             return label;
