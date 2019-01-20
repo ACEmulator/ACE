@@ -179,6 +179,13 @@ namespace ACE.Server.WorldObjects
             {
                 if (!IsOpen)
                 {
+                    if (LastUnlocker.HasValue && LastUnlocker != player.Guid.Full)
+                    {
+                        player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, $"The {Name} was unlocked by someone else!")); // CUSTOM, what did retail actually do?
+                        player.SendUseDoneEvent();
+                        return;
+                    }
+
                     var rotateTime = player.Rotate(this);
 
                     var actionChain = new ActionChain();
@@ -226,17 +233,27 @@ namespace ACE.Server.WorldObjects
         /// Used for unlocking a chest via lockpick, so contains a skill check
         /// player.Skills[Skill.Lockpick].Current should be sent for the skill check
         /// </summary>
-        public UnlockResults Unlock(uint playerLockpickSkillLvl, ref int difficulty)
+        public UnlockResults Unlock(uint unlockerGuid, uint playerLockpickSkillLvl, ref int difficulty)
         {
-            return LockHelper.Unlock(this, playerLockpickSkillLvl, ref difficulty);
+            var result = LockHelper.Unlock(this, playerLockpickSkillLvl, ref difficulty);
+
+            if (result == UnlockResults.UnlockSuccess)
+                LastUnlocker = unlockerGuid;
+
+            return result;
         }
 
         /// <summary>
         /// Used for unlocking a chest via a key
         /// </summary>
-        public UnlockResults Unlock(string keyCode)
+        public UnlockResults Unlock(uint unlockerGuid, string keyCode)
         {
-            return LockHelper.Unlock(this, keyCode);
+            var result = LockHelper.Unlock(this, keyCode);
+
+            if (result == UnlockResults.UnlockSuccess)
+                LastUnlocker = unlockerGuid;
+
+            return result;
         }
     }
 }

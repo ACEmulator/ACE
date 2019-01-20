@@ -367,7 +367,7 @@ namespace ACE.Server.WorldObjects
             {
                 if (CurrentLandblock?.GetObject(lastUsedContainerId) is Container lastUsedContainer)
                 {
-                    if (lastUsedContainer.IsOpen)
+                    if (lastUsedContainer.IsOpen && lastUsedContainer.Viewer == Guid.Full)
                     {
                         result = lastUsedContainer.GetInventoryItem(objectGuid, out foundInContainer);
 
