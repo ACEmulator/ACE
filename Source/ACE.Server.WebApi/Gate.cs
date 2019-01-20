@@ -14,35 +14,75 @@ namespace ACE.Server.WebApi
         public static Gate Instance => lazy.Value;
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         public Thread GateThread { get; set; } = null;
-        public bool GateThreadAlive = false;
+        public Thread GateThread2 { get; set; } = null;
+        public bool GateThreadsAlive = false;
         private ConcurrentQueue<GatedAction> GateQueue;
+        private ConcurrentQueue<GatedAction> GateQueue2;
 
         public Gate()
         {
+            GateThreadsAlive = true;
             GateQueue = new ConcurrentQueue<GatedAction>();
+            GateQueue2 = new ConcurrentQueue<GatedAction>();
             GateThread = new Thread(new ThreadStart(GateThreadLoop));
             GateThread.SetApartmentState(ApartmentState.STA);
-            GateThread.Name = "WebApiGate";
-            GateThreadAlive = true;
+            GateThread.Name = "WebApiGate1";
             GateThread.Start();
+            GateThread2 = new Thread(new ThreadStart(GateThreadLoop2));
+            GateThread2.SetApartmentState(ApartmentState.STA);
+            GateThread2.Name = "WebApiGate2";
+            GateThread2.Start();
         }
         /// <summary>
         /// Enqueue and run an action against the game server.  Blocks until finished.
         /// </summary>
         /// <param name="act">the action to synchronously perform</param>
-        public static void RunGatedAction(Action act)
+        public static void RunGatedAction(Action act, int queue = 0)
         {
-            GatedAction ba = new GatedAction() { Action = act, CompletionToken = new ManualResetEvent(false) };
-            Instance.GateQueue.Enqueue(ba);
-            while (!ba.CompletionToken.WaitOne(500) && Instance.GateThreadAlive) { }
+            switch (queue)
+            {
+                case 0:
+                    GatedAction ba = new GatedAction() { Action = act, CompletionToken = new ManualResetEvent(false) };
+                    Instance.GateQueue.Enqueue(ba);
+                    while (!ba.CompletionToken.WaitOne(500) && Instance.GateThreadsAlive) { }
+                    break;
+                case 1:
+                    GatedAction ba2 = new GatedAction() { Action = act, CompletionToken = new ManualResetEvent(false) };
+                    Instance.GateQueue2.Enqueue(ba2);
+                    while (!ba2.CompletionToken.WaitOne(500) && Instance.GateThreadsAlive) { }
+                    break;
+                default:
+                    throw new Exception("unknown queue number");
+            }
         }
         private static void GateThreadLoop()
         {
-            while (Instance.GateThreadAlive)
+            while (Instance.GateThreadsAlive)
             {
                 Thread.Sleep(500);
                 GatedAction act = null;
-                while (Instance.GateQueue.TryDequeue(out act) && Instance.GateThreadAlive)
+                while (Instance.GateQueue.TryDequeue(out act) && Instance.GateThreadsAlive)
+                {
+                    try
+                    {
+                        act.Action();
+                    }
+                    catch (Exception ex) { log.Error("Gated action threw an error", ex); }
+                    finally
+                    {
+                        act.CompletionToken.Set();
+                    }
+                    Thread.Sleep(100); // maximum 10 actions per second
+                }
+            }
+        }
+        private static void GateThreadLoop2()
+        {
+            while (Instance.GateThreadsAlive)
+            {
+                Thread.Sleep(500);
+                GatedAction act = null;
+                while (Instance.GateQueue2.TryDequeue(out act) && Instance.GateThreadsAlive)
                 {
                     try
                     {

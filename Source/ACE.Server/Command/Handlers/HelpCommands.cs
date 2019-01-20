@@ -113,32 +113,5 @@ namespace ACE.Server.Command.Handlers
                     Console.WriteLine(message);
             }
         }
-        [CommandHandler("cert", AccessLevel.Player, CommandHandlerFlag.None, 0, "Reveals this server's certificate thumbprint.")]
-        public static void HandleCert(Session session, params string[] parameters)
-        {
-            string print = $"Server certificate thumbprint: {CryptoManager.Thumbprint}";
-            if (session != null)
-            {
-                session.Network.EnqueueSend(new GameMessageSystemChat(print, ChatMessageType.Broadcast));
-            }
-            else
-            {
-                Console.WriteLine(print);
-            }
-        }
-        [CommandHandler("trustedcerts", AccessLevel.Player, CommandHandlerFlag.None, 0, "Reveals this server's trusted server certificate thumbprints.")]
-        public static void HandleTrustedCerts(Session session, params string[] parameters)
-        {
-            string prints = ConfigManager.Config.Transfer.AllowMigrationFrom.DefaultIfEmpty("").Aggregate((a, b) => a + Environment.NewLine + b);
-            string print = $"{ConfigManager.Config.Transfer.AllowMigrationFrom.Count} trusted server certificate thumbprints:{Environment.NewLine}{prints}".TrimEnd();
-            if (session != null)
-            {
-                session.Network.EnqueueSend(new GameMessageSystemChat(print, ChatMessageType.Broadcast));
-            }
-            else
-            {
-                Console.WriteLine(print);
-            }
-        }
     }
 }

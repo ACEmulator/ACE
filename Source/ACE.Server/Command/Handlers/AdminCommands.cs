@@ -1739,6 +1739,11 @@ namespace ACE.Server.Command.Handlers
         [CommandHandler("serverstatus", AccessLevel.Advocate, CommandHandlerFlag.None, 0, "Displays a summary of server statistics and usage")]
         public static void HandleServerStatus(Session session, params string[] parameters)
         {
+            CommandHandlerHelper.WriteOutputInfo(session, GetServerStatus());
+        }
+
+        public static string GetServerStatus()
+        {
             // This is formatted very similarly to GDL.
 
             var sb = new StringBuilder();
@@ -1791,7 +1796,7 @@ namespace ACE.Server.Command.Handlers
             sb.Append($"Portal.dat has {DatManager.PortalDat.FileCache.Count:N0} files cached of {DatManager.PortalDat.AllFiles.Count:N0} total{'\n'}");
             sb.Append($"Cell.dat has {DatManager.CellDat.FileCache.Count:N0} files cached of {DatManager.CellDat.AllFiles.Count:N0} total{'\n'}");
 
-            CommandHandlerHelper.WriteOutputInfo(session, $"{sb}");
+            return sb.ToString();
         }
 
         [CommandHandler("modifybool", AccessLevel.Admin, CommandHandlerFlag.None, 2, "Modifies a server property that is a bool", "modifybool (string) (bool)")]
@@ -1905,6 +1910,20 @@ namespace ACE.Server.Command.Handlers
         public static void HandleResyncServerProperties(Session session, params string[] parameters)
         {
             PropertyManager.ResyncVariables();
+        }
+
+        [CommandHandler("thumbprint", AccessLevel.Admin, CommandHandlerFlag.None, 0, "Reveals this server's certificate thumbprint.")]
+        public static void HandleCert(Session session, params string[] parameters)
+        {
+            string print = $"Server thumbprint: {CryptoManager.Thumbprint}";
+            if (session != null)
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat(print, ChatMessageType.Broadcast));
+            }
+            else
+            {
+                Console.WriteLine(print);
+            }
         }
     }
 }

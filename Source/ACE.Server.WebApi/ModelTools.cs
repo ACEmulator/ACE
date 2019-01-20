@@ -1,7 +1,7 @@
 using Nancy;
 using Newtonsoft.Json;
 
-namespace ACE.Server.WebApi.Util
+namespace ACE.Server.WebApi
 {
     internal static class ModelTools
     {

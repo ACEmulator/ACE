@@ -6,7 +6,7 @@ using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
-using ACE.Server.Command;
+using ACE.Server.Entity;
 using ACE.Server.Network;
 using ACE.Server.WorldObjects;
 using log4net;
@@ -90,42 +90,6 @@ namespace ACE.Server.Managers
             }
         }
 
-        public static void Import(Session session, params string[] parameters)
-        {
-            Task.Run(() => ImportInner(session, parameters));
-        }
-        private static void ImportInner(Session session, params string[] parameters)
-        {
-            List<CommandParameterHelpers.ACECommandParameter> aceParams = new List<CommandParameterHelpers.ACECommandParameter>()
-            {
-                new CommandParameterHelpers.ACECommandParameter() {
-                    Type = CommandParameterHelpers.ACECommandParameterType.PlayerName,
-                    Required = true,
-                    ErrorMessage = "You must supply a new character name for this import."
-                },
-                new CommandParameterHelpers.ACECommandParameter()
-                {
-                    Type = CommandParameterHelpers.ACECommandParameterType.Uri,
-                    Required = true,
-                    ErrorMessage = "You must supply the URL to the zip file download containing the character to import."
-                }
-            };
-            if (!CommandParameterHelpers.ResolveACEParameters(session, parameters, aceParams))
-            {
-                return;
-            }
-
-            string charName = Import(session, aceParams[0].AsString, aceParams[1].AsUri);
-            if (charName != null)
-            {
-                session.WorldBroadcast($"Character {charName} imported.");
-            }
-            else
-            {
-                session.WorldBroadcast($"Character import failed.");
-            }
-        }
-
         /// <summary>
         /// Checks for the existence of a transfer package file
         /// </summary>
@@ -162,7 +126,6 @@ namespace ACE.Server.Managers
             {
                 string filePath = Path.Combine(ServerManager.TransferPath, cookie + ".zip");
                 File.Delete(filePath);
-
             }
             catch (Exception ex)
             {
@@ -170,59 +133,127 @@ namespace ACE.Server.Managers
             }
         }
 
-        /// <summary>
-        /// Import a character.
-        /// </summary>
-        /// <param name="session">player's current session</param>
-        /// <param name="charName">name for the imported character</param>
-        /// <param name="importUrl">The source URL</param>
-        /// <returns></returns>
-        private static string Import(Session session, string charName, Uri importUrl)
+        public class TransferManagerCharacterMigrationDownloadResponseModel
         {
+            public bool Success { get; set; }
+            public string Cookie { get; set; }
+            public byte[] SnapshotPackage { get; set; }
+        }
+
+        public class TransferManagerTransferConfigResponseModel
+        {
+            public string MyThumbprint { get; set; }
+            public List<string> AllowMigrationFrom { get; set; }
+            public List<string> AllowImportFrom { get; set; }
+            public bool AllowBackup { get; set; }
+            public bool AllowImport { get; set; }
+            public bool AllowMigrate { get; set; }
+        }
+
+        /// <summary>
+        /// Import or migrate a character.
+        /// </summary>
+        /// <returns>the result</returns>
+        public static ImportAndMigrateResult ImportAndMigrate(PackageMetadata metadata, byte[] importBytes = null)
+        {
+            if ((metadata.PackageType == PackageType.Backup && !ConfigManager.Config.Transfer.AllowImport) || (metadata.PackageType == PackageType.Migrate && !ConfigManager.Config.Transfer.AllowMigrate))
+            {
+                return new ImportAndMigrateResult() { FailReason = ImportAndMigrateFailiureReason.OperationNotAllowed };
+            }
             bool NameIsGood = false;
-            TaskCompletionSource<object> tsc = new TaskCompletionSource<object>();
-            DatabaseManager.Shard.IsCharacterNameAvailable(charName, isAvailable =>
+            ManualResetEvent mre = new ManualResetEvent(false);
+            DatabaseManager.Shard.IsCharacterNameAvailable(metadata.NewCharacterName, isAvailable =>
             {
                 NameIsGood = isAvailable;
-                tsc.SetResult(new object());
+                mre.Set();
             });
-            object o = tsc.Task.Result;
+            mre.WaitOne();
             if (!NameIsGood)
             {
-                session.WorldBroadcast($"The character name {charName} is unavailable.");
                 // TO-DO: prevent abuse (use to make list of taken names)
                 // TO-DO: implement taboo-table lookup and other char name validation
-                return null;
+                return new ImportAndMigrateResult() { FailReason = ImportAndMigrateFailiureReason.NameIsUnavailable };
+            }
+            TransferManagerCharacterMigrationDownloadResponseModel snapshotPack = null;
+            CharacterTransfer xfer = null;
+            if (importBytes == null)
+            {
+                mre = new ManualResetEvent(false);
+                DatabaseManager.Shard.GetCharacterTransfers((xfers) =>
+                {
+                    xfer = xfers.FirstOrDefault(k => k.Cookie == metadata.Cookie);
+                    mre.Set();
+                });
+                mre.WaitOne();
+                if (xfer != null)
+                {
+                    // don't fail here, prevents inter-account same-server transfers
+                    // return new ImportAndMigrateResult() { FailReason = ImportAndMigrateFailiureReason.CookieAlreadyUsed };
+                }
+
+                // try to verify we trust the server before downloading package, since migrations cause source server to delete the original char upon download of the package
+                string unverifiedThumbprintsSerialized = null;
+                try
+                {
+                    using (InsecureWebClient iwc = new InsecureWebClient())
+                    {
+                        unverifiedThumbprintsSerialized = iwc.DownloadString(metadata.ImportUrl.ToString() + "api/transferConfig");
+                    }
+                }
+                catch
+                {
+                    return new ImportAndMigrateResult() { FailReason = ImportAndMigrateFailiureReason.CannotContactSourceServer };
+                }
+                TransferManagerTransferConfigResponseModel unverifiedThumbprints = null;
+                try
+                {
+                    unverifiedThumbprints = JsonConvert.DeserializeObject<TransferManagerTransferConfigResponseModel>(unverifiedThumbprintsSerialized, serializationSettings);
+                }
+                catch
+                {
+                    return new ImportAndMigrateResult() { FailReason = ImportAndMigrateFailiureReason.ProtocolError };
+                }
+
+                if ((metadata.PackageType == PackageType.Migrate && !ConfigManager.Config.Transfer.AllowMigrationFrom.Any(k => k == unverifiedThumbprints.MyThumbprint)) || (metadata.PackageType == PackageType.Backup && !ConfigManager.Config.Transfer.AllowImportFrom.Any(k => k == unverifiedThumbprints.MyThumbprint)))
+                {
+                    return new ImportAndMigrateResult() { FailReason = ImportAndMigrateFailiureReason.UnverifiedSourceServerNotAllowed };
+                }
+
+                try
+                {
+                    using (InsecureWebClient iwc = new InsecureWebClient())
+                    {
+                        string TransferManagerCharacterMigrationDownloadResponseModelSerialized = iwc.DownloadString(metadata.ImportUrl.ToString() + $"api/character/migrationDownload?Cookie={metadata.Cookie}");
+                        snapshotPack = JsonConvert.DeserializeObject<TransferManagerCharacterMigrationDownloadResponseModel>(TransferManagerCharacterMigrationDownloadResponseModelSerialized, serializationSettings);
+                    }
+                }
+                catch (Exception)
+                {
+                    return new ImportAndMigrateResult() { FailReason = ImportAndMigrateFailiureReason.ProtocolError };
+                }
+                if (snapshotPack == null)
+                {
+                    return new ImportAndMigrateResult();
+                }
+                if (!snapshotPack.Success)
+                {
+                    return new ImportAndMigrateResult() { FailReason = ImportAndMigrateFailiureReason.SourceServerRejectedRequest };
+                }
             }
 
             string tmpFilePath = Path.GetTempFileName();
             DirectoryInfo diTmpDirPath = Directory.CreateDirectory(Path.Combine(Path.GetDirectoryName(tmpFilePath), Path.GetFileNameWithoutExtension(tmpFilePath)));
             string signerCertPath = Path.Combine(diTmpDirPath.FullName, "signer.crt");
 
-            string sourceServerThumb = null;
-
-            string getThumbUrl = importUrl.Scheme + "://" + importUrl.Authority + "/GetServerThumbsprint";
-
-            using (InsecureWebClient client = new InsecureWebClient())
+            if (importBytes == null)
             {
-                try { sourceServerThumb = client.DownloadString(getThumbUrl); } catch { }
+                File.WriteAllBytes(tmpFilePath, snapshotPack.SnapshotPackage);
             }
-            // try to verify we trust the server before downloading package, since migrations cause source server to destroy the original char upon download of the package
-            if (!string.IsNullOrWhiteSpace(sourceServerThumb))
+            else
             {
-                if (!ConfigManager.Config.Transfer.AllowMigrationFrom.Any(k => k == sourceServerThumb))
-                {
-                    session.WorldBroadcast($"The originating server isn't trusted.  Please contact the server operator and provide the thumbprint {sourceServerThumb} so they can add it to the trusted server cert thumbprints list.");
-                    log.Info($"Untrusted transfer attempted.  Thumbprint: {sourceServerThumb}");
-                    Directory.Delete(diTmpDirPath.FullName, true);
-                    return null;
-                }
+                File.WriteAllBytes(tmpFilePath, importBytes);
             }
 
-            using (InsecureWebClient client = new InsecureWebClient())
-            {
-                client.DownloadFile(importUrl, tmpFilePath);
-            }
             using (ZipArchive zip = ZipFile.OpenRead(tmpFilePath))
             {
                 zip.ExtractToDirectory(diTmpDirPath.FullName);
@@ -232,37 +263,32 @@ namespace ACE.Server.Managers
             if (!File.Exists(signerCertPath))
             {
                 Directory.Delete(diTmpDirPath.FullName, true);
-                return null;
+                return new ImportAndMigrateResult() { FailReason = ImportAndMigrateFailiureReason.PackageUnsigned };
             }
 
-            string signerThumbprint = string.Empty;
+            string verifiedSourceThumbprint = string.Empty;
 
             using (X509Certificate2 signer = new X509Certificate2(signerCertPath))
             {
-                signerThumbprint = signer.Thumbprint;
+                verifiedSourceThumbprint = signer.Thumbprint;
                 // verify that the signer is in the trusted signers list
-                if (!ConfigManager.Config.Transfer.AllowMigrationFrom.Any(k => k == signerThumbprint))
+                if ((metadata.PackageType == PackageType.Migrate && !ConfigManager.Config.Transfer.AllowMigrationFrom.Any(k => k == verifiedSourceThumbprint)) || (metadata.PackageType == PackageType.Backup && !ConfigManager.Config.Transfer.AllowImportFrom.Any(k => k == verifiedSourceThumbprint)))
                 {
-                    session.WorldBroadcast($"The originating server isn't trusted.  Please contact the server operator and provide the thumbprint {signerThumbprint} so they can add it to the trusted server cert thumbprints list.");
-                    log.Info($"Untrusted transfer attempted.  Thumbprint: {signerThumbprint}");
                     Directory.Delete(diTmpDirPath.FullName, true);
-                    return null;
+                    return new ImportAndMigrateResult() { FailReason = ImportAndMigrateFailiureReason.VerifiedSourceServerNotAllowed };
                 }
                 // verify that the signatures are valid
                 foreach (FileInfo fil in diTmpDirPath.GetFiles("*.json"))
                 {
                     if (!CryptoManager.VerifySignature(fil.FullName, signer))
                     {
-                        log.Info($"Transfer containing invalid signature attempted.  Thumbprint: {signerThumbprint}");
                         Directory.Delete(diTmpDirPath.FullName, true);
-                        return null;
+                        return new ImportAndMigrateResult() { FailReason = ImportAndMigrateFailiureReason.Forgery };
                     }
                 }
             }
 
             // deserialize
-
-
             PackageMetadata packInfo = null;
             List<Biota> snapshot = new List<Biota>();
             foreach (FileInfo fil in diTmpDirPath.GetFiles("*.json"))
@@ -279,9 +305,30 @@ namespace ACE.Server.Managers
 
             if (packInfo == null)
             {
-                log.Info($"packinfo.json not found.  Import cancelled.");
                 Directory.Delete(diTmpDirPath.FullName, true);
-                return null;
+                return new ImportAndMigrateResult() { FailReason = ImportAndMigrateFailiureReason.PackInfoNotFound };
+            }
+
+            if (packInfo.PackageType != metadata.PackageType)
+            {
+                return new ImportAndMigrateResult() { FailReason = ImportAndMigrateFailiureReason.WrongPackageType };
+            }
+
+            if (importBytes == null)
+            {
+                xfer = null;
+                mre = new ManualResetEvent(false);
+                DatabaseManager.Shard.GetCharacterTransfers((xfers) =>
+                {
+                    xfer = xfers.FirstOrDefault(k => k.SourceId == packInfo.CharacterId);
+                    mre.Set();
+                });
+                mre.WaitOne();
+
+                if (xfer != null)
+                {
+                    return new ImportAndMigrateResult() { FailReason = ImportAndMigrateFailiureReason.CharacterAlreadyPresent };
+                }
             }
 
             // isolate player biota
@@ -296,14 +343,12 @@ namespace ACE.Server.Managers
             if (playerCollection.Count > 1)
             {
                 Directory.Delete(diTmpDirPath.FullName, true);
-                log.Info($"Found more than one character, cancelling character import.");
-                return null;
+                return new ImportAndMigrateResult() { FailReason = ImportAndMigrateFailiureReason.FoundMoreThanOneCharacter };
             }
             if (playerCollection.Count < 1)
             {
                 Directory.Delete(diTmpDirPath.FullName, true);
-                log.Info($"Could not find character, cancelling character import.");
-                return null;
+                return new ImportAndMigrateResult() { FailReason = ImportAndMigrateFailiureReason.CannotFindCharacter };
             }
             IEnumerable<Biota> possessedBiotas2 = snapshot.Except(playerCollection).ToList();
             Biota newCharBiota = playerCollection.First();
@@ -316,18 +361,16 @@ namespace ACE.Server.Managers
             if (nameProp.Count != 1)
             {
                 Directory.Delete(diTmpDirPath.FullName, true);
-                log.Info($"Malformed character data, cancelling character import.");
-                return null;
+                return new ImportAndMigrateResult() { FailReason = ImportAndMigrateFailiureReason.MalformedCharacterData };
             }
             string FormerCharName = nameProp.First().Value;
-            nameProp.First().Value = charName;
+            nameProp.First().Value = metadata.NewCharacterName;
 
             Collection<(Biota biota, ReaderWriterLockSlim rwLock)> possessedBiotas = new Collection<(Biota biota, ReaderWriterLockSlim rwLock)>();
             foreach (Biota possession in possessedBiotas2)
             {
                 possessedBiotas.Add((SetGuidAndScrubPKs(possession, GuidManager.NewDynamicGuid().Full), new ReaderWriterLockSlim()));
             }
-
             foreach ((Biota biota, ReaderWriterLockSlim rwLock) item in possessedBiotas)
             {
                 IEnumerable<BiotaPropertiesIID> instances = item.biota.BiotaPropertiesIID.Where(k => k.Value == playerOrigId);
@@ -349,42 +392,62 @@ namespace ACE.Server.Managers
             // build            
             Weenie weenie = DatabaseManager.World.GetCachedWeenie(newCharBiota.WeenieClassId);
             weenie.Type = newCharBiota.WeenieType;
-            Player newPlayer = new Player(weenie, guid, session.AccountId)
+            Player newPlayer = new Player(weenie, guid, metadata.AccountId)
             {
-                Location = session.Player.Location,
-                Name = charName,
+                Location = new Position(0xD655002C, 126.918549f, 81.756134f, 49.698814f, 0.794878f, 0.000000f, 0.000000f, -0.606769f), // Shoushi starter area
+                Name = metadata.NewCharacterName,
             };
-            newPlayer.Character.Name = charName;
+            newPlayer.Character.Name = metadata.NewCharacterName;
 
             // insert
-            TaskCompletionSource<bool> resultTask = new TaskCompletionSource<bool>();
+            mre = new ManualResetEvent(false);
+            bool addCharResult = false;
             DatabaseManager.Shard.AddCharacterInParallel(newCharBiota, newPlayer.BiotaDatabaseLock, possessedBiotas, newPlayer.Character, newPlayer.CharacterDatabaseLock, new Action<bool>((res2) =>
             {
-                resultTask.SetResult(res2);
+                addCharResult = res2;
+                mre.Set();
             }));
-            object res = tsc.Task.Result;
-            if (resultTask.Task.Result)
+            mre.WaitOne();
+            if (addCharResult)
             {
                 // update server
                 PlayerManager.AddOfflinePlayer(DatabaseManager.Shard.GetBiota(guid.Full));
-                DatabaseManager.Shard.GetCharacters(session.AccountId, false, new Action<List<Character>>((chars) =>
+                DatabaseManager.Shard.GetCharacters(metadata.AccountId, false, new Action<List<Character>>((chars) =>
                 {
-                    session.Characters.Add(chars.First(k => k.Id == guid.Full));
+                    Session session = WorldManager.FindSessionByAccountId(metadata.AccountId);
+                    if (session != null)
+                    {
+                        session.Characters.Add(chars.First(k => k.Id == guid.Full));
+                    }
                 }));
-                log.Info($"Character {charName} (formerly {FormerCharName}) imported from {importUrl} signer: {signerThumbprint}.");
+                DatabaseManager.Shard.SaveCharacterTransfer(new CharacterTransfer()
+                {
+                    AccountId = metadata.AccountId,
+                    SourceId = packInfo.CharacterId,
+                    TransferType = (uint)metadata.PackageType,
+                    TransferTime = (ulong)Time.GetUnixTime(),
+                    Cookie = metadata.Cookie,
+                    SourceBaseUrl = (importBytes == null) ? metadata.ImportUrl.ToString() : null,
+                    SourceThumbprint = verifiedSourceThumbprint,
+                    TargetId = guid.Full,
+                }, new ReaderWriterLockSlim(), null);
             }
             else
             {
-                log.Info($"Character {charName} import failiure from {importUrl} signer: {signerThumbprint}.");
                 Directory.Delete(diTmpDirPath.FullName, true);
-                return null;
+                return new ImportAndMigrateResult() { FailReason = ImportAndMigrateFailiureReason.AddCharacterFailed };
             }
 
             // cleanup
             Directory.Delete(diTmpDirPath.FullName, true);
 
-            // done, return character name
-            return charName;
+            // done
+            return new ImportAndMigrateResult()
+            {
+                Success = true,
+                NewCharacterName = metadata.NewCharacterName,
+                NewCharacterId = guid.Full
+            };
         }
 
         public enum PackageType
@@ -399,12 +462,134 @@ namespace ACE.Server.Managers
             public uint CharacterId { get; set; }
             public uint AccountId { get; set; }
             public string FilePath { get; set; }
+            public string NewCharacterName { get; set; }
+            public Uri ImportUrl { get; set; }
+        }
+        public enum MigrationCloseType
+        {
+            Cancel,
+            Download
+        }
+        public class MigrateCloseResult
+        {
+            public bool Success { get; set; } = false;
+            public byte[] SnapshotPackage { get; set; }
+        }
+        public enum ImportAndMigrateFailiureReason
+        {
+            None,
+            Unknown,
+            OperationNotAllowed,
+            UnverifiedSourceServerNotAllowed,
+            VerifiedSourceServerNotAllowed,
+            PackInfoNotFound,
+            CannotContactSourceServer,
+            ProtocolError,
+            SourceServerRejectedRequest,
+            CharacterAlreadyPresent,
+            WrongPackageType,
+            PackageTypeNotAllowed,
+            NameIsUnavailable,
+            FoundMoreThanOneCharacter,
+            CannotFindCharacter,
+            MalformedCharacterData,
+            AddCharacterFailed,
+            Forgery,
+            PackageUnsigned,
+            CookieAlreadyUsed
+        }
+        public class ImportAndMigrateResult
+        {
+            public ImportAndMigrateFailiureReason FailReason { get; set; } = ImportAndMigrateFailiureReason.Unknown;
+            public bool Success { get; set; } = false;
+            public string NewCharacterName { get; set; }
+            public uint NewCharacterId { get; set; }
+        }
+
+        public static MigrateCloseResult CloseMigration(PackageMetadata metadata, MigrationCloseType type)
+        {
+            CharacterTransfer xfer = null;
+            ManualResetEvent mre = new ManualResetEvent(false);
+            DatabaseManager.Shard.GetCharacterTransfers((xfers) =>
+            {
+                xfer = xfers.FirstOrDefault(k => k.Cookie == metadata.Cookie);
+                mre.Set();
+            });
+            mre.WaitOne();
+            if (xfer == null)
+            {
+                return new MigrateCloseResult(); // non existant migration
+            }
+            if (xfer.TransferType != (uint)PackageType.Migrate)
+            {
+                return new MigrateCloseResult(); // not a migration
+            }
+            if (xfer.DownloadTime != null)
+            {
+                return new MigrateCloseResult(); // already downloaded, can't be cancelled
+            }
+            if (xfer.CancelTime != null)
+            {
+                return new MigrateCloseResult(); // already cancelled, can't be cancelled again
+            }
+            Character character = null;
+            mre = new ManualResetEvent(false);
+            DatabaseManager.Shard.GetCharacters(xfer.AccountId, false, new Action<List<Character>>(new Action<List<Character>>((chars) =>
+            {
+                character = chars.FirstOrDefault(k => k.Id == xfer.PackageSourceId);
+                mre.Set();
+            })));
+            mre.WaitOne();
+            if (character == null)
+            {
+                return new MigrateCloseResult(); // character not found...
+            }
+            if (!character.IsReadOnly)
+            {
+                return new MigrateCloseResult(); // character state is wrong
+            }
+            string packageFilePath = GetTransferPackageFilePath(metadata.Cookie);
+            if (!File.Exists(packageFilePath))
+            {
+                return new MigrateCloseResult(); // package file should be there
+            }
+            if (type == MigrationCloseType.Cancel)
+            {
+                character.IsReadOnly = false;
+                DatabaseManager.Shard.SaveCharacter(character, new ReaderWriterLockSlim(), null);
+                xfer.CancelTime = (ulong)Time.GetUnixTime();
+                DatabaseManager.Shard.SaveCharacterTransfer(xfer, new ReaderWriterLockSlim(), null);
+                File.Delete(packageFilePath);
+                return new MigrateCloseResult()
+                {
+                    Success = true
+                };
+            }
+            else if (type == MigrationCloseType.Download)
+            {
+                character.IsReadOnly = false;
+                character.IsDeleted = true;
+                character.DeleteTime = (ulong)Time.GetUnixTime();
+                DatabaseManager.Shard.SaveCharacter(character, new ReaderWriterLockSlim(), null);
+                xfer.DownloadTime = (ulong)Time.GetUnixTime();
+                DatabaseManager.Shard.SaveCharacterTransfer(xfer, new ReaderWriterLockSlim(), null);
+                MigrateCloseResult res = new MigrateCloseResult()
+                {
+                    Success = true,
+                    SnapshotPackage = File.ReadAllBytes(packageFilePath)
+                };
+                File.Delete(packageFilePath);
+                return res;
+            }
+            else
+            {
+                return new MigrateCloseResult();
+            }
         }
 
         /// <summary>
         /// Package the currently logged in character.
         /// </summary>
-        /// <param name="session"></param>
         /// <returns></returns>
         public static async Task<PackageMetadata> CreatePackage(PackageMetadata metadata)
         {
@@ -414,7 +599,7 @@ namespace ACE.Server.Managers
             CharacterSnapshot snapshot = new CharacterSnapshot();
             TaskCompletionSource<object> tsc = new TaskCompletionSource<object>();
 
-            var offlinePlayer = PlayerManager.GetOfflinePlayer(metadata.CharacterId);
+            OfflinePlayer offlinePlayer = PlayerManager.GetOfflinePlayer(metadata.CharacterId);
             if (offlinePlayer == null)
             {
                 return null; // character must be logged out
@@ -484,6 +669,17 @@ namespace ACE.Server.Managers
 
             // cleanup
             Directory.Delete(basePath, true);
+
+            // save
+            DatabaseManager.Shard.SaveCharacterTransfer(new CharacterTransfer()
+            {
+                AccountId = metadata.AccountId,
+                PackageSourceId = metadata.CharacterId,
+                TransferType = (uint)metadata.PackageType,
+                TransferTime = (ulong)Time.GetUnixTime(),
+                Cookie = metadata.Cookie,
+            }, new ReaderWriterLockSlim(), null);
+
             return metadata;
         }
 

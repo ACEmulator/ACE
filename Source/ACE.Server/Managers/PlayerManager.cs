@@ -131,6 +131,16 @@ namespace ACE.Server.Managers
             return null;
         }
 
+        public static int GetOfflineCount()
+        {
+            return offlinePlayers.Count;
+        }
+
+        public static int GetOnlineCount()
+        {
+            return onlinePlayers.Count;
+        }
+
         public static List<OfflinePlayer> GetAllOffline()
         {
             var results = new List<OfflinePlayer>();

@@ -554,6 +554,21 @@ namespace ACE.Database
             return results;
         }
 
+        private static readonly ConditionalWeakTable<CharacterTransfer, ShardDbContext> CharacterTransferContexts = new ConditionalWeakTable<CharacterTransfer, ShardDbContext>();
+
+        public List<CharacterTransfer> GetCharacterTransfers()
+        {
+            var context = new ShardDbContext();
+
+            var results = context.CharacterTransfer
+                .ToList();
+
+            foreach (var result in results)
+                CharacterTransferContexts.Add(result, context);
+
+            return results;
+        }
+
         public bool SaveCharacter(Character character, ReaderWriterLockSlim rwLock)
         {
             if (CharacterContexts.TryGetValue(character, out var cachedContext))
@@ -597,6 +612,58 @@ namespace ACE.Database
                 {
                     // Character name might be in use or some other fault
                     log.Error($"SaveCharacter failed with exception: {ex}");
+                    return false;
+                }
+            }
+            finally
+            {
+                rwLock.ExitWriteLock();
+            }
+        }
+
+        public bool SaveCharacterTransfer(CharacterTransfer characterTransfer, ReaderWriterLockSlim rwLock)
+        {
+            if (CharacterTransferContexts.TryGetValue(characterTransfer, out var cachedContext))
+            {
+                rwLock.EnterWriteLock();
+                try
+                {
+                    try
+                    {
+                        cachedContext.SaveChanges();
+                        return true;
+                    }
+                    catch (Exception ex)
+                    {
+                        // Character name might be in use or some other fault
+                        log.Error($"SaveCharacter failed with exception: {ex}");
+                        return false;
+                    }
+                }
+                finally
+                {
+                    rwLock.ExitWriteLock();
+                }
+            }
+
+            var context = new ShardDbContext();
+
+            CharacterTransferContexts.Add(characterTransfer, context);
+
+            rwLock.EnterWriteLock();
+            try
+            {
+                context.CharacterTransfer.Add(characterTransfer);
+
+                try
+                {
+                    context.SaveChanges();
+                    return true;
+                }
+                catch (Exception ex)
+                {
+                    // CharacterTransfer name might be in use or some other fault
+                    log.Error($"SaveCharacterTransfer failed with exception: {ex}");
                     return false;
                 }
             }

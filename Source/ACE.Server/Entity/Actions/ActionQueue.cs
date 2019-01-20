@@ -32,5 +32,7 @@ namespace ACE.Server.Entity.Actions
         {
             Queue.Enqueue(action);
         }
+
+        public int Count { get { return Queue.Count; } }
     }
 }

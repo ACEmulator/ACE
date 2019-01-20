@@ -1,114 +1,98 @@
 using ACE.Common;
-using ACE.Database;
-using ACE.Entity.Enum;
+using ACE.Server.Command.Handlers;
 using ACE.Server.Managers;
+using ACE.Server.Network;
 using ACE.Server.WebApi.Model;
-using ACE.Server.WebApi.Util;
-using AutoMapper;
 using Nancy;
 using Nancy.ModelBinding;
-using Nancy.Security;
-using System.IO;
-using System.Threading.Tasks;
+using System.Linq;
 
 namespace ACE.Server.WebApi.Modules
 {
     public class IndexModule : BaseModule
     {
-        public async Task<CharacterListModel> GetModelCharacterListAsync()
-        {
-            CharacterListModel model = Mapper.Map<CharacterListModel>(BaseModel);
-            TaskCompletionSource<object> tsc = new TaskCompletionSource<object>();
-            Gate.RunGatedAction(() =>
-            {
-                DatabaseManager.Shard.GetCharacters(uint.Parse(Context.CurrentUser.FindFirst("AccountId").Value), true, (chars) =>
-                {
-                    model.Characters = chars;
-                    tsc.SetResult(new object());
-                });
-            });
-            await tsc.Task;
-            return model;
-        }
-
         public IndexModule()
         {
-            this.RequiresAuthentication();
-
-            this.RequiresAnyClaim(
-                k => k.Type == AccessLevel.Admin.ToString(),
-                k => k.Type == AccessLevel.Advocate.ToString(),
-                k => k.Type == AccessLevel.Developer.ToString(),
-                k => k.Type == AccessLevel.Envoy.ToString(),
-                k => k.Type == AccessLevel.Player.ToString(),
-                k => k.Type == AccessLevel.Sentinel.ToString());
-
-            Get("/characters", async (_) => { return (await GetModelCharacterListAsync()).AsJson(); });
-
-            Get("/CharacterBackup", async (_) =>
+            Get("/api/transferConfig", async (_) =>
             {
-                CharacterBackupRequestModel request = this.BindAndValidate<CharacterBackupRequestModel>();
+                return new TransferConfigResponseModel()
+                {
+                    MyThumbprint = CryptoManager.Thumbprint,
+                    AllowImportFrom = ConfigManager.Config.Transfer.AllowImportFrom,
+                    AllowMigrationFrom = ConfigManager.Config.Transfer.AllowMigrationFrom,
+                    AllowBackup = ConfigManager.Config.Transfer.AllowBackup,
+                    AllowImport = ConfigManager.Config.Transfer.AllowImport,
+                    AllowMigrate = ConfigManager.Config.Transfer.AllowMigrate,
+                }.AsJson();
+            });
+
+            // this needs to be unathenticated
+            Get("/api/character/migrationDownload", async (_) =>
+            {
+                CharacterMigrationDownloadRequestModel request = this.BindAndValidate<CharacterMigrationDownloadRequestModel>();
                 if (!ModelValidationResult.IsValid)
                 {
                     return Negotiate.WithModel(ModelValidationResult).WithStatusCode(HttpStatusCode.BadRequest);
                 }
                 TransferManager.PackageMetadata metadata = new TransferManager.PackageMetadata
                 {
-                    CharacterId = request.CharacterId,
-                    AccountId = uint.Parse(Context.CurrentUser.FindFirst("AccountId").Value),
-                    PackageType = TransferManager.PackageType.Backup
+                    Cookie = request.Cookie
                 };
+                TransferManager.MigrateCloseResult result = null;
                 Gate.RunGatedAction(() =>
                 {
-                    metadata = TransferManager.CreatePackage(metadata).Result;
-                });
-                if (metadata == null)
+                    result = TransferManager.CloseMigration(metadata, TransferManager.MigrationCloseType.Download);
+                }, 1); //must be an a different queue than character/migrationComplete because it calls character/migrationDownload
+                CharacterMigrationDownloadResponseModel resp = new CharacterMigrationDownloadResponseModel()
                 {
-                    return Negotiate.WithStatusCode(HttpStatusCode.InternalServerError);
-                }
-                if (!File.Exists(metadata.FilePath))
-                {
-                    return Negotiate.WithStatusCode(HttpStatusCode.InternalServerError);
-                }
-                CharacterBackupResponseModel resp = new CharacterBackupResponseModel
-                {
-                    SnapshotPackage = File.ReadAllBytes(metadata.FilePath)
+                    Cookie = request.Cookie,
+                    SnapshotPackage = result.SnapshotPackage,
+                    Success = result.Success
                 };
-                File.Delete(metadata.FilePath);
                 return resp.AsJson();
             });
 
-            Get("/CharacterMigrationBegin", async (_) =>
+
+            Get("/api/playerCount", async (_) =>
             {
-                CharacterMigrationBeginRequestModel request = this.BindAndValidate<CharacterMigrationBeginRequestModel>();
-                if (!ModelValidationResult.IsValid)
+                return new PlayerCountResponseModel()
                 {
-                    return Negotiate.WithModel(ModelValidationResult).WithStatusCode(HttpStatusCode.BadRequest);
-                }
-                TransferManager.PackageMetadata metadata = new TransferManager.PackageMetadata
+                    Online = PlayerManager.GetOnlineCount(),
+                    Offline = PlayerManager.GetOfflineCount()
+                }.AsJson();
+            });
+
+            Get("/api/networkStats", async (_) =>
+            {
+                return new NetworkStatsResponseModel()
                 {
-                    CharacterId = request.CharacterId,
-                    AccountId = uint.Parse(Context.CurrentUser.FindFirst("AccountId").Value),
-                    PackageType = TransferManager.PackageType.Migrate
-                };
-                Gate.RunGatedAction(() =>
-                {
-                    metadata = TransferManager.CreatePackage(metadata).Result;
-                });
-                if (metadata == null)
-                {
-                    return Negotiate.WithStatusCode(HttpStatusCode.InternalServerError);
-                }
-                if (!File.Exists(metadata.FilePath))
-                {
-                    return Negotiate.WithStatusCode(HttpStatusCode.InternalServerError);
-                }
-                CharacterMigrationBeginResponseModel resp = new CharacterMigrationBeginResponseModel
-                {
-                    BaseURL = $"https://{ConfigManager.Config.Transfer.ExternalIPAddressOrDNSName}:{ConfigManager.Config.Server.Network.Port + 2}",
-                    Cookie = metadata.Cookie
-                };
-                File.Delete(metadata.FilePath);
+                    C2S_CRCErrors_Aggregate = NetworkStatistics.C2S_CRCErrors_Aggregate,
+                    C2S_Packets_Aggregate = NetworkStatistics.C2S_Packets_Aggregate,
+                    C2S_RequestsForRetransmit_Aggregate = NetworkStatistics.C2S_RequestsForRetransmit_Aggregate,
+                    S2C_Packets_Aggregate = NetworkStatistics.S2C_Packets_Aggregate,
+                    S2C_RequestsForRetransmit_Aggregate = NetworkStatistics.S2C_RequestsForRetransmit_Aggregate,
+                    Summary = NetworkStatistics.Summary()
+                }.AsJson();
+            });
+
+            Get("/api/playerLocations", async (_) =>
+            {
+                PlayerLocationsResponseModel resp = new PlayerLocationsResponseModel();
+                Gate.RunGatedAction(() => resp.Locations = PlayerManager.GetAllOnline().Select(k => new PlayerNameAndLocation() { Location = k.Location.ToString(), Name = k.Name }).ToList());
+                return resp.AsJson();
+            });
+
+            Get("/api/landblockStatus", async (_) =>
+            {
+                LandblockStatusResponseModel resp = new LandblockStatusResponseModel();
+                Gate.RunGatedAction(() => resp.Active = LandblockManager.GetActiveLandblocks().Select(k => new LandblockStatus() { Actions = k.ActionQueueCount, Objects = k.ObjectCount, Id = k.Id.ToString() }).ToList());
+                return resp.AsJson();
+            });
+
+            Get("/api/serverStatus", async (_) =>
+            {
+                string resp = null;
+                Gate.RunGatedAction(() => resp = AdminCommands.GetServerStatus());
                 return resp.AsJson();
             });
         }
