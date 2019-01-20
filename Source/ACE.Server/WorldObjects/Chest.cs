@@ -28,6 +28,9 @@ namespace ACE.Server.WorldObjects
             set { if (!value) RemoveProperty(PropertyBool.ChestRegenOnClose); else SetProperty(PropertyBool.ChestRegenOnClose, value); }
         }
 
+        /// <summary>
+        /// This is the default setup for resetting chests
+        /// </summary>
         public double ChestResetInterval
         {
             get
@@ -43,6 +46,9 @@ namespace ACE.Server.WorldObjects
 
         public double Default_ChestResetInterval = 120;
 
+        /// <summary>
+        /// The current player who has a chest opened
+        /// </summary>
         public Player CurrentViewer;
 
         public bool ResetMessagePending
@@ -152,6 +158,9 @@ namespace ACE.Server.WorldObjects
             }
         }
 
+        /// <summary>
+        /// Called when a chest is closed, or walked away from
+        /// </summary>
         public void Close(Player player, bool tryReset = true)
         {
             base.Close(player);
@@ -169,18 +178,13 @@ namespace ACE.Server.WorldObjects
                 Close(CurrentViewer, false);
 
             if (DefaultLocked && !IsLocked)
-                ResetLock(true);
+            {
+                IsLocked = true;
+                EnqueueBroadcast(new GameMessagePublicUpdatePropertyBool(this, PropertyBool.Locked, IsLocked));
+            }
 
             if (ChestRegenOnClose && IsGenerator)
                 ResetMessagePending = true;
-        }
-
-        public void ResetLock(bool lockStatus, bool broadcast = true)
-        {
-            IsLocked = lockStatus;
-
-            if (broadcast)
-                EnqueueBroadcast(new GameMessagePublicUpdatePropertyBool(this, PropertyBool.Locked, IsLocked));
         }
 
         protected override float DoOnOpenMotionChanges()
