@@ -116,7 +116,12 @@ namespace ACE.Server.WorldObjects
             actionChain.AddDelaySeconds(rotateDelay);
             actionChain.AddAction(this, () =>
             {
-                var targetDir = GetDirection(Location.ToGlobal(), target.Location.ToGlobal());
+                var matchIndoors = Location.Indoors == target.Location.Indoors;
+
+                var globalLoc = matchIndoors ? Location.ToGlobal() : Location.Pos;
+                var targetLoc = matchIndoors ? target.Location.ToGlobal() : target.Location.Pos;
+
+                var targetDir = GetDirection(globalLoc, targetLoc);
                 Location.Rotate(targetDir);
             });
             actionChain.EnqueueChain();
