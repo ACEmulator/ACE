@@ -273,7 +273,7 @@ namespace ACE.Database.SQLFormatters
 
             if (isWeenieClassID)
             {
-                if (Weenies.ContainsKey(weenieOrType))
+                if (Weenies != null & Weenies.ContainsKey(weenieOrType))
                 {
                     deathTreasureType = Weenies[weenieOrType].GetProperty(PropertyDataId.DeathTreasureType);
                     wieldedTreasureType = Weenies[weenieOrType].GetProperty(PropertyDataId.WieldedTreasureType);
