@@ -95,11 +95,11 @@ namespace ACE.Server.WorldObjects
         {
             // check for looting permission
             if (!HasPermission(player))
+            {
                 player.Session.Network.EnqueueSend(new GameMessageSystemChat("You don't have permission to loot the " + Name, ChatMessageType.Broadcast));
-            else
-                base.Open(player);
-
-            player.SendUseDoneEvent();
+                return;
+            }
+            base.Open(player);
         }
 
         /// <summary>
