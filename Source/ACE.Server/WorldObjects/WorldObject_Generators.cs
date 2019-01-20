@@ -514,6 +514,15 @@ namespace ACE.Server.WorldObjects
             else if (!GeneratorDisabled)
                 SelectProfilesMax();
 
+            if (this is Chest chest)
+            {
+                // if ChestRegenOnClose, EnqueueRegen determines generator profile heartbeats
+                if (chest.ChestRegenOnClose && !chest.EnqueueRegen)
+                    return;
+
+                chest.EnqueueRegen = false;
+            }
+
             foreach (var generator in GeneratorProfiles)
                 generator.HeartBeat();
         }

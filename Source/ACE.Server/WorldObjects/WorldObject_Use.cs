@@ -1,7 +1,6 @@
-using System.Numerics;
-
+using ACE.Common;
 using ACE.Entity.Enum;
-using ACE.Server.Entity;
+using ACE.Entity.Enum.Properties;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 
@@ -9,6 +8,24 @@ namespace ACE.Server.WorldObjects
 {
     partial class WorldObject
     {
+        private double? useTimestamp;
+        protected double? UseTimestamp
+        {
+            get { return useTimestamp; }
+            set { useTimestamp = Time.GetUnixTime(); }
+        }
+
+        protected double? ResetInterval
+        {
+            get => GetProperty(PropertyFloat.ResetInterval);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.ResetInterval); else SetProperty(PropertyFloat.ResetInterval, value.Value); }
+        }
+
+        protected bool DefaultLocked { get; set; }
+
+        protected bool DefaultOpen { get; set; }
+
+
         /// <summary>
         /// Used to determine how close you need to be to use an item.
         /// </summary>

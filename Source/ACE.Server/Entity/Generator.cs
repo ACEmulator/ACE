@@ -280,6 +280,8 @@ namespace ACE.Server.Entity
             else if ((regenLocationType & RegenLocationType.Contain) != 0)
             {
                 // generator is a container, spawns in inventory
+
+                //Console.WriteLine($"{_generator.Name}.Spawn.Contain: adding {obj.Name} ({obj.Guid:X8})");
                 var container = _generator as Container;
                 if (container == null || !container.TryAddToInventory(obj))
                 {
@@ -333,6 +335,8 @@ namespace ACE.Server.Entity
         /// </summary>
         public void NotifyGenerator(ObjectGuid target, RegenerationType eventType)
         {
+            //Console.WriteLine($"{_generator.Name}.NotifyGenerator({target:X8}, {eventType})");
+
             if (Biota.WhenCreate != (uint)eventType)
                 return;
 
@@ -340,6 +344,7 @@ namespace ACE.Server.Entity
 
             if (item != null)
             {
+                //Console.WriteLine("Found, removing and queueing...");
                 Spawned.Remove(target.Full);
                 Enqueue(1, false);
             }

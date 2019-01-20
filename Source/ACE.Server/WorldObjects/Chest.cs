@@ -1,3 +1,4 @@
+using System;
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.Entity;
@@ -12,6 +13,40 @@ namespace ACE.Server.WorldObjects
 {
     public partial class Chest : Container, Lock
     {
+        /// <summary>
+        /// This is used for things like Mana Forge Chests
+        /// </summary>
+        public bool ChestRegenOnClose
+        {
+            get
+            {
+                if (ChestResetInterval <= 5)
+                    return true;
+
+                return GetProperty(PropertyBool.ChestRegenOnClose) ?? false;
+            }
+            set { if (!value) RemoveProperty(PropertyBool.ChestRegenOnClose); else SetProperty(PropertyBool.ChestRegenOnClose, value); }
+        }
+
+        public double ChestResetInterval
+        {
+            get
+            {
+                var chestResetInterval = ResetInterval ?? Default_ChestResetInterval;
+
+                if (chestResetInterval == 0)
+                    chestResetInterval = Default_ChestResetInterval;
+
+                return chestResetInterval;
+            }
+        }
+
+        public double Default_ChestResetInterval = 120;
+
+        public Player CurrentViewer;
+
+        public bool EnqueueRegen;
+
         /// <summary>
         /// A new biota be created taking all of its values from weenie.
         /// </summary>
@@ -30,40 +65,20 @@ namespace ACE.Server.WorldObjects
 
         private void SetEphemeralValues()
         {
-            //BaseDescriptionFlags |= ObjectDescriptionFlag.Door;
-
-            //if (!DefaultOpen)
-            //{
-            //    CurrentMotionState = motionStateClosed;
-            //    IsOpen = false;
-            //    //Ethereal = false;
-            //}
-            //else
-            //{
-            //    CurrentMotionState = motionStateOpen;
-            //    IsOpen = true;
-            //    //Ethereal = true;
-            //}
-
             ContainerCapacity = ContainerCapacity ?? 10;
             ItemCapacity = ItemCapacity ?? 120;
 
-            //if (Generator != null)
-                //GenerateTreasure();
+            CurrentMotionState = motionClosed;  // do any chests default to open?
 
-            CurrentMotionState = motionClosed; // What chest defaults to open?
+            if (IsLocked)
+                DefaultLocked = true;
 
-            if (UseRadius < 2)
-                UseRadius = 2; // Until DoMoveTo (Physics, Indoor/Outside range variance) is smarter, use 2 is safest.
+            if (ChestRegenOnClose)
+                EnqueueRegen = true;
         }
-
-
 
         protected static readonly Motion motionOpen = new Motion(MotionStance.NonCombat, MotionCommand.On);
         protected static readonly Motion motionClosed = new Motion(MotionStance.NonCombat, MotionCommand.Off);
-
-        //private static readonly MotionState motionStateOpen = new Motion(MotionStance.NonCombat, new MotionItem(MotionCommand.On));
-        //private static readonly MotionState motionStateClosed = new Motion(MotionStance.NonCombat, new MotionItem(MotionCommand.Off));
 
         /// <summary>
         /// This is raised by Player.HandleActionUseItem.<para />
@@ -73,55 +88,105 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public override void ActOnUse(WorldObject wo)
         {
-            var player = wo as Player;
-            if (player == null) return;
-
-            ////if (playerDistanceTo >= 2500)
-            ////{
-            ////    var sendTooFarMsg = new GameEventDisplayStatusMessage(player.Session, StatusMessageType1.Enum_0037);
-            ////    player.Session.Network.EnqueueSend(sendTooFarMsg, sendUseDoneEvent);
-            ////    return;
-            ////}
+            if (!(wo is Player player))
+                return;
 
             if (!IsLocked)
             {
                 if (!IsOpen)
                 {
-                    var rotateTime = player.Rotate(this);
-
-                    var actionChain = new ActionChain();
-                    actionChain.AddDelaySeconds(rotateTime);
-                    actionChain.AddAction(this, () => Open(player));
-                    actionChain.EnqueueChain();
-                    return;
+                    // open chest
+                    Open(player);
                 }
                 else
                 {
+                    // player has this chest open, close it
                     if (Viewer == player.Guid.Full)
                         Close(player);
 
-                    // else error msg?
+                    // else another player has this chest open - send error message?
                 }
             }
             else
             {
+                // handle locked chest
                 player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, $"The {Name} is locked!"));
                 EnqueueBroadcast(new GameMessageSound(Guid, Sound.OpenFailDueToLock, 1.0f));
             }
-
             player.SendUseDoneEvent();
         }
 
-        protected override void DoOnOpenMotionChanges()
+        public override void Open(Player player)
         {
-            EnqueueBroadcastMotion(motionOpen);
-            CurrentMotionState = motionOpen;
+            CurrentViewer = player;
+            base.Open(player);
+
+            // chests can have a couple of different profiles
+            // by default, most chests use the 'ResetInterval' setup
+            // some things like Mana Forge chests use the 'RegenOnClose' variant
+
+            // ResetInterval (default):
+
+            // if no ResetInterval is defined, the DefaultResetInterval of 2 mins is used.
+            // when a player opens this chest, a timer starts, and the chest will automatically set in ResetInterval
+
+            // RegenOnClose (Mana Forge Chest etc.):
+
+            // this chest resets whenever it is closed
+
+            if (!ChestRegenOnClose)
+            {
+                //Console.WriteLine($"{player.Name}.Open({Name}) - enqueueing reset in {ChestResetInterval}s");
+
+                // uses the ResetInterval setup
+                var actionChain = new ActionChain();
+                actionChain.AddDelaySeconds(ChestResetInterval);
+                actionChain.AddAction(this, Reset);
+                actionChain.EnqueueChain();
+
+                //UseTimestamp++;
+            }
         }
 
-        protected override void DoOnCloseMotionChanges()
+        public void Close(Player player, bool tryReset = true)
         {
-            EnqueueBroadcastMotion(motionClosed);
-            CurrentMotionState = motionClosed;
+            base.Close(player);
+            CurrentViewer = null;
+
+            if (ChestRegenOnClose && tryReset)
+                Reset();
+        }
+
+        public override void Reset()
+        {
+            // TODO: if 'ResetInterval' style, do we want to ensure a minimum amount of time for the last viewer?
+
+            if (IsOpen)
+                Close(CurrentViewer, false);
+
+            if (DefaultLocked && !IsLocked)
+                ResetLock(true);
+
+            if (ChestRegenOnClose && IsGenerator)
+                EnqueueRegen = true;
+        }
+
+        public void ResetLock(bool lockStatus, bool broadcast = true)
+        {
+            IsLocked = lockStatus;
+
+            if (broadcast)
+                EnqueueBroadcast(new GameMessagePublicUpdatePropertyBool(this, PropertyBool.Locked, IsLocked));
+        }
+
+        protected override float DoOnOpenMotionChanges()
+        {
+            return ExecuteMotion(motionOpen);
+        }
+
+        protected override float DoOnCloseMotionChanges()
+        {
+            return ExecuteMotion(motionClosed);
         }
 
         public string LockCode
