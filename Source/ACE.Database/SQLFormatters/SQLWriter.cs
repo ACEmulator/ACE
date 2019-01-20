@@ -273,7 +273,7 @@ namespace ACE.Database.SQLFormatters
 
             if (isWeenieClassID)
             {
-                if (Weenies != null & Weenies.ContainsKey(weenieOrType))
+                if (Weenies != null && Weenies.ContainsKey(weenieOrType))
                 {
                     deathTreasureType = Weenies[weenieOrType].GetProperty(PropertyDataId.DeathTreasureType);
                     wieldedTreasureType = Weenies[weenieOrType].GetProperty(PropertyDataId.WieldedTreasureType);
@@ -297,7 +297,7 @@ namespace ACE.Database.SQLFormatters
                     foreach (var item in TreasureWielded[wieldedTreasureType.Value])
                     {
                         var wName = "";
-                        if (WeenieNames != null & WeenieNames.ContainsKey(item.WeenieClassId))
+                        if (WeenieNames != null && WeenieNames.ContainsKey(item.WeenieClassId))
                             wName = WeenieNames[item.WeenieClassId];
 
                         label += $"{(item.StackSize > 0 ? $"{item.StackSize}" : "1")}x {wName} ({item.WeenieClassId}), ";
