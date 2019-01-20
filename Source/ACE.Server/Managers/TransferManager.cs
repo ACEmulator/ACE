@@ -29,42 +29,15 @@ namespace ACE.Server.Managers
     /// </summary>
     public static class TransferManager
     {
-        public class CharacterDownload
-        {
-            public bool Valid { get; set; } = false;
-            public string FilePath { get; set; } = null;
-            public Action UploadCompleted { get; set; } = null;
-        }
-
         public const int CookieLength = 8;
         public const string CookieChars = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
-        public const string CookieRegex = @"[0-9a-zA-Z]{8}";
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
-
         private static readonly JsonSerializerSettings serializationSettings = new JsonSerializerSettings()
         {
             ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
             Formatting = Formatting.Indented,
             PreserveReferencesHandling = PreserveReferencesHandling.None
         };
-        public static CharacterDownload DownloadCharacter(string cookie)
-        {
-            string filePath = GetTransferPackageFilePath(cookie);
-            CharacterDownload dl = new CharacterDownload();
-            if (filePath != null)
-            {
-                dl.Valid = true;
-                dl.UploadCompleted = new Action(() =>
-                {
-                    //TransferServerWrapper.ServeZipFile(filePath, req.NetworkStream);
-                    //log.Info($"transfer {cookie} uploaded to {req.Client.Client.RemoteEndPoint}");
-                    //DeleteTransferPackageFile(cookie);
-                    // also delete original character (and log it out if neccessary) here?
-                });
-                dl.FilePath = filePath;
-            }
-            return dl;
-        }
 
         public static void Initialize()
         {
@@ -74,7 +47,7 @@ namespace ACE.Server.Managers
             if (fileCount > 0)
             {
                 string plural = (fileCount > 1 || fileCount == 0) ? "s" : "";
-                log.Info($"{fileCount} pending transfer{plural}.");
+                log.Info($"{fileCount} pending migration{plural}.");
                 int deletionCount = 0;
                 List<FileInfo> stales = files.Where(k => DateTime.Now - k.CreationTime > TimeSpan.FromDays(1)).ToList();
                 stales.ForEach(file =>
@@ -82,16 +55,16 @@ namespace ACE.Server.Managers
                     File.Delete(file.FullName);
                     deletionCount++;
                 });
-                if (deletionCount > 0)
-                {
-                    plural = (fileCount > 1 || fileCount == 0) ? "s" : "";
-                    log.Debug($"{deletionCount} stale transfer{plural} deleted.");
-                }
+                //if (deletionCount > 0)
+                //{
+                //    plural = (fileCount > 1 || fileCount == 0) ? "s" : "";
+                //    log.Debug($"{deletionCount} stale transfer{plural} deleted.");
+                //}
             }
         }
 
         /// <summary>
-        /// Checks for the existence of a transfer package file
+        /// Checks for the existence of a snapshot package file
         /// </summary>
         /// <param name="cookie"></param>
         /// <returns>null if non-existent, or if existent the path to the transfer package file</returns>
@@ -113,7 +86,7 @@ namespace ACE.Server.Managers
         }
 
         /// <summary>
-        /// destroy an existent transfer package file
+        /// delete an existent snapshot package file
         /// </summary>
         /// <param name="cookie"></param>
         public static void DeleteTransferPackageFile(string cookie)
@@ -559,7 +532,7 @@ namespace ACE.Server.Managers
                 DatabaseManager.Shard.SaveCharacter(character, new ReaderWriterLockSlim(), null);
                 xfer.CancelTime = (ulong)Time.GetUnixTime();
                 DatabaseManager.Shard.SaveCharacterTransfer(xfer, new ReaderWriterLockSlim(), null);
-                File.Delete(packageFilePath);
+                DeleteTransferPackageFile(metadata.Cookie);
                 return new MigrateCloseResult()
                 {
                     Success = true
@@ -578,7 +551,7 @@ namespace ACE.Server.Managers
                     Success = true,
                     SnapshotPackage = File.ReadAllBytes(packageFilePath)
                 };
-                File.Delete(packageFilePath);
+                DeleteTransferPackageFile(metadata.Cookie);
                 return res;
             }
             else
@@ -1141,5 +1114,4 @@ namespace ACE.Server.Managers
             return _req;
         }
     }
-
 }

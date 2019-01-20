@@ -3,15 +3,16 @@ using ACE.Server.Command.Handlers;
 using ACE.Server.Managers;
 using ACE.Server.Network;
 using ACE.Server.WebApi.Model;
+using ACE.Server.WebApi.Model.Character.Migration;
 using Nancy;
 using Nancy.ModelBinding;
 using System.Linq;
 
 namespace ACE.Server.WebApi.Modules
 {
-    public class IndexModule : BaseModule
+    public class UnauthenticatedModule : NancyModule
     {
-        public IndexModule()
+        public UnauthenticatedModule()
         {
             Get("/api/transferConfig", async (_) =>
             {
@@ -93,6 +94,32 @@ namespace ACE.Server.WebApi.Modules
             {
                 string resp = null;
                 Gate.RunGatedAction(() => resp = AdminCommands.GetServerStatus());
+                return resp.AsJson();
+            });
+
+            Get("/api/serverInfo", async (_) =>
+            {
+                ServerInfoResponseModel resp = null;
+                Gate.RunGatedAction(() => resp = new ServerInfoResponseModel()
+                {
+                    PlayerCount = new PlayerCountResponseModel()
+                    {
+                        Online = PlayerManager.GetOnlineCount(),
+                        Offline = PlayerManager.GetOfflineCount()
+                    },
+                    Welcome = ConfigManager.Config.Server.Welcome,
+                    WorldName = ConfigManager.Config.Server.WorldName,
+                    Transfers = new TransferConfigResponseModel()
+                    {
+                        MyThumbprint = CryptoManager.Thumbprint,
+                        AllowImportFrom = ConfigManager.Config.Transfer.AllowImportFrom,
+                        AllowMigrationFrom = ConfigManager.Config.Transfer.AllowMigrationFrom,
+                        AllowBackup = ConfigManager.Config.Transfer.AllowBackup,
+                        AllowImport = ConfigManager.Config.Transfer.AllowImport,
+                        AllowMigrate = ConfigManager.Config.Transfer.AllowMigrate,
+                    },
+                    AccountDefaults = ConfigManager.Config.Server.Accounts
+                });
                 return resp.AsJson();
             });
         }

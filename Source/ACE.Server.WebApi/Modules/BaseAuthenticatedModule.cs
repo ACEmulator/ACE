@@ -3,13 +3,13 @@ using Nancy;
 
 namespace ACE.Server.WebApi.Modules
 {
-    public class BaseModule : NancyModule
+    public class BaseAuthenticatedModule : NancyModule
     {
-        public BaseModel BaseModel
+        public BaseAuthenticatedModel BaseModel
         {
             get
             {
-                BaseModel model = new BaseModel
+                BaseAuthenticatedModel model = new BaseAuthenticatedModel
                 {
                     AccessLevelName = Context.CurrentUser.FindFirst("AccessLevelName").Value,
                     AccountName = Context.CurrentUser.Identity.Name

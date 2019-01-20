@@ -2,7 +2,8 @@ using ACE.Common;
 using ACE.Database;
 using ACE.Entity.Enum;
 using ACE.Server.Managers;
-using ACE.Server.WebApi.Model;
+using ACE.Server.WebApi.Model.Character;
+using ACE.Server.WebApi.Model.Character.Migration;
 using AutoMapper;
 using Nancy;
 using Nancy.ModelBinding;
@@ -13,7 +14,7 @@ using System.Threading.Tasks;
 
 namespace ACE.Server.WebApi.Modules
 {
-    public class CharacterModule : BaseModule
+    public class AnyAuthenticatedModule : BaseAuthenticatedModule
     {
         public async Task<CharacterListModel> GetModelCharacterListAsync()
         {
@@ -30,7 +31,7 @@ namespace ACE.Server.WebApi.Modules
             await tsc.Task;
             return model;
         }
-        public CharacterModule()
+        public AnyAuthenticatedModule()
         {
             this.RequiresAuthentication();
 

@@ -1,5 +1,6 @@
 using ACE.Server.Managers;
 using ACE.Server.WebApi.Model;
+using ACE.Server.WebApi.Model.Character;
 using AutoMapper;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -21,7 +22,7 @@ namespace ACE.Server.WebApi.Web
             }
 
             //initialize model polymorphism
-            Mapper.Initialize(cfg => cfg.CreateMap<BaseModel, CharacterListModel>());
+            Mapper.Initialize(cfg => cfg.CreateMap<BaseAuthenticatedModel, CharacterListModel>());
 
             hostThread = new Thread(new ThreadStart(() =>
             {
