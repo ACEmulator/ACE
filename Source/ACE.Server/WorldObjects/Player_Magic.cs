@@ -4,6 +4,7 @@ using System.Linq;
 
 using ACE.Common;
 using ACE.Database;
+using ACE.Database.Models.Shard;
 using ACE.DatLoader;
 using ACE.Entity;
 using ACE.Entity.Enum;
@@ -1217,6 +1218,34 @@ namespace ACE.Server.WorldObjects
                 return false;
 
             return caster.SpellDID == spell.Id;
+        }
+
+        public void HandleSpellbookFilters(SpellBookFilterOptions filters)
+        {
+            Character.SpellbookFilters = (uint)filters;
+        }
+
+        public void HandleSetDesiredComponentLevel(uint component_wcid, uint amount)
+        {
+            // ensure wcid is spell component
+            if (!SpellComponent.IsValid(component_wcid))
+            {
+                log.Warn($"{Name}.HandleSetDesiredComponentLevel({component_wcid}, {amount}): invalid spell component wcid");
+                return;
+            }
+            if (amount > 0)
+            {
+                var existing = Character.GetFillComponent(component_wcid, CharacterDatabaseLock);
+
+                if (existing == null)
+                    Character.AddFillComponent(component_wcid, amount, CharacterDatabaseLock, out bool exists);
+                else
+                    existing.QuantityToRebuy = (int)amount;
+            }
+            else
+                Character.TryRemoveFillComponent(component_wcid, out var _, CharacterDatabaseLock);
+
+            CharacterChangesDetected = true;
         }
     }
 }

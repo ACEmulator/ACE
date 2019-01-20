@@ -24,7 +24,7 @@ REM execute Update Scripts for World Database
 REM "C:\Program Files\MySql\MySQL Server 5.7\bin\mysql.exe" -h localhost -u root -pPassword12! ace_world < database\updates\world\changeme.sql
 
 REM Download latest ACE-World database, extract and import it
-Source\AppVeyor\DownloadACEWorld.bat
+call Source\AppVeyor\DownloadACEWorld.bat
 
 REM execute Update Scripts for World Database
 REM "C:\Program Files\MySql\MySQL Server 5.7\bin\mysql.exe" -h localhost -u root -pPassword12! ace_world < database\updates\world\changeme.sql

@@ -162,7 +162,13 @@ namespace ACE.Entity.Enum.Properties
         Account15Days                    = 127,
         HadNoVitae                       = 128,
         NoOlthoiTalk                     = 129,
-        AutowieldLeft                    = 130
+        AutowieldLeft                    = 130,
+
+        /* custom */
+        [ServerOnly]
+        LinkedPortalOneSummon            = 9001,
+        [ServerOnly]
+        LinkedPortalTwoSummon            = 9002
     }
 
     public static class PropertyBoolExtensions

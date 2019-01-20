@@ -1,5 +1,3 @@
-using System;
-using System.Numerics;
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.Entity;
@@ -13,6 +11,15 @@ namespace ACE.Server.WorldObjects
 {
     public class Portal : WorldObject
     {
+        /// <summary>
+        /// For summoned portals, the DID of the original portal
+        /// </summary>
+        public uint? OriginalPortal
+        {
+            get => GetProperty(PropertyDataId.OriginalPortal);
+            set { if (!value.HasValue) RemoveProperty(PropertyDataId.OriginalPortal); else SetProperty(PropertyDataId.OriginalPortal, value.Value); }
+        }
+
         // private byte portalSocietyId;
 
         /// <summary>
@@ -96,15 +103,40 @@ namespace ACE.Server.WorldObjects
 
         public bool NoTie => NoRecall;
 
-        private void ActivatePortal(Player player)
+        public void ActivatePortal(Player player)
         {
             if (player.Teleporting) return;
 
+            var success = CheckUseRequirements(player);
+            if (!success)
+                return;
+
+            // everything looks good, teleport
+            EmoteManager.OnUse(player);
+
+#if DEBUG
+            player.Session.Network.EnqueueSend(new GameMessageSystemChat("Portal sending player to destination", ChatMessageType.System));
+#endif
+            var portalDest = new Position(Destination);
+            player.AdjustDungeon(portalDest);
+
+            player.Teleport(portalDest);
+
+            // If the portal just used is able to be recalled to,
+            // save the destination coordinates to the LastPortal character position save table
+            if (!NoRecall)
+                player.LastPortalDID = OriginalPortal == null ? WeenieClassId : OriginalPortal;     // if walking through a summoned portal
+
+            EmoteManager.OnPortal(player);
+        }
+
+        public bool CheckUseRequirements(Player player)
+        {
             if (Destination == null)
             {
                 var msg = new GameMessageSystemChat($"Portal destination for portal ID {WeenieClassId} not yet implemented!", ChatMessageType.System);
                 player.Session.Network.EnqueueSend(msg);
-                return;
+                return false;
             }
 
             if (!player.IgnorePortalRestrictions)
@@ -118,7 +150,7 @@ namespace ACE.Server.WorldObjects
                     // You are not powerful enough to interact with that portal!
                     var failedUsePortalMessage = new GameEventWeenieError(player.Session, WeenieError.YouAreNotPowerfulEnoughToUsePortal);
                     player.Session.Network.EnqueueSend(failedUsePortalMessage);
-                    return;
+                    return false;
                 }
 
                 if (player.Level > MaxLevel && MaxLevel != 0)
@@ -126,7 +158,7 @@ namespace ACE.Server.WorldObjects
                     // You are too powerful to interact with that portal!
                     var failedUsePortalMessage = new GameEventWeenieError(player.Session, WeenieError.YouAreTooPowerfulToUsePortal);
                     player.Session.Network.EnqueueSend(failedUsePortalMessage);
-                    return;
+                    return false;
                 }
             }
 
@@ -147,29 +179,14 @@ namespace ACE.Server.WorldObjects
                 if (!player.QuestManager.HasQuest(Quest))
                     player.QuestManager.Update(Quest);
             }
+
             if (QuestRestriction != null && !player.QuestManager.HasQuest(QuestRestriction) && !player.IgnorePortalRestrictions)
             {
                 player.QuestManager.HandleNoQuestError(this);
-                return;
+                return false;
             }
 
-            // everything looks good, teleport
-            EmoteManager.OnUse(player);
-
-#if DEBUG
-            player.Session.Network.EnqueueSend(new GameMessageSystemChat("Portal sending player to destination", ChatMessageType.System));
-#endif
-            var portalDest = new Position(Destination);
-            player.AdjustDungeon(portalDest);
-
-            player.Teleport(portalDest);
-
-            // If the portal just used is able to be recalled to,
-            // save the destination coordinates to the LastPortal character position save table
-            if (!NoRecall)
-                player.LastPortalDID = WeenieClassId;
-
-            EmoteManager.OnPortal(player);
+            return true;
         }
 
         public virtual void OnCollideObject(Player player)

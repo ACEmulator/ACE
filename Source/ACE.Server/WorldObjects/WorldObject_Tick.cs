@@ -234,6 +234,7 @@ namespace ACE.Server.WorldObjects
                     Location.LandblockId = new LandblockId(curCell.ID);
 
                 Location.Pos = newPos;
+                Location.Rotation = PhysicsObj.Position.Frame.Orientation;
                 //if (landblockUpdate)
                 //WorldManager.UpdateLandblock.Add(this);
             }

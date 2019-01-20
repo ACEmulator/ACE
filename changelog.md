@@ -1,6 +1,13 @@
 # ACEmulator Change Log
 
-### 2018-01-07
+### 2019-01-16
+[Ripley]
+* Remove duplicated data from the Spell table in the World Database
+  - **This change requires you to update to the latest world database release found in ACE-World-16PY-Patches, v0.9.10 or higher**
+* Renamed a column in Recipe Mods table in the World Database.  
+* Changed Emote.Display column to bool in the Shard and World Databases
+
+### 2019-01-07
 [Ripley]
 * Changed the way recall/summon portal magics work
   - Instead of storing positions, store WCID of portal as a DID property
@@ -9,7 +16,7 @@
 * Update EmoteManager to use TryCastSpell and differentiate between CastSpell (with windup motion) and CastSpellInstant (without windup motion)
 * Update Portal to process Portal emotes post teleport (successful portal)
 
-### 2018-01-03
+### 2019-01-03
 [Ripley]
 * Changed the Enchantment Registry in Shard Database to use a composite key instead of a single primary key for each record.
   - This eliminates, in theory, record caps for this table.
