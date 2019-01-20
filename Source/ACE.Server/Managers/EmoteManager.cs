@@ -836,13 +836,13 @@ namespace ACE.Server.Managers
                     break;
 
                 case EmoteType.SetEyePalette:
-                    if (creature != null)
-                        creature.EyesPaletteDID = (uint)emote.Display;
+                    //if (creature != null)
+                    //    creature.EyesPaletteDID = (uint)emote.Display;
                     break;
 
                 case EmoteType.SetEyeTexture:
-                    if (creature != null)
-                        creature.EyesTextureDID = (uint)emote.Display;
+                    //if (creature != null)
+                    //    creature.EyesTextureDID = (uint)emote.Display;
                     break;
 
                 case EmoteType.SetFloatStat:
@@ -850,8 +850,8 @@ namespace ACE.Server.Managers
                     break;
 
                 case EmoteType.SetHeadObject:
-                    if (creature != null)
-                        creature.HeadObjectDID = (uint)emote.Display;
+                    //if (creature != null)
+                    //    creature.HeadObjectDID = (uint)emote.Display;
                     break;
 
                 case EmoteType.SetHeadPalette:
@@ -869,8 +869,8 @@ namespace ACE.Server.Managers
                     break;
 
                 case EmoteType.SetMouthTexture:
-                    if (creature != null)
-                        creature.MouthTextureDID = (uint)emote.Display;
+                    //if (creature != null)
+                    //    creature.MouthTextureDID = (uint)emote.Display;
                     break;
 
                 case EmoteType.SetMyQuestBitsOff:
@@ -883,8 +883,8 @@ namespace ACE.Server.Managers
                     break;
 
                 case EmoteType.SetNoseTexture:
-                    if (creature != null)
-                        creature.NoseTextureDID = (uint)emote.Display;
+                    //if (creature != null)
+                    //    creature.NoseTextureDID = (uint)emote.Display;
                     break;
 
                 case EmoteType.SetQuestBitsOff:

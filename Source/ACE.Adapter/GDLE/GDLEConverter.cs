@@ -118,47 +118,7 @@ namespace ACE.Adapter.GDLE
                 result.Id = id;
 
                 result.Name = input.Name;
-
-                result.Description = input.Desc;
-
-                result.School = input.School;
-                result.IconId = input.IconId;
-                result.Category = input.Category; // aka Family
-                result.Bitfield = input.Bitfield;
-                result.Mana = input.BaseMana;
-                result.RangeConstant = (float)input.BaseRangeConstant;
-                result.RangeMod = (float)input.BaseRangeMod;
-                result.Power = input.Power; // aka Difficulty
-                result.EconomyMod = input.SpellEconomyMod;
-                result.FormulaVersion = input.FormulaVersion;
-                result.ComponentLoss = (float)input.ComponentLoss;
-
-                result.MetaSpellType = input.MetaSpell.Type;
-                result.MetaSpellId = input.MetaSpell.Spell.SpellId; // Just the spell id again
-
-                // The jsons can have bugs where the formula values are negative
-                if (input.Formula.Count >= 1) result.SpellFormulaComp1ComponentId = (uint)Math.Max(0, input.Formula[0]);
-                if (input.Formula.Count >= 2) result.SpellFormulaComp2ComponentId = (uint)Math.Max(0, input.Formula[1]);
-                if (input.Formula.Count >= 3) result.SpellFormulaComp3ComponentId = (uint)Math.Max(0, input.Formula[2]);
-                if (input.Formula.Count >= 4) result.SpellFormulaComp4ComponentId = (uint)Math.Max(0, input.Formula[3]);
-                if (input.Formula.Count >= 5) result.SpellFormulaComp5ComponentId = (uint)Math.Max(0, input.Formula[4]);
-                if (input.Formula.Count >= 6) result.SpellFormulaComp6ComponentId = (uint)Math.Max(0, input.Formula[5]);
-                if (input.Formula.Count >= 7) result.SpellFormulaComp7ComponentId = (uint)Math.Max(0, input.Formula[6]);
-                if (input.Formula.Count >= 8) result.SpellFormulaComp8ComponentId = (uint)Math.Max(0, input.Formula[7]);
-
-                result.CasterEffect = input.CasterEffect;
-                result.TargetEffect = input.TargetEffect;
-                result.FizzleEffect = input.FizzleEffect;
-                result.RecoveryInterval = input.RecoveryInterval;
-                result.RecoveryAmount = input.RecoveryAmount;
-                result.DisplayOrder = input.DisplayOrder;
-                result.NonComponentTargetType = input.NonComponentTargetType; // aka Target Mask
-                result.ManaMod = input.ManaMod;
-
-                // EnchantmentSpell/FellowshipEnchantmentSpells
-                result.Duration = input.MetaSpell.Spell.Duration;
-                result.DegradeModifier = input.MetaSpell.Spell.DegradeModifier;
-                result.DegradeLimit = (float?)input.MetaSpell.Spell.DegradeLimit;
+                
                 if (input.MetaSpell.Spell.StatMod != null)
                 {
                     result.StatModType = input.MetaSpell.Spell.StatMod.Type;
@@ -237,7 +197,6 @@ namespace ACE.Adapter.GDLE
                 result.Index = input.MetaSpell.Spell.Index;
 
                 // PortalSummon
-                result.PortalLifetime = input.MetaSpell.Spell.PortalLifetime;
                 result.Link = input.MetaSpell.Spell.Link;
 
                 // PortalSending, FellowPortalSending

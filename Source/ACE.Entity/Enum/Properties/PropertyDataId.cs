@@ -135,35 +135,39 @@ namespace ACE.Entity.Enum.Properties
         OlthoiDeathTreasureType    = 61,
 
         [ServerOnly]
-        PCAPRecordedWeenieHeader   = 8001,
+        PCAPRecordedWeenieHeader         = 8001,
         [ServerOnly]
-        PCAPRecordedWeenieHeader2  = 8002,
+        PCAPRecordedWeenieHeader2        = 8002,
         [ServerOnly]
-        PCAPRecordedObjectDesc     = 8003,
+        PCAPRecordedObjectDesc           = 8003,
         [ServerOnly]
-        PCAPRecordedPhysicsDesc    = 8005,
+        PCAPRecordedPhysicsDesc          = 8005,
         [ServerOnly]
-        PCAPRecordedParentLocation = 8003,
+        PCAPRecordedParentLocation       = 8009,
         [ServerOnly]
-        PCAPRecordedDefaultScript  = 8019,
+        PCAPRecordedDefaultScript        = 8019,
         [ServerOnly]
-        PCAPRecordedTimestamp1     = 8021,
+        PCAPRecordedTimestamp0           = 8020,
         [ServerOnly]
-        PCAPRecordedTimestamp2     = 8022,
+        PCAPRecordedTimestamp1           = 8021,
         [ServerOnly]
-        PCAPRecordedTimestamp3     = 8023,
+        PCAPRecordedTimestamp2           = 8022,
         [ServerOnly]
-        PCAPRecordedTimestamp4     = 8024,
+        PCAPRecordedTimestamp3           = 8023,
         [ServerOnly]
-        PCAPRecordedTimestamp5     = 8025,
+        PCAPRecordedTimestamp4           = 8024,
         [ServerOnly]
-        PCAPRecordedTimestamp6     = 8026,
+        PCAPRecordedTimestamp5           = 8025,
         [ServerOnly]
-        PCAPRecordedTimestamp7     = 8027,
+        PCAPRecordedTimestamp6           = 8026,
         [ServerOnly]
-        PCAPRecordedTimestamp8     = 8028,
+        PCAPRecordedTimestamp7           = 8027,
         [ServerOnly]
-        PCAPRecordedTimestamp9     = 8029
+        PCAPRecordedTimestamp8           = 8028,
+        [ServerOnly]
+        PCAPRecordedTimestamp9           = 8029,
+        [ServerOnly]
+        PCAPRecordedMaxVelocityEstimated = 8030
 
         //[ServerOnly]
         //HairTexture                = 9001,
@@ -200,7 +204,12 @@ namespace ACE.Entity.Enum.Properties
                 case PropertyDataId.DeathTreasureType:
                     // todo
                     break;
-                case PropertyDataId.Spell:
+                case PropertyDataId.Spell:                
+                case PropertyDataId.DeathSpell:
+                case PropertyDataId.ProcSpell:
+                case PropertyDataId.RedSurgeSpell:
+                case PropertyDataId.BlueSurgeSpell:
+                case PropertyDataId.YellowSurgeSpell:
                     return System.Enum.GetName(typeof(SpellId), value);
 
                 case PropertyDataId.PCAPRecordedParentLocation:

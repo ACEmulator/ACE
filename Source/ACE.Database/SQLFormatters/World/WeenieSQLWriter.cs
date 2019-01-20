@@ -528,6 +528,20 @@ namespace ACE.Database.SQLFormatters.World
                         weenieClassIdLabel = $" /* {weenieClassIdLabel} */";
                 }
 
+                string destinationTypeLabel = null;
+                if (input[i].DestinationType.HasValue)
+                {
+                    destinationTypeLabel = Enum.GetName(typeof(DestinationType), input[i].DestinationType.Value);
+                    if (destinationTypeLabel != null)
+                        destinationTypeLabel = $" /* {destinationTypeLabel} */";
+                }
+
+                string telelocLabel = null;
+                if (input[i].ObjCellId.HasValue && input[i].ObjCellId.Value > 0)
+                {
+                    telelocLabel = $" /* @teleloc 0x{input[i].ObjCellId.Value.ToString("X8")} [{input[i].OriginX.Value.ToString("F6")} {input[i].OriginY.Value.ToString("F6")} {input[i].OriginZ.Value.ToString("F6")}] {input[i].AnglesW.Value.ToString("F6")} {input[i].AnglesX.Value.ToString("F6")} {input[i].AnglesY.Value.ToString("F6")} {input[i].AnglesZ.Value.ToString("F6")} */";
+                }
+
                 return
                     "@parent_id, " +
                     $"{input[i].Order.ToString().PadLeft(2)}, " +
@@ -555,13 +569,13 @@ namespace ACE.Database.SQLFormatters.World
                     $"{input[i].TreasureType}, " +
                     $"{input[i].PScript}{pScriptLabel}, " +
                     $"{input[i].Sound}{soundLabel}, " +
-                    $"{input[i].DestinationType}, " +
+                    $"{input[i].DestinationType}{destinationTypeLabel}, " +
                     $"{input[i].WeenieClassId}{weenieClassIdLabel}, " +
                     $"{input[i].StackSize}, " +
                     $"{input[i].Palette}, " +
                     $"{input[i].Shade}, " +
                     $"{input[i].TryToBond}, " +
-                    $"{input[i].ObjCellId}, " +
+                    $"{input[i].ObjCellId}{telelocLabel}, " +
                     $"{input[i].OriginX}, " +
                     $"{input[i].OriginY}, " +
                     $"{input[i].OriginZ}, " +
@@ -589,7 +603,8 @@ namespace ACE.Database.SQLFormatters.World
 
                 if (input[i].WeenieClassId == 0)
                 {
-                    label = GetValueForTreasureData(weenieClassID, true);
+                    //label = GetValueForTreasureData(weenieClassID, true);
+                    label = "nothing";
                 }
 
                 return $"{weenieClassID}, {input[i].DestinationType}, {input[i].WeenieClassId.ToString().PadLeft(5)}, {input[i].StackSize.ToString().PadLeft(2)}, {input[i].Palette}, {input[i].Shade}, {input[i].TryToBond}) /* Create {label ?? "Unknown"} for {Enum.GetName(typeof(DestinationType), input[i].DestinationType)} */";
