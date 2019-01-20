@@ -57,6 +57,8 @@ namespace ACE.Server.WorldObjects
             set { if (!value) RemoveProperty(PropertyBool.ResetMessagePending); else SetProperty(PropertyBool.ResetMessagePending, value); }
         }
 
+        public bool ResetGenerator;
+
         /// <summary>
         /// A new biota be created taking all of its values from weenie.
         /// </summary>
@@ -83,8 +85,8 @@ namespace ACE.Server.WorldObjects
             if (IsLocked)
                 DefaultLocked = true;
 
-            if (ChestRegenOnClose)
-                ResetMessagePending = true;
+            ChestRegenOnClose = true;
+            ResetGenerator = true;
         }
 
         protected static readonly Motion motionOpen = new Motion(MotionStance.NonCombat, MotionCommand.On);
@@ -144,7 +146,7 @@ namespace ACE.Server.WorldObjects
 
             // this chest resets whenever it is closed
 
-            if (!ChestRegenOnClose)
+            if (!ChestRegenOnClose && !ResetMessagePending)
             {
                 //Console.WriteLine($"{player.Name}.Open({Name}) - enqueueing reset in {ChestResetInterval}s");
 
@@ -153,6 +155,8 @@ namespace ACE.Server.WorldObjects
                 actionChain.AddDelaySeconds(ChestResetInterval);
                 actionChain.AddAction(this, Reset);
                 actionChain.EnqueueChain();
+
+                ResetMessagePending = true;
 
                 //UseTimestamp++;
             }
@@ -183,8 +187,13 @@ namespace ACE.Server.WorldObjects
                 EnqueueBroadcast(new GameMessagePublicUpdatePropertyBool(this, PropertyBool.Locked, IsLocked));
             }
 
-            if (ChestRegenOnClose && IsGenerator)
-                ResetMessagePending = true;
+            if (IsGenerator)
+            {
+                ResetGenerator = true;
+                Generator_HeartBeat();
+            }
+
+            ResetMessagePending = false;
         }
 
         protected override float DoOnOpenMotionChanges()

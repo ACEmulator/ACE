@@ -121,9 +121,10 @@ namespace ACE.Server.Entity
                 if (delay == 0)
                     delay = _generator.GeneratorProfiles[0].Biota.Delay ?? 0;   // only for link generators?
 
+                if (_generator is Chest) delay = 0.0f;
+
                 //Console.WriteLine($"QueueGenerator({_generator.Name}): RegenerationInterval: {_generator.RegenerationInterval} - Delay: {delay}");
                 return DateTime.UtcNow.AddSeconds(delay);
-
             }
         }
 
