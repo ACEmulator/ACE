@@ -45,7 +45,11 @@ namespace ACE.Server.WorldObjects
 
         public Player CurrentViewer;
 
-        public bool EnqueueRegen;
+        public bool ResetMessagePending
+        {
+            get => GetProperty(PropertyBool.ResetMessagePending) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.ResetMessagePending); else SetProperty(PropertyBool.ResetMessagePending, value); }
+        }
 
         /// <summary>
         /// A new biota be created taking all of its values from weenie.
@@ -74,7 +78,7 @@ namespace ACE.Server.WorldObjects
                 DefaultLocked = true;
 
             if (ChestRegenOnClose)
-                EnqueueRegen = true;
+                ResetMessagePending = true;
         }
 
         protected static readonly Motion motionOpen = new Motion(MotionStance.NonCombat, MotionCommand.On);
@@ -168,7 +172,7 @@ namespace ACE.Server.WorldObjects
                 ResetLock(true);
 
             if (ChestRegenOnClose && IsGenerator)
-                EnqueueRegen = true;
+                ResetMessagePending = true;
         }
 
         public void ResetLock(bool lockStatus, bool broadcast = true)

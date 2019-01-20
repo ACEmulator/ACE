@@ -135,11 +135,11 @@ namespace ACE.Server.Entity
         {
             for (var i = 0; i < numObjects; i++)
             {
-                if (MaxObjectsSpawned)
+                /*if (MaxObjectsSpawned)
                 {
                     Console.WriteLine($"{_generator.Name}.Enqueue({numObjects}): max objects reached");
                     break;
-                }
+                }*/
                 SpawnQueue.Add(GetSpawnTime());
                 if (initialSpawn)
                     _generator.CurrentCreate++;
@@ -163,6 +163,9 @@ namespace ACE.Server.Entity
                     index++;
                     continue;
                 }
+
+                if ((RegenLocationType & RegenLocationType.Treasure) != 0)
+                    RemoveTreasure();
 
                 if (Spawned.Count < MaxCreate)
                 {
@@ -328,6 +331,32 @@ namespace ACE.Server.Entity
                 }
             }
         }
+
+        /// <summary>
+        /// Removes all of the objects from a container for this profile
+        /// </summary>
+        public void RemoveTreasure()
+        {
+            var container = _generator as Container;
+            if (container == null)
+            {
+                Console.WriteLine($"{_generator.Name}.RemoveTreasure(): container not found");
+                return;
+            }
+            foreach (var spawned in Spawned.Keys)
+            {
+                var inventoryObjGuid = new ObjectGuid(spawned);
+                if (!container.Inventory.TryGetValue(inventoryObjGuid, out var inventoryObj))
+                {
+                    Console.WriteLine($"{_generator.Name}.RemoveTreasure(): couldn't find {inventoryObjGuid}");
+                    continue;
+                }
+                container.TryRemoveFromInventory(inventoryObjGuid);
+                inventoryObj.Destroy();
+            }
+            Spawned.Clear();
+        }
+
 
         /// <summary>
         /// Callback system for objects notifying their generators of events,

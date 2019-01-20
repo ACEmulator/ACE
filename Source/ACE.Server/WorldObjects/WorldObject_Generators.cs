@@ -516,11 +516,11 @@ namespace ACE.Server.WorldObjects
 
             if (this is Chest chest)
             {
-                // if ChestRegenOnClose, EnqueueRegen determines generator profile heartbeats
-                if (chest.ChestRegenOnClose && !chest.EnqueueRegen)
+                // if ChestRegenOnClose, ResetMessagePending determines generator profile heartbeats
+                if (chest.ChestRegenOnClose && !chest.ResetMessagePending)
                     return;
 
-                chest.EnqueueRegen = false;
+                chest.ResetMessagePending = false;
             }
 
             foreach (var generator in GeneratorProfiles)
