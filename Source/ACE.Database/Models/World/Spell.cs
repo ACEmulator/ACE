@@ -69,6 +69,6 @@ namespace ACE.Database.Models.World
         public int? Align { get; set; }
         public int? Number { get; set; }
         public float? NumberVariance { get; set; }
-        public int? DotDuration { get; set; }
+        public double? DotDuration { get; set; }
     }
 }
