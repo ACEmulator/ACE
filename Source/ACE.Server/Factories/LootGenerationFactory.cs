@@ -1652,10 +1652,30 @@ namespace ACE.Server.Factories
             }
         }
 
+        public static WorldObject CreateRandomObjects(int tier)
+        {
+            WorldObject wo;
+            int type = ThreadSafeRandom.Next(1, 3);
+            switch (type)
+            {
+                case 1:
+                    //nonmagical
+                    wo = CreateRandomLootObjects(tier, false);
+                    return wo;
+                case 2:
+                    //magical
+                    wo = CreateRandomLootObjects(tier, true);
+                    return wo;
+                default:
+                    wo = CreateMundaneObjects(tier);
+                    return wo;
+            }
+        }
+
         public static WorldObject CreateRandomLootObjects(int tier, bool isMagical)
         {
             WorldObject wo;
-            int type = ThreadSafeRandom.Next(1, 4); ;
+            int type = ThreadSafeRandom.Next(1, 4);
             switch (type)
             {
                 case 1:
