@@ -1,11 +1,12 @@
 using System;
+using System.IO;
+using System.Text;
 using System.Threading;
 
 using log4net;
 
 using ACE.Common;
 using ACE.Database;
-using System.IO;
 
 namespace ACE.Server.Managers
 {
@@ -100,11 +101,27 @@ namespace ACE.Server.Managers
                 return u;
             }
         }
+        private const string SafeFileName = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890";
+        private static string SanitizedServerNameAsFileName
+        {
+            get
+            {
+                string unsanitary = ConfigManager.Config.Server.WorldName;
+                StringBuilder sanitary = new StringBuilder();
+                foreach (char c in unsanitary)
+                {
+                    if (SafeFileName.Contains(c))
+                        sanitary.Append(c);
+                }
+                return sanitary.ToString();
+            }
+        }
         public static string BasePath
         {
             get
             {
-                var u = Path.Combine(Path.GetTempPath(), "ACEmulator");
+                var fldrNam = (string.IsNullOrWhiteSpace(SanitizedServerNameAsFileName)) ? "ACEmulator" : "ACEmulator_" + SanitizedServerNameAsFileName;
+                var u = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), fldrNam);
                 if (!Directory.Exists(u))
                     try
                     {
