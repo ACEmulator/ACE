@@ -80,8 +80,6 @@ namespace ACE.Server.WorldObjects
         public WorldObject ProjectileSource;
         public WorldObject ProjectileTarget;
 
-        //public WorldObject WeenieDefaults => Factories.WorldObjectFactory.CreateWorldObject(Database.DatabaseManager.World.GetCachedWeenie(WeenieClassId), new ObjectGuid(WeenieClassId));
-
         public WorldObject() { }
 
         /// <summary>
@@ -338,7 +336,10 @@ namespace ACE.Server.WorldObjects
             return isVisible;
         }
 
-
+        public WorldObject GetWeenieDefaultsAsWorldObject()
+        {
+            return Factories.WorldObjectFactory.CreateWorldObject(Database.DatabaseManager.World.GetCachedWeenie(WeenieClassId), new ObjectGuid(WeenieClassId));
+        }
 
 
 
