@@ -80,6 +80,8 @@ namespace ACE.Server.WorldObjects
         public WorldObject ProjectileSource;
         public WorldObject ProjectileTarget;
 
+        //public WorldObject WeenieDefaults => Factories.WorldObjectFactory.CreateWorldObject(Database.DatabaseManager.World.GetCachedWeenie(WeenieClassId), new ObjectGuid(WeenieClassId));
+
         public WorldObject() { }
 
         /// <summary>
