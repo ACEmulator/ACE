@@ -189,7 +189,7 @@ namespace ACE.Server.WorldObjects
                 // already there?
                 if (!moveTo)
                 {
-                    TryUseItem(this);
+                    TryUseItem(item);
                     return;
                 }
 
