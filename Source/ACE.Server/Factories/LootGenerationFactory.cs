@@ -4073,6 +4073,7 @@ namespace ACE.Server.Factories
             if (numSpells > 0)
             {
                 wo.SetProperty(PropertyInt.ItemSpellcraft, spellCraft);
+                wo.SetProperty(PropertyInt.UiEffects, 1);
                 wo.SetProperty(PropertyInt.ItemDifficulty, itemDifficulty);
                 wo.SetProperty(PropertyInt.ItemMaxMana, maxMana);
                 wo.SetProperty(PropertyInt.ItemCurMana, maxMana);
@@ -4085,7 +4086,6 @@ namespace ACE.Server.Factories
                 Shuffle(shuffledValues);
                 if (numSpells - numCantrips > 0)
                 {
-                    wo.SetProperty(PropertyInt.UiEffects, 1);
                     for (int a = 0; a < numSpells - numCantrips; a++)
                     {
                         int col = ThreadSafeRandom.Next(lowSpellTier - 1, highSpellTier - 1);
@@ -14289,7 +14289,6 @@ namespace ACE.Server.Factories
                 }
                 Shuffle(shuffledValues);
                 int shuffledPlace = 0;
-                wo.SetProperty(PropertyInt.UiEffects, 1);
                 //minor cantripps
                 for (int a = 0; a < minorCantrips; a++)
                 {
@@ -14340,7 +14339,10 @@ namespace ACE.Server.Factories
             wo.SetProperty(PropertyInt.ItemDifficulty, GetDifficulty(tier, spellcraft));
             int workmanship2 = GetWorkmanship(tier);
             wo.SetProperty(PropertyInt.ItemWorkmanship, workmanship2);
-            wo.SetProperty(PropertyInt.UiEffects, 1);
+            if (numSpells > 0)
+            {
+                wo.SetProperty(PropertyInt.UiEffects, 1);
+            }
             wo.SetProperty(PropertyInt.Value, GetValue(tier, workmanship2));
             wo.SetProperty(PropertyInt.ArmorLevel, GetArmorLevel(tier, armorPieceType));
             wo.SetProperty(PropertyString.LongDesc, getLongDesc(wo.GetProperty(PropertyString.Name), gemType, gemCount));
@@ -14351,7 +14353,6 @@ namespace ACE.Server.Factories
                 wo.RemoveProperty(PropertyInt.ItemCurMana);
                 wo.RemoveProperty(PropertyInt.ItemSpellcraft);
                 wo.RemoveProperty(PropertyInt.ItemDifficulty);
-                wo.SetProperty(PropertyInt.UiEffects, 0);
             }
 
             return wo;
