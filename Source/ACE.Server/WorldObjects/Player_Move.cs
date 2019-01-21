@@ -1,14 +1,19 @@
 using System;
+using ACE.Entity;
+using ACE.Entity.Enum;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
-using ACE.Entity.Enum;
 using ACE.Server.Network.GameEvent.Events;
+using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Physics.Animation;
+using ACE.Server.Physics.Collision;
 
 namespace ACE.Server.WorldObjects
 {
     partial class Player
     {
+        public Position StartJump;
+
         public bool InitMoveListener;
 
         public override void MoveTo(WorldObject target, float runRate = 0.0f)
@@ -92,6 +97,70 @@ namespace ACE.Server.WorldObjects
             mvp.Speed = 1.5f;
 
             return mvp;
+        }
+
+        public void HandleFallingDamage(EnvCollisionProfile collision)
+        {
+            // starting with phat logic
+            var jumpVelocity = 0.0f;
+            PhysicsObj.WeenieObj.InqJumpVelocity(1.0f, ref jumpVelocity);
+
+            var cachedVelocity = PhysicsObj.CachedVelocity;
+
+            var overspeed = jumpVelocity + cachedVelocity.Z + 4.5f;     // a little leeway
+
+            var ratio = -overspeed / jumpVelocity;
+
+            /*Console.WriteLine($"Collision velocity: {cachedVelocity}");
+            Console.WriteLine($"Jump velocity: {jumpVelocity}");
+            Console.WriteLine($"Overspeed: {overspeed}");
+            Console.WriteLine($"Ratio: {ratio}");*/
+
+            if (ratio > 0.0f)
+            {
+                var damage = ratio * 40.0f;
+                //Console.WriteLine($"Damage: {damage}");
+
+                // bludgeon damage
+                // impact damage
+                if (damage > 0.0f && (StartJump == null || StartJump.PositionZ - Location.PositionZ > 10.0f))
+                    TakeDamage_Falling(damage);
+            }
+        }
+
+        public void TakeDamage_Falling(float amount)
+        {
+            if (Invincible ?? false) return;
+
+            // handle lifestone protection?
+            if (UnderLifestoneProtection)
+            {
+                HandleLifestoneProtection();
+                return;
+            }
+
+            // scale by bludgeon protection?
+            var resistance = EnchantmentManager.GetResistanceMod(DamageType.Bludgeon);
+
+            var damage = (uint)Math.Round(amount * resistance);
+
+            var percent = (float)damage / Health.MaxValue;
+
+            var msg = Strings.GetFallMessage(damage, Health.MaxValue);
+
+            Session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Combat));
+            EnqueueBroadcast(new GameMessageSound(Guid, Sound.Wound3, 1.0f));
+
+            // update health
+            var damageTaken = (uint)-UpdateVitalDelta(Health, (int)-damage);
+            DamageHistory.Add(this, DamageType.Bludgeon, damageTaken);
+
+            if (Health.Current == 0)
+            {
+                OnDeath(this, DamageType.Bludgeon, false);
+                Die();
+                return;
+            }
         }
     }
 }
