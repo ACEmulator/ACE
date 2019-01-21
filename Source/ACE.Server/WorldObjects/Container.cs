@@ -321,7 +321,6 @@ namespace ACE.Server.WorldObjects
             worldObject.ContainerId = Guid.Full;
             worldObject.PlacementPosition = placementPosition; // Server only variable that we use to remember/restore the order in which items exist in a container
 
-
             worldObject.TimeToRot = DatabaseManager.World.GetCachedWeenie(worldObject.WeenieClassId).GetProperty(ACE.Entity.Enum.Properties.PropertyFloat.TimeToRot) ?? null;
 
             // Move all the existing items PlacementPosition over.
