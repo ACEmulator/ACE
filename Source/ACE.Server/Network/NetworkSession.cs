@@ -665,9 +665,7 @@ namespace ACE.Server.Network
             {
                 Socket socket = SocketManager.GetMainSocket();
 
-                int size = 0;
-
-                packet.AddPayloadToBuffer(buffer, ref size);
+                packet.CreateReadyToSendPacket(buffer, out var size);
 
 #if NETDIAG
                 payload = NetworkSyntheticTesting.SyntheticCorruption_S2C(payload);
@@ -767,7 +765,8 @@ namespace ACE.Server.Network
                         {
                             writeOptionalHeaders = false;
                             WriteOptionalHeaders(bundle, packet);
-                            availableSpace -= (int)packet.Data.Length;
+                            if (packet.Data != null)
+                                availableSpace -= (int)packet.Data.Length;
                         }
 
                         // Create a list to remove completed messages after iterator
@@ -808,7 +807,8 @@ namespace ACE.Server.Network
                     {
                         writeOptionalHeaders = false;
                         WriteOptionalHeaders(bundle, packet);
-                        availableSpace -= (int)packet.Data.Length;
+                        if (packet.Data != null)
+                            availableSpace -= (int)packet.Data.Length;
                     }
                 }
                 EnqueueSend(packet);
@@ -823,6 +823,7 @@ namespace ACE.Server.Network
             {
                 packetHeader.Flags |= PacketHeaderFlags.AckSequence;
                 packetLog.DebugFormat("[{0}] Outgoing AckSeq: {1}", session.LoggingIdentifier, lastReceivedPacketSequence);
+                packet.InitializeBodyWriter();
                 packet.BodyWriter.Write(lastReceivedPacketSequence);
             }
 
@@ -830,6 +831,7 @@ namespace ACE.Server.Network
             {
                 packetHeader.Flags |= PacketHeaderFlags.TimeSync;
                 packetLog.DebugFormat("[{0}] Outgoing TimeSync TS: {1}", session.LoggingIdentifier, ConnectionData.ServerTime);
+                packet.InitializeBodyWriter();
                 packet.BodyWriter.Write(ConnectionData.ServerTime);
             }
 
@@ -837,6 +839,7 @@ namespace ACE.Server.Network
             {
                 packetHeader.Flags |= PacketHeaderFlags.EchoResponse;
                 packetLog.DebugFormat("[{0}] Outgoing EchoResponse: {1}", session.LoggingIdentifier, bundle.ClientTime);
+                packet.InitializeBodyWriter();
                 packet.BodyWriter.Write(bundle.ClientTime);
                 packet.BodyWriter.Write((float)ConnectionData.ServerTime - bundle.ClientTime);
             }
