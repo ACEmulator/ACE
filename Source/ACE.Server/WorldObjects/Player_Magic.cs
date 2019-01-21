@@ -540,7 +540,7 @@ namespace ACE.Server.WorldObjects
             {
                 var chance = 1.0f - SkillCheck.GetMagicSkillChance((int)magicSkill, (int)difficulty);
                 var rng = ThreadSafeRandom.Next(0.0f, 1.0f);
-                if (chance < rng)
+                if (chance < rng || isWeaponSpell)
                     castingPreCheckStatus = CastingPreCheckStatus.Success;
             }
 
@@ -587,14 +587,14 @@ namespace ACE.Server.WorldObjects
             spell.Formula.GetPlayerFormula(player);
 
             string spellWords = spell._spellBase.GetSpellWords(DatManager.PortalDat.SpellComponentsTable);
-            if (spellWords != null)
+            if (spellWords != null && !isWeaponSpell)
                 EnqueueBroadcast(new GameMessageCreatureMessage(spellWords, Name, Guid.Full, ChatMessageType.Spellcasting));
 
             var spellChain = new ActionChain();
             var castSpeed = 2.0f;   // hardcoded for player spell casting?
 
             // do wind-up gestures: fastcast has no windup (creature enchantments)
-            if (!spell.Flags.HasFlag(SpellFlags.FastCast))
+            if (!spell.Flags.HasFlag(SpellFlags.FastCast) && !isWeaponSpell)
             {
                 // note that ACE is currently sending the windup motion and the casting gesture
                 // at the same time. the client is automatically queueing these animations to run at the correct time.
@@ -620,7 +620,7 @@ namespace ACE.Server.WorldObjects
                 EnqueueBroadcastMotion(motionCastSpell);
             });
 
-            var castingDelay = spell.Formula.GetCastTime(MotionTableId, castSpeed);
+            var castingDelay = spell.Formula.GetCastTime(MotionTableId, castSpeed, isWeaponSpell);
             spellChain.AddDelaySeconds(castingDelay);
 
             spellChain.AddAction(this, () =>
