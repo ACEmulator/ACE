@@ -63,41 +63,14 @@ namespace ACE.Server.WorldObjects
             // But since we don't know what doors were DefaultLocked, let's assume for now that any door that starts Locked should default as such.
             if (IsLocked)
                 DefaultLocked = true;
-
-            if (UseRadius < 2)
-                UseRadius = 2;
         }
 
-        private bool DefaultLocked
-        {
-            get;
-            set;
-        }
-
-        private bool DefaultOpen
-        {
-            get;
-            set;
-        }
-
-        private double? ResetInterval
-        {
-            get => GetProperty(PropertyFloat.ResetInterval);
-            set { if (!value.HasValue) RemoveProperty(PropertyFloat.ResetInterval); else SetProperty(PropertyFloat.ResetInterval, value.Value); }
-        }
 
         private double? resetTimestamp;
         private double? ResetTimestamp
         {
             get { return resetTimestamp; }
             set { resetTimestamp = Time.GetUnixTime(); }
-        }
-
-        private double? useTimestamp;
-        private double? UseTimestamp
-        {
-            get { return useTimestamp; }
-            set { useTimestamp = Time.GetUnixTime(); }
         }
 
         private double? useLockTimestamp;

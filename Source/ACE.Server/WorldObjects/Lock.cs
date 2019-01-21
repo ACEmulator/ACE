@@ -138,7 +138,7 @@ namespace ACE.Server.WorldObjects
             if (target.IsOpen)
                 return UnlockResults.Open;
 
-            if (keyCode == myLockCode)
+            if (keyCode.Equals(myLockCode, StringComparison.OrdinalIgnoreCase))
             {
                 if (!target.IsLocked)
                     return UnlockResults.AlreadyUnlocked;

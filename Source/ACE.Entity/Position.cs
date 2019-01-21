@@ -128,7 +128,7 @@ namespace ACE.Entity
             var dy = Convert.ToSingle(Math.Cos(heading) * distanceInFront);
 
             // move the Z slightly up and let gravity pull it down.  just makes things easier.
-            var bumpHeight = 0.5f;
+            var bumpHeight = 0.05f;
             if (rotate180)
             {
                 var rotate = new Quaternion(0, 0, qz, qw) * Quaternion.CreateFromYawPitchRoll(0, 0, (float)Math.PI);

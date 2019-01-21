@@ -1353,7 +1353,7 @@ namespace ACE.Server.Command.Handlers
             var obj = CommandHandlerHelper.GetLastAppraisedObject(session);
             if (obj == null) return;
 
-            amount = Math.Min(amount, obj.ItemMaxMana ?? 0);
+            amount = Math.Min(amount, (obj.ItemMaxMana ?? 0) - (obj.ItemCurMana ?? 0));
             obj.ItemCurMana += amount;
             session.Network.EnqueueSend(new GameMessageSystemChat($"You give {amount} points of mana to the {obj.Name}.", ChatMessageType.Magic));
         }
