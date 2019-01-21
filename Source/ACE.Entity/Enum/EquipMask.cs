@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 
 namespace ACE.Entity.Enum
 {
@@ -42,6 +42,7 @@ namespace ACE.Entity.Enum
         SigilThree          = 0x40000000,
         Clothing            = 0x80000000 | HeadWear | ChestWear | AbdomenWear | UpperArmWear | LowerArmWear | HandWear | UpperLegWear | LowerLegWear | FootWear,
         Armor               = ChestArmor | AbdomenArmor | UpperArmArmor | LowerArmArmor | UpperLegArmor | LowerLegArmor | FootWear,
+        ArmorExclusive      = ChestArmor | AbdomenArmor | UpperArmArmor | LowerArmArmor | UpperLegArmor | LowerLegArmor,
         Jewelry             = NeckWear | WristWearLeft | WristWearRight | FingerWearLeft | FingerWearRight | TrinketOne | Cloak | SigilOne | SigilTwo | SigilThree,
         WristWear           = WristWearLeft | WristWearRight,
         FingerWear          = FingerWearLeft | FingerWearRight,

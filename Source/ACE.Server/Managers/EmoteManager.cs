@@ -1179,7 +1179,7 @@ namespace ACE.Server.Managers
             var heartbeatSet = GetEmoteSet(EmoteCategory.Vendor, null, VendorType.Heartbeat);
 
             ExecuteEmoteSet(vendorSet, target);
-            ExecuteEmoteSet(heartbeatSet, target);
+            ExecuteEmoteSet(heartbeatSet, target, true);
         }
 
         public IEnumerable<BiotaPropertiesEmote> Emotes(EmoteCategory emoteCategory)

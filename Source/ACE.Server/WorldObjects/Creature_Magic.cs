@@ -107,6 +107,15 @@ namespace ACE.Server.WorldObjects
                     numTargetItems = targetPlayer.EquippedObjects.Count;
                 preCost = (uint)Math.Round((baseCost + (spell.ManaMod * numTargetItems)) * baseManaPercent);
             }
+            else if ((spell.Flags & SpellFlags.FellowshipSpell) != 0)
+            {
+                int numFellows = 1;
+                var player = this as Player;
+                if (player != null && player.Fellowship != null)
+                    numFellows = player.Fellowship.FellowshipMembers.Count;
+
+                preCost = (uint)Math.Round((baseCost + (spell.ManaMod * numFellows)) * baseManaPercent);
+            }
             else
                 preCost = (uint)Math.Round(baseCost * baseManaPercent);
 

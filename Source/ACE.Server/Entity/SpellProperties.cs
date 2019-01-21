@@ -100,7 +100,7 @@ namespace ACE.Server.Entity
         /// The amount of time the spell lasts
         /// usually for EnchantmentSpell / FellowshipEnchantmentSpells
         /// </summary>
-        public double Duration { get => _spellBase.Duration; } // special handling for some spells? (void)
+        public double Duration { get => _spell.DotDuration.HasValue ? _spell.DotDuration.Value : _spellBase.Duration; }
 
         /// <summary>
         /// Unknown what this does?
@@ -117,7 +117,7 @@ namespace ACE.Server.Entity
         /// <summary>
         /// The duration for PortalSummon_SpellType
         /// </summary>
-        public double PortalLifetime { get => _spellBase.PortalLifetime; } // default from existing spell code..
+        public double PortalLifetime { get => _spellBase.PortalLifetime; }
 
         /// <summary>
         /// uint values correspond to the SpellComponentsTable

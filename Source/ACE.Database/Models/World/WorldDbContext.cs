@@ -863,6 +863,8 @@ namespace ACE.Database.Models.World
                     .HasColumnName("dispel_School")
                     .HasColumnType("int(10)");
 
+                entity.Property(e => e.DotDuration).HasColumnName("dot_Duration");
+
                 entity.Property(e => e.DrainPercentage).HasColumnName("drain_Percentage");
 
                 entity.Property(e => e.EType).HasColumnName("e_Type");

@@ -28,7 +28,7 @@ call Source\AppVeyor\DownloadACEWorld.bat
 
 REM execute Update Scripts for World Database
 REM "C:\Program Files\MySql\MySQL Server 5.7\bin\mysql.exe" -h localhost -u root -pPassword12! ace_world < database\updates\world\changeme.sql
-For /R "database\updates\world\" %%G IN (*.sql) do (
+REM For /R "database\updates\world\" %%G IN (*.sql) do (
 REM echo Found file: %%G
-"C:\Program Files\MySql\MySQL Server 5.7\bin\mysql.exe" -h localhost -u root -pPassword12! ace_world < %%G
-)
+REM "C:\Program Files\MySql\MySQL Server 5.7\bin\mysql.exe" -h localhost -u root -pPassword12! ace_world < %%G
+REM )

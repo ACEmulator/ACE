@@ -76,15 +76,6 @@ namespace ACE.Server.WorldObjects
                     castMessage = "The gem casts Asheron's Lesser Benediction on you";
                 */
 
-                // verify activation requirements
-                var useError = player.CheckUseRequirements(this);
-                if (useError != null)
-                {
-                    player.Session.Network.EnqueueSend(useError);
-                    player.SendUseDoneEvent();
-                    return;
-                }
-
                 // TODO: activation requirements and cooldown timers should probably be checked in player.HandleActionUseItem()
                 if (!player.CheckCooldown(this))
                 {
