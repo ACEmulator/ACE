@@ -76,7 +76,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public List<WorldObject> GetEquippedArmor(EquipMask validLocations)
         {
-            return EquippedObjects.Values.Where(i => (i.ValidLocations & EquipMask.Armor) != 0 && (i.ValidLocations & validLocations) != 0).ToList();
+            return EquippedObjects.Values.Where(i => (i.ValidLocations & EquipMask.ArmorExclusive) != 0 && (i.ValidLocations & validLocations) != 0).ToList();
         }
 
         /// <summary>
