@@ -422,6 +422,12 @@ namespace ACE.Database.SQLFormatters.World
                 spellLine += $", {input.NumberVariance}";
             }
 
+            if (input.DotDuration.HasValue)
+            {
+                spellLineHdr += ", `dot_Duration`";
+                spellLine += $", {input.DotDuration}";
+            }
+
             spellLineHdr += ")";
             spellLine += ");";
 
