@@ -25,7 +25,8 @@ namespace ACE.Server.WorldObjects
             WorldObject,
             Wielded,
             Inventory,
-            Self
+            Self,
+            Fellowship
         }
 
         /// <summary>
@@ -98,6 +99,14 @@ namespace ACE.Server.WorldObjects
                     }
                 }
             }
+
+            var spell = new Spell(spellId);
+            if ((spell.Flags & SpellFlags.FellowshipSpell) != 0)
+            {
+                targetCategory = TargetCategory.Fellowship;
+                target = this;
+            }
+
             if (target == null)
             {
                 Session.Network.EnqueueSend(new GameEventUseDone(Session, WeenieError.TargetNotAcquired));
@@ -630,141 +639,13 @@ namespace ACE.Server.WorldObjects
 
                     spellChain.AddAction(this, () =>
                     {
-                        bool targetDeath;
-                        EnchantmentStatus enchantmentStatus = default(EnchantmentStatus);
-
-                        LastSuccessCast_School = spell.School;
-                        LastSuccessCast_Time = Time.GetUnixTime();
-
-                        switch (spell.School)
+                        if ((spell.Flags & SpellFlags.FellowshipSpell) == 0)
+                            CreatePlayerSpell(target, spell);
+                        else
                         {
-                            case MagicSchool.WarMagic:
-                                WarMagic(target, spell);
-                                break;
-                            case MagicSchool.VoidMagic:
-                                VoidMagic(target, spell);
-                                break;
-                            case MagicSchool.CreatureEnchantment:
-
-                                if (player != null && !(target is Player))
-                                    player.OnAttackMonster(creatureTarget);
-
-                                if (spell.IsHarmful)
-                                {
-                                    var resisted = ResistSpell(target, spell);
-                                    if (resisted == true)
-                                        break;
-                                    if (resisted == null)
-                                    {
-                                        log.Error("Something went wrong with the Magic resistance check");
-                                        break;
-                                    }
-                                }
-
-                                EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
-                                enchantmentStatus = CreatureMagic(target, spell);
-                                if (enchantmentStatus.message != null)
-                                    player.Session.Network.EnqueueSend(enchantmentStatus.message);
-
-                                if (spell.IsHarmful)
-                                    Proficiency.OnSuccessUse(player, player.GetCreatureSkill(Skill.CreatureEnchantment), (target as Creature).GetCreatureSkill(Skill.MagicDefense).Current);
-                                else
-                                    Proficiency.OnSuccessUse(player, player.GetCreatureSkill(Skill.CreatureEnchantment), spell.PowerMod);
-
-                                break;
-
-                            case MagicSchool.LifeMagic:
-
-                                if (player != null && !(target is Player))
-                                    player.OnAttackMonster(creatureTarget);
-
-                                if (spell.MetaSpellType != SpellType.LifeProjectile)
-                                {
-                                    if (spell.IsHarmful)
-                                    {
-                                        var resisted = ResistSpell(target, spell);
-                                        if (resisted == true)
-                                            break;
-                                        if (resisted == null)
-                                        {
-                                            log.Error("Something went wrong with the Magic resistance check");
-                                            break;
-                                        }
-                                    }
-                                }
-
-                                EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
-                                targetDeath = LifeMagic(target, spell, out uint damage, out bool critical, out enchantmentStatus);
-
-                                if (spell.MetaSpellType != SpellType.LifeProjectile)
-                                {
-                                    if (spell.IsHarmful)
-                                        Proficiency.OnSuccessUse(player, player.GetCreatureSkill(Skill.LifeMagic), (target as Creature).GetCreatureSkill(Skill.MagicDefense).Current);
-                                    else
-                                        Proficiency.OnSuccessUse(player, player.GetCreatureSkill(Skill.LifeMagic), spell.PowerMod);
-                                }
-
-                                if (targetDeath == true)
-                                {
-                                    creatureTarget.OnDeath(this, DamageType.Health, false); 
-                                    creatureTarget.Die();
-                                }
-                                else
-                                {
-                                    if (enchantmentStatus.message != null)
-                                        player.Session.Network.EnqueueSend(enchantmentStatus.message);
-                                }
-                                break;
-
-                            case MagicSchool.ItemEnchantment:
-
-                                if (((spell.Category >= (ushort)SpellCategory.ArmorValueRaising) && (spell.Category <= (ushort)SpellCategory.AcidicResistanceLowering)) == false)
-                                {
-                                    // Non-impen/bane spells
-                                    enchantmentStatus = ItemMagic(target, spell);
-                                    if (target.Guid == Guid)
-                                        EnqueueBroadcast(new GameMessageScript(Guid, spell.CasterEffect, spell.Formula.Scale));
-                                    else
-                                    {
-                                        if (spell.MetaSpellType == SpellType.PortalLink)
-                                            EnqueueBroadcast(new GameMessageScript(Guid, spell.CasterEffect, spell.Formula.Scale));
-                                        else
-                                            EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
-                                    }
-                                    if (enchantmentStatus.message != null)
-                                        player.Session.Network.EnqueueSend(enchantmentStatus.message);
-                                }
-                                else
-                                {
-                                    if ((target as Player) == null)
-                                    {
-                                        // Individual impen/bane WeenieType.Clothing target
-                                        enchantmentStatus = ItemMagic(target, spell);
-                                        if (target.Guid == Guid)
-                                            EnqueueBroadcast(new GameMessageScript(Guid, spell.CasterEffect, spell.Formula.Scale));
-                                        else
-                                            EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
-                                        if (enchantmentStatus.message != null)
-                                            player.Session.Network.EnqueueSend(enchantmentStatus.message);
-                                    }
-                                    else
-                                    {
-                                        // Impen/bane targeted at a player
-                                        var items = ((Player)target).EquippedObjects.Values;
-                                        foreach (var item in items)
-                                        {
-                                            if (item.WeenieType == WeenieType.Clothing)
-                                            {
-                                                enchantmentStatus = ItemMagic(item, spell);
-                                                EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
-                                                if (enchantmentStatus.message != null)
-                                                    player.Session.Network.EnqueueSend(enchantmentStatus.message);
-                                            }
-                                        }
-                                    }
-                                }
-                                Proficiency.OnSuccessUse(player, player.GetCreatureSkill(Skill.ItemEnchantment), spell.PowerMod);
-                                break;
+                            var fellows = GetFellowshipTargets();
+                            foreach (var fellow in fellows)
+                                CreatePlayerSpell(fellow, spell);
                         }
                     });
                     break;
@@ -818,6 +699,149 @@ namespace ACE.Server.WorldObjects
             spellChain.EnqueueChain();
 
             return;
+        }
+
+        private void CreatePlayerSpell(WorldObject target, Spell spell)
+        {
+            var player = this as Player;
+            var creatureTarget = target as Creature;
+
+            bool targetDeath;
+            EnchantmentStatus enchantmentStatus = default(EnchantmentStatus);
+
+            LastSuccessCast_School = spell.School;
+            LastSuccessCast_Time = Time.GetUnixTime();
+
+            switch (spell.School)
+            {
+                case MagicSchool.WarMagic:
+                    WarMagic(target, spell);
+                    break;
+                case MagicSchool.VoidMagic:
+                    VoidMagic(target, spell);
+                    break;
+                case MagicSchool.CreatureEnchantment:
+
+                    if (player != null && !(target is Player))
+                        player.OnAttackMonster(creatureTarget);
+
+                    if (spell.IsHarmful)
+                    {
+                        var resisted = ResistSpell(target, spell);
+                        if (resisted == true)
+                            break;
+                        if (resisted == null)
+                        {
+                            log.Error("Something went wrong with the Magic resistance check");
+                            break;
+                        }
+                    }
+
+                    EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
+                    enchantmentStatus = CreatureMagic(target, spell);
+                    if (enchantmentStatus.message != null)
+                        player.Session.Network.EnqueueSend(enchantmentStatus.message);
+
+                    if (spell.IsHarmful)
+                        Proficiency.OnSuccessUse(player, player.GetCreatureSkill(Skill.CreatureEnchantment), (target as Creature).GetCreatureSkill(Skill.MagicDefense).Current);
+                    else
+                        Proficiency.OnSuccessUse(player, player.GetCreatureSkill(Skill.CreatureEnchantment), spell.PowerMod);
+
+                    break;
+
+                case MagicSchool.LifeMagic:
+
+                    if (player != null && !(target is Player))
+                        player.OnAttackMonster(creatureTarget);
+
+                    if (spell.MetaSpellType != SpellType.LifeProjectile)
+                    {
+                        if (spell.IsHarmful)
+                        {
+                            var resisted = ResistSpell(target, spell);
+                            if (resisted == true)
+                                break;
+                            if (resisted == null)
+                            {
+                                log.Error("Something went wrong with the Magic resistance check");
+                                break;
+                            }
+                        }
+                    }
+
+                    EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
+                    targetDeath = LifeMagic(target, spell, out uint damage, out bool critical, out enchantmentStatus);
+
+                    if (spell.MetaSpellType != SpellType.LifeProjectile)
+                    {
+                        if (spell.IsHarmful)
+                            Proficiency.OnSuccessUse(player, player.GetCreatureSkill(Skill.LifeMagic), (target as Creature).GetCreatureSkill(Skill.MagicDefense).Current);
+                        else
+                            Proficiency.OnSuccessUse(player, player.GetCreatureSkill(Skill.LifeMagic), spell.PowerMod);
+                    }
+
+                    if (targetDeath == true)
+                    {
+                        creatureTarget.OnDeath(this, DamageType.Health, false);
+                        creatureTarget.Die();
+                    }
+                    else
+                    {
+                        if (enchantmentStatus.message != null)
+                            player.Session.Network.EnqueueSend(enchantmentStatus.message);
+                    }
+                    break;
+
+                case MagicSchool.ItemEnchantment:
+
+                    if (((spell.Category >= (ushort)SpellCategory.ArmorValueRaising) && (spell.Category <= (ushort)SpellCategory.AcidicResistanceLowering)) == false)
+                    {
+                        // Non-impen/bane spells
+                        enchantmentStatus = ItemMagic(target, spell);
+                        if (target.Guid == Guid)
+                            EnqueueBroadcast(new GameMessageScript(Guid, spell.CasterEffect, spell.Formula.Scale));
+                        else
+                        {
+                            if (spell.MetaSpellType == SpellType.PortalLink)
+                                EnqueueBroadcast(new GameMessageScript(Guid, spell.CasterEffect, spell.Formula.Scale));
+                            else
+                                EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
+                        }
+                        if (enchantmentStatus.message != null)
+                            player.Session.Network.EnqueueSend(enchantmentStatus.message);
+                    }
+                    else
+                    {
+                        if ((target as Player) == null)
+                        {
+                            // Individual impen/bane WeenieType.Clothing target
+                            enchantmentStatus = ItemMagic(target, spell);
+                            if (target.Guid == Guid)
+                                EnqueueBroadcast(new GameMessageScript(Guid, spell.CasterEffect, spell.Formula.Scale));
+                            else
+                                EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
+                            if (enchantmentStatus.message != null)
+                                player.Session.Network.EnqueueSend(enchantmentStatus.message);
+                        }
+                        else
+                        {
+                            // Impen/bane targeted at a player
+                            var items = ((Player)target).EquippedObjects.Values;
+                            foreach (var item in items)
+                            {
+                                if (item.WeenieType == WeenieType.Clothing)
+                                {
+                                    enchantmentStatus = ItemMagic(item, spell);
+                                    EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
+                                    if (enchantmentStatus.message != null)
+                                        player.Session.Network.EnqueueSend(enchantmentStatus.message);
+                                }
+                            }
+                        }
+                    }
+                    Proficiency.OnSuccessUse(player, player.GetCreatureSkill(Skill.ItemEnchantment), spell.PowerMod);
+                    break;
+            }
         }
 
         /// <summary>
@@ -1246,6 +1270,14 @@ namespace ACE.Server.WorldObjects
                 Character.TryRemoveFillComponent(component_wcid, out var _, CharacterDatabaseLock);
 
             CharacterChangesDetected = true;
+        }
+
+        public List<Player> GetFellowshipTargets()
+        {
+            if (Fellowship != null)
+                return Fellowship.FellowshipMembers;
+            else
+                return new List<Player>() { this };
         }
     }
 }
