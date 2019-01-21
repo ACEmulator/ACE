@@ -19,44 +19,13 @@ namespace ACE.Server.WorldObjects
         public const int DefaultHeartbeatInterval = 5;
 
         protected double CachedHeartbeatInterval;
-        protected double NextHeartBeatTime;
+        public double NextHeartBeatTime;
 
-        private void InitializeTick()
+        private void InitializeHeartBeat()
         {
             CachedHeartbeatInterval = HeartbeatInterval ?? DefaultHeartbeatInterval;
             QueueFirstHeartbeat(Time.GetUnixTime());
         }
-
-        public virtual void Tick(double currentUnixTime)
-        {
-            if (actionQueue != null)
-                actionQueue.RunActions();
-
-            if (NextHeartBeatTime <= currentUnixTime)
-                HeartBeat(currentUnixTime);
-        }
-
-
-        /// <summary>
-        /// Runs all actions pending on this WorldObject
-        /// </summary>
-        void IActor.RunActions()
-        {
-            if (actionQueue != null)
-                actionQueue.RunActions();
-        }
-
-        /// <summary>
-        /// Prepare new action to run on this object
-        /// </summary>
-        public void EnqueueAction(IAction action)
-        {
-            if (actionQueue == null)
-                actionQueue = new ActionQueue();
-
-            actionQueue.EnqueueAction(action);
-        }
-
 
         /// <summary>
         /// Enqueues the first heartbeat on a staggered 0-5s delay
@@ -82,6 +51,33 @@ namespace ACE.Server.WorldObjects
 
             SetProperty(PropertyFloat.HeartbeatTimestamp, currentUnixTime);
             NextHeartBeatTime = currentUnixTime + CachedHeartbeatInterval;
+        }
+
+        /// <summary>
+        /// Enqueue work to be done on this objects Landblock..<para />
+        /// If this is a detached creature, the work will be discarded.<para />
+        /// If this is a detached non-creature object, the work will be enqueued onto WorldManager.
+        /// </summary>
+        public virtual void EnqueueAction(IAction action)
+        {
+            if (CurrentLandblock == null)
+            {
+                if (this is Creature)
+                {
+                    // If we've hit this point, something is asking to add work to a detached creature
+                    // It's likely a DelayManager processing a NextAct() action, and that action is likely an emote.
+                    // We don't need to emote Creatures.
+                    // If we find that there is a case where Creatures need to act after they've been detached from the landblock,
+                    // that work should be enqueued onto WorldManager
+                }
+                else
+                {
+                    // Enqueue work for detached objects onto our thread-safe WorldManager
+                    WorldManager.EnqueueAction(action);
+                }
+            }
+            else
+                CurrentLandblock.EnqueueAction(action);
         }
 
 

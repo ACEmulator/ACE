@@ -1,5 +1,4 @@
 using System;
-using System.Runtime.CompilerServices;
 
 using ACE.Entity.Enum;
 
@@ -9,20 +8,16 @@ namespace ACE.Server.WorldObjects
     {
         private const double monsterTickInterval = 0.2;
 
-        private double nextMonsterTickTime;
+        public double NextMonsterTickTime;
 
         private bool firstUpdate = true;
 
         /// <summary>
         /// Primary dispatch for monster think
         /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void Monster_Tick(double currentUnixTime)
+        public void Monster_Tick(double currentUnixTime)
         {
-            if (nextMonsterTickTime > currentUnixTime)
-                return;
-
-            nextMonsterTickTime = currentUnixTime + monsterTickInterval;
+            NextMonsterTickTime = currentUnixTime + monsterTickInterval;
 
             if (!IsAwake || IsDead) return;
 
