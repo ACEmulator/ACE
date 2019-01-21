@@ -323,7 +323,10 @@ namespace ACE.Server.Entity
                 {
                     // TODO: get randomly generated wielded treasure from LootGenerationFactory
                     //Console.WriteLine($"{_generator.Name}.TreasureGenerator(): found wielded treasure {Biota.WeenieClassId}");
-                    return new List<WorldObject>();
+
+                    // roll into the wielded treasure table
+                    var table = new TreasureWieldedTable(wieldedTreasure);
+                    return _generator.GenerateWieldedTreasureSets(table);
                 }
                 else
                 {

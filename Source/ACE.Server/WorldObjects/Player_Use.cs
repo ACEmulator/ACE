@@ -222,6 +222,8 @@ namespace ACE.Server.WorldObjects
             // TODO: ActOnUse should return error code
             // we only want to display this message on success - ie, if a chest is locked, do not display the ActivationTalk
 
+            // handle ActivationResponse - mostly Use?
+
             /*if (item.ActivationTalk != null)
             {
                 // send only to activator?
