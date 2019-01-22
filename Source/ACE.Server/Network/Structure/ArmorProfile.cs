@@ -40,7 +40,7 @@ namespace ACE.Server.Network.Structure
             var type = armor.EnchantmentManager.GetImpenBaneKey(damageType);
             var baseResistance = armor.GetProperty(type) ?? 1.0f;
 
-            if (armor == null || !armor.IsEnchantable)
+            if (armor == null)
                 return (float)baseResistance;
 
             // banes/lures
