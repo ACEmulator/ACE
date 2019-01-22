@@ -468,6 +468,39 @@ namespace ACE.Server.WorldObjects
             }
         }
 
+        public void HandleActionBookAddPage(uint bookGuid)
+        {
+            // find inventory book
+            var book = FindObject(new ObjectGuid(bookGuid), SearchLocations.MyInventory, out var container, out var rootOwner, out var wasEquipped) as Book;
+            if (book == null) return;
+
+            var page = book.AddPage(Guid.Full, Name, Session.Account, false, "");
+
+            if (page != null)
+                Session.Network.EnqueueSend(new GameEventBookAddPageResponse(Session, bookGuid, page.PageId, true));
+        }
+
+        public void HandleActionBookModifyPage(uint bookGuid, uint pageId, string pageText)
+        {
+            // find inventory book
+            var book = FindObject(new ObjectGuid(bookGuid), SearchLocations.MyInventory, out var container, out var rootOwner, out var wasEquipped) as Book;
+            if (book == null) return;
+
+            book.ModifyPage(pageId, pageText);
+        }
+
+        public void HandleActionBookDeletePage(uint bookGuid, uint pageId)
+        {
+            // find inventory book
+            var book = FindObject(new ObjectGuid(bookGuid), SearchLocations.MyInventory, out var container, out var rootOwner, out var wasEquipped) as Book;
+            if (book == null) return;
+
+            var success = book.DeletePage(pageId);
+
+            Session.Network.EnqueueSend(new GameEventBookDeletePageResponse(Session, bookGuid, pageId, success));
+        }
+
+
 
         /// <summary>
         /// Sends a death message broadcast all players on the landblock? that a killer has a victim
