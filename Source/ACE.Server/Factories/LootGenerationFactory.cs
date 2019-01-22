@@ -15926,7 +15926,7 @@ namespace ACE.Server.Factories
                 wo.SetProperty(PropertyInt.UiEffects, 1);
                 for (int a = 0; a < numSpells - numCantrips; a++)
                 {
-                    int col = ThreadSafeRandom.Next(lowSpellTier - 1, highSpellTier);
+                    int col = ThreadSafeRandom.Next(lowSpellTier - 1, highSpellTier - 1);
                     int spellID = spells[shuffledValues[a]][col];
                     var result = new BiotaPropertiesSpellBook { ObjectId = wo.Biota.Id, Spell = spellID, Object = wo.Biota };
                     wo.Biota.BiotaPropertiesSpellBook.Add(result);
