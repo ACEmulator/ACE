@@ -791,7 +791,7 @@ namespace ACE.Server.Managers
                 case EmoteType.PopUp:
                     if (player != null)
                     {
-                        if ((ConfirmationType)emote.Stat == ConfirmationType.Undefined)
+                        if ((emote.Stat == null) || ((ConfirmationType)emote.Stat == ConfirmationType.Undefined))
                             player.Session.Network.EnqueueSend(new GameEventPopupString(player.Session, emote.Message));
                         else
                         {
