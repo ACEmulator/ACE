@@ -397,6 +397,11 @@ namespace ACE.Server.WorldObjects
                 player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{Name} tried and failed to assess you!", ChatMessageType.Appraisal));
         }
 
+        public override void OnCollideEnvironment()
+        {
+            //HandleFallingDamage();
+        }
+
         public override void OnCollideObject(WorldObject target)
         {
             if (target.ReportCollisions == false)
@@ -809,6 +814,8 @@ namespace ACE.Server.WorldObjects
 
         public void HandleActionJump(JumpPack jump)
         {
+            StartJump = new ACE.Entity.Position(Location);
+
             var strength = Strength.Current;
             var capacity = EncumbranceSystem.EncumbranceCapacity((int)strength, 0);     // TODO: augs
             var burden = EncumbranceSystem.GetBurden(capacity, EncumbranceVal ?? 0);

@@ -3837,7 +3837,8 @@ namespace ACE.Server.Physics
                 set_current_pos(RequestPos);
 
             // temp for players
-            CachedVelocity = Vector3.Zero;
+            if ((TransientState & TransientStateFlags.Contact) != 0)
+                CachedVelocity = Vector3.Zero;
 
             UpdateTime = PhysicsTimer.CurrentTime;
         }
