@@ -60,7 +60,12 @@ namespace ACE.Server.WorldObjects
                     WarMagic(target, spell);
                     break;
                 case MagicSchool.LifeMagic:
-                    LifeMagic(target, spell, out uint damage, out bool critical, out status, caster);
+                    var targetDeath = LifeMagic(target, spell, out uint damage, out bool critical, out status, caster);
+                    if (targetDeath && target is Creature targetCreature)
+                    {
+                        targetCreature.OnDeath(this, DamageType.Health, false);
+                        targetCreature.Die();
+                    }
                     break;
                 case MagicSchool.CreatureEnchantment:
                     status = CreatureMagic(target, spell, caster);
@@ -80,7 +85,7 @@ namespace ACE.Server.WorldObjects
 
             // for invisible spell traps,
             // their effects won't be seen if they broadcast from themselves
-            if (spell.TargetEffect != 0)
+            if (target != null && spell.TargetEffect != 0)
                 target.EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
         }
 
@@ -319,7 +324,7 @@ namespace ACE.Server.WorldObjects
             if (this is Gem)
                 spellTarget = target as Creature;
 
-            if (!spellTarget.IsAlive)
+            if (spellTarget == null || !spellTarget.IsAlive)
             {
                 enchantmentStatus.message = null;
                 damage = 0;

@@ -1,18 +1,28 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Numerics;
+
+using ACE.Common.Extensions;
+using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
 
 namespace ACE.Server.WorldObjects
 {
-    public enum AggroType
+    /// <summary>
+    /// Determines when a monster will attack
+    /// </summary>
+    [Flags]
+    public enum Tolerance
     {
-        Nearest,
-        Random,
-        LowestLevel,
-        TopDamager
+        None      = 0,  // attack targets in range
+        NoAttack  = 1,  // never attack
+        Appraise  = 2,  // attack when ID'd or attacked
+        Unknown   = 4,  // unused?
+        Provoke   = 8,  // used in conjunction with 32
+        Unknown2  = 16, // unused?
+        Target    = 32, // only target original attacker
+        Retaliate = 64  // only attack after attacked
     };
 
     /// <summary>
@@ -20,24 +30,6 @@ namespace ACE.Server.WorldObjects
     /// </summary>
     partial class Creature
     {
-        /// <summary>
-        /// Determines when a monster will attack
-        /// </summary>
-        [Flags]
-        public enum Tolerance
-        {
-            None        = 0,  // attack targets in range
-            NoAttack    = 1,  // never attack
-            ID          = 2,  // attack when ID'd or attacked
-            Unknown     = 4,  // unused?
-            Provoke     = 8,  // used in conjunction with 32
-            Unknown2    = 16, // unused?
-            Target      = 32, // only target original attacker
-            Retaliate   = 64  // only attack after attacked
-        };
-
-        public AggroType AggroType = AggroType.Nearest;
-
         /// <summary>
         /// Determines when a monster wakes up from idle state
         /// </summary>
@@ -58,6 +50,7 @@ namespace ACE.Server.WorldObjects
             IsAwake = true;
             //DoAttackStance();
             EmoteManager.OnAttack(AttackTarget as Creature);
+            //SelectTargetingTactic();
 
             if (alertNearby)
                 AlertFriendly();
@@ -77,38 +70,62 @@ namespace ACE.Server.WorldObjects
             MonsterState = State.Idle;
         }
 
+        /// <summary>
+        /// This list of possible targeting tactics for this monster
+        /// </summary>
+        public TargetingTactic TargetingTactic
+        {
+            get => (TargetingTactic)(GetProperty(PropertyInt.TargetingTactic) ?? 0);
+            set { if (value == 0) RemoveProperty(PropertyInt.TargetingTactic); else SetProperty(PropertyInt.TargetingTactic, (int)TargetingTactic); }
+        }
+
+        /// <summary>
+        /// The current targeting tactic for this monster
+        /// </summary>
+        public TargetingTactic CurrentTargetingTactic;
+
+        public void SelectTargetingTactic()
+        {
+            // monsters have multiple targeting tactics, ex. Focused | Random
+
+            // when should this function be called?
+            // when a monster spawns in, does it choose 1 TargetingTactic?
+
+            // or do they randomly select a TargetingTactic from their list of possible tactics,
+            // each time they go to find a new target?
+
+            //Console.WriteLine($"{Name}.TargetingTactics: {TargetingTactic}");
+
+            var possibleTactics = EnumHelper.GetFlags(TargetingTactic);
+            var rng = ThreadSafeRandom.Next(1, possibleTactics.Count - 1);
+
+            CurrentTargetingTactic = (TargetingTactic)possibleTactics[rng];
+
+            //Console.WriteLine($"{Name}.TargetingTactic: {CurrentTargetingTactic}");
+        }
+
         public double NextFindTarget;
 
         public virtual void HandleFindTarget()
         {
-            return;
-
-            /*
-            var currentTime = Timers.RunningTime;
-
-            if (currentTime < NextFindTarget)
+            if (Timers.RunningTime < NextFindTarget)
                 return;
 
-            // if nearest or random, make sure we aren't chasing target
-            if (AggroType == AggroType.Nearest || AggroType == AggroType.Random)
-            {
-                if (IsTurning || IsMoving)
-                    return;
-            }
             FindNextTarget();
-            */
         }
 
         public void SetNextTargetTime()
         {
-            // rng?
-            NextFindTarget = Timers.RunningTime + 10.0f;
+            // use rng?
+
+            //var rng = ThreadSafeRandom.Next(5.0f, 10.0f);
+            var rng = 5.0f;
+
+            NextFindTarget = Timers.RunningTime + rng;
         }
 
         public virtual bool FindNextTarget()
         {
-            SetNextTargetTime();
-
             // rebuild visible objects (handle this better for monsters)
             GetVisibleObjects();
 
@@ -116,33 +133,79 @@ namespace ACE.Server.WorldObjects
             if (players.Count == 0)
                 return false;
 
-            switch (AggroType)
+            // Generally, a creature chooses whom to attack based on:
+            //  - who it was last attacking,
+            //  - who attacked it last,
+            //  - or who caused it damage last.
+
+            // When players first enter the creature's detection radius, however, none of these things are useful yet,
+            // so the creature chooses a target randomly, weighted by distance.
+
+            // Players within the creature's detection sphere are weighted by how close they are to the creature --
+            // the closer you are, the more chance you have to be selected to be attacked.
+
+            SelectTargetingTactic();
+            SetNextTargetTime();
+
+            switch (CurrentTargetingTactic)
             {
-                case AggroType.Nearest:
+                case TargetingTactic.None:
 
-                    var nearest = BuildTargetDistance(players);
-                    AttackTarget = nearest[0].Target;
+                    Console.WriteLine($"{Name}.FindNextTarget(): TargetingTactic.None");
+                    break;  // same as focused?
+
+                case TargetingTactic.Random:
+
+                    // this is a very common tactic with monsters,
+                    // although it is not truly random, it is weighted by distance
+                    var targetDistances = BuildTargetDistance(players);
+                    AttackTarget = SelectWeightedDistance(targetDistances);
                     break;
 
-                case AggroType.Random:
-                    var rng = ThreadSafeRandom.Next(0, players.Count - 1);
-                    AttackTarget = players[rng];
+                case TargetingTactic.Focused:
+
+                    break;  // always stick with original target?
+
+                case TargetingTactic.LastDamager:
+
+                    var lastDamager = DamageHistory.LastDamager;
+                    if (lastDamager != null)
+                        AttackTarget = lastDamager;
                     break;
 
-                case AggroType.LowestLevel:
+                case TargetingTactic.TopDamager:
+
+                    var topDamager = DamageHistory.TopDamager;
+                    if (topDamager != null)
+                        AttackTarget = topDamager;
+                    break;
+
+                // these below don't seem to be used in PY16 yet...
+
+                case TargetingTactic.Weakest:
 
                     // should probably shuffle the list beforehand,
                     // in case a bunch of levels of same level are in a group,
                     // so the same player isn't always selected
-                    var lowest = players.OrderBy(p => p.Level).FirstOrDefault();
-                    AttackTarget = lowest;
+                    var lowestLevel = players.OrderBy(p => p.Level).FirstOrDefault();
+                    AttackTarget = lowestLevel;
                     break;
 
-                case AggroType.TopDamager:
-                    AttackTarget = DamageHistory.TopDamager;
+                case TargetingTactic.Strongest:
+
+                    var highestLevel = players.OrderByDescending(p => p.Level).FirstOrDefault();
+                    AttackTarget = highestLevel;
+                    break;
+
+                case TargetingTactic.Nearest:
+
+                    var nearest = BuildTargetDistance(players);
+                    AttackTarget = nearest[0].Target;
                     break;
             }
+
             //Console.WriteLine($"{Name}.FindNextTarget = {AttackTarget.Name}");
+
             return AttackTarget != null;
         }
 
@@ -161,19 +224,21 @@ namespace ACE.Server.WorldObjects
                 // exclude self (should hopefully not be in this list)
                 if (PhysicsObj == obj) continue;
 
-                // ensure creature
-                var wo = obj.WeenieObj.WorldObject;
-                var creature = wo as Creature;
-                if (creature == null) continue;
-
                 // ensure player or player's pet
+                var wo = obj.WeenieObj.WorldObject;
                 if (!(wo is Player) && !(wo is CombatPet)) continue;
+                var creature = wo as Creature;
 
                 // ensure attackable
                 var attackable = creature.GetProperty(PropertyBool.Attackable) ?? false;
                 if (!attackable) continue;
 
+                // ensure within 'detection radius' ?
+                if (Location.SquaredDistanceTo(creature.Location) >= RadiusAwarenessSquared)
+                    continue;
+
                 players.Add(creature);
+
             }
             return players;
         }
@@ -185,12 +250,43 @@ namespace ACE.Server.WorldObjects
         {
             var targetDistance = new List<TargetDistance>();
 
-            var curPos = Location.ToGlobal();
-
             foreach (var target in targets)
-                targetDistance.Add(new TargetDistance(target, Vector3.DistanceSquared(curPos, target.Location.ToGlobal())));
+                targetDistance.Add(new TargetDistance(target, Location.DistanceTo(target.Location)));
 
             return targetDistance.OrderBy(i => i.Distance).ToList();
+        }
+
+        /// <summary>
+        /// Uses weighted RNG selection by distance to select a target
+        /// </summary>
+        public Creature SelectWeightedDistance(List<TargetDistance> targetDistances)
+        {
+            if (targetDistances.Count == 1)
+                return targetDistances[0].Target;
+
+            // http://asheron.wikia.com/wiki/Wi_Flag
+
+            var distSum = targetDistances.Select(i => i.Distance).Sum();
+
+            // get the sum of the inverted ratios
+            var invRatioSum = targetDistances.Count - 1;
+
+            // roll between 0 - invRatioSum here,
+            // instead of 0-1 (the source of the original wi bug)
+            var rng = ThreadSafeRandom.Next(0.0f, invRatioSum);
+
+            // walk the list
+            var invRatio = 0.0f;
+            foreach (var targetDistance in targetDistances)
+            {
+                invRatio += 1.0f - (targetDistance.Distance / distSum);
+
+                if (rng <= invRatio)
+                    return targetDistance.Target;
+            }
+            // precision error?
+            Console.WriteLine($"{Name}.SelectWeightedDistance: couldn't find target: {string.Join(",", targetDistances.Select(i => i.Distance))}");
+            return targetDistances[0].Target;
         }
 
         /// <summary>
@@ -244,8 +340,7 @@ namespace ACE.Server.WorldObjects
                         if (distSq > AlertRadiusSq)
                             continue;
                     }*/
-
-                    var dist = Vector3.Distance(Location.ToGlobal(), nearbyCreature.Location.ToGlobal());
+                    var dist = Location.DistanceTo(nearbyCreature.Location);
                     if (dist > (nearbyCreature.VisualAwarenessRange ?? AlertRadius))
                         continue;
 
