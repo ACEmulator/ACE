@@ -288,7 +288,7 @@ namespace ACE.Server.Entity
         /// Returns the total casting time,
         /// based on windup + cast gestures
         /// </summary>
-        public float GetCastTime(uint motionTableID, float speed)
+        public float GetCastTime(uint motionTableID, float speed, bool isWeaponSpell = false)
         {
             var windupMotion = WindupGestures.First();
             var castMotion = CastGesture;
@@ -303,7 +303,7 @@ namespace ACE.Server.Entity
             var castTime = motionTable.GetAnimationLength(MotionStance.Magic, castMotion) / speed;
 
             // FastCast = no windup motion
-            if (Spell.Flags.HasFlag(SpellFlags.FastCast))
+            if (Spell.Flags.HasFlag(SpellFlags.FastCast) || isWeaponSpell)
                 return castTime;
 
             return windupTime + castTime;

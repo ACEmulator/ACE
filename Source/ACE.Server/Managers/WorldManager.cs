@@ -32,7 +32,7 @@ using Position = ACE.Entity.Position;
 
 namespace ACE.Server.Managers
 {
-    public static class WorldManager
+    public class WorldManager
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
@@ -64,7 +64,8 @@ namespace ACE.Server.Managers
         /// Handles ClientMessages in InboundMessageManager
         /// </summary>
         public static readonly ActionQueue InboundClientMessageQueue = new ActionQueue();
-        private static readonly ActionQueue playerEnterWorldQueue = new ActionQueue();
+
+        private static readonly ActionQueue actionQueue = new ActionQueue();
         public static readonly DelayManager DelayManager = new DelayManager(); // TODO get rid of this. Each WO should have its own delayManager
 
         static WorldManager()
@@ -302,7 +303,7 @@ namespace ACE.Server.Managers
             {
                 log.Debug($"GetPossessedBiotasInParallel for {character.Name} took {(DateTime.UtcNow - start).TotalMilliseconds:N0} ms");
 
-                playerEnterWorldQueue.EnqueueAction(new ActionEventDelegate(() => DoPlayerEnterWorld(session, character, offlinePlayer.Biota, biotas)));
+                actionQueue.EnqueueAction(new ActionEventDelegate(() => DoPlayerEnterWorld(session, character, offlinePlayer.Biota, biotas)));
             });
         }
 
@@ -343,6 +344,11 @@ namespace ACE.Server.Managers
 
             var motdString = PropertyManager.GetString("motd_string").Item;
             session.Network.EnqueueSend(new GameMessageSystemChat(motdString, ChatMessageType.Broadcast));
+        }
+
+        public static void EnqueueAction(IAction action)
+        {
+            actionQueue.EnqueueAction(action);
         }
 
         private static readonly RateLimiter updateGameWorldRateLimiter = new RateLimiter(60, TimeSpan.FromSeconds(1));
@@ -396,7 +402,8 @@ namespace ACE.Server.Managers
 
                 InboundClientMessageQueue.RunActions();
 
-                playerEnterWorldQueue.RunActions();
+                // This will consist of PlayerEnterWorld actions, as well as other game world actions that require thread safety
+                actionQueue.RunActions();
 
                 DelayManager.RunActions();
 

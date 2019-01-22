@@ -6,15 +6,59 @@ using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
-using ACE.Server.Factories;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
-using Microsoft.EntityFrameworkCore.Internal;
 
 namespace ACE.Server.WorldObjects
 {
-    public class Chest : Container, Lock
+    public partial class Chest : Container, Lock
     {
+        /// <summary>
+        /// This is used for things like Mana Forge Chests
+        /// </summary>
+        public bool ChestRegenOnClose
+        {
+            get
+            {
+                if (ChestResetInterval <= 5)
+                    return true;
+
+                return GetProperty(PropertyBool.ChestRegenOnClose) ?? false;
+            }
+            set { if (!value) RemoveProperty(PropertyBool.ChestRegenOnClose); else SetProperty(PropertyBool.ChestRegenOnClose, value); }
+        }
+
+        /// <summary>
+        /// This is the default setup for resetting chests
+        /// </summary>
+        public double ChestResetInterval
+        {
+            get
+            {
+                var chestResetInterval = ResetInterval ?? Default_ChestResetInterval;
+
+                if (chestResetInterval == 0)
+                    chestResetInterval = Default_ChestResetInterval;
+
+                return chestResetInterval;
+            }
+        }
+
+        public double Default_ChestResetInterval = 120;
+
+        /// <summary>
+        /// The current player who has a chest opened
+        /// </summary>
+        public Player CurrentViewer;
+
+        public bool ResetMessagePending
+        {
+            get => GetProperty(PropertyBool.ResetMessagePending) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.ResetMessagePending); else SetProperty(PropertyBool.ResetMessagePending, value); }
+        }
+
+        public bool ResetGenerator;
+
         /// <summary>
         /// A new biota be created taking all of its values from weenie.
         /// </summary>
@@ -33,129 +77,19 @@ namespace ACE.Server.WorldObjects
 
         private void SetEphemeralValues()
         {
-            //BaseDescriptionFlags |= ObjectDescriptionFlag.Door;
-
-            //if (!DefaultOpen)
-            //{
-            //    CurrentMotionState = motionStateClosed;
-            //    IsOpen = false;
-            //    //Ethereal = false;
-            //}
-            //else
-            //{
-            //    CurrentMotionState = motionStateOpen;
-            //    IsOpen = true;
-            //    //Ethereal = true;
-            //}
-
             ContainerCapacity = ContainerCapacity ?? 10;
             ItemCapacity = ItemCapacity ?? 120;
 
-            //Adding loot to chests
-            //Eventually these case statements would be linked to indivual treasure generators. Each one should be a different profile, but currently it will be the complete appropriate tier profile.
-            for (int i = 0; i < GeneratorProfiles.Count; i++)
-            {
-                int amount = ThreadSafeRandom.Next(2, 14);  //r.Next(2, 14);
-                var generator = GeneratorProfiles[i];
-                switch(generator.Biota.WeenieClassId)
-                {
-                    case 414:
-                    case 459:
-                    case 0:
-                    case 6:
-                    case 18:
-                    case 465:
-                        for (int j = 0; j < amount; j++)
-                        {
-                            var wo = LootGenerationFactory.CreateRandomLootObjects(1);
-                            TryAddToInventory(wo);
-                        }
-                        break;
-                    case 413:
-                    case 410:
-                    case 16:
-                    case 457:
-                    case 4:
-                    case 463:
-                    case 395:
-                        for (int j = 0; j < amount; j++)
-                        {
-                            var wo = LootGenerationFactory.CreateRandomLootObjects(2);
-                            TryAddToInventory(wo);
-                        }
-                        break;
-                    case 411:
-                    case 15:
-                    case 313:
-                    case 462:
-                    case 3:
-                    case 456:
-                    case 340:
-                    case 365:
-                        for (int j = 0; j < amount; j++)
-                        {
-                            var wo = LootGenerationFactory.CreateRandomLootObjects(3);
-                            TryAddToInventory(wo);
-                        }
-                        break;
-                    case 460:
-                    case 412:
-                    case 354:
-                    case 1:
-                    case 13:
-                    case 59:
-                    case 339:
-                        for (int j = 0; j < amount; j++)
-                        {
-                            var wo = LootGenerationFactory.CreateRandomLootObjects(4);
-                            TryAddToInventory(wo);
-                        }
-                        break;
-                    case 334:
-                    case 341:
-                    case 317:
-                        for (int j = 0; j < amount; j++)
-                        {
-                            var wo = LootGenerationFactory.CreateRandomLootObjects(5);
-                            TryAddToInventory(wo);
-                        }
-                        break;
-                    case 449:
-                    case 32:
-                    case 2:
-                    case 421:
-                    case 349:
-                    case 351:
-                    case 422:
-                    case 338:
-                        for (int j = 0; j < amount; j++)
-                        {
-                            var wo = LootGenerationFactory.CreateRandomLootObjects(6);
-                            TryAddToInventory(wo);
-                        }
-                        break;
-                    default:
-                        if(generator.Biota.WeenieClassId > 500)
-                        {
-                            //If the WeenieClassId is greater than the profile Id's, then it will be an item that is created with that Id.
-                            var wo = WorldObjectFactory.CreateNewWorldObject((uint)generator.Biota.WeenieClassId);
-                            TryAddToInventory(wo);
-                        }
-                        break;
-                }
-            }
+            CurrentMotionState = motionClosed;  // do any chests default to open?
 
-            CurrentMotionState = motionClosed; // What chest defaults to open?
+            if (IsLocked)
+                DefaultLocked = true;
 
-            if (UseRadius < 2)
-                UseRadius = 2; // Until DoMoveTo (Physics, Indoor/Outside range variance) is smarter, use 2 is safest.
+            ResetGenerator = true;
         }
 
         protected static readonly Motion motionOpen = new Motion(MotionStance.NonCombat, MotionCommand.On);
         protected static readonly Motion motionClosed = new Motion(MotionStance.NonCombat, MotionCommand.Off);
-
-        //private static readonly MotionState motionStateOpen = new Motion(MotionStance.NonCombat, new MotionItem(MotionCommand.On));
-        //private static readonly MotionState motionStateClosed = new Motion(MotionStance.NonCombat, new MotionItem(MotionCommand.Off));
 
         /// <summary>
         /// This is raised by Player.HandleActionUseItem.<para />
@@ -165,55 +99,116 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public override void ActOnUse(WorldObject wo)
         {
-            var player = wo as Player;
-            if (player == null) return;
-
-            ////if (playerDistanceTo >= 2500)
-            ////{
-            ////    var sendTooFarMsg = new GameEventDisplayStatusMessage(player.Session, StatusMessageType1.Enum_0037);
-            ////    player.Session.Network.EnqueueSend(sendTooFarMsg, sendUseDoneEvent);
-            ////    return;
-            ////}
+            if (!(wo is Player player))
+                return;
 
             if (!IsLocked)
             {
                 if (!IsOpen)
                 {
-                    var rotateTime = player.Rotate(this);
-
-                    var actionChain = new ActionChain();
-                    actionChain.AddDelaySeconds(rotateTime);
-                    actionChain.AddAction(this, () => Open(player));
-                    actionChain.EnqueueChain();
-                    return;
+                    // open chest
+                    Open(player);
                 }
                 else
                 {
+                    // player has this chest open, close it
                     if (Viewer == player.Guid.Full)
                         Close(player);
 
-                    // else error msg?
+                    // else another player has this chest open - send error message?
                 }
             }
             else
             {
+                // handle locked chest
                 player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, $"The {Name} is locked!"));
                 EnqueueBroadcast(new GameMessageSound(Guid, Sound.OpenFailDueToLock, 1.0f));
             }
-
             player.SendUseDoneEvent();
         }
 
-        protected override void DoOnOpenMotionChanges()
+        public override void Open(Player player)
         {
-            EnqueueBroadcastMotion(motionOpen);
-            CurrentMotionState = motionOpen;
+            CurrentViewer = player;
+            base.Open(player);
+
+            // chests can have a couple of different profiles
+            // by default, most chests use the 'ResetInterval' setup
+            // some things like Mana Forge chests use the 'RegenOnClose' variant
+
+            // ResetInterval (default):
+
+            // if no ResetInterval is defined, the DefaultResetInterval of 2 mins is used.
+            // when a player opens this chest, a timer starts, and the chest will automatically close/reset in ResetInterval
+
+            // RegenOnClose (Mana Forge Chest etc.):
+
+            // this chest resets whenever it is closed
+
+            if (!ChestRegenOnClose && !ResetMessagePending)
+            {
+                //Console.WriteLine($"{player.Name}.Open({Name}) - enqueueing reset in {ChestResetInterval}s");
+
+                // uses the ResetInterval setup
+                var actionChain = new ActionChain();
+                actionChain.AddDelaySeconds(ChestResetInterval);
+                actionChain.AddAction(this, Reset);
+                actionChain.EnqueueChain();
+
+                ResetMessagePending = true;
+
+                //UseTimestamp++;
+            }
+
+            if (ActivationTalk != null)
+            {
+                // send only to activator?
+                player.Session.Network.EnqueueSend(new GameMessageSystemChat(ActivationTalk, ChatMessageType.Broadcast));
+            }
         }
 
-        protected override void DoOnCloseMotionChanges()
+        /// <summary>
+        /// Called when a chest is closed, or walked away from
+        /// </summary>
+        public void Close(Player player, bool tryReset = true)
         {
-            EnqueueBroadcastMotion(motionClosed);
-            CurrentMotionState = motionClosed;
+            base.Close(player);
+            CurrentViewer = null;
+
+            if (ChestRegenOnClose && tryReset)
+                Reset();
+        }
+
+        public override void Reset()
+        {
+            // TODO: if 'ResetInterval' style, do we want to ensure a minimum amount of time for the last viewer?
+
+            if (IsOpen)
+                Close(CurrentViewer, false);
+
+            if (DefaultLocked && !IsLocked)
+            {
+                IsLocked = true;
+                EnqueueBroadcast(new GameMessagePublicUpdatePropertyBool(this, PropertyBool.Locked, IsLocked));
+            }
+
+            if (IsGenerator)
+            {
+                ResetGenerator = true;
+                Generator_HeartBeat();
+            }
+
+            ResetMessagePending = false;
+        }
+
+        protected override float DoOnOpenMotionChanges()
+        {
+            return ExecuteMotion(motionOpen);
+        }
+
+        protected override float DoOnCloseMotionChanges()
+        {
+            return ExecuteMotion(motionClosed);
         }
 
         public string LockCode
@@ -226,17 +221,27 @@ namespace ACE.Server.WorldObjects
         /// Used for unlocking a chest via lockpick, so contains a skill check
         /// player.Skills[Skill.Lockpick].Current should be sent for the skill check
         /// </summary>
-        public UnlockResults Unlock(uint playerLockpickSkillLvl, ref int difficulty)
+        public UnlockResults Unlock(uint unlockerGuid, uint playerLockpickSkillLvl, ref int difficulty)
         {
-            return LockHelper.Unlock(this, playerLockpickSkillLvl, ref difficulty);
+            var result = LockHelper.Unlock(this, playerLockpickSkillLvl, ref difficulty);
+
+            if (result == UnlockResults.UnlockSuccess)
+                LastUnlocker = unlockerGuid;
+
+            return result;
         }
 
         /// <summary>
         /// Used for unlocking a chest via a key
         /// </summary>
-        public UnlockResults Unlock(string keyCode)
+        public UnlockResults Unlock(uint unlockerGuid, string keyCode)
         {
-            return LockHelper.Unlock(this, keyCode);
+            var result = LockHelper.Unlock(this, keyCode);
+
+            if (result == UnlockResults.UnlockSuccess)
+                LastUnlocker = unlockerGuid;
+
+            return result;
         }
     }
 }

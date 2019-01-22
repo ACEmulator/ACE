@@ -514,6 +514,14 @@ namespace ACE.Server.WorldObjects
             else if (!GeneratorDisabled)
                 SelectProfilesMax();
 
+            if (this is Chest chest)
+            {
+                // for chest generators, ResetMessage determines generator profile heartbeats
+                if (!chest.ResetGenerator) return;
+
+                chest.ResetGenerator = false;
+            }
+
             foreach (var generator in GeneratorProfiles)
                 generator.HeartBeat();
         }

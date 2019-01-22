@@ -21,8 +21,8 @@ namespace ACE.Server.WorldObjects
     }
     public interface Lock
     {
-        UnlockResults Unlock(string keyCode);
-        UnlockResults Unlock(uint playerLockpickSkillLvl, ref int difficulty);
+        UnlockResults Unlock(uint unlockerGuid, string keyCode);
+        UnlockResults Unlock(uint unlockerGuid, uint playerLockpickSkillLvl, ref int difficulty);
     }
     public class UnlockerHelper
     {
@@ -54,7 +54,7 @@ namespace ACE.Server.WorldObjects
                     UnlockResults result = UnlockResults.IncorrectKey;
                     var difficulty = 0;
                     if (unlocker.WeenieType == WeenieType.Lockpick)
-                        result = @lock.Unlock(player.Skills[Skill.Lockpick].Current, ref difficulty);
+                        result = @lock.Unlock(player.Guid.Full, player.Skills[Skill.Lockpick].Current, ref difficulty);
                     else if (unlocker is Key woKey)
                     {
                         if (target is Door woDoor)
@@ -65,7 +65,7 @@ namespace ACE.Server.WorldObjects
                                 return;
                             }
                         }
-                        result = @lock.Unlock(woKey.KeyCode);
+                        result = @lock.Unlock(player.Guid.Full, woKey.KeyCode);
                     }
 
                     switch (result)
@@ -138,7 +138,7 @@ namespace ACE.Server.WorldObjects
             if (target.IsOpen)
                 return UnlockResults.Open;
 
-            if (keyCode == myLockCode)
+            if (keyCode.Equals(myLockCode, StringComparison.OrdinalIgnoreCase))
             {
                 if (!target.IsLocked)
                     return UnlockResults.AlreadyUnlocked;

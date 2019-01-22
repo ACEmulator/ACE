@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Concurrent;
-using System.Runtime.CompilerServices;
 
 namespace ACE.Server.Entity.Actions
 {
@@ -8,7 +7,6 @@ namespace ACE.Server.Entity.Actions
     {
         protected ConcurrentQueue<IAction> Queue { get; } = new ConcurrentQueue<IAction>();
 
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public void RunActions()
         {
             if (Queue.IsEmpty)

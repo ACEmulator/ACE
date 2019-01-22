@@ -58,6 +58,37 @@ namespace ACE.Server.Factories
             player.HandleAddNewWorldObjectsToInventory(items);*/
         }
 
+        public static List<WorldObject> CreateRandomLootObjects(TreasureDeath profile)
+        {
+            var loot = new List<WorldObject>();
+
+            var itemChance = ThreadSafeRandom.Next(1, 100);
+            if (itemChance <= profile.ItemChance)
+            {
+                var numItems = ThreadSafeRandom.Next(profile.ItemMinAmount, profile.ItemMaxAmount);
+                for (var i = 0; i < numItems; i++)
+                    loot.Add(CreateRandomLootObjects(profile.Tier));
+            }
+
+            var magicItemChance = ThreadSafeRandom.Next(1, 100);
+            if (magicItemChance <= profile.MagicItemChance)
+            {
+                var numItems = ThreadSafeRandom.Next(profile.MagicItemMinAmount, profile.MagicItemMaxAmount);
+                for (var i = 0; i < numItems; i++)
+                    loot.Add(CreateRandomLootObjects(profile.Tier));
+            }
+
+            var mundaneItemChance = ThreadSafeRandom.Next(1, 100);
+            if (mundaneItemChance <= profile.MundaneItemChance)
+            {
+                var numItems = ThreadSafeRandom.Next(profile.MundaneItemMinAmount, profile.MundaneItemMaxAmount);
+                for (var i = 0; i < numItems; i++)
+                    loot.Add(CreateRandomLootObjects(profile.Tier));
+
+            }
+            return loot;
+        }
+
         public static WorldObject CreateRandomLootObjects(int tier)
         {
             WorldObject wo;

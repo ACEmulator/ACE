@@ -6,6 +6,7 @@ using ACE.Entity.Enum;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameEvent.Events;
+using ACE.Server.Network.GameMessages.Messages;
 
 namespace ACE.Server.WorldObjects
 {
@@ -188,29 +189,48 @@ namespace ACE.Server.WorldObjects
                 // already there?
                 if (!moveTo)
                 {
-                    item.ActOnUse(this);
+                    TryUseItem(item);
                     return;
                 }
 
                 // if required, move to
                 CreateMoveToChain(item, out var thisMoveToChainNumber, (success) =>
                 {
-                    if (success)
+                    if (!success)
                     {
-                        item.ActOnUse(this);
+                        SendUseDoneEvent();
+                        return;
                     }
-                    else
-                    {
-                        // Action is cancelled
-                        // this needs to happen much earlier,
-                        // when a player event happens that actually cancels an existing moveto chain
-                        // as it currently stands, the player will get a perpetual hourglass
-                        // if they legitimately cancel a moveto event in progress...
-
-                        Session.Network.EnqueueSend(new GameEventUseDone(Session));
-                    }
+                    TryUseItem(item);
                 });
             }
+        }
+
+        /// <summary>
+        /// Called after the MoveTo chain has successfully completed, to use an object
+        /// </summary>
+        public void TryUseItem(WorldObject item)
+        {
+            // verify activation requirements
+            var useError = CheckUseRequirements(item);
+            if (useError != null)
+            {
+                Session.Network.EnqueueSend(useError);
+                return;
+            }
+
+            // TODO: ActOnUse should return error code
+            // we only want to display this message on success - ie, if a chest is locked, do not display the ActivationTalk
+
+            // handle ActivationResponse - mostly Use?
+
+            /*if (item.ActivationTalk != null)
+            {
+                // send only to activator?
+                Session.Network.EnqueueSend(new GameMessageSystemChat(item.ActivationTalk, ChatMessageType.Broadcast));
+            }*/
+
+            item.ActOnUse(this);
         }
 
         public void CreateMoveToChain(WorldObject target, out int thisMoveToChainNumber, Action<bool> callback)
