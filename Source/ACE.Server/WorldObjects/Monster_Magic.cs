@@ -141,6 +141,9 @@ namespace ACE.Server.WorldObjects
             actionChain.AddDelaySeconds(preCastTime);
             actionChain.AddAction(this, () =>
             {
+                if (IsDead || AttackTarget == null || target.IsDead)
+                    return;
+
                 CastSpell(spell);
                 PostCastMotion();
             });

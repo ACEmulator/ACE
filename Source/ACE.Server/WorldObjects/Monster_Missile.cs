@@ -92,6 +92,8 @@ namespace ACE.Server.WorldObjects
             float targetTime = 0.0f;
             actionChain.AddAction(this, () =>
             {
+                if (IsDead) return;
+
                 var sound = GetLaunchMissileSound(weapon);
                 EnqueueBroadcast(new GameMessageSound(Guid, sound, 1.0f));
 
