@@ -664,13 +664,6 @@ namespace ACE.Server.WorldObjects
                 var splatter = new GameMessageScript(Guid, (PlayScript)Enum.Parse(typeof(PlayScript), "Splatter" + creature.GetSplatterHeight() + creature.GetSplatterDir(this)));
                 EnqueueBroadcast(hitSound, splatter);
             }
-            else if (hotspot != null)
-            {
-                if (!string.IsNullOrWhiteSpace(hotspot.ActivationTalkString))
-                    Session.Network.EnqueueSend(new GameMessageSystemChat(hotspot.ActivationTalkString.Replace("%i", amount.ToString()), ChatMessageType.Craft));
-                if (!hotspot.Visibility)
-                    hotspot.EnqueueBroadcast(new GameMessageSound(hotspot.Guid, Sound.TriggerActivated, 1.0f));
-            }
 
             if (percent >= 0.1f)
                 EnqueueBroadcast(new GameMessageSound(Guid, Sound.Wound1, 1.0f));
