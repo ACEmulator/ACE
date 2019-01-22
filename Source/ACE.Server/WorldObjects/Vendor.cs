@@ -70,15 +70,14 @@ namespace ACE.Server.WorldObjects
 
             var rotateTime = Rotate(player);    // vendor rotates towards player
 
-            var loadChain = new ActionChain();
-            loadChain.AddDelaySeconds(0.1f);
-            loadChain.AddAction(this, LoadInventory);
-            loadChain.EnqueueChain();
+            // TODO: remove this when DelayManager is not forward propagating current tick time
 
-            var vendorChain = new ActionChain();
-            vendorChain.AddDelaySeconds(rotateTime);
-            vendorChain.AddAction(this, () => ApproachVendor(player, VendorType.Open));
-            vendorChain.EnqueueChain();
+            var actionChain = new ActionChain();
+            actionChain.AddDelaySeconds(0.001f);  // force to run after rotate.EnqueueBroadcastAction
+            actionChain.AddAction(this, LoadInventory);
+            actionChain.AddDelaySeconds(rotateTime);
+            actionChain.AddAction(this, () => ApproachVendor(player, VendorType.Open));
+            actionChain.EnqueueChain();
 
             if (LastPlayer == null)
             {
