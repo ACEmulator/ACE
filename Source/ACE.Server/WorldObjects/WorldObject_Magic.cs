@@ -181,6 +181,9 @@ namespace ACE.Server.WorldObjects
             var targetPlayer = target as Player;
             var targetCreature = target as Creature;
 
+            // ensure target is enchantable
+            if (!target.IsEnchantable) return true;
+
             // Self targeted spells should have a target of self
             if ((int)Math.Floor(spell.BaseRangeConstant) == 0 && targetPlayer == null)
                 return true;
@@ -1675,6 +1678,14 @@ namespace ACE.Server.WorldObjects
                 return ResistanceType.StaminaBoost;
             else
                 return ResistanceType.HealthBoost;
+        }
+
+        /// <summary>
+        /// Returns TRUE if this object's spellbook contains input spell
+        /// </summary>
+        public bool SpellbookContains(uint spellID)
+        {
+            return Biota.BiotaPropertiesSpellBook.Any(i => i.Spell == spellID);
         }
     }
 }

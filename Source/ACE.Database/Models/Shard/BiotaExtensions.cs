@@ -1282,6 +1282,94 @@ namespace ACE.Database.Models.Shard
             }
         }
 
+        // =====================================
+        // BiotaPropertiesBook
+        // =====================================
+
+        public static BiotaPropertiesBookPageData GetBookPageData(this Biota biota, uint bookGuid, uint pageId, ReaderWriterLockSlim rwLock)
+        {
+            rwLock.EnterReadLock();
+            try
+            {
+                return biota.BiotaPropertiesBookPageData.FirstOrDefault(i => i.ObjectId == bookGuid && i.PageId == pageId);
+            }
+            finally
+            {
+                rwLock.ExitReadLock();
+            }
+        }
+
+        public static List<BiotaPropertiesBookPageData> GetBookAllPages(this Biota biota, uint bookGuid, ReaderWriterLockSlim rwLock)
+        {
+            rwLock.EnterReadLock();
+            try
+            {
+                return biota.BiotaPropertiesBookPageData.Where(i => i.ObjectId == bookGuid).ToList();
+            }
+            finally
+            {
+                rwLock.ExitReadLock();
+            }
+        }
+
+        public static BiotaPropertiesBookPageData AddBookPage(this Biota biota, BiotaPropertiesBookPageData page, ReaderWriterLockSlim rwLock, out bool alreadyExists)
+        {
+            rwLock.EnterUpgradeableReadLock();
+            try
+            {
+                var entity = biota.BiotaPropertiesBookPageData.FirstOrDefault(i => i.PageId == page.PageId);
+                if (entity != null)
+                {
+                    alreadyExists = true;
+                    return entity;
+                }
+
+                rwLock.EnterWriteLock();
+                try
+                {
+                    biota.BiotaPropertiesBookPageData.Add(page);
+                    alreadyExists = false;
+                    return entity;
+                }
+                finally
+                {
+                    rwLock.ExitWriteLock();
+                }
+            }
+            finally
+            {
+                rwLock.ExitUpgradeableReadLock();
+            }
+        }
+
+        public static bool DeleteBookPage(this Biota biota, uint pageId, out BiotaPropertiesBookPageData entity, ReaderWriterLockSlim rwLock)
+        {
+            rwLock.EnterUpgradeableReadLock();
+            try
+            {
+                entity = biota.BiotaPropertiesBookPageData.FirstOrDefault(i => i.PageId == pageId);
+                if (entity != null)
+                {
+                    rwLock.EnterWriteLock();
+                    try
+                    {
+                        biota.BiotaPropertiesBookPageData.Remove(entity);
+                        entity.Object = null;
+                        return true;
+                    }
+                    finally
+                    {
+                        rwLock.ExitWriteLock();
+                    }
+                }
+                return false;
+            }
+            finally
+            {
+                rwLock.ExitUpgradeableReadLock();
+            }
+        }
+
 
         // =====================================
         // BiotaPropertiesSpellBook

@@ -477,6 +477,26 @@ namespace ACE.Server.Entity
         }
 
         /// <summary>
+        /// Returns the player message for falling impact damage
+        /// </summary>
+        public static string GetFallMessage(uint damage, uint maxHealth)
+        {
+            var percent = (float)damage / maxHealth;
+
+            string severity = "";
+            if (percent > 0.5f)
+                severity = "massive";
+            else if (percent > 0.25f)
+                severity = "crushing";
+            else if (percent > 0.1f)
+                severity = "heavy";
+            else
+                severity = "minor";
+
+            return $"You suffer {damage} points of {severity} impact damage.";
+        }
+
+        /// <summary>
         /// Returns a randomized death message based on damage type
         /// </summary>
         public static DeathMessage GetDeathMessage(DamageType damageType, bool criticalHit = false)

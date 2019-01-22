@@ -110,11 +110,15 @@ namespace ACE.Server.Physics.Common
         {
             /*Console.WriteLine("EnvCollisionProfile");
             Console.WriteLine("Source: " + WorldObject.Name);
-            Console.WriteLine("Target: " + obj.WeenieObj.WorldObject.Name);*/
+            Console.WriteLine("Target: " + target.WeenieObj.WorldObject.Name);*/
 
             if (WorldObject != null)
-                WorldObject.OnCollideEnvironment();
-
+            {
+                if (WorldObject is Player player)
+                    player.HandleFallingDamage(prof);
+                else
+                    WorldObject.OnCollideEnvironment();
+            }
             return 0;
         }
 

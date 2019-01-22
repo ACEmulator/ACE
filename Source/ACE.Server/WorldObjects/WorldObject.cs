@@ -777,31 +777,31 @@ namespace ACE.Server.WorldObjects
             var baseDamage = GetBaseDamage();
             var weapon = wielder.GetEquippedWeapon();
 
-            var damageMod = 0;
+            var damageMod = 0.0f;
             var varianceMod = 1.0f;
 
-            // get weapon item enchantments and wielder auras
-            if (weapon == null)
+            if (weapon != null)
             {
-                damageMod = wielder.EnchantmentManager.GetDamageMod();
-                varianceMod = wielder.EnchantmentManager.GetVarianceMod();
-            }
-            else if (weapon.IsEnchantable)
-            {
-                damageMod = weapon.EnchantmentManager.GetDamageMod() + wielder.EnchantmentManager.GetDamageMod();
-                varianceMod = weapon.EnchantmentManager.GetVarianceMod() * wielder.EnchantmentManager.GetVarianceMod();
+                damageMod += weapon.EnchantmentManager.GetDamageMod();
+                varianceMod *= weapon.EnchantmentManager.GetVarianceMod();
+
+                if (weapon.IsEnchantable)
+                {
+                    // factor in wielder auras for enchantable weapons
+                    damageMod += wielder.EnchantmentManager.GetDamageMod();
+                    varianceMod *= wielder.EnchantmentManager.GetVarianceMod();
+                }
             }
 
             var baseVariance = 1.0f - (baseDamage.Min / baseDamage.Max);
 
-            var damageBonus = weapon != null ? (float)(weapon.GetProperty(PropertyFloat.DamageMod) ?? 1.0f) : 1.0f;
-            if (weapon == null)
+            var damageBonus = 1.0f;
+            if (weapon != null)
             {
-                damageBonus *= wielder.EnchantmentManager.GetDamageModifier();
-            }
-            else if (weapon.IsEnchantable)
-            {
-                damageBonus *= wielder.EnchantmentManager.GetDamageModifier() * weapon.EnchantmentManager.GetDamageModifier();
+                damageBonus = (float)(weapon.GetProperty(PropertyFloat.DamageMod) ?? 1.0f) * weapon.EnchantmentManager.GetDamageModifier();
+
+                if (weapon.IsEnchantable)
+                    damageBonus *= wielder.EnchantmentManager.GetDamageModifier();
             }
 
             // additives first, then multipliers?
