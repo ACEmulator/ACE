@@ -186,7 +186,12 @@ namespace ACE.Server.WorldObjects
                         log.Error("Something went wrong with the Magic resistance check");
                         break;
                     }
-                    LifeMagic(target, spell, out uint damage, out bool critical, out var msg);
+                    var targetDeath = LifeMagic(target, spell, out uint damage, out bool critical, out var msg);
+                    if (targetDeath && target is Creature targetCreature)
+                    {
+                        targetCreature.OnDeath(this, DamageType.Health, false);
+                        targetCreature.Die();
+                    }
                     EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
                     break;
 

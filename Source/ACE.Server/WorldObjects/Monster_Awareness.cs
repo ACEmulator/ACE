@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Numerics;
+
 using ACE.Common.Extensions;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
@@ -10,26 +10,26 @@ using ACE.Server.Entity;
 namespace ACE.Server.WorldObjects
 {
     /// <summary>
+    /// Determines when a monster will attack
+    /// </summary>
+    [Flags]
+    public enum Tolerance
+    {
+        None      = 0,  // attack targets in range
+        NoAttack  = 1,  // never attack
+        Appraise  = 2,  // attack when ID'd or attacked
+        Unknown   = 4,  // unused?
+        Provoke   = 8,  // used in conjunction with 32
+        Unknown2  = 16, // unused?
+        Target    = 32, // only target original attacker
+        Retaliate = 64  // only attack after attacked
+    };
+
+    /// <summary>
     /// Determines when a monster wakes up from idle state
     /// </summary>
     partial class Creature
     {
-        /// <summary>
-        /// Determines when a monster will attack
-        /// </summary>
-        [Flags]
-        public enum Tolerance
-        {
-            None        = 0,  // attack targets in range
-            NoAttack    = 1,  // never attack
-            ID          = 2,  // attack when ID'd or attacked
-            Unknown     = 4,  // unused?
-            Provoke     = 8,  // used in conjunction with 32
-            Unknown2    = 16, // unused?
-            Target      = 32, // only target original attacker
-            Retaliate   = 64  // only attack after attacked
-        };
-
         /// <summary>
         /// Determines when a monster wakes up from idle state
         /// </summary>
@@ -126,8 +126,6 @@ namespace ACE.Server.WorldObjects
 
         public virtual bool FindNextTarget()
         {
-            SetNextTargetTime();
-
             // rebuild visible objects (handle this better for monsters)
             GetVisibleObjects();
 
@@ -147,6 +145,7 @@ namespace ACE.Server.WorldObjects
             // the closer you are, the more chance you have to be selected to be attacked.
 
             SelectTargetingTactic();
+            SetNextTargetTime();
 
             switch (CurrentTargetingTactic)
             {
@@ -277,12 +276,12 @@ namespace ACE.Server.WorldObjects
             var rng = ThreadSafeRandom.Next(0.0f, invRatioSum);
 
             // walk the list
-            var portion = 0.0f;
+            var invRatio = 0.0f;
             foreach (var targetDistance in targetDistances)
             {
-                portion += 1.0f - (targetDistance.Distance / distSum);
+                invRatio += 1.0f - (targetDistance.Distance / distSum);
 
-                if (rng <= portion)
+                if (rng <= invRatio)
                     return targetDistance.Target;
             }
             // precision error?

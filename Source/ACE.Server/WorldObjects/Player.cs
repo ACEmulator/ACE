@@ -395,6 +395,17 @@ namespace ACE.Server.WorldObjects
 
             if (!success && player != null)
                 player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{Name} tried and failed to assess you!", ChatMessageType.Appraisal));
+
+            // pooky logic - handle monsters attacking on appraisal
+            if (creature != null && creature.MonsterState == State.Idle)
+            {
+                var tolerance = (Tolerance)(creature.GetProperty(PropertyInt.Tolerance) ?? 0);
+                if (tolerance.HasFlag(Tolerance.Appraise))
+                {
+                    creature.AttackTarget = this;
+                    creature.WakeUp();
+                }
+            }
         }
 
         public override void OnCollideObject(WorldObject target)
