@@ -2304,7 +2304,6 @@ namespace ACE.Server.Factories
             {
                 numSpells = GetNumSpells(tier);
             }
-            int damageType = 0;  //
             int damage = 0; //
             double damageVariance = 0; //
             double weaponDefense = 0; //
@@ -2853,7 +2852,6 @@ namespace ACE.Server.Factories
                             {
                                 case 0:
                                     weaponWeenie = 4190;
-                                    damageType = 4;
                                     break;
                                 case 1:
                                     weaponWeenie = 4194;
@@ -2877,7 +2875,6 @@ namespace ACE.Server.Factories
                             {
                                 case 0:
                                     weaponWeenie = 4195;
-                                    damageType = 3;
                                     break;
                                 case 1:
                                     weaponWeenie = 4196;
@@ -2938,7 +2935,6 @@ namespace ACE.Server.Factories
                             {
                                 case 0:
                                     weaponWeenie = 303;
-                                    damageType = 3;
                                     break;
                                 case 1:
                                     weaponWeenie = 3754;
@@ -3409,7 +3405,6 @@ namespace ACE.Server.Factories
                             ////Hammer
                             ////Not in DB
                             weaponWeenie = 41420;
-                            damageType = 4;
                         }
                         if (subAxeType == 1)
                         {
@@ -3419,7 +3414,6 @@ namespace ACE.Server.Factories
                             {
                                 case 0:
                                     weaponWeenie = 342;
-                                    damageType = 1;
                                     break;
                                 case 1:
                                     weaponWeenie = 3857;
@@ -3444,7 +3438,6 @@ namespace ACE.Server.Factories
                             {
                                 case 0:
                                     weaponWeenie = 30556;
-                                    damageType = 1;
                                     break;
                                 case 1:
                                     weaponWeenie = 30557;
@@ -3468,7 +3461,6 @@ namespace ACE.Server.Factories
                             {
                                 case 0:
                                     weaponWeenie = 357;
-                                    damageType = 1;
                                     break;
                                 case 1:
                                     weaponWeenie = 3901;
@@ -3562,7 +3554,6 @@ namespace ACE.Server.Factories
                         {
                             ////Board with Nail
                             weaponWeenie = 7767;
-                            damageType = 2;
                         }
                         if (subMaceType == 1)
                         {
@@ -3572,7 +3563,6 @@ namespace ACE.Server.Factories
                             {
                                 case 0:
                                     weaponWeenie = 313;
-                                    damageType = 4;
                                     break;
                                 case 1:
                                     weaponWeenie = 3774;
@@ -3596,7 +3586,6 @@ namespace ACE.Server.Factories
                             {
                                 case 0:
                                     weaponWeenie = 356;
-                                    damageType = 4;
                                     break;
                                 case 1:
                                     weaponWeenie = 3897;
@@ -3621,7 +3610,6 @@ namespace ACE.Server.Factories
                             {
                                 case 0:
                                     weaponWeenie = 321;
-                                    damageType = 4;
                                     break;
                                 case 1:
                                     weaponWeenie = 3802;
@@ -3892,13 +3880,11 @@ namespace ACE.Server.Factories
                     //    {
                     //        ////Claw
                     //        weaponWeenie = 31784;
-                    //        damageType = 3;
                     //    }
                     //    if (subUAType == 1)
                     //    {
                     //        ////Hand Wraps
                     //        weaponWeenie = 45118;
-                    //        damageType = 4;
                     //    }
                     //}
                     break;
@@ -4006,49 +3992,10 @@ namespace ACE.Server.Factories
                     return CreateCaster(tier);
 
             }
-            //String elementName = "";
-            //int elementalChance = 0;
             if (numSpells > 0)
             {
                 uiEffects = 1;
             }
-            //if (wieldDiff > 0)
-            //{
-            //    elementalChance = ThreadSafeRandom.Next(0, 100);
-            //    if (elementalChance > 90)
-            //    {
-            //        int chance = ThreadSafeRandom.Next(0, 3);
-            //        switch (chance)
-            //        {
-
-            //            case 0:
-            //                //cold
-            //                damageType = 8;
-            //                uiEffects = 129;
-            //                elementName = "Frost";
-            //                break;
-            //            case 1:
-            //                //fire
-            //                damageType = 16;
-            //                uiEffects = 33;
-            //                elementName = "Fire";
-            //                break;
-            //            case 2:
-            //                //acid
-            //                damageType = 32;
-            //                uiEffects = 247;
-            //                elementName = "Acid";
-            //                break;
-            //            case 3:
-            //                //electric
-            //                damageType = 64;
-            //                uiEffects = 64;
-            //                elementName = "Electric";
-            //                break;
-
-            //        }
-            //    }
-            //}
             ///To be done: setting random burdens,
             WorldObject wo = WorldObjectFactory.CreateNewWorldObject((uint)weaponWeenie);
             wo.SetProperty(PropertyInt.GemCount, gemCount);
@@ -4066,10 +4013,6 @@ namespace ACE.Server.Factories
             int numCantrips = minorCantrips + majorCantrips + epicCantrips + legendaryCantrips;
             int[][] spells = LootHelper.MeleeSpells;
             int[][] cantrips = LootHelper.MeleeCantrips;
-            //if (elementalChance > 90)
-            //{
-            //    wo.SetProperty(PropertyInt.DamageType, damageType);
-            //}
             if (numSpells > 0)
             {
                 wo.SetProperty(PropertyInt.ItemSpellcraft, spellCraft);
