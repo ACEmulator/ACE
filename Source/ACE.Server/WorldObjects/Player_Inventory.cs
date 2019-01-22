@@ -304,7 +304,7 @@ namespace ACE.Server.WorldObjects
         // =====================================
 
         [Flags]
-        private enum SearchLocations
+        protected enum SearchLocations
         {
             MyInventory         = 0x01,
             MyEquippedItems     = 0x02,
@@ -313,12 +313,12 @@ namespace ACE.Server.WorldObjects
             Everywhere          = 0xFF
         }
 
-        private WorldObject FindObject(uint objectGuid, SearchLocations searchLocations, out Container foundInContainer, out Container rootOwner, out bool wasEquipped)
+        protected WorldObject FindObject(uint objectGuid, SearchLocations searchLocations, out Container foundInContainer, out Container rootOwner, out bool wasEquipped)
         {
             return FindObject(new ObjectGuid(objectGuid), searchLocations, out foundInContainer, out rootOwner, out wasEquipped); // todo Fix this so it's not creating a new ObjectGuid
         }
 
-        private WorldObject FindObject(ObjectGuid objectGuid, SearchLocations searchLocations, out Container foundInContainer, out Container rootOwner, out bool wasEquipped)
+        protected WorldObject FindObject(ObjectGuid objectGuid, SearchLocations searchLocations, out Container foundInContainer, out Container rootOwner, out bool wasEquipped)
         {
             WorldObject result;
 
