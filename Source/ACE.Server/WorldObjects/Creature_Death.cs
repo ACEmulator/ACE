@@ -12,6 +12,7 @@ using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameMessages.Messages;
+using System.Collections.Generic;
 
 namespace ACE.Server.WorldObjects
 {
@@ -276,30 +277,39 @@ namespace ACE.Server.WorldObjects
 
             if (DeathTreasure?.Tier > 0)
                 tier = DeathTreasure.Tier;
+            var deathTreasure = this.DeathTreasure;
+            if (deathTreasure != null)
+            {
+                List<WorldObject> items = LootGenerationFactory.CreateRandomLootObjects(deathTreasure);
+                foreach (WorldObject wo in items)
+                {
+                    TryAddToInventory(wo);
+                }
+            }
 
             foreach (var trophy in Biota.BiotaPropertiesCreateList.Where(x => x.DestinationType == (int)DestinationType.Contain || x.DestinationType == (int)DestinationType.Treasure || x.DestinationType == (int)DestinationType.ContainTreasure || x.DestinationType == (int)DestinationType.ShopTreasure || x.DestinationType == (int)DestinationType.WieldTreasure).OrderBy(x => x.Shade))
             {
                 if (random.NextDouble() < trophy.Shade || trophy.Shade == 1 || trophy.Shade == 0) // Shade in this context is Probability
                                                                                                   // Should there be rolls for each item or one roll to rule them all?
                 {
-                    if (trophy.WeenieClassId == 0) // Randomized Loot
-                    {
-                        var wo = LootGenerationFactory.CreateRandomLootObjects(tier);
+                    //if (trophy.WeenieClassId == 0) // Randomized Loot
+                    //{
+                    //    var items = LootGenerationFactory.CreateRandomLootObjects(deathTreasure);
 
-                        corpse.TryAddToInventory(wo);
+                    //    corpse.TryAddToInventory(wo);
 
-                        //var book = WorldObjectFactory.CreateNewWorldObject("parchment") as Book;
+                    //    //var book = WorldObjectFactory.CreateNewWorldObject("parchment") as Book;
 
-                        //if (book == null)
-                        //    continue;
+                    //    //if (book == null)
+                    //    //    continue;
 
-                        //book.SetProperties("IOU", "An IOU for a random loot.", "Sorry about that chief...", "ACEmulator", "prewritten");
-                        //book.AddPage(corpse.Guid.Full, "ACEmulator", "prewritten", false, $"Sorry but at this time we do not have randomized and mutated loot in ACEmulator, you can ignore this item as it's meant only to be placeholder");
+                    //    //book.SetProperties("IOU", "An IOU for a random loot.", "Sorry about that chief...", "ACEmulator", "prewritten");
+                    //    //book.AddPage(corpse.Guid.Full, "ACEmulator", "prewritten", false, $"Sorry but at this time we do not have randomized and mutated loot in ACEmulator, you can ignore this item as it's meant only to be placeholder");
 
-                        //corpse.TryAddToInventory(book);
-                    }
-                    else // Trophy Loot
-                    {
+                    //    //corpse.TryAddToInventory(book);
+                    //}
+                    //else // Trophy Loot
+                    //{
                         var wo = WorldObjectFactory.CreateNewWorldObject(trophy.WeenieClassId);
 
                         if (wo == null)
@@ -311,6 +321,39 @@ namespace ACE.Server.WorldObjects
                         if (trophy.Palette > 0)
                             wo.PaletteTemplate = trophy.Palette;
 
+                        corpse.TryAddToInventory(wo);
+                   // }
+                }
+            }
+
+            if (Level > 3 && !Name.Equals("Chicken"))
+            {
+                var numItems = ThreadSafeRandom.Next(DeathTreasure.ItemMinAmount, DeathTreasure.ItemMaxAmount);
+                for (int i = 0; i < numItems; i++)
+                {
+                    if (ThreadSafeRandom.Next(0, 100) <= DeathTreasure.ItemChance)
+                    {
+                        var wo = LootGenerationFactory.CreateRandomLootObjects(tier, false);
+                        corpse.TryAddToInventory(wo);
+                    }
+                }
+
+                numItems = ThreadSafeRandom.Next(DeathTreasure.MagicItemMinAmount, DeathTreasure.MagicItemMaxAmount);
+                for (int i = 0; i < numItems; i++)
+                {
+                    if (ThreadSafeRandom.Next(0, 100) <= DeathTreasure.MagicItemChance)
+                    {
+                        var wo = LootGenerationFactory.CreateRandomLootObjects(tier, true);
+                        corpse.TryAddToInventory(wo);
+                    }
+                }
+
+                numItems = ThreadSafeRandom.Next(DeathTreasure.MundaneItemMinAmount, DeathTreasure.MundaneItemMaxAmount);
+                for (int i = 0; i < numItems; i++)
+                {
+                    if (ThreadSafeRandom.Next(0, 100) <= DeathTreasure.MundaneItemChance)
+                    {
+                        var wo = LootGenerationFactory.CreateMundaneObjects(tier);
                         corpse.TryAddToInventory(wo);
                     }
                 }
