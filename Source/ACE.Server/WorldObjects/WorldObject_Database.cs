@@ -115,6 +115,9 @@ namespace ACE.Server.WorldObjects
         /// <returns></returns>
         public bool IsDecayableThatShouldPersistToShard()
         {
+            if (TimeToRot.HasValue && (TimeToRot > 1 || TimeToRot == -1))
+                return true;
+
             if (!IsDecayable())
                 return false;
 
