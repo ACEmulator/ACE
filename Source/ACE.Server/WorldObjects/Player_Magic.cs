@@ -178,15 +178,13 @@ namespace ACE.Server.WorldObjects
             var player = this;
             var spell = new Spell(spellId);
 
-            if (spell._spellBase == null)
+            if (spell.NotFound)
             {
-                Session.Network.EnqueueSend(new GameEventUseDone(Session, WeenieError.MagicInvalidSpellType));
-                return false;
-            }
+                if (spell._spellBase == null)
+                    Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, $"SpellId {spellId} Invalid."));
+                else
+                    Session.Network.EnqueueSend(new GameMessageSystemChat($"{spell.Name} spell not implemented, yet!", ChatMessageType.System));
 
-            if (spell._spell == null)
-            {
-                Session.Network.EnqueueSend(new GameMessageSystemChat($"{spell.Name} spell not implemented, yet!", ChatMessageType.System));
                 return false;
             }
 
@@ -280,15 +278,13 @@ namespace ACE.Server.WorldObjects
 
                 var spell = new Spell(spellId);
 
-                if (spell._spellBase == null)
+                if (spell.NotFound)
                 {
-                    Session.Network.EnqueueSend(new GameEventUseDone(Session, errorType: WeenieError.MagicInvalidSpellType));
-                    return false;
-                }
+                    if (spell._spellBase == null)
+                        Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, $"SpellId {spellId} Invalid."));
+                    else
+                        Session.Network.EnqueueSend(new GameMessageSystemChat($"{spell.Name} spell not implemented, yet!", ChatMessageType.System));
 
-                if (spell._spell == null)
-                {
-                    Session.Network.EnqueueSend(new GameMessageSystemChat($"{spell.Name} spell not implemented, yet!", ChatMessageType.System));
                     return false;
                 }
 
@@ -380,7 +376,7 @@ namespace ACE.Server.WorldObjects
 
             if (spell._spellBase == null)
             {
-                Session.Network.EnqueueSend(new GameEventUseDone(Session, WeenieError.MagicInvalidSpellType));
+                Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, $"SpellId {spellId} Invalid."));
                 return;
             }
 
@@ -426,7 +422,7 @@ namespace ACE.Server.WorldObjects
 
             if (spell._spellBase == null)
             {
-                Session.Network.EnqueueSend(new GameEventUseDone(Session, errorType: WeenieError.MagicInvalidSpellType));
+                Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, $"SpellId {spellId} Invalid."));
                 return;
             }
 
@@ -476,11 +472,29 @@ namespace ACE.Server.WorldObjects
             var player = this;
             var creatureTarget = target as Creature;
 
+            if (player.IsBusy == true)
+            {
+                player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.YoureTooBusy));
+                return;
+            }
+            player.IsBusy = true;
+
             var spell = new Spell(spellId);
 
-            if (spell._spellBase == null)
+            if (spell.NotFound)
             {
-                player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.MagicInvalidSpellType));
+                if (spell._spellBase == null)
+                {
+                    Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, $"SpellId {spellId} Invalid."));
+                    Session.Network.EnqueueSend(new GameEventUseDone(Session, WeenieError.None));
+                }
+                else
+                {
+                    Session.Network.EnqueueSend(new GameMessageSystemChat($"{spell.Name} spell not implemented, yet!", ChatMessageType.System));
+                    Session.Network.EnqueueSend(new GameEventUseDone(Session, WeenieError.MagicInvalidSpellType));
+                }
+
+                player.IsBusy = false;
                 return;
             }
 
@@ -488,23 +502,9 @@ namespace ACE.Server.WorldObjects
             {
                 player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, $"{spell.Name} cannot be cast on {target.Name}."));
                 player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.None));
+                player.IsBusy = false;
                 return;
             }
-
-            if (spell._spell == null)
-            {
-                player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{spell.Name} spell not implemented, yet!", ChatMessageType.System));
-                player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.MagicInvalidSpellType));
-                return;
-            }
-
-            if (player.IsBusy == true)
-            {
-                player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.YoureTooBusy));
-                return;
-            }
-            else
-                player.IsBusy = true;
 
             // if casting implement has spell built in,
             // use spellcraft from the item, instead of player's magic skill?
@@ -870,10 +870,17 @@ namespace ACE.Server.WorldObjects
 
             if (spell.NotFound)
             {
-                if (spell._spellBase != null)
+                if (spell._spellBase == null)
+                {
+                    Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, $"SpellId {spellId} Invalid."));
+                    Session.Network.EnqueueSend(new GameEventUseDone(Session, WeenieError.None));
+                }
+                else
+                {
                     Session.Network.EnqueueSend(new GameMessageSystemChat($"{spell.Name} spell not implemented, yet!", ChatMessageType.System));
+                    Session.Network.EnqueueSend(new GameEventUseDone(Session, WeenieError.MagicInvalidSpellType));
+                }
 
-                Session.Network.EnqueueSend(new GameEventUseDone(Session, errorType: WeenieError.MagicInvalidSpellType));
                 IsBusy = false;
                 return;
             }
