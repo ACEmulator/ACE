@@ -110,7 +110,8 @@ namespace ACE.Server.Physics.Common
         {
             /*Console.WriteLine("EnvCollisionProfile");
             Console.WriteLine("Source: " + WorldObject.Name);
-            Console.WriteLine("Target: " + target.WeenieObj.WorldObject.Name);*/
+            Console.WriteLine("Target: " + target.WeenieObj.WorldObject.Name);
+            Console.WriteLine("Velocity: " + prof.Velocity);*/
 
             if (WorldObject != null)
             {
