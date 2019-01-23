@@ -17,7 +17,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         protected TimeSpan DefaultTimeToRot { get; set; } = TimeSpan.FromMinutes(5);
 
-        protected double? CachedTimeToRot { get; set; }
+        public double? CachedTimeToRot { get; private set; }
 
         /// <summary>
         /// A decayable object is one that, when it exists on a landblock, would decay (rot) over time.<para />
