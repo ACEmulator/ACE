@@ -1620,8 +1620,8 @@ namespace ACE.Server.Physics
 
         public void UpdateObjectInternalServer(double quantum)
         {
-            var offsetFrame = new AFrame();
-            UpdatePhysicsInternal((float)quantum, ref offsetFrame);
+            //var offsetFrame = new AFrame();
+            //UpdatePhysicsInternal((float)quantum, ref offsetFrame);
 
             var transit = transition(Position, RequestPos, false);
             if (transit != null)
@@ -3914,7 +3914,8 @@ namespace ACE.Server.Physics
                 set_current_pos(RequestPos);
 
             // temp for players
-            CachedVelocity = Vector3.Zero;
+            if ((TransientState & TransientStateFlags.Contact) != 0)
+                CachedVelocity = Vector3.Zero;
 
             UpdateTime = PhysicsTimer.CurrentTime;
         }
