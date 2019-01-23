@@ -384,5 +384,14 @@ namespace ACE.Server.Entity
             foreach (var fellow in FellowshipMembers)
                 fellow.Session.Network.EnqueueSend(new GameEventFellowshipUpdateFellow(fellow.Session, player, ShareXP, FellowUpdateType.Vitals));
         }
+
+        public void OnDeath(Player player)
+        {
+            foreach (var fellow in FellowshipMembers)
+            {
+                if (fellow != player)
+                    fellow.Session.Network.EnqueueSend(new GameMessageSystemChat($"Your fellow {player.Name} has died!", ChatMessageType.Broadcast));
+            }
+        }
     }
 }

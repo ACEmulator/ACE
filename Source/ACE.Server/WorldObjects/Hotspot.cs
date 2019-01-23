@@ -125,9 +125,10 @@ namespace ACE.Server.WorldObjects
                     else if (result > plr.Mana.MaxValue && manaDmg < 0)
                         manaDmg -= plr.Mana.MaxValue - result;
                     if (manaDmg != 0)
-                        plr.UpdateVital(plr.Mana, plr.Mana.Current - (uint)Math.Round(manaDmg));
+                        amount = plr.UpdateVital(plr.Mana, plr.Mana.Current - (uint)Math.Round(manaDmg));
                     break;
                 default:
+                    if (plr.Invincible ?? false) return;
                     amount = (float)plr.GetLifeResistance(DamageType) * amount;
                     plr.TakeDamage(this, DamageType, amount, Server.Entity.BodyPart.Foot);
                     break;

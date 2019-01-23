@@ -227,7 +227,13 @@ namespace ACE.Server.Entity
             new DeathMessage(
                 "You killed {0}!",
                 "You were killed by {1}!",
-                "{0} was killed by {1}!")
+                "{0} was killed by {1}!"),
+
+            new DeathMessage(
+                "{0} died!",
+                "You died!",
+                "{0} died!"
+            )
         };
 
         static Strings()
@@ -493,7 +499,7 @@ namespace ACE.Server.Entity
             else
                 severity = "minor";
 
-            return $"You suffer {damage} points of {severity} impact damage.";
+            return $"You suffer {damage:N0} points of {severity} impact damage.";
         }
 
         /// <summary>

@@ -502,7 +502,8 @@ namespace ACE.Server.Physics.Animation
 
             CalcNumSteps(ref offset, ref offsetPerStep, ref numSteps);  // restructure as retval?
 
-            var maxSteps = 30;
+            //var maxSteps = 30;
+            var maxSteps = 1000;
             if (numSteps > maxSteps && !ObjectInfo.Object.IsSightObj)
             {
                 //Console.WriteLine("NumSteps: " + numSteps);

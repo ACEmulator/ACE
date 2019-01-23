@@ -105,11 +105,13 @@ namespace ACE.Server.WorldObjects
             var jumpVelocity = 0.0f;
             PhysicsObj.WeenieObj.InqJumpVelocity(1.0f, ref jumpVelocity);
 
-            var overspeed = jumpVelocity + collision.Velocity.Z + 4.5f;     // a little leeway
+            var cachedVelocity = PhysicsObj.CachedVelocity;
+
+            var overspeed = jumpVelocity + cachedVelocity.Z + 4.5f;     // a little leeway
 
             var ratio = -overspeed / jumpVelocity;
 
-            /*Console.WriteLine($"Collision velocity: {collision.Velocity}");
+            /*Console.WriteLine($"Collision velocity: {cachedVelocity}");
             Console.WriteLine($"Jump velocity: {jumpVelocity}");
             Console.WriteLine($"Overspeed: {overspeed}");
             Console.WriteLine($"Ratio: {ratio}");*/
@@ -121,7 +123,7 @@ namespace ACE.Server.WorldObjects
 
                 // bludgeon damage
                 // impact damage
-                if (damage > 0.0f && (StartJump == null || StartJump.PositionZ - Location.PositionZ > 10.0f))
+                if (damage > 0.0f && (StartJump == null || StartJump.PositionZ - PhysicsObj.Position.Frame.Origin.Z > 10.0f))
                     TakeDamage_Falling(damage);
             }
         }
@@ -137,28 +139,25 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            // scale by bludgeon protection?
+            // scale by bludgeon protection
             var resistance = EnchantmentManager.GetResistanceMod(DamageType.Bludgeon);
-
             var damage = (uint)Math.Round(amount * resistance);
-
-            var percent = (float)damage / Health.MaxValue;
-
-            var msg = Strings.GetFallMessage(damage, Health.MaxValue);
-
-            Session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Combat));
-            EnqueueBroadcast(new GameMessageSound(Guid, Sound.Wound3, 1.0f));
 
             // update health
             var damageTaken = (uint)-UpdateVitalDelta(Health, (int)-damage);
             DamageHistory.Add(this, DamageType.Bludgeon, damageTaken);
 
+            var msg = Strings.GetFallMessage(damageTaken, Health.MaxValue);
+
+            Session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Combat));
+
             if (Health.Current == 0)
             {
                 OnDeath(this, DamageType.Bludgeon, false);
                 Die();
-                return;
             }
+            else
+                EnqueueBroadcast(new GameMessageSound(Guid, Sound.Wound3, 1.0f));
         }
     }
 }

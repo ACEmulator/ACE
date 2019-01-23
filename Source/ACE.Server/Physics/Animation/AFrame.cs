@@ -217,7 +217,7 @@ namespace ACE.Server.Physics.Animation
 
         public override string ToString()
         {
-            return Origin + " " + Orientation;
+            return $"[{Origin.X} {Origin.Y} {Origin.Z}] {Orientation.W} {Orientation.X} {Orientation.Y} {Orientation.Z}";
         }
 
         public bool Equals(AFrame frame)

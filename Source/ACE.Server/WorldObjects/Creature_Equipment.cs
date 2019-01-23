@@ -382,6 +382,8 @@ namespace ACE.Server.WorldObjects
 
         public void GenerateWieldList()
         {
+            var attackable = Attackable ?? false;
+
             foreach (var item in Biota.BiotaPropertiesCreateList.Where(x => x.DestinationType == (int) DestinationType.Wield || x.DestinationType == (int) DestinationType.WieldTreasure))
             {
                 var wo = WorldObjectFactory.CreateNewWorldObject(item.WeenieClassId);
@@ -394,8 +396,8 @@ namespace ACE.Server.WorldObjects
                     if (item.Shade > 0)
                         wo.Shade = item.Shade;
 
-                    //if (wo.ValidLocations != null)
-                        //TryEquipObject(wo, (int) wo.ValidLocations.Value);
+                    if (!attackable && wo.ValidLocations != null)
+                        TryEquipObject(wo, (EquipMask)wo.ValidLocations);
 
                     TryAddToInventory(wo);
                 }

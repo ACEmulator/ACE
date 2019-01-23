@@ -43,10 +43,16 @@ namespace ACE.Server.WorldObjects
         {
             var deathMessage = Strings.GetDeathMessage(damageType, criticalHit);
 
+            if (lastDamager == this)
+                deathMessage = Strings.General[1];
+
             // if killed by a player, send them a message
             var playerKiller = lastDamager as Player;
-            if (playerKiller != null)
+            if (playerKiller != null && playerKiller != this)
             {
+                if (criticalHit)
+                    deathMessage = Strings.PKCritical[0];
+
                 var killerMsg = string.Format(deathMessage.Killer, Name);
 
                 // todo: verify message type
