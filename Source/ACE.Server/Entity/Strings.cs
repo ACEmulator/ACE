@@ -227,7 +227,13 @@ namespace ACE.Server.Entity
             new DeathMessage(
                 "You killed {0}!",
                 "You were killed by {1}!",
-                "{0} was killed by {1}!")
+                "{0} was killed by {1}!"),
+
+            new DeathMessage(
+                "{0} died!",
+                "You died!",
+                "{0} died!"
+            )
         };
 
         static Strings()

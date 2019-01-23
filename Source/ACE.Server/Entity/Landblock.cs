@@ -148,7 +148,7 @@ namespace ACE.Server.Entity
                 foreach (var fo in factoryObjects)
                 {
                     WorldObject parent = null;
-                    if (fo.WeenieType == ACE.Entity.Enum.WeenieType.House && fo.HouseType == ACE.Entity.Enum.HouseType.Mansion)
+                    if (fo.WeenieType == WeenieType.House && fo.HouseType == HouseType.Mansion)
                     {
                         var house = fo as House;
                         houses.Add(house);

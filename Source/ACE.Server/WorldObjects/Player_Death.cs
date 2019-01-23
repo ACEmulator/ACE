@@ -52,6 +52,9 @@ namespace ACE.Server.WorldObjects
             excludePlayers.AddRange(nearbyPlayers);
             excludePlayers.Add(this);   // exclude self
 
+            if (Fellowship != null)
+                Fellowship.OnDeath(this);
+
             // if the player's lifestone is in a different landblock, also broadcast their demise to that landblock
             if (Sanctuary != null && Location.Landblock != Sanctuary.Landblock)
             {

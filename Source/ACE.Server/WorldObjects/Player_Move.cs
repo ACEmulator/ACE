@@ -137,28 +137,25 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            // scale by bludgeon protection?
+            // scale by bludgeon protection
             var resistance = EnchantmentManager.GetResistanceMod(DamageType.Bludgeon);
-
             var damage = (uint)Math.Round(amount * resistance);
-
-            var percent = (float)damage / Health.MaxValue;
-
-            var msg = Strings.GetFallMessage(damage, Health.MaxValue);
-
-            Session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Combat));
-            EnqueueBroadcast(new GameMessageSound(Guid, Sound.Wound3, 1.0f));
 
             // update health
             var damageTaken = (uint)-UpdateVitalDelta(Health, (int)-damage);
             DamageHistory.Add(this, DamageType.Bludgeon, damageTaken);
 
+            var msg = Strings.GetFallMessage(damageTaken, Health.MaxValue);
+
+            Session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Combat));
+
             if (Health.Current == 0)
             {
                 OnDeath(this, DamageType.Bludgeon, false);
                 Die();
-                return;
             }
+            else
+                EnqueueBroadcast(new GameMessageSound(Guid, Sound.Wound3, 1.0f));
         }
     }
 }
