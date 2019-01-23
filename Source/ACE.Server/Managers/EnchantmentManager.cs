@@ -779,7 +779,15 @@ namespace ACE.Server.Managers
             var damageMod = GetAdditiveMod(PropertyInt.Damage);
             var auraDamageMod = GetAdditiveMod(PropertyInt.WeaponAuraDamage);
 
-            return damageMod + auraDamageMod;
+            // there is an unfortunate situation in the spell db,
+            // where blood drinker 1-7 are defined as PropertyInt.Damage
+            // (possibly from also being cast as direct item spells elsewhere?)
+            // and blood drinker 8 is properly defined as aura...
+
+            if (WorldObject is Creature && auraDamageMod != 0)
+                return auraDamageMod;
+            else
+                return damageMod;
         }
 
         /// <summary>
@@ -798,7 +806,10 @@ namespace ACE.Server.Managers
             var offenseMod = GetAdditiveMod(PropertyFloat.WeaponOffense);
             var auraOffenseMod = GetAdditiveMod(PropertyFloat.WeaponAuraOffense);
 
-            return offenseMod + auraOffenseMod;
+            if (WorldObject is Creature && auraOffenseMod != 0)
+                return auraOffenseMod;
+            else
+                return offenseMod;
         }
 
         /// <summary>
@@ -809,7 +820,10 @@ namespace ACE.Server.Managers
             var speedMod = GetAdditiveMod(PropertyInt.WeaponTime);
             var auraSpeedMod = GetAdditiveMod(PropertyInt.WeaponAuraSpeed);
 
-            return speedMod + auraSpeedMod;
+            if (WorldObject is Creature && auraSpeedMod != 0)
+                return auraSpeedMod;
+            else
+                return speedMod;
         }
 
         /// <summary>
@@ -820,7 +834,10 @@ namespace ACE.Server.Managers
             var defenseMod = GetAdditiveMod(PropertyFloat.WeaponDefense);
             var auraDefenseMod = GetAdditiveMod(PropertyFloat.WeaponAuraDefense);
 
-            return defenseMod + auraDefenseMod;
+            if (WorldObject is Creature && auraDefenseMod != 0)
+                return auraDefenseMod;
+            else
+                return defenseMod;
         }
 
         /// <summary>
@@ -831,7 +848,10 @@ namespace ACE.Server.Managers
             var manaConvMod = GetMultiplicativeMod(PropertyFloat.ManaConversionMod);
             var manaConvAuraMod = GetMultiplicativeMod(PropertyFloat.WeaponAuraManaConv);
 
-            return manaConvMod * manaConvAuraMod;
+            if (WorldObject is Creature && manaConvAuraMod != 1.0f)
+                return manaConvAuraMod;
+            else
+                return manaConvMod;
         }
 
         /// <summary>
@@ -842,7 +862,10 @@ namespace ACE.Server.Managers
             var elementalDamageMod = GetAdditiveMod(PropertyFloat.ElementalDamageMod);
             var elementalDamageAuraMod = GetAdditiveMod(PropertyFloat.WeaponAuraElemental);
 
-            return elementalDamageMod + elementalDamageAuraMod;
+            if (WorldObject is Creature && elementalDamageAuraMod != 0)
+                return elementalDamageAuraMod;
+            else
+                return elementalDamageMod;
         }
 
         /// <summary>
