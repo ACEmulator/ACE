@@ -77,7 +77,7 @@ namespace ACE.Server.WorldObjects
 
                 actionChain.AddAction(this, () =>
                 {
-                    if (AttackTarget == null) return;
+                    if (AttackTarget == null || IsDead) return;
 
                     var critical = false;
                     var damageType = DamageType.Undef;

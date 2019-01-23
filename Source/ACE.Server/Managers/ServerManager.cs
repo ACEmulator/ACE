@@ -97,6 +97,7 @@ namespace ACE.Server.Managers
                 Thread.Sleep(10);
             }
 
+            PropertyManager.ResyncVariables();
             PropertyManager.StopUpdating();
 
             log.Debug("Logging off all players...");

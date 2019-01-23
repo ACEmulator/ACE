@@ -1,8 +1,11 @@
+using System;
+
 namespace ACE.Entity.Enum
 {
     /// <summary>
     /// Determines the monster behavior for which players are targetted
     /// </summary>
+    [Flags]
     public enum TargetingTactic
     {
         // note that this is still trying to be figured out...

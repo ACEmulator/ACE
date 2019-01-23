@@ -1548,6 +1548,9 @@ namespace ACE.Server.Physics
 
         public void UpdateObjectInternalServer(double quantum)
         {
+            var offsetFrame = new AFrame();
+            UpdatePhysicsInternal((float)quantum, ref offsetFrame);
+
             var transit = transition(Position, RequestPos, false);
             if (transit != null)
             {

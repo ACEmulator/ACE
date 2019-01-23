@@ -776,14 +776,18 @@ namespace ACE.Server.Managers
         /// </summary>
         public virtual int GetDamageMod()
         {
-            if (!WorldObject.IsEnchantable)
-                return 0;
+            var damageMod = GetAdditiveMod(PropertyInt.Damage);
+            var auraDamageMod = GetAdditiveMod(PropertyInt.WeaponAuraDamage);
 
-            // BD8 seems to be the only one with aura in db?
-            var aura = GetAdditiveMod(PropertyInt.WeaponAuraDamage);
-            if (aura != 0) return aura;
+            // there is an unfortunate situation in the spell db,
+            // where blood drinker 1-7 are defined as PropertyInt.Damage
+            // (possibly from also being cast as direct item spells elsewhere?)
+            // and blood drinker 8 is properly defined as aura...
 
-            return GetAdditiveMod(PropertyInt.Damage);
+            if (WorldObject is Creature && auraDamageMod != 0)
+                return auraDamageMod;
+            else
+                return damageMod;
         }
 
         /// <summary>
@@ -791,9 +795,6 @@ namespace ACE.Server.Managers
         /// </summary>
         public virtual float GetDamageModifier()
         {
-            if (!WorldObject.IsEnchantable)
-                return 1.0f;
-
             return GetMultiplicativeMod(PropertyFloat.DamageMod);
         }
 
@@ -802,13 +803,13 @@ namespace ACE.Server.Managers
         /// </summary>
         public virtual float GetAttackMod()
         {
-            if (!WorldObject.IsEnchantable)
-                return 0.0f;
+            var offenseMod = GetAdditiveMod(PropertyFloat.WeaponOffense);
+            var auraOffenseMod = GetAdditiveMod(PropertyFloat.WeaponAuraOffense);
 
-            var aura = GetAdditiveMod(PropertyFloat.WeaponAuraOffense);
-            if (aura != 0) return aura;
-
-            return GetAdditiveMod(PropertyFloat.WeaponOffense);
+            if (WorldObject is Creature && auraOffenseMod != 0)
+                return auraOffenseMod;
+            else
+                return offenseMod;
         }
 
         /// <summary>
@@ -816,13 +817,13 @@ namespace ACE.Server.Managers
         /// </summary>
         public virtual int GetWeaponSpeedMod()
         {
-            if (!WorldObject.IsEnchantable)
-                return 0;
+            var speedMod = GetAdditiveMod(PropertyInt.WeaponTime);
+            var auraSpeedMod = GetAdditiveMod(PropertyInt.WeaponAuraSpeed);
 
-            var aura = GetAdditiveMod(PropertyInt.WeaponAuraSpeed);
-            if (aura != 0) return aura;
-
-            return GetAdditiveMod(PropertyInt.WeaponTime);
+            if (WorldObject is Creature && auraSpeedMod != 0)
+                return auraSpeedMod;
+            else
+                return speedMod;
         }
 
         /// <summary>
@@ -830,13 +831,13 @@ namespace ACE.Server.Managers
         /// </summary>
         public virtual float GetDefenseMod()
         {
-            if (!WorldObject.IsEnchantable)
-                return 0;
+            var defenseMod = GetAdditiveMod(PropertyFloat.WeaponDefense);
+            var auraDefenseMod = GetAdditiveMod(PropertyFloat.WeaponAuraDefense);
 
-            var aura = GetAdditiveMod(PropertyFloat.WeaponAuraDefense);
-            if (aura != 0) return aura;
-
-            return GetAdditiveMod(PropertyFloat.WeaponDefense);
+            if (WorldObject is Creature && auraDefenseMod != 0)
+                return auraDefenseMod;
+            else
+                return defenseMod;
         }
 
         /// <summary>
@@ -844,14 +845,13 @@ namespace ACE.Server.Managers
         /// </summary>
         public virtual float GetManaConvMod()
         {
-            if (!WorldObject.IsEnchantable)
-                return 1.0f;
+            var manaConvMod = GetMultiplicativeMod(PropertyFloat.ManaConversionMod);
+            var manaConvAuraMod = GetMultiplicativeMod(PropertyFloat.WeaponAuraManaConv);
 
-            // multiplicative
-            var aura = GetMultiplicativeMod(PropertyFloat.WeaponAuraManaConv);
-            if (aura != 1.0f) return aura;
-
-            return GetMultiplicativeMod(PropertyFloat.ManaConversionMod);
+            if (WorldObject is Creature && manaConvAuraMod != 1.0f)
+                return manaConvAuraMod;
+            else
+                return manaConvMod;
         }
 
         /// <summary>
@@ -859,14 +859,13 @@ namespace ACE.Server.Managers
         /// </summary>
         public virtual float GetElementalDamageMod()
         {
-            if (!WorldObject.IsEnchantable)
-                return 0;
+            var elementalDamageMod = GetAdditiveMod(PropertyFloat.ElementalDamageMod);
+            var elementalDamageAuraMod = GetAdditiveMod(PropertyFloat.WeaponAuraElemental);
 
-            // additive
-            var aura = GetAdditiveMod(PropertyFloat.WeaponAuraElemental);
-            if (aura != 0) return aura;
-
-            return GetAdditiveMod(PropertyFloat.ElementalDamageMod);
+            if (WorldObject is Creature && elementalDamageAuraMod != 0)
+                return elementalDamageAuraMod;
+            else
+                return elementalDamageMod;
         }
 
         /// <summary>
@@ -874,9 +873,6 @@ namespace ACE.Server.Managers
         /// </summary>
         public virtual float GetVarianceMod()
         {
-            if (!WorldObject.IsEnchantable)
-                return 1.0f;
-
             return GetMultiplicativeMod(PropertyFloat.DamageVariance);
         }
 
@@ -885,9 +881,6 @@ namespace ACE.Server.Managers
         /// </summary>
         public virtual int GetArmorMod()
         {
-            if (!WorldObject.IsEnchantable)
-                return 0;
-
             return GetAdditiveMod(PropertyInt.ArmorLevel);
         }
 
@@ -896,9 +889,6 @@ namespace ACE.Server.Managers
         /// </summary>
         public virtual float GetArmorModVsType(DamageType damageType)
         {
-            if (!WorldObject.IsEnchantable)
-                return 0.0f;
-
             var typeFlags = EnchantmentTypeFlags.Float | EnchantmentTypeFlags.SingleStat | EnchantmentTypeFlags.Additive;
             var key = GetImpenBaneKey(damageType);
             var enchantments = GetEnchantments_TopLayer(typeFlags, (uint)key);

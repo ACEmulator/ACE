@@ -178,15 +178,13 @@ namespace ACE.Server.WorldObjects
             var player = this;
             var spell = new Spell(spellId);
 
-            if (spell._spellBase == null)
+            if (spell.NotFound)
             {
-                Session.Network.EnqueueSend(new GameEventUseDone(Session, WeenieError.MagicInvalidSpellType));
-                return false;
-            }
+                if (spell._spellBase == null)
+                    Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, $"SpellId {spellId} Invalid."));
+                else
+                    Session.Network.EnqueueSend(new GameMessageSystemChat($"{spell.Name} spell not implemented, yet!", ChatMessageType.System));
 
-            if (spell._spell == null)
-            {
-                Session.Network.EnqueueSend(new GameMessageSystemChat($"{spell.Name} spell not implemented, yet!", ChatMessageType.System));
                 return false;
             }
 
@@ -280,15 +278,13 @@ namespace ACE.Server.WorldObjects
 
                 var spell = new Spell(spellId);
 
-                if (spell._spellBase == null)
+                if (spell.NotFound)
                 {
-                    Session.Network.EnqueueSend(new GameEventUseDone(Session, errorType: WeenieError.MagicInvalidSpellType));
-                    return false;
-                }
+                    if (spell._spellBase == null)
+                        Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, $"SpellId {spellId} Invalid."));
+                    else
+                        Session.Network.EnqueueSend(new GameMessageSystemChat($"{spell.Name} spell not implemented, yet!", ChatMessageType.System));
 
-                if (spell._spell == null)
-                {
-                    Session.Network.EnqueueSend(new GameMessageSystemChat($"{spell.Name} spell not implemented, yet!", ChatMessageType.System));
                     return false;
                 }
 
@@ -380,7 +376,7 @@ namespace ACE.Server.WorldObjects
 
             if (spell._spellBase == null)
             {
-                Session.Network.EnqueueSend(new GameEventUseDone(Session, WeenieError.MagicInvalidSpellType));
+                Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, $"SpellId {spellId} Invalid."));
                 return;
             }
 
@@ -426,7 +422,7 @@ namespace ACE.Server.WorldObjects
 
             if (spell._spellBase == null)
             {
-                Session.Network.EnqueueSend(new GameEventUseDone(Session, errorType: WeenieError.MagicInvalidSpellType));
+                Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, $"SpellId {spellId} Invalid."));
                 return;
             }
 
@@ -465,6 +461,9 @@ namespace ACE.Server.WorldObjects
             Success
         }
 
+        public static float Windup_MaxMove = 6.0f;
+        public static float Windup_MaxMoveSq = Windup_MaxMove * Windup_MaxMove;
+
         /// <summary>
         /// Method used for handling player targeted spell casts
         /// </summary>
@@ -473,11 +472,29 @@ namespace ACE.Server.WorldObjects
             var player = this;
             var creatureTarget = target as Creature;
 
+            if (player.IsBusy == true)
+            {
+                player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.YoureTooBusy));
+                return;
+            }
+            player.IsBusy = true;
+
             var spell = new Spell(spellId);
 
-            if (spell._spellBase == null)
+            if (spell.NotFound)
             {
-                player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.MagicInvalidSpellType));
+                if (spell._spellBase == null)
+                {
+                    Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, $"SpellId {spellId} Invalid."));
+                    Session.Network.EnqueueSend(new GameEventUseDone(Session, WeenieError.None));
+                }
+                else
+                {
+                    Session.Network.EnqueueSend(new GameMessageSystemChat($"{spell.Name} spell not implemented, yet!", ChatMessageType.System));
+                    Session.Network.EnqueueSend(new GameEventUseDone(Session, WeenieError.MagicInvalidSpellType));
+                }
+
+                player.IsBusy = false;
                 return;
             }
 
@@ -485,23 +502,9 @@ namespace ACE.Server.WorldObjects
             {
                 player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, $"{spell.Name} cannot be cast on {target.Name}."));
                 player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.None));
+                player.IsBusy = false;
                 return;
             }
-
-            if (spell._spell == null)
-            {
-                player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{spell.Name} spell not implemented, yet!", ChatMessageType.System));
-                player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.MagicInvalidSpellType));
-                return;
-            }
-
-            if (player.IsBusy == true)
-            {
-                player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.YoureTooBusy));
-                return;
-            }
-            else
-                player.IsBusy = true;
 
             // if casting implement has spell built in,
             // use spellcraft from the item, instead of player's magic skill?
@@ -593,6 +596,8 @@ namespace ACE.Server.WorldObjects
             var spellChain = new ActionChain();
             var castSpeed = 2.0f;   // hardcoded for player spell casting?
 
+            var startPos = new Position(Location);
+
             // do wind-up gestures: fastcast has no windup (creature enchantments)
             if (!spell.Flags.HasFlag(SpellFlags.FastCast) && !isWeaponSpell)
             {
@@ -623,22 +628,32 @@ namespace ACE.Server.WorldObjects
             var castingDelay = spell.Formula.GetCastTime(MotionTableId, castSpeed, isWeaponSpell);
             spellChain.AddDelaySeconds(castingDelay);
 
+            bool movedTooFar = false;
             spellChain.AddAction(this, () =>
             {
                 if (!isWeaponSpell)
                     TryBurnComponents(spell);
-            });
 
-            var checkPKStatusVsTarget = CheckPKStatusVsTarget(player, target, spell);
-            if (checkPKStatusVsTarget != null && checkPKStatusVsTarget == false)
-                castingPreCheckStatus = CastingPreCheckStatus.InvalidPKStatus;
+                // check windup move distance cap
+                var endPos = new Position(Location);
+                var dist = startPos.DistanceTo(endPos);
 
-            switch (castingPreCheckStatus)
-            {
-                case CastingPreCheckStatus.Success:
+                if (dist > Windup_MaxMove)
+                {
+                    castingPreCheckStatus = CastingPreCheckStatus.CastFailed;
+                    movedTooFar = true;
+                }
 
-                    spellChain.AddAction(this, () =>
-                    {
+                var checkPKStatusVsTarget = CheckPKStatusVsTarget(player, target, spell);
+                if (checkPKStatusVsTarget != null && checkPKStatusVsTarget == false)
+                    castingPreCheckStatus = CastingPreCheckStatus.InvalidPKStatus;
+
+                var useDone = WeenieError.None;
+
+                switch (castingPreCheckStatus)
+                {
+                    case CastingPreCheckStatus.Success:
+
                         if ((spell.Flags & SpellFlags.FellowshipSpell) == 0)
                             CreatePlayerSpell(target, spell);
                         else
@@ -647,54 +662,47 @@ namespace ACE.Server.WorldObjects
                             foreach (var fellow in fellows)
                                 CreatePlayerSpell(fellow, spell);
                         }
-                    });
-                    break;
+                        break;
 
-                case CastingPreCheckStatus.InvalidPKStatus:
+                    case CastingPreCheckStatus.InvalidPKStatus:
 
-                    spellChain.AddAction(this, () =>
-                    {
-                        switch (spell.School)
+                        if (spell.NumProjectiles > 0)
                         {
-                            case MagicSchool.WarMagic:
-                                WarMagic(target, spell);
-                                break;
-                            case MagicSchool.VoidMagic:
-                                VoidMagic(target, spell);
-                                break;
-                            case MagicSchool.ItemEnchantment:
-                                break;  // do nothing
-                            default:
-
-                                // not sure if this was in retail for creature and life, seems confusing?
-                                //EnqueueBroadcast(new GameMessageScript(target.Guid, spell.TargetEffect, spell.Formula.Scale));
-                                break;
+                            switch (spell.School)
+                            {
+                                case MagicSchool.WarMagic:
+                                    WarMagic(target, spell);
+                                    break;
+                                case MagicSchool.VoidMagic:
+                                    VoidMagic(target, spell);
+                                    break;
+                                case MagicSchool.LifeMagic:
+                                    LifeMagic(target, spell, out uint damage, out bool critical, out var enchantmentStatus);
+                                    break;
+                            }
                         }
-                    });
-                    break;
+                        else
+                            useDone = WeenieError.InvalidPkStatus;
 
-                default:
-                    spellChain.AddAction(this, () =>
-                    {
-                        EnqueueBroadcast(new GameMessageScript(Guid, ACE.Entity.Enum.PlayScript.Fizzle, 0.5f),
-                            new GameEventUseDone(player.Session, WeenieError.YourSpellFizzled));
-                    });
-                    break;
-            }
+                        break;
 
-            // return to magic combat stance
-            spellChain.AddAction(this, () =>
-            {
+                    default:
+                        useDone = WeenieError.YourSpellFizzled;
+                        EnqueueBroadcast(new GameMessageScript(Guid, ACE.Entity.Enum.PlayScript.Fizzle, 0.5f));
+                        break;
+                }
+
+                // return to magic combat stance
                 var returnStance = new Motion(MotionStance.Magic, MotionCommand.Ready, 1.0f);
                 EnqueueBroadcastMotion(returnStance);
+
+                player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, useDone));
+
+                if (movedTooFar)
+                    player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouHaveMovedTooFar));
             });
 
-            var useDone = (castingPreCheckStatus == CastingPreCheckStatus.InvalidPKStatus && (spell.School == MagicSchool.LifeMagic || spell.School == MagicSchool.CreatureEnchantment || spell.School == MagicSchool.ItemEnchantment)) ?
-                WeenieError.InvalidPkStatus : WeenieError.None;
-
-            if (castingPreCheckStatus != CastingPreCheckStatus.CastFailed)
-                spellChain.AddAction(this, () => player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, useDone)));
-            spellChain.AddDelaySeconds(1.0f);
+            spellChain.AddDelaySeconds(1.0f);   // TODO: get actual recoil timing
             spellChain.AddAction(this, () => { player.IsBusy = false; });
             spellChain.EnqueueChain();
 
@@ -862,10 +870,17 @@ namespace ACE.Server.WorldObjects
 
             if (spell.NotFound)
             {
-                if (spell._spellBase != null)
+                if (spell._spellBase == null)
+                {
+                    Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, $"SpellId {spellId} Invalid."));
+                    Session.Network.EnqueueSend(new GameEventUseDone(Session, WeenieError.None));
+                }
+                else
+                {
                     Session.Network.EnqueueSend(new GameMessageSystemChat($"{spell.Name} spell not implemented, yet!", ChatMessageType.System));
+                    Session.Network.EnqueueSend(new GameEventUseDone(Session, WeenieError.MagicInvalidSpellType));
+                }
 
-                Session.Network.EnqueueSend(new GameEventUseDone(Session, errorType: WeenieError.MagicInvalidSpellType));
                 IsBusy = false;
                 return;
             }
@@ -901,6 +916,8 @@ namespace ACE.Server.WorldObjects
             ActionChain spellChain = new ActionChain();
             var castSpeed = 2.0f;   // hardcoded for player spell casting?
 
+            var startPos = new Position(Location);
+
             // do wind-up gestures: fastcast has no windup (creature enchantments)
             if (!spell.Flags.HasFlag(SpellFlags.FastCast))
             {
@@ -925,17 +942,27 @@ namespace ACE.Server.WorldObjects
             var castingDelay = spell.Formula.GetCastTime(MotionTableId, castSpeed);
             spellChain.AddDelaySeconds(castingDelay);
 
+            bool movedTooFar = true;
+
             spellChain.AddAction(this, () =>
             {
                 TryBurnComponents(spell);
-            });
 
-            switch (castingPreCheckStatus)
-            {
-                case CastingPreCheckStatus.Success:
-                    // TODO - Add other untargeted spells below
-                    spellChain.AddAction(this, () =>
-                    {
+                var endPos = new Position(Location);
+                var dist = startPos.DistanceTo(endPos);
+
+                if (dist > Windup_MaxMove)
+                {
+                    castingPreCheckStatus = CastingPreCheckStatus.CastFailed;
+                    movedTooFar = true;
+                }
+
+                var useDone = WeenieError.None;
+
+                switch (castingPreCheckStatus)
+                {
+                    case CastingPreCheckStatus.Success:
+                        // TODO - Add other untargeted spells below
                         switch (spell.School)
                         {
                             case MagicSchool.WarMagic:
@@ -946,29 +973,24 @@ namespace ACE.Server.WorldObjects
                                 Session.Network.EnqueueSend(new GameMessageSystemChat("Untargeted SpellID " + spellId + " not yet implemented!", ChatMessageType.System));
                                 break;
                         }
-                    });
-                    break;
-                default:
-                    spellChain.AddAction(this, () =>
-                    {
-                        EnqueueBroadcast(new GameMessageScript(Guid, ACE.Entity.Enum.PlayScript.Fizzle, 0.5f),
-                            new GameEventUseDone(Session, WeenieError.YourSpellFizzled));
-                    });
-                    break;
-            }
+                        break;
+                    default:
+                        useDone = WeenieError.YourSpellFizzled;
+                        EnqueueBroadcast(new GameMessageScript(Guid, ACE.Entity.Enum.PlayScript.Fizzle, 0.5f));
+                        break;
+                }
 
-            // return to magic combat stance
-            spellChain.AddAction(this, () =>
-            {
+                // return to magic combat stance
                 var returnStance = new Motion(MotionStance.Magic, MotionCommand.Ready, 1.0f);
                 EnqueueBroadcastMotion(returnStance);
+
+                Session.Network.EnqueueSend(new GameEventUseDone(Session, useDone));
+
+                if (movedTooFar)
+                    Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouHaveMovedTooFar));
             });
 
-            // should this happen sync with IsBusy?
-            if (castingPreCheckStatus != CastingPreCheckStatus.CastFailed)
-                spellChain.AddAction(this, () => Session.Network.EnqueueSend(new GameEventUseDone(Session, WeenieError.None)));
-
-            spellChain.AddDelaySeconds(1.0f);
+            spellChain.AddDelaySeconds(1.0f);   // TODO: get actual recoil timing
             spellChain.AddAction(this, () => IsBusy = false);
             spellChain.EnqueueChain();
 

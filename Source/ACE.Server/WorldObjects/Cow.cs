@@ -33,20 +33,6 @@ namespace ACE.Server.WorldObjects
             UseRadius = 1;
         }
 
-        private double? resetTimestamp;
-        private double? ResetTimestamp
-        {
-            get { return resetTimestamp; }
-            set { resetTimestamp = Time.GetUnixTime(); }
-        }
-
-        private double? useTimestamp;
-        private double? UseTimestamp
-        {
-            get { return useTimestamp; }
-            set { useTimestamp = Time.GetUnixTime(); }
-        }
-
         /// <summary>
         /// This is raised by Player.HandleActionUseItem.<para />
         /// The item does not exist in the players possession.<para />

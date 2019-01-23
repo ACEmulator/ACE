@@ -54,20 +54,65 @@ namespace ACE.Server.WorldObjects
             if (!String.IsNullOrEmpty(scribeAccount)) SetProperty(PropertyString.ScribeAccount, scribeAccount);
         }
 
-        public void AddPage(uint authorId, string authorName, string authorAccount, bool ignoreAuthor, string pageText)
+        public BiotaPropertiesBookPageData AddPage(uint authorId, string authorName, string authorAccount, bool ignoreAuthor, string pageText)
         {
+            var pages = Biota.GetBookAllPages(Guid.Full, BiotaDatabaseLock);
+
+            if (pages == null || pages.Count == AppraisalMaxPages)
+                return null;
+
             var page = new BiotaPropertiesBookPageData()
             {
                 ObjectId = Biota.Id,
-                PageId = (uint)Biota.BiotaPropertiesBookPageData.Count,
+                PageId = (uint)pages.Count,
                 AuthorId = authorId,
                 AuthorName = authorName,
                 IgnoreAuthor = ignoreAuthor,
                 PageText = pageText
             };
 
-            Biota.BiotaPropertiesBookPageData.Add(page);
-            SetProperty(PropertyInt.AppraisalPages, Biota.BiotaPropertiesBookPageData.Count);
+            Biota.AddBookPage(page, BiotaDatabaseLock, out var alreadyExists);
+
+            if (alreadyExists) return null;
+
+            SetProperty(PropertyInt.AppraisalPages, pages.Count + 1);
+            return page;
+        }
+
+        public bool ModifyPage(uint pageId, string pageText)
+        {
+            var page = Biota.GetBookPageData(Guid.Full, pageId, BiotaDatabaseLock);
+
+            if (page == null || page.PageText.Equals(pageText))
+                return false;
+
+            page.PageText = pageText;
+            ChangesDetected = true;
+
+            return true;
+        }
+
+        public bool DeletePage(uint pageId)
+        {
+            var pages = Biota.GetBookAllPages(Guid.Full, BiotaDatabaseLock);
+
+            var success = Biota.DeleteBookPage(pageId, out var entity, BiotaDatabaseLock);
+
+            if (!success)
+                return false;
+
+            if (pageId < pages.Count - 1)
+            {
+                // handle deleting page from middle of book
+                for (var i = pageId + 1; i < pages.Count; i++)
+                {
+                    var page = Biota.GetBookPageData(Guid.Full, i, BiotaDatabaseLock);
+                    page.PageId--;
+                }
+            }
+            SetProperty(PropertyInt.AppraisalPages, pages.Count - 1);
+            ChangesDetected = true;
+            return true;
         }
 
         /// <summary>
@@ -95,7 +140,7 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// One function to handle both Player.OnUse and Landblock.HandleACtionOnUse functions
+        /// One function to handle both Player.OnUse and Landblock.HandleActionOnUse functions
         /// </summary>
         /// <param name="session"></param>
         private void BookUseHandler(Session session)

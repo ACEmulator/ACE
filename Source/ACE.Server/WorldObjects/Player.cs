@@ -395,6 +395,22 @@ namespace ACE.Server.WorldObjects
 
             if (!success && player != null)
                 player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{Name} tried and failed to assess you!", ChatMessageType.Appraisal));
+
+            // pooky logic - handle monsters attacking on appraisal
+            if (creature != null && creature.MonsterState == State.Idle)
+            {
+                var tolerance = (Tolerance)(creature.GetProperty(PropertyInt.Tolerance) ?? 0);
+                if (tolerance.HasFlag(Tolerance.Appraise))
+                {
+                    creature.AttackTarget = this;
+                    creature.WakeUp();
+                }
+            }
+        }
+
+        public override void OnCollideEnvironment()
+        {
+            //HandleFallingDamage();
         }
 
         public override void OnCollideObject(WorldObject target)
@@ -467,6 +483,39 @@ namespace ACE.Server.WorldObjects
                 CurrentLandblock?.GetObject(bookGuid).ReadBookPage(Session, pageNum);
             }
         }
+
+        public void HandleActionBookAddPage(uint bookGuid)
+        {
+            // find inventory book
+            var book = FindObject(new ObjectGuid(bookGuid), SearchLocations.MyInventory, out var container, out var rootOwner, out var wasEquipped) as Book;
+            if (book == null) return;
+
+            var page = book.AddPage(Guid.Full, Name, Session.Account, false, "");
+
+            if (page != null)
+                Session.Network.EnqueueSend(new GameEventBookAddPageResponse(Session, bookGuid, page.PageId, true));
+        }
+
+        public void HandleActionBookModifyPage(uint bookGuid, uint pageId, string pageText)
+        {
+            // find inventory book
+            var book = FindObject(new ObjectGuid(bookGuid), SearchLocations.MyInventory, out var container, out var rootOwner, out var wasEquipped) as Book;
+            if (book == null) return;
+
+            book.ModifyPage(pageId, pageText);
+        }
+
+        public void HandleActionBookDeletePage(uint bookGuid, uint pageId)
+        {
+            // find inventory book
+            var book = FindObject(new ObjectGuid(bookGuid), SearchLocations.MyInventory, out var container, out var rootOwner, out var wasEquipped) as Book;
+            if (book == null) return;
+
+            var success = book.DeletePage(pageId);
+
+            Session.Network.EnqueueSend(new GameEventBookDeletePageResponse(Session, bookGuid, pageId, success));
+        }
+
 
 
         /// <summary>
@@ -809,6 +858,8 @@ namespace ACE.Server.WorldObjects
 
         public void HandleActionJump(JumpPack jump)
         {
+            StartJump = new ACE.Entity.Position(Location);
+
             var strength = Strength.Current;
             var capacity = EncumbranceSystem.EncumbranceCapacity((int)strength, 0);     // TODO: augs
             var burden = EncumbranceSystem.GetBurden(capacity, EncumbranceVal ?? 0);
