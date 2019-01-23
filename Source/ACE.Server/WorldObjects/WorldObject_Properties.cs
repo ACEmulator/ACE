@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 
+using ACE.Common;
 using ACE.Database;
 using ACE.Database.Models.Shard;
 using ACE.DatLoader;
@@ -1477,6 +1478,13 @@ namespace ACE.Server.WorldObjects
         // ========================================
         // =========== Other Properties ===========
         // ========================================
+
+        private double? resetTimestamp;
+        protected double? ResetTimestamp
+        {
+            get { return resetTimestamp; }
+            set => resetTimestamp = Time.GetUnixTime();
+        }
 
         public int? Level
         {

@@ -12,7 +12,7 @@ namespace ACE.Server.WorldObjects
         protected double? UseTimestamp
         {
             get { return useTimestamp; }
-            set { useTimestamp = Time.GetUnixTime(); }
+            set => useTimestamp = Time.GetUnixTime();
         }
 
         protected double? ResetInterval
