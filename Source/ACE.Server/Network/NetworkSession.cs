@@ -1,4 +1,5 @@
 using System;
+using System.Buffers;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
@@ -658,40 +659,49 @@ namespace ACE.Server.Network
 
         private void SendPacketRaw(ServerPacket packet)
         {
-            Socket socket = SocketManager.GetMainSocket();
-
-            byte[] payload = packet.GetPayload();
-
-#if NETDIAG
-            payload = NetworkSyntheticTesting.SyntheticCorruption_S2C(payload);
-#endif
-
-            if (packetLog.IsDebugEnabled)
-            {
-                var listenerEndpoint = (System.Net.IPEndPoint)socket.LocalEndPoint;
-                var sb = new StringBuilder();
-                sb.AppendLine(String.Format("[{5}] Sending Packet (Len: {0}) [{1}:{2}=>{3}:{4}]", payload.Length, listenerEndpoint.Address, listenerEndpoint.Port, session.EndPoint.Address, session.EndPoint.Port, session.Network.ClientId));
-                sb.AppendLine(payload.BuildPacketString());
-                packetLog.Debug(sb.ToString());
-            }
+            byte[] buffer = ArrayPool<byte>.Shared.Rent(PacketHeader.HeaderSize + ServerPacket.MaxPacketSize);
 
             try
             {
-                socket.SendTo(payload, session.EndPoint);
+                Socket socket = SocketManager.GetMainSocket();
+
+                packet.CreateReadyToSendPacket(buffer, out var size);
+
+#if NETDIAG
+                payload = NetworkSyntheticTesting.SyntheticCorruption_S2C(payload);
+#endif
+
+                if (packetLog.IsDebugEnabled)
+                {
+                    var listenerEndpoint = (System.Net.IPEndPoint)socket.LocalEndPoint;
+                    var sb = new StringBuilder();
+                    sb.AppendLine(String.Format("[{5}] Sending Packet (Len: {0}) [{1}:{2}=>{3}:{4}]", buffer.Length, listenerEndpoint.Address, listenerEndpoint.Port, session.EndPoint.Address, session.EndPoint.Port, session.Network.ClientId));
+                    sb.AppendLine(buffer.BuildPacketString());
+                    packetLog.Debug(sb.ToString());
+                }
+
+                try
+                {
+                    socket.SendTo(buffer, size, SocketFlags.None, session.EndPoint);
+                }
+                catch (SocketException ex)
+                {
+                    // Unhandled Exception: System.Net.Sockets.SocketException: A message sent on a datagram socket was larger than the internal message buffer or some other network limit, or the buffer used to receive a datagram into was smaller than the datagram itself
+                    // at System.Net.Sockets.Socket.UpdateStatusAfterSocketErrorAndThrowException(SocketError error, String callerName)
+                    // at System.Net.Sockets.Socket.SendTo(Byte[] buffer, Int32 offset, Int32 size, SocketFlags socketFlags, EndPoint remoteEP)
+
+                    var listenerEndpoint = (System.Net.IPEndPoint)socket.LocalEndPoint;
+                    var sb = new StringBuilder();
+                    sb.AppendLine(ex.ToString());
+                    sb.AppendLine(String.Format("[{5}] Sending Packet (Len: {0}) [{1}:{2}=>{3}:{4}]", buffer.Length, listenerEndpoint.Address, listenerEndpoint.Port, session.EndPoint.Address, session.EndPoint.Port, session.Network.ClientId));
+                    log.Error(sb.ToString());
+
+                    session.State = Enum.SessionState.NetworkTimeout; // This will force WorldManager to drop the session
+                }
             }
-            catch (SocketException ex)
+            finally
             {
-                // Unhandled Exception: System.Net.Sockets.SocketException: A message sent on a datagram socket was larger than the internal message buffer or some other network limit, or the buffer used to receive a datagram into was smaller than the datagram itself
-                // at System.Net.Sockets.Socket.UpdateStatusAfterSocketErrorAndThrowException(SocketError error, String callerName)
-                // at System.Net.Sockets.Socket.SendTo(Byte[] buffer, Int32 offset, Int32 size, SocketFlags socketFlags, EndPoint remoteEP)
-
-                var listenerEndpoint = (System.Net.IPEndPoint)socket.LocalEndPoint;
-                var sb = new StringBuilder();
-                sb.AppendLine(ex.ToString());
-                sb.AppendLine(String.Format("[{5}] Sending Packet (Len: {0}) [{1}:{2}=>{3}:{4}]", payload.Length, listenerEndpoint.Address, listenerEndpoint.Port, session.EndPoint.Address, session.EndPoint.Port, session.Network.ClientId));
-                log.Error(sb.ToString());
-
-                session.State = Enum.SessionState.NetworkTimeout; // This will force WorldManager to drop the session
+                ArrayPool<byte>.Shared.Return(buffer, true);
             }
         }
 
@@ -755,7 +765,8 @@ namespace ACE.Server.Network
                         {
                             writeOptionalHeaders = false;
                             WriteOptionalHeaders(bundle, packet);
-                            availableSpace -= (int)packet.Data.Length;
+                            if (packet.Data != null)
+                                availableSpace -= (int)packet.Data.Length;
                         }
 
                         // Create a list to remove completed messages after iterator
@@ -796,7 +807,8 @@ namespace ACE.Server.Network
                     {
                         writeOptionalHeaders = false;
                         WriteOptionalHeaders(bundle, packet);
-                        availableSpace -= (int)packet.Data.Length;
+                        if (packet.Data != null)
+                            availableSpace -= (int)packet.Data.Length;
                     }
                 }
                 EnqueueSend(packet);
@@ -811,6 +823,7 @@ namespace ACE.Server.Network
             {
                 packetHeader.Flags |= PacketHeaderFlags.AckSequence;
                 packetLog.DebugFormat("[{0}] Outgoing AckSeq: {1}", session.LoggingIdentifier, lastReceivedPacketSequence);
+                packet.InitializeBodyWriter();
                 packet.BodyWriter.Write(lastReceivedPacketSequence);
             }
 
@@ -818,6 +831,7 @@ namespace ACE.Server.Network
             {
                 packetHeader.Flags |= PacketHeaderFlags.TimeSync;
                 packetLog.DebugFormat("[{0}] Outgoing TimeSync TS: {1}", session.LoggingIdentifier, ConnectionData.ServerTime);
+                packet.InitializeBodyWriter();
                 packet.BodyWriter.Write(ConnectionData.ServerTime);
             }
 
@@ -825,6 +839,7 @@ namespace ACE.Server.Network
             {
                 packetHeader.Flags |= PacketHeaderFlags.EchoResponse;
                 packetLog.DebugFormat("[{0}] Outgoing EchoResponse: {1}", session.LoggingIdentifier, bundle.ClientTime);
+                packet.InitializeBodyWriter();
                 packet.BodyWriter.Write(bundle.ClientTime);
                 packet.BodyWriter.Write((float)ConnectionData.ServerTime - bundle.ClientTime);
             }

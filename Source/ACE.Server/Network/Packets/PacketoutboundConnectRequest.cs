@@ -4,7 +4,10 @@ namespace ACE.Server.Network.Packets
     {
         public PacketOutboundConnectRequest(double serverTime, ulong cookie, uint clientId, byte[] isaacServerSeed, byte[] isaacClientSeed)
         {
-            this.Header.Flags = PacketHeaderFlags.ConnectRequest;
+            Header.Flags = PacketHeaderFlags.ConnectRequest;
+
+            InitializeBodyWriter();
+
             BodyWriter.Write(serverTime); // CConnectHeader.ServerTime
             BodyWriter.Write(cookie); // CConnectHeader.Cookie
             BodyWriter.Write(clientId); // CConnectHeader.NetID

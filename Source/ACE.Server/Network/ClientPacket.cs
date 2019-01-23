@@ -82,10 +82,9 @@ namespace ACE.Server.Network
         public bool VerifyChecksum(uint issacXor)
         {
             uint fragmentChecksum = 0u;
+
             foreach (ClientPacketFragment fragment in Fragments)
-            {
                 fragmentChecksum += fragment.CalculateHash32();
-            }
 
             uint payloadChecksum = HeaderOptional.CalculateHash32() + fragmentChecksum;
 

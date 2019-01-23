@@ -10,16 +10,16 @@ namespace ACE.Server.Network
         // TODO: I don't know why this value is 464. The reasoning and math needs to be documented here.
         public static int MaxPacketSize { get; } = 464;
 
+        /// <summary>
+        /// Make sure you call InitializeBodyWriter() before you use this
+        /// </summary>
         public BinaryWriter BodyWriter { get; private set; }
 
         private uint issacXor;
         private bool issacXorSet;
         public uint IssacXor
         {
-            get
-            {
-                return issacXor;
-            }
+            get => issacXor;
             set
             {
                 if (issacXorSet)
@@ -33,42 +33,46 @@ namespace ACE.Server.Network
         public ServerPacket()
         {
             Header = new PacketHeader();
-            Data = new MemoryStream();
-            BodyWriter = new BinaryWriter(Data);
         }
 
-        public byte[] GetPayload()
+        /// <summary>
+        /// This will initailize BodyWriter for use.
+        /// </summary>
+        public void InitializeBodyWriter(int initialCapacity = 32) // 32 is the max length I saw in AddPayloadToBuffer()
         {
-            uint bodyChecksum = 0u;
-            uint fragmentChecksum = 0u;
-
-            using (MemoryStream stream = new MemoryStream())
+            if (BodyWriter == null)
             {
-                using (BinaryWriter writer = new BinaryWriter(stream))
-                {
-                    writer.Seek((int)PacketHeader.HeaderSize, SeekOrigin.Begin);
-
-                    if (Data.Length > 0)
-                    {
-                        var body = Data.ToArray();
-                        writer.Write(body);
-                        bodyChecksum = Hash32.Calculate(body, body.Length);
-                    }
-                    foreach (ServerPacketFragment fragment in Fragments)
-                    {
-                        fragmentChecksum += fragment.GetPayload(writer);
-                    }
-
-                    Header.Size = (ushort)(stream.Length - PacketHeader.HeaderSize);
-                    var headerChecksum = Header.CalculateHash32();
-                    uint payloadChecksum = bodyChecksum + fragmentChecksum;
-                    Header.Checksum = headerChecksum + (payloadChecksum ^ issacXor);
-                    writer.Seek(0, SeekOrigin.Begin);
-                    writer.Write(Header.GetRaw());
-                    writer.Flush();
-                    return stream.ToArray();
-                }
+                Data = new MemoryStream(initialCapacity);
+                BodyWriter = new BinaryWriter(Data);
             }
+        }
+
+        public void CreateReadyToSendPacket(byte[] buffer, out int size)
+        {
+            uint payloadChecksum = 0u;
+
+            int offset = PacketHeader.HeaderSize;
+
+            if (Data != null && Data.Length > 0)
+            {
+                var body = Data.ToArray();
+                Buffer.BlockCopy(body, 0, buffer, offset, body.Length);
+                offset += body.Length;
+
+                payloadChecksum += Hash32.Calculate(body, body.Length);
+            }
+
+            foreach (ServerPacketFragment fragment in Fragments)
+                payloadChecksum += fragment.AddPayloadToBuffer(buffer, ref offset);
+
+            size = offset;
+
+            Header.Size = (ushort)(size - PacketHeader.HeaderSize);
+
+            var headerChecksum = Header.CalculateHash32();
+            Header.Checksum = headerChecksum + (payloadChecksum ^ issacXor);
+
+            Header.AddPayloadToBuffer(buffer);
         }
     }
 }

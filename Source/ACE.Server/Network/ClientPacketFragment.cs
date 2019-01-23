@@ -1,4 +1,5 @@
-﻿using System.IO;
+using System.IO;
+
 using ACE.Common.Cryptography;
 
 namespace ACE.Server.Network
@@ -8,7 +9,7 @@ namespace ACE.Server.Network
         public ClientPacketFragment(BinaryReader payload)
         {
             Header = new PacketFragmentHeader(payload);
-            Data = payload.ReadBytes((int)(Header.Size - PacketFragmentHeader.HeaderSize));
+            Data = payload.ReadBytes(Header.Size - PacketFragmentHeader.HeaderSize);
         }
 
         public uint CalculateHash32()
