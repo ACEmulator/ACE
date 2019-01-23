@@ -261,7 +261,7 @@ namespace ACE.Server.WorldObjects
         }
 
 
-        private bool IsInChildLocation(WorldObject item)
+        protected bool IsInChildLocation(WorldObject item)
         {
             if (item.CurrentWieldedLocation == null)
                 return false;
@@ -353,6 +353,16 @@ namespace ACE.Server.WorldObjects
             item.Placement = ACE.Entity.Enum.Placement.Resting;
             item.ParentLocation = null;
             item.Location = null;
+        }
+
+        /// <summary>
+        /// Removes an existing object from Children if exists,
+        /// and resets to new Child position
+        /// </summary>
+        public void ResetChild(WorldObject item)
+        {
+            Children.Remove(Children.Find(s => s.Guid == item.Guid.Full));
+            TrySetChild(item);
         }
 
         /// <summary>
