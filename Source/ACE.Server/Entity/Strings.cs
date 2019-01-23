@@ -499,7 +499,7 @@ namespace ACE.Server.Entity
             else
                 severity = "minor";
 
-            return $"You suffer {damage} points of {severity} impact damage.";
+            return $"You suffer {damage:N0} points of {severity} impact damage.";
         }
 
         /// <summary>
