@@ -659,7 +659,7 @@ namespace ACE.Server.Network
 
         private void SendPacketRaw(ServerPacket packet)
         {
-            byte[] buffer = ArrayPool<byte>.Shared.Rent(PacketHeader.HeaderSize + ServerPacket.MaxPacketSize);
+            byte[] buffer = ArrayPool<byte>.Shared.Rent(76 + 448 /*PacketHeader.HeaderSize + ServerPacket.MaxPacketSize*/); // the 76 + 448 are temp fixes for a packet Ripley is seeing. In the future these numbers need to be documented
 
             try
             {
