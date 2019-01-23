@@ -171,10 +171,10 @@ namespace ACE.Server.WorldObjects
             set { if (!value) RemoveProperty(PropertyBool.NoCorpse); else SetProperty(PropertyBool.NoCorpse, value); }
         }
 
-        public uint? Killer
+        public bool TreasureCorpse
         {
-            get => GetProperty(PropertyInstanceId.Killer);
-            set { if (!value.HasValue) RemoveProperty(PropertyInstanceId.Killer); else SetProperty(PropertyInstanceId.Killer, value.Value); }
+            get => GetProperty(PropertyBool.TreasureCorpse) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.TreasureCorpse); else SetProperty(PropertyBool.TreasureCorpse, value); }
         }
 
         public uint? DeathTreasureType

@@ -102,7 +102,7 @@ namespace ACE.Server.WorldObjects
 
             // killer = top damager for looting rights
             if (topDamager != null)
-                Killer = topDamager.Guid.Full;
+                KillerId = topDamager.Guid.Full;
 
             // broadcast death animation
             var deathAnim = new Motion(MotionStance.NonCombat, MotionCommand.Dead);
@@ -328,7 +328,7 @@ namespace ACE.Server.WorldObjects
 
             if (PlayerKillerStatus == PlayerKillerStatus.PKLite)
             {
-                var killer = CurrentLandblock?.GetObject(new ObjectGuid(Killer ?? 0));
+                var killer = CurrentLandblock?.GetObject(new ObjectGuid(KillerId ?? 0));
                 if (killer is Player)
                 {
                     PlayerKillerStatus = PlayerKillerStatus.NPK;
