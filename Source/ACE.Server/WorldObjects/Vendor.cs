@@ -268,37 +268,25 @@ namespace ACE.Server.WorldObjects
             ApproachVendor(player, VendorType.Buy);
         }
 
-        public uint CalculatePayout(ICollection<WorldObject> items)
-        {
-            uint payout = 0;
-
-            foreach (WorldObject wo in items)
-            {
-                var buyRate = BuyPrice ?? 1;
-
-                if (wo.ItemType == ItemType.PromissoryNote)
-                    buyRate = 1.0;
-
-                // payout scaled by the vendor's buy rate
-                payout += (uint)Math.Floor((wo.Value ?? 0) * buyRate + 0.1);
-            }
-
-            return payout;
-        }
-
         /// <summary>
         /// Handles validation for player selling items to vendor
         /// </summary>
         public void SellItems_ValidateTransaction(Player player, List<WorldObject> items)
         {
             // todo: filter rejected / accepted send item spec result back to player
-            uint payout = CalculatePayout(items);
-
+            uint payout = 0;
             List<WorldObject> accepted = new List<WorldObject>();
             List<WorldObject> rejected = new List<WorldObject>();
 
             foreach (WorldObject wo in items)
             {
+                var buyRate = BuyPrice ?? 1;
+                if (wo.ItemType == ItemType.PromissoryNote)
+                    buyRate = 1.0;
+
+                // payout scaled by the vendor's buy rate
+                payout += (uint)Math.Floor((wo.Value ?? 0) * buyRate + 0.1);
+
                 // don't resell DestroyOnSell
                 var destroyOnSell = wo.GetProperty(PropertyBool.DestroyOnSell) ?? false;
 
