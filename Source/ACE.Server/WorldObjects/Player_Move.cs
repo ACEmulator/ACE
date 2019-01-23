@@ -105,13 +105,11 @@ namespace ACE.Server.WorldObjects
             var jumpVelocity = 0.0f;
             PhysicsObj.WeenieObj.InqJumpVelocity(1.0f, ref jumpVelocity);
 
-            var cachedVelocity = PhysicsObj.CachedVelocity;
-
-            var overspeed = jumpVelocity + cachedVelocity.Z + 4.5f;     // a little leeway
+            var overspeed = jumpVelocity + collision.Velocity.Z + 4.5f;     // a little leeway
 
             var ratio = -overspeed / jumpVelocity;
 
-            /*Console.WriteLine($"Collision velocity: {cachedVelocity}");
+            /*Console.WriteLine($"Collision velocity: {collision.Velocity}");
             Console.WriteLine($"Jump velocity: {jumpVelocity}");
             Console.WriteLine($"Overspeed: {overspeed}");
             Console.WriteLine($"Ratio: {ratio}");*/
