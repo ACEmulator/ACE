@@ -263,6 +263,8 @@ namespace ACE.Server.WorldObjects
                 Placement = ACE.Entity.Enum.Placement.Resting;
 
             //CurrentMotionState = new Motion(MotionStance.Invalid, new MotionItem(MotionCommand.Invalid));
+
+            CacheTimeToRotFromWeenie();
         }
 
         /// <summary>
@@ -334,11 +336,6 @@ namespace ACE.Server.WorldObjects
             // check if target object was reached
             var isVisible = transition.CollisionInfo.CollideObject.FirstOrDefault(c => c.ID == wo.PhysicsObj.ID) != null;
             return isVisible;
-        }
-
-        public WorldObject GetWeenieDefaultsAsWorldObject()
-        {
-            return Factories.WorldObjectFactory.CreateWorldObject(Database.DatabaseManager.World.GetCachedWeenie(WeenieClassId), new ObjectGuid(WeenieClassId));
         }
 
 

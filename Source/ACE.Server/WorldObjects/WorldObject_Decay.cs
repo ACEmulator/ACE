@@ -1,7 +1,9 @@
 using System;
 using System.Linq;
-
+using ACE.Database;
+using ACE.Database.Models.World;
 using ACE.Entity;
+using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Network.GameMessages.Messages;
 
@@ -14,6 +16,8 @@ namespace ACE.Server.WorldObjects
         /// Current default is 5 minutes
         /// </summary>
         protected TimeSpan DefaultTimeToRot { get; set; } = TimeSpan.FromMinutes(5);
+
+        protected double? CachedTimeToRot { get; set; }
 
         /// <summary>
         /// A decayable object is one that, when it exists on a landblock, would decay (rot) over time.<para />
@@ -108,6 +112,11 @@ namespace ACE.Server.WorldObjects
             }
             else
                 Destroy();
+        }
+
+        public void CacheTimeToRotFromWeenie()
+        {
+            CachedTimeToRot = DatabaseManager.World.GetCachedWeenie(WeenieClassId).GetProperty(PropertyFloat.TimeToRot) ?? null;
         }
     }
 }
