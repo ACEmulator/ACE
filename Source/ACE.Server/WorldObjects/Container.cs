@@ -321,7 +321,7 @@ namespace ACE.Server.WorldObjects
             worldObject.ContainerId = Guid.Full;
             worldObject.PlacementPosition = placementPosition; // Server only variable that we use to remember/restore the order in which items exist in a container
 
-            worldObject.TimeToRot = worldObject.CachedTimeToRot ?? null;
+            worldObject.TimeToRot = null;
 
             // Move all the existing items PlacementPosition over.
             if (!worldObject.UseBackpackSlot)
