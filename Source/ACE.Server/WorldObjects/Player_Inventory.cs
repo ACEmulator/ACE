@@ -304,7 +304,7 @@ namespace ACE.Server.WorldObjects
         // =====================================
 
         [Flags]
-        private enum SearchLocations
+        protected enum SearchLocations
         {
             MyInventory         = 0x01,
             MyEquippedItems     = 0x02,
@@ -313,12 +313,12 @@ namespace ACE.Server.WorldObjects
             Everywhere          = 0xFF
         }
 
-        private WorldObject FindObject(uint objectGuid, SearchLocations searchLocations, out Container foundInContainer, out Container rootOwner, out bool wasEquipped)
+        protected WorldObject FindObject(uint objectGuid, SearchLocations searchLocations, out Container foundInContainer, out Container rootOwner, out bool wasEquipped)
         {
             return FindObject(new ObjectGuid(objectGuid), searchLocations, out foundInContainer, out rootOwner, out wasEquipped); // todo Fix this so it's not creating a new ObjectGuid
         }
 
-        private WorldObject FindObject(ObjectGuid objectGuid, SearchLocations searchLocations, out Container foundInContainer, out Container rootOwner, out bool wasEquipped)
+        protected WorldObject FindObject(ObjectGuid objectGuid, SearchLocations searchLocations, out Container foundInContainer, out Container rootOwner, out bool wasEquipped)
         {
             WorldObject result;
 
@@ -467,6 +467,8 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void HandleActionPutItemInContainer(uint itemGuid, uint containerGuid, int placement = 0)
         {
+            OnPutItemInContainer(itemGuid, containerGuid, placement);
+
             var item = FindObject(itemGuid, SearchLocations.Everywhere, out _, out var itemRootOwner, out var itemWasEquipped);
             var container = FindObject(containerGuid, SearchLocations.MyInventory | SearchLocations.Landblock | SearchLocations.LastUsedContainer, out _, out var containerRootOwner, out _) as Container;
 
@@ -884,11 +886,25 @@ namespace ACE.Server.WorldObjects
 
             if (wasEquipped) // Movement is an equipped item to another equipped item slot
             {
+                var prevLocation = item.CurrentWieldedLocation;
+
                 item.CurrentWieldedLocation = wieldedLocation;
                 Session.Network.EnqueueSend(new GameMessagePublicUpdatePropertyInt(item, PropertyInt.CurrentWieldedLocation, (int)wieldedLocation));
 
                 Session.Network.EnqueueSend(new GameEventWieldItem(Session, item.Guid.Full, wieldedLocation));
 
+                // handle swapping melee weapon between hands
+                if (IsInChildLocation(item))
+                {
+                    ResetChild(item);
+                    EnqueueBroadcast(new GameMessageParentEvent(this, item, (int?)item.ParentLocation ?? 0, (int?)item.Placement ?? 0));
+
+                    // handle swapping dual-wielded weapons
+                    if (IsDoubleSend)
+                        HandleActionGetAndWieldItem(Prev_PutItemInContainer.ItemGuid, (EquipMask)prevLocation);
+                    else
+                        Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.WieldObject));
+                }
                 return true;
             }
 
@@ -1689,6 +1705,23 @@ namespace ACE.Server.WorldObjects
                 // Send some cool you cannot inscribe that item message. Not sure how that was handled live, I could not find a pcap of a failed inscription. Og II
                 ChatPacket.SendServerMessage(Session, "Target item cannot be inscribed.", ChatMessageType.System);
             }
+        }
+
+        // This handles a peculiar sequence sent by the client in certain scenarios
+        // The client will double-send 0x19 PutItemInContainer for the same object
+        // (swapping dual wield weapons, swapping ammo types in combat)
+
+        private PutItemInContainerEvent Prev_PutItemInContainer;
+        private bool IsDoubleSend;
+
+        private void OnPutItemInContainer(uint itemGuid, uint containerGuid, int placement)
+        {
+            var putItemInContainer = new PutItemInContainerEvent(itemGuid, containerGuid, placement);
+
+            if (Prev_PutItemInContainer != null)
+                IsDoubleSend = putItemInContainer.IsDoubleSend(Prev_PutItemInContainer);
+
+            Prev_PutItemInContainer = putItemInContainer;
         }
     }
 }

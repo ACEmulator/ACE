@@ -235,7 +235,7 @@ namespace ACE.Server.Physics.Common
 
         public override string ToString()
         {
-            return $"{ObjCellID:X8} {Frame}";
+            return $"0x{ObjCellID:X8} {Frame}";
         }
     }
 }

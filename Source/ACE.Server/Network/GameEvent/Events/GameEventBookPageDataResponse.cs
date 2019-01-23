@@ -7,6 +7,8 @@ namespace ACE.Server.Network.GameEvent.Events
         public GameEventBookPageDataResponse(Session session, uint bookID, PageData pageData)
             : base(GameEventType.BookPageDataResponse, GameMessageGroup.UIQueue, session)
         {
+            // unused?
+
             Writer.Write(bookID);
             Writer.Write(pageData.PageIdx);
             Writer.Write(pageData.AuthorID);

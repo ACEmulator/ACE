@@ -21,8 +21,8 @@ namespace ACE.Server.Physics.Common
         Restore = 0x4,
         Slide = 0x10,
         DontCreateCells = 0x20,
-        Scatter = 0x100,
-        RandomScatter = 0x200,
+        Scatter = 0x100,            // try to spawn in original position, if that fails, try to spawn in scatter pos
+        RandomScatter = 0x200,      // try to spawn in scatter pos
         Line = 0x400,
         SendPositionEvent = 0x1000,
     };
@@ -36,7 +36,18 @@ namespace ACE.Server.Physics.Common
         public float RadY;
         public int NumTries;
 
+        public static int Default_NumTries = 20;
+
         public SetPosition() { }
+
+        public SetPosition(Position pos, SetPositionFlags flags, float radius)
+        {
+            Pos = pos;
+            Flags = flags;
+            RadX = radius;
+            RadY = radius;
+            NumTries = Default_NumTries;
+        }
 
         public SetPosition(Position pos, SetPositionFlags flags)
         {

@@ -25,7 +25,7 @@ namespace ACE.Server.Network.Enum
             var weapon = profile.Weapon;
 
             // Enchant applies to all weapons
-            if (weapon.IsEnchantable && wielder != null && wielder.EnchantmentManager.GetDefenseMod() != 0)
+            if (profile.Enchantment_WeaponDefense != 0)
                 highlightMask |= WeaponMask.MeleeDefense;
 
             // Following enchants do not apply to caster weapons
@@ -54,7 +54,7 @@ namespace ACE.Server.Network.Enum
             var wielder = profile.Wielder;
 
             // Enchant applies to all weapons
-            if (weapon.IsEnchantable && wielder != null && wielder.EnchantmentManager.GetDefenseMod() > 0)
+            if (profile.Enchantment_WeaponDefense > 0)
                 colorMask |= WeaponMask.MeleeDefense;
 
             // Following enchants do not apply to caster weapons

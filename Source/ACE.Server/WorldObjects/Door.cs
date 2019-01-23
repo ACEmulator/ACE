@@ -65,25 +65,11 @@ namespace ACE.Server.WorldObjects
                 DefaultLocked = true;
         }
 
-
-        private double? resetTimestamp;
-        private double? ResetTimestamp
-        {
-            get { return resetTimestamp; }
-            set { resetTimestamp = Time.GetUnixTime(); }
-        }
-
         private double? useLockTimestamp;
         private double? UseLockTimestamp
         {
             get { return useLockTimestamp; }
-            set { useLockTimestamp = Time.GetUnixTime(); }
-        }
-
-        private uint? LastUnlocker
-        {
-            get;
-            set;
+            set => useLockTimestamp = Time.GetUnixTime();
         }
 
         private string KeyCode

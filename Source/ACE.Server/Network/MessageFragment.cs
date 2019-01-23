@@ -20,22 +20,22 @@ namespace ACE.Server.Network
 
         public ushort Count { get; set; }
 
-        public uint DataLength => (uint)Message.Data.Length;
+        public int DataLength => (int)Message.Data.Length;
 
-        public uint DataRemaining { get; private set; }
+        public int DataRemaining { get; private set; }
 
-        public uint NextSize
+        public int NextSize
         {
             get
             {
                 var dataSize = DataRemaining;
-                if (dataSize > ServerPacketFragment.MaxFragmentDataSize)
-                    dataSize = ServerPacketFragment.MaxFragmentDataSize;
+                if (dataSize > PacketFragment.MaxFragmentDataSize)
+                    dataSize = PacketFragment.MaxFragmentDataSize;
                 return PacketFragmentHeader.HeaderSize + dataSize;
             }
         }
 
-        public uint TailSize => PacketFragmentHeader.HeaderSize + (DataLength % ServerPacketFragment.MaxFragmentDataSize);
+        public int TailSize => PacketFragmentHeader.HeaderSize + (DataLength % PacketFragment.MaxFragmentDataSize);
 
         public bool TailSent { get; private set; }
 
@@ -69,7 +69,7 @@ namespace ACE.Server.Network
             if (index >= Count)
                 throw new ArgumentOutOfRangeException("index", index, "Passed index is greater then computed count");
 
-            var position = index * ServerPacketFragment.MaxFragmentDataSize;
+            var position = index * PacketFragment.MaxFragmentDataSize;
             if (position > DataLength)
                 throw new ArgumentOutOfRangeException("index", index, "Passed index computes to invalid position size");
 
@@ -77,8 +77,8 @@ namespace ACE.Server.Network
                 throw new InvalidOperationException("There is no data remaining");
 
             var dataToSend = DataLength - position;
-            if (dataToSend > ServerPacketFragment.MaxFragmentDataSize)
-                dataToSend = ServerPacketFragment.MaxFragmentDataSize;
+            if (dataToSend > PacketFragment.MaxFragmentDataSize)
+                dataToSend = PacketFragment.MaxFragmentDataSize;
 
             if (DataRemaining < dataToSend)
                 throw new InvalidOperationException("More data to send then data remaining!");
@@ -86,7 +86,7 @@ namespace ACE.Server.Network
             // Read data starting at position reading dataToSend bytes
             Message.Data.Seek(position, SeekOrigin.Begin);
             byte[] data = new byte[dataToSend];
-            Message.Data.Read(data, 0, (int)dataToSend);
+            Message.Data.Read(data, 0, dataToSend);
 
             // Build ServerPacketFragment structure
             ServerPacketFragment fragment = new ServerPacketFragment(data);

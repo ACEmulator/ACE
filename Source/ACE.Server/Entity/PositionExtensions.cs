@@ -254,5 +254,20 @@ namespace ACE.Server.Entity
 
             return terrainPos.Z;
         }
+
+        /// <summary>
+        /// Returns TRUE if outdoor position is located on walkable slope
+        /// </summary>
+        public static bool IsWalkable(this Position p)
+        {
+            if (p.Indoors) return true;
+
+            var landcell = (LandCell)LScape.get_landcell(p.Cell);
+
+            Physics.Polygon walkable = null;
+            var terrainPoly = landcell.find_terrain_poly(p.Pos, ref walkable);
+
+            return walkable != null;
+        }
     }
 }

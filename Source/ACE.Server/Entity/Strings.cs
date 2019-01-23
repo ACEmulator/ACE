@@ -227,7 +227,13 @@ namespace ACE.Server.Entity
             new DeathMessage(
                 "You killed {0}!",
                 "You were killed by {1}!",
-                "{0} was killed by {1}!")
+                "{0} was killed by {1}!"),
+
+            new DeathMessage(
+                "{0} died!",
+                "You died!",
+                "{0} died!"
+            )
         };
 
         static Strings()
@@ -474,6 +480,26 @@ namespace ACE.Server.Entity
                     }
                     return true;
             }
+        }
+
+        /// <summary>
+        /// Returns the player message for falling impact damage
+        /// </summary>
+        public static string GetFallMessage(uint damage, uint maxHealth)
+        {
+            var percent = (float)damage / maxHealth;
+
+            string severity = "";
+            if (percent > 0.5f)
+                severity = "massive";
+            else if (percent > 0.25f)
+                severity = "crushing";
+            else if (percent > 0.1f)
+                severity = "heavy";
+            else
+                severity = "minor";
+
+            return $"You suffer {damage:N0} points of {severity} impact damage.";
         }
 
         /// <summary>

@@ -6,6 +6,8 @@ namespace ACE.Server.Network.Packets
         {
             Header.Flags = PacketHeaderFlags.EncryptedChecksum | PacketHeaderFlags.Referral;
 
+            InitializeBodyWriter();
+
             BodyWriter.Write(worldConnectionKey);
             BodyWriter.Write((ushort)2);
             BodyWriter.WriteUInt16BE(port);

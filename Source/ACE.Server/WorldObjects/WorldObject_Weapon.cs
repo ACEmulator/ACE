@@ -94,9 +94,15 @@ namespace ACE.Server.WorldObjects
             if (weapon == null)
                 return defaultBonusModifier;
 
-            // always aura?
             if (wielder.CombatMode != CombatMode.NonCombat)
-                return (float)(weapon.GetProperty(PropertyFloat.WeaponDefense) ?? defaultBonusModifier) + wielder.EnchantmentManager.GetDefenseMod();
+            {
+                var defenseMod = (float)(weapon.GetProperty(PropertyFloat.WeaponDefense) + weapon.EnchantmentManager.GetDefenseMod() ?? defaultBonusModifier);
+
+                if (weapon.IsEnchantable)
+                    defenseMod += wielder.EnchantmentManager.GetDefenseMod();
+
+                return defenseMod;
+            }
 
             return defaultBonusModifier;
         }
@@ -111,9 +117,15 @@ namespace ACE.Server.WorldObjects
             if (weapon == null)
                 return defaultBonusModifier;
 
-            // always aura?
             if (wielder.CombatMode != CombatMode.NonCombat)
-                return (float)(weapon.GetProperty(PropertyFloat.WeaponOffense) ?? defaultBonusModifier) + wielder.EnchantmentManager.GetAttackMod();
+            {
+                var offenseMod = (float)(weapon.GetProperty(PropertyFloat.WeaponOffense) + weapon.EnchantmentManager.GetAttackMod() ?? defaultBonusModifier);
+
+                if (weapon.IsEnchantable)
+                    offenseMod += wielder.EnchantmentManager.GetAttackMod();
+
+                return offenseMod;
+            }
 
             return defaultBonusModifier;
         }
@@ -245,7 +257,6 @@ namespace ACE.Server.WorldObjects
                 var elementalDamageModType = weapon.GetProperty(PropertyInt.DamageType) ?? (int)DamageType.Undef;
                 if (elementalDamageModType != (int)DamageType.Undef && elementalDamageModType == (int)damageType)
                 {
-                    // TODO: Add EnchantmentManager buff/debuff from Spirit Drinker/Loather
                     var casterElementalDmgMod = (float)(weapon.GetProperty(PropertyFloat.ElementalDamageMod) ?? modifier) + wielder.EnchantmentManager.GetElementalDamageMod();
                     if (casterElementalDmgMod > modifier)
                     {

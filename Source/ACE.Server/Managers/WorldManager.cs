@@ -592,10 +592,11 @@ namespace ACE.Server.Managers
                     s.TickOutbound();
 
                 // Removes sessions in the NetworkTimeout state, including sessions that have reached a timeout limit.
-                var deadSessions = sessions.FindAll(s => s.State == SessionState.NetworkTimeout);
-
-                foreach (var session in deadSessions)
-                    session.DropSession(string.IsNullOrEmpty(session.BootSessionReason) ? "Network Timeout" : session.BootSessionReason);
+                for (int i = sessions.Count - 1; i >= 0; i--)
+                {
+                    if (sessions[i].State == SessionState.NetworkTimeout)
+                        sessions[i].DropSession(string.IsNullOrEmpty(sessions[i].BootSessionReason) ? "Network Timeout" : sessions[i].BootSessionReason);
+                }
             }
             finally
             {

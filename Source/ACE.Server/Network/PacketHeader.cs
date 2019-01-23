@@ -1,13 +1,13 @@
-﻿using System.IO;
-using System.Runtime.InteropServices;
+using System.Buffers;
+using System.IO;
+
 using ACE.Common.Cryptography;
 
 namespace ACE.Server.Network
 {
-    [StructLayout(LayoutKind.Sequential, Pack = 1)]
     public class PacketHeader
     {
-        public static uint HeaderSize { get; } = 20u;
+        public static int HeaderSize { get; } = 20;
 
         public uint Sequence { get; set; }
         public PacketHeaderFlags Flags { get; set; }
@@ -30,30 +30,57 @@ namespace ACE.Server.Network
             Iteration = payload.ReadUInt16();
         }
 
-        public byte[] GetRaw()
+        public void AddPayloadToBuffer(byte[] buffer)
         {
-            var headerHandle = GCHandle.Alloc(this, GCHandleType.Pinned);
-            try
-            {
-                byte[] bytes = new byte[Marshal.SizeOf(typeof(PacketHeader))];
-                Marshal.Copy(headerHandle.AddrOfPinnedObject(), bytes, 0, bytes.Length);
-                return bytes;
-            }
-            finally
-            {
-                headerHandle.Free();
-            }
+            int offset = 0;
+
+            buffer[offset++] = (byte)Sequence;
+            buffer[offset++] = (byte)(Sequence >> 8);
+            buffer[offset++] = (byte)(Sequence >> 16);
+            buffer[offset++] = (byte)(Sequence >> 24);
+
+            buffer[offset++] = (byte)Flags;
+            buffer[offset++] = (byte)((int)Flags >> 8);
+            buffer[offset++] = (byte)((int)Flags >> 16);
+            buffer[offset++] = (byte)((int)Flags >> 24);
+
+            buffer[offset++] = (byte)Checksum;
+            buffer[offset++] = (byte)(Checksum >> 8);
+            buffer[offset++] = (byte)(Checksum >> 16);
+            buffer[offset++] = (byte)(Checksum >> 24);
+
+            buffer[offset++] = (byte)Id;
+            buffer[offset++] = (byte)(Id >> 8);
+
+            buffer[offset++] = (byte)Time;
+            buffer[offset++] = (byte)(Time >> 8);
+
+            buffer[offset++] = (byte)Size;
+            buffer[offset++] = (byte)(Size >> 8);
+
+            buffer[offset++] = (byte)Iteration;
+            buffer[offset++] = (byte)(Iteration >> 8);
         }
 
         public uint CalculateHash32()
         {
-            uint checksum = 0;
-            uint original = Checksum;
-            Checksum = 0xBADD70DD;
-            byte[] rawHeader = GetRaw();
-            checksum = Hash32.Calculate(rawHeader, rawHeader.Length);
-            Checksum = original;
-            return checksum;
+            byte[] buffer = ArrayPool<byte>.Shared.Rent(HeaderSize);
+
+            try
+            {
+                uint original = Checksum;
+                Checksum = 0xBADD70DD;
+
+                AddPayloadToBuffer(buffer);
+
+                var checksum = Hash32.Calculate(buffer, HeaderSize);
+                Checksum = original;
+                return checksum;
+            }
+            finally
+            {
+                ArrayPool<byte>.Shared.Return(buffer);
+            }
         }
 
         public bool HasFlag(PacketHeaderFlags flags) { return (flags & Flags) != 0; }

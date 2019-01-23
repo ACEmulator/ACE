@@ -261,7 +261,7 @@ namespace ACE.Server.WorldObjects
         }
 
 
-        private bool IsInChildLocation(WorldObject item)
+        protected bool IsInChildLocation(WorldObject item)
         {
             if (item.CurrentWieldedLocation == null)
                 return false;
@@ -356,6 +356,16 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
+        /// Removes an existing object from Children if exists,
+        /// and resets to new Child position
+        /// </summary>
+        public void ResetChild(WorldObject item)
+        {
+            Children.Remove(Children.Find(s => s.Guid == item.Guid.Full));
+            TrySetChild(item);
+        }
+
+        /// <summary>
         /// This is called prior to SendSelf to load up the child list for wielded items that are held in a hand.
         /// </summary>
         private void SetChildren()
@@ -372,6 +382,8 @@ namespace ACE.Server.WorldObjects
 
         public void GenerateWieldList()
         {
+            var attackable = Attackable ?? false;
+
             foreach (var item in Biota.BiotaPropertiesCreateList.Where(x => x.DestinationType == (int) DestinationType.Wield || x.DestinationType == (int) DestinationType.WieldTreasure))
             {
                 var wo = WorldObjectFactory.CreateNewWorldObject(item.WeenieClassId);
@@ -384,8 +396,8 @@ namespace ACE.Server.WorldObjects
                     if (item.Shade > 0)
                         wo.Shade = item.Shade;
 
-                    //if (wo.ValidLocations != null)
-                        //TryEquipObject(wo, (int) wo.ValidLocations.Value);
+                    if (!attackable && wo.ValidLocations != null)
+                        TryEquipObject(wo, (EquipMask)wo.ValidLocations);
 
                     TryAddToInventory(wo);
                 }

@@ -2,12 +2,12 @@ namespace ACE.Server.Network
 {
     public abstract class PacketFragment
     {
-        public static uint MaxFragementSize { get; } = 464u; // Packet.MaxPacketSize - PacketHeader.HeaderSize
-        public static uint MaxFragmentDataSize { get; } = 448u; // Packet.MaxPacketSize - PacketHeader.HeaderSize - PacketFragmentHeader.HeaderSize
+        public static int MaxFragementSize { get; } = 464; // Packet.MaxPacketSize - PacketHeader.HeaderSize
+        public static int MaxFragmentDataSize { get; } = 448; // Packet.MaxPacketSize - PacketHeader.HeaderSize - PacketFragmentHeader.HeaderSize
 
         public PacketFragmentHeader Header { get; protected set; }
         public byte[] Data { get; protected set; }
 
-        public int Length => Data.Length + (int)PacketFragmentHeader.HeaderSize;
+        public int Length => Data.Length + PacketFragmentHeader.HeaderSize;
     }
 }

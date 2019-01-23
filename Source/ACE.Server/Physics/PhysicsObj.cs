@@ -1246,8 +1246,13 @@ namespace ACE.Server.Physics
 
         public SetPositionError SetPositionInternal(SetPosition setPos, Transition transition)
         {
-            if (setPos.Flags.HasFlag(SetPositionFlags.RandomScatter))
-                return SetScatterPositionInternal(setPos, transition);
+            //if (setPos.Flags.HasFlag(SetPositionFlags.RandomScatter))
+            //return SetScatterPositionInternal(setPos, transition);
+            if (WeenieObj.WorldObject.ScatterPos != null)
+            {
+                WeenieObj.WorldObject.ScatterPos.Flags |= setPos.Flags;
+                return SetScatterPositionInternal(WeenieObj.WorldObject.ScatterPos, transition);
+            }
 
             // frame ref?
             var result = SetPositionInternal(setPos.Pos, setPos, transition);
@@ -1293,16 +1298,83 @@ namespace ACE.Server.Physics
 
             for (var i = 0; i < setPos.NumTries; i++)
             {
-                Position newPos = null;
-                var origin = newPos.Frame.Origin;
-                newPos = setPos.Pos;    // ??
+                var newPos = new Position(setPos.Pos);
 
-                newPos.Frame.Origin.X += ACE.ThreadSafeRandom.Next(-1.0f, 1.0f) * setPos.RadX;
-                newPos.Frame.Origin.Y += ACE.ThreadSafeRandom.Next(-1.0f, 1.0f) * setPos.RadY;
+                newPos.Frame.Origin.X += ThreadSafeRandom.Next(-1.0f, 1.0f) * setPos.RadX;
+                newPos.Frame.Origin.Y += ThreadSafeRandom.Next(-1.0f, 1.0f) * setPos.RadY;
+
+                // customized
+                if ((newPos.ObjCellID & 0xFFFF) < 0x100)
+                {
+                    newPos.Frame.Origin.X = Math.Clamp(newPos.Frame.Origin.X, 0.5f, 191.5f);
+                    newPos.Frame.Origin.Y = Math.Clamp(newPos.Frame.Origin.Y, 0.5f, 191.5f);
+                }
+
+                // get cell for this position
+                var indoors = (newPos.ObjCellID & 0xFFFF) >= 0x100;
+                if ((newPos.ObjCellID & 0xFFFF) < 0x100)
+                {
+                    LandDefs.AdjustToOutside(newPos);
+
+                    // ensure walkable slope
+                    var landcell = (LandCell)LScape.get_landcell(newPos.ObjCellID);
+
+                    Polygon walkable = null;
+                    var terrainPoly = landcell.find_terrain_poly(newPos.Frame.Origin, ref walkable);
+
+                    if (walkable == null) continue;
+
+                    // account for buildings
+                    // if original position was outside, and scatter position is in a building, should we even try to spawn?
+                    // compare: rabbits occasionally spawning in buildings in yaraq,
+                    // vs. lich tower @ 3D31FFFF
+
+                    var sortCell = LScape.get_landcell(newPos.ObjCellID) as SortCell;
+                    if (sortCell == null || !sortCell.has_building())
+                    {
+                        // set to ground pos
+                        var landblock = LScape.get_landblock(newPos.ObjCellID);
+                        newPos.Frame.Origin.Z = landblock.GetZ(newPos.Frame.Origin) + 0.05f;
+                    }
+                    //else
+                        //indoors = true;
+
+                    /*if (sortCell != null && sortCell.has_building())
+                    {
+                        var building = sortCell.Building;
+
+                        var minZ = building.GetMinZ();
+
+                        if (minZ > 0 && minZ < float.MaxValue)
+                            newPos.Frame.Origin.Z += minZ;
+
+                        //indoors = true;
+                    }*/
+                }
+                if (indoors)
+                {
+                    var landblock = LScape.get_landblock(newPos.ObjCellID);
+                    var envcells = landblock.get_envcells();
+                    var found = false;
+                    foreach (var envCell in envcells)
+                    {
+                        if (envCell.point_in_cell(newPos.Frame.Origin))
+                        {
+                            newPos.ObjCellID = envCell.ID;
+                            found = true;
+                            break;
+                        }
+                    }
+                    if (!found) continue;
+                }
 
                 result = SetPositionInternal(newPos, setPos, transition);
                 if (result == SetPositionError.OK) break;
             }
+
+            //if (result != SetPositionError.OK)
+                //Console.WriteLine($"Couldn't spawn {Name} after {setPos.NumTries} retries @ {setPos.Pos}");
+
             return result;
         }
 
@@ -1548,6 +1620,9 @@ namespace ACE.Server.Physics
 
         public void UpdateObjectInternalServer(double quantum)
         {
+            //var offsetFrame = new AFrame();
+            //UpdatePhysicsInternal((float)quantum, ref offsetFrame);
+
             var transit = transition(Position, RequestPos, false);
             if (transit != null)
             {
@@ -3831,13 +3906,16 @@ namespace ACE.Server.Physics
         public void update_object_server(bool forcePos = true)
         {
             var deltaTime = PhysicsTimer.CurrentTime - UpdateTime;
-            UpdateObjectInternalServer(deltaTime);
+
+            if (!WeenieObj.WorldObject.Teleporting)
+                UpdateObjectInternalServer(deltaTime);
 
             if (forcePos)
                 set_current_pos(RequestPos);
 
             // temp for players
-            CachedVelocity = Vector3.Zero;
+            if ((TransientState & TransientStateFlags.Contact) != 0)
+                CachedVelocity = Vector3.Zero;
 
             UpdateTime = PhysicsTimer.CurrentTime;
         }

@@ -77,7 +77,7 @@ namespace ACE.Server.WorldObjects
 
                 actionChain.AddAction(this, () =>
                 {
-                    if (AttackTarget == null) return;
+                    if (AttackTarget == null || IsDead) return;
 
                     var critical = false;
                     var damageType = DamageType.Undef;
@@ -93,7 +93,7 @@ namespace ACE.Server.WorldObjects
                             target.TakeDamage(this, damageType, damage.Value);
                             EmitSplatter(target, damage.Value);
                         }
-                        else
+                        else if (targetPlayer != null)
                         {
                             // this is a player taking damage
                             targetPlayer.TakeDamage(this, damageType, damage.Value, bodyPart, critical);

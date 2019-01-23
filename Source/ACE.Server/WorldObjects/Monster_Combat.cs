@@ -176,7 +176,12 @@ namespace ACE.Server.WorldObjects
         /// <returns></returns>
         public bool AttackReady()
         {
-            return IsAttackRange() && Timers.RunningTime >= NextAttackTime;
+            if (Timers.RunningTime < NextAttackTime || !IsAttackRange())
+                return false;
+
+            PhysicsObj.update_object();
+
+            return !PhysicsObj.IsAnimating;
         }
 
         /// <summary>
