@@ -107,6 +107,12 @@ namespace ACE.Server.Network.Structure
                 }
             }
 
+            if (wo is Portal)
+            {
+                if (PropertiesInt.ContainsKey(PropertyInt.EncumbranceVal))
+                    PropertiesInt.Remove(PropertyInt.EncumbranceVal);
+            }
+
             BuildFlags();
         }
 
