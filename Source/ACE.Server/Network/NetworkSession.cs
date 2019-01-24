@@ -659,11 +659,7 @@ namespace ACE.Server.Network
 
         private void SendPacketRaw(ServerPacket packet)
         {
-            // This is a temp fix to fix a crash Ripley is experienceing
-            // in ServerPacketFragment.AddPayloadToBuffer, offset is 76 and Data.Length is 448
-            // The reason behind these numbers need to be commented in the future
-            // Previously we used this length which is too small: /*PacketHeader.HeaderSize + ServerPacket.MaxPacketSize*/
-            byte[] buffer = ArrayPool<byte>.Shared.Rent(76 + 448);
+            byte[] buffer = ArrayPool<byte>.Shared.Rent((int)(PacketHeader.HeaderSize + (packet.Data?.Length ?? 0) + (packet.Fragments.Count * PacketFragment.MaxFragementSize)));
 
             try
             {
