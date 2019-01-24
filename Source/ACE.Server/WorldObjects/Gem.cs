@@ -1,7 +1,6 @@
 using System;
 using System.Diagnostics;
 
-using ACE.Common.Extensions;
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.DatLoader.Entity;
@@ -12,21 +11,11 @@ using ACE.Server.Entity;
 using ACE.Server.Network;
 using ACE.Server.Network.Structure;
 using ACE.Server.Network.GameEvent.Events;
-using ACE.Server.Network.GameMessages.Messages;
 
 namespace ACE.Server.WorldObjects
 {
     public class Gem : Stackable
     {
-        /// <summary>
-        /// This is ace_object_property_int #349.   It links a contract weenie with the quest that it will add to your quest panel.
-        /// </summary>
-        //public int? UseCreateContractId
-        //{
-        //    get { return AceObject.UseCreateContractId; }
-        //    set { AceObject.UseCreateContractId = value; }
-        //}
-
         /// <summary>
         /// A new biota be created taking all of its values from weenie.
         /// </summary>
@@ -47,6 +36,31 @@ namespace ACE.Server.WorldObjects
         {
         }
 
+        public override ActivationResult CheckUseRequirements(WorldObject activator)
+        {
+            if (!(activator is Player player))
+                return new ActivationResult(false);
+
+            var baseRequirements = base.CheckUseRequirements(activator);
+            if (!baseRequirements.Success)
+                return baseRequirements;
+
+            // are cooldown timers specific to gems, or should they be in base?
+            if (!player.CheckCooldown(this))
+            {
+                // TODO: werror/string not found, find exact message
+
+                /*var cooldown = player.GetCooldown(this);
+                var timer = cooldown.GetFriendlyString();
+                player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{Name} can be activated again in {timer}", ChatMessageType.Broadcast));*/
+
+                player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, "You have used this item too recently"));
+                return new ActivationResult(false);
+            }
+
+            return new ActivationResult(true);
+        }
+
         /// <summary>
         /// This is raised by Player.HandleActionUseItem.<para />
         /// The item should be in the players possession.
@@ -56,42 +70,15 @@ namespace ACE.Server.WorldObjects
         /// and shows our progress for kill tasks as well as any timing information such as when we can repeat the
         /// quest or how much longer we have to complete it in the case of at timed quest.   Og II
         /// </summary>
-        public override void UseItem(Player player)
+        public override void ActOnUse(WorldObject activator)
         {
-            // TODO: verify use requirements
+            if (!(activator is Player player))
+                return;
+
+            player.UpdateCooldown(this);
 
             if (UseCreateContractId == null)
             {
-                //var spell = new Spell((uint)SpellDID);
-
-                /*
-                //These if statements are to catch spells with an apostrophe in the dat file which throws off the client in reading it from the dat.
-                if (spell.MetaSpellId == 3810)
-                    castMessage = "The gem casts Asheron's Benediction on you";
-                if (spell.MetaSpellId == 3811)
-                    castMessage = "The gem casts Blackmoor's Favor on you";
-                if (spell.MetaSpellId == 3953)
-                    castMessage = "The gem casts Carraida's Benediction on you";
-                if (spell.MetaSpellId == 4024)
-                    castMessage = "The gem casts Asheron's Lesser Benediction on you";
-                */
-
-                // TODO: activation requirements and cooldown timers should probably be checked in player.HandleActionUseItem()
-                if (!player.CheckCooldown(this))
-                {
-                    // TODO: werror/string not found, find exact message
-
-                    /*var cooldown = player.GetCooldown(this);
-                    var timer = cooldown.GetFriendlyString();
-                    player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{Name} can be activated again in {timer}", ChatMessageType.Broadcast));*/
-
-                    player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, "You have used this item too recently"));
-                    player.SendUseDoneEvent();
-                    return;
-                }
-
-                player.UpdateCooldown(this);
-
                 if (SpellDID.HasValue)
                 {
                     var spell = new Server.Entity.Spell((uint)SpellDID);
@@ -101,11 +88,13 @@ namespace ACE.Server.WorldObjects
 
                 if ((GetProperty(PropertyBool.UnlimitedUse) ?? false) == false)
                     player.TryConsumeFromInventoryWithNetworking(this, 1);
-
-                player.SendUseDoneEvent();
-                return;
             }
+            else
+                ActOnUseContract(player);
+        }
 
+        public void ActOnUseContract(Player player)
+        {
             ContractTracker contractTracker = new ContractTracker((uint)UseCreateContractId, player.Guid.Full)
             {
                 Stage = 0,
@@ -121,7 +110,6 @@ namespace ACE.Server.WorldObjects
                 if (timeRemaining.Seconds > 0)
                 {
                     ChatPacket.SendServerMessage(player.Session, "You cannot use another contract for " + timeRemaining.Seconds + " seconds", ChatMessageType.Broadcast);
-                    player.SendUseDoneEvent();
                     return;
                 }
             }
@@ -141,8 +129,7 @@ namespace ACE.Server.WorldObjects
                         player.LastUseTracker[CooldownId.Value] = DateTime.Now;
                 }
 
-                GameEventSendClientContractTracker contractMsg = new GameEventSendClientContractTracker(player.Session, contractTracker);
-                player.Session.Network.EnqueueSend(contractMsg);
+                player.Session.Network.EnqueueSend(new GameEventSendClientContractTracker(player.Session, contractTracker));
                 ChatPacket.SendServerMessage(player.Session, "You just added " + contractTracker.ContractDetails.ContractName, ChatMessageType.Broadcast);
 
                 // TODO: Add sending the 02C2 message UpdateEnchantment.   They added a second use to this existing system
@@ -166,9 +153,6 @@ namespace ACE.Server.WorldObjects
             }
             else
                 ChatPacket.SendServerMessage(player.Session, "You already have this quest tracked: " + contractTracker.ContractDetails.ContractName, ChatMessageType.Broadcast);
-
-            // No mater any condition we need to send the use done event to clear the hour glass from the client.
-            player.SendUseDoneEvent();
         }
     }
 }

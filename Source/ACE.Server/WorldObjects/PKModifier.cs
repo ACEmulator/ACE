@@ -46,22 +46,14 @@ namespace ACE.Server.WorldObjects
         /// If the item was outside of range, the player will have been commanded to move using DoMoveTo before ActOnUse is called.<para />
         /// When this is called, it should be assumed that the player is within range.
         /// </summary>
-        public override void ActOnUse(WorldObject worldObject)
+        public override void ActOnUse(WorldObject activator)
         {
-            var player = worldObject as Player;
-            if (player == null) return;
-
-            //if (ServerIsPKServer) // Need some form of config switch in configmanager...
-            //{
-            //    player.Session.Network.EnqueueSend(new GameMessageSystemChat(GetProperty(PropertyString.UsePkServerError), ChatMessageType.Broadcast));
-            //    player.SendUseDoneEvent();
-            //    return;
-            //}
+            if (!(activator is Player player))
+                return;
 
             if (AllowedActivator != null)
             {
                 // do nothing / in use error msg?
-                player.SendUseDoneEvent();
                 return;
             }
 
@@ -69,10 +61,7 @@ namespace ACE.Server.WorldObjects
             {
                 // Advocates cannot change their PK status
                 if (PkLevelModifier == 1)
-                {
-                    player.SendUseDoneEvent();
                     return; // maybe send error msg to tell PK to ask another advocate to @remove them (or maybe make the @remove command support self removal)
-                }
 
                 // letting it fall through for the NpkSwitch because it will not change status and error properly.
             }
@@ -83,23 +72,22 @@ namespace ACE.Server.WorldObjects
             {
                 AllowedActivator = ObjectGuid.Invalid.Full;
 
-                var rotateTime = player.Rotate(this);
-
-                var switchTimer = new ActionChain();
-                switchTimer.AddDelaySeconds(rotateTime);
-
                 var useMotion = UseTargetSuccessAnimation != MotionCommand.Invalid ? UseTargetSuccessAnimation : MotionCommand.Twitch1;
-                switchTimer.AddAction(player, () => EnqueueBroadcastMotion(new Motion(this, useMotion)));
+                EnqueueBroadcastMotion(new Motion(this, useMotion));
 
                 var motionTable = DatManager.PortalDat.ReadFromDat<MotionTable>(MotionTableId);
-                switchTimer.AddDelaySeconds(motionTable.GetAnimationLength(useMotion));
+                var useTime = motionTable.GetAnimationLength(useMotion);
 
-                switchTimer.AddAction(player, () =>
+                player.LastUseTime += useTime;
+
+                var actionChain = new ActionChain();
+
+                actionChain.AddDelaySeconds(useTime);
+
+                actionChain.AddAction(player, () =>
                 {
                     player.Session.Network.EnqueueSend(new GameMessageSystemChat(GetProperty(PropertyString.UseMessage), ChatMessageType.Broadcast));
                     player.PkLevelModifier = PkLevelModifier;
-
-                    player.SendUseDoneEvent();
 
                     if (player.PkLevelModifier == 1)
                         player.PlayerKillerStatus = PlayerKillerStatus.PK;
@@ -110,16 +98,15 @@ namespace ACE.Server.WorldObjects
 
                     Reset();
                 });
-                switchTimer.EnqueueChain();
+
+                actionChain.EnqueueChain();
             }
             else
             {
                 if (UseTargetFailureAnimation != MotionCommand.Invalid)
-                    //EnqueueBroadcastMotion(new Motion(MotionStance.NonCombat, UseTargetFailureAnimation));
                     EnqueueBroadcastMotion(new Motion(this, UseTargetFailureAnimation));
 
                 player.Session.Network.EnqueueSend(new GameMessageSystemChat(GetProperty(PropertyString.ActivationFailure), ChatMessageType.Broadcast));
-                player.SendUseDoneEvent();
             }
         }
 

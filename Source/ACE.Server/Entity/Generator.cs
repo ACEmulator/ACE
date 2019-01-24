@@ -121,6 +121,10 @@ namespace ACE.Server.Entity
                 if (delay == 0)
                     delay = _generator.GeneratorProfiles[0].Biota.Delay ?? 0;   // only for link generators?
 
+                // 11556 - Cultist Altar
+                if (_generator.RegenerationInterval == 0)
+                    delay = 0;
+
                 if (_generator is Chest) delay = 0.0f;
 
                 //Console.WriteLine($"QueueGenerator({_generator.Name}): RegenerationInterval: {_generator.RegenerationInterval} - Delay: {delay}");

@@ -769,7 +769,16 @@ namespace ACE.Server.WorldObjects
                             {
                                 // portal recall
                                 var portal = GetPortal(recallDID.Value);
-                                if (portal == null || !portal.CheckUseRequirements(player)) break;
+                                if (portal == null) break;
+
+                                var result = portal.CheckUseRequirements(player);
+                                if (!result.Success)
+                                {
+                                    if (result.Message != null)
+                                        player.Session.Network.EnqueueSend(result.Message);
+
+                                    break;
+                                }
 
                                 ActionChain portalRecall = new ActionChain();
                                 portalRecall.AddAction(targetPlayer, () => player.DoPreTeleportHide());

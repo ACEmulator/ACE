@@ -265,9 +265,7 @@ namespace ACE.Server.WorldObjects
 
             actionChain.AddAction(this, () => EmoteManager.ExecuteEmoteSet(EmoteCategory.Use, null, player));
             actionChain.EnqueueChain();
-
-            player.SendUseDoneEvent();
-        }
+       }
 
         public override void OnCollideObject(WorldObject target)
         {

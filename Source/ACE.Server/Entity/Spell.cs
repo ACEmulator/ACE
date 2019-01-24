@@ -184,5 +184,18 @@ namespace ACE.Server.Entity
             }
             return wcid;
         }
+
+        public Skill GetMagicSkill()
+        {
+            switch (School)
+            {
+                case MagicSchool.CreatureEnchantment: return Skill.CreatureEnchantment;
+                case MagicSchool.ItemEnchantment:     return Skill.ItemEnchantment;
+                case MagicSchool.LifeMagic:           return Skill.LifeMagic;
+                case MagicSchool.WarMagic:            return Skill.WarMagic;
+                case MagicSchool.VoidMagic:           return Skill.VoidMagic;
+            }
+            return Skill.None;
+        }
     }
 }

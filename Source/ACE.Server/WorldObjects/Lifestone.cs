@@ -1,12 +1,10 @@
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
-using ACE.DatLoader;
-using ACE.DatLoader.FileTypes;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
-using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
+using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 
 namespace ACE.Server.WorldObjects
@@ -36,8 +34,6 @@ namespace ACE.Server.WorldObjects
             RadarColor = ACE.Entity.Enum.RadarColor.LifeStone;
         }
 
-        private static readonly Motion sanctuary = new Motion(MotionStance.NonCombat, MotionCommand.Sanctuary);
-
         /// <summary>
         /// This is raised by Player.HandleActionUseItem.<para />
         /// The item does not exist in the players possession.<para />
@@ -46,35 +42,34 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public override void ActOnUse(WorldObject worldObject)
         {
-            if (worldObject is Player)
+            if (!(worldObject is Player player))
+                return;
+
+            var actionChain = new ActionChain();
+            if (player.CombatMode != CombatMode.NonCombat)
             {
-                var player = worldObject as Player;
+                var stanceTime = player.SetCombatMode(CombatMode.NonCombat);
+                actionChain.AddDelaySeconds(stanceTime);
 
-                ActionChain sancTimer = new ActionChain();
-                sancTimer.AddAction(player, () =>
-                {
-                    player.EnqueueBroadcastMotion(sanctuary);
-                    player.EnqueueBroadcast(new GameMessageSound(player.Guid, Sound.LifestoneOn, 1.0f));
-                });
-                sancTimer.AddDelaySeconds(DatManager.PortalDat.ReadFromDat<MotionTable>(player.MotionTableId).GetAnimationLength(MotionCommand.Sanctuary));
-                sancTimer.AddAction(player, () =>
-                {
-                    if (player.IsWithinUseRadiusOf(this))
-                    {
-                        player.Session.Network.EnqueueSend(new GameMessageSystemChat(GetProperty(PropertyString.UseMessage), ChatMessageType.Magic));
-                        player.Sanctuary = player.Location;
-                    }
-                // Unsure if there was a fail message...
-                //else
-                //{
-                //    var serverMessage = "You wandered too far to attune with the Lifestone!";
-                //    player.Session.Network.EnqueueSend(new GameMessageSystemChat(serverMessage, ChatMessageType.Magic));
-                //}
-
-                player.SendUseDoneEvent();
-                });
-                sancTimer.EnqueueChain();
+                player.LastUseTime += stanceTime;
             }
+
+            actionChain.AddAction(this, () => player.EnqueueBroadcast(new GameMessageSound(player.Guid, Sound.LifestoneOn, 1.0f)));
+
+            player.LastUseTime += player.EnqueueMotion(actionChain, MotionCommand.Sanctuary);
+
+            actionChain.AddAction(this, () =>
+            {
+                if (player.IsWithinUseRadiusOf(this))
+                {
+                    player.Sanctuary = new Position(player.Location);
+                    player.Session.Network.EnqueueSend(new GameMessageSystemChat(GetProperty(PropertyString.UseMessage), ChatMessageType.Magic));
+                }
+                else
+                    player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouHaveMovedTooFar));
+            });
+
+            actionChain.EnqueueChain();
         }
     }
 }

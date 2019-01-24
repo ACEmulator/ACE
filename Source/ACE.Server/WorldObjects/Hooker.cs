@@ -26,15 +26,5 @@ namespace ACE.Server.WorldObjects
         private void SetEphemeralValues()
         {
         }
-
-        public override void UseItem(Player player)
-        {
-            base.UseItem(player);
-        }
-
-        public override void ActOnUse(WorldObject worldObject)
-        {
-            base.ActOnUse(worldObject);
-        }
     }
 }

@@ -1,11 +1,9 @@
-using ACE.Common;
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
-using ACE.Server.Network.GameEvent.Events;
 
 namespace ACE.Server.WorldObjects
 {
@@ -29,8 +27,6 @@ namespace ACE.Server.WorldObjects
 
         private void SetEphemeralValues()
         {
-            // TODO: we shouldn't be auto setting properties that come from our weenie by default
-            UseRadius = 1;
         }
 
         /// <summary>
@@ -39,48 +35,35 @@ namespace ACE.Server.WorldObjects
         /// If the item was outside of range, the player will have been commanded to move using DoMoveTo before ActOnUse is called.<para />
         /// When this is called, it should be assumed that the player is within range.
         /// </summary>
-        public override void ActOnUse(WorldObject worldObject)
+        public override void ActOnUse(WorldObject activator)
         {
-            if (worldObject is Player)
-            {
-                var player = worldObject as Player;
-                ////if (playerDistanceTo >= 2500)
-                ////{
-                ////    var sendTooFarMsg = new GameEventDisplayStatusMessage(player.Session, StatusMessageType1.Enum_0037);
-                ////    player.Session.Network.EnqueueSend(sendTooFarMsg, sendUseDoneEvent);
-                ////    return;
-                ////}
+            if (!(activator is Player player) || AllowedActivator != null)
+                return;
 
-                if (AllowedActivator == null)
-                {
-                    Activate(player.Guid);
-                }
+            AllowedActivator = activator.Guid.Full;
 
-                var sendUseDoneEvent = new GameEventUseDone(player.Session);
-                player.Session.Network.EnqueueSend(sendUseDoneEvent);
-            }
-        }
-
-        private void Activate(ObjectGuid activator = new ObjectGuid())
-        {       
-            AllowedActivator = activator.Full;
-
-            // FIXME: tip in direction
-            EnqueueBroadcastMotion(new Motion(MotionStance.NonCombat, MotionCommand.TippedRight));
-            
             // Stamp Cow tipping quest here;
+            EmoteManager.IsBusy = true;
 
-            ActionChain autoResetTimer = new ActionChain();
-            autoResetTimer.AddDelaySeconds(4);
-            autoResetTimer.AddAction(this, () => ResetCow());
-            autoResetTimer.EnqueueChain();
+            //var dir = player.GetSplatterDir(this);
+            //var motion = dir.Contains("Left") ? MotionCommand.TippedRight : MotionCommand.TippedLeft;
 
-            if (activator.Full > 0)
-                UseTimestamp++;
+            var motion = MotionCommand.TippedRight;     // left bugged?
+
+            var actionChain = new ActionChain();
+            EnqueueMotion(actionChain, motion);
+            actionChain.AddAction(this, () => ResetCow());
+            actionChain.EnqueueChain();
+
+            UseTimestamp++;
         }
 
         private void ResetCow()
         {
+            CurrentMotionState = new Motion(MotionStance.NonCombat, MotionCommand.Ready);
+
+            EmoteManager.IsBusy = false;
+
             AllowedActivator = null;
 
             ResetTimestamp++;

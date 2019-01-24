@@ -249,7 +249,7 @@ namespace ACE.Server.WorldObjects
 
             AddGeneratorProfiles();
 
-            if (IsGenerator && RegenerationInterval > 0)
+            if (IsGenerator)
                 HeartbeatInterval = RegenerationInterval;
 
             BaseDescriptionFlags = ObjectDescriptionFlag.Attackable;
@@ -715,11 +715,6 @@ namespace ACE.Server.WorldObjects
 
             var adjusted = AdjustPos.Adjust(dungeonID, pos);
             return adjusted;
-        }
-
-        public virtual void Activate(WorldObject activator)
-        {
-            // empty base, override in child objects
         }
 
         public virtual void Open(WorldObject opener)
