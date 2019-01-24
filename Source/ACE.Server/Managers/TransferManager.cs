@@ -223,6 +223,11 @@ namespace ACE.Server.Managers
                     return new ImportAndMigrateResult() { FailReason = ImportAndMigrateFailiureReason.UnverifiedSourceServerNotAllowed };
                 }
 
+                if (metadata.PackageType == PackageType.Migrate && !unverifiedThumbprints.AllowMigrate)
+                {
+                    return new ImportAndMigrateResult() { FailReason = ImportAndMigrateFailiureReason.UnverifiedSourceServerDoesntAllowMigrate };
+                }
+
                 try
                 {
                     using (InsecureWebClient iwc = new InsecureWebClient())
@@ -485,6 +490,7 @@ namespace ACE.Server.Managers
             Unknown,
             OperationNotAllowed,
             UnverifiedSourceServerNotAllowed,
+            UnverifiedSourceServerDoesntAllowMigrate,
             VerifiedSourceServerNotAllowed,
             PackInfoNotFound,
             CannotContactSourceServer,

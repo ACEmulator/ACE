@@ -772,8 +772,5 @@ namespace ACE.Server.Entity
                 return isHouseDungeon.Value;
             }
         }
-
-        public int ActionQueueCount { get { return actionQueue.Count; } }
-        public int ObjectCount { get { return worldObjects.Count; } }
     }
 }
