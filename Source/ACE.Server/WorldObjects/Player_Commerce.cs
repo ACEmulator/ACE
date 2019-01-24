@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
@@ -49,7 +48,7 @@ namespace ACE.Server.WorldObjects
         }
 
 
-        private bool CreateCurrency(WeenieType type, uint amount)
+        private List<WorldObject> CreatePayout(WeenieType type, uint amount)
         {
             // todo: we need to look up this object to understand it by its weenie id.
             // todo: support more then hard coded coin.
@@ -57,7 +56,38 @@ namespace ACE.Server.WorldObjects
             WorldObject wochk = WorldObjectFactory.CreateNewWorldObject(coinWeenieId);
             ushort maxstacksize = wochk.MaxStackSize.Value;
 
-            List<WorldObject> payout = new List<WorldObject>();
+            var payout = new List<WorldObject>();
+
+            while (amount > 0)
+            {
+                WorldObject currancystack = WorldObjectFactory.CreateNewWorldObject(coinWeenieId);
+                // payment contains a max stack
+                if (maxstacksize <= amount)
+                {
+                    currancystack.StackSize = maxstacksize;
+                    payout.Add(currancystack);
+                    amount = amount - maxstacksize;
+                }
+                else // not a full stack
+                {
+                    currancystack.StackSize = (ushort)amount;
+                    payout.Add(currancystack);
+                    amount = amount - amount;
+                }
+            }
+
+            return payout;
+        }
+
+        private bool CreateCurrencyInInventory(WeenieType type, uint amount)
+        {
+            // todo: we need to look up this object to understand it by its weenie id.
+            // todo: support more then hard coded coin.
+            const uint coinWeenieId = 273;
+            WorldObject wochk = WorldObjectFactory.CreateNewWorldObject(coinWeenieId);
+            ushort maxstacksize = wochk.MaxStackSize.Value;
+
+            var payout = new List<WorldObject>();
 
             while (amount > 0)
             {
@@ -79,10 +109,10 @@ namespace ACE.Server.WorldObjects
 
             // add money to player inventory.
             foreach (WorldObject wo in payout)
-            {
                 TryCreateInInventoryWithNetworking(wo);
-            }
+
             UpdateCurrencyClientCalculations(WeenieType.Coin);
+
             return true;
         }
 
@@ -133,13 +163,13 @@ namespace ACE.Server.WorldObjects
 
                 // if there is change - readd - do this at the end to try to prevent exploiting
                 if (change > 0)
-                {
                     TryCreateInInventoryWithNetworking(changeobj);
-                }
 
                 UpdateCurrencyClientCalculations(WeenieType.Coin);
+
                 return cost;
             }
+
             return null;
         }
 
@@ -173,15 +203,14 @@ namespace ACE.Server.WorldObjects
                         var service = gen.GetProperty(PropertyBool.VendorService) ?? false;
 
                         if (!service)
-                        {
                             TryCreateInInventoryWithNetworking(gen);
-                        }
                         else
                         {
                             var spell = new Spell(gen.SpellDID ?? 0);
                             TryCastSpell(spell, this, null, false, false);
                         }
                     }
+
                     Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.PickUpItem));
                 }
                 else // not enough cash.
@@ -189,6 +218,7 @@ namespace ACE.Server.WorldObjects
                     valid = false;
                 }
             }
+
             vendor.BuyItems_FinalTransaction(this, uqlist, valid);
         }
 
@@ -197,7 +227,7 @@ namespace ACE.Server.WorldObjects
             // pay player in voinds
             if (valid)
             {
-                CreateCurrency(WeenieType.Coin, payout);
+                CreateCurrencyInInventory(WeenieType.Coin, payout);
 
                 Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.PickUpItem));
             }
@@ -226,6 +256,14 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void HandleActionSellItem(List<ItemProfile> itemprofiles, uint vendorGuid)
         {
+            var vendor = CurrentLandblock?.GetObject(vendorGuid) as Vendor;
+
+            if (vendor == null)
+            {
+                SendUseDoneEvent();
+                return;
+            }
+
             var sellList = new List<WorldObject>();
 
             var allPossessions = GetAllPossessions();
@@ -235,7 +273,8 @@ namespace ACE.Server.WorldObjects
             {
                 var item = allPossessions.FirstOrDefault(i => i.Guid.Full == profile.ObjectGuid);
 
-                if (item == null) continue;
+                if (item == null)
+                    continue;
 
                 if (!(item.GetProperty(PropertyBool.IsSellable) ?? true) || (item.GetProperty(PropertyBool.Retained) ?? false))
                 {
@@ -243,17 +282,14 @@ namespace ACE.Server.WorldObjects
                     continue;
                 }
 
-                if (TryRemoveFromInventoryWithNetworking(profile.ObjectGuid, out item, RemoveFromInventoryAction.SellItem) || TryDequipObjectWithNetworking(profile.ObjectGuid, out item, DequipObjectAction.SellItem))
-                {
-                    Session.Network.EnqueueSend(new GameMessageDeleteObject(item));
-
-                    sellList.Add(item);
-                }
-                else
-                {
-                    // todo give the client an error message
-                }
+                sellList.Add(item);
             }
+
+            var freeInventorySlots = GetFreeInventorySlots();
+
+            var payout = vendor.CalculatePayout(sellList);
+
+            // todo check if we have enoguh room to sell
 
             if (rejected.Count > 0)
             {
@@ -261,16 +297,23 @@ namespace ACE.Server.WorldObjects
                 {
                     var itemName = (item.StackSize ?? 1) > 1 ? item.GetPluralName() : item.Name;
                     Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, $"The {itemName} cannot be sold"));     // TODO: find retail messages
+                    Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, Guid.Full));
                 }
-                Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, Guid.Full));
             }
 
             if (sellList.Count > 0)
             {
-                var vendor = CurrentLandblock?.GetObject(vendorGuid) as Vendor;
+                foreach (var item in sellList)
+                {
+                    if (TryRemoveFromInventoryWithNetworking(item.Guid, out _, RemoveFromInventoryAction.SellItem) || TryDequipObjectWithNetworking(item.Guid, out _, DequipObjectAction.SellItem))
+                        Session.Network.EnqueueSend(new GameMessageDeleteObject(item));
+                    else
+                    {
+                        // todo give the client an error message
+                    }
+                }
 
-                if (vendor != null)
-                    vendor.SellItems_ValidateTransaction(this, sellList);
+                vendor.SellItems_ValidateTransaction(this, sellList);
             }
             else
                 SendUseDoneEvent();
