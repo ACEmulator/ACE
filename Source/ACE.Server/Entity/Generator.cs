@@ -239,6 +239,13 @@ namespace ACE.Server.Entity
                     continue;
                 }
 
+                // if specific and outdoors, verify walkable slope
+                if ((RegenLocationType & RegenLocationType.Specific) != 0 && !obj.Location.Indoors && !obj.Location.IsWalkable())
+                {
+                    //Console.WriteLine($"*** WARNING *** {_generator.Name} spawned {obj.Name} @ {obj.Location.ToLOCString()} on unwalkable slope");
+                    continue;
+                }
+
                 obj.EnterWorld();
             }
 

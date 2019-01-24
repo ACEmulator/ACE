@@ -266,8 +266,9 @@ namespace ACE.Server.Entity
 
             Physics.Polygon walkable = null;
             var terrainPoly = landcell.find_terrain_poly(p.Pos, ref walkable);
+            if (walkable == null) return false;
 
-            return walkable != null;
+            return Physics.PhysicsObj.is_valid_walkable(walkable.Plane.Normal);
         }
     }
 }
