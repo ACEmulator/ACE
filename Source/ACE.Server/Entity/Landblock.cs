@@ -515,7 +515,8 @@ namespace ACE.Server.Entity
             wo.CurrentLandblock = null;
 
             // Weenies can come with a default of 0 or -1. If they still have that value, we want to retain it.
-            if (wo.TimeToRot.HasValue && wo.TimeToRot != 0 && wo.TimeToRot != -1)
+            // We also want to make sure fromPickup is true so that we're not clearing out TimeToRot on server shutdown (unloads all landblocks and removed all objects).
+            if (fromPickup && wo.TimeToRot.HasValue && wo.TimeToRot != 0 && wo.TimeToRot != -1)
                 wo.TimeToRot = null;
 
             if (!adjacencyMove)
