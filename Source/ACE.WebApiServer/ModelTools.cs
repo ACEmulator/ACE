@@ -5,7 +5,7 @@ namespace ACE.WebApiServer
 {
     internal static class ModelTools
     {
-        public static Response AsJson(this /* ok MOM */ object Model)
+        public static Response AsJsonWebResponse(this object Model)
         {
             Response response = JsonConvert.SerializeObject(Model, serializationSettings);
             response.ContentType = "application/json";

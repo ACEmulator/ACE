@@ -25,7 +25,7 @@ namespace ACE.WebApiServer.Modules
                     AllowBackup = ConfigManager.Config.Transfer.AllowBackup,
                     AllowImport = ConfigManager.Config.Transfer.AllowImport,
                     AllowMigrate = ConfigManager.Config.Transfer.AllowMigrate,
-                }.AsJson();
+                }.AsJsonWebResponse();
             });
 
             // this needs to be unathenticated
@@ -51,7 +51,7 @@ namespace ACE.WebApiServer.Modules
                     SnapshotPackage = result.SnapshotPackage,
                     Success = result.Success
                 };
-                return resp.AsJson();
+                return resp.AsJsonWebResponse();
             });
 
 
@@ -61,7 +61,7 @@ namespace ACE.WebApiServer.Modules
                 {
                     Online = PlayerManager.GetOnlineCount(),
                     Offline = PlayerManager.GetOfflineCount()
-                }.AsJson();
+                }.AsJsonWebResponse();
             });
 
             Get("/api/networkStats", async (_) =>
@@ -74,7 +74,7 @@ namespace ACE.WebApiServer.Modules
                     S2C_Packets_Aggregate = NetworkStatistics.S2C_Packets_Aggregate,
                     S2C_RequestsForRetransmit_Aggregate = NetworkStatistics.S2C_RequestsForRetransmit_Aggregate,
                     Summary = NetworkStatistics.Summary()
-                }.AsJson();
+                }.AsJsonWebResponse();
             });
 
             Get("/api/landblockStatus", async (_) =>
@@ -117,14 +117,14 @@ namespace ACE.WebApiServer.Modules
                     }
                     resp.Active = lbsl;
                 });
-                return resp.AsJson();
+                return resp.AsJsonWebResponse();
             });
 
             Get("/api/serverStatus", async (_) =>
             {
                 string resp = null;
                 Gate.RunGatedAction(() => resp = AdminCommands.GetServerStatus());
-                return resp.AsJson();
+                return resp.AsJsonWebResponse();
             });
 
             Get("/api/serverInfo", async (_) =>
@@ -150,7 +150,7 @@ namespace ACE.WebApiServer.Modules
                     },
                     AccountDefaults = ConfigManager.Config.Server.Accounts
                 });
-                return resp.AsJson();
+                return resp.AsJsonWebResponse();
             });
         }
     }

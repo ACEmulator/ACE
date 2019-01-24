@@ -10,6 +10,8 @@ namespace ACE.WebApiServer
     /// </summary>
     public class Gate
     {
+        public const int SlumberSpeed = 500;
+        public const int ActionSpeed = 100; // maximum 10 actions per second
         private static readonly Lazy<Gate> lazy = new Lazy<Gate>(() => new Gate());
         public static Gate Instance => lazy.Value;
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
@@ -33,6 +35,11 @@ namespace ACE.WebApiServer
             GateThread2.Name = "WebApiGate2";
             GateThread2.Start();
         }
+        public static void Shutdown()
+        {
+            Instance.GateThreadsAlive = false;
+        }
+
         /// <summary>
         /// Enqueue and run an action against the game server.  Blocks until finished.
         /// </summary>
@@ -54,12 +61,16 @@ namespace ACE.WebApiServer
                 default:
                     throw new Exception("unknown queue number");
             }
+            if (!Instance.GateThreadsAlive)
+            {
+                throw new Exception("Gate was shut down.");
+            }
         }
         private static void GateThreadLoop()
         {
             while (Instance.GateThreadsAlive)
             {
-                Thread.Sleep(500);
+                Thread.Sleep(SlumberSpeed);
                 GatedAction act = null;
                 while (Instance.GateQueue.TryDequeue(out act) && Instance.GateThreadsAlive)
                 {
@@ -72,7 +83,7 @@ namespace ACE.WebApiServer
                     {
                         act.CompletionToken.Set();
                     }
-                    Thread.Sleep(100); // maximum 10 actions per second
+                    Thread.Sleep(ActionSpeed);
                 }
             }
         }
@@ -80,7 +91,7 @@ namespace ACE.WebApiServer
         {
             while (Instance.GateThreadsAlive)
             {
-                Thread.Sleep(500);
+                Thread.Sleep(SlumberSpeed);
                 GatedAction act = null;
                 while (Instance.GateQueue2.TryDequeue(out act) && Instance.GateThreadsAlive)
                 {
@@ -93,7 +104,7 @@ namespace ACE.WebApiServer
                     {
                         act.CompletionToken.Set();
                     }
-                    Thread.Sleep(100); // maximum 10 actions per second
+                    Thread.Sleep(ActionSpeed);
                 }
             }
         }

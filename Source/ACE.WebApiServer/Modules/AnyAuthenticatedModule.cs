@@ -43,7 +43,7 @@ namespace ACE.WebApiServer.Modules
                 k => k.Type == AccessLevel.Player.ToString(),
                 k => k.Type == AccessLevel.Sentinel.ToString());
 
-            Get("/api/character", async (_) => { return (await GetModelCharacterListAsync()).AsJson(); });
+            Get("/api/character", async (_) => { return (await GetModelCharacterListAsync()).AsJsonWebResponse(); });
 
             Get("/api/character/backup", async (_) =>
             {
@@ -68,7 +68,7 @@ namespace ACE.WebApiServer.Modules
                     {
                         Success = false,
                         CharacterId = request.CharacterId
-                    }.AsJson();
+                    }.AsJsonWebResponse();
                 }
                 if (!File.Exists(metadata.FilePath))
                 {
@@ -76,7 +76,7 @@ namespace ACE.WebApiServer.Modules
                     {
                         Success = false,
                         CharacterId = request.CharacterId
-                    }.AsJson();
+                    }.AsJsonWebResponse();
                 }
                 CharacterBackupResponseModel resp = new CharacterBackupResponseModel
                 {
@@ -85,7 +85,7 @@ namespace ACE.WebApiServer.Modules
                     CharacterId = request.CharacterId
                 };
                 File.Delete(metadata.FilePath);
-                return resp.AsJson();
+                return resp.AsJsonWebResponse();
             });
 
             Get("/api/character/migrationBegin", async (_) =>
@@ -111,7 +111,7 @@ namespace ACE.WebApiServer.Modules
                     {
                         CharacterId = request.CharacterId,
                         Success = false
-                    }.AsJson();
+                    }.AsJsonWebResponse();
                 }
                 if (!File.Exists(metadata.FilePath))
                 {
@@ -119,7 +119,7 @@ namespace ACE.WebApiServer.Modules
                     {
                         CharacterId = request.CharacterId,
                         Success = false
-                    }.AsJson();
+                    }.AsJsonWebResponse();
                 }
                 CharacterMigrationBeginResponseModel resp = new CharacterMigrationBeginResponseModel
                 {
@@ -128,7 +128,7 @@ namespace ACE.WebApiServer.Modules
                     Success = true,
                     CharacterId = request.CharacterId
                 };
-                return resp.AsJson();
+                return resp.AsJsonWebResponse();
             });
 
             Get("/api/character/migrationCancel", async (_) =>
@@ -153,7 +153,7 @@ namespace ACE.WebApiServer.Modules
                     Cookie = request.Cookie,
                     Success = result.Success
                 };
-                return resp.AsJson();
+                return resp.AsJsonWebResponse();
             });
 
             Get("/api/character/migrationComplete", async (_) =>
@@ -183,7 +183,7 @@ namespace ACE.WebApiServer.Modules
                     CharacterName = result.NewCharacterName,
                     FailureReason = result.Success ? null : result.FailReason.ToString(),
                     CharacterId = result.NewCharacterId
-                }.AsJson();
+                }.AsJsonWebResponse();
             });
 
             Post("/api/character/import", async (_) =>
@@ -211,7 +211,7 @@ namespace ACE.WebApiServer.Modules
                     {
                         Success = false,
                         FailureReason = "SnapshotPackageBase64 is not valid Base64 encoded data."
-                    }.AsJson();
+                    }.AsJsonWebResponse();
                 }
                 Gate.RunGatedAction(() =>
                 {
@@ -223,7 +223,7 @@ namespace ACE.WebApiServer.Modules
                     CharacterName = result.NewCharacterName,
                     CharacterId = result.NewCharacterId,
                     FailureReason = result.Success ? null : result.FailReason.ToString()
-                }.AsJson();
+                }.AsJsonWebResponse();
             });
         }
     }

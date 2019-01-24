@@ -17,6 +17,7 @@ namespace ACE.WebApiServer.Managers
         /// </summary>
         public static void Initialize()
         {
+            var gate = Gate.Instance; // unnecessarily spin up gate threads in preparation for web requests
             string listeningHost = ConfigManager.Config.Server.Network.Host;
             int listeningPort = (int)ConfigManager.Config.Server.Network.Port + 2;
             log.Info($"Binding web host to {listeningHost}:{listeningPort}");
@@ -40,6 +41,7 @@ namespace ACE.WebApiServer.Managers
         /// </summary>
         public static void Shutdown()
         {
+            Gate.Shutdown();
             WebHost.Shutdown();
         }
     }

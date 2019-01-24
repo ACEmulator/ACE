@@ -38,14 +38,14 @@ namespace ACE.WebApiServer.Modules
                     CommandResult = result.ConsoleCommandResult.ToString(),
                     CommandHandlerResponse = result.CommandHandlerResponse?.ToString(),
                     SubmittedCommand = request.Command
-                }.AsJson();
+                }.AsJsonWebResponse();
             });
 
             Get("/api/playerLocations", async (_) =>
             {
                 PlayerLocationsResponseModel resp = new PlayerLocationsResponseModel();
                 Gate.RunGatedAction(() => resp.Locations = PlayerManager.GetAllOnline().Select(k => new PlayerNameAndLocation() { Location = k.Location.ToString(), Name = k.Name }).ToList());
-                return resp.AsJson();
+                return resp.AsJsonWebResponse();
             });
         }
     }
