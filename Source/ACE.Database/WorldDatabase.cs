@@ -80,7 +80,7 @@ namespace ACE.Database
         /// This will populate all sub collections except the following: LandblockInstances, PointsOfInterest<para />
         /// This will also update the weenie cache.
         /// </summary>
-        private Weenie GetWeenie(WorldDbContext context, uint weenieClassId)
+        public Weenie GetWeenie(WorldDbContext context, uint weenieClassId)
         {
             // Base properties for every weenie (ACBaseQualities)
             var weenie = context.Weenie
@@ -480,6 +480,7 @@ namespace ACE.Database
             }
         }
 
+
         public List<HousePortal> GetHousePortals(uint houseId)
         {
             using (var context = new WorldDbContext())
@@ -505,6 +506,7 @@ namespace ACE.Database
                 return results;
             }
         }
+
 
         private readonly ConcurrentDictionary<string, PointsOfInterest> cachedPointsOfInterest = new ConcurrentDictionary<string, PointsOfInterest>();
 
