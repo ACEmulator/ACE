@@ -1274,5 +1274,10 @@ namespace ACE.Server.Managers
         {
             ExecuteEmoteSet(EmoteCategory.KillTaunt, null, player);
         }
+
+        public void OnTalkDirect(Player player)
+        {
+            ExecuteEmoteSet(EmoteCategory.ReceiveTalkDirect, null, player);
+        }
     }
 }
