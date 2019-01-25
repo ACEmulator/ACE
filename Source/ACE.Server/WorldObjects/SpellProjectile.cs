@@ -251,10 +251,10 @@ namespace ACE.Server.WorldObjects
             // if player target, ensure matching PK status
             var targetPlayer = target as Player;
 
-            var checkPKStatusVsTarget = CheckPKStatusVsTarget(player, targetPlayer, Spell);
-            if (checkPKStatusVsTarget != null && checkPKStatusVsTarget == false)
+            var pkError = CheckPKStatusVsTarget(player, targetPlayer, Spell);
+            if (pkError != null)
             {
-                player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.InvalidPkStatus));
+                player.Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(player.Session, (WeenieErrorWithString)pkError, target.Name));
                 return;
             }
 
