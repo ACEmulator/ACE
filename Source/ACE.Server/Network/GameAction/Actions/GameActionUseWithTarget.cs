@@ -1,3 +1,4 @@
+using System;
 
 namespace ACE.Server.Network.GameAction.Actions
 {
@@ -8,6 +9,8 @@ namespace ACE.Server.Network.GameAction.Actions
         {
             uint sourceObjectGuid = message.Payload.ReadUInt32();
             uint targetObjectGuid = message.Payload.ReadUInt32();
+
+            //Console.WriteLine($"{session.Player.Name}.UseWithTarget({sourceObjectGuid:X8}, {targetObjectGuid:X8})");
 
             session.Player.HandleActionUseWithTarget(sourceObjectGuid, targetObjectGuid);
         }

@@ -14,7 +14,7 @@ namespace ACE.Server.Network.GameEvent.Events
             Writer.Write((double)percent);
             Writer.Write(damage);
             Writer.Write(Convert.ToUInt32(criticalHit));
-            Writer.Write((UInt64)attackConditions);
+            Writer.Write((ulong)attackConditions);
         }
     }
 }

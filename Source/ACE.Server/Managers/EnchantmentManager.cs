@@ -452,6 +452,9 @@ namespace ACE.Server.Managers
 
             var filtered = enchantments.Where(e => e.PowerLevel <= maxPower);
 
+            // no dispel for enchantments from item sources (and vitae)
+            filtered = enchantments.Where(e => e.Duration != -1);
+
             // for dispelSchool and align,
             // we probably could do some calculations to figure out these values directly from the enchantments
             // but it would be far easier and more reliable to just do them through the spells

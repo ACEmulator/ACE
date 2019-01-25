@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Server.Entity;
@@ -12,6 +13,122 @@ namespace ACE.Server.WorldObjects
 {
     partial class Player
     {
+        private TimeSpan defaultMoveToTimeout = TimeSpan.FromSeconds(15); // This is just a starting point number. It may be far off from retail.
+
+        private int moveToChainCounter;
+        private DateTime moveToChainStartTime;
+
+        private int lastCompletedMove;
+
+        public bool IsPlayerMovingTo => moveToChainCounter > lastCompletedMove;
+
+        private int GetNextMoveToChainNumber()
+        {
+            return Interlocked.Increment(ref moveToChainCounter);
+        }
+
+        public void StopExistingMoveToChains()
+        {
+            Interlocked.Increment(ref moveToChainCounter);
+
+            lastCompletedMove = moveToChainCounter;
+        }
+
+        public void CreateMoveToChain(WorldObject target, Action<bool> callback)
+        {
+            var thisMoveToChainNumber = GetNextMoveToChainNumber();
+
+            if (target.Location == null)
+            {
+                StopExistingMoveToChains();
+                log.Error($"{Name}.CreateMoveToChain({target.Name}): target.Location is null");
+
+                callback(false);
+                return;
+            }
+
+            // already within use distance?
+            var withinUseRadius = CurrentLandblock.WithinUseRadius(this, target.Guid, out var targetValid);
+            if (withinUseRadius)
+            {
+                // send TurnTo motion
+                var rotateTime = Rotate(target);
+                var actionChain = new ActionChain();
+                actionChain.AddDelaySeconds(rotateTime);
+                actionChain.AddAction(this, () =>
+                {
+                    lastCompletedMove = thisMoveToChainNumber;
+                    callback(true);
+                });
+                actionChain.EnqueueChain();
+                return;
+            }
+
+            if (target.WeenieType == WeenieType.Portal)
+                MoveToPosition(target.Location);
+            else
+                MoveToObject(target);
+
+            moveToChainStartTime = DateTime.UtcNow;
+
+            MoveToChain(target, thisMoveToChainNumber, callback);
+        }
+
+        public void MoveToChain(WorldObject target, int thisMoveToChainNumber, Action<bool> callback)
+        {
+            if (thisMoveToChainNumber != moveToChainCounter)
+            {
+                if (thisMoveToChainNumber > lastCompletedMove)
+                    lastCompletedMove = thisMoveToChainNumber;
+
+                callback(false);
+                return;
+            }
+
+            // Break loop if CurrentLandblock == null (we portaled or logged out)
+            if (CurrentLandblock == null)
+            {
+                StopExistingMoveToChains(); // This increments our moveToChainCounter and thus, should stop any additional actions in this chain
+                callback(false);
+                return;
+            }
+
+            // Have we timed out?
+            if (moveToChainStartTime + defaultMoveToTimeout <= DateTime.UtcNow)
+            {
+                StopExistingMoveToChains(); // This increments our moveToChainCounter and thus, should stop any additional actions in this chain
+                callback(false);
+                return;
+            }
+
+            // Are we within use radius?
+            var success = CurrentLandblock.WithinUseRadius(this, target.Guid, out var targetValid);
+
+            // If one of the items isn't on a landblock
+            if (!targetValid)
+            {
+                StopExistingMoveToChains(); // This increments our moveToChainCounter and thus, should stop any additional actions in this chain
+                callback(false);
+                return;
+            }
+
+            if (!success)
+            {
+                // target not reached yet
+                var actionChain = new ActionChain();
+                actionChain.AddDelaySeconds(0.1f);
+                actionChain.AddAction(this, () => MoveToChain(target, thisMoveToChainNumber, callback));
+                actionChain.EnqueueChain();
+            }
+            else
+            {
+                if (thisMoveToChainNumber > lastCompletedMove)
+                    lastCompletedMove = thisMoveToChainNumber;
+
+                callback(true);
+            }
+        }
+
         public Position StartJump;
 
         public bool InitMoveListener;

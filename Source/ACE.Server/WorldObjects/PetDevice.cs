@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Generic;
+
 using ACE.Database;
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Server.Entity;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameMessages.Messages;
 
@@ -39,25 +41,17 @@ namespace ACE.Server.WorldObjects
         {
         }
 
-        public override void UseItem(Player player)
+        public override void ActOnUse(WorldObject activator)
         {
+            if (!(activator is Player player))
+                return;
+
             // Good PCAP example of using a PetDevice to summon a pet:
             // Asherons-Call-packets-includes-3-towers\pkt_2017-1-30_1485823896_log.pcap lines 27837 - 27843
 
             if (!PetDeviceToPetMapping.TryGetValue(WeenieClassId, out var petData))
             {
                 Console.WriteLine($"PetDevice.UseItem(): couldn't find a matching pet for essence wcid {WeenieClassId}");
-                player.SendUseDoneEvent();
-                return;
-            }
-
-            if (!CheckRequirements(player))
-                return;
-
-            if (!player.CheckCooldown(this))
-            {
-                // 'You have used this item too recently' error message?
-                player.SendUseDoneEvent();  
                 return;
             }
 
@@ -79,44 +73,26 @@ namespace ACE.Server.WorldObjects
             {
                 // this would be a good place to send a friendly reminder to install the latest summoning updates from ACE-World-Patch
             }
-
-            player.SendUseDoneEvent();
         }
 
-        public bool CheckRequirements(Player player)
+        public override ActivationResult CheckUseRequirements(WorldObject activator)
         {
-            // verify player level
-            if (UseRequiresLevel != null && player.Level.Value < UseRequiresLevel)
-            {
-                player.SendUseDoneEvent(WeenieError.SkillTooLow);
-                return false;
-            }
+            if (!(activator is Player player))
+                return new ActivationResult(false);
 
-            // verify summoning skill
-            var summoning = player.GetCreatureSkill(Skill.Summoning);
-            if (summoning.AdvancementClass < SkillAdvancementClass.Trained)
-            {
-                player.SendUseDoneEvent(WeenieError.SkillTooLow);
-                return false;
-            }
-            if (UseRequiresSkillLevel != null && summoning.Current < UseRequiresSkillLevel)
-            {
-                player.SendUseDoneEvent(WeenieError.SkillTooLow);
-                return false;
-            }
+            var baseRequirements = base.CheckUseRequirements(activator);
+            if (!baseRequirements.Success)
+                return baseRequirements;
 
-            // verify summoning specialization
-            if (summoning.AdvancementClass < SkillAdvancementClass.Specialized && UseRequiresSkillSpec == (int)Skill.Summoning)
-            {
-                player.SendUseDoneEvent(WeenieError.SkillTooLow);
-                return false;
-            }
+            // cooldowns for gems and pet devices, anything else?
+
+            // should this verification be in base CheckUseRequirements?
+            if (!player.CheckCooldown(this))
+                return new ActivationResult(false);
 
             // TODO: limit non-golems to summoning mastery
 
-            // TODO: verify error messages w/ retail
-
-            return true;
+            return new ActivationResult(true);
         }
 
         public bool SummonCreature(Player player, uint wcid, DamageType damageType)

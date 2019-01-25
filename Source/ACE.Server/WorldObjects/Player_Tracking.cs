@@ -40,29 +40,12 @@ namespace ACE.Server.WorldObjects
         public ObjectMaint ObjMaint => PhysicsObj.ObjMaint;
 
         /// <summary>
-        /// Tracks Interactive world object you are have interacted with recently.  this should be
-        /// called from the context of an action chain being executed by the landblock loop.
-        /// </summary>
-        public void TrackInteractiveObjects(List<WorldObject> worldObjects)
-        {
-            // todo: figure out a way to expire objects.. objects clearly not in range of interaction /etc
-            foreach (WorldObject wo in worldObjects)
-            {
-                if (interactiveWorldObjects.ContainsKey(wo.Guid))
-                    interactiveWorldObjects[wo.Guid] = wo;
-                else
-                    interactiveWorldObjects.Add(wo.Guid, wo);
-            }
-        }
-
-        /// <summary>
         /// Returns the list of WorldObjects this Player this player currently knows about
         /// </summary>
         public List<WorldObject> GetKnownObjects()
         {
             return ObjMaint.ObjectTable.Values.Select(o => o.WeenieObj.WorldObject).ToList();
         }
-
 
         /// <summary>
         /// Sends a network message to player for CreateObject, if applicable

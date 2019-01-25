@@ -60,7 +60,6 @@ namespace ACE.Server.WorldObjects
             houseProfile.SetRentItems(GetRentItems());
 
             player.Session.Network.EnqueueSend(new GameEventHouseProfile(player.Session, Guid, houseProfile));
-            player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session));
         }
 
         /// <summary>

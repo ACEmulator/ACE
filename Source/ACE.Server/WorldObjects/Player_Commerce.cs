@@ -1,8 +1,6 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 
-using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
@@ -145,16 +143,6 @@ namespace ACE.Server.WorldObjects
 
 
         /// <summary>
-        /// Sends updated network packets to client / vendor item list.
-        /// </summary>
-        public void ApproachVendor(Vendor vendor, List<WorldObject> itemsForSale)
-        {
-            Session.Network.EnqueueSend(new GameEventApproachVendor(Session, vendor, itemsForSale));
-
-            SendUseDoneEvent();
-        }
-
-        /// <summary>
         /// Vendor has validated the transactions and sent a list of items for processing.
         /// </summary>
         public void FinalizeBuyTransaction(Vendor vendor, List<WorldObject> uqlist, List<WorldObject> genlist, bool valid, uint goldcost)
@@ -219,6 +207,8 @@ namespace ACE.Server.WorldObjects
 
             if (vendor != null)
                 vendor.BuyItems_ValidateTransaction(vendorGuid, items, this);
+
+            SendUseDoneEvent();
         }
 
         /// <summary>
@@ -272,8 +262,8 @@ namespace ACE.Server.WorldObjects
                 if (vendor != null)
                     vendor.SellItems_ValidateTransaction(this, sellList);
             }
-            else
-                SendUseDoneEvent();
+
+            SendUseDoneEvent();
         }
     }
 }

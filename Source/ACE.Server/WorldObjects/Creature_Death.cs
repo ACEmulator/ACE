@@ -50,7 +50,7 @@ namespace ACE.Server.WorldObjects
             var playerKiller = lastDamager as Player;
             if (playerKiller != null && playerKiller != this)
             {
-                if (criticalHit)
+                if (criticalHit && this is Player)
                     deathMessage = Strings.PKCritical[0];
 
                 var killerMsg = string.Format(deathMessage.Killer, Name);

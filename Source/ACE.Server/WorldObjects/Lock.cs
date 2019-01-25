@@ -26,7 +26,7 @@ namespace ACE.Server.WorldObjects
     }
     public class UnlockerHelper
     {
-        public static void ConsumeUnlocker(Player player,WorldObject unlocker)
+        public static void ConsumeUnlocker(Player player, WorldObject unlocker)
         {
             // to-do don't consume "Limitless Lockpick" rare.
             unlocker.Structure--;
@@ -34,7 +34,17 @@ namespace ACE.Server.WorldObjects
                 player.TryConsumeFromInventoryWithNetworking(unlocker, 1);
             player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session));
             player.Session.Network.EnqueueSend(new GameMessagePublicUpdatePropertyInt(unlocker, PropertyInt.Structure, (int)unlocker.Structure));
-            player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Your lockpicks have {unlocker.Structure} uses left.", ChatMessageType.Craft));
+
+            var unlockerType = unlocker is Lockpick ? "lockpick" : "key";
+            if (unlocker.Structure < 1)
+            {
+                player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Your {unlockerType} is used up.", ChatMessageType.Broadcast));
+            }
+            else
+            {
+                var usePlural = unlocker.Structure == 1 ? "use" : "uses";
+                player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Your {unlockerType} has {unlocker.Structure} {usePlural} left.", ChatMessageType.Broadcast));
+            }
         }
         public static void UseUnlocker(Player player, WorldObject unlocker, WorldObject target)
         {
@@ -73,12 +83,16 @@ namespace ACE.Server.WorldObjects
                         case UnlockResults.UnlockSuccess:
 
                             if (unlocker.WeenieType == WeenieType.Lockpick)
+                            {
                                 player.HandleActionApplySoundEffect(Sound.Lockpicking);// Sound.Lockpicking doesn't work via EnqueueBroadcastSound for some reason.
 
-                            player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You have successfully picked the lock! It is now unlocked.", ChatMessageType.Craft));
+                                player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You have successfully picked the lock! It is now unlocked.", ChatMessageType.Broadcast));
 
-                            var lockpickSkill = player.GetCreatureSkill(Skill.Lockpick);
-                            Proficiency.OnSuccessUse(player, lockpickSkill, (uint)difficulty);
+                                var lockpickSkill = player.GetCreatureSkill(Skill.Lockpick);
+                                Proficiency.OnSuccessUse(player, lockpickSkill, (uint)difficulty);
+                            }
+                            else
+                                player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{target.Name} has been unlocked.", ChatMessageType.Broadcast));
 
                             ConsumeUnlocker(player, unlocker);
                             break;

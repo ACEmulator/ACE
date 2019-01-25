@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Numerics;
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.Entity;
@@ -10,6 +9,7 @@ using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
+using ACE.Server.Network.GameEvent.Events;
 
 using log4net;
 
@@ -174,15 +174,12 @@ namespace ACE.Server.WorldObjects
             foreach (KeyValuePair<ObjectGuid, WorldObject> wo in uniqueItemsForSale)
                 vendorlist.Add(wo.Value);
 
-            player.TrackInteractiveObjects(vendorlist);
-            player.ApproachVendor(this, vendorlist);
+            player.Session.Network.EnqueueSend(new GameEventApproachVendor(player.Session, this, vendorlist));
 
             var rotateTime = Rotate(player); // vendor rotates to player
 
             if (action != VendorType.Undef)
-            {
                 DoVendorEmote(action, player);
-            }
         }
 
 

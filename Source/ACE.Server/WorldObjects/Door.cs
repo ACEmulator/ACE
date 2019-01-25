@@ -72,45 +72,14 @@ namespace ACE.Server.WorldObjects
             set => useLockTimestamp = Time.GetUnixTime();
         }
 
-        private string KeyCode
-        {
-            get;
-            set;
-        }
-
         public string LockCode
         {
             get => GetProperty(PropertyString.LockCode);
             set { if (value == null) RemoveProperty(PropertyString.LockCode); else SetProperty(PropertyString.LockCode, value); }
         }
 
-        private string ShortDesc
-        {
-            get;
-            set;
-        }
-
-        private string UseMessage
-        {
-            get;
-            set;
-        }
-
-        private int? AppraisalLockpickSuccessPercent
-        {
-            get;
-            set;
-        }
-
         public override void ActOnUse(WorldObject worldObject)
         {
-            ////if (playerDistanceTo >= 2500)
-            ////{
-            ////    var sendTooFarMsg = new GameEventWeenieError(player.Session, WeenieError.CantGetThere);
-            ////    player.Session.Network.EnqueueSend(sendTooFarMsg, sendUseDoneEvent);
-            ////    return;
-            ////}
-
             if (!IsLocked)
             {
                 if (!IsOpen)
@@ -133,13 +102,6 @@ namespace ACE.Server.WorldObjects
                     player.Session.Network.EnqueueSend(doorIsLocked);
                     EnqueueBroadcast(new GameMessageSound(Guid, Sound.OpenFailDueToLock, 1.0f));
                 }
-            }
-
-            if (worldObject is Player)
-            {
-                var player = worldObject as Player;
-                var sendUseDoneEvent = new GameEventUseDone(player.Session);
-                player.Session.Network.EnqueueSend(sendUseDoneEvent);
             }
         }
 
