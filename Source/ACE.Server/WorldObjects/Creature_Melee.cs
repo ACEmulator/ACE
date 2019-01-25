@@ -118,8 +118,6 @@ namespace ACE.Server.WorldObjects
         {
             if (!weapon.IsCleaving) return null;
 
-            _globalPos = Location.ToGlobal();
-
             // sort visible objects by ascending distance
             var visible = PhysicsObj.ObjMaint.VisibleObjectTable.Values.ToList();
             visible.Sort(DistanceComparator);
@@ -139,7 +137,7 @@ namespace ACE.Server.WorldObjects
                     continue;
 
                 // no objects in cleave range
-                var distSquared = Vector3.DistanceSquared(_globalPos, creature.Location.ToGlobal());
+                var distSquared = Location.SquaredDistanceTo(creature.Location);
                 if (distSquared > CleaveRangeSq)
                     return cleaveTargets;
 

@@ -1185,7 +1185,8 @@ namespace ACE.Server.WorldObjects
                     continue;
 
                 //var dist = Vector3.Distance(Location.ToGlobal(), player.Location.ToGlobal());
-                var distSquared = Vector3.DistanceSquared(Location.ToGlobal(), player.Location.ToGlobal());
+                //var distSquared = Vector3.DistanceSquared(Location.ToGlobal(), player.Location.ToGlobal());
+                var distSquared = Location.SquaredDistanceTo(player.Location);
                 if (distSquared <= rangeSquared)
                     return true;
             }
@@ -1216,7 +1217,8 @@ namespace ACE.Server.WorldObjects
                     continue;
 
                 //var dist = Vector3.Distance(Location.ToGlobal(), player.Location.ToGlobal());
-                var distSquared = Vector3.DistanceSquared(Location.ToGlobal(), player.Location.ToGlobal());
+                //var distSquared = Vector3.DistanceSquared(Location.ToGlobal(), player.Location.ToGlobal());
+                var distSquared = Location.SquaredDistanceTo(player.Location);
                 if (distSquared <= rangeSquared)
                     player.Session.Network.EnqueueSend(msg);
             }

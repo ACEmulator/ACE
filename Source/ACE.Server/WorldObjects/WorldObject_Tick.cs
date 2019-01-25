@@ -255,7 +255,7 @@ namespace ACE.Server.WorldObjects
             var spellProjectile = this as SpellProjectile;
             if (spellProjectile != null && spellProjectile.SpellType == SpellProjectile.ProjectileSpellType.Ring)
             {
-                var dist = Vector3.Distance(spellProjectile.SpawnPos.ToGlobal(), Location.ToGlobal());
+                var dist = spellProjectile.SpawnPos.DistanceTo(Location);
                 var maxRange = spellProjectile.Spell.BaseRangeConstant;
                 //Console.WriteLine("Max range: " + maxRange);
                 if (dist > maxRange)
