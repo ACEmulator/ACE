@@ -464,6 +464,7 @@ namespace ACE.Database
             using (var context = new WorldDbContext())
             {
                 return context.LandblockInstance
+                    .Include(r => r.LandblockInstanceLink)
                     .AsNoTracking()
                     .FirstOrDefault(r => r.Guid == guid);
             }
@@ -474,6 +475,7 @@ namespace ACE.Database
             using (var context = new WorldDbContext())
             {
                 return context.LandblockInstance
+                    .Include(r => r.LandblockInstanceLink)
                     .AsNoTracking()
                     .Where(i => i.WeenieClassId == wcid)
                     .ToList();
