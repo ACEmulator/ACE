@@ -63,7 +63,7 @@ namespace ACE.Server.Physics.Animation
 
         public bool IsValidWalkable(Vector3 normal)
         {
-            return Object.is_valid_walkable(normal);
+            return PhysicsObj.is_valid_walkable(normal);
         }
 
         public bool MissileIgnore(PhysicsObj collideObj)
@@ -116,7 +116,7 @@ namespace ACE.Server.Physics.Animation
                     if (dist > PhysicsGlobals.EPSILON)
                         return TransitionState.OK;
 
-                    if (path.StepDown || !State.HasFlag(ObjectInfoState.OnWalkable) || Object.is_valid_walkable(contactPlane.Normal))
+                    if (path.StepDown || !State.HasFlag(ObjectInfoState.OnWalkable) || PhysicsObj.is_valid_walkable(contactPlane.Normal))
                     {
                         collision.SetContactPlane(contactPlane, isWater);
                         collision.ContactPlaneCellID = landCellID;
@@ -133,7 +133,7 @@ namespace ACE.Server.Physics.Animation
                     if (path.CheckWalkable) return TransitionState.Collided;
                     var zDist = dist / contactPlane.Normal.Z;
 
-                    if (path.StepDown || !State.HasFlag(ObjectInfoState.OnWalkable) || Object.is_valid_walkable(contactPlane.Normal))
+                    if (path.StepDown || !State.HasFlag(ObjectInfoState.OnWalkable) || PhysicsObj.is_valid_walkable(contactPlane.Normal))
                     {
                         collision.SetContactPlane(contactPlane, isWater);
                         collision.ContactPlaneCellID = landCellID;

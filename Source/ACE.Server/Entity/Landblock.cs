@@ -109,6 +109,8 @@ namespace ACE.Server.Entity
 
         public Landblock(LandblockId id)
         {
+            //Console.WriteLine($"Loading landblock {(id.Raw | 0xFFFF):X8}");
+
             Id = id;
 
             CellLandblock = DatManager.CellDat.ReadFromDat<CellLandblock>(Id.Raw >> 16 | 0xFFFF);
