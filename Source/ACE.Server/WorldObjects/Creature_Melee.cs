@@ -92,16 +92,11 @@ namespace ACE.Server.WorldObjects
                 return 1;
         }
 
-        private static Vector3 _globalPos;
-
         public int DistanceComparator(PhysicsObj a, PhysicsObj b)
         {
             // use square distance to make things a bit faster
-            var globPos1 = a.WeenieObj.WorldObject.Location.ToGlobal();
-            var globPos2 = b.WeenieObj.WorldObject.Location.ToGlobal();
-
-            var dist1 = Vector3.DistanceSquared(_globalPos, globPos1);
-            var dist2 = Vector3.DistanceSquared(_globalPos, globPos2);
+            var dist1 = Location.SquaredDistanceTo(a.WeenieObj.WorldObject.Location);
+            var dist2 = Location.SquaredDistanceTo(b.WeenieObj.WorldObject.Location);
 
             return dist1.CompareTo(dist2);
         }
@@ -116,6 +111,8 @@ namespace ACE.Server.WorldObjects
         /// <returns>The list of cleave targets to hit with this attack</returns>
         public List<Creature> GetCleaveTarget(Creature target, WorldObject weapon)
         {
+            var player = this as Player;
+
             if (!weapon.IsCleaving) return null;
 
             // sort visible objects by ascending distance
@@ -133,7 +130,12 @@ namespace ACE.Server.WorldObjects
 
                 // only cleave creatures
                 var creature = obj.WeenieObj.WorldObject as Creature;
-                if (creature == null || !(creature.GetProperty(PropertyBool.Attackable) ?? false))
+                if (creature == null) continue;
+
+                if (player != null && creature is Player && player.CheckPKStatusVsTarget(player, creature, null) != null)
+                    continue;
+
+                if (!(creature.GetProperty(PropertyBool.Attackable) ?? false))
                     continue;
 
                 // no objects in cleave range
