@@ -207,6 +207,8 @@ namespace ACE.Server.WorldObjects
 
             if (vendor != null)
                 vendor.BuyItems_ValidateTransaction(vendorGuid, items, this);
+
+            SendUseDoneEvent();
         }
 
         /// <summary>
@@ -260,8 +262,8 @@ namespace ACE.Server.WorldObjects
                 if (vendor != null)
                     vendor.SellItems_ValidateTransaction(this, sellList);
             }
-            else
-                SendUseDoneEvent();
+
+            SendUseDoneEvent();
         }
     }
 }

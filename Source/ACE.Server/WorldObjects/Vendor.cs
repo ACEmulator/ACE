@@ -179,9 +179,7 @@ namespace ACE.Server.WorldObjects
             var rotateTime = Rotate(player); // vendor rotates to player
 
             if (action != VendorType.Undef)
-            {
                 DoVendorEmote(action, player);
-            }
         }
 
 

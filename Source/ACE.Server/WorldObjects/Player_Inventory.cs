@@ -1582,10 +1582,13 @@ namespace ACE.Server.WorldObjects
             {
                 if (acceptAll || result.Category == (uint)EmoteCategory.Give)
                 {
-                    // Item accepted by collector/NPC
-                    if (RemoveItemForGive(item, itemFoundInContainer, itemWasEquipped, itemRootOwner, amount, out _, true))
+                    // for NPCs that accept items with EmoteCategory.Give,
+                    // if stacked item, only give 1
+                    if (RemoveItemForGive(item, itemFoundInContainer, itemWasEquipped, itemRootOwner, 1, out WorldObject itemToGive, true))
                     {
-                        Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, target));
+                        if (itemToGive == null)
+                            Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, target));
+
                         Session.Network.EnqueueSend(new GameMessageSystemChat($"You give {target.Name} {item.Name}.", ChatMessageType.Broadcast));
                         Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.ReceiveItem));
                     }
