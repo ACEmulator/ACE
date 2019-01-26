@@ -516,6 +516,18 @@ namespace ACE.Database
             return dynamics.ToList();
         }
 
+        public List<Biota> GetHousesOwned()
+        {
+            using (var context = new ShardDbContext())
+            {
+                context.ChangeTracker.QueryTrackingBehavior = QueryTrackingBehavior.NoTracking;
+
+                var results = context.Biota.Where(i => i.WeenieType == (int)WeenieType.SlumLord).ToList();
+
+                return results;
+            }
+        }
+
 
         public bool IsCharacterNameAvailable(string name)
         {

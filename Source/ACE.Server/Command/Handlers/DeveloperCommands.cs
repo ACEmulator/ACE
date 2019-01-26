@@ -100,7 +100,7 @@ namespace ACE.Server.Command.Handlers
         [CommandHandler("fixbusy", AccessLevel.Player, CommandHandlerFlag.RequiresWorld, 0, "Attempts to remove the hourglass / fix the busy state for the player", "/fixbusy")]
         public static void HandleFixBusy(Session session, params string[] parameters)
         {
-            session.Network.EnqueueSend(new GameEventUseDone(session, WeenieError.None));
+            session.Player.SendUseDoneEvent();
         }
 
 

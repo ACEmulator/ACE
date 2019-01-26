@@ -74,7 +74,7 @@ namespace ACE.Server.WorldObjects
             actionChain.AddAction(healer, () =>
             {
                 DoHealing(healer, target);
-                healer.Session.Network.EnqueueSend(new GameEventUseDone(healer.Session, WeenieError.None));
+                healer.SendUseDoneEvent();
             });
             actionChain.EnqueueChain();
         }

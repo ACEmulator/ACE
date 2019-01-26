@@ -321,6 +321,11 @@ namespace ACE.Database
             return _wrappedDatabase.GetAllPlayerBiotasInParallel();
         }
 
+        public List<Biota> GetHousesOwned()
+        {
+            return _wrappedDatabase.GetHousesOwned();
+        }
+
 
         // ******************************************************************* OLD CODE BELOW ********************************
         // ******************************************************************* OLD CODE BELOW ********************************

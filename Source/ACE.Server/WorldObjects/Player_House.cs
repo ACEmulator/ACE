@@ -740,10 +740,17 @@ namespace ACE.Server.WorldObjects
             }
         }
 
-
+        /// <summary>
+        /// Handles the @hslist [housetype] command
+        /// </summary>
         public void HandleActionListAvailable(HouseType houseType)
         {
-            Console.WriteLine($"{Name}.HandleActionListAvailable({houseType})");
+            //Console.WriteLine($"{Name}.HandleActionListAvailable({houseType})");
+
+            var locations = HouseList.GetAvailableLocations(houseType);
+            var unique = locations.Distinct().ToList();
+
+            Session.Network.EnqueueSend(new GameEventHouseAvailableHouses(Session, houseType, unique, locations.Count));
         }
 
         public bool OnProperty(Player player)
