@@ -112,7 +112,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// This is set by HandleActionUseItem / TryUseItem
         /// </summary>
-        private ObjectGuid lastUsedContainerId { get; set; }
+        public ObjectGuid lastUsedContainerId { get; set; }
 
         /// <summary>
         /// Handles the 'GameAction 0x36 - UseItem' network message
@@ -133,7 +133,10 @@ namespace ACE.Server.WorldObjects
                     TryUseItem(item);
             }
             else
+            {
                 log.Warn($"{Name}.HandleActionUseItem({itemGuid:X8}): couldn't find object");
+                SendUseDoneEvent();
+            }
         }
 
         public float LastUseTime;

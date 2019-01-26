@@ -367,6 +367,14 @@ namespace ACE.Server.WorldObjects
             {
                 if (CurrentLandblock?.GetObject(lastUsedContainerId) is Container lastUsedContainer)
                 {
+                    if (lastUsedContainer is Vendor lastUsedVendor)
+                    {
+                        if (lastUsedVendor.AllItemsForSale.TryGetValue(objectGuid, out result))
+                                {
+                            rootOwner = lastUsedVendor;
+                            return result;
+                        }
+                    }
                     if (lastUsedContainer.IsOpen && lastUsedContainer.Viewer == Guid.Full)
                     {
                         result = lastUsedContainer.GetInventoryItem(objectGuid, out foundInContainer);
