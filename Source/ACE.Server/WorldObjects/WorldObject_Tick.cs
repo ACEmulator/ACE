@@ -14,8 +14,6 @@ namespace ACE.Server.WorldObjects
 {
     partial class WorldObject
     {
-        private ActionQueue actionQueue;
-
         public const int DefaultHeartbeatInterval = 5;
 
         protected double CachedHeartbeatInterval;
@@ -32,6 +30,18 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void QueueFirstHeartbeat(double currentUnixTime)
         {
+            // some generators have RegenerationInterval / HeartbeatInterval 0,
+            // which effectively means no automatic heartbeats, and are called directly by use activation
+
+            if (CachedHeartbeatInterval == 0)
+            {
+                // do first heartbeat
+                HeartBeat(Time.GetUnixTime());
+
+                NextHeartBeatTime = double.MaxValue;
+                return;
+            }
+
             // The intention of this code was just to spread the heartbeat ticks out a little over a 0-5s range,
             var delay = ThreadSafeRandom.Next(0.0f, DefaultHeartbeatInterval);
 
@@ -245,7 +255,7 @@ namespace ACE.Server.WorldObjects
             var spellProjectile = this as SpellProjectile;
             if (spellProjectile != null && spellProjectile.SpellType == SpellProjectile.ProjectileSpellType.Ring)
             {
-                var dist = Vector3.Distance(spellProjectile.SpawnPos.ToGlobal(), Location.ToGlobal());
+                var dist = spellProjectile.SpawnPos.DistanceTo(Location);
                 var maxRange = spellProjectile.Spell.BaseRangeConstant;
                 //Console.WriteLine("Max range: " + maxRange);
                 if (dist > maxRange)

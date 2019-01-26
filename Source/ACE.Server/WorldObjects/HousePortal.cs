@@ -7,8 +7,7 @@ using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
-using ACE.Server.Factories;
-using ACE.Server.Managers;
+using ACE.Server.Entity;
 using ACE.Server.Network.GameEvent.Events;
 
 namespace ACE.Server.WorldObjects
@@ -31,43 +30,6 @@ namespace ACE.Server.WorldObjects
         public HousePortal(Biota biota) : base(biota)
         {
             SetEphemeralValues();
-        }
-
-        /// <summary>
-        /// House Portals are on Use activated, rather than collision based activation
-        /// The actual portal process is wrapped to the base portal class ActOnUse, after ACL check are performed
-        /// </summary>
-        /// <param name="worldObject"></param>
-        public override void ActOnUse(WorldObject worldObject)
-        {
-            if (worldObject is Player)
-            {
-                var player = worldObject as Player;
-
-                // for house portal usage, verify house owner or guest
-                if (House.HasPermission(player))
-                {
-                    // if house portal in dungeon,
-                    // set destination to outdoor house slumlord
-                    if (CurrentLandblock != null && CurrentLandblock.IsDungeon)
-                    {
-                        var biota = DatabaseManager.Shard.GetBiotasByWcid(House.WeenieClassId).FirstOrDefault(b => b.BiotaPropertiesPosition.FirstOrDefault(p => p.PositionType == (ushort)PositionType.Location).ObjCellId >> 16 != House.Location.Landblock);
-                        if (biota != null)
-                        {
-                            var outdoorHouseGuid = biota.Id;
-                            var house = House.Load(outdoorHouseGuid);
-                            SetPosition(PositionType.Destination, new Position(house.SlumLord.Location));
-                        }
-                    }
-
-                    base.ActOnUse(player);
-                }
-                else
-                {
-                    player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouMustBeHouseGuestToUsePortal));
-                    player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session));
-                }
-            }
         }
 
         public override void SetLinkProperties(WorldObject wo)
@@ -93,9 +55,32 @@ namespace ACE.Server.WorldObjects
                 // set portal destination directly?
                 SetPosition(PositionType.Destination, destination);
             }
+        }
 
-            //if (HouseOwner != null)
-            //Console.WriteLine($"{Name}.SetLinkProperties({wo.Name}) - houseID: {HouseId:X8}, owner: {HouseOwner:X8}, instance: {HouseInstance:X8}")        }
+        public override ActivationResult CheckUseRequirements(WorldObject activator)
+        {
+            if (!(activator is Player player))
+                return new ActivationResult(false);
+
+            if (!House.RootHouse.HasPermission(player))
+                return new ActivationResult(new GameEventWeenieError(player.Session, WeenieError.YouMustBeHouseGuestToUsePortal));
+
+            return new ActivationResult(true);
+        }
+
+        /// <summary>
+        /// House Portals are on Use activated, rather than collision based activation
+        /// The actual portal process is wrapped to the base portal class ActOnUse, after ACL check are performed
+        /// </summary>
+        /// <param name="worldObject"></param>
+        public override void ActOnUse(WorldObject worldObject)
+        {
+            // if house portal in dungeon,
+            // set destination to outdoor house slumlord
+            if (CurrentLandblock != null && CurrentLandblock.IsDungeon)
+                SetPosition(PositionType.Destination, new Position(House.RootHouse.SlumLord.Location));
+
+            base.ActOnUse(worldObject);
         }
     }
 }

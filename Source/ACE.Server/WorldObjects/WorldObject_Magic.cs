@@ -142,14 +142,14 @@ namespace ACE.Server.WorldObjects
         /// Returns TRUE if player should be allowed to cast the spell on target player
         /// Returns FALSE if player shouldn't be allowed to cast the spell on target player
         /// </returns>
-        protected bool? CheckPKStatusVsTarget(Player player, WorldObject target, Spell spell)
+        protected WeenieErrorWithString? CheckPKStatusVsTarget(Player player, WorldObject target, Spell spell)
         {
             if (player == null || target == null)
                 return null;
 
             if (player == target)
-                return true;
-
+                return null;
+        
             var targetPlayer = target as Player;
             if (targetPlayer == null && target.WielderId != null)
             {
@@ -157,20 +157,22 @@ namespace ACE.Server.WorldObjects
                 targetPlayer = player.CurrentLandblock.GetObject(target.WielderId.Value) as Player;
             }
             if (targetPlayer == null)
-                return true;
+                return null;
 
             if (spell == null || spell.IsHarmful)
             {
                 // Ensure that a non-PK cannot cast harmful spells on another player
                 if (player.PlayerKillerStatus == PlayerKillerStatus.NPK)
-                    return false;
+                    return WeenieErrorWithString.YouFailToAffect_YouAreNotPK;
+
+                if (targetPlayer.PlayerKillerStatus == PlayerKillerStatus.NPK)
+                    return WeenieErrorWithString.YouFailToAffect_TheyAreNotPK;
 
                 // Ensure that a harmful spell isn't being cast on another player that doesn't have the same PK status
                 if (player.PlayerKillerStatus != targetPlayer.PlayerKillerStatus)
-                    return false;
+                    return WeenieErrorWithString.YouFailToAffect_NotSamePKType;
             }
-
-            return true;
+            return null;
         }
 
         /// <summary>
@@ -196,11 +198,17 @@ namespace ACE.Server.WorldObjects
             if (targetCreature != null && targetPlayer == null && spell.IsBeneficial)
                 return true;
 
-            // Invalidate beneficial spells against monster wielded items
-            if (targetCreature == null && spell.IsBeneficial && target.OwnerId != null)
+            // check item spells
+            if (targetCreature == null && target.WielderId != null)
             {
-                var targetMonster = CurrentLandblock.GetObject(target.OwnerId.Value) as Creature;
-                if (!(targetMonster is Player))
+                var parent = CurrentLandblock.GetObject(target.WielderId.Value) as Player;
+
+                // Invalidate beneficial spells against monster wielded items
+                if (parent == null && spell.IsBeneficial)
+                    return true;
+
+                // Invalidate harmful spells against player wielded items, depending on pk status
+                if (parent != null && spell.IsHarmful && CheckPKStatusVsTarget(this as Player, parent, spell) != null)
                     return true;
             }
 
@@ -769,7 +777,16 @@ namespace ACE.Server.WorldObjects
                             {
                                 // portal recall
                                 var portal = GetPortal(recallDID.Value);
-                                if (portal == null || !portal.CheckUseRequirements(player)) break;
+                                if (portal == null) break;
+
+                                var result = portal.CheckUseRequirements(player);
+                                if (!result.Success)
+                                {
+                                    if (result.Message != null)
+                                        player.Session.Network.EnqueueSend(result.Message);
+
+                                    break;
+                                }
 
                                 ActionChain portalRecall = new ActionChain();
                                 portalRecall.AddAction(targetPlayer, () => player.DoPreTeleportHide());

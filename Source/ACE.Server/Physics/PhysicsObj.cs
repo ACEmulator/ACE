@@ -1321,8 +1321,7 @@ namespace ACE.Server.Physics
 
                     Polygon walkable = null;
                     var terrainPoly = landcell.find_terrain_poly(newPos.Frame.Origin, ref walkable);
-
-                    if (walkable == null) continue;
+                    if (walkable == null || !is_valid_walkable(walkable.Plane.Normal)) continue;
 
                     // account for buildings
                     // if original position was outside, and scatter position is in a building, should we even try to spawn?
@@ -2566,7 +2565,7 @@ namespace ACE.Server.Physics
                 return timestamp < newTime;
         }
 
-        public bool is_valid_walkable(Vector3 normal)
+        public static bool is_valid_walkable(Vector3 normal)
         {
             return normal.Z >= PhysicsGlobals.FloorZ;
         }

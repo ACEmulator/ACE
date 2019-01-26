@@ -396,8 +396,8 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public override void ActOnUse(WorldObject wo)
         {
-            var player = wo as Player;
-            if (player == null) return;
+            if (!(wo is Player player))
+                return;
 
             if (!IsOpen)
             {
@@ -412,7 +412,6 @@ namespace ACE.Server.WorldObjects
 
                 // else error msg?
             }
-            player.SendUseDoneEvent();
         }
 
         public virtual void Open(Player player)
@@ -437,7 +436,6 @@ namespace ACE.Server.WorldObjects
             }
 
             player.Session.Network.EnqueueSend(itemsToSend.ToArray());
-            player.TrackInteractiveObjects(woToExamine);
 
             player.Session.Network.EnqueueSend(new GameEventViewContents(player.Session, this));
         }
@@ -462,6 +460,9 @@ namespace ACE.Server.WorldObjects
                 if (player != null)
                 {
                     player.Session.Network.EnqueueSend(new GameEventCloseGroundContainer(player.Session, this));
+
+                    if (player.lastUsedContainerId == Guid)
+                        player.lastUsedContainerId = new ObjectGuid(0);
 
                     // send deleteobject for all objects in this container's inventory to player
                     // this seems logical, but it bugs out the client for re-opening chests w/ respawned items

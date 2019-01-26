@@ -1,3 +1,4 @@
+using System;
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.Entity;
@@ -9,19 +10,8 @@ using ACE.Server.Network.GameMessages.Messages;
 
 namespace ACE.Server.WorldObjects
 {
-    public class Portal : WorldObject
+    public partial class Portal : WorldObject
     {
-        /// <summary>
-        /// For summoned portals, the DID of the original portal
-        /// </summary>
-        public uint? OriginalPortal
-        {
-            get => GetProperty(PropertyDataId.OriginalPortal);
-            set { if (!value.HasValue) RemoveProperty(PropertyDataId.OriginalPortal); else SetProperty(PropertyDataId.OriginalPortal, value.Value); }
-        }
-
-        // private byte portalSocietyId;
-
         /// <summary>
         /// A new biota be created taking all of its values from weenie.
         /// </summary>
@@ -41,9 +31,6 @@ namespace ACE.Server.WorldObjects
         protected void SetEphemeralValues()
         {
             BaseDescriptionFlags |= ObjectDescriptionFlag.Portal;
-
-            MinLevel = MinLevel ?? 0;
-            MaxLevel = MaxLevel ?? 0;
 
             UpdatePortalDestination(Destination);
         }
@@ -65,78 +52,30 @@ namespace ACE.Server.WorldObjects
             }
         }
 
-        public string AppraisalPortalDestination
+        public override void SetLinkProperties(WorldObject wo)
         {
-            get => GetProperty(PropertyString.AppraisalPortalDestination);
-            set { if (value == null) RemoveProperty(PropertyString.AppraisalPortalDestination); else SetProperty(PropertyString.AppraisalPortalDestination, value); }
+            if (wo.IsLinkSpot)
+                SetPosition(PositionType.Destination, new Position(wo.Location));
         }
 
-        public bool? PortalShowDestination
+
+        public virtual void OnCollideObject(Player player)
         {
-            get => GetProperty(PropertyBool.PortalShowDestination);
-            set { if (!value.HasValue) RemoveProperty(PropertyBool.PortalShowDestination); else SetProperty(PropertyBool.PortalShowDestination, value.Value); }
+            OnActivate(player);
         }
 
-        public int? MinLevel
+        public override ActivationResult CheckUseRequirements(WorldObject activator)
         {
-            get => GetProperty(PropertyInt.MinLevel);
-            set { if (!value.HasValue) RemoveProperty(PropertyInt.MinLevel); else SetProperty(PropertyInt.MinLevel, value.Value); }
-        }
+            if (!(activator is Player player))
+                return new ActivationResult(false);
 
-        public int? MaxLevel
-        {
-            get => GetProperty(PropertyInt.MaxLevel);
-            set { if (!value.HasValue) RemoveProperty(PropertyInt.MaxLevel); else SetProperty(PropertyInt.MaxLevel, value.Value); }
-        }
+            if (player.Teleporting)
+                return new ActivationResult(false);
 
-        public PortalBitmask PortalRestrictions
-        {
-            get => (PortalBitmask)(GetProperty(PropertyInt.PortalBitmask) ?? (int)PortalBitmask.Unrestricted);
-            set { if (value == PortalBitmask.Undef) RemoveProperty(PropertyInt.PortalBitmask); else SetProperty(PropertyInt.PortalBitmask, (int)value); }
-        }
-
-        public int SocietyId => 0;
-
-        public bool NoRecall => (PortalRestrictions & PortalBitmask.NoRecall) != 0;
-
-        public bool NoSummon => (PortalRestrictions & PortalBitmask.NoSummon) != 0;
-
-        public bool NoTie => NoRecall;
-
-        public void ActivatePortal(Player player)
-        {
-            if (player.Teleporting) return;
-
-            var success = CheckUseRequirements(player);
-            if (!success)
-                return;
-
-            // everything looks good, teleport
-            EmoteManager.OnUse(player);
-
-#if DEBUG
-            player.Session.Network.EnqueueSend(new GameMessageSystemChat("Portal sending player to destination", ChatMessageType.System));
-#endif
-            var portalDest = new Position(Destination);
-            player.AdjustDungeon(portalDest);
-
-            player.Teleport(portalDest);
-
-            // If the portal just used is able to be recalled to,
-            // save the destination coordinates to the LastPortal character position save table
-            if (!NoRecall)
-                player.LastPortalDID = OriginalPortal == null ? WeenieClassId : OriginalPortal;     // if walking through a summoned portal
-
-            EmoteManager.OnPortal(player);
-        }
-
-        public bool CheckUseRequirements(Player player)
-        {
             if (Destination == null)
             {
-                var msg = new GameMessageSystemChat($"Portal destination for portal ID {WeenieClassId} not yet implemented!", ChatMessageType.System);
-                player.Session.Network.EnqueueSend(msg);
-                return false;
+                player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Portal destination for portal ID {WeenieClassId} not yet implemented!", ChatMessageType.System));
+                return new ActivationResult(false);
             }
 
             if (!player.IgnorePortalRestrictions)
@@ -148,17 +87,13 @@ namespace ACE.Server.WorldObjects
                 if (player.Level < MinLevel)
                 {
                     // You are not powerful enough to interact with that portal!
-                    var failedUsePortalMessage = new GameEventWeenieError(player.Session, WeenieError.YouAreNotPowerfulEnoughToUsePortal);
-                    player.Session.Network.EnqueueSend(failedUsePortalMessage);
-                    return false;
+                    return new ActivationResult(new GameEventWeenieError(player.Session, WeenieError.YouAreNotPowerfulEnoughToUsePortal));
                 }
 
                 if (player.Level > MaxLevel && MaxLevel != 0)
                 {
                     // You are too powerful to interact with that portal!
-                    var failedUsePortalMessage = new GameEventWeenieError(player.Session, WeenieError.YouAreTooPowerfulToUsePortal);
-                    player.Session.Network.EnqueueSend(failedUsePortalMessage);
-                    return false;
+                    return new ActivationResult(new GameEventWeenieError(player.Session, WeenieError.YouAreTooPowerfulToUsePortal));
                 }
             }
 
@@ -183,38 +118,31 @@ namespace ACE.Server.WorldObjects
             if (QuestRestriction != null && !player.QuestManager.HasQuest(QuestRestriction) && !player.IgnorePortalRestrictions)
             {
                 player.QuestManager.HandleNoQuestError(this);
-                return false;
+                return new ActivationResult(false);
             }
 
-            return true;
+            return new ActivationResult(true);
         }
 
-        public virtual void OnCollideObject(Player player)
+        public override void ActOnUse(WorldObject activator)
         {
-            ActivatePortal(player);
-        }
+            var player = activator as Player;
+            if (player == null) return;
 
-        /// <summary>
-        /// This is raised by Player.HandleActionUseItem.<para />
-        /// The item does not exist in the players possession.<para />
-        /// If the item was outside of range, the player will have been commanded to move using DoMoveTo before ActOnUse is called.<para />
-        /// When this is called, it should be assumed that the player is within range.
-        /// </summary>
-        public override void ActOnUse(WorldObject worldObject)
-        {
-            if (worldObject is Player player)
-            {
-                if (ReportCollisions == false)
-                    ActivatePortal(player);
+#if DEBUG
+            player.Session.Network.EnqueueSend(new GameMessageSystemChat("Portal sending player to destination", ChatMessageType.System));
+#endif
+            var portalDest = new Position(Destination);
+            player.AdjustDungeon(portalDest);
 
-                player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session));
-            }
-        }
+            player.Teleport(portalDest);
 
-        public override void SetLinkProperties(WorldObject wo)
-        {
-            if (wo.IsLinkSpot)
-                SetPosition(PositionType.Destination, new Position(wo.Location));
+            // If the portal just used is able to be recalled to,
+            // save the destination coordinates to the LastPortal character position save table
+            if (!NoRecall)
+                player.LastPortalDID = OriginalPortal == null ? WeenieClassId : OriginalPortal;     // if walking through a summoned portal
+
+            EmoteManager.OnPortal(player);
         }
     }
 }

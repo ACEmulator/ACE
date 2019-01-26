@@ -171,13 +171,7 @@ namespace ACE.Server.WorldObjects
                 // send the permissions from the outdoor house
                 if (house.CurrentLandblock.IsDungeon)
                 {
-                    var biota = DatabaseManager.Shard.GetBiotasByWcid(WeenieClassId).FirstOrDefault(b => b.BiotaPropertiesPosition.FirstOrDefault(p => p.PositionType == (ushort)PositionType.Location).ObjCellId >> 16 != Location.Landblock);
-                    if (biota != null)
-                    {
-                        var outdoorHouseGuid = biota.Id;
-                        house = House.Load(outdoorHouseGuid);
-                        house.BuildGuests();
-                    }
+                    house = house.RootHouse;
                 }
                 else
                 {
@@ -1185,7 +1179,8 @@ namespace ACE.Server.WorldObjects
                     continue;
 
                 //var dist = Vector3.Distance(Location.ToGlobal(), player.Location.ToGlobal());
-                var distSquared = Vector3.DistanceSquared(Location.ToGlobal(), player.Location.ToGlobal());
+                //var distSquared = Vector3.DistanceSquared(Location.ToGlobal(), player.Location.ToGlobal());
+                var distSquared = Location.SquaredDistanceTo(player.Location);
                 if (distSquared <= rangeSquared)
                     return true;
             }
@@ -1216,7 +1211,8 @@ namespace ACE.Server.WorldObjects
                     continue;
 
                 //var dist = Vector3.Distance(Location.ToGlobal(), player.Location.ToGlobal());
-                var distSquared = Vector3.DistanceSquared(Location.ToGlobal(), player.Location.ToGlobal());
+                //var distSquared = Vector3.DistanceSquared(Location.ToGlobal(), player.Location.ToGlobal());
+                var distSquared = Location.SquaredDistanceTo(player.Location);
                 if (distSquared <= rangeSquared)
                     player.Session.Network.EnqueueSend(msg);
             }

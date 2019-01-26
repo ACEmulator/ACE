@@ -1,30 +1,17 @@
+using System;
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
-using ACE.DatLoader;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
-using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 
 namespace ACE.Server.WorldObjects
 {
     public class Scroll : WorldObject
     {
-        private static readonly Motion motionReading = new Motion(MotionStance.NonCombat, MotionCommand.Reading);
-        private static readonly Motion motionReady = new Motion(MotionStance.NonCombat, MotionCommand.Ready);
-
-        private const uint spellLevel1 = 0;
-        private const uint spellLevel2 = 50;
-        private const uint spellLevel3 = 100;
-        private const uint spellLevel4 = 150;
-        private const uint spellLevel5 = 200;
-        private const uint spellLevel6 = 250;
-        private const uint spellLevel7 = 300;
-        private const uint spellLevel8 = 350;
-
-        private const IdentifyResponseFlags idFlags = IdentifyResponseFlags.IntStatsTable | IdentifyResponseFlags.StringStatsTable | IdentifyResponseFlags.SpellBook;
+        public Server.Entity.Spell Spell;
 
         /// <summary>
         /// A new biota be created taking all of its values from weenie.
@@ -44,176 +31,80 @@ namespace ACE.Server.WorldObjects
 
         private void SetEphemeralValues()
         {
-            // TODO we shouldn't be auto setting properties that come from our weenie by default
-
-            var table = DatManager.PortalDat.SpellTable;
-
-            Use = $"Inscribed spell: {table.Spells[SpellId].Name}\n";
-            Use += $"{table.Spells[SpellId].Desc}";
-
-            LongDesc = "Use this item to attempt to learn its spell.";
-
-            Power = table.Spells[SpellId].Power;
-            School = table.Spells[SpellId].School;
-
-            EncumbranceVal = 30;
-
-            switch (Power)
-            {
-                case spellLevel1:
-                    Value = 1;
-                    break;
-                case spellLevel2:
-                    Value = 5;
-                    break;
-                case spellLevel3:
-                    Value = 20;
-                    break;
-                case spellLevel4:
-                    Value = 100;
-                    break;
-                case spellLevel5:
-                    Value = 200;
-                    break;
-                case spellLevel6:
-                    Value = 1000;
-                    break;
-                case spellLevel7:
-                    Value = 2000;
-                    break;
-                case spellLevel8:
-                    Value = 60000;
-                    break;
-            }
-
-            //ScrollPropertiesInt = GetAllPropertyInt().Where(x => x.Key == PropertyInt.Value
-            //                                               || x.Key == PropertyInt.EncumbranceVal)
-            //    .ToList();
-
-            /*if (ScrollPropertiesString == null)
-                ScrollPropertiesString = new List<AceObjectPropertiesString>();
-            if (ScrollPropertiesSpellId == null)
-                ScrollPropertiesSpellId = new List<AceObjectPropertiesSpell>();*/
-
-            /*var useString = new AceObjectPropertiesString();
-            useString.AceObjectId = Guid.Full;
-            useString.PropertyId = (ushort)PropertyString.Use;
-            useString.PropertyValue = Use;
-            ScrollPropertiesString.Add(useString);*/
-
-            /*var longDescString = new AceObjectPropertiesString();
-            longDescString.AceObjectId = Guid.Full;
-            longDescString.PropertyId = (ushort)PropertyString.LongDesc;
-            longDescString.PropertyValue = LongDesc;
-            ScrollPropertiesString.Add(longDescString);*/
-
-            /*var propSpell = new AceObjectPropertiesSpell();
-            propSpell.AceObjectId = Guid.Full;
-            propSpell.SpellId = SpellId;
-            ScrollPropertiesSpellId.Add(propSpell);*/
-        }
-
-        /*private List<AceObjectPropertiesInt> ScrollPropertiesInt
-        {
-            get;
-            set;
-        }*/
-
-        /*private List<AceObjectPropertiesString> ScrollPropertiesString
-        {
-            get;
-            set;
-        }*/
-
-        /*private List<AceObjectPropertiesSpell> ScrollPropertiesSpellId
-        {
-            get;
-            set;
-        }*/
-
-        private uint SpellId => SpellDID.Value;
-
-        // Minimum Skill Level for 50% fizzle rate
-        private uint Power
-        {
-            get;
-            set;
-        }
-
-        private MagicSchool School
-        {
-            get;
-            set;
+            if (SpellDID != null)
+                Spell = new Server.Entity.Spell(SpellDID.Value, false);
         }
 
         /// <summary>
         /// This is raised by Player.HandleActionUseItem.<para />
         /// The item should be in the players possession.
         /// </summary>
-        public override void UseItem(Player player)
+        public override void ActOnUse(WorldObject activator)
         {
-            bool success = true;
-            string failReason = "You are unable to read the scroll.";
+            // Research: http://asheron.wikia.com/wiki/Announcements_-_2002/06_-_Castling
 
-            switch (Power)
-            {
-                // research: http://asheron.wikia.com/wiki/Announcements_-_2002/06_-_Castling
-                case spellLevel2: // Level 2
-                case spellLevel3: // Level 3
-                case spellLevel4: // Level 4
-                case spellLevel5: // Level 5
-                case spellLevel6: // Level 6
-                    if (!player.CanReadScroll(School, Power))
-                    {
-                        success = false;
-                        failReason = "You are not skilled enough in the inscribed spell's school of magic to understand the writing on this scroll.";
-                    }
-                    break;
-            }
+            if (!(activator is Player player))
+                return;
 
-            if (player.SpellIsKnown(SpellId))
+            if (Spell == null)
             {
-                success = false;
-                failReason = "You already know the spell inscribed upon this scroll.";
+                Console.WriteLine($"{Name}.ActOnUse({activator.Name}) - SpellDID not found for {WeenieClassId}");
+                return;
             }
 
             var actionChain = new ActionChain();
 
-            actionChain.AddAction(player, () => player.EnqueueBroadcastMotion(motionReading));
+            if (player.CombatMode != CombatMode.NonCombat)
+            {
+                var stanceTime = player.SetCombatMode(CombatMode.NonCombat);
+                actionChain.AddDelaySeconds(stanceTime);
+
+                player.LastUseTime += stanceTime;
+            }
+
+            var animTime = player.EnqueueMotion(actionChain, MotionCommand.Reading);
+
             actionChain.AddDelaySeconds(2.0f);
+            player.LastUseTime += 2.0f;
 
-            if (success)
+            actionChain.AddAction(player, () =>
             {
-                actionChain.AddAction(player, () =>
+                if (player.SpellIsKnown(Spell.Id))
                 {
-                    player.LearnSpellWithNetworking(SpellId);
-                    player.EnqueueBroadcastMotion(motionReady);
+                    // verify unknown spell
+                    player.Session.Network.EnqueueSend(new GameMessageSystemChat("You already know that spell!", ChatMessageType.Broadcast));
+                    return;
+                }
 
-                    if (player.TryConsumeFromInventoryWithNetworking(this))
-                        player.Session.Network.EnqueueSend(new GameMessageSystemChat("The scroll is destroyed.", ChatMessageType.Magic));
-                });
-            }
-            else
-            {
-                actionChain.AddDelaySeconds(2.0f);
-                actionChain.AddAction(player, () =>
+                var skill = Spell.GetMagicSkill();
+                var playerSkill = player.GetCreatureSkill(skill);
+
+                if (playerSkill.AdvancementClass < SkillAdvancementClass.Trained)
                 {
-                    player.EnqueueBroadcastMotion(motionReady);
-                    player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{failReason}", ChatMessageType.Magic));
-                });
-            }
+                    // verify trained skill
+                    player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You are not trained in {playerSkill.Skill.ToSentence()}!", ChatMessageType.Broadcast));
+                    return;
+                }
 
-            actionChain.AddAction(player, () => player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session)));
+                if (!player.CanReadScroll(this))
+                {
+                    // verify skill level
+                    player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You are not skilled enough in {playerSkill.Skill.ToSentence()} to learn this spell.", ChatMessageType.Broadcast));
+                    return;
+                }
+
+                player.LearnSpellWithNetworking(Spell.Id);
+
+                player.TryConsumeFromInventoryWithNetworking(this);
+
+                player.Session.Network.EnqueueSend(new GameMessageSystemChat("The scroll is destroyed.", ChatMessageType.Broadcast));
+            });
+
+            player.LastUseTime += animTime;     // return stance
+
+            player.EnqueueMotion(actionChain, MotionCommand.Ready);
 
             actionChain.EnqueueChain();
         }
-
-        //public override void SerializeIdentifyObjectResponse(BinaryWriter writer, bool success, IdentifyResponseFlags flags = IdentifyResponseFlags.None)
-        //{
-        //    WriteIdentifyObjectHeader(writer, idFlags, true); // Always succeed in assessing a scroll.
-        //    //WriteIdentifyObjectIntProperties(writer, idFlags, ScrollPropertiesInt);
-        //    //WriteIdentifyObjectStringsProperties(writer, idFlags, ScrollPropertiesString);
-        //    WriteIdentifyObjectSpellIdProperties(writer, idFlags, ScrollPropertiesSpellId);
-        //}
     }
 }

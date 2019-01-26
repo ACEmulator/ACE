@@ -20,7 +20,8 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Determines if a monster is within melee range of target
         /// </summary>
-        public static readonly float MaxMeleeRange = 1.5f;
+        //public static readonly float MaxMeleeRange = 1.5f;
+        public static readonly float MaxMeleeRange = 0.75f;
         //public static readonly float MaxMeleeRange = 1.5f + 0.6f + 0.1f;    // max melee range + distance from + buffer
 
         /// <summary>

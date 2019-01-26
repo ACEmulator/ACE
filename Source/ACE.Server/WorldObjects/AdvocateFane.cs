@@ -1,7 +1,5 @@
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
-using ACE.DatLoader;
-using ACE.DatLoader.FileTypes;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
@@ -48,7 +46,6 @@ namespace ACE.Server.WorldObjects
             if (AllowedActivator != null)
             {
                 // do nothing / in use error msg?
-                player.SendUseDoneEvent();
                 return;
             }
 
@@ -56,34 +53,31 @@ namespace ACE.Server.WorldObjects
             {
                 var failMotion = UseTargetFailureAnimation != MotionCommand.Invalid ? UseTargetFailureAnimation : MotionCommand.Twitch2;
                 EnqueueBroadcastMotion(new Motion(MotionStance.NonCombat, failMotion));
-
-                player.SendUseDoneEvent();
                 return;
             }
 
             AllowedActivator = ObjectGuid.Invalid.Full;
 
-            var rotateTime = player.Rotate(this);
-
             var faneTimer = new ActionChain();
-            faneTimer.AddDelaySeconds(rotateTime);
 
-            faneTimer.AddAction(player, () =>
+            if (player.CombatMode != CombatMode.NonCombat)
             {
-                var useMotion = UseTargetSuccessAnimation != MotionCommand.Invalid ? UseUserAnimation : MotionCommand.BowDeep;
-                player.EnqueueBroadcastMotion(new Motion(MotionStance.NonCombat, useMotion));
-            });
+                var stanceTime = player.SetCombatMode(CombatMode.NonCombat);
+                faneTimer.AddDelaySeconds(stanceTime);
+
+                player.LastUseTime += stanceTime;
+            }
+
+            var useMotion = UseTargetSuccessAnimation != MotionCommand.Invalid ? UseUserAnimation : MotionCommand.BowDeep;
+            var animTime = player.EnqueueMotion(faneTimer, useMotion);
+            player.LastUseTime += animTime;
 
             var successMotion = UseTargetSuccessAnimation != MotionCommand.Invalid ? UseTargetSuccessAnimation : MotionCommand.Twitch1;
-            faneTimer.AddAction(player, () =>
-            {
-                EnqueueBroadcastMotion(new Motion(MotionStance.NonCombat, successMotion));
-            });
-
-            var motionTable = DatManager.PortalDat.ReadFromDat<MotionTable>(MotionTableId);
-            faneTimer.AddDelaySeconds(motionTable.GetAnimationLength(successMotion));
+            var successTime = EnqueueMotion(faneTimer, successMotion);
+            player.LastUseTime += successTime;
 
             faneTimer.AddAction(player, () => Bestow(player));
+
             faneTimer.EnqueueChain();
         }
 
@@ -130,8 +124,6 @@ namespace ACE.Server.WorldObjects
 
             if (useCreateAegis != null)
                 player.TryCreateInInventoryWithNetworking(useCreateAegis);
-
-            player.SendUseDoneEvent();
 
             Reset();
         }

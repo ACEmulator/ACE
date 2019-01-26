@@ -401,38 +401,19 @@ namespace ACE.Server.WorldObjects
 
         private const uint magicSkillCheckMargin = 50;
 
-        public bool CanReadScroll(MagicSchool school, uint power)
+        public bool CanReadScroll(Scroll scroll)
         {
-            bool ret = false;
-            CreatureSkill creatureSkill;
+            var power = scroll.Spell.Power;
 
-            switch (school)
-            {
-                case MagicSchool.CreatureEnchantment:
-                    creatureSkill = GetCreatureSkill(Skill.CreatureEnchantment);
-                    break;
-                case MagicSchool.WarMagic:
-                    creatureSkill = GetCreatureSkill(Skill.WarMagic);
-                    break;
-                case MagicSchool.ItemEnchantment:
-                    creatureSkill = GetCreatureSkill(Skill.ItemEnchantment);
-                    break;
-                case MagicSchool.LifeMagic:
-                    creatureSkill = GetCreatureSkill(Skill.LifeMagic);
-                    break;
-                case MagicSchool.VoidMagic:
-                    creatureSkill = GetCreatureSkill(Skill.VoidMagic);
-                    break;
-                default:
-                    // Undefined magic school, something bad happened.
-                    Debug.Assert((int)school > 5 || school <= 0, "Undefined magic school?");
-                    return false;
-            }
+            // level 1/7/8 scrolls can be learned by anyone?
+            if (power < 50 || power >= 300) return true;
 
-            if (creatureSkill.AdvancementClass >= SkillAdvancementClass.Trained && creatureSkill.Current >= (power - magicSkillCheckMargin))
-                ret = true;
+            var magicSkill = scroll.Spell.GetMagicSkill();
+            var playerSkill = GetCreatureSkill(magicSkill);
 
-            return ret;
+            var minSkill = power - magicSkillCheckMargin;
+
+            return playerSkill.AdvancementClass >= SkillAdvancementClass.Trained && playerSkill.Current >= minSkill;
         }
 
         public void AddSkillCredits(int amount, bool showText)

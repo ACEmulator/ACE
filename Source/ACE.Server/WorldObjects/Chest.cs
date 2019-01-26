@@ -1,4 +1,3 @@
-using System;
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.Entity;
@@ -6,7 +5,6 @@ using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
-using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 
 namespace ACE.Server.WorldObjects
@@ -102,29 +100,24 @@ namespace ACE.Server.WorldObjects
             if (!(wo is Player player))
                 return;
 
-            if (!IsLocked)
+            if (IsLocked)
             {
-                if (!IsOpen)
-                {
-                    // open chest
-                    Open(player);
-                }
-                else
-                {
-                    // player has this chest open, close it
-                    if (Viewer == player.Guid.Full)
-                        Close(player);
-
-                    // else another player has this chest open - send error message?
-                }
-            }
-            else
-            {
-                // handle locked chest
-                player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, $"The {Name} is locked!"));
                 EnqueueBroadcast(new GameMessageSound(Guid, Sound.OpenFailDueToLock, 1.0f));
+                return;
             }
-            player.SendUseDoneEvent();
+
+            if (IsOpen)
+            {
+                // player has this chest open, close it
+                if (Viewer == player.Guid.Full)
+                    Close(player);
+
+                // else another player has this chest open - send error message?
+                return;
+            }
+
+            // open chest
+            Open(player);
         }
 
         public override void Open(Player player)

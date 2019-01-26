@@ -5,6 +5,7 @@ using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
+using ACE.Server.Entity;
 using ACE.Server.Factories;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
@@ -21,16 +22,6 @@ namespace ACE.Server.WorldObjects
         public bool HasItem => Inventory != null && Inventory.Count > 0;
 
         public WorldObject Item => Inventory != null ? Inventory.Values.FirstOrDefault() : null;
-
-        /// <summary>
-        /// Default hook profiles
-        /// </summary>
-        public static uint FloorHook_SetupTableID = 0x2000A8D;
-        public static uint WallHook_SetupTableID = 0x2000A8E;
-        public static uint CeilingHook_SetupTableID = 0x2000A8C;
-
-        public static uint Hook_PhysicsTableID = 0x3400002B;
-        public static float Hook_ObjScale = 0.5f;
 
         /// <summary>
         /// A new biota be created taking all of its values from weenie.
@@ -54,20 +45,17 @@ namespace ACE.Server.WorldObjects
             IsOpen = false;
         }
 
-        public override void ActOnUse(WorldObject worldObject)
+        public override ActivationResult CheckUseRequirements(WorldObject activator)
         {
-            //Console.WriteLine($"Hook.ActOnUse({worldObject.Name})");
-            var player = worldObject as Player;
-            if (player == null) return;
+            if (!(activator is Player player))
+                return new ActivationResult(false);
 
-            // verify permissions to use hook
-            if (!House.HasPermission(player, true))
+            if (!House.RootHouse.HasPermission(player, true))
             {
                 player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, $"The {Name} is locked"));
-                player.SendUseDoneEvent();
-                return;
+                return new ActivationResult(false);
             }
-            base.ActOnUse(worldObject);
+            return new ActivationResult(true);
         }
 
         /// <summary>
@@ -75,7 +63,6 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public override void OnAddItem()
         {
-            // TODO: send new temporary dynamic guid item?
             //Console.WriteLine("Hook.OnAddItem()");
             OnAddRemoveItem();
         }

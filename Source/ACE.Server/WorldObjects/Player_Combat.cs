@@ -101,10 +101,10 @@ namespace ACE.Server.WorldObjects
             var targetPlayer = target as Player;
             if (targetPlayer != null)
             {
-                var pkStatus = CheckPKStatusVsTarget(this, targetPlayer, null);
-                if (pkStatus != null && pkStatus == false)
+                var pkError = CheckPKStatusVsTarget(this, targetPlayer, null);
+                if (pkError != null)
                 {
-                    Session.Network.EnqueueSend(new GameMessageSystemChat($"You fail to affect {targetPlayer.Name} because you are not a player killer!", ChatMessageType.Magic));
+                    Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(Session, (WeenieErrorWithString)pkError, target.Name));
                     return 0.0f;
                 }
             }

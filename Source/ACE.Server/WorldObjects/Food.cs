@@ -42,8 +42,11 @@ namespace ACE.Server.WorldObjects
         /// This is raised by Player.HandleActionUseItem.<para />
         /// The item should be in the players possession.
         /// </summary>
-        public override void UseItem(Player player)
+        public override void ActOnUse(WorldObject activator)
         {
+            var player = activator as Player;
+            if (player == null) return;
+
             var buffType = Player.ConsumableBuffType.Stamina;
 
             if (BoostEnum != null)
@@ -61,13 +64,9 @@ namespace ACE.Server.WorldObjects
                         break;
                 }
             }
-
             player.ApplyConsumable(Name, GetSoundDid(), buffType, (uint)Boost, SpellDID);
 
             player.TryConsumeFromInventoryWithNetworking(this, 1);
-
-            var sendUseDoneEvent = new GameEventUseDone(player.Session);
-            player.Session.Network.EnqueueSend(sendUseDoneEvent);
         }
 
         private Sound GetSoundDid()

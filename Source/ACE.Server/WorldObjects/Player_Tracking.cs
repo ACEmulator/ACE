@@ -17,11 +17,6 @@ namespace ACE.Server.WorldObjects
         private ObjectGuid selectedTarget = ObjectGuid.Invalid;
 
         /// <summary>
-        /// Temp tracked Objects of vendors / trade / containers.. needed for id / maybe more.
-        /// </summary>
-        private readonly Dictionary<ObjectGuid, WorldObject> interactiveWorldObjects = new Dictionary<ObjectGuid, WorldObject>();
-
-        /// <summary>
         /// This dictionary is used to keep track of the last use of any item that implemented shared cooldown.
         /// It is session specific.   I think (could be wrong) cooldowns reset if you logged out and back in.
         /// This is a different mechanic than quest repeat timers and rare item use timers.
@@ -40,29 +35,12 @@ namespace ACE.Server.WorldObjects
         public ObjectMaint ObjMaint => PhysicsObj.ObjMaint;
 
         /// <summary>
-        /// Tracks Interactive world object you are have interacted with recently.  this should be
-        /// called from the context of an action chain being executed by the landblock loop.
-        /// </summary>
-        public void TrackInteractiveObjects(List<WorldObject> worldObjects)
-        {
-            // todo: figure out a way to expire objects.. objects clearly not in range of interaction /etc
-            foreach (WorldObject wo in worldObjects)
-            {
-                if (interactiveWorldObjects.ContainsKey(wo.Guid))
-                    interactiveWorldObjects[wo.Guid] = wo;
-                else
-                    interactiveWorldObjects.Add(wo.Guid, wo);
-            }
-        }
-
-        /// <summary>
         /// Returns the list of WorldObjects this Player this player currently knows about
         /// </summary>
         public List<WorldObject> GetKnownObjects()
         {
             return ObjMaint.ObjectTable.Values.Select(o => o.WeenieObj.WorldObject).ToList();
         }
-
 
         /// <summary>
         /// Sends a network message to player for CreateObject, if applicable

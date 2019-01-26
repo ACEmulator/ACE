@@ -304,7 +304,7 @@ namespace ACE.Server.WorldObjects
         // =====================================
 
         [Flags]
-        protected enum SearchLocations
+        public enum SearchLocations
         {
             MyInventory         = 0x01,
             MyEquippedItems     = 0x02,
@@ -313,12 +313,12 @@ namespace ACE.Server.WorldObjects
             Everywhere          = 0xFF
         }
 
-        protected WorldObject FindObject(uint objectGuid, SearchLocations searchLocations, out Container foundInContainer, out Container rootOwner, out bool wasEquipped)
+        public WorldObject FindObject(uint objectGuid, SearchLocations searchLocations, out Container foundInContainer, out Container rootOwner, out bool wasEquipped)
         {
             return FindObject(new ObjectGuid(objectGuid), searchLocations, out foundInContainer, out rootOwner, out wasEquipped); // todo Fix this so it's not creating a new ObjectGuid
         }
 
-        protected WorldObject FindObject(ObjectGuid objectGuid, SearchLocations searchLocations, out Container foundInContainer, out Container rootOwner, out bool wasEquipped)
+        public WorldObject FindObject(ObjectGuid objectGuid, SearchLocations searchLocations, out Container foundInContainer, out Container rootOwner, out bool wasEquipped)
         {
             WorldObject result;
 
@@ -367,6 +367,14 @@ namespace ACE.Server.WorldObjects
             {
                 if (CurrentLandblock?.GetObject(lastUsedContainerId) is Container lastUsedContainer)
                 {
+                    if (lastUsedContainer is Vendor lastUsedVendor)
+                    {
+                        if (lastUsedVendor.AllItemsForSale.TryGetValue(objectGuid, out result))
+                        {
+                            rootOwner = lastUsedVendor;
+                            return result;
+                        }
+                    }
                     if (lastUsedContainer.IsOpen && lastUsedContainer.Viewer == Guid.Full)
                     {
                         result = lastUsedContainer.GetInventoryItem(objectGuid, out foundInContainer);
@@ -552,7 +560,7 @@ namespace ACE.Server.WorldObjects
                 else
                     moveToTarget = itemRootOwner ?? item; // Movement is too player
 
-                CreateMoveToChain(moveToTarget, out var thisMoveToChainNumber, (success) =>
+                CreateMoveToChain(moveToTarget, (success) =>
                 {
                     if (CurrentLandblock == null) // Maybe we were teleported as we were motioning to pick up the item
                     {
@@ -809,7 +817,7 @@ namespace ACE.Server.WorldObjects
 
             if (rootOwner != this) // Item is on the landscape, or in a landblock chest
             {
-                CreateMoveToChain(rootOwner ?? item, out var thisMoveToChainNumber, (success) =>
+                CreateMoveToChain(rootOwner ?? item, (success) =>
                 {
                     if (CurrentLandblock == null) // Maybe we were teleported as we were motioning to pick up the item
                     {
@@ -1136,7 +1144,7 @@ namespace ACE.Server.WorldObjects
                 else
                     moveToObject = stackRootOwner ?? stack;
 
-                CreateMoveToChain(moveToObject, out var thisMoveToChainNumber, (success) =>
+                CreateMoveToChain(moveToObject, (success) =>
                 {
                     if (CurrentLandblock == null) // Maybe we were teleported as we were motioning to split the item
                     {
@@ -1366,7 +1374,7 @@ namespace ACE.Server.WorldObjects
                 else
                     moveToObject = sourceStackRootOwner ?? sourceStack;
 
-                CreateMoveToChain(moveToObject, out var thisMoveToChainNumber, (success) =>
+                CreateMoveToChain(moveToObject, (success) =>
                 {
                     if (CurrentLandblock == null) // Maybe we were teleported as we were motioning to split the item
                     {
@@ -1498,7 +1506,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            CreateMoveToChain(target, out var thisMoveToChainNumber, (success) =>
+            CreateMoveToChain(target, (success) =>
             {
                 if (CurrentLandblock == null) // Maybe we were teleported as we were motioning to pick up the item
                 {
@@ -1597,10 +1605,13 @@ namespace ACE.Server.WorldObjects
             {
                 if (acceptAll || result.Category == (uint)EmoteCategory.Give)
                 {
-                    // Item accepted by collector/NPC
-                    if (RemoveItemForGive(item, itemFoundInContainer, itemWasEquipped, itemRootOwner, amount, out _, true))
+                    // for NPCs that accept items with EmoteCategory.Give,
+                    // if stacked item, only give 1
+                    if (RemoveItemForGive(item, itemFoundInContainer, itemWasEquipped, itemRootOwner, 1, out WorldObject itemToGive, true))
                     {
-                        Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, target));
+                        if (itemToGive == null)
+                            Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, target));
+
                         Session.Network.EnqueueSend(new GameMessageSystemChat($"You give {target.Name} {item.Name}.", ChatMessageType.Broadcast));
                         Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.ReceiveItem));
                     }

@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Numerics;
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.Entity;
@@ -10,6 +9,7 @@ using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
+using ACE.Server.Network.GameEvent.Events;
 
 using log4net;
 
@@ -29,8 +29,10 @@ namespace ACE.Server.WorldObjects
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
-        private Dictionary<ObjectGuid, WorldObject> defaultItemsForSale = new Dictionary<ObjectGuid, WorldObject>();
-        private Dictionary<ObjectGuid, WorldObject> uniqueItemsForSale = new Dictionary<ObjectGuid, WorldObject>();
+        public Dictionary<ObjectGuid, WorldObject> DefaultItemsForSale = new Dictionary<ObjectGuid, WorldObject>();
+        public Dictionary<ObjectGuid, WorldObject> UniqueItemsForSale = new Dictionary<ObjectGuid, WorldObject>();
+
+        public Dictionary<ObjectGuid, WorldObject> AllItemsForSale => DefaultItemsForSale.Concat(UniqueItemsForSale).ToDictionary(i => i.Key, i => i.Value);
 
         private bool inventoryloaded;
 
@@ -110,7 +112,7 @@ namespace ACE.Server.WorldObjects
                             wo.Shade = item.Shade;
                         wo.ContainerId = Guid.Full;
                         wo.CalculateObjDesc(); // i don't like firing this but this triggers proper icons, the way vendors load inventory feels off to me in this method.
-                        defaultItemsForSale.Add(wo.Guid, wo);
+                        DefaultItemsForSale.Add(wo.Guid, wo);
                     }
                 }
                 inventoryloaded = true;
@@ -167,22 +169,21 @@ namespace ACE.Server.WorldObjects
             // default inventory
             List<WorldObject> vendorlist = new List<WorldObject>();
 
-            foreach (KeyValuePair<ObjectGuid, WorldObject> wo in defaultItemsForSale)
+            foreach (KeyValuePair<ObjectGuid, WorldObject> wo in DefaultItemsForSale)
                 vendorlist.Add(wo.Value);
 
             // unique inventory - items sold by other players
-            foreach (KeyValuePair<ObjectGuid, WorldObject> wo in uniqueItemsForSale)
+            foreach (KeyValuePair<ObjectGuid, WorldObject> wo in UniqueItemsForSale)
                 vendorlist.Add(wo.Value);
 
-            player.TrackInteractiveObjects(vendorlist);
-            player.ApproachVendor(this, vendorlist);
+            player.Session.Network.EnqueueSend(new GameEventApproachVendor(player.Session, this, vendorlist));
 
             var rotateTime = Rotate(player); // vendor rotates to player
 
             if (action != VendorType.Undef)
-            {
                 DoVendorEmote(action, player);
-            }
+
+            player.lastUsedContainerId = Guid;
         }
 
 
@@ -205,19 +206,19 @@ namespace ACE.Server.WorldObjects
             foreach (ItemProfile item in items)
             {
                 // check default items for id
-                if (defaultItemsForSale.ContainsKey(new ObjectGuid(item.ObjectGuid)))
+                if (DefaultItemsForSale.ContainsKey(new ObjectGuid(item.ObjectGuid)))
                 {
-                    item.WeenieClassId = defaultItemsForSale[new ObjectGuid(item.ObjectGuid)].WeenieClassId;
+                    item.WeenieClassId = DefaultItemsForSale[new ObjectGuid(item.ObjectGuid)].WeenieClassId;
                     filteredlist.Add(item);
                 }
 
                 // check unique items / add unique items to purchaselist / remove from vendor list
-                if (uniqueItemsForSale.ContainsKey(new ObjectGuid(item.ObjectGuid)))
+                if (UniqueItemsForSale.ContainsKey(new ObjectGuid(item.ObjectGuid)))
                 {
-                    if (uniqueItemsForSale.TryGetValue(new ObjectGuid(item.ObjectGuid), out var wo))
+                    if (UniqueItemsForSale.TryGetValue(new ObjectGuid(item.ObjectGuid), out var wo))
                     {
                         uqlist.Add(wo);
-                        uniqueItemsForSale.Remove(new ObjectGuid(item.ObjectGuid));
+                        UniqueItemsForSale.Remove(new ObjectGuid(item.ObjectGuid));
                     }
                 }
             }
@@ -261,8 +262,8 @@ namespace ACE.Server.WorldObjects
             {
                 foreach (WorldObject wo in uqlist)
                 {
-                    if (!defaultItemsForSale.ContainsKey(wo.Guid))
-                        uniqueItemsForSale.Add(wo.Guid, wo);
+                    if (!DefaultItemsForSale.ContainsKey(wo.Guid))
+                        UniqueItemsForSale.Add(wo.Guid, wo);
                 }
             }
             ApproachVendor(player, VendorType.Buy);
@@ -300,7 +301,7 @@ namespace ACE.Server.WorldObjects
                     wo.CurrentWieldedLocation = null;
                     wo.Placement = ACE.Entity.Enum.Placement.Resting;
 
-                    uniqueItemsForSale.Add(wo.Guid, wo);
+                    UniqueItemsForSale.Add(wo.Guid, wo);
                 }
 
                 // remove object from shard db, but keep a reference to it in memory
@@ -356,6 +357,9 @@ namespace ACE.Server.WorldObjects
 
             if (dist > UseRadius)
             {
+                if (LastPlayer.lastUsedContainerId == Guid)
+                    LastPlayer.lastUsedContainerId = new ObjectGuid(0);
+
                 EmoteManager.DoVendorEmote(VendorType.Close, LastPlayer);
                 LastPlayer = null;
 

@@ -121,6 +121,10 @@ namespace ACE.Server.Entity
                 if (delay == 0)
                     delay = _generator.GeneratorProfiles[0].Biota.Delay ?? 0;   // only for link generators?
 
+                // 11556 - Cultist Altar
+                if (_generator.RegenerationInterval == 0)
+                    delay = 0;
+
                 if (_generator is Chest) delay = 0.0f;
 
                 //Console.WriteLine($"QueueGenerator({_generator.Name}): RegenerationInterval: {_generator.RegenerationInterval} - Delay: {delay}");
@@ -236,6 +240,13 @@ namespace ACE.Server.Entity
                     var landblock = obj.Location != null ? obj.Location.Landblock.ToString("X4") : "null";
                     //Console.WriteLine($"*** WARNING *** {_generator.Name} spawned {obj.Name} in landblock {landblock} from {_generator.Location.Landblock:X4} using {(RegenLocationType)Biota.WhereCreate}");
                     //objects[i] = null;
+                    continue;
+                }
+
+                // if specific and outdoors, verify walkable slope
+                if ((RegenLocationType & RegenLocationType.Specific) != 0 && !obj.Location.Indoors && !obj.Location.IsWalkable())
+                {
+                    //Console.WriteLine($"*** WARNING *** {_generator.Name} spawned {obj.Name} @ {obj.Location.ToLOCString()} on unwalkable slope");
                     continue;
                 }
 

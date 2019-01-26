@@ -494,16 +494,16 @@ namespace ACE.Server.Command.Handlers
                 ChatPacket.SendServerMessage(session, "ERROR: no examined history", ChatMessageType.System);
                 return;
             }
-            var targetGuid = new ObjectGuid(targetID.Value);
-            var target = session.Player.GetInventoryItem(targetGuid);
-            if (target == null)
-                target = session.Player.CurrentLandblock?.GetObject(targetGuid);
+            var target = session.Player.FindObject(targetID.Value, Player.SearchLocations.Everywhere, out Container foundInContainer, out Container rootOwner, out bool wasEquipped);
             if (target == null)
             {
-                ChatPacket.SendServerMessage(session, "ERROR: couldn't find " + targetGuid, ChatMessageType.System);
-                return;
+                target = session.Player.CurrentLandblock.GetWieldedObject(targetID.Value);
+                if (target == null)
+                {
+                    ChatPacket.SendServerMessage(session, $"ERROR: couldn't find {targetID:X8}", ChatMessageType.System);
+                    return;
+                }
             }
-
             session.Network.EnqueueSend(new GameMessageSystemChat("", ChatMessageType.System));
             session.Network.EnqueueSend(new GameMessageSystemChat($"{target.DebugOutputString(target)}", ChatMessageType.System));
         }

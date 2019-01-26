@@ -260,9 +260,7 @@ namespace ACE.Server.Managers
         {
             if (wo is Portal)
             {
-                var error = new GameEventInventoryServerSaveFailed(Player.Session, wo.Guid.Full, WeenieError.YouMustCompleteQuestToUsePortal);
-                var text = new GameMessageSystemChat("You must complete a quest to interact with that portal.", ChatMessageType.Broadcast);
-                Player.Session.Network.EnqueueSend(text, error);
+                Player.Session.Network.EnqueueSend(new GameEventWeenieError(Player.Session, WeenieError.YouMustCompleteQuestToUsePortal));
             }
             else
             {

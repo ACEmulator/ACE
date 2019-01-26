@@ -1,48 +1,19 @@
 using System;
-using System.Threading;
-
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameEvent.Events;
-using ACE.Server.Network.GameMessages.Messages;
 
 namespace ACE.Server.WorldObjects
 {
     partial class Player
     {
         /// <summary>
-        /// This is set by HandleActionUseItem
+        /// Handles the 'GameAction 0x35 - UseWithTarget' network message
+        /// when player double clicks an inventory item resulting in a target indicator
+        /// and then clicks another item
         /// </summary>
-        private ObjectGuid lastUsedContainerId;
-
-        private TimeSpan defaultMoveToTimeout = TimeSpan.FromSeconds(15); // This is just a starting point number. It may be far off from retail.
-
-        private int moveToChainCounter;
-        private DateTime moveToChainStartTime;
-
-        private int lastCompletedMove;
-
-        public bool IsPlayerMovingTo => moveToChainCounter > lastCompletedMove;
-
-        private int GetNextMoveToChainNumber()
-        {
-            return Interlocked.Increment(ref moveToChainCounter);
-        }
-
-        public void StopExistingMoveToChains()
-        {
-            Interlocked.Increment(ref moveToChainCounter);
-
-            lastCompletedMove = moveToChainCounter;
-        }
-
-        // ===============================
-        // Game Action Handlers - Use Item
-        // ===============================
-        // These are raised by client actions
-
         public void HandleActionUseWithTarget(uint sourceObjectGuid, uint targetObjectGuid)
         {
             StopExistingMoveToChains();
@@ -58,11 +29,13 @@ namespace ACE.Server.WorldObjects
                 if (caster != null && caster.SpellDID != null)
                 {
                     // check activation requirements
-                    var skillFailed = CheckActivationRequirement(caster);
-                    if (skillFailed != Skill.None)
+                    var result = caster.CheckUseRequirements(this);
+                    if (!result.Success)
                     {
-                        Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(Session, WeenieErrorWithString.Your_IsTooLowToUseItemMagic, skillFailed.ToSentence()));
-                        SendUseDoneEvent(WeenieError.SkillTooLow);
+                        if (result.Message != null)
+                            Session.Network.EnqueueSend(result.Message);
+
+                        SendUseDoneEvent();
                     }
                     else
                         HandleActionCastTargetedSpell(targetObjectGuid, caster.SpellDID ?? 0);
@@ -136,197 +109,58 @@ namespace ACE.Server.WorldObjects
             }
         }
 
-        private Skill CheckActivationRequirement(WorldObject item)
-        {
-            if (item.ItemDifficulty != null)
-            {
-                if (GetCreatureSkill(Skill.ArcaneLore).Current < item.ItemDifficulty.Value)
-                    return Skill.ArcaneLore;
-            }
+        /// <summary>
+        /// This is set by HandleActionUseItem / TryUseItem
+        /// </summary>
+        public ObjectGuid lastUsedContainerId { get; set; }
 
-            if (item.ItemSkillLimit != null && item.ItemSkillLevelLimit != null)
-            {
-                if (GetCreatureSkill((Skill)item.ItemSkillLimit.Value).Current < item.ItemSkillLevelLimit.Value)
-                    return (Skill)item.ItemSkillLimit.Value;
-            }
-            return Skill.None;
-        }
-
+        /// <summary>
+        /// Handles the 'GameAction 0x36 - UseItem' network message
+        /// when player double clicks an item in the 3d world
+        /// </summary>
         public void HandleActionUseItem(uint itemGuid)
         {
             StopExistingMoveToChains();
 
-            // Search our inventory first
-            var item = GetInventoryItem(itemGuid);
+            var item = FindObject(itemGuid, SearchLocations.MyInventory | SearchLocations.MyEquippedItems | SearchLocations.Landblock, out Container foundInContainer, out Container rootOwner, out bool wasEquipped);
 
             if (item != null)
-                item.UseItem(this);
+            {
+                // verify: need test case for invisible items
+                if (item.CurrentLandblock != null && !item.Visibility && item.Guid != lastUsedContainerId)
+                    CreateMoveToChain(item, (success) => TryUseItem(item, success));
+                else
+                    TryUseItem(item);
+            }
             else
             {
-                // Search the world second
-                item = CurrentLandblock?.GetObject(itemGuid);
-
-                if (item == null)
-                {
-                    Session.Network.EnqueueSend(new GameEventUseDone(Session)); // todo add an argument that indicates the item was not found
-                    return;
-                }
-
-                var moveTo = true;
-                if (item is Container container)
-                {
-                    lastUsedContainerId = new ObjectGuid(itemGuid);
-
-                    // if the container is already open by this player,
-                    // this packet indicates to close the container.
-                    if (container.IsOpen && container.Viewer == Guid.Full)
-                    {
-                        // closing the container does not require moving towards it
-                        moveTo = false;
-                    }
-                }
-
-                // already there?
-                if (!moveTo)
-                {
-                    TryUseItem(item);
-                    return;
-                }
-
-                // if required, move to
-                CreateMoveToChain(item, out var thisMoveToChainNumber, (success) =>
-                {
-                    if (!success)
-                    {
-                        SendUseDoneEvent();
-                        return;
-                    }
-                    TryUseItem(item);
-                });
+                log.Warn($"{Name}.HandleActionUseItem({itemGuid:X8}): couldn't find object");
+                SendUseDoneEvent();
             }
         }
+
+        public float LastUseTime;
 
         /// <summary>
-        /// Called after the MoveTo chain has successfully completed, to use an object
+        /// Attempts to use an item - checks activation requirements
         /// </summary>
-        public void TryUseItem(WorldObject item)
+        public void TryUseItem(WorldObject item, bool success = true)
         {
-            // verify activation requirements
-            var useError = CheckUseRequirements(item);
-            if (useError != null)
+            //Console.WriteLine($"{Name}.TryUseItem({item.Name}, {success})");
+            LastUseTime = 0.0f;
+
+            if (success)
             {
-                Session.Network.EnqueueSend(useError);
-                return;
+                if (item is Container)
+                    lastUsedContainerId = item.Guid;
+
+                item.OnActivate(this);
             }
 
-            // TODO: ActOnUse should return error code
-            // we only want to display this message on success - ie, if a chest is locked, do not display the ActivationTalk
-
-            // handle ActivationResponse - mostly Use?
-
-            /*if (item.ActivationTalk != null)
-            {
-                // send only to activator?
-                Session.Network.EnqueueSend(new GameMessageSystemChat(item.ActivationTalk, ChatMessageType.Broadcast));
-            }*/
-
-            item.ActOnUse(this);
-        }
-
-        public void CreateMoveToChain(WorldObject target, out int thisMoveToChainNumber, Action<bool> callback)
-        {
-            thisMoveToChainNumber = GetNextMoveToChainNumber();
-            var thisMoveToChainNumberCopy = thisMoveToChainNumber;
-
-            if (target.Location == null)
-            {
-                StopExistingMoveToChains();
-                log.Error($"{Name}.CreateMoveToChain({target.Name}): target.Location is null");
-
-                callback(false);
-                return;
-            }
-
-            // already within use distance?
-            var withinUseRadius = CurrentLandblock.WithinUseRadius(this, target.Guid, out var targetValid);
-            if (withinUseRadius)
-            {
-                // send TurnTo motion
-                var rotateTime = Rotate(target);
-                var actionChain = new ActionChain();
-                actionChain.AddDelaySeconds(rotateTime);
-                actionChain.AddAction(this, () =>
-                {
-                    lastCompletedMove = thisMoveToChainNumberCopy;
-                    callback(true);
-                });
-                actionChain.EnqueueChain();
-                return;
-            }
-
-            if (target.WeenieType == WeenieType.Portal)
-                MoveToPosition(target.Location);
-            else
-                MoveToObject(target);
-
-            moveToChainStartTime = DateTime.UtcNow;
-
-            MoveToChain(target, thisMoveToChainNumberCopy, callback);
-        }
-
-        public void MoveToChain(WorldObject target, int thisMoveToChainNumberCopy, Action<bool> callback)
-        {
-            if (thisMoveToChainNumberCopy != moveToChainCounter)
-            {
-                if (thisMoveToChainNumberCopy > lastCompletedMove)
-                    lastCompletedMove = thisMoveToChainNumberCopy;
-
-                callback(false);
-                return;
-            }
-
-            // Break loop if CurrentLandblock == null (we portaled or logged out)
-            if (CurrentLandblock == null)
-            {
-                StopExistingMoveToChains(); // This increments our moveToChainCounter and thus, should stop any additional actions in this chain
-                callback(false);
-                return;
-            }
-
-            // Have we timed out?
-            if (moveToChainStartTime + defaultMoveToTimeout <= DateTime.UtcNow)
-            {
-                StopExistingMoveToChains(); // This increments our moveToChainCounter and thus, should stop any additional actions in this chain
-                callback(false);
-                return;
-            }
-
-            // Are we within use radius?
-            var success = CurrentLandblock.WithinUseRadius(this, target.Guid, out var targetValid);
-
-            // If one of the items isn't on a landblock
-            if (!targetValid)
-            {
-                StopExistingMoveToChains(); // This increments our moveToChainCounter and thus, should stop any additional actions in this chain
-                callback(false);
-                return;
-            }
-
-            if (!success)
-            {
-                // target not reached yet
-                var actionChain = new ActionChain();
-                actionChain.AddDelaySeconds(0.1f);
-                actionChain.AddAction(this, () => MoveToChain(target, thisMoveToChainNumberCopy, callback));
-                actionChain.EnqueueChain();
-            }
-            else
-            {
-                if (thisMoveToChainNumberCopy > lastCompletedMove)
-                    lastCompletedMove = thisMoveToChainNumberCopy;
-
-                callback(true);
-            }
+            var actionChain = new ActionChain();
+            actionChain.AddDelaySeconds(LastUseTime);
+            actionChain.AddAction(this, () => SendUseDoneEvent());
+            actionChain.EnqueueChain();
         }
 
         /// <summary>
@@ -367,67 +201,9 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Verifies the use requirements for activating an item
+        /// Sends the GameEventUseDone network message for a player
         /// </summary>
-        public GameEventWeenieErrorWithString CheckUseRequirements(WorldObject item)
-        {
-            // verify arcane lore requirement
-            if (item.ItemDifficulty != null)
-            {
-                // TODO: more specific error messages
-                var arcaneLore = GetCreatureSkill(Skill.ArcaneLore);
-                if (arcaneLore.Current < item.ItemDifficulty.Value)
-                    return new GameEventWeenieErrorWithString(Session, WeenieErrorWithString.Your_IsTooLowToUseItemMagic, arcaneLore.Skill.ToSentence());
-            }
-
-            // verify skill - does this have to be trained, or only in conjunction with UseRequiresSkillLevel?
-            // only seems to be used for summoning so far...
-            if (item.UseRequiresSkill != null)
-            {
-                var skill = (Skill)item.UseRequiresSkill.Value;
-                var playerSkill = GetCreatureSkill(skill);
-
-                if (playerSkill.AdvancementClass < SkillAdvancementClass.Trained)
-                    return new GameEventWeenieErrorWithString(Session, WeenieErrorWithString.Your_SkillMustBeTrained, playerSkill.Skill.ToSentence());
-
-                // verify skill level
-                if (item.UseRequiresSkillLevel != null)
-                {
-                    if (playerSkill.Current < item.UseRequiresSkillLevel.Value)
-                        return new GameEventWeenieErrorWithString(Session, WeenieErrorWithString.Your_IsTooLowToUseItemMagic, playerSkill.Skill.ToSentence());
-                }
-            }
-
-            // verify skill specialized
-            // is this always in conjunction with UseRequiresSkill?
-            // again, only seems to be for summoning so far...
-            if (item.UseRequiresSkillSpec != null)
-            {
-                var skill = (Skill)item.UseRequiresSkillSpec.Value;
-                var playerSkill = GetCreatureSkill(skill);
-
-                if (playerSkill.AdvancementClass < SkillAdvancementClass.Specialized)
-                    return new GameEventWeenieErrorWithString(Session, WeenieErrorWithString.YouMustSpecialize_ToUseItemMagic, playerSkill.Skill.ToSentence());
-
-                // verify skill level
-                if (item.UseRequiresSkillLevel != null)
-                {
-                    if (playerSkill.Current < item.UseRequiresSkillLevel.Value)
-                        return new GameEventWeenieErrorWithString(Session, WeenieErrorWithString.Your_IsTooLowToUseItemMagic, playerSkill.Skill.ToSentence());
-                }
-            }
-
-            // verify player level
-            if (item.UseRequiresLevel != null)
-            {
-                var playerLevel = Level ?? 1;
-                if (playerLevel < item.UseRequiresLevel.Value)
-                    return new GameEventWeenieErrorWithString(Session, WeenieErrorWithString.YouMustBe_ToUseItemMagic, $"level {item.UseRequiresLevel.Value}");
-            }
-
-            return null;
-        }
-
+        /// <param name="errorType">An optional error message</param>
         public void SendUseDoneEvent(WeenieError errorType = WeenieError.None)
         {
             Session.Network.EnqueueSend(new GameEventUseDone(Session, errorType));
