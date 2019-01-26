@@ -28,7 +28,7 @@ namespace ACE.Server.WorldObjects
     {
         public static void ConsumeUnlocker(Player player, WorldObject unlocker)
         {
-            if ((unlocker.GetProperty(PropertyBool.UnlimitedUse) ?? false) == false)
+            if ((unlocker.GetProperty(PropertyBool.UnlimitedUse) ?? false))
             {
                 player.SendUseDoneEvent();
                 return;
