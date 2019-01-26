@@ -108,21 +108,21 @@ namespace ACE.Server.WorldObjects
         public bool HasPermission(Player player)
         {
             // players can loot their own corpses
-            if (player.Guid.Full == OwnerId)
+            if (player.Guid.Full == VictimId)
                 return true;
 
             // players can loot monsters they killed
-            if (AllowedActivator != null && player.Guid.Full == AllowedActivator)
+            if (KillerId != null && player.Guid.Full == KillerId)
                 return true;
 
             // players can /permit other players to loot their corpse
-            if (player.HasLootPermission(new ObjectGuid(OwnerId.Value)))
+            if (player.HasLootPermission(new ObjectGuid(VictimId.Value)))
                 return true;
 
             // players in the same fellowship as the killer w/ loot sharing enabled
             if (player.Fellowship != null && player.Fellowship.ShareLoot)
             {
-                var onlinePlayer = PlayerManager.GetOnlinePlayer(AllowedActivator ?? 0);
+                var onlinePlayer = PlayerManager.GetOnlinePlayer(KillerId ?? 0);
                 if (onlinePlayer != null && onlinePlayer.Fellowship != null && player.Fellowship == onlinePlayer.Fellowship)
                     return true;
             }
