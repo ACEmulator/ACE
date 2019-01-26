@@ -35,10 +35,8 @@ namespace ACE.Server.WorldObjects
 
             if (CachedHeartbeatInterval == 0)
             {
-                // do first heartbeat
-                HeartBeat(Time.GetUnixTime());
-
-                NextHeartBeatTime = double.MaxValue;
+                // This will cause the HeartBeat to be called on the next tick
+                NextHeartBeatTime = currentUnixTime;
                 return;
             }
 
@@ -60,6 +58,14 @@ namespace ACE.Server.WorldObjects
                 EnchantmentManager.HeartBeat();
 
             SetProperty(PropertyFloat.HeartbeatTimestamp, currentUnixTime);
+
+            // If an object has a CachedHeartbeatInterval of 0, we only do an initial HeartBeat
+            if (CachedHeartbeatInterval == 0)
+            {
+                NextHeartBeatTime = double.MaxValue; // Disable future HeartBeats
+                return;
+            }
+
             NextHeartBeatTime = currentUnixTime + CachedHeartbeatInterval;
         }
 
