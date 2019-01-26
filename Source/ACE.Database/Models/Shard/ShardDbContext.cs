@@ -56,9 +56,12 @@ namespace ACE.Database.Models.Shard
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            var config = Common.ConfigManager.Config.MySql.Shard;
+            if (!optionsBuilder.IsConfigured)
+            {
+                var config = Common.ConfigManager.Config.MySql.Shard;
 
-            optionsBuilder.UseMySql($"server={config.Host};port={config.Port};user={config.Username};password={config.Password};database={config.Database}");
+                optionsBuilder.UseMySql($"server={config.Host};port={config.Port};user={config.Username};password={config.Password};database={config.Database}");
+            }
 
 #if DEBUG
             optionsBuilder.EnableSensitiveDataLogging(true);

@@ -67,9 +67,12 @@ namespace ACE.Database.Models.World
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            var config = Common.ConfigManager.Config.MySql.World;
+            if (!optionsBuilder.IsConfigured)
+            {
+                var config = Common.ConfigManager.Config.MySql.World;
 
-            optionsBuilder.UseMySql($"server={config.Host};port={config.Port};user={config.Username};password={config.Password};database={config.Database}");
+                optionsBuilder.UseMySql($"server={config.Host};port={config.Port};user={config.Username};password={config.Password};database={config.Database}");
+            }
 
 #if DEBUG
             optionsBuilder.EnableSensitiveDataLogging(true);
