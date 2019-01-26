@@ -357,6 +357,9 @@ namespace ACE.Server.WorldObjects
 
             if (dist > UseRadius)
             {
+                if (LastPlayer.lastUsedContainerId == Guid)
+                    LastPlayer.lastUsedContainerId = new ObjectGuid(0);
+
                 EmoteManager.DoVendorEmote(VendorType.Close, LastPlayer);
                 LastPlayer = null;
 
