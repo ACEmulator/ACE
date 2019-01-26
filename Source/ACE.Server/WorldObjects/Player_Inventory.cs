@@ -546,7 +546,13 @@ namespace ACE.Server.WorldObjects
                     }
                 }
 
-                CreateMoveToChain(itemRootOwner ?? item, out var thisMoveToChainNumber, (success) =>
+                WorldObject moveToTarget;
+                if (itemRootOwner == this)
+                    moveToTarget = containerRootOwner ?? container; // Movement is from player
+                else
+                    moveToTarget = itemRootOwner ?? item; // Movement is too player
+
+                CreateMoveToChain(moveToTarget, out var thisMoveToChainNumber, (success) =>
                 {
                     if (CurrentLandblock == null) // Maybe we were teleported as we were motioning to pick up the item
                     {
