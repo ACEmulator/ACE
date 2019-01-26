@@ -126,7 +126,6 @@ namespace ACE.Server.WorldObjects
 
             if (item != null)
             {
-                // verify: need test case for invisible items
                 if (item.CurrentLandblock != null && !item.Visibility && item.Guid != lastUsedContainerId)
                     CreateMoveToChain(item, (success) => TryUseItem(item, success));
                 else

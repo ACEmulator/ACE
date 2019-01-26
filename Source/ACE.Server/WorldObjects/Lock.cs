@@ -28,10 +28,15 @@ namespace ACE.Server.WorldObjects
     {
         public static void ConsumeUnlocker(Player player, WorldObject unlocker)
         {
-            // to-do don't consume "Limitless Lockpick" rare.
+            if ((unlocker.GetProperty(PropertyBool.UnlimitedUse) ?? false))
+            {
+                player.SendUseDoneEvent();
+                return;
+            }
             unlocker.Structure--;
             if (unlocker.Structure < 1)
                 player.TryConsumeFromInventoryWithNetworking(unlocker, 1);
+
             player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session));
             player.Session.Network.EnqueueSend(new GameMessagePublicUpdatePropertyInt(unlocker, PropertyInt.Structure, (int)unlocker.Structure));
 

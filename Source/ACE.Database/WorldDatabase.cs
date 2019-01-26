@@ -11,6 +11,7 @@ using Microsoft.EntityFrameworkCore.Storage;
 
 using log4net;
 
+using ACE.Database.Entity;
 using ACE.Database.Models.World;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
@@ -482,6 +483,18 @@ namespace ACE.Database
             }
         }
 
+        public List<HouseListResults> GetHousesAll()
+        {
+            using (var context = new WorldDbContext())
+            {
+                var query = from weenie in context.Weenie
+                            join winst in context.LandblockInstance on weenie.ClassId equals winst.WeenieClassId
+                            where weenie.Type == (int)WeenieType.SlumLord
+                            select new HouseListResults(weenie, winst);
+
+                return query.ToList();
+            }
+        }
 
         public List<HousePortal> GetHousePortals(uint houseId)
         {

@@ -249,7 +249,8 @@ namespace ACE.Server.WorldObjects
 
             AddGeneratorProfiles();
 
-            if (IsGenerator)
+            // mosswartfood is both a creature and a generator with a HeartbeatInterval of 5 and a RegenerationInterval of 0
+            if (!(this is Creature) && IsGenerator)
                 HeartbeatInterval = RegenerationInterval;
 
             BaseDescriptionFlags = ObjectDescriptionFlag.Attackable;
@@ -944,5 +945,18 @@ namespace ACE.Server.WorldObjects
         public static readonly float LocalBroadcastRange = 96.0f;
 
         public SetPosition ScatterPos;
+
+        public Skill ConvertToMoASkill(Skill skill)
+        {
+            if (this is Player player)
+            {
+                if (SkillExtensions.RetiredMelee.Contains(skill))
+                    return player.GetHighestMeleeSkill();
+                if (SkillExtensions.RetiredMissile.Contains(skill))
+                    return Skill.MissileWeapons;
+            }
+
+            return skill;
+        }
     }
 }
