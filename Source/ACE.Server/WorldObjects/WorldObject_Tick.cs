@@ -1,10 +1,8 @@
 using System;
-using System.Numerics;
 
 using ACE.Common;
 using ACE.Entity;
 using ACE.Entity.Enum.Properties;
-using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Managers;
 using ACE.Server.Physics;
@@ -14,59 +12,69 @@ namespace ACE.Server.WorldObjects
 {
     partial class WorldObject
     {
-        public const int DefaultHeartbeatInterval = 5;
+        private const int heartbeatSpreadInterval = 5;
 
         protected double CachedHeartbeatInterval;
-        public double NextHeartBeatTime;
-
-        private void InitializeHeartBeat()
-        {
-            CachedHeartbeatInterval = HeartbeatInterval ?? DefaultHeartbeatInterval;
-            QueueFirstHeartbeat(Time.GetUnixTime());
-        }
-
         /// <summary>
-        /// Enqueues the first heartbeat on a staggered 0-5s delay
+        /// A value of Double.MaxValue indicates that there is no NextHeartbeat
         /// </summary>
-        public void QueueFirstHeartbeat(double currentUnixTime)
-        {
-            // some generators have RegenerationInterval / HeartbeatInterval 0,
-            // which effectively means no automatic heartbeats, and are called directly by use activation
+        public double NextHeartbeatTime;
 
-            if (CachedHeartbeatInterval == 0)
+        private double cachedRegenerationInterval;
+        /// <summary>
+        /// A value of Double.MaxValue indicates that there is no NextGeneratorHeartbeat
+        /// </summary>
+        public double NextGeneratorHeartbeatTime;
+
+        private void InitializeHeartbeats()
+        {
+            var currentUnixTime = Time.GetUnixTime();
+
+            CachedHeartbeatInterval = HeartbeatInterval ?? 0;
+
+            if (CachedHeartbeatInterval > 0)
             {
-                // This will cause the HeartBeat to be called on the next tick
-                NextHeartBeatTime = currentUnixTime;
-                return;
+                // The intention of this code was just to spread the heartbeat ticks out a little over a 0-5s range,
+                var delay = ThreadSafeRandom.Next(0.0f, heartbeatSpreadInterval);
+
+                NextHeartbeatTime = currentUnixTime + delay;
+            }
+            else
+            {
+                NextHeartbeatTime = double.MaxValue; // Disable future HeartBeats
             }
 
-            // The intention of this code was just to spread the heartbeat ticks out a little over a 0-5s range,
-            var delay = ThreadSafeRandom.Next(0.0f, DefaultHeartbeatInterval);
+            cachedRegenerationInterval = RegenerationInterval;
 
-            NextHeartBeatTime = currentUnixTime + delay;
+            if (IsGenerator)
+                NextGeneratorHeartbeatTime = currentUnixTime; // Generators start right away
+            else
+                NextGeneratorHeartbeatTime = double.MaxValue; // Disable future GeneratorHeartBeats
         }
 
         /// <summary>
         /// Called every ~5 seconds for WorldObject base
         /// </summary>
-        public virtual void HeartBeat(double currentUnixTime)
+        public virtual void Heartbeat(double currentUnixTime)
         {
-            if (IsGenerator)
-                Generator_HeartBeat();
-
             if (EnchantmentManager.HasEnchantments)
                 EnchantmentManager.HeartBeat();
 
             SetProperty(PropertyFloat.HeartbeatTimestamp, currentUnixTime);
+            NextHeartbeatTime = currentUnixTime + CachedHeartbeatInterval;
+        }
 
-            // If an object has a CachedHeartbeatInterval of 0, we only do an initial HeartBeat
-            if (CachedHeartbeatInterval == 0)
-            {
-                NextHeartBeatTime = double.MaxValue; // Disable future HeartBeats
-                return;
-            }
+        /// <summary>
+        /// Called every [RegenerationInterval] seconds for WorldObject base
+        /// </summary>
+        public void GeneratorHeartbeat(double currentUnixTime)
+        {
+            Generator_HeartBeat();
 
-            NextHeartBeatTime = currentUnixTime + CachedHeartbeatInterval;
+            if (cachedRegenerationInterval > 0)
+                NextGeneratorHeartbeatTime = currentUnixTime + cachedRegenerationInterval;
+            else
+                NextGeneratorHeartbeatTime = double.MaxValue;
         }
 
         /// <summary>

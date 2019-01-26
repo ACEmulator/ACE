@@ -6,16 +6,16 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Called every ~5 seconds for Creatures
         /// </summary>
-        public override void HeartBeat(double currentUnixTime)
+        public override void Heartbeat(double currentUnixTime)
         {
             foreach (var wo in EquippedObjects.Values)
-                wo.HeartBeat(currentUnixTime);
+                wo.Heartbeat(currentUnixTime);
 
             VitalHeartBeat();
 
             EmoteManager.HeartBeat();
 
-            base.HeartBeat(currentUnixTime);
+            base.Heartbeat(currentUnixTime);
         }
     }
 }
