@@ -370,7 +370,7 @@ namespace ACE.Server.WorldObjects
                     if (lastUsedContainer is Vendor lastUsedVendor)
                     {
                         if (lastUsedVendor.AllItemsForSale.TryGetValue(objectGuid, out result))
-                                {
+                        {
                             rootOwner = lastUsedVendor;
                             return result;
                         }
