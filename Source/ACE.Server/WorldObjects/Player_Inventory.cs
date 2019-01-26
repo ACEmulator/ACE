@@ -655,6 +655,15 @@ namespace ACE.Server.WorldObjects
                     Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "TryRemoveFromInventory failed!")); // Custom error message
                     Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full));
                 }
+
+                if (itemRootOwner != containerRootOwner)
+                {
+                    // We must update the database with the latest ContainerId and WielderId properties.
+                    // If we don't, the player can drop the item, log out, and log back in. If the landblock hasn't queued a database save in that time,
+                    // the player will end up loading with this object in their inventory even though the landblock is the true owner. This is because
+                    // when we load player inventory, the database still has the record that shows this player as the ContainerId for the item.
+                    item.SaveBiotaToDatabase();
+                }
             }
 
             if (!container.TryAddToInventory(item, placement, true))
