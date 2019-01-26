@@ -254,11 +254,6 @@ namespace ACE.Server.WorldObjects
         /// <returns>FALSE - the spell was NOT created because the spell is invalid or not implemented yet, the item was not found, the item was not either wielded or a gem, or the player did not meet one or more item activation requirements. <para />TRUE - the spell was created or it is surpassed</returns>
         public bool CreateItemSpell(WorldObject item, uint spellId, bool suppressSpellChatText = false, bool ignoreRequirements = false)
         {
-            CreatureSkill arcaneLore = GetCreatureSkill(Skill.ArcaneLore);
-            CreatureSkill meleeDefense = GetCreatureSkill(Skill.MeleeDefense);
-            CreatureSkill missileDefense = GetCreatureSkill(Skill.MissileDefense);
-            CreatureSkill magicDefense = GetCreatureSkill(Skill.MagicDefense);
-
             if (!ignoreRequirements)
             {
                 var result = item.CheckUseRequirements(this);
