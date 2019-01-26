@@ -945,5 +945,18 @@ namespace ACE.Server.WorldObjects
         public static readonly float LocalBroadcastRange = 96.0f;
 
         public SetPosition ScatterPos;
+
+        public Skill ConvertToMoASkill(Skill skill)
+        {
+            if (this is Player player)
+            {
+                if (SkillExtensions.RetiredMelee.Contains(skill))
+                    return player.GetHighestMeleeSkill();
+                if (SkillExtensions.RetiredMissile.Contains(skill))
+                    return Skill.MissileWeapons;
+            }
+
+            return skill;
+        }
     }
 }

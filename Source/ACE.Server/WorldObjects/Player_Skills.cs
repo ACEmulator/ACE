@@ -431,19 +431,6 @@ namespace ACE.Server.WorldObjects
             }
         }
 
-        public Skill ConvertToMoASkill(Skill skill)
-        {
-            if (this is Player player)
-            {
-                if (SkillExtensions.RetiredMelee.Contains(skill))
-                    return player.GetHighestMeleeSkill();
-                if (SkillExtensions.RetiredMissile.Contains(skill))
-                    return Skill.MissileWeapons;
-            }
-
-            return skill;
-        }
-
         /// <summary>
         /// Called on player login
         /// If a player has any skills trained that require updates from ACE-World-16-Patches,

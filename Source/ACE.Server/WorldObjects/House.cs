@@ -342,7 +342,7 @@ namespace ACE.Server.WorldObjects
                 // handle outdoor house weenies
                 if (!CurrentLandblock.IsDungeon)
                 {
-                    _rootHouse = LinkedHouses[0];
+                    _rootHouse = this;
                     return _rootHouse;
                 }
 
@@ -351,7 +351,7 @@ namespace ACE.Server.WorldObjects
                 {
                     Console.WriteLine($"{Name}.RootHouse: couldn't find root house for {WeenieClassId} on landblock {Location.Landblock:X8}");
 
-                    _rootHouse = LinkedHouses[0];
+                    _rootHouse = this;
                     return _rootHouse;
                 }
 
@@ -360,7 +360,7 @@ namespace ACE.Server.WorldObjects
                 {
                     Console.WriteLine($"{Name}.RootHouse: couldn't find root house location for {WeenieClassId} on landblock {Location.Landblock:X8}");
 
-                    _rootHouse = LinkedHouses[0];
+                    _rootHouse = this;
                     return _rootHouse;
                 }
 

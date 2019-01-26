@@ -254,121 +254,105 @@ namespace ACE.Server.WorldObjects
         /// <returns>FALSE - the spell was NOT created because the spell is invalid or not implemented yet, the item was not found, the item was not either wielded or a gem, or the player did not meet one or more item activation requirements. <para />TRUE - the spell was created or it is surpassed</returns>
         public bool CreateItemSpell(WorldObject item, uint spellId, bool suppressSpellChatText = false, bool ignoreRequirements = false)
         {
-            CreatureSkill arcaneLore = GetCreatureSkill(Skill.ArcaneLore);
-            CreatureSkill meleeDefense = GetCreatureSkill(Skill.MeleeDefense);
-            CreatureSkill missileDefense = GetCreatureSkill(Skill.MissileDefense);
-            CreatureSkill magicDefense = GetCreatureSkill(Skill.MagicDefense);
-
-            if (ignoreRequirements || arcaneLore.Current >= item.ItemDifficulty || item.ItemDifficulty == null)
+            if (!ignoreRequirements)
             {
-                if (!ignoreRequirements && (item.AppraisalItemSkill != 0 || item.AppraisalItemSkill != null))
+                var result = item.CheckUseRequirements(this);
+                if (!result.Success)
                 {
-                    switch (item.AppraisalItemSkill)
-                    {
-                        case 6:
-                            if (meleeDefense.Current < item.ItemSkillLevelLimit)
-                                return false;
-                            break;
-                        case 7:
-                            if (missileDefense.Current < item.ItemSkillLevelLimit)
-                                return false;
-                            break;
-                        case 8:
-                            if (magicDefense.Current < item.ItemSkillLevelLimit)
-                                return false;
-                            break;
-                    }
-                }
-
-                var spell = new Spell(spellId);
-
-                if (spell.NotFound)
-                {
-                    if (spell._spellBase == null)
-                        Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, $"SpellId {spellId} Invalid."));
-                    else
-                        Session.Network.EnqueueSend(new GameMessageSystemChat($"{spell.Name} spell not implemented, yet!", ChatMessageType.System));
+                    if (result.Message != null)
+                        Session.Network.EnqueueSend(result.Message);
 
                     return false;
                 }
+            }
 
-                EnchantmentStatus enchantmentStatus = default(EnchantmentStatus);
-                bool created = false;
+            var spell = new Spell(spellId);
 
-                switch (spell.School)
-                {
-                    case MagicSchool.CreatureEnchantment:
+            if (spell.NotFound)
+            {
+                if (spell._spellBase == null)
+                    Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, $"SpellId {spellId} Invalid."));
+                else
+                    Session.Network.EnqueueSend(new GameMessageSystemChat($"{spell.Name} spell not implemented, yet!", ChatMessageType.System));
 
+                return false;
+            }
+
+            EnchantmentStatus enchantmentStatus = default(EnchantmentStatus);
+            bool created = false;
+
+            switch (spell.School)
+            {
+                case MagicSchool.CreatureEnchantment:
+
+                    if (spell.IsHarmful)
+                        break;
+                    enchantmentStatus = CreatureMagic(this, spell, item);
+                    created = true;
+                    if (enchantmentStatus.message != null)
+                    {
+                        EnqueueBroadcast(new GameMessageScript(Guid, spell.TargetEffect, spell.Formula.Scale));
+                        if (!suppressSpellChatText)
+                            Session.Network.EnqueueSend(enchantmentStatus.message);
+                    }
+                    break;
+
+                case MagicSchool.LifeMagic:
+
+                    if (spell.MetaSpellType != SpellType.LifeProjectile)
+                    {
                         if (spell.IsHarmful)
                             break;
-                        enchantmentStatus = CreatureMagic(this, spell, item);
-                        created = true;
-                        if (enchantmentStatus.message != null)
-                        {
-                            EnqueueBroadcast(new GameMessageScript(Guid, spell.TargetEffect, spell.Formula.Scale));
-                            if (!suppressSpellChatText)
-                                Session.Network.EnqueueSend(enchantmentStatus.message);
-                        }
-                        break;
+                    }
+                    LifeMagic(this, spell, out uint damage, out bool critical, out enchantmentStatus, item);
+                    created = true;
+                    if (enchantmentStatus.message != null)
+                    {
+                        EnqueueBroadcast(new GameMessageScript(Guid, spell.TargetEffect, spell.Formula.Scale));
+                        if (!suppressSpellChatText)
+                            Session.Network.EnqueueSend(enchantmentStatus.message);
+                    }
+                    break;
 
-                    case MagicSchool.LifeMagic:
+                case MagicSchool.ItemEnchantment:
 
-                        if (spell.MetaSpellType != SpellType.LifeProjectile)
+                    if ((spell.MetaSpellType == SpellType.PortalLink)
+                        || (spell.MetaSpellType == SpellType.PortalRecall)
+                        || (spell.MetaSpellType == SpellType.PortalSending)
+                        || (spell.MetaSpellType == SpellType.PortalSummon))
+                    {
+                        var playScript = spell.CasterEffect > 0 ? spell.CasterEffect : spell.TargetEffect;
+                        EnqueueBroadcast(new GameMessageScript(Guid, playScript, spell.Formula.Scale));
+                        enchantmentStatus = ItemMagic(this, spell, item);
+                    }
+                    else
+                    {
+                        if ((spell.Category == (uint)SpellCategory.AttackModRaising)
+                            || (spell.Category == (uint)SpellCategory.DamageRaising)
+                            || (spell.Category == (uint)SpellCategory.DefenseModRaising)
+                            || (spell.Category == (uint)SpellCategory.WeaponTimeRaising)
+                            || (spell.Category == (uint)SpellCategory.AppraisalResistanceLowering)
+                            || (spell.Category == (uint)SpellCategory.SpellDamageRaising))
                         {
-                            if (spell.IsHarmful)
-                                break;
-                        }
-                        LifeMagic(this, spell, out uint damage, out bool critical, out enchantmentStatus, item);
-                        created = true;
-                        if (enchantmentStatus.message != null)
-                        {
-                            EnqueueBroadcast(new GameMessageScript(Guid, spell.TargetEffect, spell.Formula.Scale));
-                            if (!suppressSpellChatText)
-                                Session.Network.EnqueueSend(enchantmentStatus.message);
-                        }
-                        break;
-
-                    case MagicSchool.ItemEnchantment:
-
-                        if ((spell.MetaSpellType == SpellType.PortalLink)
-                            || (spell.MetaSpellType == SpellType.PortalRecall)
-                            || (spell.MetaSpellType == SpellType.PortalSending)
-                            || (spell.MetaSpellType == SpellType.PortalSummon))
-                        {
-                            var playScript = spell.CasterEffect > 0 ? spell.CasterEffect : spell.TargetEffect;
-                            EnqueueBroadcast(new GameMessageScript(Guid, playScript, spell.Formula.Scale));
                             enchantmentStatus = ItemMagic(this, spell, item);
                         }
                         else
-                        {
-                            if ((spell.Category == (uint)SpellCategory.AttackModRaising)
-                                || (spell.Category == (uint)SpellCategory.DamageRaising)
-                                || (spell.Category == (uint)SpellCategory.DefenseModRaising)
-                                || (spell.Category == (uint)SpellCategory.WeaponTimeRaising)
-                                || (spell.Category == (uint)SpellCategory.AppraisalResistanceLowering)
-                                || (spell.Category == (uint)SpellCategory.SpellDamageRaising))
-                            {
-                                enchantmentStatus = ItemMagic(this, spell, item);
-                            }
-                            else
-                                enchantmentStatus = ItemMagic(item, spell, item);
+                            enchantmentStatus = ItemMagic(item, spell, item);
 
-                            EnqueueBroadcast(new GameMessageScript(Guid, spell.TargetEffect, spell.Formula.Scale));
-                        }
-                        created = true;
-                        if (enchantmentStatus.message != null)
-                        {
-                            if (!suppressSpellChatText)
-                                Session.Network.EnqueueSend(enchantmentStatus.message);
-                        }
-                        break;
+                        EnqueueBroadcast(new GameMessageScript(Guid, spell.TargetEffect, spell.Formula.Scale));
+                    }
+                    created = true;
+                    if (enchantmentStatus.message != null)
+                    {
+                        if (!suppressSpellChatText)
+                            Session.Network.EnqueueSend(enchantmentStatus.message);
+                    }
+                    break;
 
-                    default:
-                        break;
-                }
-                return created;
+                default:
+                    break;
             }
-            return false;
+            return created;
         }
 
         /// <summary>

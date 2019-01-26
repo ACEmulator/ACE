@@ -32,6 +32,11 @@ namespace ACE.Server.WorldObjects
         {
             IsLocked = false;
             IsOpen = false;
+
+            // unanimated objects will float in the air, and not be affected by gravity
+            // unless we give it a bit of velocity to start
+            // fixes floating storage chests
+            Velocity = new AceVector3(0.0f, 0.0f, 0.5f);
         }
 
         public override ActivationResult CheckUseRequirements(WorldObject activator)
