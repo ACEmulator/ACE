@@ -60,9 +60,6 @@ namespace ACE.Server.WorldObjects
 
             if (SummonCreature(player, wcid, damageType))
             {
-                // track usage for cooldown
-                player.UpdateCooldown(this);
-
                 // decrease remaining uses
                 if (--Structure <= 0)
                     player.TryConsumeFromInventoryWithNetworking(this, 1);
@@ -87,7 +84,7 @@ namespace ACE.Server.WorldObjects
             // cooldowns for gems and pet devices, anything else?
 
             // should this verification be in base CheckUseRequirements?
-            if (!player.CheckCooldown(this))
+            if (!player.EnchantmentManager.CheckCooldown(CooldownId))
                 return new ActivationResult(false);
 
             // TODO: limit non-golems to summoning mastery

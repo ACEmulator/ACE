@@ -6347,7 +6347,36 @@ namespace ACE.Entity.Enum
         GauntletVitalityI,
         GauntletVitalityII,
         GauntletVitalityIII,
-        NumSpells = 8192
+
+        NumSpells = 8192,
+
+        // shared cooldowns, (0x8000 | shared cooldown id)
+        // these aren't actually in dat spelltable...
+        // thanks to aclogview for this list so far!
+        JesterDecksCooldown                 = 0x8000 | 1,     // Deck of Eyes, Deck of Hands
+        AsheronsBenedictionCooldown         = 0x8000 | 2,
+        BlackmoorsFavorCooldown             = 0x8000 | 3,
+        HealthElixirCooldown                = 0x8000 | 4,     // Health elixir's with a cooldown
+        ManaElixirCooldown                  = 0x8000 | 5,     // Mana elixir's with a cooldown
+        CallOfLeadershipCooldown            = 0x8000 | 6,
+        AnswerOfLoyaltyStaminaCooldown      = 0x8000 | 7,
+        AnswerOfLoyaltyManaCooldown         = 0x8000 | 8,
+        VirindiEssenceCooldown              = 0x8000 | 9,
+        SurgingStrengthCooldown             = 0x8000 | 10,
+        ToweringDefenseCooldown             = 0x8000 | 11,
+        // Skip 39
+        MhoireCastleItemsCooldown           = 0x8000 | 50,    // (Strange Jewel and Crystal of Spectral Blood)
+        MiscTenSecondCooldown               = 0x8000 | 51,    // Skull of One Thousand Torments, Enchanted Mana Stone, Aligned Mana Stone, Attuned Essence Gem
+        // Skip 49
+        ContractCooldown                    = 0x8000 | 100,   // 2 second cooldown
+        // Skip 113
+        SummonCreatureCooldown              = 0x8000 | 213,   // 45 second cooldown
+        // Skip 8
+        FacilityHubPortalGemCooldown        = 0x8000 | 221,   // 30 second cooldown
+        // Skip 279
+        ScryingRodCooldown                  = 0x8000 | 500,   // (Slave Master Quest)
+        // Skip 500
+        PortalGemCooldown                   = 0x8000 | 1000   // 15 second cooldown
     }
 
     public static class SpellExtensions
