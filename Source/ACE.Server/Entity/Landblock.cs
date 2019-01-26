@@ -323,7 +323,7 @@ namespace ACE.Server.Entity
                 var first = sortedWorldObjectsByNextHeartBeat.First.Value;
 
                 // If they wanted to run before or at now
-                if (first.NextHeartBeatTime < currentUnixTime) // We don't check <= incase min.CachedHeartbeatInterval is 0 (infinite loop)
+                if (first.NextHeartBeatTime <= currentUnixTime)
                 {
                     sortedWorldObjectsByNextHeartBeat.RemoveFirst();
                     first.HeartBeat(currentUnixTime);
@@ -406,6 +406,8 @@ namespace ACE.Server.Entity
         private void InsertWorldObjectIntoSortedHeartBeatList(WorldObject worldObject)
         {
             // If you want to add checks to exclude certain object types from heartbeating, you would do it here
+            if (worldObject.NextHeartBeatTime == double.MaxValue)
+                return;
 
             if (sortedWorldObjectsByNextHeartBeat.Count == 0)
             {
