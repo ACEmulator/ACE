@@ -311,63 +311,38 @@ namespace ACE.Server.WorldObjects
 
         public MotionStance stance = MotionStance.NonCombat;
 
-        public void ExamineObject(uint examinationId)
+        public void ExamineObject(uint objectGuid)
         {
             // TODO: Throttle this request?. The live servers did this, likely for a very good reason, so we should, too.
 
-            if (examinationId == 0)
+            if (objectGuid == 0)
             {
                 // Deselect the formerly selected Target
                 // selectedTarget = ObjectGuid.Invalid;
                 RequestedAppraisalTarget = null;
                 CurrentAppraisalTarget = null;
+
+                SendUseDoneEvent();
                 return;
             }
 
-            // The object can be in two spots... on the player or on the landblock
-            // First check the player
-            // search packs
-            WorldObject wo = GetInventoryItem(examinationId);
-
-            // search wielded items
-            if (wo == null)
-                wo = GetEquippedItem(examinationId);
-
-            // search interactive objects
+            var wo = FindObject(objectGuid, SearchLocations.Everywhere, out Container foundInContainer, out Container rootOwner, out bool wasEquipped);
             if (wo == null)
             {
-                if (interactiveWorldObjects.ContainsKey(new ObjectGuid(examinationId)))
-                    wo = interactiveWorldObjects[new ObjectGuid(examinationId)];
+                // search creature equipped weapons on nearby landblocks
+                wo = CurrentLandblock?.GetWieldedObject(objectGuid);
             }
-
-            // if local, examine it
-            if (wo != null)
-                Examine(wo);
-            else
+            if (wo == null)
             {
-                // examine item on landblock
-                wo = CurrentLandblock?.GetObject(examinationId);
-                if (wo != null)
-                    Examine(wo);
-                else
-                {
-                    // search creature equipped weapons on nearby landblocks
-                    wo = CurrentLandblock?.GetWieldedObject(examinationId);
-                    if (wo != null)
-                        Examine(wo);
-                    else
-                    {
-                        // At this point, the object wasn't found.
-                        // It could be that the object was teleported away before this request was processed
-                        // It could also be a decal plugin requesting information for an object that is no longer in range
-
-                        //log.Warn($"{Name} tried to appraise object {examinationId.Full:X8}, couldn't find it");
-                    }
-                }
+                log.Warn($"{Name}.ExamineObject({objectGuid:X8}): couldn't find object");
+                SendUseDoneEvent();
+                return;
             }
 
-            RequestedAppraisalTarget = examinationId;
-            CurrentAppraisalTarget = examinationId;
+            RequestedAppraisalTarget = objectGuid;
+            CurrentAppraisalTarget = objectGuid;
+
+            Examine(wo);
         }
 
         public void Examine(WorldObject obj)
