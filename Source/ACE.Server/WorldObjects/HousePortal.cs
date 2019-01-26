@@ -62,7 +62,7 @@ namespace ACE.Server.WorldObjects
             if (!(activator is Player player))
                 return new ActivationResult(false);
 
-            if (!House.HasPermission(player))
+            if (!House.RootHouse.HasPermission(player))
                 return new ActivationResult(new GameEventWeenieError(player.Session, WeenieError.YouMustBeHouseGuestToUsePortal));
 
             return new ActivationResult(true);
@@ -78,15 +78,8 @@ namespace ACE.Server.WorldObjects
             // if house portal in dungeon,
             // set destination to outdoor house slumlord
             if (CurrentLandblock != null && CurrentLandblock.IsDungeon)
-            {
-                var biota = DatabaseManager.Shard.GetBiotasByWcid(House.WeenieClassId).FirstOrDefault(b => b.BiotaPropertiesPosition.FirstOrDefault(p => p.PositionType == (ushort)PositionType.Location).ObjCellId >> 16 != House.Location.Landblock);
-                if (biota != null)
-                {
-                    var outdoorHouseGuid = biota.Id;
-                    var house = House.Load(outdoorHouseGuid);
-                    SetPosition(PositionType.Destination, new Position(house.SlumLord.Location));
-                }
-            }
+                SetPosition(PositionType.Destination, new Position(House.RootHouse.SlumLord.Location));
+
             base.ActOnUse(worldObject);
         }
     }
