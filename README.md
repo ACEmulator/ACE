@@ -1,5 +1,8 @@
 # ACEmulator Core Server
 
+Issue status: [![Average time to resolve an issue](http://isitmaintained.com/badge/resolution/ACEmulator/ACE.svg)](http://isitmaintained.com/project/ACEmulator/ACE "Average time to resolve an issue")
+[![Percentage of issues still open](http://isitmaintained.com/badge/open/ACEmulator/ACE.svg)](http://isitmaintained.com/project/ACEmulator/ACE "Percentage of issues still open")
+
 Build status: [![Windows CI](https://ci.appveyor.com/api/projects/status/rqebda31cgu8u59w/branch/master?svg=true)](https://ci.appveyor.com/project/LtRipley36706/ace)
 
 **ACEmulator is a custom, completely from-scratch open source server implementation for Asheron's Call built on C#**
