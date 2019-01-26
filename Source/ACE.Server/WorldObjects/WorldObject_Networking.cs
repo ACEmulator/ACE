@@ -171,13 +171,7 @@ namespace ACE.Server.WorldObjects
                 // send the permissions from the outdoor house
                 if (house.CurrentLandblock.IsDungeon)
                 {
-                    var biota = DatabaseManager.Shard.GetBiotasByWcid(WeenieClassId).FirstOrDefault(b => b.BiotaPropertiesPosition.FirstOrDefault(p => p.PositionType == (ushort)PositionType.Location).ObjCellId >> 16 != Location.Landblock);
-                    if (biota != null)
-                    {
-                        var outdoorHouseGuid = biota.Id;
-                        house = House.Load(outdoorHouseGuid);
-                        house.BuildGuests();
-                    }
+                    house = house.RootHouse;
                 }
                 else
                 {

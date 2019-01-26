@@ -323,5 +323,53 @@ namespace ACE.Server.WorldObjects
                 return _dungeonHouseGuid.Value;
             }
         }
+
+        private House _rootHouse;
+
+        /// <summary>
+        /// For villas and mansions, the basement dungeons contain their own House weenie
+        /// This dungeon House needs to reference the main outdoor house for various operations,
+        /// such as returning the permissions list.
+        /// </summary>
+        public House RootHouse
+        {
+            get
+            {
+                // return cached value
+                if (_rootHouse != null)
+                    return _rootHouse;
+
+                // handle outdoor house weenies
+                if (!CurrentLandblock.IsDungeon)
+                {
+                    _rootHouse = LinkedHouses[0];
+                    return _rootHouse;
+                }
+
+                var biota = DatabaseManager.Shard.GetBiotasByWcid(WeenieClassId).FirstOrDefault(b => b.BiotaPropertiesPosition.FirstOrDefault(p => p.PositionType == (ushort)PositionType.Location).ObjCellId >> 16 != Location?.Landblock);
+                if (biota == null)
+                {
+                    Console.WriteLine($"{Name}.RootHouse: couldn't find root house for {WeenieClassId} on landblock {Location.Landblock:X8}");
+
+                    _rootHouse = LinkedHouses[0];
+                    return _rootHouse;
+                }
+
+                var location = biota.BiotaPropertiesPosition.FirstOrDefault(i => i.PositionType == (ushort)PositionType.Location);
+                if (location == null)
+                {
+                    Console.WriteLine($"{Name}.RootHouse: couldn't find root house location for {WeenieClassId} on landblock {Location.Landblock:X8}");
+
+                    _rootHouse = LinkedHouses[0];
+                    return _rootHouse;
+                }
+
+                var landblockId = new LandblockId(location.ObjCellId | 0xFFFF);
+
+                var loaded = LandblockManager.GetLandblock(landblockId, false, false, true);
+
+                return loaded.GetObject(new ObjectGuid(biota.Id)) as House;
+            }
+        }
     }
 }
