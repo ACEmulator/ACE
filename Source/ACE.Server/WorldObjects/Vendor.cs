@@ -125,9 +125,16 @@ namespace ACE.Server.WorldObjects
         private List<WorldObject> ItemProfileToWorldObjects(ItemProfile itemprofile)
         {
             List<WorldObject> worldobjects = new List<WorldObject>();
+
             while (itemprofile.Amount > 0)
             {
                 WorldObject wo = WorldObjectFactory.CreateNewWorldObject(itemprofile.WeenieClassId);
+
+                if (itemprofile.Palette.HasValue)
+                    wo.PaletteTemplate = itemprofile.Palette;
+                if (itemprofile.Shade.HasValue)
+                    wo.Shade = itemprofile.Shade;
+
                 // can we stack this ?
                 if (wo.MaxStackSize.HasValue)
                 {
@@ -209,6 +216,8 @@ namespace ACE.Server.WorldObjects
                 if (DefaultItemsForSale.ContainsKey(new ObjectGuid(item.ObjectGuid)))
                 {
                     item.WeenieClassId = DefaultItemsForSale[new ObjectGuid(item.ObjectGuid)].WeenieClassId;
+                    item.Palette = DefaultItemsForSale[new ObjectGuid(item.ObjectGuid)].PaletteTemplate;
+                    item.Shade = DefaultItemsForSale[new ObjectGuid(item.ObjectGuid)].Shade;
                     filteredlist.Add(item);
                 }
 
