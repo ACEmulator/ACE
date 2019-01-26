@@ -61,7 +61,8 @@ namespace ACE.Server.Entity
         // Cache used for Tick efficiency
         private readonly List<Player> players = new List<Player>();
         private readonly LinkedList<Creature> sortedCreaturesByNextTick = new LinkedList<Creature>();
-        private readonly LinkedList<WorldObject> sortedWorldObjectsByNextHeartBeat = new LinkedList<WorldObject>();
+        private readonly LinkedList<WorldObject> sortedWorldObjectsByNextHeartbeat = new LinkedList<WorldObject>();
+        private readonly LinkedList<WorldObject> sortedGeneratorsByNextGeneratorHeartbeat = new LinkedList<WorldObject>();
 
         public List<Landblock> Adjacents = new List<Landblock>();
 
@@ -301,7 +302,7 @@ namespace ACE.Server.Entity
             foreach (var player in players)
                 player.Player_Tick(currentUnixTime);
 
-            while (sortedCreaturesByNextTick.Count > 0)
+            while (sortedCreaturesByNextTick.Count > 0) // Monster_Tick()
             {
                 var first = sortedCreaturesByNextTick.First.Value;
 
@@ -318,16 +319,33 @@ namespace ACE.Server.Entity
                 }
             }
 
-            while (sortedWorldObjectsByNextHeartBeat.Count > 0)
+            while (sortedWorldObjectsByNextHeartbeat.Count > 0) // Heartbeat()
             {
-                var first = sortedWorldObjectsByNextHeartBeat.First.Value;
+                var first = sortedWorldObjectsByNextHeartbeat.First.Value;
 
                 // If they wanted to run before or at now
-                if (first.NextHeartBeatTime <= currentUnixTime)
+                if (first.NextHeartbeatTime <= currentUnixTime)
                 {
-                    sortedWorldObjectsByNextHeartBeat.RemoveFirst();
-                    first.HeartBeat(currentUnixTime);
-                    InsertWorldObjectIntoSortedHeartBeatList(first); // WorldObjects can have heartbeats at different intervals
+                    sortedWorldObjectsByNextHeartbeat.RemoveFirst();
+                    first.Heartbeat(currentUnixTime);
+                    InsertWorldObjectIntoSortedHeartbeatList(first); // WorldObjects can have heartbeats at different intervals
+                }
+                else
+                {
+                    break;
+                }
+            }
+
+            while (sortedGeneratorsByNextGeneratorHeartbeat.Count > 0) // GeneratorHeartbeat()
+            {
+                var first = sortedGeneratorsByNextGeneratorHeartbeat.First.Value;
+
+                // If they wanted to run before or at now
+                if (first.NextHeartbeatTime <= currentUnixTime)
+                {
+                    sortedGeneratorsByNextGeneratorHeartbeat.RemoveFirst();
+                    first.GeneratorHeartbeat(currentUnixTime);
+                    InsertWorldObjectIntoSortedGeneratorHeartbeatList(first); // Generators can have heartbeats at different intervals
                 }
                 else
                 {
@@ -378,7 +396,8 @@ namespace ACE.Server.Entity
                     else if (kvp.Value is Creature creature)
                         sortedCreaturesByNextTick.AddLast(creature);
 
-                    InsertWorldObjectIntoSortedHeartBeatList(kvp.Value);
+                    InsertWorldObjectIntoSortedHeartbeatList(kvp.Value);
+                    InsertWorldObjectIntoSortedGeneratorHeartbeatList(kvp.Value);
                 }
 
                 pendingAdditions.Clear();
@@ -395,7 +414,8 @@ namespace ACE.Server.Entity
                         else if (wo is Creature creature)
                             sortedCreaturesByNextTick.Remove(creature);
 
-                        sortedWorldObjectsByNextHeartBeat.Remove(wo);
+                        sortedWorldObjectsByNextHeartbeat.Remove(wo);
+                        sortedGeneratorsByNextGeneratorHeartbeat.Remove(wo);
                     }
                 }
 
@@ -403,38 +423,72 @@ namespace ACE.Server.Entity
             }
         }
 
-        private void InsertWorldObjectIntoSortedHeartBeatList(WorldObject worldObject)
+        private void InsertWorldObjectIntoSortedHeartbeatList(WorldObject worldObject)
         {
             // If you want to add checks to exclude certain object types from heartbeating, you would do it here
-            if (worldObject.NextHeartBeatTime == double.MaxValue)
+            if (worldObject.NextHeartbeatTime == double.MaxValue)
                 return;
 
-            if (sortedWorldObjectsByNextHeartBeat.Count == 0)
+            if (sortedWorldObjectsByNextHeartbeat.Count == 0)
             {
-                sortedWorldObjectsByNextHeartBeat.AddFirst(worldObject);
+                sortedWorldObjectsByNextHeartbeat.AddFirst(worldObject);
                 return;
             }
 
-            if (sortedWorldObjectsByNextHeartBeat.Last.Value.NextHeartBeatTime <= worldObject.NextHeartBeatTime)
+            if (sortedWorldObjectsByNextHeartbeat.Last.Value.NextHeartbeatTime <= worldObject.NextHeartbeatTime)
             {
-                sortedWorldObjectsByNextHeartBeat.AddLast(worldObject);
+                sortedWorldObjectsByNextHeartbeat.AddLast(worldObject);
                 return;
             }
 
-            var currentNode = sortedWorldObjectsByNextHeartBeat.First;
+            var currentNode = sortedWorldObjectsByNextHeartbeat.First;
 
             while (currentNode != null)
             {
-                if (worldObject.NextHeartBeatTime <= currentNode.Value.NextHeartBeatTime)
+                if (worldObject.NextHeartbeatTime <= currentNode.Value.NextHeartbeatTime)
                 {
-                    sortedWorldObjectsByNextHeartBeat.AddBefore(currentNode, worldObject);
+                    sortedWorldObjectsByNextHeartbeat.AddBefore(currentNode, worldObject);
                     return;
                 }
 
                 currentNode = currentNode.Next;
             }
 
-            sortedWorldObjectsByNextHeartBeat.AddLast(worldObject); // This line really shouldn't be hit
+            sortedWorldObjectsByNextHeartbeat.AddLast(worldObject); // This line really shouldn't be hit
+        }
+
+        private void InsertWorldObjectIntoSortedGeneratorHeartbeatList(WorldObject worldObject)
+        {
+            // If you want to add checks to exclude certain object types from heartbeating, you would do it here
+            if (worldObject.NextGeneratorHeartbeatTime == double.MaxValue)
+                return;
+
+            if (sortedGeneratorsByNextGeneratorHeartbeat.Count == 0)
+            {
+                sortedGeneratorsByNextGeneratorHeartbeat.AddFirst(worldObject);
+                return;
+            }
+
+            if (sortedGeneratorsByNextGeneratorHeartbeat.Last.Value.NextGeneratorHeartbeatTime <= worldObject.NextGeneratorHeartbeatTime)
+            {
+                sortedGeneratorsByNextGeneratorHeartbeat.AddLast(worldObject);
+                return;
+            }
+
+            var currentNode = sortedGeneratorsByNextGeneratorHeartbeat.First;
+
+            while (currentNode != null)
+            {
+                if (worldObject.NextGeneratorHeartbeatTime <= currentNode.Value.NextGeneratorHeartbeatTime)
+                {
+                    sortedGeneratorsByNextGeneratorHeartbeat.AddBefore(currentNode, worldObject);
+                    return;
+                }
+
+                currentNode = currentNode.Next;
+            }
+
+            sortedGeneratorsByNextGeneratorHeartbeat.AddLast(worldObject); // This line really shouldn't be hit
         }
 
         public void EnqueueAction(IAction action)

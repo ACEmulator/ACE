@@ -92,7 +92,7 @@ namespace ACE.Server.WorldObjects
 
             InitializePropertyDictionaries();
             SetEphemeralValues();
-            InitializeHeartBeat();
+            InitializeHeartbeats();
 
             CreationTimestamp = (int)Time.GetUnixTime();
         }
@@ -110,7 +110,7 @@ namespace ACE.Server.WorldObjects
 
             InitializePropertyDictionaries();
             SetEphemeralValues();
-            InitializeHeartBeat();
+            InitializeHeartbeats();
         }
 
         /// <summary>
@@ -248,10 +248,6 @@ namespace ACE.Server.WorldObjects
                 ephemeralPositions[(PositionType)x.PositionType] = new Position(x.ObjCellId, x.OriginX, x.OriginY, x.OriginZ, x.AnglesX, x.AnglesY, x.AnglesZ, x.AnglesW);
 
             AddGeneratorProfiles();
-
-            // mosswartfood is both a creature and a generator with a HeartbeatInterval of 5 and a RegenerationInterval of 0
-            if (!(this is Creature) && IsGenerator)
-                HeartbeatInterval = RegenerationInterval;
 
             BaseDescriptionFlags = ObjectDescriptionFlag.Attackable;
 
