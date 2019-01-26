@@ -17,11 +17,6 @@ namespace ACE.Server.WorldObjects
         private ObjectGuid selectedTarget = ObjectGuid.Invalid;
 
         /// <summary>
-        /// Temp tracked Objects of vendors / trade / containers.. needed for id / maybe more.
-        /// </summary>
-        private readonly Dictionary<ObjectGuid, WorldObject> interactiveWorldObjects = new Dictionary<ObjectGuid, WorldObject>();
-
-        /// <summary>
         /// This dictionary is used to keep track of the last use of any item that implemented shared cooldown.
         /// It is session specific.   I think (could be wrong) cooldowns reset if you logged out and back in.
         /// This is a different mechanic than quest repeat timers and rare item use timers.
