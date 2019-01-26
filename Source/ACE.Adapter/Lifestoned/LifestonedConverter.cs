@@ -18,10 +18,10 @@ namespace ACE.Adapter.Lifestoned
 
                 result.ClassId = input.WeenieId;
 
-                if (System.Enum.IsDefined(typeof(WeenieClassId), (ushort)input.WeenieClassId))
-                    result.ClassName = System.Enum.GetName(typeof(WeenieClassId), input.WeenieClassId).ToLower();
-                else if (System.Enum.IsDefined(typeof(WeenieClassName), (ushort)input.WeenieClassId))
-                    result.ClassName = System.Enum.GetName(typeof(WeenieClassName), input.WeenieClassId).ToLower();
+                if (input.WeenieClassId <= ushort.MaxValue && System.Enum.IsDefined(typeof(WeenieClassId), (ushort)input.WeenieClassId))
+                    result.ClassName = System.Enum.GetName(typeof(WeenieClassId), (ushort)input.WeenieClassId).ToLower();
+                else if (input.WeenieClassId <= ushort.MaxValue && System.Enum.IsDefined(typeof(WeenieClassName), (ushort)input.WeenieClassId))
+                    result.ClassName = System.Enum.GetName(typeof(WeenieClassName), (ushort)input.WeenieClassId).ToLower();
                 else
                     result.ClassName = "ace" + input.WeenieClassId + "-" + input.Name.Replace("'", "").Replace(" ", "").Replace(".", "").Replace("(", "").Replace(")", "").Replace("+", "").Replace(":", "").Replace("_", "").Replace("-", "").Replace(",", "").ToLower();
 

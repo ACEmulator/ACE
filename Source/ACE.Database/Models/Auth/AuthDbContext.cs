@@ -20,9 +20,12 @@ namespace ACE.Database.Models.Auth
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            var config = Common.ConfigManager.Config.MySql.Authentication;
+            if (!optionsBuilder.IsConfigured)
+            {
+                var config = Common.ConfigManager.Config.MySql.Authentication;
 
-            optionsBuilder.UseMySql($"server={config.Host};port={config.Port};user={config.Username};password={config.Password};database={config.Database}");
+                optionsBuilder.UseMySql($"server={config.Host};port={config.Port};user={config.Username};password={config.Password};database={config.Database}");
+            }
 
 #if EFAUTHDEBUG
             optionsBuilder.EnableSensitiveDataLogging(true);

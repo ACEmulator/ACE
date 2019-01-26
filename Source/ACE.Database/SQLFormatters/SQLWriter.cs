@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
+
 using ACE.Database.Models.World;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
@@ -16,34 +17,34 @@ namespace ACE.Database.SQLFormatters
         /// Set this to enable auto commenting when creating SQL statements.<para />
         /// If a weenie id is found in the dictionary, the name will be added in the form of a /* Friendly Weenie Name */
         /// </summary>
-        public Dictionary<uint, string> WeenieNames;
+        public IDictionary<uint, string> WeenieNames;
 
         /// <summary>
         /// Set this to enable auto commenting when creating SQL statements.<para />
         /// If a spell id is found in the dictionary, the name will be added in the form of a /* Friendly Spell Name */
         /// </summary>
-        public Dictionary<uint, string> SpellNames;
+        public IDictionary<uint, string> SpellNames;
 
         /// <summary>
         /// Set this to enable auto commenting when creating SQL statements.<para />
         /// If a opcode is found in the dictionary, the name will be added in the form of a /* Friendly Opcode Name */
         /// </summary>
-        public Dictionary<uint, string> PacketOpCodes;
+        public IDictionary<uint, string> PacketOpCodes;
 
         /// <summary>
         /// Set this to enable auto commenting when creating SQL statements.<para />
         /// </summary>
-        public Dictionary<uint, List<TreasureWielded>> TreasureWielded;
+        public IDictionary<uint, List<TreasureWielded>> TreasureWielded;
 
         /// <summary>
         /// Set this to enable auto commenting when creating SQL statements.<para />
         /// </summary>
-        public Dictionary<uint, TreasureDeath> TreasureDeath;
+        public IDictionary<uint, TreasureDeath> TreasureDeath;
 
         /// <summary>
         /// Set this to enable auto commenting when creating SQL statements.<para />
         /// </summary>
-        public Dictionary<uint, Weenie> Weenies;
+        public IDictionary<uint, Weenie> Weenies;
 
         /// <summary>
         /// lineGenerator should generate the entire line after the first (. It should include the trailing ) and any comments after.<para />
