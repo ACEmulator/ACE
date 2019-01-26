@@ -39,7 +39,7 @@ namespace ACE.Server.WorldObjects
             if (!(activator is Player player))
                 return new ActivationResult(false);
 
-            if (!House.HasPermission(player, true))
+            if (!House.RootHouse.HasPermission(player, true))
             {
                 player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, $"The {Name} is locked!"));
                 EnqueueBroadcast(new GameMessageSound(Guid, Sound.OpenFailDueToLock, 1.0f));
