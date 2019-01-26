@@ -40,7 +40,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Called every ~5 seconds for Players
         /// </summary>
-        public override void HeartBeat(double currentUnixTime)
+        public override void Heartbeat(double currentUnixTime)
         {
             NotifyLandblocks();
 
@@ -59,7 +59,7 @@ namespace ACE.Server.WorldObjects
             if (LastRequestedDatabaseSave + PlayerSaveInterval <= DateTime.UtcNow)
                 SavePlayerToDatabase();
 
-            base.HeartBeat(currentUnixTime);
+            base.Heartbeat(currentUnixTime);
         }
 
         /// <summary>
