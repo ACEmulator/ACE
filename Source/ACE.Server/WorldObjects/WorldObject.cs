@@ -249,7 +249,8 @@ namespace ACE.Server.WorldObjects
 
             AddGeneratorProfiles();
 
-            if (IsGenerator)
+            // mosswartfood is both a creature and a generator with a HeartbeatInterval of 5 and a RegenerationInterval of 0
+            if (!(this is Creature) && IsGenerator)
                 HeartbeatInterval = RegenerationInterval;
 
             BaseDescriptionFlags = ObjectDescriptionFlag.Attackable;
