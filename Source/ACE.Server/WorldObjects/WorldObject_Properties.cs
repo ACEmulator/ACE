@@ -2456,5 +2456,17 @@ namespace ACE.Server.WorldObjects
             get => GetProperty(PropertyInt.ResistLockpick) ?? 0;
             set { if (!value.HasValue) RemoveProperty(PropertyInt.ResistLockpick); else SetProperty(PropertyInt.ResistLockpick, value.Value); }
         }
+
+        public uint? VictimId
+        {
+            get => GetProperty(PropertyInstanceId.Victim);
+            set { if (!value.HasValue) RemoveProperty(PropertyInstanceId.Victim); else SetProperty(PropertyInstanceId.Victim, value.Value); }
+        }
+
+        public uint? KillerId
+        {
+            get => GetProperty(PropertyInstanceId.Killer);
+            set { if (!value.HasValue) RemoveProperty(PropertyInstanceId.Killer); else SetProperty(PropertyInstanceId.Killer, value.Value); }
+        }
     }
 }

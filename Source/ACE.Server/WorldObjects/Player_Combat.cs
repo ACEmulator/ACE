@@ -793,7 +793,7 @@ namespace ACE.Server.WorldObjects
         public Player GetKiller_PKLite()
         {
             if (PlayerKillerStatus == PlayerKillerStatus.PKLite)
-                return CurrentLandblock?.GetObject(new ObjectGuid(Killer ?? 0)) as Player;
+                return CurrentLandblock?.GetObject(new ObjectGuid(KillerId ?? 0)) as Player;
             else
                 return null;
         }

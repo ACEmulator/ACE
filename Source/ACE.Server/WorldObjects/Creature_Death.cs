@@ -77,7 +77,7 @@ namespace ACE.Server.WorldObjects
             UpdateVital(Health, 0);
 
             if (topDamager != null)
-                Killer = topDamager.Guid.Full;
+                KillerId = topDamager.Guid.Full;
 
             CurrentMotionState = new Motion(MotionStance.NonCombat, MotionCommand.Ready);
             IsMonster = false;
@@ -200,19 +200,17 @@ namespace ACE.Server.WorldObjects
 
             //corpse.Location.PositionZ = corpse.Location.PositionZ - .5f; // Adding BaseDescriptionFlags |= ObjectDescriptionFlag.Corpse to Corpse objects made them immune to gravity.. this seems to fix floating corpse...
 
-            corpse.OwnerId = Guid.Full;
+            corpse.VictimId = Guid.Full;
             corpse.Name = $"Corpse of {Name}";
-
-            LandblockManager.AddObject(corpse);
 
             // set 'killed by' for looting rights
             if (killer != null)
             {
                 corpse.LongDesc = $"Killed by {killer.Name}.";
                 if (killer is CombatPet)
-                    corpse.AllowedActivator = killer.PetOwner.Value;
+                    corpse.KillerId = killer.PetOwner.Value;
                 else
-                    corpse.AllowedActivator = Killer.Value;
+                    corpse.KillerId = killer.Guid.Full;
             }
             else
                 corpse.LongDesc = $"Killed by misadventure.";
