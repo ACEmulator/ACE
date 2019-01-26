@@ -49,6 +49,9 @@ namespace ACE.Server.WorldObjects
                 return 0.0f;
             }
 
+            if (CurrentMotionState.Stance == MotionStance.NonCombat)
+                DoAttackStance();
+
             // choose a random combat maneuver
             var maneuver = GetCombatManeuver();
             if (maneuver == null)
