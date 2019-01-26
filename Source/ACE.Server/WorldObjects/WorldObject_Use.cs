@@ -178,7 +178,7 @@ namespace ACE.Server.WorldObjects
             // only seems to be used for summoning so far...
             if (ItemSkillLimit != null && ItemSkillLevelLimit != null)
             {
-                var skill = (Skill)ItemSkillLimit.Value;
+                var skill = activator.ConvertToMoASkill((Skill)ItemSkillLimit.Value);
                 var playerSkill = player.GetCreatureSkill(skill);
 
                 if (playerSkill.Current < ItemSkillLevelLimit.Value)
@@ -187,7 +187,7 @@ namespace ACE.Server.WorldObjects
 
             if (UseRequiresSkill != null)
             {
-                var skill = (Skill)UseRequiresSkill.Value;
+                var skill = activator.ConvertToMoASkill((Skill)UseRequiresSkill.Value);
                 var playerSkill = player.GetCreatureSkill(skill);
 
                 if (playerSkill.AdvancementClass < SkillAdvancementClass.Trained)
@@ -206,7 +206,7 @@ namespace ACE.Server.WorldObjects
             // again, only seems to be for summoning so far...
             if (UseRequiresSkillSpec != null)
             {
-                var skill = (Skill)UseRequiresSkillSpec.Value;
+                var skill = activator.ConvertToMoASkill((Skill)UseRequiresSkillSpec.Value);
                 var playerSkill = player.GetCreatureSkill(skill);
 
                 if (playerSkill.AdvancementClass < SkillAdvancementClass.Specialized)
