@@ -328,7 +328,7 @@ namespace ACE.Server.WorldObjects
 
         /// <summary>
         /// For villas and mansions, the basement dungeons contain their own House weenie
-        /// This dungeon House needs to reference the main outdoor house for varoius operations,
+        /// This dungeon House needs to reference the main outdoor house for various operations,
         /// such as returning the permissions list.
         /// </summary>
         public House RootHouse
