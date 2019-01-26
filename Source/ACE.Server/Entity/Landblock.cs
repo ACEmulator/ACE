@@ -341,7 +341,7 @@ namespace ACE.Server.Entity
                 var first = sortedGeneratorsByNextGeneratorHeartbeat.First.Value;
 
                 // If they wanted to run before or at now
-                if (first.NextHeartbeatTime <= currentUnixTime)
+                if (first.NextGeneratorHeartbeatTime <= currentUnixTime)
                 {
                     sortedGeneratorsByNextGeneratorHeartbeat.RemoveFirst();
                     first.GeneratorHeartbeat(currentUnixTime);
