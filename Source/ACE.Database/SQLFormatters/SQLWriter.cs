@@ -162,6 +162,12 @@ namespace ACE.Database.SQLFormatters
                 case PropertyInt.WieldRequirements3:
                 case PropertyInt.WieldRequirements4:
                     return ((WieldRequirement)value).ToString();
+                case PropertyInt.TargetingTactic:
+                    return ((TargetingTactic)value).ToString();
+                case PropertyInt.Tolerance:
+                    return ((Tolerance)value).ToString();
+                case PropertyInt.AiOptions:
+                    return ((AiOption)value).ToString();
             }
 
             return property.GetValueEnumName(value);
