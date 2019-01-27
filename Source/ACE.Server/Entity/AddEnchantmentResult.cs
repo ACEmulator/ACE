@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using ACE.Database.Models.Shard;
 using ACE.Server.Managers;
+using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Entity
 {
@@ -43,7 +44,7 @@ namespace ACE.Server.Entity
         /// This handles situations where the same spell can come
         /// from both a creature and item source
         /// </summary>
-        public BiotaPropertiesEnchantmentRegistry RefreshCreature;
+        public BiotaPropertiesEnchantmentRegistry RefreshCaster { get; set; }
 
         public ushort TopLayerId;
 
@@ -56,7 +57,7 @@ namespace ACE.Server.Entity
             StackType = stackType;
         }
 
-        public void BuildStack(List<BiotaPropertiesEnchantmentRegistry> entries, Spell spell)
+        public void BuildStack(List<BiotaPropertiesEnchantmentRegistry> entries, Spell spell, WorldObject caster)
         {
             Surpass = new List<BiotaPropertiesEnchantmentRegistry>();
             Refresh = new List<BiotaPropertiesEnchantmentRegistry>();
@@ -99,7 +100,7 @@ namespace ACE.Server.Entity
             SetSpell();
 
             if (Refresh.Count > 0)
-                SetRefreshCreature();
+                SetRefreshCaster(caster);
         }
 
         public void SetStackType()
@@ -124,17 +125,12 @@ namespace ACE.Server.Entity
                 SurpassedSpell = new Spell(Surpassed[0].SpellId, false);
         }
 
-        public void SetRefreshCreature()
+        public void SetRefreshCaster(WorldObject caster)
         {
             foreach (var refresh in Refresh)
             {
-                if (refresh.Duration != -1)
-                {
-                    //if (RefreshCreature != null)
-                        //Console.WriteLine($"AddEnchantmentResult.GetCreatureRefresh(): found multiple duration spells");
-
-                    RefreshCreature = refresh;
-                }
+                if (refresh.CasterObjectId == caster.Guid.Full)
+                    RefreshCaster = refresh;
             }
         }
     }

@@ -759,7 +759,7 @@ namespace ACE.Server.WorldObjects
 
         public double? MinimumTimeSincePk
         {
-            get => GetProperty(PropertyFloat.MinimumTimeSincePk) ?? null;
+            get => GetProperty(PropertyFloat.MinimumTimeSincePk);
             set { if (!value.HasValue) RemoveProperty(PropertyFloat.MinimumTimeSincePk); else SetProperty(PropertyFloat.MinimumTimeSincePk, value.Value); }
         }
 
