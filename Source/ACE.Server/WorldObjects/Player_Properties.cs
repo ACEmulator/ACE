@@ -150,10 +150,10 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyInt.TotalSkillCredits); else SetProperty(PropertyInt.TotalSkillCredits, value.Value); }
         }
 
-        public int? NumDeaths
+        public int NumDeaths
         {
-            get => GetProperty(PropertyInt.NumDeaths);
-            set { if (!value.HasValue) RemoveProperty(PropertyInt.NumDeaths); else SetProperty(PropertyInt.NumDeaths, value.Value); }
+            get => GetProperty(PropertyInt.NumDeaths) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.NumDeaths); else SetProperty(PropertyInt.NumDeaths, value); }
         }
 
         public int? DeathLevel
