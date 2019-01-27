@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
-
 using ACE.Database;
 using ACE.Database.Models.Shard;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
 using ACE.Server.Physics.Common;
 using ACE.Server.WorldObjects;
@@ -62,6 +62,11 @@ namespace ACE.Server.Entity
         public bool MaxObjectsSpawned { get => CurrentCreate >= MaxCreate; }
 
         /// <summary>
+        /// The delay for respawning objects
+        /// </summary>
+        public float Delay { get => Biota.Delay ?? _generator.GeneratorProfiles[0].Biota.Delay ?? 0.0f; }
+
+        /// <summary>
         /// The parent for this generator profile
         /// </summary>
         public WorldObject _generator;
@@ -115,21 +120,7 @@ namespace ACE.Server.Entity
                 return DateTime.UtcNow.AddSeconds(_generator.GeneratorInitialDelay);
             }
             else
-            {
-                // determine the delay for respawning
-                var delay = Biota.Delay ?? 0;
-                if (delay == 0)
-                    delay = _generator.GeneratorProfiles[0].Biota.Delay ?? 0;   // only for link generators?
-
-                // 11556 - Cultist Altar
-                if (_generator.RegenerationInterval == 0)
-                    delay = 0;
-
-                if (_generator is Chest) delay = 0.0f;
-
-                //Console.WriteLine($"QueueGenerator({_generator.Name}): RegenerationInterval: {_generator.RegenerationInterval} - Delay: {delay}");
-                return DateTime.UtcNow.AddSeconds(delay);
-            }
+                return DateTime.UtcNow;
         }
 
         /// <summary>
@@ -408,14 +399,26 @@ namespace ACE.Server.Entity
             if (Biota.WhenCreate != (uint)eventType)
                 return;
 
-            Spawned.TryGetValue(target.Full, out var item);
+            Spawned.TryGetValue(target.Full, out var obj);
 
-            if (item != null)
-            {
-                //Console.WriteLine("Found, removing and queueing...");
-                Spawned.Remove(target.Full);
-                Enqueue(1, false);
-            }
+            if (obj == null) return;
+
+            //Console.WriteLine($"{_generator.Name}.NotifyGenerator({target}, {eventType}) - RegenerationInterval: {_generator.RegenerationInterval} - Delay: {Biota.Delay} - Link Delay: {_generator.GeneratorProfiles[0].Biota.Delay}");
+            var delay = Delay;
+            if (_generator is Chest || _generator.RegenerationInterval == 0)
+                delay = 0;
+
+            var actionChain = new ActionChain();
+            actionChain.AddDelaySeconds(delay);
+            actionChain.AddAction(_generator, () => FreeSlot(obj));
+            actionChain.EnqueueChain();
+            //Enqueue(1, false);
+        }
+
+        public void FreeSlot(GeneratorRegistryNode node)
+        {
+            Spawned.Remove(node.WorldObject.Guid.Full);
+            _generator.CurrentCreate--;
         }
     }
 }
