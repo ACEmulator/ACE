@@ -686,7 +686,12 @@ namespace ACE.Server.WorldObjects
                 EnqueueBroadcastMotion(returnStance);
 
                 if (pk_error != null && spell.NumProjectiles == 0)
-                    player.Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(player.Session, pk_error.Value, target.Name));
+                {
+                    player.Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(player.Session, pk_error[0], target.Name));
+
+                    if (target is Player targetPlayer)
+                        targetPlayer.Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(targetPlayer.Session, pk_error[1], Name));
+                }
 
                 if (movedTooFar)
                     player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouHaveMovedTooFar));
