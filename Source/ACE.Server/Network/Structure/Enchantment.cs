@@ -71,6 +71,7 @@ namespace ACE.Server.Network.Structure
 
             Layer = entry.LayerId;
             StartTime = entry.StartTime;
+            Duration = entry.Duration;      // item spells can have -1, overriding the spell duration
             CasterGuid = entry.CasterObjectId;
             StatModValue = entry.StatModValue;
 

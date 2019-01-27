@@ -1137,12 +1137,17 @@ namespace ACE.Database.Models.Shard
             }
         }
 
-        public static BiotaPropertiesEnchantmentRegistry GetEnchantmentBySpell(this Biota biota, int spellId, ReaderWriterLockSlim rwLock)
+        public static BiotaPropertiesEnchantmentRegistry GetEnchantmentBySpell(this Biota biota, int spellId, uint? casterGuid, ReaderWriterLockSlim rwLock)
         {
             rwLock.EnterReadLock();
             try
             {
-                return biota.BiotaPropertiesEnchantmentRegistry.FirstOrDefault(e => e.SpellId == spellId);
+                var results = biota.BiotaPropertiesEnchantmentRegistry.Where(e => e.SpellId == spellId);
+
+                if (casterGuid != null)
+                    results = results.Where(e => e.CasterObjectId == casterGuid);
+
+                return results.FirstOrDefault();
             }
             finally
             {
@@ -1202,12 +1207,12 @@ namespace ACE.Database.Models.Shard
             }
         }
 
-        public static bool TryRemoveEnchantment(this Biota biota, int spellId, out BiotaPropertiesEnchantmentRegistry entity, ReaderWriterLockSlim rwLock)
+        public static bool TryRemoveEnchantment(this Biota biota, BiotaPropertiesEnchantmentRegistry entry, out BiotaPropertiesEnchantmentRegistry entity, ReaderWriterLockSlim rwLock)
         {
             rwLock.EnterUpgradeableReadLock();
             try
             {
-                entity = biota.BiotaPropertiesEnchantmentRegistry.FirstOrDefault(x => x.SpellId == spellId);
+                entity = biota.BiotaPropertiesEnchantmentRegistry.FirstOrDefault(x => x.SpellId == entry.SpellId && x.CasterObjectId == entry.CasterObjectId);
                 if (entity != null)
                 {
                     rwLock.EnterWriteLock();

@@ -63,9 +63,9 @@ namespace ACE.Server.Managers
         /// <summary>
         /// Returns the enchantments for a specific spell
         /// </summary>
-        public BiotaPropertiesEnchantmentRegistry GetEnchantment(uint spellID)
+        public BiotaPropertiesEnchantmentRegistry GetEnchantment(uint spellID, uint? casterGuid = null)
         {
-            return WorldObject.Biota.GetEnchantmentBySpell((int)spellID, WorldObject.BiotaDatabaseLock);
+            return WorldObject.Biota.GetEnchantmentBySpell((int)spellID, casterGuid, WorldObject.BiotaDatabaseLock);
         }
 
         /// <summary>
@@ -152,12 +152,11 @@ namespace ACE.Server.Managers
                 return result;
             }
 
-            result.BuildStack(entries, spell);
+            result.BuildStack(entries, spell, caster);
 
             // handle cases:
             // surpassing: new spell is written to next layer
-            // refreshing: - if creature caster, reset timer for existing spell
-            //             - if item caster, always add new layer?
+            // refreshing: - key by caster guid
             // surpassed:  - underpowered spell is written to next layer?
 
             // note that these cases are not exclusive,
@@ -165,8 +164,7 @@ namespace ACE.Server.Managers
             // for the 2nd cast of strength 3, it would have 1 refresh and 1 surpassed
             // would 2nd cast of strength 3 refresh the 1st, but still be surpassed by 6?
 
-            var refresh = result.Refresh.Count > 0 && caster is Creature;
-            var refreshSpell = refresh ? result.RefreshCreature : null;
+            var refreshSpell = result.Refresh.Count > 0 ? result.RefreshCaster : null;
 
             if (refreshSpell == null)
             {
@@ -270,7 +268,7 @@ namespace ACE.Server.Managers
         {
             var spellID = entry.SpellId;
 
-            if (WorldObject.Biota.TryRemoveEnchantment(spellID, out _, WorldObject.BiotaDatabaseLock))
+            if (WorldObject.Biota.TryRemoveEnchantment(entry, out _, WorldObject.BiotaDatabaseLock))
                 WorldObject.ChangesDetected = true;
 
             if (Player != null)
@@ -419,7 +417,7 @@ namespace ACE.Server.Managers
         {
             var spellID = entry.SpellId;
 
-            if (WorldObject.Biota.TryRemoveEnchantment(spellID, out _, WorldObject.BiotaDatabaseLock))
+            if (WorldObject.Biota.TryRemoveEnchantment(entry, out _, WorldObject.BiotaDatabaseLock))
                 WorldObject.ChangesDetected = true;
 
             if (Player != null)
@@ -433,7 +431,7 @@ namespace ACE.Server.Managers
         {
             foreach (var entry in entries)
             {
-                if (WorldObject.Biota.TryRemoveEnchantment(entry.SpellId, out _, WorldObject.BiotaDatabaseLock))
+                if (WorldObject.Biota.TryRemoveEnchantment(entry, out _, WorldObject.BiotaDatabaseLock))
                     WorldObject.ChangesDetected = true;
             }
 

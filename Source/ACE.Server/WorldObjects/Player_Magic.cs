@@ -379,20 +379,20 @@ namespace ACE.Server.WorldObjects
                 {
                     // Retrieve enchantment on player and dispel it, if present
                     if (EnchantmentManager.HasSpell(spellId))
-                        EnchantmentManager.Dispel(EnchantmentManager.GetEnchantment(spellId));
+                        EnchantmentManager.Dispel(EnchantmentManager.GetEnchantment(spellId, item.Guid.Full));
                 }
                 else
                 {
                     // Retrieve enchantment on item and dispel it, if present
                     if (item.EnchantmentManager.HasSpell(spellId))
-                        item.EnchantmentManager.Dispel(item.EnchantmentManager.GetEnchantment(spellId));
+                        item.EnchantmentManager.Dispel(item.EnchantmentManager.GetEnchantment(spellId, item.Guid.Full));
                 }
             }
             else
             {
                 // Retrieve enchantment on player and dispel it, if present
                 if (EnchantmentManager.HasSpell(spellId))
-                    EnchantmentManager.Dispel(EnchantmentManager.GetEnchantment(spellId));
+                    EnchantmentManager.Dispel(EnchantmentManager.GetEnchantment(spellId, item.Guid.Full));
             }
         }
 
