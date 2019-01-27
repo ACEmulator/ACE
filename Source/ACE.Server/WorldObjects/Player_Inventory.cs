@@ -670,7 +670,7 @@ namespace ACE.Server.WorldObjects
                     Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full));
                 }
 
-                if (itemRootOwner != containerRootOwner)
+                if (itemRootOwner == this && containerRootOwner != this)
                 {
                     // We must update the database with the latest ContainerId and WielderId properties.
                     // If we don't, the player can drop the item, log out, and log back in. If the landblock hasn't queued a database save in that time,
