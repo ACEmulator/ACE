@@ -89,7 +89,7 @@ namespace ACE.Server.WorldObjects
 
             var spellID = (uint)SpellId.Vitae;
             var spell = new Spell(spellID);
-            var vitaeEnchantment = new Enchantment(this, Guid.Full, spellID, spell.Duration, 0, (EnchantmentMask)spell.StatModType, vitae);
+            var vitaeEnchantment = new Enchantment(this, Guid.Full, spellID, 0, (EnchantmentMask)spell.StatModType, vitae);
             Session.Network.EnqueueSend(new GameEventMagicUpdateEnchantment(Session, vitaeEnchantment));
         }
 

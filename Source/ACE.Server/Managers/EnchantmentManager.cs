@@ -13,7 +13,6 @@ using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.Structure;
 using ACE.Server.Physics;
-using ACE.Server.Physics.Extensions;
 using ACE.Server.WorldObjects;
 using ACE.Server.WorldObjects.Entity;
 
@@ -191,6 +190,31 @@ namespace ACE.Server.Managers
         }
 
         /// <summary>
+        /// Adds a cooldown spell to the enchantment registry
+        /// </summary>
+        public BiotaPropertiesEnchantmentRegistry Add(int sharedCooldownID, double duration, WorldObject caster)
+        {
+            var newEntry = new BiotaPropertiesEnchantmentRegistry();
+
+            // TODO: BiotaPropertiesEnchantmentRegistry.SpellId should be uint
+            newEntry.SpellId = (int)GetCooldownSpellID(sharedCooldownID);
+            newEntry.SpellCategory = SpellCategory_Cooldown;
+            newEntry.HasSpellSetId = true;
+            newEntry.Duration = duration;
+            newEntry.CasterObjectId = caster.Guid.Full;
+            newEntry.DegradeLimit = -666;
+            newEntry.StatModType = (uint)EnchantmentTypeFlags.Cooldown;
+            newEntry.EnchantmentCategory = (uint)EnchantmentMask.Cooldown;
+
+            newEntry.LayerId = 1;      // cooldown at layer 1, any spells at layer 2?
+            WorldObject.Biota.AddEnchantment(newEntry, WorldObject.BiotaDatabaseLock);
+
+            WorldObject.ChangesDetected = true;
+
+            return newEntry;
+        }
+
+        /// <summary>
         /// Builds an enchantment registry entry from a spell ID
         /// </summary>
         private BiotaPropertiesEnchantmentRegistry BuildEntry(Spell spell, WorldObject caster = null)
@@ -249,7 +273,7 @@ namespace ACE.Server.Managers
                 var layer = (entry.SpellId == (uint)SpellId.Vitae) ? (ushort)0 : entry.LayerId; // this line is to force vitae to be layer 0 to match retail pcaps. We save it as layer 1 to make EF Core happy.
                 Player.Session.Network.EnqueueSend(new GameEventMagicRemoveEnchantment(Player.Session, (ushort)entry.SpellId, layer));
 
-                if (sound)
+                if (sound && entry.SpellCategory != SpellCategory_Cooldown)
                     Player.Session.Network.EnqueueSend(new GameMessageSound(Player.Guid, Sound.SpellExpire, 1.0f));
             }
             else
@@ -1008,6 +1032,41 @@ namespace ACE.Server.Managers
             return GetAdditiveMod(enchantments);
         }
 
+        public static ushort SpellCategory_Cooldown = 0x8000;
+
+        /// <summary>
+        /// Adds 0x8000 to the sharedCooldownID
+        /// </summary>
+        public uint GetCooldownSpellID(int sharedCooldownID)
+        {
+            return (uint)(SpellCategory_Cooldown | sharedCooldownID);
+        }
+
+        /// <summary>
+        /// Returns the seconds until this item's cooldown expires
+        /// </summary>
+        public float GetCooldown(int sharedCooldownID)
+        {
+            var cooldownSpellID = GetCooldownSpellID(sharedCooldownID);
+
+            var cooldown = GetEnchantment(cooldownSpellID);
+
+            if (cooldown != null)
+                return (float)(cooldown.Duration - Math.Abs(cooldown.StartTime));
+            else
+                return 0.0f;
+        }
+
+        /// <summary>
+        /// Returns TRUE if this item can be activated at this time
+        /// </summary>
+        public bool CheckCooldown(int? sharedCooldownID)
+        {
+            if (sharedCooldownID == null)
+                return true;
+
+            return GetCooldown(sharedCooldownID.Value) == 0.0f;
+        }
 
         /// <summary>
         /// Called every ~5 seconds for active object

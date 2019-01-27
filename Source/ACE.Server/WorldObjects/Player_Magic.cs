@@ -1188,7 +1188,7 @@ namespace ACE.Server.WorldObjects
             BuffMessage buff = new BuffMessage();
             buff.Spell = new Spell(spellID);
             if (buff.Spell.NotFound) return null;
-            buff.Enchantment = new Enchantment(null, 0, spellID, buff.Spell.Duration, 1, (EnchantmentMask)buff.Spell.StatModType, buff.Spell.StatModVal);
+            buff.Enchantment = new Enchantment(null, 0, spellID, 1, (EnchantmentMask)buff.Spell.StatModType, buff.Spell.StatModVal);
             return buff;
         }
 
