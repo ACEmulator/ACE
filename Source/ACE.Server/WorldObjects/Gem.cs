@@ -77,11 +77,7 @@ namespace ACE.Server.WorldObjects
 
             if (UseCreateContractId == null)
             {
-                if (CooldownId != null)
-                {
-                    var cooldownEnchantment = player.EnchantmentManager.Add(CooldownId.Value, CooldownDuration ?? 0.0f, this);
-                    player.Session.Network.EnqueueSend(new GameEventMagicUpdateEnchantment(player.Session, new Enchantment(player, cooldownEnchantment)));
-                }
+                player.EnchantmentManager.StartCooldown(this);
 
                 if (SpellDID.HasValue)
                 {

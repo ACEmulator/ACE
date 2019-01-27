@@ -190,31 +190,6 @@ namespace ACE.Server.Managers
         }
 
         /// <summary>
-        /// Adds a cooldown spell to the enchantment registry
-        /// </summary>
-        public BiotaPropertiesEnchantmentRegistry Add(int sharedCooldownID, double duration, WorldObject caster)
-        {
-            var newEntry = new BiotaPropertiesEnchantmentRegistry();
-
-            // TODO: BiotaPropertiesEnchantmentRegistry.SpellId should be uint
-            newEntry.SpellId = (int)GetCooldownSpellID(sharedCooldownID);
-            newEntry.SpellCategory = SpellCategory_Cooldown;
-            newEntry.HasSpellSetId = true;
-            newEntry.Duration = duration;
-            newEntry.CasterObjectId = caster.Guid.Full;
-            newEntry.DegradeLimit = -666;
-            newEntry.StatModType = (uint)EnchantmentTypeFlags.Cooldown;
-            newEntry.EnchantmentCategory = (uint)EnchantmentMask.Cooldown;
-
-            newEntry.LayerId = 1;      // cooldown at layer 1, any spells at layer 2?
-            WorldObject.Biota.AddEnchantment(newEntry, WorldObject.BiotaDatabaseLock);
-
-            WorldObject.ChangesDetected = true;
-
-            return newEntry;
-        }
-
-        /// <summary>
         /// Builds an enchantment registry entry from a spell ID
         /// </summary>
         private BiotaPropertiesEnchantmentRegistry BuildEntry(Spell spell, WorldObject caster = null)
@@ -255,6 +230,36 @@ namespace ACE.Server.Managers
             entry.StatModValue = spell.StatModVal;
 
             return entry;
+        }
+
+        /// <summary>
+        /// Adds a cooldown spell to the enchantment registry
+        /// </summary>
+        public bool StartCooldown(WorldObject item)
+        {
+            var cooldownID = item.CooldownId;
+            if (cooldownID == null)
+                return false;
+
+            var newEntry = new BiotaPropertiesEnchantmentRegistry();
+
+            // TODO: BiotaPropertiesEnchantmentRegistry.SpellId should be uint
+            newEntry.SpellId = (int)GetCooldownSpellID(cooldownID.Value);
+            newEntry.SpellCategory = SpellCategory_Cooldown;
+            newEntry.HasSpellSetId = true;
+            newEntry.Duration = item.CooldownDuration ?? 0.0f;
+            newEntry.CasterObjectId = item.Guid.Full;
+            newEntry.DegradeLimit = -666;
+            newEntry.StatModType = (uint)EnchantmentTypeFlags.Cooldown;
+            newEntry.EnchantmentCategory = (uint)EnchantmentMask.Cooldown;
+
+            newEntry.LayerId = 1;      // cooldown at layer 1, any spells at layer 2?
+            WorldObject.Biota.AddEnchantment(newEntry, WorldObject.BiotaDatabaseLock);
+            WorldObject.ChangesDetected = true;
+
+            Player.Session.Network.EnqueueSend(new GameEventMagicUpdateEnchantment(Player.Session, new Enchantment(Player, newEntry)));
+
+            return true;
         }
 
         /// <summary>

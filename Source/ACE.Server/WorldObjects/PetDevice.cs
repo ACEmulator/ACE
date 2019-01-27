@@ -9,6 +9,7 @@ using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
 using ACE.Server.Managers;
+using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 
 namespace ACE.Server.WorldObjects
@@ -85,7 +86,10 @@ namespace ACE.Server.WorldObjects
 
             // should this verification be in base CheckUseRequirements?
             if (!player.EnchantmentManager.CheckCooldown(CooldownId))
+            {
+                player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, "You have used this item too recently"));
                 return new ActivationResult(false);
+            }
 
             // TODO: limit non-golems to summoning mastery
 
@@ -103,6 +107,8 @@ namespace ACE.Server.WorldObjects
                 Console.WriteLine($"Couldn't find pet wcid #{wcid}");
                 return false;
             }
+            player.EnchantmentManager.StartCooldown(this);
+
             var combatPet = new CombatPet(weenie, GuidManager.NewDynamicGuid());
             if (combatPet == null)
             {
