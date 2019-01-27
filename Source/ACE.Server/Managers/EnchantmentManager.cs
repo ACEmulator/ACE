@@ -1151,7 +1151,15 @@ namespace ACE.Server.Managers
                 }
 
                 // get damage / damage resistance rating here for now?
-                var damageRatingMod = Creature.GetRatingMod(damager.EnchantmentManager.GetDamageRating());
+                var heritageMod = 1.0f;
+                if (damager is Player player)
+                {
+                    if (damageType == DamageType.Nether)
+                        heritageMod = player.GetHeritageBonus(WeaponType.Magic) ? 1.05f : 1.0f;
+                    else
+                        heritageMod = player.GetHeritageBonus(player.GetEquippedWeapon()) ? 1.05f : 1.0f;
+                }
+                var damageRatingMod = Creature.AdditiveCombine(heritageMod, Creature.GetRatingMod(damager.EnchantmentManager.GetDamageRating()));
                 var damageResistRatingMod = Creature.GetNegativeRatingMod(GetDamageResistRating());
                 //Console.WriteLine("DR: " + Creature.ModToRating(damageRatingMod));
                 //Console.WriteLine("DRR: " + Creature.NegativeModToRating(damageResistRatingMod));

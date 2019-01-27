@@ -339,7 +339,10 @@ namespace ACE.Server.WorldObjects
             var sneakAttackMod = GetSneakAttackMod(target);
             sneakAttack = sneakAttackMod > 1.0f;
 
-            var damageRatingMod = AdditiveCombine(recklessnessMod, sneakAttackMod, GetRatingMod(EnchantmentManager.GetDamageRating()));
+            // heritage damge mod
+            var heritageMod = GetHeritageBonus(weapon) ? 1.05f : 1.0f;
+
+            var damageRatingMod = AdditiveCombine(recklessnessMod, sneakAttackMod, heritageMod, GetRatingMod(EnchantmentManager.GetDamageRating()));
             //Console.WriteLine("Damage rating: " + ModToRating(damageRatingMod));
 
             var damage = baseDamage * attributeMod * powerAccuracyMod * damageRatingMod;
@@ -403,8 +406,11 @@ namespace ACE.Server.WorldObjects
             var sneakAttackMod = GetSneakAttackMod(target);
             sneakAttack = sneakAttackMod > 1.0f;
 
-            var damageRatingMod = AdditiveCombine(recklessnessMod, sneakAttackMod, GetRatingMod(EnchantmentManager.GetDamageRating()));
-            //Console.WriteLine("Damage rating: " + ModToRating(damageRatingMod));
+            // heritage damge mod
+            var heritageMod = GetHeritageBonus(weapon) ? 1.05f : 1.0f;
+
+            var damageRatingMod = AdditiveCombine(recklessnessMod, sneakAttackMod, heritageMod, GetRatingMod(EnchantmentManager.GetDamageRating()));
+            Console.WriteLine("Damage rating: " + ModToRating(damageRatingMod));
 
             var damage = baseDamage * attributeMod * powerAccuracyMod * damageRatingMod;
 

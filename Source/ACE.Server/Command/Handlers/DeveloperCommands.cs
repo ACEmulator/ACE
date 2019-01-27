@@ -1464,6 +1464,18 @@ namespace ACE.Server.Command.Handlers
         }
 
         /// <summary>
+        /// Shows the list of voyeurs for this player
+        /// </summary>
+        [CommandHandler("voyeurs", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Shows the list of voyeurs for this player", "/voyeurs")]
+        public static void HandleVoyeurs(Session session, params string[] parameters)
+        {
+            Console.WriteLine($"\nVoyeurs for {session.Player.Name}: {session.Player.PhysicsObj.ObjMaint.VoyeurTable.Values.Where(o => o.IsPlayer).Count()}");
+
+            foreach (var obj in session.Player.PhysicsObj.ObjMaint.VoyeurTable.Values.Where(o => o.IsPlayer))
+                Console.WriteLine($"{obj.Name} ({obj.ID:X8})");
+        }
+
+        /// <summary>
         /// Shows the list of previously visible objects queued for destruction for this player
         /// </summary>
         [CommandHandler("destructionqueue", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Shows the list of previously visible objects queued for destruction for this player", "/destructionqueue")]
