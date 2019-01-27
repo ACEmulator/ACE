@@ -3,6 +3,8 @@ using System.Collections.Generic;
 
 using log4net;
 
+using ACE.Common;
+
 namespace ACE.Server.Entity.Actions
 {
     public class DelayManager : IActor
@@ -30,7 +32,7 @@ namespace ACE.Server.Entity.Actions
                         var min = delayHeap.Min;
 
                         // If they wanted to run before or at now
-                        if (min.EndTime <= Timers.PortalYearTicks)
+                        if (min.EndTime <= Time.GetUnixTime())
                         {
                             toAct.Add(min);
 
@@ -64,7 +66,7 @@ namespace ACE.Server.Entity.Actions
                 return;
             }
 
-            delayAction.Start();
+            delayAction.Start(Time.GetUnixTime());
 
             lock (delayHeap)
                 delayHeap.Add(delayAction);

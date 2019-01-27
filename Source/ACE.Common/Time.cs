@@ -13,11 +13,9 @@ namespace ACE.Common
             return span.TotalSeconds;
         }
 
-        public static double GetFutureUnixTime(double seconds)
+        public static double GetFutureUnixTime(double secondsInTheFuture)
         {
-            TimeSpan span = (DateTime.UtcNow.AddSeconds(seconds) - unixEpoch);
-
-            return span.TotalSeconds;
+            return GetUnixTime() + secondsInTheFuture;
         }
     }
 }

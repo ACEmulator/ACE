@@ -3,11 +3,19 @@ using System;
 namespace ACE.Server.Entity.Actions
 {
     /// <summary>
-    /// Action that will not return until Timer.PortalYearTicks >= EndTime
+    /// Action that will not return until Time.GetUnixTime() >= EndTime
     /// must only be inserted into DelayManager actor
     /// </summary>
     public class DelayAction : ActionEventBase, IComparable<DelayAction>
     {
+        public enum DelayType
+        {
+            FixedDelay,
+            DelayUntil,
+        }
+
+        private readonly DelayType delayType;
+
         public double WaitTime { get; }
         public double EndTime { get; private set; }
 
@@ -15,15 +23,22 @@ namespace ACE.Server.Entity.Actions
         private readonly long sequence;
         private static volatile uint glblSequence;
 
-        public DelayAction(double waitTimePortalYearTicks)
+        public DelayAction(DelayType delayType, double timeInSeconds)
         {
-            WaitTime = waitTimePortalYearTicks;
+            this.delayType = delayType;
+
+            if (delayType == DelayType.FixedDelay)
+                WaitTime = timeInSeconds;
+            else if (delayType == DelayType.DelayUntil)
+                EndTime = timeInSeconds;
+
             sequence = glblSequence++;
         }
 
-        public void Start()
+        public void Start(double startTime)
         {
-            EndTime = Timers.PortalYearTicks + WaitTime;
+            if (delayType == DelayType.FixedDelay)
+                EndTime = startTime + WaitTime;
         }
 
         public int CompareTo(DelayAction rhs)
