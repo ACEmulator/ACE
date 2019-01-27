@@ -9,7 +9,10 @@ namespace ACE.Server.WorldObjects
         public override void Heartbeat(double currentUnixTime)
         {
             foreach (var wo in EquippedObjects.Values)
-                wo.Heartbeat(currentUnixTime);
+            {
+                if (wo.NextHeartbeatTime <= currentUnixTime)
+                    wo.Heartbeat(currentUnixTime);
+            }
 
             VitalHeartBeat();
 
