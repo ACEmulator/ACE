@@ -666,6 +666,9 @@ namespace ACE.Entity.Enum.Properties
                 case PropertyInt.GeneratorStartTime:
                 case PropertyInt.GeneratorEndTime:
                     return DateTimeOffset.FromUnixTimeSeconds(value).DateTime.ToUniversalTime().ToString(CultureInfo.InvariantCulture);
+
+                case PropertyInt.ArmorType:
+                    return System.Enum.GetName(typeof(ArmorType), value);
             }
 
             return null;
