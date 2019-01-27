@@ -350,6 +350,8 @@ namespace ACE.Server.WorldObjects
                     return ImbuedEffectType.AcidRending;
                 case DamageType.Electric:
                     return ImbuedEffectType.ElectricRending;
+                case DamageType.Nether:
+                    return ImbuedEffectType.Undef;  // none?
                 default:
                     Console.WriteLine($"GetRendDamageType({damageType}) unexpected damage type");
                     return ImbuedEffectType.Undef;

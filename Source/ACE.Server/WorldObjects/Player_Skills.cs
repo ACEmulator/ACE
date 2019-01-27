@@ -500,7 +500,6 @@ namespace ACE.Server.WorldObjects
         }
 
 
-
         public static List<Skill> AlwaysTrained = new List<Skill>()
         {
             Skill.ArcaneLore,
@@ -516,22 +515,101 @@ namespace ACE.Server.WorldObjects
             return !AlwaysTrained.Contains(skill);
         }
 
-        public static Dictionary<HeritageGroup, List<Skill>> HeritageBonuses = new Dictionary<HeritageGroup, List<Skill>>
+
+        public bool GetHeritageBonus(WorldObject weapon)
         {
-            // contains a bunch of outdated skills, according to heritage select screen description?
-            { ACE.Entity.Enum.HeritageGroup.Aluvian, new List<Skill> { Skill.Dagger, Skill.Bow } },
-            { ACE.Entity.Enum.HeritageGroup.Gharundim, new List<Skill> { Skill.Staff, Skill.WarMagic } }, // magic spells?
-            { ACE.Entity.Enum.HeritageGroup.Sho, new List<Skill> { Skill.UnarmedCombat, Skill.Bow } },
-            { ACE.Entity.Enum.HeritageGroup.Viamontian, new List<Skill> { Skill.Sword, Skill.Crossbow } },
-            { ACE.Entity.Enum.HeritageGroup.Shadowbound, new List<Skill> { Skill.UnarmedCombat, Skill.Crossbow } }, // umbraen?
-            { ACE.Entity.Enum.HeritageGroup.Penumbraen, new List<Skill> { Skill.UnarmedCombat, Skill.Crossbow } },
-            { ACE.Entity.Enum.HeritageGroup.Gearknight, new List<Skill> { Skill.Mace, Skill.Crossbow } },
-            { ACE.Entity.Enum.HeritageGroup.Undead, new List<Skill> { Skill.Axe, Skill.ThrownWeapon } },
-            { ACE.Entity.Enum.HeritageGroup.Empyrean, new List<Skill> { Skill.Sword, Skill.WarMagic } },  // magic?
-            { ACE.Entity.Enum.HeritageGroup.Tumerok, new List<Skill> { Skill.Spear, Skill.ThrownWeapon } },
-            { ACE.Entity.Enum.HeritageGroup.Lugian, new List<Skill> { Skill.Axe, Skill.ThrownWeapon } },
-            { ACE.Entity.Enum.HeritageGroup.Olthoi, new List<Skill>() },    // natural claws and pincers?
-            { ACE.Entity.Enum.HeritageGroup.OlthoiAcid, new List<Skill>() }    // olthoi spitters acidic spit?
+            return GetHeritageBonus(GetWeaponType(weapon));
+        }
+
+        public bool GetHeritageBonus(WeaponType weaponType)
+        {
+            switch (HeritageGroup)
+            {
+                case HeritageGroup.Aluvian:
+                    if (weaponType == WeaponType.Dagger || weaponType == WeaponType.Bow)
+                        return true;
+                    break;
+                case HeritageGroup.Gharundim:
+                    if (weaponType == WeaponType.Staff || weaponType == WeaponType.Magic)
+                        return true;
+                    break;
+                case HeritageGroup.Sho:
+                    if (weaponType == WeaponType.Unarmed || weaponType == WeaponType.Bow)
+                        return true;
+                    break;
+                case HeritageGroup.Viamontian:
+                    if (weaponType == WeaponType.Sword || weaponType == WeaponType.Crossbow)
+                        return true;
+                    break;
+                case HeritageGroup.Shadowbound: // umbraen
+                case HeritageGroup.Penumbraen:
+                    if (weaponType == WeaponType.Unarmed || weaponType == WeaponType.Crossbow)
+                        return true;
+                    break;
+                case HeritageGroup.Gearknight:
+                    if (weaponType == WeaponType.Mace || weaponType == WeaponType.Crossbow)
+                        return true;
+                    break;
+                case HeritageGroup.Undead:
+                    if (weaponType == WeaponType.Axe || weaponType == WeaponType.Thrown)
+                        return true;
+                    break;
+                case HeritageGroup.Empyrean:
+                    if (weaponType == WeaponType.Sword || weaponType == WeaponType.Magic)
+                        return true;
+                    break;
+                case HeritageGroup.Tumerok:
+                    if (weaponType == WeaponType.Spear || weaponType == WeaponType.Thrown)
+                        return true;
+                    break;
+                case HeritageGroup.Lugian:
+                    if (weaponType == WeaponType.Axe || weaponType == WeaponType.Thrown)
+                        return true;
+                    break;
+                case HeritageGroup.Olthoi:
+                case HeritageGroup.OlthoiAcid:
+                    break;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// If the WeaponType is missing from a weapon, tries to convert from WeaponSkill (for old data)
+        /// </summary>
+        public WeaponType GetWeaponType(WorldObject weapon)
+        {
+            if (weapon == null)
+                return WeaponType.Undef;    // unarmed?
+
+            var weaponType = weapon.GetProperty(PropertyInt.WeaponType);
+            if (weaponType != null)
+                return (WeaponType)weaponType;
+
+            var weaponSkill = weapon.GetProperty(PropertyInt.WeaponSkill);
+            if (weaponSkill != null && SkillToWeaponType.TryGetValue((Skill)weaponSkill, out WeaponType converted))
+                return converted;
+            else
+                return WeaponType.Undef;
+        }
+
+        public Dictionary<Skill, WeaponType> SkillToWeaponType = new Dictionary<Skill, WeaponType>()
+        {
+            { Skill.UnarmedCombat, WeaponType.Unarmed },
+            { Skill.Sword, WeaponType.Sword },
+            { Skill.Axe, WeaponType.Axe },
+            { Skill.Mace, WeaponType.Mace },
+            { Skill.Spear, WeaponType.Spear },
+            { Skill.Dagger, WeaponType.Dagger },
+            { Skill.Staff, WeaponType.Staff },
+            { Skill.Bow, WeaponType.Bow },
+            { Skill.Crossbow, WeaponType.Crossbow },
+            { Skill.ThrownWeapon, WeaponType.Thrown },
+            { Skill.TwoHandedCombat, WeaponType.TwoHanded },
+            { Skill.CreatureEnchantment, WeaponType.Magic },    // only for war/void?
+            { Skill.ItemEnchantment, WeaponType.Magic },
+            { Skill.LifeMagic, WeaponType.Magic },
+            { Skill.WarMagic, WeaponType.Magic },
+            { Skill.VoidMagic, WeaponType.Magic },
         };
     }
 }

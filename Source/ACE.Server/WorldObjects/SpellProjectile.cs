@@ -403,6 +403,7 @@ namespace ACE.Server.WorldObjects
             {
                 uint amount;
                 var percent = 0.0f;
+                var heritageMod = 1.0f;
                 var sneakAttackMod = 1.0f;
 
                 // handle life projectiles for stamina / mana
@@ -429,13 +430,15 @@ namespace ACE.Server.WorldObjects
                         // could sneak attack be applied to void DoTs?
                         sneakAttackMod = player.GetSneakAttackMod(target);
                         //Console.WriteLine("Magic sneak attack:  + sneakAttackMod);
-                        damage *= sneakAttackMod;
+                        heritageMod = player.GetHeritageBonus(WeaponType.Magic) ? 1.05f : 1.0f;
                     }
 
                     // DR / DRR applies for magic too?
-                    var damageRatingMod = Creature.GetRatingMod(ProjectileSource.EnchantmentManager.GetDamageRating());
+                    var damageRatingMod = Creature.AdditiveCombine(sneakAttackMod, heritageMod, Creature.GetRatingMod(ProjectileSource.EnchantmentManager.GetDamageRating()));
                     var damageResistRatingMod = Creature.GetNegativeRatingMod(target.EnchantmentManager.GetDamageResistRating());
                     damage *= damageRatingMod * damageResistRatingMod;
+
+                    //Console.WriteLine($"Damage rating: " + Creature.ModToRating(damageRatingMod));
 
                     percent = (float)damage / target.Health.MaxValue;
                     amount = (uint)-target.UpdateVitalDelta(target.Health, (int)-Math.Round(damage.Value));
