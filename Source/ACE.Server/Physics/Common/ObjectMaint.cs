@@ -135,7 +135,7 @@ namespace ACE.Server.Physics.Common
         {
             if (!VisibleObjectTable.ContainsKey(obj.ID))
             {
-                if (InitialClamp)
+                if (InitialClamp && !ObjectTable.ContainsKey(obj.ID))
                 {
                     var distSq = PhysicsObj.WeenieObj.WorldObject.Location.Distance2DSquared(obj.WeenieObj.WorldObject.Location);
                     if (distSq > InitialClamp_DistSq)
