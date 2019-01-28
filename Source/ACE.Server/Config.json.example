@@ -55,6 +55,16 @@
         }
     ]
   },
+  "Transfer": {
+    "AllowBackup": true,
+    "AllowImport": false,
+    "AllowMigrate": false,
+    "ExternalIPAddressOrDNSName": "",
+    "AllowMigrationFrom": [
+    ],
+    "AllowImportFrom": [
+    ]
+  },
   "MySql": {
     "Authentication": {
       "Host": "127.0.0.1",

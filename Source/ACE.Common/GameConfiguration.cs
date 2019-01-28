@@ -5,6 +5,18 @@ namespace ACE.Common
 {
     public class GameConfiguration
     {
+        /// <summary>
+        /// maximum characters per account, could possibly be moved to the shard.account table?
+        /// </summary>
+        public const uint SlotCount = 11;
+
+        /// <summary>
+        /// The list of allowable characters for character names
+        /// </summary>
+        public const string AllowedCharacterNameCharacters = " abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        public const int CharacterNameMinimumLength = 1;
+        public const int CharacterNameMaximumLength = 32;
+
         public string WorldName { get; set; }
 
         public string Description { get; set; }

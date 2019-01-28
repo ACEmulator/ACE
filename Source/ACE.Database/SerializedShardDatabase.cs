@@ -42,7 +42,7 @@ namespace ACE.Database
             {
                 try
                 {
-                    Task t = _queue.Take();
+                    Task t = _queue.Take(); // when exiting - System.InvalidOperationException: 'The collection argument is empty and has been marked as complete with regards to additions.'
 
                     try
                     {
@@ -298,6 +298,24 @@ namespace ACE.Database
             _queue.Add(new Task(() =>
             {
                 var result = _wrappedDatabase.SaveCharacter(character, rwLock);
+                callback?.Invoke(result);
+            }));
+        }
+
+        public void GetCharacterTransfers(Action<List<CharacterTransfer>> callback)
+        {
+            _queue.Add(new Task(() =>
+            {
+                var result = _wrappedDatabase.GetCharacterTransfers();
+                callback?.Invoke(result);
+            }));
+        }
+
+        public void SaveCharacterTransfer(CharacterTransfer characterTransfer, ReaderWriterLockSlim rwLock, Action<bool> callback)
+        {
+            _queue.Add(new Task(() =>
+            {
+                var result = _wrappedDatabase.SaveCharacterTransfer(characterTransfer, rwLock);
                 callback?.Invoke(result);
             }));
         }

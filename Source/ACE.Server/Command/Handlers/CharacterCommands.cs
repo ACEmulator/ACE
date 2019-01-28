@@ -1,5 +1,4 @@
 using System;
-
 using ACE.Database;
 using ACE.Entity.Enum;
 using ACE.Server.Network;

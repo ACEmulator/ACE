@@ -168,6 +168,19 @@ namespace ACE.Server.Managers
             }
         }
 
+        public static Session FindSessionByAccountId(uint AccountId)
+        {
+            sessionLock.EnterUpgradeableReadLock();
+            try
+            {
+                return sessions.SingleOrDefault(s => s.AccountId == AccountId);
+            }
+            finally
+            {
+                sessionLock.ExitUpgradeableReadLock();
+            }
+        }
+
         public static Session FindOrCreateSession(IPEndPoint endPoint)
         {
             Session session;

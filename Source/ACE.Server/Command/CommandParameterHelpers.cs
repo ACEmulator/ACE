@@ -26,27 +26,41 @@ namespace ACE.Server.Command
             /// </summary>
             Invalid,
             /// <summary>
-            /// normal coordinates, example: 37.3s,67w
+            /// normal coordinates, example: 37.3s,67w<para/>
             /// output is of type ACE.Entity.Position
             /// </summary>
             Location,
             /// <summary>
-            /// a character name, example: the fat bastard
-            /// output is of type ACE.Server.WorldObjects.Player
+            /// a character name of an online player, example: the fat bastard<para/>
+            /// output is of type ACE.Server.WorldObjects.Player<para/>
+            /// only one of OnlinePlayerName or PlayerName parameter can be used for one command<para/>
+            /// must be the first parameter
             /// </summary>
-            Player,
+            OnlinePlayerName,
             /// <summary>
-            /// a number, example: 01231242
+            /// a character name, example: the fat bastard<para/>
+            /// output is of type string<para/>
+            /// only one of OnlinePlayerName or PlayerName parameter can be used for one command<para/>
+            /// must be the first parameter
+            /// </summary>
+            PlayerName,
+            /// <summary>
+            /// a url, example: http://someserver.net:4321/?get=blah <para/>
+            /// output is of type System.Uri
+            /// </summary>
+            Uri,
+            /// <summary>
+            /// a number, example: 01231242<para/>
             /// output is of type ulong: 1231242
             /// </summary>
             ULong,
             /// <summary>
-            /// a number, example: -01231242
+            /// a number, example: -01231242<para/>
             /// output is of type long: -1231242
             /// </summary>
             Long,
             /// <summary>
-            /// a number, example: 01231242
+            /// a number, example: 01231242<para/>
             /// output is of type long: 1231242
             /// </summary>
             PositiveLong
@@ -76,6 +90,8 @@ namespace ACE.Server.Command
             public Player AsPlayer { get { return (Player)Value; } }
             public ulong AsULong { get { return (ulong)Value; } }
             public long AsLong { get { return (long)Value; } }
+            public string AsString { get { return (string)Value; } }
+            public Uri AsUri { get { return (Uri)Value; } }
             /// <summary>
             /// The parameter either wasn't supplied or was invalid (doesn't parse, player doesn't exist, etc.)
             /// </summary>
@@ -174,8 +190,8 @@ namespace ACE.Server.Command
                                     }
                                 }
                                 break;
-                            case ACECommandParameterType.Player:
-                                if (i != 0) throw new Exception("Player name parameter must be the first parameter, since it can contain spaces.");
+                            case ACECommandParameterType.OnlinePlayerName:
+                                if (i != 0) throw new Exception("Player parameter must be the first parameter, since it can contain spaces.");
                                 var targetPlayer = PlayerManager.GetOnlinePlayer(parameterBlob);
                                 if (targetPlayer == null)
                                 {
@@ -186,6 +202,40 @@ namespace ACE.Server.Command
                                 {
                                     acp.Value = targetPlayer;
                                     acp.Defaulted = false;
+                                }
+                                break;
+                            case ACECommandParameterType.PlayerName:
+                                if (i != 0) throw new Exception("Player name parameter must be the first parameter, since it can contain spaces.");
+                                if (string.IsNullOrWhiteSpace(parameterBlob))
+                                {
+                                    return false;
+                                }
+                                else
+                                {
+                                    acp.Value = parameterBlob;
+                                    acp.Defaulted = false;
+                                }
+                                break;
+                            case ACECommandParameterType.Uri:
+                                var match5 = Regex.Match(parameterBlob, @"(https?:\/\/(www\.)?[-a-zA-Z0-9@:%._\+~#=]{2,256}\.[a-z]{2,6}\b([-a-zA-Z0-9@:%_\+.~#?&//=]*))$", RegexOptions.IgnoreCase);
+                                if (match5.Success)
+                                {
+                                    var strUri = match5.Groups[1].Value;
+                                    try
+                                    {
+                                        var url = new Uri(strUri);
+                                        acp.Value = url;
+                                        acp.Defaulted = false;
+                                        parameterBlob = (match5.Groups[1].Index == 0) ? string.Empty : parameterBlob.Substring(0, match5.Groups[1].Index).Trim(new char[] { ' ', ',' });
+                                    }
+                                    catch(Exception ex)
+                                    {
+                                        return false;
+                                    }
+                                }
+                                else
+                                {
+                                    return false;
                                 }
                                 break;
                         }
