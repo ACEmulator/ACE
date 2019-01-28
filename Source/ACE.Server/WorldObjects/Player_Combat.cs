@@ -104,7 +104,8 @@ namespace ACE.Server.WorldObjects
                 var pkError = CheckPKStatusVsTarget(this, targetPlayer, null);
                 if (pkError != null)
                 {
-                    Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(Session, (WeenieErrorWithString)pkError, target.Name));
+                    Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(Session, pkError[0], target.Name));
+                    targetPlayer.Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(targetPlayer.Session, pkError[1], Name));
                     return 0.0f;
                 }
             }

@@ -254,7 +254,12 @@ namespace ACE.Server.WorldObjects
             var pkError = CheckPKStatusVsTarget(player, targetPlayer, Spell);
             if (pkError != null)
             {
-                player.Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(player.Session, (WeenieErrorWithString)pkError, target.Name));
+                if (player != null)
+                    player.Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(player.Session, pkError[0], target.Name));
+
+                if (targetPlayer != null)
+                    targetPlayer.Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(targetPlayer.Session, pkError[1], ProjectileSource.Name));
+
                 return;
             }
 

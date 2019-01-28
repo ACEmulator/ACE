@@ -142,7 +142,7 @@ namespace ACE.Server.WorldObjects
         /// Returns TRUE if player should be allowed to cast the spell on target player
         /// Returns FALSE if player shouldn't be allowed to cast the spell on target player
         /// </returns>
-        protected WeenieErrorWithString? CheckPKStatusVsTarget(Player player, WorldObject target, Spell spell)
+        protected List<WeenieErrorWithString> CheckPKStatusVsTarget(Player player, WorldObject target, Spell spell)
         {
             if (player == null || target == null)
                 return null;
@@ -163,14 +163,14 @@ namespace ACE.Server.WorldObjects
             {
                 // Ensure that a non-PK cannot cast harmful spells on another player
                 if (player.PlayerKillerStatus == PlayerKillerStatus.NPK)
-                    return WeenieErrorWithString.YouFailToAffect_YouAreNotPK;
+                    return new List<WeenieErrorWithString>() { WeenieErrorWithString.YouFailToAffect_YouAreNotPK, WeenieErrorWithString._FailsToAffectYou_TheyAreNotPK };
 
                 if (targetPlayer.PlayerKillerStatus == PlayerKillerStatus.NPK)
-                    return WeenieErrorWithString.YouFailToAffect_TheyAreNotPK;
+                    return new List<WeenieErrorWithString>() { WeenieErrorWithString.YouFailToAffect_TheyAreNotPK, WeenieErrorWithString._FailsToAffectYou_YouAreNotPK };
 
                 // Ensure that a harmful spell isn't being cast on another player that doesn't have the same PK status
                 if (player.PlayerKillerStatus != targetPlayer.PlayerKillerStatus)
-                    return WeenieErrorWithString.YouFailToAffect_NotSamePKType;
+                    return new List<WeenieErrorWithString>() { WeenieErrorWithString.YouFailToAffect_NotSamePKType, WeenieErrorWithString._FailsToAffectYou_NotSamePKType };
             }
             return null;
         }
