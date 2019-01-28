@@ -413,6 +413,28 @@ namespace ACE.Entity
         }
 
         /// <summary>
+        /// Returns the squared 2D distance between 2 objects
+        /// </summary>
+        public float Distance2DSquared(Position p)
+        {
+            // originally this returned the offset instead of distance...
+            if (p.LandblockId == this.LandblockId)
+            {
+                var dx = this.PositionX - p.PositionX;
+                var dy = this.PositionY - p.PositionY;
+                return dx * dx + dy * dy;
+            }
+            //if (p.LandblockId.MapScope == MapScope.Outdoors && this.LandblockId.MapScope == MapScope.Outdoors)
+            else
+            {
+                // verify this is working correctly if one of these is indoors
+                var dx = (this.LandblockId.LandblockX - p.LandblockId.LandblockX) * 192 + this.PositionX - p.PositionX;
+                var dy = (this.LandblockId.LandblockY - p.LandblockId.LandblockY) * 192 + this.PositionY - p.PositionY;
+                return dx * dx + dy * dy;
+            }
+        }
+
+        /// <summary>
         /// Returns the 3D distance between 2 objects
         /// </summary>
         public float DistanceTo(Position p)

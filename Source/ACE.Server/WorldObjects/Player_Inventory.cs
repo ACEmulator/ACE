@@ -313,6 +313,11 @@ namespace ACE.Server.WorldObjects
             Everywhere          = 0xFF
         }
 
+        public WorldObject FindObject(uint objectGuid, SearchLocations searchLocations)
+        {
+            return FindObject(new ObjectGuid(objectGuid), searchLocations, out Container foundInContainer, out Container rootOwner, out bool wasEquipped);
+        }
+
         public WorldObject FindObject(uint objectGuid, SearchLocations searchLocations, out Container foundInContainer, out Container rootOwner, out bool wasEquipped)
         {
             return FindObject(new ObjectGuid(objectGuid), searchLocations, out foundInContainer, out rootOwner, out wasEquipped); // todo Fix this so it's not creating a new ObjectGuid

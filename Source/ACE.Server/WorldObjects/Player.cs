@@ -680,11 +680,17 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void HandleActionForceObjDescSend(uint itemGuid)
         {
-            WorldObject wo = GetInventoryItem(new ObjectGuid(itemGuid));
-            if (wo != null)
-                EnqueueBroadcast(new GameMessageObjDescEvent(wo));
-            else
-                log.Debug($"HandleActionForceObjDescSend() - couldn't find inventory item {itemGuid:X8}");
+            var wo = FindObject(itemGuid, SearchLocations.Everywhere);
+            if (wo == null)
+            {
+                wo = CurrentLandblock?.GetWieldedObject(itemGuid);
+                if (wo == null)
+                {
+                    log.Debug($"HandleActionForceObjDescSend() - couldn't find object {itemGuid:X8}");
+                    return;
+                }
+            }
+            EnqueueBroadcast(new GameMessageObjDescEvent(wo));
         }
 
 
