@@ -383,8 +383,8 @@ namespace ACE.Entity
             else
             {
                 // verify this is working correctly if one of these is indoors
-                var dx = (this.LandblockId.LandblockX - p.LandblockId.LandblockX) * 192 + this.PositionX - p.PositionX;
-                var dy = (this.LandblockId.LandblockY - p.LandblockId.LandblockY) * 192 + this.PositionY - p.PositionY;
+                var dx = Math.Abs(this.LandblockId.LandblockX - p.LandblockId.LandblockX) * 192 + Math.Abs(this.PositionX - p.PositionX);
+                var dy = Math.Abs(this.LandblockId.LandblockY - p.LandblockId.LandblockY) * 192 + Math.Abs(this.PositionY - p.PositionY);
                 var dz = this.PositionZ - p.PositionZ;
                 return dx * dx + dy * dy + dz * dz;
             }
@@ -406,8 +406,8 @@ namespace ACE.Entity
             else
             {
                 // verify this is working correctly if one of these is indoors
-                var dx = (this.LandblockId.LandblockX - p.LandblockId.LandblockX) * 192 + this.PositionX - p.PositionX;
-                var dy = (this.LandblockId.LandblockY - p.LandblockId.LandblockY) * 192 + this.PositionY - p.PositionY;
+                var dx = Math.Abs(this.LandblockId.LandblockX - p.LandblockId.LandblockX) * 192 + Math.Abs(this.PositionX - p.PositionX);
+                var dy = Math.Abs(this.LandblockId.LandblockY - p.LandblockId.LandblockY) * 192 + Math.Abs(this.PositionY - p.PositionY);
                 return (float)Math.Sqrt(dx * dx + dy * dy);
             }
         }
@@ -428,8 +428,8 @@ namespace ACE.Entity
             else
             {
                 // verify this is working correctly if one of these is indoors
-                var dx = (this.LandblockId.LandblockX - p.LandblockId.LandblockX) * 192 + this.PositionX - p.PositionX;
-                var dy = (this.LandblockId.LandblockY - p.LandblockId.LandblockY) * 192 + this.PositionY - p.PositionY;
+                var dx = Math.Abs(this.LandblockId.LandblockX - p.LandblockId.LandblockX) * 192 + Math.Abs(this.PositionX - p.PositionX);
+                var dy = Math.Abs(this.LandblockId.LandblockY - p.LandblockId.LandblockY) * 192 + Math.Abs(this.PositionY - p.PositionY);
                 return dx * dx + dy * dy;
             }
         }
@@ -451,8 +451,8 @@ namespace ACE.Entity
             else
             {
                 // verify this is working correctly if one of these is indoors
-                var dx = (this.LandblockId.LandblockX - p.LandblockId.LandblockX) * 192 + this.PositionX - p.PositionX;
-                var dy = (this.LandblockId.LandblockY - p.LandblockId.LandblockY) * 192 + this.PositionY - p.PositionY;
+                var dx = Math.Abs(this.LandblockId.LandblockX - p.LandblockId.LandblockX) * 192 + Math.Abs(this.PositionX - p.PositionX);
+                var dy = Math.Abs(this.LandblockId.LandblockY - p.LandblockId.LandblockY) * 192 + Math.Abs(this.PositionY - p.PositionY);
                 var dz = this.PositionZ - p.PositionZ;
 
                 return (float)Math.Sqrt(dx * dx + dy * dy + dz * dz);
