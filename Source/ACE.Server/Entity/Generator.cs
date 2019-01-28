@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
-using System.Numerics;
 using ACE.Database;
 using ACE.Database.Models.Shard;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
 using ACE.Server.Physics.Common;
 using ACE.Server.WorldObjects;
@@ -62,6 +62,11 @@ namespace ACE.Server.Entity
         public bool MaxObjectsSpawned { get => CurrentCreate >= MaxCreate; }
 
         /// <summary>
+        /// The delay for respawning objects
+        /// </summary>
+        public float Delay { get => Biota.Delay ?? _generator.GeneratorProfiles[0].Biota.Delay ?? 0.0f; }
+
+        /// <summary>
         /// The parent for this generator profile
         /// </summary>
         public WorldObject _generator;
@@ -115,21 +120,7 @@ namespace ACE.Server.Entity
                 return DateTime.UtcNow.AddSeconds(_generator.GeneratorInitialDelay);
             }
             else
-            {
-                // determine the delay for respawning
-                var delay = Biota.Delay ?? 0;
-                if (delay == 0)
-                    delay = _generator.GeneratorProfiles[0].Biota.Delay ?? 0;   // only for link generators?
-
-                // 11556 - Cultist Altar
-                if (_generator.RegenerationInterval == 0)
-                    delay = 0;
-
-                if (_generator is Chest) delay = 0.0f;
-
-                //Console.WriteLine($"QueueGenerator({_generator.Name}): RegenerationInterval: {_generator.RegenerationInterval} - Delay: {delay}");
-                return DateTime.UtcNow.AddSeconds(delay);
-            }
+                return DateTime.UtcNow;
         }
 
         /// <summary>
@@ -213,10 +204,9 @@ namespace ACE.Server.Entity
         {
             var objects = new List<WorldObject>();
 
-            if ((RegenLocationType & RegenLocationType.Treasure) != 0)
+            if (RegenLocationType.HasFlag(RegenLocationType.Treasure))
             {
                 objects = TreasureGenerator();
-                //Console.WriteLine($"{_generator.Name}.WhereCreate: {(RegenLocationType)Biota.WhereCreate}");
             }
             else
             {
@@ -229,80 +219,111 @@ namespace ACE.Server.Entity
                 objects.Add(wo);
             }
 
-            for (var i = 0; i < objects.Count; i++)
+            foreach (var obj in objects)
             {
-                var obj = objects[i];
+                //Console.WriteLine($"{_generator.Name}.Spawn({obj.Name})");
 
-                SetLocation(obj);
+                if (RegenLocationType.HasFlag(RegenLocationType.Specific))
+                    Spawn_Specific(obj);
 
-                if ((obj.Location == null || obj.Location.Landblock != _generator.Location.Landblock) && (RegenLocationType & RegenLocationType.Contain) == 0)
-                {
-                    var landblock = obj.Location != null ? obj.Location.Landblock.ToString("X4") : "null";
-                    //Console.WriteLine($"*** WARNING *** {_generator.Name} spawned {obj.Name} in landblock {landblock} from {_generator.Location.Landblock:X4} using {(RegenLocationType)Biota.WhereCreate}");
-                    //objects[i] = null;
-                    continue;
-                }
+                else if (RegenLocationType.HasFlag(RegenLocationType.Scatter))
+                    Spawn_Scatter(obj);
 
-                // if specific and outdoors, verify walkable slope
-                if ((RegenLocationType & RegenLocationType.Specific) != 0 && !obj.Location.Indoors && !obj.Location.IsWalkable())
-                {
-                    //Console.WriteLine($"*** WARNING *** {_generator.Name} spawned {obj.Name} @ {obj.Location.ToLOCString()} on unwalkable slope");
-                    continue;
-                }
+                else if (RegenLocationType.HasFlag(RegenLocationType.Contain))
+                    Spawn_Container(obj);
 
-                obj.EnterWorld();
+                else if (RegenLocationType.HasFlag(RegenLocationType.Shop))
+                    Spawn_Shop(obj);
+
+                else
+                    Spawn_Default(obj);
             }
-
-            //Console.WriteLine($"Generator({_generator.Name} - {_generator.Guid} @ {_generator.Location.Cell:X8}) spawned {wo.Name} - {(RegenLocationType)Biota.WhereCreate}");
             return objects;
         }
 
-        public void SetLocation(WorldObject obj)
+        /// <summary>
+        /// Spawns an object at a specific position
+        /// </summary>
+        public void Spawn_Specific(WorldObject obj)
         {
-            var regenLocationType = (RegenLocationType)Biota.WhereCreate;
+            // specific position
+            if ((Biota.ObjCellId ?? 0) > 0)
+                obj.Location = new ACE.Entity.Position(Biota.ObjCellId ?? 0, Biota.OriginX ?? 0, Biota.OriginY ?? 0, Biota.OriginZ ?? 0, Biota.AnglesX ?? 0, Biota.AnglesY ?? 0, Biota.AnglesZ ?? 0, Biota.AnglesW ?? 0);
 
-            if ((regenLocationType & RegenLocationType.Specific) != 0)
-            {
-                // spawns an object at a specific position
-                if ((Biota.ObjCellId ?? 0) > 0)  // specific location
-                    obj.Location = new ACE.Entity.Position(Biota.ObjCellId ?? 0, Biota.OriginX ?? 0, Biota.OriginY ?? 0, Biota.OriginZ ?? 0, Biota.AnglesX ?? 0, Biota.AnglesY ?? 0, Biota.AnglesZ ?? 0, Biota.AnglesW ?? 0);  // TODO: wrapper
-                else  // offset from generator location
-                    obj.Location = new ACE.Entity.Position(_generator.Location.Cell,
-                        _generator.Location.PositionX + Biota.OriginX ?? 0, _generator.Location.PositionY + Biota.OriginY ?? 0, _generator.Location.PositionZ + Biota.OriginZ ?? 0,
-                        Biota.AnglesX ?? 0, Biota.AnglesY ?? 0, Biota.AnglesZ ?? 0, Biota.AnglesW ?? 0);
-            }
-
-            else if ((regenLocationType & RegenLocationType.Scatter) != 0)
-            {
-                float genRadius = (float)(_generator.GetProperty(PropertyFloat.GeneratorRadius) ?? 0f);
-                obj.Location = new ACE.Entity.Position(_generator.Location);
-
-                // we are going to delay this scatter logic until the physics engine,
-                // where the remnants of this function are in the client (SetScatterPositionInternal)
-
-                // this is due to each randomized position being required to go through the full InitialPlacement process, to verify success
-                // if InitialPlacement fails, then we retry up to maxTries
-
-                obj.ScatterPos = new SetPosition(new Physics.Common.Position(obj.Location), SetPositionFlags.RandomScatter, genRadius);
-            }
-
-            else if ((regenLocationType & RegenLocationType.Contain) != 0)
-            {
-                // generator is a container, spawns in inventory
-
-                //Console.WriteLine($"{_generator.Name}.Spawn.Contain: adding {obj.Name} ({obj.Guid:X8})");
-                var container = _generator as Container;
-                if (container == null || !container.TryAddToInventory(obj))
-                {
-                    Console.WriteLine($"Generator({_generator.Name}) - failed to add {obj.Name} to container inventory");
-                    obj.Location = new ACE.Entity.Position(_generator.Location);
-                }
-            }
+            // offset from generator location
             else
+                obj.Location = new ACE.Entity.Position(_generator.Location.Cell, _generator.Location.PositionX + Biota.OriginX ?? 0, _generator.Location.PositionY + Biota.OriginY ?? 0, _generator.Location.PositionZ + Biota.OriginZ ?? 0, Biota.AnglesX ?? 0, Biota.AnglesY ?? 0, Biota.AnglesZ ?? 0, Biota.AnglesW ?? 0);
+
+            if (!VerifyLandblock(obj) || !VerifyWalkableSlope(obj)) return;
+
+            obj.EnterWorld();
+        }
+
+        public void Spawn_Scatter(WorldObject obj)
+        {
+            float genRadius = (float)(_generator.GetProperty(PropertyFloat.GeneratorRadius) ?? 0f);
+            obj.Location = new ACE.Entity.Position(_generator.Location);
+
+            // we are going to delay this scatter logic until the physics engine,
+            // where the remnants of this function are in the client (SetScatterPositionInternal)
+
+            // this is due to each randomized position being required to go through the full InitialPlacement process, to verify success
+            // if InitialPlacement fails, then we retry up to maxTries
+
+            obj.ScatterPos = new SetPosition(new Physics.Common.Position(obj.Location), SetPositionFlags.RandomScatter, genRadius);
+
+            obj.EnterWorld();
+        }
+
+        public void Spawn_Container(WorldObject obj)
+        {
+            var container = _generator as Container;
+
+            if (container == null || !container.TryAddToInventory(obj))
+                Console.WriteLine($"{_generator.Name}.Spawn_Container({obj.Name}) - failed to add to container inventory");
+        }
+
+        public void Spawn_Shop(WorldObject obj)
+        {
+            // spawn item in vendor shop inventory
+            var vendor = _generator as Vendor;
+
+            if (vendor == null)
             {
-                // default
-                obj.Location = new ACE.Entity.Position(_generator.Location);
+                Console.WriteLine($"{_generator.Name}.Spawn_Shop({obj.Name}) - generator is not a vendor type");
+                return;
             }
+            vendor.AddDefaultItem(obj);
+        }
+
+        public void Spawn_Default(WorldObject obj)
+        {
+            // default location handler?
+            //Console.WriteLine($"{_generator.Name}.Spawn_Default({obj.Name}): default handler for RegenLocationType {RegenLocationType}");
+
+            obj.Location = new ACE.Entity.Position(_generator.Location);
+
+            obj.EnterWorld();
+        }
+
+        public bool VerifyLandblock(WorldObject obj)
+        {
+            if (obj.Location == null || obj.Location.Landblock != _generator.Location.Landblock)
+            {
+                //Console.WriteLine($"{_generator.Name}.VerifyLandblock({obj.Name}) - spawn location is invalid landblock");
+                return false;
+            }
+            return true;
+        }
+
+        public bool VerifyWalkableSlope(WorldObject obj)
+        {
+            if (!obj.Location.Indoors && !obj.Location.IsWalkable())
+            {
+                //Console.WriteLine($"{_generator.Name}.VerifyWalkableSlope({obj.Name}) - spawn location is unwalkable slope");
+                return false;
+            }
+            return true;
         }
 
         /// <summary>
@@ -378,14 +399,26 @@ namespace ACE.Server.Entity
             if (Biota.WhenCreate != (uint)eventType)
                 return;
 
-            Spawned.TryGetValue(target.Full, out var item);
+            Spawned.TryGetValue(target.Full, out var obj);
 
-            if (item != null)
-            {
-                //Console.WriteLine("Found, removing and queueing...");
-                Spawned.Remove(target.Full);
-                Enqueue(1, false);
-            }
+            if (obj == null) return;
+
+            //Console.WriteLine($"{_generator.Name}.NotifyGenerator({target}, {eventType}) - RegenerationInterval: {_generator.RegenerationInterval} - Delay: {Biota.Delay} - Link Delay: {_generator.GeneratorProfiles[0].Biota.Delay}");
+            var delay = Delay;
+            if (_generator is Chest || _generator.RegenerationInterval == 0)
+                delay = 0;
+
+            var actionChain = new ActionChain();
+            actionChain.AddDelaySeconds(delay);
+            actionChain.AddAction(_generator, () => FreeSlot(obj));
+            actionChain.EnqueueChain();
+            //Enqueue(1, false);
+        }
+
+        public void FreeSlot(GeneratorRegistryNode node)
+        {
+            Spawned.Remove(node.WorldObject.Guid.Full);
+            _generator.CurrentCreate--;
         }
     }
 }
