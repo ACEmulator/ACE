@@ -411,7 +411,7 @@ namespace ACE.Server.WorldObjects
             var heritageMod = GetHeritageBonus(weapon) ? 1.05f : 1.0f;
 
             var damageRatingMod = AdditiveCombine(recklessnessMod, sneakAttackMod, heritageMod, GetRatingMod(EnchantmentManager.GetDamageRating()));
-            Console.WriteLine("Damage rating: " + ModToRating(damageRatingMod));
+            //Console.WriteLine("Damage rating: " + ModToRating(damageRatingMod));
 
             var damage = baseDamage * attributeMod * powerAccuracyMod * damageRatingMod;
 
