@@ -4,6 +4,8 @@ using System.Linq;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 
+using ACE.Common.Extensions;
+using ACE.Database;
 using ACE.Database.Models.Shard;
 using ACE.DatLoader;
 using ACE.Entity;
@@ -103,13 +105,13 @@ namespace ACE.Server.Managers
                 case EmoteType.AwardLevelProportionalSkillXP:
 
                     if (player != null)
-                        player.GrantLevelProportionalSkillXP((Skill)emote.Stat, emote.Percent ?? 0, (ulong)emote.Max);
+                        player.GrantLevelProportionalSkillXP((Skill)emote.Stat, emote.Percent ?? 0, (ulong)emote.Max64);
                     break;
 
                 case EmoteType.AwardLevelProportionalXP:
 
                     if (player != null)
-                        player.GrantLevelProportionalXp(emote.Percent ?? 0, (ulong)emote.Max);
+                        player.GrantLevelProportionalXp(emote.Percent ?? 0, (ulong)emote.Max64);
                     break;
 
                 case EmoteType.AwardLuminance:
@@ -239,7 +241,18 @@ namespace ACE.Server.Managers
                     text = Replace(emote.Message, WorldObject, targetObject);
 
                     if (player != null)
+                    {
+                        if ((emote.Message).EndsWith("@%tqt", StringComparison.Ordinal))
+                        {
+                            var questName = QuestManager.GetQuestName(emote.Message);
+                            var remainStr = player.QuestManager.GetNextSolveTime(questName).GetFriendlyString();
+                            text = $"{questName}: {remainStr}";
+                        }
+                        else
+                            text = Replace(emote.Message, WorldObject, targetObject);
+
                         player.Session.Network.EnqueueSend(new GameMessageSystemChat(text, ChatMessageType.Broadcast));     // CreatureMessage / HearDirectSpeech?
+                    }
                     break;
 
                 case EmoteType.EraseMyQuest:
@@ -892,6 +905,11 @@ namespace ACE.Server.Managers
                 case EmoteType.SetQuestBitsOn:
                     break;
                 case EmoteType.SetQuestCompletions:
+                    if (player != null)
+                    {
+                        if (emote.Amount != null)
+                            player.QuestManager.SetQuestCompletions(emote.Message, (int)emote.Amount);
+                    }
                     break;
                 case EmoteType.SetSanctuaryPosition:
 
@@ -917,7 +935,33 @@ namespace ACE.Server.Managers
 
                     // work needs to be done here
                     if (player != null)
-                        player.QuestManager.Stamp(emote.Message);
+                    {
+                        if ((emote.Message).EndsWith("@#kt", StringComparison.Ordinal))
+                        {
+                            var hasQuest = player.QuestManager.HasQuest(emote.Message);
+                            if (hasQuest)
+                            {
+                                player.QuestManager.Stamp(emote.Message);
+
+                                var questName = QuestManager.GetQuestName(emote.Message);
+                                var quest = DatabaseManager.World.GetCachedQuest(questName);
+
+                                var playerQuest = player.QuestManager.Quests.FirstOrDefault(q => q.QuestName.Equals(questName, StringComparison.OrdinalIgnoreCase));
+
+                                if (playerQuest != null)
+                                {
+                                    var isMaxSolves = player.QuestManager.IsMaxSolves(questName);
+                                    if (isMaxSolves)
+                                        text = $"You have killed {quest.MaxSolves} {WorldObject.Name}s. Your task is complete!";
+                                    else
+                                        text = $"You have killed {playerQuest.NumTimesCompleted} {WorldObject.Name}s. You must kill {quest.MaxSolves} to complete your task!";
+                                    player.Session.Network.EnqueueSend(new GameMessageSystemChat(text, ChatMessageType.Broadcast));
+                                }
+                            }
+                        }
+                        else
+                            player.QuestManager.Stamp(emote.Message);
+                    }
                     break;
 
                 case EmoteType.StartBarber:

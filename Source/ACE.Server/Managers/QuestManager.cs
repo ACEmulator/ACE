@@ -109,11 +109,48 @@ namespace ACE.Server.Managers
         }
 
         /// <summary>
+        /// Initialize a quest completion with the provided number to the player's registry
+        /// </summary>
+        public void SetQuestCompletions(string questFormat, int questCompletions = 0)
+        {
+            var questName = GetQuestName(questFormat);
+
+            var existing = Quests.FirstOrDefault(q => q.QuestName.Equals(questName, StringComparison.OrdinalIgnoreCase));
+
+            if (existing == null)
+            {
+                // add new quest entry
+                var info = new CharacterPropertiesQuestRegistry
+                {
+                    QuestName = questName,
+                    CharacterId = Player.Guid.Full,
+                    LastTimeCompleted = (uint)Time.GetUnixTime(),
+                    NumTimesCompleted = questCompletions   // initialize the quest to the given completions
+                };
+                if (Debug) Console.WriteLine($"{Player.Name}.QuestManager.Update({questFormat}): initialized quest to {existing.NumTimesCompleted}");
+                Quests.Add(info);
+            }
+            else
+            {
+                // update existing quest
+                existing.LastTimeCompleted = (uint)Time.GetUnixTime();
+                existing.NumTimesCompleted = questCompletions;
+                if (Debug) Console.WriteLine($"{Player.Name}.QuestManager.Update({questFormat}): initialized quest to {existing.NumTimesCompleted}");
+            }
+        }
+
+        /// <summary>
         /// Returns TRUE if player can solve this quest now
         /// </summary>
         public bool CanSolve(string questFormat)
         {
             var questName = GetQuestName(questFormat);
+
+            // Always return false for Kill Task count quests,
+            // as their emote logic is backwards from standard quests, and
+            // they should always be solvable, once flagged with main kill task quest
+            if (questName.EndsWith("count", StringComparison.Ordinal))
+                return false;
 
             // verify max solves / quest timer
             var nextSolveTime = GetNextSolveTime(questName);
