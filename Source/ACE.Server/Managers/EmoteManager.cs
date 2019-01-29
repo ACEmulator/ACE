@@ -907,10 +907,8 @@ namespace ACE.Server.Managers
                 case EmoteType.SetQuestCompletions:
                     if (player != null)
                     {
-                        var questName = QuestManager.GetQuestName(emote.Message);
-
                         if (emote.Amount != null)
-                            player.QuestManager.SetQuestCompletions(questName, (int)emote.Amount);
+                            player.QuestManager.SetQuestCompletions(emote.Message, (int)emote.Amount);
                     }
                     break;
                 case EmoteType.SetSanctuaryPosition:

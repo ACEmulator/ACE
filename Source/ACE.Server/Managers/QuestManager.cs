@@ -111,9 +111,9 @@ namespace ACE.Server.Managers
         /// <summary>
         /// Initialize a quest completion with the provided number to the player's registry
         /// </summary>
-        public void SetQuestCompletions(string quest, int questCompletions = 0)
+        public void SetQuestCompletions(string questFormat, int questCompletions = 0)
         {
-            var questName = GetQuestName(quest);
+            var questName = GetQuestName(questFormat);
 
             var existing = Quests.FirstOrDefault(q => q.QuestName.Equals(questName, StringComparison.OrdinalIgnoreCase));
 
@@ -127,7 +127,7 @@ namespace ACE.Server.Managers
                     LastTimeCompleted = (uint)Time.GetUnixTime(),
                     NumTimesCompleted = questCompletions   // initialize the quest to the given completions
                 };
-                if (Debug) Console.WriteLine($"{Player.Name}.QuestManager.Update({quest}): added quest");
+                if (Debug) Console.WriteLine($"{Player.Name}.QuestManager.Update({questFormat}): initialized quest to {existing.NumTimesCompleted}");
                 Quests.Add(info);
             }
             else
@@ -135,7 +135,7 @@ namespace ACE.Server.Managers
                 // update existing quest
                 existing.LastTimeCompleted = (uint)Time.GetUnixTime();
                 existing.NumTimesCompleted = questCompletions;
-                if (Debug) Console.WriteLine($"{Player.Name}.QuestManager.Update({quest}): updated quest ({existing.NumTimesCompleted})");
+                if (Debug) Console.WriteLine($"{Player.Name}.QuestManager.Update({questFormat}): initialized quest to {existing.NumTimesCompleted}");
             }
         }
 
