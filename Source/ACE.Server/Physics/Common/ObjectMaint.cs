@@ -123,6 +123,11 @@ namespace ACE.Server.Physics.Common
             return newObjs;
         }
 
+        public static bool InitialClamp = true;
+
+        public static float InitialClamp_Dist = 112.5f;
+        public static float InitialClamp_DistSq = InitialClamp_Dist * InitialClamp_Dist;
+
         /// <summary>
         /// Adds an object to the list of visible objects
         /// </summary>
@@ -130,6 +135,13 @@ namespace ACE.Server.Physics.Common
         {
             if (!VisibleObjectTable.ContainsKey(obj.ID))
             {
+                if (InitialClamp && !ObjectTable.ContainsKey(obj.ID))
+                {
+                    var distSq = PhysicsObj.WeenieObj.WorldObject.Location.Distance2DSquared(obj.WeenieObj.WorldObject.Location);
+                    if (distSq > InitialClamp_DistSq)
+                        return false;
+                }
+
                 VisibleObjectTable.Add(obj.ID, obj);
                 return true;
             }
@@ -141,12 +153,16 @@ namespace ACE.Server.Physics.Common
         /// </summary>
         public List<PhysicsObj> AddVisibleObjects(List<PhysicsObj> objs)
         {
-            foreach (var obj in objs)
-                AddVisibleObject(obj);
+            var visibleAdded = new List<PhysicsObj>();
 
+            foreach (var obj in objs)
+            {
+                if (AddVisibleObject(obj))
+                    visibleAdded.Add(obj);
+            }
             RemoveObjectsToBeDestroyed(objs);
 
-            return AddObjects(objs);
+            return AddObjects(visibleAdded);
         }
 
         /// <summary>
@@ -247,6 +263,20 @@ namespace ACE.Server.Physics.Common
                 }
             }
             return cells;
+        }
+
+        public List<PhysicsObj> GetVisibleObjectsDist(ObjCell cell)
+        {
+            var visibleObjs = GetVisibleObjects(cell);
+
+            var dist = new List<PhysicsObj>();
+            foreach (var obj in visibleObjs)
+            {
+                var distSq = PhysicsObj.WeenieObj.WorldObject.Location.Distance2DSquared(obj.WeenieObj.WorldObject.Location);
+                if (distSq <= InitialClamp_DistSq)
+                    dist.Add(obj);
+            }
+            return dist;
         }
 
         /// <summary>
@@ -447,7 +477,7 @@ namespace ACE.Server.Physics.Common
         {
             if (PhysicsObj.DatObject) return;
 
-            var visiblePlayers = GetVisibleObjects(PhysicsObj.CurCell).Where(o => o.IsPlayer).ToList();
+            var visiblePlayers = GetVisibleObjectsDist(PhysicsObj.CurCell).Where(o => o.IsPlayer).ToList();
             AddVoyeurs(visiblePlayers);
         }
 
