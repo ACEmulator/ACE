@@ -1,5 +1,15 @@
 # ACEmulator Change Log
 
+### 2019-01-29
+[fartwhif]
+* Added ACE.WebApi project for use with websites and character transfers
+  - Allows a web client to obtain the current status of the server, and admins to obtain more detailed information
+  - Allows list/import/migrate/backup characters of accounts for the underlying ACEmulator server
+  - Basic authentication for some resources, some require admin accesslevel, some don't, anonymous for others.
+  - Uses the underlying ACEmulator server for authentication and authorization.
+  - Uses HTTPS over Baseport + 2, 9002 for default configurations, generates a self-signed certificate upon first use with the current world name and WebApi enabled.
+  - Disabled by default, see README.md in the ACE.WebServer project folder for enable and run instructions.
+
 ### 2019-01-16
 [Ripley]
 * Remove duplicated data from the Spell table in the World Database

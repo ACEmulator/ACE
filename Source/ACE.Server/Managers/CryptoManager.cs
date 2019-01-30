@@ -12,8 +12,9 @@ namespace ACE.Server.Managers
     /// ServerManager handles cryptography properly.
     /// </summary>
     /// <remarks>
-    ///   Possibly useful for:
-    ///     1. Character transfers
+    ///   Dependencies:
+    ///     1. Character transfer
+    ///     2. WebApi HTTPS
     ///   Known issue:
     ///     1. Uses only self-signed certificates.
     /// </remarks>
