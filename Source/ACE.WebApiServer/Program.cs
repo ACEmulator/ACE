@@ -1,3 +1,4 @@
+using ACE.Common;
 using ACE.WebApiServer.Managers;
 using log4net;
 using log4net.Config;
@@ -19,6 +20,12 @@ namespace ACE.WebApiServer
         public static void Start()
         {
             Server.Program.Start();
+
+            if (!ConfigManager.Config.WebApi.Enabled)
+            {
+                log.Fatal("WebApi is disabled in configuration.  Exiting WebApi.");
+                return;
+            }
 
             AppDomain.CurrentDomain.ProcessExit += new EventHandler(OnProcessExit);
 
