@@ -20,6 +20,7 @@ using ACE.Server.Managers;
 using ACE.Server.Network;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.WorldObjects;
+using ACE.Common;
 
 namespace ACE.Server.Command.Handlers
 {
@@ -1915,6 +1916,10 @@ namespace ACE.Server.Command.Handlers
         [CommandHandler("thumbprint", AccessLevel.Admin, CommandHandlerFlag.None, 0, "Reveals this server's certificate thumbprint.")]
         public static void HandleCert(Session session, params string[] parameters)
         {
+            if (!ConfigManager.Config.WebApi.Enabled)
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat("WebApi is disabled.  Thumbprint unavailable.", ChatMessageType.Broadcast));
+            }
             string print = $"Server thumbprint: {CryptoManager.Thumbprint}";
             if (session != null)
             {

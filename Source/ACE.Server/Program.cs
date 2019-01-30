@@ -76,8 +76,11 @@ namespace ACE.Server
             log.Info("Initializing ServerManager...");
             ServerManager.Initialize();
 
-            log.Info("Initializing CryptoManager...");
-            CryptoManager.Initialize();
+            if (ConfigManager.Config.WebApi.Enabled)
+            {
+                log.Info("Initializing CryptoManager...");
+                CryptoManager.Initialize();
+            }
 
             log.Info("Initializing DatManager...");
             DatManager.Initialize(ConfigManager.Config.Server.DatFilesDirectory, true);

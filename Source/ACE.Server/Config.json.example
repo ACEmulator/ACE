@@ -55,6 +55,9 @@
         }
     ]
   },
+  "WebApi": {
+    "Enabled": false
+  },
   "Transfer": {
     "AllowBackup": true,
     "AllowImport": false,
