@@ -1,5 +1,13 @@
 # ACEmulator Change Log
 
+### 2019-01-22
+[dgatewood]
+* Separated out magical, non magical, and mundane items from loot generation.
+* Corrected some quest items that were appearing in random loot.
+* Corrected Spells ID's in spell tables.
+* Updated chests so that it would cast their spell if they have a spell DID.
+* Fixed issue with out of bounds error in loot generation.
+
 ### 2019-01-16
 [Ripley]
 * Remove duplicated data from the Spell table in the World Database
