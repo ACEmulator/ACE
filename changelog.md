@@ -1,5 +1,15 @@
 # ACEmulator Change Log
 
+### 2019-01-29
+[Jyrus]
+* Updated EmoteManager to support Kill Task type quests
+* Modified EmoteType.AwardLevelProportionalSkillXP and EmoteType.AwardLevelProportionalXP to use BiotaPropertiesEmoteAction.Max64, instead of BiotaPropertiesEmoteAction.Max
+   
+### 2019-01-22
+[Jyrus]
+* Completed moving UseTimestamp and ResetTimestamp to common locations, as they are used by multiple objects/Fixes new/hidden compiler warning
+* Fixed null spell._spellBase issue of sending extra UseDone message and change this check to use another, less game intrusive message for notification of bad spellId being sent to the server
+
 ### 2019-01-16
 [Ripley]
 * Remove duplicated data from the Spell table in the World Database
