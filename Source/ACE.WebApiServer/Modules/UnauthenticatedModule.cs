@@ -1,13 +1,12 @@
 using ACE.Common;
 using ACE.Server.Command.Handlers;
+using ACE.Server.Entity;
 using ACE.Server.Managers;
 using ACE.Server.Network;
-using ACE.Server.WorldObjects;
 using ACE.WebApiServer.Model;
 using ACE.WebApiServer.Model.Character.Migration;
 using Nancy;
 using Nancy.ModelBinding;
-using System.Collections.Generic;
 
 namespace ACE.WebApiServer.Modules
 {
@@ -95,6 +94,7 @@ namespace ACE.WebApiServer.Modules
                         Offline = PlayerManager.GetOfflineCount()
                     },
                     Welcome = ConfigManager.Config.Server.Welcome,
+                    Uptime = Timers.RunningTime,
                     WorldName = ConfigManager.Config.Server.WorldName,
                     Transfers = new TransferConfigResponseModel()
                     {

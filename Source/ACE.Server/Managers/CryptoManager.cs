@@ -12,11 +12,11 @@ namespace ACE.Server.Managers
     /// ServerManager handles cryptography properly.
     /// </summary>
     /// <remarks>
-    ///   Dependencies:
-    ///     1. Character transfer
-    ///     2. WebApi HTTPS
+    ///   Subordinates:
+    ///     1. Transfer Manager
+    ///     2. Web Api
     ///   Known issue:
-    ///     1. Uses only self-signed certificates.
+    ///     1. self-signed certificates for convenience
     /// </remarks>
     public static class CryptoManager
     {
@@ -25,22 +25,22 @@ namespace ACE.Server.Managers
         /// <summary>
         /// The thumbprint of the certified public key
         /// </summary>
-        public static string Thumbprint => Certificate.Thumbprint;
-        public static X509Certificate2 Certificate { get; private set; } = null;
-        private const string CertFileName = "server.pfx";
+        public static string Thumbprint => CertificateTransferManager.Thumbprint;
+        public static X509Certificate2 CertificateWebApi { get; private set; } = null;
+        private static X509Certificate2 CertificateTransferManager { get; set; } = null;
+        private const string CertFileNameWebApi = "webapi.pfx";
+        private const string CertFileNameCharTransferSigning = "transfer.pfx";
+        private const string CNWebApi = "ACEmulator WebApi";
+        private const string CNCharTransfer = "ACEmulator Transfer Manager";
 
         public static void Initialize()
         {
-            string CertFile = Path.Combine(ServerManager.CertificatePath, CertFileName);
-            if (!File.Exists(CertFile))
-            {
-                X509Certificate2 newCert = BuildSelfSignedServerCertificate("ACEmulator");
-                File.WriteAllBytes(CertFile, newCert.Export(X509ContentType.Pkcs12));
-                log.Info($"New certificate generated and saved to {CertFile}");
-                newCert.Dispose();
-            }
-            Certificate = new X509Certificate2(CertFile);
-            log.Info($"Server certificate thumbprint: {Certificate.Thumbprint}");
+            EnsureCert(CertFileNameWebApi, CNWebApi, 3650);
+            EnsureCert(CertFileNameCharTransferSigning, CNCharTransfer, 3650);
+
+            CertificateWebApi = new X509Certificate2(CertFilePathWebApi);
+            CertificateTransferManager = new X509Certificate2(CertFilePathCharTransferSigning);
+            log.Info($"Server certificate thumbprint: {CertificateTransferManager.Thumbprint}");
 
             int trustedCount = ConfigManager.Config.Transfer.AllowMigrationFrom.Count;
             string plural = (trustedCount > 1 || trustedCount == 0) ? "s" : "";
@@ -51,6 +51,19 @@ namespace ACE.Server.Managers
                 log.Debug($"Trusted server certificate thumbprint: {trusted}");
             }
         }
+        private static string CertFilePathWebApi => Path.Combine(ServerManager.CertificatePath, CertFileNameWebApi);
+        private static string CertFilePathCharTransferSigning => Path.Combine(ServerManager.CertificatePath, CertFileNameCharTransferSigning);
+        public static void EnsureCert(string certFileName, string certCN, int daysUntilExpire)
+        {
+            string CertFile = Path.Combine(ServerManager.CertificatePath, certFileName);
+            if (!File.Exists(CertFile))
+            {
+                X509Certificate2 newCert = BuildSelfSignedServerCertificate(certCN, daysUntilExpire);
+                File.WriteAllBytes(CertFile, newCert.Export(X509ContentType.Pkcs12));
+                log.Info($"{certCN} certificate generated and saved to {CertFile}");
+                newCert.Dispose();
+            }
+        }
 
         /// <summary>
         /// Generate a new 2048 bit RSA keypair and self sign the public key with the private key
@@ -58,7 +71,7 @@ namespace ACE.Server.Managers
         /// </summary>
         /// <param name="CommonName"></param>
         /// <returns></returns>
-        private static X509Certificate2 BuildSelfSignedServerCertificate(string CommonName)
+        private static X509Certificate2 BuildSelfSignedServerCertificate(string CommonName, int daysUntilExpire)
         {
             SubjectAlternativeNameBuilder sanBuilder = new SubjectAlternativeNameBuilder();
             sanBuilder.AddIpAddress(IPAddress.Loopback);
@@ -74,7 +87,7 @@ namespace ACE.Server.Managers
                    new X509EnhancedKeyUsageExtension(
                        new OidCollection { new Oid("1.3.6.1.5.5.7.3.1") }, false));
                 request.CertificateExtensions.Add(sanBuilder.Build());
-                X509Certificate2 certificate = request.CreateSelfSigned(new DateTimeOffset(DateTime.UtcNow.AddDays(-1)), new DateTimeOffset(DateTime.UtcNow.AddDays(3650)));
+                X509Certificate2 certificate = request.CreateSelfSigned(new DateTimeOffset(DateTime.UtcNow.AddDays(-1)), new DateTimeOffset(DateTime.UtcNow.AddDays(daysUntilExpire)));
                 certificate.FriendlyName = CommonName;
                 return new X509Certificate2(certificate.Export(X509ContentType.Pfx, "WeNeedASaf3rPassword"), "WeNeedASaf3rPassword", X509KeyStorageFlags.MachineKeySet | X509KeyStorageFlags.Exportable);
             }
@@ -86,7 +99,7 @@ namespace ACE.Server.Managers
         /// <param name="filePath"></param>
         public static void ExportCert(string filePath)
         {
-            File.WriteAllBytes(filePath, Certificate.Export(X509ContentType.Cert));
+            File.WriteAllBytes(filePath, CertificateTransferManager.Export(X509ContentType.Cert));
         }
 
         /// <summary>
@@ -96,7 +109,7 @@ namespace ACE.Server.Managers
         /// <param name="filePath"></param>
         public static void SignFile(string filePath)
         {
-            RSA csp = Certificate.GetRSAPrivateKey();
+            RSA csp = CertificateTransferManager.GetRSAPrivateKey();
             string sigPath = Path.Combine(Path.GetDirectoryName(filePath), Path.GetFileNameWithoutExtension(filePath) + ".signature");
             using (FileStream fs = File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))
             {

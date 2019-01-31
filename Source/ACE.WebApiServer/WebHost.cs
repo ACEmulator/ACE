@@ -32,7 +32,7 @@ namespace ACE.WebApiServer
                     {
                         options.Listen(listenAt, port, listenOptions =>
                         {
-                            listenOptions.UseHttps(CryptoManager.Certificate);
+                            listenOptions.UseHttps(CryptoManager.CertificateWebApi);
                         });
                     })
                     .UseStartup<KestrelStartup>()

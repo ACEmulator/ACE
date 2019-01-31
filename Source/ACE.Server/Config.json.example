@@ -56,7 +56,9 @@
     ]
   },
   "WebApi": {
-    "Enabled": false
+    "Enabled": false,
+    "Host": "0.0.0.0",
+    "Port": 9002
   },
   "Transfer": {
     "AllowBackup": true,

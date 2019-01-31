@@ -13,7 +13,7 @@ If a resource is marked `RequiresAny: [Admin,Advocate,Developer,Envoy,Player,Sen
 
 **Web API**<br>
 [documentation](https://documenter.getpostman.com/view/6422801/RznLHGgq)<br>
-The Web API server listens at the base ACE port + 2, TCP, TLS, HTTPS, JSON, REST, depends on CryptoManager within ACE.Server project that Generates and saves a self-signed certificate for general purposes, when it can't find one in `C:\Users\<user>\AppData\Roaming\ACEmulator_<WorldName>\Certificates` on Windows or `/home/<user>/.config/ACEmulator_<WorldName>/Certificates` on Linux.  Self-Hosting using NancyFX/OWIN/Kestrel in its own project that depends on and wraps around ACE.Server.  WebSockets is a future possibility.  To run ACE with web API capability start the batch file: `\Source\ACE.Server.WebApi\bin\x64\Debug\netcoreapp2.1\start_server+webapi.bat`
+The Web API server listens at the base ACE port + 2, TCP, TLS, HTTPS, JSON, REST, depends on CryptoManager within ACE.Server project that Generates and saves self-signed certificates when it can't find them.  One for WebApi, and one for signing character transfers, in `C:\Users\<user>\AppData\Roaming\ACEmulator_<WorldName>\Certificates` on Windows or `/home/<user>/.config/ACEmulator_<WorldName>/Certificates` on Linux.  Place or replace webapi.pfx with a "valid" web server certificate if needed.  Self-Hosting using NancyFX/OWIN/Kestrel in its own project that depends on and wraps around ACE.Server.  WebSockets is a future possibility.  To run ACE with web API capability start the batch file: `\Source\ACE.Server.WebApi\bin\x64\Debug\netcoreapp2.1\start_server+webapi.bat`
 
 **To enable and run ACEmulator with WebAPI:**<br>
 1) Change the applicable setting to true in the configuration file, it should look like this after:
