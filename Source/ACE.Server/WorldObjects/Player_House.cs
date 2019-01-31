@@ -56,6 +56,12 @@ namespace ACE.Server.WorldObjects
         {
             Console.WriteLine($"\n{Name}.HandleActionAbandonHouse()");
 
+            if (House == null)
+            {
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouMustOwnHouseToUseCommand));
+                return;
+            }
+
             var house = GetHouse();
             if (house != null)
             {
@@ -373,6 +379,11 @@ namespace ACE.Server.WorldObjects
         public void HandleActionAddGuest(string guestName)
         {
             //Console.WriteLine($"{Name}.HandleActionAddGuest({guestName})");
+            if (House == null)
+            {
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouMustOwnHouseToUseCommand));
+                return;
+            }
 
             var guest = PlayerManager.FindByName(guestName, out bool isOnline);
 
@@ -415,6 +426,11 @@ namespace ACE.Server.WorldObjects
         public void HandleActionRemoveGuest(string guestName)
         {
             //Console.WriteLine($"{Name}.HandleActionRemoveGuest({guestName})");
+            if (House == null)
+            {
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouMustOwnHouseToUseCommand));
+                return;
+            }
 
             var guest = PlayerManager.FindByName(guestName, out bool isOnline);
 
@@ -456,6 +472,11 @@ namespace ACE.Server.WorldObjects
         public void HandleActionRemoveAllGuests()
         {
             //Console.WriteLine($"{Name}.HandleActionRemoveAllGuests()");
+            if (House == null)
+            {
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouMustOwnHouseToUseCommand));
+                return;
+            }
 
             if (Guests.Count == 0)
             {
@@ -473,6 +494,11 @@ namespace ACE.Server.WorldObjects
         public void HandleActionGuestList()
         {
             //Console.WriteLine($"{Name}.HandleActionGuestList()");
+            if (House == null)
+            {
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouMustOwnHouseToUseCommand));
+                return;
+            }
 
             if (Guests.Count == 0)
             {
@@ -499,6 +525,11 @@ namespace ACE.Server.WorldObjects
         public void HandleActionSetOpenStatus(bool openStatus)
         {
             //Console.WriteLine($"{Name}.HandleActionSetOpenStatus({openStatus})");
+            if (House == null)
+            {
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouMustOwnHouseToUseCommand));
+                return;
+            }
 
             if (openStatus == House.OpenStatus)
             {
@@ -529,6 +560,11 @@ namespace ACE.Server.WorldObjects
         public void HandleActionSetHooksVisible(bool visible)
         {
             //Console.WriteLine($"{Name}.HandleActionSetHooksVisible({visible})");
+            if (House == null)
+            {
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouMustOwnHouseToUseCommand));
+                return;
+            }
 
             var visibleStr = visible ? "visible" : "invisible";
             Session.Network.EnqueueSend(new GameMessageSystemChat($"Your hooks are set to {visibleStr}.", ChatMessageType.Broadcast));
@@ -569,6 +605,11 @@ namespace ACE.Server.WorldObjects
         public void HandleActionModifyStorage(string guestName, bool hasPermission)
         {
             //Console.WriteLine($"{Name}.HandleActionModifyStorage({guestName}, {hasPermission})");
+            if (House == null)
+            {
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouMustOwnHouseToUseCommand));
+                return;
+            }
 
             var storage = PlayerManager.FindByName(guestName, out bool isOnline);
 
@@ -643,6 +684,11 @@ namespace ACE.Server.WorldObjects
         public void HandleActionAllStorage()
         {
             //Console.WriteLine($"{Name}.HandleActionAllStorage()");
+            if (House == null)
+            {
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouMustOwnHouseToUseCommand));
+                return;
+            }
 
             if (Guests.Count == 0)
             {
@@ -668,6 +714,11 @@ namespace ACE.Server.WorldObjects
         public void HandleActionRemoveAllStorage()
         {
             //Console.WriteLine($"{Name}.HandleActionRemoveAllStorage()");
+            if (House == null)
+            {
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouMustOwnHouseToUseCommand));
+                return;
+            }
 
             if (Guests.Count == 0)
             {
@@ -693,6 +744,11 @@ namespace ACE.Server.WorldObjects
         public void HandleActionBoot(string playerName)
         {
             //Console.WriteLine($"{Name}.HandleActionBoot({playerName})");
+            if (House == null)
+            {
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouMustOwnHouseToUseCommand));
+                return;
+            }
 
             var player = PlayerManager.GetOnlinePlayer(playerName);
 
@@ -720,6 +776,11 @@ namespace ACE.Server.WorldObjects
         public void HandleActionBootAll(bool guests = true)
         {
             //Console.WriteLine($"{Name}.HandleActionBootAll()");
+            if (House == null)
+            {
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouMustOwnHouseToUseCommand));
+                return;
+            }
 
             // since it can be an open house, the guest list wouldn't be enough here?
             var players = PlayerManager.GetAllOnline();
@@ -821,6 +882,13 @@ namespace ACE.Server.WorldObjects
 
         public void HandleActionModifyAllegianceGuestPermission(bool add)
         {
+            //Console.WriteLine($"{Name}.HandleActionModifyAllegianceGuestPermission({add})");
+            if (House == null)
+            {
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouMustOwnHouseToUseCommand));
+                return;
+            }
+
             // check if player is in an allegiance
             if (Allegiance == null)
             {
@@ -873,6 +941,13 @@ namespace ACE.Server.WorldObjects
 
         public void HandleActionModifyAllegianceStoragePermission(bool add)
         {
+            //Console.WriteLine($"{Name}.HandleActionModifyAllegianceStoragePermission({add})");
+            if (House == null)
+            {
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouMustOwnHouseToUseCommand));
+                return;
+            }
+
             // check if player is in an allegiance
             if (Allegiance == null)
             {

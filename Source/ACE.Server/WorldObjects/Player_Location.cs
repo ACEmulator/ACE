@@ -43,7 +43,7 @@ namespace ACE.Server.WorldObjects
 
         public void HandleActionTeleToHouse()
         {
-            if (HouseInstance == null)
+            if (House == null)
             {
                 Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouMustOwnHouseToUseCommand));
                 return;
