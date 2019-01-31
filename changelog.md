@@ -1,14 +1,224 @@
 # ACEmulator Change Log
 
+### 2019-01-31
+[gmriggs]
+* Adding remaining Allegiance features:
+  - TeleToMansion
+  - Allegiance chat channels
+  - Allegiance mansion / villa permissions
+  - Bindstones
+  - Allegiance names
+  - Allegiance officers / titles
+  - Allegiance message of the day
+  
+### 2019-01-30
+[gmriggs]
+* Fixed a bug where many players were crashing around Holtburg / Town Network
+
+### 2019-01-29
+[Jyrus]
+* Updated EmoteManager to support Kill Task type quests
+* Modified EmoteType.AwardLevelProportionalSkillXP and EmoteType.AwardLevelProportionalXP to use BiotaPropertiesEmoteAction.Max64, instead of BiotaPropertiesEmoteAction.Max
+
+### 2019-01-28
+[someodtech]
+* Added all of the Epic/Legendary cantrip spells
+
+### 2019-01-27
+[gmriggs]
+* Adding messages for unaffected PK targets
+* Adding shop generators for vendor
+* Improved enchantment layering, and refreshing for item spells
+* Improved cooldown interface
+* Adding heritage damage ratings
+
+[Jyrus]
+* Added TOD spells: Augmented Understanding, Facility Hub Recall
+
+[Ripley]
+* Updating DownloadACEWorld.bat with latest ACE-World-Database release (0.9.12)
+
+### 2019-01-26
+[gmriggs]
+* Fixing house permissions w/ basements
+* Added FailProgressCount support for monster logic
+* Added cooldown enchantments
+* Added /hslist (housetype) to show list of available houses.
+
+[Mag-nus]
+* Decouple IsDynamic from ShouldPersistToShard
+* Updating base assemblies from x64 to Any CPU. ACE.Server still builds as x64
+* Improved generator heartbeats
+* Ensure WorldObjects are fully constructed before first heartbeat runs
+
+[Ripley]
+* Removed Burden field from portal appraisal
+* Added Shade/Palette to Vendor ItemProfiles
+* Improved corpse looting permissions data storage
+* Added AiOptions, TargetingTactic, and Tolerance enums to commented SQL output
+
+### 2019-01-25
+[gmriggs]
+* Refactoring Activate -> Use architecture
+
+### 2019-01-24
+[Mag-nus]
+* Allow rot for generated items
+
+[gmriggs]
+* Ensuring monsters spawn on walkable slopes
+* Fixed a bug where Mattekars couldn't be hit with high attacks
+
+### 2019-01-23
+[gmriggs]
+* Improved scatter generators
+* Fixed some issues with auras cast from multiple sources
+* Added support for swapping dual weapons between hands
+
+[Jyrus]
+* Improved handling of unknown spell ids
+* Refactored UseTimestamp / ResetTimestamp, fixed all compiler warnings
+
+[Mag-nus]
+* Fixed some possible null exceptions in network and action chain layers
+
+### 2019-01-22
+[dgatewood]
+* Upgraded RNG loot generation factory
+  - Fixed a bug where some monsters weren't generating death treasure
+  - Updated chests to use death_treasure tables
+  - Added support for separate mundane / non-magical/ magical items to loot generator
+
+[gmriggs]
+* Added falling impact damage
+* Adding text message for mana pool usage
+* Adding player movement checks for spellcasting
+* Adding scribing abilities
+* Reworking IsEnchantable for unenchantable items
+* Adding monster targeting tactics
+
+[Mag-nus]
+* Improved network efficiency
+* PropertyManager.ResyncVariables() on shutdown
+
+### 2019-01-21
+[gmriggs]
+* Re-syncing vendor rotation
+* Improved chest generators
+* Improved built-in spells for casters
+
+[Mag-nus]
+* Refactored the core object ticking architecture for improved performance
+
+[Jyrus]
+* Updating EmoteManager for support for TOD data
+
+### 2019-01-20
+[Mag-nus]
+* Adding LastUnlocker for chests
+
+[Ripley]
+* Adding dot_duration to spell table
+
+[gmriggs]
+* Adding fellowship spells
+
+### 2019-01-19
+[gmriggs]
+* Adding vendor services, and vendors casting spells
+* Adding summoned portal ties
+
+### 2019-01-18
+[gmriggs]
+* Adding server persistence for spellbook filters
+* Updating ObjDesc for items on housing hooks
+* Adding physics simulation for corpses. This fixes corpses getting stuck in walls
+* Improving portal recall
+* Removed Stuck check from IsDecayable
+* Added /fillcomps persistence to server
+
+### 2019-01-17
+[gmriggs]
+* Added instant vital updates for fellowships
+* Fixed Oswald's Dirk Quest
+* Improved allegiance XP passup
+
+[Mag-nus]
+* Added code to ensure all exceptions are logged when using start_server.bat
+* Added adapters to convert between different data formats (json)
+
 ### 2019-01-16
+[gmriggs]
+* Added loot sharing to fellowship system
+* Fixed Asuger Temple for Elysa's Favor Quest
+* Updated housing hooks for inventory refactoring
+
 [Ripley]
 * Remove duplicated data from the Spell table in the World Database
   - **This change requires you to update to the latest world database release found in ACE-World-16PY-Patches, v0.9.10 or higher**
 * Renamed a column in Recipe Mods table in the World Database.  
 * Changed Emote.Display column to bool in the Shard and World Databases
 
+### 2019-01-15
+[gmriggs]
+* Fixing armor coverage in slots inventory
+* Fixing monsters alerting unattackable friends
+* Improved monster navigation between indoors / outdoors
+* Fixing /buff command for Hermetic Link
+* Refactored the salvaging system
+* Fixed spell projectiles not working in Black Dominion dungeon
+* Improved EmoteManager timing
+
+[Mag-nus]
+* Switching to NonCombat when dequipping / swapping ammo
+* Removing missiles from child lists
+
+### 2019-01-14
+[Jyrus]
+* More Atlan and post-Training Academy content
+* Added Pathwarden chests
+
+[Ripley]
+* Updating DownloadACEWorld.bat with latest ACE-World-Database release (0.9.9)
+
+[gmriggs]
+* Updating object decay for PropertyBool.Stuck
+* Adding gem activation requirements, and cooldowns
+* Fixing monster corpse spawn bug
+
+### 2019-01-13
+[Mag-nus]
+* Adding DequipWithNetworking on final missile launch
+* Adding RemoveFromInventory before TryEquip
+* Fixed giving items back and forth to handle GameMessageDeleteObject instead of GameMessagePickupEvent
+* More profiling-based adjustments
+
+### 2019-01-12
+[gmriggs]
+* Adding enchantments for Hermetic Link / Void, Spirit Drinker / Loather
+* Adding the remaining wield requirement checks
+* Adding cantrip imbues
+* Adding vendor handling for unsellable items
+* Adding max missile range
+
+### 2019-01-09
+[Ripley]
+* Updating DownloadACEWorld.bat with latest ACE-World-Database release (0.9.8)
+
+[gmriggs]
+* Adding proper handling of KillTaunts
+* Fixing monsters with thrown weapons and shield
+
+### 2019-01-08
+[gmriggs]
+* Added imbues to damage formulas: Critical Strike, Crippling Blow, Armor Rending, Resistance Rending
+
+[Jyrus]
+* Updated Academy Weapon recipe IDs to match the data from the Lifestoned team
+
 ### 2019-01-07
 [Ripley]
+* Updating DownloadACEWorld.bat with latest ACE-World-Database release (0.9.7)
 * Changed the way recall/summon portal magics work
   - Instead of storing positions, store WCID of portal as a DID property
   - This allows us to do proper cloning of portal for use checks
@@ -16,14 +226,70 @@
 * Update EmoteManager to use TryCastSpell and differentiate between CastSpell (with windup motion) and CastSpellInstant (without windup motion)
 * Update Portal to process Portal emotes post teleport (successful portal)
 
+[Jyrus]
+- Update to Samuel
+- Add Blackmoor's Favor gem
+- Completed the remainder of the Training Academy! This includes quests, special vendor, NPCs, and granted items.
+- Updated base Atlan Weapons
+
+### 2019-01-06
+[Mag-nus]
+* Fixed an issue when trying to pick up a stackable that you alrady have a parital stack of
+* Fixed an issue with ConsumeFromInventory not consuming 1 item
+
+### 2019-01-05
+[Mag-nus]
+* More profiling based improvements
+
+[gmriggs]
+* Adding summoning XP, refactoring XP granting for consistency / common methods
+* Added built-in spells to casting items
+
+### 2019-01-04
+[gmriggs]
+* Adding handler for EmoteSet.Refuse for NPCs
+* Adding LocalBroadcastRange for chat messages
+* Improved monster CombatManeuvers w/ multistrike weapons
+* Porting AllegianceManager to use the new PlayerManager interface
+
+[Ripley]
+* Fixed double-linked trapdoor switches
+
+[Mag-nus]
+* Massive cleanup of ObjectGuid usage through the system
+
 ### 2019-01-03
+[Mag-nus]
+* Major Inventory Refactor
+  - This fixes many of the inventory-related issues
+  - It also simplifies the inventory code quite a bit!
+
 [Ripley]
 * Changed the Enchantment Registry in Shard Database to use a composite key instead of a single primary key for each record.
   - This eliminates, in theory, record caps for this table.
   - More tables in Shard will be converted to this format if this proves stable long term
   - **You must apply the 2018-12-30-00-Enchantment_Registry_Comp_Key.sql script to update your shard database**
 
+[gmriggs]
+* Improved enchantment layering
+* Removing deception check from assessing NPCs
+
+### 2019-01-02
+[gmriggs]
+* Updated Readme for additional clarity w/ installation instructions
+* Added handlers for drop/destroy on death items
+* Fixed prices for vendor trade notes, added Buy/Sell/Close vendor emotes
+* Improved monsters returning to home position
+
+[Mag-nus]
+* Fixed a possible stall in GetCombatManeuver
+
 ### 2019-01-01
+[gmriggs]
+* Fixed a possible race condition with adjacent landblock loading
+* Fixed DefaultCritMultiplier for magic casters
+* Added case insensitive quest lookup to EmoteManager / QuestManager. This fixes the Hollow Weapons Quest.
+
 [Ripley]
 * Fix issue with switches
   - Changed code to use TryCastSpell so that it works with all schools of magic.
