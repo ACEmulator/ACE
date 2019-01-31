@@ -10,6 +10,13 @@
 * Completed moving UseTimestamp and ResetTimestamp to common locations, as they are used by multiple objects/Fixes new/hidden compiler warning
 * Fixed null spell._spellBase issue of sending extra UseDone message and change this check to use another, less game intrusive message for notification of bad spellId being sent to the server
 
+[dgatewood]
+* Separated out magical, non magical, and mundane items from loot generation.
+* Corrected some quest items that were appearing in random loot.
+* Corrected Spells ID's in spell tables.
+* Updated chests so that it would cast their spell if they have a spell DID.
+* Fixed issue with out of bounds error in loot generation.
+
 ### 2019-01-16
 [Ripley]
 * Remove duplicated data from the Spell table in the World Database
