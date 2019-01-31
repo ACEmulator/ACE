@@ -123,6 +123,9 @@ namespace ACE.Server.WorldObjects
             // set house data
             //var house = new HouseData();
             HandleActionQueryHouse();
+
+            // boot anyone who may have been wandering around inside...
+            HandleActionBootAll(false);
         }
 
         /// <summary>
@@ -362,6 +365,8 @@ namespace ACE.Server.WorldObjects
         {
             house.Guests = House.Guests;
             house.OpenStatus = House.OpenStatus;
+
+            house.MonarchId = House.MonarchId;
         }
 
 
@@ -479,8 +484,12 @@ namespace ACE.Server.WorldObjects
             foreach (var kvp in Guests)
             {
                 var guest = PlayerManager.FindByGuid(kvp.Key);
+                var guestName = guest.Name;
+                if (House.MonarchId != null && guest.Guid.Full == House.MonarchId)
+                    guestName += "'s Allegiance";
+
                 var storage = kvp.Value ? "* " : "";
-                sb.Append(storage + guest.Name + "\n");
+                sb.Append(storage + guestName + "\n");
             }
 
             Session.Network.EnqueueSend(new GameMessageSystemChat(sb.ToString(), ChatMessageType.Broadcast));
@@ -808,6 +817,107 @@ namespace ACE.Server.WorldObjects
             var nearbyPlayers = house.PhysicsObj.ObjMaint.VoyeurTable.Values.Select(v => (Player)v.WeenieObj.WorldObject).ToList();
             foreach (var player in nearbyPlayers)
                 player.Session.Network.EnqueueSend(new GameEventHouseUpdateRestrictions(player.Session, house.Guid, restrictions, HouseSequence));
+        }
+
+        public void HandleActionModifyAllegianceGuestPermission(bool add)
+        {
+            // check if player is in an allegiance
+            if (Allegiance == null)
+            {
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouAreNotInAllegiance));
+                return;
+            }
+
+            //var house = GetHouse();
+
+            if (add)
+            {
+                if (House.MonarchId != null)
+                {
+                    Session.Network.EnqueueSend(new GameMessageSystemChat($"The monarchy already has access to your dwelling.", ChatMessageType.Broadcast));
+                    return;
+                }
+
+                if (Guests.Count == House.MaxGuests)
+                {
+                    Session.Network.EnqueueSend(new GameMessageSystemChat($"Your guest list has already reached the maximum limit ({House.MaxGuests})", ChatMessageType.Broadcast));
+                    return;
+                }
+
+                House.MonarchId = Allegiance.MonarchId;
+
+                if (!Guests.ContainsKey(Allegiance.Monarch.PlayerGuid))
+                    AddHouseGuest(Allegiance.Monarch.Player, false);
+                else
+                    ModifyHouseGuest(Allegiance.Monarch.Player, false);     // handle case: the monarch already has guest/storage access already, now adding allegiance
+
+                Session.Network.EnqueueSend(new GameMessageSystemChat($"You have granted your monarchy access to your dwelling.", ChatMessageType.Broadcast));
+            }
+            else
+            {
+                if (House.MonarchId == null)
+                {
+                    Session.Network.EnqueueSend(new GameMessageSystemChat($"The monarchy did not have access to your dwelling.", ChatMessageType.Broadcast));
+                    return;
+                }
+
+                House.MonarchId = null;
+
+                RemoveHouseGuest(Allegiance.Monarch.Player);
+
+                HandleActionBootAll(false);     // boot anyone who doesn't have guest access
+
+                Session.Network.EnqueueSend(new GameMessageSystemChat($"You have revoked access to your dwelling to your monarchy.", ChatMessageType.Broadcast));
+            }
+        }
+
+        public void HandleActionModifyAllegianceStoragePermission(bool add)
+        {
+            // check if player is in an allegiance
+            if (Allegiance == null)
+            {
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouAreNotInAllegiance));
+                return;
+            }
+
+            //var house = GetHouse();
+
+            if (add)
+            {
+                if (House.MonarchId != null && Guests.TryGetValue(new ObjectGuid(House.MonarchId.Value), out bool storage) && storage)
+                {
+                    Session.Network.EnqueueSend(new GameMessageSystemChat($"The monarchy already has storage access in your dwelling.", ChatMessageType.Broadcast));
+                    return;
+                }
+
+                if (House.MonarchId == null && Guests.Count == House.MaxGuests)
+                {
+                    Session.Network.EnqueueSend(new GameMessageSystemChat($"Your guest list has already reached the maximum limit ({House.MaxGuests})", ChatMessageType.Broadcast));
+                    return;
+                }
+
+                House.MonarchId = Allegiance.MonarchId;
+
+                if (!Guests.ContainsKey(Allegiance.Monarch.PlayerGuid))
+                    AddHouseGuest(Allegiance.Monarch.Player, true);
+                else
+                    ModifyHouseGuest(Allegiance.Monarch.Player, true);     // handle case: the monarch already has guest/storage access already, now adding allegiance
+
+                Session.Network.EnqueueSend(new GameMessageSystemChat($"You have granted your monarchy access to your storage.", ChatMessageType.Broadcast));
+            }
+            else
+            {
+                if (House.MonarchId == null)
+                {
+                    Session.Network.EnqueueSend(new GameMessageSystemChat($"The monarchy did not have access to your dwelling.", ChatMessageType.Broadcast));
+                    return;
+                }
+
+                // downgrade to guest access
+                ModifyHouseGuest(Allegiance.Monarch.Player, false);
+
+                Session.Network.EnqueueSend(new GameMessageSystemChat($"You have revoked storage access to your monarchy.", ChatMessageType.Broadcast));
+            }
         }
     }
 }

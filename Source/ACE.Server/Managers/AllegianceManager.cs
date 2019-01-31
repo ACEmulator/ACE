@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
+using ACE.Database;
 using ACE.Entity;
 using ACE.Server.Entity;
+using ACE.Server.Factories;
 using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Managers
@@ -12,6 +14,11 @@ namespace ACE.Server.Managers
     public class AllegianceManager
     {
         /// <summary>
+        /// A mapping of all loaded Allegiance GUIDs => their Allegiances
+        /// </summary>
+        public static readonly Dictionary<ObjectGuid, Allegiance> Allegiances = new Dictionary<ObjectGuid, Allegiance>();
+
+        /// <summary>
         /// A mapping of all Players on the server => their AllegianceNodes
         /// </summary>
         public static readonly Dictionary<ObjectGuid, AllegianceNode> Players = new Dictionary<ObjectGuid, AllegianceNode>();
@@ -21,10 +28,10 @@ namespace ACE.Server.Managers
         /// </summary>
         public static IPlayer GetMonarch(IPlayer player)
         {
-            if (player.Monarch == null)
+            if (player.MonarchId == null)
                 return player;
 
-            var monarch = PlayerManager.FindByGuid(player.Monarch.Value);
+            var monarch = PlayerManager.FindByGuid(player.MonarchId.Value);
 
             return monarch ?? player;
         }
@@ -43,11 +50,29 @@ namespace ACE.Server.Managers
             if (Players.ContainsKey(monarch.Guid))
                 return Players[monarch.Guid].Allegiance;
 
-            var allegiance = new Allegiance(monarch.Guid);
+            // try to load biota
+            var allegianceID = DatabaseManager.Shard.GetAllegianceID(monarch.Guid.Full);
+            var biota = allegianceID != null ? DatabaseManager.Shard.GetBiota(allegianceID.Value) : null;
+
+            var allegiance = biota != null ? new Allegiance(biota) : new Allegiance(monarch.Guid);
+
             if (allegiance.TotalMembers == 1)
                 return null;
 
+            if (biota == null)
+            {
+                allegiance = WorldObjectFactory.CreateNewWorldObject("allegiance") as Allegiance;
+                allegiance.MonarchId = monarch.Guid.Full;
+                allegiance.Init(monarch.Guid);
+
+                allegiance.SaveBiotaToDatabase();
+            }
+
             AddPlayers(allegiance);
+
+            if (!Allegiances.ContainsKey(allegiance.Guid))
+                Allegiances.Add(allegiance.Guid, allegiance);
+
             return allegiance;
         }
 
@@ -286,6 +311,12 @@ namespace ACE.Server.Managers
 
             LoadPlayer(self);
             LoadPlayer(target);
+        }
+
+        public static Allegiance FindAllegiance(uint allegianceID)
+        {
+            Allegiances.TryGetValue(new ObjectGuid(allegianceID), out var allegiance);
+            return allegiance;
         }
     }
 }

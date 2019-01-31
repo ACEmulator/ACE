@@ -1,5 +1,6 @@
 using System.IO;
 using ACE.Server.Entity;
+using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Network.Structure
 {

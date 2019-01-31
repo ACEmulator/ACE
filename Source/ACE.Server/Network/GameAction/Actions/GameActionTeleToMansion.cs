@@ -11,6 +11,7 @@ namespace ACE.Server.Network.GameAction.Actions
         public static void Handle(ClientMessage message, Session session)
         {
             //Console.WriteLine("Received 0x278 - TeleToMansion");
+            session.Player.HandleActionTeleToMansion();
         }
     }
 }

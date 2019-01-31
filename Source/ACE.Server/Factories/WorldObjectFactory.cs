@@ -124,6 +124,8 @@ namespace ACE.Server.Factories
                     return new Pet(weenie, guid);
                 case WeenieType.CombatPet:
                     return new CombatPet(weenie, guid);
+                case WeenieType.Allegiance:
+                    return new Allegiance(weenie, guid);
                 default:
                     return new GenericObject(weenie, guid);
             }
@@ -231,6 +233,8 @@ namespace ACE.Server.Factories
                     return new Pet(biota);
                 case WeenieType.CombatPet:
                     return new CombatPet(biota);
+                case WeenieType.Allegiance:
+                    return new Allegiance(biota);
                 default:
                     return new GenericObject(biota);
             }

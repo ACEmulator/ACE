@@ -210,6 +210,21 @@ namespace ACE.Server.WorldObjects
             if (player.Guid.Full == HouseOwner.Value)
                 return true;
 
+            // handle allegiance permissions
+            if (MonarchId != null && player.Allegiance != null && player.Allegiance.MonarchId == MonarchId)
+            {
+                if (storage)
+                {
+                    if (StorageAccess.Contains(new ObjectGuid(MonarchId.Value)))
+                        return true;
+                }
+                else
+                {
+                    if (Guests.ContainsKey(new ObjectGuid(MonarchId.Value)))
+                        return true;
+                }
+            }
+
             if (storage)
                 return StorageAccess.Contains(player.Guid);
             else
@@ -370,6 +385,17 @@ namespace ACE.Server.WorldObjects
 
                 return loaded.GetObject(new ObjectGuid(biota.Id)) as House;
             }
+        }
+
+        public bool? GetAllegianceAccessLevel()
+        {
+            if (MonarchId == null)
+                return null;
+
+            if (!Guests.TryGetValue(new ObjectGuid(MonarchId.Value), out bool storage))
+                return null;
+
+            return storage;
         }
     }
 }

@@ -1213,13 +1213,13 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyInt.HookPlacement); else SetProperty(PropertyInt.HookPlacement, value.Value); }
         }
 
-        public uint? Monarch
+        public uint? MonarchId
         {
             get => GetProperty(PropertyInstanceId.Monarch);
             set { if (!value.HasValue) RemoveProperty(PropertyInstanceId.Monarch); else SetProperty(PropertyInstanceId.Monarch, value.Value); }
         }
 
-        public uint? Patron
+        public uint? PatronId
         {
             get => GetProperty(PropertyInstanceId.Patron);
             set { if (!value.HasValue) RemoveProperty(PropertyInstanceId.Patron); else SetProperty(PropertyInstanceId.Patron, value.Value); }
