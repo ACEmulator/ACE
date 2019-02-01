@@ -281,7 +281,7 @@ namespace ACE.Server.Network.GameAction.Actions
                         var monarchPlayer = PlayerManager.GetOnlinePlayer(session.Player.AllegianceNode.Monarch.PlayerGuid);
 
                         if (monarchPlayer != null)
-                            monarchPlayer.Session.Network.EnqueueSend(new GameEventChannelBroadcast(monarchPlayer.Session, Channel.Patron, session.Player.Name, message));
+                            monarchPlayer.Session.Network.EnqueueSend(new GameEventChannelBroadcast(monarchPlayer.Session, Channel.Monarch, session.Player.Name, message));
 
                         session.Network.EnqueueSend(new GameEventChannelBroadcast(session, groupChatType, "", message));
                     }

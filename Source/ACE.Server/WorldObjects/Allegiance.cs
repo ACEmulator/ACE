@@ -208,6 +208,20 @@ namespace ACE.Server.WorldObjects
             if (onlineMonarch != null)
                 return onlineMonarch.House;
 
+            // is landblock loaded?
+            var houseGuid = Monarch.Player.HouseInstance.Value;
+            var landblock = (ushort)((houseGuid >> 12) & 0xFFFF);
+
+            var landblockId = new LandblockId((uint)(landblock << 16 | 0xFFFF));
+            var isLoaded = LandblockManager.IsLoaded(landblockId);
+
+            if (isLoaded)
+            {
+                var loaded = LandblockManager.GetLandblock(landblockId, false);
+                return loaded.GetObject(new ObjectGuid(houseGuid)) as House;
+            }
+
+            // load an offline copy
             return House.Load(Monarch.Player.HouseInstance.Value);
         }
     }
