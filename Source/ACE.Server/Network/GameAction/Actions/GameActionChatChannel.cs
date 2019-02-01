@@ -334,8 +334,7 @@ namespace ACE.Server.Network.GameAction.Actions
                             break;
                         }
 
-                        // TODO: also check officer permissions
-                        if (player.Allegiance.MonarchId != player.Guid.Full)
+                        if (player.AllegiancePermissionLevel < AllegiancePermissionLevel.Speaker)
                         {
                             session.Network.EnqueueSend(new GameEventWeenieError(session, WeenieError.YouDoNotHaveAuthorityInAllegiance));
                             break;

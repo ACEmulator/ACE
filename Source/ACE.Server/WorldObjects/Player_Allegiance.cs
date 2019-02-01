@@ -286,8 +286,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            // TODO: also check officer permissions
-            if (Allegiance.MonarchId != Guid.Full)
+            if (AllegiancePermissionLevel < AllegiancePermissionLevel.Speaker)
             {
                 Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouDoNotHaveAuthorityInAllegiance));
                 return;
@@ -314,8 +313,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            // TODO: also check officer permissions
-            if (Allegiance.MonarchId != Guid.Full)
+            if (AllegiancePermissionLevel < AllegiancePermissionLevel.Speaker)
             {
                 Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouDoNotHaveAuthorityInAllegiance));
                 return;
@@ -362,8 +360,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            // TODO: also check officer permissions
-            if (Allegiance.MonarchId != Guid.Full)
+            if (AllegiancePermissionLevel < AllegiancePermissionLevel.Castellan)
             {
                 Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouDoNotHaveAuthorityInAllegiance));
                 return;
@@ -395,8 +392,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            // TODO: also check officer permissions
-            if (Allegiance.MonarchId != Guid.Full)
+            if (AllegiancePermissionLevel < AllegiancePermissionLevel.Castellan)
             {
                 Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouDoNotHaveAuthorityInAllegiance));
                 return;
@@ -465,8 +461,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            // TODO: also check officer permissions
-            if (Allegiance.MonarchId != Guid.Full)
+            if (AllegiancePermissionLevel < AllegiancePermissionLevel.Castellan)
             {
                 Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouDoNotHaveAuthorityInAllegiance));
                 return;
@@ -507,8 +502,8 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            // TODO: also check officer permissions
-            if (Allegiance.MonarchId != Guid.Full)
+            // castellans can clear all titles?
+            if (AllegiancePermissionLevel < AllegiancePermissionLevel.Castellan)
             {
                 Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouDoNotHaveAuthorityInAllegiance));
                 return;
@@ -535,7 +530,7 @@ namespace ACE.Server.WorldObjects
             }
 
             // TODO: also check officer permissions
-            if (Allegiance.MonarchId != Guid.Full)
+            if (AllegiancePermissionLevel < AllegiancePermissionLevel.Seneschal)
             {
                 Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouDoNotHaveAuthorityInAllegiance));
                 return;
@@ -554,6 +549,22 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
+            if (player.Guid.Full == Allegiance.MonarchId)
+            {
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouDoNotHaveAuthorityInAllegiance));
+                return;
+            }
+
+            // seneschals can only promote/demote speakers
+            if (AllegiancePermissionLevel == AllegiancePermissionLevel.Seneschal)
+            {
+                if (officerLevel > 1 || (AllegianceOfficerLevel)(player.AllegianceOfficerRank ?? 0) > AllegianceOfficerLevel.Speaker)
+                {
+                    Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouDoNotHaveAuthorityInAllegiance));
+                    return;
+                }
+            }
+
             if (officerLevel < 1 || officerLevel > 3)
             {
                 Session.Network.EnqueueSend(new GameMessageSystemChat("Please specify a valid officer level as a number between 1 and 3.", ChatMessageType.Broadcast));
@@ -566,6 +577,8 @@ namespace ACE.Server.WorldObjects
             Allegiance.BuildOfficers();
 
             Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name} is now {title}.", ChatMessageType.Broadcast));
+
+            // send message to online target player?
         }
 
         public void HandleActionRemoveAllegianceOfficer(string officerName)
@@ -579,8 +592,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            // TODO: also check officer permissions
-            if (Allegiance.MonarchId != Guid.Full)
+            if (AllegiancePermissionLevel < AllegiancePermissionLevel.Seneschal)
             {
                 Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouDoNotHaveAuthorityInAllegiance));
                 return;
@@ -601,14 +613,26 @@ namespace ACE.Server.WorldObjects
 
             if (!Allegiance.Officers.ContainsKey(officer.Guid))
             {
-                Session.Network.EnqueueSend(new GameMessageSystemChat($"{officerName} not found in allegiance officers", ChatMessageType.Broadcast));
+                Session.Network.EnqueueSend(new GameMessageSystemChat($"{officer.Name} not found in allegiance officers", ChatMessageType.Broadcast));
                 return;
+            }
+
+            // seneschals can only promote/demote speakers and non-officers
+            if (AllegiancePermissionLevel == AllegiancePermissionLevel.Seneschal)
+            {
+                if ((AllegianceOfficerLevel)(officer.AllegianceOfficerRank ?? 0) > AllegianceOfficerLevel.Speaker)
+                {
+                    Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouDoNotHaveAuthorityInAllegiance));
+                    return;
+                }
             }
 
             officer.AllegianceOfficerRank = null;
             Allegiance.BuildOfficers();
 
-            Session.Network.EnqueueSend(new GameMessageSystemChat($"{officerName} has been removed from allegiance officers.", ChatMessageType.Broadcast));
+            Session.Network.EnqueueSend(new GameMessageSystemChat($"{officer.Name} has been removed from allegiance officers.", ChatMessageType.Broadcast));
+
+            // send message to online target player?
         }
 
         public void HandleActionAllegianceInfoRequest(string playerName)
@@ -622,8 +646,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            // TODO: also check officer permissions
-            if (Allegiance.MonarchId != Guid.Full)
+            if (AllegiancePermissionLevel < AllegiancePermissionLevel.Seneschal)
             {
                 Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouDoNotHaveAuthorityInAllegiance));
                 return;
@@ -645,6 +668,47 @@ namespace ACE.Server.WorldObjects
             var profile = new AllegianceProfile(Allegiance, allegianceNode);
 
             Session.Network.EnqueueSend(new GameEventAllegianceInfoResponse(Session, player.Guid.Full, profile));
+        }
+
+        public AllegiancePermissionLevel AllegiancePermissionLevel
+        {
+            // https://asheron.fandom.com/wiki/Allegiance_Officers
+
+            // Level 1: Speaker
+
+            // - Allegiance chat kick.
+            // - Allegiance chat gag.
+            // - Allegiance broadcast.
+            // - Set/clear the MOTD.
+
+            // Level 2: Seneschal
+
+            // - Promote/demote members under own rank (i.e. can promote/demote speakers)
+            // - Allegiance boot.
+            // - Allegiance ban.
+            // - Access allegiance info.
+            // - Lock/unlock the allegiance.
+
+            // Level 3: Castellan
+
+            // - Promote/demote members to any rank, including other Castellans.
+            // - Change officer titles.
+            // - Set/clear the allegiance name.
+            // - Set allegiance bindstone.
+            // - Change mansion allegiance access/storage permissions.
+            // - Bypass allegiance lock with own vassals.
+            // - Bypass allegiance lock by approving particular vassals.
+
+            get
+            {
+                if (Allegiance == null)
+                    return AllegiancePermissionLevel.None;
+
+                if (Allegiance.MonarchId == Guid.Full)
+                    return AllegiancePermissionLevel.Monarch;
+
+                return (AllegiancePermissionLevel)(AllegianceOfficerRank ?? 0);
+            }
         }
     }
 }

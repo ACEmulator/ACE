@@ -54,8 +54,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            // TODO: also check officer permissions
-            if (player.Allegiance.MonarchId != player.Guid.Full)
+            if (player.AllegiancePermissionLevel < AllegiancePermissionLevel.Seneschal)
             {
                 player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouDoNotHaveAuthorityInAllegiance));
                 return;
