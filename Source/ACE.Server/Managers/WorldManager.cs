@@ -141,7 +141,7 @@ namespace ACE.Server.Managers
                 if (!loggedInClients.Contains(endPoint) && loggedInClients.Count >= ConfigManager.Config.Server.Network.MaximumAllowedSessions)
                 {
                     log.InfoFormat("Login Request from {0} rejected. Server full.", endPoint);
-                    SetLoginRequestReject(endPoint, CharacterError.LogonServerFull);
+                    SendLoginRequestReject(endPoint, CharacterError.LogonServerFull);
                 }
                 else
                 {
@@ -152,7 +152,7 @@ namespace ACE.Server.Managers
                     else
                     {
                         log.InfoFormat("Login Request from {0} rejected. Failed to find or create session.", endPoint);
-                        SetLoginRequestReject(endPoint, CharacterError.LogonServerFull);
+                        SendLoginRequestReject(endPoint, CharacterError.LogonServerFull);
                     }
                 }
             }
@@ -173,7 +173,7 @@ namespace ACE.Server.Managers
             }
         }
 
-        private static void SetLoginRequestReject(IPEndPoint endPoint, CharacterError error)
+        private static void SendLoginRequestReject(IPEndPoint endPoint, CharacterError error)
         {
             var tempSession = new Session(endPoint, (ushort)(sessionMap.Length + 1), ServerId);
 
