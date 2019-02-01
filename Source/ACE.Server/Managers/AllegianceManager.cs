@@ -271,7 +271,7 @@ namespace ACE.Server.Managers
 
                 var onlinePatron = PlayerManager.GetOnlinePlayer(patron.Guid);
                 if (onlinePatron != null)
-                    onlinePatron.AddAllegianceXP(false);
+                    onlinePatron.AddAllegianceXP();
 
                 // call recursively
                 PassXP(patronNode, passupAmount, false);

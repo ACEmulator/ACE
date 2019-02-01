@@ -114,16 +114,22 @@ namespace ACE.Server.WorldObjects
             return Monarch.PlayerGuid.Full.GetHashCode();
         }
 
-        public string Motd
+        public string AllegianceName
+        {
+            get => GetProperty(PropertyString.AllegianceName);
+            set { if (value == null) RemoveProperty(PropertyString.AllegianceName); else SetProperty(PropertyString.AllegianceName, value); }
+        }
+
+        public string AllegianceMotd
         {
             get => GetProperty(PropertyString.AllegianceMotd);
             set { if (value == null) RemoveProperty(PropertyString.AllegianceMotd); else SetProperty(PropertyString.AllegianceMotd, value); }
         }
 
-        public string AllegianceName
+        public string AllegianceMotdSetBy
         {
-            get => GetProperty(PropertyString.AllegianceName);
-            set { if (value == null) RemoveProperty(PropertyString.AllegianceName); else SetProperty(PropertyString.AllegianceName, value); }
+            get => GetProperty(PropertyString.AllegianceMotdSetBy);
+            set { if (value == null) RemoveProperty(PropertyString.AllegianceMotdSetBy); else SetProperty(PropertyString.AllegianceMotdSetBy, value); }
         }
 
         public string AllegianceSpeakerTitle
@@ -190,6 +196,8 @@ namespace ACE.Server.WorldObjects
                     return "";
             }
         }
+
+        public bool HasCustomTitles => AllegianceSpeakerTitle != null || AllegianceSeneschalTitle != null || AllegianceCastellanTitle != null;
 
         public House GetHouse()
         {

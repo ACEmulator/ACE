@@ -217,31 +217,34 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
+        /// Called when a player logs in to handle allegiance events on login
+        /// </summary>
+        public void HandleAllegianceOnLogin()
+        {
+            var actionChain = new ActionChain();
+            actionChain.AddDelaySeconds(3.0f);
+            actionChain.AddAction(this, () =>
+            {
+                if (Allegiance != null && Allegiance.AllegianceMotd != null)
+                    Session.Network.EnqueueSend(new GameMessageSystemChat($"\"{Allegiance.AllegianceMotd}\" -- {Allegiance.AllegianceMotdSetBy}", ChatMessageType.Broadcast));
+
+                if (AllegianceXPCached != 0)
+                {
+                    Session.Network.EnqueueSend(new GameMessageSystemChat($"Your Vassals have produced experience points for you.\nTaking your skills as a leader into account, you gain {AllegianceXPCached:N0} xp.", ChatMessageType.Broadcast));
+                    AddAllegianceXP();
+                }
+            });
+            actionChain.EnqueueChain();
+        }
+
+        /// <summary>
         /// For an online patron, adds the pending allegiance XP stored in AllegianceXPCached
         /// to their total / unassigned xp
         /// </summary>
-        /// <param name="showMsg">Set to TRUE if player is logging in</param>
-        public void AddAllegianceXP(bool showMsg = false)
+        public void AddAllegianceXP()
         {
             if (AllegianceXPCached == 0) return;
 
-            if (showMsg)
-            {
-                var actionChain = new ActionChain();
-                actionChain.AddDelaySeconds(3.0f);
-                actionChain.AddAction(this, () =>
-                {
-                    Session.Network.EnqueueSend(new GameMessageSystemChat($"Your Vassals have produced experience points for you.\nTaking your skills as a leader into account, you gain {AllegianceXPCached:N0} xp.", ChatMessageType.Broadcast));
-                    AddAllegianceXP_Receive();
-                });
-                actionChain.EnqueueChain();
-            }
-            else
-                AddAllegianceXP_Receive();
-        }
-
-        private void AddAllegianceXP_Receive()
-        {
             // TODO: handle ulong -> long?
             EarnXP((long)AllegianceXPCached, false);
 
@@ -249,8 +252,6 @@ namespace ACE.Server.WorldObjects
 
             AllegianceXPCached = 0;
         }
-
-        // ============== MOTD ================
 
         public void HandleActionQueryMotd()
         {
@@ -263,14 +264,13 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if (Allegiance.Motd == null)
+            if (Allegiance.AllegianceMotd == null)
             {
                 Session.Network.EnqueueSend(new GameMessageSystemChat("Your allegiance has not set a message of the day.", ChatMessageType.Broadcast));
                 return;
             }
 
-            var rank = AllegianceRank.GetTitle(HeritageGroup, (Gender)Gender, AllegianceNode.Rank);
-            var msg = $"\"{Allegiance.Motd}\" -- {rank} {Name}";
+            var msg = $"\"{Allegiance.AllegianceMotd}\" -- {Allegiance.AllegianceMotdSetBy}";
 
             Session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
         }
@@ -293,7 +293,11 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            Allegiance.Motd = motd;
+            Allegiance.AllegianceMotd = motd;
+
+            var rank = AllegianceRank.GetTitle(HeritageGroup, (Gender)Gender, AllegianceNode.Rank);
+            Allegiance.AllegianceMotdSetBy = $"{rank} {Name}";
+
             Allegiance.SaveBiotaToDatabase();
 
             Session.Network.EnqueueSend(new GameMessageSystemChat("Your message of the day has been set.", ChatMessageType.Broadcast));
@@ -317,13 +321,15 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            Allegiance.Motd = null;
+            Allegiance.AllegianceMotd = null;
+
+            var rank = AllegianceRank.GetTitle(HeritageGroup, (Gender)Gender, AllegianceNode.Rank);
+            Allegiance.AllegianceMotdSetBy = $"{rank} {Name}";
+
             Allegiance.SaveBiotaToDatabase();
 
             Session.Network.EnqueueSend(new GameMessageSystemChat("Your message of the day has been cleared.", ChatMessageType.Broadcast));
         }
-
-        // ============= Allegiance Name ==============
 
         public void HandleActionQueryAllegianceName()
         {

@@ -77,10 +77,11 @@ namespace ACE.Entity.Enum.Properties
         PCAPRecordedCurrentMotionState  = 8006,
 
         /* custom */
-        AllegianceMotd                  = 9000,
-        AllegianceSpeakerTitle          = 9001,
-        AllegianceSeneschalTitle        = 9002,
-        AllegianceCastellanTitle        = 9003,
+        AllegianceMotd                  = 9001,
+        AllegianceMotdSetBy             = 9002,
+        AllegianceSpeakerTitle          = 9003,
+        AllegianceSeneschalTitle        = 9004,
+        AllegianceCastellanTitle        = 9005,
     }
 
     public static class PropertyStringExtensions
