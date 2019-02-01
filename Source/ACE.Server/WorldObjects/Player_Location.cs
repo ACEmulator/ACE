@@ -199,6 +199,13 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
+            // ensure allegiance housing has allegiance permissions enabled
+            if (allegianceHouse.MonarchId == null)
+            {
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YourMonarchHasClosedTheMansion));
+                return;
+            }
+
             if (CombatMode != CombatMode.NonCombat)
             {
                 // this should be handled by a different thing, probably a function that forces player into peacemode

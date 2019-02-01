@@ -204,6 +204,10 @@ namespace ACE.Server.WorldObjects
             if (Monarch.Player.HouseInstance == null)
                 return null;
 
+            var onlineMonarch = PlayerManager.GetOnlinePlayer(Monarch.PlayerGuid);
+            if (onlineMonarch != null)
+                return onlineMonarch.House;
+
             return House.Load(Monarch.Player.HouseInstance.Value);
         }
     }
