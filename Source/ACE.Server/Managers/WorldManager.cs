@@ -141,7 +141,7 @@ namespace ACE.Server.Managers
                 if (!loggedInClients.Contains(endPoint) && loggedInClients.Count >= ConfigManager.Config.Server.Network.MaximumAllowedSessions)
                 {
                     log.InfoFormat("Login Request from {0} rejected. Server full.", endPoint);
-                    // TODO can we send a message back to the client indicating we're full?
+                    SendLoginRequestReject(endPoint, CharacterError.LogonServerFull);
                 }
                 else
                 {
@@ -149,6 +149,11 @@ namespace ACE.Server.Managers
                     var session = FindOrCreateSession(endPoint);
                     if (session != null)
                         session.ProcessPacket(packet);
+                    else
+                    {
+                        log.InfoFormat("Login Request from {0} rejected. Failed to find or create session.", endPoint);
+                        SendLoginRequestReject(endPoint, CharacterError.LogonServerFull);
+                    }
                 }
             }
             else if (sessionMap.Length > packet.Header.Id && loggedInClients.Contains(endPoint))
@@ -166,6 +171,26 @@ namespace ACE.Server.Managers
                     log.WarnFormat("Null Session for Id {0}", packet.Header.Id);
                 }
             }
+        }
+
+        private static void SendLoginRequestReject(IPEndPoint endPoint, CharacterError error)
+        {
+            var tempSession = new Session(endPoint, (ushort)(sessionMap.Length + 1), ServerId);
+
+            // First we must send the connect request response
+            var connectRequest = new PacketOutboundConnectRequest(
+                tempSession.Network.ConnectionData.ServerTime,
+                tempSession.Network.ConnectionData.ConnectionCookie,
+                tempSession.Network.ClientId,
+                tempSession.Network.ConnectionData.ServerSeed,
+                tempSession.Network.ConnectionData.ClientSeed);
+            tempSession.Network.ConnectionData.DiscardSeeds();
+            tempSession.Network.EnqueueSend(connectRequest);
+
+            // Then we send the error
+            tempSession.SendCharacterError(error);
+
+            tempSession.Network.Update();
         }
 
         public static Session FindOrCreateSession(IPEndPoint endPoint)
@@ -203,14 +228,6 @@ namespace ACE.Server.Managers
             finally
             {
                 sessionLock.ExitUpgradeableReadLock();
-            }
-
-            // If session is still null we either have no room or had some kind of failure, we'll create a temporary session just to send an error back.
-            if (session == null)
-            {
-                log.WarnFormat("Failed to create a new session for {0}", endPoint);
-                var errorSession = new Session(endPoint, (ushort)(sessionMap.Length + 1), ServerId);
-                errorSession.SendCharacterError(Network.Enum.CharacterError.LogonServerFull);
             }
 
             return session;
