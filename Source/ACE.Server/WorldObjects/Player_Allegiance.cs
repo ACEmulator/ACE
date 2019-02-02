@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 
+using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
@@ -217,9 +218,16 @@ namespace ACE.Server.WorldObjects
                     }
                 }
 
-                if (targetNode.Allegiance.IsLocked && !targetNode.Allegiance.ApprovedVassals.Contains(Guid))
+                if (targetNode.Allegiance.IsLocked && !targetNode.Allegiance.ApprovedVassals.Contains(Guid)
+                    && (targetNode.Player.AllegianceOfficerRank ?? 0) < (int)AllegianceOfficerLevel.Castellan)
                 {
                     //Console.WriteLine(Name + "tried to join locked allegiance, not in approved vassals list");
+                    return false;
+                }
+
+                if (targetNode.Allegiance.BanList.Contains(Guid))
+                {
+                    //Console.WriteLine(Name + "tried to join allegiance, but was banned!");
                     return false;
                 }
             }
@@ -1064,6 +1072,184 @@ namespace ACE.Server.WorldObjects
 
             if (onlinePlayer != null)
                 onlinePlayer.Session.Network.EnqueueSend(new GameMessageSystemChat($"You have been ungagged in allegiance chat.", ChatMessageType.Broadcast));
+        }
+
+        public void HandleActionListAllegianceBans()
+        {
+            //Console.WriteLine($"{Name}.HandleActionListAllegianceBans()");
+
+            // check if player is in an allegiance
+            if (Allegiance == null)
+            {
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouAreNotInAllegiance));
+                return;
+            }
+
+            if (Allegiance.BanList.Count == 0)
+            {
+                Session.Network.EnqueueSend(new GameMessageSystemChat($"The ban list is currently empty.", ChatMessageType.Broadcast));
+                return;
+            }
+
+            var list = "Allegiance ban list:";
+            foreach (var guid in Allegiance.BanList)
+            {
+                var player = PlayerManager.FindByGuid(guid);
+                if (player != null)
+                    list += $"\n{player.Name}";
+            }
+
+            Session.Network.EnqueueSend(new GameMessageSystemChat(list, ChatMessageType.Broadcast));
+        }
+
+        public void HandleActionAddAllegianceBan(string playerName)
+        {
+            //Console.WriteLine($"{Name}.HandleActionAddAllegianceBan({playerName})");
+
+            // check if player is in an allegiance
+            if (Allegiance == null)
+            {
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouAreNotInAllegiance));
+                return;
+            }
+
+            if (AllegiancePermissionLevel < AllegiancePermissionLevel.Seneschal)
+            {
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouDoNotHaveAuthorityInAllegiance));
+                return;
+            }
+
+            var player = PlayerManager.FindByName(playerName);
+
+            if (player == null)
+            {
+                Session.Network.EnqueueSend(new GameMessageSystemChat($"{playerName} not found", ChatMessageType.Broadcast));
+                return;
+            }
+
+            // any other restrictions?
+            if (player.Guid.Full == Allegiance.MonarchId)
+            {
+                Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name} cannot be banned from the allegiance!", ChatMessageType.Broadcast));
+                return;
+            }
+
+            if (Allegiance.BanList.Contains(player.Guid))
+            {
+                Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name} is already banned from the allegiance.", ChatMessageType.Broadcast));
+                return;
+            }
+
+            Allegiance.BanList.Add(player.Guid);
+
+            Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name} has been banned from the allegiance.", ChatMessageType.Broadcast));
+
+            // were they already a member? if so, boot them...
+            if (Allegiance.Members.ContainsKey(player.Guid))
+                HandleActionBreakAllegianceBoot(player.Name, false);
+        }
+
+        public void HandleActionRemoveAllegianceBan(string playerName)
+        {
+            //Console.WriteLine($"{Name}.HandleActionRemoveAllegianceBan({playerName})");
+
+            // check if player is in an allegiance
+            if (Allegiance == null)
+            {
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouAreNotInAllegiance));
+                return;
+            }
+
+            if (AllegiancePermissionLevel < AllegiancePermissionLevel.Seneschal)
+            {
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouDoNotHaveAuthorityInAllegiance));
+                return;
+            }
+
+            var player = PlayerManager.FindByName(playerName);
+
+            if (player == null)
+            {
+                Session.Network.EnqueueSend(new GameMessageSystemChat($"{playerName} not found", ChatMessageType.Broadcast));
+                return;
+            }
+
+            if (!Allegiance.BanList.Contains(player.Guid))
+            {
+                Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name} is not banned from the allegiance.", ChatMessageType.Broadcast));
+                return;
+            }
+
+            Allegiance.BanList.Remove(player.Guid);
+
+            Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name} is no longer banned from the allegiance.", ChatMessageType.Broadcast));
+        }
+
+        public void HandleActionBreakAllegianceBoot(string playerName, bool accountBoot)
+        {
+            //Console.WriteLine($"{Name}.HandleActionBreakAllegianceBoot({playerName}, {accountBoot})");
+
+            // TODO: handle account boot
+
+            // check if player is in an allegiance
+            if (Allegiance == null)
+            {
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouAreNotInAllegiance));
+                return;
+            }
+
+            if (AllegiancePermissionLevel < AllegiancePermissionLevel.Seneschal)
+            {
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouDoNotHaveAuthorityInAllegiance));
+                return;
+            }
+
+            var player = PlayerManager.FindByName(playerName);
+
+            if (player == null)
+            {
+                Session.Network.EnqueueSend(new GameMessageSystemChat($"{playerName} not found", ChatMessageType.Broadcast));
+                return;
+            }
+
+            if (!Allegiance.Members.ContainsKey(player.Guid))
+            {
+                Session.Network.EnqueueSend(new GameMessageSystemChat($"{playerName} not found in allegiance", ChatMessageType.Broadcast));
+                return;
+            }
+
+            if (player.Guid == Guid)
+            {
+                Session.Network.EnqueueSend(new GameMessageSystemChat($"You cannot boot yourself from the allegiance.", ChatMessageType.Broadcast));
+                return;
+            }
+
+            if (player.Guid.Full == Allegiance.MonarchId)
+            {
+                Session.Network.EnqueueSend(new GameMessageSystemChat($"You cannot boot the monarch from the allegiance!", ChatMessageType.Broadcast));
+                return;
+            }
+
+            var patron = PlayerManager.FindByGuid(new ObjectGuid(player.PatronId ?? 0));
+            if (patron == null)
+            {
+                Console.WriteLine($"{Name}.HandleActionBreakAllegianceBoot({player.Name}, {accountBoot}): couldn't find patron id {player.PatronId}");
+                return;
+            }
+
+            player.PatronId = null;
+            player.MonarchId = null;
+
+            // rebuild allegiance tree structures
+            AllegianceManager.OnBreakAllegiance(player, patron);
+
+            // update allegiance ui panels?
+
+            Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name} has been removed from the allegiance.", ChatMessageType.Broadcast));
+
+            var onlinePlayer = PlayerManager.GetOnlinePlayer(player.Guid);
+            if (onlinePlayer != null)
+                onlinePlayer.Session.Network.EnqueueSend(new GameMessageSystemChat("You have been booted from the allegiance!", ChatMessageType.Broadcast));
         }
 
         public AllegiancePermissionLevel AllegiancePermissionLevel

@@ -42,6 +42,11 @@ namespace ACE.Server.WorldObjects
         public Dictionary<ObjectGuid, DateTime> ChatFilters;
 
         /// <summary>
+        /// A list of players who are banned from joining.
+        /// </summary>
+        public HashSet<ObjectGuid> BanList;
+
+        /// <summary>
         /// A new biota be created taking all of its values from weenie.
         /// </summary>
         public Allegiance(Weenie weenie, ObjectGuid guid) : base(weenie, guid)
@@ -89,6 +94,8 @@ namespace ACE.Server.WorldObjects
             BuildOfficers();
 
             ApprovedVassals = new HashSet<ObjectGuid>();
+
+            BanList = new HashSet<ObjectGuid>();
 
             ChatFilters = new Dictionary<ObjectGuid, DateTime>();
         }

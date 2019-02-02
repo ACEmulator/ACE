@@ -304,7 +304,7 @@ namespace ACE.Server.Managers
         /// </summary>
         /// <param name="self">The player initiating the break request</param>
         /// <param name="target">The patron or vassal of the self player</param>
-        public static void OnBreakAllegiance(Player self, IPlayer target)
+        public static void OnBreakAllegiance(IPlayer self, IPlayer target)
         {
             // remove the previous allegiance structure
             RemoveCache(self.Allegiance);
