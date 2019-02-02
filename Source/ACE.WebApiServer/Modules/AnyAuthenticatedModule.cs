@@ -123,7 +123,7 @@ namespace ACE.WebApiServer.Modules
                 }
                 CharacterMigrationBeginResponseModel resp = new CharacterMigrationBeginResponseModel
                 {
-                    BaseURL = $"https://{ConfigManager.Config.Transfer.ExternalIPAddressOrDNSName}:{ConfigManager.Config.Server.Network.Port + 2}",
+                    BaseURL = $"https://{ConfigManager.Config.WebApi.ExternalIPAddressOrDNSName}:{ConfigManager.Config.WebApi.ExternalPort}",
                     Cookie = metadata.Cookie,
                     Success = true,
                     CharacterId = request.CharacterId

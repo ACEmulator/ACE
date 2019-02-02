@@ -5,6 +5,7 @@ using System.IO;
 using System.Net;
 using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
+using System.Text;
 
 namespace ACE.Server.Managers
 {
@@ -103,6 +104,14 @@ namespace ACE.Server.Managers
         }
 
         /// <summary>
+        /// return the signed public key as an X.509 certificate file as a byte array
+        /// </summary>
+        public static byte[] ExportCertAsBytes()
+        {
+            return CertificateTransferManager.Export(X509ContentType.Cert);
+        }
+
+        /// <summary>
         /// Sign a file with the private key and save the signature in a file alongside
         /// the signed file with the same file name as the signed file and a file extension of '.signature'
         /// </summary>
@@ -124,7 +133,7 @@ namespace ACE.Server.Managers
         /// <param name="filePath"></param>
         /// <param name="signer"></param>
         /// <returns></returns>
-        public static bool VerifySignature(string filePath, X509Certificate2 signer)
+        public static bool VerifySignedFile(string filePath, X509Certificate2 signer)
         {
             string sigPath = Path.Combine(Path.GetDirectoryName(filePath), Path.GetFileNameWithoutExtension(filePath) + ".signature");
             if (!File.Exists(sigPath))
@@ -136,6 +145,33 @@ namespace ACE.Server.Managers
             {
                 return csp.VerifyData(fsData, File.ReadAllBytes(sigPath), HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
             }
+        }
+
+        /// <summary>
+        /// Sign data with the private key
+        /// </summary>
+        /// <param name="data">the data to sign</param>
+        /// <returns>the signature</returns>
+        public static byte[] SignData(string data)
+        {
+            RSA csp = CertificateTransferManager.GetRSAPrivateKey();
+            using (MemoryStream ms = new MemoryStream(Encoding.UTF8.GetBytes(data)))
+            {
+                return csp.SignData(ms, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+            }
+        }
+
+        /// <summary>
+        /// Verify a signature of some data
+        /// </summary>
+        /// <param name="data">the signed data</param>
+        /// <param name="signature">the signature</param>
+        /// <param name="signer">the certified public key</param>
+        /// <returns>whether the signature is valid or not</returns>
+        public static bool VerifySignedData(string data, byte[] signature, X509Certificate2 signer)
+        {
+            RSA csp = signer.GetRSAPublicKey();
+            return csp.VerifyData(Encoding.UTF8.GetBytes(data), signature, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
         }
     }
 }

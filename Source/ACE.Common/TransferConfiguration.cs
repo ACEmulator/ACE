@@ -15,11 +15,6 @@ namespace ACE.Common
         /// </summary>
         public List<string> AllowImportFrom { get; set; }
 
-        /// <summary>
-        /// Used to form a URI for use with character transfers.
-        /// </summary>
-        public string ExternalIPAddressOrDNSName { get; set; }
-
         [System.ComponentModel.DefaultValue(false)]
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
         public bool AllowBackup { get; set; }

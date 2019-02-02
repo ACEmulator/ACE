@@ -5,6 +5,14 @@ namespace ACE.WebApiServer
 {
     internal static class ModelTools
     {
+        public static string ToJson(object obj)
+        {
+            return JsonConvert.SerializeObject(obj, serializationSettings);
+        }
+        public static T FromJson<T>(string json)
+        {
+            return JsonConvert.DeserializeObject<T>(json);
+        }
         public static Response AsJsonWebResponse(this object Model)
         {
             Response response = JsonConvert.SerializeObject(Model, serializationSettings);

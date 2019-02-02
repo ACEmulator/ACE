@@ -31,7 +31,9 @@ namespace ACE.Server.Managers
     public static class TransferManager
     {
         public const int CookieLength = 8;
+        public const int NonceLength = 16;
         public const string CookieChars = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        public const string NonceChars = CookieChars;
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         private static readonly JsonSerializerSettings serializationSettings = new JsonSerializerSettings()
         {
@@ -123,6 +125,25 @@ namespace ACE.Server.Managers
             public bool AllowImport { get; set; }
             public bool AllowMigrate { get; set; }
         }
+        public class TransferManagerMigrationCheckResponseModel
+        {
+            public TransferManagerTransferConfigResponseModel Config { get; set; }
+            public string Nonce { get; set; }
+            public bool Ready { get; set; }
+            public string ReadyStatus { get; set; }
+            public string Cookie { get; set; }
+        }
+        public class SignedTransferManagerMigrationCheckResponseModel
+        {
+            public TransferManagerMigrationCheckResponseModel Result { get; set; }
+            public byte[] Signature { get; set; }
+            public byte[] Signer { get; set; }
+        }
+        public class TransferManagerMigrationCheckRequestModel
+        {
+            public string Nonce { get; set; }
+            public string Cookie { get; set; }
+        }
 
         /// <summary>
         /// Import or migrate a character.
@@ -166,7 +187,7 @@ namespace ACE.Server.Managers
             }
 
             mre = new ManualResetEvent(false);
-            var slotCheck = false;
+            bool slotCheck = false;
             DatabaseManager.Shard.GetCharacters(metadata.AccountId, false, new Action<List<Character>>((chars) =>
             {
                 slotCheck = chars.Count + 1 <= GameConfiguration.SlotCount;
@@ -178,6 +199,7 @@ namespace ACE.Server.Managers
                 return new ImportAndMigrateResult() { FailReason = ImportAndMigrateFailiureReason.NoCharacterSlotsAvailable };
             }
 
+            string selectedMigrationSourceThumb = null;
             TransferManagerCharacterMigrationDownloadResponseModel snapshotPack = null;
             CharacterTransfer xfer = null;
             if (importBytes == null)
@@ -197,37 +219,53 @@ namespace ACE.Server.Managers
 
                 // try to verify we trust the server before downloading package, since migrations cause source server to delete the original char upon download of the package
                 string unverifiedThumbprintsSerialized = null;
+                string nonce = ThreadSafeRandom.NextString(NonceChars, NonceLength);
                 try
                 {
                     using (InsecureWebClient iwc = new InsecureWebClient())
                     {
-                        unverifiedThumbprintsSerialized = iwc.DownloadString(metadata.ImportUrl.ToString() + "api/transferConfig");
+                        unverifiedThumbprintsSerialized = iwc.DownloadString(metadata.ImportUrl.ToString() + $"api/character/migrationCheck?Cookie={metadata.Cookie}&Nonce={nonce}");
                     }
                 }
                 catch
                 {
                     return new ImportAndMigrateResult() { FailReason = ImportAndMigrateFailiureReason.CannotContactSourceServer };
                 }
-                TransferManagerTransferConfigResponseModel unverifiedThumbprints = null;
+                SignedTransferManagerMigrationCheckResponseModel signedMigrationCheckResult = null;
                 try
                 {
-                    unverifiedThumbprints = JsonConvert.DeserializeObject<TransferManagerTransferConfigResponseModel>(unverifiedThumbprintsSerialized, serializationSettings);
+                    signedMigrationCheckResult = JsonConvert.DeserializeObject<SignedTransferManagerMigrationCheckResponseModel>(unverifiedThumbprintsSerialized, serializationSettings);
                 }
                 catch
                 {
                     return new ImportAndMigrateResult() { FailReason = ImportAndMigrateFailiureReason.ProtocolError };
                 }
-
-                if ((metadata.PackageType == PackageType.Migrate && !ConfigManager.Config.Transfer.AllowMigrationFrom.Any(k => k == unverifiedThumbprints.MyThumbprint)) || (metadata.PackageType == PackageType.Backup && !ConfigManager.Config.Transfer.AllowImportFrom.Any(k => k == unverifiedThumbprints.MyThumbprint)))
+                X509Certificate2 signer = new X509Certificate2(signedMigrationCheckResult.Signer);
+                if (signer.Thumbprint != signedMigrationCheckResult.Result.Config.MyThumbprint)
+                {
+                    return new ImportAndMigrateResult() { FailReason = ImportAndMigrateFailiureReason.MigrationCheckSignatureMismatch };
+                }
+                selectedMigrationSourceThumb = signer.Thumbprint;
+                if (!CryptoManager.VerifySignedData(JsonConvert.SerializeObject(signedMigrationCheckResult.Result, serializationSettings), signedMigrationCheckResult.Signature, signer))
+                {
+                    return new ImportAndMigrateResult() { FailReason = ImportAndMigrateFailiureReason.MigrationCheckSignatureInvalid };
+                }
+                if (nonce != signedMigrationCheckResult.Result.Nonce)
+                {
+                    return new ImportAndMigrateResult() { FailReason = ImportAndMigrateFailiureReason.MigrationCheckNonceInvalid };
+                }
+                if (!signedMigrationCheckResult.Result.Ready)
+                {
+                    return new ImportAndMigrateResult() { FailReason = ImportAndMigrateFailiureReason.MigrationCheckFailed };
+                }
+                if ((metadata.PackageType == PackageType.Migrate && !ConfigManager.Config.Transfer.AllowMigrationFrom.Any(k => k == signedMigrationCheckResult.Result.Config.MyThumbprint)) || (metadata.PackageType == PackageType.Backup && !ConfigManager.Config.Transfer.AllowImportFrom.Any(k => k == signedMigrationCheckResult.Result.Config.MyThumbprint)))
                 {
                     return new ImportAndMigrateResult() { FailReason = ImportAndMigrateFailiureReason.UnverifiedSourceServerNotAllowed };
                 }
-
-                if (metadata.PackageType == PackageType.Migrate && !unverifiedThumbprints.AllowMigrate)
+                if (metadata.PackageType == PackageType.Migrate && !signedMigrationCheckResult.Result.Config.AllowMigrate)
                 {
                     return new ImportAndMigrateResult() { FailReason = ImportAndMigrateFailiureReason.UnverifiedSourceServerDoesntAllowMigrate };
                 }
-
                 try
                 {
                     using (InsecureWebClient iwc = new InsecureWebClient())
@@ -286,13 +324,17 @@ namespace ACE.Server.Managers
                     Directory.Delete(diTmpDirPath.FullName, true);
                     return new ImportAndMigrateResult() { FailReason = ImportAndMigrateFailiureReason.VerifiedSourceServerNotAllowed };
                 }
+                if (!string.IsNullOrWhiteSpace(selectedMigrationSourceThumb) && verifiedSourceThumbprint != selectedMigrationSourceThumb)
+                {
+                    return new ImportAndMigrateResult() { FailReason = ImportAndMigrateFailiureReason.VerifiedMigrationSourceThumbprintMismatch };
+                }
                 // verify that the signatures are valid
                 foreach (FileInfo fil in diTmpDirPath.GetFiles("*.json"))
                 {
-                    if (!CryptoManager.VerifySignature(fil.FullName, signer))
+                    if (!CryptoManager.VerifySignedFile(fil.FullName, signer))
                     {
                         Directory.Delete(diTmpDirPath.FullName, true);
-                        return new ImportAndMigrateResult() { FailReason = ImportAndMigrateFailiureReason.Forgery };
+                        return new ImportAndMigrateResult() { FailReason = ImportAndMigrateFailiureReason.CharacterPackageSignatureInvalid };
                     }
                 }
             }
@@ -492,6 +534,7 @@ namespace ACE.Server.Managers
             UnverifiedSourceServerNotAllowed,
             UnverifiedSourceServerDoesntAllowMigrate,
             VerifiedSourceServerNotAllowed,
+            VerifiedMigrationSourceThumbprintMismatch,
             PackInfoNotFound,
             CannotContactSourceServer,
             ProtocolError,
@@ -508,7 +551,11 @@ namespace ACE.Server.Managers
             CannotFindCharacter,
             MalformedCharacterData,
             AddCharacterFailed,
-            Forgery,
+            CharacterPackageSignatureInvalid,
+            MigrationCheckSignatureMismatch,
+            MigrationCheckSignatureInvalid,
+            MigrationCheckFailed,
+            MigrationCheckNonceInvalid,
             PackageUnsigned,
             CookieAlreadyUsed
         }
@@ -520,31 +567,31 @@ namespace ACE.Server.Managers
             public uint NewCharacterId { get; set; }
         }
 
-        public static MigrateCloseResult CloseMigration(PackageMetadata metadata, MigrationCloseType type)
+        public static MigrationReadyStatus CheckReadyStatusOfMigration(string cookie)
         {
             CharacterTransfer xfer = null;
             ManualResetEvent mre = new ManualResetEvent(false);
             DatabaseManager.Shard.GetCharacterTransfers((xfers) =>
             {
-                xfer = xfers.FirstOrDefault(k => k.Cookie == metadata.Cookie);
+                xfer = xfers.FirstOrDefault(k => k.Cookie == cookie);
                 mre.Set();
             });
             mre.WaitOne();
             if (xfer == null)
             {
-                return new MigrateCloseResult(); // non existant migration
+                return MigrationReadyStatus.NonExistant;
             }
             if (xfer.TransferType != (uint)PackageType.Migrate)
             {
-                return new MigrateCloseResult(); // not a migration
+                return MigrationReadyStatus.NotMigration;
             }
             if (xfer.DownloadTime != null)
             {
-                return new MigrateCloseResult(); // already downloaded, can't be cancelled
+                return MigrationReadyStatus.AlreadyDownloaded;
             }
             if (xfer.CancelTime != null)
             {
-                return new MigrateCloseResult(); // already cancelled, can't be cancelled again
+                return MigrationReadyStatus.AlreadyCancelled;
             }
             Character character = null;
             mre = new ManualResetEvent(false);
@@ -556,17 +603,61 @@ namespace ACE.Server.Managers
             mre.WaitOne();
             if (character == null)
             {
-                return new MigrateCloseResult(); // character not found...
+                return MigrationReadyStatus.CharNotFound;
             }
             if (!character.IsReadOnly)
             {
-                return new MigrateCloseResult(); // character state is wrong
+                return MigrationReadyStatus.InvalidCharState;
             }
-            string packageFilePath = GetTransferPackageFilePath(metadata.Cookie);
+            string packageFilePath = GetTransferPackageFilePath(cookie);
             if (!File.Exists(packageFilePath))
             {
-                return new MigrateCloseResult(); // package file should be there
+                return MigrationReadyStatus.PackageFileMissing;
             }
+            return MigrationReadyStatus.Ready;
+        }
+
+        public enum MigrationReadyStatus
+        {
+            Unknown,
+            Ready,
+            NonExistant,
+            NotMigration,
+            AlreadyDownloaded,
+            AlreadyCancelled,
+            CharNotFound,
+            InvalidCharState,
+            PackageFileMissing
+        }
+
+        public static MigrateCloseResult CloseMigration(PackageMetadata metadata, MigrationCloseType type)
+        {
+            MigrationReadyStatus readyStatus = CheckReadyStatusOfMigration(metadata.Cookie);
+            if (readyStatus != MigrationReadyStatus.Ready)
+            {
+                return new MigrateCloseResult();
+            }
+            CharacterTransfer xfer = null;
+            ManualResetEvent mre = new ManualResetEvent(false);
+            DatabaseManager.Shard.GetCharacterTransfers((xfers) =>
+            {
+                xfer = xfers.FirstOrDefault(k => k.Cookie == metadata.Cookie);
+                mre.Set();
+            });
+            mre.WaitOne();
+            if (xfer.AccountId != metadata.AccountId)
+            {
+                return new MigrateCloseResult();
+            }
+            Character character = null;
+            mre = new ManualResetEvent(false);
+            DatabaseManager.Shard.GetCharacters(xfer.AccountId, false, new Action<List<Character>>(new Action<List<Character>>((chars) =>
+            {
+                character = chars.FirstOrDefault(k => k.Id == xfer.PackageSourceId);
+                mre.Set();
+            })));
+            mre.WaitOne();
+            string packageFilePath = GetTransferPackageFilePath(metadata.Cookie);
             if (type == MigrationCloseType.Cancel)
             {
                 character.IsReadOnly = false;

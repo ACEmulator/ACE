@@ -14,17 +14,44 @@ namespace ACE.WebApiServer.Modules
     {
         public UnauthenticatedModule()
         {
-            Get("/api/transferConfig", async (_) =>
+            Get("/api/character/migrationCheck", async (_) =>
             {
-                return new TransferConfigResponseModel()
+                TransferManager.TransferManagerMigrationCheckRequestModel request = this.BindAndValidate<TransferManager.TransferManagerMigrationCheckRequestModel>();
+                if (!ModelValidationResult.IsValid)
                 {
-                    MyThumbprint = CryptoManager.Thumbprint,
-                    AllowImportFrom = ConfigManager.Config.Transfer.AllowImportFrom,
-                    AllowMigrationFrom = ConfigManager.Config.Transfer.AllowMigrationFrom,
-                    AllowBackup = ConfigManager.Config.Transfer.AllowBackup,
-                    AllowImport = ConfigManager.Config.Transfer.AllowImport,
-                    AllowMigrate = ConfigManager.Config.Transfer.AllowMigrate,
-                }.AsJsonWebResponse();
+                    return Negotiate.WithModel(ModelValidationResult).WithStatusCode(HttpStatusCode.BadRequest);
+                }
+                TransferManager.MigrationReadyStatus readyStatus = TransferManager.MigrationReadyStatus.Unknown;
+                Gate.RunGatedAction(() =>
+                {
+                    readyStatus = TransferManager.CheckReadyStatusOfMigration(request.Cookie);
+                }, 1); // inter-server request must use a different queue
+
+                TransferManager.TransferManagerMigrationCheckResponseModel payload = new TransferManager.TransferManagerMigrationCheckResponseModel()
+                {
+                    Config = new TransferManager.TransferManagerTransferConfigResponseModel()
+                    {
+                        MyThumbprint = CryptoManager.Thumbprint,
+                        AllowImportFrom = ConfigManager.Config.Transfer.AllowImportFrom,
+                        AllowMigrationFrom = ConfigManager.Config.Transfer.AllowMigrationFrom,
+                        AllowBackup = ConfigManager.Config.Transfer.AllowBackup,
+                        AllowImport = ConfigManager.Config.Transfer.AllowImport,
+                        AllowMigrate = ConfigManager.Config.Transfer.AllowMigrate,
+                    },
+                    Cookie = request.Cookie,
+                    Nonce = request.Nonce,
+                    Ready = readyStatus == TransferManager.MigrationReadyStatus.Ready,
+                    ReadyStatus = readyStatus.ToString()
+                };
+
+                TransferManager.SignedTransferManagerMigrationCheckResponseModel model = new TransferManager.SignedTransferManagerMigrationCheckResponseModel()
+                {
+                    Result = payload,
+                    Signature = CryptoManager.SignData(ModelTools.ToJson(payload)),
+                    Signer = CryptoManager.ExportCertAsBytes()
+                };
+
+                return model.AsJsonWebResponse();
             });
 
             // this needs to be unathenticated
@@ -43,7 +70,7 @@ namespace ACE.WebApiServer.Modules
                 Gate.RunGatedAction(() =>
                 {
                     result = TransferManager.CloseMigration(metadata, TransferManager.MigrationCloseType.Download);
-                }, 1); //must be an a different queue than character/migrationComplete because it calls character/migrationDownload
+                }, 1); // inter-server request must use a different queue
                 CharacterMigrationDownloadResponseModel resp = new CharacterMigrationDownloadResponseModel()
                 {
                     Cookie = request.Cookie,
@@ -96,7 +123,7 @@ namespace ACE.WebApiServer.Modules
                     Welcome = ConfigManager.Config.Server.Welcome,
                     Uptime = Timers.RunningTime,
                     WorldName = ConfigManager.Config.Server.WorldName,
-                    Transfers = new TransferConfigResponseModel()
+                    Transfers = new TransferManager.TransferManagerTransferConfigResponseModel()
                     {
                         MyThumbprint = CryptoManager.Thumbprint,
                         AllowImportFrom = ConfigManager.Config.Transfer.AllowImportFrom,

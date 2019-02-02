@@ -44,7 +44,8 @@
 					"query": [
 						{
 							"key": "Command",
-							"value": "shutdown"
+							"value": "shutdown",
+							"description": "console command to invoke"
 						}
 					]
 				},
@@ -605,94 +606,19 @@
 			]
 		},
 		{
-			"name": "/api/transferConfig",
-			"request": {
-				"auth": {
-					"type": "noauth"
-				},
-				"method": "GET",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": ""
-				},
-				"url": {
-					"raw": "https://localhost:9002/api/transferConfig",
-					"protocol": "https",
-					"host": [
-						"localhost"
-					],
-					"port": "9002",
-					"path": [
-						"api",
-						"transferConfig"
-					]
-				},
-				"description": "Get server thumprint, thumprints allowed for various purposes, and which types of operations are allowed.\n<br>\nAuthorization: Anonymous"
-			},
-			"response": [
-				{
-					"name": "https://localhost:9002/api/transferConfig",
-					"originalRequest": {
-						"method": "GET",
-						"header": [],
-						"body": {
-							"mode": "raw",
-							"raw": ""
-						},
-						"url": {
-							"raw": "https://localhost:9002/api/transferConfig",
-							"protocol": "https",
-							"host": [
-								"localhost"
-							],
-							"port": "9002",
-							"path": [
-								"api",
-								"transferConfig"
-							]
-						}
-					},
-					"status": "OK",
-					"code": 200,
-					"_postman_previewlanguage": "json",
-					"header": [
-						{
-							"key": "Date",
-							"value": "Sun, 20 Jan 2019 06:38:28 GMT"
-						},
-						{
-							"key": "Content-Type",
-							"value": "application/json"
-						},
-						{
-							"key": "Server",
-							"value": "Kestrel"
-						},
-						{
-							"key": "Transfer-Encoding",
-							"value": "chunked"
-						}
-					],
-					"cookie": [],
-					"body": "{\n    \"MyThumbprint\": \"D935BD729FDF0554E523235F4567EB32FB60262C\",\n    \"AllowMigrationFrom\": [\n        \"D935BD729FDF0554E523235F4567EB32FB60262C\"\n    ],\n    \"AllowImportFrom\": [\n        \"D935BD729FDF0554E523235F4567EB32FB60262C\"\n    ],\n    \"AllowBackup\": true,\n    \"AllowImport\": true,\n    \"AllowMigrate\": true\n}"
-				}
-			]
-		},
-		{
 			"name": "/api/character",
 			"request": {
 				"auth": {
 					"type": "basic",
 					"basic": [
 						{
-							"key": "password",
-							"value": "testpassword",
+							"key": "username",
+							"value": "testaccount2",
 							"type": "string"
 						},
 						{
-							"key": "username",
-							"value": "testaccount",
+							"key": "password",
+							"value": "testpassword",
 							"type": "string"
 						}
 					]
@@ -805,7 +731,8 @@
 					"query": [
 						{
 							"key": "CharacterId",
-							"value": "1342177281"
+							"value": "1342177281",
+							"description": "id of the character to migrate (from /api/character)"
 						}
 					]
 				},
@@ -946,11 +873,13 @@
 						{
 							"key": "NewCharacterName",
 							"value": "testChar4",
+							"description": "desired character name for the imported character",
 							"type": "text"
 						},
 						{
 							"key": "SnapshotPackageBase64",
 							"value": "UEsDBBQAAAAIADewMU57l7pQgAsAAKSHAAAPAAAAMTM0MjE3NzI4MS5qc29u7V3dc5w4En+/qvsfXH5OXOgDAffmj/icu/HunMeb7N7WPmCPYnNhwAXMbnxb+7+fgJlBDBLQspINl/HLVNSIn7rV6m6pW+T3v/7l6Oj47fL4b0eIUIw8D/voVdX4nvMk4udxmOc1XW6+fX7iZZtTN87Tp3UcFnx5nsYxvy+iNLmMw4dcPEId4lPPr587i9IinGfpE8+KiOdnafpRPJKs41hJP02i1TzMCvHMz7+onyiKLLpbF+Vgfi4fODr6vf7ZsfVq9+/v7/4jxqZitiJveWpa3iZRMeO/8rhhtWqv2i6zdHU+FxSJcD5fPPGkHK9Tt/3xSjkoDB0U1g3K5qgIdFTkC4iKQgdFv8CgXOig3C8xfww6KmZ3VOXPwDLFyfKzr1Tg4KXGdZaJxu17XMtrmHze4YpZs7u63c88XjSsN2fp8nnrAF6oM//kz4LiNw0XXXtx8S6M2zMrWrKSixNPksZZmPPTbJVWlKa5anqXL4THfFRS5hHP7rmSdBavlw88TZRE4VSXSsJllKlfd3ofqXu8Kb1zFt0rid/x4pHvMXV21Vadq9llJQ/pketu02zThCVRXt10e3abZjeKnrOzLmanabZpamN2e3abZpsmjC0t+FrX2BhdcxS6Jov/oGoqVUOkq2vIH6Vrra43iq56ZWujnilQtdrWRt12tWSva3WTDNTBtI02bXiUacNddXNGaZvcsftUj661EDtP9WhaC3HzlKUAu9Yz2YYdzJpVNSOmakZM1YyYqpnCntnaMtVq5h3U7AsGasw0TmOmYRozjdKYpT1wrWZyrH+wZlbVDHmm5qzVE2TP2pgQg9bGHGPRPKC... (data truncated for documentation)",
+							"description": "the character backup package zip file encoded as base64 text",
 							"type": "text"
 						}
 					]
@@ -1096,13 +1025,13 @@
 					"type": "basic",
 					"basic": [
 						{
-							"key": "password",
-							"value": "testpassword",
+							"key": "username",
+							"value": "testaccount2",
 							"type": "string"
 						},
 						{
-							"key": "username",
-							"value": "testaccount",
+							"key": "password",
+							"value": "testpassword",
 							"type": "string"
 						}
 					]
@@ -1114,7 +1043,7 @@
 					"raw": ""
 				},
 				"url": {
-					"raw": "https://localhost:9002/api/character/migrationBegin?CharacterId=1342177281",
+					"raw": "https://localhost:9002/api/character/migrationBegin?CharacterId=1342177294",
 					"protocol": "https",
 					"host": [
 						"localhost"
@@ -1128,7 +1057,8 @@
 					"query": [
 						{
 							"key": "CharacterId",
-							"value": "1342177281"
+							"value": "1342177294",
+							"description": "id of the character to migrate (from /api/character)"
 						}
 					]
 				},
@@ -1268,7 +1198,7 @@
 					"raw": ""
 				},
 				"url": {
-					"raw": "https://localhost:9002/api/character/migrationCancel?Cookie=2OtjMv7e",
+					"raw": "https://localhost:9002/api/character/migrationCancel?Cookie=IXfFGIF4",
 					"protocol": "https",
 					"host": [
 						"localhost"
@@ -1282,7 +1212,8 @@
 					"query": [
 						{
 							"key": "Cookie",
-							"value": "2OtjMv7e"
+							"value": "IXfFGIF4",
+							"description": "cookie of the migration to cancel (from /api/character/migrationBegin)"
 						}
 					]
 				},
@@ -1398,6 +1329,104 @@
 			]
 		},
 		{
+			"name": "/api/character/migrationCheck",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "https://localhost:9002/api/character/migrationCheck?cookie=IXfFGIF4&nonce=h3Dfs0x9tvs4m01b",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "9002",
+					"path": [
+						"api",
+						"character",
+						"migrationCheck"
+					],
+					"query": [
+						{
+							"key": "cookie",
+							"value": "IXfFGIF4",
+							"description": "cookie of the migration to check (from /api/character/migrationBegin)"
+						},
+						{
+							"key": "nonce",
+							"value": "h3Dfs0x9tvs4m01b",
+							"description": "per-request random string of length 16 characters a-zA-Z0-9  After verifying the signature the software should check to make sure it's the same as the nonce in the result."
+						}
+					]
+				},
+				"description": "Check status of a migration, and the server thumprint, thumprints allowed for various purposes, and which types of operations are allowed.  Inter-server resource.<br>\nEnd users should not be calling this resource.  Only servers completing migrations should ever be using this resource.  This is a server to server resource.  Use /api/character/migrationComplete instead.\n<br>\nAuthorization: Anonymous"
+			},
+			"response": [
+				{
+					"name": "/api/migrationCheck",
+					"originalRequest": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "https://localhost:9002/api/migrationCheck?cookie=a3O8ywxt&nonce=h3Djfs0x9tv4m01b",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "9002",
+							"path": [
+								"api",
+								"migrationCheck"
+							],
+							"query": [
+								{
+									"key": "cookie",
+									"value": "a3O8ywxt"
+								},
+								{
+									"key": "nonce",
+									"value": "h3Djfs0x9tv4m01b"
+								}
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Date",
+							"value": "Sat, 02 Feb 2019 00:27:47 GMT"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Server",
+							"value": "Kestrel"
+						},
+						{
+							"key": "Transfer-Encoding",
+							"value": "chunked"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"Result\": {\n        \"Config\": {\n            \"MyThumbprint\": \"5EA9785696CD23E00D0F3C22AD5CB114709FC1B0\",\n            \"AllowMigrationFrom\": [\n                \"C6EF5CFB790CA6F39F0ED9A01CDF3D0BFC01EB69\"\n            ],\n            \"AllowImportFrom\": [\n                \"C6EF5CFB790CA6F39F0ED9A01CDF3D0BFC01EB69\"\n            ],\n            \"AllowBackup\": true,\n            \"AllowImport\": true,\n            \"AllowMigrate\": true\n        },\n        \"Nonce\": \"h3Djfs0x9tv4m01b\",\n        \"Ready\": true,\n        \"ReadyStatus\": \"Ready\",\n        \"Cookie\": \"a3O8ywxt\"\n    },\n    \"Signature\": \"pJB958dn2lddTgMYVhaDhqGLSliqyqmsoexcEkCjsU5u5xts+ljQ7r88jZTnL/keMQSfLcqftszA/rfacf3Vwu950WoJzFjJRxYslHSOD8S3q70L9b3GPAYYdQ8/BEnKqKuoDr4tR1cVzUQFIkecXgCgjH4gc1XcL5cJBN7Y5wnvI1l7eemNwmqMPe6H70/vo2DRYRFKgojAkFPqV12Wh3Fr2JZjfTTfNXFYS64MzM6kfSdqB97SOO1oFBa/ILclXZX1PYrcFDINJH8iA5y3RqIYjNrZ6eqDFTIo98YvmtCuovUE4X8Zs6WozHWCGq6MjLmcmokgSlHLDh1+mHKlJg==\",\n    \"Signer\": \"MIIDHzCCAgegAwIBAgIIVF5kOZ2RPFQwDQYJKoZIhvcNAQENBQAwJjEkMCIGA1UEAxMbQUNFbXVsYXRvciBUcmFuc2ZlciBNYW5hZ2VyMB4XDTE5MDEzMDAzNTkyNloXDTI5MDEyODAzNTkyNlowJjEkMCIGA1UEAxMbQUNFbXVsYXRvciBUcmFuc2ZlciBNYW5hZ2VyMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAskJQ2Zo2IFXvZjvDJAre88B3pdqUrdc/2N4eTs7qbhue3taLbDRaKWi/DE326LqA9LJ/ndTmap2+WZ+R2gJmE8T5EL6AijWtV2qIQjdLA0tJtuJD0FsDoP+8TV3/Fgl/CJ3EFRkSQufY08bo9VOReQChk/wqFFKlbitzLOMcy4/jVuzIumkDDKkdYoLM5kCVxLQS+DDDfv8OdxGgpdRcYBa4f1dlRs0dZcGVYGSSDabmYot4THqAOFO9VcDGIf+EhDY8wN15EZ6BF3tBIURSdh+iFos/fhsCJgl6fCkHzr43L26ki7iev/UpeiDuT1OwSmnRn5XZ5ABB2IuzG4Rp3QIDAQABo1EwTzALBgNVHQ8EBAMCBLAwEwYDVR0lBAwwCgYIKwYBBQUHAwEwKwYDVR0RBCQwIocEfwAAAYIJbG9jYWxob3N0gg9ERVNLVE9QLTNSNjU4QUowDQYJKoZIhvcNAQENBQADggEBAE/YFnC3gTOwjI84dw6DisiAJ8C5gX8DOOT8X8V04q1IRY3Cq1gPxVuuEb2EIRSIfFMQ4lPOOmuvw5i5UDz87hkM4vA8zJ2iAoYtSNNhiqc6yg6GLOlDzmaromVbi7zxiTq/HcfVk7VMp3pUH0E+hn0ADfKGT3XjE9TFCE2rGCxz+3HySpwiYepmIZ7XvgAzecNvZZ6Zhx+X3aw9S+WSTJPGnmqn941xookT/TZ4Fo5B03UZocxYNO3w+i5KVnR1F2FIjZSdBfzkpprJmpZZg2SvF4tIYgY6lD7rg1O905X79IvEb4IN4hiFWq+JTrG5BfbK5a7wk/DreczcJQTUT5c=\"\n}"
+				}
+			]
+		},
+		{
 			"name": "/api/character/migrationDownload",
 			"request": {
 				"auth": {
@@ -1424,11 +1453,12 @@
 					"query": [
 						{
 							"key": "Cookie",
-							"value": "pjRrUaai"
+							"value": "pjRrUaai",
+							"description": "cookie of the character migration package to download (from /api/character/migrationBegin)"
 						}
 					]
 				},
-				"description": "Download a migration snapshot package and delete the character.  Inter-server resource.<br>\nEnd users should not be calling this resource.  Only servers completing migrations should ever be using this resource.<br>\nAuthorization: Anonymous"
+				"description": "Download a migration snapshot package and delete the character.  Inter-server resource.<br>\nEnd users should not be calling this resource.  Only servers completing migrations should ever be using this resource.  This is a server to server resource.  Use /api/character/migrationComplete instead.<br>\nAuthorization: Anonymous"
 			},
 			"response": [
 				{
@@ -1546,13 +1576,13 @@
 					"type": "basic",
 					"basic": [
 						{
-							"key": "password",
-							"value": "testpassword",
+							"key": "username",
+							"value": "testaccount2",
 							"type": "string"
 						},
 						{
-							"key": "username",
-							"value": "testaccount",
+							"key": "password",
+							"value": "testpassword",
 							"type": "string"
 						}
 					]
@@ -1564,7 +1594,7 @@
 					"raw": ""
 				},
 				"url": {
-					"raw": "https://localhost:9002/api/character/migrationComplete?BaseURL=https://fartwhif.myqnapcloud.com:9002&NewCharacterName=myChar3&Cookie=5gGnUruV",
+					"raw": "https://localhost:9002/api/character/migrationComplete?BaseURL=https://fartwhif.myqnapcloud.com:9002&NewCharacterName=southpaw&Cookie=a3O8ywxt",
 					"protocol": "https",
 					"host": [
 						"localhost"
@@ -1578,21 +1608,88 @@
 					"query": [
 						{
 							"key": "BaseURL",
-							"value": "https://fartwhif.myqnapcloud.com:9002"
+							"value": "https://fartwhif.myqnapcloud.com:9002",
+							"description": "source server URL (from /api/character/migrationBegin)"
 						},
 						{
 							"key": "NewCharacterName",
-							"value": "myChar3"
+							"value": "southpaw",
+							"description": "desired character name for the migrated character"
 						},
 						{
 							"key": "Cookie",
-							"value": "5gGnUruV"
+							"value": "a3O8ywxt",
+							"description": "cookie of the migration to complete  (from /api/character/migrationBegin)"
 						}
 					]
 				},
 				"description": "Complete a migration at the target server.\n<br>\nAuthorization: RequiresAny: [Admin,Advocate,Developer,Envoy,Player,Sentinel]"
 			},
 			"response": [
+				{
+					"name": "/api/character/migrationComplete",
+					"originalRequest": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "https://localhost:9002/api/character/migrationComplete?BaseURL=https://fartwhif.myqnapcloud.com:9002&NewCharacterName=southpaw&Cookie=a3O8ywxt",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "9002",
+							"path": [
+								"api",
+								"character",
+								"migrationComplete"
+							],
+							"query": [
+								{
+									"key": "BaseURL",
+									"value": "https://fartwhif.myqnapcloud.com:9002",
+									"description": "the source server URL (from /api/character/migrationBegin)"
+								},
+								{
+									"key": "NewCharacterName",
+									"value": "southpaw",
+									"description": "the desired character name for the migrated character"
+								},
+								{
+									"key": "Cookie",
+									"value": "a3O8ywxt",
+									"description": "the cookie of the migration to complete"
+								}
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Date",
+							"value": "Sat, 02 Feb 2019 00:56:32 GMT"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Server",
+							"value": "Kestrel"
+						},
+						{
+							"key": "Transfer-Encoding",
+							"value": "chunked"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"Success\": true,\n    \"FailureReason\": null,\n    \"Cookie\": \"a3O8ywxt\",\n    \"CharacterName\": \"southpaw\",\n    \"CharacterId\": 1342177294\n}"
+				},
 				{
 					"name": "https://localhost:9002/api/character/migrationComplete",
 					"originalRequest": {
@@ -1714,6 +1811,67 @@
 					],
 					"cookie": [],
 					"body": "{\n    \"Success\": true,\n    \"FailureReason\": null,\n    \"Cookie\": \"5gGnUruV\",\n    \"CharacterName\": \"myChar3\",\n    \"CharacterId\": 1342177288\n}"
+				},
+				{
+					"name": "/api/character/migrationComplete",
+					"originalRequest": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "https://localhost:9002/api/character/migrationComplete?BaseURL=https://fartwhif.myqnapcloud.com:9002&NewCharacterName=southpaw&Cookie=a3O8ywxt",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "9002",
+							"path": [
+								"api",
+								"character",
+								"migrationComplete"
+							],
+							"query": [
+								{
+									"key": "BaseURL",
+									"value": "https://fartwhif.myqnapcloud.com:9002"
+								},
+								{
+									"key": "NewCharacterName",
+									"value": "southpaw"
+								},
+								{
+									"key": "Cookie",
+									"value": "a3O8ywxt"
+								}
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Date",
+							"value": "Sat, 02 Feb 2019 00:46:23 GMT"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Server",
+							"value": "Kestrel"
+						},
+						{
+							"key": "Transfer-Encoding",
+							"value": "chunked"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"Success\": false,\n    \"FailureReason\": \"UnverifiedSourceServerNotAllowed\",\n    \"Cookie\": \"a3O8ywxt\",\n    \"CharacterName\": null,\n    \"CharacterId\": 0\n}"
 				}
 			]
 		}

@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Hosting;
 using System;
 using System.Net;
 using System.Threading;
+using static ACE.Server.Managers.TransferManager;
 
 namespace ACE.WebApiServer
 {
@@ -22,7 +23,12 @@ namespace ACE.WebApiServer
             }
 
             //initialize model polymorphism
-            Mapper.Initialize(cfg => cfg.CreateMap<BaseAuthenticatedModel, CharacterListModel>());
+            Mapper.Initialize(cfg =>
+            {
+                cfg.CreateMap<BaseAuthenticatedModel, CharacterListModel>();
+                cfg.CreateMap<TransferManagerMigrationCheckResponseModel, SignedTransferManagerMigrationCheckResponseModel>();
+            });
+
 
             hostThread = new Thread(new ThreadStart(() =>
             {
