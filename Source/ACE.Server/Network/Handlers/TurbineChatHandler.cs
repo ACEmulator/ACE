@@ -51,6 +51,9 @@ namespace ACE.Server.Network.Handlers
                 var allegiance = AllegianceManager.FindAllegiance(channelID);
                 if (allegiance != null)
                 {
+                    // is sender booted / gagged?
+                    if (allegiance.IsFiltered(session.Player.Guid)) return;
+
                     // iterate through all allegiance members
                     foreach (var member in allegiance.Members.Keys)
                     {
@@ -58,6 +61,9 @@ namespace ACE.Server.Network.Handlers
                         var online = PlayerManager.GetOnlinePlayer(member);
                         if (online == null)
                             continue;
+
+                        // is this member booted / gagged?
+                        if (allegiance.IsFiltered(member)) continue;
 
                         online.Session.Network.EnqueueSend(gameMessageTurbineChat);
                     }

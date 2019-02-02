@@ -37,6 +37,11 @@ namespace ACE.Server.WorldObjects
         public HashSet<ObjectGuid> ApprovedVassals;
 
         /// <summary>
+        /// Handles booting players from allegiance chat
+        /// </summary>
+        public Dictionary<ObjectGuid, DateTime> ChatFilters;
+
+        /// <summary>
         /// A new biota be created taking all of its values from weenie.
         /// </summary>
         public Allegiance(Weenie weenie, ObjectGuid guid) : base(weenie, guid)
@@ -84,6 +89,8 @@ namespace ACE.Server.WorldObjects
             BuildOfficers();
 
             ApprovedVassals = new HashSet<ObjectGuid>();
+
+            ChatFilters = new Dictionary<ObjectGuid, DateTime>();
         }
 
         /// <summary>
@@ -230,6 +237,23 @@ namespace ACE.Server.WorldObjects
 
             // load an offline copy
             return House.Load(Monarch.Player.HouseInstance.Value);
+        }
+
+        /// <summary>
+        /// Returns TRUE if input player guid has an active chat filter
+        /// </summary>
+        public bool IsFiltered(ObjectGuid playerGuid)
+        {
+            if (!ChatFilters.TryGetValue(playerGuid, out var filter))
+                return false;
+
+            if (filter > DateTime.UtcNow)
+                return true;
+
+            // filter has expired
+            ChatFilters.Remove(playerGuid);
+
+            return false;
         }
     }
 }
