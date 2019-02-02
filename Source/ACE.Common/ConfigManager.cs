@@ -1,7 +1,8 @@
-﻿using System;
+using System;
 using System.IO;
 
 using Newtonsoft.Json;
+using DouglasCrockford.JsMin;
 
 namespace ACE.Common
 {
@@ -24,7 +25,7 @@ namespace ACE.Common
         {
             try
             {
-                Config = JsonConvert.DeserializeObject<MasterConfiguration>(File.ReadAllText(path));
+                Config = JsonConvert.DeserializeObject<MasterConfiguration>(new JsMinifier().Minify(File.ReadAllText(path)));
             }
             catch (Exception exception)
             {
