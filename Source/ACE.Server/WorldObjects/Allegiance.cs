@@ -32,6 +32,11 @@ namespace ACE.Server.WorldObjects
         public Dictionary<ObjectGuid, AllegianceNode> Officers;
 
         /// <summary>
+        /// Approved vassals for adding to locked allegiances
+        /// </summary>
+        public HashSet<ObjectGuid> ApprovedVassals;
+
+        /// <summary>
         /// A new biota be created taking all of its values from weenie.
         /// </summary>
         public Allegiance(Weenie weenie, ObjectGuid guid) : base(weenie, guid)
@@ -77,6 +82,8 @@ namespace ACE.Server.WorldObjects
 
             //Console.WriteLine("TotalMembers: " + TotalMembers);
             BuildOfficers();
+
+            ApprovedVassals = new HashSet<ObjectGuid>();
         }
 
         /// <summary>

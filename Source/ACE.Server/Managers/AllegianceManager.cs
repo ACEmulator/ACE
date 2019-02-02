@@ -293,6 +293,10 @@ namespace ACE.Server.Managers
             Rebuild(allegiance);
 
             LoadPlayer(vassal);
+
+            // maintain approved vassals list
+            if (allegiance.ApprovedVassals.Contains(vassal.Guid))
+                allegiance.ApprovedVassals.Remove(vassal.Guid);
         }
 
         /// <summary>
