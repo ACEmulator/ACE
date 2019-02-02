@@ -51,6 +51,10 @@ namespace ACE.Server.WorldObjects
         {
             if (!IsPledgable(targetGuid)) return;
 
+            // handle special case: monarch swearing into another allegiance
+            if (Allegiance != null && Allegiance.MonarchId == Guid.Full)
+                HandleMonarchSwear();
+
             var patron = PlayerManager.GetOnlinePlayer(targetGuid);
 
             PatronId = targetGuid;
@@ -78,6 +82,21 @@ namespace ACE.Server.WorldObjects
 
             // refresh ui panel
             Session.Network.EnqueueSend(new GameEventAllegianceUpdate(Session, Allegiance, AllegianceNode), new GameEventAllegianceAllegianceUpdateDone(Session));
+        }
+
+
+        /// <summary>
+        /// Handle monarch swearing into another allegiance
+        /// </summary>
+        public void HandleMonarchSwear()
+        {
+            // TODO: allegiance officers should probably be stored in their own table
+            foreach (var kvp in Allegiance.Officers)
+            {
+                var officer = PlayerManager.FindByGuid(kvp.Key);
+                if (officer != null)
+                    officer.AllegianceOfficerRank = null;
+            }
         }
 
         /// <summary>
