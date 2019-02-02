@@ -1,5 +1,13 @@
 # ACEmulator Change Log
 
+### 2019-02-02
+[fartwhif]
+* Changing configuration file format to JavaScript instead of JSON for the ability to embed comments.
+  - Backwards compatible
+  - ACE.Server project pre-build renames Config.json to Config.js when needed, but if that never happens it's still OK and falls back to the old filename.
+  - DouglasCrockford.JsMin Nuget package added to ACE.Common project
+* Changed startup batch files to determine what the current directory should be and change to it before starting ACE
+
 ### 2019-02-01
 [fartwhif]
 * Added ACE.WebApi project for use with websites and character transfers

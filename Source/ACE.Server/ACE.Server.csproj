@@ -9,7 +9,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Config.json" />
     <None Remove="starterGear.json" />
   </ItemGroup>
 
@@ -40,7 +39,7 @@
   </ItemGroup>
 
   <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
-    <Exec Command="copy &quot;$(ProjectDir)Config.json&quot; &quot;$(TargetDir)Config.json&quot;" />
+    <Exec Command="if not exist &quot;$(ProjectDir)Config.js&quot; if exist &quot;$(ProjectDir)Config.json&quot; move &quot;$(ProjectDir)Config.json&quot; &quot;$(ProjectDir)Config.js&quot;&#xD;&#xA;copy &quot;$(ProjectDir)Config.js&quot; &quot;$(TargetDir)Config.js&quot;" />
   </Target>
 
 </Project>
