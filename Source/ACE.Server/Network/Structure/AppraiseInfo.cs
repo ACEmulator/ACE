@@ -104,13 +104,13 @@ namespace ACE.Server.Network.Structure
 
                     if (!PropertiesInt.ContainsKey(PropertyInt.AppraisalLockpickSuccessPercent))
                         PropertiesInt.Add(PropertyInt.AppraisalLockpickSuccessPercent, (int)lockpickSuccessPercent);
-                }
+                }                
+            }
 
-                if (wo is Portal)
-                {
-                    if (PropertiesInt.ContainsKey(PropertyInt.EncumbranceVal))
-                        PropertiesInt.Remove(PropertyInt.EncumbranceVal);
-                }
+            if (wo is Portal)
+            {
+                if (PropertiesInt.ContainsKey(PropertyInt.EncumbranceVal))
+                    PropertiesInt.Remove(PropertyInt.EncumbranceVal);
             }
 
             BuildFlags();
