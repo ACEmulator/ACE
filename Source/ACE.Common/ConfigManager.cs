@@ -30,7 +30,8 @@ namespace ACE.Common
             {
                 if (!File.Exists(fpNew) && File.Exists(fpOld))
                 {
-                    fpChoice = fpOld;
+                    File.Move(fpOld, fpNew);
+                    fpChoice = fpNew;
                 }
                 else if (File.Exists(fpNew))
                 {
