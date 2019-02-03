@@ -215,7 +215,7 @@ namespace ACE.Database
         {
             if (BiotaContexts.TryGetValue(biota, out var cachedContext))
             {
-                rwLock.EnterWriteLock();
+                rwLock.EnterReadLock();
                 try
                 {
                     SetBiotaPopulatedCollections(biota);
@@ -234,7 +234,7 @@ namespace ACE.Database
                 }
                 finally
                 {
-                    rwLock.ExitWriteLock();
+                    rwLock.ExitReadLock();
                 }
             }
 
@@ -242,7 +242,7 @@ namespace ACE.Database
 
             BiotaContexts.Add(biota, context);
 
-            rwLock.EnterWriteLock();
+            rwLock.EnterReadLock();
             try
             {
                 SetBiotaPopulatedCollections(biota);
@@ -263,7 +263,7 @@ namespace ACE.Database
             }
             finally
             {
-                rwLock.ExitWriteLock();
+                rwLock.ExitReadLock();
             }
         }
 
@@ -286,7 +286,7 @@ namespace ACE.Database
             {
                 BiotaContexts.Remove(biota);
 
-                rwLock.EnterWriteLock();
+                rwLock.EnterReadLock();
                 try
                 {
                     cachedContext.Biota.Remove(biota);
@@ -305,7 +305,7 @@ namespace ACE.Database
                 }
                 finally
                 {
-                    rwLock.ExitWriteLock();
+                    rwLock.ExitReadLock();
                 }
             }
 
@@ -570,7 +570,7 @@ namespace ACE.Database
         {
             if (CharacterContexts.TryGetValue(character, out var cachedContext))
             {
-                rwLock.EnterWriteLock();
+                rwLock.EnterReadLock();
                 try
                 {
                     try
@@ -587,7 +587,7 @@ namespace ACE.Database
                 }
                 finally
                 {
-                    rwLock.ExitWriteLock();
+                    rwLock.ExitReadLock();
                 }
             }
 
@@ -595,7 +595,7 @@ namespace ACE.Database
 
             CharacterContexts.Add(character, context);
 
-            rwLock.EnterWriteLock();
+            rwLock.EnterReadLock();
             try
             {
                 context.Character.Add(character);
@@ -614,7 +614,7 @@ namespace ACE.Database
             }
             finally
             {
-                rwLock.ExitWriteLock();
+                rwLock.ExitReadLock();
             }
         }
 
