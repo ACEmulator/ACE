@@ -401,8 +401,8 @@ namespace ACE.Server.Managers
             playersLock.EnterReadLock();
             try
             {
-                onlinePlayersResult = onlinePlayers.Values.Where(p => p.Monarch == monarch.Full);
-                offlinePlayersResult = offlinePlayers.Values.Where(p => p.Monarch == monarch.Full);
+                onlinePlayersResult = onlinePlayers.Values.Where(p => p.MonarchId == monarch.Full);
+                offlinePlayersResult = offlinePlayers.Values.Where(p => p.MonarchId == monarch.Full);
             }
             finally
             {

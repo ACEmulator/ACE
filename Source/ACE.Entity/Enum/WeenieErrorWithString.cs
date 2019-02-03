@@ -24,7 +24,7 @@ namespace ACE.Entity.Enum
         _CannotCarryAnymore = 0x002B,
 
         /// <summary>
-        /// You fail to affect  because you cannot affect anyone!
+        /// You fail to affect _ because you cannot affect anyone!
         /// </summary>
         YouFailToAffect_YouCannotAffectAnyone = 0x004E,
 

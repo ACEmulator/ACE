@@ -247,7 +247,7 @@ namespace ACE.Server.Network.GameAction.Actions
                             break;
                         }
 
-                        if (!session.Player.Patron.HasValue)
+                        if (!session.Player.PatronId.HasValue)
                         {
                             var statusMessage = new GameEventWeenieError(session, WeenieError.YouCantUseThatChannel);
                             session.Network.EnqueueSend(statusMessage);
@@ -271,7 +271,7 @@ namespace ACE.Server.Network.GameAction.Actions
                             break;
                         }
 
-                        if (!session.Player.Monarch.HasValue)
+                        if (!session.Player.MonarchId.HasValue)
                         {
                             var statusMessage = new GameEventWeenieError(session, WeenieError.YouCantUseThatChannel);
                             session.Network.EnqueueSend(statusMessage);
@@ -281,7 +281,7 @@ namespace ACE.Server.Network.GameAction.Actions
                         var monarchPlayer = PlayerManager.GetOnlinePlayer(session.Player.AllegianceNode.Monarch.PlayerGuid);
 
                         if (monarchPlayer != null)
-                            monarchPlayer.Session.Network.EnqueueSend(new GameEventChannelBroadcast(monarchPlayer.Session, Channel.Patron, session.Player.Name, message));
+                            monarchPlayer.Session.Network.EnqueueSend(new GameEventChannelBroadcast(monarchPlayer.Session, Channel.Monarch, session.Player.Name, message));
 
                         session.Network.EnqueueSend(new GameEventChannelBroadcast(session, groupChatType, "", message));
                     }
@@ -295,7 +295,7 @@ namespace ACE.Server.Network.GameAction.Actions
                             break;
                         }
 
-                        if (!session.Player.Patron.HasValue)
+                        if (!session.Player.PatronId.HasValue)
                         {
                             var statusMessage = new GameEventWeenieError(session, WeenieError.YouCantUseThatChannel);
                             session.Network.EnqueueSend(statusMessage);
@@ -325,9 +325,31 @@ namespace ACE.Server.Network.GameAction.Actions
                     break;
                 case Channel.AllegianceBroadcast:
                     {
-                        // The client knows if we're in an allegiance or not, and will throw an error to the user if they try to /a, and no message will be dispatched to the server.
-                        // 
-                        ChatPacket.SendServerMessage(session, "GameActionChatChannel AllegianceBroadcast Needs work.", ChatMessageType.Broadcast);
+                        // The client knows if we're in an allegiance or not, and will throw an error to the user if they try to /ab, and no message will be dispatched to the server.
+                        // Check anyway
+                        var player = session.Player;
+                        if (player.Allegiance == null)
+                        {
+                            session.Network.EnqueueSend(new GameEventWeenieError(session, WeenieError.YouAreNotInAllegiance));
+                            break;
+                        }
+
+                        if (player.AllegiancePermissionLevel < AllegiancePermissionLevel.Speaker)
+                        {
+                            session.Network.EnqueueSend(new GameEventWeenieError(session, WeenieError.YouDoNotHaveAuthorityInAllegiance));
+                            break;
+                        }
+
+                        // iterate through all allegiance members
+                        foreach (var member in player.Allegiance.Members.Keys)
+                        {
+                            // is this allegiance member online?
+                            var online = PlayerManager.GetOnlinePlayer(member);
+                            if (online == null)
+                                continue;
+
+                            online.Session.Network.EnqueueSend(new GameEventChannelBroadcast(online.Session, groupChatType, session.Player.Name, message));
+                        }
                     }
                     break;
                 default:

@@ -658,5 +658,18 @@ namespace ACE.Database
 
             return biotas.ToList();
         }
+
+        public uint? GetAllegianceID(uint monarchID)
+        {
+            using (var context = new ShardDbContext())
+            {
+                var query = from biota in context.Biota
+                            join iid in context.BiotaPropertiesIID on biota.Id equals iid.ObjectId
+                            where biota.WeenieType == (int)WeenieType.Allegiance && iid.Type == (int)PropertyInstanceId.Monarch && iid.Value == monarchID
+                            select biota.Id;
+
+                return query.FirstOrDefault();
+            }
+        }
     }
 }

@@ -1,6 +1,7 @@
 using System;
 using ACE.Server.Network.Structure;
 using ACE.Server.Entity;
+using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Network.GameEvent.Events
 {

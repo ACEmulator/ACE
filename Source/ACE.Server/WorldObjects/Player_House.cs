@@ -56,6 +56,12 @@ namespace ACE.Server.WorldObjects
         {
             Console.WriteLine($"\n{Name}.HandleActionAbandonHouse()");
 
+            if (House == null)
+            {
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouMustOwnHouseToUseCommand));
+                return;
+            }
+
             var house = GetHouse();
             if (house != null)
             {
@@ -123,6 +129,9 @@ namespace ACE.Server.WorldObjects
             // set house data
             //var house = new HouseData();
             HandleActionQueryHouse();
+
+            // boot anyone who may have been wandering around inside...
+            HandleActionBootAll(false);
         }
 
         /// <summary>
@@ -362,12 +371,19 @@ namespace ACE.Server.WorldObjects
         {
             house.Guests = House.Guests;
             house.OpenStatus = House.OpenStatus;
+
+            house.MonarchId = House.MonarchId;
         }
 
 
         public void HandleActionAddGuest(string guestName)
         {
             //Console.WriteLine($"{Name}.HandleActionAddGuest({guestName})");
+            if (House == null)
+            {
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouMustOwnHouseToUseCommand));
+                return;
+            }
 
             var guest = PlayerManager.FindByName(guestName, out bool isOnline);
 
@@ -410,6 +426,11 @@ namespace ACE.Server.WorldObjects
         public void HandleActionRemoveGuest(string guestName)
         {
             //Console.WriteLine($"{Name}.HandleActionRemoveGuest({guestName})");
+            if (House == null)
+            {
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouMustOwnHouseToUseCommand));
+                return;
+            }
 
             var guest = PlayerManager.FindByName(guestName, out bool isOnline);
 
@@ -451,6 +472,11 @@ namespace ACE.Server.WorldObjects
         public void HandleActionRemoveAllGuests()
         {
             //Console.WriteLine($"{Name}.HandleActionRemoveAllGuests()");
+            if (House == null)
+            {
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouMustOwnHouseToUseCommand));
+                return;
+            }
 
             if (Guests.Count == 0)
             {
@@ -468,6 +494,11 @@ namespace ACE.Server.WorldObjects
         public void HandleActionGuestList()
         {
             //Console.WriteLine($"{Name}.HandleActionGuestList()");
+            if (House == null)
+            {
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouMustOwnHouseToUseCommand));
+                return;
+            }
 
             if (Guests.Count == 0)
             {
@@ -479,8 +510,12 @@ namespace ACE.Server.WorldObjects
             foreach (var kvp in Guests)
             {
                 var guest = PlayerManager.FindByGuid(kvp.Key);
+                var guestName = guest.Name;
+                if (House.MonarchId != null && guest.Guid.Full == House.MonarchId)
+                    guestName += "'s Allegiance";
+
                 var storage = kvp.Value ? "* " : "";
-                sb.Append(storage + guest.Name + "\n");
+                sb.Append(storage + guestName + "\n");
             }
 
             Session.Network.EnqueueSend(new GameMessageSystemChat(sb.ToString(), ChatMessageType.Broadcast));
@@ -490,6 +525,11 @@ namespace ACE.Server.WorldObjects
         public void HandleActionSetOpenStatus(bool openStatus)
         {
             //Console.WriteLine($"{Name}.HandleActionSetOpenStatus({openStatus})");
+            if (House == null)
+            {
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouMustOwnHouseToUseCommand));
+                return;
+            }
 
             if (openStatus == House.OpenStatus)
             {
@@ -520,6 +560,11 @@ namespace ACE.Server.WorldObjects
         public void HandleActionSetHooksVisible(bool visible)
         {
             //Console.WriteLine($"{Name}.HandleActionSetHooksVisible({visible})");
+            if (House == null)
+            {
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouMustOwnHouseToUseCommand));
+                return;
+            }
 
             var visibleStr = visible ? "visible" : "invisible";
             Session.Network.EnqueueSend(new GameMessageSystemChat($"Your hooks are set to {visibleStr}.", ChatMessageType.Broadcast));
@@ -560,6 +605,11 @@ namespace ACE.Server.WorldObjects
         public void HandleActionModifyStorage(string guestName, bool hasPermission)
         {
             //Console.WriteLine($"{Name}.HandleActionModifyStorage({guestName}, {hasPermission})");
+            if (House == null)
+            {
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouMustOwnHouseToUseCommand));
+                return;
+            }
 
             var storage = PlayerManager.FindByName(guestName, out bool isOnline);
 
@@ -634,6 +684,11 @@ namespace ACE.Server.WorldObjects
         public void HandleActionAllStorage()
         {
             //Console.WriteLine($"{Name}.HandleActionAllStorage()");
+            if (House == null)
+            {
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouMustOwnHouseToUseCommand));
+                return;
+            }
 
             if (Guests.Count == 0)
             {
@@ -659,6 +714,11 @@ namespace ACE.Server.WorldObjects
         public void HandleActionRemoveAllStorage()
         {
             //Console.WriteLine($"{Name}.HandleActionRemoveAllStorage()");
+            if (House == null)
+            {
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouMustOwnHouseToUseCommand));
+                return;
+            }
 
             if (Guests.Count == 0)
             {
@@ -684,6 +744,11 @@ namespace ACE.Server.WorldObjects
         public void HandleActionBoot(string playerName)
         {
             //Console.WriteLine($"{Name}.HandleActionBoot({playerName})");
+            if (House == null)
+            {
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouMustOwnHouseToUseCommand));
+                return;
+            }
 
             var player = PlayerManager.GetOnlinePlayer(playerName);
 
@@ -711,6 +776,11 @@ namespace ACE.Server.WorldObjects
         public void HandleActionBootAll(bool guests = true)
         {
             //Console.WriteLine($"{Name}.HandleActionBootAll()");
+            if (House == null)
+            {
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouMustOwnHouseToUseCommand));
+                return;
+            }
 
             // since it can be an open house, the guest list wouldn't be enough here?
             var players = PlayerManager.GetAllOnline();
@@ -808,6 +878,352 @@ namespace ACE.Server.WorldObjects
             var nearbyPlayers = house.PhysicsObj.ObjMaint.VoyeurTable.Values.Select(v => (Player)v.WeenieObj.WorldObject).ToList();
             foreach (var player in nearbyPlayers)
                 player.Session.Network.EnqueueSend(new GameEventHouseUpdateRestrictions(player.Session, house.Guid, restrictions, HouseSequence));
+        }
+
+        public void HandleActionModifyAllegianceGuestPermission(bool add)
+        {
+            //Console.WriteLine($"{Name}.HandleActionModifyAllegianceGuestPermission({add})");
+            if (House == null)
+            {
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouMustOwnHouseToUseCommand));
+                return;
+            }
+
+            // check if player is in an allegiance
+            if (Allegiance == null)
+            {
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouAreNotInAllegiance));
+                return;
+            }
+
+            //var house = GetHouse();
+
+            if (add)
+            {
+                if (House.MonarchId != null)
+                {
+                    Session.Network.EnqueueSend(new GameMessageSystemChat($"The monarchy already has access to your dwelling.", ChatMessageType.Broadcast));
+                    return;
+                }
+
+                if (Guests.Count == House.MaxGuests)
+                {
+                    Session.Network.EnqueueSend(new GameMessageSystemChat($"Your guest list has already reached the maximum limit ({House.MaxGuests})", ChatMessageType.Broadcast));
+                    return;
+                }
+
+                House.MonarchId = Allegiance.MonarchId;
+
+                if (!Guests.ContainsKey(Allegiance.Monarch.PlayerGuid))
+                    AddHouseGuest(Allegiance.Monarch.Player, false);
+                else
+                    ModifyHouseGuest(Allegiance.Monarch.Player, false);     // handle case: the monarch already has guest/storage access already, now adding allegiance
+
+                Session.Network.EnqueueSend(new GameMessageSystemChat($"You have granted your monarchy access to your dwelling.", ChatMessageType.Broadcast));
+            }
+            else
+            {
+                if (House.MonarchId == null)
+                {
+                    Session.Network.EnqueueSend(new GameMessageSystemChat($"The monarchy did not have access to your dwelling.", ChatMessageType.Broadcast));
+                    return;
+                }
+
+                House.MonarchId = null;
+
+                RemoveHouseGuest(Allegiance.Monarch.Player);
+
+                HandleActionBootAll(false);     // boot anyone who doesn't have guest access
+
+                Session.Network.EnqueueSend(new GameMessageSystemChat($"You have revoked access to your dwelling to your monarchy.", ChatMessageType.Broadcast));
+            }
+        }
+
+        public void HandleActionModifyAllegianceStoragePermission(bool add)
+        {
+            //Console.WriteLine($"{Name}.HandleActionModifyAllegianceStoragePermission({add})");
+            if (House == null)
+            {
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouMustOwnHouseToUseCommand));
+                return;
+            }
+
+            // check if player is in an allegiance
+            if (Allegiance == null)
+            {
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouAreNotInAllegiance));
+                return;
+            }
+
+            //var house = GetHouse();
+
+            if (add)
+            {
+                if (House.MonarchId != null && Guests.TryGetValue(new ObjectGuid(House.MonarchId.Value), out bool storage) && storage)
+                {
+                    Session.Network.EnqueueSend(new GameMessageSystemChat($"The monarchy already has storage access in your dwelling.", ChatMessageType.Broadcast));
+                    return;
+                }
+
+                if (House.MonarchId == null && Guests.Count == House.MaxGuests)
+                {
+                    Session.Network.EnqueueSend(new GameMessageSystemChat($"Your guest list has already reached the maximum limit ({House.MaxGuests})", ChatMessageType.Broadcast));
+                    return;
+                }
+
+                House.MonarchId = Allegiance.MonarchId;
+
+                if (!Guests.ContainsKey(Allegiance.Monarch.PlayerGuid))
+                    AddHouseGuest(Allegiance.Monarch.Player, true);
+                else
+                    ModifyHouseGuest(Allegiance.Monarch.Player, true);     // handle case: the monarch already has guest/storage access already, now adding allegiance
+
+                Session.Network.EnqueueSend(new GameMessageSystemChat($"You have granted your monarchy access to your storage.", ChatMessageType.Broadcast));
+            }
+            else
+            {
+                if (House.MonarchId == null || Guests.TryGetValue(new ObjectGuid(House.MonarchId.Value), out bool storage) && !storage)
+                {
+                    Session.Network.EnqueueSend(new GameMessageSystemChat($"The monarchy did not have storage access to your dwelling.", ChatMessageType.Broadcast));
+                    return;
+                }
+
+                // downgrade to guest access
+                ModifyHouseGuest(Allegiance.Monarch.Player, false);
+
+                Session.Network.EnqueueSend(new GameMessageSystemChat($"You have revoked storage access to your monarchy.", ChatMessageType.Broadcast));
+            }
+        }
+
+        // TODO: clean up this royal mess below here...
+
+        public void HandleActionDoAllegianceHouseAction(AllegianceHouseAction action)
+        {
+            Console.WriteLine($"{Name}.DoAllegianceHouseAction({action})");
+
+            if (Allegiance == null)
+            {
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouAreNotInAllegiance));
+                return;
+            }
+
+            if (AllegiancePermissionLevel < AllegiancePermissionLevel.Castellan)
+            {
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouDoNotHaveAuthorityInAllegiance));
+                return;
+            }
+
+            var allegianceHouse = Allegiance.GetHouse();
+
+            if (allegianceHouse == null)
+            {
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YourMonarchDoesNotOwnAMansionOrVilla));
+                return;
+            }
+
+            if (allegianceHouse.HouseType < ACE.Entity.Enum.HouseType.Villa)
+            {
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YourMonarchsHouseIsNotAMansionOrVilla));
+                return;
+            }
+
+            if (action == AllegianceHouseAction.Help)
+            {
+                var help = "Note: You may substitute a forward slash(/) for the at symbol(@).\n" +
+                           "@allegiance house guest open - Adds your allegiance to the allegiance house guest list.\n" +
+                           "@allegiance house guest close - Removes your allegiance from the allegiance house guest list.\n" +
+                           "@allegiance house storage open - Adds your allegiance to the allegiance house storage list.\n" +
+                           "@allegiance house storage close - Removes your allegiance from the allegiance house storage list.";
+
+                var status = "";
+                if (allegianceHouse.MonarchId == null)
+                    status = "\nYour monarchy currently does not have guest or storage access to allegiance housing.";
+                else
+                {
+                    allegianceHouse.Guests.TryGetValue(Allegiance.Monarch.PlayerGuid, out bool storage);
+                    if (!storage)
+                        status = "\nYour monarchy currently has guest access to allegiance housing.";
+                    else
+                        status = "\nYour monarchy currently has guest and storage access to allegiance housing.";
+                }
+
+                Session.Network.EnqueueSend(new GameMessageSystemChat(help + status, ChatMessageType.Broadcast));
+                return;
+            }
+
+            switch (action)
+            {
+                case AllegianceHouseAction.GuestOpen:
+                    HandleActionDoAllegianceHouseAction_GuestOpen(allegianceHouse);
+                    break;
+
+                case AllegianceHouseAction.GuestClose:
+                    HandleActionDoAllegianceHouseAction_GuestClose(allegianceHouse);
+                    break;
+
+                case AllegianceHouseAction.StorageOpen:
+                    HandleActionDoAllegianceHouseAction_StorageOpen(allegianceHouse);
+                    break;
+
+                case AllegianceHouseAction.StorageClose:
+                    HandleActionDoAllegianceHouseAction_StorageClose(allegianceHouse);
+                    break;
+            }
+        }
+
+        public void HandleActionDoAllegianceHouseAction_GuestOpen(House allegianceHouse)
+        {
+            if (allegianceHouse.MonarchId != null)
+            {
+                Session.Network.EnqueueSend(new GameMessageSystemChat($"The monarchy already has access to the allegiance dwelling.", ChatMessageType.Broadcast));
+                return;
+            }
+
+            if (allegianceHouse.Guests.Count == House.MaxGuests)
+            {
+                Session.Network.EnqueueSend(new GameMessageSystemChat($"The allegiance house guest list has already reached the maximum limit ({House.MaxGuests})", ChatMessageType.Broadcast));
+                return;
+            }
+
+            allegianceHouse.MonarchId = Allegiance.MonarchId;
+
+            // AddHouseGuest
+            allegianceHouse.AddGuest(Allegiance.Monarch.Player, false);
+            allegianceHouse.Guests.Add(Allegiance.Monarch.PlayerGuid, false);
+            UpdateRestrictionDB_AllegianceHouse(allegianceHouse);
+            allegianceHouse.SaveBiotaToDatabase();  // in case it's offline...
+
+            Session.Network.EnqueueSend(new GameMessageSystemChat($"You have granted your monarchy access to the allegiance dwelling.", ChatMessageType.Broadcast));
+        }
+
+        public void HandleActionDoAllegianceHouseAction_GuestClose(House allegianceHouse)
+        {
+            if (allegianceHouse.MonarchId == null)
+            {
+                Session.Network.EnqueueSend(new GameMessageSystemChat($"The monarchy already does not have access to the allegiance dwelling.", ChatMessageType.Broadcast));
+                return;
+            }
+
+            allegianceHouse.MonarchId = null;
+
+            // RemoveHouseGuest
+            allegianceHouse.RemoveGuest(Allegiance.Monarch.Player);
+            allegianceHouse.Guests.Remove(Allegiance.Monarch.PlayerGuid);
+            UpdateRestrictionDB_AllegianceHouse(allegianceHouse);
+            allegianceHouse.SaveBiotaToDatabase();  // in case it's offline...
+
+            // too bad i guess?
+            //HandleActionBootAll(false);     // boot anyone who doesn't have guest access
+
+            Session.Network.EnqueueSend(new GameMessageSystemChat($"You have revoked allegiance access to the allegiance dwelling.", ChatMessageType.Broadcast));
+        }
+
+        public void HandleActionDoAllegianceHouseAction_StorageOpen(House allegianceHouse)
+        {
+            if (allegianceHouse.MonarchId != null && allegianceHouse.Guests.TryGetValue(new ObjectGuid(allegianceHouse.MonarchId.Value), out bool storage) && storage)
+            {
+                Session.Network.EnqueueSend(new GameMessageSystemChat($"The monarchy already has storage access in the allegiance dwelling.", ChatMessageType.Broadcast));
+                return;
+            }
+
+            if (allegianceHouse.MonarchId == null && allegianceHouse.Guests.Count == House.MaxGuests)
+            {
+                Session.Network.EnqueueSend(new GameMessageSystemChat($"Your allegiance house guest list has already reached the maximum limit ({House.MaxGuests})", ChatMessageType.Broadcast));
+                return;
+            }
+
+            allegianceHouse.MonarchId = Allegiance.MonarchId;
+
+            // AddHouseGuest
+            if (!allegianceHouse.Guests.ContainsKey(Allegiance.Monarch.PlayerGuid))
+            {
+                allegianceHouse.AddGuest(Allegiance.Monarch.Player, true);
+                allegianceHouse.Guests.Add(Allegiance.Monarch.PlayerGuid, true);
+            }
+            else
+            {
+                // handle guest -> storage access upgrade
+                allegianceHouse.UpdateGuest(Allegiance.Monarch.Player, true);
+                allegianceHouse.Guests[Allegiance.Monarch.PlayerGuid] = true;   
+            }
+
+            UpdateRestrictionDB_AllegianceHouse(allegianceHouse);
+            allegianceHouse.SaveBiotaToDatabase();  // in case it's offline...
+
+            Session.Network.EnqueueSend(new GameMessageSystemChat($"You have granted your monarchy access to allegiance storage.", ChatMessageType.Broadcast));
+        }
+
+        public void HandleActionDoAllegianceHouseAction_StorageClose(House allegianceHouse)
+        {
+            if (allegianceHouse.MonarchId == null || allegianceHouse.Guests.TryGetValue(new ObjectGuid(allegianceHouse.MonarchId.Value), out bool storage) && !storage)
+            {
+                Session.Network.EnqueueSend(new GameMessageSystemChat($"The monarchy already does not have storage access to the allegiance dwelling.", ChatMessageType.Broadcast));
+                return;
+            }
+
+            // ModifyHouseGuest - downgrade to guest access
+            allegianceHouse.UpdateGuest(Allegiance.Monarch.Player, false);
+            allegianceHouse.Guests[Allegiance.Monarch.PlayerGuid] = false;
+
+            UpdateRestrictionDB_AllegianceHouse(allegianceHouse);
+            allegianceHouse.SaveBiotaToDatabase();  // in case it's offline...
+
+            Session.Network.EnqueueSend(new GameMessageSystemChat($"You have revoked your monarchy's access to the allegiance housing storage.", ChatMessageType.Broadcast));
+
+        }
+
+        public void UpdateRestrictionDB_AllegianceHouse(House allegianceHouse)
+        {
+            var restrictions = new RestrictionDB(allegianceHouse);
+
+            // update house
+            if (allegianceHouse.PhysicsObj != null)
+                UpdateRestrictionDB_AllegianceHouse(restrictions, allegianceHouse, allegianceHouse);
+
+            // for mansions, update the linked houses
+            foreach (var linkedHouse in allegianceHouse.LinkedHouses)
+                UpdateRestrictionDB_AllegianceHouse(restrictions, linkedHouse, allegianceHouse);
+
+            // update house dungeon
+            if (allegianceHouse.HasDungeon)
+            {
+                var dungeonHouse = GetDungeonHouse_AllegianceHouse(allegianceHouse);
+                if (dungeonHouse == null || dungeonHouse.PhysicsObj == null) return;
+
+                UpdateRestrictionDB_AllegianceHouse(restrictions, dungeonHouse, allegianceHouse);
+            }
+        }
+
+        public void UpdateRestrictionDB_AllegianceHouse(RestrictionDB restrictions, House house, House allegianceHouse)
+        {
+            HouseSequence++;    // ??
+
+            Sync_AllegianceHouse(house, allegianceHouse);
+
+            var nearbyPlayers = house.PhysicsObj.ObjMaint.VoyeurTable.Values.Select(v => (Player)v.WeenieObj.WorldObject).ToList();
+            foreach (var player in nearbyPlayers)
+                player.Session.Network.EnqueueSend(new GameEventHouseUpdateRestrictions(player.Session, house.Guid, restrictions, HouseSequence));
+        }
+
+        public House GetDungeonHouse_AllegianceHouse(House allegianceHouse)
+        {
+            var landblockId = new LandblockId(allegianceHouse.DungeonLandblockID);
+            var isLoaded = LandblockManager.IsLoaded(landblockId);
+
+            if (!isLoaded)
+                return null;
+
+            var loaded = LandblockManager.GetLandblock(landblockId, false);
+            var wos = loaded.GetWorldObjectsForPhysicsHandling();
+            return wos.FirstOrDefault(wo => wo.WeenieClassId == allegianceHouse.WeenieClassId) as House;
+        }
+
+        public void Sync_AllegianceHouse(House house, House allegianceHouse)
+        {
+            house.Guests = allegianceHouse.Guests;
+            house.OpenStatus = allegianceHouse.OpenStatus;
+
+            house.MonarchId = allegianceHouse.MonarchId;
         }
     }
 }

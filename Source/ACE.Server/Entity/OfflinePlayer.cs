@@ -6,6 +6,7 @@ using ACE.Database;
 using ACE.Database.Models.Shard;
 using ACE.Entity;
 using ACE.Entity.Enum.Properties;
+using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Entity
 {
@@ -280,13 +281,13 @@ namespace ACE.Server.Entity
         public int? Gender => GetProperty(PropertyInt.Gender);
 
 
-        public uint? Monarch
+        public uint? MonarchId
         {
             get => GetProperty(PropertyInstanceId.Monarch);
             set { if (!value.HasValue) RemoveProperty(PropertyInstanceId.Monarch); else SetProperty(PropertyInstanceId.Monarch, value.Value); }
         }
 
-        public uint? Patron
+        public uint? PatronId
         {
             get => GetProperty(PropertyInstanceId.Patron);
             set { if (!value.HasValue) RemoveProperty(PropertyInstanceId.Patron); else SetProperty(PropertyInstanceId.Patron, value.Value); }
@@ -302,6 +303,21 @@ namespace ACE.Server.Entity
         {
             get => (ulong)(GetProperty(PropertyInt64.AllegianceXPGenerated) ?? 0);
             set { if (value == 0) RemoveProperty(PropertyInt64.AllegianceXPGenerated); else SetProperty(PropertyInt64.AllegianceXPGenerated, (long)value); }
+        }
+
+        public int? AllegianceOfficerRank
+        {
+            get => GetProperty(PropertyInt.AllegianceOfficerRank);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.AllegianceOfficerRank); else SetProperty(PropertyInt.AllegianceOfficerRank, value.Value); }
+        }
+
+        /// <summary>
+        /// Used for allegiance recall to monarch's mansion / villa
+        /// </summary>
+        public uint? HouseInstance
+        {
+            get => GetProperty(PropertyInstanceId.House);
+            set { if (!value.HasValue) RemoveProperty(PropertyInstanceId.House); else SetProperty(PropertyInstanceId.House, value.Value); }
         }
 
 

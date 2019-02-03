@@ -187,7 +187,7 @@ namespace ACE.Server.WorldObjects
                 writer.Write((uint?)HookItemType ?? 0);
 
             if ((weenieFlags & WeenieHeaderFlag.Monarch) != 0)
-                writer.Write(Monarch ?? 0);
+                writer.Write(MonarchId ?? 0);
 
             if ((weenieFlags & WeenieHeaderFlag.HookType) != 0)
                 writer.Write(HookType ?? 0);
@@ -755,7 +755,7 @@ namespace ACE.Server.WorldObjects
             if (hookItemTypeInt != null)
                 weenieHeaderFlag |= WeenieHeaderFlag.HookItemTypes;
 
-            if (Monarch != null)
+            if (MonarchId != null)
                 weenieHeaderFlag |= WeenieHeaderFlag.Monarch;
 
             if (HookType != null)

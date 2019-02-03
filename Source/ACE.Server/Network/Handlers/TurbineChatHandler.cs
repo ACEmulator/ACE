@@ -48,10 +48,33 @@ namespace ACE.Server.Network.Handlers
 
                 var gameMessageTurbineChat = new GameMessageTurbineChat(TurbineChatType.InboundMessage, channelID, session.Player.Name, message, senderID);
 
-                foreach (var recipient in PlayerManager.GetAllOnline())
+                var allegiance = AllegianceManager.FindAllegiance(channelID);
+                if (allegiance != null)
                 {
-                    // TODO This should check if the recipient is subscribed to the channel
-                    recipient.Session.Network.EnqueueSend(gameMessageTurbineChat);
+                    // is sender booted / gagged?
+                    if (allegiance.IsFiltered(session.Player.Guid)) return;
+
+                    // iterate through all allegiance members
+                    foreach (var member in allegiance.Members.Keys)
+                    {
+                        // is this allegiance member online?
+                        var online = PlayerManager.GetOnlinePlayer(member);
+                        if (online == null)
+                            continue;
+
+                        // is this member booted / gagged?
+                        if (allegiance.IsFiltered(member)) continue;
+
+                        online.Session.Network.EnqueueSend(gameMessageTurbineChat);
+                    }
+                }
+                else
+                {
+                    foreach (var recipient in PlayerManager.GetAllOnline())
+                    {
+                        // TODO This should check if the recipient is subscribed to the channel
+                        recipient.Session.Network.EnqueueSend(gameMessageTurbineChat);
+                    }
                 }
             }
             else

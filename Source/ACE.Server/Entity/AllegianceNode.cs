@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using ACE.Entity;
 using ACE.Server.Managers;
+using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Entity
 {
@@ -48,7 +49,7 @@ namespace ACE.Server.Entity
 
         public void BuildChain(Allegiance allegiance, List<IPlayer> players)
         {
-            var vassals = players.Where(p => p.Patron == PlayerGuid.Full).ToList();
+            var vassals = players.Where(p => p.PatronId == PlayerGuid.Full).ToList();
 
             Vassals = new List<AllegianceNode>();
 

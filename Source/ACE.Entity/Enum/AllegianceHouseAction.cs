@@ -3,12 +3,14 @@ namespace ACE.Entity.Enum
     /// <summary>
     /// Actions related to /allegiance house
     /// </summary>
-    public enum AllegianceHouseAction
+    public enum AllegianceHouseAction: uint
     {
+        Undef         = 0,
         Help          = 1,
+        CheckStatus   = 1,  // client naming
         GuestOpen     = 2,
-        GuestClosed   = 3,
+        GuestClose    = 3,
         StorageOpen   = 4,
-        StorageClosed = 5
+        StorageClose  = 5
     }
 }

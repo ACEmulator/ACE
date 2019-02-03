@@ -35,7 +35,9 @@ namespace ACE.Server.WorldObjects
             SendSelf();
 
             // Init the client with the chat channel ID's, and then notify the player that they've choined the associated channels.
-            var setTurbineChatChannels = new GameEventSetTurbineChatChannels(Session, 0, 1, 2, 3, 4, 6, 7, 0, 0, 0); // TODO these are hardcoded right now
+            var allegianceChannel = Allegiance != null ? Allegiance.Biota.Id : 0u;
+
+            var setTurbineChatChannels = new GameEventSetTurbineChatChannels(Session, allegianceChannel, 1, 2, 3, 4, 6, 7, 0, 0, 0); // TODO these are hardcoded right now
             var general = new GameEventWeenieErrorWithString(Session, WeenieErrorWithString.YouHaveEnteredThe_Channel, "General");
             var trade = new GameEventWeenieErrorWithString(Session, WeenieErrorWithString.YouHaveEnteredThe_Channel, "Trade");
             var lfg = new GameEventWeenieErrorWithString(Session, WeenieErrorWithString.YouHaveEnteredThe_Channel, "LFG");
@@ -43,7 +45,7 @@ namespace ACE.Server.WorldObjects
             Session.Network.EnqueueSend(setTurbineChatChannels, general, trade, lfg, roleplay);
 
             // check if vassals earned XP while offline
-            AddAllegianceXP(true);
+            HandleAllegianceOnLogin();
 
             HandleDBUpdates();
         }

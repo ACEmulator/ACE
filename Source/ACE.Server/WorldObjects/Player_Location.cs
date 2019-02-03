@@ -43,7 +43,7 @@ namespace ACE.Server.WorldObjects
 
         public void HandleActionTeleToHouse()
         {
-            if (HouseInstance == null)
+            if (House == null)
             {
                 Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouMustOwnHouseToUseCommand));
                 return;
@@ -128,6 +128,104 @@ namespace ACE.Server.WorldObjects
 
             // Set the chain to run
             mpChain.EnqueueChain();
+        }
+
+        private static readonly Motion motionAllegianceHometownRecall = new Motion(MotionStance.NonCombat, MotionCommand.AllegianceHometownRecall);
+
+        public void HandleActionRecallAllegianceHometown()
+        {
+            //Console.WriteLine($"{Name}.HandleActionRecallAllegianceHometown()");
+
+            // check if player is in an allegiance
+            if (Allegiance == null)
+            {
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouAreNotInAllegiance));
+                return;
+            }
+
+            if (Allegiance.Sanctuary == null)
+            {
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YourAllegianceDoesNotHaveHometown));
+                return;
+            }
+
+            if (CombatMode != CombatMode.NonCombat)
+            {
+                // this should be handled by a different thing, probably a function that forces player into peacemode
+                var updateCombatMode = new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.CombatMode, (int)CombatMode.NonCombat);
+                SetCombatMode(CombatMode.NonCombat);
+                Session.Network.EnqueueSend(updateCombatMode);
+            }
+
+            EnqueueBroadcast(new GameMessageSystemChat($"{Name} is going to the Allegiance hometown.", ChatMessageType.Recall));
+            EnqueueBroadcastMotion(motionAllegianceHometownRecall);
+
+            // Wait for animation
+            var actionChain = new ActionChain();
+
+            // Then do teleport
+            var animLength = DatManager.PortalDat.ReadFromDat<MotionTable>(MotionTableId).GetAnimationLength(MotionCommand.AllegianceHometownRecall);
+            actionChain.AddDelaySeconds(animLength);
+            actionChain.AddAction(this, () => Teleport(Allegiance.Sanctuary));
+
+            actionChain.EnqueueChain();
+        }
+
+        /// <summary>
+        /// Recalls you to your allegiance's Mansion or Villa
+        /// </summary>
+        public void HandleActionTeleToMansion()
+        {
+            //Console.WriteLine($"{Name}.HandleActionTeleToMansion()");
+
+            // check if player is in an allegiance
+            if (Allegiance == null)
+            {
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouAreNotInAllegiance));
+                return;
+            }
+
+            var allegianceHouse = Allegiance.GetHouse();
+
+            if (allegianceHouse == null)
+            {
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YourMonarchDoesNotOwnAMansionOrVilla));
+                return;
+            }
+
+            if (allegianceHouse.HouseType < ACE.Entity.Enum.HouseType.Villa)
+            {
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YourMonarchsHouseIsNotAMansionOrVilla));
+                return;
+            }
+
+            // ensure allegiance housing has allegiance permissions enabled
+            if (allegianceHouse.MonarchId == null)
+            {
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YourMonarchHasClosedTheMansion));
+                return;
+            }
+
+            if (CombatMode != CombatMode.NonCombat)
+            {
+                // this should be handled by a different thing, probably a function that forces player into peacemode
+                var updateCombatMode = new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.CombatMode, (int)CombatMode.NonCombat);
+                SetCombatMode(CombatMode.NonCombat);
+                Session.Network.EnqueueSend(updateCombatMode);
+            }
+
+            EnqueueBroadcast(new GameMessageSystemChat($"{Name} is recalling to the Allegiance housing.", ChatMessageType.Recall));
+            EnqueueBroadcastMotion(motionHouseRecall);
+
+            // Wait for animation
+            var actionChain = new ActionChain();
+
+            // Then do teleport
+            var animLength = DatManager.PortalDat.ReadFromDat<MotionTable>(MotionTableId).GetAnimationLength(MotionCommand.HouseRecall);
+            actionChain.AddDelaySeconds(animLength);
+            actionChain.AddAction(this, () => Teleport(allegianceHouse.SlumLord.Location));
+
+            actionChain.EnqueueChain();
         }
 
         public void Teleport(Position newPosition)

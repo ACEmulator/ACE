@@ -2,9 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Numerics;
-
 using ACE.Entity;
-using ACE.Server.Network.Enum;
+using ACE.Entity.Enum;
 
 namespace ACE.Server.Network.Structure
 {
@@ -71,6 +70,25 @@ namespace ACE.Server.Network.Structure
 
             if (allegiance != null && node != null)
             {
+                // only send these to monarch?
+                foreach (var officer in allegiance.Officers)
+                    officers.Add(officer.Key, (AllegianceOfficerLevel)officer.Value.Player.AllegianceOfficerRank);
+
+                if (allegiance.HasCustomTitles)
+                {
+                    officerTitles.Add(allegiance.GetOfficerTitle(AllegianceOfficerLevel.Speaker));
+                    officerTitles.Add(allegiance.GetOfficerTitle(AllegianceOfficerLevel.Seneschal));
+                    officerTitles.Add(allegiance.GetOfficerTitle(AllegianceOfficerLevel.Castellan));
+                }
+
+                allegianceName = allegiance.AllegianceName ?? allegiance.Monarch.Player.Name;
+                motd = allegiance.AllegianceMotd ?? "";
+                motdSetBy = allegiance.AllegianceMotdSetBy ?? "";
+                chatRoomID = allegiance.Biota.Id;
+
+                if (allegiance.Sanctuary != null)
+                    bindPoint = allegiance.Sanctuary;
+
                 // aclogview (verify):
                 // i == 0 : monarch (no guid)
                 // i == 1 : patron
@@ -89,11 +107,6 @@ namespace ACE.Server.Network.Structure
                     recordCount += (ushort)node.TotalVassals;
                 }
                 //Console.WriteLine("Records: " + recordCount);
-
-                var monarch = allegiance.Monarch.Player;
-
-                chatRoomID = monarch.Guid.Full;
-                allegianceName = monarch.Name;
 
                 // monarch
                 monarchData = new AllegianceData(allegiance.Monarch);
