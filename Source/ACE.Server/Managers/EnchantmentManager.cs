@@ -204,7 +204,12 @@ namespace ACE.Server.Managers
             // should default duration be 0 or -1 here?
             // changed from spellBase -> spell for void..
             if (caster is Creature)
+            {
                 entry.Duration = spell.Duration;
+
+                if (caster is Player player && player.AugmentationIncreasedSpellDuration > 0)
+                    entry.Duration *= 1.0f + player.AugmentationIncreasedSpellDuration * 0.2f;
+            }
             else
             {
                 if (caster?.WeenieType == WeenieType.Gem)
@@ -739,6 +744,41 @@ namespace ACE.Server.Managers
             foreach (var enchantment in enchantments)
                 modifier *= enchantment.StatModValue;
 
+            if (WorldObject is Player player)
+            {
+                switch (resistance)
+                {
+                    case PropertyFloat.ResistSlash:
+                        if (player.AugmentationResistanceSlash > 0)
+                            modifier -= player.AugmentationResistanceSlash * 0.1f;
+                        break;
+                    case PropertyFloat.ResistPierce:
+                        if (player.AugmentationResistancePierce > 0)
+                            modifier -= player.AugmentationResistancePierce * 0.1f;
+                        break;
+                    case PropertyFloat.ResistBludgeon:
+                        if (player.AugmentationResistanceBlunt > 0)
+                            modifier -= player.AugmentationResistanceBlunt * 0.1f;
+                        break;
+                    case PropertyFloat.ResistFire:
+                        if (player.AugmentationResistanceFire > 0)
+                            modifier -= player.AugmentationResistanceFire * 0.1f;
+                        break;
+                    case PropertyFloat.ResistCold:
+                        if (player.AugmentationResistanceFrost > 0)
+                            modifier -= player.AugmentationResistanceFrost * 0.1f;
+                        break;
+                    case PropertyFloat.ResistAcid:
+                        if (player.AugmentationResistanceAcid > 0)
+                            modifier -= player.AugmentationResistanceAcid * 0.1f;
+                        break;
+                    case PropertyFloat.ResistElectric:
+                        if (player.AugmentationResistanceLightning > 0)
+                            modifier -= player.AugmentationResistanceLightning * 0.1f;
+                        break;
+                }
+            }
+
             return modifier;
         }
 
@@ -974,6 +1014,9 @@ namespace ACE.Server.Managers
         public virtual int GetDamageRating()
         {
             var damageRating = GetRating(PropertyInt.DamageRating);
+
+            if (WorldObject is Player player && player.AugmentationDamageBonus > 0)
+                damageRating += player.AugmentationDamageBonus * 3;
 
             // weakness as negative damage rating?
             var weaknessRating = GetRating(PropertyInt.WeaknessRating);

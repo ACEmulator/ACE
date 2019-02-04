@@ -114,8 +114,12 @@ namespace ACE.Server.WorldObjects
             // (regeneration / rejuvenation / mana renewal / etc.)
             var enchantmentMod = EnchantmentManager.GetRegenerationMod(vital);
 
+            var augMod = 1.0f;
+            if (this is Player player && player.AugmentationFasterRegen > 0)
+                augMod += player.AugmentationFasterRegen;
+
             // cap rate?
-            var currentTick = vital.RegenRate * attributeMod * stanceMod * enchantmentMod;
+            var currentTick = vital.RegenRate * attributeMod * stanceMod * enchantmentMod * augMod;
 
             // add in partially accumulated / rounded vitals from previous tick(s)
             var totalTick = currentTick + vital.PartialRegen;

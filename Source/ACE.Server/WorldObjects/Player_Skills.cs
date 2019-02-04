@@ -499,6 +499,42 @@ namespace ACE.Server.WorldObjects
             }
         }
 
+        public static HashSet<Skill> MeleeSkills = new HashSet<Skill>()
+        {
+            Skill.LightWeapons,
+            Skill.HeavyWeapons,
+            Skill.FinesseWeapons,
+            Skill.DualWield,
+
+            // legacy
+            Skill.Axe,
+            Skill.Dagger,
+            Skill.Mace,
+            Skill.Spear,
+            Skill.Staff,
+            Skill.Sword,
+            Skill.UnarmedCombat
+        };
+
+        public static HashSet<Skill> MissileSkills = new HashSet<Skill>()
+        {
+            Skill.MissileWeapons,
+
+            // legacy
+            Skill.Bow,
+            Skill.Crossbow,
+            Skill.Sling,
+            Skill.ThrownWeapon
+        };
+
+        public static HashSet<Skill> MagicSkills = new HashSet<Skill>()
+        {
+            Skill.CreatureEnchantment,
+            Skill.ItemEnchantment,
+            Skill.LifeMagic,
+            Skill.VoidMagic,
+            Skill.WarMagic
+        };
 
         public static List<Skill> AlwaysTrained = new List<Skill>()
         {
