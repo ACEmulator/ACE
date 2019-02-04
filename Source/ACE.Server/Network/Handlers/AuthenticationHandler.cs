@@ -111,13 +111,8 @@ namespace ACE.Server.Network.Handlers
 
             if (WorldManager.Find(account.AccountName) != null)
             {
-                var foundSession = WorldManager.Find(account.AccountName);
-
-                if (foundSession.State == SessionState.AuthConnected)
-                {
-                    session.SendCharacterError(CharacterError.AccountInUse);
-                    session.BootSession("Account In Use: Found another session already logged in for this account.", new GameMessageCharacterError(CharacterError.AccountInUse));
-                }
+                session.SendCharacterError(CharacterError.AccountInUse);
+                session.BootSession("Account In Use: Found another session already logged in for this account.", new GameMessageCharacterError(CharacterError.AccountInUse));
                 return;
             }
 
