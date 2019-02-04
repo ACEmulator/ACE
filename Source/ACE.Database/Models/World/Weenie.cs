@@ -7,8 +7,6 @@ namespace ACE.Database.Models.World
     {
         public Weenie()
         {
-            LandblockInstance = new HashSet<LandblockInstance>();
-            PointsOfInterest = new HashSet<PointsOfInterest>();
             WeeniePropertiesAnimPart = new HashSet<WeeniePropertiesAnimPart>();
             WeeniePropertiesAttribute = new HashSet<WeeniePropertiesAttribute>();
             WeeniePropertiesAttribute2nd = new HashSet<WeeniePropertiesAttribute2nd>();
@@ -35,10 +33,9 @@ namespace ACE.Database.Models.World
         public uint ClassId { get; set; }
         public string ClassName { get; set; }
         public int Type { get; set; }
+        public DateTime LastModified { get; set; }
 
         public WeeniePropertiesBook WeeniePropertiesBook { get; set; }
-        public ICollection<LandblockInstance> LandblockInstance { get; set; }
-        public ICollection<PointsOfInterest> PointsOfInterest { get; set; }
         public ICollection<WeeniePropertiesAnimPart> WeeniePropertiesAnimPart { get; set; }
         public ICollection<WeeniePropertiesAttribute> WeeniePropertiesAttribute { get; set; }
         public ICollection<WeeniePropertiesAttribute2nd> WeeniePropertiesAttribute2nd { get; set; }

@@ -52,6 +52,22 @@ namespace ACE.Database.SQLFormatters.World
                 else
                     subFolder += "Unsorted" + "\\";
             }
+            else if (input.Type == (int)WeenieType.House)
+            {
+                var property = input.WeeniePropertiesInt.FirstOrDefault(r => r.Type == (int)PropertyInt.HouseType);
+
+                if (property != null)
+                {
+                    Enum.TryParse(property.Value.ToString(), out HouseType ht);
+
+                    if (Enum.IsDefined(typeof(HouseType), ht))
+                        subFolder += Enum.GetName(typeof(HouseType), property.Value) + "\\";
+                    else
+                        subFolder += "UnknownHT_" + property.Value + "\\";
+                }
+                else
+                    subFolder += "Unsorted" + "\\";
+            }
             else
             {
                 var property = input.WeeniePropertiesInt.FirstOrDefault(r => r.Type == (int)PropertyInt.ItemType);
@@ -72,9 +88,9 @@ namespace ACE.Database.SQLFormatters.World
 
         public void CreateSQLINSERTStatement(Weenie input, StreamWriter writer)
         {
-            writer.WriteLine("INSERT INTO `weenie` (`class_Id`, `class_Name`, `type`)");
+            writer.WriteLine("INSERT INTO `weenie` (`class_Id`, `class_Name`, `type`, `last_Modified`)");
 
-            var output = $"VALUES ({input.ClassId}, '{input.ClassName}', {input.Type}) /* {Enum.GetName(typeof(WeenieType), input.Type)} */;";
+            var output = $"VALUES ({input.ClassId}, '{input.ClassName}', {input.Type}, '{input.LastModified.ToString("yyyy-MM-dd HH:mm:ss")}') /* {Enum.GetName(typeof(WeenieType), input.Type)} */;";
 
             output = FixNullFields(output);
 

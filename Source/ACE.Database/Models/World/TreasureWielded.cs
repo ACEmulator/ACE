@@ -24,5 +24,6 @@ namespace ACE.Database.Models.World
         public uint Unknown10 { get; set; }
         public uint Unknown11 { get; set; }
         public uint Unknown12 { get; set; }
+        public DateTime LastModified { get; set; }
     }
 }

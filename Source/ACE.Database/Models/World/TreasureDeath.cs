@@ -22,5 +22,6 @@ namespace ACE.Database.Models.World
         public int MundaneItemMinAmount { get; set; }
         public int MundaneItemMaxAmount { get; set; }
         public int MundaneItemTypeSelectionChances { get; set; }
+        public DateTime LastModified { get; set; }
     }
 }

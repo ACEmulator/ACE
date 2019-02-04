@@ -41,6 +41,7 @@ namespace ACE.Database.Models.World
         public uint FailDestroyTargetAmount { get; set; }
         public string FailDestroyTargetMessage { get; set; }
         public uint DataId { get; set; }
+        public DateTime LastModified { get; set; }
 
         public ICollection<CookBook> CookBook { get; set; }
         public ICollection<RecipeMod> RecipeMod { get; set; }

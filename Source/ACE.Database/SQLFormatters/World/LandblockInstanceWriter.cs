@@ -42,7 +42,7 @@ namespace ACE.Database.SQLFormatters.World
                 if (value != input[0])
                     writer.WriteLine();
 
-                writer.WriteLine("INSERT INTO `landblock_instance` (`guid`, `weenie_Class_Id`, `obj_Cell_Id`, `origin_X`, `origin_Y`, `origin_Z`, `angles_W`, `angles_X`, `angles_Y`, `angles_Z`, `is_Link_Child`)");
+                writer.WriteLine("INSERT INTO `landblock_instance` (`guid`, `weenie_Class_Id`, `obj_Cell_Id`, `origin_X`, `origin_Y`, `origin_Z`, `angles_W`, `angles_X`, `angles_Y`, `angles_Z`, `is_Link_Child`, `last_Modified`)");
 
                 string label = null;
 
@@ -60,7 +60,8 @@ namespace ACE.Database.SQLFormatters.World
                              $"{value.AnglesX}, " +
                              $"{value.AnglesY}, " +
                              $"{value.AnglesZ}, " +
-                             $"{value.IsLinkChild.ToString().PadLeft(5)}" +
+                             $"{value.IsLinkChild.ToString().PadLeft(5)}, " +
+                             $"'{value.LastModified.ToString("yyyy-MM-dd HH:mm:ss")}'" +
                              $"); /* {label} */" +
                              Environment.NewLine + $"/* @teleloc 0x{value.ObjCellId.ToString("X8")} [{value.OriginX.ToString("F6")} {value.OriginY.ToString("F6")} {value.OriginZ.ToString("F6")}] {value.AnglesW.ToString("F6")} {value.AnglesX.ToString("F6")} {value.AnglesY.ToString("F6")} {value.AnglesZ.ToString("F6")} */";
 
@@ -78,7 +79,7 @@ namespace ACE.Database.SQLFormatters.World
 
         private void CreateSQLINSERTStatement(IList<LandblockInstanceLink> input, StreamWriter writer)
         {
-            writer.WriteLine("INSERT INTO `landblock_instance_link` (`parent_GUID`, `child_GUID`)");
+            writer.WriteLine("INSERT INTO `landblock_instance_link` (`parent_GUID`, `child_GUID`, `last_Modified`)");
 
             var lineGenerator = new Func<int, string>(i =>
             {
@@ -87,7 +88,7 @@ namespace ACE.Database.SQLFormatters.World
                 if (InstanceNames != null)
                     InstanceNames.TryGetValue(input[i].ChildGuid, out label);
 
-                return $"{input[i].ParentGuid.ToString().PadLeft(10)}, {input[i].ChildGuid.ToString().PadLeft(10)}) /* {label} */";
+                return $"{input[i].ParentGuid.ToString().PadLeft(10)}, {input[i].ChildGuid.ToString().PadLeft(10)}, '{input[i].LastModified.ToString("yyyy-MM-dd HH:mm:ss")}') /* {label} */";
             });
 
             ValuesWriter(input.Count, lineGenerator, writer);
