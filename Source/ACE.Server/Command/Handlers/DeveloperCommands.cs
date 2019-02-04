@@ -1531,20 +1531,25 @@ namespace ACE.Server.Command.Handlers
         }
 
         /// <summary>
-        /// Sets a property for the player
+        /// Gets a property for the last appraised object
         /// </summary>
-        [CommandHandler("setproperty", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Sets a property for the player", "/setproperty <property> <value>")]
-        public static void HandleSetProperty(Session session, params string[] parameters)
+        [CommandHandler("getproperty", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Gets a property for the last appraised object", "/getproperty <property>")]
+        public static void HandleGetProperty(Session session, params string[] parameters)
         {
-            if (parameters.Length < 2)
+            var obj = GetLastAppraisedObject(session);
+            if (obj == null) return;
+
+            if (parameters.Length < 1)
                 return;
 
             var prop = parameters[0];
-            var value = parameters[1];
 
             var props = prop.Split('.');
             if (props.Length != 2)
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"Unknown {prop}", ChatMessageType.Broadcast));
                 return;
+            }
 
             var propType = props[0];
             var propName = props[1];
@@ -1563,7 +1568,78 @@ namespace ACE.Server.Command.Handlers
             else if (propType.Equals("PropertyDataId", StringComparison.OrdinalIgnoreCase))
                 pType = typeof(PropertyDataId);
             else
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"Unknown property type: {propType}", ChatMessageType.Broadcast));
                 return;
+
+            }
+
+            if (!Enum.TryParse(pType, propName, out var result))
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"Couldn't find {prop}", ChatMessageType.Broadcast));
+                return;
+            }
+
+            var value = "";
+            if (propType.Equals("PropertyInt", StringComparison.OrdinalIgnoreCase))
+                value = Convert.ToString(obj.GetProperty((PropertyInt)result));
+            else if (propType.Equals("PropertyInt64", StringComparison.OrdinalIgnoreCase))
+                value = Convert.ToString(obj.GetProperty((PropertyInt64)result));
+            else if (propType.Equals("PropertyBool", StringComparison.OrdinalIgnoreCase))
+                value = Convert.ToString(obj.GetProperty((PropertyBool)result));
+            else if (propType.Equals("PropertyString", StringComparison.OrdinalIgnoreCase))
+                value = Convert.ToString(obj.GetProperty((PropertyString)result));
+            else if (propType.Equals("PropertyInstanceId", StringComparison.OrdinalIgnoreCase))
+                value = Convert.ToString(obj.GetProperty((PropertyInstanceId)result));
+            else if (propType.Equals("PropertyDataId", StringComparison.OrdinalIgnoreCase))
+                value = Convert.ToString(obj.GetProperty((PropertyDataId)result));
+
+            session.Network.EnqueueSend(new GameMessageSystemChat($"{obj.Name} ({obj.Guid}): {prop} = {value}", ChatMessageType.Broadcast));
+        }
+
+        /// <summary>
+        /// Sets a property for the last appraised object
+        /// </summary>
+        [CommandHandler("setproperty", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 2, "Sets a property for the last appraised object", "/setproperty <property> <value>")]
+        public static void HandleSetProperty(Session session, params string[] parameters)
+        {
+            var obj = GetLastAppraisedObject(session);
+            if (obj == null) return;
+
+            if (parameters.Length < 2)
+                return;
+
+            var prop = parameters[0];
+            var value = parameters[1];
+
+            var props = prop.Split('.');
+            if (props.Length != 2)
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"Unknown {prop}", ChatMessageType.Broadcast));
+                return;
+            }
+
+            var propType = props[0];
+            var propName = props[1];
+
+            Type pType;
+            if (propType.Equals("PropertyInt", StringComparison.OrdinalIgnoreCase))
+                pType = typeof(PropertyInt);
+            else if (propType.Equals("PropertyInt64", StringComparison.OrdinalIgnoreCase))
+                pType = typeof(PropertyInt64);
+            else if (propType.Equals("PropertyBool", StringComparison.OrdinalIgnoreCase))
+                pType = typeof(PropertyBool);
+            else if (propType.Equals("PropertyString", StringComparison.OrdinalIgnoreCase))
+                pType = typeof(PropertyBool);
+            else if (propType.Equals("PropertyInstanceId", StringComparison.OrdinalIgnoreCase))
+                pType = typeof(PropertyInstanceId);
+            else if (propType.Equals("PropertyDataId", StringComparison.OrdinalIgnoreCase))
+                pType = typeof(PropertyDataId);
+            else
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"Unknown property type: {propType}", ChatMessageType.Broadcast));
+                return;
+            }
 
             if (!Enum.TryParse(pType, propName, out var result))
             {
@@ -1574,34 +1650,52 @@ namespace ACE.Server.Command.Handlers
             if (value == "null")
             {
                 if (propType.Equals("PropertyInt", StringComparison.OrdinalIgnoreCase))
-                    session.Player.RemoveProperty((PropertyInt)result);
+                    obj.RemoveProperty((PropertyInt)result);
                 else if (propType.Equals("PropertyInt64", StringComparison.OrdinalIgnoreCase))
-                    session.Player.RemoveProperty((PropertyInt64)result);
+                    obj.RemoveProperty((PropertyInt64)result);
                 else if (propType.Equals("PropertyBool", StringComparison.OrdinalIgnoreCase))
-                    session.Player.RemoveProperty((PropertyBool)result);
+                    obj.RemoveProperty((PropertyBool)result);
                 else if (propType.Equals("PropertyString", StringComparison.OrdinalIgnoreCase))
-                    session.Player.RemoveProperty((PropertyString)result);
+                    obj.RemoveProperty((PropertyString)result);
                 else if (propType.Equals("PropertyInstanceId", StringComparison.OrdinalIgnoreCase))
-                    session.Player.RemoveProperty((PropertyInstanceId)result);
+                    obj.RemoveProperty((PropertyInstanceId)result);
                 else if (propType.Equals("PropertyDataId", StringComparison.OrdinalIgnoreCase))
-                    session.Player.RemoveProperty((PropertyDataId)result);
+                    obj.RemoveProperty((PropertyDataId)result);
             }
             else
             {
                 try
                 {
                     if (propType.Equals("PropertyInt", StringComparison.OrdinalIgnoreCase))
-                        session.Player.SetProperty((PropertyInt)result, Convert.ToInt32(value));
+                    {
+                        obj.SetProperty((PropertyInt)result, Convert.ToInt32(value));
+                        obj.EnqueueBroadcast(new GameMessagePublicUpdatePropertyInt(obj, (PropertyInt)result, Convert.ToInt32(value)));
+                    }
                     else if (propType.Equals("PropertyInt64", StringComparison.OrdinalIgnoreCase))
-                        session.Player.SetProperty((PropertyInt64)result, Convert.ToInt64(value));
+                    {
+                        obj.SetProperty((PropertyInt64)result, Convert.ToInt64(value));
+                        obj.EnqueueBroadcast(new GameMessagePublicUpdatePropertyInt64(obj, (PropertyInt64)result, Convert.ToInt64(value)));
+                    }
                     else if (propType.Equals("PropertyBool", StringComparison.OrdinalIgnoreCase))
-                        session.Player.SetProperty((PropertyBool)result, Convert.ToBoolean(value));
+                    {
+                        obj.SetProperty((PropertyBool)result, Convert.ToBoolean(value));
+                        obj.EnqueueBroadcast(new GameMessagePublicUpdatePropertyBool(obj, (PropertyBool)result, Convert.ToBoolean(value)));
+                    }
                     else if (propType.Equals("PropertyString", StringComparison.OrdinalIgnoreCase))
-                        session.Player.SetProperty((PropertyString)result, value);
+                    {
+                        obj.SetProperty((PropertyString)result, value);
+                        obj.EnqueueBroadcast(new GameMessagePublicUpdatePropertyString(obj, (PropertyString)result, value));
+                    }
                     else if (propType.Equals("PropertyInstanceId", StringComparison.OrdinalIgnoreCase))
-                        session.Player.SetProperty((PropertyInstanceId)result, Convert.ToUInt32(value));
+                    {
+                        obj.SetProperty((PropertyInstanceId)result, Convert.ToUInt32(value));
+                        obj.EnqueueBroadcast(new GameMessagePublicUpdateInstanceID(obj, (PropertyInstanceId)result, new ObjectGuid(Convert.ToUInt32(value))));
+                    }
                     else if (propType.Equals("PropertyDataId", StringComparison.OrdinalIgnoreCase))
-                        session.Player.SetProperty((PropertyDataId)result, Convert.ToUInt32(value));
+                    {
+                        obj.SetProperty((PropertyDataId)result, Convert.ToUInt32(value));
+                        obj.EnqueueBroadcast(new GameMessagePublicUpdatePropertyDataID(obj, (PropertyDataId)result, Convert.ToUInt32(value)));
+                    }
                 }
                 catch (Exception e)
                 {
@@ -1609,65 +1703,7 @@ namespace ACE.Server.Command.Handlers
                     return;
                 }
             }
-
-            session.Network.EnqueueSend(new GameMessageSystemChat($"Set {prop} to {value}", ChatMessageType.Broadcast));
-        }
-
-        /// <summary>
-        /// Gets a property for the player
-        /// </summary>
-        [CommandHandler("getproperty", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Gets a property for the player", "/getproperty")]
-        public static void HandleGetProperty(Session session, params string[] parameters)
-        {
-            if (parameters.Length < 1)
-                return;
-
-            var prop = parameters[0];
-
-            var props = prop.Split('.');
-            if (props.Length != 2)
-                return;
-
-            var propType = props[0];
-            var propName = props[1];
-
-            Type pType;
-            if (propType.Equals("PropertyInt", StringComparison.OrdinalIgnoreCase))
-                pType = typeof(PropertyInt);
-            else if (propType.Equals("PropertyInt64", StringComparison.OrdinalIgnoreCase))
-                pType = typeof(PropertyInt64);
-            else if (propType.Equals("PropertyBool", StringComparison.OrdinalIgnoreCase))
-                pType = typeof(PropertyBool);
-            else if (propType.Equals("PropertyString", StringComparison.OrdinalIgnoreCase))
-                pType = typeof(PropertyBool);
-            else if (propType.Equals("PropertyInstanceId", StringComparison.OrdinalIgnoreCase))
-                pType = typeof(PropertyInstanceId);
-            else if (propType.Equals("PropertyDataId", StringComparison.OrdinalIgnoreCase))
-                pType = typeof(PropertyDataId);
-            else
-                return;
-
-            if (!Enum.TryParse(pType, propName, out var result))
-            {
-                session.Network.EnqueueSend(new GameMessageSystemChat($"Couldn't find {prop}", ChatMessageType.Broadcast));
-                return;
-            }
-
-            var value = "";
-            if (propType.Equals("PropertyInt", StringComparison.OrdinalIgnoreCase))
-                value = Convert.ToString(session.Player.GetProperty((PropertyInt)result));
-            else if (propType.Equals("PropertyInt64", StringComparison.OrdinalIgnoreCase))
-                value = Convert.ToString(session.Player.GetProperty((PropertyInt64)result));
-            else if (propType.Equals("PropertyBool", StringComparison.OrdinalIgnoreCase))
-                value = Convert.ToString(session.Player.GetProperty((PropertyBool)result));
-            else if (propType.Equals("PropertyString", StringComparison.OrdinalIgnoreCase))
-                value = Convert.ToString(session.Player.GetProperty((PropertyString)result));
-            else if (propType.Equals("PropertyInstanceId", StringComparison.OrdinalIgnoreCase))
-                value = Convert.ToString(session.Player.GetProperty((PropertyInstanceId)result));
-            else if (propType.Equals("PropertyDataId", StringComparison.OrdinalIgnoreCase))
-                value = Convert.ToString(session.Player.GetProperty((PropertyDataId)result));
-
-            session.Network.EnqueueSend(new GameMessageSystemChat($"{prop}={value}", ChatMessageType.Broadcast));
+            session.Network.EnqueueSend(new GameMessageSystemChat($"{obj.Name} ({obj.Guid}): {prop} = {value}", ChatMessageType.Broadcast));
         }
     }
 }
