@@ -1281,28 +1281,6 @@ namespace ACE.Server.Command.Handlers
             Console.WriteLine("Visible: " + visible);
         }
 
-        public static WorldObject GetLastAppraisedObject(Session session)
-        {
-            // get the wo emotemanager for the last appraised object
-            var targetID = session.Player.CurrentAppraisalTarget;
-            if (targetID == null)
-            {
-                CommandHandlerHelper.WriteOutputInfo(session, "ERROR: no appraisal target");
-                return null;
-            }
-            var targetGuid = new ObjectGuid(targetID.Value);
-            var target = session.Player.CurrentLandblock?.GetObject(targetGuid);
-            if (target == null)
-                target = session.Player.CurrentLandblock?.GetWieldedObject(targetGuid);
-
-            if (target == null)
-            {
-                CommandHandlerHelper.WriteOutputInfo(session, "ERROR: couldn't find " + targetGuid);
-                return null;
-            }
-            return target;
-        }
-
         [CommandHandler("showstats", AccessLevel.Developer, CommandHandlerFlag.None, 0, "Shows a list of player's current attribute/skill levels in console window", "showstats")]
         public static void HandleShowStats(Session session, params string[] parameters)
         {
@@ -1536,7 +1514,7 @@ namespace ACE.Server.Command.Handlers
         [CommandHandler("getproperty", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Gets a property for the last appraised object", "/getproperty <property>")]
         public static void HandleGetProperty(Session session, params string[] parameters)
         {
-            var obj = GetLastAppraisedObject(session);
+            var obj = CommandHandlerHelper.GetLastAppraisedObject(session);
             if (obj == null) return;
 
             if (parameters.Length < 1)
@@ -1603,7 +1581,7 @@ namespace ACE.Server.Command.Handlers
         [CommandHandler("setproperty", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 2, "Sets a property for the last appraised object", "/setproperty <property> <value>")]
         public static void HandleSetProperty(Session session, params string[] parameters)
         {
-            var obj = GetLastAppraisedObject(session);
+            var obj = CommandHandlerHelper.GetLastAppraisedObject(session);
             if (obj == null) return;
 
             if (parameters.Length < 2)
