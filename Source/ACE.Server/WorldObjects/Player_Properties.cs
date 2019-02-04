@@ -201,5 +201,120 @@ namespace ACE.Server.WorldObjects
             get => GetProperty(PropertyInt.NumCharacterTitles);
             set { if (!value.HasValue) RemoveProperty(PropertyInt.NumCharacterTitles); else SetProperty(PropertyInt.NumCharacterTitles, value.Value); }
         }
+
+        // ========================================
+        // =========== Augmentations ==============
+        // ========================================
+
+        /// <summary>
+        /// All of your skills are increased by 5. This augmentation cannot be repeated.
+        /// </summary>
+        public int AugmentationJackOfAllTrades
+        {
+            get => GetProperty(PropertyInt.AugmentationJackOfAllTrades) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.AugmentationJackOfAllTrades); else SetProperty(PropertyInt.AugmentationJackOfAllTrades, value); }
+        }
+
+        /// <summary>
+        /// Eye of the Remorseless
+        /// Increases your chance of critical hits by 1%. This augmentation cannot be repeated.
+        /// </summary>
+        public int AugmentationCriticalExpertise
+        {
+            get => GetProperty(PropertyInt.AugmentationCriticalExpertise) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.AugmentationCriticalExpertise); else SetProperty(PropertyInt.AugmentationCriticalExpertise, value); }
+        }
+
+        /// <summary>
+        /// Iron Skin of the Invincible
+        /// Increases your damage reduction rating by 3. This augmentation cannot be repeated.
+        /// </summary>
+        public int AugmentationDamageReduction
+        {
+            get => GetProperty(PropertyInt.AugmentationDamageReduction) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.AugmentationDamageReduction); else SetProperty(PropertyInt.AugmentationDamageReduction, value); }
+        }
+
+        /// <summary>
+        /// Critical Protection
+        /// Grants you limited protection from critical hits. 25% of critical hits from creatures,
+        /// and 5% critical hits from players will strike you for normal damage.
+        /// This augmentation cannot be repeated.
+        /// </summary>
+        public int AugmentationCriticalDefense
+        {
+            get => GetProperty(PropertyInt.AugmentationCriticalDefense) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.AugmentationCriticalDefense); else SetProperty(PropertyInt.AugmentationCriticalDefense, value); }
+        }
+
+        /// <summary>
+        /// Removes the player's need to use a focus for Life Magic (Foci of Verdancy)
+        /// This augmentation cannot be repeated.
+        /// </summary>
+        public int AugmentationInfusedLifeMagic
+        {
+            get => GetProperty(PropertyInt.AugmentationInfusedLifeMagic) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.AugmentationInfusedLifeMagic); else SetProperty(PropertyInt.AugmentationInfusedLifeMagic, value); }
+        }
+
+        /// <summary>
+        /// Hand of the Remorseless
+        /// Increases critical damage by 3%. This augmentation cannot be repeated.
+        /// </summary>
+        public int AugmentationCriticalPower
+        {
+            get => GetProperty(PropertyInt.AugmentationCriticalPower) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.AugmentationCriticalPower); else SetProperty(PropertyInt.AugmentationCriticalPower, value); }
+        }
+
+        /// <summary>
+        /// Might of the Seventh Mule
+        /// Gives the player 20% more burden-carrying capacity for each gem used (max x5)
+        /// </summary>
+        public int AugmentationIncreasedCarryingCapacity
+        {
+            get => GetProperty(PropertyInt.AugmentationIncreasedCarryingCapacity) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.AugmentationIncreasedCarryingCapacity); else SetProperty(PropertyInt.AugmentationIncreasedCarryingCapacity, value); }
+        }
+
+        /// <summary>
+        /// Removes the player's need to use a focus for Creature Magic (Foci of Enchantment)
+        /// This augmentation cannot be repeated.
+        /// </summary>
+        public int AugmentationInfusedCreatureMagic
+        {
+            get => GetProperty(PropertyInt.AugmentationInfusedCreatureMagic) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.AugmentationInfusedCreatureMagic); else SetProperty(PropertyInt.AugmentationInfusedCreatureMagic, value); }
+        }
+
+        /// <summary>
+        /// Removes the player's need to use a focus for Item Magic (Foci of Artifice)
+        /// This augmentation cannot be repeated.
+        /// </summary>
+        public int AugmentationInfusedItemMagic
+        {
+            get => GetProperty(PropertyInt.AugmentationInfusedItemMagic) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.AugmentationInfusedItemMagic); else SetProperty(PropertyInt.AugmentationInfusedItemMagic, value); }
+        }
+
+        /// <summary>
+        /// Removes the player's need to use a focus for Void Magic (Foci of Shadow)
+        /// This augmentation cannot be repeated.
+        /// </summary>
+        public int AugmentationInfusedVoidMagic
+        {
+            get => GetProperty(PropertyInt.AugmentationInfusedVoidMagic) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.AugmentationInfusedVoidMagic); else SetProperty(PropertyInt.AugmentationInfusedVoidMagic, value); }
+        }
+
+        /// <summary>
+        /// Removes the player's need to use a focus for War Magic (Foci of Strife)
+        /// This augmentation cannot be repeated.
+        /// </summary>
+        public int AugmentationInfusedWarMagic
+        {
+            get => GetProperty(PropertyInt.AugmentationInfusedWarMagic) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.AugmentationInfusedWarMagic); else SetProperty(PropertyInt.AugmentationInfusedWarMagic, value); }
+        }
     }
 }

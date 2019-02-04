@@ -335,7 +335,17 @@ namespace ACE.Server.WorldObjects
             // critical hit
             var critical = GetWeaponMagicCritFrequencyModifier(source, attackSkill);
             if (ThreadSafeRandom.Next(0.0f, 1.0f) < critical)
-                criticalHit = true;
+            {
+                if (targetPlayer != null && targetPlayer.AugmentationCriticalDefense > 0)
+                {
+                    var scalar = sourcePlayer == null ? 0.25f : 0.05f;
+                    var protChance = targetPlayer.AugmentationCriticalDefense * scalar;
+                    if (ThreadSafeRandom.Next(0.0f, 1.0f) > protChance)
+                        criticalHit = true;
+                }
+                else
+                    criticalHit = true;
+            }
 
             bool isPVP = sourcePlayer != null && targetPlayer != null;
 
