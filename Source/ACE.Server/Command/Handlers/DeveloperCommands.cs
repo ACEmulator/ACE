@@ -488,24 +488,10 @@ namespace ACE.Server.Command.Handlers
         [CommandHandler("propertydump", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, "Lists all properties for the last world object you examined.")]
         public static void HandlePropertyDump(Session session, params string[] parameters)
         {
-            var targetID = session.Player.CurrentAppraisalTarget;
-            if (targetID == null)
-            {
-                ChatPacket.SendServerMessage(session, "ERROR: no examined history", ChatMessageType.System);
-                return;
-            }
-            var target = session.Player.FindObject(targetID.Value, Player.SearchLocations.Everywhere, out Container foundInContainer, out Container rootOwner, out bool wasEquipped);
-            if (target == null)
-            {
-                target = session.Player.CurrentLandblock.GetWieldedObject(targetID.Value);
-                if (target == null)
-                {
-                    ChatPacket.SendServerMessage(session, $"ERROR: couldn't find {targetID:X8}", ChatMessageType.System);
-                    return;
-                }
-            }
-            session.Network.EnqueueSend(new GameMessageSystemChat("", ChatMessageType.System));
-            session.Network.EnqueueSend(new GameMessageSystemChat($"{target.DebugOutputString(target)}", ChatMessageType.System));
+            var target = CommandHandlerHelper.GetLastAppraisedObject(session);
+
+            if (target != null)
+                session.Network.EnqueueSend(new GameMessageSystemChat($"\n{target.DebugOutputString(target)}", ChatMessageType.System));
         }
 
 
@@ -1540,7 +1526,7 @@ namespace ACE.Server.Command.Handlers
             else if (propType.Equals("PropertyBool", StringComparison.OrdinalIgnoreCase))
                 pType = typeof(PropertyBool);
             else if (propType.Equals("PropertyString", StringComparison.OrdinalIgnoreCase))
-                pType = typeof(PropertyBool);
+                pType = typeof(PropertyString);
             else if (propType.Equals("PropertyInstanceId", StringComparison.OrdinalIgnoreCase))
                 pType = typeof(PropertyInstanceId);
             else if (propType.Equals("PropertyDataId", StringComparison.OrdinalIgnoreCase))
@@ -1608,7 +1594,7 @@ namespace ACE.Server.Command.Handlers
             else if (propType.Equals("PropertyBool", StringComparison.OrdinalIgnoreCase))
                 pType = typeof(PropertyBool);
             else if (propType.Equals("PropertyString", StringComparison.OrdinalIgnoreCase))
-                pType = typeof(PropertyBool);
+                pType = typeof(PropertyString);
             else if (propType.Equals("PropertyInstanceId", StringComparison.OrdinalIgnoreCase))
                 pType = typeof(PropertyInstanceId);
             else if (propType.Equals("PropertyDataId", StringComparison.OrdinalIgnoreCase))
