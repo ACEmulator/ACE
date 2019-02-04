@@ -1667,7 +1667,7 @@ namespace ACE.Server.Command.Handlers
             else if (propType.Equals("PropertyDataId", StringComparison.OrdinalIgnoreCase))
                 value = Convert.ToString(session.Player.GetProperty((PropertyDataId)result));
 
-            session.Network.EnqueueSend(new GameMessageSystemChat($"{prop}={value}", ChatMessageType.Broadcast);
+            session.Network.EnqueueSend(new GameMessageSystemChat($"{prop}={value}", ChatMessageType.Broadcast));
         }
     }
 }
