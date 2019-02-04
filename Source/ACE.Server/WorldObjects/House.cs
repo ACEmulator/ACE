@@ -264,6 +264,9 @@ namespace ACE.Server.WorldObjects
 
             Biota.AddHousePermission(housePermission, BiotaDatabaseLock);
             ChangesDetected = true;
+
+            if (CurrentLandblock == null)
+                SaveBiotaToDatabase();
         }
 
         public void UpdateGuest(IPlayer guest, bool storage)
@@ -275,12 +278,18 @@ namespace ACE.Server.WorldObjects
 
             existing.Storage = storage;
             ChangesDetected = true;
+
+            if (CurrentLandblock == null)
+                SaveBiotaToDatabase();
         }
 
         public void RemoveGuest(IPlayer guest)
         {
             Biota.TryRemoveHousePermission(guest.Guid.Full, out var entity, BiotaDatabaseLock);
             ChangesDetected = true;
+
+            if (CurrentLandblock == null)
+                SaveBiotaToDatabase();
         }
 
         public HousePermission FindGuest(IPlayer guest)
