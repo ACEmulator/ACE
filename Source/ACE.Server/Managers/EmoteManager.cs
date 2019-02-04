@@ -287,10 +287,8 @@ namespace ACE.Server.Managers
 
                 case EmoteType.Generate:
 
-                    // unfinished - unused in PY16?
-                    var wcid = (uint)emote.WeenieClassId;
-                    var item = WorldObjectFactory.CreateNewWorldObject(wcid);
-
+                    if (WorldObject.IsGenerator)
+                        WorldObject.Generator_HeartBeat();
                     break;
 
                 case EmoteType.Give:
@@ -298,7 +296,7 @@ namespace ACE.Server.Managers
                     bool success = false;
                     if (player != null && emote.WeenieClassId != null)
                     {
-                        item = WorldObjectFactory.CreateNewWorldObject((uint)emote.WeenieClassId);
+                        var item = WorldObjectFactory.CreateNewWorldObject((uint)emote.WeenieClassId);
                         var stackSize = emote.StackSize ?? 1;
                         var stackMsg = "";
                         if (stackSize > 1)
@@ -981,7 +979,7 @@ namespace ACE.Server.Managers
 
                     if (player != null && emote.WeenieClassId != null)
                     {
-                        item = WorldObjectFactory.CreateNewWorldObject((uint)emote.WeenieClassId);
+                        var item = WorldObjectFactory.CreateNewWorldObject((uint)emote.WeenieClassId);
                         if (item == null) break;
 
                         success = player.TryConsumeFromInventoryWithNetworking(item, emote.Amount ?? 0);

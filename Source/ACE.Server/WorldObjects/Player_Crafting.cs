@@ -254,8 +254,12 @@ namespace ACE.Server.WorldObjects
             var salvageMultiplier = Math.Max(0.6f, salvageSkill / 225.0f);
             var tinkeringMultiplier = Math.Max(0.6f, highestTinkeringSkill / 225.0f);
 
-            // TODO: take augs into account for salvaging only
-            var fSalvageAmount = workmanship * salvageMultiplier * stackSize;
+            // take augs into account for salvaging only
+            var augMod = 1.0f;
+            if (AugmentationBonusSalvage > 0)
+                augMod += AugmentationBonusSalvage * 0.25f;
+
+            var fSalvageAmount = workmanship * salvageMultiplier * stackSize * augMod;
             var fTinkeringAmount = workmanship * tinkeringMultiplier * stackSize;
 
             var salvageAmount = fSalvageAmount.Round();
