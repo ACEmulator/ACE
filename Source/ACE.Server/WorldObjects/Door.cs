@@ -80,7 +80,10 @@ namespace ACE.Server.WorldObjects
 
         public override void ActOnUse(WorldObject worldObject)
         {
-            if (!IsLocked)
+            var player = worldObject as Player;
+            var behind = player != null && player.GetSplatterDir(this).Contains("Back");
+
+            if (!IsLocked || behind)
             {
                 if (!IsOpen)
                     Open(worldObject.Guid);
@@ -95,9 +98,8 @@ namespace ACE.Server.WorldObjects
             }
             else
             {
-                if (worldObject is Player)
+                if (player != null)
                 {
-                    var player = worldObject as Player;
                     var doorIsLocked = new GameEventCommunicationTransientString(player.Session, "The door is locked!");
                     player.Session.Network.EnqueueSend(doorIsLocked);
                     EnqueueBroadcast(new GameMessageSound(Guid, Sound.OpenFailDueToLock, 1.0f));
