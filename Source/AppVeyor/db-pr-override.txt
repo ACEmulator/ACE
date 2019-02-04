@@ -1,1 +1,0 @@
-https://ci.appveyor.com/api/buildjobs/ty8w3pqhn96orj5u/artifacts/ACE-World-Database-v0.9.13-ykceyeau.sql.zip
