@@ -97,6 +97,12 @@ namespace ACE.Database.Models.World
 
                 entity.Property(e => e.Id).HasColumnName("id");
 
+                entity.Property(e => e.LastModified)
+                    .HasColumnName("last_Modified")
+                    .HasColumnType("datetime")
+                    .HasDefaultValueSql("'CURRENT_TIMESTAMP'")
+                    .ValueGeneratedOnAddOrUpdate();
+
                 entity.Property(e => e.RecipeId).HasColumnName("recipe_Id");
 
                 entity.Property(e => e.SourceWCID).HasColumnName("source_W_C_I_D");
@@ -134,6 +140,12 @@ namespace ACE.Database.Models.World
                     .HasColumnName("landblock")
                     .HasColumnType("int(5)");
 
+                entity.Property(e => e.LastModified)
+                    .HasColumnName("last_Modified")
+                    .HasColumnType("datetime")
+                    .HasDefaultValueSql("'CURRENT_TIMESTAMP'")
+                    .ValueGeneratedOnAddOrUpdate();
+
                 entity.Property(e => e.WeenieClassId).HasColumnName("weenie_Class_Id");
             });
 
@@ -151,6 +163,12 @@ namespace ACE.Database.Models.World
                     .HasColumnName("end_Time")
                     .HasColumnType("int(10)")
                     .HasDefaultValueSql("'-1'");
+
+                entity.Property(e => e.LastModified)
+                    .HasColumnName("last_Modified")
+                    .HasColumnType("datetime")
+                    .HasDefaultValueSql("'CURRENT_TIMESTAMP'")
+                    .ValueGeneratedOnAddOrUpdate();
 
                 entity.Property(e => e.Name)
                     .IsRequired()
@@ -187,6 +205,12 @@ namespace ACE.Database.Models.World
 
                 entity.Property(e => e.HouseId).HasColumnName("house_Id");
 
+                entity.Property(e => e.LastModified)
+                    .HasColumnName("last_Modified")
+                    .HasColumnType("datetime")
+                    .HasDefaultValueSql("'CURRENT_TIMESTAMP'")
+                    .ValueGeneratedOnAddOrUpdate();
+
                 entity.Property(e => e.ObjCellId).HasColumnName("obj_Cell_Id");
 
                 entity.Property(e => e.OriginX).HasColumnName("origin_X");
@@ -204,9 +228,6 @@ namespace ACE.Database.Models.World
 
                 entity.HasIndex(e => e.Landblock)
                     .HasName("instance_landblock_idx");
-
-                entity.HasIndex(e => e.WeenieClassId)
-                    .HasName("wcid_instance");
 
                 entity.Property(e => e.Guid).HasColumnName("guid");
 
@@ -226,6 +247,12 @@ namespace ACE.Database.Models.World
                     .HasColumnName("landblock")
                     .HasColumnType("int(5)");
 
+                entity.Property(e => e.LastModified)
+                    .HasColumnName("last_Modified")
+                    .HasColumnType("datetime")
+                    .HasDefaultValueSql("'CURRENT_TIMESTAMP'")
+                    .ValueGeneratedOnAddOrUpdate();
+
                 entity.Property(e => e.ObjCellId).HasColumnName("obj_Cell_Id");
 
                 entity.Property(e => e.OriginX).HasColumnName("origin_X");
@@ -235,24 +262,28 @@ namespace ACE.Database.Models.World
                 entity.Property(e => e.OriginZ).HasColumnName("origin_Z");
 
                 entity.Property(e => e.WeenieClassId).HasColumnName("weenie_Class_Id");
-
-                entity.HasOne(d => d.WeenieClass)
-                    .WithMany(p => p.LandblockInstance)
-                    .HasForeignKey(d => d.WeenieClassId)
-                    .HasConstraintName("wcid_instance");
             });
 
             modelBuilder.Entity<LandblockInstanceLink>(entity =>
             {
                 entity.ToTable("landblock_instance_link");
 
+                entity.HasIndex(e => e.ChildGuid)
+                    .HasName("child_idx");
+
                 entity.HasIndex(e => new { e.ParentGuid, e.ChildGuid })
-                    .HasName("parent_child_guuidx")
+                    .HasName("parent_child_uidx")
                     .IsUnique();
 
                 entity.Property(e => e.Id).HasColumnName("id");
 
                 entity.Property(e => e.ChildGuid).HasColumnName("child_GUID");
+
+                entity.Property(e => e.LastModified)
+                    .HasColumnName("last_Modified")
+                    .HasColumnType("datetime")
+                    .HasDefaultValueSql("'CURRENT_TIMESTAMP'")
+                    .ValueGeneratedOnAddOrUpdate();
 
                 entity.Property(e => e.ParentGuid).HasColumnName("parent_GUID");
 
@@ -270,10 +301,13 @@ namespace ACE.Database.Models.World
                     .HasName("name_UNIQUE")
                     .IsUnique();
 
-                entity.HasIndex(e => e.WeenieClassId)
-                    .HasName("wcid_poi");
-
                 entity.Property(e => e.Id).HasColumnName("id");
+
+                entity.Property(e => e.LastModified)
+                    .HasColumnName("last_Modified")
+                    .HasColumnType("datetime")
+                    .HasDefaultValueSql("'CURRENT_TIMESTAMP'")
+                    .ValueGeneratedOnAddOrUpdate();
 
                 entity.Property(e => e.Name)
                     .IsRequired()
@@ -281,11 +315,6 @@ namespace ACE.Database.Models.World
                     .HasColumnType("text");
 
                 entity.Property(e => e.WeenieClassId).HasColumnName("weenie_Class_Id");
-
-                entity.HasOne(d => d.WeenieClass)
-                    .WithMany(p => p.PointsOfInterest)
-                    .HasForeignKey(d => d.WeenieClassId)
-                    .HasConstraintName("wcid_poi");
             });
 
             modelBuilder.Entity<Quest>(entity =>
@@ -297,6 +326,12 @@ namespace ACE.Database.Models.World
                     .IsUnique();
 
                 entity.Property(e => e.Id).HasColumnName("id");
+
+                entity.Property(e => e.LastModified)
+                    .HasColumnName("last_Modified")
+                    .HasColumnType("datetime")
+                    .HasDefaultValueSql("'CURRENT_TIMESTAMP'")
+                    .ValueGeneratedOnAddOrUpdate();
 
                 entity.Property(e => e.MaxSolves)
                     .HasColumnName("max_Solves")
@@ -347,6 +382,12 @@ namespace ACE.Database.Models.World
                     .HasColumnType("text");
 
                 entity.Property(e => e.FailWCID).HasColumnName("fail_W_C_I_D");
+
+                entity.Property(e => e.LastModified)
+                    .HasColumnName("last_Modified")
+                    .HasColumnType("datetime")
+                    .HasDefaultValueSql("'CURRENT_TIMESTAMP'")
+                    .ValueGeneratedOnAddOrUpdate();
 
                 entity.Property(e => e.SalvageType).HasColumnName("salvage_Type");
 
@@ -884,6 +925,12 @@ namespace ACE.Database.Models.World
                     .HasColumnName("index")
                     .HasColumnType("int(10)");
 
+                entity.Property(e => e.LastModified)
+                    .HasColumnName("last_Modified")
+                    .HasColumnType("datetime")
+                    .HasDefaultValueSql("'CURRENT_TIMESTAMP'")
+                    .ValueGeneratedOnAddOrUpdate();
+
                 entity.Property(e => e.Link)
                     .HasColumnName("link")
                     .HasColumnType("int(10)");
@@ -1019,6 +1066,12 @@ namespace ACE.Database.Models.World
                     .HasColumnName("item_Treasure_Type_Selection_Chances")
                     .HasColumnType("int(10)");
 
+                entity.Property(e => e.LastModified)
+                    .HasColumnName("last_Modified")
+                    .HasColumnType("datetime")
+                    .HasDefaultValueSql("'CURRENT_TIMESTAMP'")
+                    .ValueGeneratedOnAddOrUpdate();
+
                 entity.Property(e => e.LootQualityMod).HasColumnName("loot_Quality_Mod");
 
                 entity.Property(e => e.MagicItemChance)
@@ -1081,6 +1134,12 @@ namespace ACE.Database.Models.World
                     .HasColumnName("has_Sub_Set")
                     .HasColumnType("bit(1)");
 
+                entity.Property(e => e.LastModified)
+                    .HasColumnName("last_Modified")
+                    .HasColumnType("datetime")
+                    .HasDefaultValueSql("'CURRENT_TIMESTAMP'")
+                    .ValueGeneratedOnAddOrUpdate();
+
                 entity.Property(e => e.PaletteId).HasColumnName("palette_Id");
 
                 entity.Property(e => e.Probability).HasColumnName("probability");
@@ -1135,6 +1194,12 @@ namespace ACE.Database.Models.World
                     .IsRequired()
                     .HasColumnName("class_Name")
                     .HasColumnType("varchar(100)");
+
+                entity.Property(e => e.LastModified)
+                    .HasColumnName("last_Modified")
+                    .HasColumnType("datetime")
+                    .HasDefaultValueSql("'CURRENT_TIMESTAMP'")
+                    .ValueGeneratedOnAddOrUpdate();
 
                 entity.Property(e => e.Type)
                     .HasColumnName("type")

@@ -10,5 +10,6 @@ namespace ACE.Database.Models.World
         public int StartTime { get; set; }
         public int EndTime { get; set; }
         public int State { get; set; }
+        public DateTime LastModified { get; set; }
     }
 }

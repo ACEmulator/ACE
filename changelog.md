@@ -1,5 +1,10 @@
 # ACEmulator Change Log
 
+### 2019-02-04
+[Ripley]
+* Added LastModified to several tables in World Database
+  - **This change requires you to update to the latest world database release found in ACE-World-16PY-Patches, v0.9.13 or higher**
+
 ### 2019-01-31
 [gmriggs]
 * Adding remaining Allegiance features:

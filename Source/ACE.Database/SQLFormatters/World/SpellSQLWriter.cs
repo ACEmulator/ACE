@@ -428,6 +428,10 @@ namespace ACE.Database.SQLFormatters.World
                 spellLine += $", {input.DotDuration}";
             }
 
+            
+            spellLineHdr += ", `last_Modified`";
+            spellLine += $", '{input.LastModified.ToString("yyyy-MM-dd HH:mm:ss")}'";
+            
             spellLineHdr += ")";
             spellLine += ");";
 
