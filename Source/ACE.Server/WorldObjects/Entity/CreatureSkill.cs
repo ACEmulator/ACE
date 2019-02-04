@@ -1,5 +1,6 @@
 using System;
 
+using ACE.Common.Extensions;
 using ACE.Database.Models.Shard;
 using ACE.DatLoader;
 using ACE.Entity.Enum;
@@ -117,14 +118,16 @@ namespace ACE.Server.WorldObjects.Entity
                 var skillMod = creature.EnchantmentManager.GetSkillMod(Skill);
                 total += (uint)skillMod;    // can be negative?
 
-                // TODO: include augs + any other modifiers
-
                 if (creature is Player player)
                 {
                     var vitae = player.Vitae;
 
                     if (vitae != 1.0f)
-                        total = (uint)Math.Round(total * vitae);
+                        total = (uint)(total * vitae).Round();
+
+                    // it seems this gets applied after vitae?
+                    if (player.AugmentationJackOfAllTrades != 0)
+                        total += (uint)(player.AugmentationJackOfAllTrades * 5);
                 }
 
                 return total;

@@ -343,7 +343,7 @@ namespace ACE.Server.WorldObjects
             // heritage damge mod
             var heritageMod = GetHeritageBonus(weapon) ? 1.05f : 1.0f;
 
-            var damageRatingMod = AdditiveCombine(recklessnessMod, sneakAttackMod, heritageMod, GetRatingMod(EnchantmentManager.GetDamageRating()));
+            var damageRatingMod = AdditiveCombine(heritageMod, recklessnessMod, sneakAttackMod, GetRatingMod(EnchantmentManager.GetDamageRating()), GetNegativeRatingMod(target.EnchantmentManager.GetDamageResistRating()));
             //Console.WriteLine("Damage rating: " + ModToRating(damageRatingMod));
 
             var damage = baseDamage * attributeMod * powerAccuracyMod * damageRatingMod;
@@ -353,8 +353,21 @@ namespace ACE.Server.WorldObjects
             var critical = GetWeaponPhysicalCritFrequencyModifier(this, attackSkill);
             if (ThreadSafeRandom.Next(0.0f, 1.0f) < critical)
             {
-                damage = baseDamageRange.Max * attributeMod * powerAccuracyMod * sneakAttackMod * (1.0f + GetWeaponCritMultiplierModifier(this, attackSkill));
-                criticalHit = true;
+                if (targetPlayer != null && targetPlayer.AugmentationCriticalDefense > 0)
+                {
+                    var protChance = targetPlayer.AugmentationCriticalDefense * 0.05f;
+                    if (ThreadSafeRandom.Next(0.0f, 1.0f) > protChance)
+                        criticalHit = true;
+                }
+                else
+                    criticalHit = true; 
+            }
+
+            if (criticalHit)
+            {
+                // not effective for criticals: recklessness
+                damageRatingMod = AdditiveCombine(heritageMod, sneakAttackMod, GetRatingMod(EnchantmentManager.GetDamageRating()), GetNegativeRatingMod(target.EnchantmentManager.GetDamageResistRating()));
+                damage = baseDamageRange.Max * attributeMod * powerAccuracyMod * damageRatingMod * (1.0f + GetWeaponCritMultiplierModifier(this, attackSkill));
             }
 
             // select random body part @ current attack height

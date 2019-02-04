@@ -985,6 +985,9 @@ namespace ACE.Server.Managers
         {
             var damageResistanceRating = GetRating(PropertyInt.DamageResistRating);
 
+            if (WorldObject is Player player && player.AugmentationDamageReduction > 0)
+                damageResistanceRating += player.AugmentationDamageReduction * 3;
+
             // nether DoTs as negative DRR?
             var netherDotDamageRating = GetNetherDotDamageRating();
 

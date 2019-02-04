@@ -31,6 +31,8 @@ namespace ACE.Server.WorldObjects
 
             Sequences.SetSequence(SequenceType.ObjectInstance, new UShortSequence((ushort)Character.TotalLogins));
 
+            HandleAugsForwardCompatibility();
+
             // SendSelf will trigger the entrance into portal space
             SendSelf();
 
