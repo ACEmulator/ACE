@@ -248,7 +248,7 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Removes the player's need to use a focus for Life Magic (Foci of Verdancy).
+        /// Removes the player's need to use a focus for Life Magic (Foci of Verdancy)
         /// This augmentation cannot be repeated.
         /// </summary>
         public int AugmentationInfusedLifeMagic
@@ -278,7 +278,7 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Removes the player's need to use a focus for Creature Magic (Enchantment Foci).
+        /// Removes the player's need to use a focus for Creature Magic (Foci of Enchantment)
         /// This augmentation cannot be repeated.
         /// </summary>
         public int AugmentationInfusedCreatureMagic
@@ -288,7 +288,7 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Removes the player's need to use a focus for Item Magic (Artifice Foci).
+        /// Removes the player's need to use a focus for Item Magic (Foci of Artifice)
         /// This augmentation cannot be repeated.
         /// </summary>
         public int AugmentationInfusedItemMagic
@@ -298,7 +298,7 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Removes the player's need to use a focus for Void Magic. (Foci of Shadow)
+        /// Removes the player's need to use a focus for Void Magic (Foci of Shadow)
         /// This augmentation cannot be repeated.
         /// </summary>
         public int AugmentationInfusedVoidMagic
@@ -308,7 +308,7 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Removes the player's need to use a focus for War Magic.
+        /// Removes the player's need to use a focus for War Magic (Foci of Strife)
         /// This augmentation cannot be repeated.
         /// </summary>
         public int AugmentationInfusedWarMagic
