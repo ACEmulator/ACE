@@ -1,4 +1,4 @@
-﻿namespace ACE.Entity.Enum
+namespace ACE.Entity.Enum
 {
     /// <summary>
     /// The ChatMessageType categorizes chat window messages to control color and filtering.<para />
@@ -11,7 +11,7 @@
     /// Used with F7E0: Server Message
     ///     0x00, 0x03, 0x04, 0x05, 0x06, 0x07, 0x0D, 0x10, 0x11, 0x17, 0x18
     /// </summary>
-    public enum ChatMessageType
+    public enum ChatMessageType: uint
     {
         /// <summary>
         /// allegiance MOTD
@@ -40,11 +40,11 @@
         Broadcast           = 0x00,
 
         /// <summary>
-        /// Green Text - No idea what this does, It's not labeled but is handled in the client????
+        /// The client sends this for message HandleActionModifyCharacterSquelch
         /// 
-        /// LogTextTypeEnumMapper: ????
+        /// LogTextTypeEnumMapper: AllChannels
         /// </summary>
-        x01                 = 0x01,
+        AllChannels         = 0x01,
 
         /// <summary>
         /// LogTextTypeEnumMapper: Speech

@@ -63,7 +63,7 @@ namespace ACE.Server.Network.Handlers
                             continue;
 
                         // is this member booted / gagged?
-                        if (allegiance.IsFiltered(member)) continue;
+                        if (allegiance.IsFiltered(member) || online.Squelches.Contains(session.Player)) continue;
 
                         online.Session.Network.EnqueueSend(gameMessageTurbineChat);
                     }
@@ -72,8 +72,9 @@ namespace ACE.Server.Network.Handlers
                 {
                     foreach (var recipient in PlayerManager.GetAllOnline())
                     {
-                        // TODO This should check if the recipient is subscribed to the channel
-                        recipient.Session.Network.EnqueueSend(gameMessageTurbineChat);
+                        if (!recipient.Squelches.Contains(session.Player))
+                            // TODO This should check if the recipient is subscribed to the channel
+                            recipient.Session.Network.EnqueueSend(gameMessageTurbineChat);
                     }
                 }
             }

@@ -48,7 +48,7 @@ namespace ACE.Server.Network.GameEvent
         ItemAppraiseDone                       = 0x01CB,
         Emote                                  = 0x01E2,
         PingResponse                           = 0x01EA,
-        CommunicationSetSquelch                = 0x01F4,
+        SetSquelchDB                           = 0x01F4,
         RegisterTrade                          = 0x01FD,
         OpenTrade                              = 0x01FE,
         CloseTrade                             = 0x01FF,
