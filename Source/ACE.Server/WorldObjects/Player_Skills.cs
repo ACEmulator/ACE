@@ -505,6 +505,7 @@ namespace ACE.Server.WorldObjects
             Skill.HeavyWeapons,
             Skill.FinesseWeapons,
             Skill.DualWield,
+            Skill.TwoHandedCombat,
 
             // legacy
             Skill.Axe,

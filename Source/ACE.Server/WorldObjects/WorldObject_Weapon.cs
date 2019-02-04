@@ -580,6 +580,7 @@ namespace ACE.Server.WorldObjects
                 case Skill.HeavyWeapons:
                 case Skill.FinesseWeapons:
                 case Skill.DualWield:
+                case Skill.TwoHandedCombat:
 
                 // legacy
                 case Skill.Axe:
