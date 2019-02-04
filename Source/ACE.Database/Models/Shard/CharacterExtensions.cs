@@ -107,7 +107,7 @@ namespace ACE.Database.Models.Shard
 
         public static bool HasAsFriend(this Character character, uint friendId, ReaderWriterLockSlim rwLock)
         {
-            rwLock.EnterUpgradeableReadLock();
+            rwLock.EnterReadLock();
             try
             {
                 foreach (var record in character.CharacterPropertiesFriendList)
@@ -120,7 +120,7 @@ namespace ACE.Database.Models.Shard
             }
             finally
             {
-                rwLock.ExitUpgradeableReadLock();
+                rwLock.ExitReadLock();
             }
         }
 
@@ -256,17 +256,15 @@ namespace ACE.Database.Models.Shard
 
         public static List<CharacterPropertiesSpellBar> GetSpellsInBar(this Character character, int barNumber, ReaderWriterLockSlim rwLock)
         {
-            IEnumerable<CharacterPropertiesSpellBar> results;
             rwLock.EnterReadLock();
             try
             {
-                results = character.CharacterPropertiesSpellBar.Where(x => x.SpellBarNumber == barNumber);
+                return character.CharacterPropertiesSpellBar.Where(x => x.SpellBarNumber == barNumber).ToList();
             }
             finally
             {
                 rwLock.ExitReadLock();
             }
-            return results.ToList();
         }
 
         /// <summary>

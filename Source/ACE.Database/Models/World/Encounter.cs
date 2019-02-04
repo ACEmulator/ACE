@@ -10,5 +10,6 @@ namespace ACE.Database.Models.World
         public uint WeenieClassId { get; set; }
         public int CellX { get; set; }
         public int CellY { get; set; }
+        public DateTime LastModified { get; set; }
     }
 }
