@@ -327,6 +327,7 @@ namespace ACE.Server.WorldObjects
             // https://docs.google.com/spreadsheets/d/122xOw3IKCezaTDjC_hggWSVzYJ_9M_zUUtGEXkwNXfs/edit#gid=846612575
 
             0x0002,     // Viamontian Garrison
+            0x0007,     // Town Network
             0x0056,     // Augmentation Realm Main Level
             0x005F,     // Tanada House of Pancakes (Seasonal)
             0x006D,     // Augmentation Realm Upper Level
