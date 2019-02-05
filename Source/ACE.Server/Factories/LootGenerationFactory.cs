@@ -2298,17 +2298,18 @@ namespace ACE.Server.Factories
 
             int weaponWeenie = 0;
             int weaponType = 0;
-            ///Properties for weapons
             int numSpells = 0;
-            if (isMagical)
-            {
-                numSpells = GetNumSpells(tier);
-            }
             int damage = 0; //
             double damageVariance = 0; //
             double weaponDefense = 0; //
             double weaponOffense = 0; //
             int longDescDecoration = 5; // 
+            int uiEffects; // Initialize but don't set a base value, to allow underlying weenie to set it if appropriate
+
+            ///Properties for weapons
+            if (isMagical)
+                numSpells = GetNumSpells(tier);
+
             double magicD = GetMissileDMod(tier);
             double missileD = GetMissileDMod(tier);
             int gemCount = ThreadSafeRandom.Next(1, 5);
@@ -2316,7 +2317,6 @@ namespace ACE.Server.Factories
             int materialType = GetMaterialType(2, tier);
             int workmanship = GetWorkmanship(tier);
             int value = GetValue(tier, workmanship);
-            int uiEffects = 0;
             int spellCraft = GetSpellcraft(numSpells, tier);
             int itemDifficulty = GetDifficulty(tier, spellCraft); ;
             int wieldDiff = GetWield(tier, 3);
@@ -2325,7 +2325,7 @@ namespace ACE.Server.Factories
             int maxMana = GetMaxMana(numSpells, tier);
             int subType = 0;
 
-            weaponType = ThreadSafeRandom.Next(0, 4);
+            weaponType = ThreadSafeRandom.Next(0, 5);
             switch (weaponType)
             {
                 case 0:
@@ -2390,8 +2390,26 @@ namespace ACE.Server.Factories
                         }
                         if (subAxeType == 2)
                         {
-                            ////Wr Axe, but this is weenie ID for acid war axe. TO BE FIXED
-                            weaponWeenie = 1439;
+                            ////War Axe
+                            int eleType = ThreadSafeRandom.Next(0, 4);
+                            switch (eleType)
+                            {
+                                case 0:
+                                    weaponWeenie = 31769;
+                                    break;
+                                case 1:
+                                    weaponWeenie = 31770;
+                                    break;
+                                case 2:
+                                    weaponWeenie = 31771;
+                                    break;
+                                case 3:
+                                    weaponWeenie = 31772;
+                                    break;
+                                default:
+                                    weaponWeenie = 31768;
+                                    break;
+                            }
                         }
                     }
                     if (subType == 1)
@@ -2695,8 +2713,25 @@ namespace ACE.Server.Factories
                         if (subStaffType == 1)
                         {
                             ////Stick
-                            /////This is not in the database
-                            weaponWeenie = 31788;
+                            int eleType = ThreadSafeRandom.Next(0, 4);
+                            switch (eleType)
+                            {
+                                case 0:
+                                    weaponWeenie = 31788;
+                                    break;
+                                case 1:
+                                    weaponWeenie = 31789;
+                                    break;
+                                case 2:
+                                    weaponWeenie = 31790;
+                                    break;
+                                case 3:
+                                    weaponWeenie = 31791;
+                                    break;
+                                default:
+                                    weaponWeenie = 31792;
+                                    break;
+                            }
                         }
                     }
                     if (subType == 5)
@@ -2830,10 +2865,28 @@ namespace ACE.Server.Factories
                         if (subSwordType == 5)
                         {
                             ////Schlager
-                            /////Not in DB
                             damage = GetMaxDamage(1, wieldDiff, 7);
                             damageVariance = GetVariance(1, 8);
                             weaponWeenie = 45108;
+                            int eleType = ThreadSafeRandom.Next(0, 4);
+                            switch (eleType)
+                            {
+                                case 0:
+                                    weaponWeenie = 45108;
+                                    break;
+                                case 1:
+                                    weaponWeenie = 45109;
+                                    break;
+                                case 2:
+                                    weaponWeenie = 45110;
+                                    break;
+                                case 3:
+                                    weaponWeenie = 45111;
+                                    break;
+                                default:
+                                    weaponWeenie = 45112;
+                                    break;
+                            }
                         }
                     }
                     if (subType == 6)
@@ -3226,7 +3279,7 @@ namespace ACE.Server.Factories
                         ////There are 6 subtypes of swords
                         weaponDefense = GetMaxDamageMod(tier, 20);
                         weaponOffense = GetMaxDamageMod(tier, 20);
-                        int subSwordType = ThreadSafeRandom.Next(0, 3);
+                        int subSwordType = ThreadSafeRandom.Next(0, 4);
                         if (subSwordType == 0)
                         {
                             ////Broad Sword
@@ -3250,12 +3303,29 @@ namespace ACE.Server.Factories
                                     break;
                             }
                         }
-                        //if (subSwordType == 1)
-                        //{
-                        //    ////Dericost Blade
-                        //    ///Not in DB
-                        //    weaponWeenie = 40910;
-                        //}
+                        if (subSwordType == 1)
+                        {
+                            ////Dericost Blade
+                            int eleType = ThreadSafeRandom.Next(0, 4);
+                            switch (eleType)
+                            {
+                                case 0:
+                                    weaponWeenie = 31759;
+                                    break;
+                                case 1:
+                                    weaponWeenie = 31760;
+                                    break;
+                                case 2:
+                                    weaponWeenie = 31761;
+                                    break;
+                                case 3:
+                                    weaponWeenie = 31762;
+                                    break;
+                                default:
+                                    weaponWeenie = 31758;
+                                    break;
+                            }
+                        }
                         //if (subSwordType == 1)
                         //{
                         //    ////Epee
@@ -3263,7 +3333,7 @@ namespace ACE.Server.Factories
                         //    damage = GetMaxDamage(2, wieldDiff, 7);
                         //    weaponWeenie = 45099;
                         //}
-                        if (subSwordType == 1)
+                        if (subSwordType == 2)
                         {
                             ////Kaskara
                             int eleType = ThreadSafeRandom.Next(0, 4);
@@ -3286,7 +3356,7 @@ namespace ACE.Server.Factories
                                     break;
                             }
                         }
-                        if (subSwordType == 2)
+                        if (subSwordType == 3)
                         {
                             ////Spada
                             int eleType = ThreadSafeRandom.Next(0, 4);
@@ -3309,7 +3379,7 @@ namespace ACE.Server.Factories
                                     break;
                             }
                         }
-                        if (subSwordType == 3)
+                        if (subSwordType == 4)
                         {
                             ////Shamshir
                             int eleType = ThreadSafeRandom.Next(0, 4);
@@ -3390,7 +3460,8 @@ namespace ACE.Server.Factories
                     }
                     break;
                 case 2:
-                    subType = ThreadSafeRandom.Next(0, 5);
+                    /// Finesse Weapons
+                    subType = ThreadSafeRandom.Next(0, 6);
                     wieldSkillType = 45;
                     if (subType == 0)
                     {
@@ -3398,15 +3469,9 @@ namespace ACE.Server.Factories
                         damageVariance = GetVariance(2, 1);
                         weaponDefense = GetMaxDamageMod(tier, 18);
                         weaponOffense = GetMaxDamageMod(tier, 22);
-                        int subAxeType = ThreadSafeRandom.Next(1, 3);
-                        ////There are 4 subtypes of axes
+                        ////There are 3 subtypes of axes
+                        int subAxeType = ThreadSafeRandom.Next(0, 2);
                         if (subAxeType == 0)
-                        {
-                            ////Hammer
-                            ////Not in DB
-                            weaponWeenie = 41420;
-                        }
-                        if (subAxeType == 1)
                         {
                             ////Shou-ono
                             int eleType = ThreadSafeRandom.Next(0, 4);
@@ -3429,7 +3494,7 @@ namespace ACE.Server.Factories
                                     break;
                             }
                         }
-                        if (subAxeType == 2)
+                        if (subAxeType == 1)
                         {
                             ////Hatchet
 
@@ -3453,7 +3518,7 @@ namespace ACE.Server.Factories
                                     break;
                             }
                         }
-                        if (subAxeType == 3)
+                        if (subAxeType == 2)
                         {
                             ////Tungi
                             int eleType = ThreadSafeRandom.Next(0, 4);
@@ -3485,7 +3550,7 @@ namespace ACE.Server.Factories
                         weaponDefense = GetMaxDamageMod(tier, 20);
                         weaponOffense = GetMaxDamageMod(tier, 20);
                         ////There are 3 subtypes of daggers
-                        int subDaggerType = ThreadSafeRandom.Next(0, 1);
+                        int subDaggerType = ThreadSafeRandom.Next(0, 2);
                         if (subDaggerType == 0)
                         {
                             ////Knife
@@ -3511,14 +3576,32 @@ namespace ACE.Server.Factories
                                     break;
                             }
                         }
-                        //if (subDaggerType == 1)
-                        //{
-                        //    ////Lancet
-                        //    damageVariance = GetVariance(2, 3);
-                        //    damage = GetMaxDamage(2, wieldDiff, 3);
-                        //    weaponWeenie = 31794;
-                        //}
                         if (subDaggerType == 1)
+                        {
+                            ////Lancet
+                            damageVariance = GetVariance(2, 3);
+                            damage = GetMaxDamage(2, wieldDiff, 3);
+                            int eleType = ThreadSafeRandom.Next(0, 4);
+                            switch (eleType)
+                            {
+                                case 0:
+                                    weaponWeenie = 31794;
+                                    break;
+                                case 1:
+                                    weaponWeenie = 31795;
+                                    break;
+                                case 2:
+                                    weaponWeenie = 31796;
+                                    break;
+                                case 3:
+                                    weaponWeenie = 31797;
+                                    break;
+                                default:
+                                    weaponWeenie = 31793;
+                                    break;
+                            }
+                        }
+                        if (subDaggerType == 2)
                         {
                             ////Poniard
                             int eleType = ThreadSafeRandom.Next(0, 4);
@@ -3548,12 +3631,30 @@ namespace ACE.Server.Factories
                         damageVariance = GetVariance(2, 4);
                         weaponDefense = GetMaxDamageMod(tier, 22);
                         weaponOffense = GetMaxDamageMod(tier, 18);
-                        ////There are 4 subtypes of maces
+                        ////There are 5 subtypes of maces
                         int subMaceType = ThreadSafeRandom.Next(0, 3);
                         if (subMaceType == 0)
                         {
                             ////Board with Nail
-                            weaponWeenie = 7767;
+                            int eleType = ThreadSafeRandom.Next(0, 4);
+                            switch (eleType)
+                            {
+                                case 0:
+                                    weaponWeenie = 31774;
+                                    break;
+                                case 1:
+                                    weaponWeenie = 31775;
+                                    break;
+                                case 2:
+                                    weaponWeenie = 31776;
+                                    break;
+                                case 3:
+                                    weaponWeenie = 31777;
+                                    break;
+                                default:
+                                    weaponWeenie = 31773;
+                                    break;
+                            }
                         }
                         if (subMaceType == 1)
                         {
@@ -3622,6 +3723,30 @@ namespace ACE.Server.Factories
                                     break;
                                 default:
                                     weaponWeenie = 3805;
+                                    break;
+                            }
+                        }
+                        if (subMaceType == 4)
+                        {
+                            ////Stone Mace
+                            /// Not currently in the DB
+                            int eleType = ThreadSafeRandom.Next(0, 4);
+                            switch (eleType)
+                            {
+                                case 0:
+                                    weaponWeenie = 31774;
+                                    break;
+                                case 1:
+                                    weaponWeenie = 31775;
+                                    break;
+                                case 2:
+                                    weaponWeenie = 31776;
+                                    break;
+                                case 3:
+                                    weaponWeenie = 31777;
+                                    break;
+                                default:
+                                    weaponWeenie = 31773;
                                     break;
                             }
                         }
@@ -3868,142 +3993,396 @@ namespace ACE.Server.Factories
                             }
                         }
                     }
-                    //if (subType == 6)
-                    //{
-                    //    damage = GetMaxDamage(2, wieldDiff, 9);
-                    //    damageVariance = GetVariance(2, 10);
-                    //    weaponDefense = GetMaxDamageMod(tier, 20);
-                    //    weaponOffense = GetMaxDamageMod(tier, 20);
-                    //    ////There are 2 subtypes of UA
-                    //    int subUAType = ThreadSafeRandom.Next(0, 1);
-                    //    if (subUAType == 0)
-                    //    {
-                    //        ////Claw
-                    //        weaponWeenie = 31784;
-                    //    }
-                    //    if (subUAType == 1)
-                    //    {
-                    //        ////Hand Wraps
-                    //        weaponWeenie = 45118;
-                    //    }
-                    //}
+                    if (subType == 6)
+                    {
+                        damage = GetMaxDamage(2, wieldDiff, 9);
+                        damageVariance = GetVariance(2, 10);
+                        weaponDefense = GetMaxDamageMod(tier, 20);
+                        weaponOffense = GetMaxDamageMod(tier, 20);
+                        ////There are 2 subtypes of UA
+                        int subUAType = ThreadSafeRandom.Next(0, 1);
+                        if (subUAType == 0)
+                        {
+                            ////Claw
+                            int eleType = ThreadSafeRandom.Next(0, 4);
+                            switch (eleType)
+                            {
+                                case 0:
+                                    weaponWeenie = 31784;
+                                    break;
+                                case 1:
+                                    weaponWeenie = 31785;
+                                    break;
+                                case 2:
+                                    weaponWeenie = 31786;
+                                    break;
+                                case 3:
+                                    weaponWeenie = 31787;
+                                    break;
+                                default:
+                                    weaponWeenie = 31783;
+                                    break;
+                            }
+                        }
+                        if (subUAType == 1)
+                        {
+                            ////Hand Wraps
+                            int eleType = ThreadSafeRandom.Next(0, 4);
+                            switch (eleType)
+                            {
+                                case 0:
+                                    weaponWeenie = 45118;
+                                    break;
+                                case 1:
+                                    weaponWeenie = 45119;
+                                    break;
+                                case 2:
+                                    weaponWeenie = 45120;
+                                    break;
+                                case 3:
+                                    weaponWeenie = 45121;
+                                    break;
+                                default:
+                                    weaponWeenie = 45122;
+                                    break;
+                            }
+                        }
+                    }
                     break;
-                //    case 3:
-                /////Two handed
-                //wieldSkillType = 41;
-                //        damageVariance = GetVariance(3, 1);
-                //        damage = GetMaxDamage(3, wieldDiff, 1);
-                //        subType = ThreadSafeRandom.Next(0, 4);
-                //        if (subType == 0)
-                //        {
-                //            damageVariance = GetVariance(2, 1);
-                //            ////There are 4 subtypes of axes
-
-                //            weaponDefense = GetMaxDamageMod(tier, 20);
-                //            weaponOffense = GetMaxDamageMod(tier, 20);
-                //            int subSwordType = ThreadSafeRandom.Next(0, 2);
-                //            if (subSwordType == 0)
-                //            {
-                //                ////Nodachi
-                //                weaponWeenie = 40760;
-                //            }
-                //            if (subSwordType == 1)
-                //            {
-                //                ////Shashqa
-                //                weaponWeenie = 41067;
-                //            }
-                //            if (subSwordType == 2)
-                //            {
-                //                ////Spadone
-                //                weaponWeenie = 29975;
-                //            }
-                //        }
-                //        if (subType == 1)
-                //        {
-                //            ////There are 4 subtypes of Maces
-                //            weaponDefense = GetMaxDamageMod(tier, 22);
-                //            weaponOffense = GetMaxDamageMod(tier, 18);
-                //            int subMaceType = ThreadSafeRandom.Next(0, 3);
-                //            if (subMaceType == 0)
-                //            {
-                //                ////Great Star Mace
-                //                weaponWeenie = 41057;
-                //            }
-                //            if (subMaceType == 1)
-                //            {
-                //                ////Quadrelle
-                //                weaponWeenie = 29965;
-                //            }
-                //            if (subMaceType == 2)
-                //            {
-                //                ////Khanda-handled Mace
-                //                weaponWeenie = 41062;
-                //            }
-                //            if (subMaceType == 3)
-                //            {
-                //                ////Tetsubo
-                //                weaponWeenie = 46604;
-                //            }
-                //        }
-                //        if (subType == 2)
-                //        {
-                //            ////There are 1 subtypes of axes
-                //            weaponDefense = GetMaxDamageMod(tier, 18);
-                //            weaponOffense = GetMaxDamageMod(tier, 22);
-                //            int subAxeType = ThreadSafeRandom.Next(0, 0);
-                //            if (subAxeType == 0)
-                //            {
-                //                ////Greataxe
-                //                weaponWeenie = 41052;
-                //            }
-                //        }
-                //        if (subType == 3)
-                //        {
-                //            ////There are 4 subtypes of spears
-                //            damage = GetMaxDamage(3, wieldDiff, 2);
-                //            weaponDefense = GetMaxDamageMod(tier, 15);
-                //            weaponOffense = GetMaxDamageMod(tier, 25);
-                //            int subSpearType = ThreadSafeRandom.Next(0, 3);
-                //            if (subSpearType == 0)
-                //            {
-                //                ////Assagai
-                //                weaponWeenie = 41036;
-                //            }
-                //            if (subSpearType == 1)
-                //            {
-                //                ////Pike
-                //                weaponWeenie = 41046;
-                //            }
-                //            if (subSpearType == 2)
-                //            {
-                //                ////Corsesca
-                //                weaponWeenie = 40818;
-                //            }
-                //            if (subSpearType == 3)
-                //            {
-                //                ////Magari Yari
-                //                weaponWeenie = 46605;
-                //            }
-                //        }
-                //        break;
                 case 3:
+                    ///Two handed
+                    wieldSkillType = 41;
+                    damageVariance = GetVariance(3, 1);
+                    damage = GetMaxDamage(3, wieldDiff, 1);
+                    subType = ThreadSafeRandom.Next(0, 3);
+                    if (subType == 0)
+                    {
+                        damageVariance = GetVariance(2, 1);
+                        weaponDefense = GetMaxDamageMod(tier, 20);
+                        weaponOffense = GetMaxDamageMod(tier, 20);
+                        ////There are 4 subtypes of axes
+                        int subSwordType = ThreadSafeRandom.Next(0, 2);
+                        if (subSwordType == 0)
+                        {
+                            ////Nodachi
+                            int eleType = ThreadSafeRandom.Next(0, 4);
+                            switch (eleType)
+                            {
+                                case 0:
+                                    weaponWeenie = 40760;
+                                    break;
+                                case 1:
+                                    weaponWeenie = 40761;
+                                    break;
+                                case 2:
+                                    weaponWeenie = 40762;
+                                    break;
+                                case 3:
+                                    weaponWeenie = 40763;
+                                    break;
+                                default:
+                                    weaponWeenie = 40764;
+                                    break;
+                            }
+                        }
+                        if (subSwordType == 1)
+                        {
+                            ////Shashqa
+                            int eleType = ThreadSafeRandom.Next(0, 4);
+                            switch (eleType)
+                            {
+                                case 0:
+                                    weaponWeenie = 41067;
+                                    break;
+                                case 1:
+                                    weaponWeenie = 41068;
+                                    break;
+                                case 2:
+                                    weaponWeenie = 41069;
+                                    break;
+                                case 3:
+                                    weaponWeenie = 41070;
+                                    break;
+                                default:
+                                    weaponWeenie = 41071;
+                                    break;
+                            }
+                        }
+                        if (subSwordType == 2)
+                        {
+                            ////Spadone
+                            int eleType = ThreadSafeRandom.Next(0, 4);
+                            switch (eleType)
+                            {
+                                case 0:
+                                    weaponWeenie = 40618;
+                                    break;
+                                case 1:
+                                    weaponWeenie = 40619;
+                                    break;
+                                case 2:
+                                    weaponWeenie = 40620;
+                                    break;
+                                case 3:
+                                    weaponWeenie = 40621;
+                                    break;
+                                default:
+                                    weaponWeenie = 40622;
+                                    break;
+                            }
+                        }
+                    }
+                    if (subType == 1)
+                    {
+                        ////There are 4 subtypes of Maces
+                        weaponDefense = GetMaxDamageMod(tier, 22);
+                        weaponOffense = GetMaxDamageMod(tier, 18);
+                        int subMaceType = ThreadSafeRandom.Next(0, 3);
+                        if (subMaceType == 0)
+                        {
+                            ////Great Star Mace
+                            int eleType = ThreadSafeRandom.Next(0, 4);
+                            switch (eleType)
+                            {
+                                case 0:
+                                    weaponWeenie = 41057;
+                                    break;
+                                case 1:
+                                    weaponWeenie = 41058;
+                                    break;
+                                case 2:
+                                    weaponWeenie = 41059;
+                                    break;
+                                case 3:
+                                    weaponWeenie = 41060;
+                                    break;
+                                default:
+                                    weaponWeenie = 41061;
+                                    break;
+                            }
+                        }
+                        if (subMaceType == 1)
+                        {
+                            ////Quadrelle
+                            int eleType = ThreadSafeRandom.Next(0, 4);
+                            switch (eleType)
+                            {
+                                case 0:
+                                    weaponWeenie = 40623;
+                                    break;
+                                case 1:
+                                    weaponWeenie = 40624;
+                                    break;
+                                case 2:
+                                    weaponWeenie = 40625;
+                                    break;
+                                case 3:
+                                    weaponWeenie = 40626;
+                                    break;
+                                default:
+                                    weaponWeenie = 40627;
+                                    break;
+                            }
+                        }
+                        if (subMaceType == 2)
+                        {
+                            ////Khanda-handled Mace
+                            int eleType = ThreadSafeRandom.Next(0, 4);
+                            switch (eleType)
+                            {
+                                case 0:
+                                    weaponWeenie = 41062;
+                                    break;
+                                case 1:
+                                    weaponWeenie = 41063;
+                                    break;
+                                case 2:
+                                    weaponWeenie = 41064;
+                                    break;
+                                case 3:
+                                    weaponWeenie = 41065;
+                                    break;
+                                default:
+                                    weaponWeenie = 41066;
+                                    break;
+                            }
+                        }
+                        if (subMaceType == 3)
+                        {
+                            ////Tetsubo
+                            int eleType = ThreadSafeRandom.Next(0, 4);
+                            switch (eleType)
+                            {
+                                case 0:
+                                    weaponWeenie = 40635;
+                                    break;
+                                case 1:
+                                    weaponWeenie = 40636;
+                                    break;
+                                case 2:
+                                    weaponWeenie = 40637;
+                                    break;
+                                case 3:
+                                    weaponWeenie = 40638;
+                                    break;
+                                default:
+                                    weaponWeenie = 40639;
+                                    break;
+                            }
+                        }
+                    }
+                    if (subType == 2)
+                    {
+                        ////There are 1 subtypes of axes
+                        weaponDefense = GetMaxDamageMod(tier, 18);
+                        weaponOffense = GetMaxDamageMod(tier, 22);
+                        int subAxeType = ThreadSafeRandom.Next(0, 0);
+                        if (subAxeType == 0)
+                        {
+                            ////Greataxe
+                            int eleType = ThreadSafeRandom.Next(0, 4);
+                            switch (eleType)
+                            {
+                                case 0:
+                                    weaponWeenie = 41052;
+                                    break;
+                                case 1:
+                                    weaponWeenie = 41053;
+                                    break;
+                                case 2:
+                                    weaponWeenie = 41054;
+                                    break;
+                                case 3:
+                                    weaponWeenie = 41055;
+                                    break;
+                                default:
+                                    weaponWeenie = 41056;
+                                    break;
+                            }
+                        }
+                    }
+                    if (subType == 3)
+                    {
+                        ////There are 4 subtypes of spears
+                        damage = GetMaxDamage(3, wieldDiff, 2);
+                        weaponDefense = GetMaxDamageMod(tier, 15);
+                        weaponOffense = GetMaxDamageMod(tier, 25);
+                        int subSpearType = ThreadSafeRandom.Next(0, 3);
+                        if (subSpearType == 0)
+                        {
+                            ////Assagai
+                            int eleType = ThreadSafeRandom.Next(0, 4);
+                            switch (eleType)
+                            {
+                                case 0:
+                                    weaponWeenie = 41036;
+                                    break;
+                                case 1:
+                                    weaponWeenie = 41037;
+                                    break;
+                                case 2:
+                                    weaponWeenie = 41038;
+                                    break;
+                                case 3:
+                                    weaponWeenie = 41039;
+                                    break;
+                                default:
+                                    weaponWeenie = 41040;
+                                    break;
+                            }
+                        }
+                        if (subSpearType == 1)
+                        {
+                            ////Pike
+                            int eleType = ThreadSafeRandom.Next(0, 4);
+                            switch (eleType)
+                            {
+                                case 0:
+                                    weaponWeenie = 41046;
+                                    break;
+                                case 1:
+                                    weaponWeenie = 41047;
+                                    break;
+                                case 2:
+                                    weaponWeenie = 41048;
+                                    break;
+                                case 3:
+                                    weaponWeenie = 41049;
+                                    break;
+                                default:
+                                    weaponWeenie = 41050;
+                                    break;
+                            }
+                        }
+                        if (subSpearType == 2)
+                        {
+                            ////Corsesca
+                            int eleType = ThreadSafeRandom.Next(0, 4);
+                            switch (eleType)
+                            {
+                                case 0:
+                                    weaponWeenie = 40818;
+                                    break;
+                                case 1:
+                                    weaponWeenie = 40819;
+                                    break;
+                                case 2:
+                                    weaponWeenie = 40820;
+                                    break;
+                                case 3:
+                                    weaponWeenie = 40821;
+                                    break;
+                                default:
+                                    weaponWeenie = 40822;
+                                    break;
+                            }
+                        }
+                        if (subSpearType == 3)
+                        {
+                            ////Magari Yari
+                            int eleType = ThreadSafeRandom.Next(0, 4);
+                            switch (eleType)
+                            {
+                                case 0:
+                                    weaponWeenie = 41041;
+                                    break;
+                                case 1:
+                                    weaponWeenie = 41042;
+                                    break;
+                                case 2:
+                                    weaponWeenie = 41043;
+                                    break;
+                                case 3:
+                                    weaponWeenie = 41044;
+                                    break;
+                                default:
+                                    weaponWeenie = 41045;
+                                    break;
+                            }
+                        }
+                    }
+                    break;
+                case 4:
                     return CreateMissileWeapon(tier);
                 default:
                     return CreateCaster(tier);
 
             }
-            if (numSpells > 0)
-            {
-                uiEffects = 1;
-            }
+
             ///To be done: setting random burdens,
             WorldObject wo = WorldObjectFactory.CreateNewWorldObject((uint)weaponWeenie);
             wo.SetProperty(PropertyInt.GemCount, gemCount);
             wo.SetProperty(PropertyInt.GemType, gemType);
-            wo.SetProperty(PropertyInt.UiEffects, uiEffects);
             wo.SetProperty(PropertyInt.Value, value);
             wo.SetProperty(PropertyInt.Damage, damage);
             wo.SetProperty(PropertyInt.WeaponSkill, wieldSkillType);
+
+            if (numSpells > 0)
+            {
+                uiEffects = 1;
+                wo.SetProperty(PropertyInt.UiEffects, uiEffects);
+            }
+
             int lowSpellTier = GetLowSpellTier(tier);
             int highSpellTier = GetHighSpellTier(tier);
             int minorCantrips = GetNumMinorCantrips(tier);
@@ -4016,7 +4395,10 @@ namespace ACE.Server.Factories
             if (numSpells > 0)
             {
                 wo.SetProperty(PropertyInt.ItemSpellcraft, spellCraft);
+
+                // Override weenie property, as item contains spells
                 wo.SetProperty(PropertyInt.UiEffects, 1);
+
                 wo.SetProperty(PropertyInt.ItemDifficulty, itemDifficulty);
                 wo.SetProperty(PropertyInt.ItemMaxMana, maxMana);
                 wo.SetProperty(PropertyInt.ItemCurMana, maxMana);
@@ -15356,8 +15738,8 @@ namespace ACE.Server.Factories
                 int subAtlatlType = ThreadSafeRandom.Next(0, 1);
                 if (subAtlatlType == 0)
                 {
-                    ////Dart Flicker
-                    weaponWeenie = 30345;
+                    ////Atlatl
+                    weaponWeenie = 12463;
                     maxVelocity = 27.3;
                     weaponTime = 15;
                     encumb = ThreadSafeRandom.Next(250, 500);
@@ -15438,8 +15820,9 @@ namespace ACE.Server.Factories
                 }
             }
             int damageType = 0;
-            int uiEffects = 0;
-            String elementName = "";
+            int uiEffects= 0;
+
+            String elementName = null;
             int chance = ThreadSafeRandom.Next(0, 6);
             if (ThreadSafeRandom.Next(1, 100) > 90)
             {
@@ -15490,9 +15873,12 @@ namespace ACE.Server.Factories
                 }
             }
 
-            String shortName = elementName + " " + wo.Name;
+            if (elementName != null)
+                wo.SetProperty(PropertyString.Name, $"{elementName} {wo.Name}");
+            else
+                wo.SetProperty(PropertyString.Name, wo.Name);
+
             wo.SetProperty(PropertyFloat.DamageMod, damageMod);
-            wo.SetProperty(PropertyString.Name, shortName);
             wo.SetProperty(PropertyInt.UiEffects, uiEffects);
             wo.SetProperty(PropertyInt.DamageType, damageType);
             wo.SetProperty(PropertyFloat.ManaRate, manaRate);
@@ -15518,6 +15904,7 @@ namespace ACE.Server.Factories
             wo.SetProperty(PropertyInt.WieldRequirements, wieldRequirements);
             wo.SetProperty(PropertyInt.WieldSkillType, wieldSkillType);
             wo.SetProperty(PropertyString.LongDesc, getLongDesc(wo.GetProperty(PropertyString.Name), gemType, gemCount));
+
             if (numSpells == 0)
             {
                 wo.RemoveProperty(PropertyInt.ItemManaCost);
@@ -15527,15 +15914,15 @@ namespace ACE.Server.Factories
                 wo.RemoveProperty(PropertyInt.ItemDifficulty);
             }
             else
-            {
                 wo.SetProperty(PropertyInt.UiEffects, 1);
-            }
+
             if (wieldDifficulty == 0)
             {
                 wo.RemoveProperty(PropertyInt.WieldDifficulty);
                 wo.RemoveProperty(PropertyInt.WieldRequirements);
                 wo.RemoveProperty(PropertyInt.WieldSkillType);
             }
+
             return wo;
         }
 
@@ -15568,7 +15955,8 @@ namespace ACE.Server.Factories
              };
 
             String weaponName = "";
-            String elementName = "";
+            String elementName = null;
+
             int casterWeenie = 0; //done
             int highSpellTier = 0; //done
             int lowSpellTier = 0; //done
@@ -15585,13 +15973,14 @@ namespace ACE.Server.Factories
             int spellcraft = 0; // done
             int workmanship = 0; //done
             int materialType = 0; //done
-            int uiEffects = 0; //done
+            int uiEffects = 0;
             int value = 0; //done
             int wieldReqs = 2; //done
             int wieldSkillType = 0; //done
             int wield = 0; //done
             int chance = 0; //done
             int numSpells = 0; //done
+
             switch (tier)
             {
                 case 1:
@@ -15801,6 +16190,7 @@ namespace ACE.Server.Factories
                         wieldSkillType = 33;
                         break;
                 }
+
                 chance = ThreadSafeRandom.Next(0, 7);
                 switch (chance)
                 {
@@ -15854,10 +16244,12 @@ namespace ACE.Server.Factories
                         break;
                 }
             }
+
             if (ThreadSafeRandom.Next(0, 100) > 95)
             {
                 missileDMod = GetMissileDMod(tier);
             }
+
             WorldObject wo = WorldObjectFactory.CreateNewWorldObject((uint)casterWeenie);
             meleeDMod = GetMeleeDMod(20, tier);
             workmanship = GetWorkmanship(tier);
@@ -15872,7 +16264,12 @@ namespace ACE.Server.Factories
             itemMaxMana = GetMaxMana(numSpells, tier);
             itemDiff = GetDifficulty(tier, spellcraft);
             value = GetValue(tier, workmanship);
-            String shortDesc = elementName + " " + weaponName;
+
+            if (elementName != null)
+                wo.SetProperty(PropertyString.Name, $"{elementName} {weaponName}");
+            else
+                wo.SetProperty(PropertyString.Name, weaponName);
+
             elementalDamageMod = GetMaxDamageMod(tier, 18);
             wo.SetProperty(PropertyInt.MaterialType, materialType);
             wo.SetProperty(PropertyInt.Value, value);
@@ -15890,18 +16287,19 @@ namespace ACE.Server.Factories
             wo.SetProperty(PropertyInt.DamageType, damageType);
             wo.SetProperty(PropertyInt.GemCount, gemCount);
             wo.SetProperty(PropertyInt.GemType, gemType);
-            wo.SetProperty(PropertyString.Name, shortDesc);
             wo.SetProperty(PropertyString.LongDesc, getLongDesc(wo.GetProperty(PropertyString.Name), gemType, gemCount));
             int minorCantrips = GetNumMinorCantrips(tier);
             int majorCantrips = GetNumMajorCantrips(tier);
             int epicCantrips = GetNumEpicCantrips(tier);
             int legendaryCantrips = GetNumLegendaryCantrips(tier);
             int numCantrips = minorCantrips + majorCantrips + epicCantrips + legendaryCantrips;
-            if (wield == 0 && numSpells > 0)
+
+            if (numCantrips > 0 || numSpells > 0)
             {
                 uiEffects = 1;
+                wo.SetProperty(PropertyInt.UiEffects, uiEffects);
             }
-            wo.SetProperty(PropertyInt.UiEffects, uiEffects);
+
             if (wield > 0)
             {
                 wo.SetProperty(PropertyInt.WieldRequirements, wieldReqs);
@@ -15913,17 +16311,20 @@ namespace ACE.Server.Factories
                 wo.RemoveProperty(PropertyFloat.ElementalDamageMod);
             }
             wo.RemoveProperty(PropertyInt.ItemSkillLevelLimit);
+
             int[][] spells = LootHelper.WandSpells;
             int[][] cantrips = LootHelper.WandCantrips;
             int[] shuffledValues = new int[spells.Length];
+
             for (int i = 0; i < spells.Length; i++)
             {
                 shuffledValues[i] = i;
             }
+
             Shuffle(shuffledValues);
+
             if (numSpells - numCantrips > 0)
             {
-                wo.SetProperty(PropertyInt.UiEffects, 1);
                 for (int a = 0; a < numSpells - numCantrips; a++)
                 {
                     int col = ThreadSafeRandom.Next(lowSpellTier - 1, highSpellTier - 1);
@@ -15932,6 +16333,7 @@ namespace ACE.Server.Factories
                     wo.Biota.BiotaPropertiesSpellBook.Add(result);
                 }
             }
+
             if (numCantrips > 0)
             {
                 shuffledValues = new int[cantrips.Length];
