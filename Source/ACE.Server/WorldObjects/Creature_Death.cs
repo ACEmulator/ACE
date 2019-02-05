@@ -161,7 +161,7 @@ namespace ACE.Server.WorldObjects
             if (NoCorpse) return;
 
             var corpse = WorldObjectFactory.CreateNewWorldObject(DatabaseManager.World.GetCachedWeenie("corpse")) as Corpse;
-            var prefix = "Corpse of";
+            var prefix = "Corpse";
 
             if (TreasureCorpse)
             {
@@ -171,7 +171,7 @@ namespace ACE.Server.WorldObjects
                 corpse.SoundTableId  = 0x200000C2;
                 corpse.ObjScale      = 0.4f;
 
-                prefix = "Treasure of";
+                prefix = "Treasure";
             }
             else
             {
@@ -212,7 +212,7 @@ namespace ACE.Server.WorldObjects
             corpse.Location = new Position(Location);
 
             corpse.VictimId = Guid.Full;
-            corpse.Name = $"{prefix} {Name}";
+            corpse.Name = $"{prefix} of {Name}";
 
             // set 'killed by' for looting rights
             if (killer != null)
