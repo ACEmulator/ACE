@@ -166,10 +166,10 @@ namespace ACE.Server.WorldObjects
             if (TreasureCorpse)
             {
                 // Hardcoded values from PCAPs of Treasure Pile Corpses, everything else lines up exactly with existing corpse weenie
-                corpse.SetupTableId = 0x02000EC4;
+                corpse.SetupTableId  = 0x02000EC4;
                 corpse.MotionTableId = 0x0900019B;
-                corpse.SoundTableId = 0x200000C2;
-                corpse.ObjScale = 0.4f;
+                corpse.SoundTableId  = 0x200000C2;
+                corpse.ObjScale      = 0.4f;
 
                 prefix = "Treasure of";
             }
