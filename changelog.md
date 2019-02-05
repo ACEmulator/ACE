@@ -1,6 +1,9 @@
 # ACEmulator Change Log
 
 ### 2019-02-04
+[Jyrus]
+* Modify LootGenerationFactory to support the TOD updated weenies
+
 [Ripley]
 * Added LastModified to several tables in World Database
   - **This change requires you to update to the latest world database release found in ACE-World-16PY-Patches, v0.9.13 or higher**
