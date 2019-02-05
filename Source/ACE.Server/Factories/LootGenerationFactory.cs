@@ -2298,17 +2298,18 @@ namespace ACE.Server.Factories
 
             int weaponWeenie = 0;
             int weaponType = 0;
-            ///Properties for weapons
             int numSpells = 0;
-            if (isMagical)
-            {
-                numSpells = GetNumSpells(tier);
-            }
             int damage = 0; //
             double damageVariance = 0; //
             double weaponDefense = 0; //
             double weaponOffense = 0; //
             int longDescDecoration = 5; // 
+            int uiEffects; // Initialize but don't set a base value, to allow underlying weenie to set it if appropriate
+
+            ///Properties for weapons
+            if (isMagical)
+                numSpells = GetNumSpells(tier);
+
             double magicD = GetMissileDMod(tier);
             double missileD = GetMissileDMod(tier);
             int gemCount = ThreadSafeRandom.Next(1, 5);
@@ -2316,7 +2317,6 @@ namespace ACE.Server.Factories
             int materialType = GetMaterialType(2, tier);
             int workmanship = GetWorkmanship(tier);
             int value = GetValue(tier, workmanship);
-            int uiEffects = 0;
             int spellCraft = GetSpellcraft(numSpells, tier);
             int itemDifficulty = GetDifficulty(tier, spellCraft); ;
             int wieldDiff = GetWield(tier, 3);
@@ -4368,18 +4368,21 @@ namespace ACE.Server.Factories
                     return CreateCaster(tier);
 
             }
-            if (numSpells > 0)
-            {
-                uiEffects = 1;
-            }
+
             ///To be done: setting random burdens,
             WorldObject wo = WorldObjectFactory.CreateNewWorldObject((uint)weaponWeenie);
             wo.SetProperty(PropertyInt.GemCount, gemCount);
             wo.SetProperty(PropertyInt.GemType, gemType);
-            wo.SetProperty(PropertyInt.UiEffects, uiEffects);
             wo.SetProperty(PropertyInt.Value, value);
             wo.SetProperty(PropertyInt.Damage, damage);
             wo.SetProperty(PropertyInt.WeaponSkill, wieldSkillType);
+
+            if (numSpells > 0)
+            {
+                uiEffects = 1;
+                wo.SetProperty(PropertyInt.UiEffects, uiEffects);
+            }
+
             int lowSpellTier = GetLowSpellTier(tier);
             int highSpellTier = GetHighSpellTier(tier);
             int minorCantrips = GetNumMinorCantrips(tier);
@@ -4392,7 +4395,10 @@ namespace ACE.Server.Factories
             if (numSpells > 0)
             {
                 wo.SetProperty(PropertyInt.ItemSpellcraft, spellCraft);
+
+                // Override weenie property, as item contains spells
                 wo.SetProperty(PropertyInt.UiEffects, 1);
+
                 wo.SetProperty(PropertyInt.ItemDifficulty, itemDifficulty);
                 wo.SetProperty(PropertyInt.ItemMaxMana, maxMana);
                 wo.SetProperty(PropertyInt.ItemCurMana, maxMana);
@@ -15814,8 +15820,9 @@ namespace ACE.Server.Factories
                 }
             }
             int damageType = 0;
-            int uiEffects = 0;
-            String elementName = "";
+            int uiEffects= 0;
+
+            String elementName = null;
             int chance = ThreadSafeRandom.Next(0, 6);
             if (ThreadSafeRandom.Next(1, 100) > 90)
             {
@@ -15866,9 +15873,12 @@ namespace ACE.Server.Factories
                 }
             }
 
-            String shortName = elementName + " " + wo.Name;
+            if (elementName != null)
+                wo.SetProperty(PropertyString.Name, $"{elementName} {wo.Name}");
+            else
+                wo.SetProperty(PropertyString.Name, wo.Name);
+
             wo.SetProperty(PropertyFloat.DamageMod, damageMod);
-            wo.SetProperty(PropertyString.Name, shortName);
             wo.SetProperty(PropertyInt.UiEffects, uiEffects);
             wo.SetProperty(PropertyInt.DamageType, damageType);
             wo.SetProperty(PropertyFloat.ManaRate, manaRate);
@@ -15894,6 +15904,7 @@ namespace ACE.Server.Factories
             wo.SetProperty(PropertyInt.WieldRequirements, wieldRequirements);
             wo.SetProperty(PropertyInt.WieldSkillType, wieldSkillType);
             wo.SetProperty(PropertyString.LongDesc, getLongDesc(wo.GetProperty(PropertyString.Name), gemType, gemCount));
+
             if (numSpells == 0)
             {
                 wo.RemoveProperty(PropertyInt.ItemManaCost);
@@ -15903,15 +15914,15 @@ namespace ACE.Server.Factories
                 wo.RemoveProperty(PropertyInt.ItemDifficulty);
             }
             else
-            {
                 wo.SetProperty(PropertyInt.UiEffects, 1);
-            }
+
             if (wieldDifficulty == 0)
             {
                 wo.RemoveProperty(PropertyInt.WieldDifficulty);
                 wo.RemoveProperty(PropertyInt.WieldRequirements);
                 wo.RemoveProperty(PropertyInt.WieldSkillType);
             }
+
             return wo;
         }
 
@@ -15944,7 +15955,8 @@ namespace ACE.Server.Factories
              };
 
             String weaponName = "";
-            String elementName = "";
+            String elementName = null;
+
             int casterWeenie = 0; //done
             int highSpellTier = 0; //done
             int lowSpellTier = 0; //done
@@ -15961,13 +15973,14 @@ namespace ACE.Server.Factories
             int spellcraft = 0; // done
             int workmanship = 0; //done
             int materialType = 0; //done
-            int uiEffects = 0; //done
+            int uiEffects = 0;
             int value = 0; //done
             int wieldReqs = 2; //done
             int wieldSkillType = 0; //done
             int wield = 0; //done
             int chance = 0; //done
             int numSpells = 0; //done
+
             switch (tier)
             {
                 case 1:
@@ -16177,6 +16190,7 @@ namespace ACE.Server.Factories
                         wieldSkillType = 33;
                         break;
                 }
+
                 chance = ThreadSafeRandom.Next(0, 7);
                 switch (chance)
                 {
@@ -16230,10 +16244,12 @@ namespace ACE.Server.Factories
                         break;
                 }
             }
+
             if (ThreadSafeRandom.Next(0, 100) > 95)
             {
                 missileDMod = GetMissileDMod(tier);
             }
+
             WorldObject wo = WorldObjectFactory.CreateNewWorldObject((uint)casterWeenie);
             meleeDMod = GetMeleeDMod(20, tier);
             workmanship = GetWorkmanship(tier);
@@ -16248,7 +16264,12 @@ namespace ACE.Server.Factories
             itemMaxMana = GetMaxMana(numSpells, tier);
             itemDiff = GetDifficulty(tier, spellcraft);
             value = GetValue(tier, workmanship);
-            String shortDesc = elementName + " " + weaponName;
+
+            if (elementName != null)
+                wo.SetProperty(PropertyString.Name, $"{elementName} {weaponName}");
+            else
+                wo.SetProperty(PropertyString.Name, weaponName);
+
             elementalDamageMod = GetMaxDamageMod(tier, 18);
             wo.SetProperty(PropertyInt.MaterialType, materialType);
             wo.SetProperty(PropertyInt.Value, value);
@@ -16266,18 +16287,19 @@ namespace ACE.Server.Factories
             wo.SetProperty(PropertyInt.DamageType, damageType);
             wo.SetProperty(PropertyInt.GemCount, gemCount);
             wo.SetProperty(PropertyInt.GemType, gemType);
-            wo.SetProperty(PropertyString.Name, shortDesc);
             wo.SetProperty(PropertyString.LongDesc, getLongDesc(wo.GetProperty(PropertyString.Name), gemType, gemCount));
             int minorCantrips = GetNumMinorCantrips(tier);
             int majorCantrips = GetNumMajorCantrips(tier);
             int epicCantrips = GetNumEpicCantrips(tier);
             int legendaryCantrips = GetNumLegendaryCantrips(tier);
             int numCantrips = minorCantrips + majorCantrips + epicCantrips + legendaryCantrips;
-            if (wield == 0 && numSpells > 0)
+
+            if (numCantrips > 0 || numSpells > 0)
             {
                 uiEffects = 1;
+                wo.SetProperty(PropertyInt.UiEffects, uiEffects);
             }
-            wo.SetProperty(PropertyInt.UiEffects, uiEffects);
+
             if (wield > 0)
             {
                 wo.SetProperty(PropertyInt.WieldRequirements, wieldReqs);
@@ -16289,17 +16311,20 @@ namespace ACE.Server.Factories
                 wo.RemoveProperty(PropertyFloat.ElementalDamageMod);
             }
             wo.RemoveProperty(PropertyInt.ItemSkillLevelLimit);
+
             int[][] spells = LootHelper.WandSpells;
             int[][] cantrips = LootHelper.WandCantrips;
             int[] shuffledValues = new int[spells.Length];
+
             for (int i = 0; i < spells.Length; i++)
             {
                 shuffledValues[i] = i;
             }
+
             Shuffle(shuffledValues);
+
             if (numSpells - numCantrips > 0)
             {
-                wo.SetProperty(PropertyInt.UiEffects, 1);
                 for (int a = 0; a < numSpells - numCantrips; a++)
                 {
                     int col = ThreadSafeRandom.Next(lowSpellTier - 1, highSpellTier - 1);
@@ -16308,6 +16333,7 @@ namespace ACE.Server.Factories
                     wo.Biota.BiotaPropertiesSpellBook.Add(result);
                 }
             }
+
             if (numCantrips > 0)
             {
                 shuffledValues = new int[cantrips.Length];
