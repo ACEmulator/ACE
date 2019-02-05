@@ -292,6 +292,8 @@ namespace ACE.Server.WorldObjects
             switch (item.CurrentWieldedLocation)
             {
                 case EquipMask.MeleeWeapon:
+                case EquipMask.Held:
+                case EquipMask.TwoHanded:
                     placement = ACE.Entity.Enum.Placement.RightHandCombat;
                     parentLocation = ACE.Entity.Enum.ParentLocation.RightHand;
                     break;
@@ -320,11 +322,6 @@ namespace ACE.Server.WorldObjects
                         placement = ACE.Entity.Enum.Placement.RightHandCombat;
                         parentLocation = ACE.Entity.Enum.ParentLocation.RightHand;
                     }
-                    break;
-
-                case EquipMask.Held:
-                    placement = ACE.Entity.Enum.Placement.RightHandCombat;
-                    parentLocation = ACE.Entity.Enum.ParentLocation.RightHand;
                     break;
 
                 default:
