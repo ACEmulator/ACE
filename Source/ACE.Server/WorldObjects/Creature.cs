@@ -80,6 +80,11 @@ namespace ACE.Server.WorldObjects
                 GenerateWieldedTreasure();
 
                 EquipInventoryItems();
+
+                // TODO: fix tod data
+                Health.Current = Health.MaxValue;
+                Stamina.Current = Stamina.MaxValue;
+                Mana.Current = Mana.MaxValue;
             }
 
             Value = null; // Creatures don't have value. By setting this to null, it effectively disables the Value property. (Adding/Subtracting from null results in null)
