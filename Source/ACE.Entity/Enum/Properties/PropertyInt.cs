@@ -671,6 +671,10 @@ namespace ACE.Entity.Enum.Properties
 
                 case PropertyInt.ArmorType:
                     return System.Enum.GetName(typeof(ArmorType), value);
+                case PropertyInt.ParentLocation:
+                    return System.Enum.GetName(typeof(ParentLocation), value);
+                case PropertyInt.PlacementPosition:
+                    return System.Enum.GetName(typeof(Placement), value);
             }
 
             return null;
