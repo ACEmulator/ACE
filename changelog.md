@@ -1,5 +1,10 @@
 # ACEmulator Change Log
 
+### 2019-02-05
+[Ripley]
+* Add support for spawning Treasure pile corpses when data indicates it should.
+* Fix wield issue with TwoHanded weapons.
+
 ### 2019-02-04
 [Ripley]
 * Added LastModified to several tables in World Database

@@ -161,50 +161,58 @@ namespace ACE.Server.WorldObjects
             if (NoCorpse) return;
 
             var corpse = WorldObjectFactory.CreateNewWorldObject(DatabaseManager.World.GetCachedWeenie("corpse")) as Corpse;
+            var prefix = "Corpse";
 
-            corpse.SetupTableId = SetupTableId;
-            corpse.MotionTableId = MotionTableId;
-            corpse.SoundTableId = SoundTableId;
-            corpse.PaletteBaseDID = PaletteBaseDID;
-            corpse.ClothingBase = ClothingBase;
-            corpse.PhysicsTableId = PhysicsTableId;
+            if (TreasureCorpse)
+            {
+                // Hardcoded values from PCAPs of Treasure Pile Corpses, everything else lines up exactly with existing corpse weenie
+                corpse.SetupTableId  = 0x02000EC4;
+                corpse.MotionTableId = 0x0900019B;
+                corpse.SoundTableId  = 0x200000C2;
+                corpse.ObjScale      = 0.4f;
 
-            if (ObjScale.HasValue)
-                corpse.ObjScale = ObjScale;
-            if (PaletteTemplate.HasValue)
-                corpse.PaletteTemplate = PaletteTemplate;
-            if (Shade.HasValue)
-                corpse.Shade = Shade;
-            //if (Translucency.HasValue) // Shadows have Translucency but their corpses do not, videographic evidence can be found on YouTube.
+                prefix = "Treasure";
+            }
+            else
+            {
+                corpse.SetupTableId = SetupTableId;
+                corpse.MotionTableId = MotionTableId;
+                corpse.SoundTableId = SoundTableId;
+                corpse.PaletteBaseDID = PaletteBaseDID;
+                corpse.ClothingBase = ClothingBase;
+                corpse.PhysicsTableId = PhysicsTableId;
+
+                if (ObjScale.HasValue)
+                    corpse.ObjScale = ObjScale;
+                if (PaletteTemplate.HasValue)
+                    corpse.PaletteTemplate = PaletteTemplate;
+                if (Shade.HasValue)
+                    corpse.Shade = Shade;
+                //if (Translucency.HasValue) // Shadows have Translucency but their corpses do not, videographic evidence can be found on YouTube.
                 //corpse.Translucency = Translucency;
 
-            if (EquippedObjects.Values.Where(x => (x.CurrentWieldedLocation & (EquipMask.Clothing | EquipMask.Armor | EquipMask.Cloak)) != 0).ToList().Count > 0) // If creature is wearing objects, we need to save the appearance
-            {
-                var objDesc = CalculateObjDesc();
 
-                byte i = 0;
-                foreach (var animPartChange in objDesc.AnimPartChanges)
-                    corpse.Biota.BiotaPropertiesAnimPart.Add(new Database.Models.Shard.BiotaPropertiesAnimPart { ObjectId = corpse.Guid.Full, AnimationId = animPartChange.PartID, Index = animPartChange.PartIndex, Order = i++ });
+                if (EquippedObjects.Values.Where(x => (x.CurrentWieldedLocation & (EquipMask.Clothing | EquipMask.Armor | EquipMask.Cloak)) != 0).ToList().Count > 0) // If creature is wearing objects, we need to save the appearance
+                {
+                    var objDesc = CalculateObjDesc();
 
-                foreach (var subPalette in objDesc.SubPalettes)
-                    corpse.Biota.BiotaPropertiesPalette.Add(new Database.Models.Shard.BiotaPropertiesPalette { ObjectId = corpse.Guid.Full, SubPaletteId = subPalette.SubID, Length = (ushort)subPalette.NumColors, Offset = (ushort)subPalette.Offset });
+                    byte i = 0;
+                    foreach (var animPartChange in objDesc.AnimPartChanges)
+                        corpse.Biota.BiotaPropertiesAnimPart.Add(new Database.Models.Shard.BiotaPropertiesAnimPart { ObjectId = corpse.Guid.Full, AnimationId = animPartChange.PartID, Index = animPartChange.PartIndex, Order = i++ });
 
-                i = 0;
-                foreach (var textureChange in objDesc.TextureChanges)
-                    corpse.Biota.BiotaPropertiesTextureMap.Add(new Database.Models.Shard.BiotaPropertiesTextureMap { ObjectId = corpse.Guid.Full, Index = textureChange.PartIndex, OldId = textureChange.OldTexture, NewId = textureChange.NewTexture, Order = i++ });
+                    foreach (var subPalette in objDesc.SubPalettes)
+                        corpse.Biota.BiotaPropertiesPalette.Add(new Database.Models.Shard.BiotaPropertiesPalette { ObjectId = corpse.Guid.Full, SubPaletteId = subPalette.SubID, Length = (ushort)subPalette.NumColors, Offset = (ushort)subPalette.Offset });
+
+                    i = 0;
+                    foreach (var textureChange in objDesc.TextureChanges)
+                        corpse.Biota.BiotaPropertiesTextureMap.Add(new Database.Models.Shard.BiotaPropertiesTextureMap { ObjectId = corpse.Guid.Full, Index = textureChange.PartIndex, OldId = textureChange.OldTexture, NewId = textureChange.NewTexture, Order = i++ });
+                }
             }
-
-            //corpse.Location = DatManager.PortalDat.ReadFromDat<MotionTable>(MotionTableId).GetAnimationFinalPositionFromStart(Location, ObjScale ?? 1, MotionCommand.Dead);
-
-            //corpse.Location.SetLandblock();
-            //corpse.Location.SetLandCell();
 
             corpse.Location = new Position(Location);
 
-            //corpse.Location.PositionZ = corpse.Location.PositionZ - .5f; // Adding BaseDescriptionFlags |= ObjectDescriptionFlag.Corpse to Corpse objects made them immune to gravity.. this seems to fix floating corpse...
-
             corpse.VictimId = Guid.Full;
-            corpse.Name = $"Corpse of {Name}";
+            corpse.Name = $"{prefix} of {Name}";
 
             // set 'killed by' for looting rights
             if (killer != null)
