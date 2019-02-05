@@ -169,7 +169,7 @@ namespace ACE.Server.WorldObjects
                 corpse.SetupTableId = 0x02000EC4;
                 corpse.MotionTableId = 0x0900019B;
                 corpse.SoundTableId = 0x200000C2;
-                ObjScale = 0.4f;
+                corpse.ObjScale = 0.4f;
 
                 prefix = "Treasure of";
             }
