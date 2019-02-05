@@ -342,7 +342,7 @@ namespace ACE.Server.WorldObjects
             0x03A7,     // Mount Elyrii Hive
             0x5764,     // Oubliette of Mhoire Castle
             0x634C,     // Tainted Grotto
-            0x6544,     // Grater Battle Dungeon
+            0x6544,     // Greater Battle Dungeon
             0x6651,     // Hoshino Tower
             0x7E04,     // Thug Hideout
             0x8A04,     // Night Club (Seasonal Anniversary)
