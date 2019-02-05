@@ -324,7 +324,7 @@ namespace ACE.Server.WorldObjects
                 return House;
 
             var loaded = LandblockManager.GetLandblock(landblockId, false);
-            return loaded.GetObject(new ObjectGuid(houseGuid)) as House;
+            return House = loaded.GetObject(new ObjectGuid(houseGuid)) as House;
         }
 
         public House GetDungeonHouse()
@@ -366,15 +366,6 @@ namespace ACE.Server.WorldObjects
             Guests.Remove(guest.Guid);
             UpdateRestrictionDB();
         }
-
-        public void Sync(House house)
-        {
-            house.Guests = House.Guests;
-            house.OpenStatus = House.OpenStatus;
-
-            house.MonarchId = House.MonarchId;
-        }
-
 
         public void HandleActionAddGuest(string guestName)
         {
@@ -856,10 +847,10 @@ namespace ACE.Server.WorldObjects
 
         public void UpdateRestrictionDB()
         {
-            var restrictions = new RestrictionDB(House);
-
             // update house
             var house = GetHouse();
+            var restrictions = new RestrictionDB(house);
+
             if (house.PhysicsObj != null)
                 UpdateRestrictionDB(restrictions, house);
 
@@ -880,8 +871,6 @@ namespace ACE.Server.WorldObjects
         public void UpdateRestrictionDB(RestrictionDB restrictions, House house)
         {
             HouseSequence++;
-
-            Sync(house);
 
             var nearbyPlayers = house.PhysicsObj.ObjMaint.VoyeurTable.Values.Select(v => (Player)v.WeenieObj.WorldObject).ToList();
             foreach (var player in nearbyPlayers)

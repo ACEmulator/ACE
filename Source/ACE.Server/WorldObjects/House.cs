@@ -265,6 +265,8 @@ namespace ACE.Server.WorldObjects
             Biota.AddHousePermission(housePermission, BiotaDatabaseLock);
             ChangesDetected = true;
 
+            BuildGuests();
+
             if (CurrentLandblock == null)
                 SaveBiotaToDatabase();
         }
@@ -279,6 +281,8 @@ namespace ACE.Server.WorldObjects
             existing.Storage = storage;
             ChangesDetected = true;
 
+            BuildGuests();
+
             if (CurrentLandblock == null)
                 SaveBiotaToDatabase();
         }
@@ -287,6 +291,8 @@ namespace ACE.Server.WorldObjects
         {
             Biota.TryRemoveHousePermission(guest.Guid.Full, out var entity, BiotaDatabaseLock);
             ChangesDetected = true;
+
+            BuildGuests();
 
             if (CurrentLandblock == null)
                 SaveBiotaToDatabase();
@@ -359,40 +365,50 @@ namespace ACE.Server.WorldObjects
         {
             get
             {
-                // return cached value
-                if (_rootHouse != null)
-                    return _rootHouse;
+                var landblock = (ushort)((RootGuid.Full >> 12) & 0xFFFF);
 
-                // handle outdoor house weenies
+                var landblockId = new LandblockId((uint)(landblock << 16 | 0xFFFF));
+                var isLoaded = LandblockManager.IsLoaded(landblockId);
+
+                if (!isLoaded)
+                {
+                    if (_rootHouse == null)
+                        _rootHouse = Load(RootGuid.Full);
+
+                    return _rootHouse;  // return offline copy
+                }
+                   
+                var loaded = LandblockManager.GetLandblock(landblockId, false);
+                return loaded.GetObject(RootGuid) as House;
+            }
+        }
+
+        private ObjectGuid? _rootGuid;
+
+        public ObjectGuid RootGuid
+        {
+            get
+            {
+                if (_rootGuid != null)
+                    return _rootGuid.Value;
+
                 if (!CurrentLandblock.IsDungeon)
                 {
-                    _rootHouse = this;
-                    return _rootHouse;
+                    _rootGuid = Guid;
+                    return Guid;
                 }
 
                 var biota = DatabaseManager.Shard.GetBiotasByWcid(WeenieClassId).FirstOrDefault(b => b.BiotaPropertiesPosition.FirstOrDefault(p => p.PositionType == (ushort)PositionType.Location).ObjCellId >> 16 != Location?.Landblock);
                 if (biota == null)
                 {
-                    Console.WriteLine($"{Name}.RootHouse: couldn't find root house for {WeenieClassId} on landblock {Location.Landblock:X8}");
+                    Console.WriteLine($"{Name}.RootGuid: couldn't find root guid for {WeenieClassId} on landblock {Location.Landblock:X8}");
 
-                    _rootHouse = this;
-                    return _rootHouse;
+                    _rootGuid = Guid;
+                    return Guid;
                 }
 
-                var location = biota.BiotaPropertiesPosition.FirstOrDefault(i => i.PositionType == (ushort)PositionType.Location);
-                if (location == null)
-                {
-                    Console.WriteLine($"{Name}.RootHouse: couldn't find root house location for {WeenieClassId} on landblock {Location.Landblock:X8}");
-
-                    _rootHouse = this;
-                    return _rootHouse;
-                }
-
-                var landblockId = new LandblockId(location.ObjCellId | 0xFFFF);
-
-                var loaded = LandblockManager.GetLandblock(landblockId, false, false, true);
-
-                return loaded.GetObject(new ObjectGuid(biota.Id)) as House;
+                _rootGuid = new ObjectGuid(biota.Id);
+                return _rootGuid.Value;
             }
         }
 
