@@ -4054,7 +4054,7 @@ namespace ACE.Server.Factories
                     wieldSkillType = 41;
                     damageVariance = GetVariance(3, 1);
                     damage = GetMaxDamage(3, wieldDiff, 1);
-                    subType = ThreadSafeRandom.Next(0, 4);
+                    subType = ThreadSafeRandom.Next(0, 3);
                     if (subType == 0)
                     {
                         damageVariance = GetVariance(2, 1);
