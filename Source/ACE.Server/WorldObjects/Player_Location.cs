@@ -1,6 +1,9 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 
 using ACE.Database;
+using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.DatLoader;
 using ACE.DatLoader.FileTypes;
@@ -310,6 +313,71 @@ namespace ACE.Server.WorldObjects
         public override float GetRotateDelay(float angle)
         {
             return base.GetRotateDelay(angle) / RunFactor;
+        }
+
+        /// <summary>
+        /// A list of landblocks the player cannot relog directly into
+        /// 
+        /// If a regular player logs out in one of these landblocks,
+        /// they will be transported back to the lifestone when they log back in.
+        /// </summary>
+        public static HashSet<ushort> NoLog_Landblocks = new HashSet<ushort>()
+        {
+            // https://asheron.fandom.com/wiki/Special:Search?query=Lifestone+on+Relog%3A+Yes+
+            // https://docs.google.com/spreadsheets/d/122xOw3IKCezaTDjC_hggWSVzYJ_9M_zUUtGEXkwNXfs/edit#gid=846612575
+
+            0x0002,     // Viamontian Garrison
+            0x0007,     // Town Network
+            0x0056,     // Augmentation Realm Main Level
+            0x005F,     // Tanada House of Pancakes (Seasonal)
+            0x006D,     // Augmentation Realm Upper Level
+            0x007D,     // Augmentation Realm Lower Level
+            0x00AB,     // Derethian Combat Arena
+            0x00AC,     // Derethian Combat Arena
+            0x00C3,     // Blighted Putrid Moarsman Tunnels
+            0x00D7,     // Jester's Prison
+            0x00EA,     // Mhoire Armory
+            0x015D,     // Mountain Cavern
+            0x027F,     // East Fork Dam Hive
+            0x03A7,     // Mount Elyrii Hive
+            0x5764,     // Oubliette of Mhoire Castle
+            0x634C,     // Tainted Grotto
+            0x6544,     // Greater Battle Dungeon
+            0x6651,     // Hoshino Tower
+            0x7E04,     // Thug Hideout
+            0x8A04,     // Night Club (Seasonal Anniversary)
+            0x8B04,     // Frozen Wight Lair
+            0x9EE5,     // Northwatch Castle Black Market
+            0xB5F0,     // Aerfalle's Sanctum
+            0xF92F,     // Freebooter Keep Black Market
+        };
+
+        /// <summary>
+        /// Called when a player first logs in
+        /// </summary>
+        public static void HandleNoLogLandblock(Biota biota)
+        {
+            if (biota.WeenieType == (int)WeenieType.Sentinel || biota.WeenieType == (int)WeenieType.Admin) return;
+
+            var location = biota.BiotaPropertiesPosition.FirstOrDefault(i => i.PositionType == (ushort)PositionType.Location);
+            if (location == null) return;
+
+            var landblock = (ushort)(location.ObjCellId >> 16);
+
+            if (!NoLog_Landblocks.Contains(landblock))
+                return;
+
+            var lifestone = biota.BiotaPropertiesPosition.FirstOrDefault(i => i.PositionType == (ushort)PositionType.Sanctuary);
+            if (lifestone == null) return;
+
+            location.ObjCellId = lifestone.ObjCellId;
+            location.OriginX = lifestone.OriginX;
+            location.OriginY = lifestone.OriginY;
+            location.OriginZ = lifestone.OriginZ;
+            location.AnglesX = lifestone.AnglesX;
+            location.AnglesY = lifestone.AnglesY;
+            location.AnglesZ = lifestone.AnglesZ;
+            location.AnglesW = lifestone.AnglesW;
         }
     }
 }
