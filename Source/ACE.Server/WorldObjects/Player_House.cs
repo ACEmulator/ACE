@@ -996,7 +996,7 @@ namespace ACE.Server.WorldObjects
 
         public void HandleActionDoAllegianceHouseAction(AllegianceHouseAction action)
         {
-            Console.WriteLine($"{Name}.DoAllegianceHouseAction({action})");
+            //Console.WriteLine($"{Name}.DoAllegianceHouseAction({action})");
 
             if (Allegiance == null)
             {
@@ -1089,7 +1089,6 @@ namespace ACE.Server.WorldObjects
 
             // AddHouseGuest
             allegianceHouse.AddGuest(Allegiance.Monarch.Player, false);
-            allegianceHouse.Guests.Add(Allegiance.Monarch.PlayerGuid, false);
             UpdateRestrictionDB_AllegianceHouse(allegianceHouse);
 
             Session.Network.EnqueueSend(new GameMessageSystemChat($"You have granted your monarchy access to the allegiance dwelling.", ChatMessageType.Broadcast));
@@ -1107,7 +1106,6 @@ namespace ACE.Server.WorldObjects
 
             // RemoveHouseGuest
             allegianceHouse.RemoveGuest(Allegiance.Monarch.Player);
-            allegianceHouse.Guests.Remove(Allegiance.Monarch.PlayerGuid);
             UpdateRestrictionDB_AllegianceHouse(allegianceHouse);
 
             // todo: move to House
@@ -1136,13 +1134,11 @@ namespace ACE.Server.WorldObjects
             if (!allegianceHouse.Guests.ContainsKey(Allegiance.Monarch.PlayerGuid))
             {
                 allegianceHouse.AddGuest(Allegiance.Monarch.Player, true);
-                allegianceHouse.Guests.Add(Allegiance.Monarch.PlayerGuid, true);
             }
             else
             {
                 // handle guest -> storage access upgrade
                 allegianceHouse.UpdateGuest(Allegiance.Monarch.Player, true);
-                allegianceHouse.Guests[Allegiance.Monarch.PlayerGuid] = true;   
             }
 
             UpdateRestrictionDB_AllegianceHouse(allegianceHouse);
@@ -1160,7 +1156,6 @@ namespace ACE.Server.WorldObjects
 
             // ModifyHouseGuest - downgrade to guest access
             allegianceHouse.UpdateGuest(Allegiance.Monarch.Player, false);
-            allegianceHouse.Guests[Allegiance.Monarch.PlayerGuid] = false;
 
             UpdateRestrictionDB_AllegianceHouse(allegianceHouse);
 
