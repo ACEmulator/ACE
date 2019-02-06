@@ -88,7 +88,9 @@ namespace ACE.Server.WorldObjects
 
             if (AllegianceMinLevel != null)
             {
-                var allegianceMinLevel = PropertyManager.GetLong("mansion_min_rank", 6).Item;
+                var allegianceMinLevel = PropertyManager.GetLong("mansion_min_rank", -1).Item;
+                if (allegianceMinLevel == -1)
+                    allegianceMinLevel = AllegianceMinLevel.Value;
 
                 if (player.Allegiance == null || player.AllegianceNode.Rank < allegianceMinLevel)
                     return new ActivationResult(new GameEventWeenieErrorWithString(player.Session, WeenieErrorWithString.YouMustBeAboveAllegianceRank_ToBuyHouse, allegianceMinLevel.ToString()));
