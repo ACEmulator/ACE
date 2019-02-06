@@ -8,6 +8,7 @@ using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
+using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameEvent.Events;
@@ -50,6 +51,23 @@ namespace ACE.Server.WorldObjects
             ConsumeItemsForPurchase(item_ids);
 
             SetHouseOwner(slumlord);
+
+            GiveDeed();
+        }
+
+        public void GiveDeed()
+        {
+            var deed = WorldObjectFactory.CreateNewWorldObject("deed");
+            var title = CharacterTitleId != null ? GetTitle((CharacterTitle)CharacterTitleId) : null;
+            var titleStr = title != null ? $", {title}" : "";
+            var derethDateTime = DerethDateTime.UtcNowToLoreTime;
+            var date = derethDateTime.DateToString();
+            var time = derethDateTime.TimeToString();
+            var location = Location.GetMapCoordStr();
+
+            deed.LongDesc = $"Bought by {Name}{titleStr} on {date} at {time}\n\nPurchased at {location}";
+
+            TryCreateInInventoryWithNetworking(deed);
         }
 
         public void HandleActionAbandonHouse()
@@ -127,11 +145,18 @@ namespace ACE.Server.WorldObjects
             slumlord.EnqueueBroadcast(new GameMessagePublicUpdatePropertyString(slumlord, PropertyString.Name, slumlord.Name));
 
             // set house data
-            //var house = new HouseData();
-            HandleActionQueryHouse();
+            // why has this changed? use callback?
+            var actionChain = new ActionChain();
+            actionChain.AddDelaySeconds(3.0f);
+            actionChain.AddAction(this, () =>
+            {
+                HandleActionQueryHouse();
 
-            // boot anyone who may have been wandering around inside...
-            HandleActionBootAll(false);
+                // boot anyone who may have been wandering around inside...
+                HandleActionBootAll(false);
+
+            });
+            actionChain.EnqueueChain();
         }
 
         /// <summary>
@@ -140,6 +165,17 @@ namespace ACE.Server.WorldObjects
         public void ConsumeItemsForPurchase(List<uint> item_ids)
         {
             // TODO: return change?
+            // TODO: it would probably be better to consume items from inventory here...
+            foreach (var item_id in item_ids)
+            {
+                var item = FindObject(item_id, SearchLocations.MyInventory);
+                if (item == null)
+                {
+                    Console.WriteLine($"{Name}.ConsumeItemsForHousePurchase(): couldn't find {item_id:X8}");
+                    continue;
+                }
+                TryConsumeFromInventoryWithNetworking(item);
+            }
         }
 
         /// <summary>
@@ -272,7 +308,7 @@ namespace ACE.Server.WorldObjects
 
             uint totalValue = 0;
             foreach (var tradeNote in tradeNotes)
-                totalValue += (uint)(tradeNote.Value ?? 0);
+                totalValue += (uint)((tradeNote.Value ?? 0) * (tradeNote.StackSize ?? 1));
 
             return totalValue;
         }

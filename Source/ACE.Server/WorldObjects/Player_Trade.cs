@@ -93,7 +93,7 @@ namespace ACE.Server.WorldObjects
 
                 if (wo != null)
                 {
-                    if ((wo.Attuned ?? 0) == 1)
+                    if ((wo.Attuned ?? 0) >= 1)
                     {
                         session.Network.EnqueueSend(new GameEventCommunicationTransientString(session, "You cannot trade that!"));
                         session.Network.EnqueueSend(new GameEventTradeFailure(session, itemGuid, WeenieError.AttunedItem));

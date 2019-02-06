@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
+using ACE.DatLoader;
+using ACE.DatLoader.FileTypes;
 using ACE.Database.Models.Shard;
 using ACE.Entity;
 using ACE.Entity.Enum;
@@ -346,6 +349,23 @@ namespace ACE.Server.WorldObjects
         public void SetTitle(CharacterTitle title)
         {
             AddTitle(title, true);
+        }
+
+        public uint EnumMapper_CharacterTitle_FileID = 0x22000041;
+
+        public string GetTitle(CharacterTitle title)
+        {
+            var titleEnums = DatManager.PortalDat.ReadFromDat<EnumMapper>(EnumMapper_CharacterTitle_FileID);
+            if (!titleEnums.IdToStringMap.TryGetValue((uint)title, out var titleEnum))
+                return null;
+
+            var hash = SpellTable.ComputeHash(titleEnum);
+
+            var entry = DatManager.LanguageDat.CharacterTitles.StringTableData.FirstOrDefault(i => i.Id == hash);
+            if (entry == null)
+                return null;
+
+            return entry.Strings.FirstOrDefault();
         }
     }
 }

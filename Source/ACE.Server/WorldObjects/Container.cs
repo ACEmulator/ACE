@@ -424,20 +424,33 @@ namespace ACE.Server.WorldObjects
 
             DoOnOpenMotionChanges();
 
+            SendInventory(player);
+        }
+
+        public void SendInventory(Player player)
+        {
             // send createobject for all objects in this container's inventory to player
             var itemsToSend = new List<GameMessage>();
-            var woToExamine = new List<WorldObject>();
 
             foreach (var item in Inventory.Values)
             {
                 // FIXME: only send messages for unknown objects
                 itemsToSend.Add(new GameMessageCreateObject(item));
-                woToExamine.Add(item);
+
+                if (item is Container container)
+                {
+                    foreach (var containerItem in container.Inventory.Values)
+                        itemsToSend.Add(new GameMessageCreateObject(containerItem));
+                }
             }
 
             player.Session.Network.EnqueueSend(itemsToSend.ToArray());
 
             player.Session.Network.EnqueueSend(new GameEventViewContents(player.Session, this));
+
+            // send sub-containers
+            foreach (var container in Inventory.Values.Where(i => i is Container))
+                player.Session.Network.EnqueueSend(new GameEventViewContents(player.Session, (Container)container));
         }
 
         protected virtual float DoOnOpenMotionChanges()
