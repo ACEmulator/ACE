@@ -1525,6 +1525,8 @@ namespace ACE.Server.Command.Handlers
                 pType = typeof(PropertyInt64);
             else if (propType.Equals("PropertyBool", StringComparison.OrdinalIgnoreCase))
                 pType = typeof(PropertyBool);
+            else if (propType.Equals("PropertyFloat", StringComparison.OrdinalIgnoreCase))
+                pType = typeof(PropertyFloat);
             else if (propType.Equals("PropertyString", StringComparison.OrdinalIgnoreCase))
                 pType = typeof(PropertyString);
             else if (propType.Equals("PropertyInstanceId", StringComparison.OrdinalIgnoreCase))
@@ -1551,6 +1553,8 @@ namespace ACE.Server.Command.Handlers
                 value = Convert.ToString(obj.GetProperty((PropertyInt64)result));
             else if (propType.Equals("PropertyBool", StringComparison.OrdinalIgnoreCase))
                 value = Convert.ToString(obj.GetProperty((PropertyBool)result));
+            else if (propType.Equals("PropertyFloat", StringComparison.OrdinalIgnoreCase))
+                value = Convert.ToString(obj.GetProperty((PropertyFloat)result));
             else if (propType.Equals("PropertyString", StringComparison.OrdinalIgnoreCase))
                 value = Convert.ToString(obj.GetProperty((PropertyString)result));
             else if (propType.Equals("PropertyInstanceId", StringComparison.OrdinalIgnoreCase))
@@ -1593,6 +1597,8 @@ namespace ACE.Server.Command.Handlers
                 pType = typeof(PropertyInt64);
             else if (propType.Equals("PropertyBool", StringComparison.OrdinalIgnoreCase))
                 pType = typeof(PropertyBool);
+            else if (propType.Equals("PropertyFloat", StringComparison.OrdinalIgnoreCase))
+                pType = typeof(PropertyFloat);
             else if (propType.Equals("PropertyString", StringComparison.OrdinalIgnoreCase))
                 pType = typeof(PropertyString);
             else if (propType.Equals("PropertyInstanceId", StringComparison.OrdinalIgnoreCase))
@@ -1619,6 +1625,8 @@ namespace ACE.Server.Command.Handlers
                     obj.RemoveProperty((PropertyInt64)result);
                 else if (propType.Equals("PropertyBool", StringComparison.OrdinalIgnoreCase))
                     obj.RemoveProperty((PropertyBool)result);
+                else if (propType.Equals("PropertyFloat", StringComparison.OrdinalIgnoreCase))
+                    obj.RemoveProperty((PropertyFloat)result);
                 else if (propType.Equals("PropertyString", StringComparison.OrdinalIgnoreCase))
                     obj.RemoveProperty((PropertyString)result);
                 else if (propType.Equals("PropertyInstanceId", StringComparison.OrdinalIgnoreCase))
@@ -1644,6 +1652,11 @@ namespace ACE.Server.Command.Handlers
                     {
                         obj.SetProperty((PropertyBool)result, Convert.ToBoolean(value));
                         obj.EnqueueBroadcast(new GameMessagePublicUpdatePropertyBool(obj, (PropertyBool)result, Convert.ToBoolean(value)));
+                    }
+                    else if (propType.Equals("PropertyFloat", StringComparison.OrdinalIgnoreCase))
+                    {
+                        obj.SetProperty((PropertyFloat)result, Convert.ToDouble(value));
+                        obj.EnqueueBroadcast(new GameMessagePublicUpdatePropertyFloat(obj, (PropertyFloat)result, Convert.ToDouble(value)));
                     }
                     else if (propType.Equals("PropertyString", StringComparison.OrdinalIgnoreCase))
                     {

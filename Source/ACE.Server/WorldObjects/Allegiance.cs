@@ -225,10 +225,6 @@ namespace ACE.Server.WorldObjects
             if (Monarch.Player.HouseInstance == null)
                 return null;
 
-            var onlineMonarch = PlayerManager.GetOnlinePlayer(Monarch.PlayerGuid);
-            if (onlineMonarch != null)
-                return onlineMonarch.House;
-
             // is landblock loaded?
             var houseGuid = Monarch.Player.HouseInstance.Value;
             var landblock = (ushort)((houseGuid >> 12) & 0xFFFF);

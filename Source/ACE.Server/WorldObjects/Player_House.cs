@@ -324,7 +324,7 @@ namespace ACE.Server.WorldObjects
                 return House;
 
             var loaded = LandblockManager.GetLandblock(landblockId, false);
-            return loaded.GetObject(new ObjectGuid(houseGuid)) as House;
+            return House = loaded.GetObject(new ObjectGuid(houseGuid)) as House;
         }
 
         public House GetDungeonHouse()
@@ -366,15 +366,6 @@ namespace ACE.Server.WorldObjects
             Guests.Remove(guest.Guid);
             UpdateRestrictionDB();
         }
-
-        public void Sync(House house)
-        {
-            house.Guests = House.Guests;
-            house.OpenStatus = House.OpenStatus;
-
-            house.MonarchId = House.MonarchId;
-        }
-
 
         public void HandleActionAddGuest(string guestName)
         {
@@ -856,10 +847,10 @@ namespace ACE.Server.WorldObjects
 
         public void UpdateRestrictionDB()
         {
-            var restrictions = new RestrictionDB(House);
-
             // update house
             var house = GetHouse();
+            var restrictions = new RestrictionDB(house);
+
             if (house.PhysicsObj != null)
                 UpdateRestrictionDB(restrictions, house);
 
@@ -880,8 +871,6 @@ namespace ACE.Server.WorldObjects
         public void UpdateRestrictionDB(RestrictionDB restrictions, House house)
         {
             HouseSequence++;
-
-            Sync(house);
 
             var nearbyPlayers = house.PhysicsObj.ObjMaint.VoyeurTable.Values.Select(v => (Player)v.WeenieObj.WorldObject).ToList();
             foreach (var player in nearbyPlayers)
@@ -1007,7 +996,7 @@ namespace ACE.Server.WorldObjects
 
         public void HandleActionDoAllegianceHouseAction(AllegianceHouseAction action)
         {
-            Console.WriteLine($"{Name}.DoAllegianceHouseAction({action})");
+            //Console.WriteLine($"{Name}.DoAllegianceHouseAction({action})");
 
             if (Allegiance == null)
             {
@@ -1100,7 +1089,6 @@ namespace ACE.Server.WorldObjects
 
             // AddHouseGuest
             allegianceHouse.AddGuest(Allegiance.Monarch.Player, false);
-            allegianceHouse.Guests.Add(Allegiance.Monarch.PlayerGuid, false);
             UpdateRestrictionDB_AllegianceHouse(allegianceHouse);
 
             Session.Network.EnqueueSend(new GameMessageSystemChat($"You have granted your monarchy access to the allegiance dwelling.", ChatMessageType.Broadcast));
@@ -1118,7 +1106,6 @@ namespace ACE.Server.WorldObjects
 
             // RemoveHouseGuest
             allegianceHouse.RemoveGuest(Allegiance.Monarch.Player);
-            allegianceHouse.Guests.Remove(Allegiance.Monarch.PlayerGuid);
             UpdateRestrictionDB_AllegianceHouse(allegianceHouse);
 
             // todo: move to House
@@ -1147,13 +1134,11 @@ namespace ACE.Server.WorldObjects
             if (!allegianceHouse.Guests.ContainsKey(Allegiance.Monarch.PlayerGuid))
             {
                 allegianceHouse.AddGuest(Allegiance.Monarch.Player, true);
-                allegianceHouse.Guests.Add(Allegiance.Monarch.PlayerGuid, true);
             }
             else
             {
                 // handle guest -> storage access upgrade
                 allegianceHouse.UpdateGuest(Allegiance.Monarch.Player, true);
-                allegianceHouse.Guests[Allegiance.Monarch.PlayerGuid] = true;   
             }
 
             UpdateRestrictionDB_AllegianceHouse(allegianceHouse);
@@ -1171,7 +1156,6 @@ namespace ACE.Server.WorldObjects
 
             // ModifyHouseGuest - downgrade to guest access
             allegianceHouse.UpdateGuest(Allegiance.Monarch.Player, false);
-            allegianceHouse.Guests[Allegiance.Monarch.PlayerGuid] = false;
 
             UpdateRestrictionDB_AllegianceHouse(allegianceHouse);
 
