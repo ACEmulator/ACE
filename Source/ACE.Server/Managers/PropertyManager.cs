@@ -435,10 +435,14 @@ namespace ACE.Server.Managers
         public static readonly ReadOnlyDictionary<string, bool> DefaultBooleanProperties =
             DictOf(
                 ("alwaysshowwelcome", false),
-                ("pk_server", false)
+                ("pk_server", false),
+                ("house_purchase_requirements", true)
                 );
 
-        public static readonly ReadOnlyDictionary<string, long> DefaultLongProperties = DictOf<string, long>();
+        public static readonly ReadOnlyDictionary<string, long> DefaultLongProperties =
+            DictOf<string, long>(
+                //("mansion_min_rank", 6)
+                );
 
         public static readonly ReadOnlyDictionary<string, double> DefaultDoubleProperties =
             DictOf(

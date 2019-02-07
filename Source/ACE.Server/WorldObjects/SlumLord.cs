@@ -5,8 +5,11 @@ using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
+using ACE.Entity.Enum.Properties;
+using ACE.Server.Entity;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameEvent.Events;
+using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Structure;
 
 namespace ACE.Server.WorldObjects
@@ -36,6 +39,64 @@ namespace ACE.Server.WorldObjects
 
         private void SetEphemeralValues()
         {
+        }
+
+        public bool HouseRequiresMonarch
+        {
+            get => GetProperty(PropertyBool.HouseRequiresMonarch) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.HouseRequiresMonarch); else SetProperty(PropertyBool.HouseRequiresMonarch, value); }
+        }
+
+        public int? AllegianceMinLevel
+        {
+            get => GetProperty(PropertyInt.AllegianceMinLevel);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.AllegianceMinLevel); else SetProperty(PropertyInt.AllegianceMinLevel, value.Value); }
+        }
+
+        /// <summary>
+        /// Verifies the use requirements for the Slumlord
+        /// </summary>
+        public override ActivationResult CheckUseRequirements(WorldObject activator)
+        {
+            if (!(activator is Player player))
+                return new ActivationResult(false);
+
+            if (!PropertyManager.GetBool("house_purchase_requirements").Item)
+                return new ActivationResult(true);
+
+            // ensure player doesn't already own a house?
+
+            var baseRequirements = base.CheckUseRequirements(activator);
+            if (!baseRequirements.Success)
+                return baseRequirements;
+
+            if (MinLevel != null)
+            {
+                var playerLevel = player.Level ?? 1;
+                if (playerLevel < MinLevel)
+                    return new ActivationResult(new GameEventWeenieErrorWithString(player.Session, WeenieErrorWithString.YouMustBeAboveLevel_ToBuyHouse, MinLevel.ToString()));
+            }
+
+            if (HouseRequiresMonarch)
+            {
+                if (player.Allegiance == null || player.Allegiance.MonarchId != player.Guid.Full)
+                {
+                    player.Session.Network.EnqueueSend(new GameMessageSystemChat("You must be a monarch to purchase this dwelling.", ChatMessageType.Broadcast));
+                    return new ActivationResult(false);
+                }
+            }
+
+            if (AllegianceMinLevel != null)
+            {
+                var allegianceMinLevel = PropertyManager.GetLong("mansion_min_rank", -1).Item;
+                if (allegianceMinLevel == -1)
+                    allegianceMinLevel = AllegianceMinLevel.Value;
+
+                if (player.Allegiance == null || player.AllegianceNode.Rank < allegianceMinLevel)
+                    return new ActivationResult(new GameEventWeenieErrorWithString(player.Session, WeenieErrorWithString.YouMustBeAboveAllegianceRank_ToBuyHouse, allegianceMinLevel.ToString()));
+            }
+
+            return new ActivationResult(true);
         }
 
         public override void ActOnUse(WorldObject worldObject)

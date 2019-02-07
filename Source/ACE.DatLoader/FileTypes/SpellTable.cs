@@ -29,7 +29,7 @@ namespace ACE.DatLoader.FileTypes
         /// <summary>
         /// Generates a hash based on the string. Used to decrypt spell formulas and calculate taper rotation for players.
         /// </summary>
-        internal static uint ComputeHash(string strToHash)
+        public static uint ComputeHash(string strToHash)
         {
             long result = 0;
 

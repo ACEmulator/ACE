@@ -8,6 +8,8 @@ namespace ACE.DatLoader.FileTypes
     [DatFileType(DatFileType.StringTable)]
     public class StringTable : FileType
     {
+        public static uint CharacterTitle_FileID = 0x2300000E;
+
         public uint Language { get; private set; } // This should always be 1 for English
 
         public byte Unknown { get; private set; }

@@ -364,6 +364,9 @@ namespace ACE.Entity.Enum
         /// </summary>
         YouAreNotOnThatChannel = 0x0425,
 
+        /// <summary>
+        /// _ can't be dropped
+        /// </summary>
         AttunedItem = 0x0426,
 
         /// <summary>
@@ -527,6 +530,9 @@ namespace ACE.Entity.Enum
         /// </summary>
         YouHaveUsedAllTheHooks = 0x0469,
 
+        /// <summary>
+        /// _ doesn't know what to do with that.
+        /// </summary>
         TradeAiDoesntWant = 0x046A,
 
         HookHouseNotOwned = 0x046B,
