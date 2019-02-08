@@ -95,9 +95,10 @@ namespace ACE.Server.Managers
             await Task.Delay(3000);
 
             var isPaid = IsRentPaid(playerHouse);
+            var hasRequirements = HasRequirements(playerHouse);
             //log.Info($"{playerHouse.PlayerName}.ProcessRent(): isPaid = {isPaid}");
 
-            if (isPaid)
+            if (isPaid && hasRequirements)
                 HandleRentPaid(playerHouse);
             else
                 HandleEviction(playerHouse);
@@ -238,6 +239,35 @@ namespace ACE.Server.Managers
                     log.Info($"{playerHouse.PlayerName}.IsRentPaid() - required wcid {rentItem.WeenieID} amount {rentItem.Num:N0}, found {rentItem.Paid:N0}");
                     return false;
                 }
+            }
+            return true;
+        }
+
+        public static bool HasRequirements(PlayerHouse playerHouse)
+        {
+            if (!PropertyManager.GetBool("house_purchase_requirements").Item)
+                return true;
+
+            var slumlord = playerHouse.House.SlumLord;
+            if (slumlord.AllegianceMinLevel == null)
+                return true;
+
+            var allegianceMinLevel = PropertyManager.GetLong("mansion_min_rank", -1).Item;
+            if (allegianceMinLevel == -1)
+                allegianceMinLevel = slumlord.AllegianceMinLevel.Value;
+
+            var player = PlayerManager.FindByGuid(playerHouse.PlayerGuid);
+
+            if (player == null)
+            {
+                log.Info($"{playerHouse.PlayerName}.HasRequirements() - couldn't find player");
+                return false;
+            }
+
+            if (player.Allegiance == null || player.AllegianceNode.Rank < allegianceMinLevel)
+            {
+                log.Info($"{playerHouse.PlayerName}.HasRequirements() - allegiance rank {player.AllegianceNode.Rank} < {allegianceMinLevel}");
+                return false;
             }
             return true;
         }

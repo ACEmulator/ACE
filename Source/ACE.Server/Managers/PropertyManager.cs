@@ -442,7 +442,7 @@ namespace ACE.Server.Managers
 
         public static readonly ReadOnlyDictionary<string, long> DefaultLongProperties =
             DictOf<string, long>(
-                //("mansion_min_rank", 6)
+                //("mansion_min_rank", 6)   // uncomment to override the default AllegianceMinRank for Mansions
                 );
 
         public static readonly ReadOnlyDictionary<string, double> DefaultDoubleProperties =

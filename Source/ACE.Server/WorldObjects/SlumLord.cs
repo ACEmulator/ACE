@@ -157,5 +157,40 @@ namespace ACE.Server.WorldObjects
             }
             return true;
         }
+
+        /// <summary>
+        /// Returns TRUE if this player has the minimum requirements to purchase / rent this house
+        /// </summary>
+        public bool HasRequirements(Player player)
+        {
+            if (!PropertyManager.GetBool("house_purchase_requirements").Item)
+                return true;
+
+            if (AllegianceMinLevel == null)
+                return true;
+
+            var allegianceMinLevel = PropertyManager.GetLong("mansion_min_rank", -1).Item;
+            if (allegianceMinLevel == -1)
+                allegianceMinLevel = AllegianceMinLevel.Value;
+
+            if (player.Allegiance == null || player.AllegianceNode.Rank < allegianceMinLevel)
+            {
+                Console.WriteLine($"{Name}.HasRequirements({player.Name}) - allegiance rank {player.AllegianceNode.Rank} < {allegianceMinLevel}");
+                return false;
+            }
+            return true;
+        }
+
+        public int GetAllegianceMinLevel()
+        {
+            if (AllegianceMinLevel == null)
+                return 0;
+
+            var allegianceMinLevel = PropertyManager.GetLong("mansion_min_rank", -1).Item;
+            if (allegianceMinLevel == -1)
+                allegianceMinLevel = AllegianceMinLevel.Value;
+
+            return (int)allegianceMinLevel;
+        }
     }
 }
