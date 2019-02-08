@@ -58,13 +58,20 @@ namespace ACE.Server.Network.Structure
         {
             foreach (var item in slumlord.Inventory.Values)
             {
-                var rentItem = Rent.FirstOrDefault(i => i.WeenieID == item.WeenieClassId);
+                var wcid = item.WeenieClassId;
+                var value = (uint)(item.StackSize ?? 1);
+                if (item.WeenieClassName.StartsWith("tradenote"))
+                {
+                    wcid = 273;
+                    value = (uint)(item.Value * (item.StackSize ?? 1));     // TODO: remove stacksize when .Value bug is fixed
+                }
+                var rentItem = Rent.FirstOrDefault(i => i.WeenieID == wcid);
                 if (rentItem == null)
                 {
                     Console.WriteLine($"HouseData.SetPaidItems({slumlord.Name}): couldn't find rent item {item.WeenieClassId}");
                     continue;
                 }
-                rentItem.Paid = Math.Min(rentItem.Num, rentItem.Paid + (uint)(item.StackSize ?? 1));
+                rentItem.Paid = Math.Min(rentItem.Num, rentItem.Paid + value);
             }
         }
     }

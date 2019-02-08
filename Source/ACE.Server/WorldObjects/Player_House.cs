@@ -172,10 +172,10 @@ namespace ACE.Server.WorldObjects
             var evicted = GetProperty(PropertyBool.HouseEvicted) ?? false;
             if (evicted)
             {
-                var actionChain = new ActionChain();
-                actionChain.AddDelaySeconds(5.0f);      // todo: need inventory callback
-                actionChain.AddAction(this, HandleEviction);
-                actionChain.EnqueueChain();
+                var evictChain = new ActionChain();
+                evictChain.AddDelaySeconds(5.0f);   // todo: need inventory callback
+                evictChain.AddAction(this, HandleEviction);
+                evictChain.EnqueueChain();
                 return;
             }
 
@@ -187,16 +187,16 @@ namespace ACE.Server.WorldObjects
             if (HouseRentTimestamp == null)
                 HouseRentTimestamp = (int)House.GetRentDue(purchaseTime);
 
-            if (!House.SlumLord.IsRentPaid() && PropertyManager.GetBool("house_rent_enabled", true).Item)
+            var actionChain = new ActionChain();
+            actionChain.AddDelaySeconds(5.0f);
+            actionChain.AddAction(this, () =>
             {
-                var actionChain = new ActionChain();
-                actionChain.AddDelaySeconds(5.0f);
-                actionChain.AddAction(this, () =>
+                if (!House.SlumLord.IsRentPaid() && PropertyManager.GetBool("house_rent_enabled", true).Item)
                 {
                     Session.Network.EnqueueSend(new GameMessageSystemChat("Warning!  You have not paid your maintenance costs for the last 30 day maintenance period.  Please pay these costs by this deadline or you will lose your house, and all your items within it.", ChatMessageType.Broadcast));
-                });
-                actionChain.EnqueueChain();
-            }
+                }
+            });
+            actionChain.EnqueueChain();
         }
 
         public void HandleEviction()
