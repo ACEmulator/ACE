@@ -1180,15 +1180,6 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyInstanceId.HouseOwner); else SetProperty(PropertyInstanceId.HouseOwner, value.Value); }
         }
 
-        /// <summary>
-        /// The timestamp the player originally purchased house
-        /// </summary>
-        public int? HousePurchaseTimestamp
-        {
-            get => GetProperty(PropertyInt.HousePurchaseTimestamp);
-            set { if (!value.HasValue) RemoveProperty(PropertyInt.HousePurchaseTimestamp); else SetProperty(PropertyInt.HousePurchaseTimestamp, value.Value); }
-        }
-
         public int HouseStatus
         {
             get => GetProperty(PropertyInt.HouseStatus) ?? 0;

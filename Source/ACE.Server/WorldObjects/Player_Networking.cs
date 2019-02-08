@@ -48,6 +48,7 @@ namespace ACE.Server.WorldObjects
 
             // check if vassals earned XP while offline
             HandleAllegianceOnLogin();
+            HandleHouseOnLogin();
 
             HandleDBUpdates();
         }

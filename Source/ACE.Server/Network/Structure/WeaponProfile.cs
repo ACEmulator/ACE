@@ -39,6 +39,8 @@ namespace ACE.Server.Network.Structure
             Weapon = weapon;
             Wielder = wielder;
 
+            WeaponDefense = GetWeaponDefense(weapon, wielder);
+
             if (weapon is Caster)
                 return;
 
@@ -54,7 +56,6 @@ namespace ACE.Server.Network.Structure
             WeaponLength = weapon.GetProperty(PropertyFloat.WeaponLength) ?? 1.0f;
             MaxVelocity = weapon.GetProperty(PropertyFloat.MaximumVelocity) ?? 1.0f;
             WeaponOffense = GetWeaponOffense(weapon, wielder);
-            WeaponDefense = GetWeaponDefense(weapon, wielder);
             MaxVelocityEstimated = (uint)Math.Round(MaxVelocity);   // ??
         }
 

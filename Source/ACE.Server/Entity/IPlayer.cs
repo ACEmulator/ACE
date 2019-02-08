@@ -59,7 +59,13 @@ namespace ACE.Server.Entity
 
         int? AllegianceOfficerRank { get; set; }
 
+        uint? HouseId { get; set; }
+
         uint? HouseInstance { get; set; }
+
+        int? HousePurchaseTimestamp { get; set; }
+
+        int? HouseRentTimestamp { get; set; }
 
 
         uint GetCurrentLoyalty();

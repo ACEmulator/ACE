@@ -8,7 +8,12 @@ namespace ACE.Common
 
         public static double GetUnixTime()
         {
-            TimeSpan span = (DateTime.UtcNow - unixEpoch);
+            return GetUnixTime(DateTime.UtcNow);
+        }
+
+        public static double GetUnixTime(DateTime dateTime)
+        {
+            TimeSpan span = (dateTime - unixEpoch);
 
             return span.TotalSeconds;
         }

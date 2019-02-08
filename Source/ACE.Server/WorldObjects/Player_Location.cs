@@ -349,6 +349,8 @@ namespace ACE.Server.WorldObjects
             IgnoreCollisions = false;
             Hidden = false;
 
+            CheckMonsters();
+
             EnqueueBroadcastPhysicsState();
 
             Teleporting = false;

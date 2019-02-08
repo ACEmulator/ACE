@@ -7,6 +7,7 @@ using System.Numerics;
 
 using log4net;
 
+using ACE.Common;
 using ACE.Database;
 using ACE.DatLoader;
 using ACE.DatLoader.FileTypes;
@@ -754,7 +755,7 @@ namespace ACE.Server.Command.Handlers
         [CommandHandler("addalltitles", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, "Add all titles to yourself")]
         public static void HandleAddAllTitles(Session session, params string[] parameters)
         {
-            foreach(CharacterTitle title in Enum.GetValues(typeof(CharacterTitle)))
+            foreach (CharacterTitle title in Enum.GetValues(typeof(CharacterTitle)))
                 session.Player.AddTitle((uint)title);
         }
 
@@ -938,7 +939,7 @@ namespace ACE.Server.Command.Handlers
         [CommandHandler("comps", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Creates spell component items in your inventory for testing.")]
         public static void HandleComps(Session session, params string[] parameters)
         {
-            HashSet<uint> weenieIds = new HashSet<uint> { 686, 687, 688, 689, 690, 691, 740, 741, 742, 743, 744, 745, 746, 747, 748, 749, 750, 751, 752, 753, 754, 755, 756, 757, 758, 759, 760, 761, 762, 763, 764, 765, 766, 767, 768, 769, 770, 771, 772, 773, 774, 775, 776, 777, 778, 779 ,780, 781, 782, 783, 784, 785, 786, 787, 788, 789, 790, 791, 792, 1643, 1644, 1645, 1646, 1647, 1648, 1649, 1650, 1651, 1652, 1653, 1654, 7299, 8897, 20631 };
+            HashSet<uint> weenieIds = new HashSet<uint> { 686, 687, 688, 689, 690, 691, 740, 741, 742, 743, 744, 745, 746, 747, 748, 749, 750, 751, 752, 753, 754, 755, 756, 757, 758, 759, 760, 761, 762, 763, 764, 765, 766, 767, 768, 769, 770, 771, 772, 773, 774, 775, 776, 777, 778, 779, 780, 781, 782, 783, 784, 785, 786, 787, 788, 789, 790, 791, 792, 1643, 1644, 1645, 1646, 1647, 1648, 1649, 1650, 1651, 1652, 1653, 1654, 7299, 8897, 20631 };
 
             AddWeeniesToInventory(session, weenieIds, 1);
         }
@@ -946,7 +947,7 @@ namespace ACE.Server.Command.Handlers
         [CommandHandler("food", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Creates some food items in your inventory for testing.")]
         public static void HandleFood(Session session, params string[] parameters)
         {
-            HashSet<uint> weenieIds = new HashSet<uint> { 259, 259, 260, 377,  378,  379 };
+            HashSet<uint> weenieIds = new HashSet<uint> { 259, 259, 260, 377, 378, 379 };
 
             AddWeeniesToInventory(session, weenieIds);
         }
@@ -969,7 +970,7 @@ namespace ACE.Server.Command.Handlers
             {
                 try
                 {
-                    weenieTypeNumber = (uint) Enum.Parse(typeof(WeenieType), weenieTypeName);
+                    weenieTypeNumber = (uint)Enum.Parse(typeof(WeenieType), weenieTypeName);
                 }
                 catch
                 {
@@ -1681,6 +1682,36 @@ namespace ACE.Server.Command.Handlers
                 }
             }
             session.Network.EnqueueSend(new GameMessageSystemChat($"{obj.Name} ({obj.Guid}): {prop} = {value}", ChatMessageType.Broadcast));
+        }
+
+        /// <summary>
+        /// Sets the house purchase time for this player
+        /// </summary>
+        [CommandHandler("setpurchasetime", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Sets the house purchase time for this player", "/setpurchasetime")]
+        public static void HandleSetPurchaseTime(Session session, params string[] parameters)
+        {
+            var currentTime = DateTime.UtcNow;
+            Console.WriteLine($"Current time: {currentTime}");
+            // subtract 30 days
+            var purchaseTime = currentTime - TimeSpan.FromDays(30);
+            // add buffer
+            purchaseTime += TimeSpan.FromSeconds(1);
+            //purchaseTime += TimeSpan.FromMinutes(2);
+            var rentDue = DateTimeOffset.FromUnixTimeSeconds(session.Player.House.GetRentDue((uint)Time.GetUnixTime(purchaseTime))).UtcDateTime;
+
+            var prevPurchaseTime = DateTimeOffset.FromUnixTimeSeconds(session.Player.HousePurchaseTimestamp ?? 0).UtcDateTime;
+            var prevRentDue = DateTimeOffset.FromUnixTimeSeconds(session.Player.House.GetRentDue((uint)(session.Player.HousePurchaseTimestamp ?? 0))).UtcDateTime;
+
+            Console.WriteLine($"Previous purchase time: {prevPurchaseTime}");
+            Console.WriteLine($"New purchase time: {purchaseTime}");
+
+            Console.WriteLine($"Previous rent time: {prevRentDue}");
+            Console.WriteLine($"New rent time: {rentDue}");
+
+            session.Player.HousePurchaseTimestamp = (int)Time.GetUnixTime(purchaseTime);
+            session.Player.HouseRentTimestamp = (int)session.Player.House.GetRentDue((uint)Time.GetUnixTime(purchaseTime));
+
+            HouseManager.BuildRentQueue();
         }
     }
 }

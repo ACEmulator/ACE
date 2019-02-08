@@ -14,12 +14,12 @@ using ACE.Server.Network.Structure;
 
 namespace ACE.Server.WorldObjects
 {
-    public class SlumLord : WorldObject
+    public class SlumLord : Container
     {
         /// <summary>
         /// The house this slumlord is linked to
         /// </summary>
-        public WorldObject House { get => ParentLink; }
+        public House House { get => ParentLink as House; }
 
         /// <summary>
         /// A new biota be created taking all of its values from weenie.
@@ -39,6 +39,7 @@ namespace ACE.Server.WorldObjects
 
         private void SetEphemeralValues()
         {
+            ItemCapacity = 120;
         }
 
         public bool HouseRequiresMonarch
@@ -61,7 +62,7 @@ namespace ACE.Server.WorldObjects
             if (!(activator is Player player))
                 return new ActivationResult(false);
 
-            if (!PropertyManager.GetBool("house_purchase_requirements").Item)
+            if (HouseOwner != null || !PropertyManager.GetBool("house_purchase_requirements").Item)
                 return new ActivationResult(true);
 
             // ensure player doesn't already own a house?
@@ -119,6 +120,7 @@ namespace ACE.Server.WorldObjects
             }
             houseProfile.SetBuyItems(GetBuyItems());
             houseProfile.SetRentItems(GetRentItems());
+            houseProfile.SetPaidItems(this);
 
             player.Session.Network.EnqueueSend(new GameEventHouseProfile(player.Session, Guid, houseProfile));
         }
@@ -137,6 +139,23 @@ namespace ACE.Server.WorldObjects
         public List<WorldObject> GetRentItems()
         {
             return GetCreateList(DestinationType.HouseRent);
+        }
+
+        /// <summary>
+        /// Returns TRUE if rent is already paid for current maintenance period
+        /// </summary>
+        public bool IsRentPaid()
+        {
+            var houseProfile = new HouseProfile();
+            houseProfile.SetRentItems(GetRentItems());
+            houseProfile.SetPaidItems(this);
+
+            foreach (var rentItem in houseProfile.Rent)
+            {
+                if (rentItem.Paid < rentItem.Num)
+                    return false;
+            }
+            return true;
         }
     }
 }

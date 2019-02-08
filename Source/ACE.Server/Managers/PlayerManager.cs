@@ -122,6 +122,19 @@ namespace ACE.Server.Managers
             return null;
         }
 
+        public static List<IPlayer> GetAllPlayers()
+        {
+            var offlinePlayers = GetAllOffline();
+            var onlinePlayers = GetAllOnline();
+
+            var allPlayers = new List<IPlayer>();
+
+            allPlayers.AddRange(offlinePlayers);
+            allPlayers.AddRange(onlinePlayers);
+
+            return allPlayers;
+        }
+
         public static List<OfflinePlayer> GetAllOffline()
         {
             var results = new List<OfflinePlayer>();

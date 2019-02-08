@@ -436,7 +436,8 @@ namespace ACE.Server.Managers
             DictOf(
                 ("alwaysshowwelcome", false),
                 ("pk_server", false),
-                ("house_purchase_requirements", true)
+                ("house_purchase_requirements", true),
+                ("house_rent_enabled", true)
                 );
 
         public static readonly ReadOnlyDictionary<string, long> DefaultLongProperties =

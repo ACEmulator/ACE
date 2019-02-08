@@ -58,8 +58,10 @@ namespace ACE.Server.WorldObjects
         public void GiveDeed()
         {
             var deed = WorldObjectFactory.CreateNewWorldObject("deed");
+
             var title = CharacterTitleId != null ? GetTitle((CharacterTitle)CharacterTitleId) : null;
             var titleStr = title != null ? $", {title}" : "";
+
             var derethDateTime = DerethDateTime.UtcNowToLoreTime;
             var date = derethDateTime.DateToString();
             var time = derethDateTime.TimeToString();
@@ -68,6 +70,50 @@ namespace ACE.Server.WorldObjects
             deed.LongDesc = $"Bought by {Name}{titleStr} on {date} at {time}\n\nPurchased at {location}";
 
             TryCreateInInventoryWithNetworking(deed);
+        }
+
+        /// <summary>
+        /// Removes the house deed from the player's inventory when they abandon the house
+        /// </summary>
+        public void RemoveDeed()
+        {
+            var deeds = GetInventoryItemsOfWCID(9549);
+            if (deeds == null)
+            {
+                log.Warn($"{Name}.RemoveDeed(): couldn't find inventory deed");
+                return;
+            }
+            foreach (var deed in deeds)
+                TryConsumeFromInventoryWithNetworking(deed);
+        }
+
+        public void HandleActionRentHouse(uint slumlord_id, List<uint> item_ids)
+        {
+            Console.WriteLine($"{Name}.HandleActionRentHouse({slumlord_id:X8}, {string.Join(", ", item_ids.Select(i => i.ToString("X8")))})");
+
+            var house = GetHouse();
+
+            if (house.SlumLord.IsRentPaid())
+            {
+                //Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.HouseRentFailed));  // WeenieError.HouseRentFailed = blank message
+                Session.Network.EnqueueSend(new GameMessageSystemChat("The maintenance has already been paid for this period.\nYou may not prepay next period's maintenance.", ChatMessageType.Broadcast));
+                return;
+            }
+
+            // move items from player inventory to slumlord 'inventory'
+            foreach (var item_id in item_ids)
+            {
+                var item = FindObject(item_id, SearchLocations.MyInventory);
+                if (item == null)
+                {
+                    Console.WriteLine($"{Name}.HandleActionRentHouse({slumlord_id:X8}, {string.Join(", ", item_ids.Select(i => i.ToString("X8")))}): couldn't find {item_id:X8}");
+                    continue;
+                }
+                DoHandleActionPutItemInContainer(item, this, false, house.SlumLord, house.SlumLord, 0);
+            }
+            house.SlumLord.ActOnUse(this);
+
+            HandleActionQueryHouse();
         }
 
         public void HandleActionAbandonHouse()
@@ -84,6 +130,9 @@ namespace ACE.Server.WorldObjects
             if (house != null)
             {
                 house.HouseOwner = null;
+                house.MonarchId = null;
+                house.ClearPermissions();
+
                 house.SaveBiotaToDatabase();
 
                 // relink
@@ -103,14 +152,59 @@ namespace ACE.Server.WorldObjects
 
             HouseId = null;
             HouseInstance = null;
-            HousePurchaseTimestamp = null;
+            //HousePurchaseTimestamp = null;
+            HouseRentTimestamp = null;
 
             House = null;
 
             // send text message
             Session.Network.EnqueueSend(new GameMessageSystemChat("You abandon your house!", ChatMessageType.Broadcast));
 
+            house.ClearRestrictions();
+
+            RemoveDeed();
+
             HandleActionQueryHouse();
+        }
+
+        public void HandleHouseOnLogin()
+        {
+            var evicted = GetProperty(PropertyBool.HouseEvicted) ?? false;
+            if (evicted)
+            {
+                var actionChain = new ActionChain();
+                actionChain.AddDelaySeconds(5.0f);      // todo: need inventory callback
+                actionChain.AddAction(this, HandleEviction);
+                actionChain.EnqueueChain();
+                return;
+            }
+
+            if (House == null) LoadHouse();
+            if (House == null) return;
+
+            var purchaseTime = (uint)(HousePurchaseTimestamp ?? 0);
+
+            if (HouseRentTimestamp == null)
+                HouseRentTimestamp = (int)House.GetRentDue(purchaseTime);
+
+            if (!House.SlumLord.IsRentPaid() && PropertyManager.GetBool("house_rent_enabled", true).Item)
+            {
+                var actionChain = new ActionChain();
+                actionChain.AddDelaySeconds(5.0f);
+                actionChain.AddAction(this, () =>
+                {
+                    Session.Network.EnqueueSend(new GameMessageSystemChat("Warning!  You have not paid your maintenance costs for the last 30 day maintenance period.  Please pay these costs by this deadline or you will lose your house, and all your items within it.", ChatMessageType.Broadcast));
+                });
+                actionChain.EnqueueChain();
+            }
+        }
+
+        public void HandleEviction()
+        {
+            Session.Network.EnqueueSend(new GameMessageSystemChat("You abandon your house!", ChatMessageType.Broadcast));
+            RemoveDeed();
+
+            RemoveProperty(PropertyBool.HouseEvicted);
         }
 
         /// <summary>
@@ -126,6 +220,7 @@ namespace ACE.Server.WorldObjects
             HouseId = house.HouseId;
             HouseInstance = house.Guid.Full;
             HousePurchaseTimestamp = (int)Time.GetUnixTime();
+            HouseRentTimestamp = (int)house.GetRentDue((uint)HousePurchaseTimestamp.Value);
 
             // set house properties
             house.HouseOwner = Guid.Full;
@@ -308,7 +403,7 @@ namespace ACE.Server.WorldObjects
 
             uint totalValue = 0;
             foreach (var tradeNote in tradeNotes)
-                totalValue += (uint)((tradeNote.Value ?? 0) * (tradeNote.StackSize ?? 1));
+                totalValue += (uint)(tradeNote.Value ?? 0);
 
             return totalValue;
         }
@@ -323,15 +418,25 @@ namespace ACE.Server.WorldObjects
             }
 
             // house owned - send 0x225 HouseData?
-            var house = LoadHouse();
+            if (House == null)
+                LoadHouse();
+
+            var house = GetHouse();
             if (house == null)
             {
                 Session.Network.EnqueueSend(new GameEventHouseStatus(Session));
                 return;
             }
 
-            var houseData = house.GetHouseData(this);
-            Session.Network.EnqueueSend(new GameEventHouseData(Session, houseData));
+            // slumlord inventory callback...
+            var actionChain = new ActionChain();
+            actionChain.AddDelaySeconds(1.0f);
+            actionChain.AddAction(this, () =>
+            {
+                var houseData = house.GetHouseData(this);
+                Session.Network.EnqueueSend(new GameEventHouseData(Session, houseData));
+            });
+            actionChain.EnqueueChain();
         }
 
         public House LoadHouse(bool forceLoad = false)
@@ -357,7 +462,7 @@ namespace ACE.Server.WorldObjects
             var isLoaded = LandblockManager.IsLoaded(landblockId);
 
             if (!isLoaded)
-                return House;
+                return House = House.Load(houseGuid);
 
             var loaded = LandblockManager.GetLandblock(landblockId, false);
             return House = loaded.GetObject(new ObjectGuid(houseGuid)) as House;
@@ -877,10 +982,6 @@ namespace ACE.Server.WorldObjects
             return false;
         }
 
-        // allegiance guest permissions
-
-        public byte HouseSequence;
-
         public void UpdateRestrictionDB()
         {
             // update house
@@ -906,11 +1007,9 @@ namespace ACE.Server.WorldObjects
 
         public void UpdateRestrictionDB(RestrictionDB restrictions, House house)
         {
-            HouseSequence++;
-
             var nearbyPlayers = house.PhysicsObj.ObjMaint.VoyeurTable.Values.Select(v => (Player)v.WeenieObj.WorldObject).ToList();
             foreach (var player in nearbyPlayers)
-                player.Session.Network.EnqueueSend(new GameEventHouseUpdateRestrictions(player.Session, house.Guid, restrictions, HouseSequence));
+                player.Session.Network.EnqueueSend(new GameEventHouseUpdateRestrictions(player.Session, house, restrictions));
         }
 
         public void HandleActionModifyAllegianceGuestPermission(bool add)
@@ -1223,13 +1322,11 @@ namespace ACE.Server.WorldObjects
 
         public void UpdateRestrictionDB_AllegianceHouse(RestrictionDB restrictions, House house, House allegianceHouse)
         {
-            HouseSequence++;    // ??
-
             Sync_AllegianceHouse(house, allegianceHouse);
 
             var nearbyPlayers = house.PhysicsObj.ObjMaint.VoyeurTable.Values.Select(v => (Player)v.WeenieObj.WorldObject).ToList();
             foreach (var player in nearbyPlayers)
-                player.Session.Network.EnqueueSend(new GameEventHouseUpdateRestrictions(player.Session, house.Guid, restrictions, HouseSequence));
+                player.Session.Network.EnqueueSend(new GameEventHouseUpdateRestrictions(player.Session, house, restrictions));
         }
 
         public House GetDungeonHouse_AllegianceHouse(House allegianceHouse)

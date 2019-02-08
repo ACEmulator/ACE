@@ -337,19 +337,38 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
+        /// Removes all items from an inventory
+        /// </summary>
+        /// <returns>TRUE if all items were removed successfully</returns>
+        public bool ClearInventory(bool forceSave = false)
+        {
+            var success = true;
+            var itemGuids = Inventory.Keys.ToList();
+            foreach (var itemGuid in itemGuids)
+            {
+                if (!TryRemoveFromInventory(itemGuid, forceSave))
+                    success = false;
+            }
+            if (forceSave)
+                SaveBiotaToDatabase();
+
+            return success;
+        }
+
+        /// <summary>
         /// This will clear the ContainerId and PlacementPosition properties.<para />
         /// It will also subtract the EncumbranceVal and Value.
         /// </summary>
-        public bool TryRemoveFromInventory(ObjectGuid objectGuid)
+        public bool TryRemoveFromInventory(ObjectGuid objectGuid, bool forceSave = false)
         {
-            return TryRemoveFromInventory(objectGuid, out _);
+            return TryRemoveFromInventory(objectGuid, out _, forceSave);
         }
 
         /// <summary>
         /// This will clear the ContainerId and PlacementPosition properties and remove the object from the Inventory dictionary.<para />
         /// It will also subtract the EncumbranceVal and Value.
         /// </summary>
-        public bool TryRemoveFromInventory(ObjectGuid objectGuid, out WorldObject item)
+        public bool TryRemoveFromInventory(ObjectGuid objectGuid, out WorldObject item, bool forceSave = false)
         {
             // first search me / add all items of type.
             if (Inventory.Remove(objectGuid, out item))
@@ -368,6 +387,9 @@ namespace ACE.Server.WorldObjects
 
                 EncumbranceVal -= item.EncumbranceVal;
                 Value -= item.Value;
+
+                if (forceSave)
+                    item.SaveBiotaToDatabase();
 
                 return true;
             }

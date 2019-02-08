@@ -13,6 +13,7 @@ using ACE.Server.Entity;
 using ACE.Server.Factories;
 using ACE.Server.Managers;
 using ACE.Server.Network.Structure;
+using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 
 namespace ACE.Server.WorldObjects
@@ -74,6 +75,7 @@ namespace ACE.Server.WorldObjects
 
         /// <summary>
         /// Builds a HouseData structure for this house
+        /// This is used to populate the info in the House panel
         /// </summary>
         public HouseData GetHouseData(Player owner)
         {
@@ -94,7 +96,8 @@ namespace ACE.Server.WorldObjects
             if (owner != null)
             {
                 houseData.BuyTime = (uint)(owner.HousePurchaseTimestamp ?? 0);
-                houseData.RentTime = GetRentTimestamp(owner);
+                houseData.RentTime = GetRentTimestamp(houseData.BuyTime);
+                houseData.SetPaidItems(SlumLord);
             }
             return houseData;
         }
@@ -111,7 +114,20 @@ namespace ACE.Server.WorldObjects
             foreach (var linkedHouse in linkedHouses)
                 linkedHouse.ActivateLinks(instances, new List<Biota>() { biota }, linkedHouses[0]);
 
-            return (House)linkedHouses[0];
+            var house = (House)linkedHouses[0];
+
+            // load slumlord biota for rent
+            var slumlordGuid = house.SlumLord.Guid.Full;
+            var slumlordBiota = DatabaseManager.Shard.GetBiota(slumlordGuid);
+            if (slumlordBiota != null)
+            {
+                var slumlord = WorldObjectFactory.CreateWorldObject(slumlordBiota);
+                house.SetLinkProperties(slumlord);
+
+                house.ChildLinks.Remove(house.SlumLord);
+                house.ChildLinks.Add(slumlord);
+            }
+            return house;
         }
 
         /// <summary>
@@ -122,10 +138,10 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Returns the beginning of the current maintenance period
         /// </summary>
-        public uint GetRentTimestamp(Player owner)
+        public uint GetRentTimestamp(uint purchaseTime)
         {
             // get the purchaseTime -> currentTime offset
-            var purchaseTime = (uint)(owner.HousePurchaseTimestamp ?? 0);
+            //var purchaseTime = (uint)(owner.HousePurchaseTimestamp ?? 0);
 
             var currentTime = (uint)Time.GetUnixTime();
             var offset = currentTime - purchaseTime;
@@ -138,6 +154,21 @@ namespace ACE.Server.WorldObjects
 
             // return beginning of current period
             return purchaseTime + (rentIntervalSecs * periods);
+        }
+
+        /// <summary>
+        /// Returns the end of the current maintenance period
+        /// </summary>
+        public uint GetRentDue(uint purchaseTime)
+        {
+            var currentPeriod = GetRentTimestamp(purchaseTime);
+
+            var rentIntervalSecs = (uint)RentInterval.TotalSeconds;
+            if (IsApartment)
+                rentIntervalSecs *= 3;      // apartment maintenance every 90 days
+
+            var rentDue = currentPeriod + rentIntervalSecs;
+            return rentDue;
         }
 
         public override void SetLinkProperties(WorldObject wo)
@@ -298,6 +329,20 @@ namespace ACE.Server.WorldObjects
                 SaveBiotaToDatabase();
         }
 
+        public void ClearPermissions()
+        {
+            foreach (var guest in Guests.Keys)
+            {
+                var player = PlayerManager.FindByGuid(guest);
+                if (player == null)
+                {
+                    Console.WriteLine($"{Name}.ClearPermissions(): couldn't find {guest}");
+                    continue;
+                }
+                RemoveGuest(player);
+            }
+        }
+
         public HousePermission FindGuest(IPlayer guest)
         {
             var housePermissions = Biota.GetHousePermission(BiotaDatabaseLock);
@@ -421,6 +466,35 @@ namespace ACE.Server.WorldObjects
                 return null;
 
             return storage;
+        }
+
+        public static House GetHouse(uint houseGuid)
+        {
+            var landblock = (ushort)((houseGuid >> 12) & 0xFFFF);
+
+            var landblockId = new LandblockId((uint)(landblock << 16 | 0xFFFF));
+            var isLoaded = LandblockManager.IsLoaded(landblockId);
+
+            if (!isLoaded)
+                return House.Load(houseGuid);
+
+            var loaded = LandblockManager.GetLandblock(landblockId, false);
+            return loaded.GetObject(new ObjectGuid(houseGuid)) as House;
+        }
+
+        public void ClearRestrictions()
+        {
+            if (PhysicsObj == null) return;
+
+            var restrictionDB = new RestrictionDB();
+
+            var nearbyPlayers = PhysicsObj.ObjMaint.VoyeurTable.Values.Select(v => (Player)v.WeenieObj.WorldObject).ToList();
+            foreach (var player in nearbyPlayers)
+            {
+                // clear house owner
+                player.Session.Network.EnqueueSend(new GameMessagePublicUpdateInstanceID(this, PropertyInstanceId.HouseOwner, new ObjectGuid(0)));
+                player.Session.Network.EnqueueSend(new GameEventHouseUpdateRestrictions(player.Session, this, restrictionDB));
+            }
         }
     }
 }

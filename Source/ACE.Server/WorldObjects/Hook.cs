@@ -50,12 +50,30 @@ namespace ACE.Server.WorldObjects
             if (!(activator is Player player))
                 return new ActivationResult(false);
 
+            if (!(House.HouseHooksVisible ?? true) && Item != null)
+            {
+                // redirect to item.CheckUseRequirements
+                return Item.CheckUseRequirements(activator);
+            }
+
             if (!House.RootHouse.HasPermission(player, true))
             {
                 player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, $"The {Name} is locked"));
                 return new ActivationResult(false);
             }
             return new ActivationResult(true);
+        }
+
+        public override void ActOnUse(WorldObject wo)
+        {
+            if (!(House.HouseHooksVisible ?? true) && Item != null)
+            {
+                // redirect to item.ActOnUse
+                Item.ActOnUse(wo);
+                return;
+            }
+
+            base.ActOnUse(wo);
         }
 
         /// <summary>

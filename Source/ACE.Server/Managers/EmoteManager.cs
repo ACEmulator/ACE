@@ -162,7 +162,7 @@ namespace ACE.Server.Managers
 
                 case EmoteType.CastSpell:
 
-                    if (creature != null && targetObject != null)
+                    if (WorldObject != null && targetObject != null)
                     {
                         var spell = new Spell((uint)emote.SpellId);
                         if (spell != null)
@@ -184,11 +184,11 @@ namespace ACE.Server.Managers
 
                 case EmoteType.CastSpellInstant:
 
-                    if (creature != null)
+                    if (WorldObject != null)
                     {
                         var spell = new Spell((uint)emote.SpellId);
                         if (spell != null)
-                            creature.TryCastSpell(spell, targetObject, creature);
+                            WorldObject.TryCastSpell(spell, targetObject, WorldObject);
                     }
                     break;
 
