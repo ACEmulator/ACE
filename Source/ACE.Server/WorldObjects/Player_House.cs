@@ -450,6 +450,9 @@ namespace ACE.Server.WorldObjects
             if (House != null && !forceLoad)
                 return House;
 
+            if (HouseInstance == null)
+                return House;
+
             var houseGuid = HouseInstance.Value;
             House = House.Load(houseGuid);
 
