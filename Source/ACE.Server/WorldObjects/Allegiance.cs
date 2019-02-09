@@ -47,6 +47,25 @@ namespace ACE.Server.WorldObjects
         public HashSet<ObjectGuid> BanList;
 
         /// <summary>
+        /// Returns the list of allegiance members who are currently online
+        /// </summary>
+        public List<Player> OnlinePlayers
+        {
+            get
+            {
+                var onlinePlayers = new List<Player>();
+
+                foreach (var member in Members)
+                {
+                    var player = PlayerManager.GetOnlinePlayer(member.Key);
+                    if (player != null)
+                        onlinePlayers.Add(player);
+                }
+                return onlinePlayers;
+            }
+        }
+
+        /// <summary>
         /// A new biota be created taking all of its values from weenie.
         /// </summary>
         public Allegiance(Weenie weenie, ObjectGuid guid) : base(weenie, guid)

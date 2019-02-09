@@ -289,6 +289,27 @@ namespace ACE.Server.WorldObjects
                 }
             });
             actionChain.EnqueueChain();
+
+            if (Allegiance != null)
+            {
+                foreach (var member in Allegiance.OnlinePlayers)
+                {
+                    if (member.Guid != Guid && member.GetCharacterOption(CharacterOption.ShowAllegianceLogons))
+                        member.Session.Network.EnqueueSend(new GameMessageSystemChat($"{Name} is online.", ChatMessageType.Allegiance));
+                }
+            }
+        }
+
+        public void HandleAllegianceOnLogout()
+        {
+            if (Allegiance != null)
+            {
+                foreach (var member in Allegiance.OnlinePlayers)
+                {
+                    if (member.Guid != Guid && member.GetCharacterOption(CharacterOption.ShowAllegianceLogons))
+                        member.Session.Network.EnqueueSend(new GameMessageSystemChat($"{Name} is offline.", ChatMessageType.Allegiance));
+                }
+            }
         }
 
         /// <summary>
