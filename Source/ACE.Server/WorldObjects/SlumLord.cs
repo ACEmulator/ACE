@@ -110,6 +110,13 @@ namespace ACE.Server.WorldObjects
             // sent house profile
             var houseProfile = new HouseProfile();
             houseProfile.DwellingID = HouseId.Value;
+            houseProfile.Type = House.HouseType.Value;
+
+            if (MinLevel != null)
+                houseProfile.MinLevel = MinLevel.Value;
+            if (AllegianceMinLevel != null)
+                houseProfile.MinAllegRank = AllegianceMinLevel.Value;
+
             if (HouseOwner != null)
             {
                 var ownerId = HouseOwner.Value;

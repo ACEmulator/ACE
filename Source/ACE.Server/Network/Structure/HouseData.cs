@@ -63,7 +63,7 @@ namespace ACE.Server.Network.Structure
                 if (item.WeenieClassName.StartsWith("tradenote"))
                 {
                     wcid = 273;
-                    value = (uint)(item.Value * (item.StackSize ?? 1));     // TODO: remove stacksize when .Value bug is fixed
+                    value = (uint)item.Value;
                 }
                 var rentItem = Rent.FirstOrDefault(i => i.WeenieID == wcid);
                 if (rentItem == null)

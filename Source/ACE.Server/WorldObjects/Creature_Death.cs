@@ -343,6 +343,9 @@ namespace ACE.Server.WorldObjects
 
             if (Level > 3 && !Name.Equals("Chicken"))
             {
+                if (DeathTreasure == null)
+                    return;
+
                 var numItems = ThreadSafeRandom.Next(DeathTreasure.ItemMinAmount, DeathTreasure.ItemMaxAmount);
                 for (int i = 0; i < numItems; i++)
                 {
