@@ -1303,7 +1303,7 @@ namespace ACE.Server.Factories
                             else if (chance == 112)
                             {
                                 //Mana Scarab
-                                id = 37115;
+                                id = 37155;
                             }
                             else if (chance == 113)
                             {
