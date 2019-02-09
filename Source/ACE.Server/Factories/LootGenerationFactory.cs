@@ -58,16 +58,56 @@ namespace ACE.Server.Factories
             player.HandleAddNewWorldObjectsToInventory(items);*/
         }
 
+        // Enum used for adjusting the loot bias for the various types of Mana forge chests
+        public enum LootBias : uint
+        {
+            UnBiased = 0,
+            Armor = 1,
+            Weapons = 2,
+            SpellComps = 4,
+            Clothing = 8,
+            Jewelry = 16,
+            MagicEquipment = 31,
+            MixedEquipment = 31,
+        }
+
         public static List<WorldObject> CreateRandomLootObjects(TreasureDeath profile)
         {
+            LootBias lootBias = LootBias.UnBiased;
             var loot = new List<WorldObject>();
+
+            switch (profile.Id)
+            {
+                case 1001:  // Mana Forge Chest, Advanced Equipment Chest, and Mixed Equipment Chest
+                    lootBias = LootBias.MixedEquipment;
+                    break;
+                case 1002:  // Armor Chest
+                    lootBias = LootBias.Armor;
+                    break;
+                case 1003:  // Magic Chest
+                    lootBias = LootBias.MagicEquipment;
+                    break;
+                case 1004:  // Weapon Chest
+                    lootBias = LootBias.Weapons;
+                    break;
+                default:    // Default to unbiased loot profile
+                    break;
+            }
 
             var itemChance = ThreadSafeRandom.Next(1, 100);
             if (itemChance <= profile.ItemChance)
             {
                 var numItems = ThreadSafeRandom.Next(profile.ItemMinAmount, profile.ItemMaxAmount);
                 for (var i = 0; i < numItems; i++)
-                    loot.Add(CreateRandomLootObjects(profile.Tier, false));
+                {
+                    WorldObject lootWorldObject;
+                    if (lootBias == LootBias.MagicEquipment)
+                        lootWorldObject = CreateRandomLootObjects(profile.Tier, false, LootBias.Weapons);
+                    else
+                        lootWorldObject = CreateRandomLootObjects(profile.Tier, false, lootBias);
+                    if (lootWorldObject != null)
+                        loot.Add(lootWorldObject);
+                }
             }
 
             var magicItemChance = ThreadSafeRandom.Next(1, 100);
@@ -75,7 +115,11 @@ namespace ACE.Server.Factories
             {
                 var numItems = ThreadSafeRandom.Next(profile.MagicItemMinAmount, profile.MagicItemMaxAmount);
                 for (var i = 0; i < numItems; i++)
-                    loot.Add(CreateRandomLootObjects(profile.Tier, true));
+                {
+                    var lootWorldObject = CreateRandomLootObjects(profile.Tier, true, lootBias);
+                    if (lootWorldObject != null)
+                        loot.Add(lootWorldObject);
+                }
             }
 
             var mundaneItemChance = ThreadSafeRandom.Next(1, 100);
@@ -83,13 +127,17 @@ namespace ACE.Server.Factories
             {
                 var numItems = ThreadSafeRandom.Next(profile.MundaneItemMinAmount, profile.MundaneItemMaxAmount);
                 for (var i = 0; i < numItems; i++)
-                    loot.Add(CreateMundaneObjects(profile.Tier));
+                {
+                    var lootWorldObject = CreateMundaneObjects(profile.Tier, lootBias);
+                    if (lootWorldObject != null)
+                        loot.Add(lootWorldObject);
+                }
 
             }
             return loot;
         }
 
-        public static WorldObject CreateMundaneObjects(int tier)
+        public static WorldObject CreateMundaneObjects(int tier, LootBias lootBias = LootBias.UnBiased)
         {
             WorldObject wo;
             int id = 0;
@@ -98,7 +146,7 @@ namespace ACE.Server.Factories
             {
                 case 1:
                     //mundane items
-                    int mundaneType = ThreadSafeRandom.Next(1, 7);
+                    int mundaneType = ThreadSafeRandom.Next(1, 8);
                     switch (mundaneType)
                     {
                         case 1:
@@ -182,12 +230,11 @@ namespace ACE.Server.Factories
                                 id = 545;
                             }
                             break;
-                        //case 6:
-                        //    //coalesced mana
-                        //    //Yellow Mana
-                        //    id = 42518;
-                        //    break;
                         case 6:
+                            // coalesced mana (Yellow)
+                            id = 42518;
+                            break;
+                        case 7:
                             //Food Items
                             id = CreateFood();
                             break;
@@ -201,7 +248,7 @@ namespace ACE.Server.Factories
 
                 case 2:
                     //mundane items
-                    mundaneType = ThreadSafeRandom.Next(1, 7);
+                    mundaneType = ThreadSafeRandom.Next(1, 8);
                     switch (mundaneType)
                     {
                         case 1:
@@ -319,12 +366,11 @@ namespace ACE.Server.Factories
                                 id = 512;
                             }
                             break;
-                        //case 6:
-                        //    //coalesced mana
-                        //    //Yellow Mana
-                        //    id = 42518;
-                        //    break;
                         case 6:
+                            // coalesced mana (Yellow)
+                            id = 42518;
+                            break;
+                        case 7:
                             id = CreateFood();
                             break;
                         default:
@@ -337,7 +383,7 @@ namespace ACE.Server.Factories
 
                 case 3:
                     //mundane items
-                    mundaneType = ThreadSafeRandom.Next(1, 7);
+                    mundaneType = ThreadSafeRandom.Next(1, 8);
                     switch (mundaneType)
                     {
                         case 1:
@@ -465,21 +511,21 @@ namespace ACE.Server.Factories
                                 id = 514;
                             }
                             break;
-                        //case 6:
-                        //    //coalesced mana
-                        //    chance = ThreadSafeRandom.Next(1, 100);
-                        //    if (chance < 90)
-                        //    {
-                        //        //Coalecsed Mana (Yellow)
-                        //        id = 42518;
-                        //    }
-                        //    else
-                        //    {
-                        //        //Coalecsed Mana (Red)
-                        //        id = 42517;
-                        //    }
-                        //    break;
                         case 6:
+                            //coalesced mana
+                            chance = ThreadSafeRandom.Next(1, 100);
+                            if (chance < 90)
+                            {
+                                //Coalecsed Mana (Yellow)
+                                id = 42518;
+                            }
+                            else
+                            {
+                                //Coalecsed Mana (Red)
+                                id = 42517;
+                            }
+                            break;
+                        case 7:
                             id = CreateFood();
                             break;
                         default:
@@ -619,26 +665,26 @@ namespace ACE.Server.Factories
                                 id = 514;
                             }
                             break;
-                        //case 6:
-                        //    //coalesced mana
-                        //    chance = ThreadSafeRandom.Next(1, 100);
-                        //    if (chance < 50)
-                        //    {
-                        //        //Coalesced Mana (Yellow)
-                        //        id = 42518;
-                        //    }
-                        //    else if(chance < 85)
-                        //    {
-                        //        //Coalesced Mana (Red)
-                        //        id = 42517;
-                        //    }
-                        //    else
-                        //    {
-                        //        //Coalesced Mana (Blue)
-                        //        id = 42516;
-                        //    }
-                        //    break;
                         case 6:
+                            //coalesced mana
+                            chance = ThreadSafeRandom.Next(1, 100);
+                            if (chance < 50)
+                            {
+                                //Coalesced Mana (Yellow)
+                                id = 42518;
+                            }
+                            else if(chance < 85)
+                            {
+                                //Coalesced Mana (Red)
+                                id = 42517;
+                            }
+                            else
+                            {
+                                //Coalesced Mana (Blue)
+                                id = 42516;
+                            }
+                            break;
+                        case 7:
                             id = CreateFood();
                             break;
                         default:
@@ -778,25 +824,6 @@ namespace ACE.Server.Factories
                                 id = 516;
                             }
                             break;
-                        //case 6:
-                        //    //coalesced mana
-                        //    chance = ThreadSafeRandom.Next(1, 100);
-                        //    if (chance < 50)
-                        //    {
-                        //        //Coalesced Mana (Yellow)
-                        //        id = 42518;
-                        //    }
-                        //    else if (chance < 85)
-                        //    {
-                        //        //Coalesced Mana (Red)
-                        //        id = 42517;
-                        //    }
-                        //    else
-                        //    {
-                        //        //Coalesced Mana (Blue)
-                        //        id = 42516;
-                        //    }
-                        //    break;
                         case 6:
                             id = CreateFood();
                             break;
@@ -932,25 +959,6 @@ namespace ACE.Server.Factories
                                 id = 516;
                             }
                             break;
-                        //case 6:
-                        //    //coalesced mana
-                        //    chance = ThreadSafeRandom.Next(1, 100);
-                        //    if (chance < 50)
-                        //    {
-                        //        //Coalesced Mana (Yellow)
-                        //        id = 42518;
-                        //    }
-                        //    else if (chance < 85)
-                        //    {
-                        //        //Coalesced Mana (Red)
-                        //        id = 42517;
-                        //    }
-                        //    else
-                        //    {
-                        //        //Coalesced Mana (Blue)
-                        //        id = 42516;
-                        //    }
-                        //    break;
                         case 6:
                             id = CreateFood();
                             break;
@@ -1086,30 +1094,11 @@ namespace ACE.Server.Factories
                                 id = 516;
                             }
                             break;
-                        //case 6:
-                        //    //coalesced mana
-                        //    chance = ThreadSafeRandom.Next(1, 100);
-                        //    if (chance < 50)
-                        //    {
-                        //        //Coalesced Mana (Yellow)
-                        //        id = 42518;
-                        //    }
-                        //    else if (chance < 85)
-                        //    {
-                        //        //Coalesced Mana (Red)
-                        //        id = 42517;
-                        //    }
-                        //    else
-                        //    {
-                        //        //Coalesced Mana (Blue)
-                        //        id = 42516;
-                        //    }
-                        //    break;
                         case 6:
                             id = CreateFood();
                             break;
                         default:
-                            wo = CreateRandomScroll(ThreadSafeRandom.Next(6, 6));
+                            wo = CreateRandomScroll(ThreadSafeRandom.Next(6, 7));
                             return wo;
                     }
                     wo = WorldObjectFactory.CreateNewWorldObject((uint)id);
@@ -1117,7 +1106,10 @@ namespace ACE.Server.Factories
 
                 default:
                     //mundane items
-                    mundaneType = ThreadSafeRandom.Next(1, 7);
+                    if (lootBias == LootBias.UnBiased)
+                        mundaneType = ThreadSafeRandom.Next(1, 8);
+                    else
+                        mundaneType = 6; // Spell components are required for biased tier 8
                     switch (mundaneType)
                     {
                         case 1:
@@ -1174,7 +1166,7 @@ namespace ACE.Server.Factories
                             else if (chance < 325)
                             {
                                 //health Tonic
-                                id = 27320; ;
+                                id = 27320;
                             }
                             else if (chance < 350)
                             {
@@ -1240,408 +1232,389 @@ namespace ACE.Server.Factories
                                 id = 516;
                             }
                             break;
-                        //case 6:
-                        //    //coalesced mana
-                        //    chance = ThreadSafeRandom.Next(1, 100);
-                        //    if (chance < 50)
-                        //    {
-                        //        //Coalesced Mana (Yellow)
-                        //        id = 42518;
-                        //    }
-                        //    else if (chance < 85)
-                        //    {
-                        //        //Coalesced Mana (Red)
-                        //        id = 42517;
-                        //    }
-                        //    else
-                        //    {
-                        //        //Coalesced Mana (Blue)
-                        //        id = 42516;
-                        //    }
-                        //    break;
-                        //case 7:
-                        //    //spell components
-                        //    chance = ThreadSafeRandom.Next(1, 170);
-                        //    if (chance < 100)
-                        //    {
-                        //        //Quill of Infliction
-                        //        id = 37363;
-                        //    }
-                        //    else if (chance == 100)
-                        //    {
-                        //        //Quill of Benevolence
-                        //        id = 37365;
-                        //    }
-                        //    else if (chance == 101)
-                        //    {
-                        //        //Quill of Extraction
-                        //        id = 37362;
-                        //    }
-                        //    else if (chance == 102)
-                        //    {
-                        //        //Quill of Introspection
-                        //        id = 37364;
-                        //    }
-                        //    else if (chance == 103)
-                        //    {
-                        //        //Ink of Conveyance
-                        //        id = 37360;
-                        //    }
-                        //    else if (chance == 104)
-                        //    {
-                        //        //Ink of direction
-                        //        id = 37361;
-                        //    }
-                        //    else if (chance == 105)
-                        //    {
-                        //        //Ink of Formation
-                        //        id = 37353;
-                        //    }
-                        //    else if (chance == 106)
-                        //    {
-                        //        //Ink of Nullification
-                        //        id = 37354;
-                        //    }
-                        //    else if (chance == 107)
-                        //    {
-                        //        //Ink of Objectification
-                        //        id = 37355;
-                        //    }
-                        //    else if (chance == 108)
-                        //    {
-                        //        //Ink of Partition
-                        //        id = 37357;
-                        //    }
-                        //    else if (chance == 109)
-                        //    {
-                        //        //Ink of Separation
-                        //        id = 37358;
-                        //    }
-                        //    else if (chance == 110)
-                        //    {
-                        //        //Parabolic Ink
-                        //        id = 37356;
-                        //    }
-                        //    else if (chance == 111)
-                        //    {
-                        //        //Alacritous Ink
-                        //        id = 37359;
-                        //    }
-                        //    else if (chance == 112)
-                        //    {
-                        //        //Mana Scarab
-                        //        id = 37115;
-                        //    }
-                        //    else if (chance == 113)
-                        //    {
-                        //        //glyph of alchemy
-                        //        id = 37343;
-                        //    }
-                        //    else if (chance == 114)
-                        //    {
-                        //        //glyph of alchemy
-                        //        id = 37343;
-                        //    }
-                        //    else if (chance == 115)
-                        //    {
-                        //        //glyph of arcane lore
-                        //        id = 37344;
-                        //    }
-                        //    else if (chance == 116)
-                        //    {
-                        //        //glyph of armor
-                        //        id = 37345;
-                        //    }
-                        //    else if (chance == 117)
-                        //    {
-                        //        //glyph of armor tinkering
-                        //        id = 37346;
-                        //    }
-                        //    else if (chance == 118)
-                        //    {
-                        //        //glyph of bludgeoning
-                        //        id = 37347;
-                        //    }
-                        //    else if (chance == 119)
-                        //    {
-                        //        //glyph of cooking
-                        //        id = 37349;
-                        //    }
-                        //    else if (chance == 120)
-                        //    {
-                        //        //glyph of coordination
-                        //        id = 37350;
-                        //    }
-                        //    else if (chance == 121)
-                        //    {
-                        //        //glyph of corrosion
-                        //        id = 37342;
-                        //    }
-                        //    else if (chance == 122)
-                        //    {
-                        //        //glyph of creature enchantment
-                        //        id = 37351;
-                        //    }
-                        //    else if (chance == 123)
-                        //    {
-                        //        //glyph of damage
-                        //        id = 43379;
-                        //    }
-                        //    else if (chance == 124)
-                        //    {
-                        //        //glyph of deception
-                        //        id = 37352;
-                        //    }
-                        //    else if (chance == 125)
-                        //    {
-                        //        //glyph of dirty fighting
-                        //        id = 45370;
-                        //    }
-                        //    else if (chance == 126)
-                        //    {
-                        //        //glyph of dual wield
-                        //        id = 45371;
-                        //    }
-                        //    else if (chance == 127)
-                        //    {
-                        //        //glyph of endurance
-                        //        id = 37300;
-                        //    }
-                        //    else if (chance == 128)
-                        //    {
-                        //        //glyph of finesse weapon
-                        //        id = 37373;
-                        //    }
-                        //    else if (chance == 129)
-                        //    {
-                        //        //glyph of flame
-                        //        id = 37301;
-                        //    }
-                        //    else if (chance == 130)
-                        //    {
-                        //        //glyph of fletching
-                        //        id = 37302;
-                        //    }
-                        //    else if (chance == 131)
-                        //    {
-                        //        //glyph of focus
-                        //        id = 37303;
-                        //    }
-                        //    else if (chance == 132)
-                        //    {
-                        //        //glyph of frost
-                        //        id = 37348;
-                        //    }
-                        //    else if (chance == 133)
-                        //    {
-                        //        //glyph of healing
-                        //        id = 37304;
-                        //    }
-                        //    else if (chance == 134)
-                        //    {
-                        //        //glyph of health
-                        //        id = 37305;
-                        //    }
-                        //    else if (chance == 135)
-                        //    {
-                        //        //glyph of heavy weapons
-                        //        id = 37369;
-                        //    }
-                        //    else if (chance == 136)
-                        //    {
-                        //        //glyph of item enchantment
-                        //        id = 37309;
-                        //    }
-                        //    else if (chance == 137)
-                        //    {
-                        //        //glyph of item tinnkering
-                        //        id = 37310;
-                        //    }
-                        //    else if (chance == 138)
-                        //    {
-                        //        //glyph of jump
-                        //        id = 37311;
-                        //    }
-                        //    else if (chance == 139)
-                        //    {
-                        //        //glyph of leadership
-                        //        id = 37312;
-                        //    }
-                        //    else if (chance == 140)
-                        //    {
-                        //        //glyph of life magic
-                        //        id = 37313;
-                        //    }
-                        //    else if (chance == 141)
-                        //    {
-                        //        //glyph of light weapons
-                        //        id = 37339;
-                        //    }
-                        //    else if (chance == 142)
-                        //    {
-                        //        //glyph of lightning
-                        //        id = 37314;
-                        //    }
-                        //    else if (chance == 143)
-                        //    {
-                        //        //glyph of lockpick
-                        //        id = 37315;
-                        //    }
-                        //    else if (chance == 144)
-                        //    {
-                        //        //glyph of loyalty
-                        //        id = 37316;
-                        //    }
-                        //    else if (chance == 145)
-                        //    {
-                        //        //glyph of magic defense
-                        //        id = 37317;
-                        //    }
-                        //    else if (chance == 146)
-                        //    {
-                        //        //glyph of magic item tinkering
-                        //        id = 38760;
-                        //    }
-                        //    else if (chance == 147)
-                        //    {
-                        //        //glyph of mana
-                        //        id = 37318;
-                        //    }
-                        //    else if (chance == 148)
-                        //    {
-                        //        //glyph of mana conversion
-                        //        id = 37319;
-                        //    }
-                        //    else if (chance == 149)
-                        //    {
-                        //        //glyph of mana regeneration
-                        //        id = 37321;
-                        //    }
-                        //    else if (chance == 150)
-                        //    {
-                        //        //glyph of melee defense
-                        //        id = 37323;
-                        //    }
-                        //    else if (chance == 151)
-                        //    {
-                        //        //glyph of missile defense
-                        //        id = 37324;
-                        //    }
-                        //    else if (chance == 152)
-                        //    {
-                        //        //glyph of Missile weapons
-                        //        id = 37338;
-                        //    }
-                        //    else if (chance == 153)
-                        //    {
-                        //        //glyph of monster appraisal
-                        //        id = 37325;
-                        //    }
-                        //    else if (chance == 154)
-                        //    {
-                        //        //glyph of nether
-                        //        id = 43387;
-                        //    }
-                        //    else if (chance == 155)
-                        //    {
-                        //        //glyph of person appraisal
-                        //        id = 37326;
-                        //    }
-                        //    else if (chance == 156)
-                        //    {
-                        //        //glyph of piercing
-                        //        id = 37327;
-                        //    }
-                        //    else if (chance == 157)
-                        //    {
-                        //        //glyph of quickness
-                        //        id = 37328;
-                        //    }
-                        //    else if (chance == 158)
-                        //    {
-                        //        //glyph of recklessness
-                        //        id = 45372;
-                        //    }
-                        //    else if (chance == 159)
-                        //    {
-                        //        //glyph of regeneration
-                        //        id = 37307;
-                        //    }
-                        //    else if (chance == 160)
-                        //    {
-                        //        //glyph of run
-                        //        id = 37329;
-                        //    }
-                        //    else if (chance == 161)
-                        //    {
-                        //        //glyph of salvaging
-                        //        id = 37330;
-                        //    }
-                        //    else if (chance == 162)
-                        //    {
-                        //        //glyph of self
-                        //        id = 37331;
-                        //    }
-                        //    else if (chance == 163)
-                        //    {
-                        //        //glyph of shield
-                        //        id = 45373;
-                        //    }
-                        //    else if (chance == 164)
-                        //    {
-                        //        //glyph of slashing
-                        //        id = 37332;
-                        //    }
-                        //    else if (chance == 165)
-                        //    {
-                        //        //glyph of sneak attack
-                        //        id = 45374;
-                        //    }
-                        //    else if (chance == 166)
-                        //    {
-                        //        //glyph of stamina
-                        //        id = 37333;
-                        //    }
-                        //    else if (chance == 167)
-                        //    {
-                        //        //glyph of stamina regeneration
-                        //        id = 37336;
-                        //    }
-                        //    else if (chance == 168)
-                        //    {
-                        //        //glyph of strength
-                        //        id = 37337;
-                        //    }
-                        //    else if (chance == 169)
-                        //    {
-                        //        //glyph of summoning
-                        //        id = 49455;
-                        //    }
-                        //    else if (chance == 170)
-                        //    {
-                        //        //glyph of two handed combat
-                        //        id = 41747;
-                        //    }
-                        //    else if (chance == 171)
-                        //    {
-                        //        //glyph of void magic
-                        //        id = 43380;
-                        //    }
-                        //    else if (chance == 172)
-                        //    {
-                        //        //glyph of war magic
-                        //        id = 37340;
-                        //    }
-                        //    else if (chance == 173)
-                        //    {
-                        //        //glyph of weapon tinkering
-                        //        id = 37341;
-                        //    }
-                        //    break;
                         case 6:
-                            id = CreateFood();
+                            //spell components
+                            chance = ThreadSafeRandom.Next(1, 170);
+                            if (chance < 100)
+                            {
+                                //Quill of Infliction
+                                id = 37363;
+                            }
+                            else if (chance == 100)
+                            {
+                                //Quill of Benevolence
+                                id = 37365;
+                            }
+                            else if (chance == 101)
+                            {
+                                //Quill of Extraction
+                                id = 37362;
+                            }
+                            else if (chance == 102)
+                            {
+                                //Quill of Introspection
+                                id = 37364;
+                            }
+                            else if (chance == 103)
+                            {
+                                //Ink of Conveyance
+                                id = 37360;
+                            }
+                            else if (chance == 104)
+                            {
+                                //Ink of direction
+                                id = 37361;
+                            }
+                            else if (chance == 105)
+                            {
+                                //Ink of Formation
+                                id = 37353;
+                            }
+                            else if (chance == 106)
+                            {
+                                //Ink of Nullification
+                                id = 37354;
+                            }
+                            else if (chance == 107)
+                            {
+                                //Ink of Objectification
+                                id = 37355;
+                            }
+                            else if (chance == 108)
+                            {
+                                //Ink of Partition
+                                id = 37357;
+                            }
+                            else if (chance == 109)
+                            {
+                                //Ink of Separation
+                                id = 37358;
+                            }
+                            else if (chance == 110)
+                            {
+                                //Parabolic Ink
+                                id = 37356;
+                            }
+                            else if (chance == 111)
+                            {
+                                //Alacritous Ink
+                                id = 37359;
+                            }
+                            else if (chance == 112)
+                            {
+                                //Mana Scarab
+                                id = 37115;
+                            }
+                            else if (chance == 113)
+                            {
+                                //glyph of alchemy
+                                id = 37343;
+                            }
+                            else if (chance == 114)
+                            {
+                                //glyph of alchemy
+                                id = 37343;
+                            }
+                            else if (chance == 115)
+                            {
+                                //glyph of arcane lore
+                                id = 37344;
+                            }
+                            else if (chance == 116)
+                            {
+                                //glyph of armor
+                                id = 37345;
+                            }
+                            else if (chance == 117)
+                            {
+                                //glyph of armor tinkering
+                                id = 37346;
+                            }
+                            else if (chance == 118)
+                            {
+                                //glyph of bludgeoning
+                                id = 37347;
+                            }
+                            else if (chance == 119)
+                            {
+                                //glyph of cooking
+                                id = 37349;
+                            }
+                            else if (chance == 120)
+                            {
+                                //glyph of coordination
+                                id = 37350;
+                            }
+                            else if (chance == 121)
+                            {
+                                //glyph of corrosion
+                                id = 37342;
+                            }
+                            else if (chance == 122)
+                            {
+                                //glyph of creature enchantment
+                                id = 37351;
+                            }
+                            else if (chance == 123)
+                            {
+                                //glyph of damage
+                                id = 43379;
+                            }
+                            else if (chance == 124)
+                            {
+                                //glyph of deception
+                                id = 37352;
+                            }
+                            else if (chance == 125)
+                            {
+                                //glyph of dirty fighting
+                                id = 45370;
+                            }
+                            else if (chance == 126)
+                            {
+                                //glyph of dual wield
+                                id = 45371;
+                            }
+                            else if (chance == 127)
+                            {
+                                //glyph of endurance
+                                id = 37300;
+                            }
+                            else if (chance == 128)
+                            {
+                                //glyph of finesse weapon
+                                id = 37373;
+                            }
+                            else if (chance == 129)
+                            {
+                                //glyph of flame
+                                id = 37301;
+                            }
+                            else if (chance == 130)
+                            {
+                                //glyph of fletching
+                                id = 37302;
+                            }
+                            else if (chance == 131)
+                            {
+                                //glyph of focus
+                                id = 37303;
+                            }
+                            else if (chance == 132)
+                            {
+                                //glyph of frost
+                                id = 37348;
+                            }
+                            else if (chance == 133)
+                            {
+                                //glyph of healing
+                                id = 37304;
+                            }
+                            else if (chance == 134)
+                            {
+                                //glyph of health
+                                id = 37305;
+                            }
+                            else if (chance == 135)
+                            {
+                                //glyph of heavy weapons
+                                id = 37369;
+                            }
+                            else if (chance == 136)
+                            {
+                                //glyph of item enchantment
+                                id = 37309;
+                            }
+                            else if (chance == 137)
+                            {
+                                //glyph of item tinnkering
+                                id = 37310;
+                            }
+                            else if (chance == 138)
+                            {
+                                //glyph of jump
+                                id = 37311;
+                            }
+                            else if (chance == 139)
+                            {
+                                //glyph of leadership
+                                id = 37312;
+                            }
+                            else if (chance == 140)
+                            {
+                                //glyph of life magic
+                                id = 37313;
+                            }
+                            else if (chance == 141)
+                            {
+                                //glyph of light weapons
+                                id = 37339;
+                            }
+                            else if (chance == 142)
+                            {
+                                //glyph of lightning
+                                id = 37314;
+                            }
+                            else if (chance == 143)
+                            {
+                                //glyph of lockpick
+                                id = 37315;
+                            }
+                            else if (chance == 144)
+                            {
+                                //glyph of loyalty
+                                id = 37316;
+                            }
+                            else if (chance == 145)
+                            {
+                                //glyph of magic defense
+                                id = 37317;
+                            }
+                            else if (chance == 146)
+                            {
+                                //glyph of magic item tinkering
+                                id = 38760;
+                            }
+                            else if (chance == 147)
+                            {
+                                //glyph of mana
+                                id = 37318;
+                            }
+                            else if (chance == 148)
+                            {
+                                //glyph of mana conversion
+                                id = 37319;
+                            }
+                            else if (chance == 149)
+                            {
+                                //glyph of mana regeneration
+                                id = 37321;
+                            }
+                            else if (chance == 150)
+                            {
+                                //glyph of melee defense
+                                id = 37323;
+                            }
+                            else if (chance == 151)
+                            {
+                                //glyph of missile defense
+                                id = 37324;
+                            }
+                            else if (chance == 152)
+                            {
+                                //glyph of Missile weapons
+                                id = 37338;
+                            }
+                            else if (chance == 153)
+                            {
+                                //glyph of monster appraisal
+                                id = 37325;
+                            }
+                            else if (chance == 154)
+                            {
+                                //glyph of nether
+                                id = 43387;
+                            }
+                            else if (chance == 155)
+                            {
+                                //glyph of person appraisal
+                                id = 37326;
+                            }
+                            else if (chance == 156)
+                            {
+                                //glyph of piercing
+                                id = 37327;
+                            }
+                            else if (chance == 157)
+                            {
+                                //glyph of quickness
+                                id = 37328;
+                            }
+                            else if (chance == 158)
+                            {
+                                //glyph of recklessness
+                                id = 45372;
+                            }
+                            else if (chance == 159)
+                            {
+                                //glyph of regeneration
+                                id = 37307;
+                            }
+                            else if (chance == 160)
+                            {
+                                //glyph of run
+                                id = 37329;
+                            }
+                            else if (chance == 161)
+                            {
+                                //glyph of salvaging
+                                id = 37330;
+                            }
+                            else if (chance == 162)
+                            {
+                                //glyph of self
+                                id = 37331;
+                            }
+                            else if (chance == 163)
+                            {
+                                //glyph of shield
+                                id = 45373;
+                            }
+                            else if (chance == 164)
+                            {
+                                //glyph of slashing
+                                id = 37332;
+                            }
+                            else if (chance == 165)
+                            {
+                                //glyph of sneak attack
+                                id = 45374;
+                            }
+                            else if (chance == 166)
+                            {
+                                //glyph of stamina
+                                id = 37333;
+                            }
+                            else if (chance == 167)
+                            {
+                                //glyph of stamina regeneration
+                                id = 37336;
+                            }
+                            else if (chance == 168)
+                            {
+                                //glyph of strength
+                                id = 37337;
+                            }
+                            else if (chance == 169)
+                            {
+                                //glyph of summoning
+                                id = 49455;
+                            }
+                            else if (chance == 170)
+                            {
+                                //glyph of two handed combat
+                                id = 41747;
+                            }
+                            else if (chance == 171)
+                            {
+                                //glyph of void magic
+                                id = 43380;
+                            }
+                            else if (chance == 172)
+                            {
+                                //glyph of war magic
+                                id = 37340;
+                            }
+                            else if (chance == 173)
+                            {
+                                //glyph of weapon tinkering
+                                id = 37341;
+                            }
                             break;
                         case 7:
+                            id = CreateFood();
+                            break;
+                        case 8:
                             wo = CreateRandomScroll(7);
                             return wo;
                         default:
@@ -1672,10 +1645,24 @@ namespace ACE.Server.Factories
             }
         }
 
-        public static WorldObject CreateRandomLootObjects(int tier, bool isMagical)
+        public static WorldObject CreateRandomLootObjects(int tier, bool isMagical, LootBias lootBias = LootBias.UnBiased)
         {
+            int type;
             WorldObject wo;
-            int type = ThreadSafeRandom.Next(1, 4);
+
+            switch (lootBias)
+            {
+                case LootBias.Armor:
+                    type = 2;
+                    break;
+                case LootBias.Weapons:
+                    type = 3;
+                    break;
+                default:
+                    type = ThreadSafeRandom.Next(1, 4);
+                    break;
+            }
+
             switch (type)
             {
                 case 1:
@@ -1684,7 +1671,7 @@ namespace ACE.Server.Factories
                     return wo;
                 case 2:
                     //armor
-                    wo = CreateArmor(tier, isMagical);
+                    wo = CreateArmor(tier, isMagical, lootBias);
                     return wo;
                 case 3:
                     //weapons
@@ -4493,7 +4480,7 @@ namespace ACE.Server.Factories
             return wo;
         }
 
-        public static WorldObject CreateArmor(int tier, bool isMagical)
+        public static WorldObject CreateArmor(int tier, bool isMagical, LootBias lootBias = LootBias.UnBiased)
         {
 
             int lowSpellTier = 0;
@@ -12293,7 +12280,10 @@ namespace ACE.Server.Factories
                 default:
                     lowSpellTier = 6;
                     highSpellTier = 8;
-                    armorType = ThreadSafeRandom.Next(0, 15);
+                    if (lootBias == LootBias.Armor) // Armor Mana Forge Chests don't include clothing type items
+                        armorType = ThreadSafeRandom.Next(0, 14);
+                    else
+                        armorType = ThreadSafeRandom.Next(0, 15);
                     ////Leather Armor
                     if (armorType == 0)
                     {
