@@ -76,7 +76,7 @@ namespace ACE.Server.Factories
             LootBias lootBias = LootBias.UnBiased;
             var loot = new List<WorldObject>();
 
-            switch (profile.Id)
+            switch (profile.TreasureType)
             {
                 case 1001:  // Mana Forge Chest, Advanced Equipment Chest, and Mixed Equipment Chest
                     lootBias = LootBias.MixedEquipment;
