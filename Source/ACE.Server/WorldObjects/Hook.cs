@@ -73,8 +73,6 @@ namespace ACE.Server.WorldObjects
 
             if (Inventory.Count > 0)
                 OnAddItem();
-            else
-                OnRemoveItem();
         }
 
         /// <summary>
