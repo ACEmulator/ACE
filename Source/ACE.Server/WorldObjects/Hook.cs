@@ -92,6 +92,9 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
+            NoDraw = false;
+            UiHidden = false;
+
             SetupTableId = item.SetupTableId;
             MotionTableId = item.MotionTableId;
             PhysicsTableId = item.PhysicsTableId;
