@@ -3,6 +3,7 @@ using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
+using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Managers;
@@ -347,6 +348,8 @@ namespace ACE.Server.WorldObjects
                     criticalHit = true;
             }
 
+            var shieldMod = GetShieldMod(target);
+
             bool isPVP = sourcePlayer != null && targetPlayer != null;
 
             var elementalDmgBonus = GetCasterElementalDamageModifier(source, target, Spell.DamageType);
@@ -364,7 +367,7 @@ namespace ACE.Server.WorldObjects
                 if (criticalHit)
                     damageBonus = lifeMagicDamage * 0.5f * GetWeaponCritMultiplierModifier(source, attackSkill);
 
-                finalDamage = (lifeMagicDamage + damageBonus) * elementalDmgBonus * slayerBonus;
+                finalDamage = (lifeMagicDamage + damageBonus) * elementalDmgBonus * slayerBonus * shieldMod;
                 return finalDamage;
             }
             // war magic projectiles (and void currently)
@@ -399,10 +402,61 @@ namespace ACE.Server.WorldObjects
 
                 finalDamage = baseDamage + damageBonus + warSkillBonus;
                 finalDamage *= target.GetNaturalResistance(resistanceType, GetWeaponResistanceModifier(source, attackSkill, Spell.DamageType))
-                    * elementalDmgBonus * slayerBonus;
+                    * elementalDmgBonus * slayerBonus * shieldMod;
 
                 return finalDamage;
             }
+        }
+
+        /// <summary>
+        /// Calculates the amount of damage a shield absorbs from magic projectile
+        /// </summary>
+        public float GetShieldMod(Creature target)
+        {
+            // ensure combat stance
+            if (target.CombatMode == CombatMode.NonCombat)
+                return 1.0f;
+
+            // does the player have a shield equipped?
+            var shield = target.GetEquippedShield();
+            if (shield == null || shield.GetProperty(PropertyFloat.AbsorbMagicDamage) == null) return 1.0f;
+
+            // is spell projectile in front of player,
+            // within shield effectiveness area?
+            var effectiveAngle = 180.0f;
+            var angle = target.GetAngle(this);
+            if (Math.Abs(angle) > effectiveAngle / 2.0f)
+                return 1.0f;
+
+            // https://asheron.fandom.com/wiki/Shield
+            // The formula to determine magic absorption for shields is:
+            // Reduction Percent = (cap * specMod * baseSkill * 0.003f) - (cap * specMod * 0.3f)
+            // Cap = Maximum reduction
+            // SpecMod = 1.0 for spec, 0.8 for trained
+            // BaseSkill = 100 to 433 (above 433 base shield you always achieve the maximum %)
+
+            var shieldSkill = target.GetCreatureSkill(Skill.Shield);
+            // ensure trained?
+            if (shieldSkill.AdvancementClass < SkillAdvancementClass.Trained || shieldSkill.Base < 100)
+                return 1.0f;
+
+            var baseSkill = Math.Min(shieldSkill.Base, 433);
+            var specMod = shieldSkill.AdvancementClass == SkillAdvancementClass.Specialized ? 1.0f : 0.8f;
+            var cap = (float)(shield.GetProperty(PropertyFloat.AbsorbMagicDamage) ?? 0.0f);
+
+            // speced, 100 skill = 0%
+            // trained, 100 skill = 0%
+            // speced, 200 skill = 30%
+            // trained, 200 skill = 24%
+            // speced, 300 skill = 60%
+            // trained, 300 skill = 48%
+            // speced, 433 skill = 100%
+            // trained, 433 skill = 80%
+
+            var reduction = (cap * specMod * baseSkill * 0.003f) - (cap * specMod * 0.3f);
+
+            var shieldMod = 1.0f - reduction;
+            return shieldMod;
         }
 
         /// <summary>
