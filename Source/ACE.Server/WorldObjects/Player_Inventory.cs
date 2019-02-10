@@ -609,10 +609,7 @@ namespace ACE.Server.WorldObjects
                             {
                                 item.EmoteManager.OnDrop(this);
                                 EnqueueBroadcast(new GameMessageSound(Guid, Sound.DropItem));
-
-                                container.OnAddItem();  // adding item to container
                             }
-
                             else if (containerRootOwner == this)
                             {
                                 if (itemAsContainer != null) // We're picking up a pack
@@ -630,9 +627,6 @@ namespace ACE.Server.WorldObjects
 
                                 if (questSolve)
                                     QuestManager.Update(item.Quest);
-
-                                if (itemRootOwner != null)
-                                    itemRootOwner.OnRemoveItem();   // removing item from container
                             }
                         }
                         EnqueueBroadcastMotion(returnStance);
@@ -680,7 +674,6 @@ namespace ACE.Server.WorldObjects
                     // the player will end up loading with this object in their inventory even though the landblock is the true owner. This is because
                     // when we load player inventory, the database still has the record that shows this player as the ContainerId for the item.
                     item.SaveBiotaToDatabase();
-                    container.SaveBiotaToDatabase();
                 }
             }
 

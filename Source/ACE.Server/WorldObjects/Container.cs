@@ -126,9 +126,7 @@ namespace ACE.Server.WorldObjects
                 Value += container.Value; // This value includes the containers value itself + all child items
             }
 
-
-            if (WeenieType == WeenieType.Hook && this is Hook hook)
-                hook.OnLoad();
+            OnInitialInventoryLoadCompleted();
         }
 
         /// <summary>
@@ -333,6 +331,9 @@ namespace ACE.Server.WorldObjects
             Value += worldObject.Value;
 
             container = this;
+
+            OnAddItem();
+
             return true;
         }
 
@@ -368,6 +369,8 @@ namespace ACE.Server.WorldObjects
 
                 EncumbranceVal -= item.EncumbranceVal;
                 Value -= item.Value;
+
+                OnRemoveItem();
 
                 return true;
             }
@@ -521,9 +524,17 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
+        /// This event is raised after the containers items have been completely loaded from the database
+        /// </summary>
+        protected virtual void OnInitialInventoryLoadCompleted()
+        {
+            // empty base
+        }
+
+        /// <summary>
         /// This event is raised when player adds item to container
         /// </summary>
-        public virtual void OnAddItem()
+        protected virtual void OnAddItem()
         {
             // empty base
         }
@@ -531,7 +542,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// This event is raised when player removes item from container
         /// </summary>
-        public virtual void OnRemoveItem()
+        protected virtual void OnRemoveItem()
         {
             // empty base
         }
