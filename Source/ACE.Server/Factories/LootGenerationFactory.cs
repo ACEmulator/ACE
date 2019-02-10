@@ -2194,7 +2194,7 @@ namespace ACE.Server.Factories
             wo.SetProperty(PropertyInt.ItemMaxMana, max_mana);
             wo.SetProperty(PropertyInt.ItemCurMana, max_mana);
             wo.SetProperty(PropertyInt.ItemSpellcraft, spellcraft);
-            wo.SetProperty(PropertyString.LongDesc, getLongDesc(wo.GetProperty(PropertyString.Name), gemType, gemCount));
+            wo.SetProperty(PropertyString.LongDesc, wo.GetProperty(PropertyString.Name));
             wo.RemoveProperty(PropertyInt.ItemSkillLevelLimit);
             int[] shuffledValues = new int[JewelrySpells.Length];
             for (int i = 0; i < JewelrySpells.Length; i++)
@@ -4461,7 +4461,7 @@ namespace ACE.Server.Factories
             wo.SetProperty(PropertyFloat.WeaponOffense, weaponOffense);
             wo.SetProperty(PropertyFloat.WeaponMissileDefense, missileD);
             wo.SetProperty(PropertyFloat.WeaponMagicDefense, magicD);
-            wo.SetProperty(PropertyString.LongDesc, getLongDesc(wo.GetProperty(PropertyString.Name), gemType, gemCount));
+            wo.SetProperty(PropertyString.LongDesc, wo.GetProperty(PropertyString.Name));
             if (numSpells == 0)
             {
                 wo.RemoveProperty(PropertyInt.ItemManaCost);
@@ -14165,7 +14165,7 @@ namespace ACE.Server.Factories
                 wo.SetProperty(PropertyInt.ArmorLevel, adjustedArmorLevel);
             }
 
-            wo.SetProperty(PropertyString.LongDesc, getLongDesc(wo.GetProperty(PropertyString.Name), gemType, gemCount));
+            wo.SetProperty(PropertyString.LongDesc, wo.GetProperty(PropertyString.Name));
             if (numSpells == 0)
             {
                 wo.RemoveProperty(PropertyInt.ItemManaCost);
@@ -15021,32 +15021,20 @@ namespace ACE.Server.Factories
             if (wield == 0)
             {
                 if (weaponType == 0)
-                {
                     damageMod = 2.10;
-                }
                 else if (weaponType == 1)
-                {
                     damageMod = 2.40;
-                }
                 else
-                {
                     damageMod = 2.3;
-                }
             }
             else
             {
                 if (weaponType == 0)
-                {
                     damageMod = 2.40;
-                }
                 else if (weaponType == 1)
-                {
                     damageMod = 2.65;
-                }
                 else
-                {
                     damageMod = 2.60;
-                }
             }
             return damageMod;
         }
@@ -15056,152 +15044,75 @@ namespace ACE.Server.Factories
 
             int[][] spells = LootHelper.MissileSpells;
             int[][] cantrips = LootHelper.MissileCantrips;
-            int weaponWeenie = 0;
-            ////Double Values
 
+            ////Double Values
             double manaRate = -.04166667; ///done
-            double maxVelocity = 0; ///done
-            double weaponDefense = GetMeleeDMod(20, tier); // done
-            double missileDefense = GetMissileDMod(tier);  //done
-            double magicDefense = GetMissileDMod(tier);  //done
-            double weaponOffense = 1;
-            /////Int Valules
-            int encumb = 0;
-            int gemCount = ThreadSafeRandom.Next(1, 5);
-            int gemType = ThreadSafeRandom.Next(10, 50);
-            int numSpells = GetNumSpells(tier);
-            int numCantrips = GetNumCantrips(numSpells);
-            int itemMaxMana = GetMaxMana(numSpells, tier);
-            int itemCurMana = itemMaxMana;
-            int spellCraft = GetSpellcraft(numSpells, tier);
-            int itemDifficulty = GetDifficulty(tier, spellCraft);
-            int workmanship = GetWorkmanship(tier);
-            int materialType = GetMaterialType(2, tier);
-            int value = GetValue(tier, workmanship);
-            int weaponTime = 0; ///done
-            int wieldDifficulty = GetWield(tier, 1); // done
-            int itemSkillLevelLimit = 0;
-            int weaponSkillInt = 0;
-            int wieldRequirements = 2;
-            int wieldSkillType = 47;
-            double elemenatalBonus = GetElementalBonus(wieldDifficulty);
-            int lowSpellTier = GetLowSpellTier(tier);
-            int highSpellTier = GetHighSpellTier(tier);
-            int subType = ThreadSafeRandom.Next(0, 2);
-            if (subType == 0)
-            {
-                ////There are 8 subtypes of Bows
-                int subBowType = ThreadSafeRandom.Next(0, 6);
-                if (subBowType == 0)
-                {
-                    ////Longbow
-                    encumb = ThreadSafeRandom.Next(700, 1000);
-                    weaponWeenie = 306;
-                    maxVelocity = 27.3;
-                    weaponTime = 45;
-                }
-                else if (subBowType == 1)
-                {
-                    ////Yumi
-                    weaponWeenie = 363;
-                    maxVelocity = 27.3;
-                    weaponTime = 45;
-                    encumb = ThreadSafeRandom.Next(700, 1000);
-                }
-                else if (subBowType == 2)
-                {
-                    ////Nayin
-                    weaponWeenie = 334;
-                    maxVelocity = 27.3;
-                    weaponTime = 40;
-                    encumb = ThreadSafeRandom.Next(700, 1000);
-                }
-                else if (subBowType == 3)
-                {
-                    ////Shortbow
-                    weaponWeenie = 307;
-                    maxVelocity = 24.9;
-                    weaponTime = 30;
-                    encumb = ThreadSafeRandom.Next(300, 400);
-                }
-                else if (subBowType == 4)
-                {
-                    ////Shouyumi
-                    weaponWeenie = 341;
-                    maxVelocity = 24.9;
-                    weaponTime = 29;
-                    encumb = ThreadSafeRandom.Next(300, 400);
-                }
-                else if (subBowType == 5)
-                {
-                    ////War Bow
-                    weaponWeenie = 30625;
-                    maxVelocity = 27.3;
-                    weaponTime = 43;
-                    encumb = ThreadSafeRandom.Next(700, 1000);
-                }
-                else
-                {
-                    ////Yag
-                    weaponWeenie = 360;
-                    maxVelocity = 24.9;
-                    weaponTime = 24;
-                    encumb = ThreadSafeRandom.Next(300, 400);
-                }
-            }
-            else if (subType == 1)
-            {
-                ////There are 4 subtypes of Crossbows
-                int subXbowType = ThreadSafeRandom.Next(0, 2);
-                if (subXbowType == 0)
-                {
-                    ////Arbalest
-                    weaponWeenie = 30616;
-                    maxVelocity = 27.3;
-                    weaponTime = 113;
-                    encumb = ThreadSafeRandom.Next(1400, 2000);
-                }
-                ////Compound Crossbow should go here, but not in the db
-                else if (subXbowType == 1)
-                {
-                    ////Heavy Crossbow
-                    weaponWeenie = 311;
-                    maxVelocity = 27.3;
-                    weaponTime = 120;
-                    encumb = ThreadSafeRandom.Next(1400, 2000);
-                }
-                else
-                {
-                    ////Light Crossbow
-                    weaponWeenie = 312;
-                    maxVelocity = 24.9;
-                    weaponTime = 58;
-                    encumb = ThreadSafeRandom.Next(700, 1000);
-                }
-            }
+
+            int weaponWeenie;
+            int subType;
+            int chance;
+            int elemenatalBonus = 0;
+
+            int wieldDifficulty = GetWield(tier, 1);
+
+            if (tier < 4)
+                GetNonElementalMissileWeapon(out weaponWeenie, out subType);
             else
             {
-                ////There are 3 subtypes of Atlatl
-                int subAtlatlType = ThreadSafeRandom.Next(0, 1);
-                if (subAtlatlType == 0)
+                chance = ThreadSafeRandom.Next(0, 1);
+                switch (chance)
                 {
-                    ////Atlatl
-                    weaponWeenie = 12463;
-                    maxVelocity = 27.3;
-                    weaponTime = 15;
-                    encumb = ThreadSafeRandom.Next(250, 500);
-                }
-                else
-                {
-                    ////Royal Atlatl
-                    weaponWeenie = 20640;
-                    maxVelocity = 27.3;
-                    weaponTime = 15;
-                    encumb = ThreadSafeRandom.Next(250, 500);
+                    case 0:
+                        GetNonElementalMissileWeapon(out weaponWeenie, out subType);
+                        break;
+                    default:
+                        elemenatalBonus = GetElementalBonus(wieldDifficulty);
+                        GetElementalMissileWeapon(out weaponWeenie, out subType);
+                        break;
                 }
             }
-            double damageMod = GetDamageModifier(wieldDifficulty, subType);
+
             WorldObject wo = WorldObjectFactory.CreateNewWorldObject((uint)weaponWeenie);
+
+            int workmanship = GetWorkmanship(tier);
+            wo.SetProperty(PropertyInt.Value, GetValue(tier, workmanship));
+            wo.SetProperty(PropertyInt.ItemWorkmanship, workmanship);
+            wo.SetProperty(PropertyInt.MaterialType, GetMaterialType(2, tier));
+            wo.SetProperty(PropertyInt.GemCount, ThreadSafeRandom.Next(1, 5));
+            wo.SetProperty(PropertyInt.GemType, ThreadSafeRandom.Next(10, 50));
+            wo.SetProperty(PropertyString.LongDesc, wo.GetProperty(PropertyString.Name));
+
+            // wo.SetProperty(PropertyFloat.DamageMod, GetDamageModifier(wieldDifficulty, subType));
+            wo.SetProperty(PropertyFloat.WeaponDefense, GetMeleeDMod(tier));
+            wo.SetProperty(PropertyFloat.WeaponMissileDefense, GetMissileDMod(tier));
+            // wo.SetProperty(PropertyFloat.WeaponMagicDefense, magicDefense);
+            wo.SetProperty(PropertyFloat.WeaponOffense, 1);
+
+            if (elemenatalBonus > 0)
+                wo.SetProperty(PropertyInt.ElementalDamageBonus, elemenatalBonus);
+
+            if (wieldDifficulty > 0)
+            {
+                wo.SetProperty(PropertyInt.WieldDifficulty, wieldDifficulty);
+                wo.SetProperty(PropertyInt.WieldRequirements, (int)WieldRequirement.RawSkill);
+                wo.SetProperty(PropertyInt.WieldSkillType, (int)Skill.MissileWeapons);
+            }
+
+            wo.SetProperty(PropertyFloat.ManaRate, manaRate);
+
+            int numSpells = GetNumSpells(tier);
+            int numCantrips = GetNumCantrips(numSpells);
+            int spellCraft = GetSpellcraft(numSpells, tier);
+            int lowSpellTier = GetLowSpellTier(tier);
+            int highSpellTier = GetHighSpellTier(tier);
+            int itemSkillLevelLimit = 0;
+
+            wo.SetProperty(PropertyInt.ItemMaxMana, GetMaxMana(numSpells, tier));
+            wo.SetProperty(PropertyInt.ItemCurMana, GetMaxMana(numSpells, tier));
+            wo.SetProperty(PropertyInt.ItemSpellcraft, spellCraft);
+            wo.SetProperty(PropertyInt.ItemDifficulty, GetDifficulty(tier, spellCraft));
+            wo.SetProperty(PropertyInt.ItemSkillLevelLimit, itemSkillLevelLimit);
+
             int[] shuffledValues = new int[spells.Length];
             for (int i = 0; i < spells.Length; i++)
             {
@@ -15210,7 +15121,6 @@ namespace ACE.Server.Factories
             Shuffle(shuffledValues);
             if (numSpells - numCantrips > 0)
             {
-                wo.SetProperty(PropertyInt.UiEffects, 1);
                 for (int a = 0; a < numSpells - numCantrips; a++)
                 {
                     int col = ThreadSafeRandom.Next(lowSpellTier - 1, highSpellTier - 1);
@@ -15266,93 +15176,10 @@ namespace ACE.Server.Factories
                     wo.Biota.BiotaPropertiesSpellBook.Add(result);
                 }
             }
-            int damageType = 0;
-            int uiEffects= 0;
 
-            String elementName = null;
-            int chance = ThreadSafeRandom.Next(0, 6);
-            if (ThreadSafeRandom.Next(1, 100) > 90)
-            {
-                switch (chance)
-                {
-                    case 0:
-                        ///slash
-                        damageType = 1;
-                        uiEffects = 1024;
-                        elementName = "Slashing";
-                        break;
-                    case 1:
-                        ///pierce
-                        damageType = 2;
-                        uiEffects = 2049;
-                        elementName = "Piercing";
-                        break;
-                    case 2:
-                        //bludge
-                        damageType = 4;
-                        uiEffects = 513;
-                        elementName = "Bludge";
-                        break;
-                    case 3:
-                        //cold
-                        damageType = 8;
-                        uiEffects = 129;
-                        elementName = "Frost";
-                        break;
-                    case 4:
-                        //fire
-                        damageType = 16;
-                        uiEffects = 33;
-                        elementName = "Fire";
-                        break;
-                    case 5:
-                        //acid
-                        damageType = 32;
-                        uiEffects = 247;
-                        elementName = "Acid";
-                        break;
-                    case 6:
-                        //electric
-                        damageType = 64;
-                        uiEffects = 64;
-                        elementName = "Electric";
-                        break;
-                }
-            }
-
-            if (elementName != null)
-                wo.SetProperty(PropertyString.Name, $"{elementName} {wo.Name}");
+            if (numCantrips > 0 || numSpells > 0)
+                wo.SetProperty(PropertyInt.UiEffects, (int)UiEffects.Magical);
             else
-                wo.SetProperty(PropertyString.Name, wo.Name);
-
-            wo.SetProperty(PropertyFloat.DamageMod, damageMod);
-            wo.SetProperty(PropertyInt.UiEffects, uiEffects);
-            wo.SetProperty(PropertyInt.DamageType, damageType);
-            wo.SetProperty(PropertyFloat.ManaRate, manaRate);
-            wo.SetProperty(PropertyFloat.MaximumVelocity, maxVelocity);
-            wo.SetProperty(PropertyFloat.WeaponDefense, weaponDefense);
-            wo.SetProperty(PropertyFloat.WeaponMissileDefense, missileDefense);
-            wo.SetProperty(PropertyFloat.WeaponMagicDefense, magicDefense);
-            wo.SetProperty(PropertyFloat.WeaponOffense, weaponOffense);
-            wo.SetProperty(PropertyInt.EncumbranceVal, encumb);
-            wo.SetProperty(PropertyInt.GemCount, gemCount);
-            wo.SetProperty(PropertyInt.GemType, gemType);
-            wo.SetProperty(PropertyInt.ItemMaxMana, itemMaxMana);
-            wo.SetProperty(PropertyInt.ItemCurMana, itemCurMana);
-            wo.SetProperty(PropertyInt.ItemSpellcraft, spellCraft);
-            wo.SetProperty(PropertyInt.ItemDifficulty, itemDifficulty);
-            wo.SetProperty(PropertyInt.ItemWorkmanship, workmanship);
-            wo.SetProperty(PropertyInt.MaterialType, materialType);
-            wo.SetProperty(PropertyInt.Value, value);
-            wo.SetProperty(PropertyInt.WeaponTime, weaponTime);
-            wo.SetProperty(PropertyInt.WieldDifficulty, wieldDifficulty);
-            wo.SetProperty(PropertyInt.ItemSkillLevelLimit, itemSkillLevelLimit);
-            wo.SetProperty(PropertyInt.WeaponSkill, weaponSkillInt);
-            wo.SetProperty(PropertyInt.WieldRequirements, wieldRequirements);
-            wo.SetProperty(PropertyInt.WieldSkillType, wieldSkillType);
-            wo.SetProperty(PropertyString.LongDesc, getLongDesc(wo.GetProperty(PropertyString.Name), gemType, gemCount));
-
-            if (numSpells == 0)
             {
                 wo.RemoveProperty(PropertyInt.ItemManaCost);
                 wo.RemoveProperty(PropertyInt.ItemMaxMana);
@@ -15360,17 +15187,237 @@ namespace ACE.Server.Factories
                 wo.RemoveProperty(PropertyInt.ItemSpellcraft);
                 wo.RemoveProperty(PropertyInt.ItemDifficulty);
             }
-            else
-                wo.SetProperty(PropertyInt.UiEffects, 1);
-
-            if (wieldDifficulty == 0)
-            {
-                wo.RemoveProperty(PropertyInt.WieldDifficulty);
-                wo.RemoveProperty(PropertyInt.WieldRequirements);
-                wo.RemoveProperty(PropertyInt.WieldSkillType);
-            }
 
             return wo;
+        }
+
+        private static void GetElementalMissileWeapon(out int weaponWeenie, out int subType)
+        {
+            int chance = ThreadSafeRandom.Next(0, 6);
+
+            subType = ThreadSafeRandom.Next(0, 5);
+            switch (subType)
+            {
+                case 0: // Bow
+                    switch (chance)
+                    {
+                        case 0: // Slashing
+                            weaponWeenie = 29244;
+                            break;
+                        case 1: // Blunt
+                            weaponWeenie = 29239;
+                            break;
+                        case 2: // Piercing
+                            weaponWeenie = 29243;
+                            break;
+                        case 3: // Fire
+                            weaponWeenie = 29241;
+                            break;
+                        case 4: // Frost
+                            weaponWeenie = 29242;
+                            break;
+                        case 5: // Acid
+                            weaponWeenie = 29238;
+                            break;
+                        default: // Electric
+                            weaponWeenie = 29240;
+                            break;
+                    }
+                    break;
+                case 1: // Crossbow
+                    switch (chance)
+                    {
+                        case 0: // Slashing
+                            weaponWeenie = 29251;
+                            break;
+                        case 1: // Blunt
+                            weaponWeenie = 29246;
+                            break;
+                        case 2: // Piercing
+                            weaponWeenie = 29250;
+                            break;
+                        case 3: // Fire
+                            weaponWeenie = 29248;
+                            break;
+                        case 4: // Frost
+                            weaponWeenie = 29249;
+                            break;
+                        case 5: // Acid
+                            weaponWeenie = 29245;
+                            break;
+                        default: // Electric
+                            weaponWeenie = 29247;
+                            break;
+                    }
+                    break;
+                case 2: // Atlatl
+                    switch (chance)
+                    {
+                        case 0: // Slashing
+                            weaponWeenie = 29258;
+                            break;
+                        case 1: // Blunt
+                            weaponWeenie = 29253;
+                            break;
+                        case 2: // Piercing
+                            weaponWeenie = 29257;
+                            break;
+                        case 3: // Fire
+                            weaponWeenie = 29255;
+                            break;
+                        case 4: // Frost
+                            weaponWeenie = 29256;
+                            break;
+                        case 5: // Acid
+                            weaponWeenie = 29252;
+                            break;
+                        default: // Electric
+                            weaponWeenie = 29254;
+                            break;
+                    }
+                    break;
+                case 3: // Slingshot
+                    switch (chance)
+                    {
+                        case 0: // Slashing
+                            weaponWeenie = 31812;
+                            break;
+                        case 1: // Blunt
+                            weaponWeenie = 31814;
+                            break;
+                        case 2: // Piercing
+                            weaponWeenie = 31818;
+                            break;
+                        case 3: // Fire
+                            weaponWeenie = 31816;
+                            break;
+                        case 4: // Frost
+                            weaponWeenie = 31817;
+                            break;
+                        case 5: // Acid
+                            weaponWeenie = 31813;
+                            break;
+                        default: // Electric
+                            weaponWeenie = 31815;
+                            break;
+                    }
+                    break;
+                case 4: // Compound Bow
+                    switch (chance)
+                    {
+                        case 0: // Slashing
+                            weaponWeenie = 31798;
+                            break;
+                        case 1: // Blunt
+                            weaponWeenie = 31800;
+                            break;
+                        case 2: // Piercing
+                            weaponWeenie = 31804;
+                            break;
+                        case 3: // Fire
+                            weaponWeenie = 31802;
+                            break;
+                        case 4: // Frost
+                            weaponWeenie = 31803;
+                            break;
+                        case 5: // Acid
+                            weaponWeenie = 31799;
+                            break;
+                        default: // Electric
+                            weaponWeenie = 31801;
+                            break;
+                    }
+                    break;
+                default: // Compound Crossbow
+                    switch (chance)
+                    {
+                        case 0: // Slashing
+                            weaponWeenie = 31805;
+                            break;
+                        case 1: // Blunt
+                            weaponWeenie = 31807;
+                            break;
+                        case 2: // Piercing
+                            weaponWeenie = 31811;
+                            break;
+                        case 3: // Fire
+                            weaponWeenie = 31809;
+                            break;
+                        case 4: // Frost
+                            weaponWeenie = 31810;
+                            break;
+                        case 5: // Acid
+                            weaponWeenie = 31806;
+                            break;
+                        default: // Electric
+                            weaponWeenie = 31808;
+                            break;
+                    }
+                    break;
+            }
+        }
+
+        private static void GetNonElementalMissileWeapon(out int weaponWeenie, out int subType)
+        {
+            subType = ThreadSafeRandom.Next(0, 2);
+            if (subType == 0)
+            {
+                ////There are 8 subtypes of Bows
+                int subBowType = ThreadSafeRandom.Next(0, 6);
+                switch (subBowType)
+                {
+                    case 0: // Longbow
+                        weaponWeenie = 306;
+                        break;
+                    case 1: // Yumi
+                        weaponWeenie = 363;
+                        break;
+                    case 2: // Nayin
+                        weaponWeenie = 334;
+                        break;
+                    case 3: // Shortbow
+                        weaponWeenie = 307;
+                        break;
+                    case 4: // Shouyumi
+                        weaponWeenie = 341;
+                        break;
+                    case 5: // War Bow
+                        weaponWeenie = 30625;
+                        break;
+                    default: // Yag
+                        weaponWeenie = 360;
+                        break;
+                }
+            }
+            else if (subType == 1)
+            {
+                ////There are 4 subtypes of Crossbows
+                int subXbowType = ThreadSafeRandom.Next(0, 2);
+                if (subXbowType == 0) // Arbalest
+                    weaponWeenie = 30616;
+                else if (subXbowType == 1) // Heavy Crossbow
+                    weaponWeenie = 311;
+                else // Light Crossbow
+                    weaponWeenie = 312;
+            }
+            else
+            {
+                ////There are 3 subtypes of Atlatl
+                int subAtlatlType = ThreadSafeRandom.Next(0, 1);
+                if (subAtlatlType == 0) // Atlatl
+                    weaponWeenie = 12463;
+                else // Royal Atlatl
+                    weaponWeenie = 20640;
+            }
+        }
+
+        private enum CasterType : ushort
+        {
+            Orb,
+            Wand,
+            Staff,
+            Sceptre,
+            Baton
         }
 
         public static WorldObject CreateCaster(int tier)
@@ -15401,32 +15448,12 @@ namespace ACE.Server.Factories
                 new int[] { 1475, 1476, 1477, 1478, 1479, 1480, 2117, 4418 },
              };
 
-            String weaponName = "";
-            String elementName = null;
-
             int casterWeenie = 0; //done
-            int highSpellTier = 0; //done
-            int lowSpellTier = 0; //done
             double elementalDamageMod = 0;
-            double manaConMod = 0; //done
-            double meleeDMod = 0;
-            double missileDMod = 0; //done
-            int appraisalDesc = 7;  //done
-            int damageType = 0; //done
-            int gemCount = 0; //done
-            int gemType = 0; //done
-            int itemDiff = 0; //done
-            int itemMaxMana = 0; // done
-            int spellcraft = 0; // done
-            int workmanship = 0; //done
-            int materialType = 0; //done
-            int uiEffects = 0;
-            int value = 0; //done
             int wieldReqs = 2; //done
-            int wieldSkillType = 0; //done
+            Skill wieldSkillType = Skill.None;
             int wield = 0; //done
             int chance = 0; //done
-            int numSpells = 0; //done
 
             switch (tier)
             {
@@ -15439,302 +15466,261 @@ namespace ACE.Server.Factories
                 case 3:
                     chance = ThreadSafeRandom.Next(0, 100);
                     if (chance < 80)
-                    {
                         wield = 0;
-                    }
                     else
-                    {
                         wield = 290;
-                    }
                     break;
                 case 4:
                     chance = ThreadSafeRandom.Next(0, 100);
                     if (chance < 60)
-                    {
                         wield = 0;
-                    }
                     else if (chance < 95)
-                    {
                         wield = 290;
-                    }
                     else
-                    {
                         wield = 310;
-                    }
                     break;
                 case 5:
                     chance = ThreadSafeRandom.Next(0, 100);
                     if (chance < 50)
-                    {
                         wield = 0;
-                    }
                     else if (chance < 70)
-                    {
                         wield = 290;
-                    }
                     else if (chance < 90)
-                    {
                         wield = 310;
-                    }
                     else
-                    {
                         wield = 330;
-                    }
                     break;
                 case 6:
                     chance = ThreadSafeRandom.Next(0, 100);
                     if (chance < 40)
-                    {
                         wield = 0;
-                    }
                     else if (chance < 60)
-                    {
                         wield = 290;
-                    }
                     else if (chance < 80)
-                    {
                         wield = 310;
-                    }
                     else if (chance < 90)
-                    {
                         wield = 330;
-                    }
                     else
-                    {
                         wield = 355;
-                    }
                     break;
                 case 7:
                     chance = ThreadSafeRandom.Next(0, 100);
                     if (chance < 30)
-                    {
                         wield = 0;
-                    }
                     else if (chance < 50)
-                    {
                         wield = 290;
-                    }
                     else if (chance < 60)
-                    {
                         wield = 310;
-                    }
                     else if (chance < 70)
-                    {
                         wield = 330;
-                    }
                     else if (chance < 90)
-                    {
                         wield = 355;
-                    }
                     else
-                    {
                         wield = 375;
-                    }
                     break;
                 default:
                     chance = ThreadSafeRandom.Next(0, 100);
                     if (chance < 25)
-                    {
                         wield = 0;
-                    }
                     else if (chance < 50)
-                    {
                         wield = 290;
-                    }
                     else if (chance < 60)
-                    {
                         wield = 310;
-                    }
                     else if (chance < 70)
-                    {
                         wield = 330;
-                    }
                     else if (chance < 80)
-                    {
                         wield = 355;
-                    }
                     else if (chance < 90)
-                    {
                         wield = 375;
-                    }
                     else
-                    {
                         wield = 385;
-                    }
                     break;
             }
+
             ////Getting the caster Weenie needed.
             if (wield == 0)
             {
                 int subType = ThreadSafeRandom.Next(0, 3);
-                if (subType == 0)
+                switch (subType)
                 {
-                    ////Orb
-                    casterWeenie = 2366;
-                    weaponName = "Orb";
-                }
-                else if (subType == 1)
-                {
-                    ////Sceptre
-                    casterWeenie = 2548;
-                    weaponName = "Sceptre";
-                }
-                else if (subType == 2)
-                {
-                    ////staff
-                    casterWeenie = 2547;
-                    weaponName = "Staff";
-                }
-                else
-                {
-                    ////wand
-                    casterWeenie = 2472;
-                    weaponName = "Wand";
+                    case 0:
+                        casterWeenie = 2366; // Orb
+                        break;
+                    case 1:
+                        casterWeenie = 2548; // Sceptre
+                        break;
+                    case 2:
+                        casterWeenie = 2547; // Staff
+                        break;
+                    default:
+                        casterWeenie = 2472; // Wand
+                        break;
                 }
             }
             else
             {
-                int subType = ThreadSafeRandom.Next(0, 2);
-                if (subType == 0)
-                {
-                    ////staff
-                    casterWeenie = 29259;
-                    weaponName = "Sceptre";
-                }
-                else if (subType == 1)
-                {
-                    ////Sceptre
-                    casterWeenie = 29259;
-                    weaponName = "Sceptre";
-                }
-                else
-                {
-                    ////baton
-                    casterWeenie = 29259;
-                    weaponName = "Sceptre";
-                }
-            }
-            ////Setting the properties of the items here.
+                // Determine the Elemental Damage Mod amount
+                elementalDamageMod = GetMaxDamageMod(tier, 18);
 
-            if (wield > 0)
-            {
+                // Determine skill of wield requirement
                 chance = ThreadSafeRandom.Next(0, 4);
                 switch (chance)
                 {
                     case 0:
-                        wieldSkillType = 43;
+                        wieldSkillType = Skill.VoidMagic;
                         break;
                     case 1:
-                        wieldSkillType = 34;
+                        wieldSkillType = Skill.WarMagic;
                         break;
                     case 2:
-                        wieldSkillType = 31;
+                        wieldSkillType = Skill.CreatureEnchantment;
                         break;
                     case 3:
-                        wieldSkillType = 32;
+                        wieldSkillType = Skill.ItemEnchantment;
                         break;
                     default:
-                        wieldSkillType = 33;
+                        wieldSkillType = Skill.LifeMagic;
                         break;
                 }
 
-                chance = ThreadSafeRandom.Next(0, 7);
+                // Determine caster type
+                CasterType casterType;
+                chance = ThreadSafeRandom.Next(0, 2);
                 switch (chance)
                 {
                     case 0:
-                        ///slash
-                        damageType = 1;
-                        uiEffects = 1024;
-                        elementName = "Slashing";
+                        casterType = CasterType.Baton;
                         break;
                     case 1:
-                        ///pierce
-                        damageType = 2;
-                        uiEffects = 2049;
-                        elementName = "Piercing";
-                        break;
-                    case 2:
-                        //bludge
-                        damageType = 4;
-                        uiEffects = 513;
-                        elementName = "Blunt";
-                        break;
-                    case 3:
-                        //cold
-                        damageType = 8;
-                        uiEffects = 129;
-                        elementName = "Frost";
-                        break;
-                    case 4:
-                        //fire
-                        damageType = 16;
-                        uiEffects = 33;
-                        elementName = "Fire";
-                        break;
-                    case 5:
-                        //acid
-                        damageType = 32;
-                        uiEffects = 247;
-                        elementName = "Acid";
-                        break;
-                    case 6:
-                        //electric
-                        damageType = 64;
-                        uiEffects = 64;
-                        elementName = "Electric";
+                        casterType = CasterType.Staff;
                         break;
                     default:
-                        //nether
-                        damageType = 1024;
-                        uiEffects = 1;
-                        elementName = "Nether";
+                        casterType = CasterType.Sceptre;
                         break;
+                }
+
+                if (wieldSkillType == Skill.VoidMagic)
+                {
+                    if (casterType == CasterType.Sceptre)
+                        casterWeenie = 43381; // Nether Sceptre
+                    else if (casterType == CasterType.Baton)
+                        casterWeenie = 43382; // Nether Baton
+                    else
+                        casterWeenie = 43383; // Nether Staff
+                }
+                else
+                {
+                    chance = ThreadSafeRandom.Next(0, 6);
+                    switch (chance)
+                    {
+                        case 0:
+                            if (casterType == CasterType.Sceptre)
+                                casterWeenie = 29265; // Slashing Sceptre
+                            else if (casterType == CasterType.Baton)
+                                casterWeenie = 31819; // Slashing Baton
+                            else
+                                casterWeenie = 37223; // Slashing Staff
+                            break;
+                        case 1:
+                            if (casterType == CasterType.Sceptre)
+                                casterWeenie = 29264; // Piercing Sceptre
+                            else if (casterType == CasterType.Baton)
+                                casterWeenie = 31825; // Piercing Baton
+                            else
+                                casterWeenie = 37222; // Piercing Staff
+                            break;
+                        case 2:
+                            if (casterType == CasterType.Sceptre)
+                                casterWeenie = 29260; // Blunt Sceptre
+                            else if (casterType == CasterType.Baton)
+                                casterWeenie = 31821; // Blunt Baton
+                            else
+                                casterWeenie = 37225; // Blunt Staff
+                            break;
+                        case 3:
+                            if (casterType == CasterType.Sceptre)
+                                casterWeenie = 29263; // Frost Sceptre
+                            else if (casterType == CasterType.Baton)
+                                casterWeenie = 31824; // Frost Baton
+                            else
+                                casterWeenie = 37221; // Frost Staff
+                            break;
+                        case 4:
+                            if (casterType == CasterType.Sceptre)
+                                casterWeenie = 29262; // Fire Sceptre
+                            else if (casterType == CasterType.Baton)
+                                casterWeenie = 31823; // Fire Baton
+                            else
+                                casterWeenie = 37220; // Fire Staff
+                            break;
+                        case 5:
+                            if (casterType == CasterType.Sceptre)
+                                casterWeenie = 29259; // Acid Sceptre
+                            else if (casterType == CasterType.Baton)
+                                casterWeenie = 31820; // Acid Baton
+                            else
+                                casterWeenie = 37224; // Acid Staff
+                            break;
+                        default:
+                            if (casterType == CasterType.Sceptre)
+                                casterWeenie = 29261; // Electric Sceptre
+                            else if (casterType == CasterType.Baton)
+                                casterWeenie = 31822; // Electric Baton
+                            else
+                                casterWeenie = 37219; // Electric Staff
+                            break;
+                    }
                 }
             }
 
+            WorldObject wo = WorldObjectFactory.CreateNewWorldObject((uint)casterWeenie);
+
+            int workmanship = GetWorkmanship(tier);
+            wo.SetProperty(PropertyInt.Value, GetValue(tier, workmanship));
+            wo.SetProperty(PropertyInt.ItemWorkmanship, workmanship);
+            wo.SetProperty(PropertyInt.MaterialType, GetMaterialType(3, tier));
+            wo.SetProperty(PropertyInt.GemCount, ThreadSafeRandom.Next(1, 5));
+            wo.SetProperty(PropertyInt.GemType, ThreadSafeRandom.Next(10, 50));
+            wo.SetProperty(PropertyString.LongDesc, wo.GetProperty(PropertyString.Name));
+
             if (ThreadSafeRandom.Next(0, 100) > 95)
+                wo.SetProperty(PropertyFloat.WeaponMissileDefense, GetMissileDMod(tier));
+            else
             {
-                missileDMod = GetMissileDMod(tier);
+                var meleeDMod = GetMeleeDMod(tier);
+                if (meleeDMod > 1.0f)
+                    wo.SetProperty(PropertyFloat.WeaponDefense, GetMeleeDMod(tier));
             }
 
-            WorldObject wo = WorldObjectFactory.CreateNewWorldObject((uint)casterWeenie);
-            meleeDMod = GetMeleeDMod(20, tier);
-            workmanship = GetWorkmanship(tier);
-            materialType = GetMaterialType(3, tier);
-            gemCount = ThreadSafeRandom.Next(1, 5);
-            gemType = ThreadSafeRandom.Next(10, 50);
-            manaConMod = GetManaCMod(tier);
-            lowSpellTier = GetLowSpellTier(tier);
-            highSpellTier = GetHighSpellTier(tier);
-            numSpells = GetNumSpells(tier);
-            spellcraft = GetSpellcraft(numSpells, tier);
-            itemMaxMana = GetMaxMana(numSpells, tier);
-            itemDiff = GetDifficulty(tier, spellcraft);
-            value = GetValue(tier, workmanship);
-
-            if (elementName != null)
-                wo.SetProperty(PropertyString.Name, $"{elementName} {weaponName}");
-            else
-                wo.SetProperty(PropertyString.Name, weaponName);
-
-            elementalDamageMod = GetMaxDamageMod(tier, 18);
-            wo.SetProperty(PropertyInt.MaterialType, materialType);
-            wo.SetProperty(PropertyInt.Value, value);
-            wo.SetProperty(PropertyInt.ItemWorkmanship, workmanship);
-            wo.SetProperty(PropertyInt.ItemDifficulty, itemDiff);
-            wo.SetProperty(PropertyFloat.ManaRate, GetManaRate());
-            wo.SetProperty(PropertyFloat.WeaponMissileDefense, missileDMod);
-            wo.SetProperty(PropertyFloat.WeaponDefense, meleeDMod);
+            double manaConMod = GetManaCMod(tier);
             wo.SetProperty(PropertyFloat.ManaConversionMod, manaConMod);
-            wo.SetProperty(PropertyFloat.ElementalDamageMod, elementalDamageMod);
+
+            if (elementalDamageMod > 1.0f)
+                wo.SetProperty(PropertyFloat.ElementalDamageMod, elementalDamageMod);
+
+            if (wield > 0)
+            {
+                wo.SetProperty(PropertyInt.WieldRequirements, wieldReqs);
+                wo.SetProperty(PropertyInt.WieldSkillType, (int)wieldSkillType);
+                wo.SetProperty(PropertyInt.WieldDifficulty, wield);
+            }
+
+            wo.RemoveProperty(PropertyInt.ItemSkillLevelLimit);
+
+            int lowSpellTier = GetLowSpellTier(tier);
+            int highSpellTier = GetHighSpellTier(tier);
+            int numSpells = GetNumSpells(tier);
+            int spellcraft = GetSpellcraft(numSpells, tier);
+            int itemMaxMana = GetMaxMana(numSpells, tier);
+
+            wo.SetProperty(PropertyInt.ItemDifficulty, GetDifficulty(tier, spellcraft));
+            wo.SetProperty(PropertyFloat.ManaRate, GetManaRate());
+
             wo.SetProperty(PropertyInt.ItemMaxMana, itemMaxMana);
             wo.SetProperty(PropertyInt.ItemCurMana, itemMaxMana);
-            wo.SetProperty(PropertyInt.AppraisalLongDescDecoration, appraisalDesc);
+            wo.SetProperty(PropertyInt.AppraisalLongDescDecoration, 7);
             wo.SetProperty(PropertyInt.ItemSpellcraft, spellcraft);
-            wo.SetProperty(PropertyInt.DamageType, damageType);
-            wo.SetProperty(PropertyInt.GemCount, gemCount);
-            wo.SetProperty(PropertyInt.GemType, gemType);
-            wo.SetProperty(PropertyString.LongDesc, getLongDesc(wo.GetProperty(PropertyString.Name), gemType, gemCount));
+
             int minorCantrips = GetNumMinorCantrips(tier);
             int majorCantrips = GetNumMajorCantrips(tier);
             int epicCantrips = GetNumEpicCantrips(tier);
@@ -15742,22 +15728,7 @@ namespace ACE.Server.Factories
             int numCantrips = minorCantrips + majorCantrips + epicCantrips + legendaryCantrips;
 
             if (numCantrips > 0 || numSpells > 0)
-            {
-                uiEffects = 1;
-                wo.SetProperty(PropertyInt.UiEffects, uiEffects);
-            }
-
-            if (wield > 0)
-            {
-                wo.SetProperty(PropertyInt.WieldRequirements, wieldReqs);
-                wo.SetProperty(PropertyInt.WieldSkillType, wieldSkillType);
-                wo.SetProperty(PropertyInt.WieldDifficulty, wield);
-            }
-            else
-            {
-                wo.RemoveProperty(PropertyFloat.ElementalDamageMod);
-            }
-            wo.RemoveProperty(PropertyInt.ItemSkillLevelLimit);
+                wo.SetProperty(PropertyInt.UiEffects, (int)UiEffects.Magical);
 
             int[][] spells = LootHelper.WandSpells;
             int[][] cantrips = LootHelper.WandCantrips;
@@ -15824,14 +15795,7 @@ namespace ACE.Server.Factories
                     wo.Biota.BiotaPropertiesSpellBook.Add(result);
                 }
             }
-            if (manaConMod <= 0)
-            {
-                wo.RemoveProperty(PropertyFloat.ManaConversionMod);
-            }
-            if (missileDMod <= 0)
-            {
-                wo.RemoveProperty(PropertyFloat.WeaponMissileDefense);
-            }
+
             if (numSpells == 0)
             {
                 wo.RemoveProperty(PropertyInt.ItemManaCost);
@@ -15861,126 +15825,74 @@ namespace ACE.Server.Factories
                         case 2:
                             chance = ThreadSafeRandom.Next(0, 100);
                             if (chance < 80)
-                            {
                                 damageMod = .01;
-                            }
                             else if (chance < 95)
-                            {
                                 damageMod = .02;
-                            }
                             else
-                            {
                                 damageMod = .03;
-                            }
                             break;
                         case 3:
                             chance = ThreadSafeRandom.Next(0, 100);
                             if (chance < 50)
-                            {
                                 damageMod = .03;
-                            }
                             else if (chance < 80)
-                            {
                                 damageMod = .04;
-                            }
                             else if (chance < 95)
-                            {
                                 damageMod = .05;
-                            }
                             else
-                            {
                                 damageMod = .06;
-                            }
                             break;
                         case 4:
                             chance = ThreadSafeRandom.Next(0, 100);
                             if (chance < 50)
-                            {
                                 damageMod = .06;
-                            }
                             else if (chance < 80)
-                            {
                                 damageMod = .07;
-                            }
                             else if (chance < 95)
-                            {
                                 damageMod = .08;
-                            }
                             else
-                            {
                                 damageMod = .09;
-                            }
                             break;
                         case 5:
                             chance = ThreadSafeRandom.Next(0, 100);
                             if (chance < 50)
-                            {
                                 damageMod = .09;
-                            }
                             else if (chance < 80)
-                            {
                                 damageMod = .10;
-                            }
                             else if (chance < 95)
-                            {
                                 damageMod = .11;
-                            }
                             else
-                            {
                                 damageMod = .12;
-                            }
                             break;
                         case 6:
                             chance = ThreadSafeRandom.Next(0, 100);
                             if (chance < 50)
-                            {
                                 damageMod = .09;
-                            }
                             else if (chance < 80)
-                            {
                                 damageMod = .10;
-                            }
                             else if (chance < 95)
-                            {
                                 damageMod = .11;
-                            }
                             else
-                            {
                                 damageMod = .12;
-                            }
                             break;
                         case 7:
                             chance = ThreadSafeRandom.Next(0, 100);
                             if (chance < 50)
-                            {
                                 damageMod = .11;
-                            }
                             else if (chance < 80)
-                            {
                                 damageMod = .12;
-                            }
                             else
-                            {
                                 damageMod = .13;
-                            }
                             break;
                         case 8:
                             chance = ThreadSafeRandom.Next(0, 100);
                             if (chance < 50)
-                            {
                                 damageMod = .13;
-                            }
                             else if (chance < 80)
-                            {
                                 damageMod = .14;
-                            }
                             else
-                            {
                                 damageMod = .15;
-                            }
-
                             break;
-
                     }
                     break;
                 case 18:
@@ -15993,126 +15905,74 @@ namespace ACE.Server.Factories
                         case 2:
                             chance = ThreadSafeRandom.Next(0, 100);
                             if (chance < 80)
-                            {
                                 damageMod = .01;
-                            }
                             else if (chance < 95)
-                            {
                                 damageMod = .02;
-                            }
                             else
-                            {
                                 damageMod = .03;
-                            }
                             break;
                         case 3:
                             chance = ThreadSafeRandom.Next(0, 100);
                             if (chance < 50)
-                            {
                                 damageMod = .03;
-                            }
                             else if (chance < 80)
-                            {
                                 damageMod = .04;
-                            }
                             else if (chance < 95)
-                            {
                                 damageMod = .05;
-                            }
                             else
-                            {
                                 damageMod = .06;
-                            }
                             break;
                         case 4:
                             chance = ThreadSafeRandom.Next(0, 100);
                             if (chance < 50)
-                            {
                                 damageMod = .06;
-                            }
                             else if (chance < 80)
-                            {
                                 damageMod = .07;
-                            }
                             else if (chance < 95)
-                            {
                                 damageMod = .08;
-                            }
                             else
-                            {
                                 damageMod = .09;
-                            }
                             break;
                         case 5:
                             chance = ThreadSafeRandom.Next(0, 100);
                             if (chance < 50)
-                            {
                                 damageMod = .09;
-                            }
                             else if (chance < 80)
-                            {
                                 damageMod = .10;
-                            }
                             else if (chance < 95)
-                            {
                                 damageMod = .11;
-                            }
                             else
-                            {
                                 damageMod = .12;
-                            }
                             break;
                         case 6:
                             chance = ThreadSafeRandom.Next(0, 100);
                             if (chance < 50)
-                            {
                                 damageMod = .12;
-                            }
                             else if (chance < 80)
-                            {
                                 damageMod = .13;
-                            }
                             else if (chance < 95)
-                            {
                                 damageMod = .14;
-                            }
                             else
-                            {
                                 damageMod = .15;
-                            }
                             break;
                         case 7:
                             chance = ThreadSafeRandom.Next(0, 100);
                             if (chance < 50)
-                            {
                                 damageMod = .15;
-                            }
                             else if (chance < 80)
-                            {
                                 damageMod = .16;
-                            }
                             else
-                            {
                                 damageMod = .17;
-                            }
                             break;
                         case 8:
                             chance = ThreadSafeRandom.Next(0, 100);
                             if (chance < 50)
-                            {
                                 damageMod = .16;
-                            }
                             else if (chance < 80)
-                            {
                                 damageMod = .17;
-                            }
                             else
-                            {
                                 damageMod = .18;
-                            }
-
                             break;
-
                     }
                     break;
                 case 20:
@@ -16125,134 +15985,78 @@ namespace ACE.Server.Factories
                         case 2:
                             chance = ThreadSafeRandom.Next(0, 100);
                             if (chance < 80)
-                            {
                                 damageMod = .01;
-                            }
                             else if (chance < 95)
-                            {
                                 damageMod = .02;
-                            }
                             else
-                            {
                                 damageMod = .03;
-                            }
                             break;
                         case 3:
                             chance = ThreadSafeRandom.Next(0, 100);
                             if (chance < 50)
-                            {
                                 damageMod = .02;
-                            }
                             else if (chance < 80)
-                            {
                                 damageMod = .03;
-                            }
                             else if (chance < 95)
-                            {
                                 damageMod = .04;
-                            }
                             else
-                            {
                                 damageMod = .05;
-                            }
                             break;
                         case 4:
                             chance = ThreadSafeRandom.Next(0, 100);
                             if (chance < 50)
-                            {
                                 damageMod = .05;
-                            }
                             else if (chance < 80)
-                            {
                                 damageMod = .06;
-                            }
                             else if (chance < 95)
-                            {
                                 damageMod = .07;
-                            }
                             else
-                            {
                                 damageMod = .08;
-                            }
                             break;
                         case 5:
                             chance = ThreadSafeRandom.Next(0, 100);
                             if (chance < 50)
-                            {
                                 damageMod = .07;
-                            }
                             else if (chance < 80)
-                            {
                                 damageMod = .08;
-                            }
                             else if (chance < 95)
-                            {
                                 damageMod = .09;
-                            }
                             else
-                            {
                                 damageMod = .10;
-                            }
                             break;
                         case 6:
                             chance = ThreadSafeRandom.Next(0, 100);
                             if (chance < 50)
-                            {
                                 damageMod = .11;
-                            }
                             else if (chance < 80)
-                            {
                                 damageMod = .12;
-                            }
                             else if (chance < 95)
-                            {
                                 damageMod = .13;
-                            }
                             else
-                            {
                                 damageMod = .14;
-                            }
                             break;
                         case 7:
                             chance = ThreadSafeRandom.Next(0, 100);
                             if (chance < 50)
-                            {
                                 damageMod = .13;
-                            }
                             else if (chance < 80)
-                            {
                                 damageMod = .14;
-                            }
                             else if (chance < 90)
-                            {
                                 damageMod = .15;
-                            }
                             else
-                            {
                                 damageMod = .16;
-                            }
                             break;
                         case 8:
                             chance = ThreadSafeRandom.Next(0, 100);
                             if (chance < 50)
-                            {
                                 damageMod = .17;
-                            }
                             else if (chance < 80)
-                            {
                                 damageMod = .18;
-                            }
                             else if (chance < 90)
-                            {
                                 damageMod = .19;
-                            }
                             else
-                            {
                                 damageMod = .20;
-                            }
-
                             break;
-
                     }
                     break;
                 case 22:
@@ -16265,138 +16069,80 @@ namespace ACE.Server.Factories
                         case 2:
                             chance = ThreadSafeRandom.Next(0, 100);
                             if (chance < 80)
-                            {
                                 damageMod = .01;
-                            }
                             else if (chance < 95)
-                            {
                                 damageMod = .02;
-                            }
                             else
-                            {
                                 damageMod = .03;
-                            }
                             break;
                         case 3:
                             chance = ThreadSafeRandom.Next(0, 100);
                             if (chance < 50)
-                            {
                                 damageMod = .02;
-                            }
                             else if (chance < 80)
-                            {
                                 damageMod = .03;
-                            }
                             else if (chance < 95)
-                            {
                                 damageMod = .04;
-                            }
                             else
-                            {
                                 damageMod = .05;
-                            }
                             break;
                         case 4:
                             chance = ThreadSafeRandom.Next(0, 100);
                             if (chance < 50)
-                            {
                                 damageMod = .05;
-                            }
                             else if (chance < 80)
-                            {
                                 damageMod = .06;
-                            }
                             else if (chance < 95)
-                            {
                                 damageMod = .07;
-                            }
                             else
-                            {
                                 damageMod = .08;
-                            }
                             break;
                         case 5:
                             chance = ThreadSafeRandom.Next(0, 100);
                             if (chance < 50)
-                            {
                                 damageMod = .07;
-                            }
                             else if (chance < 80)
-                            {
                                 damageMod = .08;
-                            }
                             else if (chance < 95)
-                            {
                                 damageMod = .09;
-                            }
                             else
-                            {
                                 damageMod = .10;
-                            }
                             break;
                         case 6:
                             chance = ThreadSafeRandom.Next(0, 100);
                             if (chance < 50)
-                            {
                                 damageMod = .11;
-                            }
                             else if (chance < 80)
-                            {
                                 damageMod = .12;
-                            }
                             else if (chance < 95)
-                            {
                                 damageMod = .13;
-                            }
                             else
-                            {
                                 damageMod = .14;
-                            }
                             break;
                         case 7:
                             chance = ThreadSafeRandom.Next(0, 100);
                             if (chance < 50)
-                            {
                                 damageMod = .14;
-                            }
                             else if (chance < 80)
-                            {
                                 damageMod = .15;
-                            }
                             else if (chance < 90)
-                            {
                                 damageMod = .16;
-                            }
                             else
-                            {
                                 damageMod = .17;
-                            }
                             break;
                         case 8:
                             chance = ThreadSafeRandom.Next(0, 100);
                             if (chance < 50)
-                            {
                                 damageMod = .18;
-                            }
                             else if (chance < 80)
-                            {
                                 damageMod = .19;
-                            }
                             else if (chance < 90)
-                            {
                                 damageMod = .20;
-                            }
                             else if (chance < 95)
-                            {
                                 damageMod = .21;
-                            }
                             else
-                            {
                                 damageMod = .22;
-                            }
-
                             break;
-
                     }
                     break;
                 case 25:
@@ -16409,150 +16155,86 @@ namespace ACE.Server.Factories
                         case 2:
                             chance = ThreadSafeRandom.Next(0, 100);
                             if (chance < 80)
-                            {
                                 damageMod = .01;
-                            }
                             else if (chance < 70)
-                            {
                                 damageMod = .02;
-                            }
                             else if (chance < 90)
-                            {
                                 damageMod = .03;
-                            }
                             else
-                            {
                                 damageMod = .04;
-                            }
                             break;
                         case 3:
                             chance = ThreadSafeRandom.Next(0, 100);
                             if (chance < 50)
-                            {
                                 damageMod = .04;
-                            }
                             else if (chance < 80)
-                            {
                                 damageMod = .05;
-                            }
                             else if (chance < 95)
-                            {
                                 damageMod = .06;
-                            }
                             else
-                            {
                                 damageMod = .07;
-                            }
                             break;
                         case 4:
                             chance = ThreadSafeRandom.Next(0, 100);
                             if (chance < 50)
-                            {
                                 damageMod = .07;
-                            }
                             else if (chance < 70)
-                            {
                                 damageMod = .08;
-                            }
                             else if (chance < 90)
-                            {
                                 damageMod = .09;
-                            }
                             else if (chance < 96)
-                            {
                                 damageMod = .10;
-                            }
                             else
-                            {
                                 damageMod = .11;
-                            }
                             break;
                         case 5:
                             chance = ThreadSafeRandom.Next(0, 100);
                             if (chance < 50)
-                            {
                                 damageMod = .11;
-                            }
                             else if (chance < 70)
-                            {
                                 damageMod = .12;
-                            }
                             else if (chance < 90)
-                            {
                                 damageMod = .13;
-                            }
                             else if (chance < 96)
-                            {
                                 damageMod = .14;
-                            }
                             else
-                            {
                                 damageMod = .15;
-                            }
                             break;
                         case 6:
                             chance = ThreadSafeRandom.Next(0, 100);
                             if (chance < 50)
-                            {
                                 damageMod = .15;
-                            }
                             else if (chance < 70)
-                            {
                                 damageMod = .16;
-                            }
                             else if (chance < 90)
-                            {
                                 damageMod = .17;
-                            }
                             else
-                            {
                                 damageMod = .18;
-                            }
                             break;
                         case 7:
                             chance = ThreadSafeRandom.Next(0, 100);
                             if (chance < 50)
-                            {
                                 damageMod = .18;
-                            }
                             else if (chance < 80)
-                            {
                                 damageMod = .19;
-                            }
                             else if (chance < 90)
-                            {
                                 damageMod = .20;
-                            }
                             else
-                            {
                                 damageMod = .21;
-                            }
                             break;
                         case 8:
                             chance = ThreadSafeRandom.Next(0, 100);
                             if (chance < 50)
-                            {
                                 damageMod = .21;
-                            }
                             else if (chance < 80)
-                            {
                                 damageMod = .22;
-                            }
                             else if (chance < 90)
-                            {
                                 damageMod = .23;
-                            }
                             else if (chance < 95)
-                            {
                                 damageMod = .24;
-                            }
                             else
-                            {
                                 damageMod = .25;
-                            }
-
                             break;
-
                     }
                     break;
                 default:
@@ -16562,11 +16244,11 @@ namespace ACE.Server.Factories
             return damageMod2;
         }
 
-        public static double GetElementalBonus(int wield)
+        public static int GetElementalBonus(int wield)
         {
 
             int chance = 0;
-            double eleMod = 0;
+            int eleMod = 0;
             switch (wield)
             {
                 case 0:
@@ -16578,141 +16260,79 @@ namespace ACE.Server.Factories
                 case 315:
                     chance = ThreadSafeRandom.Next(0, 100);
                     if (chance < 20)
-                    {
                         eleMod = 1;
-                    }
                     else if (chance < 40)
-                    {
                         eleMod = 2;
-                    }
                     else if (chance < 70)
-                    {
                         eleMod = 3;
-                    }
                     else if (chance < 95)
-                    {
                         eleMod = 4;
-                    }
                     else
-                    {
                         eleMod = 5;
-                    }
                     break;
                 case 335:
                     chance = ThreadSafeRandom.Next(0, 100);
                     if (chance < 20)
-                    {
                         eleMod = 5;
-                    }
                     else if (chance < 40)
-                    {
                         eleMod = 6;
-                    }
                     else if (chance < 70)
-                    {
                         eleMod = 7;
-                    }
                     else if (chance < 95)
-                    {
                         eleMod = 8;
-                    }
                     else
-                    {
                         eleMod = 9;
-                    }
                     break;
                 case 360:
                     chance = ThreadSafeRandom.Next(0, 100);
                     if (chance < 20)
-                    {
                         eleMod = 10;
-                    }
                     else if (chance < 30)
-                    {
                         eleMod = 11;
-                    }
                     else if (chance < 45)
-                    {
                         eleMod = 12;
-                    }
                     else if (chance < 60)
-                    {
                         eleMod = 13;
-                    }
                     else if (chance < 75)
-                    {
                         eleMod = 14;
-                    }
                     else if (chance < 95)
-                    {
                         eleMod = 15;
-                    }
                     else
-                    {
                         eleMod = 16;
-                    }
                     break;
                 case 375:
                     chance = ThreadSafeRandom.Next(0, 100);
                     if (chance < 20)
-                    {
                         eleMod = 12;
-                    }
                     else if (chance < 30)
-                    {
                         eleMod = 13;
-                    }
                     else if (chance < 45)
-                    {
                         eleMod = 14;
-                    }
                     else if (chance < 60)
-                    {
                         eleMod = 15;
-                    }
                     else if (chance < 75)
-                    {
                         eleMod = 16;
-                    }
                     else if (chance < 95)
-                    {
                         eleMod = 17;
-                    }
                     else
-                    {
                         eleMod = 18;
-                    }
                     break;
                 case 385:
                     chance = ThreadSafeRandom.Next(0, 100);
                     if (chance < 20)
-                    {
                         eleMod = 16;
-                    }
                     else if (chance < 30)
-                    {
                         eleMod = 17;
-                    }
                     else if (chance < 45)
-                    {
                         eleMod = 18;
-                    }
                     else if (chance < 60)
-                    {
                         eleMod = 19;
-                    }
                     else if (chance < 75)
-                    {
                         eleMod = 20;
-                    }
                     else if (chance < 95)
-                    {
                         eleMod = 21;
-                    }
                     else
-                    {
                         eleMod = 22;
-                    }
                     break;
             }
             return eleMod;
@@ -16721,495 +16341,284 @@ namespace ACE.Server.Factories
         //The percentages for variances need to be fixed
         public static double GetVariance(int category, int type)
         {
-
-            int chance = 0;
             double variance = 0;
+            int chance = ThreadSafeRandom.Next(0, 100);
+
             switch (category)
             {
                 case 1:
                     //Heavy Weapons
-                    chance = ThreadSafeRandom.Next(0, 100);
                     switch (type)
                     {
                         case 1:
                             //Axe
                             if (chance < 10)
-                            {
                                 variance = .90;
-                            }
                             if (chance < 30)
-                            {
                                 variance = .93;
-                            }
                             if (chance < 70)
-                            {
                                 variance = .95;
-                            }
                             if (chance < 90)
-                            {
                                 variance = .97;
-                            }
                             else
-                            {
                                 variance = .99;
-                            }
                             break;
                         case 2:
                             //Dagger
                             if (chance < 10)
-                            {
                                 variance = .47;
-                            }
                             if (chance < 30)
-                            {
                                 variance = .50;
-                            }
                             if (chance < 70)
-                            {
                                 variance = .53;
-                            }
                             if (chance < 90)
-                            {
                                 variance = .57;
-                            }
                             else
-                            {
                                 variance = .62;
-                            }
                             break;
                         case 3:
                             //Dagger MultiStrike
                             if (chance < 10)
-                            {
                                 variance = .40;
-                            }
                             if (chance < 30)
-                            {
                                 variance = .43;
-                            }
                             if (chance < 70)
-                            {
                                 variance = .48;
-                            }
                             if (chance < 90)
-                            {
                                 variance = .53;
-                            }
                             else
-                            {
                                 variance = .58;
-                            }
                             break;
                         case 4:
                             //Mace
                             if (chance < 10)
-                            {
                                 variance = .30;
-                            }
                             if (chance < 30)
-                            {
                                 variance = .33;
-                            }
                             if (chance < 70)
-                            {
                                 variance = .37;
-                            }
                             if (chance < 90)
-                            {
                                 variance = .42;
-                            }
                             else
-                            {
                                 variance = .46;
-                            }
                             break;
                         case 5:
                             //Spear
                             if (chance < 10)
-                            {
                                 variance = .59;
-                            }
                             if (chance < 30)
-                            {
                                 variance = .63;
-                            }
                             if (chance < 70)
-                            {
                                 variance = .68;
-                            }
                             if (chance < 90)
-                            {
                                 variance = .72;
-                            }
                             else
-                            {
                                 variance = .75;
-                            }
                             break;
                         case 6:
                             //Staff
                             if (chance < 10)
-                            {
                                 variance = .38;
-                            }
                             if (chance < 30)
-                            {
                                 variance = .42;
-                            }
                             if (chance < 70)
-                            {
                                 variance = .45;
-                            }
                             if (chance < 90)
-                            {
                                 variance = .50;
-                            }
                             else
-                            {
                                 variance = .52;
-                            }
                             break;
                         case 7:
                             //Sword
                             if (chance < 10)
-                            {
                                 variance = .47;
-                            }
                             if (chance < 30)
-                            {
                                 variance = .50;
-                            }
                             if (chance < 70)
-                            {
                                 variance = .53;
-                            }
                             if (chance < 90)
-                            {
                                 variance = .57;
-                            }
                             else
-                            {
                                 variance = .62;
-                            }
                             break;
                         case 8:
                             //Sword Multistrike
                             if (chance < 10)
-                            {
                                 variance = .40;
-                            }
                             if (chance < 30)
-                            {
                                 variance = .43;
-                            }
                             if (chance < 70)
-                            {
                                 variance = .48;
-                            }
                             if (chance < 90)
-                            {
                                 variance = .53;
-                            }
                             else
-                            {
                                 variance = .60;
-                            }
                             break;
                         case 9:
                             //UA
                             if (chance < 10)
-                            {
                                 variance = .44;
-                            }
                             if (chance < 30)
-                            {
                                 variance = .48;
-                            }
                             if (chance < 70)
-                            {
                                 variance = .53;
-                            }
                             if (chance < 90)
-                            {
                                 variance = .58;
-                            }
                             else
-                            {
                                 variance = .60;
-                            }
                             break;
                     }
                     break;
                 case 2:
                     //Finesse/Light Weapons
-                    chance = ThreadSafeRandom.Next(0, 100);
                     switch (type)
                     {
                         case 1:
                             //Axe
                             if (chance < 10)
-                            {
                                 variance = .80;
-                            }
                             if (chance < 30)
-                            {
                                 variance = .83;
-                            }
                             if (chance < 70)
-                            {
                                 variance = .85;
-                            }
                             if (chance < 90)
-                            {
                                 variance = .90;
-                            }
                             else
-                            {
                                 variance = .95;
-                            }
                             break;
                         case 2:
                             //Dagger
                             if (chance < 10)
-                            {
                                 variance = .42;
-                            }
                             if (chance < 30)
-                            {
                                 variance = .47;
-                            }
                             if (chance < 70)
-                            {
                                 variance = .52;
-                            }
                             if (chance < 90)
-                            {
                                 variance = .56;
-                            }
                             else
-                            {
                                 variance = .60;
-                            }
                             break;
                         case 3:
                             //Dagger MultiStrike
                             if (chance < 10)
-                            {
                                 variance = .24;
-                            }
                             if (chance < 30)
-                            {
                                 variance = .28;
-                            }
                             if (chance < 70)
-                            {
                                 variance = .35;
-                            }
                             if (chance < 90)
-                            {
                                 variance = .40;
-                            }
                             else
-                            {
                                 variance = .45;
-                            }
                             break;
                         case 4:
                             //Mace
                             if (chance < 10)
-                            {
                                 variance = .23;
-                            }
                             if (chance < 30)
-                            {
                                 variance = .28;
-                            }
                             if (chance < 70)
-                            {
                                 variance = .32;
-                            }
                             if (chance < 90)
-                            {
                                 variance = .37;
-                            }
                             else
-                            {
                                 variance = .43;
-                            }
                             break;
                         case 5:
                             //Jitte
                             if (chance < 10)
-                            {
                                 variance = .325;
-                            }
                             if (chance < 30)
-                            {
                                 variance = .35;
-                            }
                             if (chance < 70)
-                            {
                                 variance = .40;
-                            }
                             if (chance < 90)
-                            {
                                 variance = .45;
-                            }
                             else
-                            {
                                 variance = .50;
-                            }
                             break;
                         case 6:
                             //Spear
                             if (chance < 10)
-                            {
                                 variance = .65;
-                            }
                             if (chance < 30)
-                            {
                                 variance = .68;
-                            }
                             if (chance < 70)
-                            {
                                 variance = .71;
-                            }
                             if (chance < 90)
-                            {
                                 variance = .75;
-                            }
                             else
-                            {
                                 variance = .80;
-                            }
                             break;
                         case 7:
                             //Staff
                             if (chance < 10)
-                            {
                                 variance = .325;
-                            }
                             if (chance < 30)
-                            {
                                 variance = .35;
-                            }
                             if (chance < 70)
-                            {
                                 variance = .40;
-                            }
                             if (chance < 90)
-                            {
                                 variance = .45;
-                            }
                             else
-                            {
                                 variance = .50;
-                            }
                             break;
                         case 8:
                             //Sword
                             if (chance < 10)
-                            {
                                 variance = .42;
-                            }
                             if (chance < 30)
-                            {
                                 variance = .47;
-                            }
                             if (chance < 70)
-                            {
                                 variance = .52;
-                            }
                             if (chance < 90)
-                            {
                                 variance = .56;
-                            }
                             else
-                            {
                                 variance = .60;
-                            }
                             break;
                         case 9:
                             //Sword Multistrike
                             if (chance < 10)
-                            {
                                 variance = .24;
-                            }
                             if (chance < 30)
-                            {
                                 variance = .28;
-                            }
                             if (chance < 70)
-                            {
                                 variance = .35;
-                            }
                             if (chance < 90)
-                            {
                                 variance = .40;
-                            }
                             else
-                            {
                                 variance = .45;
-                            }
                             break;
                         case 10:
                             //UA
                             if (chance < 10)
-                            {
                                 variance = .44;
-                            }
                             if (chance < 30)
-                            {
                                 variance = .48;
-                            }
                             if (chance < 70)
-                            {
                                 variance = .53;
-                            }
                             if (chance < 90)
-                            {
                                 variance = .58;
-                            }
                             else
-                            {
                                 variance = .60;
-                            }
                             break;
                     }
                     break;
                 case 3:
-                    ///Two Handed, all have type 1, since there is only 1 set of variances
-                    chance = ThreadSafeRandom.Next(0, 100);
-                    switch (type)
-                    {
-                        case 1:
-                            //Axe
-                            if (chance < 5)
-                            {
-                                variance = .30;
-                            }
-                            if (chance < 20)
-                            {
-                                variance = .35;
-                            }
-                            if (chance < 50)
-                            {
-                                variance = .40;
-                            }
-                            if (chance < 80)
-                            {
-                                variance = .45;
-                            }
-                            if (chance < 95)
-                            {
-                                variance = .50;
-                            }
-                            else
-                            {
-                                variance = .55;
-                            }
-                            break;
-                    }
+                    /// Two Handed only have one set of variances
+                    if (chance < 5)
+                        variance = .30;
+                    if (chance < 20)
+                        variance = .35;
+                    if (chance < 50)
+                        variance = .40;
+                    if (chance < 80)
+                        variance = .45;
+                    if (chance < 95)
+                        variance = .50;
+                    else
+                        variance = .55;
                     break;
                 default:
                     break;
@@ -17291,58 +16700,33 @@ namespace ACE.Server.Factories
             chance = chance + chanceOffset;
             if (tieredDamage < 10)
             {
-
                 if (chance < .026)
-                {
                     finalDamage = tieredDamage - 3;
-                }
                 else if (chance < .5)
-                {
                     finalDamage = tieredDamage - 2;
-                }
                 else if (chance < .977)
-                {
                     finalDamage = tieredDamage - 1;
-                }
                 else
-                {
                     finalDamage = tieredDamage;
-                }
             }
             else
             {
                 if (chance < .005)
-                {
                     finalDamage = tieredDamage - 7;
-                }
                 else if (chance < .026)
-                {
                     finalDamage = tieredDamage - 6;
-                }
                 else if (chance < .162)
-                {
                     finalDamage = tieredDamage - 5;
-                }
                 else if (chance < .5)
-                {
                     finalDamage = tieredDamage - 4;
-                }
                 else if (chance < .841)
-                {
                     finalDamage = tieredDamage - 3;
-                }
                 else if (chance < .977)
-                {
                     finalDamage = tieredDamage - 2;
-                }
                 else if (chance < .995)
-                {
                     finalDamage = tieredDamage - 1;
-                }
                 else
-                {
                     finalDamage = tieredDamage;
-                }
             }
             return finalDamage;
         }
@@ -17350,6 +16734,7 @@ namespace ACE.Server.Factories
         public static int GetLowSpellTier(int tier)
         {
             int lowSpellTier = 0;
+
             switch (tier)
             {
                 case 1:
@@ -17367,24 +16752,18 @@ namespace ACE.Server.Factories
                 case 5:
                     lowSpellTier = 5;
                     break;
-                case 6:
-                    lowSpellTier = 6;
-                    break;
-                case 7:
-                    lowSpellTier = 6;
-                    break;
-                case 8:
-                    lowSpellTier = 6;
-                    break;
                 default:
+                    lowSpellTier = 6;
                     break;
             }
+
             return lowSpellTier;
         }
 
         public static int GetHighSpellTier(int tier)
         {
             int highSpellTier = 0;
+
             switch (tier)
             {
                 case 1:
@@ -17405,15 +16784,11 @@ namespace ACE.Server.Factories
                 case 6:
                     highSpellTier = 7;
                     break;
-                case 7:
-                    highSpellTier = 8;
-                    break;
-                case 8:
-                    highSpellTier = 8;
-                    break;
                 default:
+                    highSpellTier = 8;
                     break;
             }
+
             return highSpellTier;
         }
 
@@ -17427,329 +16802,195 @@ namespace ACE.Server.Factories
 
         public static double GetManaCMod(int tier)
         {
-
             int magicMod = 0;
+
             int chance = 0;
             switch (tier)
             {
                 case 1:
-                    //tier 1
-                    magicMod = 0;
-                    break;
                 case 2:
                     magicMod = 0;
                     break;
                 case 3:
                     chance = ThreadSafeRandom.Next(0, 1000);
                     if (chance > 900)
-                    {
                         magicMod = 5;
-                    }
                     else if (chance > 800)
-                    {
                         magicMod = 4;
-                    }
                     else if (chance > 700)
-                    {
                         magicMod = 3;
-                    }
                     else if (chance > 600)
-                    {
                         magicMod = 2;
-                    }
                     else if (chance > 500)
-                    {
                         magicMod = 1;
-                    }
                     break;
                 case 4:
                     chance = ThreadSafeRandom.Next(0, 1000);
                     if (chance > 900)
-                    {
                         magicMod = 10;
-                    }
                     else if (chance > 800)
-                    {
                         magicMod = 9;
-                    }
                     else if (chance > 700)
-                    {
                         magicMod = 8;
-                    }
                     else if (chance > 600)
-                    {
                         magicMod = 7;
-                    }
                     else if (chance > 500)
-                    {
                         magicMod = 6;
-                    }
                     else
-                    {
                         magicMod = 5;
-                    }
                     break;
                 case 5:
                     chance = ThreadSafeRandom.Next(0, 1000);
                     if (chance > 900)
-                    {
                         magicMod = 10;
-                    }
                     else if (chance > 800)
-                    {
                         magicMod = 9;
-                    }
                     else if (chance > 700)
-                    {
                         magicMod = 8;
-                    }
                     else if (chance > 600)
-                    {
                         magicMod = 7;
-                    }
                     else if (chance > 500)
-                    {
                         magicMod = 6;
-                    }
                     else
-                    {
                         magicMod = 5;
-                    }
                     break;
                 case 6:
                     chance = ThreadSafeRandom.Next(0, 1000);
                     if (chance > 900)
-                    {
                         magicMod = 10;
-                    }
                     else if (chance > 800)
-                    {
                         magicMod = 9;
-                    }
                     else if (chance > 700)
-                    {
                         magicMod = 8;
-                    }
                     else if (chance > 600)
-                    {
                         magicMod = 7;
-                    }
                     else if (chance > 500)
-                    {
                         magicMod = 6;
-                    }
                     else
-                    {
                         magicMod = 5;
-                    }
                     break;
                 case 7:
                     chance = ThreadSafeRandom.Next(0, 1000);
                     if (chance > 900)
-                    {
                         magicMod = 10;
-                    }
                     else if (chance > 800)
-                    {
                         magicMod = 9;
-                    }
                     else if (chance > 700)
-                    {
                         magicMod = 8;
-                    }
                     else if (chance > 600)
-                    {
                         magicMod = 7;
-                    }
                     else if (chance > 500)
-                    {
                         magicMod = 6;
-                    }
                     else
-                    {
                         magicMod = 5;
-                    }
-                    break;
-                case 8:
-                    chance = ThreadSafeRandom.Next(0, 1000);
-                    if (chance > 900)
-                    {
-                        magicMod = 10;
-                    }
-                    else if (chance > 800)
-                    {
-                        magicMod = 9;
-                    }
-                    else if (chance > 700)
-                    {
-                        magicMod = 8;
-                    }
-                    else if (chance > 600)
-                    {
-                        magicMod = 7;
-                    }
-                    else if (chance > 500)
-                    {
-                        magicMod = 6;
-                    }
-                    else
-                    {
-                        magicMod = 5;
-                    }
                     break;
                 default:
+                    chance = ThreadSafeRandom.Next(0, 1000);
+                    if (chance > 900)
+                        magicMod = 10;
+                    else if (chance > 800)
+                        magicMod = 9;
+                    else if (chance > 700)
+                        magicMod = 8;
+                    else if (chance > 600)
+                        magicMod = 7;
+                    else if (chance > 500)
+                        magicMod = 6;
+                    else
+                        magicMod = 5;
                     break;
             }
+
             double manaDMod = magicMod / 100.0;
             return manaDMod;
         }
 
         public static double GetMissileDMod(int tier)
         {
-
             double missileMod = 0;
+
             switch (tier)
             {
                 case 1:
-                    //tier 1
-                    missileMod = 0;
-                    break;
                 case 2:
                     missileMod = 0;
                     break;
                 case 3:
                     int chance = ThreadSafeRandom.Next(0, 100);
                     if (chance > 95)
-                    {
                         missileMod = .005;
-                    }
                     break;
                 case 4:
                     chance = ThreadSafeRandom.Next(0, 100);
                     if (chance > 95)
-                    {
                         missileMod = .01;
-                    }
                     else if (chance > 80)
-                    {
                         missileMod = .005;
-                    }
                     else
-                    {
                         missileMod = 0;
-                    }
                     break;
                 case 5:
                     chance = ThreadSafeRandom.Next(0, 1000);
                     if (chance > 950)
-                    {
                         missileMod = .01;
-                    }
                     else if (chance > 800)
-                    {
                         missileMod = .005;
-                    }
                     else
-                    {
                         missileMod = 0;
-                    }
                     break;
                 case 6:
                     chance = ThreadSafeRandom.Next(0, 1000);
                     if (chance > 975)
-                    {
                         missileMod = .020;
-                    }
                     else if (chance > 900)
-                    {
                         missileMod = .015;
-                    }
                     else if (chance > 800)
-                    {
                         missileMod = .010;
-                    }
                     else if (chance > 700)
-                    {
                         missileMod = .005;
-                    }
                     else
-                    {
                         missileMod = 0;
-                    }
                     break;
                 case 7:
                     chance = ThreadSafeRandom.Next(0, 1000);
                     if (chance > 990)
-                    {
                         missileMod = .030;
-                    }
                     else if (chance > 985)
-                    {
                         missileMod = .025;
-                    }
                     else if (chance > 950)
-                    {
                         missileMod = .020;
-                    }
                     else if (chance > 900)
-                    {
                         missileMod = .015;
-                    }
                     else if (chance > 850)
-                    {
                         missileMod = .01;
-                    }
                     else if (chance > 800)
-                    {
                         missileMod = .005;
-                    }
                     else
-                    {
                         missileMod = 0;
-                    }
                     break;
-                case 8:
+                default: // tier 8
                     chance = ThreadSafeRandom.Next(0, 1000);
                     if (chance > 998)
-                    {
                         missileMod = .04;
-                    }
                     else if (chance > 994)
-                    {
                         missileMod = .035;
-                    }
                     else if (chance > 990)
-                    {
                         missileMod = .03;
-                    }
                     else if (chance > 985)
-                    {
                         missileMod = .025;
-                    }
                     else if (chance > 950)
-                    {
                         missileMod = .02;
-                    }
                     else if (chance > 900)
-                    {
                         missileMod = .015;
-                    }
                     else if (chance > 850)
-                    {
                         missileMod = .01;
-                    }
                     else if (chance > 800)
-                    {
                         missileMod = .005;
-                    }
                     else
-                    {
                         missileMod = 0;
-                    }
-                    break;
-                default:
                     break;
             }
+
             double m2 = 1.0 + missileMod;
             return m2;
         }
@@ -17764,235 +17005,91 @@ namespace ACE.Server.Factories
 
         public static int GetWorkmanship(int tier)
         {
-
-            int chance = 0;
             int workmanship = 0;
+            int chance = ThreadSafeRandom.Next(0, 100);
+
             switch (tier)
             {
                 case 1:
-                    //tier 1
-                    chance = ThreadSafeRandom.Next(0, 100);
                     if (chance < 50)
-                    {
                         workmanship = 1;
-                    }
                     else if (chance < 80)
-                    {
                         workmanship = 2;
-                    }
                     else
-                    {
                         workmanship = 3;
-                    }
                     break;
                 case 2:
-                    //tier 2
-                    chance = ThreadSafeRandom.Next(0, 100);
                     if (chance < 30)
-                    {
                         workmanship = 2;
-                    }
                     else if (chance < 50)
-                    {
                         workmanship = 3;
-                    }
                     else if (chance < 65)
-                    {
                         workmanship = 4;
-                    }
                     else if (chance < 85)
-                    {
                         workmanship = 5;
-                    }
                     else
-                    {
                         workmanship = 6;
-                    }
                     break;
                 case 3:
-                    //tier 3
-                    chance = ThreadSafeRandom.Next(0, 100);
                     if (chance < 30)
-                    {
                         workmanship = 3;
-                    }
                     else if (chance < 50)
-                    {
                         workmanship = 4;
-                    }
                     else if (chance < 65)
-                    {
                         workmanship = 5;
-                    }
                     else if (chance < 85)
-                    {
                         workmanship = 6;
-                    }
                     else
-                    {
                         workmanship = 7;
-                    }
                     break;
                 case 4:
-                    //tier 4
-                    chance = ThreadSafeRandom.Next(0, 100);
                     if (chance < 30)
-                    {
                         workmanship = 3;
-                    }
                     else if (chance < 50)
-                    {
                         workmanship = 4;
-                    }
                     else if (chance < 65)
-                    {
                         workmanship = 5;
-                    }
                     else if (chance < 80)
-                    {
                         workmanship = 6;
-                    }
                     else if (chance < 92)
-                    {
                         workmanship = 7;
-                    }
                     else
-                    {
                         workmanship = 8;
-                    }
                     break;
                 case 5:
-                    //tier 5
-                    chance = ThreadSafeRandom.Next(0, 100);
                     if (chance < 15)
-                    {
                         workmanship = 3;
-                    }
                     else if (chance < 30)
-                    {
                         workmanship = 4;
-                    }
                     else if (chance < 50)
-                    {
                         workmanship = 5;
-                    }
                     else if (chance < 65)
-                    {
                         workmanship = 6;
-                    }
                     else if (chance < 80)
-                    {
                         workmanship = 7;
-                    }
                     else if (chance < 92)
-                    {
                         workmanship = 8;
-                    }
                     else
-                    {
                         workmanship = 9;
-                    }
                     break;
-                case 6:
-                    //tier 6
-                    chance = ThreadSafeRandom.Next(0, 100);
+                default: // tier 6 through 8
                     if (chance < 15)
-                    {
                         workmanship = 4;
-                    }
                     else if (chance < 30)
-                    {
                         workmanship = 5;
-                    }
                     else if (chance < 50)
-                    {
                         workmanship = 6;
-                    }
                     else if (chance < 65)
-                    {
                         workmanship = 7;
-                    }
                     else if (chance < 80)
-                    {
                         workmanship = 8;
-                    }
                     else if (chance < 92)
-                    {
                         workmanship = 9;
-                    }
                     else
-                    {
                         workmanship = 10;
-                    }
                     break;
-                case 7:
-                    //tier 7
-                    chance = ThreadSafeRandom.Next(0, 100);
-                    if (chance < 15)
-                    {
-                        workmanship = 4;
-                    }
-                    else if (chance < 30)
-                    {
-                        workmanship = 5;
-                    }
-                    else if (chance < 50)
-                    {
-                        workmanship = 6;
-                    }
-                    else if (chance < 65)
-                    {
-                        workmanship = 7;
-                    }
-                    else if (chance < 80)
-                    {
-                        workmanship = 8;
-                    }
-                    else if (chance < 92)
-                    {
-                        workmanship = 9;
-                    }
-                    else
-                    {
-                        workmanship = 10;
-                    }
-                    break;
-                case 8:
-                    //tier 8
-                    chance = ThreadSafeRandom.Next(0, 100);
-                    if (chance < 15)
-                    {
-                        workmanship = 4;
-                    }
-                    else if (chance < 30)
-                    {
-                        workmanship = 5;
-                    }
-                    else if (chance < 50)
-                    {
-                        workmanship = 6;
-                    }
-                    else if (chance < 65)
-                    {
-                        workmanship = 7;
-                    }
-                    else if (chance < 80)
-                    {
-                        workmanship = 8;
-                    }
-                    else if (chance < 92)
-                    {
-                        workmanship = 9;
-                    }
-                    else
-                    {
-                        workmanship = 10;
-                    }
-                    break;
-                default:
-                    break;
-
             }
+
             return workmanship;
         }
 
@@ -18190,69 +17287,63 @@ namespace ACE.Server.Factories
             switch (type)
             {
                 case 1:
-                    if (tier == 1)
+                    switch (tier)
                     {
-                        materialType = gems1[ThreadSafeRandom.Next(0, gems1.Length - 1)];
-                    }
-                    if (tier == 2)
-                    {
-                        materialType = gems2[ThreadSafeRandom.Next(0, gems2.Length - 1)];
-                    }
-                    if (tier == 3)
-                    {
-                        materialType = gems3[ThreadSafeRandom.Next(0, gems3.Length - 1)];
-                    }
-                    if (tier == 4)
-                    {
-                        materialType = gems4[ThreadSafeRandom.Next(0, gems4.Length - 1)];
-                    }
-                    else
-                    {
-                        materialType = gems5[ThreadSafeRandom.Next(0, gems5.Length - 1)];
+                        case 1:
+                            materialType = gems1[ThreadSafeRandom.Next(0, gems1.Length - 1)];
+                            break;
+                        case 2:
+                            materialType = gems2[ThreadSafeRandom.Next(0, gems2.Length - 1)];
+                            break;
+                        case 3:
+                            materialType = gems3[ThreadSafeRandom.Next(0, gems3.Length - 1)];
+                            break;
+                        case 4:
+                            materialType = gems4[ThreadSafeRandom.Next(0, gems4.Length - 1)];
+                            break;
+                        default:
+                            materialType = gems5[ThreadSafeRandom.Next(0, gems5.Length - 1)];
+                            break;
                     }
                     break;
                 case 2:
-                    if (tier == 1)
+                    switch (tier)
                     {
-                        materialType = bowTypes1[ThreadSafeRandom.Next(0, bowTypes1.Length - 1)];
-                    }
-                    if (tier == 2)
-                    {
-                        materialType = bowTypes2[ThreadSafeRandom.Next(0, bowTypes2.Length - 1)];
-                    }
-                    if (tier == 3)
-                    {
-                        materialType = bowTypes3[ThreadSafeRandom.Next(0, bowTypes3.Length - 1)];
-                    }
-                    if (tier == 4)
-                    {
-                        materialType = bowTypes4[ThreadSafeRandom.Next(0, bowTypes4.Length - 1)];
-                    }
-                    else
-                    {
-                        materialType = bowTypes5[ThreadSafeRandom.Next(0, bowTypes5.Length - 1)];
+                        case 1:
+                            materialType = bowTypes1[ThreadSafeRandom.Next(0, bowTypes1.Length - 1)];
+                            break;
+                        case 2:
+                            materialType = bowTypes2[ThreadSafeRandom.Next(0, bowTypes2.Length - 1)];
+                            break;
+                        case 3:
+                            materialType = bowTypes3[ThreadSafeRandom.Next(0, bowTypes3.Length - 1)];
+                            break;
+                        case 4:
+                            materialType = bowTypes4[ThreadSafeRandom.Next(0, bowTypes4.Length - 1)];
+                            break;
+                        default:
+                            materialType = bowTypes5[ThreadSafeRandom.Next(0, bowTypes5.Length - 1)];
+                            break;
                     }
                     break;
                 case 3:
-                    if (tier == 1)
+                    switch (tier)
                     {
-                        materialType = materialTypes1[ThreadSafeRandom.Next(0, materialTypes1.Length - 1)];
-                    }
-                    if (tier == 2)
-                    {
-                        materialType = materialTypes2[ThreadSafeRandom.Next(0, materialTypes2.Length - 1)];
-                    }
-                    if (tier == 3)
-                    {
-                        materialType = materialTypes3[ThreadSafeRandom.Next(0, materialTypes3.Length - 1)];
-                    }
-                    if (tier == 4)
-                    {
-                        materialType = materialTypes4[ThreadSafeRandom.Next(0, materialTypes4.Length - 1)];
-                    }
-                    else
-                    {
-                        materialType = materialTypes5[ThreadSafeRandom.Next(0, materialTypes5.Length - 1)];
+                        case 1:
+                            materialType = materialTypes1[ThreadSafeRandom.Next(0, materialTypes1.Length - 1)];
+                            break;
+                        case 2:
+                            materialType = materialTypes2[ThreadSafeRandom.Next(0, materialTypes2.Length - 1)];
+                            break;
+                        case 3:
+                            materialType = materialTypes3[ThreadSafeRandom.Next(0, materialTypes3.Length - 1)];
+                            break;
+                        case 4:
+                            materialType = materialTypes4[ThreadSafeRandom.Next(0, materialTypes4.Length - 1)];
+                            break;
+                        default:
+                            materialType = materialTypes5[ThreadSafeRandom.Next(0, materialTypes5.Length - 1)];
+                            break;
                     }
                     break;
                 case 4:
@@ -18277,156 +17368,95 @@ namespace ACE.Server.Factories
             return (int)materialType;
         }
 
-        public static double GetMeleeDMod(int maxMelee, int tier)
+        public static double GetMeleeDMod(int tier)
         {
-
             double meleeMod = 0;
             int chance = 0;
-            switch (maxMelee)
+
+            switch (tier)
             {
-                case 20:
-                    //tier 1
-                    switch (tier)
-                    {
-                        case 1:
-                            meleeMod = 0;
-                            break;
-                        case 2:
-                            chance = ThreadSafeRandom.Next(0, 100);
-                            if (chance < 60)
-                            {
-                                meleeMod = 0;
-                            }
-                            else if (chance < 80)
-                            {
-                                meleeMod = .01;
-                            }
-                            else if (chance < 92)
-                            {
-                                meleeMod = .02;
-                            }
-                            else
-                            {
-                                meleeMod = .03;
-                            }
-                            break;
-                        case 3:
-                            chance = ThreadSafeRandom.Next(0, 100);
-                            if (chance < 60)
-                            {
-                                meleeMod = .03;
-                            }
-                            else if (chance < 80)
-                            {
-                                meleeMod = .04;
-                            }
-                            else if (chance < 92)
-                            {
-                                meleeMod = .05;
-                            }
-                            else
-                            {
-                                meleeMod = .06;
-                            }
-                            break;
-                        case 4:
-                            chance = ThreadSafeRandom.Next(0, 100);
-                            if (chance < 60)
-                            {
-                                meleeMod = .06;
-                            }
-                            else if (chance < 80)
-                            {
-                                meleeMod = .07;
-                            }
-                            else if (chance < 92)
-                            {
-                                meleeMod = .08;
-                            }
-                            else
-                            {
-                                meleeMod = .09;
-                            }
-                            break;
-                        case 5:
-                            chance = ThreadSafeRandom.Next(0, 100);
-                            if (chance < 60)
-                            {
-                                meleeMod = .09;
-                            }
-                            else if (chance < 80)
-                            {
-                                meleeMod = .1;
-                            }
-                            else if (chance < 92)
-                            {
-                                meleeMod = .11;
-                            }
-                            else
-                            {
-                                meleeMod = .12;
-                            }
-                            break;
-                        case 6:
-                            chance = ThreadSafeRandom.Next(0, 100);
-                            if (chance < 60)
-                            {
-                                meleeMod = .12;
-                            }
-                            else if (chance < 80)
-                            {
-                                meleeMod = .13;
-                            }
-                            else if (chance < 92)
-                            {
-                                meleeMod = .14;
-                            }
-                            else
-                            {
-                                meleeMod = .15;
-                            }
-                            break;
-                        case 7:
-                            chance = ThreadSafeRandom.Next(0, 100);
-                            if (chance < 60)
-                            {
-                                meleeMod = .15;
-                            }
-                            else if (chance < 80)
-                            {
-                                meleeMod = .16;
-                            }
-                            else if (chance < 92)
-                            {
-                                meleeMod = .17;
-                            }
-                            else
-                            {
-                                meleeMod = .18;
-                            }
-                            break;
-                        case 8:
-                            chance = ThreadSafeRandom.Next(0, 100);
-                            if (chance < 60)
-                            {
-                                meleeMod = .17;
-                            }
-                            else if (chance < 80)
-                            {
-                                meleeMod = .18;
-                            }
-                            else if (chance < 92)
-                            {
-                                meleeMod = .19;
-                            }
-                            else
-                            {
-                                meleeMod = .20;
-                            }
-                            break;
-                    }
+                case 1:
+                    meleeMod = 0;
+                    break;
+                case 2:
+                    chance = ThreadSafeRandom.Next(0, 100);
+                    if (chance < 60)
+                        meleeMod = 0;
+                    else if (chance < 80)
+                        meleeMod = .01;
+                    else if (chance < 92)
+                        meleeMod = .02;
+                    else
+                        meleeMod = .03;
+                    break;
+                case 3:
+                    chance = ThreadSafeRandom.Next(0, 100);
+                    if (chance < 60)
+                        meleeMod = .03;
+                    else if (chance < 80)
+                        meleeMod = .04;
+                    else if (chance < 92)
+                        meleeMod = .05;
+                    else
+                        meleeMod = .06;
+                    break;
+                case 4:
+                    chance = ThreadSafeRandom.Next(0, 100);
+                    if (chance < 60)
+                        meleeMod = .06;
+                    else if (chance < 80)
+                        meleeMod = .07;
+                    else if (chance < 92)
+                        meleeMod = .08;
+                    else
+                        meleeMod = .09;
+                    break;
+                case 5:
+                    chance = ThreadSafeRandom.Next(0, 100);
+                    if (chance < 60)
+                        meleeMod = .09;
+                    else if (chance < 80)
+                        meleeMod = .1;
+                    else if (chance < 92)
+                        meleeMod = .11;
+                    else
+                        meleeMod = .12;
+                    break;
+                case 6:
+                    chance = ThreadSafeRandom.Next(0, 100);
+                    if (chance < 60)
+                        meleeMod = .12;
+                    else if (chance < 80)
+                        meleeMod = .13;
+                    else if (chance < 92)
+                        meleeMod = .14;
+                    else
+                        meleeMod = .15;
+                    break;
+                case 7:
+                    chance = ThreadSafeRandom.Next(0, 100);
+                    if (chance < 60)
+                        meleeMod = .15;
+                    else if (chance < 80)
+                        meleeMod = .16;
+                    else if (chance < 92)
+                        meleeMod = .17;
+                    else
+                        meleeMod = .18;
+                    break;
+                case 8:
+                    chance = ThreadSafeRandom.Next(0, 100);
+                    if (chance < 60)
+                        meleeMod = .17;
+                    else if (chance < 80)
+                        meleeMod = .18;
+                    else if (chance < 92)
+                        meleeMod = .19;
+                    else
+                        meleeMod = .20;
                     break;
             }
+
             meleeMod += 1.0;
             return meleeMod;
         }
@@ -18435,93 +17465,53 @@ namespace ACE.Server.Factories
         {
 
             int amount = 0;
-            switch (tier)
-            {
-                case 1:
-                    break;
-                case 2:
-                    break;
-                case 3:
-                    break;
-                case 4:
-                    break;
-                case 5:
-                    break;
-                case 6:
-                    break;
-                case 7:
-                    break;
-                default:
-                    if (ThreadSafeRandom.Next(0, 1000) == 0)
-                    {
-                        amount = 1;
-                    }
-                    if (ThreadSafeRandom.Next(0, 5000) == 0)
-                    {
-                        amount = 2;
-                    }
-                    if (ThreadSafeRandom.Next(0, 1000000) == 0)
-                    {
-                        amount = 3;
-                    }
-                    if (ThreadSafeRandom.Next(0, 10000000) == 0)
-                    {
-                        amount = 4;
-                    }
-                    break;
 
-            }
+            if (tier < 8)
+                return amount;
+
+            if (ThreadSafeRandom.Next(0, 1000) == 0)
+                amount = 1;
+
+            if (ThreadSafeRandom.Next(0, 5000) == 0)
+                amount = 2;
+
+            if (ThreadSafeRandom.Next(0, 1000000) == 0)
+                amount = 3;
+
+            if (ThreadSafeRandom.Next(0, 10000000) == 0)
+                amount = 4;
+
             return amount;
         }
 
         public static int GetNumEpicCantrips(int tier)
         {
-
             int amount = 0;
+
+            if (tier < 7)
+                return amount;
+
             switch (tier)
             {
-                case 1:
-                    break;
-                case 2:
-                    break;
-                case 3:
-                    break;
-                case 4:
-                    break;
-                case 5:
-                    break;
-                case 6:
-                    break;
                 case 7:
                     if (ThreadSafeRandom.Next(0, 1000) == 0)
-                    {
                         amount = 1;
-                    }
                     if (ThreadSafeRandom.Next(0, 10000) == 0)
-                    {
                         amount = 2;
-                    }
                     if (ThreadSafeRandom.Next(0, 100000) == 0)
-                    {
                         amount = 3;
-                    }
                     break;
                 default:
                     if (ThreadSafeRandom.Next(0, 1000) == 0)
-                    {
                         amount = 1;
-                    }
                     if (ThreadSafeRandom.Next(0, 10000) == 0)
-                    {
                         amount = 2;
-                    }
                     if (ThreadSafeRandom.Next(0, 100000) == 0)
-                    {
                         amount = 3;
-                    }
                     break;
 
             }
+
             return amount;
         }
 
@@ -18536,80 +17526,50 @@ namespace ACE.Server.Factories
                     break;
                 case 2:
                     if (ThreadSafeRandom.Next(0, 500) == 0)
-                    {
                         amount = 1;
-                    }
                     break;
                 case 3:
                     if (ThreadSafeRandom.Next(0, 500) == 0)
-                    {
                         amount = 1;
-                    }
                     if (ThreadSafeRandom.Next(0, 10000) == 0)
-                    {
                         amount = 2;
-                    }
                     break;
                 case 4:
                     if (ThreadSafeRandom.Next(0, 500) == 0)
-                    {
                         amount = 1;
-                    }
                     if (ThreadSafeRandom.Next(0, 5000) == 0)
-                    {
                         amount = 2;
-                    }
                     break;
                 case 5:
                     if (ThreadSafeRandom.Next(0, 500) == 0)
-                    {
                         amount = 1;
-                    }
                     if (ThreadSafeRandom.Next(0, 5000) == 0)
-                    {
                         amount = 2;
-                    }
                     break;
                 case 6:
                     if (ThreadSafeRandom.Next(0, 500) == 0)
-                    {
                         amount = 1;
-                    }
                     if (ThreadSafeRandom.Next(0, 5000) == 0)
-                    {
                         amount = 2;
-                    }
                     break;
                 case 7:
                     if (ThreadSafeRandom.Next(0, 500) == 0)
-                    {
                         amount = 1;
-                    }
                     if (ThreadSafeRandom.Next(0, 5000) == 0)
-                    {
                         amount = 2;
-                    }
                     if (ThreadSafeRandom.Next(0, 15000) == 0)
-                    {
                         amount = 3;
-                    }
                     break;
                 default:
                     if (ThreadSafeRandom.Next(0, 500) == 0)
-                    {
                         amount = 1;
-                    }
                     if (ThreadSafeRandom.Next(0, 5000) == 0)
-                    {
                         amount = 2;
-                    }
                     if (ThreadSafeRandom.Next(0, 15000) == 0)
-                    {
                         amount = 3;
-                    }
                     break;
-
             }
+
             return amount;
         }
 
@@ -18621,132 +17581,69 @@ namespace ACE.Server.Factories
             {
                 case 1:
                     if (ThreadSafeRandom.Next(0, 100) == 0)
-                    {
                         amount = 1;
-                    }
                     break;
                 case 2:
                     if (ThreadSafeRandom.Next(0, 50) == 0)
-                    {
                         amount = 1;
-                    }
                     if (ThreadSafeRandom.Next(0, 250) == 0)
-                    {
                         amount = 2;
-                    }
                     break;
                 case 3:
                     if (ThreadSafeRandom.Next(0, 50) == 0)
-                    {
                         amount = 1;
-                    }
                     if (ThreadSafeRandom.Next(0, 250) == 0)
-                    {
                         amount = 2;
-                    }
                     break;
                 case 4:
                     if (ThreadSafeRandom.Next(0, 50) == 0)
-                    {
                         amount = 1;
-                    }
                     if (ThreadSafeRandom.Next(0, 250) == 0)
-                    {
                         amount = 2;
-                    }
                     if (ThreadSafeRandom.Next(0, 1000) == 0)
-                    {
                         amount = 3;
-                    }
                     break;
                 case 5:
                     if (ThreadSafeRandom.Next(0, 50) == 0)
-                    {
                         amount = 1;
-                    }
                     if (ThreadSafeRandom.Next(0, 250) == 0)
-                    {
                         amount = 2;
-                    }
                     if (ThreadSafeRandom.Next(0, 1000) == 0)
-                    {
                         amount = 3;
-                    }
                     break;
                 case 6:
                     if (ThreadSafeRandom.Next(0, 50) == 0)
-                    {
                         amount = 1;
-                    }
                     if (ThreadSafeRandom.Next(0, 250) == 0)
-                    {
                         amount = 2;
-                    }
                     if (ThreadSafeRandom.Next(0, 1000) == 0)
-                    {
                         amount = 3;
-                    }
                     if (ThreadSafeRandom.Next(0, 5000) == 0)
-                    {
                         amount = 4;
-                    }
                     break;
                 case 7:
                     if (ThreadSafeRandom.Next(0, 50) == 0)
-                    {
                         amount = 1;
-                    }
                     if (ThreadSafeRandom.Next(0, 250) == 0)
-                    {
                         amount = 2;
-                    }
                     if (ThreadSafeRandom.Next(0, 1000) == 0)
-                    {
                         amount = 3;
-                    }
                     if (ThreadSafeRandom.Next(0, 5000) == 0)
-                    {
                         amount = 4;
-                    }
                     break;
                 default:
                     if (ThreadSafeRandom.Next(0, 50) == 0)
-                    {
                         amount = 1;
-                    }
                     if (ThreadSafeRandom.Next(0, 250) == 0)
-                    {
                         amount = 2;
-                    }
                     if (ThreadSafeRandom.Next(0, 1000) == 0)
-                    {
                         amount = 3;
-                    }
                     if (ThreadSafeRandom.Next(0, 5000) == 0)
-                    {
                         amount = 4;
-                    }
                     break;
-
             }
+
             return amount;
-        }
-
-        public static String getLongDesc(String name, int gemType, int gemNum)
-        {
-            //Still need to get spell name
-            //Format for long description is: "Exquisitely crafted Ruby Ring of Fire Protection set with 1 White Sapphire."
-            String lD = "";
-            if (gemNum > 1)
-            {
-                lD = name + " set with " + gemNum + " " + LootHelper.gemNames[gemType] + "s.";
-            }
-            else
-            {
-                lD = name + " set with " + gemNum + " " + LootHelper.gemNames[gemType] + ".";
-            }
-
-            return lD;
         }
     }
 }
