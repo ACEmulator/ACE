@@ -98,10 +98,11 @@ namespace ACE.Server.WorldObjects.Entity
 
                 total += InitLevel + Ranks;
 
-                // TODO: verify aug formula w/ client
-                // according to the wiki, this is not supposed to be visible in the character screen
                 if (creature is Player player)
                 {
+                    if (player.AugmentationJackOfAllTrades != 0)
+                        total += (uint)(player.AugmentationJackOfAllTrades * 5);
+
                     if (player.AugmentationSkilledMelee > 0 && Player.MeleeSkills.Contains(Skill))
                         total += (uint)(player.AugmentationSkilledMelee * 10);
                     else if (player.AugmentationSkilledMissile > 0 && Player.MissileSkills.Contains(Skill))
@@ -138,6 +139,13 @@ namespace ACE.Server.WorldObjects.Entity
                     // it seems this gets applied after vitae?
                     if (player.AugmentationJackOfAllTrades != 0)
                         total += (uint)(player.AugmentationJackOfAllTrades * 5);
+
+                    if (player.AugmentationSkilledMelee > 0 && Player.MeleeSkills.Contains(Skill))
+                        total += (uint)(player.AugmentationSkilledMelee * 10);
+                    else if (player.AugmentationSkilledMissile > 0 && Player.MissileSkills.Contains(Skill))
+                        total += (uint)(player.AugmentationSkilledMissile * 10);
+                    else if (player.AugmentationSkilledMagic > 0 && Player.MagicSkills.Contains(Skill))
+                        total += (uint)(player.AugmentationSkilledMagic * 10);
                 }
 
                 return total;

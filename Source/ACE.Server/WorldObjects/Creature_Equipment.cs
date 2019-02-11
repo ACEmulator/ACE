@@ -42,10 +42,10 @@ namespace ACE.Server.WorldObjects
             SetChildren();
         }
 
-        public bool WieldedLocationIsAvailable(EquipMask validLocations)
+        public bool WieldedLocationIsAvailable(WorldObject item, EquipMask wieldedLocation)
         {
             // filtering to just armor here, or else trinkets and dual wielding breaks
-            var existing = GetEquippedArmor(validLocations);
+            var existing = this is Player ? GetEquippedArmor(wieldedLocation) : GetEquippedItems(item, wieldedLocation);
 
             return existing.Count == 0;
         }
@@ -72,11 +72,25 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
+        /// Returns a list of equipped armor with any overlap with input locations
+        /// </summary>
+        public List<WorldObject> GetEquippedArmor(EquipMask wieldedLocation)
+        {
+            return EquippedObjects.Values.Where(i => (i.ValidLocations & EquipMask.ArmorExclusive) != 0 && (i.ValidLocations & wieldedLocation) != 0).ToList();
+        }
+
+        /// <summary>
         /// Returns a list of equipped items with any overlap with input locations
         /// </summary>
-        public List<WorldObject> GetEquippedArmor(EquipMask validLocations)
+        public List<WorldObject> GetEquippedItems(WorldObject item, EquipMask wieldedLocation)
         {
-            return EquippedObjects.Values.Where(i => (i.ValidLocations & EquipMask.ArmorExclusive) != 0 && (i.ValidLocations & validLocations) != 0).ToList();
+            if (IsWeaponSlot(wieldedLocation))
+            {
+                GetPlacementLocation(item, wieldedLocation, out var placement, out var parentLocation);
+                return EquippedObjects.Values.Where(i => (i.ParentLocation & parentLocation) != 0).ToList();
+            }
+
+            return EquippedObjects.Values.Where(i => (i.CurrentWieldedLocation & wieldedLocation) != 0).ToList();
         }
 
         /// <summary>
@@ -161,7 +175,8 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public bool TryEquipObject(WorldObject worldObject, EquipMask wieldedLocation)
         {
-            if (!WieldedLocationIsAvailable(worldObject.ValidLocations ?? 0))
+            // todo: verify wielded location is valid location
+            if (!WieldedLocationIsAvailable(worldObject, wieldedLocation))
                 return false;
 
             worldObject.CurrentWieldedLocation = wieldedLocation;
@@ -286,10 +301,20 @@ namespace ACE.Server.WorldObjects
                 return false;
             }
 
-            Placement placement;
-            ParentLocation parentLocation;
+            GetPlacementLocation(item, item.CurrentWieldedLocation ?? 0, out var placement, out var parentLocation);
 
-            switch (item.CurrentWieldedLocation)
+            Children.Add(new HeldItem(item.Guid.Full, (int)parentLocation, (EquipMask)item.CurrentWieldedLocation));
+
+            item.Placement = placement;
+            item.ParentLocation = parentLocation;
+            item.Location = Location;
+
+            return true;
+        }
+
+        private static void GetPlacementLocation(WorldObject item, EquipMask wieldedLocation, out Placement placement, out ParentLocation parentLocation)
+        {
+            switch (wieldedLocation)
             {
                 case EquipMask.MeleeWeapon:
                 case EquipMask.Held:
@@ -329,14 +354,21 @@ namespace ACE.Server.WorldObjects
                     parentLocation = ACE.Entity.Enum.ParentLocation.None;
                     break;
             }
+        }
 
-            Children.Add(new HeldItem(item.Guid.Full, (int)parentLocation, (EquipMask)item.CurrentWieldedLocation));
-
-            item.Placement = placement;
-            item.ParentLocation = parentLocation;
-            item.Location = Location;
-
-            return true;
+        private static bool IsWeaponSlot(EquipMask equipMask)
+        {
+            switch (equipMask)
+            {
+                case EquipMask.MeleeWeapon:
+                case EquipMask.Held:
+                case EquipMask.TwoHanded:
+                case EquipMask.Shield:
+                case EquipMask.MissileWeapon:
+                    return true;
+                default:
+                    return false;
+            }
         }
 
         /// <summary>
@@ -381,8 +413,28 @@ namespace ACE.Server.WorldObjects
         {
             var attackable = Attackable ?? false;
 
+            var rng = ThreadSafeRandom.Next(0.0f, 1.0f);
+            var totalProbability = 0.0f;
+            var rngSelected = false;
+
             foreach (var item in Biota.BiotaPropertiesCreateList.Where(x => x.DestinationType == (int) DestinationType.Wield || x.DestinationType == (int) DestinationType.WieldTreasure))
             {
+                var destinationType = (DestinationType)item.DestinationType;
+                var useRNG = destinationType.HasFlag(DestinationType.Treasure);
+
+                var shadeOrProbability = item.Shade;
+
+                if (useRNG)
+                {
+                    var probability = shadeOrProbability;
+
+                    totalProbability += probability;
+                    if (rngSelected || rng > totalProbability)
+                        continue;
+
+                    rngSelected = true;
+                }
+
                 var wo = WorldObjectFactory.CreateNewWorldObject(item.WeenieClassId);
 
                 if (wo != null)
@@ -390,7 +442,7 @@ namespace ACE.Server.WorldObjects
                     if (item.Palette > 0)
                         wo.PaletteTemplate = item.Palette;
 
-                    if (item.Shade > 0)
+                    if (!useRNG && item.Shade > 0)
                         wo.Shade = item.Shade;
 
                     if (!attackable && wo.ValidLocations != null)
