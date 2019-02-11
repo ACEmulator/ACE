@@ -25,7 +25,7 @@ namespace ACE.Database
 
         public bool Exists(bool retryUntilFound)
         {
-            var config = Common.ConfigManager.Config.MySql.World;
+            var config = Common.ConfigManager.Config.MySql.Shard;
 
             for (; ; )
             {
