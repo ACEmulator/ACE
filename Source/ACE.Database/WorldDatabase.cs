@@ -517,6 +517,23 @@ namespace ACE.Database
             }
         }
 
+        /// <summary>
+        /// This takes under ? second to complete.
+        /// </summary>
+        public void CacheAllHousePortals()
+        {
+            using (var context = new WorldDbContext())
+            {
+                var results = context.HousePortal
+                    .AsNoTracking()
+                    .GroupBy(r => r.HouseId)
+                    .ToList();
+
+                foreach (var result in results)
+                    cachedHousePortals[result.Key] = result.ToList();
+            }
+        }
+
         private readonly ConcurrentDictionary<uint, List<HousePortal>> cachedHousePortalsByLandblock = new ConcurrentDictionary<uint, List<HousePortal>>();
 
         public List<HousePortal> GetCachedHousePortalsByLandblock(uint landblockId)
