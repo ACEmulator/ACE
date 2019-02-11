@@ -52,6 +52,12 @@ namespace ACE.Server.Entity
         /// </summary>
         public bool Permaload = false;
 
+        /// <summary>
+        /// This must be true before a player enters a landblock.
+        /// This prevents a player from possibly pasing through a door that hasn't spawned in yet, and other scenarios.
+        /// </summary>
+        public bool CreateWorldObjectsCompleted { get; private set; }
+
         private DateTime lastActiveTime;
 
         private readonly Dictionary<ObjectGuid, WorldObject> worldObjects = new Dictionary<ObjectGuid, WorldObject>();
@@ -120,25 +126,18 @@ namespace ACE.Server.Entity
             lastActiveTime = DateTime.UtcNow;
 
             if (sync)
-            {
-                LoadLandblock(sync);
-            }
+                LoadLandblock();
             else
-            {
-                Task.Run(() => LoadLandblock(sync));
-            }
+                Task.Run(() => LoadLandblock());
 
             //LoadMeshes(objects);
         }
 
-        private void LoadLandblock(bool sync)
+        private void LoadLandblock()
         {
             _landblock = LScape.get_landblock(Id.Raw);
 
-            if (sync)
-                CreateWorldObjects();
-            else
-                actionQueue.EnqueueAction(new ActionEventDelegate(CreateWorldObjects));
+            CreateWorldObjects();
 
             SpawnDynamicShardObjects();
 
@@ -155,28 +154,33 @@ namespace ACE.Server.Entity
             var shardObjects = DatabaseManager.Shard.GetStaticObjectsByLandblock(Id.Landblock);
             var factoryObjects = WorldObjectFactory.CreateNewWorldObjects(objects, shardObjects);
 
-            // for mansion linking
-            var houses = new List<House>();
-
-            foreach (var fo in factoryObjects)
+            actionQueue.EnqueueAction(new ActionEventDelegate(() =>
             {
-                WorldObject parent = null;
-                if (fo.WeenieType == WeenieType.House && fo.HouseType == HouseType.Mansion)
-                {
-                    var house = fo as House;
-                    houses.Add(house);
-                    house.LinkedHouses.Add(houses[0]);
+                // for mansion linking
+                var houses = new List<House>();
 
-                    if (houses.Count > 1)
+                foreach (var fo in factoryObjects)
+                {
+                    WorldObject parent = null;
+                    if (fo.WeenieType == WeenieType.House && fo.HouseType == HouseType.Mansion)
                     {
-                        houses[0].LinkedHouses.Add(house);
-                        parent = houses[0];
+                        var house = fo as House;
+                        houses.Add(house);
+                        house.LinkedHouses.Add(houses[0]);
+
+                        if (houses.Count > 1)
+                        {
+                            houses[0].LinkedHouses.Add(house);
+                            parent = houses[0];
+                        }
                     }
+
+                    AddWorldObject(fo);
+                    fo.ActivateLinks(objects, shardObjects, parent);
                 }
 
-                AddWorldObject(fo);
-                fo.ActivateLinks(objects, shardObjects, parent);
-            }
+                CreateWorldObjectsCompleted = true;
+            }));
         }
 
         /// <summary>

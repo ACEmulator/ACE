@@ -343,6 +343,17 @@ namespace ACE.Server.WorldObjects
 
         public void OnTeleportComplete()
         {
+            if (CurrentLandblock != null && !CurrentLandblock.CreateWorldObjectsCompleted)
+            {
+                // If the critical landblock resources haven't been loaded yet, we keep the player in the pink bubble state
+                // We'll check periodically to see when it's safe to let them materialize in
+                var actionChain = new ActionChain();
+                actionChain.AddDelaySeconds(0.1);
+                actionChain.AddAction(this, OnTeleportComplete);
+                actionChain.EnqueueChain();
+                return;
+            }
+
             // set materialize physics state
             // this takes the player from pink bubbles -> fully materialized
             ReportCollisions = true;
