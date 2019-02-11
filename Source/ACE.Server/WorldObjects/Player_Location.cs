@@ -44,6 +44,9 @@ namespace ACE.Server.WorldObjects
 
         private static readonly Motion motionHouseRecall = new Motion(MotionStance.NonCombat, MotionCommand.HouseRecall);
 
+        public static float RecallMoveThreshold = 8.0f;
+        public static float RecallMoveThresholdSq = RecallMoveThreshold * RecallMoveThreshold;
+
         public void HandleActionTeleToHouse()
         {
             if (House == null)
@@ -63,13 +66,25 @@ namespace ACE.Server.WorldObjects
             EnqueueBroadcast(new GameMessageSystemChat($"{Name} is recalling home.", ChatMessageType.Recall));
             EnqueueBroadcastMotion(motionHouseRecall);
 
+            var startPos = new Position(Location);
+
             // Wait for animation
             var actionChain = new ActionChain();
 
             // Then do teleport
             var animLength = DatManager.PortalDat.ReadFromDat<MotionTable>(MotionTableId).GetAnimationLength(MotionCommand.HouseRecall);
             actionChain.AddDelaySeconds(animLength);
-            actionChain.AddAction(this, () => Teleport(House.SlumLord.Location));
+            actionChain.AddAction(this, () =>
+            {
+                var endPos = new Position(Location);
+                if (startPos.SquaredDistanceTo(endPos) > RecallMoveThresholdSq)
+                {
+                    Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouHaveMovedTooFar));
+                    return;
+                }
+
+                Teleport(House.SlumLord.Location);
+            });
 
             actionChain.EnqueueChain();
         }
@@ -95,12 +110,24 @@ namespace ACE.Server.WorldObjects
                 EnqueueBroadcast(new GameMessageSystemChat($"{Name} is recalling to the lifestone.", ChatMessageType.Recall));
                 EnqueueBroadcastMotion(motionLifestoneRecall);
 
+                var startPos = new Position(Location);
+
                 // Wait for animation
                 ActionChain lifestoneChain = new ActionChain();
 
                 // Then do teleport
                 lifestoneChain.AddDelaySeconds(DatManager.PortalDat.ReadFromDat<MotionTable>(MotionTableId).GetAnimationLength(MotionCommand.LifestoneRecall));
-                lifestoneChain.AddAction(this, () => Teleport(Sanctuary));
+                lifestoneChain.AddAction(this, () =>
+                {
+                    var endPos = new Position(Location);
+                    if (startPos.SquaredDistanceTo(endPos) > RecallMoveThresholdSq)
+                    {
+                        Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouHaveMovedTooFar));
+                        return;
+                    }
+
+                    Teleport(Sanctuary);
+                });
 
                 lifestoneChain.EnqueueChain();
             }
@@ -120,6 +147,8 @@ namespace ACE.Server.WorldObjects
             Session.Network.EnqueueSend(updateCombatMode); // this should be handled by a different thing, probably a function that forces player into peacemode
             EnqueueBroadcastMotion(motionMarketplaceRecall);
 
+            var startPos = new Position(Location);
+
             // TODO: (OptimShi): Actual animation length is longer than in retail. 18.4s
             // float mpAnimationLength = MotionTable.GetAnimationLength((uint)MotionTableId, MotionCommand.MarketplaceRecall);
             // mpChain.AddDelaySeconds(mpAnimationLength);
@@ -127,7 +156,17 @@ namespace ACE.Server.WorldObjects
             mpChain.AddDelaySeconds(14);
 
             // Then do teleport
-            mpChain.AddAction(this, () => Teleport(MarketplaceDrop));
+            mpChain.AddAction(this, () =>
+            {
+                var endPos = new Position(Location);
+                if (startPos.SquaredDistanceTo(endPos) > RecallMoveThresholdSq)
+                {
+                    Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouHaveMovedTooFar));
+                    return;
+                }
+
+                Teleport(MarketplaceDrop);
+            });
 
             // Set the chain to run
             mpChain.EnqueueChain();
@@ -163,13 +202,25 @@ namespace ACE.Server.WorldObjects
             EnqueueBroadcast(new GameMessageSystemChat($"{Name} is going to the Allegiance hometown.", ChatMessageType.Recall));
             EnqueueBroadcastMotion(motionAllegianceHometownRecall);
 
+            var startPos = new Position(Location);
+
             // Wait for animation
             var actionChain = new ActionChain();
 
             // Then do teleport
             var animLength = DatManager.PortalDat.ReadFromDat<MotionTable>(MotionTableId).GetAnimationLength(MotionCommand.AllegianceHometownRecall);
             actionChain.AddDelaySeconds(animLength);
-            actionChain.AddAction(this, () => Teleport(Allegiance.Sanctuary));
+            actionChain.AddAction(this, () =>
+            {
+                var endPos = new Position(Location);
+                if (startPos.SquaredDistanceTo(endPos) > RecallMoveThresholdSq)
+                {
+                    Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouHaveMovedTooFar));
+                    return;
+                }
+
+                Teleport(Allegiance.Sanctuary);
+            });
 
             actionChain.EnqueueChain();
         }
@@ -220,13 +271,25 @@ namespace ACE.Server.WorldObjects
             EnqueueBroadcast(new GameMessageSystemChat($"{Name} is recalling to the Allegiance housing.", ChatMessageType.Recall));
             EnqueueBroadcastMotion(motionHouseRecall);
 
+            var startPos = new Position(Location);
+
             // Wait for animation
             var actionChain = new ActionChain();
 
             // Then do teleport
             var animLength = DatManager.PortalDat.ReadFromDat<MotionTable>(MotionTableId).GetAnimationLength(MotionCommand.HouseRecall);
             actionChain.AddDelaySeconds(animLength);
-            actionChain.AddAction(this, () => Teleport(allegianceHouse.SlumLord.Location));
+            actionChain.AddAction(this, () =>
+            {
+                var endPos = new Position(Location);
+                if (startPos.SquaredDistanceTo(endPos) > RecallMoveThresholdSq)
+                {
+                    Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouHaveMovedTooFar));
+                    return;
+                }
+
+                Teleport(allegianceHouse.SlumLord.Location);
+            }); 
 
             actionChain.EnqueueChain();
         }
@@ -280,6 +343,17 @@ namespace ACE.Server.WorldObjects
 
         public void OnTeleportComplete()
         {
+            if (CurrentLandblock != null && !CurrentLandblock.CreateWorldObjectsCompleted)
+            {
+                // If the critical landblock resources haven't been loaded yet, we keep the player in the pink bubble state
+                // We'll check periodically to see when it's safe to let them materialize in
+                var actionChain = new ActionChain();
+                actionChain.AddDelaySeconds(0.1);
+                actionChain.AddAction(this, OnTeleportComplete);
+                actionChain.EnqueueChain();
+                return;
+            }
+
             // set materialize physics state
             // this takes the player from pink bubbles -> fully materialized
             ReportCollisions = true;

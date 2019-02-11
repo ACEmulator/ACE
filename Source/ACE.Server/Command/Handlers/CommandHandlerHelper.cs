@@ -56,15 +56,11 @@ namespace ACE.Server.Command.Handlers
                 return null;
             }
 
-            var target = session.Player.FindObject(targetID.Value, Player.SearchLocations.Everywhere, out Container foundInContainer, out Container rootOwner, out bool wasEquipped);
+            var target = session.Player.FindObject(targetID.Value, Player.SearchLocations.Everywhere, out _, out _, out _);
             if (target == null)
             {
-                target = session.Player.CurrentLandblock.GetWieldedObject(targetID.Value);
-                if (target == null)
-                {
-                    WriteOutputInfo(session, $"GetLastAppraisedObject() - couldn't find {targetID:X8}");
-                    return null;
-                }
+                WriteOutputInfo(session, $"GetLastAppraisedObject() - couldn't find {targetID:X8}");
+                return null;
             }
             return target;
         }

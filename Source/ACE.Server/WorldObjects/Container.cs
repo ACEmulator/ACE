@@ -126,9 +126,20 @@ namespace ACE.Server.WorldObjects
                 Value += container.Value; // This value includes the containers value itself + all child items
             }
 
+            OnInitialInventoryLoadCompleted();
+        }
 
-            if (WeenieType == WeenieType.Hook && this is Hook hook)
-                hook.OnLoad();
+        public int GetFreeInventorySlots(bool includeSidePacks = true)
+        {
+            int freeSlots = (ItemCapacity ?? 0) - Inventory.Count;
+
+            if (includeSidePacks)
+            {
+                foreach (var sidePack in Inventory.Values.OfType<Container>())
+                    freeSlots += (sidePack.ItemCapacity ?? 0) - sidePack.Inventory.Count;
+            }
+
+            return freeSlots;
         }
 
         /// <summary>
@@ -333,6 +344,9 @@ namespace ACE.Server.WorldObjects
             Value += worldObject.Value;
 
             container = this;
+
+            OnAddItem();
+
             return true;
         }
 
@@ -368,6 +382,8 @@ namespace ACE.Server.WorldObjects
 
                 EncumbranceVal -= item.EncumbranceVal;
                 Value -= item.Value;
+
+                OnRemoveItem();
 
                 return true;
             }
@@ -424,20 +440,33 @@ namespace ACE.Server.WorldObjects
 
             DoOnOpenMotionChanges();
 
+            SendInventory(player);
+        }
+
+        public void SendInventory(Player player)
+        {
             // send createobject for all objects in this container's inventory to player
             var itemsToSend = new List<GameMessage>();
-            var woToExamine = new List<WorldObject>();
 
             foreach (var item in Inventory.Values)
             {
                 // FIXME: only send messages for unknown objects
                 itemsToSend.Add(new GameMessageCreateObject(item));
-                woToExamine.Add(item);
+
+                if (item is Container container)
+                {
+                    foreach (var containerItem in container.Inventory.Values)
+                        itemsToSend.Add(new GameMessageCreateObject(containerItem));
+                }
             }
 
             player.Session.Network.EnqueueSend(itemsToSend.ToArray());
 
             player.Session.Network.EnqueueSend(new GameEventViewContents(player.Session, this));
+
+            // send sub-containers
+            foreach (var container in Inventory.Values.Where(i => i is Container))
+                player.Session.Network.EnqueueSend(new GameEventViewContents(player.Session, (Container)container));
         }
 
         protected virtual float DoOnOpenMotionChanges()
@@ -507,10 +536,56 @@ namespace ACE.Server.WorldObjects
             }
         }
 
+        public void MergeAllStackables()
+        {
+            var inventory = Inventory.Values.ToList();
+
+            for (int i = inventory.Count - 1; i > 0; i--)
+            {
+                var sourceItem = inventory[i];
+
+                if (sourceItem.MaxStackSize == null || sourceItem.MaxStackSize <= 1)
+                    continue;
+
+                for (int j = 0; j < i; j++)
+                {
+                    var destinationItem = inventory[j];
+
+                    if (destinationItem.WeenieClassId != sourceItem.WeenieClassId || destinationItem.StackSize == destinationItem.MaxStackSize)
+                        continue;
+
+                    var amount = Math.Min(sourceItem.StackSize ?? 0, (destinationItem.MaxStackSize - destinationItem.StackSize) ?? 0);
+
+                    sourceItem.StackSize -= amount;
+                    sourceItem.EncumbranceVal = (sourceItem.StackUnitEncumbrance ?? 0) * (sourceItem.StackSize ?? 1);
+                    sourceItem.Value = (sourceItem.StackUnitValue ?? 0) * (sourceItem.StackSize ?? 1);
+
+                    destinationItem.StackSize += amount;
+                    destinationItem.EncumbranceVal = (destinationItem.StackUnitEncumbrance ?? 0) * (destinationItem.StackSize ?? 1);
+                    destinationItem.Value = (destinationItem.StackUnitValue ?? 0) * (destinationItem.StackSize ?? 1);
+
+                    if (sourceItem.StackSize == 0)
+                    {
+                        TryRemoveFromInventory(sourceItem.Guid);
+                        sourceItem.Destroy();
+                        break;
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// This event is raised after the containers items have been completely loaded from the database
+        /// </summary>
+        protected virtual void OnInitialInventoryLoadCompleted()
+        {
+            // empty base
+        }
+
         /// <summary>
         /// This event is raised when player adds item to container
         /// </summary>
-        public virtual void OnAddItem()
+        protected virtual void OnAddItem()
         {
             // empty base
         }
@@ -518,7 +593,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// This event is raised when player removes item from container
         /// </summary>
-        public virtual void OnRemoveItem()
+        protected virtual void OnRemoveItem()
         {
             // empty base
         }

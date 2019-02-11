@@ -2247,6 +2247,18 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyInt.XpOverride); else SetProperty(PropertyInt.XpOverride, value.Value); }
         }
 
+        public int? MinLevel
+        {
+            get => GetProperty(PropertyInt.MinLevel);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.MinLevel); else SetProperty(PropertyInt.MinLevel, value.Value); }
+        }
+
+        public int? MaxLevel
+        {
+            get => GetProperty(PropertyInt.MaxLevel);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.MaxLevel); else SetProperty(PropertyInt.MaxLevel, value.Value); }
+        }
+
         /// <summary>
         /// Currently used by Generators and Players
         /// </summary>

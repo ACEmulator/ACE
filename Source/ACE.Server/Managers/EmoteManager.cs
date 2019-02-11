@@ -1076,17 +1076,25 @@ namespace ACE.Server.Managers
                     break;
                 case EmoteType.UpdateQuest:
 
-                    // is this only for solving??
-
-                    // only delay seems to be with test NPC here
-                    // still, unsafe to use any emotes directly outside of a chain,
-                    // as they could be executed out-of-order
                     if (player != null)
                     {
                         var questName = emote.Message;
-                        player.QuestManager.Update(questName);
+
                         var hasQuest = player.QuestManager.HasQuest(questName);
-                        ExecuteEmoteSet(hasQuest ? EmoteCategory.QuestSuccess : EmoteCategory.QuestFailure, emote.Message, targetObject, true);
+
+                        if (!hasQuest)
+                        {
+                            // add new quest
+                            player.QuestManager.Update(questName);
+                            hasQuest = player.QuestManager.HasQuest(questName);
+                            ExecuteEmoteSet(hasQuest ? EmoteCategory.QuestSuccess : EmoteCategory.QuestFailure, emote.Message, targetObject, true);
+                        }
+                        else
+                        {
+                            // update existing quest
+                            var canSolve = player.QuestManager.CanSolve(questName);
+                            ExecuteEmoteSet(canSolve ? EmoteCategory.QuestSuccess : EmoteCategory.QuestFailure, emote.Message, targetObject, true);
+                        }
                     }
                     break;
 

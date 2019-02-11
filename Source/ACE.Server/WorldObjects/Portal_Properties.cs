@@ -11,18 +11,6 @@ namespace ACE.Server.WorldObjects
             set { if (value == PortalBitmask.Undef) RemoveProperty(PropertyInt.PortalBitmask); else SetProperty(PropertyInt.PortalBitmask, (int)value); }
         }
 
-        public int? MinLevel
-        {
-            get => GetProperty(PropertyInt.MinLevel);
-            set { if (!value.HasValue) RemoveProperty(PropertyInt.MinLevel); else SetProperty(PropertyInt.MinLevel, value.Value); }
-        }
-
-        public int? MaxLevel
-        {
-            get => GetProperty(PropertyInt.MaxLevel);
-            set { if (!value.HasValue) RemoveProperty(PropertyInt.MaxLevel); else SetProperty(PropertyInt.MaxLevel, value.Value); }
-        }
-
         public bool NoRecall => (PortalRestrictions & PortalBitmask.NoRecall) != 0;
 
         public bool NoTie => NoRecall;
