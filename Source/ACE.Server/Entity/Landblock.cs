@@ -835,7 +835,7 @@ namespace ACE.Server.Entity
                 if (isHouseDungeon != null)
                     return isHouseDungeon.Value;
 
-                isHouseDungeon = IsDungeon ? DatabaseManager.World.GetHousePortalsByLandblock(Id.Landblock).Count > 0 : false;
+                isHouseDungeon = IsDungeon ? DatabaseManager.World.GetCachedHousePortalsByLandblock(Id.Landblock).Count > 0 : false;
 
                 return isHouseDungeon.Value;
             }
