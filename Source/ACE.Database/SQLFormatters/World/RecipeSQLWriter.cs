@@ -57,7 +57,7 @@ namespace ACE.Database.SQLFormatters.World
 
         public void CreateSQLDELETEStatement(Recipe input, StreamWriter writer)
         {
-            writer.WriteLine($"DELETE FROM `recipe` WHERE `recipe_Id` = {input.Id};");
+            writer.WriteLine($"DELETE FROM `recipe` WHERE `id` = {input.Id};");
         }
 
         public void CreateSQLINSERTStatement(Recipe input, StreamWriter writer)
