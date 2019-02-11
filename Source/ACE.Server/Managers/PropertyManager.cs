@@ -101,12 +101,12 @@ namespace ACE.Server.Managers
 
             bool useFallback = dbValue?.Value == null;
 
-            var boolVal = dbValue?.Value ?? fallback;
+            var value = dbValue?.Value ?? fallback;
 
             if (!useFallback || cacheFallback)
-                CachedBooleanSettings[key] = new ConfigurationEntry<bool>(useFallback, boolVal, dbValue.Description);
+                CachedBooleanSettings[key] = new ConfigurationEntry<bool>(useFallback, value, dbValue?.Description);
 
-            return new Property<bool>(boolVal, dbValue.Description);
+            return new Property<bool>(value, dbValue?.Description);
         }
 
         /// <summary>
@@ -146,12 +146,12 @@ namespace ACE.Server.Managers
 
             bool useFallback = dbValue?.Value == null;
 
-            var intVal = dbValue?.Value ?? fallback;
+            var value = dbValue?.Value ?? fallback;
 
             if (!useFallback || cacheFallback)
-                CachedLongSettings[key] = new ConfigurationEntry<long>(useFallback, intVal, dbValue.Description);
+                CachedLongSettings[key] = new ConfigurationEntry<long>(useFallback, value, dbValue?.Description);
 
-            return new Property<long>(intVal, dbValue.Description);
+            return new Property<long>(value, dbValue?.Description);
         }
 
         /// <summary>
@@ -191,12 +191,12 @@ namespace ACE.Server.Managers
 
             bool useFallback = dbValue?.Value == null;
 
-            var floatVal = dbValue?.Value ?? fallback;
+            var value = dbValue?.Value ?? fallback;
 
             if (!useFallback || cacheFallback)
-                CachedDoubleSettings[key] = new ConfigurationEntry<double>(useFallback, floatVal, dbValue.Description);
+                CachedDoubleSettings[key] = new ConfigurationEntry<double>(useFallback, value, dbValue?.Description);
 
-            return new Property<double>(CachedDoubleSettings[key].Item, CachedDoubleSettings[key].Description);
+            return new Property<double>(value, dbValue?.Description);
         }
 
         /// <summary>
@@ -236,12 +236,12 @@ namespace ACE.Server.Managers
 
             bool useFallback = dbValue?.Value == null;
 
-            var stringVal = dbValue?.Value ?? fallback;
+            var value = dbValue?.Value ?? fallback;
 
             if (!useFallback || cacheFallback)
-                CachedStringSettings[key] = new ConfigurationEntry<string>(useFallback, stringVal, dbValue.Description);
+                CachedStringSettings[key] = new ConfigurationEntry<string>(useFallback, value, dbValue?.Description);
 
-            return new Property<string>(stringVal, dbValue.Description);
+            return new Property<string>(value, dbValue?.Description);
         }
 
         /// <summary>
