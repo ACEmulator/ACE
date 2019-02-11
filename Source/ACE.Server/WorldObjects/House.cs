@@ -366,7 +366,7 @@ namespace ACE.Server.WorldObjects
             // the database house portals are different from the HousePortal weenie objects
             // the db info contains the portal destinations
 
-            return DatabaseManager.World.GetHousePortals(HouseId.Value);
+            return DatabaseManager.World.GetCachedHousePortals(HouseId.Value);
         }
 
         public bool HasDungeon => HousePortal != null;
