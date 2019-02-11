@@ -22,7 +22,8 @@ namespace ACE.Database.SQLFormatters.World
 
         public void CreateSQLDELETEStatement(IList<HousePortal> input, StreamWriter writer)
         {
-            throw new NotImplementedException();
+            foreach (var value in input)
+                writer.WriteLine($"DELETE FROM `house_portal` WHERE `house_Id` = {value.HouseId};");
         }
 
         public void CreateSQLINSERTStatement(IList<HousePortal> input, StreamWriter writer)

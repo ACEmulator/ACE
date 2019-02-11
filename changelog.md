@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2019-02-09
+[Ripley]
+* Changed GenerateTreasure to check for null DeathTreasure and de-duped generate code so that items weren't generated twice upon death.
+
 ### 2019-02-05
 [Ripley]
 * Add support for spawning Treasure pile corpses when data indicates it should.
