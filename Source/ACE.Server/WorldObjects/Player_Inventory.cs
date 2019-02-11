@@ -902,12 +902,21 @@ namespace ACE.Server.WorldObjects
                 }
             }
 
-            EquipMask validLocations = item.ValidLocations ?? 0;
+            // TODO: this handles armor slots,
+            // trinkets and weapons would need to be handled a bit differently
 
-            if (!WieldedLocationIsAvailable(validLocations))
+            // TODO: slots view is bugged here
+            // for both slots view and non-slots view, the client is oddly sending 2 packets, similar to dual wielding weapon swapping
+            // for non-slots view, the 2 packets it sends both have the full coverage slots in wieldedLocation
+            // for slots view, it sends the correct packet first, with the full coverage, and then it sends a packet with coverage for just 1 slot
+            // this bugs out CurrentWieldedLocation, as it won't be covering all of the slots... so for armor/clothing we set wieldedLocation to item.ValidLocations here
+            if (item is Clothing)
+                wieldedLocation = item.ValidLocations ?? 0;
+
+            if (!WieldedLocationIsAvailable(item, wieldedLocation))
             {
                 // filtering to just armor here, or else trinkets and dual wielding breaks
-                var existing = GetEquippedArmor(validLocations).FirstOrDefault();
+                var existing = GetEquippedArmor(wieldedLocation).FirstOrDefault();
 
                 Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, $"You must remove your {existing.Name} to wear that"));
                 Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full));
