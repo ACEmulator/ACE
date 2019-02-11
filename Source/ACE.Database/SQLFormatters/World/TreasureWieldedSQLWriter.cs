@@ -23,7 +23,7 @@ namespace ACE.Database.SQLFormatters.World
 
         public void CreateSQLDELETEStatement(IList<TreasureWielded> input, StreamWriter writer)
         {
-            throw new NotImplementedException();
+            writer.WriteLine($"DELETE FROM `treasure_wielded` WHERE `treasure_Type` = {input[0].TreasureType};");
         }
 
         public void CreateSQLINSERTStatement(IList<TreasureWielded> input, StreamWriter writer)

@@ -22,7 +22,7 @@ namespace ACE.Database.SQLFormatters.World
 
         public void CreateSQLDELETEStatement(IList<Encounter> input, StreamWriter writer)
         {
-            throw new NotImplementedException();
+            writer.WriteLine($"DELETE FROM `encounter` WHERE `landblock` = {input[0].Landblock};");
         }
 
         public void CreateSQLINSERTStatement(IList<Encounter> input, StreamWriter writer)
