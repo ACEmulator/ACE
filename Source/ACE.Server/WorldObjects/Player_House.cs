@@ -110,6 +110,9 @@ namespace ACE.Server.WorldObjects
                 }
                 DoHandleActionPutItemInContainer(item, this, false, house.SlumLord, house.SlumLord, 0);
             }
+
+            house.SlumLord.MergeAllStackables();
+
             house.SlumLord.ActOnUse(this);
 
             HandleActionQueryHouse();
