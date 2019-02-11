@@ -114,7 +114,7 @@ namespace ACE.Server.Entity
         public List<ModelMesh> Scenery { get; private set; }
 
 
-        public Landblock(LandblockId id, bool sync = false)
+        public Landblock(LandblockId id)
         {
             //Console.WriteLine($"Loading landblock {(id.Raw | 0xFFFF):X8}");
 
@@ -125,23 +125,18 @@ namespace ACE.Server.Entity
 
             lastActiveTime = DateTime.UtcNow;
 
-            if (sync)
-                LoadLandblock();
-            else
-                Task.Run(() => LoadLandblock());
+            Task.Run(() =>
+            {
+                _landblock = LScape.get_landblock(Id.Raw);
+
+                CreateWorldObjects();
+
+                SpawnDynamicShardObjects();
+
+                SpawnEncounters();
+            });
 
             //LoadMeshes(objects);
-        }
-
-        private void LoadLandblock()
-        {
-            _landblock = LScape.get_landblock(Id.Raw);
-
-            CreateWorldObjects();
-
-            SpawnDynamicShardObjects();
-
-            SpawnEncounters();
         }
 
         /// <summary>
@@ -177,9 +172,14 @@ namespace ACE.Server.Entity
 
                     AddWorldObject(fo);
                     fo.ActivateLinks(objects, shardObjects, parent);
+
+                    if (fo.PhysicsObj != null)
+                        fo.PhysicsObj.Order = 0;
                 }
 
                 CreateWorldObjectsCompleted = true;
+
+                _landblock.SortObjects();
             }));
         }
 
