@@ -129,6 +129,19 @@ namespace ACE.Server.WorldObjects
             OnInitialInventoryLoadCompleted();
         }
 
+        public int GetFreeInventorySlots(bool includeSidePacks = true)
+        {
+            int freeSlots = (ItemCapacity ?? 0) - Inventory.Count;
+
+            if (includeSidePacks)
+            {
+                foreach (var sidePack in Inventory.Values.OfType<Container>())
+                    freeSlots += (sidePack.ItemCapacity ?? 0) - sidePack.Inventory.Count;
+            }
+
+            return freeSlots;
+        }
+
         /// <summary>
         /// This method will check all containers in our possession
         /// in main inventory or any side packs
@@ -520,6 +533,44 @@ namespace ACE.Server.WorldObjects
                     wo.StackSize = (ushort)item.StackSize;
 
                 TryAddToInventory(wo);
+            }
+        }
+
+        public void MergeAllStackables()
+        {
+            var inventory = Inventory.Values.ToList();
+
+            for (int i = inventory.Count - 1; i > 0; i--)
+            {
+                var sourceItem = inventory[i];
+
+                if (sourceItem.MaxStackSize == null || sourceItem.MaxStackSize <= 1)
+                    continue;
+
+                for (int j = 0; j < i; j++)
+                {
+                    var destinationItem = inventory[j];
+
+                    if (destinationItem.WeenieClassId != sourceItem.WeenieClassId || destinationItem.StackSize == destinationItem.MaxStackSize)
+                        continue;
+
+                    var amount = Math.Min(sourceItem.StackSize ?? 0, (destinationItem.MaxStackSize - destinationItem.StackSize) ?? 0);
+
+                    sourceItem.StackSize -= amount;
+                    sourceItem.EncumbranceVal = (sourceItem.StackUnitEncumbrance ?? 0) * (sourceItem.StackSize ?? 1);
+                    sourceItem.Value = (sourceItem.StackUnitValue ?? 0) * (sourceItem.StackSize ?? 1);
+
+                    destinationItem.StackSize += amount;
+                    destinationItem.EncumbranceVal = (destinationItem.StackUnitEncumbrance ?? 0) * (destinationItem.StackSize ?? 1);
+                    destinationItem.Value = (destinationItem.StackUnitValue ?? 0) * (destinationItem.StackSize ?? 1);
+
+                    if (sourceItem.StackSize == 0)
+                    {
+                        TryRemoveFromInventory(sourceItem.Guid);
+                        sourceItem.Destroy();
+                        break;
+                    }
+                }
             }
         }
 
