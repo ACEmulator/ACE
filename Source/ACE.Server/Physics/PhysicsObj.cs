@@ -80,6 +80,7 @@ namespace ACE.Server.Physics
         public PhysicsObj ProjectileTarget;
         public double PhysicsTimer_CurrentTime;
         public bool DatObject = false;
+        public int Order = 1;
 
         /// <summary>
         /// This is managed by MovementManager.MotionInterpreter, and should not be updated anywhere else.
