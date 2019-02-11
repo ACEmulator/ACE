@@ -441,6 +441,7 @@ namespace ACE.Server.WorldObjects
             actionChain.AddDelaySeconds(1.0f);
             actionChain.AddAction(this, () =>
             {
+                // ensure house.Slumlord.InventoryLoaded?
                 var houseData = house.GetHouseData(this);
                 Session.Network.EnqueueSend(new GameEventHouseData(Session, houseData));
             });
@@ -916,6 +917,26 @@ namespace ACE.Server.WorldObjects
             {
                 var elseStr = house.OnProperty(this) ? "else " : "";
                 Session.Network.EnqueueSend(new GameMessageSystemChat($"There is no one {elseStr}on your property.", ChatMessageType.Broadcast));
+            }
+        }
+
+        /// <summary>
+        /// Called when player is exiting portal space
+        /// </summary>
+        public void CheckHouse()
+        {
+            if (CurrentLandblock == null)
+                return;
+
+            foreach (var house in CurrentLandblock.Houses)
+            {
+                var rootHouse = house.RootHouse;
+
+                if (rootHouse.HouseOwner != null && rootHouse.OnProperty(this) && !rootHouse.HasPermission(this, false))
+                {
+                    Teleport(house.BootSpot.Location);
+                    break;
+                }
             }
         }
 

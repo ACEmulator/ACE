@@ -361,6 +361,7 @@ namespace ACE.Server.WorldObjects
             Hidden = false;
 
             CheckMonsters();
+            CheckHouse();
 
             EnqueueBroadcastPhysicsState();
 

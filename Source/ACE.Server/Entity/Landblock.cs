@@ -157,16 +157,21 @@ namespace ACE.Server.Entity
                 foreach (var fo in factoryObjects)
                 {
                     WorldObject parent = null;
-                    if (fo.WeenieType == WeenieType.House && fo.HouseType == HouseType.Mansion)
+                    if (fo.WeenieType == WeenieType.House)
                     {
                         var house = fo as House;
-                        houses.Add(house);
-                        house.LinkedHouses.Add(houses[0]);
+                        Houses.Add(house);
 
-                        if (houses.Count > 1)
+                        if (fo.HouseType == HouseType.Mansion)
                         {
-                            houses[0].LinkedHouses.Add(house);
-                            parent = houses[0];
+                            houses.Add(house);
+                            house.LinkedHouses.Add(houses[0]);
+
+                            if (houses.Count > 1)
+                            {
+                                houses[0].LinkedHouses.Add(house);
+                                parent = houses[0];
+                            }
                         }
                     }
 
@@ -844,5 +849,7 @@ namespace ACE.Server.Entity
                 return isHouseDungeon.Value;
             }
         }
+
+        public List<House> Houses = new List<House>();
     }
 }
