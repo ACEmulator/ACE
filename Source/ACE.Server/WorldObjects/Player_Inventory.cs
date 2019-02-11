@@ -308,6 +308,8 @@ namespace ACE.Server.WorldObjects
             MyEquippedItems     = 0x02,
             Landblock           = 0x04,
             LastUsedContainer   = 0x08,
+            WieldedByOther      = 0x10,
+            LocationsICanMove   = MyInventory | MyEquippedItems | Landblock | LastUsedContainer,
             Everywhere          = 0xFF
         }
 
@@ -389,6 +391,14 @@ namespace ACE.Server.WorldObjects
                         }
                     }
                 }
+            }
+
+            if (searchLocations.HasFlag(SearchLocations.WieldedByOther))
+            {
+                result = CurrentLandblock?.GetWieldedObject(objectGuid);
+
+                if (result != null)
+                    return result;
             }
 
             return null;
@@ -480,7 +490,7 @@ namespace ACE.Server.WorldObjects
         {
             OnPutItemInContainer(itemGuid, containerGuid, placement);
 
-            var item = FindObject(itemGuid, SearchLocations.Everywhere, out _, out var itemRootOwner, out var itemWasEquipped);
+            var item = FindObject(itemGuid, SearchLocations.LocationsICanMove, out _, out var itemRootOwner, out var itemWasEquipped);
             var container = FindObject(containerGuid, SearchLocations.MyInventory | SearchLocations.Landblock | SearchLocations.LastUsedContainer, out _, out var containerRootOwner, out _) as Container;
 
             if (item == null)
@@ -796,7 +806,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }*/
 
-            var item = FindObject(new ObjectGuid(itemGuid), SearchLocations.Everywhere, out _, out var rootOwner, out var wasEquipped);
+            var item = FindObject(new ObjectGuid(itemGuid), SearchLocations.LocationsICanMove, out _, out var rootOwner, out var wasEquipped);
 
             if (item == null)
             {
@@ -1087,7 +1097,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            var stack = FindObject(new ObjectGuid(stackId), SearchLocations.Everywhere, out var stackFoundInContainer, out var stackRootOwner, out _);
+            var stack = FindObject(new ObjectGuid(stackId), SearchLocations.LocationsICanMove, out var stackFoundInContainer, out var stackRootOwner, out _);
             var container = FindObject(new ObjectGuid(containerId), SearchLocations.MyInventory | SearchLocations.Landblock | SearchLocations.LastUsedContainer, out _, out var containerRootOwner, out _) as Container;
 
             if (stack == null)
@@ -1314,7 +1324,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            var sourceStack = FindObject(mergeFromGuid, SearchLocations.Everywhere, out var sourceStackFoundInContainer, out var sourceStackRootOwner, out _);
+            var sourceStack = FindObject(mergeFromGuid, SearchLocations.LocationsICanMove, out var sourceStackFoundInContainer, out var sourceStackRootOwner, out _);
             var targetStack = FindObject(mergeToGuid, SearchLocations.MyInventory | SearchLocations.MyEquippedItems | SearchLocations.LastUsedContainer, out var targetStackFoundInContainer, out var targetStackRootOwner, out _);
 
             if (sourceStack == null)

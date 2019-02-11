@@ -330,12 +330,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            var wo = FindObject(objectGuid, SearchLocations.Everywhere, out Container foundInContainer, out Container rootOwner, out bool wasEquipped);
-            if (wo == null)
-            {
-                // search creature equipped weapons on nearby landblocks
-                wo = CurrentLandblock?.GetWieldedObject(objectGuid);
-            }
+            var wo = FindObject(objectGuid, SearchLocations.Everywhere, out _, out _, out _);
             if (wo == null)
             {
                 log.Warn($"{Name}.ExamineObject({objectGuid:X8}): couldn't find object");
@@ -687,12 +682,8 @@ namespace ACE.Server.WorldObjects
             var wo = FindObject(itemGuid, SearchLocations.Everywhere);
             if (wo == null)
             {
-                wo = CurrentLandblock?.GetWieldedObject(itemGuid);
-                if (wo == null)
-                {
-                    log.Debug($"HandleActionForceObjDescSend() - couldn't find object {itemGuid:X8}");
-                    return;
-                }
+                log.Debug($"HandleActionForceObjDescSend() - couldn't find object {itemGuid:X8}");
+                return;
             }
             EnqueueBroadcast(new GameMessageObjDescEvent(wo));
         }
