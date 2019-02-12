@@ -38,6 +38,12 @@ namespace ACE.Server.WorldObjects
             set { if (value == 0) RemoveProperty(PropertyInt64.AllegianceXPReceived); else SetProperty(PropertyInt64.AllegianceXPReceived, (long)value); }
         }
 
+        public int? AllegianceRank
+        {
+            get => GetProperty(PropertyInt.AllegianceRank);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.AllegianceRank); else SetProperty(PropertyInt.AllegianceRank, value.Value); }
+        }
+
         public int? AllegianceOfficerRank
         {
             get => GetProperty(PropertyInt.AllegianceOfficerRank);
@@ -369,7 +375,7 @@ namespace ACE.Server.WorldObjects
 
             Allegiance.AllegianceMotd = motd;
 
-            var rank = AllegianceRank.GetTitle(HeritageGroup, (Gender)Gender, AllegianceNode.Rank);
+            var rank = AllegianceTitle.GetTitle(HeritageGroup, (Gender)Gender, AllegianceNode.Rank);
             Allegiance.AllegianceMotdSetBy = $"{rank} {Name}";
 
             Allegiance.SaveBiotaToDatabase();
@@ -396,7 +402,7 @@ namespace ACE.Server.WorldObjects
 
             Allegiance.AllegianceMotd = null;
 
-            var rank = AllegianceRank.GetTitle(HeritageGroup, (Gender)Gender, AllegianceNode.Rank);
+            var rank = AllegianceTitle.GetTitle(HeritageGroup, (Gender)Gender, AllegianceNode.Rank);
             Allegiance.AllegianceMotdSetBy = $"{rank} {Name}";
 
             Allegiance.SaveBiotaToDatabase();

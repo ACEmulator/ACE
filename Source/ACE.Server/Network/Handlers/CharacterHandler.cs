@@ -238,7 +238,8 @@ namespace ACE.Server.Network.Handlers
 
             session.Network.EnqueueSend(new GameMessageCharacterDelete());
 
-            character.DeleteTime = (ulong)Time.GetUnixTime() + 3600ul;
+            var charRestoreTime = PropertyManager.GetLong("char_delete_time", 3600).Item;
+            character.DeleteTime = (ulong)(Time.GetUnixTime() + charRestoreTime);
             character.IsDeleted = false;
 
             DatabaseManager.Shard.SaveCharacter(character, new ReaderWriterLockSlim(), result =>

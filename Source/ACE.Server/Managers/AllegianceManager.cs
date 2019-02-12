@@ -2,8 +2,10 @@ using System;
 using System.Collections.Generic;
 using ACE.Database;
 using ACE.Entity;
+using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
 using ACE.Server.Factories;
+using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Managers
@@ -112,7 +114,7 @@ namespace ACE.Server.Managers
             RemoveCache(allegiance);
 
             // rebuild allegiance
-            var refresh = GetAllegiance(allegiance.Monarch.Player);
+            allegiance = GetAllegiance(allegiance.Monarch.Player);
 
             // relink players
             foreach (var member in allegiance.Members.Keys)
@@ -122,6 +124,9 @@ namespace ACE.Server.Managers
 
                 LoadPlayer(player);
             }
+
+            // update dynamic properties
+            allegiance.UpdateProperties();
         }
 
         /// <summary>
@@ -315,6 +320,33 @@ namespace ACE.Server.Managers
 
             LoadPlayer(self);
             LoadPlayer(target);
+
+            HandleNoAllegiance(self);
+            HandleNoAllegiance(target);
+        }
+
+        public static void HandleNoAllegiance(IPlayer player)
+        {
+            if (player.Allegiance != null)
+                return;
+
+            var onlinePlayer = PlayerManager.GetOnlinePlayer(player.Guid);
+
+            if (player.MonarchId != null)
+            {
+                player.MonarchId = null;
+
+                if (onlinePlayer != null)
+                    onlinePlayer.Session.Network.EnqueueSend(new GameMessagePrivateUpdateInstanceID(onlinePlayer, PropertyInstanceId.Monarch, player.MonarchId.Value));
+            }
+
+            if (player.AllegianceRank != null)
+            {
+                player.AllegianceRank = null;
+
+                if (onlinePlayer != null)
+                    onlinePlayer.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(onlinePlayer, PropertyInt.AllegianceRank, 0));
+            }
         }
 
         public static Allegiance FindAllegiance(uint allegianceID)

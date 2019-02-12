@@ -9,6 +9,7 @@ using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
 using ACE.Server.Managers;
+using ACE.Server.Network.GameMessages.Messages;
 
 namespace ACE.Server.WorldObjects
 {
@@ -276,6 +277,43 @@ namespace ACE.Server.WorldObjects
             ChatFilters.Remove(playerGuid);
 
             return false;
+        }
+
+        /// <summary>
+        /// Updates any dynamic properties if they have changed for allegiance members
+        /// </summary>
+        public void UpdateProperties()
+        {
+            foreach (var member in Members)
+            {
+                var player = PlayerManager.FindByGuid(member.Key, out bool isOnline);
+                Player onlinePlayer = null;
+
+                // if changed, update monarch id
+                if ((player.MonarchId ?? 0) != member.Value.Allegiance.MonarchId)
+                {
+                    player.MonarchId = member.Value.Allegiance.MonarchId;
+                    if (isOnline)
+                    {
+                        onlinePlayer = PlayerManager.GetOnlinePlayer(member.Key);
+
+                        onlinePlayer.Session.Network.EnqueueSend(new GameMessagePrivateUpdateInstanceID(onlinePlayer, PropertyInstanceId.Monarch, player.MonarchId.Value));
+                    }
+                }
+
+                // if changed, update rank
+                if ((player.AllegianceRank ?? 0) != member.Value.Rank)
+                {
+                    player.AllegianceRank = (int)member.Value.Rank;
+                    if (isOnline)
+                    {
+                        if (onlinePlayer == null)
+                            onlinePlayer = PlayerManager.GetOnlinePlayer(member.Key);
+
+                        onlinePlayer.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(onlinePlayer, PropertyInt.AllegianceRank, player.AllegianceRank.Value));
+                    }
+                }
+            }
         }
     }
 }

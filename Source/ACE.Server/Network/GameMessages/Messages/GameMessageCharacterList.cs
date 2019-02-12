@@ -2,6 +2,7 @@ using System.Collections.Generic;
 
 using ACE.Common;
 using ACE.Database.Models.Shard;
+using ACE.Server.Managers;
 
 namespace ACE.Server.Network.GameMessages.Messages
 {
@@ -25,7 +26,8 @@ namespace ACE.Server.Network.GameMessages.Messages
             }
 
             Writer.Write(0u);
-            Writer.Write(11u /*slotCount*/);
+            var slotCount = (uint)PropertyManager.GetLong("max_chars_per_account").Item;
+            Writer.Write(slotCount);
             Writer.WriteString16L(session.Account);
             Writer.Write(1u /*useTurbineChat*/);
             Writer.Write(1u /*hasThroneOfDestiny*/);

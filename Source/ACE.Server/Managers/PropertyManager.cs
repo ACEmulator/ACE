@@ -435,22 +435,24 @@ namespace ACE.Server.Managers
         public static readonly ReadOnlyDictionary<string, bool> DefaultBooleanProperties =
             DictOf(
                 ("alwaysshowwelcome", false),
-                ("pk_server", false),
                 ("house_purchase_requirements", true),
-                ("house_rent_enabled", true)
+                ("house_rent_enabled", true),
+                ("pk_server", false)
                 );
 
         public static readonly ReadOnlyDictionary<string, long> DefaultLongProperties =
             DictOf<string, long>(
-                //("mansion_min_rank", 6)   // uncomment to override the default AllegianceMinRank for Mansions
+                ("char_delete_time", 3600),     // the amount of time in seconds a deleted character can be restored
+                //("mansion_min_rank", 6),      // uncomment to override the default AllegianceMinRank for Mansions
+                ("max_chars_per_account", 11)   // retail defaults to 11
                 );
 
         public static readonly ReadOnlyDictionary<string, double> DefaultDoubleProperties =
             DictOf(
-                ("xp_modifier", 1.0d),
-                ("luminance_modifier", 1.0d),
-                ("vitae_penalty", 0.05d),
-                ("vitae_min", 0.60d)
+                ("luminance_modifier", 1.0),
+                ("xp_modifier", 1.0),
+                ("vitae_penalty", 0.05),
+                ("vitae_penalty_max", 0.40)
                 );
 
         public static readonly ReadOnlyDictionary<string, string> DefaultStringProperties =
