@@ -436,12 +436,13 @@ namespace ACE.Server.Managers
             DictOf(
                 ("alwaysshowwelcome", false),
                 ("pk_server", false),
-                ("house_purchase_requirements", true)
+                ("house_purchase_requirements", true),
+                ("house_rent_enabled", true)
                 );
 
         public static readonly ReadOnlyDictionary<string, long> DefaultLongProperties =
             DictOf<string, long>(
-                //("mansion_min_rank", 6)
+                //("mansion_min_rank", 6)   // uncomment to override the default AllegianceMinRank for Mansions
                 );
 
         public static readonly ReadOnlyDictionary<string, double> DefaultDoubleProperties =

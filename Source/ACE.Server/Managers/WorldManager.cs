@@ -485,6 +485,8 @@ namespace ACE.Server.Managers
                 UpdateGameWorld60MinLastReset = DateTime.UtcNow;
             }
 
+            HouseManager.Tick();
+
             return true;
         }
 

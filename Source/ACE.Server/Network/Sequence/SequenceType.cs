@@ -21,6 +21,7 @@ namespace ACE.Server.Network.Sequence
         UpdatePropertyDataID,
         UpdatePropertyInstanceID,
         UpdatePropertyString,
+        UpdateRestrictionDB,
 
         UpdateAttribute,
         UpdateAttribute2ndLevel,

@@ -186,6 +186,25 @@ namespace ACE.Server.WorldObjects
             }
         }
 
+        /// <summary>
+        /// The timestamp the player originally purchased house
+        /// </summary>
+        public int? HousePurchaseTimestamp
+        {
+            get => GetProperty(PropertyInt.HousePurchaseTimestamp);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.HousePurchaseTimestamp); else SetProperty(PropertyInt.HousePurchaseTimestamp, value.Value); }
+        }
+
+        /// <summary>
+        /// The timestamp when the current maintenance period ends
+        /// </summary>
+        public int? HouseRentTimestamp
+        {
+            get => GetProperty(PropertyInt.HouseRentTimestamp);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.HouseRentTimestamp); else SetProperty(PropertyInt.HouseRentTimestamp, value.Value); }
+        }
+
+
         // ========================================
         // ===== Player Properties - Titles========
         // ========================================

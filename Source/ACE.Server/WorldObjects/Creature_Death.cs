@@ -269,7 +269,7 @@ namespace ACE.Server.WorldObjects
             foreach (var trophy in Biota.BiotaPropertiesCreateList.Where(x => x.DestinationType == (int)DestinationType.Contain || x.DestinationType == (int)DestinationType.Treasure || x.DestinationType == (int)DestinationType.ContainTreasure || x.DestinationType == (int)DestinationType.ShopTreasure || x.DestinationType == (int)DestinationType.WieldTreasure).OrderBy(x => x.Shade))
             {
                 if (ThreadSafeRandom.Next(0.0f, 1.0f) < trophy.Shade || trophy.Shade == 1 || trophy.Shade == 0 || trophy.Shade == -1) // Shade in this context is Probability
-                                                                                                                                  // Should there be rolls for each item or one roll to rule them all?
+                                                                                                                                      // Should there be rolls for each item or one roll to rule them all?
                 {
                     var wo = WorldObjectFactory.CreateNewWorldObject(trophy.WeenieClassId);
 
