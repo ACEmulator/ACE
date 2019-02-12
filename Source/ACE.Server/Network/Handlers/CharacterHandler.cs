@@ -245,7 +245,10 @@ namespace ACE.Server.Network.Handlers
             DatabaseManager.Shard.SaveCharacter(character, new ReaderWriterLockSlim(), result =>
             {
                 if (result)
+                {
                     session.Network.EnqueueSend(new GameMessageCharacterList(session.Characters, session));
+                    PlayerManager.HandlePlayerDelete(character.Id);
+                }
                 else
                     session.SendCharacterError(CharacterError.Delete);
             });

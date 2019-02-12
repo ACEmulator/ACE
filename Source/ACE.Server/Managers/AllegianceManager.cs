@@ -354,5 +354,68 @@ namespace ACE.Server.Managers
             Allegiances.TryGetValue(new ObjectGuid(allegianceID), out var allegiance);
             return allegiance;
         }
+
+        public static void HandlePlayerDelete(uint playerGuid)
+        {
+            var player = PlayerManager.FindByGuid(playerGuid);
+            if (player == null)
+            {
+                Console.WriteLine($"AllegianceManager.HandlePlayerDelete({playerGuid:X8}): couldn't find player guid");
+                return;
+            }
+            var allegiance = GetAllegiance(player);
+
+            if (allegiance == null) return;
+
+            allegiance.Members.TryGetValue(player.Guid, out var allegianceNode);
+
+            var players = new List<IPlayer>() { player };
+
+            if (player.PatronId != null)
+            {
+                var patron = PlayerManager.FindByGuid(player.PatronId.Value);
+                players.Add(patron);
+            }
+
+            player.PatronId = null;
+            player.MonarchId = null;
+
+            // vassals now become monarchs...
+            foreach (var vassal in allegianceNode.Vassals)
+            {
+                var vassalPlayer = PlayerManager.FindByGuid(vassal.PlayerGuid, out bool isOnline);
+
+                vassalPlayer.PatronId = null;
+                vassalPlayer.MonarchId = null;
+
+                players.Add(vassal.Player);
+            }
+
+            RemoveCache(allegiance);
+
+            // rebuild for those directly involved
+            foreach (var p in players)
+                Rebuild(GetAllegiance(p));
+
+            foreach (var p in players)
+                LoadPlayer(p);
+
+            foreach (var p in players)
+                HandleNoAllegiance(p);
+
+            // save immediately?
+            foreach (var p in players)
+            {
+                var offline = PlayerManager.GetOfflinePlayer(p.Guid);
+                if (offline != null)
+                    offline.SaveBiotaToDatabase();
+                else
+                {
+                    var online = PlayerManager.GetOnlinePlayer(p.Guid);
+                    if (online != null)
+                        online.SaveBiotaToDatabase();
+                }
+            }
+        }
     }
 }

@@ -450,9 +450,9 @@ namespace ACE.Server.Managers
         public static readonly ReadOnlyDictionary<string, double> DefaultDoubleProperties =
             DictOf(
                 ("luminance_modifier", 1.0),
-                ("xp_modifier", 1.0),
                 ("vitae_penalty", 0.05),
-                ("vitae_penalty_max", 0.40)
+                ("vitae_penalty_max", 0.40),
+                ("xp_modifier", 1.0)
                 );
 
         public static readonly ReadOnlyDictionary<string, string> DefaultStringProperties =

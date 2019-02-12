@@ -52,6 +52,8 @@ namespace ACE.Server.WorldObjects
             SetHouseOwner(slumlord);
 
             GiveDeed();
+
+            HouseManager.AddRentQueue(this);
         }
 
         public void GiveDeed()
@@ -142,7 +144,10 @@ namespace ACE.Server.WorldObjects
 
                 // player slumlord 'off' animation
                 var slumlord = house.SlumLord;
-                slumlord.EnqueueBroadcastMotion(new Motion(MotionStance.Invalid, MotionCommand.Off));
+                var off = new Motion(MotionStance.Invalid, MotionCommand.Off);
+
+                slumlord.CurrentMotionState = off;
+                slumlord.EnqueueBroadcastMotion(off);
 
                 // reset slumlord name
                 var weenie = DatabaseManager.World.GetCachedWeenie(slumlord.WeenieClassId);
