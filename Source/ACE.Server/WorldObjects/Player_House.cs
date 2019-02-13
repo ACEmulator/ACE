@@ -939,7 +939,12 @@ namespace ACE.Server.WorldObjects
 
                 if (rootHouse.HouseOwner != null && rootHouse.OnProperty(this) && !rootHouse.HasPermission(this, false))
                 {
-                    Teleport(house.BootSpot.Location);
+                    Teleport(rootHouse.BootSpot.Location);
+                    break;
+                }
+                if (rootHouse.HouseOwner == null && CurrentLandblock.IsDungeon)
+                {
+                    Teleport(rootHouse.BootSpot.Location);
                     break;
                 }
             }
