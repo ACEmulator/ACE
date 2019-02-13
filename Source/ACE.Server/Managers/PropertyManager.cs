@@ -432,6 +432,11 @@ namespace ACE.Server.Managers
                 PropertyManager.ModifyString(item.Key, item.Value);
         }
 
+        // ==================================================================================
+        // To change these values for the server,
+        // please use the /modifybool, /modifylong, /modifydouble, and /modifystring commands
+        // ==================================================================================
+
         public static readonly ReadOnlyDictionary<string, bool> DefaultBooleanProperties =
             DictOf(
                 ("alwaysshowwelcome", false),
@@ -443,8 +448,8 @@ namespace ACE.Server.Managers
         public static readonly ReadOnlyDictionary<string, long> DefaultLongProperties =
             DictOf<string, long>(
                 ("char_delete_time", 3600),     // the amount of time in seconds a deleted character can be restored
-                //("mansion_min_rank", 6),      // uncomment to override the default AllegianceMinRank for Mansions
-                ("max_chars_per_account", 11)   // retail defaults to 11
+                ("mansion_min_rank", 6),        // overrides the default allegiance rank required to own a mansion
+                ("max_chars_per_account", 11)   // retail defaults to 11, client supports up to 20
                 );
 
         public static readonly ReadOnlyDictionary<string, double> DefaultDoubleProperties =

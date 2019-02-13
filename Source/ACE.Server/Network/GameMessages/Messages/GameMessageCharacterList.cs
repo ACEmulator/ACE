@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 using ACE.Common;
@@ -22,7 +23,9 @@ namespace ACE.Server.Network.GameMessages.Messages
                     Writer.WriteString16L("+" + character.Name);
                 else
                     Writer.WriteString16L(character.Name);
-                Writer.Write(character.DeleteTime != 0ul ? (uint)(Time.GetUnixTime() - character.DeleteTime) : 0u);
+
+                // TODO: handle this better for char_delete_time=0
+                Writer.Write(character.DeleteTime != 0ul ? (uint)Math.Max(1, Time.GetUnixTime() - character.DeleteTime) : 0u);
             }
 
             Writer.Write(0u);

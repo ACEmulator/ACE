@@ -109,6 +109,7 @@ namespace ACE.Server.WorldObjects
                 PageId = (uint)pages.Count,
                 AuthorId = authorId,
                 AuthorName = authorName,
+                AuthorAccount = authorAccount,
                 IgnoreAuthor = ignoreAuthor,
                 PageText = pageText
             };
