@@ -90,7 +90,7 @@ namespace ACE.Server.WorldObjects
                 return EquippedObjects.Values.Where(i => (i.ParentLocation & parentLocation) != 0).ToList();
             }
 
-            return EquippedObjects.Values.Where(i => (i.CurrentWieldedLocation & wieldedLocation) != 0).ToList();
+            return EquippedObjects.Values.Where(i => (i.CurrentWieldedLocation & EquipMask.Clothing) == 0 && (i.CurrentWieldedLocation & wieldedLocation) != 0).ToList();
         }
 
         /// <summary>
