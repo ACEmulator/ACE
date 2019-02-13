@@ -396,9 +396,9 @@ namespace ACE.Server.WorldObjects
             //Console.WriteLine("BodyPart: " + bodyPart);
             //Console.WriteLine("===");
 
-            var bodyLocation = BodyParts.GetFlags(BodyParts.GetEquipMask(bodyPart));
+            var bodyLocation = BodyParts.GetFlags(BodyParts.GetCoverageMask(bodyPart));
 
-            var equipped = target.EquippedObjects.Values.Where(e => e is Clothing && BodyParts.HasAny(e.CurrentWieldedLocation, bodyLocation)).ToList();
+            var equipped = target.EquippedObjects.Values.Where(e => e is Clothing && BodyParts.HasAny(e.ClothingPriority, bodyLocation)).ToList();
 
             return equipped;
         }
