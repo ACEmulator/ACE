@@ -132,7 +132,7 @@ namespace ACE.Server.WorldObjects
                 writer.Write((uint?)CurrentWieldedLocation ?? 0u);
 
             if ((weenieFlags & WeenieHeaderFlag.Priority) != 0)
-                writer.Write((uint?)Priority ?? 0u);
+                writer.Write((uint?)ClothingPriority ?? 0u);
 
             if ((weenieFlags & WeenieHeaderFlag.RadarBlipColor) != 0)
                 writer.Write((byte?)RadarColor ?? 0);
@@ -716,7 +716,7 @@ namespace ACE.Server.WorldObjects
             if ((CurrentWieldedLocation != null) && (CurrentWieldedLocation != 0) && (WielderId != null) && (WielderId != 0))
                 weenieHeaderFlag |= WeenieHeaderFlag.CurrentlyWieldedLocation;
 
-            if (Priority != null)
+            if (ClothingPriority != null)
                 weenieHeaderFlag |= WeenieHeaderFlag.Priority;
 
             if (RadarColor != null)

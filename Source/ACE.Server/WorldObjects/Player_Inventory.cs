@@ -916,7 +916,7 @@ namespace ACE.Server.WorldObjects
             if (!WieldedLocationIsAvailable(item, wieldedLocation))
             {
                 // filtering to just armor here, or else trinkets and dual wielding breaks
-                var existing = GetEquippedArmor(wieldedLocation).FirstOrDefault();
+                var existing = GetEquippedClothingArmor(item.ClothingPriority ?? 0).FirstOrDefault();
 
                 Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, $"You must remove your {existing.Name} to wear that"));
                 Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full));
