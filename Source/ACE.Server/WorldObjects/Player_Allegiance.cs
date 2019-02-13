@@ -38,12 +38,6 @@ namespace ACE.Server.WorldObjects
             set { if (value == 0) RemoveProperty(PropertyInt64.AllegianceXPReceived); else SetProperty(PropertyInt64.AllegianceXPReceived, (long)value); }
         }
 
-        public int? AllegianceFollowers
-        {
-            get => GetProperty(PropertyInt.AllegianceFollowers);
-            set { if (!value.HasValue) RemoveProperty(PropertyInt.AllegianceFollowers); else SetProperty(PropertyInt.AllegianceFollowers, value.Value); }
-        }
-
         public int? AllegianceRank
         {
             get => GetProperty(PropertyInt.AllegianceRank);

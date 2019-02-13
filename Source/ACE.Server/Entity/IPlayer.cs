@@ -57,8 +57,6 @@ namespace ACE.Server.Entity
 
         ulong AllegianceXPGenerated { get; set; }
 
-        int? AllegianceFollowers { get; set; }
-
         int? AllegianceRank { get; set; }
 
         int? AllegianceOfficerRank { get; set; }

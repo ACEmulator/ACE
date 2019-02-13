@@ -305,12 +305,6 @@ namespace ACE.Server.Entity
             set { if (value == 0) RemoveProperty(PropertyInt64.AllegianceXPGenerated); else SetProperty(PropertyInt64.AllegianceXPGenerated, (long)value); }
         }
 
-        public int? AllegianceFollowers
-        {
-            get => GetProperty(PropertyInt.AllegianceFollowers);
-            set { if (!value.HasValue) RemoveProperty(PropertyInt.AllegianceFollowers); else SetProperty(PropertyInt.AllegianceFollowers, value.Value); }
-        }
-
         public int? AllegianceRank
         {
             get => GetProperty(PropertyInt.AllegianceRank);
