@@ -332,7 +332,7 @@ namespace ACE.Server.Managers
         /// </summary>
         public float GetMinVitae(uint level)
         {
-            var propVitae = PropertyManager.GetDouble("vitae_min").Item;
+            var propVitae = 1.0 - PropertyManager.GetDouble("vitae_penalty_max").Item;
 
             var maxPenalty = (level - 1) * 3;
             if (maxPenalty < 1)

@@ -142,7 +142,10 @@ namespace ACE.Server.WorldObjects
 
                 // player slumlord 'off' animation
                 var slumlord = house.SlumLord;
-                slumlord.EnqueueBroadcastMotion(new Motion(MotionStance.Invalid, MotionCommand.Off));
+                var off = new Motion(MotionStance.Invalid, MotionCommand.Off);
+
+                slumlord.CurrentMotionState = off;
+                slumlord.EnqueueBroadcastMotion(off);
 
                 // reset slumlord name
                 var weenie = DatabaseManager.World.GetCachedWeenie(slumlord.WeenieClassId);
@@ -257,6 +260,8 @@ namespace ACE.Server.WorldObjects
 
                 // boot anyone who may have been wandering around inside...
                 HandleActionBootAll(false);
+
+                HouseManager.AddRentQueue(this);
 
             });
             actionChain.EnqueueChain();
@@ -932,9 +937,17 @@ namespace ACE.Server.WorldObjects
             {
                 var rootHouse = house.RootHouse;
 
-                if (rootHouse.HouseOwner != null && rootHouse.OnProperty(this) && !rootHouse.HasPermission(this, false))
+                if (!rootHouse.OnProperty(this))
+                    continue;
+
+                if (rootHouse.HouseOwner != null && !rootHouse.HasPermission(this, false))
                 {
-                    Teleport(house.BootSpot.Location);
+                    Teleport(rootHouse.BootSpot.Location);
+                    break;
+                }
+                if (rootHouse.HouseOwner == null && CurrentLandblock.IsDungeon)
+                {
+                    Teleport(rootHouse.BootSpot.Location);
                     break;
                 }
             }

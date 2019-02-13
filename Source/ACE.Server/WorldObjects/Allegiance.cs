@@ -9,6 +9,8 @@ using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
 using ACE.Server.Managers;
+using ACE.Server.Network.GameEvent.Events;
+using ACE.Server.Network.GameMessages.Messages;
 
 namespace ACE.Server.WorldObjects
 {
@@ -276,6 +278,39 @@ namespace ACE.Server.WorldObjects
             ChatFilters.Remove(playerGuid);
 
             return false;
+        }
+
+        /// <summary>
+        /// Updates any dynamic properties if they have changed for allegiance members
+        /// </summary>
+        public void UpdateProperties()
+        {
+            foreach (var member in Members)
+            {
+                var player = PlayerManager.FindByGuid(member.Key);
+                var onlinePlayer = PlayerManager.GetOnlinePlayer(member.Key);
+
+                // if changed, update monarch id
+                if ((player.MonarchId ?? 0) != member.Value.Allegiance.MonarchId)
+                {
+                    player.MonarchId = member.Value.Allegiance.MonarchId;
+
+                    if (onlinePlayer != null)
+                        onlinePlayer.Session.Network.EnqueueSend(new GameMessagePrivateUpdateInstanceID(onlinePlayer, PropertyInstanceId.Monarch, player.MonarchId.Value));
+                }
+
+                // if changed, update rank
+                if ((player.AllegianceRank ?? 0) != member.Value.Rank)
+                {
+                    player.AllegianceRank = (int)member.Value.Rank;
+
+                    if (onlinePlayer != null)
+                        onlinePlayer.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(onlinePlayer, PropertyInt.AllegianceRank, player.AllegianceRank.Value));
+                }
+
+                if (onlinePlayer != null)
+                    onlinePlayer.Session.Network.EnqueueSend(new GameEventAllegianceUpdate(onlinePlayer.Session, this, member.Value), new GameEventAllegianceAllegianceUpdateDone(onlinePlayer.Session));
+            }
         }
     }
 }

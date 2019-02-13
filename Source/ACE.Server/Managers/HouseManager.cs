@@ -36,23 +36,26 @@ namespace ACE.Server.Managers
 
             RentQueue = new SortedSet<PlayerHouse>();
 
-            foreach (var player in houseOwners)
-            {
-                var houseGuid = player.HouseInstance.Value;
-
-                var house = House.Load(houseGuid);
-                var purchaseTime = (uint)(player.HousePurchaseTimestamp ?? 0);
-
-                if (player.HouseRentTimestamp == null)
-                    //player.HouseRentTimestamp = (int)house.GetRentDue(purchaseTime);
-                    continue;
-
-                var playerHouse = new PlayerHouse(player, house);
-
-                RentQueue.Add(playerHouse);
-            }
+            foreach (var houseOwner in houseOwners)
+                AddRentQueue(houseOwner);
 
             //log.Info($"Loaded {RentQueue.Count} active houses.");
+        }
+
+        public static void AddRentQueue(IPlayer player)
+        {
+            var houseGuid = player.HouseInstance.Value;
+
+            var house = House.Load(houseGuid);
+            var purchaseTime = (uint)(player.HousePurchaseTimestamp ?? 0);
+
+            if (player.HouseRentTimestamp == null)
+                //player.HouseRentTimestamp = (int)house.GetRentDue(purchaseTime);
+                return;
+
+            var playerHouse = new PlayerHouse(player, house);
+
+            RentQueue.Add(playerHouse);
         }
 
         public static void Tick()
@@ -180,7 +183,10 @@ namespace ACE.Server.Managers
             house.UpdateLinks();
 
             // player slumlord 'off' animation
-            slumlord.EnqueueBroadcastMotion(new Motion(MotionStance.Invalid, MotionCommand.Off));
+            var off = new Motion(MotionStance.Invalid, MotionCommand.Off);
+
+            slumlord.CurrentMotionState = off;
+            slumlord.EnqueueBroadcastMotion(off);
 
             // reset slumlord name
             var weenie = DatabaseManager.World.GetCachedWeenie(slumlord.WeenieClassId);
@@ -279,6 +285,37 @@ namespace ACE.Server.Managers
             houseData.SetPaidItems(house.SlumLord);
 
             return houseData;
+        }
+
+        public static async void HandlePlayerDelete(uint playerGuid)
+        {
+            var player = PlayerManager.FindByGuid(playerGuid);
+            if (player == null)
+            {
+                Console.WriteLine($"HouseManager.HandlePlayerDelete({playerGuid:X8}): couldn't find player guid");
+                return;
+            }
+
+            if (player.HouseInstance == null)
+                return;
+            var playerHouse = FindPlayerHouse(playerGuid);
+            if (playerHouse == null)
+                return;
+
+            // truncated ProcessRent / HandleEviction
+
+            // load the most up-to-date house info from db
+            playerHouse.House = House.GetHouse(playerHouse.House.Guid.Full);
+
+            // todo: slumlord inventory callback
+            await Task.Delay(3000);
+
+            HandleEviction(playerHouse);
+        }
+
+        public static PlayerHouse FindPlayerHouse(uint playerGuid)
+        {
+            return RentQueue.FirstOrDefault(i => i.PlayerGuid == playerGuid);
         }
     }
 }

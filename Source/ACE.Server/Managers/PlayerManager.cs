@@ -288,6 +288,16 @@ namespace ACE.Server.Managers
         }
 
         /// <summary>
+        /// Called when a character is initially deleted on the character select screen
+        /// </summary>
+        public static void HandlePlayerDelete(uint characterGuid)
+        {
+            AllegianceManager.HandlePlayerDelete(characterGuid);
+
+            HouseManager.HandlePlayerDelete(characterGuid);
+        }
+
+        /// <summary>
         /// This will return true if the player was successfully found and removed from the OfflinePlayers dictionary.
         /// It will return false if the player was not found in the OfflinePlayers dictionary (which should never happen).
         /// </summary>
@@ -298,8 +308,6 @@ namespace ACE.Server.Managers
             {
                 if (!offlinePlayers.Remove(guid, out var offlinePlayer))
                     return false; // This should never happen
-
-                // TODO break allegiance, etc...
             }
             finally
             {

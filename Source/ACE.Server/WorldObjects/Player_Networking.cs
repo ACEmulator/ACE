@@ -33,6 +33,11 @@ namespace ACE.Server.WorldObjects
 
             HandleAugsForwardCompatibility();
 
+            if (AllegianceNode != null)
+                AllegianceRank = (int)AllegianceNode.Rank;
+            else
+                AllegianceRank = null;
+
             // SendSelf will trigger the entrance into portal space
             SendSelf();
 
