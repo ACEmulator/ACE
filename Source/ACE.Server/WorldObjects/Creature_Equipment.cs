@@ -429,7 +429,7 @@ namespace ACE.Server.WorldObjects
 
                 if (useRNG)
                 {
-                    // handle sets in in 0-1 chunks
+                    // handle sets in 0-1 chunks
                     if (totalProbability >= 1.0f)
                     {
                         totalProbability = 0.0f;
@@ -468,7 +468,7 @@ namespace ACE.Server.WorldObjects
                 if (wo.ValidLocations != null)
                 {
                     equipped = TryEquipObject(wo, (EquipMask)wo.ValidLocations);
-                    Console.WriteLine($"{Name} tried to equip {wo.Name}, result {equipped}");
+                    //Console.WriteLine($"{Name} tried to equip {wo.Name}, result {equipped}");
                 }
                 if (!equipped)
                     TryAddToInventory(wo);
