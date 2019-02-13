@@ -75,7 +75,7 @@ namespace ACE.Server.WorldObjects
                 }
             }
 
-            var eo = EquippedObjects.Values.Where(x => (x.CurrentWieldedLocation & (EquipMask.Clothing | EquipMask.Armor | EquipMask.Cloak)) != 0).OrderBy(x => x.Priority).ToList();
+            var eo = EquippedObjects.Values.Where(x => (x.CurrentWieldedLocation & (EquipMask.Clothing | EquipMask.Armor | EquipMask.Cloak)) != 0).OrderBy(x => x.ClothingPriority).ToList();
 
             if (eo.Count == 0)
             {
