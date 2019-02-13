@@ -52,8 +52,6 @@ namespace ACE.Server.WorldObjects
             SetHouseOwner(slumlord);
 
             GiveDeed();
-
-            HouseManager.AddRentQueue(this);
         }
 
         public void GiveDeed()
@@ -262,6 +260,8 @@ namespace ACE.Server.WorldObjects
 
                 // boot anyone who may have been wandering around inside...
                 HandleActionBootAll(false);
+
+                HouseManager.AddRentQueue(this);
 
             });
             actionChain.EnqueueChain();
