@@ -937,7 +937,10 @@ namespace ACE.Server.WorldObjects
             {
                 var rootHouse = house.RootHouse;
 
-                if (rootHouse.HouseOwner != null && rootHouse.OnProperty(this) && !rootHouse.HasPermission(this, false))
+                if (!rootHouse.OnProperty(this))
+                    continue;
+
+                if (rootHouse.HouseOwner != null && !rootHouse.HasPermission(this, false))
                 {
                     Teleport(rootHouse.BootSpot.Location);
                     break;
