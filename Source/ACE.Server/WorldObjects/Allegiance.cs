@@ -313,6 +313,20 @@ namespace ACE.Server.WorldObjects
                         onlinePlayer.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(onlinePlayer, PropertyInt.AllegianceRank, player.AllegianceRank.Value));
                     }
                 }
+
+                // for monarch, if changed, update followers
+                if (member.Value.IsMonarch)
+                {
+                    if ((player.AllegianceFollowers ?? 0) != member.Value.TotalFollowers)
+                    {
+                        player.AllegianceFollowers = member.Value.TotalFollowers;
+
+                        if (onlinePlayer == null)
+                            onlinePlayer = PlayerManager.GetOnlinePlayer(member.Key);
+
+                        onlinePlayer.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(onlinePlayer, PropertyInt.AllegianceFollowers, player.AllegianceFollowers.Value));
+                    }
+                }
             }
         }
     }
