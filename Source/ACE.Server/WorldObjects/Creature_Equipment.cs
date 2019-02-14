@@ -34,7 +34,7 @@ namespace ACE.Server.WorldObjects
                 var worldObject = WorldObjectFactory.CreateWorldObject(biota);
                 EquippedObjects[worldObject.Guid] = worldObject;
 
-                EncumbranceVal += worldObject.EncumbranceVal;
+                EncumbranceVal += (worldObject.EncumbranceVal ?? 0);
             }
 
             EquippedObjectsLoaded = true;
@@ -187,8 +187,8 @@ namespace ACE.Server.WorldObjects
 
             EquippedObjects[worldObject.Guid] = worldObject;
 
-            EncumbranceVal += worldObject.EncumbranceVal;
-            Value += worldObject.Value;
+            EncumbranceVal += (worldObject.EncumbranceVal ?? 0);
+            Value += (worldObject.Value ?? 0);
 
             TrySetChild(worldObject);
 
@@ -240,8 +240,8 @@ namespace ACE.Server.WorldObjects
 
             worldObject.IsAffecting = false;
 
-            EncumbranceVal -= worldObject.EncumbranceVal;
-            Value -= worldObject.Value;
+            EncumbranceVal -= (worldObject.EncumbranceVal ?? 0);
+            Value -= (worldObject.Value ?? 0);
 
             ClearChild(worldObject);
 

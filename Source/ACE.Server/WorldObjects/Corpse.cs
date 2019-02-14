@@ -5,6 +5,7 @@ using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
+using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameMessages.Messages;
@@ -41,6 +42,8 @@ namespace ACE.Server.WorldObjects
 
         private void SetEphemeralValues()
         {
+            ephemeralPropertyInts.TryAdd(PropertyInt.Value, Value ?? 0);
+
             BaseDescriptionFlags |= ObjectDescriptionFlag.Corpse;
 
             CurrentMotionState = new Motion(MotionStance.NonCombat, MotionCommand.Dead);

@@ -251,8 +251,6 @@ namespace ACE.Server.WorldObjects
 
             BaseDescriptionFlags = ObjectDescriptionFlag.Attackable;
 
-            EncumbranceVal = EncumbranceVal ?? (StackUnitEncumbrance ?? 0) * (StackSize ?? 1);
-
             EmoteManager = new EmoteManager(this);
             EnchantmentManager = new EnchantmentManagerWithCaching(this);
 

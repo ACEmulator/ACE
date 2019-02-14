@@ -18,7 +18,7 @@ namespace ACE.Entity.Enum.Properties
         [ServerOnly]
         PaletteTemplate                          = 3,
         ClothingPriority                         = 4,
-        [Ephemeral][SendOnLogin]
+        [SendOnLogin]
         EncumbranceVal                           = 5, // ENCUMB_VAL_INT,
         [SendOnLogin]
         ItemsCapacity                            = 6,
@@ -45,7 +45,6 @@ namespace ACE.Entity.Enum.Properties
         RareId                                   = 17,
         [ServerOnly]
         UiEffects                                = 18,
-        [Ephemeral]
         Value                                    = 19,
         [Ephemeral][SendOnLogin]
         CoinValue                                = 20,

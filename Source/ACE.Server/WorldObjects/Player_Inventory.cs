@@ -704,8 +704,8 @@ namespace ACE.Server.WorldObjects
 
             if (container != containerRootOwner && containerRootOwner != null)
             {
-                containerRootOwner.EncumbranceVal += item.EncumbranceVal;
-                containerRootOwner.Value += item.Value;
+                containerRootOwner.EncumbranceVal += (item.EncumbranceVal ?? 0);
+                containerRootOwner.Value += (item.Value ?? 0);
             }
 
             Session.Network.EnqueueSend(

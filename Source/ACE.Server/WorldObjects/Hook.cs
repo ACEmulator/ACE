@@ -9,6 +9,7 @@ using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
+using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
 using ACE.Server.Factories;
 using ACE.Server.Network.GameEvent.Events;
@@ -47,6 +48,8 @@ namespace ACE.Server.WorldObjects
 
         private void SetEphemeralValues()
         {
+            ephemeralPropertyInts.TryAdd(PropertyInt.Value, Value ?? 0);
+
             IsLocked = false;
             IsOpen = false;
         }
