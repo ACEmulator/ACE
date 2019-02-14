@@ -113,14 +113,14 @@ namespace ACE.Server
             log.Info("Initializing SocketManager...");
             SocketManager.Initialize();
 
-            log.Info("Initializing HouseManager...");
-            HouseManager.Initialize();
-
             log.Info("Initializing WorldManager...");
             WorldManager.Initialize();
 
             log.Info("Initializing EventManager...");
             EventManager.Initialize();
+
+            log.Info("Initializing HouseManager...");
+            HouseManager.Initialize();
 
             // This should be last
             log.Info("Initializing CommandManager...");
