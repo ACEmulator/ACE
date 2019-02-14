@@ -1042,6 +1042,9 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyInt.MaxStructure); else SetProperty(PropertyInt.MaxStructure, value.Value); }
         }
 
+        /// <summary>
+        /// Instead of setting this directly, consider using SetStackSize() instead which also sets EncumbranceVal and Value
+        /// </summary>
         public int? StackSize
         {
             get => GetProperty(PropertyInt.StackSize);
