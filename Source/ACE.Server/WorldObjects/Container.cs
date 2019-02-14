@@ -552,7 +552,7 @@ namespace ACE.Server.WorldObjects
                 if (item.Shade > 0)
                     wo.Shade = item.Shade;
                 if (item.StackSize > 1)
-                    wo.StackSize = (ushort)item.StackSize;
+                    wo.SetStackSize(item.StackSize);
 
                 TryAddToInventory(wo);
             }
@@ -578,13 +578,9 @@ namespace ACE.Server.WorldObjects
 
                     var amount = Math.Min(sourceItem.StackSize ?? 0, (destinationItem.MaxStackSize - destinationItem.StackSize) ?? 0);
 
-                    sourceItem.StackSize -= amount;
-                    sourceItem.EncumbranceVal = (sourceItem.StackUnitEncumbrance ?? 0) * (sourceItem.StackSize ?? 1);
-                    sourceItem.Value = (sourceItem.StackUnitValue ?? 0) * (sourceItem.StackSize ?? 1);
+                    sourceItem.SetStackSize(sourceItem.StackSize - amount);
 
-                    destinationItem.StackSize += amount;
-                    destinationItem.EncumbranceVal = (destinationItem.StackUnitEncumbrance ?? 0) * (destinationItem.StackSize ?? 1);
-                    destinationItem.Value = (destinationItem.StackUnitValue ?? 0) * (destinationItem.StackSize ?? 1);
+                    destinationItem.SetStackSize(destinationItem.StackSize + amount);
 
                     if (sourceItem.StackSize == 0)
                     {

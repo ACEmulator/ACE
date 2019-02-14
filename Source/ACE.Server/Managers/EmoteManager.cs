@@ -301,7 +301,7 @@ namespace ACE.Server.Managers
                         var stackMsg = "";
                         if (stackSize > 1)
                         {
-                            item.StackSize = (ushort)stackSize;
+                            item.SetStackSize(stackSize);
                             stackMsg = stackSize + " ";     // pluralize?
                         }
                         success = player.TryCreateInInventoryWithNetworking(item);

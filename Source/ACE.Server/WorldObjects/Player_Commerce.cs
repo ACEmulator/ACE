@@ -63,13 +63,13 @@ namespace ACE.Server.WorldObjects
                 // payment contains a max stack
                 if (maxstacksize <= amount)
                 {
-                    currancystack.StackSize = maxstacksize;
+                    currancystack.SetStackSize(maxstacksize);
                     payout.Add(currancystack);
                     amount = amount - maxstacksize;
                 }
                 else // not a full stack
                 {
-                    currancystack.StackSize = (ushort)amount;
+                    currancystack.SetStackSize((int)amount);
                     payout.Add(currancystack);
                     amount = amount - amount;
                 }
@@ -116,8 +116,8 @@ namespace ACE.Server.WorldObjects
                         {
                             change = payment - amount;
                             // add new change object.
-                            changeobj.StackSize = (ushort)change;
-                            wo.StackSize -= (ushort)change;
+                            changeobj.SetStackSize((int)change);
+                            wo.SetStackSize(wo.StackSize - (int)change);
                         }
                         break;
                     }

@@ -902,11 +902,7 @@ namespace ACE.Server.Command.Handlers
                 var stackSizeForThisWeenieId = stackSize ?? loot.MaxStackSize;
 
                 if (stackSizeForThisWeenieId > 1)
-                {
-                    loot.StackSize = stackSizeForThisWeenieId;
-                    loot.EncumbranceVal = (loot.StackUnitEncumbrance ?? 0) * (stackSizeForThisWeenieId ?? 1);
-                    loot.Value = (loot.StackUnitValue ?? 0) * (stackSizeForThisWeenieId ?? 1);
-                }
+                    loot.SetStackSize(stackSizeForThisWeenieId);
 
                 session.Player.TryCreateInInventoryWithNetworking(loot);
             }

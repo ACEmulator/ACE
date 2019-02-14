@@ -1223,7 +1223,7 @@ namespace ACE.Server.WorldObjects
                     continue;
                 }
 
-                item.StackSize--;
+                item.SetStackSize(item.StackSize - 1);
                 if (item.StackSize > 0)
                     Session.Network.EnqueueSend(new GameMessageSetStackSize(item));
                 else

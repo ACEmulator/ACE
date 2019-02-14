@@ -39,7 +39,7 @@ namespace ACE.Server.Network.Structure
         public void Init(Weenie weenie, ushort stackSize = 1)
         {
             var wo = WorldObjectFactory.CreateNewWorldObject(weenie.ClassName);
-            wo.StackSize = stackSize;
+            wo.SetStackSize(stackSize);
             WeenieID = weenie.ClassId;
             Init(wo);
         }

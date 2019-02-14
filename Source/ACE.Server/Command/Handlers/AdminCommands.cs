@@ -1055,9 +1055,9 @@ namespace ACE.Server.Command.Handlers
             if (stackSize != 0)
             {
                 if (loot.MaxStackSize != null && stackSize > loot.MaxStackSize)
-                    loot.StackSize = loot.MaxStackSize;
+                    loot.SetStackSize(loot.MaxStackSize);
                 else if (loot.MaxStackSize != null && stackSize <= loot.MaxStackSize)
-                    loot.StackSize = stackSize;
+                    loot.SetStackSize(stackSize);
             }
             
 

@@ -2469,5 +2469,18 @@ namespace ACE.Server.WorldObjects
             get => GetProperty(PropertyInstanceId.Killer);
             set { if (!value.HasValue) RemoveProperty(PropertyInstanceId.Killer); else SetProperty(PropertyInstanceId.Killer, value.Value); }
         }
+
+
+        /// <summary>
+        /// In addition to setting StackSize, this will also set the EncumbranceVal and Value appropriately.
+        /// </summary>
+        /// <param name="value"></param>
+        public void SetStackSize(int? value)
+        {
+            StackSize = value;
+
+            EncumbranceVal = (StackUnitEncumbrance ?? 0) * (StackSize ?? 1);
+            Value = (StackUnitValue ?? 0) * (StackSize ?? 1);
+        }
     }
 }
