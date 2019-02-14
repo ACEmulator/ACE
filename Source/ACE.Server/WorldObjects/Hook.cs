@@ -48,8 +48,6 @@ namespace ACE.Server.WorldObjects
 
         private void SetEphemeralValues()
         {
-            ephemeralPropertyInts.TryAdd(PropertyInt.Value, Value ?? 0);
-
             IsLocked = false;
             IsOpen = false;
         }

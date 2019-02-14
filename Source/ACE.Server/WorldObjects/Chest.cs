@@ -75,8 +75,6 @@ namespace ACE.Server.WorldObjects
 
         private void SetEphemeralValues()
         {
-            ephemeralPropertyInts.TryAdd(PropertyInt.Value, Value ?? 0);
-
             ContainerCapacity = ContainerCapacity ?? 10;
             ItemCapacity = ItemCapacity ?? 120;
 
