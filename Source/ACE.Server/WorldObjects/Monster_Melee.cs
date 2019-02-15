@@ -255,7 +255,7 @@ namespace ACE.Server.WorldObjects
             var weapon = GetEquippedMeleeWeapon();
             if (weapon != null)
             {
-                var weaponDamage = weapon.GetBaseDamage();
+                var weaponDamage = weapon.GetDamageMod(this);
                 //Console.WriteLine($"{Name} using weapon damage: {weaponDamage}");
                 return weaponDamage;
             }

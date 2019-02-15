@@ -75,7 +75,7 @@ namespace ACE.Server.WorldObjects
                 var ammo = GetEquippedAmmo();
                 if (ammo == null)
                 {
-                    TryDequipObjectWithBroadcasting(weapon.Guid, out _, out _);
+                    TryUnwieldObjectWithBroadcasting(weapon.Guid, out _, out _);
                     EquipInventoryItems(true);
                     DoAttackStance();
                     CurrentAttack = null;

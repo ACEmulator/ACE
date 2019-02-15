@@ -94,9 +94,9 @@ namespace ACE.Server.Managers
         /// <summary>
         /// Returns all of the enchantments for a category
         /// </summary>
-        public List<BiotaPropertiesEnchantmentRegistry> GetEnchantments(uint categoryID)
+        public List<BiotaPropertiesEnchantmentRegistry> GetEnchantments(SpellCategory spellCategory)
         {
-            return WorldObject.Biota.GetEnchantmentsByCategory((ushort)categoryID, WorldObject.BiotaDatabaseLock);
+            return WorldObject.Biota.GetEnchantmentsByCategory((ushort)spellCategory, WorldObject.BiotaDatabaseLock);
         }
 
         /// <summary>

@@ -9,6 +9,7 @@ using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
+using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
 using ACE.Server.Network.GameMessages.Messages;
 
@@ -173,6 +174,36 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
+        /// Try to wield an object for non-player creatures
+        /// </summary>
+        /// <returns></returns>
+        public bool TryWieldObject(WorldObject worldObject, EquipMask wieldedLocation)
+        {
+            // check wield requirements?
+            if (!TryEquipObject(worldObject, wieldedLocation))
+                return false;
+
+            // enqueue to ensure parent object has spawned,
+            // and spell fx are visible
+            var actionChain = new ActionChain();
+            actionChain.AddDelaySeconds(0.1);
+            actionChain.AddAction(this, () => TryActivateItemSpells(worldObject));
+            actionChain.EnqueueChain();
+
+            return true;
+        }
+
+        /// <summary>
+        /// Tries to activate item spells for a non-player creature
+        /// </summary>
+        private void TryActivateItemSpells(WorldObject item)
+        {
+            // check activation requirements?
+            foreach (var spell in item.Biota.BiotaPropertiesSpellBook)
+                CreateItemSpell(item, (uint)spell.Spell);
+        }
+
+        /// <summary>
         /// This will set the CurrentWieldedLocation property to wieldedLocation and the Wielder property to this guid and will add it to the EquippedObjects dictionary.<para />
         /// It will also increase the EncumbranceVal and Value.
         /// </summary>
@@ -193,6 +224,17 @@ namespace ACE.Server.WorldObjects
             TrySetChild(worldObject);
 
             worldObject.EmoteManager.OnWield(this);
+
+            return true;
+        }
+
+        protected bool TryWieldObjectWithBroadcasting(WorldObject worldObject, EquipMask wieldedLocation)
+        {
+            // check wield requirements?
+            if (!TryEquipObjectWithBroadcasting(worldObject, wieldedLocation))
+                return false;
+
+            TryActivateItemSpells(worldObject);
 
             return true;
         }
@@ -249,6 +291,22 @@ namespace ACE.Server.WorldObjects
             Children.Remove(Children.Find(s => s.Guid == wo.Guid.Full));
 
             worldObject.EmoteManager.OnUnwield(this);
+
+            return true;
+        }
+
+        /// <summary>
+        /// Called by non-player creatures to unwield an item,
+        /// removing any spells casted by the item
+        /// </summary>
+        protected bool TryUnwieldObjectWithBroadcasting(ObjectGuid objectGuid, out WorldObject worldObject, out int wieldedLocation, bool droppingToLandscape = false)
+        {
+            if (!TryDequipObjectWithBroadcasting(objectGuid, out worldObject, out wieldedLocation, droppingToLandscape))
+                return false;
+
+            // remove item spells
+            foreach (var spell in worldObject.Biota.BiotaPropertiesSpellBook)
+                RemoveItemSpell(worldObject, (uint)spell.Spell, true);
 
             return true;
         }
@@ -463,15 +521,13 @@ namespace ACE.Server.WorldObjects
                 if (!useRNG && item.Shade > 0)
                     wo.Shade = item.Shade;
 
-                //if (!attackable && wo.ValidLocations != null)
-                var equipped = false;
+                TryAddToInventory(wo);
+
                 if (wo.ValidLocations != null)
                 {
-                    equipped = TryEquipObject(wo, (EquipMask)wo.ValidLocations);
+                    var equipped = TryWieldObject(wo, (EquipMask)wo.ValidLocations);
                     //Console.WriteLine($"{Name} tried to equip {wo.Name}, result {equipped}");
                 }
-                if (!equipped)
-                    TryAddToInventory(wo);
             }
         }
 

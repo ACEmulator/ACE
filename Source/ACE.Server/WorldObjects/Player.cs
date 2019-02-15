@@ -242,8 +242,7 @@ namespace ACE.Server.WorldObjects
                                     {
                                         for (int i = 0; i < item.Biota.BiotaPropertiesSpellBook.Count; i++)
                                         {
-                                            // TODO: layering
-                                            RemoveItemSpell(item.Guid, (uint)item.Biota.BiotaPropertiesSpellBook.ElementAt(i).Spell);
+                                            RemoveItemSpell(item, (uint)item.Biota.BiotaPropertiesSpellBook.ElementAt(i).Spell);
                                         }
                                     });
                                     actionChain.EnqueueChain();

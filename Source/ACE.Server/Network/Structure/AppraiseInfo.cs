@@ -19,8 +19,8 @@ namespace ACE.Server.Network.Structure
     {
         public enum _EnchantmentState : uint
         {
-            Off = 0x00000000u,
-            On = 0x80000000u
+            Off = 0x00000000,
+            On  = 0x80000000
         }
 
         public ushort SpellId { get; set; }
@@ -70,7 +70,7 @@ namespace ACE.Server.Network.Structure
             Success = success;
 
             // get wielder, if applicable
-            var wielder = GetWielder(wo);
+            var wielder = GetWielder(wo, examiner);
 
             BuildProperties(wo, wielder);
             BuildSpells(wo);
@@ -355,12 +355,12 @@ namespace ACE.Server.Network.Structure
             AddSpells(SpellBook, weapon, wielder);
         }
 
-        private WorldObject GetWielder(WorldObject weapon)
+        private WorldObject GetWielder(WorldObject weapon, Player examiner)
         {
             if (weapon.WielderId == null)
                 return null;
 
-            return PlayerManager.GetOnlinePlayer(weapon.WielderId.Value);
+            return examiner.FindObject(weapon.WielderId.Value, Player.SearchLocations.Landblock);
         }
 
         /// <summary>
