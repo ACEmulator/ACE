@@ -330,6 +330,7 @@ namespace ACE.Server.WorldObjects
             var baseDamage = ThreadSafeRandom.Next(damageRange.Min, damageRange.Max);
 
             var damageRatingMod = GetRatingMod(EnchantmentManager.GetDamageRating());
+            //Console.WriteLine("Damage Rating: " + damageRatingMod);
 
             var recklessnessMod = player != null ? player.GetRecklessnessMod() : 1.0f;
             var target = AttackTarget as Creature;

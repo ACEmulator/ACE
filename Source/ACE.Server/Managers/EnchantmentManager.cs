@@ -1013,7 +1013,10 @@ namespace ACE.Server.Managers
         /// </summary>
         public virtual int GetDamageRating()
         {
-            var damageRating = GetRating(PropertyInt.DamageRating);
+            // get from base properties (monsters)?
+            var damageRating = WorldObject.GetProperty(PropertyInt.DamageRating) ?? 0;
+
+            damageRating += GetRating(PropertyInt.DamageRating);
 
             if (WorldObject is Player player && player.AugmentationDamageBonus > 0)
                 damageRating += player.AugmentationDamageBonus * 3;
@@ -1026,7 +1029,9 @@ namespace ACE.Server.Managers
 
         public virtual int GetDamageResistRating()
         {
-            var damageResistanceRating = GetRating(PropertyInt.DamageResistRating);
+            var damageResistanceRating = WorldObject.GetProperty(PropertyInt.DamageResistRating) ?? 0;
+
+            damageResistanceRating += GetRating(PropertyInt.DamageResistRating);
 
             if (WorldObject is Player player && player.AugmentationDamageReduction > 0)
                 damageResistanceRating += player.AugmentationDamageReduction * 3;
