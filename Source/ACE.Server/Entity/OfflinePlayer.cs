@@ -305,6 +305,12 @@ namespace ACE.Server.Entity
             set { if (value == 0) RemoveProperty(PropertyInt64.AllegianceXPGenerated); else SetProperty(PropertyInt64.AllegianceXPGenerated, (long)value); }
         }
 
+        public int? AllegianceRank
+        {
+            get => GetProperty(PropertyInt.AllegianceRank);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.AllegianceRank); else SetProperty(PropertyInt.AllegianceRank, value.Value); }
+        }
+
         public int? AllegianceOfficerRank
         {
             get => GetProperty(PropertyInt.AllegianceOfficerRank);
@@ -318,6 +324,24 @@ namespace ACE.Server.Entity
         {
             get => GetProperty(PropertyInstanceId.House);
             set { if (!value.HasValue) RemoveProperty(PropertyInstanceId.House); else SetProperty(PropertyInstanceId.House, value.Value); }
+        }
+
+        public int? HousePurchaseTimestamp
+        {
+            get => GetProperty(PropertyInt.HousePurchaseTimestamp);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.HousePurchaseTimestamp); else SetProperty(PropertyInt.HousePurchaseTimestamp, value.Value); }
+        }
+
+        public int? HouseRentTimestamp
+        {
+            get => GetProperty(PropertyInt.HouseRentTimestamp);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.HouseRentTimestamp); else SetProperty(PropertyInt.HouseRentTimestamp, value.Value); }
+        }
+
+        public uint? HouseId
+        {
+            get => GetProperty(PropertyDataId.HouseId);
+            set { if (!value.HasValue) RemoveProperty(PropertyDataId.HouseId); else SetProperty(PropertyDataId.HouseId, value.Value); }
         }
 
 

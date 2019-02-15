@@ -45,7 +45,7 @@ namespace ACE.Server.WorldObjects
         public bool WieldedLocationIsAvailable(WorldObject item, EquipMask wieldedLocation)
         {
             // filtering to just armor here, or else trinkets and dual wielding breaks
-            var existing = this is Player ? GetEquippedArmor(wieldedLocation) : GetEquippedItems(item, wieldedLocation);
+            var existing = this is Player ? GetEquippedClothingArmor(item.ClothingPriority ?? 0) : GetEquippedItems(item, wieldedLocation);
 
             return existing.Count == 0;
         }
@@ -72,11 +72,11 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Returns a list of equipped armor with any overlap with input locations
+        /// Returns a list of equipped clothing/armor with any coverage overlap
         /// </summary>
-        public List<WorldObject> GetEquippedArmor(EquipMask wieldedLocation)
+        public List<WorldObject> GetEquippedClothingArmor(CoverageMask coverageMask)
         {
-            return EquippedObjects.Values.Where(i => (i.ValidLocations & EquipMask.ArmorExclusive) != 0 && (i.ValidLocations & wieldedLocation) != 0).ToList();
+            return EquippedObjects.Values.Where(i => i.ClothingPriority != null && (i.ClothingPriority & coverageMask) != 0).ToList();
         }
 
         /// <summary>
@@ -87,10 +87,13 @@ namespace ACE.Server.WorldObjects
             if (IsWeaponSlot(wieldedLocation))
             {
                 GetPlacementLocation(item, wieldedLocation, out var placement, out var parentLocation);
-                return EquippedObjects.Values.Where(i => (i.ParentLocation & parentLocation) != 0).ToList();
+                return EquippedObjects.Values.Where(i => i.ParentLocation != null && i.ParentLocation == parentLocation).ToList();
             }
 
-            return EquippedObjects.Values.Where(i => (i.CurrentWieldedLocation & wieldedLocation) != 0).ToList();
+            if (item is Clothing)
+                return GetEquippedClothingArmor(item.ClothingPriority ?? 0);
+            else
+                return EquippedObjects.Values.Where(i => i.CurrentWieldedLocation != null && (i.CurrentWieldedLocation & wieldedLocation) != 0).ToList();
         }
 
         /// <summary>
@@ -426,30 +429,49 @@ namespace ACE.Server.WorldObjects
 
                 if (useRNG)
                 {
+                    // handle sets in 0-1 chunks
+                    if (totalProbability >= 1.0f)
+                    {
+                        totalProbability = 0.0f;
+                        rng = ThreadSafeRandom.Next(0.0f, 1.0f);
+                        rngSelected = false;
+                    }
+
                     var probability = shadeOrProbability;
 
                     totalProbability += probability;
+
                     if (rngSelected || rng > totalProbability)
                         continue;
 
                     rngSelected = true;
                 }
 
-                var wo = WorldObjectFactory.CreateNewWorldObject(item.WeenieClassId);
+                GenerateWieldList_CreateObject(item, useRNG);
+            }
+        }
 
-                if (wo != null)
+        public void GenerateWieldList_CreateObject(BiotaPropertiesCreateList item, bool useRNG)
+        {
+            var wo = WorldObjectFactory.CreateNewWorldObject(item.WeenieClassId);
+
+            if (wo != null)
+            {
+                if (item.Palette > 0)
+                    wo.PaletteTemplate = item.Palette;
+
+                if (!useRNG && item.Shade > 0)
+                    wo.Shade = item.Shade;
+
+                //if (!attackable && wo.ValidLocations != null)
+                var equipped = false;
+                if (wo.ValidLocations != null)
                 {
-                    if (item.Palette > 0)
-                        wo.PaletteTemplate = item.Palette;
-
-                    if (!useRNG && item.Shade > 0)
-                        wo.Shade = item.Shade;
-
-                    if (!attackable && wo.ValidLocations != null)
-                        TryEquipObject(wo, (EquipMask)wo.ValidLocations);
-
-                    TryAddToInventory(wo);
+                    equipped = TryEquipObject(wo, (EquipMask)wo.ValidLocations);
+                    //Console.WriteLine($"{Name} tried to equip {wo.Name}, result {equipped}");
                 }
+                if (!equipped)
+                    TryAddToInventory(wo);
             }
         }
 

@@ -1080,7 +1080,7 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyInt.CurrentWieldedLocation); else SetProperty(PropertyInt.CurrentWieldedLocation, (int)value.Value); }
         }
 
-        public CoverageMask? Priority
+        public CoverageMask? ClothingPriority
         {
             get => (CoverageMask?)GetProperty(PropertyInt.ClothingPriority);
             set { if (!value.HasValue) RemoveProperty(PropertyInt.ClothingPriority); else SetProperty(PropertyInt.ClothingPriority, (int)value.Value); }
@@ -1178,15 +1178,6 @@ namespace ACE.Server.WorldObjects
         {
             get => GetProperty(PropertyInstanceId.HouseOwner);
             set { if (!value.HasValue) RemoveProperty(PropertyInstanceId.HouseOwner); else SetProperty(PropertyInstanceId.HouseOwner, value.Value); }
-        }
-
-        /// <summary>
-        /// The timestamp the player originally purchased house
-        /// </summary>
-        public int? HousePurchaseTimestamp
-        {
-            get => GetProperty(PropertyInt.HousePurchaseTimestamp);
-            set { if (!value.HasValue) RemoveProperty(PropertyInt.HousePurchaseTimestamp); else SetProperty(PropertyInt.HousePurchaseTimestamp, value.Value); }
         }
 
         public int HouseStatus

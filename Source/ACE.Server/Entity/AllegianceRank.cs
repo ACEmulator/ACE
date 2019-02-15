@@ -2,7 +2,7 @@ using ACE.Entity.Enum;
 
 namespace ACE.Server.Entity
 {
-    public static class AllegianceRank
+    public static class AllegianceTitle
     {
         public static string GetTitle(HeritageGroup heritage, Gender gender, uint rank)
         {

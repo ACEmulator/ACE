@@ -65,9 +65,9 @@ namespace ACE.Server.Network.Structure
         /// </summary>
         public List<WorldObject> GetArmorClothing(Creature creature, BodyPart bodyPart)
         {
-            var bodyLocation = BodyParts.GetFlags(BodyParts.GetEquipMask(bodyPart));
+            var bodyLocation = BodyParts.GetFlags(BodyParts.GetCoverageMask(bodyPart));
 
-            var equipped = creature.EquippedObjects.Values.Where(e => e is Clothing && BodyParts.HasAny(e.CurrentWieldedLocation, bodyLocation)).ToList();
+            var equipped = creature.EquippedObjects.Values.Where(e => e is Clothing && BodyParts.HasAny(e.ClothingPriority, bodyLocation)).ToList();
 
             return equipped;
         }

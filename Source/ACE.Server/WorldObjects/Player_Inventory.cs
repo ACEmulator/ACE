@@ -453,6 +453,9 @@ namespace ACE.Server.WorldObjects
             return pickupChain;
         }
 
+        /// <summary>
+        /// If you want to subtract from a stack, amount should be negative.
+        /// </summary>
         private void AdjustStack(WorldObject stack, int amount, Container container, Container rootContainer)
         {
             stack.StackSize += amount;
@@ -461,13 +464,14 @@ namespace ACE.Server.WorldObjects
 
             if (container != null)
             {
-                container.EncumbranceVal -= (stack.StackUnitEncumbrance * amount);
-                container.Value -= (stack.StackUnitValue * amount);
+                // We add to these values because amount will be negative if we're subtracting from a stack, so we want to add a negative number.
+                container.EncumbranceVal += (stack.StackUnitEncumbrance * amount);
+                container.Value += (stack.StackUnitValue * amount);
 
                 if (rootContainer != container)
                 {
-                    rootContainer.EncumbranceVal -= (stack.StackUnitEncumbrance * amount);
-                    rootContainer.Value -= (stack.StackUnitValue * amount);
+                    rootContainer.EncumbranceVal += (stack.StackUnitEncumbrance * amount);
+                    rootContainer.Value += (stack.StackUnitValue * amount);
                 }
             }
         }
@@ -916,7 +920,7 @@ namespace ACE.Server.WorldObjects
             if (!WieldedLocationIsAvailable(item, wieldedLocation))
             {
                 // filtering to just armor here, or else trinkets and dual wielding breaks
-                var existing = GetEquippedArmor(wieldedLocation).FirstOrDefault();
+                var existing = GetEquippedClothingArmor(item.ClothingPriority ?? 0).FirstOrDefault();
 
                 Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, $"You must remove your {existing.Name} to wear that"));
                 Session.Network.EnqueueSend(new GameEventInventoryServerSaveFailed(Session, item.Guid.Full));

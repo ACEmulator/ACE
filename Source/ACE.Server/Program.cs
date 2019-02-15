@@ -107,6 +107,9 @@ namespace ACE.Server
             log.Info("Initializing PlayerManager...");
             PlayerManager.Initialize();
 
+            log.Info("Initializing HouseManager...");
+            HouseManager.Initialize();
+
             log.Info("Initializing InboundMessageManager...");
             InboundMessageManager.Initialize();
 

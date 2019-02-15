@@ -26,5 +26,13 @@ namespace ACE.Server.WorldObjects
         private void SetEphemeralValues()
         {
         }
+
+        public override void ActOnUse(WorldObject activator)
+        {
+            if (!(activator is Creature creature))
+                return;
+
+            EmoteManager.OnUse(creature);
+        }
     }
 }

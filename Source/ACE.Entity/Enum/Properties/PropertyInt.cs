@@ -543,7 +543,9 @@ namespace ACE.Entity.Enum.Properties
         [ServerOnly]
         CurrentLeadershipAtLastLogoff           = 9009,
         [ServerOnly]
-        AllegianceOfficerRank                   = 9010
+        AllegianceOfficerRank                   = 9010,
+        [ServerOnly]
+        HouseRentTimestamp                      = 9011,
     }
 
     public static class PropertyIntExtensions

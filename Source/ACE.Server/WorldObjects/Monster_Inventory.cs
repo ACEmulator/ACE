@@ -36,7 +36,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public List<WorldObject> SelectWieldedClothing()
         {
-            var clothing = GetInventoryItemsOfTypeWeenieType(WeenieType.Clothing).Where(c => ((uint)(c.Priority ?? 0) & (uint)CoverageMaskHelper.Underwear) != 0).ToList();
+            var clothing = GetInventoryItemsOfTypeWeenieType(WeenieType.Clothing).Where(c => ((uint)(c.ClothingPriority ?? 0) & (uint)CoverageMaskHelper.Underwear) != 0).ToList();
 
             if (clothing.Count == 0) return new List<WorldObject>();
 
@@ -46,8 +46,8 @@ namespace ACE.Server.WorldObjects
             clothing.Sort(ValidLocationComparer);
             clothing.Reverse();
 
-            var shirts = clothing.Where(c => ((uint)(c.Priority ?? 0) & (uint)CoverageMaskHelper.UnderwearShirt) != 0).ToList();
-            var pants = clothing.Where(c => ((uint)(c.Priority ?? 0) & (uint)CoverageMaskHelper.UnderwearPants) != 0).ToList();
+            var shirts = clothing.Where(c => ((uint)(c.ClothingPriority ?? 0) & (uint)CoverageMaskHelper.UnderwearShirt) != 0).ToList();
+            var pants = clothing.Where(c => ((uint)(c.ClothingPriority ?? 0) & (uint)CoverageMaskHelper.UnderwearPants) != 0).ToList();
 
             /*Console.WriteLine("\nSelectWieldedClothing\nShirts:");
             foreach (var item in shirts)
@@ -80,7 +80,7 @@ namespace ACE.Server.WorldObjects
         {
             // technically selecting all outerwear,
             // includes things like hats and slippers
-            var armor = GetInventoryItemsOfTypeWeenieType(WeenieType.Clothing).Where(a => ((uint)(a.Priority ?? 0) & (uint)CoverageMaskHelper.Outerwear) != 0).ToList();
+            var armor = GetInventoryItemsOfTypeWeenieType(WeenieType.Clothing).Where(a => ((uint)(a.ClothingPriority ?? 0) & (uint)CoverageMaskHelper.Outerwear) != 0).ToList();
 
             if (armor.Count == 0) return new List<WorldObject>();
 
@@ -129,7 +129,7 @@ namespace ACE.Server.WorldObjects
         public void DebugArmorClothing(WorldObject item)
         {
             var locations = item.ValidLocations;
-            var coverage = item.Priority;
+            var coverage = item.ClothingPriority;
 
             Console.WriteLine($"{item.Name} - Locations: {locations}, Coverage: {coverage}");
         }
@@ -271,7 +271,8 @@ namespace ACE.Server.WorldObjects
                     if (item.ValidLocations != null)
                     {
                         TryRemoveFromInventory(item.Guid);
-                        TryEquipObjectWithBroadcasting(item, item.ValidLocations ?? 0);
+                        var result = TryEquipObjectWithBroadcasting(item, item.ValidLocations ?? 0);
+                        //Console.WriteLine($"{Name} tried to equip {item.Name}, result={result}");
                     }
                 }
             }
