@@ -577,9 +577,12 @@ namespace ACE.Server.WorldObjects
             var modRL = shield.EnchantmentManager.GetArmorModVsType(damageType);
             var effectiveRL = (float)(baseRL + modRL);
 
-            // resistance cap
-            if (effectiveRL > 2.0f)
-                effectiveRL = 2.0f;
+            // resistance clamp
+            effectiveRL = Math.Clamp(effectiveRL, -2.0f, 2.0f);
+
+            // handle negative SL
+            if (effectiveSL < 0)
+                effectiveRL = 1.0f / effectiveRL;
 
             var effectiveLevel = effectiveSL * effectiveRL;
 

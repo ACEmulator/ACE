@@ -161,9 +161,8 @@ namespace ACE.Server.WorldObjects
             // Console.WriteLine("Bane: " + armorBane);
             var effectiveRL = (float)(resistance + armorBane);
 
-            // resistance cap
-            if (effectiveRL > 2.0f)
-                effectiveRL = 2.0f;
+            // resistance clamp
+            effectiveRL = Math.Clamp(effectiveRL, -2.0f, 2.0f);
 
             // TODO: could brittlemail / lures send a piece of armor or clothing's AL into the negatives?
             if (effectiveAL < 0)
