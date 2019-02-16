@@ -270,6 +270,7 @@ namespace ACE.Server.WorldObjects
 
                     if (item.ValidLocations != null)
                     {
+                        TryRemoveFromInventory(item.Guid);
                         var result = TryWieldObjectWithBroadcasting(item, item.ValidLocations ?? 0);
                         //Console.WriteLine($"{Name} tried to equip {item.Name}, result={result}");
                     }
