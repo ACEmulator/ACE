@@ -152,8 +152,6 @@ namespace ACE.Server.Entity
 
             // evasion chance
             EvasionChance = GetEvadeChance(attacker, defender);
-            if (playerDefender != null)
-                EvasionChance = 0.1f;
             if (EvasionChance > ThreadSafeRandom.Next(0.0f, 1.0f))
             {
                 Evaded = true;
