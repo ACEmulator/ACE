@@ -521,7 +521,7 @@ namespace ACE.Server.WorldObjects
                 if (!useRNG && item.Shade > 0)
                     wo.Shade = item.Shade;
 
-                TryAddToInventory(wo);
+                //TryAddToInventory(wo);
 
                 if (wo.ValidLocations != null)
                 {
