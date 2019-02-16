@@ -275,8 +275,8 @@ namespace ACE.Server.WorldObjects
                 if (Spell.School == MagicSchool.VoidMagic && Spell.Duration > 0)
                 {
                     var dot = ProjectileSource.CreateEnchantment(target, ProjectileSource, Spell);
-                    if (dot.message != null && player != null)
-                        player.Session.Network.EnqueueSend(dot.message);
+                    if (dot.Message != null && player != null)
+                        player.Session.Network.EnqueueSend(dot.Message);
 
                     // corruption / corrosion playscript?
                     //target.EnqueueBroadcast(new GameMessageScript(target.Guid, ACE.Entity.Enum.PlayScript.HealthDownVoid));

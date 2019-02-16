@@ -616,6 +616,8 @@ namespace ACE.Server.Managers
                 /* plays an animation on the source object */
                 case EmoteType.Motion:
 
+                    var debugMotion = false;
+
                     if (Debug)
                         Console.Write($".{(MotionCommand)emote.Motion}");
 
@@ -635,8 +637,8 @@ namespace ACE.Server.Managers
                         {
                             if (WorldObject.CurrentMotionState.Stance == MotionStance.Invalid)
                             {
-                                //if (Debug)
-                                //Console.WriteLine($"{WorldObject.Name} running starting motion {(MotionStance)emoteSet.Style}, {(MotionCommand)emoteSet.Substyle}");
+                                if (debugMotion)
+                                    Console.WriteLine($"{WorldObject.Name} running starting motion {(MotionStance)emoteSet.Style}, {(MotionCommand)emoteSet.Substyle}");
 
                                 delay = WorldObject.ExecuteMotion(startingMotion);
                             }
@@ -645,8 +647,8 @@ namespace ACE.Server.Managers
                         {
                             if (WorldObject.CurrentMotionState.MotionState.ForwardCommand == startingMotion.MotionState.ForwardCommand)
                             {
-                                //if (Debug)
-                                //Console.WriteLine($"{WorldObject.Name} running motion {(MotionStance)emoteSet.Style}, {(MotionCommand)emote.Motion}");
+                                if (debugMotion)
+                                    Console.WriteLine($"{WorldObject.Name} running motion {(MotionStance)emoteSet.Style}, {(MotionCommand)emote.Motion}");
 
                                 float? maxRange = ClientMaxAnimRange;
                                 if (MotionQueue.Contains((MotionCommand)emote.Motion))
@@ -661,26 +663,20 @@ namespace ACE.Server.Managers
                                 motionChain.AddDelaySeconds(animLength);
                                 motionChain.AddAction(WorldObject, () =>
                                 {
-                                    // FIXME: this needs to be figured out better
-                                    var cycles = new List<MotionCommand>()
+                                    // FIXME: better cycle handling
+                                    var cmd = WorldObject.CurrentMotionState.MotionState.ForwardCommand;
+                                    if (cmd != MotionCommand.Sleeping && cmd != MotionCommand.Sitting && !cmd.ToString().EndsWith("State"))
                                     {
-                                        MotionCommand.Sleeping,
-                                        MotionCommand.Sitting,
-                                        MotionCommand.SnowAngelState
-                                    };
-
-                                    if (!cycles.Contains(WorldObject.CurrentMotionState.MotionState.ForwardCommand))
-                                    {
-                                        //if (Debug)
-                                        //Console.WriteLine($"{WorldObject.Name} running starting motion again {(MotionStance)emoteSet.Style}, {(MotionCommand)emoteSet.Substyle}");
+                                        if (debugMotion)
+                                            Console.WriteLine($"{WorldObject.Name} running starting motion again {(MotionStance)emoteSet.Style}, {(MotionCommand)emoteSet.Substyle}");
 
                                         WorldObject.ExecuteMotion(startingMotion);
                                     }
                                 });
                                 motionChain.EnqueueChain();
 
-                                //if (Debug)
-                                //Console.WriteLine($"{WorldObject.Name} appending time to existing chain: " + animLength);
+                                if (debugMotion)
+                                    Console.WriteLine($"{WorldObject.Name} appending time to existing chain: " + animLength);
                             }
                         }
                     }
@@ -693,8 +689,8 @@ namespace ACE.Server.Managers
 
                         motion = new Motion(MotionStance.NonCombat, (MotionCommand)emote.Motion, emote.Extent);
 
-                        //if (Debug)
-                        //Console.WriteLine($"{WorldObject.Name} running motion (block 2) {MotionStance.NonCombat}, {(MotionCommand)(emote.Motion ?? 0)}");
+                        if (debugMotion)
+                            Console.WriteLine($"{WorldObject.Name} running motion (block 2) {MotionStance.NonCombat}, {(MotionCommand)(emote.Motion ?? 0)}");
 
                         delay = WorldObject.ExecuteMotion(motion);
 

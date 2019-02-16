@@ -176,39 +176,51 @@ namespace ACE.Server.WorldObjects
                 new GameEventWieldItem(Session, item.Guid.Full, wieldedLocation),
                 new GameMessageSound(Guid, Sound.WieldObject));
 
-            // If item has any spells, cast them on the wielder
+            // do the appropriate combat stance shuffling, based on the item types
+            // todo: instead of switching the weapon immediately, the weapon should be swpped in the middle of the animation chain
+
+            if (CombatMode != CombatMode.NonCombat && CombatMode != CombatMode.Undef)
+            {
+                switch (wieldedLocation)
+                {
+                    case EquipMask.MissileWeapon:
+                        SetCombatMode(CombatMode.Missile);
+                        break;
+                    case EquipMask.Held:
+                        SetCombatMode(CombatMode.Magic);
+                        break;
+                    default:
+                        SetCombatMode(CombatMode.Melee);
+                        break;
+                }
+            }
+
+            // does this item cast enchantments, and currently have mana?
             if (item.ItemCurMana > 1 || item.ItemCurMana == null) // TODO: Once Item Current Mana is fixed for loot generated items, '|| item.ItemCurMana == null' can be removed
             {
+                // check activation requirements
+                var result = item.CheckUseRequirements(this);
+                if (!result.Success)
+                {
+                    if (result.Message != null)
+                        Session.Network.EnqueueSend(result.Message);
+
+                    return true;
+                }
+
                 foreach (var spell in item.Biota.BiotaPropertiesSpellBook)
                 {
-                    if (CreateItemSpell(item, (uint)spell.Spell))
+                    var enchantmentStatus = CreateItemSpell(item, (uint)spell.Spell);
+                    if (enchantmentStatus.Success)
                         item.IsAffecting = true;
                 }
 
                 if (item.IsAffecting ?? false)
                 {
                     if (item.ItemCurMana.HasValue)
-                        item.ItemCurMana--;
+                        item.ItemCurMana--;     // ?
                 }
-
             }
-
-            if (CombatMode == CombatMode.NonCombat || CombatMode == CombatMode.Undef)
-                return true;
-
-            switch (wieldedLocation)
-            {
-                case EquipMask.MissileWeapon:
-                    SetCombatMode(CombatMode.Missile);
-                    break;
-                case EquipMask.Held:
-                    SetCombatMode(CombatMode.Magic);
-                    break;
-                default:
-                    SetCombatMode(CombatMode.Melee);
-                    break;
-            }
-
             return true;
         }
 
@@ -254,7 +266,7 @@ namespace ACE.Server.WorldObjects
             if (item.Biota.BiotaPropertiesSpellBook != null)
             {
                 foreach (var spell in item.Biota.BiotaPropertiesSpellBook)
-                    DispelItemSpell(item, (uint)spell.Spell);
+                    RemoveItemSpell(item, (uint)spell.Spell, true);
             }
 
             if (dequipObjectAction == DequipObjectAction.ToCorpseOnDeath)

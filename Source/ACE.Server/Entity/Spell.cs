@@ -197,5 +197,32 @@ namespace ACE.Server.Entity
             }
             return Skill.None;
         }
+
+        public bool IsPortalSpell
+        {
+            get
+            {
+                return MetaSpellType == SpellType.PortalLink
+                    || MetaSpellType == SpellType.PortalRecall
+                    || MetaSpellType == SpellType.PortalSending
+                    || MetaSpellType == SpellType.PortalSummon;
+            }
+        }
+
+        /// <summary>
+        /// Handles forward compatibility for old item spells which should be auras
+        /// </summary>
+        public bool HasItemCategory
+        {
+            get
+            {
+                return Category == SpellCategory.AttackModRaising
+                    || Category == SpellCategory.DamageRaising
+                    || Category == SpellCategory.DefenseModRaising
+                    || Category == SpellCategory.WeaponTimeRaising
+                    || Category == SpellCategory.AppraisalResistanceLowering
+                    || Category == SpellCategory.SpellDamageRaising;
+            }
+        }
     }
 }

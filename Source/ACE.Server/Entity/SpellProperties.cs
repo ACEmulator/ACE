@@ -41,7 +41,7 @@ namespace ACE.Server.Entity
         /// <summary>
         /// Used for spell stacking, ie. Strength Self I and Strength Self VI will be the same category
         /// </summary>
-        public uint Category { get => _spellBase.Category; }
+        public SpellCategory Category { get => _spellBase.Category; }
 
         /// <summary>
         /// bit flags for the spell
@@ -284,7 +284,7 @@ namespace ACE.Server.Entity
         /// <summary>
         /// If TRUE, ignores magic resistance
         /// </summary>
-        public bool IgnoreMagicResist { get => Convert.ToBoolean(IgnoreMagicResist); }  // verify bool?
+        public bool IgnoreMagicResist { get => Convert.ToBoolean(_spell.IgnoreMagicResist ?? 0); }  // verify bool?
 
         /// <summary>
         /// The elemental damage multiplier for this spell

@@ -118,7 +118,7 @@ namespace ACE.Server.WorldObjects
                     player.TryDequipObjectWithNetworking(ammo.Guid, out _, Player.DequipObjectAction.ConsumeItem);
                 else
                 {
-                    TryDequipObjectWithBroadcasting(ammo.Guid, out _, out _);
+                    TryUnwieldObjectWithBroadcasting(ammo.Guid, out _, out _);
                     ammo.Destroy();
                 }
             }

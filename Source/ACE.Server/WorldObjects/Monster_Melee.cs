@@ -255,7 +255,7 @@ namespace ACE.Server.WorldObjects
             var weapon = GetEquippedMeleeWeapon();
             if (weapon != null)
             {
-                var weaponDamage = weapon.GetBaseDamage();
+                var weaponDamage = weapon.GetDamageMod(this);
                 //Console.WriteLine($"{Name} using weapon damage: {weaponDamage}");
                 return weaponDamage;
             }
@@ -330,6 +330,7 @@ namespace ACE.Server.WorldObjects
             var baseDamage = ThreadSafeRandom.Next(damageRange.Min, damageRange.Max);
 
             var damageRatingMod = GetRatingMod(EnchantmentManager.GetDamageRating());
+            //Console.WriteLine("Damage Rating: " + damageRatingMod);
 
             var recklessnessMod = player != null ? player.GetRecklessnessMod() : 1.0f;
             var target = AttackTarget as Creature;
