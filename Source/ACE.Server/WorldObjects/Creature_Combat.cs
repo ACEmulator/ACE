@@ -914,7 +914,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public virtual AttackType GetAttackType(WorldObject weapon, CombatManeuver combatManeuver)
         {
-            return combatManeuver.AttackType;
+            return combatManeuver != null ? combatManeuver.AttackType : AttackType.Undef;
         }
     }
 }
