@@ -417,12 +417,16 @@ namespace ACE.Server.WorldObjects
             var bodyArmorMod = damageSource != null && damageSource.IgnoreMagicResist ? 0.0f : AttackTarget.EnchantmentManager.GetBodyArmorMod();
 
             // handle armor rending mod here?
-            if (bodyArmorMod > 0)
-                bodyArmorMod *= armorRendingMod;
+            //if (bodyArmorMod > 0)
+                //bodyArmorMod *= armorRendingMod;
 
             //Console.WriteLine("==");
             //Console.WriteLine("Armor Self: " + bodyArmorMod);
             effectiveAL += bodyArmorMod;
+
+            // Armor Rending reduces physical armor too?
+            if (effectiveAL > 0)
+                effectiveAL *= armorRendingMod;
 
             var armorMod = SkillFormula.CalcArmorMod(effectiveAL);
 

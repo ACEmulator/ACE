@@ -105,8 +105,8 @@ namespace ACE.Server.WorldObjects
             var baseArmorMod = (float)(Biota.BaseArmor + enchantmentMod);
 
             // handle armor rending mod here?
-            if (baseArmorMod > 0)
-                baseArmorMod *= armorRendingMod;
+            //if (baseArmorMod > 0)
+                //baseArmorMod *= armorRendingMod;
 
             // for creatures, can this be modified via enchantments?
             var armorVsType = Creature.GetArmorVsType(damageType);
@@ -120,6 +120,10 @@ namespace ACE.Server.WorldObjects
             // handle monsters w/ multiple layers of armor
             foreach (var armorLayer in armorLayers)
                 effectiveAL += GetArmorMod(armorLayer, damageSource, damageType);
+
+            // Armor Rending reduces physical armor too?
+            if (effectiveAL > 0)
+                effectiveAL *= armorRendingMod;
 
             return effectiveAL;
         }
