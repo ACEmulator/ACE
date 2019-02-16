@@ -47,7 +47,7 @@ namespace ACE.DatLoader
             }
             catch (FileNotFoundException ex)
             {
-                log.Info($"An exception occured while attempting to open {datFile} file!\n\n *** Please check your 'DatFilesDirectory' setting in the config.json file. ***\n *** ACE will not run properly without this properly configured! ***\n");
+                log.Info($"An exception occured while attempting to open {datFile} file!\n\n *** Please check your 'DatFilesDirectory' setting in the config.js file. ***\n *** ACE will not run properly without this properly configured! ***\n");
                 log.Info($"Exception: {ex.Message}");
             }
 

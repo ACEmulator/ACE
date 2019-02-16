@@ -15,8 +15,8 @@ namespace ACE.Server.Tests
         [ClassInitialize]
         public static void TestSetup(TestContext context)
         {
-            // copy config.json and initialize configuration
-            File.Copy(Path.Combine(Environment.CurrentDirectory, "..\\..\\..\\..\\..\\ACE.Server\\Config.json"), ".\\Config.json", true);
+            // copy config.js and initialize configuration
+            File.Copy(Path.Combine(Environment.CurrentDirectory, "..\\..\\..\\..\\..\\ACE.Server\\Config.js"), ".\\Config.js", true);
             ConfigManager.Initialize();
         }
 

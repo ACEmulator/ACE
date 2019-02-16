@@ -107,6 +107,9 @@ namespace ACE.Server
             log.Info("Initializing PlayerManager...");
             PlayerManager.Initialize();
 
+            log.Info("Initializing HouseManager...");
+            HouseManager.Initialize();
+
             log.Info("Initializing InboundMessageManager...");
             InboundMessageManager.Initialize();
 
@@ -118,9 +121,6 @@ namespace ACE.Server
 
             log.Info("Initializing EventManager...");
             EventManager.Initialize();
-
-            log.Info("Initializing HouseManager...");
-            HouseManager.Initialize();
 
             // This should be last
             log.Info("Initializing CommandManager...");
