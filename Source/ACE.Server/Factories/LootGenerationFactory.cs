@@ -58,16 +58,56 @@ namespace ACE.Server.Factories
             player.HandleAddNewWorldObjectsToInventory(items);*/
         }
 
+        // Enum used for adjusting the loot bias for the various types of Mana forge chests
+        public enum LootBias : uint
+        {
+            UnBiased = 0,
+            Armor = 1,
+            Weapons = 2,
+            SpellComps = 4,
+            Clothing = 8,
+            Jewelry = 16,
+            MagicEquipment = 31,
+            MixedEquipment = 31,
+        }
+
         public static List<WorldObject> CreateRandomLootObjects(TreasureDeath profile)
         {
+            LootBias lootBias = LootBias.UnBiased;
             var loot = new List<WorldObject>();
+
+            switch (profile.TreasureType)
+            {
+                case 1001:  // Mana Forge Chest, Advanced Equipment Chest, and Mixed Equipment Chest
+                    lootBias = LootBias.MixedEquipment;
+                    break;
+                case 1002:  // Armor Chest
+                    lootBias = LootBias.Armor;
+                    break;
+                case 1003:  // Magic Chest
+                    lootBias = LootBias.MagicEquipment;
+                    break;
+                case 1004:  // Weapon Chest
+                    lootBias = LootBias.Weapons;
+                    break;
+                default:    // Default to unbiased loot profile
+                    break;
+            }
 
             var itemChance = ThreadSafeRandom.Next(1, 100);
             if (itemChance <= profile.ItemChance)
             {
                 var numItems = ThreadSafeRandom.Next(profile.ItemMinAmount, profile.ItemMaxAmount);
                 for (var i = 0; i < numItems; i++)
-                    loot.Add(CreateRandomLootObjects(profile.Tier, false));
+                {
+                    WorldObject lootWorldObject;
+                    if (lootBias == LootBias.MagicEquipment)
+                        lootWorldObject = CreateRandomLootObjects(profile.Tier, false, LootBias.Weapons);
+                    else
+                        lootWorldObject = CreateRandomLootObjects(profile.Tier, false, lootBias);
+                    if (lootWorldObject != null)
+                        loot.Add(lootWorldObject);
+                }
             }
 
             var magicItemChance = ThreadSafeRandom.Next(1, 100);
@@ -75,7 +115,11 @@ namespace ACE.Server.Factories
             {
                 var numItems = ThreadSafeRandom.Next(profile.MagicItemMinAmount, profile.MagicItemMaxAmount);
                 for (var i = 0; i < numItems; i++)
-                    loot.Add(CreateRandomLootObjects(profile.Tier, true));
+                {
+                    var lootWorldObject = CreateRandomLootObjects(profile.Tier, true, lootBias);
+                    if (lootWorldObject != null)
+                        loot.Add(lootWorldObject);
+                }
             }
 
             var mundaneItemChance = ThreadSafeRandom.Next(1, 100);
@@ -83,13 +127,17 @@ namespace ACE.Server.Factories
             {
                 var numItems = ThreadSafeRandom.Next(profile.MundaneItemMinAmount, profile.MundaneItemMaxAmount);
                 for (var i = 0; i < numItems; i++)
-                    loot.Add(CreateMundaneObjects(profile.Tier));
+                {
+                    var lootWorldObject = CreateMundaneObjects(profile.Tier, lootBias);
+                    if (lootWorldObject != null)
+                        loot.Add(lootWorldObject);
+                }
 
             }
             return loot;
         }
 
-        public static WorldObject CreateMundaneObjects(int tier)
+        public static WorldObject CreateMundaneObjects(int tier, LootBias lootBias = LootBias.UnBiased)
         {
             WorldObject wo;
             int id = 0;
@@ -98,7 +146,7 @@ namespace ACE.Server.Factories
             {
                 case 1:
                     //mundane items
-                    int mundaneType = ThreadSafeRandom.Next(1, 7);
+                    int mundaneType = ThreadSafeRandom.Next(1, 8);
                     switch (mundaneType)
                     {
                         case 1:
@@ -182,12 +230,11 @@ namespace ACE.Server.Factories
                                 id = 545;
                             }
                             break;
-                        //case 6:
-                        //    //coalesced mana
-                        //    //Yellow Mana
-                        //    id = 42518;
-                        //    break;
                         case 6:
+                            // coalesced mana (Yellow)
+                            id = 42518;
+                            break;
+                        case 7:
                             //Food Items
                             id = CreateFood();
                             break;
@@ -201,7 +248,7 @@ namespace ACE.Server.Factories
 
                 case 2:
                     //mundane items
-                    mundaneType = ThreadSafeRandom.Next(1, 7);
+                    mundaneType = ThreadSafeRandom.Next(1, 8);
                     switch (mundaneType)
                     {
                         case 1:
@@ -319,12 +366,11 @@ namespace ACE.Server.Factories
                                 id = 512;
                             }
                             break;
-                        //case 6:
-                        //    //coalesced mana
-                        //    //Yellow Mana
-                        //    id = 42518;
-                        //    break;
                         case 6:
+                            // coalesced mana (Yellow)
+                            id = 42518;
+                            break;
+                        case 7:
                             id = CreateFood();
                             break;
                         default:
@@ -337,7 +383,7 @@ namespace ACE.Server.Factories
 
                 case 3:
                     //mundane items
-                    mundaneType = ThreadSafeRandom.Next(1, 7);
+                    mundaneType = ThreadSafeRandom.Next(1, 8);
                     switch (mundaneType)
                     {
                         case 1:
@@ -465,21 +511,21 @@ namespace ACE.Server.Factories
                                 id = 514;
                             }
                             break;
-                        //case 6:
-                        //    //coalesced mana
-                        //    chance = ThreadSafeRandom.Next(1, 100);
-                        //    if (chance < 90)
-                        //    {
-                        //        //Coalecsed Mana (Yellow)
-                        //        id = 42518;
-                        //    }
-                        //    else
-                        //    {
-                        //        //Coalecsed Mana (Red)
-                        //        id = 42517;
-                        //    }
-                        //    break;
                         case 6:
+                            //coalesced mana
+                            chance = ThreadSafeRandom.Next(1, 100);
+                            if (chance < 90)
+                            {
+                                //Coalecsed Mana (Yellow)
+                                id = 42518;
+                            }
+                            else
+                            {
+                                //Coalecsed Mana (Red)
+                                id = 42517;
+                            }
+                            break;
+                        case 7:
                             id = CreateFood();
                             break;
                         default:
@@ -619,26 +665,26 @@ namespace ACE.Server.Factories
                                 id = 514;
                             }
                             break;
-                        //case 6:
-                        //    //coalesced mana
-                        //    chance = ThreadSafeRandom.Next(1, 100);
-                        //    if (chance < 50)
-                        //    {
-                        //        //Coalesced Mana (Yellow)
-                        //        id = 42518;
-                        //    }
-                        //    else if(chance < 85)
-                        //    {
-                        //        //Coalesced Mana (Red)
-                        //        id = 42517;
-                        //    }
-                        //    else
-                        //    {
-                        //        //Coalesced Mana (Blue)
-                        //        id = 42516;
-                        //    }
-                        //    break;
                         case 6:
+                            //coalesced mana
+                            chance = ThreadSafeRandom.Next(1, 100);
+                            if (chance < 50)
+                            {
+                                //Coalesced Mana (Yellow)
+                                id = 42518;
+                            }
+                            else if(chance < 85)
+                            {
+                                //Coalesced Mana (Red)
+                                id = 42517;
+                            }
+                            else
+                            {
+                                //Coalesced Mana (Blue)
+                                id = 42516;
+                            }
+                            break;
+                        case 7:
                             id = CreateFood();
                             break;
                         default:
@@ -778,25 +824,6 @@ namespace ACE.Server.Factories
                                 id = 516;
                             }
                             break;
-                        //case 6:
-                        //    //coalesced mana
-                        //    chance = ThreadSafeRandom.Next(1, 100);
-                        //    if (chance < 50)
-                        //    {
-                        //        //Coalesced Mana (Yellow)
-                        //        id = 42518;
-                        //    }
-                        //    else if (chance < 85)
-                        //    {
-                        //        //Coalesced Mana (Red)
-                        //        id = 42517;
-                        //    }
-                        //    else
-                        //    {
-                        //        //Coalesced Mana (Blue)
-                        //        id = 42516;
-                        //    }
-                        //    break;
                         case 6:
                             id = CreateFood();
                             break;
@@ -916,7 +943,7 @@ namespace ACE.Server.Factories
                         case 5:
                             //lockpicks
                             chance = ThreadSafeRandom.Next(1, 105);
-                            if (chance < 100)
+                            if (chance < 70)
                             {
                                 //Excellent Lockpick
                                 id = 514;
@@ -932,25 +959,6 @@ namespace ACE.Server.Factories
                                 id = 516;
                             }
                             break;
-                        //case 6:
-                        //    //coalesced mana
-                        //    chance = ThreadSafeRandom.Next(1, 100);
-                        //    if (chance < 50)
-                        //    {
-                        //        //Coalesced Mana (Yellow)
-                        //        id = 42518;
-                        //    }
-                        //    else if (chance < 85)
-                        //    {
-                        //        //Coalesced Mana (Red)
-                        //        id = 42517;
-                        //    }
-                        //    else
-                        //    {
-                        //        //Coalesced Mana (Blue)
-                        //        id = 42516;
-                        //    }
-                        //    break;
                         case 6:
                             id = CreateFood();
                             break;
@@ -1070,7 +1078,7 @@ namespace ACE.Server.Factories
                         case 5:
                             //lockpicks
                             chance = ThreadSafeRandom.Next(1, 105);
-                            if (chance < 100)
+                            if (chance < 70)
                             {
                                 //Excellent Lockpick
                                 id = 514;
@@ -1086,30 +1094,11 @@ namespace ACE.Server.Factories
                                 id = 516;
                             }
                             break;
-                        //case 6:
-                        //    //coalesced mana
-                        //    chance = ThreadSafeRandom.Next(1, 100);
-                        //    if (chance < 50)
-                        //    {
-                        //        //Coalesced Mana (Yellow)
-                        //        id = 42518;
-                        //    }
-                        //    else if (chance < 85)
-                        //    {
-                        //        //Coalesced Mana (Red)
-                        //        id = 42517;
-                        //    }
-                        //    else
-                        //    {
-                        //        //Coalesced Mana (Blue)
-                        //        id = 42516;
-                        //    }
-                        //    break;
                         case 6:
                             id = CreateFood();
                             break;
                         default:
-                            wo = CreateRandomScroll(ThreadSafeRandom.Next(6, 6));
+                            wo = CreateRandomScroll(ThreadSafeRandom.Next(6, 7));
                             return wo;
                     }
                     wo = WorldObjectFactory.CreateNewWorldObject((uint)id);
@@ -1117,7 +1106,10 @@ namespace ACE.Server.Factories
 
                 default:
                     //mundane items
-                    mundaneType = ThreadSafeRandom.Next(1, 7);
+                    if (lootBias == LootBias.UnBiased)
+                        mundaneType = ThreadSafeRandom.Next(1, 8);
+                    else
+                        mundaneType = 6; // Spell components are required for biased tier 8
                     switch (mundaneType)
                     {
                         case 1:
@@ -1174,7 +1166,7 @@ namespace ACE.Server.Factories
                             else if (chance < 325)
                             {
                                 //health Tonic
-                                id = 27320; ;
+                                id = 27320;
                             }
                             else if (chance < 350)
                             {
@@ -1224,7 +1216,7 @@ namespace ACE.Server.Factories
                         case 5:
                             //lockpicks
                             chance = ThreadSafeRandom.Next(1, 105);
-                            if (chance < 100)
+                            if (chance < 70)
                             {
                                 //Excellent Lockpick
                                 id = 514;
@@ -1240,408 +1232,389 @@ namespace ACE.Server.Factories
                                 id = 516;
                             }
                             break;
-                        //case 6:
-                        //    //coalesced mana
-                        //    chance = ThreadSafeRandom.Next(1, 100);
-                        //    if (chance < 50)
-                        //    {
-                        //        //Coalesced Mana (Yellow)
-                        //        id = 42518;
-                        //    }
-                        //    else if (chance < 85)
-                        //    {
-                        //        //Coalesced Mana (Red)
-                        //        id = 42517;
-                        //    }
-                        //    else
-                        //    {
-                        //        //Coalesced Mana (Blue)
-                        //        id = 42516;
-                        //    }
-                        //    break;
-                        //case 7:
-                        //    //spell components
-                        //    chance = ThreadSafeRandom.Next(1, 170);
-                        //    if (chance < 100)
-                        //    {
-                        //        //Quill of Infliction
-                        //        id = 37363;
-                        //    }
-                        //    else if (chance == 100)
-                        //    {
-                        //        //Quill of Benevolence
-                        //        id = 37365;
-                        //    }
-                        //    else if (chance == 101)
-                        //    {
-                        //        //Quill of Extraction
-                        //        id = 37362;
-                        //    }
-                        //    else if (chance == 102)
-                        //    {
-                        //        //Quill of Introspection
-                        //        id = 37364;
-                        //    }
-                        //    else if (chance == 103)
-                        //    {
-                        //        //Ink of Conveyance
-                        //        id = 37360;
-                        //    }
-                        //    else if (chance == 104)
-                        //    {
-                        //        //Ink of direction
-                        //        id = 37361;
-                        //    }
-                        //    else if (chance == 105)
-                        //    {
-                        //        //Ink of Formation
-                        //        id = 37353;
-                        //    }
-                        //    else if (chance == 106)
-                        //    {
-                        //        //Ink of Nullification
-                        //        id = 37354;
-                        //    }
-                        //    else if (chance == 107)
-                        //    {
-                        //        //Ink of Objectification
-                        //        id = 37355;
-                        //    }
-                        //    else if (chance == 108)
-                        //    {
-                        //        //Ink of Partition
-                        //        id = 37357;
-                        //    }
-                        //    else if (chance == 109)
-                        //    {
-                        //        //Ink of Separation
-                        //        id = 37358;
-                        //    }
-                        //    else if (chance == 110)
-                        //    {
-                        //        //Parabolic Ink
-                        //        id = 37356;
-                        //    }
-                        //    else if (chance == 111)
-                        //    {
-                        //        //Alacritous Ink
-                        //        id = 37359;
-                        //    }
-                        //    else if (chance == 112)
-                        //    {
-                        //        //Mana Scarab
-                        //        id = 37115;
-                        //    }
-                        //    else if (chance == 113)
-                        //    {
-                        //        //glyph of alchemy
-                        //        id = 37343;
-                        //    }
-                        //    else if (chance == 114)
-                        //    {
-                        //        //glyph of alchemy
-                        //        id = 37343;
-                        //    }
-                        //    else if (chance == 115)
-                        //    {
-                        //        //glyph of arcane lore
-                        //        id = 37344;
-                        //    }
-                        //    else if (chance == 116)
-                        //    {
-                        //        //glyph of armor
-                        //        id = 37345;
-                        //    }
-                        //    else if (chance == 117)
-                        //    {
-                        //        //glyph of armor tinkering
-                        //        id = 37346;
-                        //    }
-                        //    else if (chance == 118)
-                        //    {
-                        //        //glyph of bludgeoning
-                        //        id = 37347;
-                        //    }
-                        //    else if (chance == 119)
-                        //    {
-                        //        //glyph of cooking
-                        //        id = 37349;
-                        //    }
-                        //    else if (chance == 120)
-                        //    {
-                        //        //glyph of coordination
-                        //        id = 37350;
-                        //    }
-                        //    else if (chance == 121)
-                        //    {
-                        //        //glyph of corrosion
-                        //        id = 37342;
-                        //    }
-                        //    else if (chance == 122)
-                        //    {
-                        //        //glyph of creature enchantment
-                        //        id = 37351;
-                        //    }
-                        //    else if (chance == 123)
-                        //    {
-                        //        //glyph of damage
-                        //        id = 43379;
-                        //    }
-                        //    else if (chance == 124)
-                        //    {
-                        //        //glyph of deception
-                        //        id = 37352;
-                        //    }
-                        //    else if (chance == 125)
-                        //    {
-                        //        //glyph of dirty fighting
-                        //        id = 45370;
-                        //    }
-                        //    else if (chance == 126)
-                        //    {
-                        //        //glyph of dual wield
-                        //        id = 45371;
-                        //    }
-                        //    else if (chance == 127)
-                        //    {
-                        //        //glyph of endurance
-                        //        id = 37300;
-                        //    }
-                        //    else if (chance == 128)
-                        //    {
-                        //        //glyph of finesse weapon
-                        //        id = 37373;
-                        //    }
-                        //    else if (chance == 129)
-                        //    {
-                        //        //glyph of flame
-                        //        id = 37301;
-                        //    }
-                        //    else if (chance == 130)
-                        //    {
-                        //        //glyph of fletching
-                        //        id = 37302;
-                        //    }
-                        //    else if (chance == 131)
-                        //    {
-                        //        //glyph of focus
-                        //        id = 37303;
-                        //    }
-                        //    else if (chance == 132)
-                        //    {
-                        //        //glyph of frost
-                        //        id = 37348;
-                        //    }
-                        //    else if (chance == 133)
-                        //    {
-                        //        //glyph of healing
-                        //        id = 37304;
-                        //    }
-                        //    else if (chance == 134)
-                        //    {
-                        //        //glyph of health
-                        //        id = 37305;
-                        //    }
-                        //    else if (chance == 135)
-                        //    {
-                        //        //glyph of heavy weapons
-                        //        id = 37369;
-                        //    }
-                        //    else if (chance == 136)
-                        //    {
-                        //        //glyph of item enchantment
-                        //        id = 37309;
-                        //    }
-                        //    else if (chance == 137)
-                        //    {
-                        //        //glyph of item tinnkering
-                        //        id = 37310;
-                        //    }
-                        //    else if (chance == 138)
-                        //    {
-                        //        //glyph of jump
-                        //        id = 37311;
-                        //    }
-                        //    else if (chance == 139)
-                        //    {
-                        //        //glyph of leadership
-                        //        id = 37312;
-                        //    }
-                        //    else if (chance == 140)
-                        //    {
-                        //        //glyph of life magic
-                        //        id = 37313;
-                        //    }
-                        //    else if (chance == 141)
-                        //    {
-                        //        //glyph of light weapons
-                        //        id = 37339;
-                        //    }
-                        //    else if (chance == 142)
-                        //    {
-                        //        //glyph of lightning
-                        //        id = 37314;
-                        //    }
-                        //    else if (chance == 143)
-                        //    {
-                        //        //glyph of lockpick
-                        //        id = 37315;
-                        //    }
-                        //    else if (chance == 144)
-                        //    {
-                        //        //glyph of loyalty
-                        //        id = 37316;
-                        //    }
-                        //    else if (chance == 145)
-                        //    {
-                        //        //glyph of magic defense
-                        //        id = 37317;
-                        //    }
-                        //    else if (chance == 146)
-                        //    {
-                        //        //glyph of magic item tinkering
-                        //        id = 38760;
-                        //    }
-                        //    else if (chance == 147)
-                        //    {
-                        //        //glyph of mana
-                        //        id = 37318;
-                        //    }
-                        //    else if (chance == 148)
-                        //    {
-                        //        //glyph of mana conversion
-                        //        id = 37319;
-                        //    }
-                        //    else if (chance == 149)
-                        //    {
-                        //        //glyph of mana regeneration
-                        //        id = 37321;
-                        //    }
-                        //    else if (chance == 150)
-                        //    {
-                        //        //glyph of melee defense
-                        //        id = 37323;
-                        //    }
-                        //    else if (chance == 151)
-                        //    {
-                        //        //glyph of missile defense
-                        //        id = 37324;
-                        //    }
-                        //    else if (chance == 152)
-                        //    {
-                        //        //glyph of Missile weapons
-                        //        id = 37338;
-                        //    }
-                        //    else if (chance == 153)
-                        //    {
-                        //        //glyph of monster appraisal
-                        //        id = 37325;
-                        //    }
-                        //    else if (chance == 154)
-                        //    {
-                        //        //glyph of nether
-                        //        id = 43387;
-                        //    }
-                        //    else if (chance == 155)
-                        //    {
-                        //        //glyph of person appraisal
-                        //        id = 37326;
-                        //    }
-                        //    else if (chance == 156)
-                        //    {
-                        //        //glyph of piercing
-                        //        id = 37327;
-                        //    }
-                        //    else if (chance == 157)
-                        //    {
-                        //        //glyph of quickness
-                        //        id = 37328;
-                        //    }
-                        //    else if (chance == 158)
-                        //    {
-                        //        //glyph of recklessness
-                        //        id = 45372;
-                        //    }
-                        //    else if (chance == 159)
-                        //    {
-                        //        //glyph of regeneration
-                        //        id = 37307;
-                        //    }
-                        //    else if (chance == 160)
-                        //    {
-                        //        //glyph of run
-                        //        id = 37329;
-                        //    }
-                        //    else if (chance == 161)
-                        //    {
-                        //        //glyph of salvaging
-                        //        id = 37330;
-                        //    }
-                        //    else if (chance == 162)
-                        //    {
-                        //        //glyph of self
-                        //        id = 37331;
-                        //    }
-                        //    else if (chance == 163)
-                        //    {
-                        //        //glyph of shield
-                        //        id = 45373;
-                        //    }
-                        //    else if (chance == 164)
-                        //    {
-                        //        //glyph of slashing
-                        //        id = 37332;
-                        //    }
-                        //    else if (chance == 165)
-                        //    {
-                        //        //glyph of sneak attack
-                        //        id = 45374;
-                        //    }
-                        //    else if (chance == 166)
-                        //    {
-                        //        //glyph of stamina
-                        //        id = 37333;
-                        //    }
-                        //    else if (chance == 167)
-                        //    {
-                        //        //glyph of stamina regeneration
-                        //        id = 37336;
-                        //    }
-                        //    else if (chance == 168)
-                        //    {
-                        //        //glyph of strength
-                        //        id = 37337;
-                        //    }
-                        //    else if (chance == 169)
-                        //    {
-                        //        //glyph of summoning
-                        //        id = 49455;
-                        //    }
-                        //    else if (chance == 170)
-                        //    {
-                        //        //glyph of two handed combat
-                        //        id = 41747;
-                        //    }
-                        //    else if (chance == 171)
-                        //    {
-                        //        //glyph of void magic
-                        //        id = 43380;
-                        //    }
-                        //    else if (chance == 172)
-                        //    {
-                        //        //glyph of war magic
-                        //        id = 37340;
-                        //    }
-                        //    else if (chance == 173)
-                        //    {
-                        //        //glyph of weapon tinkering
-                        //        id = 37341;
-                        //    }
-                        //    break;
                         case 6:
-                            id = CreateFood();
+                            //spell components
+                            chance = ThreadSafeRandom.Next(1, 170);
+                            if (chance < 100)
+                            {
+                                //Quill of Infliction
+                                id = 37363;
+                            }
+                            else if (chance == 100)
+                            {
+                                //Quill of Benevolence
+                                id = 37365;
+                            }
+                            else if (chance == 101)
+                            {
+                                //Quill of Extraction
+                                id = 37362;
+                            }
+                            else if (chance == 102)
+                            {
+                                //Quill of Introspection
+                                id = 37364;
+                            }
+                            else if (chance == 103)
+                            {
+                                //Ink of Conveyance
+                                id = 37360;
+                            }
+                            else if (chance == 104)
+                            {
+                                //Ink of direction
+                                id = 37361;
+                            }
+                            else if (chance == 105)
+                            {
+                                //Ink of Formation
+                                id = 37353;
+                            }
+                            else if (chance == 106)
+                            {
+                                //Ink of Nullification
+                                id = 37354;
+                            }
+                            else if (chance == 107)
+                            {
+                                //Ink of Objectification
+                                id = 37355;
+                            }
+                            else if (chance == 108)
+                            {
+                                //Ink of Partition
+                                id = 37357;
+                            }
+                            else if (chance == 109)
+                            {
+                                //Ink of Separation
+                                id = 37358;
+                            }
+                            else if (chance == 110)
+                            {
+                                //Parabolic Ink
+                                id = 37356;
+                            }
+                            else if (chance == 111)
+                            {
+                                //Alacritous Ink
+                                id = 37359;
+                            }
+                            else if (chance == 112)
+                            {
+                                //Mana Scarab
+                                id = 37155;
+                            }
+                            else if (chance == 113)
+                            {
+                                //glyph of alchemy
+                                id = 37343;
+                            }
+                            else if (chance == 114)
+                            {
+                                //glyph of alchemy
+                                id = 37343;
+                            }
+                            else if (chance == 115)
+                            {
+                                //glyph of arcane lore
+                                id = 37344;
+                            }
+                            else if (chance == 116)
+                            {
+                                //glyph of armor
+                                id = 37345;
+                            }
+                            else if (chance == 117)
+                            {
+                                //glyph of armor tinkering
+                                id = 37346;
+                            }
+                            else if (chance == 118)
+                            {
+                                //glyph of bludgeoning
+                                id = 37347;
+                            }
+                            else if (chance == 119)
+                            {
+                                //glyph of cooking
+                                id = 37349;
+                            }
+                            else if (chance == 120)
+                            {
+                                //glyph of coordination
+                                id = 37350;
+                            }
+                            else if (chance == 121)
+                            {
+                                //glyph of corrosion
+                                id = 37342;
+                            }
+                            else if (chance == 122)
+                            {
+                                //glyph of creature enchantment
+                                id = 37351;
+                            }
+                            else if (chance == 123)
+                            {
+                                //glyph of damage
+                                id = 43379;
+                            }
+                            else if (chance == 124)
+                            {
+                                //glyph of deception
+                                id = 37352;
+                            }
+                            else if (chance == 125)
+                            {
+                                //glyph of dirty fighting
+                                id = 45370;
+                            }
+                            else if (chance == 126)
+                            {
+                                //glyph of dual wield
+                                id = 45371;
+                            }
+                            else if (chance == 127)
+                            {
+                                //glyph of endurance
+                                id = 37300;
+                            }
+                            else if (chance == 128)
+                            {
+                                //glyph of finesse weapon
+                                id = 37373;
+                            }
+                            else if (chance == 129)
+                            {
+                                //glyph of flame
+                                id = 37301;
+                            }
+                            else if (chance == 130)
+                            {
+                                //glyph of fletching
+                                id = 37302;
+                            }
+                            else if (chance == 131)
+                            {
+                                //glyph of focus
+                                id = 37303;
+                            }
+                            else if (chance == 132)
+                            {
+                                //glyph of frost
+                                id = 37348;
+                            }
+                            else if (chance == 133)
+                            {
+                                //glyph of healing
+                                id = 37304;
+                            }
+                            else if (chance == 134)
+                            {
+                                //glyph of health
+                                id = 37305;
+                            }
+                            else if (chance == 135)
+                            {
+                                //glyph of heavy weapons
+                                id = 37369;
+                            }
+                            else if (chance == 136)
+                            {
+                                //glyph of item enchantment
+                                id = 37309;
+                            }
+                            else if (chance == 137)
+                            {
+                                //glyph of item tinnkering
+                                id = 37310;
+                            }
+                            else if (chance == 138)
+                            {
+                                //glyph of jump
+                                id = 37311;
+                            }
+                            else if (chance == 139)
+                            {
+                                //glyph of leadership
+                                id = 37312;
+                            }
+                            else if (chance == 140)
+                            {
+                                //glyph of life magic
+                                id = 37313;
+                            }
+                            else if (chance == 141)
+                            {
+                                //glyph of light weapons
+                                id = 37339;
+                            }
+                            else if (chance == 142)
+                            {
+                                //glyph of lightning
+                                id = 37314;
+                            }
+                            else if (chance == 143)
+                            {
+                                //glyph of lockpick
+                                id = 37315;
+                            }
+                            else if (chance == 144)
+                            {
+                                //glyph of loyalty
+                                id = 37316;
+                            }
+                            else if (chance == 145)
+                            {
+                                //glyph of magic defense
+                                id = 37317;
+                            }
+                            else if (chance == 146)
+                            {
+                                //glyph of magic item tinkering
+                                id = 38760;
+                            }
+                            else if (chance == 147)
+                            {
+                                //glyph of mana
+                                id = 37318;
+                            }
+                            else if (chance == 148)
+                            {
+                                //glyph of mana conversion
+                                id = 37319;
+                            }
+                            else if (chance == 149)
+                            {
+                                //glyph of mana regeneration
+                                id = 37321;
+                            }
+                            else if (chance == 150)
+                            {
+                                //glyph of melee defense
+                                id = 37323;
+                            }
+                            else if (chance == 151)
+                            {
+                                //glyph of missile defense
+                                id = 37324;
+                            }
+                            else if (chance == 152)
+                            {
+                                //glyph of Missile weapons
+                                id = 37338;
+                            }
+                            else if (chance == 153)
+                            {
+                                //glyph of monster appraisal
+                                id = 37325;
+                            }
+                            else if (chance == 154)
+                            {
+                                //glyph of nether
+                                id = 43387;
+                            }
+                            else if (chance == 155)
+                            {
+                                //glyph of person appraisal
+                                id = 37326;
+                            }
+                            else if (chance == 156)
+                            {
+                                //glyph of piercing
+                                id = 37327;
+                            }
+                            else if (chance == 157)
+                            {
+                                //glyph of quickness
+                                id = 37328;
+                            }
+                            else if (chance == 158)
+                            {
+                                //glyph of recklessness
+                                id = 45372;
+                            }
+                            else if (chance == 159)
+                            {
+                                //glyph of regeneration
+                                id = 37307;
+                            }
+                            else if (chance == 160)
+                            {
+                                //glyph of run
+                                id = 37329;
+                            }
+                            else if (chance == 161)
+                            {
+                                //glyph of salvaging
+                                id = 37330;
+                            }
+                            else if (chance == 162)
+                            {
+                                //glyph of self
+                                id = 37331;
+                            }
+                            else if (chance == 163)
+                            {
+                                //glyph of shield
+                                id = 45373;
+                            }
+                            else if (chance == 164)
+                            {
+                                //glyph of slashing
+                                id = 37332;
+                            }
+                            else if (chance == 165)
+                            {
+                                //glyph of sneak attack
+                                id = 45374;
+                            }
+                            else if (chance == 166)
+                            {
+                                //glyph of stamina
+                                id = 37333;
+                            }
+                            else if (chance == 167)
+                            {
+                                //glyph of stamina regeneration
+                                id = 37336;
+                            }
+                            else if (chance == 168)
+                            {
+                                //glyph of strength
+                                id = 37337;
+                            }
+                            else if (chance == 169)
+                            {
+                                //glyph of summoning
+                                id = 49455;
+                            }
+                            else if (chance == 170)
+                            {
+                                //glyph of two handed combat
+                                id = 41747;
+                            }
+                            else if (chance == 171)
+                            {
+                                //glyph of void magic
+                                id = 43380;
+                            }
+                            else if (chance == 172)
+                            {
+                                //glyph of war magic
+                                id = 37340;
+                            }
+                            else if (chance == 173)
+                            {
+                                //glyph of weapon tinkering
+                                id = 37341;
+                            }
                             break;
                         case 7:
+                            id = CreateFood();
+                            break;
+                        case 8:
                             wo = CreateRandomScroll(7);
                             return wo;
                         default:
@@ -1672,10 +1645,24 @@ namespace ACE.Server.Factories
             }
         }
 
-        public static WorldObject CreateRandomLootObjects(int tier, bool isMagical)
+        public static WorldObject CreateRandomLootObjects(int tier, bool isMagical, LootBias lootBias = LootBias.UnBiased)
         {
+            int type;
             WorldObject wo;
-            int type = ThreadSafeRandom.Next(1, 4);
+
+            switch (lootBias)
+            {
+                case LootBias.Armor:
+                    type = 2;
+                    break;
+                case LootBias.Weapons:
+                    type = 3;
+                    break;
+                default:
+                    type = ThreadSafeRandom.Next(1, 4);
+                    break;
+            }
+
             switch (type)
             {
                 case 1:
@@ -1684,7 +1671,7 @@ namespace ACE.Server.Factories
                     return wo;
                 case 2:
                     //armor
-                    wo = CreateArmor(tier, isMagical);
+                    wo = CreateArmor(tier, isMagical, lootBias);
                     return wo;
                 case 3:
                     //weapons
@@ -2207,7 +2194,7 @@ namespace ACE.Server.Factories
             wo.SetProperty(PropertyInt.ItemMaxMana, max_mana);
             wo.SetProperty(PropertyInt.ItemCurMana, max_mana);
             wo.SetProperty(PropertyInt.ItemSpellcraft, spellcraft);
-            wo.SetProperty(PropertyString.LongDesc, getLongDesc(wo.GetProperty(PropertyString.Name), gemType, gemCount));
+            wo.SetProperty(PropertyString.LongDesc, wo.GetProperty(PropertyString.Name));
             wo.RemoveProperty(PropertyInt.ItemSkillLevelLimit);
             int[] shuffledValues = new int[JewelrySpells.Length];
             for (int i = 0; i < JewelrySpells.Length; i++)
@@ -2336,7 +2323,7 @@ namespace ACE.Server.Factories
                     {
                         weaponDefense = GetMaxDamageMod(tier, 18);
                         weaponOffense = GetMaxDamageMod(tier, 22);
-                        damage = GetMaxDamage(1, wieldDiff, 1);
+                        damage = GetMaxDamage(1, tier, wieldDiff, 1);
                         damageVariance = GetVariance(1, 1);
                         int subAxeType = ThreadSafeRandom.Next(0, 2);
                         ////There are 4 subtypes of axes
@@ -2414,7 +2401,7 @@ namespace ACE.Server.Factories
                     }
                     if (subType == 1)
                     {
-                        damage = GetMaxDamage(1, wieldDiff, 2);
+                        damage = GetMaxDamage(1, tier, wieldDiff, 2);
                         weaponDefense = GetMaxDamageMod(tier, 20);
                         weaponOffense = GetMaxDamageMod(tier, 20);
                         ////There are three subtypes of daggers
@@ -2446,7 +2433,7 @@ namespace ACE.Server.Factories
                         if (subDaggerType == 1)
                         {
                             ////Stiletto
-                            damage = GetMaxDamage(1, wieldDiff, 3);
+                            damage = GetMaxDamage(1, tier, wieldDiff, 3);
                             damageVariance = GetVariance(1, 3);
                             int eleType = ThreadSafeRandom.Next(0, 4);
                             switch (eleType)
@@ -2471,7 +2458,7 @@ namespace ACE.Server.Factories
                         if (subDaggerType == 2)
                         {
                             ////Jambiya
-                            damage = GetMaxDamage(1, wieldDiff, 3);
+                            damage = GetMaxDamage(1, tier, wieldDiff, 3);
                             damageVariance = GetVariance(1, 3);
                             int eleType = ThreadSafeRandom.Next(0, 4);
                             switch (eleType)
@@ -2497,7 +2484,7 @@ namespace ACE.Server.Factories
                     if (subType == 2)
                     {
                         ////There are 4 subtypes of maces
-                        damage = GetMaxDamage(1, wieldDiff, 4);
+                        damage = GetMaxDamage(1, tier, wieldDiff, 4);
                         weaponDefense = GetMaxDamageMod(tier, 22);
                         weaponOffense = GetMaxDamageMod(tier, 18);
                         damageVariance = GetVariance(1, 4);
@@ -2599,7 +2586,7 @@ namespace ACE.Server.Factories
                     if (subType == 3)
                     {
                         ////There are three subtypes of spears
-                        damage = GetMaxDamage(1, wieldDiff, 5);
+                        damage = GetMaxDamage(1, tier, wieldDiff, 5);
                         weaponDefense = GetMaxDamageMod(tier, 15);
                         weaponOffense = GetMaxDamageMod(tier, 25);
                         damageVariance = GetVariance(1, 5);
@@ -2681,7 +2668,7 @@ namespace ACE.Server.Factories
                     if (subType == 4)
                     {
                         ////There are two subtypes of staves
-                        damage = GetMaxDamage(1, wieldDiff, 8);
+                        damage = GetMaxDamage(1, tier, wieldDiff, 8);
                         weaponDefense = GetMaxDamageMod(tier, 25);
                         weaponOffense = GetMaxDamageMod(tier, 15);
                         damageVariance = GetVariance(1, 6);
@@ -2737,7 +2724,7 @@ namespace ACE.Server.Factories
                     if (subType == 5)
                     {
                         ////There are six subtypes of swords
-                        damage = GetMaxDamage(1, wieldDiff, 6);
+                        damage = GetMaxDamage(1, tier, wieldDiff, 6);
                         weaponDefense = GetMaxDamageMod(tier, 20);
                         weaponOffense = GetMaxDamageMod(tier, 20);
                         int subSwordType = ThreadSafeRandom.Next(0, 4);
@@ -2865,7 +2852,7 @@ namespace ACE.Server.Factories
                         if (subSwordType == 5)
                         {
                             ////Schlager
-                            damage = GetMaxDamage(1, wieldDiff, 7);
+                            damage = GetMaxDamage(1, tier, wieldDiff, 7);
                             damageVariance = GetVariance(1, 8);
                             weaponWeenie = 45108;
                             int eleType = ThreadSafeRandom.Next(0, 4);
@@ -2892,7 +2879,7 @@ namespace ACE.Server.Factories
                     if (subType == 6)
                     {
                         ////There are 2 subtypes of UA
-                        damage = GetMaxDamage(1, wieldDiff, 9);
+                        damage = GetMaxDamage(1, tier, wieldDiff, 9);
                         weaponDefense = GetMaxDamageMod(tier, 20);
                         weaponOffense = GetMaxDamageMod(tier, 20);
                         damageVariance = GetVariance(1, 9);
@@ -2951,7 +2938,7 @@ namespace ACE.Server.Factories
                     subType = ThreadSafeRandom.Next(0, 6);
                     if (subType == 0)
                     {
-                        damage = GetMaxDamage(2, wieldDiff, 1);
+                        damage = GetMaxDamage(2, tier, wieldDiff, 1);
                         damageVariance = GetVariance(2, 1);
                         weaponDefense = GetMaxDamageMod(tier, 18);
                         weaponOffense = GetMaxDamageMod(tier, 22);
@@ -3053,7 +3040,7 @@ namespace ACE.Server.Factories
                     if (subType == 1)
                     {
                         ////There are 2 subtypes of daggers
-                        damage = GetMaxDamage(2, wieldDiff, 2);
+                        damage = GetMaxDamage(2, tier, wieldDiff, 2);
                         weaponDefense = GetMaxDamageMod(tier, 20);
                         weaponOffense = GetMaxDamageMod(tier, 20);
                         int subDaggerType = ThreadSafeRandom.Next(0, 1);
@@ -3085,7 +3072,7 @@ namespace ACE.Server.Factories
                         {
                             ////Khanjar
                             damageVariance = GetVariance(2, 3);
-                            damage = GetMaxDamage(2, wieldDiff, 3);
+                            damage = GetMaxDamage(2, tier, wieldDiff, 3);
                             int eleType = ThreadSafeRandom.Next(0, 4);
                             switch (eleType)
                             {
@@ -3109,7 +3096,7 @@ namespace ACE.Server.Factories
                     }
                     if (subType == 2)
                     {
-                        damage = GetMaxDamage(2, wieldDiff, 4);
+                        damage = GetMaxDamage(2, tier, wieldDiff, 4);
                         damageVariance = GetVariance(2, 4);
                         weaponDefense = GetMaxDamageMod(tier, 22);
                         weaponOffense = GetMaxDamageMod(tier, 18);
@@ -3187,7 +3174,7 @@ namespace ACE.Server.Factories
                     }
                     if (subType == 3)
                     {
-                        damage = GetMaxDamage(2, wieldDiff, 5);
+                        damage = GetMaxDamage(2, tier, wieldDiff, 5);
                         damageVariance = GetVariance(2, 6);
                         weaponDefense = GetMaxDamageMod(tier, 15);
                         weaponOffense = GetMaxDamageMod(tier, 25);
@@ -3242,7 +3229,7 @@ namespace ACE.Server.Factories
                     }
                     if (subType == 4)
                     {
-                        damage = GetMaxDamage(2, wieldDiff, 8);
+                        damage = GetMaxDamage(2, tier, wieldDiff, 8);
                         damageVariance = GetVariance(2, 7);
                         weaponDefense = GetMaxDamageMod(tier, 25);
                         weaponOffense = GetMaxDamageMod(tier, 15);
@@ -3274,7 +3261,7 @@ namespace ACE.Server.Factories
                     }
                     if (subType == 5)
                     {
-                        damage = GetMaxDamage(2, wieldDiff, 6);
+                        damage = GetMaxDamage(2, tier, wieldDiff, 6);
                         damageVariance = GetVariance(2, 8);
                         ////There are 6 subtypes of swords
                         weaponDefense = GetMaxDamageMod(tier, 20);
@@ -3405,7 +3392,7 @@ namespace ACE.Server.Factories
                     }
                     if (subType == 6)
                     {
-                        damage = GetMaxDamage(2, wieldDiff, 9);
+                        damage = GetMaxDamage(2, tier, wieldDiff, 9);
                         weaponDefense = GetMaxDamageMod(tier, 20);
                         weaponOffense = GetMaxDamageMod(tier, 20);
                         damageVariance = GetVariance(2, 10);
@@ -3465,7 +3452,7 @@ namespace ACE.Server.Factories
                     wieldSkillType = 45;
                     if (subType == 0)
                     {
-                        damage = GetMaxDamage(2, wieldDiff, 1);
+                        damage = GetMaxDamage(2, tier, wieldDiff, 1);
                         damageVariance = GetVariance(2, 1);
                         weaponDefense = GetMaxDamageMod(tier, 18);
                         weaponOffense = GetMaxDamageMod(tier, 22);
@@ -3545,7 +3532,7 @@ namespace ACE.Server.Factories
                     }
                     if (subType == 1)
                     {
-                        damage = GetMaxDamage(2, wieldDiff, 2);
+                        damage = GetMaxDamage(2, tier, wieldDiff, 2);
                         damageVariance = GetVariance(2, 2);
                         weaponDefense = GetMaxDamageMod(tier, 20);
                         weaponOffense = GetMaxDamageMod(tier, 20);
@@ -3555,7 +3542,7 @@ namespace ACE.Server.Factories
                         {
                             ////Knife
                             damageVariance = GetVariance(2, 3);
-                            damage = GetMaxDamage(2, wieldDiff, 3);
+                            damage = GetMaxDamage(2, tier, wieldDiff, 3);
                             int eleType = ThreadSafeRandom.Next(0, 4);
                             switch (eleType)
                             {
@@ -3580,7 +3567,7 @@ namespace ACE.Server.Factories
                         {
                             ////Lancet
                             damageVariance = GetVariance(2, 3);
-                            damage = GetMaxDamage(2, wieldDiff, 3);
+                            damage = GetMaxDamage(2, tier, wieldDiff, 3);
                             int eleType = ThreadSafeRandom.Next(0, 4);
                             switch (eleType)
                             {
@@ -3627,7 +3614,7 @@ namespace ACE.Server.Factories
                     }
                     if (subType == 2)
                     {
-                        damage = GetMaxDamage(2, wieldDiff, 4);
+                        damage = GetMaxDamage(2, tier, wieldDiff, 4);
                         damageVariance = GetVariance(2, 4);
                         weaponDefense = GetMaxDamageMod(tier, 22);
                         weaponOffense = GetMaxDamageMod(tier, 18);
@@ -3753,7 +3740,7 @@ namespace ACE.Server.Factories
                     }
                     if (subType == 3)
                     {
-                        damage = GetMaxDamage(2, wieldDiff, 5);
+                        damage = GetMaxDamage(2, tier, wieldDiff, 5);
                         damageVariance = GetVariance(2, 6);
                         ////There are 2 subtypes of spears
                         weaponDefense = GetMaxDamageMod(tier, 15);
@@ -3808,7 +3795,7 @@ namespace ACE.Server.Factories
                     }
                     if (subType == 4)
                     {
-                        damage = GetMaxDamage(2, wieldDiff, 8);
+                        damage = GetMaxDamage(2, tier, wieldDiff, 8);
                         damageVariance = GetVariance(2, 7);
                         weaponDefense = GetMaxDamageMod(tier, 25);
                         weaponOffense = GetMaxDamageMod(tier, 15);
@@ -3863,7 +3850,7 @@ namespace ACE.Server.Factories
                     }
                     if (subType == 5)
                     {
-                        damage = GetMaxDamage(2, wieldDiff, 6);
+                        damage = GetMaxDamage(2, tier, wieldDiff, 6);
                         damageVariance = GetVariance(2, 8);
                         weaponDefense = GetMaxDamageMod(tier, 20);
                         weaponOffense = GetMaxDamageMod(tier, 20);
@@ -3873,7 +3860,7 @@ namespace ACE.Server.Factories
                         {
                             ////Rapier
                             damageVariance = GetVariance(2, 9);
-                            damage = GetMaxDamage(2, wieldDiff, 7);
+                            damage = GetMaxDamage(2, tier, wieldDiff, 7);
                             weaponWeenie = 6853;
 
                         }
@@ -3995,7 +3982,7 @@ namespace ACE.Server.Factories
                     }
                     if (subType == 6)
                     {
-                        damage = GetMaxDamage(2, wieldDiff, 9);
+                        damage = GetMaxDamage(2, tier, wieldDiff, 9);
                         damageVariance = GetVariance(2, 10);
                         weaponDefense = GetMaxDamageMod(tier, 20);
                         weaponOffense = GetMaxDamageMod(tier, 20);
@@ -4053,7 +4040,7 @@ namespace ACE.Server.Factories
                     ///Two handed
                     wieldSkillType = 41;
                     damageVariance = GetVariance(3, 1);
-                    damage = GetMaxDamage(3, wieldDiff, 1);
+                    damage = GetMaxDamage(3, tier, wieldDiff, 1);
                     subType = ThreadSafeRandom.Next(0, 3);
                     if (subType == 0)
                     {
@@ -4264,7 +4251,7 @@ namespace ACE.Server.Factories
                     if (subType == 3)
                     {
                         ////There are 4 subtypes of spears
-                        damage = GetMaxDamage(3, wieldDiff, 2);
+                        damage = GetMaxDamage(3, tier, wieldDiff, 2);
                         weaponDefense = GetMaxDamageMod(tier, 15);
                         weaponOffense = GetMaxDamageMod(tier, 25);
                         int subSpearType = ThreadSafeRandom.Next(0, 3);
@@ -4474,7 +4461,7 @@ namespace ACE.Server.Factories
             wo.SetProperty(PropertyFloat.WeaponOffense, weaponOffense);
             wo.SetProperty(PropertyFloat.WeaponMissileDefense, missileD);
             wo.SetProperty(PropertyFloat.WeaponMagicDefense, magicD);
-            wo.SetProperty(PropertyString.LongDesc, getLongDesc(wo.GetProperty(PropertyString.Name), gemType, gemCount));
+            wo.SetProperty(PropertyString.LongDesc, wo.GetProperty(PropertyString.Name));
             if (numSpells == 0)
             {
                 wo.RemoveProperty(PropertyInt.ItemManaCost);
@@ -4493,7 +4480,7 @@ namespace ACE.Server.Factories
             return wo;
         }
 
-        public static WorldObject CreateArmor(int tier, bool isMagical)
+        public static WorldObject CreateArmor(int tier, bool isMagical, LootBias lootBias = LootBias.UnBiased)
         {
 
             int lowSpellTier = 0;
@@ -4531,238 +4518,216 @@ namespace ACE.Server.Factories
                     if (armorType == 0)
                     {
                         int armorPiece = ThreadSafeRandom.Next(0, 15);
-                        if (armorPiece == 0)
+                        switch (armorPiece)
                         {
-                            ////helm
-                            armorWeenie = 25636;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
+                            case 0:
+                                ////helm
+                                armorWeenie = 25636;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                break;
+                            case 1:
+                                ////head
+                                armorWeenie = 25640;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                break;
+                            case 2:
+                                ////Chest
+                                armorWeenie = 25639;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 3:
+                                ////Chest
+                                armorWeenie = 25641;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 4:
+                                ////Chest
+                                armorWeenie = 25638;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 5:
+                                ////arms
+                                armorWeenie = 25651;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 3;
+                                break;
+                            case 6:
+                                ////Hands
+                                armorWeenie = 25642;
+                                armorPieceType = 3;
+                                spellArray = 5;
+                                cantripArray = 5;
+                                break;
+                            case 7:
+                                ////Lower Arms
+                                armorWeenie = 25637;
+                                armorPieceType = 1;
+                                spellArray = 4;
+                                cantripArray = 4;
+                                break;
+                            case 8:
+                                ////Upper arms
+                                armorWeenie = 25648;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 2;
+                                break;
+                            case 9:
+                                ////Abdomen
+                                armorWeenie = 25643;
+                                armorPieceType = 1;
+                                spellArray = 6;
+                                cantripArray = 6;
+                                break;
+                            case 10:
+                                ////Abdomen
+                                armorWeenie = 25650;
+                                armorPieceType = 1;
+                                spellArray = 6;
+                                cantripArray = 6;
+                                break;
+                            case 11:
+                                ////legs
+                                armorWeenie = 25647;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
+                            case 12:
+                                ////legs
+                                armorWeenie = 25645;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
+                            case 13:
+                                ////Upper legs
+                                armorWeenie = 25652;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
+                            case 14:
+                                ////lower legs
+                                armorWeenie = 25644;
+                                armorPieceType = 1;
+                                spellArray = 8;
+                                cantripArray = 8;
+                                break;
+                            default:
+                                ////feet
+                                armorWeenie = 25661;
+                                armorPieceType = 4;
+                                spellArray = 9;
+                                cantripArray = 9;
+                                break;
                         }
-                        else if (armorPiece == 1)
-                        {
-                            ////head
-                            armorWeenie = 25640;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                        }
-                        else if (armorPiece == 2)
-                        {
-                            ////Chest
-                            armorWeenie = 25639;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 3)
-                        {
-                            ////Chest
-                            armorWeenie = 25641;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 4)
-                        {
-                            ////Chest
-                            armorWeenie = 25638;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 5)
-                        {
-                            ////arms
-                            armorWeenie = 25651;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 3;
-                        }
-                        else if (armorPiece == 6)
-                        {
-                            ////Hands
-                            armorWeenie = 25642;
-                            armorPieceType = 3;
-                            spellArray = 5;
-                            cantripArray = 5;
-                        }
-                        else if (armorPiece == 7)
-                        {
-                            ////Lower Arms
-                            armorWeenie = 25637;
-                            armorPieceType = 1;
-                            spellArray = 4;
-                            cantripArray = 4;
-                        }
-                        else if (armorPiece == 8)
-                        {
-                            ////Upper arms
-                            armorWeenie = 25648;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 9)
-                        {
-                            ////Abdomen
-                            armorWeenie = 25643;
-                            armorPieceType = 1;
-                            spellArray = 6;
-                            cantripArray = 6;
-                        }
-                        else if (armorPiece == 10)
-                        {
-                            ////Abdomen
-                            armorWeenie = 25650;
-                            armorPieceType = 1;
-                            spellArray = 6;
-                            cantripArray = 6;
-                        }
-                        else if (armorPiece == 11)
-                        {
-                            ////legs
-                            armorWeenie = 25647;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
-                        else if (armorPiece == 12)
-                        {
-                            ////legs
-                            armorWeenie = 25645;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
-                        else if (armorPiece == 13)
-                        {
-                            ////Upper legs
-                            armorWeenie = 25652;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
-                        else if (armorPiece == 14)
-                        {
-                            ////lower legs
-                            armorWeenie = 25644;
-                            armorPieceType = 1;
-                            spellArray = 8;
-                            cantripArray = 8;
-                        }
-                        else
-                        {
-                            ////feet
-                            armorWeenie = 25661;
-                            armorPieceType = 4;
-                            spellArray = 9;
-                            cantripArray = 9;
-                        }
+
                         materialType = GetMaterialType(5, 1);
                     }
                     ////Studded Leather
                     if (armorType == 1)
                     {
                         int armorPiece = ThreadSafeRandom.Next(0, 12);
-                        if (armorPiece == 0)
+                        switch (armorPiece)
                         {
-                            armorWeenie = 554;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
+                            case 0:
+                                armorWeenie = 554;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                break;
+                            case 1:
+                                armorWeenie = 116;
+                                armorPieceType = 4;
+                                spellArray = 9;
+                                cantripArray = 9;
+                                break;
+                            case 2:
+                                armorWeenie = 38;
+                                armorPieceType = 1;
+                                spellArray = 4;
+                                cantripArray = 4;
+                                break;
+                            case 3:
+                                armorWeenie = 42;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 4:
+                                armorWeenie = 48;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 5:
+                                armorWeenie = 723;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                break;
+                            case 6:
+                                armorWeenie = 53;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 7:
+                                armorWeenie = 59;
+                                armorPieceType = 3;
+                                spellArray = 5;
+                                cantripArray = 5;
+                                break;
+                            case 8:
+                                armorWeenie = 63;
+                                armorPieceType = 1;
+                                spellArray = 6;
+                                cantripArray = 6;
+                                break;
+                            case 9:
+                                armorWeenie = 68;
+                                armorPieceType = 1;
+                                spellArray = 8;
+                                cantripArray = 8;
+                                break;
+                            case 10:
+                                armorWeenie = 89;
+                                armorPieceType = 1;
+                                spellArray = 8;
+                                cantripArray = 8;
+                                break;
+                            case 11:
+                                armorWeenie = 99;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 12:
+                                armorWeenie = 105;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 3;
+                                break;
+                            default:
+                                armorWeenie = 112;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
                         }
-                        else if (armorPiece == 1)
-                        {
-                            armorWeenie = 116;
-                            armorPieceType = 4;
-                            spellArray = 9;
-                            cantripArray = 9;
-                        }
-                        else if (armorPiece == 2)
-                        {
-                            armorWeenie = 38;
-                            armorPieceType = 1;
-                            spellArray = 4;
-                            cantripArray = 4;
-                        }
-                        else if (armorPiece == 3)
-                        {
-                            armorWeenie = 42;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 4)
-                        {
-                            armorWeenie = 48;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 5)
-                        {
-                            armorWeenie = 723;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                        }
-                        else if (armorPiece == 6)
-                        {
-                            armorWeenie = 53;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 7)
-                        {
-                            armorWeenie = 59;
-                            armorPieceType = 3;
-                            spellArray = 5;
-                            cantripArray = 5;
-                        }
-                        else if (armorPiece == 8)
-                        {
-                            armorWeenie = 63;
-                            armorPieceType = 1;
-                            spellArray = 6;
-                            cantripArray = 6;
-                        }
-                        else if (armorPiece == 9)
-                        {
-                            armorWeenie = 68;
-                            armorPieceType = 1;
-                            spellArray = 8;
-                            cantripArray = 8;
-                        }
-                        else if (armorPiece == 10)
-                        {
-                            armorWeenie = 89;
-                            armorPieceType = 1;
-                            spellArray = 8;
-                            cantripArray = 8;
-                        }
-                        else if (armorPiece == 11)
-                        {
-                            armorWeenie = 99;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 12)
-                        {
-                            armorWeenie = 105;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 3;
-                        }
-                        else
-                        {
-                            armorWeenie = 112;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
+
                         materialType = GetMaterialType(5, 1);
                     }
                     ////Chainmail
@@ -4770,291 +4735,264 @@ namespace ACE.Server.Factories
                     {
                         ////Thinking a dictionary with random roll/WeenieID would be more concise.
                         int armorPiece = ThreadSafeRandom.Next(0, 12);
-                        if (armorPiece == 0)
+                        switch (armorPiece)
                         {
-                            armorWeenie = 35;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
+                            case 0:
+                                armorWeenie = 35;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                break;
+                            case 1:
+                                armorWeenie = 413;
+                                armorPieceType = 1;
+                                spellArray = 4;
+                                cantripArray = 4;
+                                break;
+                            case 2:
+                                armorWeenie = 414;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 3:
+                                armorWeenie = 85;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                break;
+                            case 4:
+                                armorWeenie = 55;
+                                armorPieceType = 3;
+                                spellArray = 5;
+                                cantripArray = 5;
+                                break;
+                            case 5:
+                                armorWeenie = 415;
+                                armorPieceType = 1;
+                                spellArray = 6;
+                                cantripArray = 6;
+                                break;
+                            case 6:
+                                armorWeenie = 2605;
+                                armorPieceType = 1;
+                                spellArray = 8;
+                                cantripArray = 8;
+                                break;
+                            case 7:
+                                armorWeenie = 71;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 8:
+                                armorWeenie = 80;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
+                            case 9:
+                                armorWeenie = 416;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 3;
+                                break;
+                            case 10:
+                                armorWeenie = 96;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 11:
+                                armorWeenie = 101;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 3;
+                                break;
+                            default:
+                                armorWeenie = 108;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
                         }
-                        else if (armorPiece == 1)
-                        {
-                            armorWeenie = 413;
-                            armorPieceType = 1;
-                            spellArray = 4;
-                            cantripArray = 4;
-                        }
-                        else if (armorPiece == 2)
-                        {
-                            armorWeenie = 414;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 3)
-                        {
-                            armorWeenie = 85;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                        }
-                        else if (armorPiece == 4)
-                        {
-                            armorWeenie = 55;
-                            armorPieceType = 3;
-                            spellArray = 5;
-                            cantripArray = 5;
-                        }
-                        else if (armorPiece == 5)
-                        {
-                            armorWeenie = 415;
-                            armorPieceType = 1;
-                            spellArray = 6;
-                            cantripArray = 6;
-                        }
-                        else if (armorPiece == 6)
-                        {
-                            armorWeenie = 2605;
-                            armorPieceType = 1;
-                            spellArray = 8;
-                            cantripArray = 8;
-                        }
-                        else if (armorPiece == 7)
-                        {
-                            armorWeenie = 71;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 8)
-                        {
-                            armorWeenie = 80;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
-                        else if (armorPiece == 9)
-                        {
-                            armorWeenie = 416;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 3;
-                        }
-                        else if (armorPiece == 10)
-                        {
-                            armorWeenie = 96;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 11)
-                        {
-                            armorWeenie = 101;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 3;
-                        }
-                        else
-                        {
-                            armorWeenie = 108;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
+
                         materialType = GetMaterialType(7, 1);
                     }
                     ////Random Armor Items
                     if (armorType == 3)
                     {
                         int armorPiece = ThreadSafeRandom.Next(0, 15);
-                        if (armorPiece == 0)
+                        switch (armorPiece)
                         {
-                            ////bandana
-                            armorWeenie = 28612;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(8, 1);
-                        }
-                        else if (armorPiece == 1)
-                        {
-                            ////beret
-                            armorWeenie = 28605;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(8, 1);
-                        }
-                        else if (armorPiece == 2)
-                        {
-                            ////Cloth Cap
-                            armorWeenie = 118;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(8, 1);
-                        }
-                        else if (armorPiece == 3)
-                        {
-                            ////Cloth gloves
-                            armorWeenie = 121;
-                            armorPieceType = 3;
-                            spellArray = 5;
-                            cantripArray = 5;
-                            materialType = GetMaterialType(8, 1);
-                        }
-                        else if (armorPiece == 4)
-                        {
-                            ////Cowl
-                            armorWeenie = 119;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(8, 1);
-                        }
-                        else if (armorPiece == 5)
-                        {
-                            ////crown
-                            armorWeenie = 296;
-                            armorPieceType = 1;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(7, 1);
-                        }
-                        else if (armorPiece == 6)
-                        {
-                            ////Fez
-                            armorWeenie = 5894;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(8, 1);
-                        }
-                        else if (armorPiece == 7)
-                        {
-                            ////hood
-                            armorWeenie = 5905;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(8, 1);
-                        }
-                        else if (armorPiece == 8)
-                        {
-                            ////Kasa
-                            armorWeenie = 5901;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(8, 1);
-                        }
-                        else if (armorPiece == 9)
-                        {
-                            ////Metal cap
-                            armorWeenie = 46;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(7, 1);
-                        }
-                        else if (armorPiece == 10)
-                        {
-                            ////Qafiya
-                            armorWeenie = 76;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(8, 1);
-                        }
-                        else if (armorPiece == 11)
-                        {
-                            ////turban
-                            armorWeenie = 135;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(8, 1);
-                        }
-                        else if (armorPiece == 12)
-                        {
-                            ////loafers
-                            armorWeenie = 28610;
-                            armorPieceType = 4;
-                            spellArray = 9;
-                            cantripArray = 9;
-                            materialType = GetMaterialType(8, 1);
-                        }
-                        else if (armorPiece == 13)
-                        {
-                            ////sandals
-                            armorWeenie = 129;
-                            armorPieceType = 4;
-                            spellArray = 9;
-                            cantripArray = 9;
-                            materialType = GetMaterialType(8, 1);
-                        }
-                        else if (armorPiece == 14)
-                        {
-                            ////shoes
-                            armorWeenie = 132;
-                            armorPieceType = 4;
-                            spellArray = 9;
-                            cantripArray = 9;
-                            materialType = GetMaterialType(8, 1);
-                        }
-                        else if (armorPiece == 15)
-                        {
-                            ////slippers
-                            armorWeenie = 133;
-                            armorPieceType = 4;
-                            spellArray = 9;
-                            cantripArray = 9;
-                            materialType = GetMaterialType(8, 1);
-                        }
-                        else if (armorPiece == 16)
-                        {
-                            ////steel toed boots
-                            armorWeenie = 7897;
-                            armorPieceType = 4;
-                            spellArray = 9;
-                            cantripArray = 9;
-                            materialType = GetMaterialType(6, 1);
-                        }
-                        else if (armorPiece == 17)
-                        {
-                            ////buckler
-                            armorWeenie = 44;
-                            armorPieceType = 5;
-                            spellArray = 10;
-                            cantripArray = 10;
-                            materialType = GetMaterialType(7, 1);
-                        }
-                        else if (armorPiece == 18)
-                        {
-                            ////kite shield
-                            armorWeenie = 91;
-                            armorPieceType = 5;
-                            spellArray = 10;
-                            cantripArray = 10;
-                            materialType = GetMaterialType(7, 1);
-                        }
-                        else if (armorPiece == 19)
-                        {
-                            ////large Kite Shield
-                            armorWeenie = 92;
-                            armorPieceType = 5;
-                            spellArray = 10;
-                            cantripArray = 10;
-                            materialType = GetMaterialType(7, 1);
-                        }
-                        else
-                        {
-                            ////Round Shield
-                            armorWeenie = 93;
-                            armorPieceType = 5;
-                            spellArray = 10;
-                            cantripArray = 10;
-                            materialType = GetMaterialType(7, 1);
+                            case 0:
+                                ////bandana
+                                armorWeenie = 28612;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(8, 1);
+                                break;
+                            case 1:
+                                ////beret
+                                armorWeenie = 28605;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(8, 1);
+                                break;
+                            case 2:
+                                ////Cloth Cap
+                                armorWeenie = 118;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(8, 1);
+                                break;
+                            case 3:
+                                ////Cloth gloves
+                                armorWeenie = 121;
+                                armorPieceType = 3;
+                                spellArray = 5;
+                                cantripArray = 5;
+                                materialType = GetMaterialType(8, 1);
+                                break;
+                            case 4:
+                                ////Cowl
+                                armorWeenie = 119;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(8, 1);
+                                break;
+                            case 5:
+                                ////crown
+                                armorWeenie = 296;
+                                armorPieceType = 1;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 6:
+                                ////Fez
+                                armorWeenie = 5894;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(8, 1);
+                                break;
+                            case 7:
+                                ////hood
+                                armorWeenie = 5905;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(8, 1);
+                                break;
+                            case 8:
+                                ////Kasa
+                                armorWeenie = 5901;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(8, 1);
+                                break;
+                            case 9:
+                                ////Metal cap
+                                armorWeenie = 46;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 10:
+                                ////Qafiya
+                                armorWeenie = 76;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(8, 1);
+                                break;
+                            case 11:
+                                ////turban
+                                armorWeenie = 135;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(8, 1);
+                                break;
+                            case 12:
+                                ////loafers
+                                armorWeenie = 28610;
+                                armorPieceType = 4;
+                                spellArray = 9;
+                                cantripArray = 9;
+                                materialType = GetMaterialType(8, 1);
+                                break;
+                            case 13:
+                                ////sandals
+                                armorWeenie = 129;
+                                armorPieceType = 4;
+                                spellArray = 9;
+                                cantripArray = 9;
+                                materialType = GetMaterialType(8, 1);
+                                break;
+                            case 14:
+                                ////shoes
+                                armorWeenie = 132;
+                                armorPieceType = 4;
+                                spellArray = 9;
+                                cantripArray = 9;
+                                materialType = GetMaterialType(8, 1);
+                                break;
+                            case 15:
+                                ////slippers
+                                armorWeenie = 133;
+                                armorPieceType = 4;
+                                spellArray = 9;
+                                cantripArray = 9;
+                                materialType = GetMaterialType(8, 1);
+                                break;
+                            case 16:
+                                ////steel toed boots
+                                armorWeenie = 7897;
+                                armorPieceType = 4;
+                                spellArray = 9;
+                                cantripArray = 9;
+                                materialType = GetMaterialType(6, 1);
+                                break;
+                            case 17:
+                                ////buckler
+                                armorWeenie = 44;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 18:
+                                ////kite shield
+                                armorWeenie = 91;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 19:
+                                ////large Kite Shield
+                                armorWeenie = 92;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            default:
+                                ////Round Shield
+                                armorWeenie = 93;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
                         }
                     }
                     break;
@@ -5066,134 +5004,122 @@ namespace ACE.Server.Factories
                     if (armorType == 0)
                     {
                         int armorPiece = ThreadSafeRandom.Next(0, 15);
-                        if (armorPiece == 0)
+                        switch (armorPiece)
                         {
-                            ////helm
-                            armorWeenie = 25636;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
+                            case 0:
+                                ////helm
+                                armorWeenie = 25636;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                break;
+                            case 1:
+                                ////head
+                                armorWeenie = 25640;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                break;
+                            case 2:
+                                ////Chest
+                                armorWeenie = 25639;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 3:
+                                ////Chest
+                                armorWeenie = 25641;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 4:
+                                ////Chest
+                                armorWeenie = 25638;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 5:
+                                ////arms
+                                armorWeenie = 25651;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 3;
+                                break;
+                            case 6:
+                                ////Hands
+                                armorWeenie = 25642;
+                                armorPieceType = 3;
+                                spellArray = 5;
+                                cantripArray = 5;
+                                break;
+                            case 7:
+                                ////Lower Arms
+                                armorWeenie = 25637;
+                                armorPieceType = 1;
+                                spellArray = 4;
+                                cantripArray = 4;
+                                break;
+                            case 8:
+                                ////Upper arms
+                                armorWeenie = 25648;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 2;
+                                break;
+                            case 9:
+                                ////Abdomen
+                                armorWeenie = 25643;
+                                armorPieceType = 1;
+                                spellArray = 6;
+                                cantripArray = 6;
+                                break;
+                            case 10:
+                                ////Abdomen
+                                armorWeenie = 25650;
+                                armorPieceType = 1;
+                                spellArray = 6;
+                                cantripArray = 6;
+                                break;
+                            case 11:
+                                ////legs
+                                armorWeenie = 25647;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
+                            case 12:
+                                ////legs
+                                armorWeenie = 25645;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
+                            case 13:
+                                ////Upper legs
+                                armorWeenie = 25652;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
+                            case 14:
+                                ////lower legs
+                                armorWeenie = 25644;
+                                armorPieceType = 1;
+                                spellArray = 8;
+                                cantripArray = 8;
+                                break;
+                            default:
+                                ////feet
+                                armorWeenie = 25661;
+                                armorPieceType = 4;
+                                spellArray = 9;
+                                cantripArray = 9;
+                                break;
                         }
-                        else if (armorPiece == 1)
-                        {
-                            ////head
-                            armorWeenie = 25640;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                        }
-                        else if (armorPiece == 2)
-                        {
-                            ////Chest
-                            armorWeenie = 25639;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 3)
-                        {
-                            ////Chest
-                            armorWeenie = 25641;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 4)
-                        {
-                            ////Chest
-                            armorWeenie = 25638;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 5)
-                        {
-                            ////arms
-                            armorWeenie = 25651;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 3;
-                        }
-                        else if (armorPiece == 6)
-                        {
-                            ////Hands
-                            armorWeenie = 25642;
-                            armorPieceType = 3;
-                            spellArray = 5;
-                            cantripArray = 5;
-                        }
-                        else if (armorPiece == 7)
-                        {
-                            ////Lower Arms
-                            armorWeenie = 25637;
-                            armorPieceType = 1;
-                            spellArray = 4;
-                            cantripArray = 4;
-                        }
-                        else if (armorPiece == 8)
-                        {
-                            ////Upper arms
-                            armorWeenie = 25648;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 9)
-                        {
-                            ////Abdomen
-                            armorWeenie = 25643;
-                            armorPieceType = 1;
-                            spellArray = 6;
-                            cantripArray = 6;
-                        }
-                        else if (armorPiece == 10)
-                        {
-                            ////Abdomen
-                            armorWeenie = 25650;
-                            armorPieceType = 1;
-                            spellArray = 6;
-                            cantripArray = 6;
-                        }
-                        else if (armorPiece == 11)
-                        {
-                            ////legs
-                            armorWeenie = 25647;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
-                        else if (armorPiece == 12)
-                        {
-                            ////legs
-                            armorWeenie = 25645;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
-                        else if (armorPiece == 13)
-                        {
-                            ////Upper legs
-                            armorWeenie = 25652;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
-                        else if (armorPiece == 14)
-                        {
-                            ////lower legs
-                            armorWeenie = 25644;
-                            armorPieceType = 1;
-                            spellArray = 8;
-                            cantripArray = 8;
-                        }
-                        else
-                        {
-                            ////feet
-                            armorWeenie = 25661;
-                            armorPieceType = 4;
-                            spellArray = 9;
-                            cantripArray = 9;
-                        }
+
                         materialType = GetMaterialType(5, 1);
                     }
                     ////Studded Leather
@@ -5201,837 +5127,752 @@ namespace ACE.Server.Factories
                     {
                         ////Thinking a dictionary with random roll/WeenieID would be more concise.
                         int armorPiece = ThreadSafeRandom.Next(0, 14);
-                        if (armorPiece == 0)
+                        switch (armorPiece)
                         {
-                            armorWeenie = 554;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
+                            case 0:
+                                armorWeenie = 554;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                break;
+                            case 1:
+                                armorWeenie = 116;
+                                armorPieceType = 4;
+                                spellArray = 9;
+                                cantripArray = 9;
+                                break;
+                            case 2:
+                                armorWeenie = 38;
+                                armorPieceType = 1;
+                                spellArray = 4;
+                                cantripArray = 4;
+                                break;
+                            case 3:
+                                armorWeenie = 42;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 4:
+                                armorWeenie = 48;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 5:
+                                armorWeenie = 723;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                break;
+                            case 6:
+                                armorWeenie = 53;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 7:
+                                armorWeenie = 59;
+                                armorPieceType = 3;
+                                spellArray = 5;
+                                cantripArray = 5;
+                                break;
+                            case 8:
+                                armorWeenie = 63;
+                                armorPieceType = 1;
+                                spellArray = 6;
+                                cantripArray = 6;
+                                break;
+                            case 9:
+                                armorWeenie = 68;
+                                armorPieceType = 1;
+                                spellArray = 8;
+                                cantripArray = 8;
+                                break;
+                            case 10:
+                                armorWeenie = 68;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                break;
+                            case 11:
+                                armorWeenie = 89;
+                                armorPieceType = 1;
+                                spellArray = 8;
+                                cantripArray = 8;
+                                break;
+                            case 12:
+                                armorWeenie = 99;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 13:
+                                armorWeenie = 105;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 3;
+                                break;
+                            default:
+                                armorWeenie = 112;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
                         }
-                        else if (armorPiece == 1)
-                        {
-                            armorWeenie = 116;
-                            armorPieceType = 4;
-                            spellArray = 9;
-                            cantripArray = 9;
-                        }
-                        else if (armorPiece == 2)
-                        {
-                            armorWeenie = 38;
-                            armorPieceType = 1;
-                            spellArray = 4;
-                            cantripArray = 4;
-                        }
-                        else if (armorPiece == 3)
-                        {
-                            armorWeenie = 42;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 4)
-                        {
-                            armorWeenie = 48;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 5)
-                        {
-                            armorWeenie = 723;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                        }
-                        else if (armorPiece == 6)
-                        {
-                            armorWeenie = 53;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 7)
-                        {
-                            armorWeenie = 59;
-                            armorPieceType = 3;
-                            spellArray = 5;
-                            cantripArray = 5;
-                        }
-                        else if (armorPiece == 8)
-                        {
-                            armorWeenie = 63;
-                            armorPieceType = 1;
-                            spellArray = 6;
-                            cantripArray = 6;
-                        }
-                        else if (armorPiece == 9)
-                        {
-                            armorWeenie = 68;
-                            armorPieceType = 1;
-                            spellArray = 8;
-                            cantripArray = 8;
-                        }
-                        else if (armorPiece == 10)
-                        {
-                            armorWeenie = 68;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                        }
-                        else if (armorPiece == 11)
-                        {
-                            armorWeenie = 89;
-                            armorPieceType = 1;
-                            spellArray = 8;
-                            cantripArray = 8;
-                        }
-                        else if (armorPiece == 12)
-                        {
-                            armorWeenie = 99;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 13)
-                        {
-                            armorWeenie = 105;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 3;
-                        }
-                        else
-                        {
-                            armorWeenie = 112;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
+
                         materialType = GetMaterialType(5, 1);
                     }
                     ////Chainmail
                     if (armorType == 2)
                     {
                         int armorPiece = ThreadSafeRandom.Next(0, 12);
-                        if (armorPiece == 0)
+                        switch (armorPiece)
                         {
-                            armorWeenie = 35;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
+                            case 0:
+                                armorWeenie = 35;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                break;
+                            case 1:
+                                armorWeenie = 413;
+                                armorPieceType = 1;
+                                spellArray = 4;
+                                cantripArray = 4;
+                                break;
+                            case 2:
+                                armorWeenie = 414;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 3:
+                                armorWeenie = 85;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                break;
+                            case 4:
+                                armorWeenie = 55;
+                                armorPieceType = 3;
+                                spellArray = 5;
+                                cantripArray = 5;
+                                break;
+                            case 5:
+                                armorWeenie = 415;
+                                armorPieceType = 1;
+                                spellArray = 6;
+                                cantripArray = 6;
+                                break;
+                            case 6:
+                                armorWeenie = 2605;
+                                armorPieceType = 1;
+                                spellArray = 8;
+                                cantripArray = 8;
+                                break;
+                            case 7:
+                                armorWeenie = 71;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 8:
+                                armorWeenie = 80;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
+                            case 9:
+                                armorWeenie = 416;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 3;
+                                break;
+                            case 10:
+                                armorWeenie = 96;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 11:
+                                armorWeenie = 101;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 3;
+                                break;
+                            default:
+                                armorWeenie = 108;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
                         }
-                        else if (armorPiece == 1)
-                        {
-                            armorWeenie = 413;
-                            armorPieceType = 1;
-                            spellArray = 4;
-                            cantripArray = 4;
-                        }
-                        else if (armorPiece == 2)
-                        {
-                            armorWeenie = 414;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 3)
-                        {
-                            armorWeenie = 85;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                        }
-                        else if (armorPiece == 4)
-                        {
-                            armorWeenie = 55;
-                            armorPieceType = 3;
-                            spellArray = 5;
-                            cantripArray = 5;
-                        }
-                        else if (armorPiece == 5)
-                        {
-                            armorWeenie = 415;
-                            armorPieceType = 1;
-                            spellArray = 6;
-                            cantripArray = 6;
-                        }
-                        else if (armorPiece == 6)
-                        {
-                            armorWeenie = 2605;
-                            armorPieceType = 1;
-                            spellArray = 8;
-                            cantripArray = 8;
-                        }
-                        else if (armorPiece == 7)
-                        {
-                            armorWeenie = 71;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 8)
-                        {
-                            armorWeenie = 80;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
-                        else if (armorPiece == 9)
-                        {
-                            armorWeenie = 416;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 3;
-                        }
-                        else if (armorPiece == 10)
-                        {
-                            armorWeenie = 96;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 11)
-                        {
-                            armorWeenie = 101;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 3;
-                        }
-                        else
-                        {
-                            armorWeenie = 108;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
+
                         materialType = GetMaterialType(7, 1);
                     }
                     ////Platemail
                     if (armorType == 3)
                     {
                         int armorPiece = ThreadSafeRandom.Next(0, 10);
-                        if (armorPiece == 0)
+                        switch (armorPiece)
                         {
-                            armorWeenie = 40;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
+                            case 0:
+                                armorWeenie = 40;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 1:
+                                armorWeenie = 51;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 2:
+                                armorWeenie = 57;
+                                armorPieceType = 3;
+                                spellArray = 5;
+                                cantripArray = 5;
+                                break;
+                            case 3:
+                                armorWeenie = 61;
+                                armorPieceType = 1;
+                                spellArray = 6;
+                                cantripArray = 6;
+                                break;
+                            case 4:
+                                armorWeenie = 66;
+                                armorPieceType = 1;
+                                spellArray = 8;
+                                cantripArray = 8;
+                                break;
+                            case 5:
+                                armorWeenie = 72;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 6:
+                                armorWeenie = 82;
+                                armorPieceType = 1;
+                                spellArray = 8;
+                                cantripArray = 8;
+                                break;
+                            case 7:
+                                armorWeenie = 87;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 3;
+                                break;
+                            case 8:
+                                armorWeenie = 103;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 3;
+                                break;
+                            case 9:
+                                armorWeenie = 110;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
+                            default:
+                                armorWeenie = 114;
+                                armorPieceType = 1;
+                                spellArray = 4;
+                                cantripArray = 4;
+                                break;
                         }
-                        else if (armorPiece == 1)
-                        {
-                            armorWeenie = 51;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 2)
-                        {
-                            armorWeenie = 57;
-                            armorPieceType = 3;
-                            spellArray = 5;
-                            cantripArray = 5;
-                        }
-                        else if (armorPiece == 3)
-                        {
-                            armorWeenie = 61;
-                            armorPieceType = 1;
-                            spellArray = 6;
-                            cantripArray = 6;
-                        }
-                        else if (armorPiece == 4)
-                        {
-                            armorWeenie = 66;
-                            armorPieceType = 1;
-                            spellArray = 8;
-                            cantripArray = 8;
-                        }
-                        else if (armorPiece == 5)
-                        {
-                            armorWeenie = 72;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 6)
-                        {
-                            armorWeenie = 82;
-                            armorPieceType = 1;
-                            spellArray = 8;
-                            cantripArray = 8;
-                        }
-                        else if (armorPiece == 7)
-                        {
-                            armorWeenie = 87;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 3;
-                        }
-                        else if (armorPiece == 8)
-                        {
-                            armorWeenie = 103;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 3;
-                        }
-                        else if (armorPiece == 9)
-                        {
-                            armorWeenie = 110;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
-                        else
-                        {
-                            armorWeenie = 114;
-                            armorPieceType = 1;
-                            spellArray = 4;
-                            cantripArray = 4;
-                        }
+
                         materialType = GetMaterialType(7, 1);
                     }
                     ////Scalemail
                     if (armorType == 4)
                     {
                         int armorPiece = ThreadSafeRandom.Next(0, 13);
-                        if (armorPiece == 0)
+                        switch (armorPiece)
                         {
-                            armorWeenie = 552;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
+                            case 0:
+                                armorWeenie = 552;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                break;
+                            case 1:
+                                armorWeenie = 37;
+                                armorPieceType = 1;
+                                spellArray = 4;
+                                cantripArray = 4;
+                                break;
+                            case 2:
+                                armorWeenie = 41;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 3:
+                                armorWeenie = 793;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                break;
+                            case 4:
+                                armorWeenie = 52;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 5:
+                                armorWeenie = 58;
+                                armorPieceType = 3;
+                                spellArray = 5;
+                                cantripArray = 5;
+                                break;
+                            case 6:
+                                armorWeenie = 62;
+                                armorPieceType = 1;
+                                spellArray = 6;
+                                cantripArray = 6;
+                                break;
+                            case 7:
+                                armorWeenie = 67;
+                                armorPieceType = 1;
+                                spellArray = 8;
+                                cantripArray = 8;
+                                break;
+                            case 8:
+                                armorWeenie = 73;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 9:
+                                armorWeenie = 83;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
+                            case 10:
+                                armorWeenie = 88;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 3;
+                                break;
+                            case 11:
+                                armorWeenie = 98;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 12:
+                                armorWeenie = 104;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 3;
+                                break;
+                            default:
+                                armorWeenie = 111;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
                         }
-                        else if (armorPiece == 1)
-                        {
-                            armorWeenie = 37;
-                            armorPieceType = 1;
-                            spellArray = 4;
-                            cantripArray = 4;
-                        }
-                        else if (armorPiece == 2)
-                        {
-                            armorWeenie = 41;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 3)
-                        {
-                            armorWeenie = 793;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                        }
-                        else if (armorPiece == 4)
-                        {
-                            armorWeenie = 52;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 5)
-                        {
-                            armorWeenie = 58;
-                            armorPieceType = 3;
-                            spellArray = 5;
-                            cantripArray = 5;
-                        }
-                        else if (armorPiece == 6)
-                        {
-                            armorWeenie = 62;
-                            armorPieceType = 1;
-                            spellArray = 6;
-                            cantripArray = 6;
-                        }
-                        else if (armorPiece == 7)
-                        {
-                            armorWeenie = 67;
-                            armorPieceType = 1;
-                            spellArray = 8;
-                            cantripArray = 8;
-                        }
-                        else if (armorPiece == 8)
-                        {
-                            armorWeenie = 73;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 9)
-                        {
-                            armorWeenie = 83;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
-                        else if (armorPiece == 10)
-                        {
-                            armorWeenie = 88;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 3;
-                        }
-                        else if (armorPiece == 11)
-                        {
-                            armorWeenie = 98;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 12)
-                        {
-                            armorWeenie = 104;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 3;
-                        }
-                        else
-                        {
-                            armorWeenie = 111;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
+
                         materialType = GetMaterialType(7, 1);
                     }
                     ////Yoroi
                     if (armorType == 5)
                     {
                         int armorPiece = ThreadSafeRandom.Next(0, 7);
-                        if (armorPiece == 0)
+                        switch (armorPiece)
                         {
-                            armorWeenie = 43;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
+                            case 0:
+                                armorWeenie = 43;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 1:
+                                armorWeenie = 54;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 2:
+                                armorWeenie = 64;
+                                armorPieceType = 1;
+                                spellArray = 6;
+                                cantripArray = 6;
+                                break;
+                            case 3:
+                                armorWeenie = 69;
+                                armorPieceType = 1;
+                                spellArray = 8;
+                                cantripArray = 8;
+                                break;
+                            case 4:
+                                armorWeenie = 2437;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
+                            case 5:
+                                armorWeenie = 90;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 3;
+                                break;
+                            case 6:
+                                armorWeenie = 102;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 3;
+                                break;
+                            default:
+                                armorWeenie = 113;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
                         }
-                        else if (armorPiece == 1)
-                        {
-                            armorWeenie = 54;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 2)
-                        {
-                            armorWeenie = 64;
-                            armorPieceType = 1;
-                            spellArray = 6;
-                            cantripArray = 6;
-                        }
-                        else if (armorPiece == 3)
-                        {
-                            armorWeenie = 69;
-                            armorPieceType = 1;
-                            spellArray = 8;
-                            cantripArray = 8;
-                        }
-                        else if (armorPiece == 4)
-                        {
-                            armorWeenie = 2437;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
-                        else if (armorPiece == 5)
-                        {
-                            armorWeenie = 90;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 3;
-                        }
-                        else if (armorPiece == 6)
-                        {
-                            armorWeenie = 102;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 3;
-                        }
-                        else
-                        {
-                            armorWeenie = 113;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
+
                         materialType = GetMaterialType(7, 1);
                     }
                     ////Diforsa
                     if (armorType == 6)
                     {
                         int armorPiece = ThreadSafeRandom.Next(0, 12);
-                        if (armorPiece == 0)
+                        switch (armorPiece)
                         {
-                            armorWeenie = 28367;
-                            armorPieceType = 1;
-                            spellArray = 4;
-                            cantripArray = 4;
+                            case 0:
+                                armorWeenie = 28367;
+                                armorPieceType = 1;
+                                spellArray = 4;
+                                cantripArray = 4;
+                                break;
+                            case 1:
+                                armorWeenie = 28628;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 2:
+                                armorWeenie = 28630;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 3:
+                                armorWeenie = 28632;
+                                armorPieceType = 3;
+                                spellArray = 5;
+                                cantripArray = 5;
+                                break;
+                            case 4:
+                                armorWeenie = 28633;
+                                armorPieceType = 1;
+                                spellArray = 6;
+                                cantripArray = 6;
+                                break;
+                            case 5:
+                                armorWeenie = 28634;
+                                armorPieceType = 31;
+                                spellArray = 8;
+                                cantripArray = 8;
+                                break;
+                            case 6:
+                                armorWeenie = 30948;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 7:
+                                armorWeenie = 28618;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                break;
+                            case 8:
+                                armorWeenie = 28621;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
+                            case 9:
+                                armorWeenie = 28623;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 3;
+                                break;
+                            case 10:
+                                armorWeenie = 30949;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 3;
+                                break;
+                            case 11:
+                                armorWeenie = 28625;
+                                armorPieceType = 4;
+                                spellArray = 9;
+                                cantripArray = 9;
+                                break;
+                            default:
+                                armorWeenie = 28626;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
                         }
-                        else if (armorPiece == 1)
-                        {
-                            armorWeenie = 28628;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 2)
-                        {
-                            armorWeenie = 28630;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 3)
-                        {
-                            armorWeenie = 28632;
-                            armorPieceType = 3;
-                            spellArray = 5;
-                            cantripArray = 5;
-                        }
-                        else if (armorPiece == 4)
-                        {
-                            armorWeenie = 28633;
-                            armorPieceType = 1;
-                            spellArray = 6;
-                            cantripArray = 6;
-                        }
-                        else if (armorPiece == 5)
-                        {
-                            armorWeenie = 28634;
-                            armorPieceType = 31;
-                            spellArray = 8;
-                            cantripArray = 8;
-                        }
-                        else if (armorPiece == 6)
-                        {
-                            armorWeenie = 30948;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 7)
-                        {
-                            armorWeenie = 28618;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                        }
-                        else if (armorPiece == 8)
-                        {
-                            armorWeenie = 28621;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
-                        else if (armorPiece == 9)
-                        {
-                            armorWeenie = 28623;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 3;
-                        }
-                        else if (armorPiece == 10)
-                        {
-                            armorWeenie = 30949;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 3;
-                        }
-                        else if (armorPiece == 11)
-                        {
-                            armorWeenie = 28625;
-                            armorPieceType = 4;
-                            spellArray = 9;
-                            cantripArray = 9;
-                        }
-                        else
-                        {
-                            armorWeenie = 28626;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
+
                         materialType = GetMaterialType(7, 1);
                     }
                     ////Random Armor Items
                     if (armorType == 7)
                     {
                         int armorPiece = ThreadSafeRandom.Next(0, 29);
-                        if (armorPiece == 0)
+                        switch (armorPiece)
                         {
-                            ////bandana
-                            armorWeenie = 28612;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(8, 1);
-                        }
-                        else if (armorPiece == 1)
-                        {
-                            ////beret
-                            armorWeenie = 28605;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(8, 1);
-                        }
-                        else if (armorPiece == 2)
-                        {
-                            ////Cloth Cap
-                            armorWeenie = 118;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(8, 1);
-                        }
-                        else if (armorPiece == 3)
-                        {
-                            ////Cloth gloves
-                            armorWeenie = 121;
-                            armorPieceType = 3;
-                            spellArray = 5;
-                            cantripArray = 5;
-                            materialType = GetMaterialType(8, 1);
-                        }
-                        else if (armorPiece == 4)
-                        {
-                            ////Cowl
-                            armorWeenie = 119;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(8, 1);
-                        }
-                        else if (armorPiece == 5)
-                        {
-                            ////crown
-                            armorWeenie = 296;
-                            armorPieceType = 1;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(7, 1);
-                        }
-                        else if (armorPiece == 6)
-                        {
-                            ////Fez
-                            armorWeenie = 5894;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(8, 1);
-                        }
-                        else if (armorPiece == 7)
-                        {
-                            ////hood
-                            armorWeenie = 5905;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(8, 1);
-                        }
-                        else if (armorPiece == 8)
-                        {
-                            ////Kasa
-                            armorWeenie = 5901;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(8, 1);
-                        }
-                        else if (armorPiece == 9)
-                        {
-                            ////Metal cap
-                            armorWeenie = 46;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(7, 1);
-                        }
-                        else if (armorPiece == 10)
-                        {
-                            ////Qafiya
-                            armorWeenie = 76;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(8, 1);
-                        }
-                        else if (armorPiece == 11)
-                        {
-                            ////turban
-                            armorWeenie = 135;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(8, 1);
-                        }
-                        else if (armorPiece == 12)
-                        {
-                            ////loafers
-                            armorWeenie = 28610;
-                            armorPieceType = 4;
-                            spellArray = 9;
-                            cantripArray = 9;
-                            materialType = GetMaterialType(8, 1);
-                        }
-                        else if (armorPiece == 13)
-                        {
-                            ////sandals
-                            armorWeenie = 129;
-                            armorPieceType = 4;
-                            spellArray = 9;
-                            cantripArray = 9;
-                            materialType = GetMaterialType(8, 1);
-                        }
-                        else if (armorPiece == 14)
-                        {
-                            ////shoes
-                            armorWeenie = 132;
-                            armorPieceType = 4;
-                            spellArray = 9;
-                            cantripArray = 9;
-                            materialType = GetMaterialType(8, 1);
-                        }
-                        else if (armorPiece == 15)
-                        {
-                            ////slippers
-                            armorWeenie = 133;
-                            armorPieceType = 4;
-                            spellArray = 9;
-                            cantripArray = 9;
-                            materialType = GetMaterialType(8, 1);
-                        }
-                        else if (armorPiece == 16)
-                        {
-                            ////steel toed boots
-                            armorWeenie = 7897;
-                            armorPieceType = 4;
-                            spellArray = 9;
-                            cantripArray = 9;
-                            materialType = GetMaterialType(6, 1);
-                        }
-                        else if (armorPiece == 17)
-                        {
-                            ////buckler
-                            armorWeenie = 44;
-                            armorPieceType = 5;
-                            spellArray = 10;
-                            cantripArray = 10;
-                            materialType = GetMaterialType(7, 1);
-                        }
-                        else if (armorPiece == 18)
-                        {
-                            ////kite shield
-                            armorWeenie = 91;
-                            armorPieceType = 5;
-                            spellArray = 10;
-                            cantripArray = 10;
-                            materialType = GetMaterialType(7, 1);
-                        }
-                        else if (armorPiece == 19)
-                        {
-                            ////large Kite Shield
-                            armorWeenie = 92;
-                            armorPieceType = 5;
-                            spellArray = 10;
-                            cantripArray = 10;
-                            materialType = GetMaterialType(7, 1);
-                        }
-                        else if (armorPiece == 20)
-                        {
-                            ////Circlet
-                            armorWeenie = 29528;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(7, 1);
-                        }
-                        else if (armorPiece == 21)
-                        {
-                            ////Armet
-                            armorWeenie = 8488;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(7, 1);
-                        }
-                        else if (armorPiece == 22)
-                        {
-                            ////Baigha
-                            armorWeenie = 550;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(7, 1);
-                        }
-                        else if (armorPiece == 23)
-                        {
-                            ////Heaume
-                            armorWeenie = 74;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(7, 1);
-                        }
-                        else if (armorPiece == 24)
-                        {
-                            ////Helmet
-                            armorWeenie = 75;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(7, 1);
-                        }
-                        //else if (armorPiece == 25)
-                        //{
-                        //    ////Horned Helm
-                        //    armorWeenie = 92;
-                        //    armorPieceType = 5;
-                        //    spellArray = 10;
-                        //    cantripArray = 10;
-                        //}
-                        else if (armorPiece == 25)
-                        {
-                            ////Kabuton
-                            armorWeenie = 77;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                            materialType = GetMaterialType(7, 1);
-                        }
-                        else if (armorPiece == 26)
-                        {
-                            ////sollerets
-                            armorWeenie = 107;
-                            armorPieceType = 4;
-                            spellArray = 9;
-                            cantripArray = 9;
-                            materialType = GetMaterialType(7, 1);
-                        }
-                        else if (armorPiece == 27)
-                        {
-                            ////viamontian laced boots
-                            armorWeenie = 28611;
-                            armorPieceType = 4;
-                            spellArray = 9;
-                            cantripArray = 9;
-                            materialType = GetMaterialType(7, 1);
-                        }
-                        else if (armorPiece == 28)
-                        {
-                            ////RTower Shield
-                            armorWeenie = 95;
-                            armorPieceType = 5;
-                            spellArray = 10;
-                            cantripArray = 10;
-                            materialType = GetMaterialType(7, 1);
-                        }
-                        else
-                        {
-                            ////Round Shield
-                            armorWeenie = 93;
-                            armorPieceType = 5;
-                            spellArray = 10;
-                            cantripArray = 10;
-                            materialType = GetMaterialType(7, 1);
+                            case 0:
+                                ////bandana
+                                armorWeenie = 28612;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(8, 1);
+                                break;
+                            case 1:
+                                ////beret
+                                armorWeenie = 28605;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(8, 1);
+                                break;
+                            case 2:
+                                ////Cloth Cap
+                                armorWeenie = 118;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(8, 1);
+                                break;
+                            case 3:
+                                ////Cloth gloves
+                                armorWeenie = 121;
+                                armorPieceType = 3;
+                                spellArray = 5;
+                                cantripArray = 5;
+                                materialType = GetMaterialType(8, 1);
+                                break;
+                            case 4:
+                                ////Cowl
+                                armorWeenie = 119;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(8, 1);
+                                break;
+                            case 5:
+                                ////crown
+                                armorWeenie = 296;
+                                armorPieceType = 1;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 6:
+                                ////Fez
+                                armorWeenie = 5894;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(8, 1);
+                                break;
+                            case 7:
+                                ////hood
+                                armorWeenie = 5905;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(8, 1);
+                                break;
+                            case 8:
+                                ////Kasa
+                                armorWeenie = 5901;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(8, 1);
+                                break;
+                            case 9:
+                                ////Metal cap
+                                armorWeenie = 46;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 10:
+                                ////Qafiya
+                                armorWeenie = 76;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(8, 1);
+                                break;
+                            case 11:
+                                ////turban
+                                armorWeenie = 135;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(8, 1);
+                                break;
+                            case 12:
+                                ////loafers
+                                armorWeenie = 28610;
+                                armorPieceType = 4;
+                                spellArray = 9;
+                                cantripArray = 9;
+                                materialType = GetMaterialType(8, 1);
+                                break;
+                            case 13:
+                                ////sandals
+                                armorWeenie = 129;
+                                armorPieceType = 4;
+                                spellArray = 9;
+                                cantripArray = 9;
+                                materialType = GetMaterialType(8, 1);
+                                break;
+                            case 14:
+                                ////shoes
+                                armorWeenie = 132;
+                                armorPieceType = 4;
+                                spellArray = 9;
+                                cantripArray = 9;
+                                materialType = GetMaterialType(8, 1);
+                                break;
+                            case 15:
+                                ////slippers
+                                armorWeenie = 133;
+                                armorPieceType = 4;
+                                spellArray = 9;
+                                cantripArray = 9;
+                                materialType = GetMaterialType(8, 1);
+                                break;
+                            case 16:
+                                ////steel toed boots
+                                armorWeenie = 7897;
+                                armorPieceType = 4;
+                                spellArray = 9;
+                                cantripArray = 9;
+                                materialType = GetMaterialType(6, 1);
+                                break;
+                            case 17:
+                                ////buckler
+                                armorWeenie = 44;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 18:
+                                ////kite shield
+                                armorWeenie = 91;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 19:
+                                ////large Kite Shield
+                                armorWeenie = 92;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 20:
+                                ////Circlet
+                                armorWeenie = 29528;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 21:
+                                ////Armet
+                                armorWeenie = 8488;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 22:
+                                ////Baigha
+                                armorWeenie = 550;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 23:
+                                ////Heaume
+                                armorWeenie = 74;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 24:
+                                ////Helmet
+                                armorWeenie = 75;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 25:
+                                ////Kabuton
+                                armorWeenie = 77;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 26:
+                                ////sollerets
+                                armorWeenie = 107;
+                                armorPieceType = 4;
+                                spellArray = 9;
+                                cantripArray = 9;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 27:
+                                ////viamontian laced boots
+                                armorWeenie = 28611;
+                                armorPieceType = 4;
+                                spellArray = 9;
+                                cantripArray = 9;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            case 28:
+                                ////RTower Shield
+                                armorWeenie = 95;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
+                            default:
+                                ////Round Shield
+                                armorWeenie = 93;
+                                armorPieceType = 5;
+                                spellArray = 10;
+                                cantripArray = 10;
+                                materialType = GetMaterialType(7, 1);
+                                break;
                         }
                     }
                     break;
@@ -6043,722 +5884,660 @@ namespace ACE.Server.Factories
                     if (armorType == 0)
                     {
                         int armorPiece = ThreadSafeRandom.Next(0, 15);
-                        if (armorPiece == 0)
+                        switch (armorPiece)
                         {
-                            ////helm
-                            armorWeenie = 25636;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
+                            case 0:
+                                ////helm
+                                armorWeenie = 25636;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                break;
+                            case 1:
+                                ////head
+                                armorWeenie = 25640;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                break;
+                            case 2:
+                                ////Chest
+                                armorWeenie = 25639;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 3:
+                                ////Chest
+                                armorWeenie = 25641;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 4:
+                                ////Chest
+                                armorWeenie = 25638;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 5:
+                                ////arms
+                                armorWeenie = 25651;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 3;
+                                break;
+                            case 6:
+                                ////Hands
+                                armorWeenie = 25642;
+                                armorPieceType = 3;
+                                spellArray = 5;
+                                cantripArray = 5;
+                                break;
+                            case 7:
+                                ////Lower Arms
+                                armorWeenie = 25637;
+                                armorPieceType = 1;
+                                spellArray = 4;
+                                cantripArray = 4;
+                                break;
+                            case 8:
+                                ////Upper arms
+                                armorWeenie = 25648;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 2;
+                                break;
+                            case 9:
+                                ////Abdomen
+                                armorWeenie = 25643;
+                                armorPieceType = 1;
+                                spellArray = 6;
+                                cantripArray = 6;
+                                break;
+                            case 10:
+                                ////Abdomen
+                                armorWeenie = 25650;
+                                armorPieceType = 1;
+                                spellArray = 6;
+                                cantripArray = 6;
+                                break;
+                            case 11:
+                                ////legs
+                                armorWeenie = 25647;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
+                            case 12:
+                                ////legs
+                                armorWeenie = 25645;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
+                            case 13:
+                                ////Upper legs
+                                armorWeenie = 25652;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
+                            case 14:
+                                ////lower legs
+                                armorWeenie = 25644;
+                                armorPieceType = 1;
+                                spellArray = 8;
+                                cantripArray = 8;
+                                break;
+                            default:
+                                ////feet
+                                armorWeenie = 25661;
+                                armorPieceType = 4;
+                                spellArray = 9;
+                                cantripArray = 9;
+                                break;
                         }
-                        else if (armorPiece == 1)
-                        {
-                            ////head
-                            armorWeenie = 25640;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                        }
-                        else if (armorPiece == 2)
-                        {
-                            ////Chest
-                            armorWeenie = 25639;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 3)
-                        {
-                            ////Chest
-                            armorWeenie = 25641;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 4)
-                        {
-                            ////Chest
-                            armorWeenie = 25638;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 5)
-                        {
-                            ////arms
-                            armorWeenie = 25651;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 3;
-                        }
-                        else if (armorPiece == 6)
-                        {
-                            ////Hands
-                            armorWeenie = 25642;
-                            armorPieceType = 3;
-                            spellArray = 5;
-                            cantripArray = 5;
-                        }
-                        else if (armorPiece == 7)
-                        {
-                            ////Lower Arms
-                            armorWeenie = 25637;
-                            armorPieceType = 1;
-                            spellArray = 4;
-                            cantripArray = 4;
-                        }
-                        else if (armorPiece == 8)
-                        {
-                            ////Upper arms
-                            armorWeenie = 25648;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 9)
-                        {
-                            ////Abdomen
-                            armorWeenie = 25643;
-                            armorPieceType = 1;
-                            spellArray = 6;
-                            cantripArray = 6;
-                        }
-                        else if (armorPiece == 10)
-                        {
-                            ////Abdomen
-                            armorWeenie = 25650;
-                            armorPieceType = 1;
-                            spellArray = 6;
-                            cantripArray = 6;
-                        }
-                        else if (armorPiece == 11)
-                        {
-                            ////legs
-                            armorWeenie = 25647;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
-                        else if (armorPiece == 12)
-                        {
-                            ////legs
-                            armorWeenie = 25645;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
-                        else if (armorPiece == 13)
-                        {
-                            ////Upper legs
-                            armorWeenie = 25652;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
-                        else if (armorPiece == 14)
-                        {
-                            ////lower legs
-                            armorWeenie = 25644;
-                            armorPieceType = 1;
-                            spellArray = 8;
-                            cantripArray = 8;
-                        }
-                        else
-                        {
-                            ////feet
-                            armorWeenie = 25661;
-                            armorPieceType = 4;
-                            spellArray = 9;
-                            cantripArray = 9;
-                        }
+
                         materialType = GetMaterialType(5, 1);
                     }
                     ////Studded Leather
                     if (armorType == 1)
                     {
                         int armorPiece = ThreadSafeRandom.Next(0, 14);
-                        if (armorPiece == 0)
+                        switch (armorPiece)
                         {
-                            armorWeenie = 554;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
+                            case 0:
+                                armorWeenie = 554;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                break;
+                            case 1:
+                                armorWeenie = 116;
+                                armorPieceType = 4;
+                                spellArray = 9;
+                                cantripArray = 9;
+                                break;
+                            case 2:
+                                armorWeenie = 38;
+                                armorPieceType = 1;
+                                spellArray = 4;
+                                cantripArray = 4;
+                                break;
+                            case 3:
+                                armorWeenie = 42;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 4:
+                                armorWeenie = 48;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 5:
+                                armorWeenie = 723;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                break;
+                            case 6:
+                                armorWeenie = 53;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 7:
+                                armorWeenie = 59;
+                                armorPieceType = 3;
+                                spellArray = 5;
+                                cantripArray = 5;
+                                break;
+                            case 8:
+                                armorWeenie = 63;
+                                armorPieceType = 1;
+                                spellArray = 6;
+                                cantripArray = 6;
+                                break;
+                            case 9:
+                                armorWeenie = 68;
+                                armorPieceType = 1;
+                                spellArray = 8;
+                                cantripArray = 8;
+                                break;
+                            case 10:
+                                armorWeenie = 68;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                break;
+                            case 11:
+                                armorWeenie = 89;
+                                armorPieceType = 1;
+                                spellArray = 8;
+                                cantripArray = 8;
+                                break;
+                            case 12:
+                                armorWeenie = 99;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 13:
+                                armorWeenie = 105;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 3;
+                                break;
+                            default:
+                                armorWeenie = 112;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
                         }
-                        else if (armorPiece == 1)
-                        {
-                            armorWeenie = 116;
-                            armorPieceType = 4;
-                            spellArray = 9;
-                            cantripArray = 9;
-                        }
-                        else if (armorPiece == 2)
-                        {
-                            armorWeenie = 38;
-                            armorPieceType = 1;
-                            spellArray = 4;
-                            cantripArray = 4;
-                        }
-                        else if (armorPiece == 3)
-                        {
-                            armorWeenie = 42;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 4)
-                        {
-                            armorWeenie = 48;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 5)
-                        {
-                            armorWeenie = 723;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                        }
-                        else if (armorPiece == 6)
-                        {
-                            armorWeenie = 53;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 7)
-                        {
-                            armorWeenie = 59;
-                            armorPieceType = 3;
-                            spellArray = 5;
-                            cantripArray = 5;
-                        }
-                        else if (armorPiece == 8)
-                        {
-                            armorWeenie = 63;
-                            armorPieceType = 1;
-                            spellArray = 6;
-                            cantripArray = 6;
-                        }
-                        else if (armorPiece == 9)
-                        {
-                            armorWeenie = 68;
-                            armorPieceType = 1;
-                            spellArray = 8;
-                            cantripArray = 8;
-                        }
-                        else if (armorPiece == 10)
-                        {
-                            armorWeenie = 68;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                        }
-                        else if (armorPiece == 11)
-                        {
-                            armorWeenie = 89;
-                            armorPieceType = 1;
-                            spellArray = 8;
-                            cantripArray = 8;
-                        }
-                        else if (armorPiece == 12)
-                        {
-                            armorWeenie = 99;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 13)
-                        {
-                            armorWeenie = 105;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 3;
-                        }
-                        else
-                        {
-                            armorWeenie = 112;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
+
                         materialType = GetMaterialType(5, 1);
                     }
                     ////Chainmail
                     if (armorType == 2)
                     {
                         int armorPiece = ThreadSafeRandom.Next(0, 12);
-                        if (armorPiece == 0)
+                        switch (armorPiece)
                         {
-                            armorWeenie = 35;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
+                            case 0:
+                                armorWeenie = 35;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                break;
+                            case 1:
+                                armorWeenie = 413;
+                                armorPieceType = 1;
+                                spellArray = 4;
+                                cantripArray = 4;
+                                break;
+                            case 2:
+                                armorWeenie = 414;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 3:
+                                armorWeenie = 85;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                break;
+                            case 4:
+                                armorWeenie = 55;
+                                armorPieceType = 3;
+                                spellArray = 5;
+                                cantripArray = 5;
+                                break;
+                            case 5:
+                                armorWeenie = 415;
+                                armorPieceType = 1;
+                                spellArray = 6;
+                                cantripArray = 6;
+                                break;
+                            case 6:
+                                armorWeenie = 2605;
+                                armorPieceType = 1;
+                                spellArray = 8;
+                                cantripArray = 8;
+                                break;
+                            case 7:
+                                armorWeenie = 71;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 8:
+                                armorWeenie = 80;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
+                            case 9:
+                                armorWeenie = 416;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 3;
+                                break;
+                            case 10:
+                                armorWeenie = 96;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 11:
+                                armorWeenie = 101;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 3;
+                                break;
+                            default:
+                                armorWeenie = 108;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
                         }
-                        else if (armorPiece == 1)
-                        {
-                            armorWeenie = 413;
-                            armorPieceType = 1;
-                            spellArray = 4;
-                            cantripArray = 4;
-                        }
-                        else if (armorPiece == 2)
-                        {
-                            armorWeenie = 414;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 3)
-                        {
-                            armorWeenie = 85;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                        }
-                        else if (armorPiece == 4)
-                        {
-                            armorWeenie = 55;
-                            armorPieceType = 3;
-                            spellArray = 5;
-                            cantripArray = 5;
-                        }
-                        else if (armorPiece == 5)
-                        {
-                            armorWeenie = 415;
-                            armorPieceType = 1;
-                            spellArray = 6;
-                            cantripArray = 6;
-                        }
-                        else if (armorPiece == 6)
-                        {
-                            armorWeenie = 2605;
-                            armorPieceType = 1;
-                            spellArray = 8;
-                            cantripArray = 8;
-                        }
-                        else if (armorPiece == 7)
-                        {
-                            armorWeenie = 71;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 8)
-                        {
-                            armorWeenie = 80;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
-                        else if (armorPiece == 9)
-                        {
-                            armorWeenie = 416;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 3;
-                        }
-                        else if (armorPiece == 10)
-                        {
-                            armorWeenie = 96;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 11)
-                        {
-                            armorWeenie = 101;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 3;
-                        }
-                        else
-                        {
-                            armorWeenie = 108;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
+
                         materialType = GetMaterialType(7, 1);
                     }
                     ////Platemail
                     if (armorType == 3)
                     {
                         int armorPiece = ThreadSafeRandom.Next(0, 11);
-                        if (armorPiece == 0)
+                        switch (armorPiece)
                         {
-                            armorWeenie = 40;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
+                            case 0:
+                                armorWeenie = 40;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 1:
+                                armorWeenie = 51;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 2:
+                                armorWeenie = 57;
+                                armorPieceType = 3;
+                                spellArray = 5;
+                                cantripArray = 5;
+                                break;
+                            case 3:
+                                armorWeenie = 61;
+                                armorPieceType = 1;
+                                spellArray = 6;
+                                cantripArray = 6;
+                                break;
+                            case 4:
+                                armorWeenie = 66;
+                                armorPieceType = 1;
+                                spellArray = 8;
+                                cantripArray = 8;
+                                break;
+                            case 5:
+                                armorWeenie = 72;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 6:
+                                armorWeenie = 82;
+                                armorPieceType = 1;
+                                spellArray = 8;
+                                cantripArray = 8;
+                                break;
+                            case 7:
+                                armorWeenie = 87;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 3;
+                                break;
+                            case 8:
+                                armorWeenie = 103;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 3;
+                                break;
+                            case 9:
+                                armorWeenie = 110;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
+                            default:
+                                armorWeenie = 114;
+                                armorPieceType = 1;
+                                spellArray = 4;
+                                cantripArray = 4;
+                                break;
                         }
-                        else if (armorPiece == 1)
-                        {
-                            armorWeenie = 51;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 2)
-                        {
-                            armorWeenie = 57;
-                            armorPieceType = 3;
-                            spellArray = 5;
-                            cantripArray = 5;
-                        }
-                        else if (armorPiece == 3)
-                        {
-                            armorWeenie = 61;
-                            armorPieceType = 1;
-                            spellArray = 6;
-                            cantripArray = 6;
-                        }
-                        else if (armorPiece == 4)
-                        {
-                            armorWeenie = 66;
-                            armorPieceType = 1;
-                            spellArray = 8;
-                            cantripArray = 8;
-                        }
-                        else if (armorPiece == 5)
-                        {
-                            armorWeenie = 72;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 6)
-                        {
-                            armorWeenie = 82;
-                            armorPieceType = 1;
-                            spellArray = 8;
-                            cantripArray = 8;
-                        }
-                        else if (armorPiece == 7)
-                        {
-                            armorWeenie = 87;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 3;
-                        }
-                        else if (armorPiece == 8)
-                        {
-                            armorWeenie = 103;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 3;
-                        }
-                        else if (armorPiece == 9)
-                        {
-                            armorWeenie = 110;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
-                        else
-                        {
-                            armorWeenie = 114;
-                            armorPieceType = 1;
-                            spellArray = 4;
-                            cantripArray = 4;
-                        }
+
                         materialType = GetMaterialType(7, 1);
                     }
                     ////Scalemail
                     if (armorType == 4)
                     {
                         int armorPiece = ThreadSafeRandom.Next(0, 13);
-                        if (armorPiece == 0)
+                        switch (armorPiece)
                         {
-                            armorWeenie = 552;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
+                            case 0:
+                                armorWeenie = 552;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                break;
+                            case 1:
+                                armorWeenie = 37;
+                                armorPieceType = 1;
+                                spellArray = 4;
+                                cantripArray = 4;
+                                break;
+                            case 2:
+                                armorWeenie = 41;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 3:
+                                armorWeenie = 793;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                break;
+                            case 4:
+                                armorWeenie = 52;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 5:
+                                armorWeenie = 58;
+                                armorPieceType = 3;
+                                spellArray = 5;
+                                cantripArray = 5;
+                                break;
+                            case 6:
+                                armorWeenie = 62;
+                                armorPieceType = 1;
+                                spellArray = 6;
+                                cantripArray = 6;
+                                break;
+                            case 7:
+                                armorWeenie = 67;
+                                armorPieceType = 1;
+                                spellArray = 8;
+                                cantripArray = 8;
+                                break;
+                            case 8:
+                                armorWeenie = 73;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 9:
+                                armorWeenie = 83;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
+                            case 10:
+                                armorWeenie = 88;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 3;
+                                break;
+                            case 11:
+                                armorWeenie = 98;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 12:
+                                armorWeenie = 104;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 3;
+                                break;
+                            default:
+                                armorWeenie = 111;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
                         }
-                        else if (armorPiece == 1)
-                        {
-                            armorWeenie = 37;
-                            armorPieceType = 1;
-                            spellArray = 4;
-                            cantripArray = 4;
-                        }
-                        else if (armorPiece == 2)
-                        {
-                            armorWeenie = 41;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 3)
-                        {
-                            armorWeenie = 793;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                        }
-                        else if (armorPiece == 4)
-                        {
-                            armorWeenie = 52;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 5)
-                        {
-                            armorWeenie = 58;
-                            armorPieceType = 3;
-                            spellArray = 5;
-                            cantripArray = 5;
-                        }
-                        else if (armorPiece == 6)
-                        {
-                            armorWeenie = 62;
-                            armorPieceType = 1;
-                            spellArray = 6;
-                            cantripArray = 6;
-                        }
-                        else if (armorPiece == 7)
-                        {
-                            armorWeenie = 67;
-                            armorPieceType = 1;
-                            spellArray = 8;
-                            cantripArray = 8;
-                        }
-                        else if (armorPiece == 8)
-                        {
-                            armorWeenie = 73;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 9)
-                        {
-                            armorWeenie = 83;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
-                        else if (armorPiece == 10)
-                        {
-                            armorWeenie = 88;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 3;
-                        }
-                        else if (armorPiece == 11)
-                        {
-                            armorWeenie = 98;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 12)
-                        {
-                            armorWeenie = 104;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 3;
-                        }
-                        else
-                        {
-                            armorWeenie = 111;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
+
                         materialType = GetMaterialType(7, 1);
                     }
                     ////Yoroi
                     if (armorType == 5)
                     {
                         int armorPiece = ThreadSafeRandom.Next(0, 7);
-                        if (armorPiece == 0)
+                        switch (armorPiece)
                         {
-                            armorWeenie = 43;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
+                            case 0:
+                                armorWeenie = 43;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 1:
+                                armorWeenie = 54;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 2:
+                                armorWeenie = 64;
+                                armorPieceType = 1;
+                                spellArray = 6;
+                                cantripArray = 6;
+                                break;
+                            case 3:
+                                armorWeenie = 69;
+                                armorPieceType = 1;
+                                spellArray = 8;
+                                cantripArray = 8;
+                                break;
+                            case 4:
+                                armorWeenie = 2437;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
+                            case 5:
+                                armorWeenie = 90;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 3;
+                                break;
+                            case 6:
+                                armorWeenie = 102;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 3;
+                                break;
+                            default:
+                                armorWeenie = 113;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
                         }
-                        else if (armorPiece == 1)
-                        {
-                            armorWeenie = 54;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 2)
-                        {
-                            armorWeenie = 64;
-                            armorPieceType = 1;
-                            spellArray = 6;
-                            cantripArray = 6;
-                        }
-                        else if (armorPiece == 3)
-                        {
-                            armorWeenie = 69;
-                            armorPieceType = 1;
-                            spellArray = 8;
-                            cantripArray = 8;
-                        }
-                        else if (armorPiece == 4)
-                        {
-                            armorWeenie = 2437;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
-                        else if (armorPiece == 5)
-                        {
-                            armorWeenie = 90;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 3;
-                        }
-                        else if (armorPiece == 6)
-                        {
-                            armorWeenie = 102;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 3;
-                        }
-                        else
-                        {
-                            armorWeenie = 113;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
+
                         materialType = GetMaterialType(7, 1);
                     }
                     ////Diforsa
                     if (armorType == 6)
                     {
                         int armorPiece = ThreadSafeRandom.Next(0, 12);
-                        if (armorPiece == 0)
+                        switch (armorPiece)
                         {
-                            armorWeenie = 28627;
-                            armorPieceType = 1;
-                            spellArray = 4;
-                            cantripArray = 4;
+                            case 0:
+                                armorWeenie = 28627;
+                                armorPieceType = 1;
+                                spellArray = 4;
+                                cantripArray = 4;
+                                break;
+                            case 1:
+                                armorWeenie = 28628;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 2:
+                                armorWeenie = 28630;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 3:
+                                armorWeenie = 28632;
+                                armorPieceType = 3;
+                                spellArray = 5;
+                                cantripArray = 5;
+                                break;
+                            case 4:
+                                armorWeenie = 28633;
+                                armorPieceType = 1;
+                                spellArray = 6;
+                                cantripArray = 6;
+                                break;
+                            case 5:
+                                armorWeenie = 28634;
+                                armorPieceType = 31;
+                                spellArray = 8;
+                                cantripArray = 8;
+                                break;
+                            case 6:
+                                armorWeenie = 30948;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 7:
+                                armorWeenie = 28618;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                break;
+                            case 8:
+                                armorWeenie = 28621;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
+                            case 9:
+                                armorWeenie = 28623;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 3;
+                                break;
+                            case 10:
+                                armorWeenie = 30949;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 3;
+                                break;
+                            case 11:
+                                armorWeenie = 28625;
+                                armorPieceType = 4;
+                                spellArray = 9;
+                                cantripArray = 9;
+                                break;
+                            default:
+                                armorWeenie = 28626;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
                         }
-                        else if (armorPiece == 1)
-                        {
-                            armorWeenie = 28628;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 2)
-                        {
-                            armorWeenie = 28630;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 3)
-                        {
-                            armorWeenie = 28632;
-                            armorPieceType = 3;
-                            spellArray = 5;
-                            cantripArray = 5;
-                        }
-                        else if (armorPiece == 4)
-                        {
-                            armorWeenie = 28633;
-                            armorPieceType = 1;
-                            spellArray = 6;
-                            cantripArray = 6;
-                        }
-                        else if (armorPiece == 5)
-                        {
-                            armorWeenie = 28634;
-                            armorPieceType = 31;
-                            spellArray = 8;
-                            cantripArray = 8;
-                        }
-                        else if (armorPiece == 6)
-                        {
-                            armorWeenie = 30948;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 7)
-                        {
-                            armorWeenie = 28618;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                        }
-                        else if (armorPiece == 8)
-                        {
-                            armorWeenie = 28621;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
-                        else if (armorPiece == 9)
-                        {
-                            armorWeenie = 28623;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 3;
-                        }
-                        else if (armorPiece == 10)
-                        {
-                            armorWeenie = 30949;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 3;
-                        }
-                        else if (armorPiece == 11)
-                        {
-                            armorWeenie = 28625;
-                            armorPieceType = 4;
-                            spellArray = 9;
-                            cantripArray = 9;
-                        }
-                        else
-                        {
-                            armorWeenie = 28626;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
+
                         materialType = GetMaterialType(7, 1);
                     }
                     ////celdon
                     if (armorType == 7)
                     {
                         int armorPiece = ThreadSafeRandom.Next(0, 3);
-                        if (armorPiece == 0)
+                        switch (armorPiece)
                         {
-                            armorWeenie = 6044;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
+                            case 0:
+                                armorWeenie = 6044;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 1:
+                                armorWeenie = 6043;
+                                armorPieceType = 1;
+                                spellArray = 6;
+                                cantripArray = 6;
+                                break;
+                            case 2:
+                                armorWeenie = 6045;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
+                            default:
+                                armorWeenie = 6048;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 3;
+                                break;
                         }
-                        else if (armorPiece == 1)
-                        {
-                            armorWeenie = 6043;
-                            armorPieceType = 1;
-                            spellArray = 6;
-                            cantripArray = 6;
-                        }
-                        else if (armorPiece == 2)
-                        {
-                            armorWeenie = 6045;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
-                        else
-                        {
-                            armorWeenie = 6048;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 3;
-                        }
+
                         materialType = GetMaterialType(7, 1);
                     }
                     ///Amuli
@@ -7174,134 +6953,122 @@ namespace ACE.Server.Factories
                     if (armorType == 0)
                     {
                         int armorPiece = ThreadSafeRandom.Next(0, 15);
-                        if (armorPiece == 0)
+                        switch (armorPiece)
                         {
-                            ////helm
-                            armorWeenie = 25636;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
+                            case 0:
+                                ////helm
+                                armorWeenie = 25636;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                break;
+                            case 1:
+                                ////head
+                                armorWeenie = 25640;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                break;
+                            case 2:
+                                ////Chest
+                                armorWeenie = 25639;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 3:
+                                ////Chest
+                                armorWeenie = 25641;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 4:
+                                ////Chest
+                                armorWeenie = 25638;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 5:
+                                ////arms
+                                armorWeenie = 25651;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 3;
+                                break;
+                            case 6:
+                                ////Hands
+                                armorWeenie = 25642;
+                                armorPieceType = 3;
+                                spellArray = 5;
+                                cantripArray = 5;
+                                break;
+                            case 7:
+                                ////Lower Arms
+                                armorWeenie = 25637;
+                                armorPieceType = 1;
+                                spellArray = 4;
+                                cantripArray = 4;
+                                break;
+                            case 8:
+                                ////Upper arms
+                                armorWeenie = 25648;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 2;
+                                break;
+                            case 9:
+                                ////Abdomen
+                                armorWeenie = 25643;
+                                armorPieceType = 1;
+                                spellArray = 6;
+                                cantripArray = 6;
+                                break;
+                            case 10:
+                                ////Abdomen
+                                armorWeenie = 25650;
+                                armorPieceType = 1;
+                                spellArray = 6;
+                                cantripArray = 6;
+                                break;
+                            case 11:
+                                ////legs
+                                armorWeenie = 25647;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
+                            case 12:
+                                ////legs
+                                armorWeenie = 25645;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
+                            case 13:
+                                ////Upper legs
+                                armorWeenie = 25652;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
+                            case 14:
+                                ////lower legs
+                                armorWeenie = 25644;
+                                armorPieceType = 1;
+                                spellArray = 8;
+                                cantripArray = 8;
+                                break;
+                            default:
+                                ////feet
+                                armorWeenie = 25661;
+                                armorPieceType = 4;
+                                spellArray = 9;
+                                cantripArray = 9;
+                                break;
                         }
-                        else if (armorPiece == 1)
-                        {
-                            ////head
-                            armorWeenie = 25640;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                        }
-                        else if (armorPiece == 2)
-                        {
-                            ////Chest
-                            armorWeenie = 25639;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 3)
-                        {
-                            ////Chest
-                            armorWeenie = 25641;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 4)
-                        {
-                            ////Chest
-                            armorWeenie = 25638;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 5)
-                        {
-                            ////arms
-                            armorWeenie = 25651;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 3;
-                        }
-                        else if (armorPiece == 6)
-                        {
-                            ////Hands
-                            armorWeenie = 25642;
-                            armorPieceType = 3;
-                            spellArray = 5;
-                            cantripArray = 5;
-                        }
-                        else if (armorPiece == 7)
-                        {
-                            ////Lower Arms
-                            armorWeenie = 25637;
-                            armorPieceType = 1;
-                            spellArray = 4;
-                            cantripArray = 4;
-                        }
-                        else if (armorPiece == 8)
-                        {
-                            ////Upper arms
-                            armorWeenie = 25648;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 9)
-                        {
-                            ////Abdomen
-                            armorWeenie = 25643;
-                            armorPieceType = 1;
-                            spellArray = 6;
-                            cantripArray = 6;
-                        }
-                        else if (armorPiece == 10)
-                        {
-                            ////Abdomen
-                            armorWeenie = 25650;
-                            armorPieceType = 1;
-                            spellArray = 6;
-                            cantripArray = 6;
-                        }
-                        else if (armorPiece == 11)
-                        {
-                            ////legs
-                            armorWeenie = 25647;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
-                        else if (armorPiece == 12)
-                        {
-                            ////legs
-                            armorWeenie = 25645;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
-                        else if (armorPiece == 13)
-                        {
-                            ////Upper legs
-                            armorWeenie = 25652;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
-                        else if (armorPiece == 14)
-                        {
-                            ////lower legs
-                            armorWeenie = 25644;
-                            armorPieceType = 1;
-                            spellArray = 8;
-                            cantripArray = 8;
-                        }
-                        else
-                        {
-                            ////feet
-                            armorWeenie = 25661;
-                            armorPieceType = 4;
-                            spellArray = 9;
-                            cantripArray = 9;
-                        }
+
                         materialType = GetMaterialType(5, 1);
                     }
                     ////Studded Leather
@@ -7309,588 +7076,538 @@ namespace ACE.Server.Factories
                     {
                         ////Thinking a dictionary with random roll/WeenieID would be more concise.
                         int armorPiece = ThreadSafeRandom.Next(0, 14);
-                        if (armorPiece == 0)
+                        switch (armorPiece)
                         {
-                            armorWeenie = 554;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
+                            case 0:
+                                armorWeenie = 554;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                break;
+                            case 1:
+                                armorWeenie = 116;
+                                armorPieceType = 4;
+                                spellArray = 9;
+                                cantripArray = 9;
+                                break;
+                            case 2:
+                                armorWeenie = 38;
+                                armorPieceType = 1;
+                                spellArray = 4;
+                                cantripArray = 4;
+                                break;
+                            case 3:
+                                armorWeenie = 42;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 4:
+                                armorWeenie = 48;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 5:
+                                armorWeenie = 723;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                break;
+                            case 6:
+                                armorWeenie = 53;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 7:
+                                armorWeenie = 59;
+                                armorPieceType = 3;
+                                spellArray = 5;
+                                cantripArray = 5;
+                                break;
+                            case 8:
+                                armorWeenie = 63;
+                                armorPieceType = 1;
+                                spellArray = 6;
+                                cantripArray = 6;
+                                break;
+                            case 9:
+                                armorWeenie = 68;
+                                armorPieceType = 1;
+                                spellArray = 8;
+                                cantripArray = 8;
+                                break;
+                            case 10:
+                                armorWeenie = 68;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                break;
+                            case 11:
+                                armorWeenie = 89;
+                                armorPieceType = 1;
+                                spellArray = 8;
+                                cantripArray = 8;
+                                break;
+                            case 12:
+                                armorWeenie = 99;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 13:
+                                armorWeenie = 105;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 3;
+                                break;
+                            default:
+                                armorWeenie = 112;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
                         }
-                        else if (armorPiece == 1)
-                        {
-                            armorWeenie = 116;
-                            armorPieceType = 4;
-                            spellArray = 9;
-                            cantripArray = 9;
-                        }
-                        else if (armorPiece == 2)
-                        {
-                            armorWeenie = 38;
-                            armorPieceType = 1;
-                            spellArray = 4;
-                            cantripArray = 4;
-                        }
-                        else if (armorPiece == 3)
-                        {
-                            armorWeenie = 42;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 4)
-                        {
-                            armorWeenie = 48;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 5)
-                        {
-                            armorWeenie = 723;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                        }
-                        else if (armorPiece == 6)
-                        {
-                            armorWeenie = 53;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 7)
-                        {
-                            armorWeenie = 59;
-                            armorPieceType = 3;
-                            spellArray = 5;
-                            cantripArray = 5;
-                        }
-                        else if (armorPiece == 8)
-                        {
-                            armorWeenie = 63;
-                            armorPieceType = 1;
-                            spellArray = 6;
-                            cantripArray = 6;
-                        }
-                        else if (armorPiece == 9)
-                        {
-                            armorWeenie = 68;
-                            armorPieceType = 1;
-                            spellArray = 8;
-                            cantripArray = 8;
-                        }
-                        else if (armorPiece == 10)
-                        {
-                            armorWeenie = 68;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                        }
-                        else if (armorPiece == 11)
-                        {
-                            armorWeenie = 89;
-                            armorPieceType = 1;
-                            spellArray = 8;
-                            cantripArray = 8;
-                        }
-                        else if (armorPiece == 12)
-                        {
-                            armorWeenie = 99;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 13)
-                        {
-                            armorWeenie = 105;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 3;
-                        }
-                        else
-                        {
-                            armorWeenie = 112;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
+
                         materialType = GetMaterialType(5, 1);
                     }
                     ////Chainmail
                     if (armorType == 2)
                     {
                         int armorPiece = ThreadSafeRandom.Next(0, 12);
-                        if (armorPiece == 0)
+                        switch (armorPiece)
                         {
-                            armorWeenie = 35;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
+                            case 0:
+                                armorWeenie = 35;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                break;
+                            case 1:
+                                armorWeenie = 413;
+                                armorPieceType = 1;
+                                spellArray = 4;
+                                cantripArray = 4;
+                                break;
+                            case 2:
+                                armorWeenie = 414;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 3:
+                                armorWeenie = 85;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                break;
+                            case 4:
+                                armorWeenie = 55;
+                                armorPieceType = 3;
+                                spellArray = 5;
+                                cantripArray = 5;
+                                break;
+                            case 5:
+                                armorWeenie = 415;
+                                armorPieceType = 1;
+                                spellArray = 6;
+                                cantripArray = 6;
+                                break;
+                            case 6:
+                                armorWeenie = 2605;
+                                armorPieceType = 1;
+                                spellArray = 8;
+                                cantripArray = 8;
+                                break;
+                            case 7:
+                                armorWeenie = 71;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 8:
+                                armorWeenie = 80;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
+                            case 9:
+                                armorWeenie = 416;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 3;
+                                break;
+                            case 10:
+                                armorWeenie = 96;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 11:
+                                armorWeenie = 101;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 3;
+                                break;
+                            default:
+                                armorWeenie = 108;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
                         }
-                        else if (armorPiece == 1)
-                        {
-                            armorWeenie = 413;
-                            armorPieceType = 1;
-                            spellArray = 4;
-                            cantripArray = 4;
-                        }
-                        else if (armorPiece == 2)
-                        {
-                            armorWeenie = 414;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 3)
-                        {
-                            armorWeenie = 85;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                        }
-                        else if (armorPiece == 4)
-                        {
-                            armorWeenie = 55;
-                            armorPieceType = 3;
-                            spellArray = 5;
-                            cantripArray = 5;
-                        }
-                        else if (armorPiece == 5)
-                        {
-                            armorWeenie = 415;
-                            armorPieceType = 1;
-                            spellArray = 6;
-                            cantripArray = 6;
-                        }
-                        else if (armorPiece == 6)
-                        {
-                            armorWeenie = 2605;
-                            armorPieceType = 1;
-                            spellArray = 8;
-                            cantripArray = 8;
-                        }
-                        else if (armorPiece == 7)
-                        {
-                            armorWeenie = 71;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 8)
-                        {
-                            armorWeenie = 80;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
-                        else if (armorPiece == 9)
-                        {
-                            armorWeenie = 416;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 3;
-                        }
-                        else if (armorPiece == 10)
-                        {
-                            armorWeenie = 96;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 11)
-                        {
-                            armorWeenie = 101;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 3;
-                        }
-                        else
-                        {
-                            armorWeenie = 108;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
+
                         materialType = GetMaterialType(7, 1);
                     }
                     ////Platemail
                     if (armorType == 3)
                     {
                         int armorPiece = ThreadSafeRandom.Next(0, 10);
-                        if (armorPiece == 0)
+                        switch (armorPiece)
                         {
-                            armorWeenie = 40;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
+                            case 0:
+                                armorWeenie = 40;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 1:
+                                armorWeenie = 51;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 2:
+                                armorWeenie = 57;
+                                armorPieceType = 3;
+                                spellArray = 5;
+                                cantripArray = 5;
+                                break;
+                            case 3:
+                                armorWeenie = 61;
+                                armorPieceType = 1;
+                                spellArray = 6;
+                                cantripArray = 6;
+                                break;
+                            case 4:
+                                armorWeenie = 66;
+                                armorPieceType = 1;
+                                spellArray = 8;
+                                cantripArray = 8;
+                                break;
+                            case 5:
+                                armorWeenie = 72;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 6:
+                                armorWeenie = 82;
+                                armorPieceType = 1;
+                                spellArray = 8;
+                                cantripArray = 8;
+                                break;
+                            case 7:
+                                armorWeenie = 87;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 3;
+                                break;
+                            case 8:
+                                armorWeenie = 103;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 3;
+                                break;
+                            case 9:
+                                armorWeenie = 110;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
+                            default:
+                                armorWeenie = 114;
+                                armorPieceType = 1;
+                                spellArray = 4;
+                                cantripArray = 4;
+                                break;
                         }
-                        else if (armorPiece == 1)
-                        {
-                            armorWeenie = 51;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 2)
-                        {
-                            armorWeenie = 57;
-                            armorPieceType = 3;
-                            spellArray = 5;
-                            cantripArray = 5;
-                        }
-                        else if (armorPiece == 3)
-                        {
-                            armorWeenie = 61;
-                            armorPieceType = 1;
-                            spellArray = 6;
-                            cantripArray = 6;
-                        }
-                        else if (armorPiece == 4)
-                        {
-                            armorWeenie = 66;
-                            armorPieceType = 1;
-                            spellArray = 8;
-                            cantripArray = 8;
-                        }
-                        else if (armorPiece == 5)
-                        {
-                            armorWeenie = 72;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 6)
-                        {
-                            armorWeenie = 82;
-                            armorPieceType = 1;
-                            spellArray = 8;
-                            cantripArray = 8;
-                        }
-                        else if (armorPiece == 7)
-                        {
-                            armorWeenie = 87;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 3;
-                        }
-                        else if (armorPiece == 8)
-                        {
-                            armorWeenie = 103;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 3;
-                        }
-                        else if (armorPiece == 9)
-                        {
-                            armorWeenie = 110;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
-                        else
-                        {
-                            armorWeenie = 114;
-                            armorPieceType = 1;
-                            spellArray = 4;
-                            cantripArray = 4;
-                        }
+
                         materialType = GetMaterialType(7, 1);
                     }
                     ////Scalemail
                     if (armorType == 4)
                     {
                         int armorPiece = ThreadSafeRandom.Next(0, 13);
-                        if (armorPiece == 0)
+                        switch (armorPiece)
                         {
-                            armorWeenie = 552;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
+                            case 0:
+                                armorWeenie = 552;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                break;
+                            case 1:
+                                armorWeenie = 37;
+                                armorPieceType = 1;
+                                spellArray = 4;
+                                cantripArray = 4;
+                                break;
+                            case 2:
+                                armorWeenie = 41;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 3:
+                                armorWeenie = 793;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                break;
+                            case 4:
+                                armorWeenie = 52;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 5:
+                                armorWeenie = 58;
+                                armorPieceType = 3;
+                                spellArray = 5;
+                                cantripArray = 5;
+                                break;
+                            case 6:
+                                armorWeenie = 62;
+                                armorPieceType = 1;
+                                spellArray = 6;
+                                cantripArray = 6;
+                                break;
+                            case 7:
+                                armorWeenie = 67;
+                                armorPieceType = 1;
+                                spellArray = 8;
+                                cantripArray = 8;
+                                break;
+                            case 8:
+                                armorWeenie = 73;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 9:
+                                armorWeenie = 83;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
+                            case 10:
+                                armorWeenie = 88;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 3;
+                                break;
+                            case 11:
+                                armorWeenie = 98;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 12:
+                                armorWeenie = 104;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 3;
+                                break;
+                            default:
+                                armorWeenie = 111;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
                         }
-                        else if (armorPiece == 1)
-                        {
-                            armorWeenie = 37;
-                            armorPieceType = 1;
-                            spellArray = 4;
-                            cantripArray = 4;
-                        }
-                        else if (armorPiece == 2)
-                        {
-                            armorWeenie = 41;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 3)
-                        {
-                            armorWeenie = 793;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                        }
-                        else if (armorPiece == 4)
-                        {
-                            armorWeenie = 52;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 5)
-                        {
-                            armorWeenie = 58;
-                            armorPieceType = 3;
-                            spellArray = 5;
-                            cantripArray = 5;
-                        }
-                        else if (armorPiece == 6)
-                        {
-                            armorWeenie = 62;
-                            armorPieceType = 1;
-                            spellArray = 6;
-                            cantripArray = 6;
-                        }
-                        else if (armorPiece == 7)
-                        {
-                            armorWeenie = 67;
-                            armorPieceType = 1;
-                            spellArray = 8;
-                            cantripArray = 8;
-                        }
-                        else if (armorPiece == 8)
-                        {
-                            armorWeenie = 73;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 9)
-                        {
-                            armorWeenie = 83;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
-                        else if (armorPiece == 10)
-                        {
-                            armorWeenie = 88;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 3;
-                        }
-                        else if (armorPiece == 11)
-                        {
-                            armorWeenie = 98;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 12)
-                        {
-                            armorWeenie = 104;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 3;
-                        }
-                        else
-                        {
-                            armorWeenie = 111;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
+
                         materialType = GetMaterialType(7, 1);
                     }
                     ////Yoroi
                     if (armorType == 5)
                     {
                         int armorPiece = ThreadSafeRandom.Next(0, 7);
-                        if (armorPiece == 0)
+                        switch (armorPiece)
                         {
-                            armorWeenie = 43;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
+                            case 0:
+                                armorWeenie = 43;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 1:
+                                armorWeenie = 54;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 2:
+                                armorWeenie = 64;
+                                armorPieceType = 1;
+                                spellArray = 6;
+                                cantripArray = 6;
+                                break;
+                            case 3:
+                                armorWeenie = 69;
+                                armorPieceType = 1;
+                                spellArray = 8;
+                                cantripArray = 8;
+                                break;
+                            case 4:
+                                armorWeenie = 2437;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
+                            case 5:
+                                armorWeenie = 90;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 3;
+                                break;
+                            case 6:
+                                armorWeenie = 102;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 3;
+                                break;
+                            default:
+                                armorWeenie = 113;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
                         }
-                        else if (armorPiece == 1)
-                        {
-                            armorWeenie = 54;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 2)
-                        {
-                            armorWeenie = 64;
-                            armorPieceType = 1;
-                            spellArray = 6;
-                            cantripArray = 6;
-                        }
-                        else if (armorPiece == 3)
-                        {
-                            armorWeenie = 69;
-                            armorPieceType = 1;
-                            spellArray = 8;
-                            cantripArray = 8;
-                        }
-                        else if (armorPiece == 4)
-                        {
-                            armorWeenie = 2437;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
-                        else if (armorPiece == 5)
-                        {
-                            armorWeenie = 90;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 3;
-                        }
-                        else if (armorPiece == 6)
-                        {
-                            armorWeenie = 102;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 3;
-                        }
-                        else
-                        {
-                            armorWeenie = 113;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
+
                         materialType = GetMaterialType(7, 1);
                     }
                     ////Diforsa
                     if (armorType == 6)
                     {
                         int armorPiece = ThreadSafeRandom.Next(0, 12);
-                        if (armorPiece == 0)
+                        switch (armorPiece)
                         {
-                            armorWeenie = 28367;
-                            armorPieceType = 1;
-                            spellArray = 4;
-                            cantripArray = 4;
+                            case 0:
+                                armorWeenie = 28367;
+                                armorPieceType = 1;
+                                spellArray = 4;
+                                cantripArray = 4;
+                                break;
+                            case 1:
+                                armorWeenie = 28628;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 2:
+                                armorWeenie = 28630;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 3:
+                                armorWeenie = 28632;
+                                armorPieceType = 3;
+                                spellArray = 5;
+                                cantripArray = 5;
+                                break;
+                            case 4:
+                                armorWeenie = 28633;
+                                armorPieceType = 1;
+                                spellArray = 6;
+                                cantripArray = 6;
+                                break;
+                            case 5:
+                                armorWeenie = 28634;
+                                armorPieceType = 31;
+                                spellArray = 8;
+                                cantripArray = 8;
+                                break;
+                            case 6:
+                                armorWeenie = 30948;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 7:
+                                armorWeenie = 28618;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                break;
+                            case 8:
+                                armorWeenie = 28621;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
+                            case 9:
+                                armorWeenie = 28623;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 3;
+                                break;
+                            case 10:
+                                armorWeenie = 30949;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 3;
+                                break;
+                            case 11:
+                                armorWeenie = 28625;
+                                armorPieceType = 4;
+                                spellArray = 9;
+                                cantripArray = 9;
+                                break;
+                            default:
+                                armorWeenie = 28626;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
                         }
-                        else if (armorPiece == 1)
-                        {
-                            armorWeenie = 28628;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 2)
-                        {
-                            armorWeenie = 28630;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 3)
-                        {
-                            armorWeenie = 28632;
-                            armorPieceType = 3;
-                            spellArray = 5;
-                            cantripArray = 5;
-                        }
-                        else if (armorPiece == 4)
-                        {
-                            armorWeenie = 28633;
-                            armorPieceType = 1;
-                            spellArray = 6;
-                            cantripArray = 6;
-                        }
-                        else if (armorPiece == 5)
-                        {
-                            armorWeenie = 28634;
-                            armorPieceType = 31;
-                            spellArray = 8;
-                            cantripArray = 8;
-                        }
-                        else if (armorPiece == 6)
-                        {
-                            armorWeenie = 30948;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 7)
-                        {
-                            armorWeenie = 28618;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                        }
-                        else if (armorPiece == 8)
-                        {
-                            armorWeenie = 28621;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
-                        else if (armorPiece == 9)
-                        {
-                            armorWeenie = 28623;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 3;
-                        }
-                        else if (armorPiece == 10)
-                        {
-                            armorWeenie = 30949;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 3;
-                        }
-                        else if (armorPiece == 11)
-                        {
-                            armorWeenie = 28625;
-                            armorPieceType = 4;
-                            spellArray = 9;
-                            cantripArray = 9;
-                        }
-                        else
-                        {
-                            armorWeenie = 28626;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
+
                         materialType = GetMaterialType(7, 1);
                     }
                     ////celdon
                     if (armorType == 7)
                     {
                         int armorPiece = ThreadSafeRandom.Next(0, 3);
-                        if (armorPiece == 0)
+                        switch (armorPiece)
                         {
-                            armorWeenie = 6044;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
+                            case 0:
+                                armorWeenie = 6044;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 1:
+                                armorWeenie = 6043;
+                                armorPieceType = 1;
+                                spellArray = 6;
+                                cantripArray = 6;
+                                break;
+                            case 2:
+                                armorWeenie = 6045;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
+                            default:
+                                armorWeenie = 6048;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 3;
+                                break;
                         }
-                        else if (armorPiece == 1)
-                        {
-                            armorWeenie = 6043;
-                            armorPieceType = 1;
-                            spellArray = 6;
-                            cantripArray = 6;
-                        }
-                        else if (armorPiece == 2)
-                        {
-                            armorWeenie = 6045;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
-                        else
-                        {
-                            armorWeenie = 6048;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 3;
-                        }
+
                         materialType = GetMaterialType(7, 1);
                     }
                     ///Amuli
@@ -8306,722 +8023,660 @@ namespace ACE.Server.Factories
                     if (armorType == 0)
                     {
                         int armorPiece = ThreadSafeRandom.Next(0, 15);
-                        if (armorPiece == 0)
+                        switch (armorPiece)
                         {
-                            ////helm
-                            armorWeenie = 25636;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
+                            case 0:
+                                ////helm
+                                armorWeenie = 25636;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                break;
+                            case 1:
+                                ////head
+                                armorWeenie = 25640;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                break;
+                            case 2:
+                                ////Chest
+                                armorWeenie = 25639;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 3:
+                                ////Chest
+                                armorWeenie = 25641;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 4:
+                                ////Chest
+                                armorWeenie = 25638;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 5:
+                                ////arms
+                                armorWeenie = 25651;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 3;
+                                break;
+                            case 6:
+                                ////Hands
+                                armorWeenie = 25642;
+                                armorPieceType = 3;
+                                spellArray = 5;
+                                cantripArray = 5;
+                                break;
+                            case 7:
+                                ////Lower Arms
+                                armorWeenie = 25637;
+                                armorPieceType = 1;
+                                spellArray = 4;
+                                cantripArray = 4;
+                                break;
+                            case 8:
+                                ////Upper arms
+                                armorWeenie = 25648;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 2;
+                                break;
+                            case 9:
+                                ////Abdomen
+                                armorWeenie = 25643;
+                                armorPieceType = 1;
+                                spellArray = 6;
+                                cantripArray = 6;
+                                break;
+                            case 10:
+                                ////Abdomen
+                                armorWeenie = 25650;
+                                armorPieceType = 1;
+                                spellArray = 6;
+                                cantripArray = 6;
+                                break;
+                            case 11:
+                                ////legs
+                                armorWeenie = 25647;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
+                            case 12:
+                                ////legs
+                                armorWeenie = 25645;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
+                            case 13:
+                                ////Upper legs
+                                armorWeenie = 25652;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
+                            case 14:
+                                ////lower legs
+                                armorWeenie = 25644;
+                                armorPieceType = 1;
+                                spellArray = 8;
+                                cantripArray = 8;
+                                break;
+                            default:
+                                ////feet
+                                armorWeenie = 25661;
+                                armorPieceType = 4;
+                                spellArray = 9;
+                                cantripArray = 9;
+                                break;
                         }
-                        else if (armorPiece == 1)
-                        {
-                            ////head
-                            armorWeenie = 25640;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                        }
-                        else if (armorPiece == 2)
-                        {
-                            ////Chest
-                            armorWeenie = 25639;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 3)
-                        {
-                            ////Chest
-                            armorWeenie = 25641;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 4)
-                        {
-                            ////Chest
-                            armorWeenie = 25638;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 5)
-                        {
-                            ////arms
-                            armorWeenie = 25651;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 3;
-                        }
-                        else if (armorPiece == 6)
-                        {
-                            ////Hands
-                            armorWeenie = 25642;
-                            armorPieceType = 3;
-                            spellArray = 5;
-                            cantripArray = 5;
-                        }
-                        else if (armorPiece == 7)
-                        {
-                            ////Lower Arms
-                            armorWeenie = 25637;
-                            armorPieceType = 1;
-                            spellArray = 4;
-                            cantripArray = 4;
-                        }
-                        else if (armorPiece == 8)
-                        {
-                            ////Upper arms
-                            armorWeenie = 25648;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 9)
-                        {
-                            ////Abdomen
-                            armorWeenie = 25643;
-                            armorPieceType = 1;
-                            spellArray = 6;
-                            cantripArray = 6;
-                        }
-                        else if (armorPiece == 10)
-                        {
-                            ////Abdomen
-                            armorWeenie = 25650;
-                            armorPieceType = 1;
-                            spellArray = 6;
-                            cantripArray = 6;
-                        }
-                        else if (armorPiece == 11)
-                        {
-                            ////legs
-                            armorWeenie = 25647;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
-                        else if (armorPiece == 12)
-                        {
-                            ////legs
-                            armorWeenie = 25645;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
-                        else if (armorPiece == 13)
-                        {
-                            ////Upper legs
-                            armorWeenie = 25652;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
-                        else if (armorPiece == 14)
-                        {
-                            ////lower legs
-                            armorWeenie = 25644;
-                            armorPieceType = 1;
-                            spellArray = 8;
-                            cantripArray = 8;
-                        }
-                        else
-                        {
-                            ////feet
-                            armorWeenie = 25661;
-                            armorPieceType = 4;
-                            spellArray = 9;
-                            cantripArray = 9;
-                        }
+
                         materialType = GetMaterialType(5, 1);
                     }
                     ////Studded Leather
                     if (armorType == 1)
                     {
                         int armorPiece = ThreadSafeRandom.Next(0, 14);
-                        if (armorPiece == 0)
+                        switch (armorPiece)
                         {
-                            armorWeenie = 554;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
+                            case 0:
+                                armorWeenie = 554;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                break;
+                            case 1:
+                                armorWeenie = 116;
+                                armorPieceType = 4;
+                                spellArray = 9;
+                                cantripArray = 9;
+                                break;
+                            case 2:
+                                armorWeenie = 38;
+                                armorPieceType = 1;
+                                spellArray = 4;
+                                cantripArray = 4;
+                                break;
+                            case 3:
+                                armorWeenie = 42;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 4:
+                                armorWeenie = 48;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 5:
+                                armorWeenie = 723;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                break;
+                            case 6:
+                                armorWeenie = 53;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 7:
+                                armorWeenie = 59;
+                                armorPieceType = 3;
+                                spellArray = 5;
+                                cantripArray = 5;
+                                break;
+                            case 8:
+                                armorWeenie = 63;
+                                armorPieceType = 1;
+                                spellArray = 6;
+                                cantripArray = 6;
+                                break;
+                            case 9:
+                                armorWeenie = 68;
+                                armorPieceType = 1;
+                                spellArray = 8;
+                                cantripArray = 8;
+                                break;
+                            case 10:
+                                armorWeenie = 68;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                break;
+                            case 11:
+                                armorWeenie = 89;
+                                armorPieceType = 1;
+                                spellArray = 8;
+                                cantripArray = 8;
+                                break;
+                            case 12:
+                                armorWeenie = 99;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 13:
+                                armorWeenie = 105;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 3;
+                                break;
+                            default:
+                                armorWeenie = 112;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
                         }
-                        else if (armorPiece == 1)
-                        {
-                            armorWeenie = 116;
-                            armorPieceType = 4;
-                            spellArray = 9;
-                            cantripArray = 9;
-                        }
-                        else if (armorPiece == 2)
-                        {
-                            armorWeenie = 38;
-                            armorPieceType = 1;
-                            spellArray = 4;
-                            cantripArray = 4;
-                        }
-                        else if (armorPiece == 3)
-                        {
-                            armorWeenie = 42;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 4)
-                        {
-                            armorWeenie = 48;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 5)
-                        {
-                            armorWeenie = 723;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                        }
-                        else if (armorPiece == 6)
-                        {
-                            armorWeenie = 53;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 7)
-                        {
-                            armorWeenie = 59;
-                            armorPieceType = 3;
-                            spellArray = 5;
-                            cantripArray = 5;
-                        }
-                        else if (armorPiece == 8)
-                        {
-                            armorWeenie = 63;
-                            armorPieceType = 1;
-                            spellArray = 6;
-                            cantripArray = 6;
-                        }
-                        else if (armorPiece == 9)
-                        {
-                            armorWeenie = 68;
-                            armorPieceType = 1;
-                            spellArray = 8;
-                            cantripArray = 8;
-                        }
-                        else if (armorPiece == 10)
-                        {
-                            armorWeenie = 68;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                        }
-                        else if (armorPiece == 11)
-                        {
-                            armorWeenie = 89;
-                            armorPieceType = 1;
-                            spellArray = 8;
-                            cantripArray = 8;
-                        }
-                        else if (armorPiece == 12)
-                        {
-                            armorWeenie = 99;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 13)
-                        {
-                            armorWeenie = 105;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 3;
-                        }
-                        else
-                        {
-                            armorWeenie = 112;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
+
                         materialType = GetMaterialType(5, 1);
                     }
                     ////Chainmail
                     if (armorType == 2)
                     {
                         int armorPiece = ThreadSafeRandom.Next(0, 12);
-                        if (armorPiece == 0)
+                        switch (armorPiece)
                         {
-                            armorWeenie = 35;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
+                            case 0:
+                                armorWeenie = 35;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                break;
+                            case 1:
+                                armorWeenie = 413;
+                                armorPieceType = 1;
+                                spellArray = 4;
+                                cantripArray = 4;
+                                break;
+                            case 2:
+                                armorWeenie = 414;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 3:
+                                armorWeenie = 85;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                break;
+                            case 4:
+                                armorWeenie = 55;
+                                armorPieceType = 3;
+                                spellArray = 5;
+                                cantripArray = 5;
+                                break;
+                            case 5:
+                                armorWeenie = 415;
+                                armorPieceType = 1;
+                                spellArray = 6;
+                                cantripArray = 6;
+                                break;
+                            case 6:
+                                armorWeenie = 2605;
+                                armorPieceType = 1;
+                                spellArray = 8;
+                                cantripArray = 8;
+                                break;
+                            case 7:
+                                armorWeenie = 71;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 8:
+                                armorWeenie = 80;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
+                            case 9:
+                                armorWeenie = 416;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 3;
+                                break;
+                            case 10:
+                                armorWeenie = 96;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 11:
+                                armorWeenie = 101;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 3;
+                                break;
+                            default:
+                                armorWeenie = 108;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
                         }
-                        else if (armorPiece == 1)
-                        {
-                            armorWeenie = 413;
-                            armorPieceType = 1;
-                            spellArray = 4;
-                            cantripArray = 4;
-                        }
-                        else if (armorPiece == 2)
-                        {
-                            armorWeenie = 414;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 3)
-                        {
-                            armorWeenie = 85;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                        }
-                        else if (armorPiece == 4)
-                        {
-                            armorWeenie = 55;
-                            armorPieceType = 3;
-                            spellArray = 5;
-                            cantripArray = 5;
-                        }
-                        else if (armorPiece == 5)
-                        {
-                            armorWeenie = 415;
-                            armorPieceType = 1;
-                            spellArray = 6;
-                            cantripArray = 6;
-                        }
-                        else if (armorPiece == 6)
-                        {
-                            armorWeenie = 2605;
-                            armorPieceType = 1;
-                            spellArray = 8;
-                            cantripArray = 8;
-                        }
-                        else if (armorPiece == 7)
-                        {
-                            armorWeenie = 71;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 8)
-                        {
-                            armorWeenie = 80;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
-                        else if (armorPiece == 9)
-                        {
-                            armorWeenie = 416;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 3;
-                        }
-                        else if (armorPiece == 10)
-                        {
-                            armorWeenie = 96;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 11)
-                        {
-                            armorWeenie = 101;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 3;
-                        }
-                        else
-                        {
-                            armorWeenie = 108;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
+
                         materialType = GetMaterialType(7, 1);
                     }
                     ////Platemail
                     if (armorType == 3)
                     {
                         int armorPiece = ThreadSafeRandom.Next(0, 10);
-                        if (armorPiece == 0)
+                        switch (armorPiece)
                         {
-                            armorWeenie = 40;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
+                            case 0:
+                                armorWeenie = 40;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 1:
+                                armorWeenie = 51;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 2:
+                                armorWeenie = 57;
+                                armorPieceType = 3;
+                                spellArray = 5;
+                                cantripArray = 5;
+                                break;
+                            case 3:
+                                armorWeenie = 61;
+                                armorPieceType = 1;
+                                spellArray = 6;
+                                cantripArray = 6;
+                                break;
+                            case 4:
+                                armorWeenie = 66;
+                                armorPieceType = 1;
+                                spellArray = 8;
+                                cantripArray = 8;
+                                break;
+                            case 5:
+                                armorWeenie = 72;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 6:
+                                armorWeenie = 82;
+                                armorPieceType = 1;
+                                spellArray = 8;
+                                cantripArray = 8;
+                                break;
+                            case 7:
+                                armorWeenie = 87;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 3;
+                                break;
+                            case 8:
+                                armorWeenie = 103;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 3;
+                                break;
+                            case 9:
+                                armorWeenie = 110;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
+                            default:
+                                armorWeenie = 114;
+                                armorPieceType = 1;
+                                spellArray = 4;
+                                cantripArray = 4;
+                                break;
                         }
-                        else if (armorPiece == 1)
-                        {
-                            armorWeenie = 51;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 2)
-                        {
-                            armorWeenie = 57;
-                            armorPieceType = 3;
-                            spellArray = 5;
-                            cantripArray = 5;
-                        }
-                        else if (armorPiece == 3)
-                        {
-                            armorWeenie = 61;
-                            armorPieceType = 1;
-                            spellArray = 6;
-                            cantripArray = 6;
-                        }
-                        else if (armorPiece == 4)
-                        {
-                            armorWeenie = 66;
-                            armorPieceType = 1;
-                            spellArray = 8;
-                            cantripArray = 8;
-                        }
-                        else if (armorPiece == 5)
-                        {
-                            armorWeenie = 72;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 6)
-                        {
-                            armorWeenie = 82;
-                            armorPieceType = 1;
-                            spellArray = 8;
-                            cantripArray = 8;
-                        }
-                        else if (armorPiece == 7)
-                        {
-                            armorWeenie = 87;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 3;
-                        }
-                        else if (armorPiece == 8)
-                        {
-                            armorWeenie = 103;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 3;
-                        }
-                        else if (armorPiece == 9)
-                        {
-                            armorWeenie = 110;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
-                        else
-                        {
-                            armorWeenie = 114;
-                            armorPieceType = 1;
-                            spellArray = 4;
-                            cantripArray = 4;
-                        }
+
                         materialType = GetMaterialType(7, 1);
                     }
                     ////Scalemail
                     if (armorType == 4)
                     {
                         int armorPiece = ThreadSafeRandom.Next(0, 13);
-                        if (armorPiece == 0)
+                        switch (armorPiece)
                         {
-                            armorWeenie = 552;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
+                            case 0:
+                                armorWeenie = 552;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                break;
+                            case 1:
+                                armorWeenie = 37;
+                                armorPieceType = 1;
+                                spellArray = 4;
+                                cantripArray = 4;
+                                break;
+                            case 2:
+                                armorWeenie = 41;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 3:
+                                armorWeenie = 793;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                break;
+                            case 4:
+                                armorWeenie = 52;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 5:
+                                armorWeenie = 58;
+                                armorPieceType = 3;
+                                spellArray = 5;
+                                cantripArray = 5;
+                                break;
+                            case 6:
+                                armorWeenie = 62;
+                                armorPieceType = 1;
+                                spellArray = 6;
+                                cantripArray = 6;
+                                break;
+                            case 7:
+                                armorWeenie = 67;
+                                armorPieceType = 1;
+                                spellArray = 8;
+                                cantripArray = 8;
+                                break;
+                            case 8:
+                                armorWeenie = 73;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 9:
+                                armorWeenie = 83;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
+                            case 10:
+                                armorWeenie = 88;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 3;
+                                break;
+                            case 11:
+                                armorWeenie = 98;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 12:
+                                armorWeenie = 104;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 3;
+                                break;
+                            default:
+                                armorWeenie = 111;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
                         }
-                        else if (armorPiece == 1)
-                        {
-                            armorWeenie = 37;
-                            armorPieceType = 1;
-                            spellArray = 4;
-                            cantripArray = 4;
-                        }
-                        else if (armorPiece == 2)
-                        {
-                            armorWeenie = 41;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 3)
-                        {
-                            armorWeenie = 793;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                        }
-                        else if (armorPiece == 4)
-                        {
-                            armorWeenie = 52;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 5)
-                        {
-                            armorWeenie = 58;
-                            armorPieceType = 3;
-                            spellArray = 5;
-                            cantripArray = 5;
-                        }
-                        else if (armorPiece == 6)
-                        {
-                            armorWeenie = 62;
-                            armorPieceType = 1;
-                            spellArray = 6;
-                            cantripArray = 6;
-                        }
-                        else if (armorPiece == 7)
-                        {
-                            armorWeenie = 67;
-                            armorPieceType = 1;
-                            spellArray = 8;
-                            cantripArray = 8;
-                        }
-                        else if (armorPiece == 8)
-                        {
-                            armorWeenie = 73;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 9)
-                        {
-                            armorWeenie = 83;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
-                        else if (armorPiece == 10)
-                        {
-                            armorWeenie = 88;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 3;
-                        }
-                        else if (armorPiece == 11)
-                        {
-                            armorWeenie = 98;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 12)
-                        {
-                            armorWeenie = 104;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 3;
-                        }
-                        else
-                        {
-                            armorWeenie = 111;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
+
                         materialType = GetMaterialType(7, 1);
                     }
                     ////Yoroi
                     if (armorType == 5)
                     {
                         int armorPiece = ThreadSafeRandom.Next(0, 7);
-                        if (armorPiece == 0)
+                        switch (armorPiece)
                         {
-                            armorWeenie = 43;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
+                            case 0:
+                                armorWeenie = 43;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 1:
+                                armorWeenie = 54;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 2:
+                                armorWeenie = 64;
+                                armorPieceType = 1;
+                                spellArray = 6;
+                                cantripArray = 6;
+                                break;
+                            case 3:
+                                armorWeenie = 69;
+                                armorPieceType = 1;
+                                spellArray = 8;
+                                cantripArray = 8;
+                                break;
+                            case 4:
+                                armorWeenie = 2437;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
+                            case 5:
+                                armorWeenie = 90;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 3;
+                                break;
+                            case 6:
+                                armorWeenie = 102;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 3;
+                                break;
+                            default:
+                                armorWeenie = 113;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
                         }
-                        else if (armorPiece == 1)
-                        {
-                            armorWeenie = 54;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 2)
-                        {
-                            armorWeenie = 64;
-                            armorPieceType = 1;
-                            spellArray = 6;
-                            cantripArray = 6;
-                        }
-                        else if (armorPiece == 3)
-                        {
-                            armorWeenie = 69;
-                            armorPieceType = 1;
-                            spellArray = 8;
-                            cantripArray = 8;
-                        }
-                        else if (armorPiece == 4)
-                        {
-                            armorWeenie = 2437;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
-                        else if (armorPiece == 5)
-                        {
-                            armorWeenie = 90;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 3;
-                        }
-                        else if (armorPiece == 6)
-                        {
-                            armorWeenie = 102;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 3;
-                        }
-                        else
-                        {
-                            armorWeenie = 113;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
+
                         materialType = GetMaterialType(7, 1);
                     }
                     ////Diforsa
                     if (armorType == 6)
                     {
                         int armorPiece = ThreadSafeRandom.Next(0, 12);
-                        if (armorPiece == 0)
+                        switch (armorPiece)
                         {
-                            armorWeenie = 28367;
-                            armorPieceType = 1;
-                            spellArray = 4;
-                            cantripArray = 4;
+                            case 0:
+                                armorWeenie = 28367;
+                                armorPieceType = 1;
+                                spellArray = 4;
+                                cantripArray = 4;
+                                break;
+                            case 1:
+                                armorWeenie = 28628;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 2:
+                                armorWeenie = 28630;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 3:
+                                armorWeenie = 28632;
+                                armorPieceType = 3;
+                                spellArray = 5;
+                                cantripArray = 5;
+                                break;
+                            case 4:
+                                armorWeenie = 28633;
+                                armorPieceType = 1;
+                                spellArray = 6;
+                                cantripArray = 6;
+                                break;
+                            case 5:
+                                armorWeenie = 28634;
+                                armorPieceType = 31;
+                                spellArray = 8;
+                                cantripArray = 8;
+                                break;
+                            case 6:
+                                armorWeenie = 30948;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 7:
+                                armorWeenie = 28618;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                break;
+                            case 8:
+                                armorWeenie = 28621;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
+                            case 9:
+                                armorWeenie = 28623;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 3;
+                                break;
+                            case 10:
+                                armorWeenie = 30949;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 3;
+                                break;
+                            case 11:
+                                armorWeenie = 28625;
+                                armorPieceType = 4;
+                                spellArray = 9;
+                                cantripArray = 9;
+                                break;
+                            default:
+                                armorWeenie = 28626;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
                         }
-                        else if (armorPiece == 1)
-                        {
-                            armorWeenie = 28628;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 2)
-                        {
-                            armorWeenie = 28630;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 3)
-                        {
-                            armorWeenie = 28632;
-                            armorPieceType = 3;
-                            spellArray = 5;
-                            cantripArray = 5;
-                        }
-                        else if (armorPiece == 4)
-                        {
-                            armorWeenie = 28633;
-                            armorPieceType = 1;
-                            spellArray = 6;
-                            cantripArray = 6;
-                        }
-                        else if (armorPiece == 5)
-                        {
-                            armorWeenie = 28634;
-                            armorPieceType = 31;
-                            spellArray = 8;
-                            cantripArray = 8;
-                        }
-                        else if (armorPiece == 6)
-                        {
-                            armorWeenie = 30948;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 7)
-                        {
-                            armorWeenie = 28618;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                        }
-                        else if (armorPiece == 8)
-                        {
-                            armorWeenie = 28621;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
-                        else if (armorPiece == 9)
-                        {
-                            armorWeenie = 28623;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 3;
-                        }
-                        else if (armorPiece == 10)
-                        {
-                            armorWeenie = 30949;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 3;
-                        }
-                        else if (armorPiece == 11)
-                        {
-                            armorWeenie = 28625;
-                            armorPieceType = 4;
-                            spellArray = 9;
-                            cantripArray = 9;
-                        }
-                        else
-                        {
-                            armorWeenie = 28626;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
+
                         materialType = GetMaterialType(7, 1);
                     }
                     ////celdon
                     if (armorType == 7)
                     {
                         int armorPiece = ThreadSafeRandom.Next(0, 3);
-                        if (armorPiece == 0)
+                        switch (armorPiece)
                         {
-                            armorWeenie = 6044;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
+                            case 0:
+                                armorWeenie = 6044;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 1:
+                                armorWeenie = 6043;
+                                armorPieceType = 1;
+                                spellArray = 6;
+                                cantripArray = 6;
+                                break;
+                            case 2:
+                                armorWeenie = 6045;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
+                            default:
+                                armorWeenie = 6048;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 3;
+                                break;
                         }
-                        else if (armorPiece == 1)
-                        {
-                            armorWeenie = 6043;
-                            armorPieceType = 1;
-                            spellArray = 6;
-                            cantripArray = 6;
-                        }
-                        else if (armorPiece == 2)
-                        {
-                            armorWeenie = 6045;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
-                        else
-                        {
-                            armorWeenie = 6048;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 3;
-                        }
+
                         materialType = GetMaterialType(7, 1);
                     }
                     ///Amuli
@@ -9102,185 +8757,178 @@ namespace ACE.Server.Factories
                     if (armorType == 11)
                     {
                         int armorPiece = ThreadSafeRandom.Next(0, 5);
-                        if (armorPiece == 0)
+                        switch (armorPiece)
                         {
-                            armorWeenie = 27220;
-                            armorPieceType = 4;
-                            spellArray = 9;
-                            cantripArray = 9;
+                            case 0:
+                                armorWeenie = 27220;
+                                armorPieceType = 4;
+                                spellArray = 9;
+                                cantripArray = 9;
+                                break;
+                            case 1:
+                                armorWeenie = 27221;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 2:
+                                armorWeenie = 27222;
+                                armorPieceType = 3;
+                                spellArray = 5;
+                                cantripArray = 5;
+                                break;
+                            case 3:
+                                armorWeenie = 27223;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                break;
+                            case 4:
+                                armorWeenie = 27224;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
+                            default:
+                                armorWeenie = 27225;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 3;
+                                break;
                         }
-                        else if (armorPiece == 1)
-                        {
-                            armorWeenie = 27221;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 2)
-                        {
-                            armorWeenie = 27222;
-                            armorPieceType = 3;
-                            spellArray = 5;
-                            cantripArray = 5;
-                        }
-                        else if (armorPiece == 3)
-                        {
-                            armorWeenie = 27223;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                        }
-                        else if (armorPiece == 4)
-                        {
-                            armorWeenie = 27224;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
-                        else
-                        {
-                            armorWeenie = 27225;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 3;
-                        }
+
                         materialType = GetMaterialType(7, 1);
                     }
                     ////Nariyid
                     if (armorType == 12)
                     {
                         int armorPiece = ThreadSafeRandom.Next(0, 6);
-                        if (armorPiece == 0)
+                        switch (armorPiece)
                         {
-                            armorWeenie = 27226;
-                            armorPieceType = 4;
-                            spellArray = 9;
-                            cantripArray = 9;
+                            case 0:
+                                armorWeenie = 27226;
+                                armorPieceType = 4;
+                                spellArray = 9;
+                                cantripArray = 9;
+                                break;
+                            case 1:
+                                armorWeenie = 27227;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 2:
+                                armorWeenie = 27228;
+                                armorPieceType = 3;
+                                spellArray = 5;
+                                cantripArray = 5;
+                                break;
+                            case 3:
+                                armorWeenie = 27229;
+                                armorPieceType = 1;
+                                spellArray = 6;
+                                cantripArray = 6;
+                                break;
+                            case 4:
+                                armorWeenie = 27230;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                break;
+                            case 5:
+                                armorWeenie = 27231;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
+                            default:
+                                armorWeenie = 27232;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 3;
+                                break;
                         }
-                        else if (armorPiece == 1)
-                        {
-                            armorWeenie = 27227;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 2)
-                        {
-                            armorWeenie = 27228;
-                            armorPieceType = 3;
-                            spellArray = 5;
-                            cantripArray = 5;
-                        }
-                        else if (armorPiece == 3)
-                        {
-                            armorWeenie = 27229;
-                            armorPieceType = 1;
-                            spellArray = 6;
-                            cantripArray = 6;
-                        }
-                        else if (armorPiece == 4)
-                        {
-                            armorWeenie = 27230;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                        }
-                        else if (armorPiece == 5)
-                        {
-                            armorWeenie = 27231;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
-                        else
-                        {
-                            armorWeenie = 27232;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 3;
-                        }
+
                         materialType = GetMaterialType(7, 1);
                     }
                     ////Chiran
                     if (armorType == 13)
                     {
                         int armorPiece = ThreadSafeRandom.Next(0, 4);
-                        if (armorPiece == 0)
+                        switch (armorPiece)
                         {
-                            armorWeenie = 27215;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
+                            case 0:
+                                armorWeenie = 27215;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 1:
+                                armorWeenie = 27216;
+                                armorPieceType = 3;
+                                spellArray = 5;
+                                cantripArray = 5;
+                                break;
+                            case 2:
+                                armorWeenie = 27217;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                break;
+                            case 3:
+                                armorWeenie = 27218;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
+                            default:
+                                armorWeenie = 27219;
+                                armorPieceType = 4;
+                                spellArray = 9;
+                                cantripArray = 9;
+                                break;
                         }
-                        else if (armorPiece == 1)
-                        {
-                            armorWeenie = 27216;
-                            armorPieceType = 3;
-                            spellArray = 5;
-                            cantripArray = 5;
-                        }
-                        else if (armorPiece == 2)
-                        {
-                            armorWeenie = 27217;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                        }
-                        else if (armorPiece == 3)
-                        {
-                            armorWeenie = 27218;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
-                        else
-                        {
-                            armorWeenie = 27219;
-                            armorPieceType = 4;
-                            spellArray = 9;
-                            cantripArray = 9;
-                        }
+
                         materialType = GetMaterialType(7, 1);
                     }
                     ////Alduressa
                     if (armorType == 14)
                     {
                         int armorPiece = ThreadSafeRandom.Next(0, 4);
-                        if (armorPiece == 0)
+                        switch (armorPiece)
                         {
-                            armorWeenie = 30950;
-                            armorPieceType = 4;
-                            spellArray = 9;
-                            cantripArray = 9;
+                            case 0:
+                                armorWeenie = 30950;
+                                armorPieceType = 4;
+                                spellArray = 9;
+                                cantripArray = 9;
+                                break;
+                            case 1:
+                                armorWeenie = 28629;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 2:
+                                armorWeenie = 30951;
+                                armorPieceType = 3;
+                                spellArray = 5;
+                                cantripArray = 5;
+                                break;
+                            case 3:
+                                armorWeenie = 28617;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                break;
+                            default:
+                                armorWeenie = 28620;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 3;
+                                break;
                         }
-                        else if (armorPiece == 1)
-                        {
-                            armorWeenie = 28629;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 2)
-                        {
-                            armorWeenie = 30951;
-                            armorPieceType = 3;
-                            spellArray = 5;
-                            cantripArray = 5;
-                        }
-                        else if (armorPiece == 3)
-                        {
-                            armorWeenie = 28617;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                        }
-                        else
-                        {
-                            armorWeenie = 28620;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 3;
-                        }
+
                         materialType = GetMaterialType(7, 1);
                     }
                     if (armorType == 15)
@@ -9643,134 +9291,122 @@ namespace ACE.Server.Factories
                     if (armorType == 0)
                     {
                         int armorPiece = ThreadSafeRandom.Next(0, 15);
-                        if (armorPiece == 0)
+                        switch (armorPiece)
                         {
-                            ////helm
-                            armorWeenie = 25636;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
+                            case 0:
+                                ////helm
+                                armorWeenie = 25636;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                break;
+                            case 1:
+                                ////head
+                                armorWeenie = 25640;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                break;
+                            case 2:
+                                ////Chest
+                                armorWeenie = 25639;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 3:
+                                ////Chest
+                                armorWeenie = 25641;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 4:
+                                ////Chest
+                                armorWeenie = 25638;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 5:
+                                ////arms
+                                armorWeenie = 25651;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 3;
+                                break;
+                            case 6:
+                                ////Hands
+                                armorWeenie = 25642;
+                                armorPieceType = 3;
+                                spellArray = 5;
+                                cantripArray = 5;
+                                break;
+                            case 7:
+                                ////Lower Arms
+                                armorWeenie = 25637;
+                                armorPieceType = 1;
+                                spellArray = 4;
+                                cantripArray = 4;
+                                break;
+                            case 8:
+                                ////Upper arms
+                                armorWeenie = 25648;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 2;
+                                break;
+                            case 9:
+                                ////Abdomen
+                                armorWeenie = 25643;
+                                armorPieceType = 1;
+                                spellArray = 6;
+                                cantripArray = 6;
+                                break;
+                            case 10:
+                                ////Abdomen
+                                armorWeenie = 25650;
+                                armorPieceType = 1;
+                                spellArray = 6;
+                                cantripArray = 6;
+                                break;
+                            case 11:
+                                ////legs
+                                armorWeenie = 25647;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
+                            case 12:
+                                ////legs
+                                armorWeenie = 25645;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
+                            case 13:
+                                ////Upper legs
+                                armorWeenie = 25652;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
+                            case 14:
+                                ////lower legs
+                                armorWeenie = 25644;
+                                armorPieceType = 1;
+                                spellArray = 8;
+                                cantripArray = 8;
+                                break;
+                            default:
+                                ////feet
+                                armorWeenie = 25661;
+                                armorPieceType = 4;
+                                spellArray = 9;
+                                cantripArray = 9;
+                                break;
                         }
-                        else if (armorPiece == 1)
-                        {
-                            ////head
-                            armorWeenie = 25640;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                        }
-                        else if (armorPiece == 2)
-                        {
-                            ////Chest
-                            armorWeenie = 25639;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 3)
-                        {
-                            ////Chest
-                            armorWeenie = 25641;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 4)
-                        {
-                            ////Chest
-                            armorWeenie = 25638;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 5)
-                        {
-                            ////arms
-                            armorWeenie = 25651;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 3;
-                        }
-                        else if (armorPiece == 6)
-                        {
-                            ////Hands
-                            armorWeenie = 25642;
-                            armorPieceType = 3;
-                            spellArray = 5;
-                            cantripArray = 5;
-                        }
-                        else if (armorPiece == 7)
-                        {
-                            ////Lower Arms
-                            armorWeenie = 25637;
-                            armorPieceType = 1;
-                            spellArray = 4;
-                            cantripArray = 4;
-                        }
-                        else if (armorPiece == 8)
-                        {
-                            ////Upper arms
-                            armorWeenie = 25648;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 9)
-                        {
-                            ////Abdomen
-                            armorWeenie = 25643;
-                            armorPieceType = 1;
-                            spellArray = 6;
-                            cantripArray = 6;
-                        }
-                        else if (armorPiece == 10)
-                        {
-                            ////Abdomen
-                            armorWeenie = 25650;
-                            armorPieceType = 1;
-                            spellArray = 6;
-                            cantripArray = 6;
-                        }
-                        else if (armorPiece == 11)
-                        {
-                            ////legs
-                            armorWeenie = 25647;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
-                        else if (armorPiece == 12)
-                        {
-                            ////legs
-                            armorWeenie = 25645;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
-                        else if (armorPiece == 13)
-                        {
-                            ////Upper legs
-                            armorWeenie = 25652;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
-                        else if (armorPiece == 14)
-                        {
-                            ////lower legs
-                            armorWeenie = 25644;
-                            armorPieceType = 1;
-                            spellArray = 8;
-                            cantripArray = 8;
-                        }
-                        else
-                        {
-                            ////feet
-                            armorWeenie = 25661;
-                            armorPieceType = 4;
-                            spellArray = 9;
-                            cantripArray = 9;
-                        }
+
                         materialType = GetMaterialType(5, 1);
                     }
                     ////Studded Leather
@@ -10331,34 +9967,34 @@ namespace ACE.Server.Factories
                     if (armorType == 7)
                     {
                         int armorPiece = ThreadSafeRandom.Next(0, 3);
-                        if (armorPiece == 0)
+                        switch (armorPiece)
                         {
-                            armorWeenie = 6044;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
+                            case 0:
+                                armorWeenie = 6044;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 1:
+                                armorWeenie = 6043;
+                                armorPieceType = 1;
+                                spellArray = 6;
+                                cantripArray = 6;
+                                break;
+                            case 2:
+                                armorWeenie = 6045;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
+                            default:
+                                armorWeenie = 6048;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 3;
+                                break;
                         }
-                        else if (armorPiece == 1)
-                        {
-                            armorWeenie = 6043;
-                            armorPieceType = 1;
-                            spellArray = 6;
-                            cantripArray = 6;
-                        }
-                        else if (armorPiece == 2)
-                        {
-                            armorWeenie = 6045;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
-                        else
-                        {
-                            armorWeenie = 6048;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 3;
-                        }
+
                         materialType = GetMaterialType(7, 1);
                     }
                     ///Amuli
@@ -10439,185 +10075,178 @@ namespace ACE.Server.Factories
                     if (armorType == 11)
                     {
                         int armorPiece = ThreadSafeRandom.Next(0, 5);
-                        if (armorPiece == 0)
+                        switch (armorPiece)
                         {
-                            armorWeenie = 27220;
-                            armorPieceType = 4;
-                            spellArray = 9;
-                            cantripArray = 9;
+                            case 0:
+                                armorWeenie = 27220;
+                                armorPieceType = 4;
+                                spellArray = 9;
+                                cantripArray = 9;
+                                break;
+                            case 1:
+                                armorWeenie = 27221;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 2:
+                                armorWeenie = 27222;
+                                armorPieceType = 3;
+                                spellArray = 5;
+                                cantripArray = 5;
+                                break;
+                            case 3:
+                                armorWeenie = 27223;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                break;
+                            case 4:
+                                armorWeenie = 27224;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
+                            default:
+                                armorWeenie = 27225;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 3;
+                                break;
                         }
-                        else if (armorPiece == 1)
-                        {
-                            armorWeenie = 27221;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 2)
-                        {
-                            armorWeenie = 27222;
-                            armorPieceType = 3;
-                            spellArray = 5;
-                            cantripArray = 5;
-                        }
-                        else if (armorPiece == 3)
-                        {
-                            armorWeenie = 27223;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                        }
-                        else if (armorPiece == 4)
-                        {
-                            armorWeenie = 27224;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
-                        else
-                        {
-                            armorWeenie = 27225;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 3;
-                        }
+
                         materialType = GetMaterialType(7, 1);
                     }
                     ////Nariyid
                     if (armorType == 12)
                     {
                         int armorPiece = ThreadSafeRandom.Next(0, 6);
-                        if (armorPiece == 0)
+                        switch (armorPiece)
                         {
-                            armorWeenie = 27226;
-                            armorPieceType = 4;
-                            spellArray = 9;
-                            cantripArray = 9;
+                            case 0:
+                                armorWeenie = 27226;
+                                armorPieceType = 4;
+                                spellArray = 9;
+                                cantripArray = 9;
+                                break;
+                            case 1:
+                                armorWeenie = 27227;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 2:
+                                armorWeenie = 27228;
+                                armorPieceType = 3;
+                                spellArray = 5;
+                                cantripArray = 5;
+                                break;
+                            case 3:
+                                armorWeenie = 27229;
+                                armorPieceType = 1;
+                                spellArray = 6;
+                                cantripArray = 6;
+                                break;
+                            case 4:
+                                armorWeenie = 27230;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                break;
+                            case 5:
+                                armorWeenie = 27231;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
+                            default:
+                                armorWeenie = 27232;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 3;
+                                break;
                         }
-                        else if (armorPiece == 1)
-                        {
-                            armorWeenie = 27227;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 2)
-                        {
-                            armorWeenie = 27228;
-                            armorPieceType = 3;
-                            spellArray = 5;
-                            cantripArray = 5;
-                        }
-                        else if (armorPiece == 3)
-                        {
-                            armorWeenie = 27229;
-                            armorPieceType = 1;
-                            spellArray = 6;
-                            cantripArray = 6;
-                        }
-                        else if (armorPiece == 4)
-                        {
-                            armorWeenie = 27230;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                        }
-                        else if (armorPiece == 5)
-                        {
-                            armorWeenie = 27231;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
-                        else
-                        {
-                            armorWeenie = 27232;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 3;
-                        }
+
                         materialType = GetMaterialType(7, 1);
                     }
                     ////Chiran
                     if (armorType == 13)
                     {
                         int armorPiece = ThreadSafeRandom.Next(0, 4);
-                        if (armorPiece == 0)
+                        switch (armorPiece)
                         {
-                            armorWeenie = 27215;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
+                            case 0:
+                                armorWeenie = 27215;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 1:
+                                armorWeenie = 27216;
+                                armorPieceType = 3;
+                                spellArray = 5;
+                                cantripArray = 5;
+                                break;
+                            case 2:
+                                armorWeenie = 27217;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                break;
+                            case 3:
+                                armorWeenie = 27218;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
+                            default:
+                                armorWeenie = 27219;
+                                armorPieceType = 4;
+                                spellArray = 9;
+                                cantripArray = 9;
+                                break;
                         }
-                        else if (armorPiece == 1)
-                        {
-                            armorWeenie = 27216;
-                            armorPieceType = 3;
-                            spellArray = 5;
-                            cantripArray = 5;
-                        }
-                        else if (armorPiece == 2)
-                        {
-                            armorWeenie = 27217;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                        }
-                        else if (armorPiece == 3)
-                        {
-                            armorWeenie = 27218;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
-                        else
-                        {
-                            armorWeenie = 27219;
-                            armorPieceType = 4;
-                            spellArray = 9;
-                            cantripArray = 9;
-                        }
+
                         materialType = GetMaterialType(7, 1);
                     }
                     ////Alduressa
                     if (armorType == 14)
                     {
                         int armorPiece = ThreadSafeRandom.Next(0, 4);
-                        if (armorPiece == 0)
+                        switch (armorPiece)
                         {
-                            armorWeenie = 30950;
-                            armorPieceType = 4;
-                            spellArray = 9;
-                            cantripArray = 9;
+                            case 0:
+                                armorWeenie = 30950;
+                                armorPieceType = 4;
+                                spellArray = 9;
+                                cantripArray = 9;
+                                break;
+                            case 1:
+                                armorWeenie = 28629;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 2:
+                                armorWeenie = 30951;
+                                armorPieceType = 3;
+                                spellArray = 5;
+                                cantripArray = 5;
+                                break;
+                            case 3:
+                                armorWeenie = 28617;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                break;
+                            default:
+                                armorWeenie = 28620;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 3;
+                                break;
                         }
-                        else if (armorPiece == 1)
-                        {
-                            armorWeenie = 28629;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 2)
-                        {
-                            armorWeenie = 30951;
-                            armorPieceType = 3;
-                            spellArray = 5;
-                            cantripArray = 5;
-                        }
-                        else if (armorPiece == 3)
-                        {
-                            armorWeenie = 28617;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                        }
-                        else
-                        {
-                            armorWeenie = 28620;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 3;
-                        }
+
                         materialType = GetMaterialType(7, 1);
                     }
                     //////Knorr Academy Armor
@@ -11183,722 +10812,660 @@ namespace ACE.Server.Factories
                     if (armorType == 0)
                     {
                         int armorPiece = ThreadSafeRandom.Next(0, 15);
-                        if (armorPiece == 0)
+                        switch (armorPiece)
                         {
-                            ////helm
-                            armorWeenie = 25636;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
+                            case 0:
+                                ////helm
+                                armorWeenie = 25636;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                break;
+                            case 1:
+                                ////head
+                                armorWeenie = 25640;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                break;
+                            case 2:
+                                ////Chest
+                                armorWeenie = 25639;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 3:
+                                ////Chest
+                                armorWeenie = 25641;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 4:
+                                ////Chest
+                                armorWeenie = 25638;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 5:
+                                ////arms
+                                armorWeenie = 25651;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 3;
+                                break;
+                            case 6:
+                                ////Hands
+                                armorWeenie = 25642;
+                                armorPieceType = 3;
+                                spellArray = 5;
+                                cantripArray = 5;
+                                break;
+                            case 7:
+                                ////Lower Arms
+                                armorWeenie = 25637;
+                                armorPieceType = 1;
+                                spellArray = 4;
+                                cantripArray = 4;
+                                break;
+                            case 8:
+                                ////Upper arms
+                                armorWeenie = 25648;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 2;
+                                break;
+                            case 9:
+                                ////Abdomen
+                                armorWeenie = 25643;
+                                armorPieceType = 1;
+                                spellArray = 6;
+                                cantripArray = 6;
+                                break;
+                            case 10:
+                                ////Abdomen
+                                armorWeenie = 25650;
+                                armorPieceType = 1;
+                                spellArray = 6;
+                                cantripArray = 6;
+                                break;
+                            case 11:
+                                ////legs
+                                armorWeenie = 25647;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
+                            case 12:
+                                ////legs
+                                armorWeenie = 25645;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
+                            case 13:
+                                ////Upper legs
+                                armorWeenie = 25652;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
+                            case 14:
+                                ////lower legs
+                                armorWeenie = 25644;
+                                armorPieceType = 1;
+                                spellArray = 8;
+                                cantripArray = 8;
+                                break;
+                            default:
+                                ////feet
+                                armorWeenie = 25661;
+                                armorPieceType = 4;
+                                spellArray = 9;
+                                cantripArray = 9;
+                                break;
                         }
-                        else if (armorPiece == 1)
-                        {
-                            ////head
-                            armorWeenie = 25640;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                        }
-                        else if (armorPiece == 2)
-                        {
-                            ////Chest
-                            armorWeenie = 25639;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 3)
-                        {
-                            ////Chest
-                            armorWeenie = 25641;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 4)
-                        {
-                            ////Chest
-                            armorWeenie = 25638;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 5)
-                        {
-                            ////arms
-                            armorWeenie = 25651;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 3;
-                        }
-                        else if (armorPiece == 6)
-                        {
-                            ////Hands
-                            armorWeenie = 25642;
-                            armorPieceType = 3;
-                            spellArray = 5;
-                            cantripArray = 5;
-                        }
-                        else if (armorPiece == 7)
-                        {
-                            ////Lower Arms
-                            armorWeenie = 25637;
-                            armorPieceType = 1;
-                            spellArray = 4;
-                            cantripArray = 4;
-                        }
-                        else if (armorPiece == 8)
-                        {
-                            ////Upper arms
-                            armorWeenie = 25648;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 9)
-                        {
-                            ////Abdomen
-                            armorWeenie = 25643;
-                            armorPieceType = 1;
-                            spellArray = 6;
-                            cantripArray = 6;
-                        }
-                        else if (armorPiece == 10)
-                        {
-                            ////Abdomen
-                            armorWeenie = 25650;
-                            armorPieceType = 1;
-                            spellArray = 6;
-                            cantripArray = 6;
-                        }
-                        else if (armorPiece == 11)
-                        {
-                            ////legs
-                            armorWeenie = 25647;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
-                        else if (armorPiece == 12)
-                        {
-                            ////legs
-                            armorWeenie = 25645;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
-                        else if (armorPiece == 13)
-                        {
-                            ////Upper legs
-                            armorWeenie = 25652;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
-                        else if (armorPiece == 14)
-                        {
-                            ////lower legs
-                            armorWeenie = 25644;
-                            armorPieceType = 1;
-                            spellArray = 8;
-                            cantripArray = 8;
-                        }
-                        else
-                        {
-                            ////feet
-                            armorWeenie = 25661;
-                            armorPieceType = 4;
-                            spellArray = 9;
-                            cantripArray = 9;
-                        }
+
                         materialType = GetMaterialType(5, 1);
                     }
                     ////Studded Leather
                     if (armorType == 1)
                     {
                         int armorPiece = ThreadSafeRandom.Next(0, 14);
-                        if (armorPiece == 0)
+                        switch (armorPiece)
                         {
-                            armorWeenie = 554;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
+                            case 0:
+                                armorWeenie = 554;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                break;
+                            case 1:
+                                armorWeenie = 116;
+                                armorPieceType = 4;
+                                spellArray = 9;
+                                cantripArray = 9;
+                                break;
+                            case 2:
+                                armorWeenie = 38;
+                                armorPieceType = 1;
+                                spellArray = 4;
+                                cantripArray = 4;
+                                break;
+                            case 3:
+                                armorWeenie = 42;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 4:
+                                armorWeenie = 48;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 5:
+                                armorWeenie = 723;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                break;
+                            case 6:
+                                armorWeenie = 53;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 7:
+                                armorWeenie = 59;
+                                armorPieceType = 3;
+                                spellArray = 5;
+                                cantripArray = 5;
+                                break;
+                            case 8:
+                                armorWeenie = 63;
+                                armorPieceType = 1;
+                                spellArray = 6;
+                                cantripArray = 6;
+                                break;
+                            case 9:
+                                armorWeenie = 68;
+                                armorPieceType = 1;
+                                spellArray = 8;
+                                cantripArray = 8;
+                                break;
+                            case 10:
+                                armorWeenie = 68;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                break;
+                            case 11:
+                                armorWeenie = 89;
+                                armorPieceType = 1;
+                                spellArray = 8;
+                                cantripArray = 8;
+                                break;
+                            case 12:
+                                armorWeenie = 99;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 13:
+                                armorWeenie = 105;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 3;
+                                break;
+                            default:
+                                armorWeenie = 112;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
                         }
-                        else if (armorPiece == 1)
-                        {
-                            armorWeenie = 116;
-                            armorPieceType = 4;
-                            spellArray = 9;
-                            cantripArray = 9;
-                        }
-                        else if (armorPiece == 2)
-                        {
-                            armorWeenie = 38;
-                            armorPieceType = 1;
-                            spellArray = 4;
-                            cantripArray = 4;
-                        }
-                        else if (armorPiece == 3)
-                        {
-                            armorWeenie = 42;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 4)
-                        {
-                            armorWeenie = 48;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 5)
-                        {
-                            armorWeenie = 723;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                        }
-                        else if (armorPiece == 6)
-                        {
-                            armorWeenie = 53;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 7)
-                        {
-                            armorWeenie = 59;
-                            armorPieceType = 3;
-                            spellArray = 5;
-                            cantripArray = 5;
-                        }
-                        else if (armorPiece == 8)
-                        {
-                            armorWeenie = 63;
-                            armorPieceType = 1;
-                            spellArray = 6;
-                            cantripArray = 6;
-                        }
-                        else if (armorPiece == 9)
-                        {
-                            armorWeenie = 68;
-                            armorPieceType = 1;
-                            spellArray = 8;
-                            cantripArray = 8;
-                        }
-                        else if (armorPiece == 10)
-                        {
-                            armorWeenie = 68;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                        }
-                        else if (armorPiece == 11)
-                        {
-                            armorWeenie = 89;
-                            armorPieceType = 1;
-                            spellArray = 8;
-                            cantripArray = 8;
-                        }
-                        else if (armorPiece == 12)
-                        {
-                            armorWeenie = 99;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 13)
-                        {
-                            armorWeenie = 105;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 3;
-                        }
-                        else
-                        {
-                            armorWeenie = 112;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
+
                         materialType = GetMaterialType(5, 1);
                     }
                     ////Chainmail
                     if (armorType == 2)
                     {
                         int armorPiece = ThreadSafeRandom.Next(0, 12);
-                        if (armorPiece == 0)
+                        switch (armorPiece)
                         {
-                            armorWeenie = 35;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
+                            case 0:
+                                armorWeenie = 35;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                break;
+                            case 1:
+                                armorWeenie = 413;
+                                armorPieceType = 1;
+                                spellArray = 4;
+                                cantripArray = 4;
+                                break;
+                            case 2:
+                                armorWeenie = 414;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 3:
+                                armorWeenie = 85;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                break;
+                            case 4:
+                                armorWeenie = 55;
+                                armorPieceType = 3;
+                                spellArray = 5;
+                                cantripArray = 5;
+                                break;
+                            case 5:
+                                armorWeenie = 415;
+                                armorPieceType = 1;
+                                spellArray = 6;
+                                cantripArray = 6;
+                                break;
+                            case 6:
+                                armorWeenie = 2605;
+                                armorPieceType = 1;
+                                spellArray = 8;
+                                cantripArray = 8;
+                                break;
+                            case 7:
+                                armorWeenie = 71;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 8:
+                                armorWeenie = 80;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
+                            case 9:
+                                armorWeenie = 416;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 3;
+                                break;
+                            case 10:
+                                armorWeenie = 96;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 11:
+                                armorWeenie = 101;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 3;
+                                break;
+                            default:
+                                armorWeenie = 108;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
                         }
-                        else if (armorPiece == 1)
-                        {
-                            armorWeenie = 413;
-                            armorPieceType = 1;
-                            spellArray = 4;
-                            cantripArray = 4;
-                        }
-                        else if (armorPiece == 2)
-                        {
-                            armorWeenie = 414;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 3)
-                        {
-                            armorWeenie = 85;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                        }
-                        else if (armorPiece == 4)
-                        {
-                            armorWeenie = 55;
-                            armorPieceType = 3;
-                            spellArray = 5;
-                            cantripArray = 5;
-                        }
-                        else if (armorPiece == 5)
-                        {
-                            armorWeenie = 415;
-                            armorPieceType = 1;
-                            spellArray = 6;
-                            cantripArray = 6;
-                        }
-                        else if (armorPiece == 6)
-                        {
-                            armorWeenie = 2605;
-                            armorPieceType = 1;
-                            spellArray = 8;
-                            cantripArray = 8;
-                        }
-                        else if (armorPiece == 7)
-                        {
-                            armorWeenie = 71;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 8)
-                        {
-                            armorWeenie = 80;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
-                        else if (armorPiece == 9)
-                        {
-                            armorWeenie = 416;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 3;
-                        }
-                        else if (armorPiece == 10)
-                        {
-                            armorWeenie = 96;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 11)
-                        {
-                            armorWeenie = 101;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 3;
-                        }
-                        else
-                        {
-                            armorWeenie = 108;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
+
                         materialType = GetMaterialType(7, 1);
                     }
                     ////Platemail
                     if (armorType == 3)
                     {
                         int armorPiece = ThreadSafeRandom.Next(0, 10);
-                        if (armorPiece == 0)
+                        switch (armorPiece)
                         {
-                            armorWeenie = 40;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
+                            case 0:
+                                armorWeenie = 40;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 1:
+                                armorWeenie = 51;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 2:
+                                armorWeenie = 57;
+                                armorPieceType = 3;
+                                spellArray = 5;
+                                cantripArray = 5;
+                                break;
+                            case 3:
+                                armorWeenie = 61;
+                                armorPieceType = 1;
+                                spellArray = 6;
+                                cantripArray = 6;
+                                break;
+                            case 4:
+                                armorWeenie = 66;
+                                armorPieceType = 1;
+                                spellArray = 8;
+                                cantripArray = 8;
+                                break;
+                            case 5:
+                                armorWeenie = 72;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 6:
+                                armorWeenie = 82;
+                                armorPieceType = 1;
+                                spellArray = 8;
+                                cantripArray = 8;
+                                break;
+                            case 7:
+                                armorWeenie = 87;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 3;
+                                break;
+                            case 8:
+                                armorWeenie = 103;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 3;
+                                break;
+                            case 9:
+                                armorWeenie = 110;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
+                            default:
+                                armorWeenie = 114;
+                                armorPieceType = 1;
+                                spellArray = 4;
+                                cantripArray = 4;
+                                break;
                         }
-                        else if (armorPiece == 1)
-                        {
-                            armorWeenie = 51;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 2)
-                        {
-                            armorWeenie = 57;
-                            armorPieceType = 3;
-                            spellArray = 5;
-                            cantripArray = 5;
-                        }
-                        else if (armorPiece == 3)
-                        {
-                            armorWeenie = 61;
-                            armorPieceType = 1;
-                            spellArray = 6;
-                            cantripArray = 6;
-                        }
-                        else if (armorPiece == 4)
-                        {
-                            armorWeenie = 66;
-                            armorPieceType = 1;
-                            spellArray = 8;
-                            cantripArray = 8;
-                        }
-                        else if (armorPiece == 5)
-                        {
-                            armorWeenie = 72;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 6)
-                        {
-                            armorWeenie = 82;
-                            armorPieceType = 1;
-                            spellArray = 8;
-                            cantripArray = 8;
-                        }
-                        else if (armorPiece == 7)
-                        {
-                            armorWeenie = 87;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 3;
-                        }
-                        else if (armorPiece == 8)
-                        {
-                            armorWeenie = 103;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 3;
-                        }
-                        else if (armorPiece == 9)
-                        {
-                            armorWeenie = 110;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
-                        else
-                        {
-                            armorWeenie = 114;
-                            armorPieceType = 1;
-                            spellArray = 4;
-                            cantripArray = 4;
-                        }
+
                         materialType = GetMaterialType(7, 1);
                     }
                     ////Scalemail
                     if (armorType == 4)
                     {
                         int armorPiece = ThreadSafeRandom.Next(0, 13);
-                        if (armorPiece == 0)
+                        switch (armorPiece)
                         {
-                            armorWeenie = 552;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
+                            case 0:
+                                armorWeenie = 552;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                break;
+                            case 1:
+                                armorWeenie = 37;
+                                armorPieceType = 1;
+                                spellArray = 4;
+                                cantripArray = 4;
+                                break;
+                            case 2:
+                                armorWeenie = 41;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 3:
+                                armorWeenie = 793;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                break;
+                            case 4:
+                                armorWeenie = 52;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 5:
+                                armorWeenie = 58;
+                                armorPieceType = 3;
+                                spellArray = 5;
+                                cantripArray = 5;
+                                break;
+                            case 6:
+                                armorWeenie = 62;
+                                armorPieceType = 1;
+                                spellArray = 6;
+                                cantripArray = 6;
+                                break;
+                            case 7:
+                                armorWeenie = 67;
+                                armorPieceType = 1;
+                                spellArray = 8;
+                                cantripArray = 8;
+                                break;
+                            case 8:
+                                armorWeenie = 73;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 9:
+                                armorWeenie = 83;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
+                            case 10:
+                                armorWeenie = 88;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 3;
+                                break;
+                            case 11:
+                                armorWeenie = 98;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 12:
+                                armorWeenie = 104;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 3;
+                                break;
+                            default:
+                                armorWeenie = 111;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
                         }
-                        else if (armorPiece == 1)
-                        {
-                            armorWeenie = 37;
-                            armorPieceType = 1;
-                            spellArray = 4;
-                            cantripArray = 4;
-                        }
-                        else if (armorPiece == 2)
-                        {
-                            armorWeenie = 41;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 3)
-                        {
-                            armorWeenie = 793;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                        }
-                        else if (armorPiece == 4)
-                        {
-                            armorWeenie = 52;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 5)
-                        {
-                            armorWeenie = 58;
-                            armorPieceType = 3;
-                            spellArray = 5;
-                            cantripArray = 5;
-                        }
-                        else if (armorPiece == 6)
-                        {
-                            armorWeenie = 62;
-                            armorPieceType = 1;
-                            spellArray = 6;
-                            cantripArray = 6;
-                        }
-                        else if (armorPiece == 7)
-                        {
-                            armorWeenie = 67;
-                            armorPieceType = 1;
-                            spellArray = 8;
-                            cantripArray = 8;
-                        }
-                        else if (armorPiece == 8)
-                        {
-                            armorWeenie = 73;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 9)
-                        {
-                            armorWeenie = 83;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
-                        else if (armorPiece == 10)
-                        {
-                            armorWeenie = 88;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 3;
-                        }
-                        else if (armorPiece == 11)
-                        {
-                            armorWeenie = 98;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 12)
-                        {
-                            armorWeenie = 104;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 3;
-                        }
-                        else
-                        {
-                            armorWeenie = 111;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
+
                         materialType = GetMaterialType(7, 1);
                     }
                     ////Yoroi
                     if (armorType == 5)
                     {
                         int armorPiece = ThreadSafeRandom.Next(0, 7);
-                        if (armorPiece == 0)
+                        switch (armorPiece)
                         {
-                            armorWeenie = 43;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
+                            case 0:
+                                armorWeenie = 43;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 1:
+                                armorWeenie = 54;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 2:
+                                armorWeenie = 64;
+                                armorPieceType = 1;
+                                spellArray = 6;
+                                cantripArray = 6;
+                                break;
+                            case 3:
+                                armorWeenie = 69;
+                                armorPieceType = 1;
+                                spellArray = 8;
+                                cantripArray = 8;
+                                break;
+                            case 4:
+                                armorWeenie = 2437;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
+                            case 5:
+                                armorWeenie = 90;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 3;
+                                break;
+                            case 6:
+                                armorWeenie = 102;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 3;
+                                break;
+                            default:
+                                armorWeenie = 113;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
                         }
-                        else if (armorPiece == 1)
-                        {
-                            armorWeenie = 54;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 2)
-                        {
-                            armorWeenie = 64;
-                            armorPieceType = 1;
-                            spellArray = 6;
-                            cantripArray = 6;
-                        }
-                        else if (armorPiece == 3)
-                        {
-                            armorWeenie = 69;
-                            armorPieceType = 1;
-                            spellArray = 8;
-                            cantripArray = 8;
-                        }
-                        else if (armorPiece == 4)
-                        {
-                            armorWeenie = 2437;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
-                        else if (armorPiece == 5)
-                        {
-                            armorWeenie = 90;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 3;
-                        }
-                        else if (armorPiece == 6)
-                        {
-                            armorWeenie = 102;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 3;
-                        }
-                        else
-                        {
-                            armorWeenie = 113;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
+
                         materialType = GetMaterialType(7, 1);
                     }
                     ////Diforsa
                     if (armorType == 6)
                     {
                         int armorPiece = ThreadSafeRandom.Next(0, 12);
-                        if (armorPiece == 0)
+                        switch (armorPiece)
                         {
-                            armorWeenie = 28367;
-                            armorPieceType = 1;
-                            spellArray = 4;
-                            cantripArray = 4;
+                            case 0:
+                                armorWeenie = 28367;
+                                armorPieceType = 1;
+                                spellArray = 4;
+                                cantripArray = 4;
+                                break;
+                            case 1:
+                                armorWeenie = 28628;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 2:
+                                armorWeenie = 28630;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 3:
+                                armorWeenie = 28632;
+                                armorPieceType = 3;
+                                spellArray = 5;
+                                cantripArray = 5;
+                                break;
+                            case 4:
+                                armorWeenie = 28633;
+                                armorPieceType = 1;
+                                spellArray = 6;
+                                cantripArray = 6;
+                                break;
+                            case 5:
+                                armorWeenie = 28634;
+                                armorPieceType = 31;
+                                spellArray = 8;
+                                cantripArray = 8;
+                                break;
+                            case 6:
+                                armorWeenie = 30948;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 7:
+                                armorWeenie = 28618;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                break;
+                            case 8:
+                                armorWeenie = 28621;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
+                            case 9:
+                                armorWeenie = 28623;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 3;
+                                break;
+                            case 10:
+                                armorWeenie = 30949;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 3;
+                                break;
+                            case 11:
+                                armorWeenie = 28625;
+                                armorPieceType = 4;
+                                spellArray = 9;
+                                cantripArray = 9;
+                                break;
+                            default:
+                                armorWeenie = 28626;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
                         }
-                        else if (armorPiece == 1)
-                        {
-                            armorWeenie = 28628;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 2)
-                        {
-                            armorWeenie = 28630;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 3)
-                        {
-                            armorWeenie = 28632;
-                            armorPieceType = 3;
-                            spellArray = 5;
-                            cantripArray = 5;
-                        }
-                        else if (armorPiece == 4)
-                        {
-                            armorWeenie = 28633;
-                            armorPieceType = 1;
-                            spellArray = 6;
-                            cantripArray = 6;
-                        }
-                        else if (armorPiece == 5)
-                        {
-                            armorWeenie = 28634;
-                            armorPieceType = 31;
-                            spellArray = 8;
-                            cantripArray = 8;
-                        }
-                        else if (armorPiece == 6)
-                        {
-                            armorWeenie = 30948;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 7)
-                        {
-                            armorWeenie = 28618;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                        }
-                        else if (armorPiece == 8)
-                        {
-                            armorWeenie = 28621;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
-                        else if (armorPiece == 9)
-                        {
-                            armorWeenie = 28623;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 3;
-                        }
-                        else if (armorPiece == 10)
-                        {
-                            armorWeenie = 30949;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 3;
-                        }
-                        else if (armorPiece == 11)
-                        {
-                            armorWeenie = 28625;
-                            armorPieceType = 4;
-                            spellArray = 9;
-                            cantripArray = 9;
-                        }
-                        else
-                        {
-                            armorWeenie = 28626;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
+
                         materialType = GetMaterialType(7, 1);
                     }
                     ////celdon
                     if (armorType == 7)
                     {
                         int armorPiece = ThreadSafeRandom.Next(0, 3);
-                        if (armorPiece == 0)
+                        switch (armorPiece)
                         {
-                            armorWeenie = 6044;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
+                            case 0:
+                                armorWeenie = 6044;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 1:
+                                armorWeenie = 6043;
+                                armorPieceType = 1;
+                                spellArray = 6;
+                                cantripArray = 6;
+                                break;
+                            case 2:
+                                armorWeenie = 6045;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
+                            default:
+                                armorWeenie = 6048;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 3;
+                                break;
                         }
-                        else if (armorPiece == 1)
-                        {
-                            armorWeenie = 6043;
-                            armorPieceType = 1;
-                            spellArray = 6;
-                            cantripArray = 6;
-                        }
-                        else if (armorPiece == 2)
-                        {
-                            armorWeenie = 6045;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
-                        else
-                        {
-                            armorWeenie = 6048;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 3;
-                        }
+
                         materialType = GetMaterialType(7, 1);
                     }
                     ///Amuli
@@ -11979,144 +11546,138 @@ namespace ACE.Server.Factories
                     if (armorType == 11)
                     {
                         int armorPiece = ThreadSafeRandom.Next(0, 5);
-                        if (armorPiece == 0)
+                        switch (armorPiece)
                         {
-                            armorWeenie = 27220;
-                            armorPieceType = 4;
-                            spellArray = 9;
-                            cantripArray = 9;
+                            case 0:
+                                armorWeenie = 27220;
+                                armorPieceType = 4;
+                                spellArray = 9;
+                                cantripArray = 9;
+                                break;
+                            case 1:
+                                armorWeenie = 27221;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 2:
+                                armorWeenie = 27222;
+                                armorPieceType = 3;
+                                spellArray = 5;
+                                cantripArray = 5;
+                                break;
+                            case 3:
+                                armorWeenie = 27223;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                break;
+                            case 4:
+                                armorWeenie = 27224;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
+                            default:
+                                armorWeenie = 27225;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 3;
+                                break;
                         }
-                        else if (armorPiece == 1)
-                        {
-                            armorWeenie = 27221;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 2)
-                        {
-                            armorWeenie = 27222;
-                            armorPieceType = 3;
-                            spellArray = 5;
-                            cantripArray = 5;
-                        }
-                        else if (armorPiece == 3)
-                        {
-                            armorWeenie = 27223;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                        }
-                        else if (armorPiece == 4)
-                        {
-                            armorWeenie = 27224;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
-                        else
-                        {
-                            armorWeenie = 27225;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 3;
-                        }
+
                         materialType = GetMaterialType(7, 1);
                     }
                     ////Nariyid
                     if (armorType == 12)
                     {
                         int armorPiece = ThreadSafeRandom.Next(0, 6);
-                        if (armorPiece == 0)
+                        switch (armorPiece)
                         {
-                            armorWeenie = 27226;
-                            armorPieceType = 4;
-                            spellArray = 9;
-                            cantripArray = 9;
+                            case 0:
+                                armorWeenie = 27226;
+                                armorPieceType = 4;
+                                spellArray = 9;
+                                cantripArray = 9;
+                                break;
+                            case 1:
+                                armorWeenie = 27227;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 2:
+                                armorWeenie = 27228;
+                                armorPieceType = 3;
+                                spellArray = 5;
+                                cantripArray = 5;
+                                break;
+                            case 3:
+                                armorWeenie = 27229;
+                                armorPieceType = 1;
+                                spellArray = 6;
+                                cantripArray = 6;
+                                break;
+                            case 4:
+                                armorWeenie = 27230;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                break;
+                            case 5:
+                                armorWeenie = 27231;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
+                            default:
+                                armorWeenie = 27232;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 3;
+                                break;
                         }
-                        else if (armorPiece == 1)
-                        {
-                            armorWeenie = 27227;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 2)
-                        {
-                            armorWeenie = 27228;
-                            armorPieceType = 3;
-                            spellArray = 5;
-                            cantripArray = 5;
-                        }
-                        else if (armorPiece == 3)
-                        {
-                            armorWeenie = 27229;
-                            armorPieceType = 1;
-                            spellArray = 6;
-                            cantripArray = 6;
-                        }
-                        else if (armorPiece == 4)
-                        {
-                            armorWeenie = 27230;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                        }
-                        else if (armorPiece == 5)
-                        {
-                            armorWeenie = 27231;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
-                        else
-                        {
-                            armorWeenie = 27232;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 3;
-                        }
+
                         materialType = GetMaterialType(7, 1);
                     }
                     ////Chiran
                     if (armorType == 13)
                     {
                         int armorPiece = ThreadSafeRandom.Next(0, 4);
-                        if (armorPiece == 0)
+                        switch (armorPiece)
                         {
-                            armorWeenie = 27215;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
+                            case 0:
+                                armorWeenie = 27215;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 1:
+                                armorWeenie = 27216;
+                                armorPieceType = 3;
+                                spellArray = 5;
+                                cantripArray = 5;
+                                break;
+                            case 2:
+                                armorWeenie = 27217;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                break;
+                            case 3:
+                                armorWeenie = 27218;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
+                            default:
+                                armorWeenie = 27219;
+                                armorPieceType = 4;
+                                spellArray = 9;
+                                cantripArray = 9;
+                                break;
                         }
-                        else if (armorPiece == 1)
-                        {
-                            armorWeenie = 27216;
-                            armorPieceType = 3;
-                            spellArray = 5;
-                            cantripArray = 5;
-                        }
-                        else if (armorPiece == 2)
-                        {
-                            armorWeenie = 27217;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                        }
-                        else if (armorPiece == 3)
-                        {
-                            armorWeenie = 27218;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
-                        else
-                        {
-                            armorWeenie = 27219;
-                            armorPieceType = 4;
-                            spellArray = 9;
-                            cantripArray = 9;
-                        }
+
                         materialType = GetMaterialType(7, 1);
                     }
                     ////Alduressa
@@ -12719,727 +12280,668 @@ namespace ACE.Server.Factories
                 default:
                     lowSpellTier = 6;
                     highSpellTier = 8;
-                    armorType = ThreadSafeRandom.Next(0, 15);
+                    if (lootBias == LootBias.Armor) // Armor Mana Forge Chests don't include clothing type items
+                        armorType = ThreadSafeRandom.Next(0, 14);
+                    else
+                        armorType = ThreadSafeRandom.Next(0, 15);
                     ////Leather Armor
                     if (armorType == 0)
                     {
                         int armorPiece = ThreadSafeRandom.Next(0, 15);
-                        if (armorPiece == 0)
+                        switch (armorPiece)
                         {
-                            ////helm
-                            armorWeenie = 25636;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
+                            case 0:
+                                ////helm
+                                armorWeenie = 25636;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                break;
+                            case 1:
+                                ////head
+                                armorWeenie = 25640;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                break;
+                            case 2:
+                                ////Chest
+                                armorWeenie = 25639;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 3:
+                                ////Chest
+                                armorWeenie = 25641;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 4:
+                                ////Chest
+                                armorWeenie = 25638;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 5:
+                                ////arms
+                                armorWeenie = 25651;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 3;
+                                break;
+                            case 6:
+                                ////Hands
+                                armorWeenie = 25642;
+                                armorPieceType = 3;
+                                spellArray = 5;
+                                cantripArray = 5;
+                                break;
+                            case 7:
+                                ////Lower Arms
+                                armorWeenie = 25637;
+                                armorPieceType = 1;
+                                spellArray = 4;
+                                cantripArray = 4;
+                                break;
+                            case 8:
+                                ////Upper arms
+                                armorWeenie = 25648;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 2;
+                                break;
+                            case 9:
+                                ////Abdomen
+                                armorWeenie = 25643;
+                                armorPieceType = 1;
+                                spellArray = 6;
+                                cantripArray = 6;
+                                break;
+                            case 10:
+                                ////Abdomen
+                                armorWeenie = 25650;
+                                armorPieceType = 1;
+                                spellArray = 6;
+                                cantripArray = 6;
+                                break;
+                            case 11:
+                                ////legs
+                                armorWeenie = 25647;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
+                            case 12:
+                                ////legs
+                                armorWeenie = 25645;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
+                            case 13:
+                                ////Upper legs
+                                armorWeenie = 25652;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
+                            case 14:
+                                ////lower legs
+                                armorWeenie = 25644;
+                                armorPieceType = 1;
+                                spellArray = 8;
+                                cantripArray = 8;
+                                break;
+                            default:
+                                ////feet
+                                armorWeenie = 25661;
+                                armorPieceType = 4;
+                                spellArray = 9;
+                                cantripArray = 9;
+                                break;
                         }
-                        else if (armorPiece == 1)
-                        {
-                            ////head
-                            armorWeenie = 25640;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                        }
-                        else if (armorPiece == 2)
-                        {
-                            ////Chest
-                            armorWeenie = 25639;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 3)
-                        {
-                            ////Chest
-                            armorWeenie = 25641;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 4)
-                        {
-                            ////Chest
-                            armorWeenie = 25638;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 5)
-                        {
-                            ////arms
-                            armorWeenie = 25651;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 3;
-                        }
-                        else if (armorPiece == 6)
-                        {
-                            ////Hands
-                            armorWeenie = 25642;
-                            armorPieceType = 3;
-                            spellArray = 5;
-                            cantripArray = 5;
-                        }
-                        else if (armorPiece == 7)
-                        {
-                            ////Lower Arms
-                            armorWeenie = 25637;
-                            armorPieceType = 1;
-                            spellArray = 4;
-                            cantripArray = 4;
-                        }
-                        else if (armorPiece == 8)
-                        {
-                            ////Upper arms
-                            armorWeenie = 25648;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 9)
-                        {
-                            ////Abdomen
-                            armorWeenie = 25643;
-                            armorPieceType = 1;
-                            spellArray = 6;
-                            cantripArray = 6;
-                        }
-                        else if (armorPiece == 10)
-                        {
-                            ////Abdomen
-                            armorWeenie = 25650;
-                            armorPieceType = 1;
-                            spellArray = 6;
-                            cantripArray = 6;
-                        }
-                        else if (armorPiece == 11)
-                        {
-                            ////legs
-                            armorWeenie = 25647;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
-                        else if (armorPiece == 12)
-                        {
-                            ////legs
-                            armorWeenie = 25645;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
-                        else if (armorPiece == 13)
-                        {
-                            ////Upper legs
-                            armorWeenie = 25652;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
-                        else if (armorPiece == 14)
-                        {
-                            ////lower legs
-                            armorWeenie = 25644;
-                            armorPieceType = 1;
-                            spellArray = 8;
-                            cantripArray = 8;
-                        }
-                        else
-                        {
-                            ////feet
-                            armorWeenie = 25661;
-                            armorPieceType = 4;
-                            spellArray = 9;
-                            cantripArray = 9;
-                        }
+
                         materialType = GetMaterialType(5, 1);
                     }
                     ////Studded Leather
                     if (armorType == 1)
                     {
                         int armorPiece = ThreadSafeRandom.Next(0, 14);
-                        if (armorPiece == 0)
+                        switch (armorPiece)
                         {
-                            armorWeenie = 554;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
+                            case 0:
+                                armorWeenie = 554;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                break;
+                            case 1:
+                                armorWeenie = 116;
+                                armorPieceType = 4;
+                                spellArray = 9;
+                                cantripArray = 9;
+                                break;
+                            case 2:
+                                armorWeenie = 38;
+                                armorPieceType = 1;
+                                spellArray = 4;
+                                cantripArray = 4;
+                                break;
+                            case 3:
+                                armorWeenie = 42;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 4:
+                                armorWeenie = 48;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 5:
+                                armorWeenie = 723;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                break;
+                            case 6:
+                                armorWeenie = 53;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 7:
+                                armorWeenie = 59;
+                                armorPieceType = 3;
+                                spellArray = 5;
+                                cantripArray = 5;
+                                break;
+                            case 8:
+                                armorWeenie = 63;
+                                armorPieceType = 1;
+                                spellArray = 6;
+                                cantripArray = 6;
+                                break;
+                            case 9:
+                                armorWeenie = 68;
+                                armorPieceType = 1;
+                                spellArray = 8;
+                                cantripArray = 8;
+                                break;
+                            case 10:
+                                armorWeenie = 68;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                break;
+                            case 11:
+                                armorWeenie = 89;
+                                armorPieceType = 1;
+                                spellArray = 8;
+                                cantripArray = 8;
+                                break;
+                            case 12:
+                                armorWeenie = 99;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 13:
+                                armorWeenie = 105;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 3;
+                                break;
+                            default:
+                                armorWeenie = 112;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
                         }
-                        else if (armorPiece == 1)
-                        {
-                            armorWeenie = 116;
-                            armorPieceType = 4;
-                            spellArray = 9;
-                            cantripArray = 9;
-                        }
-                        else if (armorPiece == 2)
-                        {
-                            armorWeenie = 38;
-                            armorPieceType = 1;
-                            spellArray = 4;
-                            cantripArray = 4;
-                        }
-                        else if (armorPiece == 3)
-                        {
-                            armorWeenie = 42;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 4)
-                        {
-                            armorWeenie = 48;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 5)
-                        {
-                            armorWeenie = 723;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                        }
-                        else if (armorPiece == 6)
-                        {
-                            armorWeenie = 53;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 7)
-                        {
-                            armorWeenie = 59;
-                            armorPieceType = 3;
-                            spellArray = 5;
-                            cantripArray = 5;
-                        }
-                        else if (armorPiece == 8)
-                        {
-                            armorWeenie = 63;
-                            armorPieceType = 1;
-                            spellArray = 6;
-                            cantripArray = 6;
-                        }
-                        else if (armorPiece == 9)
-                        {
-                            armorWeenie = 68;
-                            armorPieceType = 1;
-                            spellArray = 8;
-                            cantripArray = 8;
-                        }
-                        else if (armorPiece == 10)
-                        {
-                            armorWeenie = 68;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                        }
-                        else if (armorPiece == 11)
-                        {
-                            armorWeenie = 89;
-                            armorPieceType = 1;
-                            spellArray = 8;
-                            cantripArray = 8;
-                        }
-                        else if (armorPiece == 12)
-                        {
-                            armorWeenie = 99;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 13)
-                        {
-                            armorWeenie = 105;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 3;
-                        }
-                        else
-                        {
-                            armorWeenie = 112;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
+
                         materialType = GetMaterialType(5, 1);
                     }
                     ////Chainmail
                     if (armorType == 2)
                     {
                         int armorPiece = ThreadSafeRandom.Next(0, 12);
-                        if (armorPiece == 0)
+                        switch (armorPiece)
                         {
-                            armorWeenie = 35;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
+                            case 0:
+                                armorWeenie = 35;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                break;
+                            case 1:
+                                armorWeenie = 413;
+                                armorPieceType = 1;
+                                spellArray = 4;
+                                cantripArray = 4;
+                                break;
+                            case 2:
+                                armorWeenie = 414;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 3:
+                                armorWeenie = 85;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                break;
+                            case 4:
+                                armorWeenie = 55;
+                                armorPieceType = 3;
+                                spellArray = 5;
+                                cantripArray = 5;
+                                break;
+                            case 5:
+                                armorWeenie = 415;
+                                armorPieceType = 1;
+                                spellArray = 6;
+                                cantripArray = 6;
+                                break;
+                            case 6:
+                                armorWeenie = 2605;
+                                armorPieceType = 1;
+                                spellArray = 8;
+                                cantripArray = 8;
+                                break;
+                            case 7:
+                                armorWeenie = 71;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 8:
+                                armorWeenie = 80;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
+                            case 9:
+                                armorWeenie = 416;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 3;
+                                break;
+                            case 10:
+                                armorWeenie = 96;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 11:
+                                armorWeenie = 101;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 3;
+                                break;
+                            default:
+                                armorWeenie = 108;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
                         }
-                        else if (armorPiece == 1)
-                        {
-                            armorWeenie = 413;
-                            armorPieceType = 1;
-                            spellArray = 4;
-                            cantripArray = 4;
-                        }
-                        else if (armorPiece == 2)
-                        {
-                            armorWeenie = 414;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 3)
-                        {
-                            armorWeenie = 85;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                        }
-                        else if (armorPiece == 4)
-                        {
-                            armorWeenie = 55;
-                            armorPieceType = 3;
-                            spellArray = 5;
-                            cantripArray = 5;
-                        }
-                        else if (armorPiece == 5)
-                        {
-                            armorWeenie = 415;
-                            armorPieceType = 1;
-                            spellArray = 6;
-                            cantripArray = 6;
-                        }
-                        else if (armorPiece == 6)
-                        {
-                            armorWeenie = 2605;
-                            armorPieceType = 1;
-                            spellArray = 8;
-                            cantripArray = 8;
-                        }
-                        else if (armorPiece == 7)
-                        {
-                            armorWeenie = 71;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 8)
-                        {
-                            armorWeenie = 80;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
-                        else if (armorPiece == 9)
-                        {
-                            armorWeenie = 416;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 3;
-                        }
-                        else if (armorPiece == 10)
-                        {
-                            armorWeenie = 96;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 11)
-                        {
-                            armorWeenie = 101;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 3;
-                        }
-                        else
-                        {
-                            armorWeenie = 108;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
+
                         materialType = GetMaterialType(7, 1);
                     }
                     ////Platemail
                     if (armorType == 3)
                     {
                         int armorPiece = ThreadSafeRandom.Next(0, 10);
-                        if (armorPiece == 0)
+                        switch (armorPiece)
                         {
-                            armorWeenie = 40;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
+                            case 0:
+                                armorWeenie = 40;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 1:
+                                armorWeenie = 51;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 2:
+                                armorWeenie = 57;
+                                armorPieceType = 3;
+                                spellArray = 5;
+                                cantripArray = 5;
+                                break;
+                            case 3:
+                                armorWeenie = 61;
+                                armorPieceType = 1;
+                                spellArray = 6;
+                                cantripArray = 6;
+                                break;
+                            case 4:
+                                armorWeenie = 66;
+                                armorPieceType = 1;
+                                spellArray = 8;
+                                cantripArray = 8;
+                                break;
+                            case 5:
+                                armorWeenie = 72;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 6:
+                                armorWeenie = 82;
+                                armorPieceType = 1;
+                                spellArray = 8;
+                                cantripArray = 8;
+                                break;
+                            case 7:
+                                armorWeenie = 87;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 3;
+                                break;
+                            case 8:
+                                armorWeenie = 103;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 3;
+                                break;
+                            case 9:
+                                armorWeenie = 110;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
+                            default:
+                                armorWeenie = 114;
+                                armorPieceType = 1;
+                                spellArray = 4;
+                                cantripArray = 4;
+                                break;
                         }
-                        else if (armorPiece == 1)
-                        {
-                            armorWeenie = 51;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 2)
-                        {
-                            armorWeenie = 57;
-                            armorPieceType = 3;
-                            spellArray = 5;
-                            cantripArray = 5;
-                        }
-                        else if (armorPiece == 3)
-                        {
-                            armorWeenie = 61;
-                            armorPieceType = 1;
-                            spellArray = 6;
-                            cantripArray = 6;
-                        }
-                        else if (armorPiece == 4)
-                        {
-                            armorWeenie = 66;
-                            armorPieceType = 1;
-                            spellArray = 8;
-                            cantripArray = 8;
-                        }
-                        else if (armorPiece == 5)
-                        {
-                            armorWeenie = 72;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 6)
-                        {
-                            armorWeenie = 82;
-                            armorPieceType = 1;
-                            spellArray = 8;
-                            cantripArray = 8;
-                        }
-                        else if (armorPiece == 7)
-                        {
-                            armorWeenie = 87;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 3;
-                        }
-                        else if (armorPiece == 8)
-                        {
-                            armorWeenie = 103;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 3;
-                        }
-                        else if (armorPiece == 9)
-                        {
-                            armorWeenie = 110;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
-                        else
-                        {
-                            armorWeenie = 114;
-                            armorPieceType = 1;
-                            spellArray = 4;
-                            cantripArray = 4;
-                        }
+
                         materialType = GetMaterialType(7, 1);
                     }
                     ////Scalemail
                     if (armorType == 4)
                     {
                         int armorPiece = ThreadSafeRandom.Next(0, 13);
-                        if (armorPiece == 0)
+                        switch (armorPiece)
                         {
-                            armorWeenie = 552;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
+                            case 0:
+                                armorWeenie = 552;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                break;
+                            case 1:
+                                armorWeenie = 37;
+                                armorPieceType = 1;
+                                spellArray = 4;
+                                cantripArray = 4;
+                                break;
+                            case 2:
+                                armorWeenie = 41;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 3:
+                                armorWeenie = 793;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                break;
+                            case 4:
+                                armorWeenie = 52;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 5:
+                                armorWeenie = 58;
+                                armorPieceType = 3;
+                                spellArray = 5;
+                                cantripArray = 5;
+                                break;
+                            case 6:
+                                armorWeenie = 62;
+                                armorPieceType = 1;
+                                spellArray = 6;
+                                cantripArray = 6;
+                                break;
+                            case 7:
+                                armorWeenie = 67;
+                                armorPieceType = 1;
+                                spellArray = 8;
+                                cantripArray = 8;
+                                break;
+                            case 8:
+                                armorWeenie = 73;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 9:
+                                armorWeenie = 83;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
+                            case 10:
+                                armorWeenie = 88;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 3;
+                                break;
+                            case 11:
+                                armorWeenie = 98;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 12:
+                                armorWeenie = 104;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 3;
+                                break;
+                            default:
+                                armorWeenie = 111;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
                         }
-                        else if (armorPiece == 1)
-                        {
-                            armorWeenie = 37;
-                            armorPieceType = 1;
-                            spellArray = 4;
-                            cantripArray = 4;
-                        }
-                        else if (armorPiece == 2)
-                        {
-                            armorWeenie = 41;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 3)
-                        {
-                            armorWeenie = 793;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                        }
-                        else if (armorPiece == 4)
-                        {
-                            armorWeenie = 52;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 5)
-                        {
-                            armorWeenie = 58;
-                            armorPieceType = 3;
-                            spellArray = 5;
-                            cantripArray = 5;
-                        }
-                        else if (armorPiece == 6)
-                        {
-                            armorWeenie = 62;
-                            armorPieceType = 1;
-                            spellArray = 6;
-                            cantripArray = 6;
-                        }
-                        else if (armorPiece == 7)
-                        {
-                            armorWeenie = 67;
-                            armorPieceType = 1;
-                            spellArray = 8;
-                            cantripArray = 8;
-                        }
-                        else if (armorPiece == 8)
-                        {
-                            armorWeenie = 73;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 9)
-                        {
-                            armorWeenie = 83;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
-                        else if (armorPiece == 10)
-                        {
-                            armorWeenie = 88;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 3;
-                        }
-                        else if (armorPiece == 11)
-                        {
-                            armorWeenie = 98;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 12)
-                        {
-                            armorWeenie = 104;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 3;
-                        }
-                        else
-                        {
-                            armorWeenie = 111;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
+
                         materialType = GetMaterialType(7, 1);
                     }
                     ////Yoroi
                     if (armorType == 5)
                     {
                         int armorPiece = ThreadSafeRandom.Next(0, 7);
-                        if (armorPiece == 0)
+                        switch (armorPiece)
                         {
-                            armorWeenie = 43;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
+                            case 0:
+                                armorWeenie = 43;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 1:
+                                armorWeenie = 54;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 2:
+                                armorWeenie = 64;
+                                armorPieceType = 1;
+                                spellArray = 6;
+                                cantripArray = 6;
+                                break;
+                            case 3:
+                                armorWeenie = 69;
+                                armorPieceType = 1;
+                                spellArray = 8;
+                                cantripArray = 8;
+                                break;
+                            case 4:
+                                armorWeenie = 2437;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
+                            case 5:
+                                armorWeenie = 90;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 3;
+                                break;
+                            case 6:
+                                armorWeenie = 102;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 3;
+                                break;
+                            default:
+                                armorWeenie = 113;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
                         }
-                        else if (armorPiece == 1)
-                        {
-                            armorWeenie = 54;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 2)
-                        {
-                            armorWeenie = 64;
-                            armorPieceType = 1;
-                            spellArray = 6;
-                            cantripArray = 6;
-                        }
-                        else if (armorPiece == 3)
-                        {
-                            armorWeenie = 69;
-                            armorPieceType = 1;
-                            spellArray = 8;
-                            cantripArray = 8;
-                        }
-                        else if (armorPiece == 4)
-                        {
-                            armorWeenie = 2437;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
-                        else if (armorPiece == 5)
-                        {
-                            armorWeenie = 90;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 3;
-                        }
-                        else if (armorPiece == 6)
-                        {
-                            armorWeenie = 102;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 3;
-                        }
-                        else
-                        {
-                            armorWeenie = 113;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
+
                         materialType = GetMaterialType(7, 1);
                     }
                     ////Diforsa
                     if (armorType == 6)
                     {
                         int armorPiece = ThreadSafeRandom.Next(0, 12);
-                        if (armorPiece == 0)
+                        switch (armorPiece)
                         {
-                            armorWeenie = 28367;
-                            armorPieceType = 1;
-                            spellArray = 4;
-                            cantripArray = 4;
+                            case 0:
+                                armorWeenie = 28367;
+                                armorPieceType = 1;
+                                spellArray = 4;
+                                cantripArray = 4;
+                                break;
+                            case 1:
+                                armorWeenie = 28628;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 2:
+                                armorWeenie = 28630;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 3:
+                                armorWeenie = 28632;
+                                armorPieceType = 3;
+                                spellArray = 5;
+                                cantripArray = 5;
+                                break;
+                            case 4:
+                                armorWeenie = 28633;
+                                armorPieceType = 1;
+                                spellArray = 6;
+                                cantripArray = 6;
+                                break;
+                            case 5:
+                                armorWeenie = 28634;
+                                armorPieceType = 31;
+                                spellArray = 8;
+                                cantripArray = 8;
+                                break;
+                            case 6:
+                                armorWeenie = 30948;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 7:
+                                armorWeenie = 28618;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                break;
+                            case 8:
+                                armorWeenie = 28621;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
+                            case 9:
+                                armorWeenie = 28623;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 3;
+                                break;
+                            case 10:
+                                armorWeenie = 30949;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 3;
+                                break;
+                            case 11:
+                                armorWeenie = 28625;
+                                armorPieceType = 4;
+                                spellArray = 9;
+                                cantripArray = 9;
+                                break;
+                            default:
+                                armorWeenie = 28626;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
                         }
-                        else if (armorPiece == 1)
-                        {
-                            armorWeenie = 28628;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 2)
-                        {
-                            armorWeenie = 28630;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 3)
-                        {
-                            armorWeenie = 28632;
-                            armorPieceType = 3;
-                            spellArray = 5;
-                            cantripArray = 5;
-                        }
-                        else if (armorPiece == 4)
-                        {
-                            armorWeenie = 28633;
-                            armorPieceType = 1;
-                            spellArray = 6;
-                            cantripArray = 6;
-                        }
-                        else if (armorPiece == 5)
-                        {
-                            armorWeenie = 28634;
-                            armorPieceType = 31;
-                            spellArray = 8;
-                            cantripArray = 8;
-                        }
-                        else if (armorPiece == 6)
-                        {
-                            armorWeenie = 30948;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 7)
-                        {
-                            armorWeenie = 28618;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                        }
-                        else if (armorPiece == 8)
-                        {
-                            armorWeenie = 28621;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
-                        else if (armorPiece == 9)
-                        {
-                            armorWeenie = 28623;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 3;
-                        }
-                        else if (armorPiece == 10)
-                        {
-                            armorWeenie = 30949;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 3;
-                        }
-                        else if (armorPiece == 11)
-                        {
-                            armorWeenie = 28625;
-                            armorPieceType = 4;
-                            spellArray = 9;
-                            cantripArray = 9;
-                        }
-                        else
-                        {
-                            armorWeenie = 28626;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
+
                         materialType = GetMaterialType(7, 1);
                     }
                     ////celdon
                     if (armorType == 7)
                     {
                         int armorPiece = ThreadSafeRandom.Next(0, 3);
-                        if (armorPiece == 0)
+                        switch (armorPiece)
                         {
-                            armorWeenie = 6044;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
+                            case 0:
+                                armorWeenie = 6044;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 1:
+                                armorWeenie = 6043;
+                                armorPieceType = 1;
+                                spellArray = 6;
+                                cantripArray = 6;
+                                break;
+                            case 2:
+                                armorWeenie = 6045;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
+                            default:
+                                armorWeenie = 6048;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 3;
+                                break;
                         }
-                        else if (armorPiece == 1)
-                        {
-                            armorWeenie = 6043;
-                            armorPieceType = 1;
-                            spellArray = 6;
-                            cantripArray = 6;
-                        }
-                        else if (armorPiece == 2)
-                        {
-                            armorWeenie = 6045;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
-                        else
-                        {
-                            armorWeenie = 6048;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 3;
-                        }
+
                         materialType = GetMaterialType(7, 1);
                     }
                     ///Amuli
@@ -13520,185 +13022,178 @@ namespace ACE.Server.Factories
                     if (armorType == 11)
                     {
                         int armorPiece = ThreadSafeRandom.Next(0, 5);
-                        if (armorPiece == 0)
+                        switch (armorPiece)
                         {
-                            armorWeenie = 27220;
-                            armorPieceType = 4;
-                            spellArray = 9;
-                            cantripArray = 9;
+                            case 0:
+                                armorWeenie = 27220;
+                                armorPieceType = 4;
+                                spellArray = 9;
+                                cantripArray = 9;
+                                break;
+                            case 1:
+                                armorWeenie = 27221;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 2:
+                                armorWeenie = 27222;
+                                armorPieceType = 3;
+                                spellArray = 5;
+                                cantripArray = 5;
+                                break;
+                            case 3:
+                                armorWeenie = 27223;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                break;
+                            case 4:
+                                armorWeenie = 27224;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
+                            default:
+                                armorWeenie = 27225;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 3;
+                                break;
                         }
-                        else if (armorPiece == 1)
-                        {
-                            armorWeenie = 27221;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 2)
-                        {
-                            armorWeenie = 27222;
-                            armorPieceType = 3;
-                            spellArray = 5;
-                            cantripArray = 5;
-                        }
-                        else if (armorPiece == 3)
-                        {
-                            armorWeenie = 27223;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                        }
-                        else if (armorPiece == 4)
-                        {
-                            armorWeenie = 27224;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
-                        else
-                        {
-                            armorWeenie = 27225;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 3;
-                        }
+
                         materialType = GetMaterialType(7, 1);
                     }
                     ////Nariyid
                     if (armorType == 12)
                     {
                         int armorPiece = ThreadSafeRandom.Next(0, 6);
-                        if (armorPiece == 0)
+                        switch (armorPiece)
                         {
-                            armorWeenie = 27226;
-                            armorPieceType = 4;
-                            spellArray = 9;
-                            cantripArray = 9;
+                            case 0:
+                                armorWeenie = 27226;
+                                armorPieceType = 4;
+                                spellArray = 9;
+                                cantripArray = 9;
+                                break;
+                            case 1:
+                                armorWeenie = 27227;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 2:
+                                armorWeenie = 27228;
+                                armorPieceType = 3;
+                                spellArray = 5;
+                                cantripArray = 5;
+                                break;
+                            case 3:
+                                armorWeenie = 27229;
+                                armorPieceType = 1;
+                                spellArray = 6;
+                                cantripArray = 6;
+                                break;
+                            case 4:
+                                armorWeenie = 27230;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                break;
+                            case 5:
+                                armorWeenie = 27231;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
+                            default:
+                                armorWeenie = 27232;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 3;
+                                break;
                         }
-                        else if (armorPiece == 1)
-                        {
-                            armorWeenie = 27227;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 2)
-                        {
-                            armorWeenie = 27228;
-                            armorPieceType = 3;
-                            spellArray = 5;
-                            cantripArray = 5;
-                        }
-                        else if (armorPiece == 3)
-                        {
-                            armorWeenie = 27229;
-                            armorPieceType = 1;
-                            spellArray = 6;
-                            cantripArray = 6;
-                        }
-                        else if (armorPiece == 4)
-                        {
-                            armorWeenie = 27230;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                        }
-                        else if (armorPiece == 5)
-                        {
-                            armorWeenie = 27231;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
-                        else
-                        {
-                            armorWeenie = 27232;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 3;
-                        }
+
                         materialType = GetMaterialType(7, 1);
                     }
                     ////Chiran
                     if (armorType == 13)
                     {
                         int armorPiece = ThreadSafeRandom.Next(0, 4);
-                        if (armorPiece == 0)
+                        switch (armorPiece)
                         {
-                            armorWeenie = 27215;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
+                            case 0:
+                                armorWeenie = 27215;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 1:
+                                armorWeenie = 27216;
+                                armorPieceType = 3;
+                                spellArray = 5;
+                                cantripArray = 5;
+                                break;
+                            case 2:
+                                armorWeenie = 27217;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                break;
+                            case 3:
+                                armorWeenie = 27218;
+                                armorPieceType = 1;
+                                spellArray = 7;
+                                cantripArray = 7;
+                                break;
+                            default:
+                                armorWeenie = 27219;
+                                armorPieceType = 4;
+                                spellArray = 9;
+                                cantripArray = 9;
+                                break;
                         }
-                        else if (armorPiece == 1)
-                        {
-                            armorWeenie = 27216;
-                            armorPieceType = 3;
-                            spellArray = 5;
-                            cantripArray = 5;
-                        }
-                        else if (armorPiece == 2)
-                        {
-                            armorWeenie = 27217;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                        }
-                        else if (armorPiece == 3)
-                        {
-                            armorWeenie = 27218;
-                            armorPieceType = 1;
-                            spellArray = 7;
-                            cantripArray = 7;
-                        }
-                        else
-                        {
-                            armorWeenie = 27219;
-                            armorPieceType = 4;
-                            spellArray = 9;
-                            cantripArray = 9;
-                        }
+
                         materialType = GetMaterialType(7, 1);
                     }
                     ////Alduressa
                     if (armorType == 14)
                     {
                         int armorPiece = ThreadSafeRandom.Next(0, 4);
-                        if (armorPiece == 0)
+                        switch (armorPiece)
                         {
-                            armorWeenie = 30950;
-                            armorPieceType = 4;
-                            spellArray = 9;
-                            cantripArray = 9;
+                            case 0:
+                                armorWeenie = 30950;
+                                armorPieceType = 4;
+                                spellArray = 9;
+                                cantripArray = 9;
+                                break;
+                            case 1:
+                                armorWeenie = 28629;
+                                armorPieceType = 1;
+                                spellArray = 2;
+                                cantripArray = 2;
+                                break;
+                            case 2:
+                                armorWeenie = 30951;
+                                armorPieceType = 3;
+                                spellArray = 5;
+                                cantripArray = 5;
+                                break;
+                            case 3:
+                                armorWeenie = 28617;
+                                armorPieceType = 2;
+                                spellArray = 1;
+                                cantripArray = 1;
+                                break;
+                            default:
+                                armorWeenie = 28620;
+                                armorPieceType = 1;
+                                spellArray = 3;
+                                cantripArray = 3;
+                                break;
                         }
-                        else if (armorPiece == 1)
-                        {
-                            armorWeenie = 28629;
-                            armorPieceType = 1;
-                            spellArray = 2;
-                            cantripArray = 2;
-                        }
-                        else if (armorPiece == 2)
-                        {
-                            armorWeenie = 30951;
-                            armorPieceType = 3;
-                            spellArray = 5;
-                            cantripArray = 5;
-                        }
-                        else if (armorPiece == 3)
-                        {
-                            armorWeenie = 28617;
-                            armorPieceType = 2;
-                            spellArray = 1;
-                            cantripArray = 1;
-                        }
-                        else
-                        {
-                            armorWeenie = 28620;
-                            armorPieceType = 1;
-                            spellArray = 3;
-                            cantripArray = 3;
-                        }
+
                         materialType = GetMaterialType(7, 1);
                     }
                     //////Knorr Academy Armor
@@ -14494,101 +13989,92 @@ namespace ACE.Server.Factories
             wo.SetProperty(PropertyInt.EquipmentSetId, equipSetId);
             wo.SetProperty(PropertyInt.AppraisalLongDescDecoration, 1);
             ////Encumberance will be added based on item in the future
+
             int numSpells = 0;
+
             if (isMagical)
-            {
                 numSpells = GetNumSpells(tier);
-            }
+
             maxMana = GetMaxMana(numSpells, tier);
             curMana = maxMana;
             wo.SetProperty(PropertyInt.ItemMaxMana, maxMana);
             wo.SetProperty(PropertyInt.ItemCurMana, curMana);
             int numCantrips = GetNumCantrips(numSpells);
-            if (spellArray == 1)
+
+            switch (spellArray)
             {
-                spells = LootHelper.HeadSpells;
+                case 1:
+                    spells = LootHelper.HeadSpells;
+                    break;
+                case 2:
+                    spells = LootHelper.ChestSpells;
+                    break;
+                case 3:
+                    spells = LootHelper.UpperArmSpells;
+                    break;
+                case 4:
+                    spells = LootHelper.LowerArmSpells;
+                    break;
+                case 5:
+                    spells = LootHelper.HandSpells;
+                    break;
+                case 6:
+                    spells = LootHelper.AbdomenSpells;
+                    break;
+                case 7:
+                    spells = LootHelper.UpperLegSpells;
+                    break;
+                case 8:
+                    spells = LootHelper.LowerLegSpells;
+                    break;
+                case 9:
+                    spells = LootHelper.FeetSpells;
+                    break;
+                default:
+                    spells = LootHelper.ShieldSpells;
+                    break;
             }
-            else if (spellArray == 2)
+
+            switch (cantripArray)
             {
-                spells = LootHelper.ChestSpells;
+                case 1:
+                    cantrips = LootHelper.HeadCantrips;
+                    break;
+                case 2:
+                    cantrips = LootHelper.ChestCantrips;
+                    break;
+                case 3:
+                    cantrips = LootHelper.UpperArmCantrips;
+                    break;
+                case 4:
+                    cantrips = LootHelper.LowerArmCantrips;
+                    break;
+                case 5:
+                    cantrips = LootHelper.HandCantrips;
+                    break;
+                case 6:
+                    cantrips = LootHelper.AbdomenCantrips;
+                    break;
+                case 7:
+                    cantrips = LootHelper.UpperLegCantrips;
+                    break;
+                case 8:
+                    cantrips = LootHelper.LowerLegCantrips;
+                    break;
+                case 9:
+                    cantrips = LootHelper.FeetCantrips;
+                    break;
+                default:
+                    cantrips = LootHelper.ShieldCantrips;
+                    break;
             }
-            else if (spellArray == 3)
-            {
-                spells = LootHelper.UpperArmSpells;
-            }
-            else if (spellArray == 4)
-            {
-                spells = LootHelper.LowerArmSpells;
-            }
-            else if (spellArray == 5)
-            {
-                spells = LootHelper.HandSpells;
-            }
-            else if (spellArray == 6)
-            {
-                spells = LootHelper.AbdomenSpells;
-            }
-            else if (spellArray == 7)
-            {
-                spells = LootHelper.UpperLegSpells;
-            }
-            else if (spellArray == 8)
-            {
-                spells = LootHelper.LowerLegSpells;
-            }
-            else if (spellArray == 9)
-            {
-                spells = LootHelper.FeetSpells;
-            }
-            else
-            {
-                spells = LootHelper.ShieldSpells;
-            }
-            if (cantripArray == 1)
-            {
-                cantrips = LootHelper.HeadCantrips;
-            }
-            else if (cantripArray == 2)
-            {
-                cantrips = LootHelper.ChestCantrips;
-            }
-            else if (cantripArray == 3)
-            {
-                cantrips = LootHelper.UpperArmCantrips;
-            }
-            else if (cantripArray == 4)
-            {
-                cantrips = LootHelper.LowerArmCantrips;
-            }
-            else if (cantripArray == 5)
-            {
-                cantrips = LootHelper.HandCantrips;
-            }
-            else if (cantripArray == 6)
-            {
-                cantrips = LootHelper.AbdomenCantrips;
-            }
-            else if (cantripArray == 7)
-            {
-                cantrips = LootHelper.UpperLegCantrips;
-            }
-            else if (cantripArray == 8)
-            {
-                cantrips = LootHelper.LowerLegCantrips;
-            }
-            else if (cantripArray == 9)
-            {
-                cantrips = LootHelper.FeetCantrips;
-            }
-            else
-            {
-                cantrips = LootHelper.ShieldCantrips;
-            }
+
             int[] shuffledValues = new int[spells.Length];
             for (int i = 0; i < spells.Length; i++)
             {
                 shuffledValues[i] = i;
             }
+
             Shuffle(shuffledValues);
             if (numSpells - numCantrips > 0)
             {
@@ -14601,6 +14087,7 @@ namespace ACE.Server.Factories
                     wo.Biota.BiotaPropertiesSpellBook.Add(result);
                 }
             }
+
             int minorCantrips = GetNumMinorCantrips(tier);
             int majorCantrips = GetNumMajorCantrips(tier);
             int epicCantrips = GetNumEpicCantrips(tier);
@@ -14647,14 +14134,12 @@ namespace ACE.Server.Factories
                     wo.Biota.BiotaPropertiesSpellBook.Add(result);
                 }
             }
+
             if (wieldDifficulty > 0)
-            {
                 wo.SetProperty(PropertyInt.WieldDifficulty, wieldDifficulty);
-            }
             else
-            {
                 wo.RemoveProperty(PropertyInt.WieldDifficulty);
-            }
+
             /////Setting random color
             wo.SetProperty(PropertyInt.PaletteTemplate, ThreadSafeRandom.Next(1, 2047));
             double shade = .1 * ThreadSafeRandom.Next(0, 9);
@@ -14669,8 +14154,18 @@ namespace ACE.Server.Factories
                 wo.SetProperty(PropertyInt.UiEffects, 1);
             }
             wo.SetProperty(PropertyInt.Value, GetValue(tier, workmanship2));
-            wo.SetProperty(PropertyInt.ArmorLevel, GetArmorLevel(tier, armorPieceType));
-            wo.SetProperty(PropertyString.LongDesc, getLongDesc(wo.GetProperty(PropertyString.Name), gemType, gemCount));
+
+            var baseArmorLevel = wo.GetProperty(PropertyInt.ArmorLevel) ?? 0;
+
+            if (baseArmorLevel == 0)
+                wo.RemoveProperty(PropertyInt.ArmorLevel);
+            else
+            {
+                int adjustedArmorLevel = baseArmorLevel + GetArmorLevelModifier(tier, armorPieceType);
+                wo.SetProperty(PropertyInt.ArmorLevel, adjustedArmorLevel);
+            }
+
+            wo.SetProperty(PropertyString.LongDesc, wo.GetProperty(PropertyString.Name));
             if (numSpells == 0)
             {
                 wo.RemoveProperty(PropertyInt.ItemManaCost);
@@ -14683,117 +14178,69 @@ namespace ACE.Server.Factories
             return wo;
         }
 
-        public static int GetArmorLevel(int tier, int armorType)
+        private static int GetArmorLevelModifier(int tier, int armorType)
         {
-
             switch (tier)
             {
                 case 1:
                     if (armorType == 1)
-                    {
                         return ThreadSafeRandom.Next(10, 37);
-                    }
                     else if (armorType == 5)
-                    {
                         return ThreadSafeRandom.Next(10, 33);
-                    }
                     else
-                    {
                         return ThreadSafeRandom.Next(10, 50);
-                    }
                 case 2:
                     if (armorType == 1)
-                    {
                         return ThreadSafeRandom.Next(37, 72);
-                    }
                     else if (armorType == 5)
-                    {
                         return ThreadSafeRandom.Next(34, 57);
-                    }
                     else
-                    {
                         return ThreadSafeRandom.Next(51, 90);
-                    }
                 case 3:
                     if (armorType == 1)
-                    {
                         return ThreadSafeRandom.Next(73, 109);
-                    }
                     else if (armorType == 5)
-                    {
                         return ThreadSafeRandom.Next(58, 82);
-                    }
                     else
-                    {
                         return ThreadSafeRandom.Next(92, 132);
-                    }
                 case 4:
                     if (armorType == 1)
-                    {
                         return ThreadSafeRandom.Next(109, 145);
-                    }
                     else if (armorType == 5)
-                    {
                         return ThreadSafeRandom.Next(82, 106);
-                    }
                     else
-                    {
                         return ThreadSafeRandom.Next(133, 173);
-                    }
                 case 5:
                     if (armorType == 1)
-                    {
                         return ThreadSafeRandom.Next(145, 181);
-                    }
                     else if (armorType == 5)
-                    {
                         return ThreadSafeRandom.Next(106, 130);
-                    }
                     else
-                    {
                         return ThreadSafeRandom.Next(173, 213);
-                    }
                 case 6:
                     if (armorType == 1)
-                    {
                         return ThreadSafeRandom.Next(181, 217);
-                    }
                     else if (armorType == 5)
-                    {
                         return ThreadSafeRandom.Next(130, 154);
-                    }
                     else
-                    {
                         return ThreadSafeRandom.Next(213, 254);
-                    }
                 case 7:
                     if (armorType == 1)
-                    {
                         return ThreadSafeRandom.Next(217, 253);
-                    }
                     else if (armorType == 5)
-                    {
                         return ThreadSafeRandom.Next(154, 178);
-                    }
                     else
-                    {
                         return ThreadSafeRandom.Next(254, 294);
-                    }
                 case 8:
                     if (armorType == 1)
-                    {
                         return ThreadSafeRandom.Next(253, 304);
-                    }
                     else if (armorType == 5)
-                    {
                         return ThreadSafeRandom.Next(178, 202);
-                    }
                     else
-                    {
                         return ThreadSafeRandom.Next(294, 335);
-                    }
+                default:
+                    return 0;
             }
-            return 0;
         }
 
         public static int GetWield(int tier, int type)
@@ -15574,32 +15021,20 @@ namespace ACE.Server.Factories
             if (wield == 0)
             {
                 if (weaponType == 0)
-                {
                     damageMod = 2.10;
-                }
                 else if (weaponType == 1)
-                {
                     damageMod = 2.40;
-                }
                 else
-                {
                     damageMod = 2.3;
-                }
             }
             else
             {
                 if (weaponType == 0)
-                {
                     damageMod = 2.40;
-                }
                 else if (weaponType == 1)
-                {
                     damageMod = 2.65;
-                }
                 else
-                {
                     damageMod = 2.60;
-                }
             }
             return damageMod;
         }
@@ -15609,152 +15044,75 @@ namespace ACE.Server.Factories
 
             int[][] spells = LootHelper.MissileSpells;
             int[][] cantrips = LootHelper.MissileCantrips;
-            int weaponWeenie = 0;
-            ////Double Values
 
+            ////Double Values
             double manaRate = -.04166667; ///done
-            double maxVelocity = 0; ///done
-            double weaponDefense = GetMeleeDMod(20, tier); // done
-            double missileDefense = GetMissileDMod(tier);  //done
-            double magicDefense = GetMissileDMod(tier);  //done
-            double weaponOffense = 1;
-            /////Int Valules
-            int encumb = 0;
-            int gemCount = ThreadSafeRandom.Next(1, 5);
-            int gemType = ThreadSafeRandom.Next(10, 50);
-            int numSpells = GetNumSpells(tier);
-            int numCantrips = GetNumCantrips(numSpells);
-            int itemMaxMana = GetMaxMana(numSpells, tier);
-            int itemCurMana = itemMaxMana;
-            int spellCraft = GetSpellcraft(numSpells, tier);
-            int itemDifficulty = GetDifficulty(tier, spellCraft);
-            int workmanship = GetWorkmanship(tier);
-            int materialType = GetMaterialType(2, tier);
-            int value = GetValue(tier, workmanship);
-            int weaponTime = 0; ///done
-            int wieldDifficulty = GetWield(tier, 1); // done
-            int itemSkillLevelLimit = 0;
-            int weaponSkillInt = 0;
-            int wieldRequirements = 2;
-            int wieldSkillType = 47;
-            double elemenatalBonus = GetElementalBonus(wieldDifficulty);
-            int lowSpellTier = GetLowSpellTier(tier);
-            int highSpellTier = GetHighSpellTier(tier);
-            int subType = ThreadSafeRandom.Next(0, 2);
-            if (subType == 0)
-            {
-                ////There are 8 subtypes of Bows
-                int subBowType = ThreadSafeRandom.Next(0, 6);
-                if (subBowType == 0)
-                {
-                    ////Longbow
-                    encumb = ThreadSafeRandom.Next(700, 1000);
-                    weaponWeenie = 306;
-                    maxVelocity = 27.3;
-                    weaponTime = 45;
-                }
-                else if (subBowType == 1)
-                {
-                    ////Yumi
-                    weaponWeenie = 363;
-                    maxVelocity = 27.3;
-                    weaponTime = 45;
-                    encumb = ThreadSafeRandom.Next(700, 1000);
-                }
-                else if (subBowType == 2)
-                {
-                    ////Nayin
-                    weaponWeenie = 334;
-                    maxVelocity = 27.3;
-                    weaponTime = 40;
-                    encumb = ThreadSafeRandom.Next(700, 1000);
-                }
-                else if (subBowType == 3)
-                {
-                    ////Shortbow
-                    weaponWeenie = 307;
-                    maxVelocity = 24.9;
-                    weaponTime = 30;
-                    encumb = ThreadSafeRandom.Next(300, 400);
-                }
-                else if (subBowType == 4)
-                {
-                    ////Shouyumi
-                    weaponWeenie = 341;
-                    maxVelocity = 24.9;
-                    weaponTime = 29;
-                    encumb = ThreadSafeRandom.Next(300, 400);
-                }
-                else if (subBowType == 5)
-                {
-                    ////War Bow
-                    weaponWeenie = 30625;
-                    maxVelocity = 27.3;
-                    weaponTime = 43;
-                    encumb = ThreadSafeRandom.Next(700, 1000);
-                }
-                else
-                {
-                    ////Yag
-                    weaponWeenie = 360;
-                    maxVelocity = 24.9;
-                    weaponTime = 24;
-                    encumb = ThreadSafeRandom.Next(300, 400);
-                }
-            }
-            else if (subType == 1)
-            {
-                ////There are 4 subtypes of Crossbows
-                int subXbowType = ThreadSafeRandom.Next(0, 2);
-                if (subXbowType == 0)
-                {
-                    ////Arbalest
-                    weaponWeenie = 30616;
-                    maxVelocity = 27.3;
-                    weaponTime = 113;
-                    encumb = ThreadSafeRandom.Next(1400, 2000);
-                }
-                ////Compound Crossbow should go here, but not in the db
-                else if (subXbowType == 1)
-                {
-                    ////Heavy Crossbow
-                    weaponWeenie = 311;
-                    maxVelocity = 27.3;
-                    weaponTime = 120;
-                    encumb = ThreadSafeRandom.Next(1400, 2000);
-                }
-                else
-                {
-                    ////Light Crossbow
-                    weaponWeenie = 312;
-                    maxVelocity = 24.9;
-                    weaponTime = 58;
-                    encumb = ThreadSafeRandom.Next(700, 1000);
-                }
-            }
+
+            int weaponWeenie;
+            int subType;
+            int chance;
+            int elemenatalBonus = 0;
+
+            int wieldDifficulty = GetWield(tier, 1);
+
+            if (tier < 4)
+                GetNonElementalMissileWeapon(out weaponWeenie, out subType);
             else
             {
-                ////There are 3 subtypes of Atlatl
-                int subAtlatlType = ThreadSafeRandom.Next(0, 1);
-                if (subAtlatlType == 0)
+                chance = ThreadSafeRandom.Next(0, 1);
+                switch (chance)
                 {
-                    ////Atlatl
-                    weaponWeenie = 12463;
-                    maxVelocity = 27.3;
-                    weaponTime = 15;
-                    encumb = ThreadSafeRandom.Next(250, 500);
-                }
-                else
-                {
-                    ////Royal Atlatl
-                    weaponWeenie = 20640;
-                    maxVelocity = 27.3;
-                    weaponTime = 15;
-                    encumb = ThreadSafeRandom.Next(250, 500);
+                    case 0:
+                        GetNonElementalMissileWeapon(out weaponWeenie, out subType);
+                        break;
+                    default:
+                        elemenatalBonus = GetElementalBonus(wieldDifficulty);
+                        GetElementalMissileWeapon(out weaponWeenie, out subType);
+                        break;
                 }
             }
-            double damageMod = GetDamageModifier(wieldDifficulty, subType);
+
             WorldObject wo = WorldObjectFactory.CreateNewWorldObject((uint)weaponWeenie);
+
+            int workmanship = GetWorkmanship(tier);
+            wo.SetProperty(PropertyInt.Value, GetValue(tier, workmanship));
+            wo.SetProperty(PropertyInt.ItemWorkmanship, workmanship);
+            wo.SetProperty(PropertyInt.MaterialType, GetMaterialType(2, tier));
+            wo.SetProperty(PropertyInt.GemCount, ThreadSafeRandom.Next(1, 5));
+            wo.SetProperty(PropertyInt.GemType, ThreadSafeRandom.Next(10, 50));
+            wo.SetProperty(PropertyString.LongDesc, wo.GetProperty(PropertyString.Name));
+
+            // wo.SetProperty(PropertyFloat.DamageMod, GetDamageModifier(wieldDifficulty, subType));
+            wo.SetProperty(PropertyFloat.WeaponDefense, GetMeleeDMod(tier));
+            wo.SetProperty(PropertyFloat.WeaponMissileDefense, GetMissileDMod(tier));
+            // wo.SetProperty(PropertyFloat.WeaponMagicDefense, magicDefense);
+            wo.SetProperty(PropertyFloat.WeaponOffense, 1);
+
+            if (elemenatalBonus > 0)
+                wo.SetProperty(PropertyInt.ElementalDamageBonus, elemenatalBonus);
+
+            if (wieldDifficulty > 0)
+            {
+                wo.SetProperty(PropertyInt.WieldDifficulty, wieldDifficulty);
+                wo.SetProperty(PropertyInt.WieldRequirements, (int)WieldRequirement.RawSkill);
+                wo.SetProperty(PropertyInt.WieldSkillType, (int)Skill.MissileWeapons);
+            }
+
+            wo.SetProperty(PropertyFloat.ManaRate, manaRate);
+
+            int numSpells = GetNumSpells(tier);
+            int numCantrips = GetNumCantrips(numSpells);
+            int spellCraft = GetSpellcraft(numSpells, tier);
+            int lowSpellTier = GetLowSpellTier(tier);
+            int highSpellTier = GetHighSpellTier(tier);
+            int itemSkillLevelLimit = 0;
+
+            wo.SetProperty(PropertyInt.ItemMaxMana, GetMaxMana(numSpells, tier));
+            wo.SetProperty(PropertyInt.ItemCurMana, GetMaxMana(numSpells, tier));
+            wo.SetProperty(PropertyInt.ItemSpellcraft, spellCraft);
+            wo.SetProperty(PropertyInt.ItemDifficulty, GetDifficulty(tier, spellCraft));
+            wo.SetProperty(PropertyInt.ItemSkillLevelLimit, itemSkillLevelLimit);
+
             int[] shuffledValues = new int[spells.Length];
             for (int i = 0; i < spells.Length; i++)
             {
@@ -15763,7 +15121,6 @@ namespace ACE.Server.Factories
             Shuffle(shuffledValues);
             if (numSpells - numCantrips > 0)
             {
-                wo.SetProperty(PropertyInt.UiEffects, 1);
                 for (int a = 0; a < numSpells - numCantrips; a++)
                 {
                     int col = ThreadSafeRandom.Next(lowSpellTier - 1, highSpellTier - 1);
@@ -15819,93 +15176,10 @@ namespace ACE.Server.Factories
                     wo.Biota.BiotaPropertiesSpellBook.Add(result);
                 }
             }
-            int damageType = 0;
-            int uiEffects= 0;
 
-            String elementName = null;
-            int chance = ThreadSafeRandom.Next(0, 6);
-            if (ThreadSafeRandom.Next(1, 100) > 90)
-            {
-                switch (chance)
-                {
-                    case 0:
-                        ///slash
-                        damageType = 1;
-                        uiEffects = 1024;
-                        elementName = "Slashing";
-                        break;
-                    case 1:
-                        ///pierce
-                        damageType = 2;
-                        uiEffects = 2049;
-                        elementName = "Piercing";
-                        break;
-                    case 2:
-                        //bludge
-                        damageType = 4;
-                        uiEffects = 513;
-                        elementName = "Bludge";
-                        break;
-                    case 3:
-                        //cold
-                        damageType = 8;
-                        uiEffects = 129;
-                        elementName = "Frost";
-                        break;
-                    case 4:
-                        //fire
-                        damageType = 16;
-                        uiEffects = 33;
-                        elementName = "Fire";
-                        break;
-                    case 5:
-                        //acid
-                        damageType = 32;
-                        uiEffects = 247;
-                        elementName = "Acid";
-                        break;
-                    case 6:
-                        //electric
-                        damageType = 64;
-                        uiEffects = 64;
-                        elementName = "Electric";
-                        break;
-                }
-            }
-
-            if (elementName != null)
-                wo.SetProperty(PropertyString.Name, $"{elementName} {wo.Name}");
+            if (numCantrips > 0 || numSpells > 0)
+                wo.SetProperty(PropertyInt.UiEffects, (int)UiEffects.Magical);
             else
-                wo.SetProperty(PropertyString.Name, wo.Name);
-
-            wo.SetProperty(PropertyFloat.DamageMod, damageMod);
-            wo.SetProperty(PropertyInt.UiEffects, uiEffects);
-            wo.SetProperty(PropertyInt.DamageType, damageType);
-            wo.SetProperty(PropertyFloat.ManaRate, manaRate);
-            wo.SetProperty(PropertyFloat.MaximumVelocity, maxVelocity);
-            wo.SetProperty(PropertyFloat.WeaponDefense, weaponDefense);
-            wo.SetProperty(PropertyFloat.WeaponMissileDefense, missileDefense);
-            wo.SetProperty(PropertyFloat.WeaponMagicDefense, magicDefense);
-            wo.SetProperty(PropertyFloat.WeaponOffense, weaponOffense);
-            wo.SetProperty(PropertyInt.EncumbranceVal, encumb);
-            wo.SetProperty(PropertyInt.GemCount, gemCount);
-            wo.SetProperty(PropertyInt.GemType, gemType);
-            wo.SetProperty(PropertyInt.ItemMaxMana, itemMaxMana);
-            wo.SetProperty(PropertyInt.ItemCurMana, itemCurMana);
-            wo.SetProperty(PropertyInt.ItemSpellcraft, spellCraft);
-            wo.SetProperty(PropertyInt.ItemDifficulty, itemDifficulty);
-            wo.SetProperty(PropertyInt.ItemWorkmanship, workmanship);
-            wo.SetProperty(PropertyInt.MaterialType, materialType);
-            wo.SetProperty(PropertyInt.Value, value);
-            wo.SetProperty(PropertyInt.WeaponTime, weaponTime);
-            wo.SetProperty(PropertyInt.WieldDifficulty, wieldDifficulty);
-            wo.SetProperty(PropertyInt.ItemSkillLevelLimit, itemSkillLevelLimit);
-            wo.SetProperty(PropertyInt.WeaponSkill, weaponSkillInt);
-            wo.SetProperty(PropertyInt.WieldRequirements, wieldRequirements);
-            wo.SetProperty(PropertyInt.WieldSkillType, wieldSkillType);
-            wo.SetProperty(PropertyString.LongDesc, getLongDesc(wo.GetProperty(PropertyString.Name), gemType, gemCount));
-
-            if (numSpells == 0)
             {
                 wo.RemoveProperty(PropertyInt.ItemManaCost);
                 wo.RemoveProperty(PropertyInt.ItemMaxMana);
@@ -15913,17 +15187,237 @@ namespace ACE.Server.Factories
                 wo.RemoveProperty(PropertyInt.ItemSpellcraft);
                 wo.RemoveProperty(PropertyInt.ItemDifficulty);
             }
-            else
-                wo.SetProperty(PropertyInt.UiEffects, 1);
-
-            if (wieldDifficulty == 0)
-            {
-                wo.RemoveProperty(PropertyInt.WieldDifficulty);
-                wo.RemoveProperty(PropertyInt.WieldRequirements);
-                wo.RemoveProperty(PropertyInt.WieldSkillType);
-            }
 
             return wo;
+        }
+
+        private static void GetElementalMissileWeapon(out int weaponWeenie, out int subType)
+        {
+            int chance = ThreadSafeRandom.Next(0, 6);
+
+            subType = ThreadSafeRandom.Next(0, 5);
+            switch (subType)
+            {
+                case 0: // Bow
+                    switch (chance)
+                    {
+                        case 0: // Slashing
+                            weaponWeenie = 29244;
+                            break;
+                        case 1: // Blunt
+                            weaponWeenie = 29239;
+                            break;
+                        case 2: // Piercing
+                            weaponWeenie = 29243;
+                            break;
+                        case 3: // Fire
+                            weaponWeenie = 29241;
+                            break;
+                        case 4: // Frost
+                            weaponWeenie = 29242;
+                            break;
+                        case 5: // Acid
+                            weaponWeenie = 29238;
+                            break;
+                        default: // Electric
+                            weaponWeenie = 29240;
+                            break;
+                    }
+                    break;
+                case 1: // Crossbow
+                    switch (chance)
+                    {
+                        case 0: // Slashing
+                            weaponWeenie = 29251;
+                            break;
+                        case 1: // Blunt
+                            weaponWeenie = 29246;
+                            break;
+                        case 2: // Piercing
+                            weaponWeenie = 29250;
+                            break;
+                        case 3: // Fire
+                            weaponWeenie = 29248;
+                            break;
+                        case 4: // Frost
+                            weaponWeenie = 29249;
+                            break;
+                        case 5: // Acid
+                            weaponWeenie = 29245;
+                            break;
+                        default: // Electric
+                            weaponWeenie = 29247;
+                            break;
+                    }
+                    break;
+                case 2: // Atlatl
+                    switch (chance)
+                    {
+                        case 0: // Slashing
+                            weaponWeenie = 29258;
+                            break;
+                        case 1: // Blunt
+                            weaponWeenie = 29253;
+                            break;
+                        case 2: // Piercing
+                            weaponWeenie = 29257;
+                            break;
+                        case 3: // Fire
+                            weaponWeenie = 29255;
+                            break;
+                        case 4: // Frost
+                            weaponWeenie = 29256;
+                            break;
+                        case 5: // Acid
+                            weaponWeenie = 29252;
+                            break;
+                        default: // Electric
+                            weaponWeenie = 29254;
+                            break;
+                    }
+                    break;
+                case 3: // Slingshot
+                    switch (chance)
+                    {
+                        case 0: // Slashing
+                            weaponWeenie = 31812;
+                            break;
+                        case 1: // Blunt
+                            weaponWeenie = 31814;
+                            break;
+                        case 2: // Piercing
+                            weaponWeenie = 31818;
+                            break;
+                        case 3: // Fire
+                            weaponWeenie = 31816;
+                            break;
+                        case 4: // Frost
+                            weaponWeenie = 31817;
+                            break;
+                        case 5: // Acid
+                            weaponWeenie = 31813;
+                            break;
+                        default: // Electric
+                            weaponWeenie = 31815;
+                            break;
+                    }
+                    break;
+                case 4: // Compound Bow
+                    switch (chance)
+                    {
+                        case 0: // Slashing
+                            weaponWeenie = 31798;
+                            break;
+                        case 1: // Blunt
+                            weaponWeenie = 31800;
+                            break;
+                        case 2: // Piercing
+                            weaponWeenie = 31804;
+                            break;
+                        case 3: // Fire
+                            weaponWeenie = 31802;
+                            break;
+                        case 4: // Frost
+                            weaponWeenie = 31803;
+                            break;
+                        case 5: // Acid
+                            weaponWeenie = 31799;
+                            break;
+                        default: // Electric
+                            weaponWeenie = 31801;
+                            break;
+                    }
+                    break;
+                default: // Compound Crossbow
+                    switch (chance)
+                    {
+                        case 0: // Slashing
+                            weaponWeenie = 31805;
+                            break;
+                        case 1: // Blunt
+                            weaponWeenie = 31807;
+                            break;
+                        case 2: // Piercing
+                            weaponWeenie = 31811;
+                            break;
+                        case 3: // Fire
+                            weaponWeenie = 31809;
+                            break;
+                        case 4: // Frost
+                            weaponWeenie = 31810;
+                            break;
+                        case 5: // Acid
+                            weaponWeenie = 31806;
+                            break;
+                        default: // Electric
+                            weaponWeenie = 31808;
+                            break;
+                    }
+                    break;
+            }
+        }
+
+        private static void GetNonElementalMissileWeapon(out int weaponWeenie, out int subType)
+        {
+            subType = ThreadSafeRandom.Next(0, 2);
+            if (subType == 0)
+            {
+                ////There are 8 subtypes of Bows
+                int subBowType = ThreadSafeRandom.Next(0, 6);
+                switch (subBowType)
+                {
+                    case 0: // Longbow
+                        weaponWeenie = 306;
+                        break;
+                    case 1: // Yumi
+                        weaponWeenie = 363;
+                        break;
+                    case 2: // Nayin
+                        weaponWeenie = 334;
+                        break;
+                    case 3: // Shortbow
+                        weaponWeenie = 307;
+                        break;
+                    case 4: // Shouyumi
+                        weaponWeenie = 341;
+                        break;
+                    case 5: // War Bow
+                        weaponWeenie = 30625;
+                        break;
+                    default: // Yag
+                        weaponWeenie = 360;
+                        break;
+                }
+            }
+            else if (subType == 1)
+            {
+                ////There are 4 subtypes of Crossbows
+                int subXbowType = ThreadSafeRandom.Next(0, 2);
+                if (subXbowType == 0) // Arbalest
+                    weaponWeenie = 30616;
+                else if (subXbowType == 1) // Heavy Crossbow
+                    weaponWeenie = 311;
+                else // Light Crossbow
+                    weaponWeenie = 312;
+            }
+            else
+            {
+                ////There are 3 subtypes of Atlatl
+                int subAtlatlType = ThreadSafeRandom.Next(0, 1);
+                if (subAtlatlType == 0) // Atlatl
+                    weaponWeenie = 12463;
+                else // Royal Atlatl
+                    weaponWeenie = 20640;
+            }
+        }
+
+        private enum CasterType : ushort
+        {
+            Orb,
+            Wand,
+            Staff,
+            Sceptre,
+            Baton
         }
 
         public static WorldObject CreateCaster(int tier)
@@ -15954,32 +15448,12 @@ namespace ACE.Server.Factories
                 new int[] { 1475, 1476, 1477, 1478, 1479, 1480, 2117, 4418 },
              };
 
-            String weaponName = "";
-            String elementName = null;
-
             int casterWeenie = 0; //done
-            int highSpellTier = 0; //done
-            int lowSpellTier = 0; //done
             double elementalDamageMod = 0;
-            double manaConMod = 0; //done
-            double meleeDMod = 0;
-            double missileDMod = 0; //done
-            int appraisalDesc = 7;  //done
-            int damageType = 0; //done
-            int gemCount = 0; //done
-            int gemType = 0; //done
-            int itemDiff = 0; //done
-            int itemMaxMana = 0; // done
-            int spellcraft = 0; // done
-            int workmanship = 0; //done
-            int materialType = 0; //done
-            int uiEffects = 0;
-            int value = 0; //done
             int wieldReqs = 2; //done
-            int wieldSkillType = 0; //done
+            Skill wieldSkillType = Skill.None;
             int wield = 0; //done
             int chance = 0; //done
-            int numSpells = 0; //done
 
             switch (tier)
             {
@@ -15992,302 +15466,261 @@ namespace ACE.Server.Factories
                 case 3:
                     chance = ThreadSafeRandom.Next(0, 100);
                     if (chance < 80)
-                    {
                         wield = 0;
-                    }
                     else
-                    {
                         wield = 290;
-                    }
                     break;
                 case 4:
                     chance = ThreadSafeRandom.Next(0, 100);
                     if (chance < 60)
-                    {
                         wield = 0;
-                    }
                     else if (chance < 95)
-                    {
                         wield = 290;
-                    }
                     else
-                    {
                         wield = 310;
-                    }
                     break;
                 case 5:
                     chance = ThreadSafeRandom.Next(0, 100);
                     if (chance < 50)
-                    {
                         wield = 0;
-                    }
                     else if (chance < 70)
-                    {
                         wield = 290;
-                    }
                     else if (chance < 90)
-                    {
                         wield = 310;
-                    }
                     else
-                    {
                         wield = 330;
-                    }
                     break;
                 case 6:
                     chance = ThreadSafeRandom.Next(0, 100);
                     if (chance < 40)
-                    {
                         wield = 0;
-                    }
                     else if (chance < 60)
-                    {
                         wield = 290;
-                    }
                     else if (chance < 80)
-                    {
                         wield = 310;
-                    }
                     else if (chance < 90)
-                    {
                         wield = 330;
-                    }
                     else
-                    {
                         wield = 355;
-                    }
                     break;
                 case 7:
                     chance = ThreadSafeRandom.Next(0, 100);
                     if (chance < 30)
-                    {
                         wield = 0;
-                    }
                     else if (chance < 50)
-                    {
                         wield = 290;
-                    }
                     else if (chance < 60)
-                    {
                         wield = 310;
-                    }
                     else if (chance < 70)
-                    {
                         wield = 330;
-                    }
                     else if (chance < 90)
-                    {
                         wield = 355;
-                    }
                     else
-                    {
                         wield = 375;
-                    }
                     break;
                 default:
                     chance = ThreadSafeRandom.Next(0, 100);
                     if (chance < 25)
-                    {
                         wield = 0;
-                    }
                     else if (chance < 50)
-                    {
                         wield = 290;
-                    }
                     else if (chance < 60)
-                    {
                         wield = 310;
-                    }
                     else if (chance < 70)
-                    {
                         wield = 330;
-                    }
                     else if (chance < 80)
-                    {
                         wield = 355;
-                    }
                     else if (chance < 90)
-                    {
                         wield = 375;
-                    }
                     else
-                    {
                         wield = 385;
-                    }
                     break;
             }
+
             ////Getting the caster Weenie needed.
             if (wield == 0)
             {
                 int subType = ThreadSafeRandom.Next(0, 3);
-                if (subType == 0)
+                switch (subType)
                 {
-                    ////Orb
-                    casterWeenie = 2366;
-                    weaponName = "Orb";
-                }
-                else if (subType == 1)
-                {
-                    ////Sceptre
-                    casterWeenie = 2548;
-                    weaponName = "Sceptre";
-                }
-                else if (subType == 2)
-                {
-                    ////staff
-                    casterWeenie = 2547;
-                    weaponName = "Staff";
-                }
-                else
-                {
-                    ////wand
-                    casterWeenie = 2472;
-                    weaponName = "Wand";
+                    case 0:
+                        casterWeenie = 2366; // Orb
+                        break;
+                    case 1:
+                        casterWeenie = 2548; // Sceptre
+                        break;
+                    case 2:
+                        casterWeenie = 2547; // Staff
+                        break;
+                    default:
+                        casterWeenie = 2472; // Wand
+                        break;
                 }
             }
             else
             {
-                int subType = ThreadSafeRandom.Next(0, 2);
-                if (subType == 0)
-                {
-                    ////staff
-                    casterWeenie = 29259;
-                    weaponName = "Sceptre";
-                }
-                else if (subType == 1)
-                {
-                    ////Sceptre
-                    casterWeenie = 29259;
-                    weaponName = "Sceptre";
-                }
-                else
-                {
-                    ////baton
-                    casterWeenie = 29259;
-                    weaponName = "Sceptre";
-                }
-            }
-            ////Setting the properties of the items here.
+                // Determine the Elemental Damage Mod amount
+                elementalDamageMod = GetMaxDamageMod(tier, 18);
 
-            if (wield > 0)
-            {
+                // Determine skill of wield requirement
                 chance = ThreadSafeRandom.Next(0, 4);
                 switch (chance)
                 {
                     case 0:
-                        wieldSkillType = 43;
+                        wieldSkillType = Skill.VoidMagic;
                         break;
                     case 1:
-                        wieldSkillType = 34;
+                        wieldSkillType = Skill.WarMagic;
                         break;
                     case 2:
-                        wieldSkillType = 31;
+                        wieldSkillType = Skill.CreatureEnchantment;
                         break;
                     case 3:
-                        wieldSkillType = 32;
+                        wieldSkillType = Skill.ItemEnchantment;
                         break;
                     default:
-                        wieldSkillType = 33;
+                        wieldSkillType = Skill.LifeMagic;
                         break;
                 }
 
-                chance = ThreadSafeRandom.Next(0, 7);
+                // Determine caster type
+                CasterType casterType;
+                chance = ThreadSafeRandom.Next(0, 2);
                 switch (chance)
                 {
                     case 0:
-                        ///slash
-                        damageType = 1;
-                        uiEffects = 1024;
-                        elementName = "Slashing";
+                        casterType = CasterType.Baton;
                         break;
                     case 1:
-                        ///pierce
-                        damageType = 2;
-                        uiEffects = 2049;
-                        elementName = "Piercing";
-                        break;
-                    case 2:
-                        //bludge
-                        damageType = 4;
-                        uiEffects = 513;
-                        elementName = "Blunt";
-                        break;
-                    case 3:
-                        //cold
-                        damageType = 8;
-                        uiEffects = 129;
-                        elementName = "Frost";
-                        break;
-                    case 4:
-                        //fire
-                        damageType = 16;
-                        uiEffects = 33;
-                        elementName = "Fire";
-                        break;
-                    case 5:
-                        //acid
-                        damageType = 32;
-                        uiEffects = 247;
-                        elementName = "Acid";
-                        break;
-                    case 6:
-                        //electric
-                        damageType = 64;
-                        uiEffects = 64;
-                        elementName = "Electric";
+                        casterType = CasterType.Staff;
                         break;
                     default:
-                        //nether
-                        damageType = 1024;
-                        uiEffects = 1;
-                        elementName = "Nether";
+                        casterType = CasterType.Sceptre;
                         break;
+                }
+
+                if (wieldSkillType == Skill.VoidMagic)
+                {
+                    if (casterType == CasterType.Sceptre)
+                        casterWeenie = 43381; // Nether Sceptre
+                    else if (casterType == CasterType.Baton)
+                        casterWeenie = 43382; // Nether Baton
+                    else
+                        casterWeenie = 43383; // Nether Staff
+                }
+                else
+                {
+                    chance = ThreadSafeRandom.Next(0, 6);
+                    switch (chance)
+                    {
+                        case 0:
+                            if (casterType == CasterType.Sceptre)
+                                casterWeenie = 29265; // Slashing Sceptre
+                            else if (casterType == CasterType.Baton)
+                                casterWeenie = 31819; // Slashing Baton
+                            else
+                                casterWeenie = 37223; // Slashing Staff
+                            break;
+                        case 1:
+                            if (casterType == CasterType.Sceptre)
+                                casterWeenie = 29264; // Piercing Sceptre
+                            else if (casterType == CasterType.Baton)
+                                casterWeenie = 31825; // Piercing Baton
+                            else
+                                casterWeenie = 37222; // Piercing Staff
+                            break;
+                        case 2:
+                            if (casterType == CasterType.Sceptre)
+                                casterWeenie = 29260; // Blunt Sceptre
+                            else if (casterType == CasterType.Baton)
+                                casterWeenie = 31821; // Blunt Baton
+                            else
+                                casterWeenie = 37225; // Blunt Staff
+                            break;
+                        case 3:
+                            if (casterType == CasterType.Sceptre)
+                                casterWeenie = 29263; // Frost Sceptre
+                            else if (casterType == CasterType.Baton)
+                                casterWeenie = 31824; // Frost Baton
+                            else
+                                casterWeenie = 37221; // Frost Staff
+                            break;
+                        case 4:
+                            if (casterType == CasterType.Sceptre)
+                                casterWeenie = 29262; // Fire Sceptre
+                            else if (casterType == CasterType.Baton)
+                                casterWeenie = 31823; // Fire Baton
+                            else
+                                casterWeenie = 37220; // Fire Staff
+                            break;
+                        case 5:
+                            if (casterType == CasterType.Sceptre)
+                                casterWeenie = 29259; // Acid Sceptre
+                            else if (casterType == CasterType.Baton)
+                                casterWeenie = 31820; // Acid Baton
+                            else
+                                casterWeenie = 37224; // Acid Staff
+                            break;
+                        default:
+                            if (casterType == CasterType.Sceptre)
+                                casterWeenie = 29261; // Electric Sceptre
+                            else if (casterType == CasterType.Baton)
+                                casterWeenie = 31822; // Electric Baton
+                            else
+                                casterWeenie = 37219; // Electric Staff
+                            break;
+                    }
                 }
             }
 
+            WorldObject wo = WorldObjectFactory.CreateNewWorldObject((uint)casterWeenie);
+
+            int workmanship = GetWorkmanship(tier);
+            wo.SetProperty(PropertyInt.Value, GetValue(tier, workmanship));
+            wo.SetProperty(PropertyInt.ItemWorkmanship, workmanship);
+            wo.SetProperty(PropertyInt.MaterialType, GetMaterialType(3, tier));
+            wo.SetProperty(PropertyInt.GemCount, ThreadSafeRandom.Next(1, 5));
+            wo.SetProperty(PropertyInt.GemType, ThreadSafeRandom.Next(10, 50));
+            wo.SetProperty(PropertyString.LongDesc, wo.GetProperty(PropertyString.Name));
+
             if (ThreadSafeRandom.Next(0, 100) > 95)
+                wo.SetProperty(PropertyFloat.WeaponMissileDefense, GetMissileDMod(tier));
+            else
             {
-                missileDMod = GetMissileDMod(tier);
+                var meleeDMod = GetMeleeDMod(tier);
+                if (meleeDMod > 1.0f)
+                    wo.SetProperty(PropertyFloat.WeaponDefense, GetMeleeDMod(tier));
             }
 
-            WorldObject wo = WorldObjectFactory.CreateNewWorldObject((uint)casterWeenie);
-            meleeDMod = GetMeleeDMod(20, tier);
-            workmanship = GetWorkmanship(tier);
-            materialType = GetMaterialType(3, tier);
-            gemCount = ThreadSafeRandom.Next(1, 5);
-            gemType = ThreadSafeRandom.Next(10, 50);
-            manaConMod = GetManaCMod(tier);
-            lowSpellTier = GetLowSpellTier(tier);
-            highSpellTier = GetHighSpellTier(tier);
-            numSpells = GetNumSpells(tier);
-            spellcraft = GetSpellcraft(numSpells, tier);
-            itemMaxMana = GetMaxMana(numSpells, tier);
-            itemDiff = GetDifficulty(tier, spellcraft);
-            value = GetValue(tier, workmanship);
-
-            if (elementName != null)
-                wo.SetProperty(PropertyString.Name, $"{elementName} {weaponName}");
-            else
-                wo.SetProperty(PropertyString.Name, weaponName);
-
-            elementalDamageMod = GetMaxDamageMod(tier, 18);
-            wo.SetProperty(PropertyInt.MaterialType, materialType);
-            wo.SetProperty(PropertyInt.Value, value);
-            wo.SetProperty(PropertyInt.ItemWorkmanship, workmanship);
-            wo.SetProperty(PropertyInt.ItemDifficulty, itemDiff);
-            wo.SetProperty(PropertyFloat.ManaRate, GetManaRate());
-            wo.SetProperty(PropertyFloat.WeaponMissileDefense, missileDMod);
-            wo.SetProperty(PropertyFloat.WeaponDefense, meleeDMod);
+            double manaConMod = GetManaCMod(tier);
             wo.SetProperty(PropertyFloat.ManaConversionMod, manaConMod);
-            wo.SetProperty(PropertyFloat.ElementalDamageMod, elementalDamageMod);
+
+            if (elementalDamageMod > 1.0f)
+                wo.SetProperty(PropertyFloat.ElementalDamageMod, elementalDamageMod);
+
+            if (wield > 0)
+            {
+                wo.SetProperty(PropertyInt.WieldRequirements, wieldReqs);
+                wo.SetProperty(PropertyInt.WieldSkillType, (int)wieldSkillType);
+                wo.SetProperty(PropertyInt.WieldDifficulty, wield);
+            }
+
+            wo.RemoveProperty(PropertyInt.ItemSkillLevelLimit);
+
+            int lowSpellTier = GetLowSpellTier(tier);
+            int highSpellTier = GetHighSpellTier(tier);
+            int numSpells = GetNumSpells(tier);
+            int spellcraft = GetSpellcraft(numSpells, tier);
+            int itemMaxMana = GetMaxMana(numSpells, tier);
+
+            wo.SetProperty(PropertyInt.ItemDifficulty, GetDifficulty(tier, spellcraft));
+            wo.SetProperty(PropertyFloat.ManaRate, GetManaRate());
+
             wo.SetProperty(PropertyInt.ItemMaxMana, itemMaxMana);
             wo.SetProperty(PropertyInt.ItemCurMana, itemMaxMana);
-            wo.SetProperty(PropertyInt.AppraisalLongDescDecoration, appraisalDesc);
+            wo.SetProperty(PropertyInt.AppraisalLongDescDecoration, 7);
             wo.SetProperty(PropertyInt.ItemSpellcraft, spellcraft);
-            wo.SetProperty(PropertyInt.DamageType, damageType);
-            wo.SetProperty(PropertyInt.GemCount, gemCount);
-            wo.SetProperty(PropertyInt.GemType, gemType);
-            wo.SetProperty(PropertyString.LongDesc, getLongDesc(wo.GetProperty(PropertyString.Name), gemType, gemCount));
+
             int minorCantrips = GetNumMinorCantrips(tier);
             int majorCantrips = GetNumMajorCantrips(tier);
             int epicCantrips = GetNumEpicCantrips(tier);
@@ -16295,22 +15728,7 @@ namespace ACE.Server.Factories
             int numCantrips = minorCantrips + majorCantrips + epicCantrips + legendaryCantrips;
 
             if (numCantrips > 0 || numSpells > 0)
-            {
-                uiEffects = 1;
-                wo.SetProperty(PropertyInt.UiEffects, uiEffects);
-            }
-
-            if (wield > 0)
-            {
-                wo.SetProperty(PropertyInt.WieldRequirements, wieldReqs);
-                wo.SetProperty(PropertyInt.WieldSkillType, wieldSkillType);
-                wo.SetProperty(PropertyInt.WieldDifficulty, wield);
-            }
-            else
-            {
-                wo.RemoveProperty(PropertyFloat.ElementalDamageMod);
-            }
-            wo.RemoveProperty(PropertyInt.ItemSkillLevelLimit);
+                wo.SetProperty(PropertyInt.UiEffects, (int)UiEffects.Magical);
 
             int[][] spells = LootHelper.WandSpells;
             int[][] cantrips = LootHelper.WandCantrips;
@@ -16377,14 +15795,7 @@ namespace ACE.Server.Factories
                     wo.Biota.BiotaPropertiesSpellBook.Add(result);
                 }
             }
-            if (manaConMod <= 0)
-            {
-                wo.RemoveProperty(PropertyFloat.ManaConversionMod);
-            }
-            if (missileDMod <= 0)
-            {
-                wo.RemoveProperty(PropertyFloat.WeaponMissileDefense);
-            }
+
             if (numSpells == 0)
             {
                 wo.RemoveProperty(PropertyInt.ItemManaCost);
@@ -16414,126 +15825,74 @@ namespace ACE.Server.Factories
                         case 2:
                             chance = ThreadSafeRandom.Next(0, 100);
                             if (chance < 80)
-                            {
                                 damageMod = .01;
-                            }
                             else if (chance < 95)
-                            {
                                 damageMod = .02;
-                            }
                             else
-                            {
                                 damageMod = .03;
-                            }
                             break;
                         case 3:
                             chance = ThreadSafeRandom.Next(0, 100);
                             if (chance < 50)
-                            {
                                 damageMod = .03;
-                            }
                             else if (chance < 80)
-                            {
                                 damageMod = .04;
-                            }
                             else if (chance < 95)
-                            {
                                 damageMod = .05;
-                            }
                             else
-                            {
                                 damageMod = .06;
-                            }
                             break;
                         case 4:
                             chance = ThreadSafeRandom.Next(0, 100);
                             if (chance < 50)
-                            {
                                 damageMod = .06;
-                            }
                             else if (chance < 80)
-                            {
                                 damageMod = .07;
-                            }
                             else if (chance < 95)
-                            {
                                 damageMod = .08;
-                            }
                             else
-                            {
                                 damageMod = .09;
-                            }
                             break;
                         case 5:
                             chance = ThreadSafeRandom.Next(0, 100);
                             if (chance < 50)
-                            {
                                 damageMod = .09;
-                            }
                             else if (chance < 80)
-                            {
                                 damageMod = .10;
-                            }
                             else if (chance < 95)
-                            {
                                 damageMod = .11;
-                            }
                             else
-                            {
                                 damageMod = .12;
-                            }
                             break;
                         case 6:
                             chance = ThreadSafeRandom.Next(0, 100);
                             if (chance < 50)
-                            {
                                 damageMod = .09;
-                            }
                             else if (chance < 80)
-                            {
                                 damageMod = .10;
-                            }
                             else if (chance < 95)
-                            {
                                 damageMod = .11;
-                            }
                             else
-                            {
                                 damageMod = .12;
-                            }
                             break;
                         case 7:
                             chance = ThreadSafeRandom.Next(0, 100);
                             if (chance < 50)
-                            {
                                 damageMod = .11;
-                            }
                             else if (chance < 80)
-                            {
                                 damageMod = .12;
-                            }
                             else
-                            {
                                 damageMod = .13;
-                            }
                             break;
                         case 8:
                             chance = ThreadSafeRandom.Next(0, 100);
                             if (chance < 50)
-                            {
                                 damageMod = .13;
-                            }
                             else if (chance < 80)
-                            {
                                 damageMod = .14;
-                            }
                             else
-                            {
                                 damageMod = .15;
-                            }
-
                             break;
-
                     }
                     break;
                 case 18:
@@ -16546,126 +15905,74 @@ namespace ACE.Server.Factories
                         case 2:
                             chance = ThreadSafeRandom.Next(0, 100);
                             if (chance < 80)
-                            {
                                 damageMod = .01;
-                            }
                             else if (chance < 95)
-                            {
                                 damageMod = .02;
-                            }
                             else
-                            {
                                 damageMod = .03;
-                            }
                             break;
                         case 3:
                             chance = ThreadSafeRandom.Next(0, 100);
                             if (chance < 50)
-                            {
                                 damageMod = .03;
-                            }
                             else if (chance < 80)
-                            {
                                 damageMod = .04;
-                            }
                             else if (chance < 95)
-                            {
                                 damageMod = .05;
-                            }
                             else
-                            {
                                 damageMod = .06;
-                            }
                             break;
                         case 4:
                             chance = ThreadSafeRandom.Next(0, 100);
                             if (chance < 50)
-                            {
                                 damageMod = .06;
-                            }
                             else if (chance < 80)
-                            {
                                 damageMod = .07;
-                            }
                             else if (chance < 95)
-                            {
                                 damageMod = .08;
-                            }
                             else
-                            {
                                 damageMod = .09;
-                            }
                             break;
                         case 5:
                             chance = ThreadSafeRandom.Next(0, 100);
                             if (chance < 50)
-                            {
                                 damageMod = .09;
-                            }
                             else if (chance < 80)
-                            {
                                 damageMod = .10;
-                            }
                             else if (chance < 95)
-                            {
                                 damageMod = .11;
-                            }
                             else
-                            {
                                 damageMod = .12;
-                            }
                             break;
                         case 6:
                             chance = ThreadSafeRandom.Next(0, 100);
                             if (chance < 50)
-                            {
                                 damageMod = .12;
-                            }
                             else if (chance < 80)
-                            {
                                 damageMod = .13;
-                            }
                             else if (chance < 95)
-                            {
                                 damageMod = .14;
-                            }
                             else
-                            {
                                 damageMod = .15;
-                            }
                             break;
                         case 7:
                             chance = ThreadSafeRandom.Next(0, 100);
                             if (chance < 50)
-                            {
                                 damageMod = .15;
-                            }
                             else if (chance < 80)
-                            {
                                 damageMod = .16;
-                            }
                             else
-                            {
                                 damageMod = .17;
-                            }
                             break;
                         case 8:
                             chance = ThreadSafeRandom.Next(0, 100);
                             if (chance < 50)
-                            {
                                 damageMod = .16;
-                            }
                             else if (chance < 80)
-                            {
                                 damageMod = .17;
-                            }
                             else
-                            {
                                 damageMod = .18;
-                            }
-
                             break;
-
                     }
                     break;
                 case 20:
@@ -16678,134 +15985,78 @@ namespace ACE.Server.Factories
                         case 2:
                             chance = ThreadSafeRandom.Next(0, 100);
                             if (chance < 80)
-                            {
                                 damageMod = .01;
-                            }
                             else if (chance < 95)
-                            {
                                 damageMod = .02;
-                            }
                             else
-                            {
                                 damageMod = .03;
-                            }
                             break;
                         case 3:
                             chance = ThreadSafeRandom.Next(0, 100);
                             if (chance < 50)
-                            {
                                 damageMod = .02;
-                            }
                             else if (chance < 80)
-                            {
                                 damageMod = .03;
-                            }
                             else if (chance < 95)
-                            {
                                 damageMod = .04;
-                            }
                             else
-                            {
                                 damageMod = .05;
-                            }
                             break;
                         case 4:
                             chance = ThreadSafeRandom.Next(0, 100);
                             if (chance < 50)
-                            {
                                 damageMod = .05;
-                            }
                             else if (chance < 80)
-                            {
                                 damageMod = .06;
-                            }
                             else if (chance < 95)
-                            {
                                 damageMod = .07;
-                            }
                             else
-                            {
                                 damageMod = .08;
-                            }
                             break;
                         case 5:
                             chance = ThreadSafeRandom.Next(0, 100);
                             if (chance < 50)
-                            {
                                 damageMod = .07;
-                            }
                             else if (chance < 80)
-                            {
                                 damageMod = .08;
-                            }
                             else if (chance < 95)
-                            {
                                 damageMod = .09;
-                            }
                             else
-                            {
                                 damageMod = .10;
-                            }
                             break;
                         case 6:
                             chance = ThreadSafeRandom.Next(0, 100);
                             if (chance < 50)
-                            {
                                 damageMod = .11;
-                            }
                             else if (chance < 80)
-                            {
                                 damageMod = .12;
-                            }
                             else if (chance < 95)
-                            {
                                 damageMod = .13;
-                            }
                             else
-                            {
                                 damageMod = .14;
-                            }
                             break;
                         case 7:
                             chance = ThreadSafeRandom.Next(0, 100);
                             if (chance < 50)
-                            {
                                 damageMod = .13;
-                            }
                             else if (chance < 80)
-                            {
                                 damageMod = .14;
-                            }
                             else if (chance < 90)
-                            {
                                 damageMod = .15;
-                            }
                             else
-                            {
                                 damageMod = .16;
-                            }
                             break;
                         case 8:
                             chance = ThreadSafeRandom.Next(0, 100);
                             if (chance < 50)
-                            {
                                 damageMod = .17;
-                            }
                             else if (chance < 80)
-                            {
                                 damageMod = .18;
-                            }
                             else if (chance < 90)
-                            {
                                 damageMod = .19;
-                            }
                             else
-                            {
                                 damageMod = .20;
-                            }
-
                             break;
-
                     }
                     break;
                 case 22:
@@ -16818,138 +16069,80 @@ namespace ACE.Server.Factories
                         case 2:
                             chance = ThreadSafeRandom.Next(0, 100);
                             if (chance < 80)
-                            {
                                 damageMod = .01;
-                            }
                             else if (chance < 95)
-                            {
                                 damageMod = .02;
-                            }
                             else
-                            {
                                 damageMod = .03;
-                            }
                             break;
                         case 3:
                             chance = ThreadSafeRandom.Next(0, 100);
                             if (chance < 50)
-                            {
                                 damageMod = .02;
-                            }
                             else if (chance < 80)
-                            {
                                 damageMod = .03;
-                            }
                             else if (chance < 95)
-                            {
                                 damageMod = .04;
-                            }
                             else
-                            {
                                 damageMod = .05;
-                            }
                             break;
                         case 4:
                             chance = ThreadSafeRandom.Next(0, 100);
                             if (chance < 50)
-                            {
                                 damageMod = .05;
-                            }
                             else if (chance < 80)
-                            {
                                 damageMod = .06;
-                            }
                             else if (chance < 95)
-                            {
                                 damageMod = .07;
-                            }
                             else
-                            {
                                 damageMod = .08;
-                            }
                             break;
                         case 5:
                             chance = ThreadSafeRandom.Next(0, 100);
                             if (chance < 50)
-                            {
                                 damageMod = .07;
-                            }
                             else if (chance < 80)
-                            {
                                 damageMod = .08;
-                            }
                             else if (chance < 95)
-                            {
                                 damageMod = .09;
-                            }
                             else
-                            {
                                 damageMod = .10;
-                            }
                             break;
                         case 6:
                             chance = ThreadSafeRandom.Next(0, 100);
                             if (chance < 50)
-                            {
                                 damageMod = .11;
-                            }
                             else if (chance < 80)
-                            {
                                 damageMod = .12;
-                            }
                             else if (chance < 95)
-                            {
                                 damageMod = .13;
-                            }
                             else
-                            {
                                 damageMod = .14;
-                            }
                             break;
                         case 7:
                             chance = ThreadSafeRandom.Next(0, 100);
                             if (chance < 50)
-                            {
                                 damageMod = .14;
-                            }
                             else if (chance < 80)
-                            {
                                 damageMod = .15;
-                            }
                             else if (chance < 90)
-                            {
                                 damageMod = .16;
-                            }
                             else
-                            {
                                 damageMod = .17;
-                            }
                             break;
                         case 8:
                             chance = ThreadSafeRandom.Next(0, 100);
                             if (chance < 50)
-                            {
                                 damageMod = .18;
-                            }
                             else if (chance < 80)
-                            {
                                 damageMod = .19;
-                            }
                             else if (chance < 90)
-                            {
                                 damageMod = .20;
-                            }
                             else if (chance < 95)
-                            {
                                 damageMod = .21;
-                            }
                             else
-                            {
                                 damageMod = .22;
-                            }
-
                             break;
-
                     }
                     break;
                 case 25:
@@ -16962,150 +16155,86 @@ namespace ACE.Server.Factories
                         case 2:
                             chance = ThreadSafeRandom.Next(0, 100);
                             if (chance < 80)
-                            {
                                 damageMod = .01;
-                            }
                             else if (chance < 70)
-                            {
                                 damageMod = .02;
-                            }
                             else if (chance < 90)
-                            {
                                 damageMod = .03;
-                            }
                             else
-                            {
                                 damageMod = .04;
-                            }
                             break;
                         case 3:
                             chance = ThreadSafeRandom.Next(0, 100);
                             if (chance < 50)
-                            {
                                 damageMod = .04;
-                            }
                             else if (chance < 80)
-                            {
                                 damageMod = .05;
-                            }
                             else if (chance < 95)
-                            {
                                 damageMod = .06;
-                            }
                             else
-                            {
                                 damageMod = .07;
-                            }
                             break;
                         case 4:
                             chance = ThreadSafeRandom.Next(0, 100);
                             if (chance < 50)
-                            {
                                 damageMod = .07;
-                            }
                             else if (chance < 70)
-                            {
                                 damageMod = .08;
-                            }
                             else if (chance < 90)
-                            {
                                 damageMod = .09;
-                            }
                             else if (chance < 96)
-                            {
                                 damageMod = .10;
-                            }
                             else
-                            {
                                 damageMod = .11;
-                            }
                             break;
                         case 5:
                             chance = ThreadSafeRandom.Next(0, 100);
                             if (chance < 50)
-                            {
                                 damageMod = .11;
-                            }
                             else if (chance < 70)
-                            {
                                 damageMod = .12;
-                            }
                             else if (chance < 90)
-                            {
                                 damageMod = .13;
-                            }
                             else if (chance < 96)
-                            {
                                 damageMod = .14;
-                            }
                             else
-                            {
                                 damageMod = .15;
-                            }
                             break;
                         case 6:
                             chance = ThreadSafeRandom.Next(0, 100);
                             if (chance < 50)
-                            {
                                 damageMod = .15;
-                            }
                             else if (chance < 70)
-                            {
                                 damageMod = .16;
-                            }
                             else if (chance < 90)
-                            {
                                 damageMod = .17;
-                            }
                             else
-                            {
                                 damageMod = .18;
-                            }
                             break;
                         case 7:
                             chance = ThreadSafeRandom.Next(0, 100);
                             if (chance < 50)
-                            {
                                 damageMod = .18;
-                            }
                             else if (chance < 80)
-                            {
                                 damageMod = .19;
-                            }
                             else if (chance < 90)
-                            {
                                 damageMod = .20;
-                            }
                             else
-                            {
                                 damageMod = .21;
-                            }
                             break;
                         case 8:
                             chance = ThreadSafeRandom.Next(0, 100);
                             if (chance < 50)
-                            {
                                 damageMod = .21;
-                            }
                             else if (chance < 80)
-                            {
                                 damageMod = .22;
-                            }
                             else if (chance < 90)
-                            {
                                 damageMod = .23;
-                            }
                             else if (chance < 95)
-                            {
                                 damageMod = .24;
-                            }
                             else
-                            {
                                 damageMod = .25;
-                            }
-
                             break;
-
                     }
                     break;
                 default:
@@ -17115,11 +16244,11 @@ namespace ACE.Server.Factories
             return damageMod2;
         }
 
-        public static double GetElementalBonus(int wield)
+        public static int GetElementalBonus(int wield)
         {
 
             int chance = 0;
-            double eleMod = 0;
+            int eleMod = 0;
             switch (wield)
             {
                 case 0:
@@ -17131,141 +16260,79 @@ namespace ACE.Server.Factories
                 case 315:
                     chance = ThreadSafeRandom.Next(0, 100);
                     if (chance < 20)
-                    {
                         eleMod = 1;
-                    }
                     else if (chance < 40)
-                    {
                         eleMod = 2;
-                    }
                     else if (chance < 70)
-                    {
                         eleMod = 3;
-                    }
                     else if (chance < 95)
-                    {
                         eleMod = 4;
-                    }
                     else
-                    {
                         eleMod = 5;
-                    }
                     break;
                 case 335:
                     chance = ThreadSafeRandom.Next(0, 100);
                     if (chance < 20)
-                    {
                         eleMod = 5;
-                    }
                     else if (chance < 40)
-                    {
                         eleMod = 6;
-                    }
                     else if (chance < 70)
-                    {
                         eleMod = 7;
-                    }
                     else if (chance < 95)
-                    {
                         eleMod = 8;
-                    }
                     else
-                    {
                         eleMod = 9;
-                    }
                     break;
                 case 360:
                     chance = ThreadSafeRandom.Next(0, 100);
                     if (chance < 20)
-                    {
                         eleMod = 10;
-                    }
                     else if (chance < 30)
-                    {
                         eleMod = 11;
-                    }
                     else if (chance < 45)
-                    {
                         eleMod = 12;
-                    }
                     else if (chance < 60)
-                    {
                         eleMod = 13;
-                    }
                     else if (chance < 75)
-                    {
                         eleMod = 14;
-                    }
                     else if (chance < 95)
-                    {
                         eleMod = 15;
-                    }
                     else
-                    {
                         eleMod = 16;
-                    }
                     break;
                 case 375:
                     chance = ThreadSafeRandom.Next(0, 100);
                     if (chance < 20)
-                    {
                         eleMod = 12;
-                    }
                     else if (chance < 30)
-                    {
                         eleMod = 13;
-                    }
                     else if (chance < 45)
-                    {
                         eleMod = 14;
-                    }
                     else if (chance < 60)
-                    {
                         eleMod = 15;
-                    }
                     else if (chance < 75)
-                    {
                         eleMod = 16;
-                    }
                     else if (chance < 95)
-                    {
                         eleMod = 17;
-                    }
                     else
-                    {
                         eleMod = 18;
-                    }
                     break;
                 case 385:
                     chance = ThreadSafeRandom.Next(0, 100);
                     if (chance < 20)
-                    {
                         eleMod = 16;
-                    }
                     else if (chance < 30)
-                    {
                         eleMod = 17;
-                    }
                     else if (chance < 45)
-                    {
                         eleMod = 18;
-                    }
                     else if (chance < 60)
-                    {
                         eleMod = 19;
-                    }
                     else if (chance < 75)
-                    {
                         eleMod = 20;
-                    }
                     else if (chance < 95)
-                    {
                         eleMod = 21;
-                    }
                     else
-                    {
                         eleMod = 22;
-                    }
                     break;
             }
             return eleMod;
@@ -17274,495 +16341,284 @@ namespace ACE.Server.Factories
         //The percentages for variances need to be fixed
         public static double GetVariance(int category, int type)
         {
-
-            int chance = 0;
             double variance = 0;
+            int chance = ThreadSafeRandom.Next(0, 100);
+
             switch (category)
             {
                 case 1:
                     //Heavy Weapons
-                    chance = ThreadSafeRandom.Next(0, 100);
                     switch (type)
                     {
                         case 1:
                             //Axe
                             if (chance < 10)
-                            {
                                 variance = .90;
-                            }
                             if (chance < 30)
-                            {
                                 variance = .93;
-                            }
                             if (chance < 70)
-                            {
                                 variance = .95;
-                            }
                             if (chance < 90)
-                            {
                                 variance = .97;
-                            }
                             else
-                            {
                                 variance = .99;
-                            }
                             break;
                         case 2:
                             //Dagger
                             if (chance < 10)
-                            {
                                 variance = .47;
-                            }
                             if (chance < 30)
-                            {
                                 variance = .50;
-                            }
                             if (chance < 70)
-                            {
                                 variance = .53;
-                            }
                             if (chance < 90)
-                            {
                                 variance = .57;
-                            }
                             else
-                            {
                                 variance = .62;
-                            }
                             break;
                         case 3:
                             //Dagger MultiStrike
                             if (chance < 10)
-                            {
                                 variance = .40;
-                            }
                             if (chance < 30)
-                            {
                                 variance = .43;
-                            }
                             if (chance < 70)
-                            {
                                 variance = .48;
-                            }
                             if (chance < 90)
-                            {
                                 variance = .53;
-                            }
                             else
-                            {
                                 variance = .58;
-                            }
                             break;
                         case 4:
                             //Mace
                             if (chance < 10)
-                            {
                                 variance = .30;
-                            }
                             if (chance < 30)
-                            {
                                 variance = .33;
-                            }
                             if (chance < 70)
-                            {
                                 variance = .37;
-                            }
                             if (chance < 90)
-                            {
                                 variance = .42;
-                            }
                             else
-                            {
                                 variance = .46;
-                            }
                             break;
                         case 5:
                             //Spear
                             if (chance < 10)
-                            {
                                 variance = .59;
-                            }
                             if (chance < 30)
-                            {
                                 variance = .63;
-                            }
                             if (chance < 70)
-                            {
                                 variance = .68;
-                            }
                             if (chance < 90)
-                            {
                                 variance = .72;
-                            }
                             else
-                            {
                                 variance = .75;
-                            }
                             break;
                         case 6:
                             //Staff
                             if (chance < 10)
-                            {
                                 variance = .38;
-                            }
                             if (chance < 30)
-                            {
                                 variance = .42;
-                            }
                             if (chance < 70)
-                            {
                                 variance = .45;
-                            }
                             if (chance < 90)
-                            {
                                 variance = .50;
-                            }
                             else
-                            {
                                 variance = .52;
-                            }
                             break;
                         case 7:
                             //Sword
                             if (chance < 10)
-                            {
                                 variance = .47;
-                            }
                             if (chance < 30)
-                            {
                                 variance = .50;
-                            }
                             if (chance < 70)
-                            {
                                 variance = .53;
-                            }
                             if (chance < 90)
-                            {
                                 variance = .57;
-                            }
                             else
-                            {
                                 variance = .62;
-                            }
                             break;
                         case 8:
                             //Sword Multistrike
                             if (chance < 10)
-                            {
                                 variance = .40;
-                            }
                             if (chance < 30)
-                            {
                                 variance = .43;
-                            }
                             if (chance < 70)
-                            {
                                 variance = .48;
-                            }
                             if (chance < 90)
-                            {
                                 variance = .53;
-                            }
                             else
-                            {
                                 variance = .60;
-                            }
                             break;
                         case 9:
                             //UA
                             if (chance < 10)
-                            {
                                 variance = .44;
-                            }
                             if (chance < 30)
-                            {
                                 variance = .48;
-                            }
                             if (chance < 70)
-                            {
                                 variance = .53;
-                            }
                             if (chance < 90)
-                            {
                                 variance = .58;
-                            }
                             else
-                            {
                                 variance = .60;
-                            }
                             break;
                     }
                     break;
                 case 2:
                     //Finesse/Light Weapons
-                    chance = ThreadSafeRandom.Next(0, 100);
                     switch (type)
                     {
                         case 1:
                             //Axe
                             if (chance < 10)
-                            {
                                 variance = .80;
-                            }
                             if (chance < 30)
-                            {
                                 variance = .83;
-                            }
                             if (chance < 70)
-                            {
                                 variance = .85;
-                            }
                             if (chance < 90)
-                            {
                                 variance = .90;
-                            }
                             else
-                            {
                                 variance = .95;
-                            }
                             break;
                         case 2:
                             //Dagger
                             if (chance < 10)
-                            {
                                 variance = .42;
-                            }
                             if (chance < 30)
-                            {
                                 variance = .47;
-                            }
                             if (chance < 70)
-                            {
                                 variance = .52;
-                            }
                             if (chance < 90)
-                            {
                                 variance = .56;
-                            }
                             else
-                            {
                                 variance = .60;
-                            }
                             break;
                         case 3:
                             //Dagger MultiStrike
                             if (chance < 10)
-                            {
                                 variance = .24;
-                            }
                             if (chance < 30)
-                            {
                                 variance = .28;
-                            }
                             if (chance < 70)
-                            {
                                 variance = .35;
-                            }
                             if (chance < 90)
-                            {
                                 variance = .40;
-                            }
                             else
-                            {
                                 variance = .45;
-                            }
                             break;
                         case 4:
                             //Mace
                             if (chance < 10)
-                            {
                                 variance = .23;
-                            }
                             if (chance < 30)
-                            {
                                 variance = .28;
-                            }
                             if (chance < 70)
-                            {
                                 variance = .32;
-                            }
                             if (chance < 90)
-                            {
                                 variance = .37;
-                            }
                             else
-                            {
                                 variance = .43;
-                            }
                             break;
                         case 5:
                             //Jitte
                             if (chance < 10)
-                            {
                                 variance = .325;
-                            }
                             if (chance < 30)
-                            {
                                 variance = .35;
-                            }
                             if (chance < 70)
-                            {
                                 variance = .40;
-                            }
                             if (chance < 90)
-                            {
                                 variance = .45;
-                            }
                             else
-                            {
                                 variance = .50;
-                            }
                             break;
                         case 6:
                             //Spear
                             if (chance < 10)
-                            {
                                 variance = .65;
-                            }
                             if (chance < 30)
-                            {
                                 variance = .68;
-                            }
                             if (chance < 70)
-                            {
                                 variance = .71;
-                            }
                             if (chance < 90)
-                            {
                                 variance = .75;
-                            }
                             else
-                            {
                                 variance = .80;
-                            }
                             break;
                         case 7:
                             //Staff
                             if (chance < 10)
-                            {
                                 variance = .325;
-                            }
                             if (chance < 30)
-                            {
                                 variance = .35;
-                            }
                             if (chance < 70)
-                            {
                                 variance = .40;
-                            }
                             if (chance < 90)
-                            {
                                 variance = .45;
-                            }
                             else
-                            {
                                 variance = .50;
-                            }
                             break;
                         case 8:
                             //Sword
                             if (chance < 10)
-                            {
                                 variance = .42;
-                            }
                             if (chance < 30)
-                            {
                                 variance = .47;
-                            }
                             if (chance < 70)
-                            {
                                 variance = .52;
-                            }
                             if (chance < 90)
-                            {
                                 variance = .56;
-                            }
                             else
-                            {
                                 variance = .60;
-                            }
                             break;
                         case 9:
                             //Sword Multistrike
                             if (chance < 10)
-                            {
                                 variance = .24;
-                            }
                             if (chance < 30)
-                            {
                                 variance = .28;
-                            }
                             if (chance < 70)
-                            {
                                 variance = .35;
-                            }
                             if (chance < 90)
-                            {
                                 variance = .40;
-                            }
                             else
-                            {
                                 variance = .45;
-                            }
                             break;
                         case 10:
                             //UA
                             if (chance < 10)
-                            {
                                 variance = .44;
-                            }
                             if (chance < 30)
-                            {
                                 variance = .48;
-                            }
                             if (chance < 70)
-                            {
                                 variance = .53;
-                            }
                             if (chance < 90)
-                            {
                                 variance = .58;
-                            }
                             else
-                            {
                                 variance = .60;
-                            }
                             break;
                     }
                     break;
                 case 3:
-                    ///Two Handed, all have type 1, since there is only 1 set of variances
-                    chance = ThreadSafeRandom.Next(0, 100);
-                    switch (type)
-                    {
-                        case 1:
-                            //Axe
-                            if (chance < 5)
-                            {
-                                variance = .30;
-                            }
-                            if (chance < 20)
-                            {
-                                variance = .35;
-                            }
-                            if (chance < 50)
-                            {
-                                variance = .40;
-                            }
-                            if (chance < 80)
-                            {
-                                variance = .45;
-                            }
-                            if (chance < 95)
-                            {
-                                variance = .50;
-                            }
-                            else
-                            {
-                                variance = .55;
-                            }
-                            break;
-                    }
+                    /// Two Handed only have one set of variances
+                    if (chance < 5)
+                        variance = .30;
+                    if (chance < 20)
+                        variance = .35;
+                    if (chance < 50)
+                        variance = .40;
+                    if (chance < 80)
+                        variance = .45;
+                    if (chance < 95)
+                        variance = .50;
+                    else
+                        variance = .55;
                     break;
                 default:
                     break;
@@ -17770,43 +16626,11 @@ namespace ACE.Server.Factories
             return variance;
         }
 
-        public static int GetMaxDamage(int weaponType, int tier, int baseWeapon)
+        public static int GetMaxDamage(int weaponType, int tier, int wieldDiff, int baseWeapon)
         {
             ///weaponType: 1 Heavy, 2 Finesse/Light, 3 two-handed
             ///baseWeapon: 1 Axe, 2 Dagger, 3 DaggerMulti, 4 Mace, 5 Spear, 6 Sword, 7 SwordMulti, 8 Staff, 9 UA
-            int wieldPlace = 0;
-            if (wieldPlace == 250)
-            {
-                wieldPlace = 1;
-            }
-            if (wieldPlace == 300)
-            {
-                wieldPlace = 2;
-            }
-            if (wieldPlace == 325)
-            {
-                wieldPlace = 3;
-            }
-            if (wieldPlace == 350)
-            {
-                wieldPlace = 4;
-            }
-            if (wieldPlace == 370)
-            {
-                wieldPlace = 5;
-            }
-            if (wieldPlace == 400)
-            {
-                wieldPlace = 6;
-            }
-            if (wieldPlace == 420)
-            {
-                wieldPlace = 7;
-            }
-            if (wieldPlace == 430)
-            {
-                wieldPlace = 8;
-            }
+
             int[,] lightWeaponDamageTable =
             {
                 { 22, 28, 33, 39, 44, 50, 55, 57, 61},
@@ -17836,75 +16660,73 @@ namespace ACE.Server.Factories
                 { 13, 17, 22, 26, 30, 35, 39, 42, 45 },
                 { 14, 19, 23, 28, 33, 37, 42, 45, 48 }
             };
+
             int tieredDamage = 0;
             int finalDamage = 0;
+
             switch (weaponType)
             {
                 case 1:
-                    tieredDamage = heavyWeaponDamageTable[baseWeapon - 1, wieldPlace];
+                    tieredDamage = heavyWeaponDamageTable[baseWeapon - 1, tier];
                     break;
                 case 2:
-                    tieredDamage = lightWeaponDamageTable[baseWeapon - 1, wieldPlace];
+                    tieredDamage = lightWeaponDamageTable[baseWeapon - 1, tier];
                     break;
                 case 3:
-                    tieredDamage = twohandedWeaponDamageTable[baseWeapon - 1, wieldPlace];
+                    tieredDamage = twohandedWeaponDamageTable[baseWeapon - 1, tier];
                     break;
             }
+
+            float chanceOffset = 0f;
             double chance = ThreadSafeRandom.Next(0.0f, 1.0f);
+
+            if (wieldDiff > 0)
+                chanceOffset = 0.02f;
+            else if (wieldDiff > 250)
+                chanceOffset = 0.03f;
+            else if (wieldDiff > 300)
+                chanceOffset = 0.04f;
+            else if (wieldDiff > 325)
+                chanceOffset = 0.05f;
+            else if (wieldDiff > 350)
+                chanceOffset = 0.06f;
+            else if (wieldDiff > 370)
+                chanceOffset = 0.07f;
+            else if (wieldDiff > 400)
+                chanceOffset = 0.08f;
+            else if (wieldDiff > 420)
+                chanceOffset = 0.1f;
+
+            chance = chance + chanceOffset;
             if (tieredDamage < 10)
             {
-
                 if (chance < .026)
-                {
                     finalDamage = tieredDamage - 3;
-                }
                 else if (chance < .5)
-                {
                     finalDamage = tieredDamage - 2;
-                }
                 else if (chance < .977)
-                {
                     finalDamage = tieredDamage - 1;
-                }
                 else
-                {
                     finalDamage = tieredDamage;
-                }
             }
             else
             {
                 if (chance < .005)
-                {
                     finalDamage = tieredDamage - 7;
-                }
                 else if (chance < .026)
-                {
                     finalDamage = tieredDamage - 6;
-                }
                 else if (chance < .162)
-                {
                     finalDamage = tieredDamage - 5;
-                }
                 else if (chance < .5)
-                {
                     finalDamage = tieredDamage - 4;
-                }
                 else if (chance < .841)
-                {
                     finalDamage = tieredDamage - 3;
-                }
                 else if (chance < .977)
-                {
                     finalDamage = tieredDamage - 2;
-                }
                 else if (chance < .995)
-                {
                     finalDamage = tieredDamage - 1;
-                }
                 else
-                {
                     finalDamage = tieredDamage;
-                }
             }
             return finalDamage;
         }
@@ -17912,6 +16734,7 @@ namespace ACE.Server.Factories
         public static int GetLowSpellTier(int tier)
         {
             int lowSpellTier = 0;
+
             switch (tier)
             {
                 case 1:
@@ -17929,24 +16752,18 @@ namespace ACE.Server.Factories
                 case 5:
                     lowSpellTier = 5;
                     break;
-                case 6:
-                    lowSpellTier = 6;
-                    break;
-                case 7:
-                    lowSpellTier = 6;
-                    break;
-                case 8:
-                    lowSpellTier = 6;
-                    break;
                 default:
+                    lowSpellTier = 6;
                     break;
             }
+
             return lowSpellTier;
         }
 
         public static int GetHighSpellTier(int tier)
         {
             int highSpellTier = 0;
+
             switch (tier)
             {
                 case 1:
@@ -17967,15 +16784,11 @@ namespace ACE.Server.Factories
                 case 6:
                     highSpellTier = 7;
                     break;
-                case 7:
-                    highSpellTier = 8;
-                    break;
-                case 8:
-                    highSpellTier = 8;
-                    break;
                 default:
+                    highSpellTier = 8;
                     break;
             }
+
             return highSpellTier;
         }
 
@@ -17989,329 +16802,195 @@ namespace ACE.Server.Factories
 
         public static double GetManaCMod(int tier)
         {
-
             int magicMod = 0;
+
             int chance = 0;
             switch (tier)
             {
                 case 1:
-                    //tier 1
-                    magicMod = 0;
-                    break;
                 case 2:
                     magicMod = 0;
                     break;
                 case 3:
                     chance = ThreadSafeRandom.Next(0, 1000);
                     if (chance > 900)
-                    {
                         magicMod = 5;
-                    }
                     else if (chance > 800)
-                    {
                         magicMod = 4;
-                    }
                     else if (chance > 700)
-                    {
                         magicMod = 3;
-                    }
                     else if (chance > 600)
-                    {
                         magicMod = 2;
-                    }
                     else if (chance > 500)
-                    {
                         magicMod = 1;
-                    }
                     break;
                 case 4:
                     chance = ThreadSafeRandom.Next(0, 1000);
                     if (chance > 900)
-                    {
                         magicMod = 10;
-                    }
                     else if (chance > 800)
-                    {
                         magicMod = 9;
-                    }
                     else if (chance > 700)
-                    {
                         magicMod = 8;
-                    }
                     else if (chance > 600)
-                    {
                         magicMod = 7;
-                    }
                     else if (chance > 500)
-                    {
                         magicMod = 6;
-                    }
                     else
-                    {
                         magicMod = 5;
-                    }
                     break;
                 case 5:
                     chance = ThreadSafeRandom.Next(0, 1000);
                     if (chance > 900)
-                    {
                         magicMod = 10;
-                    }
                     else if (chance > 800)
-                    {
                         magicMod = 9;
-                    }
                     else if (chance > 700)
-                    {
                         magicMod = 8;
-                    }
                     else if (chance > 600)
-                    {
                         magicMod = 7;
-                    }
                     else if (chance > 500)
-                    {
                         magicMod = 6;
-                    }
                     else
-                    {
                         magicMod = 5;
-                    }
                     break;
                 case 6:
                     chance = ThreadSafeRandom.Next(0, 1000);
                     if (chance > 900)
-                    {
                         magicMod = 10;
-                    }
                     else if (chance > 800)
-                    {
                         magicMod = 9;
-                    }
                     else if (chance > 700)
-                    {
                         magicMod = 8;
-                    }
                     else if (chance > 600)
-                    {
                         magicMod = 7;
-                    }
                     else if (chance > 500)
-                    {
                         magicMod = 6;
-                    }
                     else
-                    {
                         magicMod = 5;
-                    }
                     break;
                 case 7:
                     chance = ThreadSafeRandom.Next(0, 1000);
                     if (chance > 900)
-                    {
                         magicMod = 10;
-                    }
                     else if (chance > 800)
-                    {
                         magicMod = 9;
-                    }
                     else if (chance > 700)
-                    {
                         magicMod = 8;
-                    }
                     else if (chance > 600)
-                    {
                         magicMod = 7;
-                    }
                     else if (chance > 500)
-                    {
                         magicMod = 6;
-                    }
                     else
-                    {
                         magicMod = 5;
-                    }
-                    break;
-                case 8:
-                    chance = ThreadSafeRandom.Next(0, 1000);
-                    if (chance > 900)
-                    {
-                        magicMod = 10;
-                    }
-                    else if (chance > 800)
-                    {
-                        magicMod = 9;
-                    }
-                    else if (chance > 700)
-                    {
-                        magicMod = 8;
-                    }
-                    else if (chance > 600)
-                    {
-                        magicMod = 7;
-                    }
-                    else if (chance > 500)
-                    {
-                        magicMod = 6;
-                    }
-                    else
-                    {
-                        magicMod = 5;
-                    }
                     break;
                 default:
+                    chance = ThreadSafeRandom.Next(0, 1000);
+                    if (chance > 900)
+                        magicMod = 10;
+                    else if (chance > 800)
+                        magicMod = 9;
+                    else if (chance > 700)
+                        magicMod = 8;
+                    else if (chance > 600)
+                        magicMod = 7;
+                    else if (chance > 500)
+                        magicMod = 6;
+                    else
+                        magicMod = 5;
                     break;
             }
+
             double manaDMod = magicMod / 100.0;
             return manaDMod;
         }
 
         public static double GetMissileDMod(int tier)
         {
-
             double missileMod = 0;
+
             switch (tier)
             {
                 case 1:
-                    //tier 1
-                    missileMod = 0;
-                    break;
                 case 2:
                     missileMod = 0;
                     break;
                 case 3:
                     int chance = ThreadSafeRandom.Next(0, 100);
                     if (chance > 95)
-                    {
                         missileMod = .005;
-                    }
                     break;
                 case 4:
                     chance = ThreadSafeRandom.Next(0, 100);
                     if (chance > 95)
-                    {
                         missileMod = .01;
-                    }
                     else if (chance > 80)
-                    {
                         missileMod = .005;
-                    }
                     else
-                    {
                         missileMod = 0;
-                    }
                     break;
                 case 5:
                     chance = ThreadSafeRandom.Next(0, 1000);
                     if (chance > 950)
-                    {
                         missileMod = .01;
-                    }
                     else if (chance > 800)
-                    {
                         missileMod = .005;
-                    }
                     else
-                    {
                         missileMod = 0;
-                    }
                     break;
                 case 6:
                     chance = ThreadSafeRandom.Next(0, 1000);
                     if (chance > 975)
-                    {
                         missileMod = .020;
-                    }
                     else if (chance > 900)
-                    {
                         missileMod = .015;
-                    }
                     else if (chance > 800)
-                    {
                         missileMod = .010;
-                    }
                     else if (chance > 700)
-                    {
                         missileMod = .005;
-                    }
                     else
-                    {
                         missileMod = 0;
-                    }
                     break;
                 case 7:
                     chance = ThreadSafeRandom.Next(0, 1000);
                     if (chance > 990)
-                    {
                         missileMod = .030;
-                    }
                     else if (chance > 985)
-                    {
                         missileMod = .025;
-                    }
                     else if (chance > 950)
-                    {
                         missileMod = .020;
-                    }
                     else if (chance > 900)
-                    {
                         missileMod = .015;
-                    }
                     else if (chance > 850)
-                    {
                         missileMod = .01;
-                    }
                     else if (chance > 800)
-                    {
                         missileMod = .005;
-                    }
                     else
-                    {
                         missileMod = 0;
-                    }
                     break;
-                case 8:
+                default: // tier 8
                     chance = ThreadSafeRandom.Next(0, 1000);
                     if (chance > 998)
-                    {
                         missileMod = .04;
-                    }
                     else if (chance > 994)
-                    {
                         missileMod = .035;
-                    }
                     else if (chance > 990)
-                    {
                         missileMod = .03;
-                    }
                     else if (chance > 985)
-                    {
                         missileMod = .025;
-                    }
                     else if (chance > 950)
-                    {
                         missileMod = .02;
-                    }
                     else if (chance > 900)
-                    {
                         missileMod = .015;
-                    }
                     else if (chance > 850)
-                    {
                         missileMod = .01;
-                    }
                     else if (chance > 800)
-                    {
                         missileMod = .005;
-                    }
                     else
-                    {
                         missileMod = 0;
-                    }
-                    break;
-                default:
                     break;
             }
+
             double m2 = 1.0 + missileMod;
             return m2;
         }
@@ -18326,235 +17005,91 @@ namespace ACE.Server.Factories
 
         public static int GetWorkmanship(int tier)
         {
-
-            int chance = 0;
             int workmanship = 0;
+            int chance = ThreadSafeRandom.Next(0, 100);
+
             switch (tier)
             {
                 case 1:
-                    //tier 1
-                    chance = ThreadSafeRandom.Next(0, 100);
                     if (chance < 50)
-                    {
                         workmanship = 1;
-                    }
                     else if (chance < 80)
-                    {
                         workmanship = 2;
-                    }
                     else
-                    {
                         workmanship = 3;
-                    }
                     break;
                 case 2:
-                    //tier 2
-                    chance = ThreadSafeRandom.Next(0, 100);
                     if (chance < 30)
-                    {
                         workmanship = 2;
-                    }
                     else if (chance < 50)
-                    {
                         workmanship = 3;
-                    }
                     else if (chance < 65)
-                    {
                         workmanship = 4;
-                    }
                     else if (chance < 85)
-                    {
                         workmanship = 5;
-                    }
                     else
-                    {
                         workmanship = 6;
-                    }
                     break;
                 case 3:
-                    //tier 3
-                    chance = ThreadSafeRandom.Next(0, 100);
                     if (chance < 30)
-                    {
                         workmanship = 3;
-                    }
                     else if (chance < 50)
-                    {
                         workmanship = 4;
-                    }
                     else if (chance < 65)
-                    {
                         workmanship = 5;
-                    }
                     else if (chance < 85)
-                    {
                         workmanship = 6;
-                    }
                     else
-                    {
                         workmanship = 7;
-                    }
                     break;
                 case 4:
-                    //tier 4
-                    chance = ThreadSafeRandom.Next(0, 100);
                     if (chance < 30)
-                    {
                         workmanship = 3;
-                    }
                     else if (chance < 50)
-                    {
                         workmanship = 4;
-                    }
                     else if (chance < 65)
-                    {
                         workmanship = 5;
-                    }
                     else if (chance < 80)
-                    {
                         workmanship = 6;
-                    }
                     else if (chance < 92)
-                    {
                         workmanship = 7;
-                    }
                     else
-                    {
                         workmanship = 8;
-                    }
                     break;
                 case 5:
-                    //tier 5
-                    chance = ThreadSafeRandom.Next(0, 100);
                     if (chance < 15)
-                    {
                         workmanship = 3;
-                    }
                     else if (chance < 30)
-                    {
                         workmanship = 4;
-                    }
                     else if (chance < 50)
-                    {
                         workmanship = 5;
-                    }
                     else if (chance < 65)
-                    {
                         workmanship = 6;
-                    }
                     else if (chance < 80)
-                    {
                         workmanship = 7;
-                    }
                     else if (chance < 92)
-                    {
                         workmanship = 8;
-                    }
                     else
-                    {
                         workmanship = 9;
-                    }
                     break;
-                case 6:
-                    //tier 6
-                    chance = ThreadSafeRandom.Next(0, 100);
+                default: // tier 6 through 8
                     if (chance < 15)
-                    {
                         workmanship = 4;
-                    }
                     else if (chance < 30)
-                    {
                         workmanship = 5;
-                    }
                     else if (chance < 50)
-                    {
                         workmanship = 6;
-                    }
                     else if (chance < 65)
-                    {
                         workmanship = 7;
-                    }
                     else if (chance < 80)
-                    {
                         workmanship = 8;
-                    }
                     else if (chance < 92)
-                    {
                         workmanship = 9;
-                    }
                     else
-                    {
                         workmanship = 10;
-                    }
                     break;
-                case 7:
-                    //tier 7
-                    chance = ThreadSafeRandom.Next(0, 100);
-                    if (chance < 15)
-                    {
-                        workmanship = 4;
-                    }
-                    else if (chance < 30)
-                    {
-                        workmanship = 5;
-                    }
-                    else if (chance < 50)
-                    {
-                        workmanship = 6;
-                    }
-                    else if (chance < 65)
-                    {
-                        workmanship = 7;
-                    }
-                    else if (chance < 80)
-                    {
-                        workmanship = 8;
-                    }
-                    else if (chance < 92)
-                    {
-                        workmanship = 9;
-                    }
-                    else
-                    {
-                        workmanship = 10;
-                    }
-                    break;
-                case 8:
-                    //tier 8
-                    chance = ThreadSafeRandom.Next(0, 100);
-                    if (chance < 15)
-                    {
-                        workmanship = 4;
-                    }
-                    else if (chance < 30)
-                    {
-                        workmanship = 5;
-                    }
-                    else if (chance < 50)
-                    {
-                        workmanship = 6;
-                    }
-                    else if (chance < 65)
-                    {
-                        workmanship = 7;
-                    }
-                    else if (chance < 80)
-                    {
-                        workmanship = 8;
-                    }
-                    else if (chance < 92)
-                    {
-                        workmanship = 9;
-                    }
-                    else
-                    {
-                        workmanship = 10;
-                    }
-                    break;
-                default:
-                    break;
-
             }
+
             return workmanship;
         }
 
@@ -18752,69 +17287,63 @@ namespace ACE.Server.Factories
             switch (type)
             {
                 case 1:
-                    if (tier == 1)
+                    switch (tier)
                     {
-                        materialType = gems1[ThreadSafeRandom.Next(0, gems1.Length - 1)];
-                    }
-                    if (tier == 2)
-                    {
-                        materialType = gems2[ThreadSafeRandom.Next(0, gems2.Length - 1)];
-                    }
-                    if (tier == 3)
-                    {
-                        materialType = gems3[ThreadSafeRandom.Next(0, gems3.Length - 1)];
-                    }
-                    if (tier == 4)
-                    {
-                        materialType = gems4[ThreadSafeRandom.Next(0, gems4.Length - 1)];
-                    }
-                    else
-                    {
-                        materialType = gems5[ThreadSafeRandom.Next(0, gems5.Length - 1)];
+                        case 1:
+                            materialType = gems1[ThreadSafeRandom.Next(0, gems1.Length - 1)];
+                            break;
+                        case 2:
+                            materialType = gems2[ThreadSafeRandom.Next(0, gems2.Length - 1)];
+                            break;
+                        case 3:
+                            materialType = gems3[ThreadSafeRandom.Next(0, gems3.Length - 1)];
+                            break;
+                        case 4:
+                            materialType = gems4[ThreadSafeRandom.Next(0, gems4.Length - 1)];
+                            break;
+                        default:
+                            materialType = gems5[ThreadSafeRandom.Next(0, gems5.Length - 1)];
+                            break;
                     }
                     break;
                 case 2:
-                    if (tier == 1)
+                    switch (tier)
                     {
-                        materialType = bowTypes1[ThreadSafeRandom.Next(0, bowTypes1.Length - 1)];
-                    }
-                    if (tier == 2)
-                    {
-                        materialType = bowTypes2[ThreadSafeRandom.Next(0, bowTypes2.Length - 1)];
-                    }
-                    if (tier == 3)
-                    {
-                        materialType = bowTypes3[ThreadSafeRandom.Next(0, bowTypes3.Length - 1)];
-                    }
-                    if (tier == 4)
-                    {
-                        materialType = bowTypes4[ThreadSafeRandom.Next(0, bowTypes4.Length - 1)];
-                    }
-                    else
-                    {
-                        materialType = bowTypes5[ThreadSafeRandom.Next(0, bowTypes5.Length - 1)];
+                        case 1:
+                            materialType = bowTypes1[ThreadSafeRandom.Next(0, bowTypes1.Length - 1)];
+                            break;
+                        case 2:
+                            materialType = bowTypes2[ThreadSafeRandom.Next(0, bowTypes2.Length - 1)];
+                            break;
+                        case 3:
+                            materialType = bowTypes3[ThreadSafeRandom.Next(0, bowTypes3.Length - 1)];
+                            break;
+                        case 4:
+                            materialType = bowTypes4[ThreadSafeRandom.Next(0, bowTypes4.Length - 1)];
+                            break;
+                        default:
+                            materialType = bowTypes5[ThreadSafeRandom.Next(0, bowTypes5.Length - 1)];
+                            break;
                     }
                     break;
                 case 3:
-                    if (tier == 1)
+                    switch (tier)
                     {
-                        materialType = materialTypes1[ThreadSafeRandom.Next(0, materialTypes1.Length - 1)];
-                    }
-                    if (tier == 2)
-                    {
-                        materialType = materialTypes2[ThreadSafeRandom.Next(0, materialTypes2.Length - 1)];
-                    }
-                    if (tier == 3)
-                    {
-                        materialType = materialTypes3[ThreadSafeRandom.Next(0, materialTypes3.Length - 1)];
-                    }
-                    if (tier == 4)
-                    {
-                        materialType = materialTypes4[ThreadSafeRandom.Next(0, materialTypes4.Length - 1)];
-                    }
-                    else
-                    {
-                        materialType = materialTypes5[ThreadSafeRandom.Next(0, materialTypes5.Length - 1)];
+                        case 1:
+                            materialType = materialTypes1[ThreadSafeRandom.Next(0, materialTypes1.Length - 1)];
+                            break;
+                        case 2:
+                            materialType = materialTypes2[ThreadSafeRandom.Next(0, materialTypes2.Length - 1)];
+                            break;
+                        case 3:
+                            materialType = materialTypes3[ThreadSafeRandom.Next(0, materialTypes3.Length - 1)];
+                            break;
+                        case 4:
+                            materialType = materialTypes4[ThreadSafeRandom.Next(0, materialTypes4.Length - 1)];
+                            break;
+                        default:
+                            materialType = materialTypes5[ThreadSafeRandom.Next(0, materialTypes5.Length - 1)];
+                            break;
                     }
                     break;
                 case 4:
@@ -18839,156 +17368,95 @@ namespace ACE.Server.Factories
             return (int)materialType;
         }
 
-        public static double GetMeleeDMod(int maxMelee, int tier)
+        public static double GetMeleeDMod(int tier)
         {
-
             double meleeMod = 0;
             int chance = 0;
-            switch (maxMelee)
+
+            switch (tier)
             {
-                case 20:
-                    //tier 1
-                    switch (tier)
-                    {
-                        case 1:
-                            meleeMod = 0;
-                            break;
-                        case 2:
-                            chance = ThreadSafeRandom.Next(0, 100);
-                            if (chance < 60)
-                            {
-                                meleeMod = 0;
-                            }
-                            else if (chance < 80)
-                            {
-                                meleeMod = .01;
-                            }
-                            else if (chance < 92)
-                            {
-                                meleeMod = .02;
-                            }
-                            else
-                            {
-                                meleeMod = .03;
-                            }
-                            break;
-                        case 3:
-                            chance = ThreadSafeRandom.Next(0, 100);
-                            if (chance < 60)
-                            {
-                                meleeMod = .03;
-                            }
-                            else if (chance < 80)
-                            {
-                                meleeMod = .04;
-                            }
-                            else if (chance < 92)
-                            {
-                                meleeMod = .05;
-                            }
-                            else
-                            {
-                                meleeMod = .06;
-                            }
-                            break;
-                        case 4:
-                            chance = ThreadSafeRandom.Next(0, 100);
-                            if (chance < 60)
-                            {
-                                meleeMod = .06;
-                            }
-                            else if (chance < 80)
-                            {
-                                meleeMod = .07;
-                            }
-                            else if (chance < 92)
-                            {
-                                meleeMod = .08;
-                            }
-                            else
-                            {
-                                meleeMod = .09;
-                            }
-                            break;
-                        case 5:
-                            chance = ThreadSafeRandom.Next(0, 100);
-                            if (chance < 60)
-                            {
-                                meleeMod = .09;
-                            }
-                            else if (chance < 80)
-                            {
-                                meleeMod = .1;
-                            }
-                            else if (chance < 92)
-                            {
-                                meleeMod = .11;
-                            }
-                            else
-                            {
-                                meleeMod = .12;
-                            }
-                            break;
-                        case 6:
-                            chance = ThreadSafeRandom.Next(0, 100);
-                            if (chance < 60)
-                            {
-                                meleeMod = .12;
-                            }
-                            else if (chance < 80)
-                            {
-                                meleeMod = .13;
-                            }
-                            else if (chance < 92)
-                            {
-                                meleeMod = .14;
-                            }
-                            else
-                            {
-                                meleeMod = .15;
-                            }
-                            break;
-                        case 7:
-                            chance = ThreadSafeRandom.Next(0, 100);
-                            if (chance < 60)
-                            {
-                                meleeMod = .15;
-                            }
-                            else if (chance < 80)
-                            {
-                                meleeMod = .16;
-                            }
-                            else if (chance < 92)
-                            {
-                                meleeMod = .17;
-                            }
-                            else
-                            {
-                                meleeMod = .18;
-                            }
-                            break;
-                        case 8:
-                            chance = ThreadSafeRandom.Next(0, 100);
-                            if (chance < 60)
-                            {
-                                meleeMod = .17;
-                            }
-                            else if (chance < 80)
-                            {
-                                meleeMod = .18;
-                            }
-                            else if (chance < 92)
-                            {
-                                meleeMod = .19;
-                            }
-                            else
-                            {
-                                meleeMod = .20;
-                            }
-                            break;
-                    }
+                case 1:
+                    meleeMod = 0;
+                    break;
+                case 2:
+                    chance = ThreadSafeRandom.Next(0, 100);
+                    if (chance < 60)
+                        meleeMod = 0;
+                    else if (chance < 80)
+                        meleeMod = .01;
+                    else if (chance < 92)
+                        meleeMod = .02;
+                    else
+                        meleeMod = .03;
+                    break;
+                case 3:
+                    chance = ThreadSafeRandom.Next(0, 100);
+                    if (chance < 60)
+                        meleeMod = .03;
+                    else if (chance < 80)
+                        meleeMod = .04;
+                    else if (chance < 92)
+                        meleeMod = .05;
+                    else
+                        meleeMod = .06;
+                    break;
+                case 4:
+                    chance = ThreadSafeRandom.Next(0, 100);
+                    if (chance < 60)
+                        meleeMod = .06;
+                    else if (chance < 80)
+                        meleeMod = .07;
+                    else if (chance < 92)
+                        meleeMod = .08;
+                    else
+                        meleeMod = .09;
+                    break;
+                case 5:
+                    chance = ThreadSafeRandom.Next(0, 100);
+                    if (chance < 60)
+                        meleeMod = .09;
+                    else if (chance < 80)
+                        meleeMod = .1;
+                    else if (chance < 92)
+                        meleeMod = .11;
+                    else
+                        meleeMod = .12;
+                    break;
+                case 6:
+                    chance = ThreadSafeRandom.Next(0, 100);
+                    if (chance < 60)
+                        meleeMod = .12;
+                    else if (chance < 80)
+                        meleeMod = .13;
+                    else if (chance < 92)
+                        meleeMod = .14;
+                    else
+                        meleeMod = .15;
+                    break;
+                case 7:
+                    chance = ThreadSafeRandom.Next(0, 100);
+                    if (chance < 60)
+                        meleeMod = .15;
+                    else if (chance < 80)
+                        meleeMod = .16;
+                    else if (chance < 92)
+                        meleeMod = .17;
+                    else
+                        meleeMod = .18;
+                    break;
+                case 8:
+                    chance = ThreadSafeRandom.Next(0, 100);
+                    if (chance < 60)
+                        meleeMod = .17;
+                    else if (chance < 80)
+                        meleeMod = .18;
+                    else if (chance < 92)
+                        meleeMod = .19;
+                    else
+                        meleeMod = .20;
                     break;
             }
+
             meleeMod += 1.0;
             return meleeMod;
         }
@@ -18997,93 +17465,53 @@ namespace ACE.Server.Factories
         {
 
             int amount = 0;
-            switch (tier)
-            {
-                case 1:
-                    break;
-                case 2:
-                    break;
-                case 3:
-                    break;
-                case 4:
-                    break;
-                case 5:
-                    break;
-                case 6:
-                    break;
-                case 7:
-                    break;
-                default:
-                    if (ThreadSafeRandom.Next(0, 1000) == 0)
-                    {
-                        amount = 1;
-                    }
-                    if (ThreadSafeRandom.Next(0, 5000) == 0)
-                    {
-                        amount = 2;
-                    }
-                    if (ThreadSafeRandom.Next(0, 1000000) == 0)
-                    {
-                        amount = 3;
-                    }
-                    if (ThreadSafeRandom.Next(0, 10000000) == 0)
-                    {
-                        amount = 4;
-                    }
-                    break;
 
-            }
+            if (tier < 8)
+                return amount;
+
+            if (ThreadSafeRandom.Next(0, 1000) == 0)
+                amount = 1;
+
+            if (ThreadSafeRandom.Next(0, 5000) == 0)
+                amount = 2;
+
+            if (ThreadSafeRandom.Next(0, 1000000) == 0)
+                amount = 3;
+
+            if (ThreadSafeRandom.Next(0, 10000000) == 0)
+                amount = 4;
+
             return amount;
         }
 
         public static int GetNumEpicCantrips(int tier)
         {
-
             int amount = 0;
+
+            if (tier < 7)
+                return amount;
+
             switch (tier)
             {
-                case 1:
-                    break;
-                case 2:
-                    break;
-                case 3:
-                    break;
-                case 4:
-                    break;
-                case 5:
-                    break;
-                case 6:
-                    break;
                 case 7:
                     if (ThreadSafeRandom.Next(0, 1000) == 0)
-                    {
                         amount = 1;
-                    }
                     if (ThreadSafeRandom.Next(0, 10000) == 0)
-                    {
                         amount = 2;
-                    }
                     if (ThreadSafeRandom.Next(0, 100000) == 0)
-                    {
                         amount = 3;
-                    }
                     break;
                 default:
                     if (ThreadSafeRandom.Next(0, 1000) == 0)
-                    {
                         amount = 1;
-                    }
                     if (ThreadSafeRandom.Next(0, 10000) == 0)
-                    {
                         amount = 2;
-                    }
                     if (ThreadSafeRandom.Next(0, 100000) == 0)
-                    {
                         amount = 3;
-                    }
                     break;
 
             }
+
             return amount;
         }
 
@@ -19098,80 +17526,50 @@ namespace ACE.Server.Factories
                     break;
                 case 2:
                     if (ThreadSafeRandom.Next(0, 500) == 0)
-                    {
                         amount = 1;
-                    }
                     break;
                 case 3:
                     if (ThreadSafeRandom.Next(0, 500) == 0)
-                    {
                         amount = 1;
-                    }
                     if (ThreadSafeRandom.Next(0, 10000) == 0)
-                    {
                         amount = 2;
-                    }
                     break;
                 case 4:
                     if (ThreadSafeRandom.Next(0, 500) == 0)
-                    {
                         amount = 1;
-                    }
                     if (ThreadSafeRandom.Next(0, 5000) == 0)
-                    {
                         amount = 2;
-                    }
                     break;
                 case 5:
                     if (ThreadSafeRandom.Next(0, 500) == 0)
-                    {
                         amount = 1;
-                    }
                     if (ThreadSafeRandom.Next(0, 5000) == 0)
-                    {
                         amount = 2;
-                    }
                     break;
                 case 6:
                     if (ThreadSafeRandom.Next(0, 500) == 0)
-                    {
                         amount = 1;
-                    }
                     if (ThreadSafeRandom.Next(0, 5000) == 0)
-                    {
                         amount = 2;
-                    }
                     break;
                 case 7:
                     if (ThreadSafeRandom.Next(0, 500) == 0)
-                    {
                         amount = 1;
-                    }
                     if (ThreadSafeRandom.Next(0, 5000) == 0)
-                    {
                         amount = 2;
-                    }
                     if (ThreadSafeRandom.Next(0, 15000) == 0)
-                    {
                         amount = 3;
-                    }
                     break;
                 default:
                     if (ThreadSafeRandom.Next(0, 500) == 0)
-                    {
                         amount = 1;
-                    }
                     if (ThreadSafeRandom.Next(0, 5000) == 0)
-                    {
                         amount = 2;
-                    }
                     if (ThreadSafeRandom.Next(0, 15000) == 0)
-                    {
                         amount = 3;
-                    }
                     break;
-
             }
+
             return amount;
         }
 
@@ -19183,132 +17581,69 @@ namespace ACE.Server.Factories
             {
                 case 1:
                     if (ThreadSafeRandom.Next(0, 100) == 0)
-                    {
                         amount = 1;
-                    }
                     break;
                 case 2:
                     if (ThreadSafeRandom.Next(0, 50) == 0)
-                    {
                         amount = 1;
-                    }
                     if (ThreadSafeRandom.Next(0, 250) == 0)
-                    {
                         amount = 2;
-                    }
                     break;
                 case 3:
                     if (ThreadSafeRandom.Next(0, 50) == 0)
-                    {
                         amount = 1;
-                    }
                     if (ThreadSafeRandom.Next(0, 250) == 0)
-                    {
                         amount = 2;
-                    }
                     break;
                 case 4:
                     if (ThreadSafeRandom.Next(0, 50) == 0)
-                    {
                         amount = 1;
-                    }
                     if (ThreadSafeRandom.Next(0, 250) == 0)
-                    {
                         amount = 2;
-                    }
                     if (ThreadSafeRandom.Next(0, 1000) == 0)
-                    {
                         amount = 3;
-                    }
                     break;
                 case 5:
                     if (ThreadSafeRandom.Next(0, 50) == 0)
-                    {
                         amount = 1;
-                    }
                     if (ThreadSafeRandom.Next(0, 250) == 0)
-                    {
                         amount = 2;
-                    }
                     if (ThreadSafeRandom.Next(0, 1000) == 0)
-                    {
                         amount = 3;
-                    }
                     break;
                 case 6:
                     if (ThreadSafeRandom.Next(0, 50) == 0)
-                    {
                         amount = 1;
-                    }
                     if (ThreadSafeRandom.Next(0, 250) == 0)
-                    {
                         amount = 2;
-                    }
                     if (ThreadSafeRandom.Next(0, 1000) == 0)
-                    {
                         amount = 3;
-                    }
                     if (ThreadSafeRandom.Next(0, 5000) == 0)
-                    {
                         amount = 4;
-                    }
                     break;
                 case 7:
                     if (ThreadSafeRandom.Next(0, 50) == 0)
-                    {
                         amount = 1;
-                    }
                     if (ThreadSafeRandom.Next(0, 250) == 0)
-                    {
                         amount = 2;
-                    }
                     if (ThreadSafeRandom.Next(0, 1000) == 0)
-                    {
                         amount = 3;
-                    }
                     if (ThreadSafeRandom.Next(0, 5000) == 0)
-                    {
                         amount = 4;
-                    }
                     break;
                 default:
                     if (ThreadSafeRandom.Next(0, 50) == 0)
-                    {
                         amount = 1;
-                    }
                     if (ThreadSafeRandom.Next(0, 250) == 0)
-                    {
                         amount = 2;
-                    }
                     if (ThreadSafeRandom.Next(0, 1000) == 0)
-                    {
                         amount = 3;
-                    }
                     if (ThreadSafeRandom.Next(0, 5000) == 0)
-                    {
                         amount = 4;
-                    }
                     break;
-
             }
+
             return amount;
-        }
-
-        public static String getLongDesc(String name, int gemType, int gemNum)
-        {
-            //Still need to get spell name
-            //Format for long description is: "Exquisitely crafted Ruby Ring of Fire Protection set with 1 White Sapphire."
-            String lD = "";
-            if (gemNum > 1)
-            {
-                lD = name + " set with " + gemNum + " " + LootHelper.gemNames[gemType] + "s.";
-            }
-            else
-            {
-                lD = name + " set with " + gemNum + " " + LootHelper.gemNames[gemType] + ".";
-            }
-
-            return lD;
         }
     }
 }
