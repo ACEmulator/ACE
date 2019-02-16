@@ -138,6 +138,33 @@ namespace ACE.Server.Entity
             }
         }
 
+        public static CoverageMask GetCoverageMask(CombatBodyPart bodyPart)
+        {
+            switch (bodyPart)
+            {
+                case CombatBodyPart.Abdomen:
+                    return CoverageMask.OuterwearAbdomen | CoverageMask.UnderwearAbdomen;
+                case CombatBodyPart.Chest:
+                    return CoverageMask.OuterwearChest | CoverageMask.UnderwearChest;
+                case CombatBodyPart.Foot:
+                    return CoverageMask.Feet;
+                case CombatBodyPart.Hand:
+                    return CoverageMask.Hands;
+                case CombatBodyPart.Head:
+                    return CoverageMask.Head;
+                case CombatBodyPart.LowerArm:
+                    return CoverageMask.OuterwearLowerArms | CoverageMask.UnderwearLowerArms;
+                case CombatBodyPart.LowerLeg:
+                    return CoverageMask.OuterwearLowerLegs | CoverageMask.UnderwearLowerLegs;
+                case CombatBodyPart.UpperArm:
+                    return CoverageMask.OuterwearUpperArms | CoverageMask.UnderwearUpperArms;
+                case CombatBodyPart.UpperLeg:
+                    return CoverageMask.OuterwearUpperLegs | CoverageMask.UnderwearUpperLegs;
+                default:
+                    return CoverageMask.Unknown;
+            }
+        }
+
         public static List<BodyPart> GetFlags(BodyPart bodyParts)
         {
             return Enum.GetValues(typeof(BodyPart)).Cast<BodyPart>().Where(p => bodyParts.HasFlag(p)).ToList();

@@ -359,10 +359,10 @@ namespace ACE.Server.WorldObjects
             var attributeMod = GetAttributeMod(weapon);
 
             // get armor piece
-            var armor = GetArmor(bodyPart);
+            var armorLayers = GetArmorLayers(bodyPart);
 
             // get armor modifiers
-            var armorMod = GetArmorMod(armor, weapon, damageType);
+            var armorMod = GetArmorMod(damageType, armorLayers, weapon);
 
             // get resistance modifiers (protect/vuln)
             var resistanceMod = AttackTarget.EnchantmentManager.GetResistanceMod(damageType);
@@ -387,16 +387,16 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Returns the creature armor for a body part
         /// </summary>
-        public List<WorldObject> GetArmor(BodyPart bodyPart)
+        public List<WorldObject> GetArmorLayers(BodyPart bodyPart)
         {
             var target = AttackTarget as Creature;
 
             //Console.WriteLine("BodyPart: " + bodyPart);
             //Console.WriteLine("===");
 
-            var bodyLocation = BodyParts.GetFlags(BodyParts.GetCoverageMask(bodyPart));
+            var coverageMask = BodyParts.GetCoverageMask(bodyPart);
 
-            var equipped = target.EquippedObjects.Values.Where(e => e is Clothing && BodyParts.HasAny(e.ClothingPriority, bodyLocation)).ToList();
+            var equipped = target.EquippedObjects.Values.Where(e => e is Clothing && (e.ClothingPriority & coverageMask) != 0).ToList();
 
             return equipped;
         }
@@ -405,7 +405,7 @@ namespace ACE.Server.WorldObjects
         /// Returns the percent of damage absorbed by layered armor + clothing
         /// </summary>
         /// <param name="armors">The list of armor/clothing covering the targeted body part</param>
-        public float GetArmorMod(List<WorldObject> armors, WorldObject damageSource, DamageType damageType, CreatureSkill skill = null)
+        public float GetArmorMod(DamageType damageType, List<WorldObject> armors, WorldObject damageSource, float armorRendingMod = 1.0f)
         {
             var effectiveAL = 0.0f;
 
@@ -414,10 +414,11 @@ namespace ACE.Server.WorldObjects
 
             // life spells
             // additive: armor/imperil
-            var bodyArmorMod = damageSource != null && damageSource.IgnoreMagicResist ? 0 : AttackTarget.EnchantmentManager.GetBodyArmorMod();
+            var bodyArmorMod = damageSource != null && damageSource.IgnoreMagicResist ? 0.0f : AttackTarget.EnchantmentManager.GetBodyArmorMod();
 
-            if (bodyArmorMod > 0 && damageSource != null && skill != null && damageSource.HasImbuedEffect(ImbuedEffectType.ArmorRending))
-                bodyArmorMod = (int)Math.Round(bodyArmorMod * GetArmorRendingMod(skill));
+            // handle armor rending mod here?
+            if (bodyArmorMod > 0)
+                bodyArmorMod *= armorRendingMod;
 
             //Console.WriteLine("==");
             //Console.WriteLine("Armor Self: " + bodyArmorMod);
@@ -461,6 +462,10 @@ namespace ACE.Server.WorldObjects
             // resistance cap
             if (effectiveRL > 2.0f)
                 effectiveRL = 2.0f;
+
+            // TODO: could brittlemail / lures send a piece of armor or clothing's AL into the negatives?
+            if (effectiveAL < 0)
+                effectiveRL = 1.0f + (1.0f - effectiveRL);
 
             /*Console.WriteLine("Effective AL: " + effectiveAL);
             Console.WriteLine("Effective RL: " + effectiveRL);

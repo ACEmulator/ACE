@@ -370,14 +370,19 @@ namespace ACE.Server.WorldObjects
                 damage = baseDamageRange.Max * attributeMod * powerMod * damageRatingMod * (1.0f + GetWeaponCritDamageMod(this, attackSkill));
             }
 
+            // get armor rending mod here?
+            var armorRendingMod = 1.0f;
+            if (weapon != null && weapon.HasImbuedEffect(ImbuedEffectType.ArmorRending))
+                armorRendingMod = GetArmorRendingMod(attackSkill);
+
             // select random body part @ current attack height
             bodyPart = BodyParts.GetBodyPart(AttackHeight.Value);
 
             // get armor piece
-            var armor = GetArmor(bodyPart);
+            var armor = GetArmorLayers(bodyPart);
 
             // get armor modifiers
-            var armorMod = GetArmorMod(armor, damageSource, damageType, attackSkill);
+            var armorMod = GetArmorMod(damageType, armor, damageSource, armorRendingMod);
 
             // get resistance modifiers (protect/vuln)
             var resistanceMod = damageSource != null && damageSource.IgnoreMagicResist ? 1.0f : AttackTarget.EnchantmentManager.GetResistanceMod(damageType);

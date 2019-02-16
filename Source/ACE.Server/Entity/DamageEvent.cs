@@ -202,6 +202,11 @@ namespace ACE.Server.Entity
                 DamageBeforeMitigation = BaseDamageRange.Max * AttributeMod * PowerMod * SlayerMod * DamageRatingMod * CriticalDamageMod + ElementalDamageBonus;
             }
 
+            // get armor rending mod here?
+            var armorRendingMod = 1.0f;
+            if (Weapon != null && Weapon.HasImbuedEffect(ImbuedEffectType.ArmorRending))
+                armorRendingMod = WorldObject.GetArmorRendingMod(attackSkill);
+
             // get body part / armor pieces / armor modifier
             if (playerDefender != null)
             {
@@ -209,18 +214,20 @@ namespace ACE.Server.Entity
                 GetBodyPart(AttackHeight);
 
                 // get armor pieces
-                Armor = attacker.GetArmor(BodyPart);    // this uses attacker.AttackTarget
+                Armor = attacker.GetArmorLayers(BodyPart);    // this uses attacker.AttackTarget
 
                 // get armor modifiers
-                ArmorMod = attacker.GetArmorMod(Armor, DamageSource, DamageType, attackSkill);
+                ArmorMod = attacker.GetArmorMod(DamageType, Armor, DamageSource, armorRendingMod);
             }
             else
             {
                 // select random body part @ current attack height
                 GetBodyPart(AttackHeight, defender);
 
-                // get target armor (soon to be multiple pieces)
-                ArmorMod = CreaturePart.GetArmorMod(DamageType, DamageSource);
+                Armor = CreaturePart.GetArmorLayers((CombatBodyPart)BiotaPropertiesBodyPart.Key);
+
+                // get target armor
+                ArmorMod = CreaturePart.GetArmorMod(DamageType, Armor, DamageSource, armorRendingMod);
             }
 
             // get resistance modifiers
@@ -386,9 +393,13 @@ namespace ACE.Server.Entity
             {
                 // player body part
                 Console.WriteLine($"BodyPart: {BodyPart}");
+            }
+            if (Armor.Count > 0)
+            {
                 Console.WriteLine($"Armors: {string.Join(", ", Armor.Select(i => i.Name))}");
             }
-            else
+
+            if (CreaturePart != null)
             {
                 // creature body part
                 Console.WriteLine($"BodyPart: {(CombatBodyPart)BiotaPropertiesBodyPart.Key}");

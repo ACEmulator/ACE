@@ -1,9 +1,12 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 
 using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
+using ACE.Entity.Enum.Properties;
+using ACE.Server.Entity;
 using ACE.Server.Managers;
-using ACE.Server.WorldObjects.Entity;
 
 namespace ACE.Server.WorldObjects
 {
@@ -59,7 +62,7 @@ namespace ACE.Server.WorldObjects
                 resistance = 1.0f;
 
             float mod;
-            var spellVuln = IgnoreMagicResist ? 1.0f : EnchantmentManager.GetVulnerabilityResistanceMod(damageType);    // ignore vuln?
+            var spellVuln = IgnoreMagicResist ? 1.0f : EnchantmentManager.GetVulnerabilityResistanceMod(damageType);
             var spellProt = IgnoreMagicResist ? 1.0f : EnchantmentManager.GetProtectionResistanceMod(damageType);
 
             if (WeaponResistanceMod > spellVuln)
@@ -81,14 +84,29 @@ namespace ACE.Server.WorldObjects
             return (int)Math.Round(baseArmorMod * resistanceMod);
         }
 
-        public float GetEffectiveArmorVsType(DamageType damageType, WorldObject damageSource)
+        /// <summary>
+        /// Main entry point for getting the armor mod
+        /// </summary>
+        public float GetArmorMod(DamageType damageType, List<WorldObject> armorLayers, WorldObject damageSource, float armorRendingMod = 1.0f)
+        {
+            var effectiveArmorVsType = GetEffectiveArmorVsType(damageType, armorLayers, damageSource, armorRendingMod);
+
+            return SkillFormula.CalcArmorMod(effectiveArmorVsType);
+        }
+
+        public float GetEffectiveArmorVsType(DamageType damageType, List<WorldObject> armorLayers, WorldObject damageSource, float armorRendingMod = 1.0f)
         {
             var ignoreMagicArmor  = damageSource != null ? damageSource.IgnoreMagicArmor : false;
             var ignoreMagicResist = damageSource != null ? damageSource.IgnoreMagicResist : false;
 
+            // get base AL / RL
             var enchantmentMod = ignoreMagicResist ? 0 : EnchantmentManager.GetBodyArmorMod();
 
-            var baseArmorMod = Biota.BaseArmor + enchantmentMod;
+            var baseArmorMod = (float)(Biota.BaseArmor + enchantmentMod);
+
+            // handle armor rending mod here?
+            if (baseArmorMod > 0)
+                baseArmorMod *= armorRendingMod;
 
             // for creatures, can this be modified via enchantments?
             var armorVsType = Creature.GetArmorVsType(damageType);
@@ -97,15 +115,65 @@ namespace ACE.Server.WorldObjects
             if (baseArmorMod < 0)
                 armorVsType = 1.0f + (1.0f - armorVsType);
 
-            // TODO: handle monsters w/ multiple layers of armor
-            return (float)(baseArmorMod * armorVsType);
+            var effectiveAL = (float)(baseArmorMod * armorVsType);
+
+            // handle monsters w/ multiple layers of armor
+            foreach (var armorLayer in armorLayers)
+                effectiveAL += GetArmorMod(armorLayer, damageSource, damageType);
+
+            return effectiveAL;
         }
 
-        public float GetArmorMod(DamageType damageType, WorldObject damageSource)
+        public List<WorldObject> GetArmorLayers(CombatBodyPart bodyPart)
         {
-            var effectiveArmorVsType = GetEffectiveArmorVsType(damageType, damageSource);
+            var coverageMask = BodyParts.GetCoverageMask(bodyPart);
 
-            return SkillFormula.CalcArmorMod(effectiveArmorVsType);
+            var equipped = Creature.EquippedObjects.Values.Where(e => e is Clothing && (e.ClothingPriority & coverageMask) != 0).ToList();
+
+            return equipped;
+        }
+
+        /// <summary>
+        /// Returns the effective AL for 1 piece of armor/clothing
+        /// </summary>
+        /// <param name="armor">A piece of armor or clothing</param>
+        public float GetArmorMod(WorldObject armor, WorldObject weapon, DamageType damageType)
+        {
+            // get base armor/resistance level
+            var baseArmor = armor.GetProperty(PropertyInt.ArmorLevel) ?? 0;
+            var armorType = armor.GetProperty(PropertyInt.ArmorType) ?? 0;
+            var resistance = Creature.GetResistance(armor, damageType);
+
+            /*Console.WriteLine(armor.Name);
+            Console.WriteLine("--");
+            Console.WriteLine("Base AL: " + baseArmor);
+            Console.WriteLine("Base RL: " + resistance);*/
+
+            var ignoreMagicArmor = weapon != null && weapon.IgnoreMagicArmor;
+
+            // armor level additives
+            var armorMod = ignoreMagicArmor ? 0 : armor.EnchantmentManager.GetArmorMod();
+            // Console.WriteLine("Impen: " + armorMod);
+            var effectiveAL = baseArmor + armorMod;
+
+            // resistance additives
+            var armorBane = ignoreMagicArmor ? 0 : armor.EnchantmentManager.GetArmorModVsType(damageType);
+            // Console.WriteLine("Bane: " + armorBane);
+            var effectiveRL = (float)(resistance + armorBane);
+
+            // resistance cap
+            if (effectiveRL > 2.0f)
+                effectiveRL = 2.0f;
+
+            // TODO: could brittlemail / lures send a piece of armor or clothing's AL into the negatives?
+            if (effectiveAL < 0)
+                effectiveRL = 1.0f + (1.0f - effectiveRL);
+
+            /*Console.WriteLine("Effective AL: " + effectiveAL);
+            Console.WriteLine("Effective RL: " + effectiveRL);
+            Console.WriteLine();*/
+
+            return effectiveAL * effectiveRL;
         }
 
         public float GetResistanceMod(DamageType damageType, WorldObject damageSource, float weaponResistanceMod)
