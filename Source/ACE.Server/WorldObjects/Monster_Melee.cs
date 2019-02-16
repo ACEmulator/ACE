@@ -465,7 +465,7 @@ namespace ACE.Server.WorldObjects
 
             // TODO: could brittlemail / lures send a piece of armor or clothing's AL into the negatives?
             if (effectiveAL < 0)
-                effectiveRL = 1.0f + (1.0f - effectiveRL);
+                effectiveRL = 1.0f / effectiveRL;
 
             /*Console.WriteLine("Effective AL: " + effectiveAL);
             Console.WriteLine("Effective RL: " + effectiveRL);
