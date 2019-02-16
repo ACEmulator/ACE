@@ -87,7 +87,6 @@ namespace ACE.Server.WorldObjects
             }
             else if (ItemCurMana.Value > 0)
             {
-                ItemCurMana = 2;
                 if (target == player)
                 {
                     // dump mana into equipped items
