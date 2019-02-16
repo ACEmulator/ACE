@@ -11,6 +11,7 @@ namespace ACE.Server.Entity
     [Flags]
     public enum BodyPart
     {
+        // this is more like a combined coverage mask?
         Head        = 0x1,
         Chest       = 0x2,
         Abdomen     = 0x4,
@@ -32,6 +33,7 @@ namespace ACE.Server.Entity
 
         static BodyParts()
         {
+            // these map to CombatBodyPart
             Indices = new Dictionary<BodyPart, int>()
             {
                 { BodyPart.Head, 0 },

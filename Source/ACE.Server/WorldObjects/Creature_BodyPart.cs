@@ -3,6 +3,7 @@ using System;
 using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
 using ACE.Server.Managers;
+using ACE.Server.WorldObjects.Entity;
 
 namespace ACE.Server.WorldObjects
 {
@@ -12,7 +13,7 @@ namespace ACE.Server.WorldObjects
         public BiotaPropertiesBodyPart Biota;
 
         public float WeaponArmorMod = 1.0f;
-        public float WeaponResistanceMod = 1.0f;
+        public float WeaponResistanceMod = 1.0f;        // resistance cleaving, rends
 
         public bool IgnoreMagicArmor;   // impen, bane
         public bool IgnoreMagicResist;  // armor, protection
@@ -78,6 +79,45 @@ namespace ACE.Server.WorldObjects
             Console.WriteLine("ResistanceMod: " + resistanceMod);*/
 
             return (int)Math.Round(baseArmorMod * resistanceMod);
+        }
+
+        public float GetEffectiveArmorVsType(DamageType damageType, WorldObject damageSource)
+        {
+            var ignoreMagicArmor  = damageSource != null ? damageSource.IgnoreMagicArmor : false;
+            var ignoreMagicResist = damageSource != null ? damageSource.IgnoreMagicResist : false;
+
+            var enchantmentMod = ignoreMagicResist ? 0 : EnchantmentManager.GetBodyArmorMod();
+
+            var baseArmorMod = Biota.BaseArmor + enchantmentMod;
+
+            // for creatures, can this be modified via enchantments?
+            var armorVsType = Creature.GetArmorVsType(damageType);
+
+            // handle negative baseArmorMod?
+            if (baseArmorMod < 0)
+                armorVsType = 1.0f + (1.0f - armorVsType);
+
+            // TODO: handle monsters w/ multiple layers of armor
+            return (float)(baseArmorMod * armorVsType);
+        }
+
+        public float GetArmorMod(DamageType damageType, WorldObject damageSource)
+        {
+            var effectiveArmorVsType = GetEffectiveArmorVsType(damageType, damageSource);
+
+            return SkillFormula.CalcArmorMod(effectiveArmorVsType);
+        }
+
+        public float GetResistanceMod(DamageType damageType, WorldObject damageSource, float weaponResistanceMod)
+        {
+            var ignoreMagicResist = damageSource != null ? damageSource.IgnoreMagicResist : false;
+
+            var resistanceType = Creature.GetResistanceType(damageType);
+
+            if (ignoreMagicResist)
+                return (float)Creature.GetNaturalResistance(resistanceType);
+            else
+                return (float)Creature.GetResistanceMod(resistanceType, weaponResistanceMod);
         }
     }
 }

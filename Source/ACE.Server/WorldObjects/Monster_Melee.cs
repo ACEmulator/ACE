@@ -62,9 +62,6 @@ namespace ACE.Server.WorldObjects
 
             AttackHeight = maneuver.AttackHeight;
 
-            // select random body part @ current attack height
-            var bodyPart = BodyParts.GetBodyPart(AttackHeight.Value);
-
             DoSwingMotion(AttackTarget, maneuver, out float animLength, out var attackFrames);
             PhysicsObj.stick_to_object(AttackTarget.PhysicsObj.ID);
 
@@ -82,26 +79,26 @@ namespace ACE.Server.WorldObjects
                 {
                     if (AttackTarget == null || IsDead) return;
 
-                    var critical = false;
-                    var damageType = DamageType.Undef;
-                    var shieldMod = 1.0f;
-                    var damage = CalculateDamage(ref damageType, maneuver, bodyPart, ref critical, ref shieldMod);
+                    var weapon = GetEquippedWeapon();
+                    var damageEvent = DamageEvent.CalculateDamage(this, target, weapon, maneuver);
 
-                    if (damage != null)
+                    //var damage = CalculateDamage(ref damageType, maneuver, bodyPart, ref critical, ref shieldMod);
+
+                    if (damageEvent.HasDamage)
                     {
                         if (combatPet != null || targetPet != null)
                         {
                             // combat pet inflicting or receiving damage
                             //Console.WriteLine($"{target.Name} taking {Math.Round(damage)} {damageType} damage from {Name}");
-                            target.TakeDamage(this, damageType, damage.Value);
-                            EmitSplatter(target, damage.Value);
+                            target.TakeDamage(this, damageEvent.DamageType, damageEvent.Damage);
+                            EmitSplatter(target, damageEvent.Damage);
                         }
                         else if (targetPlayer != null)
                         {
                             // this is a player taking damage
-                            targetPlayer.TakeDamage(this, damageType, damage.Value, bodyPart, critical);
+                            targetPlayer.TakeDamage(this, damageEvent.DamageType, damageEvent.Damage, damageEvent.BodyPart, damageEvent.IsCritical);
 
-                            if (shieldMod != 1.0f)
+                            if (damageEvent.ShieldMod != 1.0f)
                             {
                                 var shieldSkill = targetPlayer.GetCreatureSkill(Skill.Shield);
                                 Proficiency.OnSuccessUse(targetPlayer, shieldSkill, shieldSkill.Current); // ?

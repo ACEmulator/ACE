@@ -553,7 +553,7 @@ namespace ACE.Server.WorldObjects
         }
 
 
-        public bool GetHeritageBonus(WorldObject weapon)
+        public override bool GetHeritageBonus(WorldObject weapon)
         {
             return GetHeritageBonus(GetWeaponType(weapon));
         }
