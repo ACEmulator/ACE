@@ -215,7 +215,7 @@ namespace ACE.Server.WorldObjects
                 EnqueueBroadcast(new GameMessageScript(Guid, ACE.Entity.Enum.PlayScript.Explode, GetProjectileScriptIntensity(SpellType)));
             });
             selfDestructChain.AddDelaySeconds(5.0);
-            selfDestructChain.AddAction(this, () => LandblockManager.RemoveObject(this));
+            selfDestructChain.AddAction(this, Destroy);
             selfDestructChain.EnqueueChain();
         }
 

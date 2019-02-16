@@ -94,8 +94,7 @@ namespace ACE.Server.WorldObjects
 
             dieChain.AddAction(this, () =>
             {
-                NotifyOfEvent(RegenerationType.Destruction);
-                LandblockManager.RemoveObject(this);
+                Destroy();
                 CreateCorpse(topDamager);
             });
 

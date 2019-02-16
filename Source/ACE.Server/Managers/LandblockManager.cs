@@ -93,15 +93,6 @@ namespace ACE.Server.Managers
         }
 
         /// <summary>
-        /// Removes a WorldObject from the landblock defined by the object's location
-        /// </summary>
-        public static void RemoveObject(WorldObject worldObject)
-        {
-            var block = GetLandblock(worldObject.Location.LandblockId, false);
-            block.RemoveWorldObject(worldObject.Guid, false);
-        }
-
-        /// <summary>
         /// Relocates an object to the appropriate landblock -- Should only be called from physics/worldmanager -- not player!
         /// </summary>
         public static void RelocateObjectForPhysics(WorldObject worldObject, bool adjacencyMove)
