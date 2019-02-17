@@ -43,10 +43,7 @@ namespace ACE.Server.WorldObjects
                 ApplyVisualEffects(global::ACE.Entity.Enum.PlayScript.Destroy);
             });
             killChain.AddDelaySeconds(1);
-            killChain.AddAction(this, () =>
-            {
-               LandblockManager.RemoveObject(this);
-            });
+            killChain.AddAction(this, Destroy);
             killChain.EnqueueChain();
         }
     }

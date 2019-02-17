@@ -868,6 +868,8 @@ namespace ACE.Server.WorldObjects
             NotifyOfEvent(RegenerationType.Destruction);
             CurrentLandblock?.RemoveWorldObject(Guid);
             RemoveBiotaFromDatabase();
+
+            // todo recycle the guid
         }
 
         public string GetPluralName()

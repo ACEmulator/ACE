@@ -991,6 +991,9 @@ namespace ACE.Server.Command.Handlers
                 return;
             }
 
+            if (!loot.TimeToRot.HasValue)
+                loot.TimeToRot = Double.MaxValue;
+
             //LootGenerationFactory.Spawn(loot, session.Player.Location.InFrontOf(1.0f));
             //inventoryItem.Sequences.GetNextSequence(SequenceType.ObjectTeleport);
             //inventoryItem.Sequences.GetNextSequence(SequenceType.ObjectVector);
