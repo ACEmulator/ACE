@@ -29,7 +29,7 @@ namespace ACE.Server.WorldObjects
         private readonly Dictionary<PropertyDataId, uint?> ephemeralPropertyDataIds = new Dictionary<PropertyDataId, uint?>();
         private readonly Dictionary<PropertyFloat, double?> ephemeralPropertyFloats = new Dictionary<PropertyFloat, double?>();
         private readonly Dictionary<PropertyInstanceId, uint?> ephemeralPropertyInstanceIds = new Dictionary<PropertyInstanceId, uint?>();
-        private readonly Dictionary<PropertyInt, int?> ephemeralPropertyInts = new Dictionary<PropertyInt, int?>();
+        protected readonly Dictionary<PropertyInt, int?> ephemeralPropertyInts = new Dictionary<PropertyInt, int?>();
         private readonly Dictionary<PropertyInt64, long?> ephemeralPropertyInt64s = new Dictionary<PropertyInt64, long?>();
         private readonly Dictionary<PropertyString, string> ephemeralPropertyStrings = new Dictionary<PropertyString, string>();
 
@@ -879,10 +879,8 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyInt.AmmoType); else SetProperty(PropertyInt.AmmoType, (int)value.Value); }
         }
 
-        public virtual int? Value
+        public int? Value
         {
-            // todo this value has different get/set.. get is calculated while set goes to db, that's wrong.. should be 1:1 or 1:
-            //get => (StackUnitValue * (StackSize ?? 1));
             get => GetProperty(PropertyInt.Value);
             set { if (!value.HasValue) RemoveProperty(PropertyInt.Value); else SetProperty(PropertyInt.Value, value.Value); }
         }
@@ -1044,6 +1042,9 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyInt.MaxStructure); else SetProperty(PropertyInt.MaxStructure, value.Value); }
         }
 
+        /// <summary>
+        /// Instead of setting this directly, consider using SetStackSize() instead which also sets EncumbranceVal and Value
+        /// </summary>
         public int? StackSize
         {
             get => GetProperty(PropertyInt.StackSize);
@@ -1647,7 +1648,7 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyInt.StackUnitEncumbrance); else SetProperty(PropertyInt.StackUnitEncumbrance, value.Value); }
         }
 
-        public virtual int? EncumbranceVal
+        public int? EncumbranceVal
         {
             get => GetProperty(PropertyInt.EncumbranceVal);
             set { if (!value.HasValue) RemoveProperty(PropertyInt.EncumbranceVal); else SetProperty(PropertyInt.EncumbranceVal, value.Value); }
@@ -2470,6 +2471,19 @@ namespace ACE.Server.WorldObjects
         {
             get => GetProperty(PropertyInstanceId.Killer);
             set { if (!value.HasValue) RemoveProperty(PropertyInstanceId.Killer); else SetProperty(PropertyInstanceId.Killer, value.Value); }
+        }
+
+
+        /// <summary>
+        /// In addition to setting StackSize, this will also set the EncumbranceVal and Value appropriately.
+        /// </summary>
+        /// <param name="value"></param>
+        public void SetStackSize(int? value)
+        {
+            StackSize = value;
+
+            EncumbranceVal = (StackUnitEncumbrance ?? 0) * (StackSize ?? 1);
+            Value = (StackUnitValue ?? 0) * (StackSize ?? 1);
         }
     }
 }

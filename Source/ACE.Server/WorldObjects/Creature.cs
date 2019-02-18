@@ -87,8 +87,6 @@ namespace ACE.Server.WorldObjects
                 Mana.Current = Mana.MaxValue;
             }
 
-            Value = null; // Creatures don't have value. By setting this to null, it effectively disables the Value property. (Adding/Subtracting from null results in null)
-
             CurrentMotionState = new Motion(MotionStance.NonCombat, MotionCommand.Ready);
         }
 

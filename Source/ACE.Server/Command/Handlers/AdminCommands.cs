@@ -1058,9 +1058,9 @@ namespace ACE.Server.Command.Handlers
             if (stackSize != 0)
             {
                 if (loot.MaxStackSize != null && stackSize > loot.MaxStackSize)
-                    loot.StackSize = loot.MaxStackSize;
+                    loot.SetStackSize(loot.MaxStackSize);
                 else if (loot.MaxStackSize != null && stackSize <= loot.MaxStackSize)
-                    loot.StackSize = stackSize;
+                    loot.SetStackSize(stackSize);
             }
             
 
@@ -1751,9 +1751,9 @@ namespace ACE.Server.Command.Handlers
             sb.Append($"Server Status:{'\n'}");
 
             var runTime = DateTime.Now - proc.StartTime;
-            sb.Append($"Server Runtime: {runTime.Hours}h {runTime.Minutes}m {runTime.Seconds}s{'\n'}");
+            sb.Append($"Server Runtime: {(int)runTime.TotalHours}h {runTime.Minutes}m {runTime.Seconds}s{'\n'}");
 
-            sb.Append($"Total CPU Time: {proc.TotalProcessorTime.Hours}h {proc.TotalProcessorTime.Minutes}m {proc.TotalProcessorTime.Seconds}s, Threads: {proc.Threads.Count}{'\n'}");
+            sb.Append($"Total CPU Time: {(int)proc.TotalProcessorTime.TotalHours}h {proc.TotalProcessorTime.Minutes}m {proc.TotalProcessorTime.Seconds}s, Threads: {proc.Threads.Count}{'\n'}");
 
             // todo, add actual system memory used/avail
             sb.Append($"{(proc.PrivateMemorySize64 >> 20):N0} MB used{'\n'}");  // sb.Append($"{(proc.PrivateMemorySize64 >> 20)} MB used, xxxx / yyyy MB physical mem free.{'\n'}");

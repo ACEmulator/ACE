@@ -50,6 +50,8 @@ namespace ACE.Server.WorldObjects
             Character.Name = GetProperty(PropertyString.Name);
             CharacterChangesDetected = true;
 
+            SetEphemeralValues();
+
             // Make sure properties this WorldObject requires are not null.
             AvailableExperience = AvailableExperience ?? 0;
             TotalExperience = TotalExperience ?? 0;
@@ -57,8 +59,6 @@ namespace ACE.Server.WorldObjects
             Attackable = true;
 
             SetProperty(PropertyString.DateOfBirth, $"{DateTime.UtcNow:dd MMMM yyyy}");
-
-            SetEphemeralValues();
         }
 
         /// <summary>
@@ -66,13 +66,13 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public Player(Biota biota, IEnumerable<Biota> inventory, IEnumerable<Biota> wieldedItems, Character character, Session session) : base(biota)
         {
-            SortBiotasIntoInventory(inventory);
-            AddBiotasToEquippedObjects(wieldedItems);
-
             Character = character;
             Session = session;
 
             SetEphemeralValues();
+
+            SortBiotasIntoInventory(inventory);
+            AddBiotasToEquippedObjects(wieldedItems);
 
             // THIS IS A TEMPORARY PATCH TO COPY OVER EXISTING CHARACTER OPTIONS FROM THE BIOTA TO THE CHARACTER OBJECT.
             // This can be removed in time. 2018-09-01 Mag-nus

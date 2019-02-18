@@ -809,7 +809,7 @@ namespace ACE.Server.Managers
             }
 
             if (amount > 1)
-                wo.StackSize = (ushort)amount;
+                wo.SetStackSize((int)amount);
 
             player.TryCreateInInventoryWithNetworking(wo);
             return wo;

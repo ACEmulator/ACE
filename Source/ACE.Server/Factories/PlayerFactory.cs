@@ -215,7 +215,7 @@ namespace ACE.Server.Factories
                             if (existingItem == null || (existingItem.MaxStackSize ?? 1) <= 1)
                                 continue;
 
-                            existingItem.StackSize += item.StackSize;
+                            existingItem.SetStackSize(existingItem.StackSize + item.StackSize);
                             continue;
                         }
 
@@ -223,7 +223,7 @@ namespace ACE.Server.Factories
                         if (loot != null)
                         {
                             if (loot.StackSize.HasValue && loot.MaxStackSize.HasValue)
-                                loot.StackSize = (item.StackSize <= loot.MaxStackSize) ? item.StackSize : loot.MaxStackSize;
+                                loot.SetStackSize((item.StackSize <= loot.MaxStackSize) ? item.StackSize : loot.MaxStackSize);
                         }
                         else
                         {
@@ -246,7 +246,7 @@ namespace ACE.Server.Factories
                                 if (existingItem == null || (existingItem.MaxStackSize ?? 1) <= 1)
                                     continue;
 
-                                existingItem.StackSize += item.StackSize;
+                                existingItem.SetStackSize(existingItem.StackSize + item.StackSize);
                                 continue;
                             }
 
@@ -254,7 +254,7 @@ namespace ACE.Server.Factories
                             if (loot != null)
                             {
                                 if (loot.StackSize.HasValue && loot.MaxStackSize.HasValue)
-                                    loot.StackSize = (item.StackSize <= loot.MaxStackSize) ? item.StackSize : loot.MaxStackSize;
+                                    loot.SetStackSize((item.StackSize <= loot.MaxStackSize) ? item.StackSize : loot.MaxStackSize);
                             }
                             else
                             {
@@ -562,11 +562,7 @@ namespace ACE.Server.Factories
                     stackSize = loot.MaxStackSize;
 
                 if (stackSize > 1)
-                {
-                    loot.StackSize = stackSize;
-                    loot.EncumbranceVal = (loot.StackUnitEncumbrance ?? 0) * (stackSize ?? 1);
-                    loot.Value = (loot.StackUnitValue ?? 0) * (stackSize ?? 1);
-                }
+                    loot.SetStackSize(stackSize);
 
                 player.TryAddToInventory(loot);
             }

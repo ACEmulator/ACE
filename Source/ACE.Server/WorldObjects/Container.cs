@@ -9,6 +9,7 @@ using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
+using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
 using ACE.Server.Network.GameMessages.Messages;
@@ -48,8 +49,9 @@ namespace ACE.Server.WorldObjects
 
         private void SetEphemeralValues()
         {
-            EncumbranceVal = EncumbranceVal ?? 0; // Containers are init at 0 burden or their initial value from database. As inventory/equipment is added the burden will be increased
-            Value = Value ?? 0;
+            ephemeralPropertyInts.TryAdd(PropertyInt.EncumbranceVal, EncumbranceVal ?? 0); // Containers are init at 0 burden or their initial value from database. As inventory/equipment is added the burden will be increased
+            if (!(this is Creature)) // Creatures do not have a value
+                ephemeralPropertyInts.TryAdd(PropertyInt.Value, Value ?? 0);
 
             //CurrentMotionState = motionStateClosed; // What container defaults to open?
 
@@ -98,8 +100,8 @@ namespace ACE.Server.WorldObjects
                     Inventory[worldObjects[i].Guid] = worldObjects[i];
                     if (worldObjects[i].WeenieType != WeenieType.Container) // We skip over containers because we'll add their burden/value in the next loop.
                     {
-                        EncumbranceVal += worldObjects[i].EncumbranceVal;
-                        Value += worldObjects[i].Value;
+                        EncumbranceVal += (worldObjects[i].EncumbranceVal ?? 0);
+                        Value += (worldObjects[i].Value ?? 0);
                     }
 
                     worldObjects.RemoveAt(i);
@@ -312,8 +314,8 @@ namespace ACE.Server.WorldObjects
                         {
                             if (sidePack.TryAddToInventory(worldObject, out container, placementPosition, true))
                             {
-                                EncumbranceVal += worldObject.EncumbranceVal;
-                                Value += worldObject.Value;
+                                EncumbranceVal += (worldObject.EncumbranceVal ?? 0);
+                                Value += (worldObject.Value ?? 0);
 
                                 return true;
                             }
@@ -340,8 +342,8 @@ namespace ACE.Server.WorldObjects
 
             Inventory.Add(worldObject.Guid, worldObject);
 
-            EncumbranceVal += worldObject.EncumbranceVal;
-            Value += worldObject.Value;
+            EncumbranceVal += (worldObject.EncumbranceVal ?? 0);
+            Value += (worldObject.Value ?? 0);
 
             container = this;
 
@@ -399,8 +401,8 @@ namespace ACE.Server.WorldObjects
                 else
                     Inventory.Values.Where(i => i.UseBackpackSlot && i.PlacementPosition > removedItemsPlacementPosition).ToList().ForEach(i => i.PlacementPosition--);
 
-                EncumbranceVal -= item.EncumbranceVal;
-                Value -= item.Value;
+                EncumbranceVal -= (item.EncumbranceVal ?? 0);
+                Value -= (item.Value ?? 0);
 
                 if (forceSave)
                     item.SaveBiotaToDatabase();
@@ -416,8 +418,8 @@ namespace ACE.Server.WorldObjects
             {
                 if (((Container)container).TryRemoveFromInventory(objectGuid, out item))
                 {
-                    EncumbranceVal -= item.EncumbranceVal;
-                    Value -= item.Value;
+                    EncumbranceVal -= (item.EncumbranceVal ?? 0);
+                    Value -= (item.Value ?? 0);
 
                     return true;
                 }
@@ -552,7 +554,7 @@ namespace ACE.Server.WorldObjects
                 if (item.Shade > 0)
                     wo.Shade = item.Shade;
                 if (item.StackSize > 1)
-                    wo.StackSize = (ushort)item.StackSize;
+                    wo.SetStackSize(item.StackSize);
 
                 TryAddToInventory(wo);
             }
@@ -578,13 +580,9 @@ namespace ACE.Server.WorldObjects
 
                     var amount = Math.Min(sourceItem.StackSize ?? 0, (destinationItem.MaxStackSize - destinationItem.StackSize) ?? 0);
 
-                    sourceItem.StackSize -= amount;
-                    sourceItem.EncumbranceVal = (sourceItem.StackUnitEncumbrance ?? 0) * (sourceItem.StackSize ?? 1);
-                    sourceItem.Value = (sourceItem.StackUnitValue ?? 0) * (sourceItem.StackSize ?? 1);
+                    sourceItem.SetStackSize(sourceItem.StackSize - amount);
 
-                    destinationItem.StackSize += amount;
-                    destinationItem.EncumbranceVal = (destinationItem.StackUnitEncumbrance ?? 0) * (destinationItem.StackSize ?? 1);
-                    destinationItem.Value = (destinationItem.StackUnitValue ?? 0) * (destinationItem.StackSize ?? 1);
+                    destinationItem.SetStackSize(destinationItem.StackSize + amount);
 
                     if (sourceItem.StackSize == 0)
                     {

@@ -26,7 +26,7 @@ namespace ACE.Server.WorldObjects
                     wo.Shade = item.Shade;
 
                 if (item.StackSize > 0)
-                    wo.StackSize = item.StackSize;
+                    wo.SetStackSize(item.StackSize);
 
                 items.Add(wo);
             }
@@ -99,7 +99,7 @@ namespace ACE.Server.WorldObjects
                     var maxStack = item.StackSize;
                     stackSize = ThreadSafeRandom.Next(minStack, maxStack);
                 }
-                wo.StackSize = (ushort)stackSize;
+                wo.SetStackSize(stackSize);
             }
 
             return wo;
