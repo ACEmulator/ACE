@@ -289,5 +289,5 @@ __pycache__/
 *.xsd.cs
 
 # ACEmulator specific files
-/Source/ACE.Server/Config.js
+/Source/ACE.Server/config.json
 Database/tools/password.txt

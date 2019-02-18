@@ -30,7 +30,7 @@
   </ItemGroup>
 
   <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
-    <Exec Command="if not exist &quot;$(SolutionDir)\Ace.Server\Config.js&quot; if exist &quot;$(SolutionDir)\Ace.Server\Config.json&quot; move &quot;$(SolutionDir)\Ace.Server\Config.json&quot; &quot;$(SolutionDir)\Ace.Server\Config.js&quot;&#xD;&#xA;copy &quot;$(SolutionDir)\Ace.Server\Config.js&quot; &quot;$(TargetDir)Config.js&quot;&#xD;&#xA;copy &quot;$(SolutionDir)\Ace.Server\log4net.config&quot; &quot;$(TargetDir)log4net.config&quot;" />
+    <Exec Command="copy &quot;$(SolutionDir)\Ace.Server\Config.json&quot; &quot;$(TargetDir)Config.json&quot;&#xD;&#xA;copy &quot;$(SolutionDir)\Ace.Server\log4net.config&quot; &quot;$(TargetDir)log4net.config&quot;" />
   </Target>
 
 </Project>

@@ -56,29 +56,16 @@
     ]
   },
   "WebApi": {
-    // Enable or disable the entire web API and all subordinate features. (default false for disable)
+    "//": "Used to enable or disable the entire web API and all subordinate features.",
     "Enabled": false,
-
-    // Host is the IP address of the local NIC to listen for requests to the web API.
+    "//": "Host is the IP address of the local NIC to listen for requests to the web API.",
     "Host": "0.0.0.0",
-
-    /* 
-    *  The port to listen for requests to the web API.
-    *  If the main ACE server Port setting is 9000 then 9000-9001 are already occupied.  The main ACE server Port + 2 is recommended.
-    */
+    "//": "The port to listen for requests to the web API.",
+    "//": "If the main ACE server Port setting is 9000 then 9000-9001 are already occupied.  The main port + 2 is recommended.",
     "Port": 9002,
-
-    /*
-    *  ExternalIPAddressOrDNSName is used to form internet accessible URLs, example: superserver.socloudyinthere.com
-    *  During character migrations the servers have to talk to each other and this is used to initiate those server to server conversations.
-    */
+    "//": "ExternalIPAddressOrDNSName is used to form internet accessible URLs, example: superserver.socloudyinthere.com",
     "ExternalIPAddressOrDNSName": "",
-
-    /*
-    *  ExternalPort is used to form internet accessible URLs, example: 9002
-    *  During character migrations the servers have to talk to each other and this is used to initiate those server to server conversations.
-    *  This should usually be the same as Port.
-    */
+    "//": "ExternalPort is used to form internet accessible URLs, example: 9002",
     "ExternalPort": 9002
   },
   "Transfer": {

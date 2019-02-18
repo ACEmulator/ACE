@@ -18,8 +18,8 @@ namespace ACE.Database.Tests
         [ClassInitialize]
         public static void TestSetup(TestContext context)
         {
-            // copy config.js
-            File.Copy(Path.Combine(Environment.CurrentDirectory, "..\\..\\..\\..\\..\\ACE.Server\\Config.js"), ".\\Config.js", true);
+            // copy config.json
+            File.Copy(Path.Combine(Environment.CurrentDirectory, "..\\..\\..\\..\\..\\ACE.Server\\Config.json"), ".\\Config.json", true);
 
             ConfigManager.Initialize();
             worldDb = new WorldDatabase();
