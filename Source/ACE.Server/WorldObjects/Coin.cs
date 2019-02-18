@@ -1,7 +1,6 @@
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.Entity;
-using ACE.Entity.Enum.Properties;
 
 namespace ACE.Server.WorldObjects
 {
@@ -26,17 +25,5 @@ namespace ACE.Server.WorldObjects
         private void SetEphemeralValues()
         {
         }        
-
-        public override int? CoinValue
-        {
-            get
-            {
-                var value = Value ?? 0;
-
-                base.CoinValue = value;
-
-                return value;
-            }
-        }
     }
 }

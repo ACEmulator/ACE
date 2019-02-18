@@ -74,6 +74,8 @@ namespace ACE.Server.WorldObjects
             SortBiotasIntoInventory(inventory);
             AddBiotasToEquippedObjects(wieldedItems);
 
+            UpdateCoinValue(false);
+
             // THIS IS A TEMPORARY PATCH TO COPY OVER EXISTING CHARACTER OPTIONS FROM THE BIOTA TO THE CHARACTER OBJECT.
             // This can be removed in time. 2018-09-01 Mag-nus
             if (Character.CharacterOptions1 == 0 && Character.CharacterOptions2 == 0)
@@ -131,8 +133,6 @@ namespace ACE.Server.WorldObjects
                 if (AdvocateLevel > 4)
                     IsPsr = true; // Enable AdvocateTeleport via MapClick
             }
-
-            UpdateCoinValue(false);
 
             QuestManager = new QuestManager(this);
 
