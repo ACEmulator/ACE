@@ -148,7 +148,7 @@ namespace ACE.Server.WorldObjects
 
                 Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
 
-                if (item.WeenieType == WeenieType.Coin)
+                if (item.WeenieType == WeenieType.Coin || item.WeenieType == WeenieType.Container)
                     UpdateCoinValue();
 
                 // We must update the database with the latest ContainerId and WielderId properties.
@@ -628,7 +628,7 @@ namespace ACE.Server.WorldObjects
                         {
                             Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
 
-                            if (item.WeenieType == WeenieType.Coin)
+                            if (item.WeenieType == WeenieType.Coin || item.WeenieType == WeenieType.Container)
                                 UpdateCoinValue();
 
                             if (itemRootOwner == this)
