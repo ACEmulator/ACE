@@ -59,8 +59,6 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public Landblock CurrentLandblock { get; internal set; }
 
-        public int ManaGiven { get; set; }
-
         public DateTime? ItemManaDepletionMessageTimestamp { get; set; } = null;
         public DateTime? ItemManaConsumptionTimestamp { get; set; } = null;
 
@@ -250,8 +248,6 @@ namespace ACE.Server.WorldObjects
             AddGeneratorProfiles();
 
             BaseDescriptionFlags = ObjectDescriptionFlag.Attackable;
-
-            EncumbranceVal = EncumbranceVal ?? (StackUnitEncumbrance ?? 0) * (StackSize ?? 1);
 
             EmoteManager = new EmoteManager(this);
             EnchantmentManager = new EnchantmentManagerWithCaching(this);
@@ -497,7 +493,7 @@ namespace ACE.Server.WorldObjects
                         sb.AppendLine($"{prop.Name} = {obj.CurrentWieldedLocation}" + " (" + (uint)obj.CurrentWieldedLocation + ")");
                         break;
                     case "priority":
-                        sb.AppendLine($"{prop.Name} = {obj.Priority}" + " (" + (uint)obj.Priority + ")");
+                        sb.AppendLine($"{prop.Name} = {obj.ClothingPriority}" + " (" + (uint)obj.ClothingPriority + ")");
                         break;
                     case "radarcolor":
                         sb.AppendLine($"{prop.Name} = {obj.RadarColor}" + " (" + (uint)obj.RadarColor + ")");
@@ -551,7 +547,7 @@ namespace ACE.Server.WorldObjects
             foreach (var item in obj.GetAllPropertyDataId())
                 sb.AppendLine($"PropertyDataId.{Enum.GetName(typeof(PropertyDataId), item.Key)} ({(int)item.Key}) = {item.Value}");
             foreach (var item in obj.GetAllPropertyFloat())
-                sb.AppendLine($"PropertyDouble.{Enum.GetName(typeof(PropertyFloat), item.Key)} ({(int)item.Key}) = {item.Value}");
+                sb.AppendLine($"PropertyFloat.{Enum.GetName(typeof(PropertyFloat), item.Key)} ({(int)item.Key}) = {item.Value}");
             foreach (var item in obj.GetAllPropertyInstanceId())
                 sb.AppendLine($"PropertyInstanceId.{Enum.GetName(typeof(PropertyInstanceId), item.Key)} ({(int)item.Key}) = {item.Value}");
             foreach (var item in obj.GetAllPropertyInt())
@@ -868,6 +864,8 @@ namespace ACE.Server.WorldObjects
             NotifyOfEvent(RegenerationType.Destruction);
             CurrentLandblock?.RemoveWorldObject(Guid);
             RemoveBiotaFromDatabase();
+
+            // todo recycle the guid
         }
 
         public string GetPluralName()

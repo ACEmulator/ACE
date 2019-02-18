@@ -16,7 +16,7 @@ namespace ACE.DatLoader
 
         public static PortalDatDatabase PortalDat { get; private set; }
         public static DatDatabase HighResDat { get; private set; }
-        public static DatDatabase LanguageDat { get; private set; }
+        public static LanguageDatDatabase LanguageDat { get; private set; }
 
         public static void Initialize(string datFileDirectory, bool keepOpen = false, bool loadCell = true)
         {
@@ -47,7 +47,7 @@ namespace ACE.DatLoader
             }
             catch (FileNotFoundException ex)
             {
-                log.Info($"An exception occured while attempting to open {datFile} file!\n\n *** Please check your 'DatFilesDirectory' setting in the config.json file. ***\n *** ACE will not run properly without this properly configured! ***\n");
+                log.Info($"An exception occured while attempting to open {datFile} file!\n\n *** Please check your 'DatFilesDirectory' setting in the config.js file. ***\n *** ACE will not run properly without this properly configured! ***\n");
                 log.Info($"Exception: {ex.Message}");
             }
 
@@ -60,15 +60,18 @@ namespace ACE.DatLoader
                 log.Info($"Successfully opened {datFile} file, containing {count} records");
             }
 
-            // Load the client_local_English.dat file. This is not required for ACE operation, so no exception needs to be generated.
-            datFile = Path.Combine(datDir, "client_local_English.dat");
-            if (File.Exists(datFile))
+            try
             {
-                LanguageDat = new DatDatabase(datFile, keepOpen);
+                datFile = Path.Combine(datDir, "client_local_English.dat");
+                LanguageDat = new LanguageDatDatabase(datFile, keepOpen);
                 count = LanguageDat.AllFiles.Count;
                 log.Info($"Successfully opened {datFile} file, containing {count} records");
             }
-
+            catch (FileNotFoundException ex)
+            {
+                log.Info($"An exception occured while attempting to open {datFile} file!\n\n *** Please check your 'DatFilesDirectory' setting in the config.json file. ***\n *** ACE will not run properly without this properly configured! ***\n");
+                log.Info($"Exception: {ex.Message}");
+            }
         }
     }
 }

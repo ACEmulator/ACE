@@ -1,6 +1,6 @@
 # ACEmulator Change Log
 
-### 2019-02-01
+### 2019-02-18
 [fartwhif]
 * Added ACE.WebApi project for use with websites and character transfers
   - Allows a web client to obtain the current status of the server, and admins to obtain more detailed information and invoke console commands.
@@ -9,6 +9,23 @@
   - Uses the underlying ACEmulator server for authentication and authorization.
   - Uses HTTPS over Baseport + 2, 9002 for default configurations, generates self-signed certificates upon first use with the current world name and WebApi enabled.
   - Disabled by default, see README.md in the ACE.WebServer project folder for enable and run instructions.
+
+### 2019-02-09
+[Ripley]
+* Changed GenerateTreasure to check for null DeathTreasure and de-duped generate code so that items weren't generated twice upon death.
+
+### 2019-02-05
+[Ripley]
+* Add support for spawning Treasure pile corpses when data indicates it should.
+* Fix wield issue with TwoHanded weapons.
+
+### 2019-02-04
+[Jyrus]
+* Modify LootGenerationFactory to support the TOD updated weenies
+
+[Ripley]
+* Added LastModified to several tables in World Database
+  - **This change requires you to update to the latest world database release found in ACE-World-16PY-Patches, v0.9.13 or higher**
 
 ### 2019-01-31
 [gmriggs]

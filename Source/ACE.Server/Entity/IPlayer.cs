@@ -2,6 +2,7 @@ using System;
 
 using ACE.Entity;
 using ACE.Entity.Enum.Properties;
+using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Entity
 {
@@ -48,13 +49,25 @@ namespace ACE.Server.Entity
         int? Gender { get; }
 
 
-        uint? Monarch { get; set; }
+        uint? MonarchId { get; set; }
 
-        uint? Patron { get; set; }
+        uint? PatronId { get; set; }
 
         ulong AllegianceXPCached { get; set; }
 
         ulong AllegianceXPGenerated { get; set; }
+
+        int? AllegianceRank { get; set; }
+
+        int? AllegianceOfficerRank { get; set; }
+
+        uint? HouseId { get; set; }
+
+        uint? HouseInstance { get; set; }
+
+        int? HousePurchaseTimestamp { get; set; }
+
+        int? HouseRentTimestamp { get; set; }
 
 
         uint GetCurrentLoyalty();

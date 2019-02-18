@@ -9,6 +9,7 @@ using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.Entity;
 using ACE.Entity.Enum;
+using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
 using ACE.Server.Network.GameMessages.Messages;
@@ -48,8 +49,9 @@ namespace ACE.Server.WorldObjects
 
         private void SetEphemeralValues()
         {
-            EncumbranceVal = EncumbranceVal ?? 0; // Containers are init at 0 burden or their initial value from database. As inventory/equipment is added the burden will be increased
-            Value = Value ?? 0;
+            ephemeralPropertyInts.TryAdd(PropertyInt.EncumbranceVal, EncumbranceVal ?? 0); // Containers are init at 0 burden or their initial value from database. As inventory/equipment is added the burden will be increased
+            if (!(this is Creature)) // Creatures do not have a value
+                ephemeralPropertyInts.TryAdd(PropertyInt.Value, Value ?? 0);
 
             //CurrentMotionState = motionStateClosed; // What container defaults to open?
 
@@ -98,8 +100,8 @@ namespace ACE.Server.WorldObjects
                     Inventory[worldObjects[i].Guid] = worldObjects[i];
                     if (worldObjects[i].WeenieType != WeenieType.Container) // We skip over containers because we'll add their burden/value in the next loop.
                     {
-                        EncumbranceVal += worldObjects[i].EncumbranceVal;
-                        Value += worldObjects[i].Value;
+                        EncumbranceVal += (worldObjects[i].EncumbranceVal ?? 0);
+                        Value += (worldObjects[i].Value ?? 0);
                     }
 
                     worldObjects.RemoveAt(i);
@@ -126,9 +128,20 @@ namespace ACE.Server.WorldObjects
                 Value += container.Value; // This value includes the containers value itself + all child items
             }
 
+            OnInitialInventoryLoadCompleted();
+        }
 
-            if (WeenieType == WeenieType.Hook && this is Hook hook)
-                hook.OnLoad();
+        public int GetFreeInventorySlots(bool includeSidePacks = true)
+        {
+            int freeSlots = (ItemCapacity ?? 0) - Inventory.Count;
+
+            if (includeSidePacks)
+            {
+                foreach (var sidePack in Inventory.Values.OfType<Container>())
+                    freeSlots += (sidePack.ItemCapacity ?? 0) - sidePack.Inventory.Count;
+            }
+
+            return freeSlots;
         }
 
         /// <summary>
@@ -301,8 +314,8 @@ namespace ACE.Server.WorldObjects
                         {
                             if (sidePack.TryAddToInventory(worldObject, out container, placementPosition, true))
                             {
-                                EncumbranceVal += worldObject.EncumbranceVal;
-                                Value += worldObject.Value;
+                                EncumbranceVal += (worldObject.EncumbranceVal ?? 0);
+                                Value += (worldObject.Value ?? 0);
 
                                 return true;
                             }
@@ -329,27 +342,49 @@ namespace ACE.Server.WorldObjects
 
             Inventory.Add(worldObject.Guid, worldObject);
 
-            EncumbranceVal += worldObject.EncumbranceVal;
-            Value += worldObject.Value;
+            EncumbranceVal += (worldObject.EncumbranceVal ?? 0);
+            Value += (worldObject.Value ?? 0);
 
             container = this;
+
+            OnAddItem();
+
             return true;
+        }
+
+        /// <summary>
+        /// Removes all items from an inventory
+        /// </summary>
+        /// <returns>TRUE if all items were removed successfully</returns>
+        public bool ClearInventory(bool forceSave = false)
+        {
+            var success = true;
+            var itemGuids = Inventory.Keys.ToList();
+            foreach (var itemGuid in itemGuids)
+            {
+                if (!TryRemoveFromInventory(itemGuid, forceSave))
+                    success = false;
+            }
+            if (forceSave)
+                SaveBiotaToDatabase();
+
+            return success;
         }
 
         /// <summary>
         /// This will clear the ContainerId and PlacementPosition properties.<para />
         /// It will also subtract the EncumbranceVal and Value.
         /// </summary>
-        public bool TryRemoveFromInventory(ObjectGuid objectGuid)
+        public bool TryRemoveFromInventory(ObjectGuid objectGuid, bool forceSave = false)
         {
-            return TryRemoveFromInventory(objectGuid, out _);
+            return TryRemoveFromInventory(objectGuid, out _, forceSave);
         }
 
         /// <summary>
         /// This will clear the ContainerId and PlacementPosition properties and remove the object from the Inventory dictionary.<para />
         /// It will also subtract the EncumbranceVal and Value.
         /// </summary>
-        public bool TryRemoveFromInventory(ObjectGuid objectGuid, out WorldObject item)
+        public bool TryRemoveFromInventory(ObjectGuid objectGuid, out WorldObject item, bool forceSave = false)
         {
             // first search me / add all items of type.
             if (Inventory.Remove(objectGuid, out item))
@@ -366,8 +401,13 @@ namespace ACE.Server.WorldObjects
                 else
                     Inventory.Values.Where(i => i.UseBackpackSlot && i.PlacementPosition > removedItemsPlacementPosition).ToList().ForEach(i => i.PlacementPosition--);
 
-                EncumbranceVal -= item.EncumbranceVal;
-                Value -= item.Value;
+                EncumbranceVal -= (item.EncumbranceVal ?? 0);
+                Value -= (item.Value ?? 0);
+
+                if (forceSave)
+                    item.SaveBiotaToDatabase();
+
+                OnRemoveItem();
 
                 return true;
             }
@@ -378,8 +418,8 @@ namespace ACE.Server.WorldObjects
             {
                 if (((Container)container).TryRemoveFromInventory(objectGuid, out item))
                 {
-                    EncumbranceVal -= item.EncumbranceVal;
-                    Value -= item.Value;
+                    EncumbranceVal -= (item.EncumbranceVal ?? 0);
+                    Value -= (item.Value ?? 0);
 
                     return true;
                 }
@@ -424,20 +464,33 @@ namespace ACE.Server.WorldObjects
 
             DoOnOpenMotionChanges();
 
+            SendInventory(player);
+        }
+
+        public void SendInventory(Player player)
+        {
             // send createobject for all objects in this container's inventory to player
             var itemsToSend = new List<GameMessage>();
-            var woToExamine = new List<WorldObject>();
 
             foreach (var item in Inventory.Values)
             {
                 // FIXME: only send messages for unknown objects
                 itemsToSend.Add(new GameMessageCreateObject(item));
-                woToExamine.Add(item);
+
+                if (item is Container container)
+                {
+                    foreach (var containerItem in container.Inventory.Values)
+                        itemsToSend.Add(new GameMessageCreateObject(containerItem));
+                }
             }
 
             player.Session.Network.EnqueueSend(itemsToSend.ToArray());
 
             player.Session.Network.EnqueueSend(new GameEventViewContents(player.Session, this));
+
+            // send sub-containers
+            foreach (var container in Inventory.Values.Where(i => i is Container))
+                player.Session.Network.EnqueueSend(new GameEventViewContents(player.Session, (Container)container));
         }
 
         protected virtual float DoOnOpenMotionChanges()
@@ -501,16 +554,58 @@ namespace ACE.Server.WorldObjects
                 if (item.Shade > 0)
                     wo.Shade = item.Shade;
                 if (item.StackSize > 1)
-                    wo.StackSize = (ushort)item.StackSize;
+                    wo.SetStackSize(item.StackSize);
 
                 TryAddToInventory(wo);
             }
         }
 
+        public void MergeAllStackables()
+        {
+            var inventory = Inventory.Values.ToList();
+
+            for (int i = inventory.Count - 1; i > 0; i--)
+            {
+                var sourceItem = inventory[i];
+
+                if (sourceItem.MaxStackSize == null || sourceItem.MaxStackSize <= 1)
+                    continue;
+
+                for (int j = 0; j < i; j++)
+                {
+                    var destinationItem = inventory[j];
+
+                    if (destinationItem.WeenieClassId != sourceItem.WeenieClassId || destinationItem.StackSize == destinationItem.MaxStackSize)
+                        continue;
+
+                    var amount = Math.Min(sourceItem.StackSize ?? 0, (destinationItem.MaxStackSize - destinationItem.StackSize) ?? 0);
+
+                    sourceItem.SetStackSize(sourceItem.StackSize - amount);
+
+                    destinationItem.SetStackSize(destinationItem.StackSize + amount);
+
+                    if (sourceItem.StackSize == 0)
+                    {
+                        TryRemoveFromInventory(sourceItem.Guid);
+                        sourceItem.Destroy();
+                        break;
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// This event is raised after the containers items have been completely loaded from the database
+        /// </summary>
+        protected virtual void OnInitialInventoryLoadCompleted()
+        {
+            // empty base
+        }
+
         /// <summary>
         /// This event is raised when player adds item to container
         /// </summary>
-        public virtual void OnAddItem()
+        protected virtual void OnAddItem()
         {
             // empty base
         }
@@ -518,7 +613,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// This event is raised when player removes item from container
         /// </summary>
-        public virtual void OnRemoveItem()
+        protected virtual void OnRemoveItem()
         {
             // empty base
         }

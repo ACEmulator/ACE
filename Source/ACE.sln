@@ -13,7 +13,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "AppVeyor", "AppVeyor", "{27B511EF-7B73-4345-AF4D-9C44DB478080}"
 	ProjectSection(SolutionItems) = preProject
 		AppVeyor\AppVeyorBeforeCompile.bat = AppVeyor\AppVeyorBeforeCompile.bat
-		AppVeyor\Config.json = AppVeyor\Config.json
+		AppVeyor\Config.js = AppVeyor\Config.js
 		AppVeyor\launcher_config.json = AppVeyor\launcher_config.json
 		AppVeyor\MySqlInstall.bat = AppVeyor\MySqlInstall.bat
 	EndProjectSection

@@ -110,7 +110,7 @@ namespace ACE.Server.WorldObjects
         /// <param name="ammo">The equipped missile ammo object</param>
         public void UpdateAmmoAfterLaunch(WorldObject ammo)
         {
-            ammo.StackSize--;
+            ammo.SetStackSize(ammo.StackSize - 1);
 
             if (ammo.StackSize == 0)
             {
@@ -118,7 +118,7 @@ namespace ACE.Server.WorldObjects
                     player.TryDequipObjectWithNetworking(ammo.Guid, out _, Player.DequipObjectAction.ConsumeItem);
                 else
                 {
-                    TryDequipObjectWithBroadcasting(ammo.Guid, out _, out _);
+                    TryUnwieldObjectWithBroadcasting(ammo.Guid, out _, out _);
                     ammo.Destroy();
                 }
             }

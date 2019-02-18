@@ -94,8 +94,7 @@ namespace ACE.Server.WorldObjects
 
             dieChain.AddAction(this, () =>
             {
-                NotifyOfEvent(RegenerationType.Destruction);
-                LandblockManager.RemoveObject(this);
+                Destroy();
                 CreateCorpse(topDamager);
             });
 
@@ -146,6 +145,9 @@ namespace ACE.Server.WorldObjects
                 var damagePercent = totalDamage / Health.MaxValue;
                 var totalXP = (XpOverride ?? 0) * damagePercent;
 
+                if (playerDamager.AugmentationBonusXp > 0)
+                    totalXP *= 1.0f + playerDamager.AugmentationBonusXp * 0.05f;
+
                 playerDamager.EarnXP((long)Math.Round(totalXP));
             }
         }
@@ -158,50 +160,58 @@ namespace ACE.Server.WorldObjects
             if (NoCorpse) return;
 
             var corpse = WorldObjectFactory.CreateNewWorldObject(DatabaseManager.World.GetCachedWeenie("corpse")) as Corpse;
+            var prefix = "Corpse";
 
-            corpse.SetupTableId = SetupTableId;
-            corpse.MotionTableId = MotionTableId;
-            corpse.SoundTableId = SoundTableId;
-            corpse.PaletteBaseDID = PaletteBaseDID;
-            corpse.ClothingBase = ClothingBase;
-            corpse.PhysicsTableId = PhysicsTableId;
+            if (TreasureCorpse)
+            {
+                // Hardcoded values from PCAPs of Treasure Pile Corpses, everything else lines up exactly with existing corpse weenie
+                corpse.SetupTableId  = 0x02000EC4;
+                corpse.MotionTableId = 0x0900019B;
+                corpse.SoundTableId  = 0x200000C2;
+                corpse.ObjScale      = 0.4f;
 
-            if (ObjScale.HasValue)
-                corpse.ObjScale = ObjScale;
-            if (PaletteTemplate.HasValue)
-                corpse.PaletteTemplate = PaletteTemplate;
-            if (Shade.HasValue)
-                corpse.Shade = Shade;
-            //if (Translucency.HasValue) // Shadows have Translucency but their corpses do not, videographic evidence can be found on YouTube.
+                prefix = "Treasure";
+            }
+            else
+            {
+                corpse.SetupTableId = SetupTableId;
+                corpse.MotionTableId = MotionTableId;
+                corpse.SoundTableId = SoundTableId;
+                corpse.PaletteBaseDID = PaletteBaseDID;
+                corpse.ClothingBase = ClothingBase;
+                corpse.PhysicsTableId = PhysicsTableId;
+
+                if (ObjScale.HasValue)
+                    corpse.ObjScale = ObjScale;
+                if (PaletteTemplate.HasValue)
+                    corpse.PaletteTemplate = PaletteTemplate;
+                if (Shade.HasValue)
+                    corpse.Shade = Shade;
+                //if (Translucency.HasValue) // Shadows have Translucency but their corpses do not, videographic evidence can be found on YouTube.
                 //corpse.Translucency = Translucency;
 
-            if (EquippedObjects.Values.Where(x => (x.CurrentWieldedLocation & (EquipMask.Clothing | EquipMask.Armor | EquipMask.Cloak)) != 0).ToList().Count > 0) // If creature is wearing objects, we need to save the appearance
-            {
-                var objDesc = CalculateObjDesc();
 
-                byte i = 0;
-                foreach (var animPartChange in objDesc.AnimPartChanges)
-                    corpse.Biota.BiotaPropertiesAnimPart.Add(new Database.Models.Shard.BiotaPropertiesAnimPart { ObjectId = corpse.Guid.Full, AnimationId = animPartChange.PartID, Index = animPartChange.PartIndex, Order = i++ });
+                if (EquippedObjects.Values.Where(x => (x.CurrentWieldedLocation & (EquipMask.Clothing | EquipMask.Armor | EquipMask.Cloak)) != 0).ToList().Count > 0) // If creature is wearing objects, we need to save the appearance
+                {
+                    var objDesc = CalculateObjDesc();
 
-                foreach (var subPalette in objDesc.SubPalettes)
-                    corpse.Biota.BiotaPropertiesPalette.Add(new Database.Models.Shard.BiotaPropertiesPalette { ObjectId = corpse.Guid.Full, SubPaletteId = subPalette.SubID, Length = (ushort)subPalette.NumColors, Offset = (ushort)subPalette.Offset });
+                    byte i = 0;
+                    foreach (var animPartChange in objDesc.AnimPartChanges)
+                        corpse.Biota.BiotaPropertiesAnimPart.Add(new Database.Models.Shard.BiotaPropertiesAnimPart { ObjectId = corpse.Guid.Full, AnimationId = animPartChange.PartID, Index = animPartChange.PartIndex, Order = i++ });
 
-                i = 0;
-                foreach (var textureChange in objDesc.TextureChanges)
-                    corpse.Biota.BiotaPropertiesTextureMap.Add(new Database.Models.Shard.BiotaPropertiesTextureMap { ObjectId = corpse.Guid.Full, Index = textureChange.PartIndex, OldId = textureChange.OldTexture, NewId = textureChange.NewTexture, Order = i++ });
+                    foreach (var subPalette in objDesc.SubPalettes)
+                        corpse.Biota.BiotaPropertiesPalette.Add(new Database.Models.Shard.BiotaPropertiesPalette { ObjectId = corpse.Guid.Full, SubPaletteId = subPalette.SubID, Length = (ushort)subPalette.NumColors, Offset = (ushort)subPalette.Offset });
+
+                    i = 0;
+                    foreach (var textureChange in objDesc.TextureChanges)
+                        corpse.Biota.BiotaPropertiesTextureMap.Add(new Database.Models.Shard.BiotaPropertiesTextureMap { ObjectId = corpse.Guid.Full, Index = textureChange.PartIndex, OldId = textureChange.OldTexture, NewId = textureChange.NewTexture, Order = i++ });
+                }
             }
-
-            //corpse.Location = DatManager.PortalDat.ReadFromDat<MotionTable>(MotionTableId).GetAnimationFinalPositionFromStart(Location, ObjScale ?? 1, MotionCommand.Dead);
-
-            //corpse.Location.SetLandblock();
-            //corpse.Location.SetLandCell();
 
             corpse.Location = new Position(Location);
 
-            //corpse.Location.PositionZ = corpse.Location.PositionZ - .5f; // Adding BaseDescriptionFlags |= ObjectDescriptionFlag.Corpse to Corpse objects made them immune to gravity.. this seems to fix floating corpse...
-
             corpse.VictimId = Guid.Full;
-            corpse.Name = $"Corpse of {Name}";
+            corpse.Name = $"{prefix} of {Name}";
 
             // set 'killed by' for looting rights
             if (killer != null)
@@ -246,120 +256,32 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         private void GenerateTreasure(Corpse corpse)
         {
-            var random = new Random((int)DateTime.UtcNow.Ticks);
-            int level = Level ?? 0;
-            int tier;
-            if (level < 16)
+            if (DeathTreasure != null)
             {
-                tier = 1;
-            }
-            else if (level < 31)
-            {
-                tier = 2;
-            }
-            else if (level < 60)
-            {
-                tier = 3;
-            }
-            else if (level < 80)
-            {
-                tier = 4;
-            }
-            else if (level < 115)
-            {
-                tier = 5;
-            }
-            else if (level < 160)
-            {
-                tier = 6;
-            }
-            else
-            {
-                tier = 7;
-            }
-            ////Tier 8 is reserved for special creatures, usually based on which landblock they were on...Not level based. to be added later
-
-            if (DeathTreasure?.Tier > 0)
-                tier = DeathTreasure.Tier;
-            var deathTreasure = this.DeathTreasure;
-            if (deathTreasure != null)
-            {
-                List<WorldObject> items = LootGenerationFactory.CreateRandomLootObjects(deathTreasure);
+                List<WorldObject> items = LootGenerationFactory.CreateRandomLootObjects(DeathTreasure);
                 foreach (WorldObject wo in items)
                 {
-                    TryAddToInventory(wo);
+                    corpse.TryAddToInventory(wo);
                 }
             }
 
             foreach (var trophy in Biota.BiotaPropertiesCreateList.Where(x => x.DestinationType == (int)DestinationType.Contain || x.DestinationType == (int)DestinationType.Treasure || x.DestinationType == (int)DestinationType.ContainTreasure || x.DestinationType == (int)DestinationType.ShopTreasure || x.DestinationType == (int)DestinationType.WieldTreasure).OrderBy(x => x.Shade))
             {
-                if (random.NextDouble() < trophy.Shade || trophy.Shade == 1 || trophy.Shade == 0) // Shade in this context is Probability
-                                                                                                  // Should there be rolls for each item or one roll to rule them all?
+                if (ThreadSafeRandom.Next(0.0f, 1.0f) < trophy.Shade || trophy.Shade == 1 || trophy.Shade == 0 || trophy.Shade == -1) // Shade in this context is Probability
+                                                                                                                                      // Should there be rolls for each item or one roll to rule them all?
                 {
-                    //if (trophy.WeenieClassId == 0) // Randomized Loot
-                    //{
-                    //    var items = LootGenerationFactory.CreateRandomLootObjects(deathTreasure);
+                    var wo = WorldObjectFactory.CreateNewWorldObject(trophy.WeenieClassId);
 
-                    //    corpse.TryAddToInventory(wo);
+                    if (wo == null)
+                        continue;
 
-                    //    //var book = WorldObjectFactory.CreateNewWorldObject("parchment") as Book;
+                    if (trophy.StackSize > 1)
+                        wo.SetStackSize(trophy.StackSize);
 
-                    //    //if (book == null)
-                    //    //    continue;
+                    if (trophy.Palette > 0)
+                        wo.PaletteTemplate = trophy.Palette;
 
-                    //    //book.SetProperties("IOU", "An IOU for a random loot.", "Sorry about that chief...", "ACEmulator", "prewritten");
-                    //    //book.AddPage(corpse.Guid.Full, "ACEmulator", "prewritten", false, $"Sorry but at this time we do not have randomized and mutated loot in ACEmulator, you can ignore this item as it's meant only to be placeholder");
-
-                    //    //corpse.TryAddToInventory(book);
-                    //}
-                    //else // Trophy Loot
-                    //{
-                        var wo = WorldObjectFactory.CreateNewWorldObject(trophy.WeenieClassId);
-
-                        if (wo == null)
-                            continue;
-
-                        if (trophy.StackSize > 1)
-                            wo.StackSize = (ushort)trophy.StackSize;
-
-                        if (trophy.Palette > 0)
-                            wo.PaletteTemplate = trophy.Palette;
-
-                        corpse.TryAddToInventory(wo);
-                   // }
-                }
-            }
-
-            if (Level > 3 && !Name.Equals("Chicken"))
-            {
-                var numItems = ThreadSafeRandom.Next(DeathTreasure.ItemMinAmount, DeathTreasure.ItemMaxAmount);
-                for (int i = 0; i < numItems; i++)
-                {
-                    if (ThreadSafeRandom.Next(0, 100) <= DeathTreasure.ItemChance)
-                    {
-                        var wo = LootGenerationFactory.CreateRandomLootObjects(tier, false);
-                        corpse.TryAddToInventory(wo);
-                    }
-                }
-
-                numItems = ThreadSafeRandom.Next(DeathTreasure.MagicItemMinAmount, DeathTreasure.MagicItemMaxAmount);
-                for (int i = 0; i < numItems; i++)
-                {
-                    if (ThreadSafeRandom.Next(0, 100) <= DeathTreasure.MagicItemChance)
-                    {
-                        var wo = LootGenerationFactory.CreateRandomLootObjects(tier, true);
-                        corpse.TryAddToInventory(wo);
-                    }
-                }
-
-                numItems = ThreadSafeRandom.Next(DeathTreasure.MundaneItemMinAmount, DeathTreasure.MundaneItemMaxAmount);
-                for (int i = 0; i < numItems; i++)
-                {
-                    if (ThreadSafeRandom.Next(0, 100) <= DeathTreasure.MundaneItemChance)
-                    {
-                        var wo = LootGenerationFactory.CreateMundaneObjects(tier);
-                        corpse.TryAddToInventory(wo);
-                    }
+                    corpse.TryAddToInventory(wo);
                 }
             }
         }

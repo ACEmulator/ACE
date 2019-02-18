@@ -57,9 +57,9 @@ namespace ACE.Server.Managers
 
             if (ConfigManager.Config.Server.PreloadedLandblocks == null)
             {
-                log.Info("No configuration found for PreloadedLandblocks, please refer to Config.json.example");
+                log.Info("No configuration found for PreloadedLandblocks, please refer to Config.js.example");
                 log.Warn("Initializing PreloadedLandblocks with single default for Hebian-To (Global Events)");
-                log.Warn("Add a PreloadedLandblocks section to your Config.json file and adjust to meet your needs");
+                log.Warn("Add a PreloadedLandblocks section to your Config.js file and adjust to meet your needs");
                 ConfigManager.Config.Server.PreloadedLandblocks = new List<PreloadedLandblocks> { new PreloadedLandblocks { Id = "E74EFFFF", Description = "Hebian-To (Global Events)", Permaload = true, IncludeAdjacents = true, Enabled = true } };
             }
 
@@ -93,15 +93,6 @@ namespace ACE.Server.Managers
         }
 
         /// <summary>
-        /// Removes a WorldObject from the landblock defined by the object's location
-        /// </summary>
-        public static void RemoveObject(WorldObject worldObject)
-        {
-            var block = GetLandblock(worldObject.Location.LandblockId, false);
-            block.RemoveWorldObject(worldObject.Guid, false);
-        }
-
-        /// <summary>
         /// Relocates an object to the appropriate landblock -- Should only be called from physics/worldmanager -- not player!
         /// </summary>
         public static void RelocateObjectForPhysics(WorldObject worldObject, bool adjacencyMove)
@@ -124,7 +115,7 @@ namespace ACE.Server.Managers
         /// <summary>
         /// Returns a reference to a landblock, loading the landblock if not already active
         /// </summary>
-        public static Landblock GetLandblock(LandblockId landblockId, bool loadAdjacents, bool permaload = false, bool loadSync = false)
+        public static Landblock GetLandblock(LandblockId landblockId, bool loadAdjacents, bool permaload = false)
         {
             Landblock landblock = null;
 
@@ -135,7 +126,7 @@ namespace ACE.Server.Managers
                 if (landblock == null)
                 {
                     // load up this landblock
-                    landblock = landblocks[landblockId.LandblockX, landblockId.LandblockY] = new Landblock(landblockId, loadSync);
+                    landblock = landblocks[landblockId.LandblockX, landblockId.LandblockY] = new Landblock(landblockId);
 
                     if (!activeLandblocks.Add(landblock))
                     {

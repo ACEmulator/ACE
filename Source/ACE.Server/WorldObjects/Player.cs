@@ -37,6 +37,8 @@ namespace ACE.Server.WorldObjects
 
         public bool LastContact = true;
 
+        public SquelchDB Squelches;
+
         /// <summary>
         /// A new biota be created taking all of its values from weenie.
         /// </summary>
@@ -48,6 +50,8 @@ namespace ACE.Server.WorldObjects
             Character.Name = GetProperty(PropertyString.Name);
             CharacterChangesDetected = true;
 
+            SetEphemeralValues();
+
             // Make sure properties this WorldObject requires are not null.
             AvailableExperience = AvailableExperience ?? 0;
             TotalExperience = TotalExperience ?? 0;
@@ -55,8 +59,6 @@ namespace ACE.Server.WorldObjects
             Attackable = true;
 
             SetProperty(PropertyString.DateOfBirth, $"{DateTime.UtcNow:dd MMMM yyyy}");
-
-            SetEphemeralValues();
         }
 
         /// <summary>
@@ -64,13 +66,13 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public Player(Biota biota, IEnumerable<Biota> inventory, IEnumerable<Biota> wieldedItems, Character character, Session session) : base(biota)
         {
-            SortBiotasIntoInventory(inventory);
-            AddBiotasToEquippedObjects(wieldedItems);
-
             Character = character;
             Session = session;
 
             SetEphemeralValues();
+
+            SortBiotasIntoInventory(inventory);
+            AddBiotasToEquippedObjects(wieldedItems);
 
             // THIS IS A TEMPORARY PATCH TO COPY OVER EXISTING CHARACTER OPTIONS FROM THE BIOTA TO THE CHARACTER OBJECT.
             // This can be removed in time. 2018-09-01 Mag-nus
@@ -137,6 +139,8 @@ namespace ACE.Server.WorldObjects
             LastUseTracker = new Dictionary<int, DateTime>();
 
             LootPermission = new Dictionary<ObjectGuid, DateTime>();
+
+            Squelches = new SquelchDB();
 
             return; // todo
             /* todo fix for new EF model
@@ -238,8 +242,7 @@ namespace ACE.Server.WorldObjects
                                     {
                                         for (int i = 0; i < item.Biota.BiotaPropertiesSpellBook.Count; i++)
                                         {
-                                            // TODO: layering
-                                            RemoveItemSpell(item.Guid, (uint)item.Biota.BiotaPropertiesSpellBook.ElementAt(i).Spell);
+                                            RemoveItemSpell(item, (uint)item.Biota.BiotaPropertiesSpellBook.ElementAt(i).Spell);
                                         }
                                     });
                                     actionChain.EnqueueChain();
@@ -326,12 +329,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            var wo = FindObject(objectGuid, SearchLocations.Everywhere, out Container foundInContainer, out Container rootOwner, out bool wasEquipped);
-            if (wo == null)
-            {
-                // search creature equipped weapons on nearby landblocks
-                wo = CurrentLandblock?.GetWieldedObject(objectGuid);
-            }
+            var wo = FindObject(objectGuid, SearchLocations.Everywhere, out _, out _, out _);
             if (wo == null)
             {
                 log.Warn($"{Name}.ExamineObject({objectGuid:X8}): couldn't find object");
@@ -683,12 +681,8 @@ namespace ACE.Server.WorldObjects
             var wo = FindObject(itemGuid, SearchLocations.Everywhere);
             if (wo == null)
             {
-                wo = CurrentLandblock?.GetWieldedObject(itemGuid);
-                if (wo == null)
-                {
-                    log.Debug($"HandleActionForceObjDescSend() - couldn't find object {itemGuid:X8}");
-                    return;
-                }
+                log.Debug($"HandleActionForceObjDescSend() - couldn't find object {itemGuid:X8}");
+                return;
             }
             EnqueueBroadcast(new GameMessageObjDescEvent(wo));
         }
@@ -824,7 +818,7 @@ namespace ACE.Server.WorldObjects
 
         public void HandleActionTalk(string message)
         {
-            EnqueueBroadcast(new GameMessageCreatureMessage(message, Name, Guid.Full, ChatMessageType.Speech), LocalBroadcastRange);
+            EnqueueBroadcast(new GameMessageCreatureMessage(message, Name, Guid.Full, ChatMessageType.Speech), LocalBroadcastRange, true);
         }
 
         public void HandleActionEmote(string message)
@@ -1066,6 +1060,114 @@ namespace ACE.Server.WorldObjects
 
             });
             actionChain.EnqueueChain();
+        }
+
+        public void HandleActionModifyCharacterSquelch(bool squelch, uint playerGuid, string playerName, ChatMessageType messageType)
+        {
+            //Console.WriteLine($"{Name}.HandleActionModifyCharacterSquelch({squelch}, {playerGuid:X8}, {playerName}, {messageType})");
+
+            IPlayer player;
+
+            if (playerGuid != 0)
+            {
+                player = PlayerManager.FindByGuid(new ObjectGuid(playerGuid));
+
+                if (player == null)
+                {
+                    Session.Network.EnqueueSend(new GameMessageSystemChat("Couldn't find player to squelch.", ChatMessageType.Broadcast));
+                    return;
+                }
+            }
+            else
+            {
+                player = PlayerManager.FindByName(playerName);
+
+                if (player == null)
+                {
+                    Session.Network.EnqueueSend(new GameMessageSystemChat($"{playerName} not found.", ChatMessageType.Broadcast));
+                    return;
+                }
+            }
+
+            if (player.Guid == Guid)
+            {
+                Session.Network.EnqueueSend(new GameMessageSystemChat("You can't squelch yourself!", ChatMessageType.Broadcast));
+                return;
+            }
+
+            if (squelch)
+            {
+                if (Squelches.Characters.ContainsKey(player.Guid))
+                {
+                    Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name} is already squelched.", ChatMessageType.Broadcast));
+                    return;
+                }
+
+                Squelches.Characters.Add(player.Guid, new SquelchInfo(messageType, player.Name, false));
+
+                Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name} has been squelched.", ChatMessageType.Broadcast));
+            }
+            else
+            {
+                if (!Squelches.Characters.Remove(player.Guid))
+                {
+                    Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name} is not squelched.", ChatMessageType.Broadcast));
+                    return;
+                }
+
+                Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name} has been unsquelched.", ChatMessageType.Broadcast));
+            }
+
+            Session.Network.EnqueueSend(new GameEventSetSquelchDB(Session, Squelches));
+        }
+
+        public void HandleActionModifyAccountSquelch(bool squelch, string playerName)
+        {
+            //Console.WriteLine($"{Name}.HandleActionModifyAccountSquelch({squelch}, {playerName})");
+
+            var player = PlayerManager.GetOnlinePlayer(playerName);
+
+            if (player == null)
+            {
+                Session.Network.EnqueueSend(new GameMessageSystemChat($"{playerName} not found.", ChatMessageType.Broadcast));
+                return;
+            }
+
+            if (player.Guid == Guid)
+            {
+                Session.Network.EnqueueSend(new GameMessageSystemChat("You can't squelch yourself!", ChatMessageType.Broadcast));
+                return;
+            }
+
+            if (squelch)
+            {
+                if (Squelches.Accounts.ContainsKey(player.Session.Account))
+                {
+                    Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name}'s account is already squelched.", ChatMessageType.Broadcast));
+                    return;
+                }
+
+                Squelches.Accounts.Add(player.Session.Account, player.Guid.Full);
+
+                Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name}'s account has been squelched.", ChatMessageType.Broadcast));
+            }
+            else
+            {
+                if (!Squelches.Accounts.Remove(player.Session.Account))
+                {
+                    Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name}'s account is not squelched.", ChatMessageType.Broadcast));
+                    return;
+                }
+
+                Session.Network.EnqueueSend(new GameMessageSystemChat($"{player.Name}'s account has been unsquelched.", ChatMessageType.Broadcast));
+            }
+
+            Session.Network.EnqueueSend(new GameEventSetSquelchDB(Session, Squelches));
+        }
+
+        public void HandleActionModifyGlobalSquelch(bool squelch, ChatMessageType messageType)
+        {
+            //Console.WriteLine($"{Name}.HandleActionModifyGlobalSquelch({squelch}, {messageType})");
         }
     }
 }

@@ -1,7 +1,12 @@
 using System;
 using System.Collections.Generic;
+using ACE.Database;
 using ACE.Entity;
+using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
+using ACE.Server.Factories;
+using ACE.Server.Network.GameEvent.Events;
+using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Managers
@@ -12,6 +17,11 @@ namespace ACE.Server.Managers
     public class AllegianceManager
     {
         /// <summary>
+        /// A mapping of all loaded Allegiance GUIDs => their Allegiances
+        /// </summary>
+        public static readonly Dictionary<ObjectGuid, Allegiance> Allegiances = new Dictionary<ObjectGuid, Allegiance>();
+
+        /// <summary>
         /// A mapping of all Players on the server => their AllegianceNodes
         /// </summary>
         public static readonly Dictionary<ObjectGuid, AllegianceNode> Players = new Dictionary<ObjectGuid, AllegianceNode>();
@@ -21,10 +31,10 @@ namespace ACE.Server.Managers
         /// </summary>
         public static IPlayer GetMonarch(IPlayer player)
         {
-            if (player.Monarch == null)
+            if (player.MonarchId == null)
                 return player;
 
-            var monarch = PlayerManager.FindByGuid(player.Monarch.Value);
+            var monarch = PlayerManager.FindByGuid(player.MonarchId.Value);
 
             return monarch ?? player;
         }
@@ -43,11 +53,29 @@ namespace ACE.Server.Managers
             if (Players.ContainsKey(monarch.Guid))
                 return Players[monarch.Guid].Allegiance;
 
-            var allegiance = new Allegiance(monarch.Guid);
+            // try to load biota
+            var allegianceID = DatabaseManager.Shard.GetAllegianceID(monarch.Guid.Full);
+            var biota = allegianceID != null ? DatabaseManager.Shard.GetBiota(allegianceID.Value) : null;
+
+            var allegiance = biota != null ? new Allegiance(biota) : new Allegiance(monarch.Guid);
+
             if (allegiance.TotalMembers == 1)
                 return null;
 
+            if (biota == null)
+            {
+                allegiance = WorldObjectFactory.CreateNewWorldObject("allegiance") as Allegiance;
+                allegiance.MonarchId = monarch.Guid.Full;
+                allegiance.Init(monarch.Guid);
+
+                allegiance.SaveBiotaToDatabase();
+            }
+
             AddPlayers(allegiance);
+
+            if (!Allegiances.ContainsKey(allegiance.Guid))
+                Allegiances.Add(allegiance.Guid, allegiance);
+
             return allegiance;
         }
 
@@ -87,7 +115,7 @@ namespace ACE.Server.Managers
             RemoveCache(allegiance);
 
             // rebuild allegiance
-            var refresh = GetAllegiance(allegiance.Monarch.Player);
+            allegiance = GetAllegiance(allegiance.Monarch.Player);
 
             // relink players
             foreach (var member in allegiance.Members.Keys)
@@ -97,6 +125,9 @@ namespace ACE.Server.Managers
 
                 LoadPlayer(player);
             }
+
+            // update dynamic properties
+            allegiance.UpdateProperties();
         }
 
         /// <summary>
@@ -246,7 +277,7 @@ namespace ACE.Server.Managers
 
                 var onlinePatron = PlayerManager.GetOnlinePlayer(patron.Guid);
                 if (onlinePatron != null)
-                    onlinePatron.AddAllegianceXP(false);
+                    onlinePatron.AddAllegianceXP();
 
                 // call recursively
                 PassXP(patronNode, passupAmount, false);
@@ -268,6 +299,10 @@ namespace ACE.Server.Managers
             Rebuild(allegiance);
 
             LoadPlayer(vassal);
+
+            // maintain approved vassals list
+            if (allegiance.ApprovedVassals.Contains(vassal.Guid))
+                allegiance.ApprovedVassals.Remove(vassal.Guid);
         }
 
         /// <summary>
@@ -275,7 +310,7 @@ namespace ACE.Server.Managers
         /// </summary>
         /// <param name="self">The player initiating the break request</param>
         /// <param name="target">The patron or vassal of the self player</param>
-        public static void OnBreakAllegiance(Player self, IPlayer target)
+        public static void OnBreakAllegiance(IPlayer self, IPlayer target)
         {
             // remove the previous allegiance structure
             RemoveCache(self.Allegiance);
@@ -286,6 +321,105 @@ namespace ACE.Server.Managers
 
             LoadPlayer(self);
             LoadPlayer(target);
+
+            HandleNoAllegiance(self);
+            HandleNoAllegiance(target);
+        }
+
+        public static void HandleNoAllegiance(IPlayer player)
+        {
+            if (player.Allegiance != null)
+                return;
+
+            var onlinePlayer = PlayerManager.GetOnlinePlayer(player.Guid);
+
+            if (player.MonarchId != null)
+            {
+                player.MonarchId = null;
+
+                if (onlinePlayer != null)
+                    onlinePlayer.Session.Network.EnqueueSend(new GameMessagePrivateUpdateInstanceID(onlinePlayer, PropertyInstanceId.Monarch, player.MonarchId.Value));
+            }
+
+            if (player.AllegianceRank != null)
+            {
+                player.AllegianceRank = null;
+
+                if (onlinePlayer != null)
+                    onlinePlayer.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(onlinePlayer, PropertyInt.AllegianceRank, 0));
+            }
+
+            if (onlinePlayer != null)
+                onlinePlayer.Session.Network.EnqueueSend(new GameEventAllegianceUpdate(onlinePlayer.Session, onlinePlayer.Allegiance, onlinePlayer.AllegianceNode), new GameEventAllegianceAllegianceUpdateDone(onlinePlayer.Session));
+        }
+
+        public static Allegiance FindAllegiance(uint allegianceID)
+        {
+            Allegiances.TryGetValue(new ObjectGuid(allegianceID), out var allegiance);
+            return allegiance;
+        }
+
+        public static void HandlePlayerDelete(uint playerGuid)
+        {
+            var player = PlayerManager.FindByGuid(playerGuid);
+            if (player == null)
+            {
+                Console.WriteLine($"AllegianceManager.HandlePlayerDelete({playerGuid:X8}): couldn't find player guid");
+                return;
+            }
+            var allegiance = GetAllegiance(player);
+
+            if (allegiance == null) return;
+
+            allegiance.Members.TryGetValue(player.Guid, out var allegianceNode);
+
+            var players = new List<IPlayer>() { player };
+
+            if (player.PatronId != null)
+            {
+                var patron = PlayerManager.FindByGuid(player.PatronId.Value);
+                players.Add(patron);
+            }
+
+            player.PatronId = null;
+            player.MonarchId = null;
+
+            // vassals now become monarchs...
+            foreach (var vassal in allegianceNode.Vassals)
+            {
+                var vassalPlayer = PlayerManager.FindByGuid(vassal.PlayerGuid, out bool isOnline);
+
+                vassalPlayer.PatronId = null;
+                vassalPlayer.MonarchId = null;
+
+                players.Add(vassal.Player);
+            }
+
+            RemoveCache(allegiance);
+
+            // rebuild for those directly involved
+            foreach (var p in players)
+                Rebuild(GetAllegiance(p));
+
+            foreach (var p in players)
+                LoadPlayer(p);
+
+            foreach (var p in players)
+                HandleNoAllegiance(p);
+
+            // save immediately?
+            foreach (var p in players)
+            {
+                var offline = PlayerManager.GetOfflinePlayer(p.Guid);
+                if (offline != null)
+                    offline.SaveBiotaToDatabase();
+                else
+                {
+                    var online = PlayerManager.GetOnlinePlayer(p.Guid);
+                    if (online != null)
+                        online.SaveBiotaToDatabase();
+                }
+            }
         }
     }
 }

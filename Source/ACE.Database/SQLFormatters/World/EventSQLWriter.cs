@@ -27,13 +27,14 @@ namespace ACE.Database.SQLFormatters.World
 
         public void CreateSQLINSERTStatement(Event input, StreamWriter writer)
         {
-            writer.WriteLine("INSERT INTO `event` (`name`, `start_Time`, `end_Time`, `state`)");
+            writer.WriteLine("INSERT INTO `event` (`name`, `start_Time`, `end_Time`, `state`, `last_Modified`)");
 
             var output = "VALUES (" +
                              $"{GetSQLString(input.Name)}, " +
                              $"{(input.StartTime == -1 ? $"{input.StartTime}" : $"{input.StartTime} /* {DateTimeOffset.FromUnixTimeSeconds(input.StartTime).DateTime.ToUniversalTime().ToString(CultureInfo.InvariantCulture)} */")}, " +
                              $"{(input.EndTime == -1 ? $"{input.EndTime}" : $"{input.EndTime} /* {DateTimeOffset.FromUnixTimeSeconds(input.EndTime).DateTime.ToUniversalTime().ToString(CultureInfo.InvariantCulture)} */")}, " +
-                             $"{input.State}" +
+                             $"{input.State}, " +
+                             $"'{input.LastModified.ToString("yyyy-MM-dd HH:mm:ss")}'" +
                              ");";
 
             output = FixNullFields(output);

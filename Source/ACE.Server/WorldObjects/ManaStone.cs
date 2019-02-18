@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 using log4net;
@@ -89,46 +90,50 @@ namespace ACE.Server.WorldObjects
                 if (target == player)
                 {
                     // dump mana into equipped items
-                    if (player.EquippedObjectsLoaded)
+                    var origItemsNeedingMana = player.EquippedObjects.Values.Where(k => k.ItemCurMana.HasValue && k.ItemMaxMana.HasValue && k.ItemCurMana < k.ItemMaxMana).ToList();
+                    var itemsGivenMana = new Dictionary<WorldObject, int>();
+
+                    while (ItemCurMana > 0)
                     {
-                        var manaAvailable = ItemCurMana.Value;
-                        var origItemsNeedingMana = player.EquippedObjects.Where(k => k.Value.ItemCurMana.HasValue && k.Value.ItemMaxMana.HasValue && k.Value.ItemCurMana.Value < k.Value.ItemMaxMana.Value).ToList();
-                        origItemsNeedingMana.ForEach(m => m.Value.ManaGiven = 0);
-                        while (manaAvailable > 0)
+                        var itemsNeedingMana = origItemsNeedingMana.Where(k => k.ItemCurMana < k.ItemMaxMana).ToList();
+                        if (itemsNeedingMana.Count < 1)
+                            break;
+
+                        var ration = Math.Max(ItemCurMana.Value / itemsNeedingMana.Count, 1);
+
+                        foreach (var item in itemsNeedingMana)
                         {
-                            var itemsNeedingMana = origItemsNeedingMana.Where(k => k.Value.ItemCurMana.Value + k.Value.ManaGiven < k.Value.ItemMaxMana.Value).ToList();
-                            if (itemsNeedingMana.Count < 1)
+                            var manaNeededForTopoff = (int)(item.ItemMaxMana - item.ItemCurMana);
+                            var adjustedRation = Math.Min(ration, manaNeededForTopoff);
+
+                            ItemCurMana -= adjustedRation;
+                            item.ItemCurMana += adjustedRation;
+                            if (!itemsGivenMana.ContainsKey(item))
+                                itemsGivenMana[item] = adjustedRation;
+                            else
+                                itemsGivenMana[item] += adjustedRation;
+
+                            if (ItemCurMana <= 0)
                                 break;
-
-                            var ration = manaAvailable / itemsNeedingMana.Count;
-                            itemsNeedingMana.ForEach(k =>
-                            {
-                                var manaNeededForTopoff = (int)(k.Value.ItemMaxMana - k.Value.ItemCurMana - k.Value.ManaGiven);
-                                var adjustedRation = Math.Min(ration, manaNeededForTopoff);
-                                k.Value.ManaGiven += adjustedRation;
-                                manaAvailable -= adjustedRation;
-                            });
                         }
-                        var itemsGivenMana = origItemsNeedingMana.Where(k => k.Value.ManaGiven > 0).ToList();
-                        if (itemsGivenMana.Count < 1)
-                        {
-                            player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You have no items equipped that need mana.", ChatMessageType.Broadcast));
-                            useResult = WeenieError.ActionCancelled;
-                        }
-                        else
-                        {
-                            var itemsNeedingMana = origItemsNeedingMana.Where(k => k.Value.ItemCurMana.Value + k.Value.ManaGiven < k.Value.ItemMaxMana.Value).ToList();
-                            var additionalManaNeeded = itemsNeedingMana.Sum(k => k.Value.ItemMaxMana.Value - k.Value.ItemCurMana.Value - k.Value.ManaGiven);
-                            var additionalManaText = (additionalManaNeeded > 0) ? $"\nYou need {additionalManaNeeded.ToString("N0")} more mana to fully charge your items." : string.Empty;
-                            var msg = $"The {Name} gives {itemsGivenMana.Sum(k => k.Value.ManaGiven).ToString("N0")} points of mana to the following items: {itemsGivenMana.Select(c => c.Value.Name).Aggregate((a, b) => a + ", " + b)}.{additionalManaText}";
-                            itemsGivenMana.ForEach(k => k.Value.ItemCurMana += k.Value.ManaGiven);
-                            player.Session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
+                    }
 
-                            if (!DoDestroyDiceRoll(player))
-                            {
-                                ItemCurMana = null;
-                                SetUiEffect(player, ACE.Entity.Enum.UiEffects.Undef);
-                            }
+                    if (itemsGivenMana.Count < 1)
+                    {
+                        player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You have no items equipped that need mana.", ChatMessageType.Broadcast));
+                        useResult = WeenieError.ActionCancelled;
+                    }
+                    else
+                    {
+                        var additionalManaNeeded = origItemsNeedingMana.Sum(k => k.ItemMaxMana.Value - k.ItemCurMana.Value);
+                        var additionalManaText = (additionalManaNeeded > 0) ? $"\nYou need {additionalManaNeeded:N0} more mana to fully charge your items." : string.Empty;
+                        var msg = $"The {Name} gives {itemsGivenMana.Values.Sum():N0} points of mana to the following items: {itemsGivenMana.Select(c => c.Key.Name).Aggregate((a, b) => a + ", " + b)}.{additionalManaText}";
+                        player.Session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
+
+                        if (!DoDestroyDiceRoll(player))
+                        {
+                            ItemCurMana = null;
+                            SetUiEffect(player, ACE.Entity.Enum.UiEffects.Undef);
                         }
                     }
                 }

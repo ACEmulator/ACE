@@ -131,7 +131,7 @@ namespace ACE.Server.WorldObjects
                 var stackLeft = existing.FirstOrDefault(i => (i.StackSize ?? 1) < (i.MaxStackSize ?? 1));
                 if (stackLeft != null)
                 {
-                    stackLeft.StackSize = (stackLeft.StackSize ?? 1) + 1;
+                    stackLeft.SetStackSize((stackLeft.StackSize ?? 1) + 1);
                     return;
                 }
             }
@@ -170,13 +170,13 @@ namespace ACE.Server.WorldObjects
                 {
                     if ((wo.MaxStackSize.Value != 0) & (wo.MaxStackSize.Value <= itemprofile.Amount))
                     {
-                        wo.StackSize = wo.MaxStackSize.Value;
+                        wo.SetStackSize(wo.MaxStackSize.Value);
                         worldobjects.Add(wo);
                         itemprofile.Amount = itemprofile.Amount - wo.MaxStackSize.Value;
                     }
                     else // we cant stack this but its not a single item
                     {
-                        wo.StackSize = (ushort)itemprofile.Amount;
+                        wo.SetStackSize((int)itemprofile.Amount);
                         worldobjects.Add(wo);
                         itemprofile.Amount = itemprofile.Amount - itemprofile.Amount;
                     }

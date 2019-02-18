@@ -495,7 +495,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Called every ~5 seconds for object generators
         /// </summary>
-        protected void Generator_HeartBeat()
+        public void Generator_HeartBeat()
         {
             //Console.WriteLine($"{Name}.Generator_HeartBeat({HeartbeatInterval})");
 

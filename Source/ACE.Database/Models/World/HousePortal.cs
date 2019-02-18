@@ -15,5 +15,6 @@ namespace ACE.Database.Models.World
         public float AnglesX { get; set; }
         public float AnglesY { get; set; }
         public float AnglesZ { get; set; }
+        public DateTime LastModified { get; set; }
     }
 }

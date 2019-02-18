@@ -133,9 +133,12 @@ namespace ACE.Server.WorldObjects
                 InflictVitaePenalty();
             }
 
-            var msgPurgeEnchantments = new GameEventMagicPurgeEnchantments(Session);
-            EnchantmentManager.RemoveAllEnchantments();
-            Session.Network.EnqueueSend(msgPurgeEnchantments);
+            if (AugmentationSpellsRemainPastDeath == 0 || topDamager is Player && topDamager.PlayerKillerStatus == PlayerKillerStatus.PK)
+            {
+                var msgPurgeEnchantments = new GameEventMagicPurgeEnchantments(Session);
+                EnchantmentManager.RemoveAllEnchantments();
+                Session.Network.EnqueueSend(msgPurgeEnchantments);
+            }
 
             // wait for the death animation to finish
             var dieChain = new ActionChain();
@@ -329,9 +332,10 @@ namespace ACE.Server.WorldObjects
             // if player dies in a PKLite battle,
             // they don't drop any items, and revert back to NPK status
 
+            var killer = CurrentLandblock?.GetObject(new ObjectGuid(KillerId ?? 0));
+
             if (PlayerKillerStatus == PlayerKillerStatus.PKLite)
             {
-                var killer = CurrentLandblock?.GetObject(new ObjectGuid(KillerId ?? 0));
                 if (killer is Player)
                 {
                     PlayerKillerStatus = PlayerKillerStatus.NPK;
@@ -340,7 +344,7 @@ namespace ACE.Server.WorldObjects
                 }
             }
 
-            var numItemsDropped = GetNumItemsDropped();
+            var numItemsDropped = GetNumItemsDropped(killer);
 
             var numCoinsDropped = GetNumCoinsDropped();
 
@@ -454,7 +458,7 @@ namespace ACE.Server.WorldObjects
         /// Rolls for the # of items to drop for a player death
         /// </summary>
         /// <returns></returns>
-        public int GetNumItemsDropped()
+        public int GetNumItemsDropped(WorldObject killer)
         {
             // Original formula:
 
@@ -491,8 +495,12 @@ namespace ACE.Server.WorldObjects
             // TODO: PK deaths
 
             // The number of items you drop can be reduced with the Clutch of the Miser augmentation. If you get the
-            // augmentation three times you will no longer drop any items(except half of your Pyreals and all Rares except if you're a PK).
+            // augmentation three times you will no longer drop any items (except half of your Pyreals and all Rares except if you're a PK).
             // If you drop no items, you will not leave a corpse.
+            if (!(killer is Player) && AugmentationLessDeathItemLoss > 0)
+            {
+                numItemsDropped = Math.Max(0, numItemsDropped - AugmentationLessDeathItemLoss * 5);
+            }
 
             return numItemsDropped;
         }

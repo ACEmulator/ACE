@@ -255,7 +255,7 @@ namespace ACE.Server.WorldObjects
             var weapon = GetEquippedMeleeWeapon();
             if (weapon != null)
             {
-                var weaponDamage = weapon.GetBaseDamage();
+                var weaponDamage = weapon.GetDamageMod(this);
                 //Console.WriteLine($"{Name} using weapon damage: {weaponDamage}");
                 return weaponDamage;
             }
@@ -330,6 +330,7 @@ namespace ACE.Server.WorldObjects
             var baseDamage = ThreadSafeRandom.Next(damageRange.Min, damageRange.Max);
 
             var damageRatingMod = GetRatingMod(EnchantmentManager.GetDamageRating());
+            //Console.WriteLine("Damage Rating: " + damageRatingMod);
 
             var recklessnessMod = player != null ? player.GetRecklessnessMod() : 1.0f;
             var target = AttackTarget as Creature;
@@ -346,7 +347,16 @@ namespace ACE.Server.WorldObjects
             // critical hit
             var critical = 0.1f;
             if (ThreadSafeRandom.Next(0.0f, 1.0f) < critical)
-                criticalHit = true;
+            {
+                if (player != null && player.AugmentationCriticalDefense > 0)
+                {
+                    var protChance = player.AugmentationCriticalDefense * 0.25f;
+                    if (ThreadSafeRandom.Next(0.0f, 1.0f) > protChance)
+                        criticalHit = true;
+                }
+                else
+                    criticalHit = true;
+            }
 
             // attribute damage modifier (verify)
             var attributeMod = GetAttributeMod(weapon);
@@ -387,9 +397,9 @@ namespace ACE.Server.WorldObjects
             //Console.WriteLine("BodyPart: " + bodyPart);
             //Console.WriteLine("===");
 
-            var bodyLocation = BodyParts.GetFlags(BodyParts.GetEquipMask(bodyPart));
+            var bodyLocation = BodyParts.GetFlags(BodyParts.GetCoverageMask(bodyPart));
 
-            var equipped = target.EquippedObjects.Values.Where(e => e is Clothing && BodyParts.HasAny(e.CurrentWieldedLocation, bodyLocation)).ToList();
+            var equipped = target.EquippedObjects.Values.Where(e => e is Clothing && BodyParts.HasAny(e.ClothingPriority, bodyLocation)).ToList();
 
             return equipped;
         }

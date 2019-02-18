@@ -90,19 +90,30 @@ namespace ACE.Server.WorldObjects
             // turn / moveto if required
             if (IsStickyDistance(target) && IsDirectVisible(target))
             {
+                // sticky melee
                 var rotateTime = Rotate(target);
                 var actionChain = new ActionChain();
-                actionChain.AddDelaySeconds(rotateTime * 0.8f);
+                actionChain.AddDelaySeconds(rotateTime);
                 actionChain.AddAction(this, () => Attack(target));
                 actionChain.EnqueueChain();
-                //Rotate(target);
-                //Attack(target);
             }
             else
-                MoveTo(target);
-
-            // do melee attack
-            //Attack(target);
+            {
+                if (GetCharacterOption(CharacterOption.UseChargeAttack))
+                {
+                    // charge attack
+                    MoveTo(target);
+                }
+                else
+                {
+                    // move to
+                    CreateMoveToChain(target, (success) =>
+                    {
+                        if (success)
+                            Attack(target);
+                    });
+                }
+            }
         }
 
         /// <summary>

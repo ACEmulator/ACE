@@ -383,7 +383,7 @@ namespace ACE.Server.Network.GameEvent.Events
             {
                 Writer.Write(item.Guid.Full);
                 Writer.Write((uint)(item.CurrentWieldedLocation ?? 0));
-                Writer.Write((uint)(item.Priority ?? 0));
+                Writer.Write((uint)(item.ClothingPriority ?? 0));
             }
         }
     }

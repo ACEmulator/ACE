@@ -22,12 +22,12 @@ namespace ACE.Database.SQLFormatters.World
 
         public void CreateSQLDELETEStatement(IList<Encounter> input, StreamWriter writer)
         {
-            throw new NotImplementedException();
+            writer.WriteLine($"DELETE FROM `encounter` WHERE `landblock` = {input[0].Landblock};");
         }
 
         public void CreateSQLINSERTStatement(IList<Encounter> input, StreamWriter writer)
         {
-            writer.WriteLine("INSERT INTO `encounter` (`landblock`, `weenie_Class_Id`, `cell_X`, `cell_Y`)");
+            writer.WriteLine("INSERT INTO `encounter` (`landblock`, `weenie_Class_Id`, `cell_X`, `cell_Y`, `last_Modified`)");
 
             var lineGenerator = new Func<int, string>(i =>
             {
@@ -36,7 +36,7 @@ namespace ACE.Database.SQLFormatters.World
                 if (WeenieNames != null)
                     WeenieNames.TryGetValue(input[i].WeenieClassId, out label);
 
-                return $"{input[i].Landblock}, {input[i].WeenieClassId}, {input[i].CellX}, {input[i].CellY}) /* {label} */";
+                return $"{input[i].Landblock}, {input[i].WeenieClassId}, {input[i].CellX}, {input[i].CellY}, '{input[i].LastModified.ToString("yyyy-MM-dd HH:mm:ss")}') /* {label} */";
             });
 
             ValuesWriter(input.Count, lineGenerator, writer);

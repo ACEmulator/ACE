@@ -1,5 +1,6 @@
 using System;
 
+using ACE.Common.Extensions;
 using ACE.Database.Models.Shard;
 using ACE.DatLoader;
 using ACE.Entity.Enum;
@@ -97,7 +98,18 @@ namespace ACE.Server.WorldObjects.Entity
 
                 total += InitLevel + Ranks;
 
-                // TODO: augs
+                if (creature is Player player)
+                {
+                    if (player.AugmentationJackOfAllTrades != 0)
+                        total += (uint)(player.AugmentationJackOfAllTrades * 5);
+
+                    if (player.AugmentationSkilledMelee > 0 && Player.MeleeSkills.Contains(Skill))
+                        total += (uint)(player.AugmentationSkilledMelee * 10);
+                    else if (player.AugmentationSkilledMissile > 0 && Player.MissileSkills.Contains(Skill))
+                        total += (uint)(player.AugmentationSkilledMissile * 10);
+                    else if (player.AugmentationSkilledMagic > 0 && Player.MagicSkills.Contains(Skill))
+                        total += (uint)(player.AugmentationSkilledMagic * 10);
+                }
 
                 return total;
             }
@@ -117,14 +129,23 @@ namespace ACE.Server.WorldObjects.Entity
                 var skillMod = creature.EnchantmentManager.GetSkillMod(Skill);
                 total += (uint)skillMod;    // can be negative?
 
-                // TODO: include augs + any other modifiers
-
                 if (creature is Player player)
                 {
                     var vitae = player.Vitae;
 
                     if (vitae != 1.0f)
-                        total = (uint)Math.Round(total * vitae);
+                        total = (uint)(total * vitae).Round();
+
+                    // it seems this gets applied after vitae?
+                    if (player.AugmentationJackOfAllTrades != 0)
+                        total += (uint)(player.AugmentationJackOfAllTrades * 5);
+
+                    if (player.AugmentationSkilledMelee > 0 && Player.MeleeSkills.Contains(Skill))
+                        total += (uint)(player.AugmentationSkilledMelee * 10);
+                    else if (player.AugmentationSkilledMissile > 0 && Player.MissileSkills.Contains(Skill))
+                        total += (uint)(player.AugmentationSkilledMissile * 10);
+                    else if (player.AugmentationSkilledMagic > 0 && Player.MagicSkills.Contains(Skill))
+                        total += (uint)(player.AugmentationSkilledMagic * 10);
                 }
 
                 return total;

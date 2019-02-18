@@ -327,6 +327,8 @@ namespace ACE.Server.Managers
         {
             Player player;
 
+            Player.HandleNoLogLandblock(playerBiota);
+
             if (playerBiota.WeenieType == (int)WeenieType.Admin)
                 player = new Admin(playerBiota, possessedBiotas.Inventory, possessedBiotas.WieldedItems, character, session);
             else if (playerBiota.WeenieType == (int)WeenieType.Sentinel)
@@ -494,6 +496,8 @@ namespace ACE.Server.Managers
                 UpdateGameWorld60MinRM.ClearEventHistory();
                 UpdateGameWorld60MinLastReset = DateTime.UtcNow;
             }
+
+            HouseManager.Tick();
 
             return true;
         }

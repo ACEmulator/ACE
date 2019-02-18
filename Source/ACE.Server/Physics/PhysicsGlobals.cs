@@ -47,10 +47,9 @@ namespace ACE.Server.Physics
 
         public static readonly float FloorZ = 0.66417414618662751f;
 
-        //public static readonly float DummySphereRadius = 0.1f;
-        public static readonly float DummySphereRadius = 0.0f;  // ??
+        public static readonly float DummySphereRadius = 0.1f;
 
-        public static readonly Sphere DummySphere = new Sphere(Vector3.Zero, DummySphereRadius);
+        public static readonly Sphere DummySphere = new Sphere(new Vector3(0, 0, DummySphereRadius), DummySphereRadius);
 
         public static readonly Sphere DefaultSortingSphere;
 

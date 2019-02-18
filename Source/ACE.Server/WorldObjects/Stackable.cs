@@ -1,7 +1,6 @@
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.Entity;
-using ACE.Entity.Enum.Properties;
 
 namespace ACE.Server.WorldObjects
 {
@@ -25,29 +24,12 @@ namespace ACE.Server.WorldObjects
 
         private void SetEphemeralValues()
         {
-        }
-
-        public override int? EncumbranceVal
-        {
-            get
+            // This is needed to fix stackables that were created before we removed the [Ephemeral] attribute from Encumbranceval and Value
+            // In the distance future, this can be removed. 2019-02-13 Mag-nus
+            if (MaxStackSize > 1)
             {
-                var value = ((StackUnitEncumbrance ?? 0) * (StackSize ?? 1));
-
-                base.EncumbranceVal = value;
-
-                return value;
-            }
-        }
-
-        public override int? Value
-        {
-            get
-            {
-                var value = ((StackUnitValue ?? 0) * (StackSize ?? 1));
-
-                base.Value = value;
-
-                return value;
+                EncumbranceVal = (StackUnitEncumbrance ?? 0) * (StackSize ?? 1);
+                Value = (StackUnitValue ?? 0) * (StackSize ?? 1);
             }
         }
     }

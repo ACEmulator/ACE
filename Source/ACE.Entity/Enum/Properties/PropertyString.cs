@@ -74,7 +74,14 @@ namespace ACE.Entity.Enum.Properties
         GearPlatingName                 = 52,
 
         [ServerOnly]
-        PCAPRecordedCurrentMotionState  = 8006
+        PCAPRecordedCurrentMotionState  = 8006,
+
+        /* custom */
+        AllegianceMotd                  = 9001,
+        AllegianceMotdSetBy             = 9002,
+        AllegianceSpeakerTitle          = 9003,
+        AllegianceSeneschalTitle        = 9004,
+        AllegianceCastellanTitle        = 9005,
     }
 
     public static class PropertyStringExtensions

@@ -149,6 +149,9 @@ namespace ACE.Server.WorldObjects
                 critRateMod += criticalStrikeMod;
             }
 
+            if (wielder is Player player && player.AugmentationCriticalExpertise > 0)
+                critRateMod += player.AugmentationCriticalExpertise * 0.01f;
+
             // 50% cap here, or only in criticalStrikeMod?
             critRateMod = Math.Min(critRateMod, 0.5f);
 
@@ -189,6 +192,9 @@ namespace ACE.Server.WorldObjects
                 critRateMod += criticalStrikeMod;
             }
 
+            if (wielder is Player player && player.AugmentationCriticalExpertise > 0)
+                critRateMod += player.AugmentationCriticalExpertise * 0.01f;
+
             // 50% cap here, or only in criticalStrikeMod?
             critRateMod = Math.Min(critRateMod, 0.5f);
 
@@ -212,6 +218,9 @@ namespace ACE.Server.WorldObjects
                 var cripplingBlowMod = GetCripplingBlowMod(skill);
                 critDamageMod += cripplingBlowMod;      // additive float?
             }
+
+            if (wielder is Player player && player.AugmentationCriticalPower > 0)
+                critDamageMod += player.AugmentationCriticalPower * 0.03f;
 
             // caps at 6x upstream?
             critDamageMod = Math.Min(critDamageMod, 5.0f);
@@ -571,6 +580,7 @@ namespace ACE.Server.WorldObjects
                 case Skill.HeavyWeapons:
                 case Skill.FinesseWeapons:
                 case Skill.DualWield:
+                case Skill.TwoHandedCombat:
 
                 // legacy
                 case Skill.Axe:

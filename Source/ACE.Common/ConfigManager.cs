@@ -1,7 +1,8 @@
-﻿using System;
+using System;
 using System.IO;
 
 using Newtonsoft.Json;
+using DouglasCrockford.JsMin;
 
 namespace ACE.Common
 {
@@ -18,13 +19,30 @@ namespace ACE.Common
         }
 
         /// <summary>
-        /// initializes from a config.json file specified by the path
+        /// initializes from a Config.js file specified by the path
         /// </summary>
-        public static void Initialize(string path = @"Config.json")
+        public static void Initialize(string path = @"config.js")
         {
+            string fpOld = Path.Combine(Environment.CurrentDirectory, path);
+            string fpNew = Path.Combine(Environment.CurrentDirectory, Path.GetFileNameWithoutExtension(path) + ".js");
+            string fpChoice = null;
             try
             {
-                Config = JsonConvert.DeserializeObject<MasterConfiguration>(File.ReadAllText(path));
+                if (!File.Exists(fpNew) && File.Exists(fpOld))
+                {
+                    File.Move(fpOld, fpNew);
+                    fpChoice = fpNew;
+                }
+                else if (File.Exists(fpNew))
+                {
+                    fpChoice = fpNew;
+                }
+                else
+                {
+                    Console.WriteLine("Configuration file is missing.  Please copy the file Config.js.example to Config.js and edit it to match your needs before running ACE.");
+                    throw new Exception("missing configuration file");
+                }
+                Config = JsonConvert.DeserializeObject<MasterConfiguration>(new JsMinifier().Minify(File.ReadAllText(fpChoice)));
             }
             catch (Exception exception)
             {

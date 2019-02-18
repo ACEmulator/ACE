@@ -9,6 +9,7 @@ namespace ACE.Database.Models.World
         public uint RecipeId { get; set; }
         public uint SourceWCID { get; set; }
         public uint TargetWCID { get; set; }
+        public DateTime LastModified { get; set; }
 
         public Recipe Recipe { get; set; }
     }

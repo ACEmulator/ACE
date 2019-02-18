@@ -26,6 +26,9 @@ namespace ACE.Server.Network.Structure
         {
             OpenStatus = Convert.ToUInt32(house.OpenStatus);
 
+            if (house.MonarchId != null)
+                MonarchID = new ObjectGuid(house.MonarchId.Value);      // for allegiance guest/storage access
+
             Table = new Dictionary<ObjectGuid, uint>();
             foreach (var guest in house.Guests)
                 Table.Add(guest.Key, Convert.ToUInt32(guest.Value));

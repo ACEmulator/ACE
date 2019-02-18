@@ -160,10 +160,17 @@ namespace ACE.Server.Managers
             var successChance = SkillCheck.GetSkillChance((int)skill.Current, difficulty);
 
             // imbue: divide success by 3
+            if (recipe.Recipe.SalvageType == 2)
+            {
+                successChance /= 3.0f;
+
+                if (player.AugmentationBonusImbueChance > 0)
+                    successChance += player.AugmentationBonusImbueChance * 0.05f;
+            }
 
             // handle rare foolproof material
-            //if (tool.WeenieClassId >= 30094 && tool.WeenieClassId <= 30106)
-                //successChance = 1.0f;
+            if (tool.WeenieClassId >= 30094 && tool.WeenieClassId <= 30106)
+                successChance = 1.0f;
 
             // check for player option: 'Use Crafting Chance of Success Dialog'
             if (player.GetCharacterOption(CharacterOption.UseCraftingChanceOfSuccessDialog) && !confirmed)
@@ -802,7 +809,7 @@ namespace ACE.Server.Managers
             }
 
             if (amount > 1)
-                wo.StackSize = (ushort)amount;
+                wo.SetStackSize((int)amount);
 
             player.TryCreateInInventoryWithNetworking(wo);
             return wo;

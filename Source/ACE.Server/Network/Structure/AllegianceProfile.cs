@@ -1,5 +1,6 @@
 using System.IO;
 using ACE.Server.Entity;
+using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Network.Structure
 {
@@ -28,7 +29,7 @@ namespace ACE.Server.Network.Structure
 
             if (profile.Allegiance != null && profile.Node != null)
             {
-                totalMembers = (uint)profile.Node.Monarch.TotalFollowers;
+                totalMembers = (uint)profile.Node.Monarch.TotalFollowers + 1;       // includes monarch
                 totalVassals = (uint)profile.Node.TotalFollowers;
             }
 

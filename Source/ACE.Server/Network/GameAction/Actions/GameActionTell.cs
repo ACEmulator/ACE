@@ -27,6 +27,9 @@ namespace ACE.Server.Network.GameAction.Actions
             if (session.Player != targetPlayer)
                 session.Network.EnqueueSend(new GameMessageSystemChat($"You tell {targetPlayer.Name}, \"{message}\"", ChatMessageType.OutgoingTell));
 
+            if (targetPlayer.Squelches.Contains(session.Player))
+                return;
+
             var tell = new GameEventTell(targetPlayer.Session, message, session.Player.Name, session.Player.Guid.Full, targetPlayer.Guid.Full, ChatMessageType.Tell);
             targetPlayer.Session.Network.EnqueueSend(tell);
         }

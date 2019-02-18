@@ -499,6 +499,43 @@ namespace ACE.Server.WorldObjects
             }
         }
 
+        public static HashSet<Skill> MeleeSkills = new HashSet<Skill>()
+        {
+            Skill.LightWeapons,
+            Skill.HeavyWeapons,
+            Skill.FinesseWeapons,
+            Skill.DualWield,
+            Skill.TwoHandedCombat,
+
+            // legacy
+            Skill.Axe,
+            Skill.Dagger,
+            Skill.Mace,
+            Skill.Spear,
+            Skill.Staff,
+            Skill.Sword,
+            Skill.UnarmedCombat
+        };
+
+        public static HashSet<Skill> MissileSkills = new HashSet<Skill>()
+        {
+            Skill.MissileWeapons,
+
+            // legacy
+            Skill.Bow,
+            Skill.Crossbow,
+            Skill.Sling,
+            Skill.ThrownWeapon
+        };
+
+        public static HashSet<Skill> MagicSkills = new HashSet<Skill>()
+        {
+            Skill.CreatureEnchantment,
+            Skill.ItemEnchantment,
+            Skill.LifeMagic,
+            Skill.VoidMagic,
+            Skill.WarMagic
+        };
 
         public static List<Skill> AlwaysTrained = new List<Skill>()
         {
@@ -611,5 +648,47 @@ namespace ACE.Server.WorldObjects
             { Skill.WarMagic, WeaponType.Magic },
             { Skill.VoidMagic, WeaponType.Magic },
         };
+
+        public void HandleAugsForwardCompatibility()
+        {
+            switch (HeritageGroup)
+            {
+                case HeritageGroup.Aluvian:
+                case HeritageGroup.Gharundim:
+                case HeritageGroup.Sho:
+                case HeritageGroup.Viamontian:
+                    AugmentationJackOfAllTrades = 1;
+                    break;
+
+                case HeritageGroup.Shadowbound:
+                case HeritageGroup.Penumbraen:
+                    AugmentationCriticalExpertise = 1;
+                    break;
+
+                case HeritageGroup.Gearknight:
+                    AugmentationDamageReduction = 1;
+                    break;
+
+                case HeritageGroup.Undead:
+                    AugmentationCriticalDefense = 1;
+                    break;
+
+                case HeritageGroup.Empyrean:
+                    AugmentationInfusedLifeMagic = 1;
+                    break;
+
+                case HeritageGroup.Tumerok:
+                    AugmentationCriticalPower = 1;
+                    break;
+
+                case HeritageGroup.Lugian:
+                    AugmentationIncreasedCarryingCapacity = 1;
+                    break;
+
+                case HeritageGroup.Olthoi:
+                case HeritageGroup.OlthoiAcid:
+                    break;
+            }
+        }
     }
 }
