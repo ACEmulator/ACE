@@ -58,7 +58,7 @@ namespace ACE.Server.WorldObjects
 
         private List<WorldObject> SpendCurrency(uint amount, WeenieType type)
         {
-            if (type == WeenieType.Coin && amount < CoinValue)
+            if (type == WeenieType.Coin && amount > CoinValue)
                 return null;
 
             List<WorldObject> currency = new List<WorldObject>();
