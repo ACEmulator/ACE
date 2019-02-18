@@ -398,7 +398,10 @@ namespace ACE.Server.Command.Handlers
                 distance = Convert.ToInt16(parameters[0]);
 
             WorldObject loot = WorldObjectFactory.CreateNewWorldObject(trainingWandTarget);
-            LootGenerationFactory.Spawn(loot, session.Player.Location.InFrontOf(distance));
+            loot.Location = session.Player.Location.InFrontOf((loot.UseRadius ?? 2) > 2 ? loot.UseRadius.Value : 2);
+            loot.Location.LandblockId = new LandblockId(loot.Location.GetCell());
+
+            loot.EnterWorld();
 
             session.Player.HandleActionPutItemInContainer(loot.Guid.Full, session.Player.Guid.Full);
         }
@@ -902,7 +905,11 @@ namespace ACE.Server.Command.Handlers
                 var stackSizeForThisWeenieId = stackSize ?? loot.MaxStackSize;
 
                 if (stackSizeForThisWeenieId > 1)
-                    loot.SetStackSize(stackSizeForThisWeenieId);
+                {
+                    loot.StackSize = stackSizeForThisWeenieId;
+                    loot.EncumbranceVal = (loot.StackUnitEncumbrance ?? 0) * (stackSizeForThisWeenieId ?? 1);
+                    loot.Value = (loot.StackUnitValue ?? 0) * (stackSizeForThisWeenieId ?? 1);
+                }
 
                 session.Player.TryCreateInInventoryWithNetworking(loot);
             }
