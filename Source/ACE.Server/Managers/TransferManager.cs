@@ -44,7 +44,7 @@ namespace ACE.Server.Managers
 
         public static void Initialize()
         {
-            DirectoryInfo di = new DirectoryInfo(ServerManager.TransferPath);
+            DirectoryInfo di = new DirectoryInfo(TransferPath);
             FileInfo[] files = di.GetFiles();
             int fileCount = files.Count();
             if (fileCount > 0)
@@ -65,6 +65,21 @@ namespace ACE.Server.Managers
                 //}
             }
         }
+        public static string TransferPath
+        {
+            get
+            {
+                var u = Path.Combine(ServerManager.BasePath, "Transfers");
+                if (!Directory.Exists(u))
+                    try
+                    {
+                        Directory.CreateDirectory(u);
+                        log.Info($"Created directory {u}");
+                    }
+                    catch { }
+                return u;
+            }
+        }
 
         /// <summary>
         /// Checks for the existence of a snapshot package file
@@ -77,7 +92,7 @@ namespace ACE.Server.Managers
             {
                 return null;
             }
-            string filePath = Path.Combine(ServerManager.TransferPath, cookie + ".zip");
+            string filePath = Path.Combine(TransferPath, cookie + ".zip");
             if (File.Exists(filePath))
             {
                 return filePath;
@@ -100,7 +115,7 @@ namespace ACE.Server.Managers
             }
             try
             {
-                string filePath = Path.Combine(ServerManager.TransferPath, cookie + ".zip");
+                string filePath = Path.Combine(TransferPath, cookie + ".zip");
                 File.Delete(filePath);
             }
             catch (Exception ex)
@@ -465,7 +480,7 @@ namespace ACE.Server.Managers
                 PlayerManager.AddOfflinePlayer(DatabaseManager.Shard.GetBiota(guid.Full));
                 DatabaseManager.Shard.GetCharacters(metadata.AccountId, false, new Action<List<Character>>((chars) =>
                 {
-                    Session session = WorldManager.FindSessionByAccountId(metadata.AccountId);
+                    Session session = WorldManager.Find(metadata.AccountId);
                     if (session != null)
                     {
                         session.Characters.Add(chars.First(k => k.Id == guid.Full));
@@ -748,7 +763,7 @@ namespace ACE.Server.Managers
             }
 
             // prepare scratch directory
-            string basePath = Path.Combine(ServerManager.TransferPath, metadata.Cookie);
+            string basePath = Path.Combine(TransferPath, metadata.Cookie);
             Directory.CreateDirectory(basePath);
 
             // serialize, save, and sign
@@ -769,7 +784,7 @@ namespace ACE.Server.Managers
             CryptoManager.ExportCert(Path.Combine(basePath, "signer.crt"));
 
             // compress
-            metadata.FilePath = Path.Combine(ServerManager.TransferPath, metadata.Cookie + ".zip");
+            metadata.FilePath = Path.Combine(TransferPath, metadata.Cookie + ".zip");
             ZipFile.CreateFromDirectory(basePath, metadata.FilePath);
 
             // cleanup

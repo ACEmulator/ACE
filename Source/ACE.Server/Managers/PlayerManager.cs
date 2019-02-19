@@ -146,12 +146,12 @@ namespace ACE.Server.Managers
 
         public static int GetOfflineCount()
         {
-            return offlinePlayers.Count;
+            return GetAllOffline().Count;
         }
 
         public static int GetOnlineCount()
         {
-            return onlinePlayers.Count;
+            return GetAllOnline().Count;
         }
 
         public static List<OfflinePlayer> GetAllOffline()

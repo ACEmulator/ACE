@@ -52,11 +52,26 @@ namespace ACE.Server.Managers
                 log.Debug($"Trusted server certificate thumbprint: {trusted}");
             }
         }
-        private static string CertFilePathWebApi => Path.Combine(ServerManager.CertificatePath, CertFileNameWebApi);
-        private static string CertFilePathCharTransferSigning => Path.Combine(ServerManager.CertificatePath, CertFileNameCharTransferSigning);
+        public static string CertificatePath
+        {
+            get
+            {
+                var u = Path.Combine(ServerManager.BasePath, "Certificates");
+                if (!Directory.Exists(u))
+                    try
+                    {
+                        Directory.CreateDirectory(u);
+                        log.Info($"Created directory {u}");
+                    }
+                    catch { }
+                return u;
+            }
+        }
+        private static string CertFilePathWebApi => Path.Combine(CertificatePath, CertFileNameWebApi);
+        private static string CertFilePathCharTransferSigning => Path.Combine(CertificatePath, CertFileNameCharTransferSigning);
         public static void EnsureCert(string certFileName, string certCN, int daysUntilExpire)
         {
-            string CertFile = Path.Combine(ServerManager.CertificatePath, certFileName);
+            string CertFile = Path.Combine(CertificatePath, certFileName);
             if (!File.Exists(CertFile))
             {
                 X509Certificate2 newCert = BuildSelfSignedServerCertificate(certCN, daysUntilExpire);

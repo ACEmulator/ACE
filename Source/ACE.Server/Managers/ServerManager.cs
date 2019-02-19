@@ -71,38 +71,8 @@ namespace ACE.Server.Managers
             ShutdownInitiated = false;
         }
 
-        public static string CertificatePath
-        {
-            get
-            {
-                var u = Path.Combine(BasePath, "Certificates");
-                if (!Directory.Exists(u))
-                    try
-                    {
-                        Directory.CreateDirectory(u);
-                        log.Info($"Created directory {u}");
-                    }
-                    catch { }
-                return u;
-            }
-        }
-        public static string TransferPath
-        {
-            get
-            {
-                var u = Path.Combine(BasePath, "Transfers");
-                if (!Directory.Exists(u))
-                    try
-                    {
-                        Directory.CreateDirectory(u);
-                        log.Info($"Created directory {u}");
-                    }
-                    catch { }
-                return u;
-            }
-        }
         private const string SafeFileName = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890";
-        private static string SanitizedServerNameAsFileName
+        private static string FilesystemSafeServerName
         {
             get
             {
@@ -120,7 +90,7 @@ namespace ACE.Server.Managers
         {
             get
             {
-                var fldrNam = (string.IsNullOrWhiteSpace(SanitizedServerNameAsFileName)) ? "ACEmulator" : "ACEmulator_" + SanitizedServerNameAsFileName;
+                var fldrNam = (string.IsNullOrWhiteSpace(FilesystemSafeServerName)) ? "ACEmulator" : "ACEmulator_" + FilesystemSafeServerName;
                 var u = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), fldrNam);
                 if (!Directory.Exists(u))
                     try
