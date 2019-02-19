@@ -438,7 +438,7 @@ namespace ACE.Server.Managers
         /// </summary>
         public virtual void Dispel(List<BiotaPropertiesEnchantmentRegistry> entries)
         {
-            if (entries?.Any() != true)
+            if (entries == null || entries.Count == 0)
                 return;
 
             foreach (var entry in entries)
