@@ -743,8 +743,13 @@ namespace ACE.Server.Entity
             SaveDB();
 
             // remove all objects
-            foreach (var wo in worldObjects.Keys.ToList())
-                RemoveWorldObjectInternal(wo);
+            foreach (var wo in worldObjects.ToList())
+            {
+                if (!wo.Value.BiotaOriginatedFromOrHasBeenSavedToDatabase())
+                    wo.Value.Destroy();
+                else
+                    RemoveWorldObjectInternal(wo.Key);
+            }
 
             // remove physics landblock
             LScape.unload_landblock(landblockID);
