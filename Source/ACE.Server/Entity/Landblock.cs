@@ -751,6 +751,8 @@ namespace ACE.Server.Entity
                     RemoveWorldObjectInternal(wo.Key);
             }
 
+            ProcessPendingWorldObjectAdditionsAndRemovals();
+
             // remove physics landblock
             LScape.unload_landblock(landblockID);
         }
