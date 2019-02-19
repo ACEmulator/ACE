@@ -1,3 +1,5 @@
+using System;
+using System.Collections.Generic;
 using System.Threading;
 
 using log4net;
@@ -32,6 +34,10 @@ namespace ACE.Server.Managers
             private readonly uint max;
             private uint current;
             private readonly string name;
+
+            private static readonly TimeSpan recycleTime = TimeSpan.FromMinutes(30);
+
+            private readonly Queue<Tuple<DateTime, uint>> recycledGuids = new Queue<Tuple<DateTime, uint>>();
 
             public GuidAllocator(uint min, uint max, string name)
             {
@@ -77,6 +83,12 @@ namespace ACE.Server.Managers
             {
                 lock (this)
                 {
+                    if (recycledGuids.TryPeek(out var result) && DateTime.UtcNow - result.Item1 > recycleTime)
+                    {
+                        recycledGuids.Dequeue();
+                        return result.Item2;
+                    }
+
                     if (current == max)
                     {
                         log.Fatal($"Out of {name} Guids!");
@@ -96,6 +108,12 @@ namespace ACE.Server.Managers
             public uint Current()
             {
                 return current;
+            }
+
+            public void Recycle(uint guid)
+            {
+                lock (this)
+                    recycledGuids.Enqueue(new Tuple<DateTime, uint>(DateTime.UtcNow, guid));
             }
         }
 
@@ -124,6 +142,15 @@ namespace ACE.Server.Managers
         public static ObjectGuid NewDynamicGuid()
         {
             return new ObjectGuid(nonStaticAlloc.Alloc());
+        }
+
+        /// <summary>
+        /// Guid will be added to the recycle queue, and available for use in GuidAllocator.recycleTime
+        /// </summary>
+        /// <param name="guid"></param>
+        public static void RecycleDynamicGuid(ObjectGuid guid)
+        {
+            nonStaticAlloc.Recycle(guid.Full);
         }
 
 
