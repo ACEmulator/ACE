@@ -1267,6 +1267,12 @@ namespace ACE.Server.Command.Handlers
         [CommandHandler("showstats", AccessLevel.Developer, CommandHandlerFlag.None, 0, "Shows a list of player's current attribute/skill levels in console window", "showstats")]
         public static void HandleShowStats(Session session, params string[] parameters)
         {
+            if (session == null)
+            {
+                Console.WriteLine("Command not usable without an active session");
+                return;
+            }
+
             var player = session.Player;
 
             Console.WriteLine("Strength: " + player.Strength.Current);

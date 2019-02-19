@@ -271,6 +271,9 @@ namespace ACE.Server.Managers
         /// </summary>
         public virtual void Remove(BiotaPropertiesEnchantmentRegistry entry, bool sound = true)
         {
+            if (entry == null)
+                return;
+
             var spellID = entry.SpellId;
 
             if (WorldObject.Biota.TryRemoveEnchantment(entry, out _, WorldObject.BiotaDatabaseLock))
@@ -316,8 +319,6 @@ namespace ACE.Server.Managers
             WorldObject.Biota.RemoveAllEnchantments(spellsToExclude, WorldObject.BiotaDatabaseLock);
             WorldObject.ChangesDetected = true;
         }
-
-
 
         /// <summary>
         /// Returns the vitae enchantment
@@ -420,6 +421,9 @@ namespace ACE.Server.Managers
         /// </summary>
         public virtual void Dispel(BiotaPropertiesEnchantmentRegistry entry)
         {
+            if (entry == null)
+                return;
+
             var spellID = entry.SpellId;
 
             if (WorldObject.Biota.TryRemoveEnchantment(entry, out _, WorldObject.BiotaDatabaseLock))
@@ -434,6 +438,9 @@ namespace ACE.Server.Managers
         /// </summary>
         public virtual void Dispel(List<BiotaPropertiesEnchantmentRegistry> entries)
         {
+            if (entries?.Any() != true)
+                return;
+
             foreach (var entry in entries)
             {
                 if (WorldObject.Biota.TryRemoveEnchantment(entry, out _, WorldObject.BiotaDatabaseLock))
