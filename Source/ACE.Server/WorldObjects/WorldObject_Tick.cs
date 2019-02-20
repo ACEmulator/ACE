@@ -94,6 +94,14 @@ namespace ACE.Server.WorldObjects
                     // If we find that there is a case where Creatures need to act after they've been detached from the landblock,
                     // that work should be enqueued onto WorldManager
                 }
+                else if (IsGenerator)
+                {
+                    // This is a detached generator, we don't need to further the action chain
+                }
+                else if (this is SpellProjectile)
+                {
+                    // Do no more work for detached spell projectiles
+                }
                 else
                 {
                     // Enqueue work for detached objects onto our thread-safe WorldManager
