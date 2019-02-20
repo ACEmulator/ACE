@@ -850,7 +850,7 @@ namespace ACE.Server.WorldObjects
         /// If this is a container or a creature, all of the inventory and/or equipped objects will also be destroyed.<para />
         /// An object should only be destroyed once.
         /// </summary>
-        public virtual void Destroy()
+        public virtual void Destroy(bool raiseNotifyOfDestructionEvent = true)
         {
             if (isDestroyed)
             {
@@ -872,7 +872,9 @@ namespace ACE.Server.WorldObjects
                     item.Destroy();
             }
 
-            NotifyOfEvent(RegenerationType.Destruction);
+            if (raiseNotifyOfDestructionEvent)
+                NotifyOfEvent(RegenerationType.Destruction);
+
             CurrentLandblock?.RemoveWorldObject(Guid);
             RemoveBiotaFromDatabase();
 

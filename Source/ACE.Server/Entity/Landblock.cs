@@ -746,7 +746,7 @@ namespace ACE.Server.Entity
             foreach (var wo in worldObjects.ToList())
             {
                 if (!wo.Value.BiotaOriginatedFromOrHasBeenSavedToDatabase())
-                    wo.Value.Destroy();
+                    wo.Value.Destroy(false);
                 else
                     RemoveWorldObjectInternal(wo.Key);
             }
