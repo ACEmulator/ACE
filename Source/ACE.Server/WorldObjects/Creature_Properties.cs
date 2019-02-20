@@ -100,24 +100,87 @@ namespace ACE.Server.WorldObjects
             return spellVuln * spellProt;
         }
 
-        public double GetNaturalResistance(ResistanceType resistance, double bonusMultiplier = 1)
+        public double GetArmorVsType(DamageType damageType)
+        {
+            switch (damageType)
+            {
+                case DamageType.Slash:
+                    return GetProperty(PropertyFloat.ArmorModVsSlash) ?? 1.0f;
+                case DamageType.Pierce:
+                    return GetProperty(PropertyFloat.ArmorModVsPierce) ?? 1.0f;
+                case DamageType.Bludgeon:
+                    return GetProperty(PropertyFloat.ArmorModVsBludgeon) ?? 1.0f;
+                case DamageType.Fire:
+                    return GetProperty(PropertyFloat.ArmorModVsFire) ?? 1.0f;
+                case DamageType.Cold:
+                    return GetProperty(PropertyFloat.ArmorModVsCold) ?? 1.0f;
+                case DamageType.Acid:
+                    return GetProperty(PropertyFloat.ArmorModVsAcid) ?? 1.0f;
+                case DamageType.Electric:
+                    return GetProperty(PropertyFloat.ArmorModVsElectric) ?? 1.0f;
+                case DamageType.Nether:
+                    return GetProperty(PropertyFloat.ArmorModVsNether) ?? 1.0f;
+                default:
+                    return 1.0f;
+            }
+        }
+
+        public virtual double GetNaturalResistance(ResistanceType resistance)
+        {
+            // TODO: player override for natural resistances
+            switch (resistance)
+            {
+                case ResistanceType.Slash:
+                    return ResistSlash ?? 1.0;
+                case ResistanceType.Pierce:
+                    return ResistPierce ?? 1.0;
+                case ResistanceType.Bludgeon:
+                    return ResistBludgeon ?? 1.0;
+                case ResistanceType.Fire:
+                    return ResistFire ?? 1.0;
+                case ResistanceType.Cold:
+                    return ResistCold ?? 1.0;
+                case ResistanceType.Acid:
+                    return ResistAcid ?? 1.0;
+                case ResistanceType.Electric:
+                    return ResistElectric ?? 1.0;
+                case ResistanceType.Nether:
+                    return ResistNether ?? 1.0;
+                case ResistanceType.HealthBoost:
+                    return ResistHealthBoost ?? 1.0;
+                case ResistanceType.HealthDrain:
+                    return ResistHealthDrain ?? 1.0;
+                case ResistanceType.StaminaBoost:
+                    return ResistStaminaBoost ?? 1.0;
+                case ResistanceType.StaminaDrain:
+                    return ResistStaminaDrain ?? 1.0;
+                case ResistanceType.ManaBoost:
+                    return ResistManaBoost ?? 1.0;
+                case ResistanceType.ManaDrain:
+                    return ResistManaDrain ?? 1.0;
+                default:
+                    return 1.0;
+            }
+        }
+
+        public double GetResistanceMod(ResistanceType resistance, float weaponResistanceMod = 1.0f)
         {
             switch (resistance)
             {
                 case ResistanceType.Slash:
-                    return (ResistSlash ?? 1.0) * GetResistanceMod(DamageType.Slash, bonusMultiplier);
+                    return (ResistSlash ?? 1.0) * GetResistanceMod(DamageType.Slash, weaponResistanceMod);
                 case ResistanceType.Pierce:
-                    return (ResistPierce ?? 1.0) * GetResistanceMod(DamageType.Pierce, bonusMultiplier);
+                    return (ResistPierce ?? 1.0) * GetResistanceMod(DamageType.Pierce, weaponResistanceMod);
                 case ResistanceType.Bludgeon:
-                    return (ResistBludgeon ?? 1.0) * GetResistanceMod(DamageType.Bludgeon, bonusMultiplier);
+                    return (ResistBludgeon ?? 1.0) * GetResistanceMod(DamageType.Bludgeon, weaponResistanceMod);
                 case ResistanceType.Fire:
-                    return (ResistFire ?? 1.0) * GetResistanceMod(DamageType.Fire, bonusMultiplier);
+                    return (ResistFire ?? 1.0) * GetResistanceMod(DamageType.Fire, weaponResistanceMod);
                 case ResistanceType.Cold:
-                    return (ResistCold ?? 1.0) * GetResistanceMod(DamageType.Cold, bonusMultiplier);
+                    return (ResistCold ?? 1.0) * GetResistanceMod(DamageType.Cold, weaponResistanceMod);
                 case ResistanceType.Acid:
-                    return (ResistAcid ?? 1.0) * GetResistanceMod(DamageType.Acid, bonusMultiplier);
+                    return (ResistAcid ?? 1.0) * GetResistanceMod(DamageType.Acid, weaponResistanceMod);
                 case ResistanceType.Electric:
-                    return (ResistElectric ?? 1.0) * GetResistanceMod(DamageType.Electric, bonusMultiplier);
+                    return (ResistElectric ?? 1.0) * GetResistanceMod(DamageType.Electric, weaponResistanceMod);
                 case ResistanceType.Nether:
                     return ResistNetherMod;
                 case ResistanceType.HealthBoost:

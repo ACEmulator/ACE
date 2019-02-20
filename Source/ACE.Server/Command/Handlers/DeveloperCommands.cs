@@ -1709,5 +1709,39 @@ namespace ACE.Server.Command.Handlers
 
             HouseManager.BuildRentQueue();
         }
+
+        /// <summary>
+        /// Toggles the display for player damage info
+        /// </summary>
+        [CommandHandler("debugdamage", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Toggles the display for player damage info", "/debugdamage <attack|defense|all|on|off>")]
+        public static void HandleDebugDamage(Session session, params string[] parameters)
+        {
+            if (parameters.Length == 0)
+            {
+                // toggle
+                if (session.Player.DebugDamage == Player.DebugDamageType.None)
+                    session.Player.DebugDamage = Player.DebugDamageType.All;
+                else
+                    session.Player.DebugDamage = Player.DebugDamageType.None;
+            }
+            else
+            {
+                var param = parameters[0].ToLower();
+                if (param.Equals("on") || param.Equals("all"))
+                    session.Player.DebugDamage = Player.DebugDamageType.All;
+                else if (param.Equals("off"))
+                    session.Player.DebugDamage = Player.DebugDamageType.None;
+                else if (param.StartsWith("attack"))
+                    session.Player.DebugDamage |= Player.DebugDamageType.Attacker;
+                else if (param.StartsWith("defen"))
+                    session.Player.DebugDamage |= Player.DebugDamageType.Defender;
+                else
+                {
+                    session.Network.EnqueueSend(new GameMessageSystemChat($"DebugDamage: unknown {param}", ChatMessageType.Broadcast));
+                    return;
+                }
+            }
+            session.Network.EnqueueSend(new GameMessageSystemChat($"DebugDamage: {session.Player.DebugDamage}", ChatMessageType.Broadcast));
+        }
     }
 }

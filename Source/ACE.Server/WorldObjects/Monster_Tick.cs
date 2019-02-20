@@ -91,7 +91,7 @@ namespace ACE.Server.WorldObjects
             // decide current type of attack
             if (CurrentAttack == null)
             {
-                CurrentAttack = GetAttackType();
+                CurrentAttack = GetNextAttackType();
                 MaxRange = GetMaxRange();
 
                 //if (CurrentAttack == AttackType.Magic)

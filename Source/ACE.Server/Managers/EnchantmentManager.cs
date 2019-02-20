@@ -663,14 +663,20 @@ namespace ACE.Server.Managers
         /// <summary>
         /// Returns the sum of the StatModValues for an EnchantmentTypeFlag
         /// </summary>
-        public int GetModifier(EnchantmentTypeFlags type)
+        public int GetModifier(EnchantmentTypeFlags type, bool? positive = null)
         {
             var enchantments = GetEnchantments_TopLayer(type);
 
             var modifier = 0;
             foreach (var enchantment in enchantments)
-                modifier += (int)enchantment.StatModValue;
+            {
+                var statModVal = (int)enchantment.StatModValue;
 
+                if (positive == null || positive.Value && statModVal > 0 || !positive.Value && statModVal < 0)
+                {
+                    modifier += statModVal;
+                }
+            }
             return modifier;
         }
 
@@ -735,6 +741,15 @@ namespace ACE.Server.Managers
         public virtual int GetBodyArmorMod()
         {
             return GetModifier(EnchantmentTypeFlags.BodyArmorValue);
+        }
+
+        /// <summary>
+        /// Returns either the positive body armor from life spells (ie. Armor Self)
+        /// or the negative body armor (ie. Imperil)
+        /// </summary>
+        public virtual int GetBodyArmorMod(bool positive)
+        {
+            return GetModifier(EnchantmentTypeFlags.BodyArmorValue, positive);
         }
 
         /// <summary>
