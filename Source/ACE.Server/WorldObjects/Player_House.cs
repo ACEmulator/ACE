@@ -405,7 +405,7 @@ namespace ACE.Server.WorldObjects
 
             uint totalPyreals = 0;
             foreach (var coinStack in coinStacks)
-                totalPyreals += (uint)coinStack.CoinValue;
+                totalPyreals += (uint)(coinStack.Value ?? 0);
 
             return totalPyreals;
         }

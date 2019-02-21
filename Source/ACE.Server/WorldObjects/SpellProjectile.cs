@@ -320,7 +320,7 @@ namespace ACE.Server.WorldObjects
 
             double damageBonus = 0.0f, warSkillBonus = 0.0f, finalDamage = 0.0f;
 
-            var resistanceType = GetResistanceType(Spell.DamageType);
+            var resistanceType = Creature.GetResistanceType(Spell.DamageType);
 
             var resisted = source.ResistSpell(target, Spell);
             if (resisted != null && resisted == true)
@@ -363,7 +363,7 @@ namespace ACE.Server.WorldObjects
                 // could life magic projectiles crit?
                 // if so, did they use the same 1.5x formula as war magic, instead of 2.0x?
                 if (criticalHit)
-                    damageBonus = lifeMagicDamage * 0.5f * GetWeaponCritMultiplierModifier(source, attackSkill);
+                    damageBonus = lifeMagicDamage * 0.5f * GetWeaponCritDamageMod(source, attackSkill);
 
                 finalDamage = (lifeMagicDamage + damageBonus) * elementalDmgBonus * slayerBonus * shieldMod;
                 return finalDamage;
@@ -378,7 +378,7 @@ namespace ACE.Server.WorldObjects
                     else   // PvE: 50% of the MAX damage added to normal damage roll
                         damageBonus = Spell.MaxDamage * 0.5f;
 
-                    var critDamageMod = GetWeaponCritMultiplierModifier(source, attackSkill);
+                    var critDamageMod = GetWeaponCritDamageMod(source, attackSkill);
 
                     damageBonus *= critDamageMod;
                 }
@@ -399,7 +399,7 @@ namespace ACE.Server.WorldObjects
                 var baseDamage = ThreadSafeRandom.Next(Spell.MinDamage, Spell.MaxDamage);
 
                 finalDamage = baseDamage + damageBonus + warSkillBonus;
-                finalDamage *= target.GetNaturalResistance(resistanceType, GetWeaponResistanceModifier(source, attackSkill, Spell.DamageType))
+                finalDamage *= target.GetResistanceMod(resistanceType, GetWeaponResistanceModifier(source, attackSkill, Spell.DamageType))
                     * elementalDmgBonus * slayerBonus * shieldMod;
 
                 return finalDamage;
@@ -544,37 +544,6 @@ namespace ACE.Server.WorldObjects
                     target.OnDeath(ProjectileSource, Spell.DamageType, critical);
                     target.Die();
                 }
-            }
-        }
-
-        private static ResistanceType GetResistanceType(DamageType damageType)
-        {
-            switch (damageType)
-            {
-                case DamageType.Slash:
-                    return ResistanceType.Slash;
-                case DamageType.Pierce:
-                    return ResistanceType.Pierce;
-                case DamageType.Bludgeon:
-                    return ResistanceType.Bludgeon;
-                case DamageType.Fire:
-                    return ResistanceType.Fire;
-                case DamageType.Cold:
-                    return ResistanceType.Cold;
-                case DamageType.Acid:
-                    return ResistanceType.Acid;
-                case DamageType.Electric:
-                    return ResistanceType.Electric;
-                case DamageType.Nether:
-                    return ResistanceType.Nether;
-                case DamageType.Health:
-                    return ResistanceType.HealthDrain;
-                case DamageType.Stamina:
-                    return ResistanceType.StaminaDrain;
-                case DamageType.Mana:
-                    return ResistanceType.ManaDrain;
-                default:
-                    return ResistanceType.Undef;
             }
         }
 
