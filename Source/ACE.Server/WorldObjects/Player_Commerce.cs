@@ -16,11 +16,8 @@ namespace ACE.Server.WorldObjects
         {
             int coins = 0;
 
-            foreach (var possession in GetAllPossessions())
-            {
-                if (possession.WeenieType == WeenieType.Coin)
-                    coins += possession.Value ?? 0;
-            }
+            foreach (var coinStack in GetInventoryItemsOfTypeWeenieType(WeenieType.Coin))
+                coins += coinStack.Value ?? 0;
 
             if (sendUpdateMessageIfChanged && CoinValue == coins)
                 sendUpdateMessageIfChanged = false;
@@ -29,21 +26,6 @@ namespace ACE.Server.WorldObjects
 
             if (sendUpdateMessageIfChanged)
                 Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.CoinValue, CoinValue ?? 0));
-        }
-
-        // todo re-think how this works..
-        private void UpdateCurrencyClientCalculations(WeenieType type)
-        {
-            int coins = 0;
-            List<WorldObject> currency = new List<WorldObject>();
-            currency.AddRange(GetInventoryItemsOfTypeWeenieType(type));
-            foreach (WorldObject wo in currency)
-            {
-                if (wo.WeenieType == WeenieType.Coin)
-                    coins += wo.StackSize.Value;
-            }
-            // send packet to client letthing them know
-            CoinValue = coins;
         }
 
 
@@ -80,7 +62,7 @@ namespace ACE.Server.WorldObjects
             {
                 TryCreateInInventoryWithNetworking(wo);
             }
-            UpdateCurrencyClientCalculations(WeenieType.Coin);
+            UpdateCoinValue(false);
             return true;
         }
 
@@ -135,7 +117,7 @@ namespace ACE.Server.WorldObjects
                     TryCreateInInventoryWithNetworking(changeobj);
                 }
 
-                UpdateCurrencyClientCalculations(WeenieType.Coin);
+                UpdateCoinValue(false);
                 return cost;
             }
             return null;
