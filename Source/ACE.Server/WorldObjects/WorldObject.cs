@@ -819,7 +819,7 @@ namespace ACE.Server.WorldObjects
                 return DamageType.Bludgeon;
 
             DamageType damageTypes;
-            var attackType = creature.GetAttackType();
+            var attackType = creature.GetCombatType();
             if (attackType == CombatType.Melee || ammo == null || !weapon.IsAmmoLauncher)
                 damageTypes = (DamageType)(weapon.GetProperty(PropertyInt.DamageType) ?? 0);
             else

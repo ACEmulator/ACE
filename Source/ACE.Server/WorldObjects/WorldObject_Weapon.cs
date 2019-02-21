@@ -72,7 +72,7 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Returns the Mana Conversion skill modifier for the primary weapon
+        /// Returns the Mana Conversion skill modifier for the current weapon
         /// </summary>
         public static float GetWeaponManaConversionModifier(Creature wielder)
         {
@@ -85,7 +85,7 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Returns the Melee Defense skill modifier for the primary weapon
+        /// Returns the Melee Defense skill modifier for the current weapon
         /// </summary>
         public static float GetWeaponMeleeDefenseModifier(Creature wielder)
         {
@@ -108,7 +108,7 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Returns the attack skill modifier for the primary weapon
+        /// Returns the attack skill modifier for the current weapon
         /// </summary>
         public static float GetWeaponOffenseModifier(Creature wielder)
         {
@@ -131,9 +131,9 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Returns the critical chance modifier for the primary weapon
+        /// Returns the critical chance modifier for the current weapon
         /// </summary>
-        public static float GetWeaponPhysicalCritFrequencyModifier(Creature wielder, CreatureSkill skill)
+        public static float GetWeaponCritChanceModifier(Creature wielder, CreatureSkill skill)
         {
             WorldObject weapon = GetWeapon(wielder as Player);
 
@@ -174,7 +174,7 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Returns the magic critical chance modifier for the primary weapon
+        /// Returns the magic critical chance modifier for the current weapon
         /// </summary>
         public static float GetWeaponMagicCritFrequencyModifier(Creature wielder, CreatureSkill skill)
         {
@@ -202,9 +202,9 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Returns the critical damage multiplier for the primary weapon
+        /// Returns the critical damage multiplier for the current weapon
         /// </summary>
-        public static float GetWeaponCritMultiplierModifier(Creature wielder, CreatureSkill skill)
+        public static float GetWeaponCritDamageMod(Creature wielder, CreatureSkill skill)
         {
             WorldObject weapon = GetWeapon(wielder as Player);
 
@@ -229,7 +229,7 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Returns the slayer 2x+ damage bonus for the primary weapon
+        /// Returns the slayer 2x+ damage bonus for the current weapon
         /// against a particular creature type
         /// </summary>
         public static float GetWeaponCreatureSlayerModifier(Creature wielder, Creature target)
