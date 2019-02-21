@@ -105,6 +105,11 @@ namespace ACE.Server.WorldObjects
                 else
                 {
                     // Enqueue work for detached objects onto our thread-safe WorldManager
+
+                    // Slumlords (housing) can be loaded without its landblock
+                    if (!(this is SlumLord))
+                        log.WarnFormat("Item 0x{0:X8}:{1} has enqueued an action after it's been detached from a landblock.", Guid.Full, Name);
+
                     WorldManager.EnqueueAction(action);
                 }
             }
