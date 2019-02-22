@@ -221,6 +221,8 @@ namespace ACE.Server.Entity
             {
                 // select random body part @ current attack height
                 GetBodyPart(AttackHeight, defender);
+                if (Evaded)
+                    return 0.0f;
 
                 Armor = CreaturePart.GetArmorLayers((CombatBodyPart)BiotaPropertiesBodyPart.Key);
 
@@ -324,7 +326,7 @@ namespace ACE.Server.Entity
 
             if (BiotaPropertiesBodyPart == null)
             {
-                GeneralFailure = true;
+                Evaded = true;
                 return;
             }
             CreaturePart = new Creature_BodyPart(defender, BiotaPropertiesBodyPart, IgnoreMagicArmor, IgnoreMagicResist);
