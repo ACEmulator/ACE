@@ -1,7 +1,8 @@
 # ACEmulator Change Log
 ### 2019-02-22
 [Jyrus]
-* Enable basic functionality for InqOwnItems in EmoteManager
+* Enable basic functionality for InqOwnItems in EmoteManager, with code suggested by gmriggs
+* Fix array indexing in LootHelper ( array indexes begin with 0 )
 
 ### 2019-02-18
 [Jyrus]
