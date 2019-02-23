@@ -1,8 +1,19 @@
 # ACEmulator Change Log
+### 2019-02-18
+[Jyrus]
+* Start refactoring LootGenerationFactory.cs code
 
 ### 2019-02-09
 [Ripley]
 * Changed GenerateTreasure to check for null DeathTreasure and de-duped generate code so that items weren't generated twice upon death.
+
+### 2019-02-06
+[Jyrus]
+* Changed many of the if, else if, else statements to switch blocks, as a suggested optimization
+* Changed GetMaxDamage() for better scaling of damage levels for tier increases and weapon types
+* Changed GetArmorLevel() to GetArmorLevelModifier() for better scaling of armor increases, based upon the default armor level from the armor item weenie, for loot tier increases
+* Removed a number of properties that were being set in code, which was a holdover from before TOD weenies were being used
+* Add functionality to support Mana Forge Chests in the LootGenerationFactory
 
 ### 2019-02-05
 [Ripley]
