@@ -1,4 +1,8 @@
 # ACEmulator Change Log
+### 2019-02-22
+[Jyrus]
+* Enable functionality for InqOwnItem in EmoteManager
+
 ### 2019-02-18
 [Jyrus]
 * Start refactoring LootGenerationFactory.cs code

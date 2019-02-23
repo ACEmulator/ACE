@@ -446,8 +446,11 @@ namespace ACE.Server.Managers
 
                 case EmoteType.InqOwnsItems:
 
-                    //if (player != null)
-                    //InqCategory(player.Inventory.Count > 0 ? EmoteCategory.TestSuccess : EmoteCategory.TestFailure, emote);
+                    if (player != null)
+					{
+						success = player.GetInventoryItemsOfWCID(emote.WeenieClassId ?? 0).Any();
+						ExecuteEmoteSet(success ? EmoteCategory.TestSuccess : EmoteCategory.TestFailure, emote.Message, targetObject, true);
+					}
                     break;
 
                 case EmoteType.InqPackSpace:
