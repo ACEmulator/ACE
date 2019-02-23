@@ -534,8 +534,8 @@ namespace ACE.Server.Entity
 
         private void AddWorldObjectInternal(WorldObject wo)
         {
-            pendingAdditions[wo.Guid] = wo;
-            pendingRemovals.Remove(wo.Guid);
+            if (!pendingRemovals.Remove(wo.Guid))
+                pendingAdditions[wo.Guid] = wo;
 
             wo.CurrentLandblock = this;
 
@@ -583,10 +583,10 @@ namespace ACE.Server.Entity
         {
             //log.Debug($"LB {Id.Landblock:X}: removing {objectId.Full:X}");
 
-            if (!pendingAdditions.Remove(objectId, out var wo) && !worldObjects.TryGetValue(objectId, out wo))
+            if (worldObjects.TryGetValue(objectId, out var wo))
+                pendingRemovals.Add(objectId);
+            else if (!pendingAdditions.Remove(objectId, out wo))
                 return;
-
-            pendingRemovals.Add(objectId);
 
             wo.CurrentLandblock = null;
 
