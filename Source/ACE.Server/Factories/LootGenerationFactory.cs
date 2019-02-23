@@ -322,16 +322,14 @@ namespace ACE.Server.Factories
 
         private static WorldObject CreateRandomScroll(int tier)
         {
-            uint weenieID;
-
             var tier2 = tier;
             if (tier > 6)
                 tier2 = 6;
-            weenieID = (uint)LootHelper.ScrollSpells[ThreadSafeRandom.Next(0, LootHelper.ScrollSpells.Length - 1)][tier2 - 1];
-            var weenie = DatabaseManager.World.GetScrollWeenie(weenieID);
+            var spellID = (uint)LootHelper.ScrollSpells[ThreadSafeRandom.Next(0, LootHelper.ScrollSpells.Length - 1)][tier2 - 1];
+            var weenie = DatabaseManager.World.GetScrollWeenie(spellID);
             if (weenie == null)
             {
-                log.WarnFormat("CreateRandomScroll for tier {0} and weenieID of {1} returned null from the database.", tier, weenieID);
+                log.WarnFormat("CreateRandomScroll for tier {0} and spellID of {1} returned null from the database.", tier, spellID);
                 return null;
             }
 
