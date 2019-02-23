@@ -448,7 +448,20 @@ namespace ACE.Server.Managers
 
                     if (player != null)
 					{
-						success = player.GetInventoryItemsOfWCID(emote.WeenieClassId ?? 0).Any();
+                        if (emote.StackSize == null || emote.StackSize == 1 || emote.StackSize == 0)
+						    success = player.GetInventoryItemsOfWCID(emote.WeenieClassId ?? 0).Any();
+                        else
+                        {
+                            var items = player.GetInventoryItemsOfWCID(emote.WeenieClassId ?? 0);
+                            if (items.Any() == true)
+                            {
+                                success = false;
+                                foreach (var item in items)
+                                    success |= item.StackSize >= emote.StackSize;
+                            }
+                            else
+                                success = false;
+                        }
 						ExecuteEmoteSet(success ? EmoteCategory.TestSuccess : EmoteCategory.TestFailure, emote.Message, targetObject, true);
 					}
                     break;
