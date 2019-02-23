@@ -299,7 +299,6 @@ namespace ACE.Database
                         weenie = query.FirstOrDefault();
 
                         scrollsBySpellID[spellID] = weenie;
-
                     }
                 }
             }
