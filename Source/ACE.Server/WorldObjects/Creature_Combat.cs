@@ -919,18 +919,25 @@ namespace ACE.Server.WorldObjects
 
         public virtual bool CanDamage(Creature target)
         {
-            if (target is Player targetPlayer)
+            if (target is Player)
             {
                 // monster attacking player
-                return true;        // handled elsewhere
+                return true;    // other checks handled elsewhere
             }
             else
             {
                 // monster attacking monster
-                if (this is CombatPet || target is CombatPet)
-                    return true;
-                else
-                    return false;
+                var sourcePet = this is CombatPet;
+                var targetPet = target is CombatPet;
+
+                if (sourcePet || targetPet)
+                {
+                    if (sourcePet && targetPet)     // combat pets can't damage other pets
+                        return false;
+                    else
+                        return true;
+                }
+                return false;
             }
         }
     }
