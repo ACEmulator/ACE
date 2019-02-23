@@ -907,5 +907,10 @@ namespace ACE.Server.WorldObjects
             // should probably come from combat maneuvers table, even for players
             return GetWeaponAttackType(weapon);
         }
+
+        public override bool CanDamage(Creature target)
+        {
+            return true;    // handled elsewhere
+        }
     }
 }
