@@ -1,20 +1,23 @@
 using System.Collections.Generic;
 using System;
+
+using log4net;
+
 using ACE.Database;
-using ACE.Entity;
-using ACE.Entity.Enum;
-
-using ACE.Server.WorldObjects;
-
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
+using ACE.Entity;
+using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Factories;
+using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Factories
 {
     public static class LootGenerationFactory
     {
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         public static List<WorldObject> CreateRandomObjectsOfType(WeenieType type, int count)
         {
             var weenies = DatabaseManager.World.GetRandomWeeniesOfType((int)type, count);
@@ -171,8 +174,8 @@ namespace ACE.Server.Factories
         private static int CreateLevel8SpellComp()
         {
             int mundaneLootMatrixIndex = 8; // Select the Level 8 spell components
-            int upperLimit = LootHelper.MundaneLootMatrix[mundaneLootMatrixIndex].Length;
-            int chance = ThreadSafeRandom.Next(1, upperLimit);
+            int upperLimit = LootHelper.MundaneLootMatrix[mundaneLootMatrixIndex].Length - 1;
+            int chance = ThreadSafeRandom.Next(0, upperLimit);
 
             return LootHelper.MundaneLootMatrix[mundaneLootMatrixIndex][chance];
         }
@@ -312,7 +315,6 @@ namespace ACE.Server.Factories
 
         private static int CreateFood()
         {
-
             int foodType = 0;
             foodType = LootHelper.food[ThreadSafeRandom.Next(0, LootHelper.food.Length - 1)];
             return foodType;
@@ -326,9 +328,14 @@ namespace ACE.Server.Factories
             if (tier > 6)
                 tier2 = 6;
             weenieID = (uint)LootHelper.ScrollSpells[ThreadSafeRandom.Next(0, LootHelper.ScrollSpells.Length - 1)][tier2 - 1];
-            String className = DatabaseManager.World.GetScrollWeenie(weenieID).ClassName;
-            WorldObject wo = WorldObjectFactory.CreateNewWorldObject(className);
-            return wo;
+            var weenie = DatabaseManager.World.GetScrollWeenie(weenieID);
+            if (weenie == null)
+            {
+                log.WarnFormat("CreateRandomScroll for tier {0} and weenieID of {1} returned null from the database.", tier, weenieID);
+                return null;
+            }
+
+            return WorldObjectFactory.CreateNewWorldObject(weenie.ClassName);
         }
 
         private static WorldObject CreateJewelry(int tier, bool isMagical)
