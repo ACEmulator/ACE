@@ -173,7 +173,7 @@ namespace ACE.Server.Factories
 
         private static int CreateLevel8SpellComp()
         {
-            int mundaneLootMatrixIndex = 8; // Select the Level 8 spell components
+            int mundaneLootMatrixIndex = 7; // Select the Level 8 spell components
             int upperLimit = LootHelper.MundaneLootMatrix[mundaneLootMatrixIndex].Length - 1;
             int chance = ThreadSafeRandom.Next(0, upperLimit);
 
