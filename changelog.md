@@ -1,7 +1,7 @@
 # ACEmulator Change Log
 ### 2019-02-22
 [Jyrus]
-* Enable functionality for InqOwnItem in EmoteManager
+* Enable basic functionality for InqOwnItems in EmoteManager
 
 ### 2019-02-18
 [Jyrus]
