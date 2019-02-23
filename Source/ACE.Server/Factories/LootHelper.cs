@@ -137,14 +137,14 @@ namespace ACE.Factories
 
         public static readonly int[][] GemSpellIndexMatrix =
         {
+            new int[] { 0,1 },
             new int[] { 1,2 },
             new int[] { 2,3 },
             new int[] { 3,4 },
             new int[] { 4,5 },
             new int[] { 5,6 },
             new int[] { 6,7 },
-            new int[] { 7,8 },
-            new int[] { 7,8 }
+            new int[] { 6,7 }
         };
 
         public static readonly int[] food = { 258, 4746, 259, 547, 260, 5758, 261, 262, 263, 264, 265 };
