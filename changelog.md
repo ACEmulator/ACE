@@ -1,4 +1,8 @@
 # ACEmulator Change Log
+### 2019-02-23
+[Jyrus]
+* Update EmoteType.DirectBroadcast to support "<questname>@You must wait %CDtime to collect the <quest item> again."
+
 ### 2019-02-22
 [Jyrus]
 * Enable basic functionality for InqOwnItems in EmoteManager, with code suggested by gmriggs
