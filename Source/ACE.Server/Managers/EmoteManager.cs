@@ -254,7 +254,12 @@ namespace ACE.Server.Managers
                             TimeSpan timeSpan = player.QuestManager.GetNextSolveTime(questName);
                             string buffer = (emote.Message).Split("@")[1];
 
-                            text = buffer.Replace("%CDtime", timeSpan.ToString(@"hh\:mm"));
+                            string time = $"{timeSpan.Minutes} minutes";
+
+                            if (timeSpan.Hours > 0)
+                                time = time.Insert(0, $"{timeSpan.Hours} hours and ");
+
+                            text = buffer.Replace("%CDtime", time);
                         }
                         else
                             text = Replace(emote.Message, WorldObject, targetObject);
