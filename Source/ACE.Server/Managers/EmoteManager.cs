@@ -248,6 +248,19 @@ namespace ACE.Server.Managers
                             var remainStr = player.QuestManager.GetNextSolveTime(questName).GetFriendlyString();
                             text = $"{questName}: {remainStr}";
                         }
+                        else if ((emote.Message).Contains("%CDtime"))
+                        {
+                            var questName = QuestManager.GetQuestName(emote.Message);
+                            TimeSpan timeSpan = player.QuestManager.GetNextSolveTime(questName);
+                            string buffer = (emote.Message).Split("@")[1];
+
+                            string time = $"{timeSpan.Minutes} minutes";
+
+                            if (timeSpan.Hours > 0)
+                                time = time.Insert(0, $"{timeSpan.Hours} hours and ");
+
+                            text = buffer.Replace("%CDtime", time);
+                        }
                         else
                             text = Replace(emote.Message, WorldObject, targetObject);
 
