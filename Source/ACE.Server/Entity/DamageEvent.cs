@@ -150,6 +150,9 @@ namespace ACE.Server.Entity
                 return 0.0f;
             }
 
+            if (playerDefender.Invincible ?? false)
+                return 0.0f;
+
             // evasion chance
             EvasionChance = GetEvadeChance(attacker, defender);
             if (EvasionChance > ThreadSafeRandom.Next(0.0f, 1.0f))
