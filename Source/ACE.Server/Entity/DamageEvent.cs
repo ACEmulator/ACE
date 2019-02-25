@@ -150,7 +150,7 @@ namespace ACE.Server.Entity
                 return 0.0f;
             }
 
-            if (playerDefender.Invincible ?? false)
+            if (defender.Invincible ?? false)
                 return 0.0f;
 
             // evasion chance
