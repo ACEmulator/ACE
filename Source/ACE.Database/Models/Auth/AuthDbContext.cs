@@ -84,7 +84,7 @@ namespace ACE.Database.Models.Auth
                 entity.Property(e => e.PasswordHash)
                     .IsRequired()
                     .HasColumnName("passwordHash")
-                    .HasColumnType("varchar(88)");
+                    .HasColumnType("char(60)");
 
                 entity.HasOne(d => d.AccessLevelNavigation)
                     .WithMany(p => p.Account)
