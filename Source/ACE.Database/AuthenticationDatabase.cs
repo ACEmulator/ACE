@@ -51,7 +51,6 @@ namespace ACE.Database
         public Account CreateAccount(string name, string password, AccessLevel accessLevel)
         {
             var account = new Account();
-            account.CreateRandomSalt();
 
             account.AccountName = name;
             account.SetPassword(password);

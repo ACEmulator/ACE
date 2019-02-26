@@ -86,11 +86,6 @@ namespace ACE.Database.Models.Auth
                     .HasColumnName("passwordHash")
                     .HasColumnType("varchar(88)");
 
-                entity.Property(e => e.PasswordSalt)
-                    .IsRequired()
-                    .HasColumnName("passwordSalt")
-                    .HasColumnType("varchar(88)");
-
                 entity.HasOne(d => d.AccessLevelNavigation)
                     .WithMany(p => p.Account)
                     .HasForeignKey(d => d.AccessLevel)

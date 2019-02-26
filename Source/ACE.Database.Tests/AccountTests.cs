@@ -38,7 +38,6 @@ namespace ACE.Database.Tests
         public void UpdateAccountAccessLevelToSentinelAndBackToPlayer_ReturnsAccount()
         {
             Account newAccount = new Account();
-            newAccount.CreateRandomSalt();
             newAccount.AccountName = "testaccount1";
 
             authDb.UpdateAccountAccessLevel(1, AccessLevel.Sentinel);
@@ -56,7 +55,6 @@ namespace ACE.Database.Tests
         public void GetAccountIdByName_ReturnsAccount()
         {
             Account newAccount = new Account();
-            newAccount.CreateRandomSalt();
             newAccount.AccountName = "testaccount1";
 
             var id = authDb.GetAccountIdByName(newAccount.AccountName);
