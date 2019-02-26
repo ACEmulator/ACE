@@ -63,6 +63,17 @@ namespace ACE.Database.Models.Auth
             {
                 entity.ToTable("account");
 
+                entity.Property(e => e.CreateIp)
+                    .IsRequired()
+                    .HasColumnName("createIp")
+                    .HasColumnType("varchar(50)")
+                    .HasDefaultValueSql("''");
+
+                entity.Property(e => e.CreateTime)
+                    .HasColumnName("createTime")
+                    .HasColumnType("datetime")
+                    .HasDefaultValueSql("'CURRENT_TIMESTAMP'");
+
                 entity.HasIndex(e => e.AccessLevel)
                     .HasName("accesslevel_idx");
 

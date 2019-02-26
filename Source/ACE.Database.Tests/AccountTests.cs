@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Net;
 
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -27,7 +28,8 @@ namespace ACE.Database.Tests
         [TestMethod]
         public void CreateAccount_GetAccountByName_ReturnsAccount()
         {
-            var newAccount = authDb.CreateAccount("testaccount1", "testpassword1", AccessLevel.Player);
+            var ip = IPAddress.Parse("127.0.0.1");
+            var newAccount = authDb.CreateAccount("testaccount1", "testpassword1", ip, AccessLevel.Player);
 
             var results = authDb.GetAccountByName(newAccount.AccountName);
             Assert.IsNotNull(results);

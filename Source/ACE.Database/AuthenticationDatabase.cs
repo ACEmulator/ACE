@@ -1,4 +1,5 @@
 using System.Linq;
+using System.Net;
 using System.Threading;
 using Microsoft.EntityFrameworkCore;
 
@@ -48,13 +49,14 @@ namespace ACE.Database
         }
 
         /// <exception cref="MySqlException">Account with name already exists.</exception>
-        public Account CreateAccount(string name, string password, AccessLevel accessLevel)
+        public Account CreateAccount(string name, string password, IPAddress ip, AccessLevel accessLevel)
         {
             var account = new Account();
             account.CreateRandomSalt();
 
             account.AccountName = name;
             account.SetPassword(password);
+            account.CreateIp = ip.ToString();
             account.AccessLevel = (uint)accessLevel;
 
             using (var context = new AuthDbContext())

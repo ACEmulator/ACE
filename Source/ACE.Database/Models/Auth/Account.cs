@@ -10,6 +10,8 @@ namespace ACE.Database.Models.Auth
         public string PasswordHash { get; set; }
         public string PasswordSalt { get; set; }
         public uint AccessLevel { get; set; }
+        public string CreateIp { get; set; }
+        public DateTime CreateTime { get; set; }
 
         public Accesslevel AccessLevelNavigation { get; set; }
     }

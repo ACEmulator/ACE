@@ -52,7 +52,7 @@ namespace ACE.Server.Network.Handlers
                         if (!System.Enum.IsDefined(typeof(AccessLevel), accessLevel))
                             accessLevel = AccessLevel.Player;
 
-                        account = DatabaseManager.Authentication.CreateAccount(loginRequest.Account.ToLower(), loginRequest.Password, accessLevel);
+                        account = DatabaseManager.Authentication.CreateAccount(loginRequest.Account.ToLower(), loginRequest.Password, session.EndPoint.Address, accessLevel);
                     }
                 }
             }
