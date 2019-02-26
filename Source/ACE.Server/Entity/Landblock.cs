@@ -534,8 +534,10 @@ namespace ACE.Server.Entity
 
         private void AddWorldObjectInternal(WorldObject wo)
         {
-            if (!pendingRemovals.Remove(wo.Guid))
+            if (!worldObjects.ContainsKey(wo.Guid))
                 pendingAdditions[wo.Guid] = wo;
+            else
+                pendingRemovals.Remove(wo.Guid);
 
             wo.CurrentLandblock = this;
 
@@ -581,12 +583,13 @@ namespace ACE.Server.Entity
 
         private void RemoveWorldObjectInternal(ObjectGuid objectId, bool adjacencyMove = false, bool fromPickup = false)
         {
-            //log.Debug($"LB {Id.Landblock:X}: removing {objectId.Full:X}");
-
             if (worldObjects.TryGetValue(objectId, out var wo))
                 pendingRemovals.Add(objectId);
             else if (!pendingAdditions.Remove(objectId, out wo))
+            {
+                log.Warn($"RemoveWorldObjectInternal: Couldn't find {objectId.Full:X8}");
                 return;
+            }
 
             wo.CurrentLandblock = null;
 
