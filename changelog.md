@@ -1,12 +1,46 @@
 # ACEmulator Change Log
+### 2019-02-23
+[Jyrus]
+* Update EmoteType.DirectBroadcast to support "<questname>@You must wait %CDtime to collect the <quest item> again."
+
+[Mag-nus]
+* Exceptions fixed in LootGenerationFactory
+
 ### 2019-02-22
 [Jyrus]
 * Enable basic functionality for InqOwnItems in EmoteManager, with code suggested by gmriggs
 * Fix array indexing in LootHelper ( array indexes begin with 0 )
 
+### 2019-02-20
+[Mag-nus]
+* Pack space is checked before selling items at a vendor
+* Improved CoinValue property
+
 ### 2019-02-18
 [Jyrus]
 * Start refactoring LootGenerationFactory.cs code
+
+### 2019-02-17
+[Mag-nus]
+* Improved EncumbranceVal and Value properties
+
+### 2019-02-16
+[Mag-nus]
+* Fixed an infinite loop when using a mana stone that didn't have enough mana to fill up all the items in need
+* Items added to the world via the admin command /create no longer decay
+* Monsters now Destroy() on death, removing them from the database if they persisted (possibly from /create)
+
+### 2019-02-13
+[Mag-nus]
+* Fixed a bug where splitting/merging stacks modified the StackSize in the wrong direction
+
+### 2019-02-11
+[Mag-nus]
+* Landblocks load their resources async again
+* Improved the FindByObject() function to include objects WieldedByOther
+* Added caching to a couple more WorldDB housing functions
+* Fixed an exception for PropertyManager when requesting the value of a property that didn't exist in the database
+* Cleanedup the WorldObject OnLoad, OnAddItem, OnRemoveItem code and flow
 
 ### 2019-02-09
 [Ripley]
@@ -28,6 +62,14 @@
 ### 2019-02-04
 [Jyrus]
 * Modify LootGenerationFactory to support the TOD updated weenies
+
+### 2019-02-03
+[Mag-nus]
+* Write locks on WorldObject property dictionaries are only taken when the property is actually set.
+
+### 2019-02-01
+[Mag-nus]
+* Rejecting clients no longer consumes a session
 
 [Ripley]
 * Added LastModified to several tables in World Database
