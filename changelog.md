@@ -1,4 +1,8 @@
 # ACEmulator Change Log
+### 2019-02-26
+[Mag-nus]
+* Introduce ObjectGuid recycling into ACE
+
 ### 2019-02-23
 [Jyrus]
 * Update EmoteType.DirectBroadcast to support "<questname>@You must wait %CDtime to collect the <quest item> again."
