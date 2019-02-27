@@ -534,8 +534,10 @@ namespace ACE.Server.Entity
 
         private void AddWorldObjectInternal(WorldObject wo)
         {
-            pendingAdditions[wo.Guid] = wo;
-            pendingRemovals.Remove(wo.Guid);
+            if (!worldObjects.ContainsKey(wo.Guid))
+                pendingAdditions[wo.Guid] = wo;
+            else
+                pendingRemovals.Remove(wo.Guid);
 
             wo.CurrentLandblock = this;
 
@@ -581,12 +583,13 @@ namespace ACE.Server.Entity
 
         private void RemoveWorldObjectInternal(ObjectGuid objectId, bool adjacencyMove = false, bool fromPickup = false)
         {
-            //log.Debug($"LB {Id.Landblock:X}: removing {objectId.Full:X}");
-
-            if (!pendingAdditions.Remove(objectId, out var wo) && !worldObjects.TryGetValue(objectId, out wo))
+            if (worldObjects.TryGetValue(objectId, out var wo))
+                pendingRemovals.Add(objectId);
+            else if (!pendingAdditions.Remove(objectId, out wo))
+            {
+                log.Warn($"RemoveWorldObjectInternal: Couldn't find {objectId.Full:X8}");
                 return;
-
-            pendingRemovals.Add(objectId);
+            }
 
             wo.CurrentLandblock = null;
 
@@ -743,8 +746,17 @@ namespace ACE.Server.Entity
             SaveDB();
 
             // remove all objects
-            foreach (var wo in worldObjects.Keys.ToList())
-                RemoveWorldObjectInternal(wo);
+            foreach (var wo in worldObjects.ToList())
+            {
+                if (!wo.Value.BiotaOriginatedFromOrHasBeenSavedToDatabase())
+                    wo.Value.Destroy(false);
+                else
+                    RemoveWorldObjectInternal(wo.Key);
+            }
+
+            ProcessPendingWorldObjectAdditionsAndRemovals();
+
+            actionQueue.Clear();
 
             // remove physics landblock
             LScape.unload_landblock(landblockID);

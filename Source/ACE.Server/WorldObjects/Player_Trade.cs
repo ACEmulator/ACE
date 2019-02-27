@@ -77,7 +77,7 @@ namespace ACE.Server.WorldObjects
             session.Player.IsTrading = false;
             session.Player.TradeAccepted = false;
             session.Player.ItemsInTradeWindow.Clear();
-            session.Player.TradePartner = new ObjectGuid(0);
+            session.Player.TradePartner = ObjectGuid.Invalid;
 
             session.Network.EnqueueSend(new GameEventCloseTrade(session, endTradeReason));
             session.Network.EnqueueSend(new GameEventWeenieError(session, WeenieError.TradeClosed));
@@ -170,8 +170,8 @@ namespace ACE.Server.WorldObjects
                     session.Network.EnqueueSend(new GameEventWeenieError(session, WeenieError.TradeComplete));
                     target.Session.Network.EnqueueSend(new GameEventWeenieError(target.Session, WeenieError.TradeComplete));
 
-                    session.Player.HandleActionResetTrade(session, new ObjectGuid(0));
-                    target.HandleActionResetTrade(target.Session, new ObjectGuid(0));
+                    session.Player.HandleActionResetTrade(session, ObjectGuid.Invalid);
+                    target.HandleActionResetTrade(target.Session, ObjectGuid.Invalid);
 
                     DatabaseManager.Shard.SaveBiotasInParallel(tradedItems, null);
                 }
