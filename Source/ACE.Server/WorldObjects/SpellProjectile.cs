@@ -247,6 +247,12 @@ namespace ACE.Server.WorldObjects
 
             ProjectileImpact();
 
+            // for untargeted multi-projectile war spells launched by monsters,
+            // ensure monster can damage target
+            if (ProjectileSource is Creature sourceCreature)
+                if (!sourceCreature.CanDamage(target))
+                    return;
+
             // if player target, ensure matching PK status
             var targetPlayer = target as Player;
 
