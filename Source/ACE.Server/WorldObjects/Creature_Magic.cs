@@ -193,9 +193,9 @@ namespace ACE.Server.WorldObjects
             if (target.EnchantmentManager.HasSpell(spellId))
             {
                 if (!silent)
-                    target.EnchantmentManager.Remove(EnchantmentManager.GetEnchantment(spellId));
+                    target.EnchantmentManager.Remove(target.EnchantmentManager.GetEnchantment(spellId, item.Guid.Full));
                 else
-                    target.EnchantmentManager.Dispel(EnchantmentManager.GetEnchantment(spellId));
+                    target.EnchantmentManager.Dispel(target.EnchantmentManager.GetEnchantment(spellId, item.Guid.Full));
             }
         }
     }

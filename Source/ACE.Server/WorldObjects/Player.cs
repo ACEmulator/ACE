@@ -74,14 +74,7 @@ namespace ACE.Server.WorldObjects
             SortBiotasIntoInventory(inventory);
             AddBiotasToEquippedObjects(wieldedItems);
 
-            // THIS IS A TEMPORARY PATCH TO COPY OVER EXISTING CHARACTER OPTIONS FROM THE BIOTA TO THE CHARACTER OBJECT.
-            // This can be removed in time. 2018-09-01 Mag-nus
-            if (Character.CharacterOptions1 == 0 && Character.CharacterOptions2 == 0)
-            {
-                Character.CharacterOptions1 = GetProperty((PropertyInt)9003) ?? 1355064650;
-                Character.CharacterOptions2 = GetProperty((PropertyInt)9004) ?? 34560;
-                CharacterChangesDetected = true;
-            }
+            UpdateCoinValue(false);
         }
 
         public override void InitPhysicsObj()
@@ -131,8 +124,6 @@ namespace ACE.Server.WorldObjects
                 if (AdvocateLevel > 4)
                     IsPsr = true; // Enable AdvocateTeleport via MapClick
             }
-
-            UpdateCoinValue(false);
 
             QuestManager = new QuestManager(this);
 

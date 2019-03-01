@@ -819,7 +819,7 @@ namespace ACE.Server.WorldObjects
                 return DamageType.Bludgeon;
 
             DamageType damageTypes;
-            var attackType = creature.GetAttackType();
+            var attackType = creature.GetCombatType();
             if (attackType == CombatType.Melee || ammo == null || !weapon.IsAmmoLauncher)
                 damageTypes = (DamageType)(weapon.GetProperty(PropertyInt.DamageType) ?? 0);
             else
@@ -844,11 +844,22 @@ namespace ACE.Server.WorldObjects
             return damageTypes;
         }
 
+        private bool isDestroyed;
+
         /// <summary>
-        /// If this is a container or a creature, all of the inventory and/or equipped objects will also be destroyed.
+        /// If this is a container or a creature, all of the inventory and/or equipped objects will also be destroyed.<para />
+        /// An object should only be destroyed once.
         /// </summary>
-        public virtual void Destroy()
+        public virtual void Destroy(bool raiseNotifyOfDestructionEvent = true)
         {
+            if (isDestroyed)
+            {
+                log.WarnFormat("Item 0x{0:X8}:{1} called destroy more than once.", Guid.Full, Name);
+                return;
+            }
+
+            isDestroyed = true;
+
             if (this is Container container)
             {
                 foreach (var item in container.Inventory.Values)
@@ -861,11 +872,14 @@ namespace ACE.Server.WorldObjects
                     item.Destroy();
             }
 
-            NotifyOfEvent(RegenerationType.Destruction);
+            if (raiseNotifyOfDestructionEvent)
+                NotifyOfEvent(RegenerationType.Destruction);
+
             CurrentLandblock?.RemoveWorldObject(Guid);
             RemoveBiotaFromDatabase();
 
-            // todo recycle the guid
+            if (Guid.IsDynamic())
+                GuidManager.RecycleDynamicGuid(Guid);
         }
 
         public string GetPluralName()

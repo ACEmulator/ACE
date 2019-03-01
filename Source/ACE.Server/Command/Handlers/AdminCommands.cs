@@ -1326,7 +1326,7 @@ namespace ACE.Server.Command.Handlers
         {
             // @idlist - Shows the next ID that will be allocated from SQL.
 
-            ObjectGuid nextItemGuid = GuidManager.NewDynamicGuid();
+            ObjectGuid nextItemGuid = GuidManager.NextDynamicGuid();
             ObjectGuid nextPlayerGuid = GuidManager.NextPlayerGuid();
 
             string message = $"The next Item GUID to be allocated is expected to be: {nextItemGuid.Full} (0x{(nextItemGuid.Full):X})\n";

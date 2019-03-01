@@ -31,6 +31,6 @@ namespace ACE.Entity.Enum
         UpperTentacle   = 24,
         LowerTentacle   = 25,
         Cloak           = 26,
-        Num             = 27
+        NumParts        = 27
     }
 }

@@ -1,34 +1,22 @@
 using System.Collections.Generic;
 using System;
+
+using log4net;
+
 using ACE.Database;
-using ACE.Entity;
-using ACE.Entity.Enum;
-using ACE.Server.Entity;
-using ACE.Server.WorldObjects;
-using ACE.Server.Managers;
-using ACE.Server.Network.Sequence;
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
+using ACE.Entity;
+using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Factories;
+using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Factories
 {
-    public class LootGenerationFactory
+    public static class LootGenerationFactory
     {
-        // This is throw away code to understand the world object creation process.
-
-        public static void Spawn(WorldObject inventoryItem, Position position)
-        {
-            throw new System.NotImplementedException();
-            /* this was commented out because it's setting the phsycisdescriptionflag. Not sure we should be setting that here.
-             // if we need to spawn things into the landscape, we should have such a factory that uses does that. LootGen factory doesn't seem appropriate for that
-            inventoryItem.Sequences.GetNextSequence(SequenceType.ObjectTeleport);
-            inventoryItem.Sequences.GetNextSequence(SequenceType.ObjectVector);
-            inventoryItem.Location = position.InFrontOf(1.00f);
-            inventoryItem.PhysicsDescriptionFlag |= PhysicsDescriptionFlag.Position;
-            LandblockManager.AddObject(inventoryItem);*/
-        }
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         public static List<WorldObject> CreateRandomObjectsOfType(WeenieType type, int count)
         {
@@ -45,17 +33,24 @@ namespace ACE.Server.Factories
             return worldObjects;
         }
 
-        public static void CreateRandomTestWorldObjects(Player player, uint typeId, uint numItems)
+        public static WorldObject CreateRandomObjects(int tier)
         {
-            throw new System.NotImplementedException();/*
-            var weenieList = DatabaseManager.World.GetRandomWeeniesOfType(typeId, numItems);
-            List<WorldObject> items = new List<WorldObject>();
-            for (int i = 0; i < numItems; i++)
+            WorldObject wo;
+            int type = ThreadSafeRandom.Next(1, 3);
+            switch (type)
             {
-                WorldObject wo = WorldObjectFactory.CreateNewWorldObject(weenieList[i].WeenieClassId);
-                items.Add(wo);
+                case 1:
+                    //nonmagical
+                    wo = CreateRandomLootObjects(tier, false);
+                    return wo;
+                case 2:
+                    //magical
+                    wo = CreateRandomLootObjects(tier, true);
+                    return wo;
+                default:
+                    wo = CreateMundaneObjects(tier);
+                    return wo;
             }
-            player.HandleAddNewWorldObjectsToInventory(items);*/
         }
 
         // Enum used for adjusting the loot bias for the various types of Mana forge chests
@@ -137,1514 +132,6 @@ namespace ACE.Server.Factories
             return loot;
         }
 
-        public static WorldObject CreateMundaneObjects(int tier, LootBias lootBias = LootBias.UnBiased)
-        {
-            WorldObject wo;
-            int id = 0;
-            int chance;
-            switch (tier)
-            {
-                case 1:
-                    //mundane items
-                    int mundaneType = ThreadSafeRandom.Next(1, 8);
-                    switch (mundaneType)
-                    {
-                        case 1:
-                            //peas
-                            // Lead Pea
-                            id = 8329;
-                            break;
-                        case 2:
-                            //mana stones
-                            chance = ThreadSafeRandom.Next(1, 100);
-                            if (chance < 75)
-                            {
-                                //Minor Mana Stone
-                                id = 27331;
-                            }
-                            else
-                            {
-                                //Lesser Mana Stone
-                                id = 2434;
-                            }
-                            break;
-                        case 3:
-                            //potions
-                            chance = ThreadSafeRandom.Next(1, 375);
-                            if (chance < 100)
-                            {
-                                //Stamina Potion
-                                id = 378;
-                            }
-                            else if (chance < 200)
-                            {
-                                //Potion of Healing
-                                id = 377;
-                            }
-                            else if (chance < 300)
-                            {
-                                //Mana Potion
-                                id = 379;
-                            }
-                            else if (chance < 325)
-                            {
-                                //Health Draught
-                                id = 2457;
-                            }
-                            else if (chance < 350)
-                            {
-                                //Mana Draught
-                                id = 2460;
-                            }
-                            else
-                            {
-                                //Stamina Tincture
-                                id = 27326;
-                            }
-                            break;
-                        case 4:
-                            //healing kits
-                            chance = ThreadSafeRandom.Next(1, 100);
-                            if (chance < 75)
-                            {
-                                //Handy Healing Kit
-                                id = 628;
-                            }
-                            else
-                            {
-                                //Adept Healing Kit
-                                id = 629;
-                            }
-                            break;
-                        case 5:
-                            //lockpicks
-                            chance = ThreadSafeRandom.Next(1, 100);
-                            if (chance < 75)
-                            {
-                                //Plain Lockpick
-                                id = 513;
-                            }
-                            else
-                            {
-                                //Reliable Lockpick
-                                id = 545;
-                            }
-                            break;
-                        case 6:
-                            // coalesced mana (Yellow)
-                            id = 42518;
-                            break;
-                        case 7:
-                            //Food Items
-                            id = CreateFood();
-                            break;
-                        default:
-                            //spell scrolls level 1-3
-                            wo = CreateRandomScroll(ThreadSafeRandom.Next(1, 3));
-                            return wo;
-                    }
-                    wo = WorldObjectFactory.CreateNewWorldObject((uint)id);
-                    return wo;
-
-                case 2:
-                    //mundane items
-                    mundaneType = ThreadSafeRandom.Next(1, 8);
-                    switch (mundaneType)
-                    {
-                        case 1:
-                            //peas
-                            chance = ThreadSafeRandom.Next(1, 100);
-                            if (chance < 75)
-                            {
-                                //lead pea
-                                id = 8329;
-                            }
-                            else
-                            {
-                                //Iron Pea
-                                id = 8328;
-                            }
-                            break;
-                        case 2:
-                            //mana stones
-                            chance = ThreadSafeRandom.Next(1, 100);
-                            if (chance < 75)
-                            {
-                                //Minor Mana Stone
-                                id = 27331;
-                            }
-                            else if (chance < 95)
-                            {
-                                //Less Mana Stone
-                                id = 2434;
-                            }
-                            else
-                            {
-                                //Mana Stone
-                                id = 2435;
-                            }
-                            break;
-                        case 3:
-                            //potions
-                            chance = ThreadSafeRandom.Next(1, 450);
-                            if (chance < 100)
-                            {
-                                //Stamina Potion
-                                id = 378;
-                            }
-                            else if (chance < 200)
-                            {
-                                //Potion of Healing
-                                id = 377;
-                            }
-                            else if (chance < 300)
-                            {
-                                //Mana Potion
-                                id = 379;
-                            }
-                            else if (chance < 325)
-                            {
-                                //Health Draught
-                                id = 2457;
-                            }
-                            else if (chance < 350)
-                            {
-                                //Mana Draught
-                                id = 2460;
-                            }
-                            else if (chance < 375)
-                            {
-                                //Stamina Tincture
-                                id = 27326;
-                            }
-                            else if (chance < 400)
-                            {
-                                //Stamina Elixer
-                                id = 2470;
-                            }
-                            else if (chance < 425)
-                            {
-                                //health Tincture
-                                id = 27319;
-                            }
-                            else
-                            {
-                                //Mana Tincture
-                                id = 27322;
-                            }
-                            break;
-                        case 4:
-                            //healing kits
-                            chance = ThreadSafeRandom.Next(1, 100);
-                            if (chance < 75)
-                            {
-                                //Adept Healing Kit
-                                id = 629;
-                            }
-                            else
-                            {
-                                //Gifted Healing Kit
-                                id = 630;
-                            }
-                            break;
-                        case 5:
-                            //lockpicks
-                            chance = ThreadSafeRandom.Next(1, 105);
-                            if (chance < 75)
-                            {
-                                //Plain Lockpick
-                                id = 513;
-                            }
-                            else if (chance < 100)
-                            {
-                                //Reliable Lockpick
-                                id = 545;
-                            }
-                            else
-                            {
-                                //Good Lockpick
-                                id = 512;
-                            }
-                            break;
-                        case 6:
-                            // coalesced mana (Yellow)
-                            id = 42518;
-                            break;
-                        case 7:
-                            id = CreateFood();
-                            break;
-                        default:
-                            //spell scrolls level 3-5
-                            wo = CreateRandomScroll(ThreadSafeRandom.Next(3, 5));
-                            return wo;
-                    }
-                    wo = WorldObjectFactory.CreateNewWorldObject((uint)id);
-                    return wo;
-
-                case 3:
-                    //mundane items
-                    mundaneType = ThreadSafeRandom.Next(1, 8);
-                    switch (mundaneType)
-                    {
-                        case 1:
-                            //peas
-                            chance = ThreadSafeRandom.Next(1, 125);
-                            if (chance < 75)
-                            {
-                                //lead pea
-                                id = 8329;
-                            }
-                            else if (chance < 115)
-                            {
-                                //Iron Pea
-                                id = 8328;
-                            }
-                            else
-                            {
-                                //Copper Pea
-                                id = 8326;
-                            }
-                            break;
-                        case 2:
-                            //mana stones
-                            chance = ThreadSafeRandom.Next(1, 100);
-                            if (chance < 65)
-                            {
-                                //Lesser Mana Stone
-                                id = 2434;
-                            }
-                            else if (chance < 97)
-                            {
-                                //Mana Stone
-                                id = 2435;
-                            }
-                            else
-                            {
-                                //Moderate Mana Stone
-                                id = 27330;
-                            }
-                            break;
-                        case 3:
-                            //potions
-                            chance = ThreadSafeRandom.Next(1, 450);
-                            if (chance < 100)
-                            {
-                                //Stamina Tincture
-                                id = 27326;
-                            }
-                            else if (chance < 200)
-                            {
-                                //Potion of Healing
-                                id = 377;
-                            }
-                            else if (chance < 300)
-                            {
-                                //Mana Elixer
-                                id = 27322;
-                            }
-                            else if (chance < 325)
-                            {
-                                //health Tincture
-                                id = 27319; ;
-                            }
-                            else if (chance < 350)
-                            {
-                                //Mana Draught
-                                id = 2460;
-                            }
-                            else if (chance < 375)
-                            {
-                                //Stamina Elixer
-                                id = 2470;
-                            }
-                            else if (chance < 400)
-                            {
-                                //Stamina Brew
-                                id = 27324;
-                            }
-                            else if (chance < 425)
-                            {
-                                //health Elixer
-                                id = 2458;
-                            }
-                            else
-                            {
-                                //Mana Elixer
-                                id = 2461;
-                            }
-                            break;
-                        case 4:
-                            //healing kits
-                            chance = ThreadSafeRandom.Next(1, 100);
-                            if (chance < 75)
-                            {
-                                //Adept Healing Kit
-                                id = 629;
-                            }
-                            else if (chance < 97)
-                            {
-                                //Gifted Healing Kit
-                                id = 630;
-                            }
-                            else
-                            {
-                                //Excellent Healing Kit
-                                id = 631;
-                            }
-                            break;
-                        case 5:
-                            //lockpicks
-                            chance = ThreadSafeRandom.Next(1, 105);
-                            if (chance < 70)
-                            {
-                                //Reliable Lockpick
-                                id = 545;
-                            }
-                            else if (chance < 100)
-                            {
-                                //Good Lockpick
-                                id = 512;
-                            }
-                            else
-                            {
-                                //Excellent Lockpick
-                                id = 514;
-                            }
-                            break;
-                        case 6:
-                            //coalesced mana
-                            chance = ThreadSafeRandom.Next(1, 100);
-                            if (chance < 90)
-                            {
-                                //Coalecsed Mana (Yellow)
-                                id = 42518;
-                            }
-                            else
-                            {
-                                //Coalecsed Mana (Red)
-                                id = 42517;
-                            }
-                            break;
-                        case 7:
-                            id = CreateFood();
-                            break;
-                        default:
-                            wo = CreateRandomScroll(ThreadSafeRandom.Next(4, 5));
-                            return wo;
-                    }
-                    wo = WorldObjectFactory.CreateNewWorldObject((uint)id);
-                    return wo;
-
-                case 4:
-                    //mundane items
-                    mundaneType = ThreadSafeRandom.Next(1, 8);
-                    switch (mundaneType)
-                    {
-                        case 1:
-                            //peas
-                            chance = ThreadSafeRandom.Next(1, 125);
-                            if (chance < 75)
-                            {
-                                //lead pea
-                                id = 8329;
-                            }
-                            else if (chance < 100)
-                            {
-                                //Iron Pea
-                                id = 8328;
-                            }
-                            else
-                            {
-                                //Copper Pea
-                                id = 8326;
-                            }
-                            break;
-                        case 2:
-                            //mana stones
-                            chance = ThreadSafeRandom.Next(1, 100);
-                            if (chance < 50)
-                            {
-                                //Lesser Mana Stone
-                                id = 2434;
-                            }
-                            else if (chance < 95)
-                            {
-                                //Mana Stone
-                                id = 2435;
-                            }
-                            else
-                            {
-                                //Moderate Mana Stone
-                                id = 27330;
-                            }
-                            break;
-                        case 3:
-                            //potions
-                            chance = ThreadSafeRandom.Next(1, 450);
-                            if (chance < 100)
-                            {
-                                //Stamina Tincture
-                                id = 27326;
-                            }
-                            else if (chance < 200)
-                            {
-                                //Potion of Healing
-                                id = 377;
-                            }
-                            else if (chance < 300)
-                            {
-                                //Mana Elixer
-                                id = 27322;
-                            }
-                            else if (chance < 325)
-                            {
-                                //health Tincture
-                                id = 27319; ;
-                            }
-                            else if (chance < 350)
-                            {
-                                //Mana Draught
-                                id = 2460;
-                            }
-                            else if (chance < 375)
-                            {
-                                //Stamina Elixer
-                                id = 2470;
-                            }
-                            else if (chance < 400)
-                            {
-                                //Stamina Brew
-                                id = 27324;
-                            }
-                            else if (chance < 425)
-                            {
-                                //health Elixer
-                                id = 2458;
-                            }
-                            else
-                            {
-                                //Mana Elixer
-                                id = 2461;
-                            }
-                            break;
-                        case 4:
-                            //healing kits
-                            chance = ThreadSafeRandom.Next(1, 100);
-                            if (chance < 75)
-                            {
-                                //Adept Healing Kit
-                                id = 629;
-                            }
-                            else if (chance < 90)
-                            {
-                                //Gifted Healing Kit
-                                id = 630;
-                            }
-                            else
-                            {
-                                //Excellent Healing Kit
-                                id = 631;
-                            }
-                            break;
-                        case 5:
-                            //lockpicks
-                            chance = ThreadSafeRandom.Next(1, 105);
-                            if (chance < 70)
-                            {
-                                //Reliable Lockpick
-                                id = 545;
-                            }
-                            else if (chance < 100)
-                            {
-                                //Good Lockpick
-                                id = 512;
-                            }
-                            else
-                            {
-                                //Excellent Lockpick
-                                id = 514;
-                            }
-                            break;
-                        case 6:
-                            //coalesced mana
-                            chance = ThreadSafeRandom.Next(1, 100);
-                            if (chance < 50)
-                            {
-                                //Coalesced Mana (Yellow)
-                                id = 42518;
-                            }
-                            else if(chance < 85)
-                            {
-                                //Coalesced Mana (Red)
-                                id = 42517;
-                            }
-                            else
-                            {
-                                //Coalesced Mana (Blue)
-                                id = 42516;
-                            }
-                            break;
-                        case 7:
-                            id = CreateFood();
-                            break;
-                        default:
-                            wo = CreateRandomScroll(ThreadSafeRandom.Next(4, 5));
-                            return wo;
-                    }
-                    wo = WorldObjectFactory.CreateNewWorldObject((uint)id);
-                    return wo;
-
-                case 5:
-                    //mundane items
-                    mundaneType = ThreadSafeRandom.Next(1, 7);
-                    switch (mundaneType)
-                    {
-                        case 1:
-                            //peas
-                            chance = ThreadSafeRandom.Next(1, 125);
-                            if (chance < 75)
-                            {
-                                //Copper Pea
-                                id = 8326;
-                            }
-                            else if (chance < 120)
-                            {
-                                //Silver Pea
-                                id = 8331;
-                            }
-                            else
-                            {
-                                //Gold Pea
-                                id = 8327;
-                            }
-                            break;
-                        case 2:
-                            //mana stones
-                            chance = ThreadSafeRandom.Next(1, 100);
-                            if (chance < 50)
-                            {
-                                //Moderate Mana Stone
-                                id = 27330;
-                            }
-                            else if (chance < 95)
-                            {
-                                //Greater Mana Stone
-                                id = 2436;
-                            }
-                            else
-                            {
-                                //Major Mana Stone
-                                id = 27328;
-                            }
-                            break;
-                        case 3:
-                            //potions
-                            chance = ThreadSafeRandom.Next(1, 450);
-                            if (chance < 100)
-                            {
-                                //Stamina Brew
-                                id = 27324;
-                            }
-                            else if (chance < 200)
-                            {
-                                //health Elixer
-                                id = 2458;
-                            }
-                            else if (chance < 300)
-                            {
-                                //Mana Elixer
-                                id = 2461;
-                            }
-                            else if (chance < 325)
-                            {
-                                //health Tonic
-                                id = 27320; ;
-                            }
-                            else if (chance < 350)
-                            {
-                                //Mana Tonic
-                                id = 27323;
-                            }
-                            else if (chance < 375)
-                            {
-                                //Stamina Tonic
-                                id = 27327;
-                            }
-                            else if (chance < 400)
-                            {
-                                //Stamina Philtre
-                                id = 27325;
-                            }
-                            else if (chance < 425)
-                            {
-                                //health Philtre
-                                id = 27318;
-                            }
-                            else
-                            {
-                                //Mana Philtre
-                                id = 27321;
-                            }
-                            break;
-                        case 4:
-                            //healing kits
-                            chance = ThreadSafeRandom.Next(1, 100);
-                            if (chance < 75)
-                            {
-                                //Excellent Healing Kit
-                                id = 631;
-                            }
-                            else if (chance < 95)
-                            {
-                                //Peerless Healing Kit
-                                id = 632;
-                            }
-                            else
-                            {
-                                //Treated Healing Kit
-                                id = 9229;
-                            }
-                            break;
-                        case 5:
-                            //lockpicks
-                            chance = ThreadSafeRandom.Next(1, 105);
-                            if (chance < 70)
-                            {
-                                //Excellent Lockpick
-                                id = 514;
-                            }
-                            else if (chance < 100)
-                            {
-                                //Superb Lockpick
-                                id = 515;
-                            }
-                            else
-                            {
-                                //Peerless Lockpick
-                                id = 516;
-                            }
-                            break;
-                        case 6:
-                            id = CreateFood();
-                            break;
-                        default:
-                            wo = CreateRandomScroll(ThreadSafeRandom.Next(5, 6));
-                            return wo;
-                    }
-                    wo = WorldObjectFactory.CreateNewWorldObject((uint)id);
-                    return wo;
-
-                case 6:
-                    //mundane items
-                    mundaneType = ThreadSafeRandom.Next(1, 7);
-                    switch (mundaneType)
-                    {
-                        case 1:
-                            //peas
-                            chance = ThreadSafeRandom.Next(1, 125);
-                            if (chance < 80)
-                            {
-                                //Silver Pea
-                                id = 8331;
-                            }
-                            else if (chance < 115)
-                            {
-                                //Gold Pea
-                                id = 8327;
-                            }
-                            else
-                            {
-                                //Pyreal Pea
-                                id = 8330;
-                            }
-                            break;
-                        case 2:
-                            //mana stones
-                            chance = ThreadSafeRandom.Next(1, 100);
-                            if (chance < 75)
-                            {
-                                //Greater Mana Stone
-                                id = 2436;
-                            }
-                            else
-                            {
-                                //Major Mana Stone
-                                id = 27328;
-                            }
-                            break;
-                        case 3:
-                            //potions
-                            chance = ThreadSafeRandom.Next(1, 450);
-                            if (chance < 100)
-                            {
-                                //Stamina Brew
-                                id = 27324;
-                            }
-                            else if (chance < 200)
-                            {
-                                //health Elixer
-                                id = 2458;
-                            }
-                            else if (chance < 300)
-                            {
-                                //Mana Elixer
-                                id = 2461;
-                            }
-                            else if (chance < 325)
-                            {
-                                //health Tonic
-                                id = 27320; ;
-                            }
-                            else if (chance < 350)
-                            {
-                                //Mana Tonic
-                                id = 27323;
-                            }
-                            else if (chance < 375)
-                            {
-                                //Stamina Tonic
-                                id = 27327;
-                            }
-                            else if (chance < 400)
-                            {
-                                //Stamina Philtre
-                                id = 27325;
-                            }
-                            else if (chance < 425)
-                            {
-                                //health Philtre
-                                id = 27318;
-                            }
-                            else
-                            {
-                                //Mana Philtre
-                                id = 27321;
-                            }
-                            break;
-                        case 4:
-                            //healing kits
-                            chance = ThreadSafeRandom.Next(1, 100);
-                            if (chance < 75)
-                            {
-                                //Excellent Healing Kit
-                                id = 631;
-                            }
-                            else if (chance < 95)
-                            {
-                                //Peerless Healing Kit
-                                id = 632;
-                            }
-                            else
-                            {
-                                //Treated Healing Kit
-                                id = 9229;
-                            }
-                            break;
-                        case 5:
-                            //lockpicks
-                            chance = ThreadSafeRandom.Next(1, 105);
-                            if (chance < 70)
-                            {
-                                //Excellent Lockpick
-                                id = 514;
-                            }
-                            else if (chance < 100)
-                            {
-                                //Superb Lockpick
-                                id = 515;
-                            }
-                            else
-                            {
-                                //Peerless Lockpick
-                                id = 516;
-                            }
-                            break;
-                        case 6:
-                            id = CreateFood();
-                            break;
-                        default:
-                            wo = CreateRandomScroll(ThreadSafeRandom.Next(6, 6));
-                            return wo;
-                    }
-                    wo = WorldObjectFactory.CreateNewWorldObject((uint)id);
-                    return wo;
-
-                case 7:
-                    //mundane items
-                    mundaneType = ThreadSafeRandom.Next(1, 7);
-                    switch (mundaneType)
-                    {
-                        case 1:
-                            //peas
-                            chance = ThreadSafeRandom.Next(1, 125);
-                            if (chance < 75)
-                            {
-                                //Silver Pea
-                                id = 8331;
-                            }
-                            else if (chance < 115)
-                            {
-                                //Gold Pea
-                                id = 8327;
-                            }
-                            else
-                            {
-                                //Pyreal Pea
-                                id = 8330;
-                            }
-                            break;
-                        case 2:
-                            //mana stones
-                            chance = ThreadSafeRandom.Next(1, 100);
-                            if (chance < 75)
-                            {
-                                //Greater Mana Stone
-                                id = 2436;
-                            }
-                            else
-                            {
-                                //Major Mana Stone
-                                id = 27328;
-                            }
-                            break;
-                        case 3:
-                            //potions
-                            chance = ThreadSafeRandom.Next(1, 450);
-                            if (chance < 100)
-                            {
-                                //Stamina Brew
-                                id = 27324;
-                            }
-                            else if (chance < 200)
-                            {
-                                //health Elixer
-                                id = 2458;
-                            }
-                            else if (chance < 300)
-                            {
-                                //Mana Elixer
-                                id = 2461;
-                            }
-                            else if (chance < 325)
-                            {
-                                //health Tonic
-                                id = 27320; ;
-                            }
-                            else if (chance < 350)
-                            {
-                                //Mana Tonic
-                                id = 27323;
-                            }
-                            else if (chance < 375)
-                            {
-                                //Stamina Tonic
-                                id = 27327;
-                            }
-                            else if (chance < 400)
-                            {
-                                //Stamina Philtre
-                                id = 27325;
-                            }
-                            else if (chance < 425)
-                            {
-                                //health Philtre
-                                id = 27318;
-                            }
-                            else
-                            {
-                                //Mana Philtre
-                                id = 27321;
-                            }
-                            break;
-                        case 4:
-                            //healing kits
-                            chance = ThreadSafeRandom.Next(1, 100);
-                            if (chance < 75)
-                            {
-                                //Excellent Healing Kit
-                                id = 631;
-                            }
-                            else if (chance < 95)
-                            {
-                                //Peerless Healing Kit
-                                id = 632;
-                            }
-                            else
-                            {
-                                //Treated Healing Kit
-                                id = 9229;
-                            }
-                            break;
-                        case 5:
-                            //lockpicks
-                            chance = ThreadSafeRandom.Next(1, 105);
-                            if (chance < 70)
-                            {
-                                //Excellent Lockpick
-                                id = 514;
-                            }
-                            else if (chance < 100)
-                            {
-                                //Superb Lockpick
-                                id = 515;
-                            }
-                            else
-                            {
-                                //Peerless Lockpick
-                                id = 516;
-                            }
-                            break;
-                        case 6:
-                            id = CreateFood();
-                            break;
-                        default:
-                            wo = CreateRandomScroll(ThreadSafeRandom.Next(6, 7));
-                            return wo;
-                    }
-                    wo = WorldObjectFactory.CreateNewWorldObject((uint)id);
-                    return wo;
-
-                default:
-                    //mundane items
-                    if (lootBias == LootBias.UnBiased)
-                        mundaneType = ThreadSafeRandom.Next(1, 8);
-                    else
-                        mundaneType = 6; // Spell components are required for biased tier 8
-                    switch (mundaneType)
-                    {
-                        case 1:
-                            //peas
-                            chance = ThreadSafeRandom.Next(1, 125);
-                            if (chance < 75)
-                            {
-                                //Silver Pea
-                                id = 8331;
-                            }
-                            else if (chance < 115)
-                            {
-                                //Gold Pea
-                                id = 8327;
-                            }
-                            else
-                            {
-                                //Pyreal Pea
-                                id = 8330;
-                            }
-                            break;
-                        case 2:
-                            //mana stones
-                            chance = ThreadSafeRandom.Next(1, 100);
-                            if (chance < 75)
-                            {
-                                //Greater Mana Stone
-                                id = 2436;
-                            }
-                            else
-                            {
-                                //Major Mana Stone
-                                id = 27328;
-                            }
-                            break;
-                        case 3:
-                            //potions
-                            chance = ThreadSafeRandom.Next(1, 450);
-                            if (chance < 100)
-                            {
-                                //Stamina Brew
-                                id = 27324;
-                            }
-                            else if (chance < 200)
-                            {
-                                //health Elixer
-                                id = 2458;
-                            }
-                            else if (chance < 300)
-                            {
-                                //Mana Elixer
-                                id = 2461;
-                            }
-                            else if (chance < 325)
-                            {
-                                //health Tonic
-                                id = 27320;
-                            }
-                            else if (chance < 350)
-                            {
-                                //Mana Tonic
-                                id = 27323;
-                            }
-                            else if (chance < 375)
-                            {
-                                //Stamina Tonic
-                                id = 27327;
-                            }
-                            else if (chance < 400)
-                            {
-                                //Stamina Philtre
-                                id = 27325;
-                            }
-                            else if (chance < 425)
-                            {
-                                //health Philtre
-                                id = 27318;
-                            }
-                            else
-                            {
-                                //Mana Philtre
-                                id = 27321;
-                            }
-                            break;
-                        case 4:
-                            //healing kits
-                            chance = ThreadSafeRandom.Next(1, 100);
-                            if (chance < 75)
-                            {
-                                //Excellent Healing Kit
-                                id = 631;
-                            }
-                            else if (chance < 90)
-                            {
-                                //Peerless Healing Kit
-                                id = 632;
-                            }
-                            else
-                            {
-                                //Treated Healing Kit
-                                id = 9229;
-                            }
-                            break;
-                        case 5:
-                            //lockpicks
-                            chance = ThreadSafeRandom.Next(1, 105);
-                            if (chance < 70)
-                            {
-                                //Excellent Lockpick
-                                id = 514;
-                            }
-                            else if (chance < 100)
-                            {
-                                //Superb Lockpick
-                                id = 515;
-                            }
-                            else
-                            {
-                                //Peerless Lockpick
-                                id = 516;
-                            }
-                            break;
-                        case 6:
-                            //spell components
-                            chance = ThreadSafeRandom.Next(1, 170);
-                            if (chance < 100)
-                            {
-                                //Quill of Infliction
-                                id = 37363;
-                            }
-                            else if (chance == 100)
-                            {
-                                //Quill of Benevolence
-                                id = 37365;
-                            }
-                            else if (chance == 101)
-                            {
-                                //Quill of Extraction
-                                id = 37362;
-                            }
-                            else if (chance == 102)
-                            {
-                                //Quill of Introspection
-                                id = 37364;
-                            }
-                            else if (chance == 103)
-                            {
-                                //Ink of Conveyance
-                                id = 37360;
-                            }
-                            else if (chance == 104)
-                            {
-                                //Ink of direction
-                                id = 37361;
-                            }
-                            else if (chance == 105)
-                            {
-                                //Ink of Formation
-                                id = 37353;
-                            }
-                            else if (chance == 106)
-                            {
-                                //Ink of Nullification
-                                id = 37354;
-                            }
-                            else if (chance == 107)
-                            {
-                                //Ink of Objectification
-                                id = 37355;
-                            }
-                            else if (chance == 108)
-                            {
-                                //Ink of Partition
-                                id = 37357;
-                            }
-                            else if (chance == 109)
-                            {
-                                //Ink of Separation
-                                id = 37358;
-                            }
-                            else if (chance == 110)
-                            {
-                                //Parabolic Ink
-                                id = 37356;
-                            }
-                            else if (chance == 111)
-                            {
-                                //Alacritous Ink
-                                id = 37359;
-                            }
-                            else if (chance == 112)
-                            {
-                                //Mana Scarab
-                                id = 37155;
-                            }
-                            else if (chance == 113)
-                            {
-                                //glyph of alchemy
-                                id = 37343;
-                            }
-                            else if (chance == 114)
-                            {
-                                //glyph of alchemy
-                                id = 37343;
-                            }
-                            else if (chance == 115)
-                            {
-                                //glyph of arcane lore
-                                id = 37344;
-                            }
-                            else if (chance == 116)
-                            {
-                                //glyph of armor
-                                id = 37345;
-                            }
-                            else if (chance == 117)
-                            {
-                                //glyph of armor tinkering
-                                id = 37346;
-                            }
-                            else if (chance == 118)
-                            {
-                                //glyph of bludgeoning
-                                id = 37347;
-                            }
-                            else if (chance == 119)
-                            {
-                                //glyph of cooking
-                                id = 37349;
-                            }
-                            else if (chance == 120)
-                            {
-                                //glyph of coordination
-                                id = 37350;
-                            }
-                            else if (chance == 121)
-                            {
-                                //glyph of corrosion
-                                id = 37342;
-                            }
-                            else if (chance == 122)
-                            {
-                                //glyph of creature enchantment
-                                id = 37351;
-                            }
-                            else if (chance == 123)
-                            {
-                                //glyph of damage
-                                id = 43379;
-                            }
-                            else if (chance == 124)
-                            {
-                                //glyph of deception
-                                id = 37352;
-                            }
-                            else if (chance == 125)
-                            {
-                                //glyph of dirty fighting
-                                id = 45370;
-                            }
-                            else if (chance == 126)
-                            {
-                                //glyph of dual wield
-                                id = 45371;
-                            }
-                            else if (chance == 127)
-                            {
-                                //glyph of endurance
-                                id = 37300;
-                            }
-                            else if (chance == 128)
-                            {
-                                //glyph of finesse weapon
-                                id = 37373;
-                            }
-                            else if (chance == 129)
-                            {
-                                //glyph of flame
-                                id = 37301;
-                            }
-                            else if (chance == 130)
-                            {
-                                //glyph of fletching
-                                id = 37302;
-                            }
-                            else if (chance == 131)
-                            {
-                                //glyph of focus
-                                id = 37303;
-                            }
-                            else if (chance == 132)
-                            {
-                                //glyph of frost
-                                id = 37348;
-                            }
-                            else if (chance == 133)
-                            {
-                                //glyph of healing
-                                id = 37304;
-                            }
-                            else if (chance == 134)
-                            {
-                                //glyph of health
-                                id = 37305;
-                            }
-                            else if (chance == 135)
-                            {
-                                //glyph of heavy weapons
-                                id = 37369;
-                            }
-                            else if (chance == 136)
-                            {
-                                //glyph of item enchantment
-                                id = 37309;
-                            }
-                            else if (chance == 137)
-                            {
-                                //glyph of item tinnkering
-                                id = 37310;
-                            }
-                            else if (chance == 138)
-                            {
-                                //glyph of jump
-                                id = 37311;
-                            }
-                            else if (chance == 139)
-                            {
-                                //glyph of leadership
-                                id = 37312;
-                            }
-                            else if (chance == 140)
-                            {
-                                //glyph of life magic
-                                id = 37313;
-                            }
-                            else if (chance == 141)
-                            {
-                                //glyph of light weapons
-                                id = 37339;
-                            }
-                            else if (chance == 142)
-                            {
-                                //glyph of lightning
-                                id = 37314;
-                            }
-                            else if (chance == 143)
-                            {
-                                //glyph of lockpick
-                                id = 37315;
-                            }
-                            else if (chance == 144)
-                            {
-                                //glyph of loyalty
-                                id = 37316;
-                            }
-                            else if (chance == 145)
-                            {
-                                //glyph of magic defense
-                                id = 37317;
-                            }
-                            else if (chance == 146)
-                            {
-                                //glyph of magic item tinkering
-                                id = 38760;
-                            }
-                            else if (chance == 147)
-                            {
-                                //glyph of mana
-                                id = 37318;
-                            }
-                            else if (chance == 148)
-                            {
-                                //glyph of mana conversion
-                                id = 37319;
-                            }
-                            else if (chance == 149)
-                            {
-                                //glyph of mana regeneration
-                                id = 37321;
-                            }
-                            else if (chance == 150)
-                            {
-                                //glyph of melee defense
-                                id = 37323;
-                            }
-                            else if (chance == 151)
-                            {
-                                //glyph of missile defense
-                                id = 37324;
-                            }
-                            else if (chance == 152)
-                            {
-                                //glyph of Missile weapons
-                                id = 37338;
-                            }
-                            else if (chance == 153)
-                            {
-                                //glyph of monster appraisal
-                                id = 37325;
-                            }
-                            else if (chance == 154)
-                            {
-                                //glyph of nether
-                                id = 43387;
-                            }
-                            else if (chance == 155)
-                            {
-                                //glyph of person appraisal
-                                id = 37326;
-                            }
-                            else if (chance == 156)
-                            {
-                                //glyph of piercing
-                                id = 37327;
-                            }
-                            else if (chance == 157)
-                            {
-                                //glyph of quickness
-                                id = 37328;
-                            }
-                            else if (chance == 158)
-                            {
-                                //glyph of recklessness
-                                id = 45372;
-                            }
-                            else if (chance == 159)
-                            {
-                                //glyph of regeneration
-                                id = 37307;
-                            }
-                            else if (chance == 160)
-                            {
-                                //glyph of run
-                                id = 37329;
-                            }
-                            else if (chance == 161)
-                            {
-                                //glyph of salvaging
-                                id = 37330;
-                            }
-                            else if (chance == 162)
-                            {
-                                //glyph of self
-                                id = 37331;
-                            }
-                            else if (chance == 163)
-                            {
-                                //glyph of shield
-                                id = 45373;
-                            }
-                            else if (chance == 164)
-                            {
-                                //glyph of slashing
-                                id = 37332;
-                            }
-                            else if (chance == 165)
-                            {
-                                //glyph of sneak attack
-                                id = 45374;
-                            }
-                            else if (chance == 166)
-                            {
-                                //glyph of stamina
-                                id = 37333;
-                            }
-                            else if (chance == 167)
-                            {
-                                //glyph of stamina regeneration
-                                id = 37336;
-                            }
-                            else if (chance == 168)
-                            {
-                                //glyph of strength
-                                id = 37337;
-                            }
-                            else if (chance == 169)
-                            {
-                                //glyph of summoning
-                                id = 49455;
-                            }
-                            else if (chance == 170)
-                            {
-                                //glyph of two handed combat
-                                id = 41747;
-                            }
-                            else if (chance == 171)
-                            {
-                                //glyph of void magic
-                                id = 43380;
-                            }
-                            else if (chance == 172)
-                            {
-                                //glyph of war magic
-                                id = 37340;
-                            }
-                            else if (chance == 173)
-                            {
-                                //glyph of weapon tinkering
-                                id = 37341;
-                            }
-                            break;
-                        case 7:
-                            id = CreateFood();
-                            break;
-                        case 8:
-                            wo = CreateRandomScroll(7);
-                            return wo;
-                        default:
-                            break;
-                    }
-                    wo = WorldObjectFactory.CreateNewWorldObject((uint)id);
-                    return wo;
-            }
-        }
-
-        public static WorldObject CreateRandomObjects(int tier)
-        {
-            WorldObject wo;
-            int type = ThreadSafeRandom.Next(1, 3);
-            switch (type)
-            {
-                case 1:
-                    //nonmagical
-                    wo = CreateRandomLootObjects(tier, false);
-                    return wo;
-                case 2:
-                    //magical
-                    wo = CreateRandomLootObjects(tier, true);
-                    return wo;
-                default:
-                    wo = CreateMundaneObjects(tier);
-                    return wo;
-            }
-        }
-
         public static WorldObject CreateRandomLootObjects(int tier, bool isMagical, LootBias lootBias = LootBias.UnBiased)
         {
             int type;
@@ -1684,11 +171,59 @@ namespace ACE.Server.Factories
             }
         }
 
-        public static WorldObject CreateJewels(int tier, bool isMagical)
+        private static int CreateLevel8SpellComp()
         {
+            int mundaneLootMatrixIndex = 7; // Select the Level 8 spell components
+            int upperLimit = LootHelper.MundaneLootMatrix[mundaneLootMatrixIndex].Length - 1;
+            int chance = ThreadSafeRandom.Next(0, upperLimit);
 
-            int spellChance = 0;
-            int gemType = 0;
+            return LootHelper.MundaneLootMatrix[mundaneLootMatrixIndex][chance];
+        }
+
+        private static WorldObject CreateMundaneObjects(int tier, LootBias lootBias = LootBias.UnBiased)
+        {
+            if (tier < 1) tier = 1;
+            if (tier > 8) tier = 8;
+
+            int mundaneLootMatrixIndex = tier - 1;
+
+            WorldObject wo;
+            int id = 0;
+            int chance;
+            int upperLimit;
+
+            if (lootBias != LootBias.UnBiased)
+                id = CreateLevel8SpellComp();
+            else
+            {
+                upperLimit = LootHelper.MundaneLootMatrix[mundaneLootMatrixIndex].Length + 1;
+                chance = ThreadSafeRandom.Next(0, upperLimit);
+                if (chance == upperLimit)
+                {
+                    if (tier > 7)
+                        id = CreateLevel8SpellComp();
+                    else
+                    {
+                        int minSpellLevel = LootHelper.ScrollLootMatrix[mundaneLootMatrixIndex][0];
+                        int maxSpellLevel = LootHelper.ScrollLootMatrix[mundaneLootMatrixIndex][1];
+                        wo = CreateRandomScroll(ThreadSafeRandom.Next(minSpellLevel, maxSpellLevel));
+                        return wo;
+                    }
+                }
+
+                if (chance == (upperLimit - 1))
+                    id = CreateFood();
+                else
+                    id = LootHelper.MundaneLootMatrix[mundaneLootMatrixIndex][chance];
+            }
+
+            wo = WorldObjectFactory.CreateNewWorldObject((uint)id);
+            return wo;
+        }
+
+        private static WorldObject CreateJewels(int tier, bool isMagical)
+        {
+            uint gemType = 0;
             int workmanship = 0;
             int rank = 0;
             int difficulty = 0;
@@ -1697,395 +232,52 @@ namespace ACE.Server.Factories
             int max_mana = 0;
             int skill_level_limit = 0;
             int spellcraft = 0;
-            int[] creature1 = { 2, 18, 256, 274, 298, 322, 346, 418, 467, 557, 581, 605, 629, 653, 678, 702, 726, 750, 774, 798, 824, 850, 874, 898, 922, 946, 970, 982, 1349, 1373, 1397, 1421, 1445, 1715, 1739, 1763, 5779, 5803, 5827, 5843, 5867, 6116 };
-            int[] creature2 = { 1328, 245, 257, 275, 299, 323, 347, 419, 468, 558, 582, 606, 630, 654, 679, 703, 727, 751, 775, 799, 825, 851, 875, 899, 923, 947, 971, 983, 1350, 1374, 1398, 1422, 1446, 1716, 1740, 1764, 5780, 5804, 5828, 5844, 5868, 6117 };
-            int[] creature3 = { 1329, 246, 258, 276, 300, 324, 348, 420, 469, 559, 583, 607, 631, 655, 680, 704, 728, 752, 776, 800, 826, 852, 876, 900, 924, 948, 972, 984, 1351, 1375, 1399, 1423, 1447, 1717, 1741, 1765, 5781, 5805, 5829, 5845, 5869, 6118 };
-            int[] creature4 = { 1330, 247, 259, 277, 301, 325, 349, 421, 470, 560, 584, 608, 632, 656, 681, 705, 729, 753, 777, 801, 827, 853, 877, 901, 925, 949, 973, 985, 1352, 1376, 1400, 1424, 1448, 1718, 1742, 1766, 5782, 5806, 5830, 5846, 5870, 6119 };
-            int[] creature5 = { 1331, 248, 260, 278, 302, 326, 350, 422, 471, 561, 585, 609, 633, 657, 682, 706, 730, 754, 778, 802, 828, 854, 878, 902, 926, 950, 974, 986, 1353, 1377, 1401, 1425, 1449, 1719, 1743, 1767, 5783, 5807, 5831, 5847, 5871, 6120 };
-            int[] creature6 = { 1332, 249, 261, 279, 303, 327, 351, 423, 472, 562, 586, 610, 634, 658, 683, 707, 731, 755, 779, 803, 829, 855, 879, 903, 927, 951, 975, 987, 1354, 1378, 1402, 1426, 1450, 1720, 1744, 1768, 5784, 5808, 5831, 5848, 5872, 6121 };
-            int[] creature7 = { 2087, 2245, 2243, 2281, 2275, 2223, 5105, 2309, 2243, 2215, 2249, 2267, 2323, 2287, 2195, 2197, 2251, 2277, 2325, 2289, 2293, 2226, 2241, 2263, 2271, 2233, 2256, 2301, 2061, 2059, 2081, 2067, 2091, 2211, 2237, 2191, 5785, 5809, 5833, 5857, 5881, 6122, 5417, 3519 };
-            int[] creature8 = { 4325, 4560, 4544, 4596, 4518, 4538, 5032, 4624, 4558, 4530, 4564, 4582, 4638, 4602, 4510, 4512, 4566, 4592, 4640, 4604, 4608, 4542, 4556, 4578, 4586, 4548, 4572, 4616, 4299, 4297, 4319, 4305, 4329, 4526, 4552, 4506, 5786, 5810, 5834, 5858, 5882, 6123, 5418, 4502 };
-            int[] life1 = { 165, 54, 212, 515, 1018, 1030, 1066, 20, 1109, 1133, 24 };
-            int[] life2 = { 166, 189, 213, 516, 1019, 1031, 1067, 1090, 1110, 1134, 1308 };
-            int[] life3 = { 167, 190, 214, 517, 1020, 1032, 1068, 1091, 1111, 1135, 1309 };
-            int[] life4 = { 168, 190, 215, 518, 1021, 1033, 1069, 1092, 1112, 1136, 1310 };
-            int[] life5 = { 169, 190, 216, 519, 1022, 1034, 1070, 1093, 1113, 1137, 1311 };
-            int[] life6 = { 170, 190, 217, 520, 1023, 1035, 1071, 1094, 1114, 1138, 1312 };
-            int[] life7 = { 2185, 2187, 2183, 2149, 2153, 2155, 2159, 2157, 2151, 2161, 2053 };
-            int[] life8 = { 4496, 4498, 4494, 4460, 4464, 4466, 4470, 4468, 4462, 4472, 4291 };
-            int[] t1gems = new int[] { 2433, 2418, 2419, 2420, 2426, 2431, 2413, 2414, 2427, 2428, 2429, 2430, 2415, 2405, 2416, 2406, 2433, 2417 };
-            int[] t2gems = new int[] { 2433, 2418, 2419, 2420, 2426, 2431, 2413, 2414, 2427, 2428, 2429, 2430, 2415, 2405, 2416, 2406, 2433, 2417, 2393, 2395, 2398, 2399, 2400, 2401, 2394, 2396, 2397 };
-            int[] t3gems = new int[] { 2433, 2418, 2419, 2420, 2426, 2431, 2413, 2414, 2427, 2428, 2429, 2430, 2415, 2405, 2416, 2406, 2433, 2417, 2393, 2395, 2398, 2399, 2400, 2401, 2394, 2396, 2397, 2425, 2421, 2422, 2423 };
-            int[] t4gems = new int[] { 2433, 2418, 2419, 2420, 2426, 2431, 2413, 2414, 2427, 2428, 2429, 2430, 2415, 2405, 2416, 2406, 2433, 2417, 2393, 2395, 2398, 2399, 2400, 2401, 2394, 2396, 2397, 2425, 2421, 2422, 2423, 2405, 2408, 2402, 2403, 2407 };
-            int[] t5gems = new int[] { 2433, 2418, 2419, 2420, 2426, 2431, 2413, 2414, 2427, 2428, 2429, 2430, 2415, 2405, 2416, 2406, 2433, 2417, 2393, 2395, 2398, 2399, 2400, 2401, 2394, 2396, 2397, 2425, 2421, 2422, 2423, 2405, 2408, 2402, 2403, 2407, 2409, 2411, 2412, 2410 };
-            switch (tier)
+
+            int gemLootMatrixIndex = tier - 1;
+
+            if (gemLootMatrixIndex > 4) gemLootMatrixIndex = 4;
+            int upperLimit = LootHelper.GemsMatrix[gemLootMatrixIndex].Length - 1;
+
+            gemType = (uint)LootHelper.GemsMatrix[gemLootMatrixIndex][ThreadSafeRandom.Next(0, upperLimit)];
+
+            gemLootMatrixIndex = tier - 1;
+
+            if (isMagical)
             {
-                case 1:
-                    //tier 1
-                    gemType = t1gems[ThreadSafeRandom.Next(0, t1gems.Length - 1)];
-                    if (isMagical)
-                    {
-                        spellChance = ThreadSafeRandom.Next(0, 100);
-                        if (spellChance < 30)
-                        {
-                            spellDID = creature1[ThreadSafeRandom.Next(0, creature1.Length - 1)];
-                            mana_cost = 50;
-                            max_mana = ThreadSafeRandom.Next(mana_cost, mana_cost + 50);
-                            spellcraft = 50;
-                        }
-                        else if (spellChance < 60)
-                        {
-                            spellDID = life1[ThreadSafeRandom.Next(0, life1.Length - 1)];
-                            mana_cost = 50;
-                            max_mana = ThreadSafeRandom.Next(mana_cost, mana_cost + 50);
-                            spellcraft = 50;
-                        }
-                        else if (spellChance < 75)
-                        {
-                            spellDID = creature2[ThreadSafeRandom.Next(0, creature2.Length - 1)];
-                            mana_cost = 100;
-                            max_mana = ThreadSafeRandom.Next(mana_cost, mana_cost + 50);
-                            spellcraft = 100;
-                        }
-                        else if (spellChance < 90)
-                        {
-                            spellDID = life2[ThreadSafeRandom.Next(0, life2.Length - 1)];
-                            mana_cost = 100;
-                            max_mana = ThreadSafeRandom.Next(mana_cost, mana_cost + 50);
-                            spellcraft = 100;
-                        }
-                        else if (spellChance < 95)
-                        {
-                            spellDID = creature3[ThreadSafeRandom.Next(0, creature3.Length - 1)];
-                            mana_cost = 150;
-                            max_mana = ThreadSafeRandom.Next(mana_cost, mana_cost + 50);
-                            spellcraft = 150;
-                        }
-                        else
-                        {
-                            spellDID = life3[ThreadSafeRandom.Next(0, life3.Length - 1)];
-                            mana_cost = 150;
-                            max_mana = ThreadSafeRandom.Next(mana_cost, mana_cost + 50);
-                            spellcraft = 150;
-                        }
-                    }
-                    workmanship = GetWorkmanship(1);
-                    break;
-                case 2:
-                    //tier 2
-                    gemType = t2gems[ThreadSafeRandom.Next(0, t2gems.Length - 1)];
-                    if (isMagical)
-                    {
-                        spellChance = ThreadSafeRandom.Next(0, 100);
-                        if (spellChance < 30)
-                        {
-                            spellDID = creature3[ThreadSafeRandom.Next(0, creature1.Length - 1)];
-                            mana_cost = 150;
-                            max_mana = ThreadSafeRandom.Next(mana_cost, mana_cost + 50);
-                            spellcraft = 150;
-                        }
-                        else if (spellChance < 60)
-                        {
-                            spellDID = life3[ThreadSafeRandom.Next(0, life1.Length - 1)];
-                            mana_cost = 150;
-                            max_mana = ThreadSafeRandom.Next(mana_cost, mana_cost + 50);
-                            spellcraft = 150;
-                        }
-                        else if (spellChance < 75)
-                        {
-                            spellDID = creature4[ThreadSafeRandom.Next(0, creature2.Length - 1)];
-                            mana_cost = 200;
-                            max_mana = ThreadSafeRandom.Next(mana_cost, mana_cost + 50);
-                            spellcraft = 200;
-                        }
-                        else if (spellChance < 90)
-                        {
-                            spellDID = life4[ThreadSafeRandom.Next(0, life2.Length - 1)];
-                            mana_cost = 200;
-                            max_mana = ThreadSafeRandom.Next(mana_cost, mana_cost + 50);
-                            spellcraft = 200;
-                        }
-                        else if (spellChance < 95)
-                        {
-                            spellDID = creature5[ThreadSafeRandom.Next(0, creature3.Length - 1)];
-                            mana_cost = 250;
-                            max_mana = ThreadSafeRandom.Next(mana_cost, mana_cost + 50);
-                            spellcraft = 250;
-                        }
-                        else
-                        {
-                            spellDID = life5[ThreadSafeRandom.Next(0, life3.Length - 1)];
-                            mana_cost = 250;
-                            max_mana = ThreadSafeRandom.Next(mana_cost, mana_cost + 50);
-                            spellcraft = 250;
-                        }
-                    }
-                    workmanship = GetWorkmanship(2);
-                    break;
-                case 3:
-                    //tier 3
-                    gemType = t3gems[ThreadSafeRandom.Next(0, t3gems.Length - 1)];
-                    if (isMagical)
-                    {
-                        spellChance = ThreadSafeRandom.Next(0, 100);
-                        if (spellChance < 30)
-                        {
-                            spellDID = creature4[ThreadSafeRandom.Next(0, creature1.Length - 1)];
-                            mana_cost = 200;
-                            max_mana = ThreadSafeRandom.Next(mana_cost, mana_cost + 50);
-                            spellcraft = 200;
-                        }
-                        else if (spellChance < 60)
-                        {
-                            spellDID = life4[ThreadSafeRandom.Next(0, life1.Length - 1)];
-                            mana_cost = 200;
-                            max_mana = ThreadSafeRandom.Next(mana_cost, mana_cost + 50);
-                            spellcraft = 200;
-                        }
-                        else if (spellChance < 75)
-                        {
-                            spellDID = creature5[ThreadSafeRandom.Next(0, creature2.Length - 1)];
-                            mana_cost = 250;
-                            max_mana = ThreadSafeRandom.Next(mana_cost, mana_cost + 50);
-                            spellcraft = 250;
-                        }
-                        else if (spellChance < 90)
-                        {
-                            spellDID = life5[ThreadSafeRandom.Next(0, life2.Length - 1)];
-                            mana_cost = 250;
-                            max_mana = ThreadSafeRandom.Next(mana_cost, mana_cost + 50);
-                            spellcraft = 250;
-                        }
-                        else if (spellChance < 95)
-                        {
-                            spellDID = creature6[ThreadSafeRandom.Next(0, creature3.Length - 1)];
-                            mana_cost = 300;
-                            max_mana = ThreadSafeRandom.Next(mana_cost, mana_cost + 50);
-                            spellcraft = 300;
-                        }
-                        else
-                        {
-                            spellDID = life6[ThreadSafeRandom.Next(0, life3.Length - 1)];
-                            mana_cost = 300;
-                            max_mana = ThreadSafeRandom.Next(mana_cost, mana_cost + 50);
-                            spellcraft = 300;
-                        }
-                    }
-                    workmanship = GetWorkmanship(3);
-                    break;
-                case 4:
-                    //tier 4
-                    gemType = t4gems[ThreadSafeRandom.Next(0, t4gems.Length - 1)];
-                    if (isMagical)
-                    {
-                        if (spellChance < 35)
-                        {
-                            spellDID = creature5[ThreadSafeRandom.Next(0, creature2.Length - 1)];
-                            mana_cost = 250;
-                            max_mana = ThreadSafeRandom.Next(mana_cost, mana_cost + 50);
-                            spellcraft = 250;
-                        }
-                        else if (spellChance < 70)
-                        {
-                            spellDID = life5[ThreadSafeRandom.Next(0, life2.Length - 1)];
-                            mana_cost = 250;
-                            max_mana = ThreadSafeRandom.Next(mana_cost, mana_cost + 50);
-                            spellcraft = 250;
-                        }
-                        else if (spellChance < 85)
-                        {
-                            spellDID = creature6[ThreadSafeRandom.Next(0, creature3.Length - 1)];
-                            mana_cost = 300;
-                            max_mana = ThreadSafeRandom.Next(mana_cost, mana_cost + 50);
-                            spellcraft = 300;
-                        }
-                        else
-                        {
-                            spellDID = life6[ThreadSafeRandom.Next(0, life3.Length - 1)];
-                            mana_cost = 300;
-                            max_mana = ThreadSafeRandom.Next(mana_cost, mana_cost + 50);
-                            spellcraft = 300;
-                        }
-                    }
-                    workmanship = GetWorkmanship(4);
-                    break;
-                case 5:
-                    //tier 5
-                    gemType = t5gems[ThreadSafeRandom.Next(0, t5gems.Length - 1)];
-                    if (isMagical)
-                    {
-                        spellChance = ThreadSafeRandom.Next(0, 100);
-                        if (spellChance < 30)
-                        {
-                            spellDID = creature5[ThreadSafeRandom.Next(0, creature1.Length - 1)];
-                            mana_cost = 250;
-                            max_mana = ThreadSafeRandom.Next(mana_cost, mana_cost + 50);
-                            spellcraft = 250;
-                        }
-                        else if (spellChance < 60)
-                        {
-                            spellDID = life5[ThreadSafeRandom.Next(0, life1.Length - 1)];
-                            mana_cost = 250;
-                            max_mana = ThreadSafeRandom.Next(mana_cost, mana_cost + 50);
-                            spellcraft = 250;
-                        }
-                        else if (spellChance < 75)
-                        {
-                            spellDID = creature6[ThreadSafeRandom.Next(0, creature2.Length - 1)];
-                            mana_cost = 300;
-                            max_mana = ThreadSafeRandom.Next(mana_cost, mana_cost + 50);
-                            spellcraft = 300;
-                        }
-                        else if (spellChance < 90)
-                        {
-                            spellDID = life6[ThreadSafeRandom.Next(0, life2.Length - 1)];
-                            mana_cost = 300;
-                            max_mana = ThreadSafeRandom.Next(mana_cost, mana_cost + 50);
-                            spellcraft = 300;
-                        }
-                        else if (spellChance < 95)
-                        {
-                            spellDID = creature7[ThreadSafeRandom.Next(0, creature3.Length - 1)];
-                            mana_cost = 350;
-                            max_mana = ThreadSafeRandom.Next(mana_cost, mana_cost + 50);
-                            spellcraft = 350;
-                        }
-                        else
-                        {
-                            spellDID = life7[ThreadSafeRandom.Next(0, life3.Length - 1)];
-                            mana_cost = 350;
-                            max_mana = ThreadSafeRandom.Next(mana_cost, mana_cost + 50);
-                            spellcraft = 350;
-                        }
-                    }
-                    workmanship = GetWorkmanship(5);
-                    break;
-                case 6:
-                    //tier 6
-                    gemType = t5gems[ThreadSafeRandom.Next(0, t5gems.Length - 1)];
-                    if (isMagical)
-                    {
-                        if (spellChance < 35)
-                        {
-                            spellDID = creature6[ThreadSafeRandom.Next(0, creature2.Length - 1)];
-                            mana_cost = 300;
-                            max_mana = ThreadSafeRandom.Next(mana_cost, mana_cost + 50);
-                            spellcraft = 300;
-                        }
-                        else if (spellChance < 70)
-                        {
-                            spellDID = life6[ThreadSafeRandom.Next(0, life2.Length - 1)];
-                            mana_cost = 300;
-                            max_mana = ThreadSafeRandom.Next(mana_cost, mana_cost + 50);
-                            spellcraft = 300;
-                        }
-                        else if (spellChance < 85)
-                        {
-                            spellDID = creature7[ThreadSafeRandom.Next(0, creature3.Length - 1)];
-                            mana_cost = 350;
-                            max_mana = ThreadSafeRandom.Next(mana_cost, mana_cost + 50);
-                            spellcraft = 350;
-                        }
-                        else
-                        {
-                            spellDID = life7[ThreadSafeRandom.Next(0, life3.Length - 1)];
-                            mana_cost = 350;
-                            max_mana = ThreadSafeRandom.Next(mana_cost, mana_cost + 50);
-                            spellcraft = 350;
-                        }
-                    }
-                    workmanship = GetWorkmanship(6);
-                    break;
-                case 7:
-                    //tier 7
-                    gemType = t5gems[ThreadSafeRandom.Next(0, t5gems.Length - 1)];
-                    if (isMagical)
-                    {
-                        spellChance = ThreadSafeRandom.Next(0, 100);
-                        if (spellChance < 30)
-                        {
-                            spellDID = creature6[ThreadSafeRandom.Next(0, creature1.Length - 1)];
-                            mana_cost = 300;
-                            max_mana = ThreadSafeRandom.Next(mana_cost, mana_cost + 50);
-                            spellcraft = 300;
-                        }
-                        else if (spellChance < 60)
-                        {
-                            spellDID = life6[ThreadSafeRandom.Next(0, life1.Length - 1)];
-                            mana_cost = 300;
-                            max_mana = ThreadSafeRandom.Next(mana_cost, mana_cost + 50);
-                            spellcraft = 300;
-                        }
-                        else if (spellChance < 75)
-                        {
-                            spellDID = creature7[ThreadSafeRandom.Next(0, creature2.Length - 1)];
-                            mana_cost = 350;
-                            max_mana = ThreadSafeRandom.Next(mana_cost, mana_cost + 50);
-                            spellcraft = 350;
-                        }
-                        else if (spellChance < 90)
-                        {
-                            spellDID = life7[ThreadSafeRandom.Next(0, life2.Length - 1)];
-                            mana_cost = 350;
-                            max_mana = ThreadSafeRandom.Next(mana_cost, mana_cost + 50);
-                            spellcraft = 350;
-                        }
-                        else if (spellChance < 95)
-                        {
-                            spellDID = creature8[ThreadSafeRandom.Next(0, creature3.Length - 1)];
-                            mana_cost = 400;
-                            max_mana = ThreadSafeRandom.Next(mana_cost, mana_cost + 50);
-                            spellcraft = 400;
-                        }
-                        else
-                        {
-                            spellDID = life8[ThreadSafeRandom.Next(0, life3.Length - 1)];
-                            mana_cost = 400;
-                            max_mana = ThreadSafeRandom.Next(mana_cost, mana_cost + 50);
-                            spellcraft = 400;
-                        }
-                    }
-                    workmanship = GetWorkmanship(7);
-                    break;
-                default:
-                    //tier 8
-                    gemType = t5gems[ThreadSafeRandom.Next(0, t5gems.Length - 1)];
-                    if (isMagical)
-                    {
-                        if (spellChance < 35)
-                        {
-                            spellDID = creature7[ThreadSafeRandom.Next(0, creature2.Length - 1)];
-                            mana_cost = 350;
-                            max_mana = ThreadSafeRandom.Next(mana_cost, mana_cost + 50);
-                            spellcraft = 350;
-                        }
-                        else if (spellChance < 70)
-                        {
-                            spellDID = life7[ThreadSafeRandom.Next(0, life2.Length - 1)];
-                            mana_cost = 350;
-                            max_mana = ThreadSafeRandom.Next(mana_cost, mana_cost + 50);
-                            spellcraft = 350;
-                        }
-                        else if (spellChance < 85)
-                        {
-                            spellDID = creature8[ThreadSafeRandom.Next(0, creature3.Length - 1)];
-                            mana_cost = 400;
-                            max_mana = ThreadSafeRandom.Next(mana_cost, mana_cost + 50);
-                            spellcraft = 400;
-                        }
-                        else
-                        {
-                            spellDID = life8[ThreadSafeRandom.Next(0, life3.Length - 1)];
-                            mana_cost = 400;
-                            max_mana = ThreadSafeRandom.Next(mana_cost, mana_cost + 50);
-                            spellcraft = 400;
-                        }
-                    }
-                    workmanship = GetWorkmanship(8);
-                    break;
+                int gemSpellIndex;
+                int spellChance = 0;
+
+                spellChance = ThreadSafeRandom.Next(0, 3);
+                switch (spellChance)
+                {
+                    case 0:
+                        gemSpellIndex = LootHelper.GemSpellIndexMatrix[gemLootMatrixIndex][0];
+                        spellDID = LootHelper.GemCreatureSpellMatrix[gemSpellIndex][ThreadSafeRandom.Next(0, LootHelper.GemCreatureSpellMatrix[gemSpellIndex].Length - 1)];
+                        break;
+                    case 1:
+                        gemSpellIndex = LootHelper.GemSpellIndexMatrix[gemLootMatrixIndex][0];
+                        spellDID = LootHelper.GemLifeSpellMatrix[gemSpellIndex][ThreadSafeRandom.Next(0, LootHelper.GemLifeSpellMatrix[gemSpellIndex].Length - 1)];
+                        break;
+                    case 2:
+                        gemSpellIndex = LootHelper.GemSpellIndexMatrix[gemLootMatrixIndex][1];
+                        spellDID = LootHelper.GemCreatureSpellMatrix[gemSpellIndex][ThreadSafeRandom.Next(0, LootHelper.GemCreatureSpellMatrix[gemSpellIndex].Length - 1)];
+                        break;
+                    default:
+                        gemSpellIndex = LootHelper.GemSpellIndexMatrix[gemLootMatrixIndex][1];
+                        spellDID = LootHelper.GemLifeSpellMatrix[gemSpellIndex][ThreadSafeRandom.Next(0, LootHelper.GemLifeSpellMatrix[gemSpellIndex].Length - 1)];
+                        break;
+                }
+
+                mana_cost = 50 * gemSpellIndex;
+                spellcraft = 50 * gemSpellIndex;
+                max_mana = ThreadSafeRandom.Next(mana_cost, mana_cost + 50);
             }
-            WorldObject wo = WorldObjectFactory.CreateNewWorldObject((uint)gemType) as Gem;
+
+            workmanship = GetWorkmanship(tier);
+
+            WorldObject wo = WorldObjectFactory.CreateNewWorldObject(gemType) as Gem;
             wo.SetProperty(PropertyInt.ItemWorkmanship, workmanship);
+
             if (spellDID > 0)
             {
                 wo.SetProperty(PropertyInt.ItemUseable, 8);
@@ -2096,6 +288,7 @@ namespace ACE.Server.Factories
                 wo.SetProperty(PropertyInt.ItemUseable, 1);
                 wo.SetProperty(PropertyInt.UiEffects, 0);
             }
+
             wo.SetProperty(PropertyInt.Value, GetValue(tier, workmanship));
             wo.SetProperty(PropertyDataId.Spell, (uint)spellDID);
             wo.SetProperty(PropertyInt.ItemAllegianceRankLimit, rank);
@@ -2106,6 +299,7 @@ namespace ACE.Server.Factories
             wo.SetProperty(PropertyInt.ItemSpellcraft, spellcraft);
             wo.RemoveProperty(PropertyInt.ItemDifficulty);
             wo.RemoveProperty(PropertyInt.ItemSkillLevelLimit);
+
             if (spellDID == 0)
             {
                 wo.RemoveProperty(PropertyInt.ItemManaCost);
@@ -2115,32 +309,34 @@ namespace ACE.Server.Factories
                 wo.RemoveProperty(PropertyInt.ItemDifficulty);
                 wo.RemoveProperty(PropertyDataId.Spell);
             }
+
             return wo;
         }
 
-        public static int CreateFood()
+        private static int CreateFood()
         {
-
             int foodType = 0;
-            int[] food = { 258, 4746, 259, 547, 260, 5758, 261, 262, 263, 264, 265 };
-            foodType = food[ThreadSafeRandom.Next(0, food.Length - 1)];
+            foodType = LootHelper.food[ThreadSafeRandom.Next(0, LootHelper.food.Length - 1)];
             return foodType;
         }
 
-        public static WorldObject CreateRandomScroll(int tier)
+        private static WorldObject CreateRandomScroll(int tier)
         {
-            uint weenieID;
-
             var tier2 = tier;
             if (tier > 6)
                 tier2 = 6;
-            weenieID = (uint)LootHelper.ScrollSpells[ThreadSafeRandom.Next(0, LootHelper.ScrollSpells.Length - 1)][tier2 - 1];
-            String className = DatabaseManager.World.GetScrollWeenie(weenieID).ClassName;
-            WorldObject wo = WorldObjectFactory.CreateNewWorldObject(className);
-            return wo;
+            var spellID = (uint)LootHelper.ScrollSpells[ThreadSafeRandom.Next(0, LootHelper.ScrollSpells.Length - 1)][tier2 - 1];
+            var weenie = DatabaseManager.World.GetScrollWeenie(spellID);
+            if (weenie == null)
+            {
+                log.WarnFormat("CreateRandomScroll for tier {0} and spellID of {1} returned null from the database.", tier, spellID);
+                return null;
+            }
+
+            return WorldObjectFactory.CreateNewWorldObject(weenie.ClassName);
         }
 
-        public static WorldObject CreateJewelry(int tier, bool isMagical)
+        private static WorldObject CreateJewelry(int tier, bool isMagical)
         {
 
             int[][] JewelrySpells = LootHelper.JewelrySpells;
@@ -2264,10 +460,11 @@ namespace ACE.Server.Factories
                 wo.RemoveProperty(PropertyInt.ItemSpellcraft);
                 wo.RemoveProperty(PropertyInt.ItemDifficulty);
             }
+
             return wo;
         }
 
-        static void Shuffle<T>(T[] array)
+        private static void Shuffle<T>(T[] array)
         {
             Random _r = new Random();
             int n = array.Length;
@@ -2280,18 +477,15 @@ namespace ACE.Server.Factories
             }
         }
 
-        public static WorldObject CreateWeapon(int tier, bool isMagical)
+        private static WorldObject CreateWeapon(int tier, bool isMagical)
         {
-
             int weaponWeenie = 0;
-            int weaponType = 0;
             int numSpells = 0;
-            int damage = 0; //
-            double damageVariance = 0; //
-            double weaponDefense = 0; //
-            double weaponOffense = 0; //
-            int longDescDecoration = 5; // 
-            int uiEffects; // Initialize but don't set a base value, to allow underlying weenie to set it if appropriate
+            int damage = 0;
+            double damageVariance = 0;
+            double weaponDefense = 0;
+            double weaponOffense = 0;
+            int longDescDecoration = 5; 
 
             ///Properties for weapons
             if (isMagical)
@@ -2307,2068 +501,325 @@ namespace ACE.Server.Factories
             int spellCraft = GetSpellcraft(numSpells, tier);
             int itemDifficulty = GetDifficulty(tier, spellCraft); ;
             int wieldDiff = GetWield(tier, 3);
-            int wieldRequirments = 2;
-            int wieldSkillType = 0;
+            WieldRequirement wieldRequirments = WieldRequirement.RawSkill;
+            Skill wieldSkillType = Skill.None;
             int maxMana = GetMaxMana(numSpells, tier);
-            int subType = 0;
 
-            weaponType = ThreadSafeRandom.Next(0, 5);
+            int eleType = ThreadSafeRandom.Next(0, 4);
+            int weaponType = ThreadSafeRandom.Next(0, 5);
             switch (weaponType)
             {
                 case 0:
-                    ////Heavy Weapons, of which there are 7 sub types
-                    wieldSkillType = 44;
-                    subType = ThreadSafeRandom.Next(0, 6);
-                    if (subType == 0)
-                    {
-                        weaponDefense = GetMaxDamageMod(tier, 18);
-                        weaponOffense = GetMaxDamageMod(tier, 22);
-                        damage = GetMaxDamage(1, tier, wieldDiff, 1);
-                        damageVariance = GetVariance(1, 1);
-                        int subAxeType = ThreadSafeRandom.Next(0, 2);
-                        ////There are 4 subtypes of axes
-                        if (subAxeType == 0)
-                        {
-                            ////Battle Axe
-                            int eleType = ThreadSafeRandom.Next(0, 4);
-                            switch (eleType)
-                            {
-                                case 0:
-                                    weaponWeenie = 301;
-                                    break;
-                                case 1:
-                                    weaponWeenie = 3750;
-                                    break;
-                                case 2:
-                                    weaponWeenie = 3751;
-                                    break;
-                                case 3:
-                                    weaponWeenie = 3752;
-                                    break;
-                                default:
-                                    weaponWeenie = 3753;
-                                    break;
-                            }
+                    wieldSkillType = Skill.HeavyWeapons;
+                    int heavyWeaponsType = ThreadSafeRandom.Next(0, 22);
+                    weaponWeenie = LootHelper.HeavyWeaponsMatrix[heavyWeaponsType][eleType];
 
-                        }
-                        if (subAxeType == 1)
-                        {
-                            ////Silifi
-                            int eleType = ThreadSafeRandom.Next(0, 4);
-                            switch (eleType)
-                            {
-                                case 0:
-                                    weaponWeenie = 344;
-                                    break;
-                                case 1:
-                                    weaponWeenie = 3865;
-                                    break;
-                                case 2:
-                                    weaponWeenie = 3866;
-                                    break;
-                                case 3:
-                                    weaponWeenie = 3867;
-                                    break;
-                                default:
-                                    weaponWeenie = 3868;
-                                    break;
-                            }
+                    switch (heavyWeaponsType)
+                    {
+                        case 0:
+                        case 1:
+                        case 2:
+                            weaponDefense = GetMaxDamageMod(tier, 18);
+                            weaponOffense = GetMaxDamageMod(tier, 22);
+                            damage = GetMaxDamage(1, tier, wieldDiff, 1);
+                            damageVariance = GetVariance(1, 1);
+                            break;
+                        case 3:
+                        case 4:
+                        case 5:
+                            weaponDefense = GetMaxDamageMod(tier, 20);
+                            weaponOffense = GetMaxDamageMod(tier, 20);
 
-                        }
-                        if (subAxeType == 2)
-                        {
-                            ////War Axe
-                            int eleType = ThreadSafeRandom.Next(0, 4);
-                            switch (eleType)
+                            damage = GetMaxDamage(1, tier, wieldDiff, 2);
+
+                            if (heavyWeaponsType == 3)
+                                damageVariance = GetVariance(1, 2);
+                            if (heavyWeaponsType == 4 || heavyWeaponsType == 5)
                             {
-                                case 0:
-                                    weaponWeenie = 31769;
-                                    break;
-                                case 1:
-                                    weaponWeenie = 31770;
-                                    break;
-                                case 2:
-                                    weaponWeenie = 31771;
-                                    break;
-                                case 3:
-                                    weaponWeenie = 31772;
-                                    break;
-                                default:
-                                    weaponWeenie = 31768;
-                                    break;
+                                damage = GetMaxDamage(1, tier, wieldDiff, 3);
+                                damageVariance = GetVariance(1, 3);
                             }
-                        }
-                    }
-                    if (subType == 1)
-                    {
-                        damage = GetMaxDamage(1, tier, wieldDiff, 2);
-                        weaponDefense = GetMaxDamageMod(tier, 20);
-                        weaponOffense = GetMaxDamageMod(tier, 20);
-                        ////There are three subtypes of daggers
-                        int subDaggerType = ThreadSafeRandom.Next(0, 2);
-                        if (subDaggerType == 0)
-                        {
-                            ////Dirk
-                            int eleType = ThreadSafeRandom.Next(0, 4);
-                            switch (eleType)
-                            {
-                                case 0:
-                                    weaponWeenie = 22440;
-                                    break;
-                                case 1:
-                                    weaponWeenie = 22441;
-                                    break;
-                                case 2:
-                                    weaponWeenie = 22442;
-                                    break;
-                                case 3:
-                                    weaponWeenie = 22443;
-                                    break;
-                                default:
-                                    weaponWeenie = 22444;
-                                    break;
-                            }
-                            damageVariance = GetVariance(1, 2);
-                        }
-                        if (subDaggerType == 1)
-                        {
-                            ////Stiletto
-                            damage = GetMaxDamage(1, tier, wieldDiff, 3);
-                            damageVariance = GetVariance(1, 3);
-                            int eleType = ThreadSafeRandom.Next(0, 4);
-                            switch (eleType)
-                            {
-                                case 0:
-                                    weaponWeenie = 30601;
-                                    break;
-                                case 1:
-                                    weaponWeenie = 30602;
-                                    break;
-                                case 2:
-                                    weaponWeenie = 30603;
-                                    break;
-                                case 3:
-                                    weaponWeenie = 30604;
-                                    break;
-                                default:
-                                    weaponWeenie = 30605;
-                                    break;
-                            }
-                        }
-                        if (subDaggerType == 2)
-                        {
-                            ////Jambiya
-                            damage = GetMaxDamage(1, tier, wieldDiff, 3);
-                            damageVariance = GetVariance(1, 3);
-                            int eleType = ThreadSafeRandom.Next(0, 4);
-                            switch (eleType)
-                            {
-                                case 0:
-                                    weaponWeenie = 319;
-                                    break;
-                                case 1:
-                                    weaponWeenie = 3794;
-                                    break;
-                                case 2:
-                                    weaponWeenie = 3795;
-                                    break;
-                                case 3:
-                                    weaponWeenie = 3796;
-                                    break;
-                                default:
-                                    weaponWeenie = 3797;
-                                    break;
-                            }
-                        }
-                    }
-                    if (subType == 2)
-                    {
-                        ////There are 4 subtypes of maces
-                        damage = GetMaxDamage(1, tier, wieldDiff, 4);
-                        weaponDefense = GetMaxDamageMod(tier, 22);
-                        weaponOffense = GetMaxDamageMod(tier, 18);
-                        damageVariance = GetVariance(1, 4);
-                        int subMaceType = ThreadSafeRandom.Next(0, 3);
-                        if (subMaceType == 0)
-                        {
-                            ////Flanged Mace
-                            int eleType = ThreadSafeRandom.Next(0, 4);
-                            switch (eleType)
-                            {
-                                case 0:
-                                    weaponWeenie = 30586;
-                                    break;
-                                case 1:
-                                    weaponWeenie = 30587;
-                                    break;
-                                case 2:
-                                    weaponWeenie = 30588;
-                                    break;
-                                case 3:
-                                    weaponWeenie = 30589;
-                                    break;
-                                default:
-                                    weaponWeenie = 30590;
-                                    break;
-                            }
-                        }
-                        if (subMaceType == 1)
-                        {
-                            ////Mace
-                            int eleType = ThreadSafeRandom.Next(0, 4);
-                            switch (eleType)
-                            {
-                                case 0:
-                                    weaponWeenie = 331;
-                                    break;
-                                case 1:
-                                    weaponWeenie = 3834;
-                                    break;
-                                case 2:
-                                    weaponWeenie = 3835;
-                                    break;
-                                case 3:
-                                    weaponWeenie = 3836;
-                                    break;
-                                default:
-                                    weaponWeenie = 3837;
-                                    break;
-                            }
-                        }
-                        if (subMaceType == 2)
-                        {
-                            ////Mazule
-                            int eleType = ThreadSafeRandom.Next(0, 4);
-                            switch (eleType)
-                            {
-                                case 0:
-                                    weaponWeenie = 30581;
-                                    break;
-                                case 1:
-                                    weaponWeenie = 30582;
-                                    break;
-                                case 2:
-                                    weaponWeenie = 30583;
-                                    break;
-                                case 3:
-                                    weaponWeenie = 30584;
-                                    break;
-                                default:
-                                    weaponWeenie = 30585;
-                                    break;
-                            }
-                        }
-                        if (subMaceType == 3)
-                        {
-                            ////Morning Star
-                            int eleType = ThreadSafeRandom.Next(0, 4);
-                            switch (eleType)
-                            {
-                                case 0:
-                                    weaponWeenie = 332;
-                                    break;
-                                case 1:
-                                    weaponWeenie = 3937;
-                                    break;
-                                case 2:
-                                    weaponWeenie = 3938;
-                                    break;
-                                case 3:
-                                    weaponWeenie = 3939;
-                                    break;
-                                default:
-                                    weaponWeenie = 3940;
-                                    break;
-                            }
-                            weaponWeenie = 332;
-                        }
-                    }
-                    if (subType == 3)
-                    {
-                        ////There are three subtypes of spears
-                        damage = GetMaxDamage(1, tier, wieldDiff, 5);
-                        weaponDefense = GetMaxDamageMod(tier, 15);
-                        weaponOffense = GetMaxDamageMod(tier, 25);
-                        damageVariance = GetVariance(1, 5);
-                        int subSpearType = ThreadSafeRandom.Next(1, 2);
-                        //////
-                        //////
-                        //////Spine Glaive is not in the database which is why we start the random at 1.
-                        if (subSpearType == 0)
-                        {
-                            ////Spine Glaive
-                            int eleType = ThreadSafeRandom.Next(0, 4);
-                            switch (eleType)
-                            {
-                                case 0:
-                                    weaponWeenie = 30581;
-                                    break;
-                                case 1:
-                                    weaponWeenie = 30582;
-                                    break;
-                                case 2:
-                                    weaponWeenie = 30583;
-                                    break;
-                                case 3:
-                                    weaponWeenie = 30584;
-                                    break;
-                                default:
-                                    weaponWeenie = 30585;
-                                    break;
-                            }
-                            weaponWeenie = 38932;
-                        }
-                        if (subSpearType == 1)
-                        {
-                            ////Partizan
-                            int eleType = ThreadSafeRandom.Next(0, 4);
-                            switch (eleType)
-                            {
-                                case 0:
-                                    weaponWeenie = 30591;
-                                    break;
-                                case 1:
-                                    weaponWeenie = 30592;
-                                    break;
-                                case 2:
-                                    weaponWeenie = 30593;
-                                    break;
-                                case 3:
-                                    weaponWeenie = 30594;
-                                    break;
-                                default:
-                                    weaponWeenie = 30595;
-                                    break;
-                            }
-                        }
-                        if (subSpearType == 2)
-                        {
-                            ////Trident
-                            int eleType = ThreadSafeRandom.Next(0, 4);
-                            switch (eleType)
-                            {
-                                case 0:
-                                    weaponWeenie = 7772;
-                                    break;
-                                case 1:
-                                    weaponWeenie = 7791;
-                                    break;
-                                case 2:
-                                    weaponWeenie = 7792;
-                                    break;
-                                case 3:
-                                    weaponWeenie = 7793;
-                                    break;
-                                default:
-                                    weaponWeenie = 7794;
-                                    break;
-                            }
-                        }
-                    }
-                    if (subType == 4)
-                    {
-                        ////There are two subtypes of staves
-                        damage = GetMaxDamage(1, tier, wieldDiff, 8);
-                        weaponDefense = GetMaxDamageMod(tier, 25);
-                        weaponOffense = GetMaxDamageMod(tier, 15);
-                        damageVariance = GetVariance(1, 6);
-                        int subStaffType = ThreadSafeRandom.Next(0, 0);
-                        ///stick is not in db yet, so the random always returns 0, but it is left in to allow for the expansion later easily.
-                        if (subStaffType == 0)
-                        {
-                            ////Nabut
-                            int eleType = ThreadSafeRandom.Next(0, 4);
-                            switch (eleType)
-                            {
-                                case 0:
-                                    weaponWeenie = 333;
-                                    break;
-                                case 1:
-                                    weaponWeenie = 22159;
-                                    break;
-                                case 2:
-                                    weaponWeenie = 22160;
-                                    break;
-                                case 3:
-                                    weaponWeenie = 22161;
-                                    break;
-                                default:
-                                    weaponWeenie = 22162;
-                                    break;
-                            }
-                        }
-                        if (subStaffType == 1)
-                        {
-                            ////Stick
-                            int eleType = ThreadSafeRandom.Next(0, 4);
-                            switch (eleType)
-                            {
-                                case 0:
-                                    weaponWeenie = 31788;
-                                    break;
-                                case 1:
-                                    weaponWeenie = 31789;
-                                    break;
-                                case 2:
-                                    weaponWeenie = 31790;
-                                    break;
-                                case 3:
-                                    weaponWeenie = 31791;
-                                    break;
-                                default:
-                                    weaponWeenie = 31792;
-                                    break;
-                            }
-                        }
-                    }
-                    if (subType == 5)
-                    {
-                        ////There are six subtypes of swords
-                        damage = GetMaxDamage(1, tier, wieldDiff, 6);
-                        weaponDefense = GetMaxDamageMod(tier, 20);
-                        weaponOffense = GetMaxDamageMod(tier, 20);
-                        int subSwordType = ThreadSafeRandom.Next(0, 4);
-                        if (subSwordType == 0)
-                        {
-                            ////Flamberge
+                            break;
+                        case 6:
+                        case 7:
+                        case 8:
+                        case 9:
+                            weaponDefense = GetMaxDamageMod(tier, 22);
+                            weaponOffense = GetMaxDamageMod(tier, 18);
+                            damage = GetMaxDamage(1, tier, wieldDiff, 4);
+                            damageVariance = GetVariance(1, 4);
+                            break;
+                        case 10:
+                        case 11:
+                        case 12:
+                            weaponDefense = GetMaxDamageMod(tier, 15);
+                            weaponOffense = GetMaxDamageMod(tier, 25);
+                            damage = GetMaxDamage(1, tier, wieldDiff, 5);
+                            damageVariance = GetVariance(1, 5);
+                            break;
+                        case 13:
+                        case 14:
+                            weaponDefense = GetMaxDamageMod(tier, 25);
+                            weaponOffense = GetMaxDamageMod(tier, 15);
+                            damage = GetMaxDamage(1, tier, wieldDiff, 8);
+                            damageVariance = GetVariance(1, 6);
+                            break;
+                        case 15:
+                        case 16:
+                        case 17:
+                        case 18:
+                        case 19:
+                        case 20:
+                            weaponDefense = GetMaxDamageMod(tier, 20);
+                            weaponOffense = GetMaxDamageMod(tier, 20);
+
+                            damage = GetMaxDamage(1, tier, wieldDiff, 6);
                             damageVariance = GetVariance(1, 7);
-                            int eleType = ThreadSafeRandom.Next(0, 4);
-                            switch (eleType)
+
+                            if (heavyWeaponsType == 20)
                             {
-                                case 0:
-                                    weaponWeenie = 30576;
-                                    break;
-                                case 1:
-                                    weaponWeenie = 30577;
-                                    break;
-                                case 2:
-                                    weaponWeenie = 30578;
-                                    break;
-                                case 3:
-                                    weaponWeenie = 30579;
-                                    break;
-                                default:
-                                    weaponWeenie = 30580;
-                                    break;
+                                damage = GetMaxDamage(1, tier, wieldDiff, 7);
+                                damageVariance = GetVariance(1, 8);
                             }
-                        }
-                        if (subSwordType == 1)
-                        {
-                            ////Ken
-                            damageVariance = GetVariance(1, 7);
-                            int eleType = ThreadSafeRandom.Next(0, 4);
-                            switch (eleType)
-                            {
-                                case 0:
-                                    weaponWeenie = 327;
-                                    break;
-                                case 1:
-                                    weaponWeenie = 3822;
-                                    break;
-                                case 2:
-                                    weaponWeenie = 3823;
-                                    break;
-                                case 3:
-                                    weaponWeenie = 3824;
-                                    break;
-                                default:
-                                    weaponWeenie = 3825;
-                                    break;
-                            }
-                            weaponWeenie = 327;
-                        }
-                        if (subSwordType == 2)
-                        {
-                            ////Long Sword
-                            damageVariance = GetVariance(1, 7);
-                            int eleType = ThreadSafeRandom.Next(0, 4);
-                            switch (eleType)
-                            {
-                                case 0:
-                                    weaponWeenie = 351;
-                                    break;
-                                case 1:
-                                    weaponWeenie = 3881;
-                                    break;
-                                case 2:
-                                    weaponWeenie = 3882;
-                                    break;
-                                case 3:
-                                    weaponWeenie = 3883;
-                                    break;
-                                default:
-                                    weaponWeenie = 3884;
-                                    break;
-                            }
-                        }
-                        if (subSwordType == 3)
-                        {
-                            ////Tachi
-                            damageVariance = GetVariance(1, 7);
-                            int eleType = ThreadSafeRandom.Next(0, 4);
-                            switch (eleType)
-                            {
-                                case 0:
-                                    weaponWeenie = 353;
-                                    break;
-                                case 1:
-                                    weaponWeenie = 3889;
-                                    break;
-                                case 2:
-                                    weaponWeenie = 3890;
-                                    break;
-                                case 3:
-                                    weaponWeenie = 3891;
-                                    break;
-                                default:
-                                    weaponWeenie = 3892;
-                                    break;
-                            }
-                        }
-                        if (subSwordType == 4)
-                        {
-                            ////Takuba
-                            damageVariance = GetVariance(1, 7);
-                            int eleType = ThreadSafeRandom.Next(0, 4);
-                            switch (eleType)
-                            {
-                                case 0:
-                                    weaponWeenie = 354;
-                                    break;
-                                case 1:
-                                    weaponWeenie = 3893;
-                                    break;
-                                case 2:
-                                    weaponWeenie = 3894;
-                                    break;
-                                case 3:
-                                    weaponWeenie = 3895;
-                                    break;
-                                default:
-                                    weaponWeenie = 3896;
-                                    break;
-                            }
-                        }
-                        if (subSwordType == 5)
-                        {
-                            ////Schlager
-                            damage = GetMaxDamage(1, tier, wieldDiff, 7);
-                            damageVariance = GetVariance(1, 8);
-                            weaponWeenie = 45108;
-                            int eleType = ThreadSafeRandom.Next(0, 4);
-                            switch (eleType)
-                            {
-                                case 0:
-                                    weaponWeenie = 45108;
-                                    break;
-                                case 1:
-                                    weaponWeenie = 45109;
-                                    break;
-                                case 2:
-                                    weaponWeenie = 45110;
-                                    break;
-                                case 3:
-                                    weaponWeenie = 45111;
-                                    break;
-                                default:
-                                    weaponWeenie = 45112;
-                                    break;
-                            }
-                        }
-                    }
-                    if (subType == 6)
-                    {
-                        ////There are 2 subtypes of UA
-                        damage = GetMaxDamage(1, tier, wieldDiff, 9);
-                        weaponDefense = GetMaxDamageMod(tier, 20);
-                        weaponOffense = GetMaxDamageMod(tier, 20);
-                        damageVariance = GetVariance(1, 9);
-                        int subUAType = ThreadSafeRandom.Next(0, 1);
-                        if (subUAType == 0)
-                        {
-                            ////Cestus
-                            int eleType = ThreadSafeRandom.Next(0, 4);
-                            switch (eleType)
-                            {
-                                case 0:
-                                    weaponWeenie = 4190;
-                                    break;
-                                case 1:
-                                    weaponWeenie = 4194;
-                                    break;
-                                case 2:
-                                    weaponWeenie = 4192;
-                                    break;
-                                case 3:
-                                    weaponWeenie = 4193;
-                                    break;
-                                default:
-                                    weaponWeenie = 4194;
-                                    break;
-                            }
-                        }
-                        if (subUAType == 1)
-                        {
-                            ////Nekode
-                            int eleType = ThreadSafeRandom.Next(0, 4);
-                            switch (eleType)
-                            {
-                                case 0:
-                                    weaponWeenie = 4195;
-                                    break;
-                                case 1:
-                                    weaponWeenie = 4196;
-                                    break;
-                                case 2:
-                                    weaponWeenie = 4197;
-                                    break;
-                                case 3:
-                                    weaponWeenie = 4198;
-                                    break;
-                                default:
-                                    weaponWeenie = 4199;
-                                    break;
-                            }
-                        }
+                            break;
+                        case 21:
+                        default:
+                            damage = GetMaxDamage(1, tier, wieldDiff, 9);
+                            weaponDefense = GetMaxDamageMod(tier, 20);
+                            weaponOffense = GetMaxDamageMod(tier, 20);
+                            damageVariance = GetVariance(1, 9);
+                            break;
                     }
                     break;
                 case 1:
-                    ///Light weapons
-                    wieldSkillType = 46;
-                    subType = ThreadSafeRandom.Next(0, 6);
-                    if (subType == 0)
+                    wieldSkillType = Skill.LightWeapons;
+                    int lightWeaponsType = ThreadSafeRandom.Next(0, 19);
+                    weaponWeenie = LootHelper.HeavyWeaponsMatrix[lightWeaponsType][eleType];
+
+                    switch (lightWeaponsType)
                     {
-                        damage = GetMaxDamage(2, tier, wieldDiff, 1);
-                        damageVariance = GetVariance(2, 1);
-                        weaponDefense = GetMaxDamageMod(tier, 18);
-                        weaponOffense = GetMaxDamageMod(tier, 22);
-                        int subAxeType = ThreadSafeRandom.Next(0, 3);
-                        ////There are 4 subtypes of axes
-                        if (subAxeType == 0)
-                        {
-                            ////Dolabra
-                            int eleType = ThreadSafeRandom.Next(0, 4);
-                            switch (eleType)
+                        case 0:
+                        case 1:
+                        case 2:
+                        case 3:
+                            weaponDefense = GetMaxDamageMod(tier, 18);
+                            weaponOffense = GetMaxDamageMod(tier, 22);
+                            damage = GetMaxDamage(2, tier, wieldDiff, 1);
+                            damageVariance = GetVariance(2, 1);
+                            break;
+                        case 4:
+                        case 5:
+                            weaponDefense = GetMaxDamageMod(tier, 20);
+                            weaponOffense = GetMaxDamageMod(tier, 20);
+
+                            if (lightWeaponsType == 4)
                             {
-                                case 0:
-                                    weaponWeenie = 30561;
-                                    break;
-                                case 1:
-                                    weaponWeenie = 30562;
-                                    break;
-                                case 2:
-                                    weaponWeenie = 30563;
-                                    break;
-                                case 3:
-                                    weaponWeenie = 30564;
-                                    break;
-                                default:
-                                    weaponWeenie = 30565;
-                                    break;
+                                damage = GetMaxDamage(2, tier, wieldDiff, 2);
+                                damageVariance = GetVariance(2, 2);
                             }
-                        }
-                        if (subAxeType == 1)
-                        {
-                            ////Hand Axe
-                            int eleType = ThreadSafeRandom.Next(0, 4);
-                            switch (eleType)
+
+                            if (lightWeaponsType == 5)
                             {
-                                case 0:
-                                    weaponWeenie = 303;
-                                    break;
-                                case 1:
-                                    weaponWeenie = 3754;
-                                    break;
-                                case 2:
-                                    weaponWeenie = 3755;
-                                    break;
-                                case 3:
-                                    weaponWeenie = 3756;
-                                    break;
-                                default:
-                                    weaponWeenie = 3757;
-                                    break;
+                                damage = GetMaxDamage(2, tier, wieldDiff, 3);
+                                damageVariance = GetVariance(2, 3);
                             }
-                        }
-                        if (subAxeType == 2)
-                        {
-                            ////Ono
-                            int eleType = ThreadSafeRandom.Next(0, 4);
-                            switch (eleType)
+                            break;
+                        case 6:
+                        case 7:
+                        case 8:
+                            weaponDefense = GetMaxDamageMod(tier, 22);
+                            weaponOffense = GetMaxDamageMod(tier, 18);
+                            damage = GetMaxDamage(2, tier, wieldDiff, 4);
+                            damageVariance = GetVariance(2, 4);
+                            break;
+                        case 9:
+                        case 10:
+                            weaponDefense = GetMaxDamageMod(tier, 15);
+                            weaponOffense = GetMaxDamageMod(tier, 25);
+                            damage = GetMaxDamage(2, tier, wieldDiff, 5);
+                            damageVariance = GetVariance(2, 6);
+                            break;
+                        case 11:
+                            weaponDefense = GetMaxDamageMod(tier, 25);
+                            weaponOffense = GetMaxDamageMod(tier, 15);
+                            damage = GetMaxDamage(2, tier, wieldDiff, 8);
+                            damageVariance = GetVariance(2, 7);
+                            break;
+                        case 12:
+                        case 13:
+                        case 14:
+                        case 15:
+                        case 16:
+                        case 17:
+                            weaponDefense = GetMaxDamageMod(tier, 20);
+                            weaponOffense = GetMaxDamageMod(tier, 20);
+
+                            damage = GetMaxDamage(2, tier, wieldDiff, 6);
+                            damageVariance = GetVariance(2, 8);
+
+                            if (lightWeaponsType == 14)
                             {
-                                case 0:
-                                    weaponWeenie = 336;
-                                    break;
-                                case 1:
-                                    weaponWeenie = 3842;
-                                    break;
-                                case 2:
-                                    weaponWeenie = 3843;
-                                    break;
-                                case 3:
-                                    weaponWeenie = 3844;
-                                    break;
-                                default:
-                                    weaponWeenie = 3845;
-                                    break;
+                                damage = GetMaxDamage(2, tier, wieldDiff, 7);
+                                damageVariance = GetVariance(2, 9);
                             }
-                        }
-                        if (subAxeType == 3)
-                        {
-                            ////War Hammer
-                            int eleType = ThreadSafeRandom.Next(0, 4);
-                            switch (eleType)
-                            {
-                                case 0:
-                                    weaponWeenie = 359;
-                                    break;
-                                case 1:
-                                    weaponWeenie = 3905;
-                                    break;
-                                case 2:
-                                    weaponWeenie = 3906;
-                                    break;
-                                case 3:
-                                    weaponWeenie = 3907;
-                                    break;
-                                default:
-                                    weaponWeenie = 3908;
-                                    break;
-                            }
-                        }
-                    }
-                    if (subType == 1)
-                    {
-                        ////There are 2 subtypes of daggers
-                        damage = GetMaxDamage(2, tier, wieldDiff, 2);
-                        weaponDefense = GetMaxDamageMod(tier, 20);
-                        weaponOffense = GetMaxDamageMod(tier, 20);
-                        int subDaggerType = ThreadSafeRandom.Next(0, 1);
-                        if (subDaggerType == 0)
-                        {
-                            ////Dagger
-                            damageVariance = GetVariance(2, 2);
-                            int eleType = ThreadSafeRandom.Next(0, 4);
-                            switch (eleType)
-                            {
-                                case 0:
-                                    weaponWeenie = 314;
-                                    break;
-                                case 1:
-                                    weaponWeenie = 3778;
-                                    break;
-                                case 2:
-                                    weaponWeenie = 3779;
-                                    break;
-                                case 3:
-                                    weaponWeenie = 3780;
-                                    break;
-                                default:
-                                    weaponWeenie = 3781;
-                                    break;
-                            }
-                        }
-                        if (subDaggerType == 1)
-                        {
-                            ////Khanjar
-                            damageVariance = GetVariance(2, 3);
-                            damage = GetMaxDamage(2, tier, wieldDiff, 3);
-                            int eleType = ThreadSafeRandom.Next(0, 4);
-                            switch (eleType)
-                            {
-                                case 0:
-                                    weaponWeenie = 328;
-                                    break;
-                                case 1:
-                                    weaponWeenie = 3826;
-                                    break;
-                                case 2:
-                                    weaponWeenie = 3827;
-                                    break;
-                                case 3:
-                                    weaponWeenie = 3828;
-                                    break;
-                                default:
-                                    weaponWeenie = 3829;
-                                    break;
-                            }
-                        }
-                    }
-                    if (subType == 2)
-                    {
-                        damage = GetMaxDamage(2, tier, wieldDiff, 4);
-                        damageVariance = GetVariance(2, 4);
-                        weaponDefense = GetMaxDamageMod(tier, 22);
-                        weaponOffense = GetMaxDamageMod(tier, 18);
-                        ////There are 3 subtypes of maces
-                        int subMaceType = ThreadSafeRandom.Next(0, 2);
-                        if (subMaceType == 0)
-                        {
-                            ////Club
-                            int eleType = ThreadSafeRandom.Next(0, 4);
-                            switch (eleType)
-                            {
-                                case 0:
-                                    weaponWeenie = 309;
-                                    break;
-                                case 1:
-                                    weaponWeenie = 3766;
-                                    break;
-                                case 2:
-                                    weaponWeenie = 3767;
-                                    break;
-                                case 3:
-                                    weaponWeenie = 3768;
-                                    break;
-                                default:
-                                    weaponWeenie = 3769;
-                                    break;
-                            }
-                        }
-                        if (subMaceType == 1)
-                        {
-                            ////Kasrullah
-                            int eleType = ThreadSafeRandom.Next(0, 4);
-                            switch (eleType)
-                            {
-                                case 0:
-                                    weaponWeenie = 325;
-                                    break;
-                                case 1:
-                                    weaponWeenie = 3814;
-                                    break;
-                                case 2:
-                                    weaponWeenie = 3815;
-                                    break;
-                                case 3:
-                                    weaponWeenie = 3816;
-                                    break;
-                                default:
-                                    weaponWeenie = 3817;
-                                    break;
-                            }
-                        }
-                        if (subMaceType == 2)
-                        {
-                            ////Spiked Club
-                            int eleType = ThreadSafeRandom.Next(0, 4);
-                            switch (eleType)
-                            {
-                                case 0:
-                                    weaponWeenie = 7768;
-                                    break;
-                                case 1:
-                                    weaponWeenie = 7787;
-                                    break;
-                                case 2:
-                                    weaponWeenie = 7788;
-                                    break;
-                                case 3:
-                                    weaponWeenie = 7789;
-                                    break;
-                                default:
-                                    weaponWeenie = 7790;
-                                    break;
-                            }
-                        }
-                    }
-                    if (subType == 3)
-                    {
-                        damage = GetMaxDamage(2, tier, wieldDiff, 5);
-                        damageVariance = GetVariance(2, 6);
-                        weaponDefense = GetMaxDamageMod(tier, 15);
-                        weaponOffense = GetMaxDamageMod(tier, 25);
-                        ////There are 2 subtypes of spears
-                        int subSpearType = ThreadSafeRandom.Next(0, 1);
-                        if (subSpearType == 0)
-                        {
-                            ////Spear
-                            int eleType = ThreadSafeRandom.Next(0, 4);
-                            switch (eleType)
-                            {
-                                case 0:
-                                    weaponWeenie = 348;
-                                    break;
-                                case 1:
-                                    weaponWeenie = 3873;
-                                    break;
-                                case 2:
-                                    weaponWeenie = 3874;
-                                    break;
-                                case 3:
-                                    weaponWeenie = 3875;
-                                    break;
-                                default:
-                                    weaponWeenie = 3876;
-                                    break;
-                            }
-                        }
-                        if (subSpearType == 1)
-                        {
-                            ////Yari
-                            int eleType = ThreadSafeRandom.Next(0, 4);
-                            switch (eleType)
-                            {
-                                case 0:
-                                    weaponWeenie = 362;
-                                    break;
-                                case 1:
-                                    weaponWeenie = 3913;
-                                    break;
-                                case 2:
-                                    weaponWeenie = 3914;
-                                    break;
-                                case 3:
-                                    weaponWeenie = 3915;
-                                    break;
-                                default:
-                                    weaponWeenie = 3916;
-                                    break;
-                            }
-                        }
-                    }
-                    if (subType == 4)
-                    {
-                        damage = GetMaxDamage(2, tier, wieldDiff, 8);
-                        damageVariance = GetVariance(2, 7);
-                        weaponDefense = GetMaxDamageMod(tier, 25);
-                        weaponOffense = GetMaxDamageMod(tier, 15);
-                        ////There is 1 subtypes of staves
-                        int subStaffType = ThreadSafeRandom.Next(0, 0);
-                        if (subStaffType == 0)
-                        {
-                            ////Quarter Staff
-                            int eleType = ThreadSafeRandom.Next(0, 4);
-                            switch (eleType)
-                            {
-                                case 0:
-                                    weaponWeenie = 338;
-                                    break;
-                                case 1:
-                                    weaponWeenie = 22164;
-                                    break;
-                                case 2:
-                                    weaponWeenie = 22165;
-                                    break;
-                                case 3:
-                                    weaponWeenie = 22166;
-                                    break;
-                                default:
-                                    weaponWeenie = 22167;
-                                    break;
-                            }
-                        }
-                    }
-                    if (subType == 5)
-                    {
-                        damage = GetMaxDamage(2, tier, wieldDiff, 6);
-                        damageVariance = GetVariance(2, 8);
-                        ////There are 6 subtypes of swords
-                        weaponDefense = GetMaxDamageMod(tier, 20);
-                        weaponOffense = GetMaxDamageMod(tier, 20);
-                        int subSwordType = ThreadSafeRandom.Next(0, 4);
-                        if (subSwordType == 0)
-                        {
-                            ////Broad Sword
-                            int eleType = ThreadSafeRandom.Next(0, 4);
-                            switch (eleType)
-                            {
-                                case 0:
-                                    weaponWeenie = 350;
-                                    break;
-                                case 1:
-                                    weaponWeenie = 3877;
-                                    break;
-                                case 2:
-                                    weaponWeenie = 3878;
-                                    break;
-                                case 3:
-                                    weaponWeenie = 3879;
-                                    break;
-                                default:
-                                    weaponWeenie = 3880;
-                                    break;
-                            }
-                        }
-                        if (subSwordType == 1)
-                        {
-                            ////Dericost Blade
-                            int eleType = ThreadSafeRandom.Next(0, 4);
-                            switch (eleType)
-                            {
-                                case 0:
-                                    weaponWeenie = 31759;
-                                    break;
-                                case 1:
-                                    weaponWeenie = 31760;
-                                    break;
-                                case 2:
-                                    weaponWeenie = 31761;
-                                    break;
-                                case 3:
-                                    weaponWeenie = 31762;
-                                    break;
-                                default:
-                                    weaponWeenie = 31758;
-                                    break;
-                            }
-                        }
-                        //if (subSwordType == 1)
-                        //{
-                        //    ////Epee
-                        //    damageVariance = GetVariance(2, 9);
-                        //    damage = GetMaxDamage(2, wieldDiff, 7);
-                        //    weaponWeenie = 45099;
-                        //}
-                        if (subSwordType == 2)
-                        {
-                            ////Kaskara
-                            int eleType = ThreadSafeRandom.Next(0, 4);
-                            switch (eleType)
-                            {
-                                case 0:
-                                    weaponWeenie = 324;
-                                    break;
-                                case 1:
-                                    weaponWeenie = 3810;
-                                    break;
-                                case 2:
-                                    weaponWeenie = 3811;
-                                    break;
-                                case 3:
-                                    weaponWeenie = 3812;
-                                    break;
-                                default:
-                                    weaponWeenie = 3813;
-                                    break;
-                            }
-                        }
-                        if (subSwordType == 3)
-                        {
-                            ////Spada
-                            int eleType = ThreadSafeRandom.Next(0, 4);
-                            switch (eleType)
-                            {
-                                case 0:
-                                    weaponWeenie = 30571;
-                                    break;
-                                case 1:
-                                    weaponWeenie = 30572;
-                                    break;
-                                case 2:
-                                    weaponWeenie = 30573;
-                                    break;
-                                case 3:
-                                    weaponWeenie = 30574;
-                                    break;
-                                default:
-                                    weaponWeenie = 30575;
-                                    break;
-                            }
-                        }
-                        if (subSwordType == 4)
-                        {
-                            ////Shamshir
-                            int eleType = ThreadSafeRandom.Next(0, 4);
-                            switch (eleType)
-                            {
-                                case 0:
-                                    weaponWeenie = 340;
-                                    break;
-                                case 1:
-                                    weaponWeenie = 3853;
-                                    break;
-                                case 2:
-                                    weaponWeenie = 3854;
-                                    break;
-                                case 3:
-                                    weaponWeenie = 3855;
-                                    break;
-                                default:
-                                    weaponWeenie = 3856;
-                                    break;
-                            }
-                        }
-                    }
-                    if (subType == 6)
-                    {
-                        damage = GetMaxDamage(2, tier, wieldDiff, 9);
-                        weaponDefense = GetMaxDamageMod(tier, 20);
-                        weaponOffense = GetMaxDamageMod(tier, 20);
-                        damageVariance = GetVariance(2, 10);
-                        ////There are 2 subtypes of UA
-                        int subUAType = ThreadSafeRandom.Next(0, 1);
-                        if (subUAType == 0)
-                        {
-                            ////Knuckles
-                            int eleType = ThreadSafeRandom.Next(0, 4);
-                            switch (eleType)
-                            {
-                                case 0:
-                                    weaponWeenie = 30611;
-                                    break;
-                                case 1:
-                                    weaponWeenie = 30612;
-                                    break;
-                                case 2:
-                                    weaponWeenie = 30613;
-                                    break;
-                                case 3:
-                                    weaponWeenie = 30614;
-                                    break;
-                                default:
-                                    weaponWeenie = 30615;
-                                    break;
-                            }
-                        }
-                        if (subUAType == 1)
-                        {
-                            ////Katar
-                            int eleType = ThreadSafeRandom.Next(0, 4);
-                            switch (eleType)
-                            {
-                                case 0:
-                                    weaponWeenie = 326;
-                                    break;
-                                case 1:
-                                    weaponWeenie = 4196;
-                                    break;
-                                case 2:
-                                    weaponWeenie = 4197;
-                                    break;
-                                case 3:
-                                    weaponWeenie = 4198;
-                                    break;
-                                default:
-                                    weaponWeenie = 4199;
-                                    break;
-                            }
-                        }
+                            break;
+                        case 18:
+                        default:
+                            weaponDefense = GetMaxDamageMod(tier, 20);
+                            weaponOffense = GetMaxDamageMod(tier, 20);
+                            damage = GetMaxDamage(2, tier, wieldDiff, 9);
+                            damageVariance = GetVariance(2, 10);
+                            break;
                     }
                     break;
                 case 2:
-                    /// Finesse Weapons
-                    subType = ThreadSafeRandom.Next(0, 6);
-                    wieldSkillType = 45;
-                    if (subType == 0)
-                    {
-                        damage = GetMaxDamage(2, tier, wieldDiff, 1);
-                        damageVariance = GetVariance(2, 1);
-                        weaponDefense = GetMaxDamageMod(tier, 18);
-                        weaponOffense = GetMaxDamageMod(tier, 22);
-                        ////There are 3 subtypes of axes
-                        int subAxeType = ThreadSafeRandom.Next(0, 2);
-                        if (subAxeType == 0)
-                        {
-                            ////Shou-ono
-                            int eleType = ThreadSafeRandom.Next(0, 4);
-                            switch (eleType)
-                            {
-                                case 0:
-                                    weaponWeenie = 342;
-                                    break;
-                                case 1:
-                                    weaponWeenie = 3857;
-                                    break;
-                                case 2:
-                                    weaponWeenie = 3858;
-                                    break;
-                                case 3:
-                                    weaponWeenie = 3859;
-                                    break;
-                                default:
-                                    weaponWeenie = 3860;
-                                    break;
-                            }
-                        }
-                        if (subAxeType == 1)
-                        {
-                            ////Hatchet
+                    wieldSkillType = Skill.FinesseWeapons;
+                    int finesseWeaponsType = ThreadSafeRandom.Next(0, 22);
+                    weaponWeenie = LootHelper.HeavyWeaponsMatrix[finesseWeaponsType][eleType];
 
-                            int eleType = ThreadSafeRandom.Next(0, 4);
-                            switch (eleType)
-                            {
-                                case 0:
-                                    weaponWeenie = 30556;
-                                    break;
-                                case 1:
-                                    weaponWeenie = 30557;
-                                    break;
-                                case 2:
-                                    weaponWeenie = 30558;
-                                    break;
-                                case 3:
-                                    weaponWeenie = 30559;
-                                    break;
-                                default:
-                                    weaponWeenie = 30560;
-                                    break;
-                            }
-                        }
-                        if (subAxeType == 2)
-                        {
-                            ////Tungi
-                            int eleType = ThreadSafeRandom.Next(0, 4);
-                            switch (eleType)
-                            {
-                                case 0:
-                                    weaponWeenie = 357;
-                                    break;
-                                case 1:
-                                    weaponWeenie = 3901;
-                                    break;
-                                case 2:
-                                    weaponWeenie = 3902;
-                                    break;
-                                case 3:
-                                    weaponWeenie = 3903;
-                                    break;
-                                default:
-                                    weaponWeenie = 3904;
-                                    break;
-                            }
+                    switch (finesseWeaponsType)
+                    {
+                        case 0:
+                        case 1:
+                        case 2:
+                            weaponDefense = GetMaxDamageMod(tier, 18);
+                            weaponOffense = GetMaxDamageMod(tier, 22);
+                            damage = GetMaxDamage(2, tier, wieldDiff, 1);
+                            damageVariance = GetVariance(2, 1);
+                            break;
+                        case 3:
+                        case 4:
+                        case 5:
+                            weaponDefense = GetMaxDamageMod(tier, 20);
+                            weaponOffense = GetMaxDamageMod(tier, 20);
+                            damage = GetMaxDamage(2, tier, wieldDiff, 2);
+                            damageVariance = GetVariance(2, 2);
 
-                        }
-                    }
-                    if (subType == 1)
-                    {
-                        damage = GetMaxDamage(2, tier, wieldDiff, 2);
-                        damageVariance = GetVariance(2, 2);
-                        weaponDefense = GetMaxDamageMod(tier, 20);
-                        weaponOffense = GetMaxDamageMod(tier, 20);
-                        ////There are 3 subtypes of daggers
-                        int subDaggerType = ThreadSafeRandom.Next(0, 2);
-                        if (subDaggerType == 0)
-                        {
-                            ////Knife
-                            damageVariance = GetVariance(2, 3);
-                            damage = GetMaxDamage(2, tier, wieldDiff, 3);
-                            int eleType = ThreadSafeRandom.Next(0, 4);
-                            switch (eleType)
+                            if (finesseWeaponsType == 3 || finesseWeaponsType == 4)
                             {
-                                case 0:
-                                    weaponWeenie = 329;
-                                    break;
-                                case 1:
-                                    weaponWeenie = 3830;
-                                    break;
-                                case 2:
-                                    weaponWeenie = 3831;
-                                    break;
-                                case 3:
-                                    weaponWeenie = 3832;
-                                    break;
-                                default:
-                                    weaponWeenie = 3833;
-                                    break;
+                                damageVariance = GetVariance(2, 3);
+                                damage = GetMaxDamage(2, tier, wieldDiff, 3);
                             }
-                        }
-                        if (subDaggerType == 1)
-                        {
-                            ////Lancet
-                            damageVariance = GetVariance(2, 3);
-                            damage = GetMaxDamage(2, tier, wieldDiff, 3);
-                            int eleType = ThreadSafeRandom.Next(0, 4);
-                            switch (eleType)
-                            {
-                                case 0:
-                                    weaponWeenie = 31794;
-                                    break;
-                                case 1:
-                                    weaponWeenie = 31795;
-                                    break;
-                                case 2:
-                                    weaponWeenie = 31796;
-                                    break;
-                                case 3:
-                                    weaponWeenie = 31797;
-                                    break;
-                                default:
-                                    weaponWeenie = 31793;
-                                    break;
-                            }
-                        }
-                        if (subDaggerType == 2)
-                        {
-                            ////Poniard
-                            int eleType = ThreadSafeRandom.Next(0, 4);
-                            switch (eleType)
-                            {
-                                case 0:
-                                    weaponWeenie = 30596;
-                                    break;
-                                case 1:
-                                    weaponWeenie = 30597;
-                                    break;
-                                case 2:
-                                    weaponWeenie = 30598;
-                                    break;
-                                case 3:
-                                    weaponWeenie = 30599;
-                                    break;
-                                default:
-                                    weaponWeenie = 30600;
-                                    break;
-                            }
-                        }
-                    }
-                    if (subType == 2)
-                    {
-                        damage = GetMaxDamage(2, tier, wieldDiff, 4);
-                        damageVariance = GetVariance(2, 4);
-                        weaponDefense = GetMaxDamageMod(tier, 22);
-                        weaponOffense = GetMaxDamageMod(tier, 18);
-                        ////There are 5 subtypes of maces
-                        int subMaceType = ThreadSafeRandom.Next(0, 3);
-                        if (subMaceType == 0)
-                        {
-                            ////Board with Nail
-                            int eleType = ThreadSafeRandom.Next(0, 4);
-                            switch (eleType)
-                            {
-                                case 0:
-                                    weaponWeenie = 31774;
-                                    break;
-                                case 1:
-                                    weaponWeenie = 31775;
-                                    break;
-                                case 2:
-                                    weaponWeenie = 31776;
-                                    break;
-                                case 3:
-                                    weaponWeenie = 31777;
-                                    break;
-                                default:
-                                    weaponWeenie = 31773;
-                                    break;
-                            }
-                        }
-                        if (subMaceType == 1)
-                        {
-                            ////Dabus
-                            int eleType = ThreadSafeRandom.Next(0, 4);
-                            switch (eleType)
-                            {
-                                case 0:
-                                    weaponWeenie = 313;
-                                    break;
-                                case 1:
-                                    weaponWeenie = 3774;
-                                    break;
-                                case 2:
-                                    weaponWeenie = 3775;
-                                    break;
-                                case 3:
-                                    weaponWeenie = 3776;
-                                    break;
-                                default:
-                                    weaponWeenie = 3777;
-                                    break;
-                            }
-                        }
-                        if (subMaceType == 2)
-                        {
-                            ////Tofun
-                            int eleType = ThreadSafeRandom.Next(0, 4);
-                            switch (eleType)
-                            {
-                                case 0:
-                                    weaponWeenie = 356;
-                                    break;
-                                case 1:
-                                    weaponWeenie = 3897;
-                                    break;
-                                case 2:
-                                    weaponWeenie = 3898;
-                                    break;
-                                case 3:
-                                    weaponWeenie = 3899;
-                                    break;
-                                default:
-                                    weaponWeenie = 3900;
-                                    break;
-                            }
-                        }
-                        if (subMaceType == 3)
-                        {
-                            ////Jitte
-                            damageVariance = GetVariance(2, 5);
-                            int eleType = ThreadSafeRandom.Next(0, 4);
-                            switch (eleType)
-                            {
-                                case 0:
-                                    weaponWeenie = 321;
-                                    break;
-                                case 1:
-                                    weaponWeenie = 3802;
-                                    break;
-                                case 2:
-                                    weaponWeenie = 3803;
-                                    break;
-                                case 3:
-                                    weaponWeenie = 3804;
-                                    break;
-                                default:
-                                    weaponWeenie = 3805;
-                                    break;
-                            }
-                        }
-                        if (subMaceType == 4)
-                        {
-                            ////Stone Mace
-                            /// Not currently in the DB
-                            int eleType = ThreadSafeRandom.Next(0, 4);
-                            switch (eleType)
-                            {
-                                case 0:
-                                    weaponWeenie = 31774;
-                                    break;
-                                case 1:
-                                    weaponWeenie = 31775;
-                                    break;
-                                case 2:
-                                    weaponWeenie = 31776;
-                                    break;
-                                case 3:
-                                    weaponWeenie = 31777;
-                                    break;
-                                default:
-                                    weaponWeenie = 31773;
-                                    break;
-                            }
-                        }
-                    }
-                    if (subType == 3)
-                    {
-                        damage = GetMaxDamage(2, tier, wieldDiff, 5);
-                        damageVariance = GetVariance(2, 6);
-                        ////There are 2 subtypes of spears
-                        weaponDefense = GetMaxDamageMod(tier, 15);
-                        weaponOffense = GetMaxDamageMod(tier, 25);
-                        int subSpearType = ThreadSafeRandom.Next(0, 1);
-                        if (subSpearType == 0)
-                        {
-                            ////Budiaq
-                            int eleType = ThreadSafeRandom.Next(0, 4);
-                            switch (eleType)
-                            {
-                                case 0:
-                                    weaponWeenie = 308;
-                                    break;
-                                case 1:
-                                    weaponWeenie = 3762;
-                                    break;
-                                case 2:
-                                    weaponWeenie = 3763;
-                                    break;
-                                case 3:
-                                    weaponWeenie = 3764;
-                                    break;
-                                default:
-                                    weaponWeenie = 3765;
-                                    break;
-                            }
-                        }
-                        if (subSpearType == 1)
-                        {
-                            ////Naginata
-                            int eleType = ThreadSafeRandom.Next(0, 4);
-                            switch (eleType)
-                            {
-                                case 0:
-                                    weaponWeenie = 7771;
-                                    break;
-                                case 1:
-                                    weaponWeenie = 7795;
-                                    break;
-                                case 2:
-                                    weaponWeenie = 7796;
-                                    break;
-                                case 3:
-                                    weaponWeenie = 7797;
-                                    break;
-                                default:
-                                    weaponWeenie = 7798;
-                                    break;
-                            }
-                        }
-                    }
-                    if (subType == 4)
-                    {
-                        damage = GetMaxDamage(2, tier, wieldDiff, 8);
-                        damageVariance = GetVariance(2, 7);
-                        weaponDefense = GetMaxDamageMod(tier, 25);
-                        weaponOffense = GetMaxDamageMod(tier, 15);
-                        ////There is 2 subtypes of staves
-                        int subStaffType = ThreadSafeRandom.Next(0, 1);
-                        if (subStaffType == 0)
-                        {
-                            ////Bastone
-                            int eleType = ThreadSafeRandom.Next(0, 4);
-                            switch (eleType)
-                            {
-                                case 0:
-                                    weaponWeenie = 30606;
-                                    break;
-                                case 1:
-                                    weaponWeenie = 30607;
-                                    break;
-                                case 2:
-                                    weaponWeenie = 30608;
-                                    break;
-                                case 3:
-                                    weaponWeenie = 30609;
-                                    break;
-                                default:
-                                    weaponWeenie = 30610;
-                                    break;
-                            }
-                        }
-                        if (subStaffType == 1)
-                        {
-                            ////Jo
-                            int eleType = ThreadSafeRandom.Next(0, 4);
-                            switch (eleType)
-                            {
-                                case 0:
-                                    weaponWeenie = 322;
-                                    break;
-                                case 1:
-                                    weaponWeenie = 3806;
-                                    break;
-                                case 2:
-                                    weaponWeenie = 3807;
-                                    break;
-                                case 3:
-                                    weaponWeenie = 3808;
-                                    break;
-                                default:
-                                    weaponWeenie = 3809;
-                                    break;
-                            }
-                        }
-                    }
-                    if (subType == 5)
-                    {
-                        damage = GetMaxDamage(2, tier, wieldDiff, 6);
-                        damageVariance = GetVariance(2, 8);
-                        weaponDefense = GetMaxDamageMod(tier, 20);
-                        weaponOffense = GetMaxDamageMod(tier, 20);
-                        ////There are 6 subtypes of swords
-                        int subSwordType = ThreadSafeRandom.Next(0, 5);
-                        if (subSwordType == 0)
-                        {
-                            ////Rapier
-                            damageVariance = GetVariance(2, 9);
-                            damage = GetMaxDamage(2, tier, wieldDiff, 7);
-                            weaponWeenie = 6853;
+                            break;
+                        case 6:
+                        case 7:
+                        case 8:
+                        case 9:
+                        case 10:
+                            weaponDefense = GetMaxDamageMod(tier, 22);
+                            weaponOffense = GetMaxDamageMod(tier, 18);
+                            damage = GetMaxDamage(2, tier, wieldDiff, 4);
+                            damageVariance = GetVariance(2, 4);
 
-                        }
-                        if (subSwordType == 1)
-                        {
-                            ////Sabra
-                            int eleType = ThreadSafeRandom.Next(0, 4);
-                            switch (eleType)
+                            if (finesseWeaponsType == 9)
+                                damageVariance = GetVariance(2, 5);
+                            break;
+                        case 11:
+                        case 12:
+                            weaponDefense = GetMaxDamageMod(tier, 15);
+                            weaponOffense = GetMaxDamageMod(tier, 25);
+                            damage = GetMaxDamage(2, tier, wieldDiff, 5);
+                            damageVariance = GetVariance(2, 6);
+                            break;
+                        case 13:
+                        case 14:
+                            weaponDefense = GetMaxDamageMod(tier, 25);
+                            weaponOffense = GetMaxDamageMod(tier, 15);
+                            damage = GetMaxDamage(2, tier, wieldDiff, 8);
+                            damageVariance = GetVariance(2, 7);
+                            break;
+                        case 15:
+                        case 16:
+                        case 17:
+                        case 18:
+                        case 19:
+                        case 20:
+                            weaponDefense = GetMaxDamageMod(tier, 20);
+                            weaponOffense = GetMaxDamageMod(tier, 20);
+                            damage = GetMaxDamage(2, tier, wieldDiff, 6);
+                            damageVariance = GetVariance(2, 8);
+
+                            if (finesseWeaponsType == 15)
                             {
-                                case 0:
-                                    weaponWeenie = 30566;
-                                    break;
-                                case 1:
-                                    weaponWeenie = 30567;
-                                    break;
-                                case 2:
-                                    weaponWeenie = 30568;
-                                    break;
-                                case 3:
-                                    weaponWeenie = 30569;
-                                    break;
-                                default:
-                                    weaponWeenie = 30570;
-                                    break;
+                                damage = GetMaxDamage(2, tier, wieldDiff, 7);
+                                damageVariance = GetVariance(2, 9);
                             }
-                        }
-                        if (subSwordType == 2)
-                        {
-                            ////Scimitar
-                            int eleType = ThreadSafeRandom.Next(0, 4);
-                            switch (eleType)
-                            {
-                                case 0:
-                                    weaponWeenie = 339;
-                                    break;
-                                case 1:
-                                    weaponWeenie = 3849;
-                                    break;
-                                case 2:
-                                    weaponWeenie = 3850;
-                                    break;
-                                case 3:
-                                    weaponWeenie = 3851;
-                                    break;
-                                default:
-                                    weaponWeenie = 3852;
-                                    break;
-                            }
-                        }
-                        if (subSwordType == 3)
-                        {
-                            ////Short Sword
-                            int eleType = ThreadSafeRandom.Next(0, 4);
-                            switch (eleType)
-                            {
-                                case 0:
-                                    weaponWeenie = 352;
-                                    break;
-                                case 1:
-                                    weaponWeenie = 3885;
-                                    break;
-                                case 2:
-                                    weaponWeenie = 3886;
-                                    break;
-                                case 3:
-                                    weaponWeenie = 3887;
-                                    break;
-                                default:
-                                    weaponWeenie = 3888;
-                                    break;
-                            }
-                        }
-                        if (subSwordType == 4)
-                        {
-                            ////Simi
-                            int eleType = ThreadSafeRandom.Next(0, 4);
-                            switch (eleType)
-                            {
-                                case 0:
-                                    weaponWeenie = 345;
-                                    break;
-                                case 1:
-                                    weaponWeenie = 3869;
-                                    break;
-                                case 2:
-                                    weaponWeenie = 3870;
-                                    break;
-                                case 3:
-                                    weaponWeenie = 3871;
-                                    break;
-                                default:
-                                    weaponWeenie = 3872;
-                                    break;
-                            }
-                        }
-                        if (subSwordType == 5)
-                        {
-                            ////Yaoji
-                            int eleType = ThreadSafeRandom.Next(0, 4);
-                            switch (eleType)
-                            {
-                                case 0:
-                                    weaponWeenie = 361;
-                                    break;
-                                case 1:
-                                    weaponWeenie = 3909;
-                                    break;
-                                case 2:
-                                    weaponWeenie = 3910;
-                                    break;
-                                case 3:
-                                    weaponWeenie = 3911;
-                                    break;
-                                default:
-                                    weaponWeenie = 3912;
-                                    break;
-                            }
-                        }
-                    }
-                    if (subType == 6)
-                    {
-                        damage = GetMaxDamage(2, tier, wieldDiff, 9);
-                        damageVariance = GetVariance(2, 10);
-                        weaponDefense = GetMaxDamageMod(tier, 20);
-                        weaponOffense = GetMaxDamageMod(tier, 20);
-                        ////There are 2 subtypes of UA
-                        int subUAType = ThreadSafeRandom.Next(0, 1);
-                        if (subUAType == 0)
-                        {
-                            ////Claw
-                            int eleType = ThreadSafeRandom.Next(0, 4);
-                            switch (eleType)
-                            {
-                                case 0:
-                                    weaponWeenie = 31784;
-                                    break;
-                                case 1:
-                                    weaponWeenie = 31785;
-                                    break;
-                                case 2:
-                                    weaponWeenie = 31786;
-                                    break;
-                                case 3:
-                                    weaponWeenie = 31787;
-                                    break;
-                                default:
-                                    weaponWeenie = 31783;
-                                    break;
-                            }
-                        }
-                        if (subUAType == 1)
-                        {
-                            ////Hand Wraps
-                            int eleType = ThreadSafeRandom.Next(0, 4);
-                            switch (eleType)
-                            {
-                                case 0:
-                                    weaponWeenie = 45118;
-                                    break;
-                                case 1:
-                                    weaponWeenie = 45119;
-                                    break;
-                                case 2:
-                                    weaponWeenie = 45120;
-                                    break;
-                                case 3:
-                                    weaponWeenie = 45121;
-                                    break;
-                                default:
-                                    weaponWeenie = 45122;
-                                    break;
-                            }
-                        }
+                            break;
+                        case 21:
+                        default:
+                            weaponDefense = GetMaxDamageMod(tier, 20);
+                            weaponOffense = GetMaxDamageMod(tier, 20);
+                            damage = GetMaxDamage(2, tier, wieldDiff, 9);
+                            damageVariance = GetVariance(2, 10);
+                            break;
                     }
                     break;
                 case 3:
                     ///Two handed
-                    wieldSkillType = 41;
-                    damageVariance = GetVariance(3, 1);
+                    wieldSkillType = Skill.TwoHandedCombat;
+                    int twoHandedWeaponsType = ThreadSafeRandom.Next(0, 11);
+                    weaponWeenie = LootHelper.HeavyWeaponsMatrix[twoHandedWeaponsType][eleType];
+
                     damage = GetMaxDamage(3, tier, wieldDiff, 1);
-                    subType = ThreadSafeRandom.Next(0, 3);
-                    if (subType == 0)
+                    damageVariance = GetVariance(3, 1);
+
+                    switch (twoHandedWeaponsType)
                     {
-                        damageVariance = GetVariance(2, 1);
-                        weaponDefense = GetMaxDamageMod(tier, 20);
-                        weaponOffense = GetMaxDamageMod(tier, 20);
-                        ////There are 4 subtypes of axes
-                        int subSwordType = ThreadSafeRandom.Next(0, 2);
-                        if (subSwordType == 0)
-                        {
-                            ////Nodachi
-                            int eleType = ThreadSafeRandom.Next(0, 4);
-                            switch (eleType)
-                            {
-                                case 0:
-                                    weaponWeenie = 40760;
-                                    break;
-                                case 1:
-                                    weaponWeenie = 40761;
-                                    break;
-                                case 2:
-                                    weaponWeenie = 40762;
-                                    break;
-                                case 3:
-                                    weaponWeenie = 40763;
-                                    break;
-                                default:
-                                    weaponWeenie = 40764;
-                                    break;
-                            }
-                        }
-                        if (subSwordType == 1)
-                        {
-                            ////Shashqa
-                            int eleType = ThreadSafeRandom.Next(0, 4);
-                            switch (eleType)
-                            {
-                                case 0:
-                                    weaponWeenie = 41067;
-                                    break;
-                                case 1:
-                                    weaponWeenie = 41068;
-                                    break;
-                                case 2:
-                                    weaponWeenie = 41069;
-                                    break;
-                                case 3:
-                                    weaponWeenie = 41070;
-                                    break;
-                                default:
-                                    weaponWeenie = 41071;
-                                    break;
-                            }
-                        }
-                        if (subSwordType == 2)
-                        {
-                            ////Spadone
-                            int eleType = ThreadSafeRandom.Next(0, 4);
-                            switch (eleType)
-                            {
-                                case 0:
-                                    weaponWeenie = 40618;
-                                    break;
-                                case 1:
-                                    weaponWeenie = 40619;
-                                    break;
-                                case 2:
-                                    weaponWeenie = 40620;
-                                    break;
-                                case 3:
-                                    weaponWeenie = 40621;
-                                    break;
-                                default:
-                                    weaponWeenie = 40622;
-                                    break;
-                            }
-                        }
-                    }
-                    if (subType == 1)
-                    {
-                        ////There are 4 subtypes of Maces
-                        weaponDefense = GetMaxDamageMod(tier, 22);
-                        weaponOffense = GetMaxDamageMod(tier, 18);
-                        int subMaceType = ThreadSafeRandom.Next(0, 3);
-                        if (subMaceType == 0)
-                        {
-                            ////Great Star Mace
-                            int eleType = ThreadSafeRandom.Next(0, 4);
-                            switch (eleType)
-                            {
-                                case 0:
-                                    weaponWeenie = 41057;
-                                    break;
-                                case 1:
-                                    weaponWeenie = 41058;
-                                    break;
-                                case 2:
-                                    weaponWeenie = 41059;
-                                    break;
-                                case 3:
-                                    weaponWeenie = 41060;
-                                    break;
-                                default:
-                                    weaponWeenie = 41061;
-                                    break;
-                            }
-                        }
-                        if (subMaceType == 1)
-                        {
-                            ////Quadrelle
-                            int eleType = ThreadSafeRandom.Next(0, 4);
-                            switch (eleType)
-                            {
-                                case 0:
-                                    weaponWeenie = 40623;
-                                    break;
-                                case 1:
-                                    weaponWeenie = 40624;
-                                    break;
-                                case 2:
-                                    weaponWeenie = 40625;
-                                    break;
-                                case 3:
-                                    weaponWeenie = 40626;
-                                    break;
-                                default:
-                                    weaponWeenie = 40627;
-                                    break;
-                            }
-                        }
-                        if (subMaceType == 2)
-                        {
-                            ////Khanda-handled Mace
-                            int eleType = ThreadSafeRandom.Next(0, 4);
-                            switch (eleType)
-                            {
-                                case 0:
-                                    weaponWeenie = 41062;
-                                    break;
-                                case 1:
-                                    weaponWeenie = 41063;
-                                    break;
-                                case 2:
-                                    weaponWeenie = 41064;
-                                    break;
-                                case 3:
-                                    weaponWeenie = 41065;
-                                    break;
-                                default:
-                                    weaponWeenie = 41066;
-                                    break;
-                            }
-                        }
-                        if (subMaceType == 3)
-                        {
-                            ////Tetsubo
-                            int eleType = ThreadSafeRandom.Next(0, 4);
-                            switch (eleType)
-                            {
-                                case 0:
-                                    weaponWeenie = 40635;
-                                    break;
-                                case 1:
-                                    weaponWeenie = 40636;
-                                    break;
-                                case 2:
-                                    weaponWeenie = 40637;
-                                    break;
-                                case 3:
-                                    weaponWeenie = 40638;
-                                    break;
-                                default:
-                                    weaponWeenie = 40639;
-                                    break;
-                            }
-                        }
-                    }
-                    if (subType == 2)
-                    {
-                        ////There are 1 subtypes of axes
-                        weaponDefense = GetMaxDamageMod(tier, 18);
-                        weaponOffense = GetMaxDamageMod(tier, 22);
-                        int subAxeType = ThreadSafeRandom.Next(0, 0);
-                        if (subAxeType == 0)
-                        {
-                            ////Greataxe
-                            int eleType = ThreadSafeRandom.Next(0, 4);
-                            switch (eleType)
-                            {
-                                case 0:
-                                    weaponWeenie = 41052;
-                                    break;
-                                case 1:
-                                    weaponWeenie = 41053;
-                                    break;
-                                case 2:
-                                    weaponWeenie = 41054;
-                                    break;
-                                case 3:
-                                    weaponWeenie = 41055;
-                                    break;
-                                default:
-                                    weaponWeenie = 41056;
-                                    break;
-                            }
-                        }
-                    }
-                    if (subType == 3)
-                    {
-                        ////There are 4 subtypes of spears
-                        damage = GetMaxDamage(3, tier, wieldDiff, 2);
-                        weaponDefense = GetMaxDamageMod(tier, 15);
-                        weaponOffense = GetMaxDamageMod(tier, 25);
-                        int subSpearType = ThreadSafeRandom.Next(0, 3);
-                        if (subSpearType == 0)
-                        {
-                            ////Assagai
-                            int eleType = ThreadSafeRandom.Next(0, 4);
-                            switch (eleType)
-                            {
-                                case 0:
-                                    weaponWeenie = 41036;
-                                    break;
-                                case 1:
-                                    weaponWeenie = 41037;
-                                    break;
-                                case 2:
-                                    weaponWeenie = 41038;
-                                    break;
-                                case 3:
-                                    weaponWeenie = 41039;
-                                    break;
-                                default:
-                                    weaponWeenie = 41040;
-                                    break;
-                            }
-                        }
-                        if (subSpearType == 1)
-                        {
-                            ////Pike
-                            int eleType = ThreadSafeRandom.Next(0, 4);
-                            switch (eleType)
-                            {
-                                case 0:
-                                    weaponWeenie = 41046;
-                                    break;
-                                case 1:
-                                    weaponWeenie = 41047;
-                                    break;
-                                case 2:
-                                    weaponWeenie = 41048;
-                                    break;
-                                case 3:
-                                    weaponWeenie = 41049;
-                                    break;
-                                default:
-                                    weaponWeenie = 41050;
-                                    break;
-                            }
-                        }
-                        if (subSpearType == 2)
-                        {
-                            ////Corsesca
-                            int eleType = ThreadSafeRandom.Next(0, 4);
-                            switch (eleType)
-                            {
-                                case 0:
-                                    weaponWeenie = 40818;
-                                    break;
-                                case 1:
-                                    weaponWeenie = 40819;
-                                    break;
-                                case 2:
-                                    weaponWeenie = 40820;
-                                    break;
-                                case 3:
-                                    weaponWeenie = 40821;
-                                    break;
-                                default:
-                                    weaponWeenie = 40822;
-                                    break;
-                            }
-                        }
-                        if (subSpearType == 3)
-                        {
-                            ////Magari Yari
-                            int eleType = ThreadSafeRandom.Next(0, 4);
-                            switch (eleType)
-                            {
-                                case 0:
-                                    weaponWeenie = 41041;
-                                    break;
-                                case 1:
-                                    weaponWeenie = 41042;
-                                    break;
-                                case 2:
-                                    weaponWeenie = 41043;
-                                    break;
-                                case 3:
-                                    weaponWeenie = 41044;
-                                    break;
-                                default:
-                                    weaponWeenie = 41045;
-                                    break;
-                            }
-                        }
+                        case 0:
+                        case 1:
+                        case 2:
+                            weaponDefense = GetMaxDamageMod(tier, 20);
+                            weaponOffense = GetMaxDamageMod(tier, 20);
+                            damageVariance = GetVariance(2, 1);
+                            break;
+                        case 3:
+                        case 4:
+                        case 5:
+                        case 6:
+                            weaponDefense = GetMaxDamageMod(tier, 22);
+                            weaponOffense = GetMaxDamageMod(tier, 18);
+                            break;
+                        case 7:
+                            weaponDefense = GetMaxDamageMod(tier, 18);
+                            weaponOffense = GetMaxDamageMod(tier, 22);
+                            break;
+                        case 8:
+                        case 9:
+                        case 10:
+                        default:
+                            weaponDefense = GetMaxDamageMod(tier, 15);
+                            weaponOffense = GetMaxDamageMod(tier, 25);
+                            damage = GetMaxDamage(3, tier, wieldDiff, 2);
+                            break;
                     }
                     break;
                 case 4:
                     return CreateMissileWeapon(tier);
                 default:
                     return CreateCaster(tier);
-
             }
 
-            ///To be done: setting random burdens,
             WorldObject wo = WorldObjectFactory.CreateNewWorldObject((uint)weaponWeenie);
             wo.SetProperty(PropertyInt.GemCount, gemCount);
             wo.SetProperty(PropertyInt.GemType, gemType);
             wo.SetProperty(PropertyInt.Value, value);
-            wo.SetProperty(PropertyInt.Damage, damage);
-            wo.SetProperty(PropertyInt.WeaponSkill, wieldSkillType);
+            wo.SetProperty(PropertyInt.MaterialType, GetMaterialType(2, tier));
+            wo.SetProperty(PropertyInt.ItemWorkmanship, workmanship);
 
-            if (numSpells > 0)
-            {
-                uiEffects = 1;
-                wo.SetProperty(PropertyInt.UiEffects, uiEffects);
-            }
+            wo.SetProperty(PropertyInt.WeaponSkill, (int)wieldSkillType);
+            wo.SetProperty(PropertyInt.Damage, damage);
+            wo.SetProperty(PropertyFloat.DamageVariance, damageVariance);
+
+            wo.SetProperty(PropertyFloat.WeaponDefense, weaponDefense);
+            wo.SetProperty(PropertyFloat.WeaponOffense, weaponOffense);
+            wo.SetProperty(PropertyFloat.WeaponMissileDefense, missileD);
+            wo.SetProperty(PropertyFloat.WeaponMagicDefense, magicD);
+
+            wo.SetProperty(PropertyInt.WieldDifficulty, wieldDiff);
+            wo.SetProperty(PropertyInt.WieldRequirements, (int)wieldRequirments);
+
+            wo.SetProperty(PropertyInt.AppraisalLongDescDecoration, longDescDecoration);
+            wo.SetProperty(PropertyString.LongDesc, wo.GetProperty(PropertyString.Name));
 
             int lowSpellTier = GetLowSpellTier(tier);
             int highSpellTier = GetHighSpellTier(tier);
@@ -4379,17 +830,19 @@ namespace ACE.Server.Factories
             int numCantrips = minorCantrips + majorCantrips + epicCantrips + legendaryCantrips;
             int[][] spells = LootHelper.MeleeSpells;
             int[][] cantrips = LootHelper.MeleeCantrips;
+
             if (numSpells > 0)
             {
                 wo.SetProperty(PropertyInt.ItemSpellcraft, spellCraft);
 
                 // Override weenie property, as item contains spells
-                wo.SetProperty(PropertyInt.UiEffects, 1);
+                wo.SetProperty(PropertyInt.UiEffects, (int)UiEffects.Magical);
 
                 wo.SetProperty(PropertyInt.ItemDifficulty, itemDifficulty);
                 wo.SetProperty(PropertyInt.ItemMaxMana, maxMana);
                 wo.SetProperty(PropertyInt.ItemCurMana, maxMana);
                 wo.SetProperty(PropertyFloat.ManaRate, GetManaRate());
+
                 int[] shuffledValues = new int[spells.Length];
                 for (int i = 0; i < spells.Length; i++)
                 {
@@ -4450,18 +903,7 @@ namespace ACE.Server.Factories
                     }
                 }
             }
-            wo.SetProperty(PropertyInt.MaterialType, GetMaterialType(2, tier));
-            wo.SetProperty(PropertyInt.ItemWorkmanship, workmanship);
-            wo.SetProperty(PropertyInt.WieldDifficulty, wieldDiff);
-            wo.SetProperty(PropertyInt.WieldRequirements, wieldRequirments);
-            wo.SetProperty(PropertyInt.WieldSkillType, wieldSkillType);
-            wo.SetProperty(PropertyInt.AppraisalLongDescDecoration, longDescDecoration);
-            wo.SetProperty(PropertyFloat.DamageVariance, damageVariance);
-            wo.SetProperty(PropertyFloat.WeaponDefense, weaponDefense);
-            wo.SetProperty(PropertyFloat.WeaponOffense, weaponOffense);
-            wo.SetProperty(PropertyFloat.WeaponMissileDefense, missileD);
-            wo.SetProperty(PropertyFloat.WeaponMagicDefense, magicD);
-            wo.SetProperty(PropertyString.LongDesc, wo.GetProperty(PropertyString.Name));
+
             if (numSpells == 0)
             {
                 wo.RemoveProperty(PropertyInt.ItemManaCost);
@@ -4480,7 +922,7 @@ namespace ACE.Server.Factories
             return wo;
         }
 
-        public static WorldObject CreateArmor(int tier, bool isMagical, LootBias lootBias = LootBias.UnBiased)
+        private static WorldObject CreateArmor(int tier, bool isMagical, LootBias lootBias = LootBias.UnBiased)
         {
 
             int lowSpellTier = 0;
@@ -14243,7 +10685,7 @@ namespace ACE.Server.Factories
             }
         }
 
-        public static int GetWield(int tier, int type)
+        private static int GetWield(int tier, int type)
         {
 
             int wield = 0;
@@ -14551,19 +10993,18 @@ namespace ACE.Server.Factories
                     }
                     break;
             }
+
             return wield;
         }
 
-        public static double GetManaRate()
+        private static double GetManaRate()
         {
-
             double manaRate = 1.0 / (double)(ThreadSafeRandom.Next(10, 30));
             return -manaRate;
         }
 
-        public static int GetNumSpells(int tier)
+        private static int GetNumSpells(int tier)
         {
-
             int chance = 0;
             int numSpells = 0;
             switch (tier)
@@ -14806,12 +11247,12 @@ namespace ACE.Server.Factories
                     break;
 
             }
+
             return numSpells;
         }
 
-        public static int GetNumCantrips(int spellAmount)
+        private static int GetNumCantrips(int spellAmount)
         {
-
             int chance = 0;
             int numSpells = 0;
             switch (spellAmount)
@@ -15009,10 +11450,11 @@ namespace ACE.Server.Factories
                     break;
 
             }
+
             return numSpells;
         }
 
-        public static double GetDamageModifier(int wield, int weaponType)
+        private static double GetDamageModifier(int wield, int weaponType)
         {
             ///0 bow
             ///1 crossbow
@@ -15036,12 +11478,12 @@ namespace ACE.Server.Factories
                 else
                     damageMod = 2.60;
             }
+
             return damageMod;
         }
 
-        public static WorldObject CreateMissileWeapon(int tier)
+        private static WorldObject CreateMissileWeapon(int tier)
         {
-
             int[][] spells = LootHelper.MissileSpells;
             int[][] cantrips = LootHelper.MissileCantrips;
 
@@ -15186,6 +11628,7 @@ namespace ACE.Server.Factories
                 wo.RemoveProperty(PropertyInt.ItemCurMana);
                 wo.RemoveProperty(PropertyInt.ItemSpellcraft);
                 wo.RemoveProperty(PropertyInt.ItemDifficulty);
+                wo.RemoveProperty(PropertyFloat.ManaRate);
             }
 
             return wo;
@@ -15420,7 +11863,7 @@ namespace ACE.Server.Factories
             Baton
         }
 
-        public static WorldObject CreateCaster(int tier)
+        private static WorldObject CreateCaster(int tier)
         {
             int[][] WandSpells =
             {
@@ -15808,9 +12251,8 @@ namespace ACE.Server.Factories
             return wo;
         }
 
-        public static double GetMaxDamageMod(int tier, int maxDamageMod)
+        private static double GetMaxDamageMod(int tier, int maxDamageMod)
         {
-
             double damageMod = 0;
             int chance = 0;
             switch (maxDamageMod)
@@ -16241,12 +12683,12 @@ namespace ACE.Server.Factories
                     break;
             }
             double damageMod2 = 1.0 + damageMod;
+
             return damageMod2;
         }
 
-        public static int GetElementalBonus(int wield)
+        private static int GetElementalBonus(int wield)
         {
-
             int chance = 0;
             int eleMod = 0;
             switch (wield)
@@ -16335,11 +12777,12 @@ namespace ACE.Server.Factories
                         eleMod = 22;
                     break;
             }
+
             return eleMod;
         }
 
         //The percentages for variances need to be fixed
-        public static double GetVariance(int category, int type)
+        private static double GetVariance(int category, int type)
         {
             double variance = 0;
             int chance = ThreadSafeRandom.Next(0, 100);
@@ -16623,10 +13066,11 @@ namespace ACE.Server.Factories
                 default:
                     break;
             }
+
             return variance;
         }
 
-        public static int GetMaxDamage(int weaponType, int tier, int wieldDiff, int baseWeapon)
+        private static int GetMaxDamage(int weaponType, int tier, int wieldDiff, int baseWeapon)
         {
             ///weaponType: 1 Heavy, 2 Finesse/Light, 3 two-handed
             ///baseWeapon: 1 Axe, 2 Dagger, 3 DaggerMulti, 4 Mace, 5 Spear, 6 Sword, 7 SwordMulti, 8 Staff, 9 UA
@@ -16728,10 +13172,11 @@ namespace ACE.Server.Factories
                 else
                     finalDamage = tieredDamage;
             }
+
             return finalDamage;
         }
 
-        public static int GetLowSpellTier(int tier)
+        private static int GetLowSpellTier(int tier)
         {
             int lowSpellTier = 0;
 
@@ -16760,7 +13205,7 @@ namespace ACE.Server.Factories
             return lowSpellTier;
         }
 
-        public static int GetHighSpellTier(int tier)
+        private static int GetHighSpellTier(int tier)
         {
             int highSpellTier = 0;
 
@@ -16792,15 +13237,16 @@ namespace ACE.Server.Factories
             return highSpellTier;
         }
 
-        public static int GetSkillLevelLimit(int wield)
+        private static int GetSkillLevelLimit(int wield)
         {
 
             double percentage = (double)ThreadSafeRandom.Next(75, 98);
             int skill = (int)(percentage * (double)wield);
+
             return skill;
         }
 
-        public static double GetManaCMod(int tier)
+        private static double GetManaCMod(int tier)
         {
             int magicMod = 0;
 
@@ -16902,10 +13348,11 @@ namespace ACE.Server.Factories
             }
 
             double manaDMod = magicMod / 100.0;
+
             return manaDMod;
         }
 
-        public static double GetMissileDMod(int tier)
+        private static double GetMissileDMod(int tier)
         {
             double missileMod = 0;
 
@@ -16992,18 +13439,20 @@ namespace ACE.Server.Factories
             }
 
             double m2 = 1.0 + missileMod;
+
             return m2;
         }
 
-        public static int GetValue(int tier, int work)
+        private static int GetValue(int tier, int work)
         {
-            ///This is just a placeholder. This doesnt return a final value used retail, just a quick vaue for now.
+            ///This is just a placeholder. This doesnt return a final value used retail, just a quick value for now.
             ///Will use, tier, material type, amount of gems set into item, type of gems, spells on item
             int value = ThreadSafeRandom.Next(1, tier) * ThreadSafeRandom.Next(1, tier) * ThreadSafeRandom.Next(1, work) * ThreadSafeRandom.Next(1, 250) + ThreadSafeRandom.Next(1, 50);
+
             return value;
         }
 
-        public static int GetWorkmanship(int tier)
+        private static int GetWorkmanship(int tier)
         {
             int workmanship = 0;
             int chance = ThreadSafeRandom.Next(0, 100);
@@ -17093,7 +13542,7 @@ namespace ACE.Server.Factories
             return workmanship;
         }
 
-        public static int GetSpellcraft(int spellAmount, int tier)
+        private static int GetSpellcraft(int spellAmount, int tier)
         {
 
             int spellcraft = 0;
@@ -17130,9 +13579,8 @@ namespace ACE.Server.Factories
             return spellcraft;
         }
 
-        public static int GetDifficulty(int tier, int spellcraft)
+        private static int GetDifficulty(int tier, int spellcraft)
         {
-
             int difficulty = 0;
             switch (tier)
             {
@@ -17163,12 +13611,12 @@ namespace ACE.Server.Factories
                 default:
                     break;
             }
+
             return difficulty;
         }
 
-        public static int GetMaxMana(int spellAmount, int tier)
+        private static int GetMaxMana(int spellAmount, int tier)
         {
-
             int maxmana = 0;
             switch (tier)
             {
@@ -17199,10 +13647,11 @@ namespace ACE.Server.Factories
                 default:
                     break;
             }
+
             return maxmana;
         }
 
-        public static int GetMaterialType(int type, int tier)
+        private static int GetMaterialType(int type, int tier)
         {
             uint materialType = 0;
 
@@ -17365,10 +13814,11 @@ namespace ACE.Server.Factories
                     break;
 
             }
+
             return (int)materialType;
         }
 
-        public static double GetMeleeDMod(int tier)
+        private static double GetMeleeDMod(int tier)
         {
             double meleeMod = 0;
             int chance = 0;
@@ -17461,7 +13911,7 @@ namespace ACE.Server.Factories
             return meleeMod;
         }
 
-        public static int GetNumLegendaryCantrips(int tier)
+        private static int GetNumLegendaryCantrips(int tier)
         {
 
             int amount = 0;
@@ -17484,7 +13934,7 @@ namespace ACE.Server.Factories
             return amount;
         }
 
-        public static int GetNumEpicCantrips(int tier)
+        private static int GetNumEpicCantrips(int tier)
         {
             int amount = 0;
 
@@ -17515,7 +13965,7 @@ namespace ACE.Server.Factories
             return amount;
         }
 
-        public static int GetNumMajorCantrips(int tier)
+        private static int GetNumMajorCantrips(int tier)
         {
 
             int amount = 0;
@@ -17573,7 +14023,7 @@ namespace ACE.Server.Factories
             return amount;
         }
 
-        public static int GetNumMinorCantrips(int tier)
+        private static int GetNumMinorCantrips(int tier)
         {
 
             int amount = 0;

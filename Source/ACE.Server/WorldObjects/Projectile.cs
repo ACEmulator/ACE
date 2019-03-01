@@ -50,9 +50,9 @@ namespace ACE.Server.WorldObjects
                 if (sourcePlayer != null)
                 {
                     // player damage monster
-                    var damage = sourcePlayer.DamageTarget(targetCreature, WorldObject);
+                    var damageEvent = sourcePlayer.DamageTarget(targetCreature, WorldObject);
 
-                    if (damage > 0)
+                    if (damageEvent != null && damageEvent.Damage > 0)
                         sourcePlayer.Session.Network.EnqueueSend(new GameMessageSound(WorldObject.Guid, Sound.Collision, 1.0f));    // todo: landblock broadcast?
                 }
                 else if (sourceCreature != null && sourceCreature.AttackTarget != null)
@@ -60,21 +60,20 @@ namespace ACE.Server.WorldObjects
                     var targetPlayer = sourceCreature.AttackTarget as Player;
                     var bodyPart = BodyParts.GetBodyPart(sourceCreature.AttackHeight.Value);
 
-                    var critical = false;
-                    var damageType = DamageType.Undef;
-                    var shieldMod = 1.0f;
-                    var damage = sourceCreature.CalculateDamage(ref damageType, null, bodyPart, ref critical, ref shieldMod);
+                    var damageEvent = DamageEvent.CalculateDamage(sourceCreature, targetCreature, WorldObject);
+
+                    //var damage = sourceCreature.CalculateDamage(ref damageType, null, bodyPart, ref critical, ref shieldMod);
 
                     if (targetPlayer != null)
                     {
                         // monster damage player
-                        if (damage != null)
+                        if (damageEvent.HasDamage)
                         {
-                            targetPlayer.TakeDamage(sourceCreature, damageType, damage.Value, bodyPart, critical);
+                            targetPlayer.TakeDamage(sourceCreature, damageEvent.DamageType, damageEvent.Damage, damageEvent.BodyPart, damageEvent.IsCritical);
 
                             // blood splatter?
 
-                            if (shieldMod != 1.0f)
+                            if (damageEvent.ShieldMod != 1.0f)
                             {
                                 var shieldSkill = targetPlayer.GetCreatureSkill(Skill.Shield);
                                 Proficiency.OnSuccessUse(targetPlayer, shieldSkill, shieldSkill.Current);   // ??
@@ -91,9 +90,9 @@ namespace ACE.Server.WorldObjects
                     else
                     {
                         // monster damage pet
-                        if (damage != null)
+                        if (damageEvent.HasDamage)
                         {
-                            targetCreature.TakeDamage(sourceCreature, damageType, damage.Value);
+                            targetCreature.TakeDamage(sourceCreature, damageEvent.DamageType, damageEvent.Damage);
 
                             // blood splatter?
                         }

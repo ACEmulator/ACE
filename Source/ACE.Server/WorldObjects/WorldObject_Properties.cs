@@ -1792,7 +1792,7 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyFloat.HealkitMod); else SetProperty(PropertyFloat.HealkitMod, value.Value); }
         }
 
-        public virtual int? CoinValue
+        public int? CoinValue
         {
             get => GetProperty(PropertyInt.CoinValue);
             set { if (!value.HasValue) RemoveProperty(PropertyInt.CoinValue); else SetProperty(PropertyInt.CoinValue, value.Value); }

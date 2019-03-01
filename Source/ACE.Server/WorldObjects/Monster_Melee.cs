@@ -62,9 +62,6 @@ namespace ACE.Server.WorldObjects
 
             AttackHeight = maneuver.AttackHeight;
 
-            // select random body part @ current attack height
-            var bodyPart = BodyParts.GetBodyPart(AttackHeight.Value);
-
             DoSwingMotion(AttackTarget, maneuver, out float animLength, out var attackFrames);
             PhysicsObj.stick_to_object(AttackTarget.PhysicsObj.ID);
 
@@ -82,26 +79,26 @@ namespace ACE.Server.WorldObjects
                 {
                     if (AttackTarget == null || IsDead) return;
 
-                    var critical = false;
-                    var damageType = DamageType.Undef;
-                    var shieldMod = 1.0f;
-                    var damage = CalculateDamage(ref damageType, maneuver, bodyPart, ref critical, ref shieldMod);
+                    var weapon = GetEquippedWeapon();
+                    var damageEvent = DamageEvent.CalculateDamage(this, target, weapon, maneuver);
 
-                    if (damage != null)
+                    //var damage = CalculateDamage(ref damageType, maneuver, bodyPart, ref critical, ref shieldMod);
+
+                    if (damageEvent.HasDamage)
                     {
                         if (combatPet != null || targetPet != null)
                         {
                             // combat pet inflicting or receiving damage
                             //Console.WriteLine($"{target.Name} taking {Math.Round(damage)} {damageType} damage from {Name}");
-                            target.TakeDamage(this, damageType, damage.Value);
-                            EmitSplatter(target, damage.Value);
+                            target.TakeDamage(this, damageEvent.DamageType, damageEvent.Damage);
+                            EmitSplatter(target, damageEvent.Damage);
                         }
                         else if (targetPlayer != null)
                         {
                             // this is a player taking damage
-                            targetPlayer.TakeDamage(this, damageType, damage.Value, bodyPart, critical);
+                            targetPlayer.TakeDamage(this, damageEvent.DamageType, damageEvent.Damage, damageEvent.BodyPart, damageEvent.IsCritical);
 
-                            if (shieldMod != 1.0f)
+                            if (damageEvent.ShieldMod != 1.0f)
                             {
                                 var shieldSkill = targetPlayer.GetCreatureSkill(Skill.Shield);
                                 Proficiency.OnSuccessUse(targetPlayer, shieldSkill, shieldSkill.Current); // ?
@@ -362,10 +359,10 @@ namespace ACE.Server.WorldObjects
             var attributeMod = GetAttributeMod(weapon);
 
             // get armor piece
-            var armor = GetArmor(bodyPart);
+            var armorLayers = GetArmorLayers(bodyPart);
 
             // get armor modifiers
-            var armorMod = GetArmorMod(armor, weapon, damageType);
+            var armorMod = GetArmorMod(damageType, armorLayers, weapon);
 
             // get resistance modifiers (protect/vuln)
             var resistanceMod = AttackTarget.EnchantmentManager.GetResistanceMod(damageType);
@@ -390,16 +387,16 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Returns the creature armor for a body part
         /// </summary>
-        public List<WorldObject> GetArmor(BodyPart bodyPart)
+        public List<WorldObject> GetArmorLayers(BodyPart bodyPart)
         {
             var target = AttackTarget as Creature;
 
             //Console.WriteLine("BodyPart: " + bodyPart);
             //Console.WriteLine("===");
 
-            var bodyLocation = BodyParts.GetFlags(BodyParts.GetCoverageMask(bodyPart));
+            var coverageMask = BodyParts.GetCoverageMask(bodyPart);
 
-            var equipped = target.EquippedObjects.Values.Where(e => e is Clothing && BodyParts.HasAny(e.ClothingPriority, bodyLocation)).ToList();
+            var equipped = target.EquippedObjects.Values.Where(e => e is Clothing && (e.ClothingPriority & coverageMask) != 0).ToList();
 
             return equipped;
         }
@@ -408,7 +405,7 @@ namespace ACE.Server.WorldObjects
         /// Returns the percent of damage absorbed by layered armor + clothing
         /// </summary>
         /// <param name="armors">The list of armor/clothing covering the targeted body part</param>
-        public float GetArmorMod(List<WorldObject> armors, WorldObject damageSource, DamageType damageType, CreatureSkill skill = null)
+        public float GetArmorMod(DamageType damageType, List<WorldObject> armors, WorldObject damageSource, float armorRendingMod = 1.0f)
         {
             var effectiveAL = 0.0f;
 
@@ -417,14 +414,19 @@ namespace ACE.Server.WorldObjects
 
             // life spells
             // additive: armor/imperil
-            var bodyArmorMod = damageSource != null && damageSource.IgnoreMagicResist ? 0 : AttackTarget.EnchantmentManager.GetBodyArmorMod();
+            var bodyArmorMod = damageSource != null && damageSource.IgnoreMagicResist ? 0.0f : AttackTarget.EnchantmentManager.GetBodyArmorMod();
 
-            if (bodyArmorMod > 0 && damageSource != null && skill != null && damageSource.HasImbuedEffect(ImbuedEffectType.ArmorRending))
-                bodyArmorMod = (int)Math.Round(bodyArmorMod * GetArmorRendingMod(skill));
+            // handle armor rending mod here?
+            //if (bodyArmorMod > 0)
+                //bodyArmorMod *= armorRendingMod;
 
             //Console.WriteLine("==");
             //Console.WriteLine("Armor Self: " + bodyArmorMod);
             effectiveAL += bodyArmorMod;
+
+            // Armor Rending reduces physical armor too?
+            if (effectiveAL > 0)
+                effectiveAL *= armorRendingMod;
 
             var armorMod = SkillFormula.CalcArmorMod(effectiveAL);
 
@@ -461,9 +463,12 @@ namespace ACE.Server.WorldObjects
             // Console.WriteLine("Bane: " + armorBane);
             var effectiveRL = (float)(resistance + armorBane);
 
-            // resistance cap
-            if (effectiveRL > 2.0f)
-                effectiveRL = 2.0f;
+            // resistance clamp
+            effectiveRL = Math.Clamp(effectiveRL, -2.0f, 2.0f);
+
+            // TODO: could brittlemail / lures send a piece of armor or clothing's AL into the negatives?
+            if (effectiveAL < 0)
+                effectiveRL = 1.0f / effectiveRL;
 
             /*Console.WriteLine("Effective AL: " + effectiveAL);
             Console.WriteLine("Effective RL: " + effectiveRL);

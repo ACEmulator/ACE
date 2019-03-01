@@ -137,7 +137,7 @@ namespace ACE.Server.WorldObjects
             if (!TryRemoveFromInventory(objectGuid, out item))
                 return false;
 
-            Session.Network.EnqueueSend(new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Container, new ObjectGuid(0)));
+            Session.Network.EnqueueSend(new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Container, ObjectGuid.Invalid));
 
             if (removeFromInventoryAction == RemoveFromInventoryAction.TradeItem || removeFromInventoryAction == RemoveFromInventoryAction.ToCorpseOnDeath)
                 Session.Network.EnqueueSend(new GameEventInventoryRemoveObject(Session, item));
@@ -148,7 +148,7 @@ namespace ACE.Server.WorldObjects
 
                 Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
 
-                if (item.WeenieType == WeenieType.Coin)
+                if (item.WeenieType == WeenieType.Coin || item.WeenieType == WeenieType.Container)
                     UpdateCoinValue();
 
                 // We must update the database with the latest ContainerId and WielderId properties.
@@ -628,7 +628,7 @@ namespace ACE.Server.WorldObjects
                         {
                             Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(this, PropertyInt.EncumbranceVal, EncumbranceVal ?? 0));
 
-                            if (item.WeenieType == WeenieType.Coin)
+                            if (item.WeenieType == WeenieType.Coin || item.WeenieType == WeenieType.Container)
                                 UpdateCoinValue();
 
                             if (itemRootOwner == this)
@@ -785,7 +785,7 @@ namespace ACE.Server.WorldObjects
                 if (CurrentLandblock.AddWorldObject(item))
                 {
                     Session.Network.EnqueueSend(
-                        new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Container, new ObjectGuid(0)),
+                        new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Container, ObjectGuid.Invalid),
                         new GameEventItemServerSaysMoveItem(Session, item),
                         new GameMessageUpdatePosition(item));
 

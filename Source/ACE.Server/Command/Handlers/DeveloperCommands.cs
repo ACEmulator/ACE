@@ -398,7 +398,10 @@ namespace ACE.Server.Command.Handlers
                 distance = Convert.ToInt16(parameters[0]);
 
             WorldObject loot = WorldObjectFactory.CreateNewWorldObject(trainingWandTarget);
-            LootGenerationFactory.Spawn(loot, session.Player.Location.InFrontOf(distance));
+            loot.Location = session.Player.Location.InFrontOf((loot.UseRadius ?? 2) > 2 ? loot.UseRadius.Value : 2);
+            loot.Location.LandblockId = new LandblockId(loot.Location.GetCell());
+
+            loot.EnterWorld();
 
             session.Player.HandleActionPutItemInContainer(loot.Guid.Full, session.Player.Guid.Full);
         }
@@ -1264,7 +1267,7 @@ namespace ACE.Server.Command.Handlers
             Console.WriteLine("Visible: " + visible);
         }
 
-        [CommandHandler("showstats", AccessLevel.Developer, CommandHandlerFlag.None, 0, "Shows a list of player's current attribute/skill levels in console window", "showstats")]
+        [CommandHandler("showstats", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Shows a list of player's current attribute/skill levels in console window", "showstats")]
         public static void HandleShowStats(Session session, params string[] parameters)
         {
             var player = session.Player;
@@ -1708,6 +1711,40 @@ namespace ACE.Server.Command.Handlers
             session.Player.HouseRentTimestamp = (int)session.Player.House.GetRentDue((uint)Time.GetUnixTime(purchaseTime));
 
             HouseManager.BuildRentQueue();
+        }
+
+        /// <summary>
+        /// Toggles the display for player damage info
+        /// </summary>
+        [CommandHandler("debugdamage", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Toggles the display for player damage info", "/debugdamage <attack|defense|all|on|off>")]
+        public static void HandleDebugDamage(Session session, params string[] parameters)
+        {
+            if (parameters.Length == 0)
+            {
+                // toggle
+                if (session.Player.DebugDamage == Player.DebugDamageType.None)
+                    session.Player.DebugDamage = Player.DebugDamageType.All;
+                else
+                    session.Player.DebugDamage = Player.DebugDamageType.None;
+            }
+            else
+            {
+                var param = parameters[0].ToLower();
+                if (param.Equals("on") || param.Equals("all"))
+                    session.Player.DebugDamage = Player.DebugDamageType.All;
+                else if (param.Equals("off"))
+                    session.Player.DebugDamage = Player.DebugDamageType.None;
+                else if (param.StartsWith("attack"))
+                    session.Player.DebugDamage |= Player.DebugDamageType.Attacker;
+                else if (param.StartsWith("defen"))
+                    session.Player.DebugDamage |= Player.DebugDamageType.Defender;
+                else
+                {
+                    session.Network.EnqueueSend(new GameMessageSystemChat($"DebugDamage: unknown {param}", ChatMessageType.Broadcast));
+                    return;
+                }
+            }
+            session.Network.EnqueueSend(new GameMessageSystemChat($"DebugDamage: {session.Player.DebugDamage}", ChatMessageType.Broadcast));
         }
     }
 }

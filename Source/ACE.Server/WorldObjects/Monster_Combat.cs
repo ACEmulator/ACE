@@ -80,7 +80,7 @@ namespace ACE.Server.WorldObjects
             return AttackHeights[rng];
         }
 
-        public virtual CombatType GetAttackType()
+        public CombatType GetNextAttackType()
         {
             if (CombatTable == null)
                 GetCombatTable();
@@ -148,7 +148,7 @@ namespace ACE.Server.WorldObjects
                     if (!IsDirectVisible(AttackTarget))
                     {
                         // reroll attack type
-                        CurrentAttack = GetAttackType();
+                        CurrentAttack = GetNextAttackType();
                         continue;
 
                         // max iterations to melee?

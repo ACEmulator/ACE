@@ -21,7 +21,7 @@ namespace ACE.Server.Entity
 
         public override string ToString()
         {
-            return $"{Min}-{Max}";
+            return $"{Min} - {Max}";
         }
     }
 }

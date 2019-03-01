@@ -1,6 +1,7 @@
 using System;
 using System.Numerics;
 using ACE.Common;
+using ACE.DatLoader.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
@@ -342,6 +343,34 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
+        /// Returns the attack type for non-player creatures
+        /// </summary>
+        public virtual CombatType GetCombatType()
+        {
+            return CurrentAttack ?? CombatType.Melee;
+        }
+
+        /// <summary>
+        /// Returns a value between 0.5-1.5 for non-bow attacks,
+        /// depending on the power bar meter
+        /// </summary>
+        public virtual float GetPowerMod(WorldObject weapon)
+        {
+            // doesn't apply for non-player creatures?
+            return 1.0f;
+        }
+
+        /// <summary>
+        /// Returns a value between 0.6-1.6 for bow attacks,
+        /// depending on the accuracy meter
+        /// </summary>
+        public virtual float GetAccuracyMod(WorldObject weapon)
+        {
+            // doesn't apply for non-player creatures?
+            return 1.0f;
+        }
+
+        /// <summary>
         /// Returns the attribute damage bonus for a physical attack
         /// </summary>
         /// <param name="attackType">Uses strength for melee, coordination for missile</param>
@@ -374,6 +403,36 @@ namespace ACE.Server.WorldObjects
             //Console.WriteLine("Monster weapon skill: " + skill);
 
             return skill == Skill.None ? Skill.UnarmedCombat : skill;
+        }
+
+        /// <summary>
+        /// Returns the effective attack skill for a non-player creature,
+        /// ie. with Heart Seeker bonus
+        /// </summary>
+        public virtual uint GetEffectiveAttackSkill()
+        {
+            var attackSkill = GetCreatureSkill(GetCurrentAttackSkill()).Current;
+            var offenseMod = GetWeaponOffenseModifier(this);
+
+            // monsters don't use accuracy mod?
+
+            return (uint)Math.Round(attackSkill * offenseMod);
+        }
+
+        /// <summary>
+        /// Returns the effective defense skill for a player or creature,
+        /// ie. with Defender bonus
+        /// </summary>
+        public uint GetEffectiveDefenseSkill(CombatType combatType)
+        {
+            var defenseSkill = combatType == CombatType.Missile ? Skill.MissileDefense : Skill.MeleeDefense;
+            var defenseMod = defenseSkill == Skill.MeleeDefense ? GetWeaponMeleeDefenseModifier(this) : 1.0f;
+
+            var effectiveDefense = (uint)Math.Round(GetCreatureSkill(defenseSkill).Current * defenseMod);
+
+            if (IsExhausted) effectiveDefense = 0;
+
+            return effectiveDefense;
         }
 
 
@@ -518,9 +577,12 @@ namespace ACE.Server.WorldObjects
             var modRL = shield.EnchantmentManager.GetArmorModVsType(damageType);
             var effectiveRL = (float)(baseRL + modRL);
 
-            // resistance cap
-            if (effectiveRL > 2.0f)
-                effectiveRL = 2.0f;
+            // resistance clamp
+            effectiveRL = Math.Clamp(effectiveRL, -2.0f, 2.0f);
+
+            // handle negative SL
+            if (effectiveSL < 0)
+                effectiveRL = 1.0f / effectiveRL;
 
             var effectiveLevel = effectiveSL * effectiveRL;
 
@@ -545,7 +607,7 @@ namespace ACE.Server.WorldObjects
         /// Returns the total applicable Recklessness modifier,
         /// taking into account both attacker and defender players
         /// </summary>
-        public float GetRecklessnessMod(Creature attacker, Creature defender)
+        public static float GetRecklessnessMod(Creature attacker, Creature defender)
         {
             var playerAttacker = attacker as Player;
             var playerDefender = defender as Player;
@@ -802,6 +864,81 @@ namespace ACE.Server.WorldObjects
                 playerSource.Session.Network.EnqueueSend(msg);
             if (playerTarget != null)
                 playerTarget.Session.Network.EnqueueSend(msg);
+        }
+
+        /// <summary>
+        /// Returns TRUE if the creature receives a +5 DR bonus for this weapon type
+        /// </summary>
+        public virtual bool GetHeritageBonus(WorldObject weapon)
+        {
+            // only for players
+            return false;
+        }
+
+        /// <summary>
+        /// Returns a ResistanceType for a DamageType
+        /// </summary>
+        public static ResistanceType GetResistanceType(DamageType damageType)
+        {
+            switch (damageType)
+            {
+                case DamageType.Slash:
+                    return ResistanceType.Slash;
+                case DamageType.Pierce:
+                    return ResistanceType.Pierce;
+                case DamageType.Bludgeon:
+                    return ResistanceType.Bludgeon;
+                case DamageType.Fire:
+                    return ResistanceType.Fire;
+                case DamageType.Cold:
+                    return ResistanceType.Cold;
+                case DamageType.Acid:
+                    return ResistanceType.Acid;
+                case DamageType.Electric:
+                    return ResistanceType.Electric;
+                case DamageType.Nether:
+                    return ResistanceType.Nether;
+                case DamageType.Health:
+                    return ResistanceType.HealthDrain;
+                case DamageType.Stamina:
+                    return ResistanceType.StaminaDrain;
+                case DamageType.Mana:
+                    return ResistanceType.ManaDrain;
+                default:
+                    return ResistanceType.Undef;
+            }
+        }
+
+        /// <summary>
+        /// Returns the current attack maneuver for a non-player creature
+        /// </summary>
+        public virtual AttackType GetAttackType(WorldObject weapon, CombatManeuver combatManeuver)
+        {
+            return combatManeuver != null ? combatManeuver.AttackType : AttackType.Undef;
+        }
+
+        public virtual bool CanDamage(Creature target)
+        {
+            if (target is Player)
+            {
+                // monster attacking player
+                return true;    // other checks handled elsewhere
+            }
+            else
+            {
+                // monster attacking monster
+                var sourcePet = this is CombatPet;
+                var targetPet = target is CombatPet;
+
+                if (sourcePet || targetPet)
+                {
+                    if (sourcePet && targetPet)     // combat pets can't damage other pets
+                        return false;
+                    else
+                        return true;
+                }
+                return false;
+            }
         }
     }
 }
