@@ -84,6 +84,12 @@ namespace ACE.Server.Managers
             {
                 var spell = new Spell(enchantment.SpellId);
 
+                if (spell.NotFound)
+                {
+                    Console.WriteLine($"EnchantmentManager.GetEnchantments({magicSchool}): couldn't find spell {enchantment.SpellId} for {WorldObject.Name}");
+                    continue;
+                }
+
                 if (spell.School == magicSchool)
                     spells.Add(enchantment);
             }
