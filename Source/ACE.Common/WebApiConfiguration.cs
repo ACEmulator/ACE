@@ -14,6 +14,6 @@ namespace ACE.Common
         /// <summary>
         /// Used to form WAN accessible URIs
         /// </summary>
-        public string ExternalPort{ get; set; }
+        public string ExternalPort { get; set; }
     }
 }

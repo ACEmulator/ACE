@@ -2,6 +2,9 @@ using ACE.Common;
 using ACE.Server.Command.Handlers;
 using ACE.Server.Entity;
 using ACE.Server.Managers;
+using ACE.Server.Managers.TransferManager;
+using ACE.Server.Managers.TransferManager.Enums;
+using ACE.Server.Managers.TransferManager.Responses;
 using ACE.Server.Network;
 using ACE.WebApiServer.Model;
 using ACE.WebApiServer.Model.Character.Migration;
@@ -16,20 +19,20 @@ namespace ACE.WebApiServer.Modules
         {
             Get("/api/character/migrationCheck", async (_) =>
             {
-                TransferManager.TransferManagerMigrationCheckRequestModel request = this.BindAndValidate<TransferManager.TransferManagerMigrationCheckRequestModel>();
+                MigrationCheckRequestModel request = this.BindAndValidate<MigrationCheckRequestModel>();
                 if (!ModelValidationResult.IsValid)
                 {
                     return Negotiate.WithModel(ModelValidationResult).WithStatusCode(HttpStatusCode.BadRequest);
                 }
-                TransferManager.MigrationReadyStatus readyStatus = TransferManager.MigrationReadyStatus.Unknown;
+                MigrationReadyStatus readyStatus = MigrationReadyStatus.Unknown;
                 Gate.RunGatedAction(() =>
                 {
                     readyStatus = TransferManager.CheckReadyStatusOfMigration(request.Cookie);
                 }, 1); // inter-server request must use a different queue
 
-                TransferManager.TransferManagerMigrationCheckResponseModel payload = new TransferManager.TransferManagerMigrationCheckResponseModel()
+                MigrationCheckResponseModel payload = new MigrationCheckResponseModel()
                 {
-                    Config = new TransferManager.TransferManagerTransferConfigResponseModel()
+                    Config = new TransferConfigResponseModel()
                     {
                         MyThumbprint = CryptoManager.Thumbprint,
                         AllowImportFrom = ConfigManager.Config.Transfer.AllowImportFrom,
@@ -40,11 +43,11 @@ namespace ACE.WebApiServer.Modules
                     },
                     Cookie = request.Cookie,
                     Nonce = request.Nonce,
-                    Ready = readyStatus == TransferManager.MigrationReadyStatus.Ready,
+                    Ready = readyStatus == MigrationReadyStatus.Ready,
                     ReadyStatus = readyStatus.ToString()
                 };
 
-                TransferManager.SignedTransferManagerMigrationCheckResponseModel model = new TransferManager.SignedTransferManagerMigrationCheckResponseModel()
+                SignedMigrationCheckResponseModel model = new SignedMigrationCheckResponseModel()
                 {
                     Result = payload,
                     Signature = CryptoManager.SignData(ModelTools.ToJson(payload)),
@@ -62,16 +65,16 @@ namespace ACE.WebApiServer.Modules
                 {
                     return Negotiate.WithModel(ModelValidationResult).WithStatusCode(HttpStatusCode.BadRequest);
                 }
-                TransferManager.PackageMetadata metadata = new TransferManager.PackageMetadata
+                PackageMetadata metadata = new PackageMetadata
                 {
                     Cookie = request.Cookie
                 };
-                TransferManager.MigrateCloseResult result = null;
+                MigrateCloseResult result = null;
                 Gate.RunGatedAction(() =>
                 {
-                    result = TransferManager.CloseMigration(metadata, TransferManager.MigrationCloseType.Download);
+                    result = TransferManager.CloseMigration(metadata, MigrationCloseType.Download);
                 }, 1); // inter-server request must use a different queue
-                CharacterMigrationDownloadResponseModel resp = new CharacterMigrationDownloadResponseModel()
+                WebApiCharacterMigrationDownloadResponseModel resp = new WebApiCharacterMigrationDownloadResponseModel()
                 {
                     Cookie = request.Cookie,
                     SnapshotPackage = result.SnapshotPackage,
@@ -123,7 +126,7 @@ namespace ACE.WebApiServer.Modules
                     Welcome = ConfigManager.Config.Server.Welcome,
                     Uptime = Timers.RunningTime,
                     WorldName = ConfigManager.Config.Server.WorldName,
-                    Transfers = new TransferManager.TransferManagerTransferConfigResponseModel()
+                    Transfers = new TransferConfigResponseModel()
                     {
                         MyThumbprint = CryptoManager.Thumbprint,
                         AllowImportFrom = ConfigManager.Config.Transfer.AllowImportFrom,

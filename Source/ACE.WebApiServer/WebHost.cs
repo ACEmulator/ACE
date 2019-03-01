@@ -1,4 +1,5 @@
 using ACE.Server.Managers;
+using ACE.Server.Managers.TransferManager.Responses;
 using ACE.WebApiServer.Model;
 using ACE.WebApiServer.Model.Character;
 using AutoMapper;
@@ -7,7 +8,6 @@ using Microsoft.AspNetCore.Hosting;
 using System;
 using System.Net;
 using System.Threading;
-using static ACE.Server.Managers.TransferManager;
 
 namespace ACE.WebApiServer
 {
@@ -26,7 +26,7 @@ namespace ACE.WebApiServer
             Mapper.Initialize(cfg =>
             {
                 cfg.CreateMap<BaseAuthenticatedModel, CharacterListModel>();
-                cfg.CreateMap<TransferManagerMigrationCheckResponseModel, SignedTransferManagerMigrationCheckResponseModel>();
+                cfg.CreateMap<MigrationCheckResponseModel, SignedMigrationCheckResponseModel>();
             });
 
 

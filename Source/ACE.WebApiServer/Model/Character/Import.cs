@@ -1,5 +1,5 @@
 using ACE.Common;
-using ACE.Server.Managers;
+using ACE.Server.Managers.TransferManager;
 using FluentValidation;
 
 namespace ACE.WebApiServer.Model.Character
@@ -17,7 +17,7 @@ namespace ACE.WebApiServer.Model.Character
             RuleFor(request => request.NewCharacterName).NotEmpty().WithMessage("You must specify the character name to use.");
             RuleFor(request => request.NewCharacterName).Custom((str, _) =>
             {
-                if (TransferManager.StringContainsInvalidChars(GameConfiguration.AllowedCharacterNameCharacters, str))
+                if (TransferManagerUtil.StringContainsInvalidChars(GameConfiguration.AllowedCharacterNameCharacters, str))
                 {
                     _.AddFailure("The new character name contains invalid characters.");
                 }

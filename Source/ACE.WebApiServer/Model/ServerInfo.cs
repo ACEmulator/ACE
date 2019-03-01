@@ -1,5 +1,5 @@
 using ACE.Common;
-using static ACE.Server.Managers.TransferManager;
+using ACE.Server.Managers.TransferManager.Responses;
 
 namespace ACE.WebApiServer.Model
 {
@@ -9,7 +9,7 @@ namespace ACE.WebApiServer.Model
         public string Welcome { get; set; }
         public double Uptime { get; set; }
         public PlayerCountResponseModel PlayerCount { get; set; }
-        public TransferManagerTransferConfigResponseModel Transfers { get; set; }
+        public TransferConfigResponseModel Transfers { get; set; }
         public AccountDefaults AccountDefaults { get; set; }
     }
 }

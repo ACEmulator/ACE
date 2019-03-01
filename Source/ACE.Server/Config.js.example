@@ -88,7 +88,9 @@
     "AllowMigrationFrom": [
     ],
     "AllowImportFrom": [
-    ]
+    ],
+    // Keep pending migration package temporary files for how many days.  negative number for indefinitely or until cancellation.
+    "KeepMigrationsForDays": -1
   },
   "MySql": {
     "Authentication": {

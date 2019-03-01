@@ -86,21 +86,18 @@ namespace ACE.Server.Managers
                 return sanitary.ToString();
             }
         }
-        public static string BasePath
+        public static string EnsureBasePath(ILog log = null)
         {
-            get
-            {
-                var fldrNam = (string.IsNullOrWhiteSpace(FilesystemSafeServerName)) ? "ACEmulator" : "ACEmulator_" + FilesystemSafeServerName;
-                var u = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), fldrNam);
-                if (!Directory.Exists(u))
-                    try
-                    {
-                        Directory.CreateDirectory(u);
-                        log.Info($"Created directory {u}");
-                    }
-                    catch { }
-                return u;
-            }
+            var fldrNam = (string.IsNullOrWhiteSpace(FilesystemSafeServerName)) ? "acemulator" : "acemulator_" + FilesystemSafeServerName;
+            var u = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), fldrNam);
+            if (!Directory.Exists(u))
+                try
+                {
+                    Directory.CreateDirectory(u);
+                    log?.Info($"Created base directory {u}");
+                }
+                catch (Exception ex) { log?.Fatal($"Failed to create base directory {u}", ex); }
+            return u;
         }
 
         /// <summary>

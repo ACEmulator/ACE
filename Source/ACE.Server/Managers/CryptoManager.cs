@@ -52,26 +52,25 @@ namespace ACE.Server.Managers
                 log.Debug($"Trusted server certificate thumbprint: {trusted}");
             }
         }
-        public static string CertificatePath
+        public static string EnsureCertificatePath(ILog log)
         {
-            get
+            string u = Path.Combine(ServerManager.EnsureBasePath(log), "certificates");
+            if (!Directory.Exists(u))
             {
-                var u = Path.Combine(ServerManager.BasePath, "Certificates");
-                if (!Directory.Exists(u))
-                    try
-                    {
-                        Directory.CreateDirectory(u);
-                        log.Info($"Created directory {u}");
-                    }
-                    catch { }
-                return u;
+                try
+                {
+                    Directory.CreateDirectory(u);
+                    log?.Info($"Created certificates directory {u}");
+                }
+                catch (Exception ex) { log?.Fatal($"Failed to create certificates directory {u}", ex); }
             }
+            return u;
         }
-        private static string CertFilePathWebApi => Path.Combine(CertificatePath, CertFileNameWebApi);
-        private static string CertFilePathCharTransferSigning => Path.Combine(CertificatePath, CertFileNameCharTransferSigning);
+        private static string CertFilePathWebApi => Path.Combine(EnsureCertificatePath(log), CertFileNameWebApi);
+        private static string CertFilePathCharTransferSigning => Path.Combine(EnsureCertificatePath(log), CertFileNameCharTransferSigning);
         public static void EnsureCert(string certFileName, string certCN, int daysUntilExpire)
         {
-            string CertFile = Path.Combine(CertificatePath, certFileName);
+            string CertFile = Path.Combine(EnsureCertificatePath(log), certFileName);
             if (!File.Exists(CertFile))
             {
                 X509Certificate2 newCert = BuildSelfSignedServerCertificate(certCN, daysUntilExpire);

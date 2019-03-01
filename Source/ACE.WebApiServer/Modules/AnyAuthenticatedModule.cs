@@ -1,7 +1,8 @@
 using ACE.Common;
 using ACE.Database;
 using ACE.Entity.Enum;
-using ACE.Server.Managers;
+using ACE.Server.Managers.TransferManager;
+using ACE.Server.Managers.TransferManager.Enums;
 using ACE.WebApiServer.Model.Character;
 using ACE.WebApiServer.Model.Character.Migration;
 using AutoMapper;
@@ -52,11 +53,11 @@ namespace ACE.WebApiServer.Modules
                 {
                     return Negotiate.WithModel(ModelValidationResult).WithStatusCode(HttpStatusCode.BadRequest);
                 }
-                TransferManager.PackageMetadata metadata = new TransferManager.PackageMetadata
+                PackageMetadata metadata = new PackageMetadata
                 {
                     CharacterId = request.CharacterId,
                     AccountId = uint.Parse(Context.CurrentUser.FindFirst("AccountId").Value),
-                    PackageType = TransferManager.PackageType.Backup
+                    PackageType = PackageType.Backup
                 };
                 Gate.RunGatedAction(() =>
                 {
@@ -95,11 +96,11 @@ namespace ACE.WebApiServer.Modules
                 {
                     return Negotiate.WithModel(ModelValidationResult).WithStatusCode(HttpStatusCode.BadRequest);
                 }
-                TransferManager.PackageMetadata metadata = new TransferManager.PackageMetadata
+                PackageMetadata metadata = new PackageMetadata
                 {
                     CharacterId = request.CharacterId,
                     AccountId = uint.Parse(Context.CurrentUser.FindFirst("AccountId").Value),
-                    PackageType = TransferManager.PackageType.Migrate
+                    PackageType = PackageType.Migrate
                 };
                 Gate.RunGatedAction(() =>
                 {
@@ -138,15 +139,15 @@ namespace ACE.WebApiServer.Modules
                 {
                     return Negotiate.WithModel(ModelValidationResult).WithStatusCode(HttpStatusCode.BadRequest);
                 }
-                TransferManager.PackageMetadata metadata = new TransferManager.PackageMetadata
+                PackageMetadata metadata = new PackageMetadata
                 {
                     Cookie = request.Cookie,
                     AccountId = uint.Parse(Context.CurrentUser.FindFirst("AccountId").Value)
                 };
-                TransferManager.MigrateCloseResult result = null;
+                MigrateCloseResult result = null;
                 Gate.RunGatedAction(() =>
                 {
-                    result = TransferManager.CloseMigration(metadata, TransferManager.MigrationCloseType.Cancel);
+                    result = TransferManager.CloseMigration(metadata, MigrationCloseType.Cancel);
                 });
                 CharacterMigrationCancelResponseModel resp = new CharacterMigrationCancelResponseModel()
                 {
@@ -163,15 +164,15 @@ namespace ACE.WebApiServer.Modules
                 {
                     return Negotiate.WithModel(ModelValidationResult).WithStatusCode(HttpStatusCode.BadRequest);
                 }
-                TransferManager.PackageMetadata metadata = new TransferManager.PackageMetadata
+                PackageMetadata metadata = new PackageMetadata
                 {
                     NewCharacterName = request.NewCharacterName.Trim(),
                     Cookie = request.Cookie,
                     AccountId = uint.Parse(Context.CurrentUser.FindFirst("AccountId").Value),
                     ImportUrl = new Uri(request.BaseURL),
-                    PackageType = TransferManager.PackageType.Migrate
+                    PackageType = PackageType.Migrate
                 };
-                TransferManager.ImportAndMigrateResult result = null;
+                ImportAndMigrateResult result = null;
                 Gate.RunGatedAction(() =>
                 {
                     result = TransferManager.ImportAndMigrate(metadata);
@@ -193,13 +194,13 @@ namespace ACE.WebApiServer.Modules
                 {
                     return Negotiate.WithModel(ModelValidationResult).WithStatusCode(HttpStatusCode.BadRequest);
                 }
-                TransferManager.PackageMetadata metadata = new TransferManager.PackageMetadata
+                PackageMetadata metadata = new PackageMetadata
                 {
                     NewCharacterName = request.NewCharacterName.Trim(),
                     AccountId = uint.Parse(Context.CurrentUser.FindFirst("AccountId").Value),
-                    PackageType = TransferManager.PackageType.Backup
+                    PackageType = PackageType.Backup
                 };
-                TransferManager.ImportAndMigrateResult result = null;
+                ImportAndMigrateResult result = null;
                 byte[] fileData = null;
                 try
                 {

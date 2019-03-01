@@ -26,5 +26,9 @@ namespace ACE.Common
         [System.ComponentModel.DefaultValue(false)]
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
         public bool AllowMigrate { get; set; }
+
+        [System.ComponentModel.DefaultValue(-1)]
+        [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
+        public int KeepMigrationsForDays { get; set; }
     }
 }
