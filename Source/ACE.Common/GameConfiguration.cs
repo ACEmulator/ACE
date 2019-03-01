@@ -20,7 +20,7 @@ namespace ACE.Common
         public string WorldName { get; set; }
 
         public string Description { get; set; }
-        
+
         public string Welcome { get; set; }
 
         public NetworkSettings Network { get; set; }
@@ -45,5 +45,7 @@ namespace ACE.Common
         [System.ComponentModel.DefaultValue(60)]
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
         public uint ShutdownInterval { get; set; }
+
+        public CertificateConfiguration CertificateConfiguration { get; set; }
     }
 }

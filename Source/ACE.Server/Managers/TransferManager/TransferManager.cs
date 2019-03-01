@@ -58,6 +58,13 @@ namespace ACE.Server.Managers.TransferManager
                     }
                 }
             }
+            int amfc = ConfigManager.Config.Transfer.AllowMigrationFrom.Count;
+            log.Info($"Found {amfc} AllowMigrationFrom entr{((amfc > 1 || amfc == 0) ? "ies" : "y")} in Transfer configuration.");
+
+            foreach (string trusted in ConfigManager.Config.Transfer.AllowMigrationFrom)
+            {
+                log.Debug($"AllowMigrationFrom Entry: {trusted}");
+            }
         }
         /// <summary>
         /// Import or migrate a character.
@@ -236,7 +243,7 @@ namespace ACE.Server.Managers.TransferManager
                 // verify that the signatures are valid
                 foreach (FileInfo fil in diTmpDirPath.GetFiles("*.json"))
                 {
-                    if (!CryptoManager.VerifySignedFile(fil.FullName, signer))
+                    if (!CertificateManager.VerifySignedFile(fil.FullName, signer))
                     {
                         Directory.Delete(diTmpDirPath.FullName, true);
                         return new ImportAndMigrateResult() { FailReason = ImportAndMigrateFailiureReason.CharacterPackageSignatureInvalid };
@@ -577,19 +584,19 @@ namespace ACE.Server.Managers.TransferManager
             // serialize, save, and sign
             string playerPath = Path.Combine(basePath, snapshot.Player.Id + ".json");
             File.WriteAllText(playerPath, JsonConvert.SerializeObject(snapshot.Player, TransferManagerUtil.GetSerializationSettings()));
-            CryptoManager.SignFile(playerPath);
+            CertificateManager.SignFile(playerPath);
             foreach (Biota biota in snapshot.PossessedBiotas.Inventory.Union(snapshot.PossessedBiotas.WieldedItems))
             {
                 string biotaPath = Path.Combine(basePath, biota.Id + ".json");
                 File.WriteAllText(biotaPath, JsonConvert.SerializeObject(biota, TransferManagerUtil.GetSerializationSettings()));
-                CryptoManager.SignFile(biotaPath);
+                CertificateManager.SignFile(biotaPath);
             }
 
             string metaPath = Path.Combine(basePath, "packinfo.json");
             File.WriteAllText(metaPath, JsonConvert.SerializeObject(metadata, TransferManagerUtil.GetSerializationSettings()));
-            CryptoManager.SignFile(metaPath);
+            CertificateManager.SignFile(metaPath);
 
-            CryptoManager.ExportCert(Path.Combine(basePath, "signer.crt"));
+            CertificateManager.ExportCert(Path.Combine(basePath, "signer.crt"));
 
             // compress
             metadata.FilePath = Path.Combine(TransferManagerUtil.EnsureTransferPath(log), metadata.Cookie + ".zip");

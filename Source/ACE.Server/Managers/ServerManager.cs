@@ -71,7 +71,7 @@ namespace ACE.Server.Managers
             ShutdownInitiated = false;
         }
 
-        private const string SafeFileName = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890";
+        private const string SafeFileName = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
         private static string FilesystemSafeServerName
         {
             get
@@ -88,7 +88,7 @@ namespace ACE.Server.Managers
         }
         public static string EnsureBasePath(ILog log = null)
         {
-            var fldrNam = (string.IsNullOrWhiteSpace(FilesystemSafeServerName)) ? "acemulator" : "acemulator_" + FilesystemSafeServerName;
+            var fldrNam = (string.IsNullOrWhiteSpace(FilesystemSafeServerName)) ? "acemulator" : "acemulator_" + FilesystemSafeServerName.ToLower();
             var u = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), fldrNam);
             if (!Directory.Exists(u))
                 try

@@ -3,6 +3,7 @@ using ACE.Server.Managers.TransferManager.Responses;
 using ACE.WebApiServer.Model;
 using ACE.WebApiServer.Model.Character;
 using AutoMapper;
+using log4net;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using System;
@@ -13,6 +14,7 @@ namespace ACE.WebApiServer
 {
     internal static class WebHost
     {
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
         private static Thread hostThread = null;
         private static IWebHost host = null;
         public static void Run(IPAddress listenAt, int port)
@@ -32,13 +34,18 @@ namespace ACE.WebApiServer
 
             hostThread = new Thread(new ThreadStart(() =>
             {
+                if (CertificateManager.CertificateWebApi == null)
+                {
+                    log.Fatal("Key and certificate bundle is unavailable.  Aborting WebAPI hosting.");
+                    return;
+                }
                 host = new WebHostBuilder()
                     .UseSetting(WebHostDefaults.SuppressStatusMessagesKey, "True")
                     .UseKestrel(options =>
                     {
                         options.Listen(listenAt, port, listenOptions =>
                         {
-                            listenOptions.UseHttps(CryptoManager.CertificateWebApi);
+                            listenOptions.UseHttps(CertificateManager.CertificateWebApi);
                         });
                     })
                     .UseStartup<KestrelStartup>()

@@ -76,10 +76,10 @@ namespace ACE.Server
             log.Info("Initializing ServerManager...");
             ServerManager.Initialize();
 
-            if (ConfigManager.Config.WebApi.Enabled)
+            if (ConfigManager.Config.WebApi.Enabled || ConfigManager.Config.Transfer.AllowBackup || ConfigManager.Config.Transfer.AllowImport || ConfigManager.Config.Transfer.AllowMigrate)
             {
-                log.Info("Initializing CryptoManager...");
-                CryptoManager.Initialize();
+                log.Info("Initializing CertificateManager...");
+                CertificateManager.Initialize();
             }
 
             log.Info("Initializing DatManager...");

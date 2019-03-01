@@ -34,7 +34,7 @@ namespace ACE.WebApiServer.Modules
                 {
                     Config = new TransferConfigResponseModel()
                     {
-                        MyThumbprint = CryptoManager.Thumbprint,
+                        MyThumbprint = CertificateManager.Thumbprint,
                         AllowImportFrom = ConfigManager.Config.Transfer.AllowImportFrom,
                         AllowMigrationFrom = ConfigManager.Config.Transfer.AllowMigrationFrom,
                         AllowBackup = ConfigManager.Config.Transfer.AllowBackup,
@@ -50,8 +50,8 @@ namespace ACE.WebApiServer.Modules
                 SignedMigrationCheckResponseModel model = new SignedMigrationCheckResponseModel()
                 {
                     Result = payload,
-                    Signature = CryptoManager.SignData(ModelTools.ToJson(payload)),
-                    Signer = CryptoManager.ExportCertAsBytes()
+                    Signature = CertificateManager.SignData(ModelTools.ToJson(payload)),
+                    Signer = CertificateManager.ExportCertAsBytes()
                 };
 
                 return model.AsJsonWebResponse();
@@ -128,7 +128,7 @@ namespace ACE.WebApiServer.Modules
                     WorldName = ConfigManager.Config.Server.WorldName,
                     Transfers = new TransferConfigResponseModel()
                     {
-                        MyThumbprint = CryptoManager.Thumbprint,
+                        MyThumbprint = CertificateManager.Thumbprint,
                         AllowImportFrom = ConfigManager.Config.Transfer.AllowImportFrom,
                         AllowMigrationFrom = ConfigManager.Config.Transfer.AllowMigrationFrom,
                         AllowBackup = ConfigManager.Config.Transfer.AllowBackup,

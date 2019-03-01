@@ -1924,7 +1924,7 @@ namespace ACE.Server.Command.Handlers
                 session.Network.EnqueueSend(new GameMessageSystemChat("WebApi is disabled.  Thumbprint unavailable.", ChatMessageType.Broadcast));
                 return;
             }
-            string print = $"Server thumbprint: {CryptoManager.Thumbprint}";
+            string print = $"Server thumbprint: {CertificateManager.Thumbprint}";
             if (session != null)
             {
                 session.Network.EnqueueSend(new GameMessageSystemChat(print, ChatMessageType.Broadcast));

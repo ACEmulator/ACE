@@ -95,7 +95,7 @@ namespace ACE.Server.Managers.TransferManager
                 return ImportAndMigrateFailiureReason.SignatureMismatch;
             }
             SignerThumbprint = signer.Thumbprint;
-            if (!CryptoManager.VerifySignedData(JsonConvert.SerializeObject(resp.Result, GetSerializationSettings()), resp.Signature, signer))
+            if (!CertificateManager.VerifySignedData(JsonConvert.SerializeObject(resp.Result, GetSerializationSettings()), resp.Signature, signer))
             {
                 return ImportAndMigrateFailiureReason.SignatureInvalid;
             }
