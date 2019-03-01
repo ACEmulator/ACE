@@ -41,7 +41,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Wakes up a monster if it can be alerted
         /// </summary>
-        private bool AlertMonster(Creature monster)
+        public bool AlertMonster(Creature monster)
         {
             var attackable = monster.GetProperty(PropertyBool.Attackable) ?? false;
             var tolerance = (Tolerance)(monster.GetProperty(PropertyInt.Tolerance) ?? 0);
