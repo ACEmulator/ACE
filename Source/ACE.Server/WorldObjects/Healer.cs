@@ -68,12 +68,23 @@ namespace ACE.Server.WorldObjects
             var motion = new Motion(healer, motionCommand);
             var animLength = MotionTable.GetAnimationLength(healer.MotionTableId, healer.CurrentMotionState.Stance, motionCommand);
 
+            var startPos = new Position(healer.Location);
+
             var actionChain = new ActionChain();
             actionChain.AddAction(healer, () => healer.EnqueueBroadcastMotion(motion));
             actionChain.AddDelaySeconds(animLength);
             actionChain.AddAction(healer, () =>
             {
-                DoHealing(healer, target);
+                // check windup move distance cap
+                var endPos = new Position(healer.Location);
+                var dist = startPos.DistanceTo(endPos);
+
+                // only PKs affected by these caps?
+                if (dist < Player.Windup_MaxMove || PlayerKillerStatus == PlayerKillerStatus.NPK)
+                    DoHealing(healer, target);
+                else
+                    healer.Session.Network.EnqueueSend(new GameMessageSystemChat("Your movement disrupted healing!", ChatMessageType.Broadcast));
+
                 healer.SendUseDoneEvent();
             });
             actionChain.EnqueueChain();
