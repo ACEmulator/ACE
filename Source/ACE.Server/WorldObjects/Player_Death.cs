@@ -145,11 +145,13 @@ namespace ACE.Server.WorldObjects
             var animLength = DatManager.PortalDat.ReadFromDat<MotionTable>(MotionTableId).GetAnimationLength(MotionCommand.Dead);
             dieChain.AddDelaySeconds(animLength + 1.0f);
 
-            // enter portal space
-            dieChain.AddAction(this, () => CreateCorpse(topDamager));
-            dieChain.AddAction(this, TeleportOnDeath);
-            dieChain.AddAction(this, SetLifestoneProtection);
-            dieChain.AddAction(this, SetMinimumTimeSincePK);
+            dieChain.AddAction(this, () =>
+            {
+                CreateCorpse(topDamager);
+                TeleportOnDeath();      // enter portal space
+                SetLifestoneProtection();
+                SetMinimumTimeSincePK();
+            });
 
             dieChain.EnqueueChain();
         }
