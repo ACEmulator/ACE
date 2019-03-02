@@ -337,19 +337,16 @@ namespace ACE.Server.Managers
 
             session.Player.PlayerEnterWorld();
 
-            if (character.TotalLogins <= 1 || PropertyManager.GetBool("alwaysshowwelcome").Item)
+            if (character.TotalLogins <= 1 || PropertyManager.GetBool("always_show_welcome").Item)
             {
-                // check the value of the welcome message. Only display it if it is not empty
-                string welcomeHeader = !string.IsNullOrEmpty(ConfigManager.Config.Server.Welcome) ? ConfigManager.Config.Server.Welcome : "Welcome to Asheron's Call!";
-                string msg = "To begin your training, speak to the Society Greeter. Walk up to the Society Greeter using the 'W' key, then double-click on her to initiate a conversation.";
-
-                session.Network.EnqueueSend(new GameEventPopupString(session, $"{welcomeHeader}\n{msg}"));
+                var welcomeMsg = PropertyManager.GetString("welcome_msg").Item;
+                session.Network.EnqueueSend(new GameEventPopupString(session, welcomeMsg));
             }
 
             LandblockManager.AddObject(session.Player, true);
 
-            var motdString = PropertyManager.GetString("motd_string").Item;
-            session.Network.EnqueueSend(new GameMessageSystemChat(motdString, ChatMessageType.Broadcast));
+            var server_motd = PropertyManager.GetString("server_motd").Item;
+            session.Network.EnqueueSend(new GameMessageSystemChat(server_motd, ChatMessageType.Broadcast));
         }
 
         public static void EnqueueAction(IAction action)
