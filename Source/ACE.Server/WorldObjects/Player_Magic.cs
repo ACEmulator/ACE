@@ -802,13 +802,13 @@ namespace ACE.Server.WorldObjects
                 var returnStance = new Motion(MotionStance.Magic, MotionCommand.Ready, 1.0f);
                 EnqueueBroadcastMotion(returnStance);
 
-                Session.Network.EnqueueSend(new GameEventUseDone(Session, useDone));
-
                 if (movedTooFar)
                 {
                     //Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouHaveMovedTooFar));
                     Session.Network.EnqueueSend(new GameMessageSystemChat("Your movement disrupted spell casting!", ChatMessageType.Magic));
                 }
+
+                Session.Network.EnqueueSend(new GameEventUseDone(Session, useDone));
             });
 
             spellChain.AddDelaySeconds(1.0f);   // TODO: get actual recoil timing
