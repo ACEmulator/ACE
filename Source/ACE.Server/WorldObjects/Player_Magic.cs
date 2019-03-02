@@ -759,7 +759,7 @@ namespace ACE.Server.WorldObjects
             var castingDelay = spell.Formula.GetCastTime(MotionTableId, castSpeed);
             spellChain.AddDelaySeconds(castingDelay);
 
-            bool movedTooFar = true;
+            bool movedTooFar = false;
 
             spellChain.AddAction(this, () =>
             {
