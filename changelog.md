@@ -4,7 +4,7 @@
 [Ripley]
 * Added migration coding to support migrating from previous SHA512 Hash/Salt method to BCrypt.
 * Script for Updating Auth database added to default passwords to BCrypt.
-* Added `passwd` and `set-accountpassword` commands for self-service password changed and admin-only override password changing.
+* Added `passwd` and `set-accountpassword` commands for self-service password changing and admin-only override password changes.
 
 ### 2019-03-01
 [zegegerslittlesis]
