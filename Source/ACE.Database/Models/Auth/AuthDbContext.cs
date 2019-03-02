@@ -84,7 +84,13 @@ namespace ACE.Database.Models.Auth
                 entity.Property(e => e.PasswordHash)
                     .IsRequired()
                     .HasColumnName("passwordHash")
-                    .HasColumnType("char(60)");
+                    .HasColumnType("varchar(88)");
+
+                entity.Property(e => e.PasswordSalt)
+                    .IsRequired()
+                    .HasColumnName("passwordSalt")
+                    .HasColumnType("varchar(88)")
+                    .HasDefaultValueSql("'use bcrypt'");
 
                 entity.HasOne(d => d.AccessLevelNavigation)
                     .WithMany(p => p.Account)

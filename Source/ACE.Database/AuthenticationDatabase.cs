@@ -54,6 +54,7 @@ namespace ACE.Database
 
             account.AccountName = name;
             account.SetPassword(password);
+            account.SetSaltForBCrypt();
             account.AccessLevel = (uint)accessLevel;
 
             using (var context = new AuthDbContext())
