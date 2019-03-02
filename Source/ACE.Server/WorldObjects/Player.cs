@@ -315,8 +315,6 @@ namespace ACE.Server.WorldObjects
                 // selectedTarget = ObjectGuid.Invalid;
                 RequestedAppraisalTarget = null;
                 CurrentAppraisalTarget = null;
-
-                SendUseDoneEvent();
                 return;
             }
 

@@ -580,7 +580,7 @@ namespace ACE.Server.WorldObjects
             foreach (var player in nearbyPlayers)
             {
                 // clear house owner
-                player.Session.Network.EnqueueSend(new GameMessagePublicUpdateInstanceID(this, PropertyInstanceId.HouseOwner, new ObjectGuid(0)));
+                player.Session.Network.EnqueueSend(new GameMessagePublicUpdateInstanceID(this, PropertyInstanceId.HouseOwner, ObjectGuid.Invalid));
                 player.Session.Network.EnqueueSend(new GameEventHouseUpdateRestrictions(player.Session, this, restrictionDB));
             }
         }

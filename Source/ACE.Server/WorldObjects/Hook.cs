@@ -140,7 +140,7 @@ namespace ACE.Server.WorldObjects
             if (!cachedHookReferences.TryGetValue(WeenieClassId, out var hook))
             {
                 var weenie = DatabaseManager.World.GetCachedWeenie(WeenieClassId);
-                hook = WorldObjectFactory.CreateWorldObject(weenie, new ObjectGuid(0));
+                hook = WorldObjectFactory.CreateWorldObject(weenie, ObjectGuid.Invalid);
 
                 cachedHookReferences[WeenieClassId] = hook;
             }

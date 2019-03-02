@@ -916,5 +916,29 @@ namespace ACE.Server.WorldObjects
         {
             return combatManeuver != null ? combatManeuver.AttackType : AttackType.Undef;
         }
+
+        public virtual bool CanDamage(Creature target)
+        {
+            if (target is Player)
+            {
+                // monster attacking player
+                return true;    // other checks handled elsewhere
+            }
+            else
+            {
+                // monster attacking monster
+                var sourcePet = this is CombatPet;
+                var targetPet = target is CombatPet;
+
+                if (sourcePet || targetPet)
+                {
+                    if (sourcePet && targetPet)     // combat pets can't damage other pets
+                        return false;
+                    else
+                        return true;
+                }
+                return false;
+            }
+        }
     }
 }

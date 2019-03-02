@@ -190,7 +190,7 @@ namespace ACE.Server.Managers
 
             // reset slumlord name
             var weenie = DatabaseManager.World.GetCachedWeenie(slumlord.WeenieClassId);
-            var wo = WorldObjectFactory.CreateWorldObject(weenie, new ObjectGuid(0));
+            var wo = WorldObjectFactory.CreateWorldObject(weenie, ObjectGuid.Invalid);
             slumlord.Name = wo.Name;
 
             slumlord.EnqueueBroadcast(new GameMessagePublicUpdatePropertyString(slumlord, PropertyString.Name, wo.Name));

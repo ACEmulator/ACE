@@ -199,23 +199,21 @@ namespace ACE.Server.WorldObjects
         {
             //Console.WriteLine($"{Name}.ProjectileImpact()");
 
+            ReportCollisions = false;
+            Ethereal = true;
+            IgnoreCollisions = true;
+            NoDraw = true;
+            Cloaked = true;
+            LightsStatus = false;
+
+            PhysicsObj.set_active(false);
+
+            EnqueueBroadcastPhysicsState();
+            EnqueueBroadcast(new GameMessageScript(Guid, ACE.Entity.Enum.PlayScript.Explode, GetProjectileScriptIntensity(SpellType)));
+
             ActionChain selfDestructChain = new ActionChain();
-            selfDestructChain.AddAction(this, () =>
-            {
-                ReportCollisions = false;
-                Ethereal = true;
-                IgnoreCollisions = true;
-                NoDraw = true;
-                Cloaked = true;
-                LightsStatus = false;
-
-                PhysicsObj.set_active(false);
-
-                EnqueueBroadcastPhysicsState();
-                EnqueueBroadcast(new GameMessageScript(Guid, ACE.Entity.Enum.PlayScript.Explode, GetProjectileScriptIntensity(SpellType)));
-            });
             selfDestructChain.AddDelaySeconds(5.0);
-            selfDestructChain.AddAction(this, Destroy);
+            selfDestructChain.AddAction(this, () => Destroy());
             selfDestructChain.EnqueueChain();
         }
 
@@ -248,6 +246,12 @@ namespace ACE.Server.WorldObjects
             }
 
             ProjectileImpact();
+
+            // for untargeted multi-projectile war spells launched by monsters,
+            // ensure monster can damage target
+            if (ProjectileSource is Creature sourceCreature)
+                if (!sourceCreature.CanDamage(target))
+                    return;
 
             // if player target, ensure matching PK status
             var targetPlayer = target as Player;

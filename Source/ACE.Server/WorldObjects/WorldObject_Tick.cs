@@ -94,9 +94,22 @@ namespace ACE.Server.WorldObjects
                     // If we find that there is a case where Creatures need to act after they've been detached from the landblock,
                     // that work should be enqueued onto WorldManager
                 }
+                else if (IsGenerator)
+                {
+                    // This is a detached generator, we don't need to further the action chain
+                }
+                else if (this is SpellProjectile)
+                {
+                    // Do no more work for detached spell projectiles
+                }
                 else
                 {
                     // Enqueue work for detached objects onto our thread-safe WorldManager
+
+                    // Slumlords (housing) can be loaded without its landblock
+                    if (!(this is SlumLord))
+                        log.WarnFormat("Item 0x{0:X8}:{1} has enqueued an action after it's been detached from a landblock.", Guid.Full, Name);
+
                     WorldManager.EnqueueAction(action);
                 }
             }

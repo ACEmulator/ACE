@@ -10,22 +10,91 @@
 [zegegerslittlesis]
 * Changed account authentication to use BCrypt.
 
+### 2019-02-28
+[gmriggs]
+* Added Linux installation instructions
+* Ensuring monsters can damage target
+
+### 2019-02-26
+[Mag-nus]
+* Introduce ObjectGuid recycling into ACE
+
+### 2019-02-25
+[gmriggs]
+* Updating item dispel
+
 ### 2019-02-23
 [Jyrus]
 * Update EmoteType.DirectBroadcast to support "<questname>@You must wait %CDtime to collect the <quest item> again."
+
+[Mag-nus]
+* Exceptions fixed in LootGenerationFactory
 
 ### 2019-02-22
 [Jyrus]
 * Enable basic functionality for InqOwnItems in EmoteManager, with code suggested by gmriggs
 * Fix array indexing in LootHelper ( array indexes begin with 0 )
 
+### 2019-02-20
+[Mag-nus]
+* Pack space is checked before selling items at a vendor
+* Improved CoinValue property
+
+[gmriggs]
+* Added centralized damage calculation function
+
 ### 2019-02-18
 [Jyrus]
 * Start refactoring LootGenerationFactory.cs code
 
+### 2019-02-17
+[Mag-nus]
+* Improved EncumbranceVal and Value properties
+
+### 2019-02-16
+[Mag-nus]
+* Fixed an infinite loop when using a mana stone that didn't have enough mana to fill up all the items in need
+* Items added to the world via the admin command /create no longer decay
+* Monsters now Destroy() on death, removing them from the database if they persisted (possibly from /create)
+
+[gmriggs]
+* Adding enchantments for items wielded by monsters / NPCs
+
+### 2019-02-13
+[Mag-nus]
+* Fixed a bug where splitting/merging stacks modified the StackSize in the wrong direction
+
+[gmriggs]
+* Updating ClothingPriority, create list selection
+* Updating CoverageMask
+* Updating allegiance rank, config properties
+
+### 2019-02-12
+[gmriggs]
+* Adding house maintenance + config options
+
+### 2019-02-11
+[Mag-nus]
+* Landblocks load their resources async again
+* Improved the FindByObject() function to include objects WieldedByOther
+* Added caching to a couple more WorldDB housing functions
+* Fixed an exception for PropertyManager when requesting the value of a property that didn't exist in the database
+* Cleanedup the WorldObject OnLoad, OnAddItem, OnRemoveItem code and flow
+
+[gmriggs]
+* Adjusting augs and slots armor
+* Added server logic for the remaining player-configurable options
+* Added magic-absorbing shields
+* Added RNG create lists
+
 ### 2019-02-09
 [Ripley]
 * Changed GenerateTreasure to check for null DeathTreasure and de-duped generate code so that items weren't generated twice upon death.
+
+### 2019-02-07
+[gmriggs]
+* Adding house deeds
+* Adding house purchase requirements w/ config options
 
 ### 2019-02-06
 [Jyrus]
@@ -35,14 +104,42 @@
 * Removed a number of properties that were being set in code, which was a holdover from before TOD weenies were being used
 * Add functionality to support Mana Forge Chests in the LootGenerationFactory
 
+[gmriggs]
+* Adjusted imbue chance of success
+* Fixing Shadow Armor quest
+
 ### 2019-02-05
 [Ripley]
 * Add support for spawning Treasure pile corpses when data indicates it should.
 * Fix wield issue with TwoHanded weapons.
 
+[gmriggs]
+* Housing permissions sync improvements
+* Fixed an issue with TOD monsters spawning with low health
+* Adding no-log landblocks
+* Adding synchronized ServerObject loading for non-adjacents
+* Adding logic for locked doors openable from behind
+
 ### 2019-02-04
 [Jyrus]
 * Modify LootGenerationFactory to support the TOD updated weenies
+
+[gmriggs]
+* Adding squelches
+* Improved handling for offline houses
+* Adding heritage augs
+
+### 2019-02-03
+[Mag-nus]
+* Write locks on WorldObject property dictionaries are only taken when the property is actually set.
+
+### 2019-02-02
+[gmriggs]
+* Adding jsminify for config commenting
+
+### 2019-02-01
+[Mag-nus]
+* Rejecting clients no longer consumes a session
 
 [Ripley]
 * Added LastModified to several tables in World Database
