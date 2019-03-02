@@ -51,7 +51,8 @@ DROP TABLE IF EXISTS `account`;
 CREATE TABLE `account` (
   `accountId` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `accountName` varchar(50) NOT NULL,
-  `passwordHash` char(60) NOT NULL COMMENT 'BCrypt revision 2y will always result in a 60 character string.',
+  `passwordHash` varchar(88) NOT NULL COMMENT 'base64 encoded version of the hashed passwords.  88 characters are needed to base64 encode SHA512 output.',
+  `passwordSalt` varchar(88) NOT NULL COMMENT 'base64 encoded version of the password salt.  512 byte salts (88 characters when base64 encoded) are recommend for SHA512.',
   `accessLevel` int(10) unsigned NOT NULL DEFAULT '0',
   PRIMARY KEY (`accountId`),
   UNIQUE KEY `accountName_uidx` (`accountName`),
