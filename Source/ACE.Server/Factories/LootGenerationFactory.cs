@@ -126,7 +126,33 @@ namespace ACE.Server.Factories
                 }
             }
 
+            if (lootBias != LootBias.Armor && lootBias != LootBias.Weapons && lootBias != LootBias.MagicEquipment && profile.MagicItemMinAmount > 0)
+            {
+                lootWorldObject = CreateSummoningEssence(profile.Tier);
+
+                if (lootWorldObject != null)
+                    loot.Add(lootWorldObject);
+            }
+
             return loot;
+        }
+
+        private static WorldObject CreateSummoningEssence(int tier)
+        {
+            uint id = 0;
+
+            if (tier < 1) tier = 1;
+            if (tier > 8) tier = 8;
+
+            int summoningEssenceIndex = ThreadSafeRandom.Next(0, LootHelper.SummoningEssencesMatrix.Length - 1);
+
+            id = (uint)LootHelper.SummoningEssencesMatrix[summoningEssenceIndex][tier - 1];
+
+            if (id == 0)
+                return null;
+
+            WorldObject wo = WorldObjectFactory.CreateNewWorldObject(id);
+            return wo;
         }
 
         private static WorldObject CreateRandomLootObjects(int tier, bool isMagical, LootBias lootBias = LootBias.UnBiased)
