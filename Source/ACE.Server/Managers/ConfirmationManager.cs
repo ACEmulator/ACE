@@ -50,6 +50,14 @@ namespace ACE.Server.Managers
                         RecipeManager.HandleTinkering(confirm.Player, confirm.Source, confirm.Target, true);
                     break;
 
+                case ConfirmationType.Yes_No:
+
+                    confirm.Player.CompleteConfirmation(confirm.ConfirmationType, confirm.ConfirmationID);
+
+                    confirm.Source.EmoteManager.ExecuteEmoteSet(response ? EmoteCategory.TestSuccess : EmoteCategory.TestFailure, confirm.Quest, confirm.Player);
+
+                    break;
+
                 default:
                     break;
             }

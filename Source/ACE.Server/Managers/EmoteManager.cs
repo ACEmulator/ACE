@@ -599,7 +599,14 @@ namespace ACE.Server.Managers
                     break;
 
                 case EmoteType.InqYesNo:
-                    ConfirmationManager.ProcessConfirmation((uint)emote.Stat, true);
+
+                    if (player != null)
+                    {
+                        var confirm = new Confirmation(ConfirmationType.Yes_No, emote.TestString, WorldObject, null, player, emote.Message);
+                        ConfirmationManager.AddConfirmation(confirm);
+
+                        player.Session.Network.EnqueueSend(new GameEventConfirmationRequest(player.Session, ConfirmationType.Yes_No, confirm.ConfirmationID, emote.TestString));
+                    }
                     break;
 
                 case EmoteType.Invalid:
@@ -995,12 +1002,20 @@ namespace ACE.Server.Managers
 
                 case EmoteType.TakeItems:
 
-                    if (player != null && emote.WeenieClassId != null)
+                    if (player != null)
                     {
-                        var item = WorldObjectFactory.CreateNewWorldObject((uint)emote.WeenieClassId);
-                        if (item == null) break;
+                        var items = player.GetInventoryItemsOfWCID(emote.WeenieClassId ?? 0);
 
-                        success = player.TryConsumeFromInventoryWithNetworking(item, emote.Amount ?? 0);
+                        var leftReq = emote.StackSize ?? 0;
+                        foreach (var item in items)
+                        {
+                            var removeNum = Math.Min(leftReq, item.StackSize ?? 1);
+                            player.TryConsumeFromInventoryWithNetworking(item, removeNum);
+
+                            leftReq -= removeNum;
+                            if (leftReq <= 0)
+                                break;
+                        }
                     }
                     break;
 
@@ -1343,9 +1358,12 @@ namespace ACE.Server.Managers
             ExecuteEmoteSet(EmoteCategory.KillTaunt, null, player);
         }
 
-        public void OnTalkDirect(Player player)
+        /// <summary>
+        /// Called when this NPC receives a direct text message from a player
+        /// </summary>
+        public void OnTalkDirect(Player player, string message)
         {
-            ExecuteEmoteSet(EmoteCategory.ReceiveTalkDirect, null, player);
+            ExecuteEmoteSet(EmoteCategory.ReceiveTalkDirect, message, player);
         }
     }
 }
