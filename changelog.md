@@ -1,4 +1,15 @@
 # ACEmulator Change Log
+
+### 2019-03-02
+[Ripley]
+* Added migration coding to support migrating from previous SHA512 Hash/Salt method to BCrypt.
+* Script for Updating Auth database added to default passwords to BCrypt.
+* Added `passwd` and `set-accountpassword` commands for self-service password changed and admin-only override password changing.
+
+### 2019-03-01
+[zegegerslittlesis]
+* Changed account authentication to use BCrypt.
+
 ### 2019-02-23
 [Jyrus]
 * Update EmoteType.DirectBroadcast to support "<questname>@You must wait %CDtime to collect the <quest item> again."
