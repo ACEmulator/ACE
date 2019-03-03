@@ -273,6 +273,8 @@ namespace ACE.Server.Entity
             obj.ScatterPos = new SetPosition(new Physics.Common.Position(obj.Location), SetPositionFlags.RandomScatter, genRadius);
 
             obj.EnterWorld();
+
+            obj.ScatterPos = null;
         }
 
         public void Spawn_Container(WorldObject obj)
