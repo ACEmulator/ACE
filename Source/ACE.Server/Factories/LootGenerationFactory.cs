@@ -115,7 +115,7 @@ namespace ACE.Server.Factories
 
             // 50/50 chance to drop a scroll
             itemChance = ThreadSafeRandom.Next(0, 2);
-            if (itemChance >= 1)
+            if (itemChance >= 1 || profile.Tier > 3)
             {
                 if (lootBias == LootBias.UnBiased && profile.MagicItemMinAmount > 0)
                 {
