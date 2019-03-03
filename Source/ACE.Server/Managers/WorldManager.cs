@@ -337,16 +337,27 @@ namespace ACE.Server.Managers
 
             session.Player.PlayerEnterWorld();
 
-            if (character.TotalLogins <= 1 || PropertyManager.GetBool("always_show_welcome").Item)
-            {
-                var welcomeMsg = PropertyManager.GetString("welcome_msg").Item;
-                session.Network.EnqueueSend(new GameEventPopupString(session, welcomeMsg));
-            }
-
             LandblockManager.AddObject(session.Player, true);
 
+            var popup_header = PropertyManager.GetString("popup_header").Item;
+            var popup_motd = PropertyManager.GetString("popup_motd").Item;
+            var popup_welcome = PropertyManager.GetString("popup_welcome").Item;
+
+            if (character.TotalLogins <= 1)
+            {
+                session.Network.EnqueueSend(new GameEventPopupString(session, $"{popup_header}\n{popup_motd}\n{popup_welcome}"));
+            }
+            else if (!string.IsNullOrEmpty(popup_motd))
+            {
+                session.Network.EnqueueSend(new GameEventPopupString(session, $"{popup_header}\n{popup_motd}"));
+            }
+
+            var info = "Welcome to Asheron's Call\n  powered by ACEmulator\n\nFor more information on commands supported by this server, type @acehelp\n";
+            session.Network.EnqueueSend(new GameMessageSystemChat(info, ChatMessageType.Broadcast));
+
             var server_motd = PropertyManager.GetString("server_motd").Item;
-            session.Network.EnqueueSend(new GameMessageSystemChat(server_motd, ChatMessageType.Broadcast));
+            if (!string.IsNullOrEmpty(server_motd))
+                session.Network.EnqueueSend(new GameMessageSystemChat($"{server_motd}\n", ChatMessageType.Broadcast));
         }
 
         public static void EnqueueAction(IAction action)
