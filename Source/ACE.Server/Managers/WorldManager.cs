@@ -345,11 +345,11 @@ namespace ACE.Server.Managers
 
             if (character.TotalLogins <= 1)
             {
-                session.Network.EnqueueSend(new GameEventPopupString(session, $"{popup_header}\n{popup_motd}\n{popup_welcome}"));
+                session.Network.EnqueueSend(new GameEventPopupString(session, AppendLines(popup_header, popup_motd, popup_welcome)));
             }
             else if (!string.IsNullOrEmpty(popup_motd))
             {
-                session.Network.EnqueueSend(new GameEventPopupString(session, $"{popup_header}\n{popup_motd}"));
+                session.Network.EnqueueSend(new GameEventPopupString(session, AppendLines(popup_header, popup_motd)));
             }
 
             var info = "Welcome to Asheron's Call\n  powered by ACEmulator\n\nFor more information on commands supported by this server, type @acehelp\n";
@@ -358,6 +358,16 @@ namespace ACE.Server.Managers
             var server_motd = PropertyManager.GetString("server_motd").Item;
             if (!string.IsNullOrEmpty(server_motd))
                 session.Network.EnqueueSend(new GameMessageSystemChat($"{server_motd}\n", ChatMessageType.Broadcast));
+        }
+
+        private static string AppendLines(params string[] lines)
+        {
+            var result = "";
+            foreach (var line in lines)
+                if (!string.IsNullOrEmpty(line))
+                    result += $"{line}\n";
+
+            return result;
         }
 
         public static void EnqueueAction(IAction action)
