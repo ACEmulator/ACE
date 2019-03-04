@@ -113,9 +113,9 @@ namespace ACE.Server.Factories
                 }
             }
 
-            // 50/50 chance to drop a scroll
-            itemChance = ThreadSafeRandom.Next(0, 2);
-            if (itemChance >= 1 || profile.Tier > 3)
+            // 25% chance to drop a scroll
+            itemChance = ThreadSafeRandom.Next(0, 3);
+            if (itemChance == 3)
             {
                 if (lootBias == LootBias.UnBiased && profile.MagicItemMinAmount > 0)
                 {
@@ -128,10 +128,15 @@ namespace ACE.Server.Factories
 
             if (lootBias != LootBias.Armor && lootBias != LootBias.Weapons && lootBias != LootBias.MagicEquipment && profile.MagicItemMinAmount > 0)
             {
-                lootWorldObject = CreateSummoningEssence(profile.Tier);
+                // 33% chance to drop a scroll
+                itemChance = ThreadSafeRandom.Next(0, 2);
+                if (itemChance == 2)
+                {
+                    lootWorldObject = CreateSummoningEssence(profile.Tier);
 
-                if (lootWorldObject != null)
-                    loot.Add(lootWorldObject);
+                    if (lootWorldObject != null)
+                        loot.Add(lootWorldObject);
+                }
             }
 
             return loot;
