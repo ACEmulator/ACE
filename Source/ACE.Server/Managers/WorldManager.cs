@@ -367,7 +367,7 @@ namespace ACE.Server.Managers
                 if (!string.IsNullOrEmpty(line))
                     result += $"{line}\n";
 
-            return Regex.Replace(result, $"\n$", "");
+            return Regex.Replace(result, "\n$", "");
         }
 
         public static void EnqueueAction(IAction action)
