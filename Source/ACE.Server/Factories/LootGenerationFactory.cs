@@ -533,7 +533,6 @@ namespace ACE.Server.Factories
             int itemDifficulty = GetDifficulty(tier, spellCraft);
             int wieldDiff = GetWield(tier, 3);
             WieldRequirement wieldRequirments = WieldRequirement.RawSkill;
-            Skill wieldSkillType = Skill.None;
             int maxMana = GetMaxMana(numSpells, tier);
 
             int eleType = ThreadSafeRandom.Next(0, 4);
@@ -541,7 +540,7 @@ namespace ACE.Server.Factories
             switch (weaponType)
             {
                 case 0:
-                    wieldSkillType = Skill.HeavyWeapons;
+                    // Heavy Weapons
                     int heavyWeaponsType = ThreadSafeRandom.Next(0, 22);
                     weaponWeenie = LootHelper.HeavyWeaponsMatrix[heavyWeaponsType][eleType];
 
@@ -623,9 +622,9 @@ namespace ACE.Server.Factories
                     }
                     break;
                 case 1:
-                    wieldSkillType = Skill.LightWeapons;
+                    // Light Weapons;
                     int lightWeaponsType = ThreadSafeRandom.Next(0, 19);
-                    weaponWeenie = LootHelper.HeavyWeaponsMatrix[lightWeaponsType][eleType];
+                    weaponWeenie = LootHelper.LightWeaponsMatrix[lightWeaponsType][eleType];
 
                     switch (lightWeaponsType)
                     {
@@ -704,9 +703,9 @@ namespace ACE.Server.Factories
                     }
                     break;
                 case 2:
-                    wieldSkillType = Skill.FinesseWeapons;
+                    // Finesse Weapons;
                     int finesseWeaponsType = ThreadSafeRandom.Next(0, 22);
-                    weaponWeenie = LootHelper.HeavyWeaponsMatrix[finesseWeaponsType][eleType];
+                    weaponWeenie = LootHelper.FinesseWeaponsMatrix[finesseWeaponsType][eleType];
 
                     switch (finesseWeaponsType)
                     {
@@ -786,10 +785,9 @@ namespace ACE.Server.Factories
                     }
                     break;
                 case 3:
-                    ///Two handed
-                    wieldSkillType = Skill.TwoHandedCombat;
+                    // Two handed
                     int twoHandedWeaponsType = ThreadSafeRandom.Next(0, 11);
-                    weaponWeenie = LootHelper.HeavyWeaponsMatrix[twoHandedWeaponsType][eleType];
+                    weaponWeenie = LootHelper.TwoHandedWeaponsMatrix[twoHandedWeaponsType][eleType];
 
                     damage = GetMaxDamage(3, tier, wieldDiff, 1);
                     damageVariance = GetVariance(3, 1);
@@ -837,7 +835,6 @@ namespace ACE.Server.Factories
             wo.SetProperty(PropertyInt.MaterialType, GetMaterialType(2, tier));
             wo.SetProperty(PropertyInt.ItemWorkmanship, workmanship);
 
-            wo.SetProperty(PropertyInt.WeaponSkill, (int)wieldSkillType);
             wo.SetProperty(PropertyInt.Damage, damage);
             wo.SetProperty(PropertyFloat.DamageVariance, damageVariance);
 
