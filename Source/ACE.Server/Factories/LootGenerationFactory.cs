@@ -151,8 +151,31 @@ namespace ACE.Server.Factories
             if (id == 0)
                 return null;
 
-            WorldObject wo = WorldObjectFactory.CreateNewWorldObject(id);
-            return wo;
+            var petDevice = WorldObjectFactory.CreateNewWorldObject(id) as PetDevice;
+            if (petDevice == null)
+                return null;
+
+            var ratingChance = 0.5f;
+
+            // add rng ratings to pet device
+            // linear or biased?
+            if (ratingChance > ThreadSafeRandom.Next(0.0f, 1.0f))
+                petDevice.GearDamage = ThreadSafeRandom.Next(1, 20);
+            if (ratingChance > ThreadSafeRandom.Next(0.0f, 1.0f))
+                petDevice.GearDamageResist = ThreadSafeRandom.Next(1, 20);
+            if (ratingChance > ThreadSafeRandom.Next(0.0f, 1.0f))
+                petDevice.GearCritDamage = ThreadSafeRandom.Next(1, 20);
+            if (ratingChance > ThreadSafeRandom.Next(0.0f, 1.0f))
+                petDevice.GearCritDamageResist = ThreadSafeRandom.Next(1, 20);
+            if (ratingChance > ThreadSafeRandom.Next(0.0f, 1.0f))
+                petDevice.GearCrit = ThreadSafeRandom.Next(1, 20);
+            if (ratingChance > ThreadSafeRandom.Next(0.0f, 1.0f))
+                petDevice.GearCritResist = ThreadSafeRandom.Next(1, 20);
+
+            var workmanship = GetWorkmanship(tier);
+            petDevice.SetProperty(PropertyInt.ItemWorkmanship, workmanship);
+
+            return petDevice;
         }
 
         private static WorldObject CreateRandomLootObjects(int tier, bool isMagical, LootBias lootBias = LootBias.UnBiased)
