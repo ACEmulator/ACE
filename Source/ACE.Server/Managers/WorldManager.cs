@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Net;
-using System.Numerics;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -367,7 +367,7 @@ namespace ACE.Server.Managers
                 if (!string.IsNullOrEmpty(line))
                     result += $"{line}\n";
 
-            return result;
+            return Regex.Replace(result, $"\n$", "");
         }
 
         public static void EnqueueAction(IAction action)
