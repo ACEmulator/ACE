@@ -323,6 +323,10 @@ namespace ACE.Server.Factories
             workmanship = GetWorkmanship(tier);
 
             WorldObject wo = WorldObjectFactory.CreateNewWorldObject(gemType) as Gem;
+
+            if (wo == null)
+                return null;
+
             wo.SetProperty(PropertyInt.ItemWorkmanship, workmanship);
 
             if (spellDID > 0)
@@ -402,6 +406,10 @@ namespace ACE.Server.Factories
             }
             numCantrips = minorCantrips + majorCantrips + epicCantrips + legendaryCantrips;
             WorldObject wo = WorldObjectFactory.CreateNewWorldObject((uint)jewelType);
+
+            if (wo == null)
+                return null;
+
             workmanship = GetWorkmanship(tier);
             value = GetValue(tier, workmanship);
             spellcraft = GetSpellcraft(numSpells, tier);
@@ -829,6 +837,10 @@ namespace ACE.Server.Factories
             }
 
             WorldObject wo = WorldObjectFactory.CreateNewWorldObject((uint)weaponWeenie);
+
+            if (wo == null)
+                return null;
+
             wo.SetProperty(PropertyInt.GemCount, gemCount);
             wo.SetProperty(PropertyInt.GemType, gemType);
             wo.SetProperty(PropertyInt.Value, value);
@@ -10442,6 +10454,10 @@ namespace ACE.Server.Factories
             armorModNether = .1 * ThreadSafeRandom.Next(1, 20);
 
             WorldObject wo = WorldObjectFactory.CreateNewWorldObject((uint)armorWeenie);
+
+            if (wo == null)
+                return null;
+
             int gemCount = ThreadSafeRandom.Next(1, 6);
             int gemType = ThreadSafeRandom.Next(10, 50);
             wo.SetProperty(PropertyInt.MaterialType, materialType);
@@ -11544,6 +11560,9 @@ namespace ACE.Server.Factories
 
             WorldObject wo = WorldObjectFactory.CreateNewWorldObject((uint)weaponWeenie);
 
+            if (wo == null)
+                return null;
+
             int workmanship = GetWorkmanship(tier);
             wo.SetProperty(PropertyInt.Value, GetValue(tier, workmanship));
             wo.SetProperty(PropertyInt.ItemWorkmanship, workmanship);
@@ -12145,6 +12164,9 @@ namespace ACE.Server.Factories
             }
 
             WorldObject wo = WorldObjectFactory.CreateNewWorldObject((uint)casterWeenie);
+
+            if (wo == null)
+                return null;
 
             int workmanship = GetWorkmanship(tier);
             wo.SetProperty(PropertyInt.Value, GetValue(tier, workmanship));
