@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Net;
-using System.Numerics;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -337,19 +337,37 @@ namespace ACE.Server.Managers
 
             session.Player.PlayerEnterWorld();
 
-            if (character.TotalLogins <= 1 || PropertyManager.GetBool("alwaysshowwelcome").Item)
-            {
-                // check the value of the welcome message. Only display it if it is not empty
-                string welcomeHeader = !string.IsNullOrEmpty(ConfigManager.Config.Server.Welcome) ? ConfigManager.Config.Server.Welcome : "Welcome to Asheron's Call!";
-                string msg = "To begin your training, speak to the Society Greeter. Walk up to the Society Greeter using the 'W' key, then double-click on her to initiate a conversation.";
-
-                session.Network.EnqueueSend(new GameEventPopupString(session, $"{welcomeHeader}\n{msg}"));
-            }
-
             LandblockManager.AddObject(session.Player, true);
 
-            var motdString = PropertyManager.GetString("motd_string").Item;
-            session.Network.EnqueueSend(new GameMessageSystemChat(motdString, ChatMessageType.Broadcast));
+            var popup_header = PropertyManager.GetString("popup_header").Item;
+            var popup_motd = PropertyManager.GetString("popup_motd").Item;
+            var popup_welcome = PropertyManager.GetString("popup_welcome").Item;
+
+            if (character.TotalLogins <= 1)
+            {
+                session.Network.EnqueueSend(new GameEventPopupString(session, AppendLines(popup_header, popup_motd, popup_welcome)));
+            }
+            else if (!string.IsNullOrEmpty(popup_motd))
+            {
+                session.Network.EnqueueSend(new GameEventPopupString(session, AppendLines(popup_header, popup_motd)));
+            }
+
+            var info = "Welcome to Asheron's Call\n  powered by ACEmulator\n\nFor more information on commands supported by this server, type @acehelp\n";
+            session.Network.EnqueueSend(new GameMessageSystemChat(info, ChatMessageType.Broadcast));
+
+            var server_motd = PropertyManager.GetString("server_motd").Item;
+            if (!string.IsNullOrEmpty(server_motd))
+                session.Network.EnqueueSend(new GameMessageSystemChat($"{server_motd}\n", ChatMessageType.Broadcast));
+        }
+
+        private static string AppendLines(params string[] lines)
+        {
+            var result = "";
+            foreach (var line in lines)
+                if (!string.IsNullOrEmpty(line))
+                    result += $"{line}\n";
+
+            return Regex.Replace(result, "\n$", "");
         }
 
         public static void EnqueueAction(IAction action)

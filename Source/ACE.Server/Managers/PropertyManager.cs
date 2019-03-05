@@ -439,7 +439,6 @@ namespace ACE.Server.Managers
 
         public static readonly ReadOnlyDictionary<string, bool> DefaultBooleanProperties =
             DictOf(
-                ("alwaysshowwelcome", false),
                 ("house_purchase_requirements", true),
                 ("house_rent_enabled", true),
                 ("pk_server", false)
@@ -462,7 +461,10 @@ namespace ACE.Server.Managers
 
         public static readonly ReadOnlyDictionary<string, string> DefaultStringProperties =
             DictOf(
-                ("motd_string", "Welcome to Asheron's Call" + "\n" + "  powered by ACEmulator  " + " \n" + "\n" + "For more information on commands supported by this server, type @acehelp" + "\n")
+                ("popup_header", "Welcome to Asheron's Call!"),
+                ("popup_welcome", "To begin your training, speak to the Society Greeter. Walk up to the Society Greeter using the 'W' key, then double-click on her to initiate a conversation."),
+                ("popup_motd", ""),
+                ("server_motd", "")
                 );
     }
 }
