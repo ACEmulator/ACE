@@ -47,34 +47,6 @@ namespace ACE.Database
         }
 
 
-        /// <summary>
-        /// Will return uint.MaxValue if no records were found within the range provided.
-        /// </summary>
-        public uint GetMaxGuidFoundInRange(uint min, uint max)
-        {
-            using (var context = new WorldDbContext())
-            {
-                var results = context.LandblockInstance
-                    .AsNoTracking()
-                    .Where(r => r.Guid >= min && r.Guid <= max)
-                    .ToList();
-
-                if (!results.Any())
-                    return uint.MaxValue;
-
-                var maxId = min;
-
-                foreach (var result in results)
-                {
-                    if (result.Guid > maxId)
-                        maxId = result.Guid;
-                }
-
-                return maxId;
-            }
-        }
-
-
         private readonly ConcurrentDictionary<uint, Weenie> weenieCache = new ConcurrentDictionary<uint, Weenie>();
 
         /// <summary>
