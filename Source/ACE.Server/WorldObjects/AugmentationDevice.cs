@@ -49,8 +49,6 @@ namespace ACE.Server.WorldObjects
 
         public override void ActOnUse(WorldObject activator)
         {
-            Console.WriteLine($"{Name}.ActOnUse({activator.Name})");
-
             if (!(activator is Player player))
                 return;
 
