@@ -178,29 +178,42 @@ namespace ACE.Server.Entity
             ElementalDamageBonus = WorldObject.GetMissileElementalDamageModifier(attacker, defender, DamageType);
 
             // ratings
-            DamageRatingBaseMod = Creature.GetPositiveRating(attacker.GetProperty(PropertyInt.DamageRating) ?? 0);
+            DamageRatingBaseMod = Creature.GetPositiveRatingMod(attacker.EnchantmentManager.GetDamageRating());
             RecklessnessMod = Creature.GetRecklessnessMod(attacker, defender);
             SneakAttackMod = attacker.GetSneakAttackMod(defender);
             HeritageMod = attacker.GetHeritageBonus(Weapon) ? 1.05f : 1.0f;
 
-            DamageRatingMod = Creature.AdditiveCombine(DamageRatingBaseMod, RecklessnessMod, SneakAttackMod, HeritageMod, Creature.GetRatingMod(attacker.EnchantmentManager.GetDamageRating()));
+            DamageRatingMod = Creature.AdditiveCombine(DamageRatingBaseMod, RecklessnessMod, SneakAttackMod, HeritageMod);
 
             // damage before mitigation
             DamageBeforeMitigation = BaseDamage * AttributeMod * PowerMod * SlayerMod * DamageRatingMod + ElementalDamageBonus;   // additives on the end?
 
             // critical hit?
             var attackSkill = attacker.GetCreatureSkill(attacker.GetCurrentWeaponSkill());
-            CriticalChance = WorldObject.GetWeaponCritChanceModifier(attacker, attackSkill);
+            CriticalChance = WorldObject.GetWeaponCritChanceModifier(attacker, attackSkill, defender);
             if (CriticalChance > ThreadSafeRandom.Next(0.0f, 1.0f))
             {
-                IsCritical = true;
+                var criticalDefended = false;
+                if (playerDefender != null && playerDefender.AugmentationCriticalDefense > 0)
+                {
+                    var criticalDefenseMod = playerAttacker != null ? 0.05f : 0.25f;
+                    var criticalDefenseChance = playerDefender.AugmentationCriticalDefense * criticalDefenseMod;
 
-                CriticalDamageMod = 1.0f + WorldObject.GetWeaponCritDamageMod(attacker, attackSkill);
+                    if (criticalDefenseChance > ThreadSafeRandom.Next(0.0f, 1.0f))
+                        criticalDefended = true;
+                }
 
-                // recklessness excluded from crits
-                RecklessnessMod = 1.0f;
-                DamageRatingMod = Creature.AdditiveCombine(DamageRatingBaseMod, SneakAttackMod, HeritageMod, Creature.GetRatingMod(attacker.EnchantmentManager.GetDamageRating()));
-                DamageBeforeMitigation = BaseDamageRange.Max * AttributeMod * PowerMod * SlayerMod * DamageRatingMod * CriticalDamageMod + ElementalDamageBonus;
+                if (!criticalDefended)
+                {
+                    IsCritical = true;
+
+                    CriticalDamageMod = 1.0f + WorldObject.GetWeaponCritDamageMod(attacker, attackSkill, defender);
+
+                    // recklessness excluded from crits
+                    RecklessnessMod = 1.0f;
+                    DamageRatingMod = Creature.AdditiveCombine(DamageRatingBaseMod, SneakAttackMod, HeritageMod);
+                    DamageBeforeMitigation = BaseDamageRange.Max * AttributeMod * PowerMod * SlayerMod * DamageRatingMod * CriticalDamageMod + ElementalDamageBonus;
+                }
             }
 
             // get armor rending mod here?

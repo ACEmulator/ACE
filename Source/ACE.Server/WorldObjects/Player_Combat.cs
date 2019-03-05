@@ -311,6 +311,7 @@ namespace ACE.Server.WorldObjects
         public float? CalculateDamagePVP(WorldObject target, WorldObject damageSource, DamageType damageType, ref bool criticalHit, ref bool sneakAttack, ref BodyPart bodyPart)
         {
             // verify target player killer
+            var targetCreature = target as Creature;
             var targetPlayer = target as Player;
             if (targetPlayer == null)
                 return null;
@@ -343,14 +344,14 @@ namespace ACE.Server.WorldObjects
             // heritage damge mod
             var heritageMod = GetHeritageBonus(weapon) ? 1.05f : 1.0f;
 
-            var damageRatingMod = AdditiveCombine(heritageMod, recklessnessMod, sneakAttackMod, GetRatingMod(EnchantmentManager.GetDamageRating()), GetNegativeRatingMod(target.EnchantmentManager.GetDamageResistRating()));
+            var damageRatingMod = AdditiveCombine(heritageMod, recklessnessMod, sneakAttackMod, GetPositiveRatingMod(EnchantmentManager.GetDamageRating()));
             //Console.WriteLine("Damage rating: " + ModToRating(damageRatingMod));
 
             var damage = baseDamage * attributeMod * powerMod * damageRatingMod;
 
             // critical hit
             var attackSkill = GetCreatureSkill(GetCurrentWeaponSkill());
-            var critical = GetWeaponCritChanceModifier(this, attackSkill);
+            var critical = GetWeaponCritChanceModifier(this, attackSkill, targetCreature);
             if (ThreadSafeRandom.Next(0.0f, 1.0f) < critical)
             {
                 if (targetPlayer != null && targetPlayer.AugmentationCriticalDefense > 0)
@@ -366,8 +367,8 @@ namespace ACE.Server.WorldObjects
             if (criticalHit)
             {
                 // not effective for criticals: recklessness
-                damageRatingMod = AdditiveCombine(heritageMod, sneakAttackMod, GetRatingMod(EnchantmentManager.GetDamageRating()), GetNegativeRatingMod(target.EnchantmentManager.GetDamageResistRating()));
-                damage = baseDamageRange.Max * attributeMod * powerMod * damageRatingMod * (1.0f + GetWeaponCritDamageMod(this, attackSkill));
+                damageRatingMod = AdditiveCombine(heritageMod, sneakAttackMod, GetPositiveRatingMod(EnchantmentManager.GetDamageRating()));
+                damage = baseDamageRange.Max * attributeMod * powerMod * damageRatingMod * (1.0f + GetWeaponCritDamageMod(this, attackSkill, targetCreature));
             }
 
             // get armor rending mod here?
@@ -428,17 +429,17 @@ namespace ACE.Server.WorldObjects
             // heritage damge mod
             var heritageMod = GetHeritageBonus(weapon) ? 1.05f : 1.0f;
 
-            var damageRatingMod = AdditiveCombine(recklessnessMod, sneakAttackMod, heritageMod, GetRatingMod(EnchantmentManager.GetDamageRating()));
+            var damageRatingMod = AdditiveCombine(recklessnessMod, sneakAttackMod, heritageMod, GetPositiveRatingMod(EnchantmentManager.GetDamageRating()));
             //Console.WriteLine("Damage rating: " + ModToRating(damageRatingMod));
 
             var damage = baseDamage * attributeMod * powerAccuracyMod * damageRatingMod;
 
             // critical hit
             var attackSkill = GetCreatureSkill(GetCurrentWeaponSkill());
-            var critical = GetWeaponCritChanceModifier(this, attackSkill);
+            var critical = GetWeaponCritChanceModifier(this, attackSkill, creature);
             if (ThreadSafeRandom.Next(0.0f, 1.0f) < critical)
             {
-                var criticalDamageMod = 1.0f + GetWeaponCritDamageMod(this, attackSkill);
+                var criticalDamageMod = 1.0f + GetWeaponCritDamageMod(this, attackSkill, creature);
                 damage = baseDamageRange.Max * attributeMod * powerAccuracyMod * sneakAttackMod * criticalDamageMod;
                 criticalHit = true;
             }

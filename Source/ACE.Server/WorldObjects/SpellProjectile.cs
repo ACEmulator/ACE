@@ -338,17 +338,20 @@ namespace ACE.Server.WorldObjects
                 attackSkill = sourceCreature.GetCreatureSkill(Spell.School);
 
             // critical hit
-            var critical = GetWeaponMagicCritFrequencyModifier(source, attackSkill);
+            var critical = GetWeaponMagicCritFrequencyModifier(source, attackSkill, target);
             if (ThreadSafeRandom.Next(0.0f, 1.0f) < critical)
             {
+                var criticalDefended = false;
                 if (targetPlayer != null && targetPlayer.AugmentationCriticalDefense > 0)
                 {
-                    var scalar = sourcePlayer == null ? 0.25f : 0.05f;
-                    var protChance = targetPlayer.AugmentationCriticalDefense * scalar;
-                    if (ThreadSafeRandom.Next(0.0f, 1.0f) > protChance)
-                        criticalHit = true;
+                    var criticalDefenseMod = sourcePlayer != null ? 0.05f : 0.25f;
+                    var criticalDefenseChance = targetPlayer.AugmentationCriticalDefense * criticalDefenseMod;
+
+                    if (criticalDefenseChance > ThreadSafeRandom.Next(0.0f, 1.0f))
+                        criticalDefended = true;
                 }
-                else
+
+                if (!criticalDefended)
                     criticalHit = true;
             }
 
@@ -369,7 +372,7 @@ namespace ACE.Server.WorldObjects
                 // could life magic projectiles crit?
                 // if so, did they use the same 1.5x formula as war magic, instead of 2.0x?
                 if (criticalHit)
-                    damageBonus = lifeMagicDamage * 0.5f * GetWeaponCritDamageMod(source, attackSkill);
+                    damageBonus = lifeMagicDamage * 0.5f * GetWeaponCritDamageMod(source, attackSkill, target);
 
                 finalDamage = (lifeMagicDamage + damageBonus) * elementalDmgBonus * slayerBonus * shieldMod;
                 return finalDamage;
@@ -384,7 +387,7 @@ namespace ACE.Server.WorldObjects
                     else   // PvE: 50% of the MAX damage added to normal damage roll
                         damageBonus = Spell.MaxDamage * 0.5f;
 
-                    var critDamageMod = GetWeaponCritDamageMod(source, attackSkill);
+                    var critDamageMod = GetWeaponCritDamageMod(source, attackSkill, target);
 
                     damageBonus *= critDamageMod;
                 }
@@ -507,7 +510,7 @@ namespace ACE.Server.WorldObjects
                     }
 
                     // DR / DRR applies for magic too?
-                    var damageRatingMod = Creature.AdditiveCombine(sneakAttackMod, heritageMod, Creature.GetRatingMod(ProjectileSource.EnchantmentManager.GetDamageRating()));
+                    var damageRatingMod = Creature.AdditiveCombine(sneakAttackMod, heritageMod, Creature.GetPositiveRatingMod(ProjectileSource.EnchantmentManager.GetDamageRating()));
                     var damageResistRatingMod = Creature.GetNegativeRatingMod(target.EnchantmentManager.GetDamageResistRating());
                     damage *= damageRatingMod * damageResistRatingMod;
 
