@@ -465,6 +465,15 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
+        /// The number of innate attribute augs that have been applied (max 10)
+        /// </summary>
+        public int AugmentationInnateFamily
+        {
+            get => GetProperty(PropertyInt.AugmentationInnateFamily) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.AugmentationInnateFamily); else SetProperty(PropertyInt.AugmentationInnateFamily, value); }
+        }
+
+        /// <summary>
         /// Enhancement of the Blade Turner
         /// Grants the player 10% extra resistance to slashing damage. You may only have 2 resistance augmentations in effect at any time.
         /// </summary>
@@ -532,6 +541,15 @@ namespace ACE.Server.WorldObjects
         {
             get => GetProperty(PropertyInt.AugmentationResistanceLightning) ?? 0;
             set { if (value == 0) RemoveProperty(PropertyInt.AugmentationResistanceLightning); else SetProperty(PropertyInt.AugmentationResistanceLightning, value); }
+        }
+
+        /// <summary>
+        /// The number of resistance augs that have been applied (max 2)
+        /// </summary>
+        public int AugmentationResistanceFamily
+        {
+            get => GetProperty(PropertyInt.AugmentationResistanceFamily) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.AugmentationResistanceFamily); else SetProperty(PropertyInt.AugmentationResistanceFamily, value); }
         }
 
         /// <summary>
