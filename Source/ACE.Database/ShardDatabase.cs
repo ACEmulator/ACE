@@ -75,6 +75,55 @@ namespace ACE.Database
             }
         }
 
+        /// <summary>
+        /// This will return available id's, in the form of sequence gaps starting from min.<para />
+        /// If a gap is just 1 value wide, then both start and end will be the same number.
+        /// </summary>
+        public List<(uint start, uint end)> GetSequenceGaps(uint min, uint limitAvailableIDsReturned)
+        {
+            // References:
+            // https://stackoverflow.com/questions/4340793/how-to-find-gaps-in-sequential-numbering-in-mysql/29736658#29736658
+            // https://stackoverflow.com/questions/50402015/how-to-execute-sqlquery-with-entity-framework-core-2-1
+
+            // This query is ugly, but very fast.
+            var sql = "SELECT"                                                                          + Environment.NewLine +
+                      " z.gap_starts_at, z.gap_ends_at_not_inclusive, @available_ids:=@available_ids+(z.gap_ends_at_not_inclusive - z.gap_starts_at) as running_total_available_ids" + Environment.NewLine +
+                      "FROM ("                                                                          + Environment.NewLine +
+                      " SELECT"                                                                         + Environment.NewLine +
+                      "  @rownum:=@rownum+1 AS gap_starts_at,"                                          + Environment.NewLine +
+                      "  @available_ids:=0,"                                                            + Environment.NewLine +
+                      "  IF(@rownum=id, 0, @rownum:=id) AS gap_ends_at_not_inclusive"                   + Environment.NewLine +
+                      " FROM"                                                                           + Environment.NewLine +
+                      "  (SELECT @rownum:=(SELECT MIN(id)-1 FROM biota WHERE id > " + min + ")) AS a"   + Environment.NewLine +
+                      "  JOIN biota"                                                                    + Environment.NewLine +
+                      "  WHERE id > " + min                                                             + Environment.NewLine +
+                      "  ORDER BY id"                                                                   + Environment.NewLine +
+                      " ) AS z"                                                                         + Environment.NewLine +
+                      "WHERE z.gap_ends_at_not_inclusive!=0 AND @available_ids<" + limitAvailableIDsReturned + "; ";
+
+            using (var context = new ShardDbContext())
+            {
+                var connection = context.Database.GetDbConnection();
+                connection.Open();
+                var command = connection.CreateCommand();
+                command.CommandText = sql;
+                var reader = command.ExecuteReader();
+
+                var gaps = new List<(uint start, uint end)>();
+
+                while (reader.Read())
+                {
+                    var gap_starts_at               = reader.GetFieldValue<double>(0);
+                    var gap_ends_at_not_inclusive   = reader.GetFieldValue<decimal>(1);
+                    //var running_total_available_ids = reader.GetFieldValue<double>(2);
+
+                    gaps.Add(((uint)gap_starts_at, (uint)gap_ends_at_not_inclusive - 1));
+                }
+
+                return gaps;
+            }
+        }
+
 
         public int GetBiotaCount()
         {

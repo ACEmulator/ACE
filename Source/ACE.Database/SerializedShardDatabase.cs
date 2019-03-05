@@ -82,11 +82,27 @@ namespace ACE.Database
         }
 
 
+        /// <summary>
+        /// Will return uint.MaxValue if no records were found within the range provided.
+        /// </summary>
         public void GetMaxGuidFoundInRange(uint min, uint max, Action<uint> callback)
         {
             _queue.Add(new Task(() =>
             {
                 var result = _wrappedDatabase.GetMaxGuidFoundInRange(min, max);
+                callback?.Invoke(result);
+            }));
+        }
+
+        /// <summary>
+        /// This will return available id's, in the form of sequence gaps starting from min.<para />
+        /// If a gap is just 1 value wide, then both start and end will be the same number.
+        /// </summary>
+        public void GetSequenceGaps(uint min, uint limitAvailableIDsReturned, Action<List<(uint start, uint end)>> callback)
+        {
+            _queue.Add(new Task(() =>
+            {
+                var result = _wrappedDatabase.GetSequenceGaps(min, limitAvailableIDsReturned);
                 callback?.Invoke(result);
             }));
         }
