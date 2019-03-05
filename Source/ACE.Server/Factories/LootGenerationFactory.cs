@@ -136,19 +136,17 @@ namespace ACE.Server.Factories
 
                     if (lootWorldObject != null)
                         loot.Add(lootWorldObject);
-
-                    // Roll for a 1 in 50 chance to drop an Encapsulated Spirit
-                    itemChance = ThreadSafeRandom.Next(1, 50);
-                    if ( itemChance == 50)
-                    {
-                        var encapSpirit = WorldObjectFactory.CreateNewWorldObject(49485);
-
-                        if (encapSpirit != null)
-                            loot.Add(encapSpirit);
-                    }
                 }
 
+                // Roll for a 1 in 50 chance to drop an Encapsulated Spirit
+                itemChance = ThreadSafeRandom.Next(1, 50);
+                if (itemChance == 50)
+                {
+                    var encapSpirit = WorldObjectFactory.CreateNewWorldObject(49485);
 
+                    if (encapSpirit != null)
+                        loot.Add(encapSpirit);
+                }
             }
 
             return loot;
