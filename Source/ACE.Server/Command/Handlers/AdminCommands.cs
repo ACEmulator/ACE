@@ -732,7 +732,7 @@ namespace ACE.Server.Command.Handlers
         /// <summary>
         /// Teleports a player to your current location
         /// </summary>
-        [CommandHandler("teletome", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "Teleports a player to your current location.", "PlayerName")]
+        [CommandHandler("teletome", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 1, "Teleports a player to your current location.", "PlayerName")]
         public static void HandleTeleToMe(Session session, params string[] parameters)
         {
             var playerName = string.Join(" ", parameters);
