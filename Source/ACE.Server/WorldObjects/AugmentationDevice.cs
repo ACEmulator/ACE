@@ -105,6 +105,18 @@ namespace ACE.Server.WorldObjects
                 player.Session.Network.EnqueueSend(new GameMessagePrivateUpdateSkill(player, playerSkill));
             }
 
+            else if (type == AugmentationType.PackSlot)
+            {
+                player.ContainerCapacity++;
+                player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(player, PropertyInt.ContainersCapacity, (int)player.ContainerCapacity));
+            }
+
+            else if (type == AugmentationType.BurdenLimit)
+            {
+                var capacity = player.GetEncumbranceCapacity();
+                player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(player, PropertyInt.EncumbranceCapacity, capacity));
+            }
+
             // consume xp
             player.AvailableExperience -= AugmentationCost;
 
