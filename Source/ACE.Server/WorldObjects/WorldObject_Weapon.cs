@@ -133,7 +133,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Returns the critical chance modifier for the current weapon
         /// </summary>
-        public static float GetWeaponCritChanceModifier(Creature wielder, CreatureSkill skill)
+        public static float GetWeaponCritChanceModifier(Creature wielder, CreatureSkill skill, Creature target)
         {
             WorldObject weapon = GetWeapon(wielder as Player);
 
@@ -141,6 +141,10 @@ namespace ACE.Server.WorldObjects
                 return defaultPhysicalCritFrequency;
 
             var critRateMod = (float)(weapon.GetProperty(PropertyFloat.CriticalFrequency) ?? defaultPhysicalCritFrequency);
+
+            // multipliers before additives?
+            var chanceRatingMod = Creature.GetPositiveRatingMod(wielder.CritRating ?? 0);
+            critRateMod *= chanceRatingMod;
 
             // TODO: handle AlwaysCritical upstream
             if (weapon.HasImbuedEffect(ImbuedEffectType.CriticalStrike))
@@ -151,6 +155,10 @@ namespace ACE.Server.WorldObjects
 
             if (wielder is Player player && player.AugmentationCriticalExpertise > 0)
                 critRateMod += player.AugmentationCriticalExpertise * 0.01f;
+
+            // mitigation
+            var chanceResistRatingMod = Creature.GetNegativeRatingMod(target.CritResistRating ?? 0);
+            critRateMod *= chanceResistRatingMod;
 
             // 50% cap here, or only in criticalStrikeMod?
             critRateMod = Math.Min(critRateMod, 0.5f);
@@ -176,7 +184,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Returns the magic critical chance modifier for the current weapon
         /// </summary>
-        public static float GetWeaponMagicCritFrequencyModifier(Creature wielder, CreatureSkill skill)
+        public static float GetWeaponMagicCritFrequencyModifier(Creature wielder, CreatureSkill skill, Creature target)
         {
             WorldObject weapon = GetWeapon(wielder as Player);
 
@@ -184,6 +192,10 @@ namespace ACE.Server.WorldObjects
                 return defaultMagicCritFrequency;
 
             var critRateMod = (float)(weapon.GetProperty(PropertyFloat.CriticalFrequency) ?? defaultMagicCritFrequency);
+
+            // multipliers before additives?
+            var chanceRatingMod = Creature.GetPositiveRatingMod(wielder.CritRating ?? 0);
+            critRateMod *= chanceRatingMod;
 
             // TODO: handle AlwaysCritical upstream
             if (weapon.HasImbuedEffect(ImbuedEffectType.CriticalStrike) && skill != null)
@@ -195,6 +207,10 @@ namespace ACE.Server.WorldObjects
             if (wielder is Player player && player.AugmentationCriticalExpertise > 0)
                 critRateMod += player.AugmentationCriticalExpertise * 0.01f;
 
+            // mitigation
+            var chanceResistRatingMod = Creature.GetNegativeRatingMod(target.CritResistRating ?? 0);
+            critRateMod *= chanceResistRatingMod;
+
             // 50% cap here, or only in criticalStrikeMod?
             critRateMod = Math.Min(critRateMod, 0.5f);
 
@@ -204,7 +220,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Returns the critical damage multiplier for the current weapon
         /// </summary>
-        public static float GetWeaponCritDamageMod(Creature wielder, CreatureSkill skill)
+        public static float GetWeaponCritDamageMod(Creature wielder, CreatureSkill skill, Creature target)
         {
             WorldObject weapon = GetWeapon(wielder as Player);
 
@@ -212,6 +228,10 @@ namespace ACE.Server.WorldObjects
                 return defaultCritMultiplier;
 
             var critDamageMod = (float)(weapon.GetProperty(PropertyFloat.CriticalMultiplier) ?? defaultCritMultiplier);
+
+            // multipliers before additive?
+            var critDamageRatingMod = Creature.GetPositiveRatingMod(wielder.CritDamageRating ?? 0);
+            critDamageMod *= critDamageRatingMod;
 
             if (weapon.HasImbuedEffect(ImbuedEffectType.CripplingBlow))
             {
@@ -221,6 +241,10 @@ namespace ACE.Server.WorldObjects
 
             if (wielder is Player player && player.AugmentationCriticalPower > 0)
                 critDamageMod += player.AugmentationCriticalPower * 0.03f;
+
+            // mitigation
+            var critDamageResistRatingMod = Creature.GetNegativeRatingMod(target.CritDamageResistRating ?? 0);
+            critDamageMod *= critDamageResistRatingMod;
 
             // caps at 6x upstream?
             critDamageMod = Math.Min(critDamageMod, 5.0f);

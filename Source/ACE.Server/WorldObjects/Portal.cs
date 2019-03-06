@@ -81,7 +81,7 @@ namespace ACE.Server.WorldObjects
             if (!player.IgnorePortalRestrictions)
             {
 #if DEBUG
-                player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Checking requirements for {Name}", ChatMessageType.System));
+                // player.Session.Network.EnqueueSend(new GameMessageSystemChat($"Checking requirements for {Name}", ChatMessageType.System));
 #endif
 
                 if (player.Level < MinLevel)
@@ -130,7 +130,7 @@ namespace ACE.Server.WorldObjects
             if (player == null) return;
 
 #if DEBUG
-            player.Session.Network.EnqueueSend(new GameMessageSystemChat("Portal sending player to destination", ChatMessageType.System));
+            // player.Session.Network.EnqueueSend(new GameMessageSystemChat("Portal sending player to destination", ChatMessageType.System));
 #endif
             var portalDest = new Position(Destination);
             player.AdjustDungeon(portalDest);

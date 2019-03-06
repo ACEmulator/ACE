@@ -113,9 +113,9 @@ namespace ACE.Server.Factories
                 }
             }
 
-            // 50/50 chance to drop a scroll
-            itemChance = ThreadSafeRandom.Next(0, 2);
-            if (itemChance >= 1 || profile.Tier > 3)
+            // 25% chance to drop a scroll
+            itemChance = ThreadSafeRandom.Next(0, 3);
+            if (itemChance == 3)
             {
                 if (lootBias == LootBias.UnBiased && profile.MagicItemMinAmount > 0)
                 {
@@ -128,10 +128,25 @@ namespace ACE.Server.Factories
 
             if (lootBias != LootBias.Armor && lootBias != LootBias.Weapons && lootBias != LootBias.MagicEquipment && profile.MagicItemMinAmount > 0)
             {
-                lootWorldObject = CreateSummoningEssence(profile.Tier);
+                // 33% chance to drop a summoning essence
+                itemChance = ThreadSafeRandom.Next(0, 2);
+                if (itemChance == 2)
+                {
+                    lootWorldObject = CreateSummoningEssence(profile.Tier);
 
-                if (lootWorldObject != null)
-                    loot.Add(lootWorldObject);
+                    if (lootWorldObject != null)
+                        loot.Add(lootWorldObject);
+                }
+
+                // Roll for a 1 in 50 chance to drop an Encapsulated Spirit
+                itemChance = ThreadSafeRandom.Next(1, 50);
+                if (itemChance == 50)
+                {
+                    var encapSpirit = WorldObjectFactory.CreateNewWorldObject(49485);
+
+                    if (encapSpirit != null)
+                        loot.Add(encapSpirit);
+                }
             }
 
             return loot;
@@ -151,8 +166,31 @@ namespace ACE.Server.Factories
             if (id == 0)
                 return null;
 
-            WorldObject wo = WorldObjectFactory.CreateNewWorldObject(id);
-            return wo;
+            var petDevice = WorldObjectFactory.CreateNewWorldObject(id) as PetDevice;
+            if (petDevice == null)
+                return null;
+
+            var ratingChance = 0.5f;
+
+            // add rng ratings to pet device
+            // linear or biased?
+            if (ratingChance > ThreadSafeRandom.Next(0.0f, 1.0f))
+                petDevice.GearDamage = ThreadSafeRandom.Next(1, 20);
+            if (ratingChance > ThreadSafeRandom.Next(0.0f, 1.0f))
+                petDevice.GearDamageResist = ThreadSafeRandom.Next(1, 20);
+            if (ratingChance > ThreadSafeRandom.Next(0.0f, 1.0f))
+                petDevice.GearCritDamage = ThreadSafeRandom.Next(1, 20);
+            if (ratingChance > ThreadSafeRandom.Next(0.0f, 1.0f))
+                petDevice.GearCritDamageResist = ThreadSafeRandom.Next(1, 20);
+            if (ratingChance > ThreadSafeRandom.Next(0.0f, 1.0f))
+                petDevice.GearCrit = ThreadSafeRandom.Next(1, 20);
+            if (ratingChance > ThreadSafeRandom.Next(0.0f, 1.0f))
+                petDevice.GearCritResist = ThreadSafeRandom.Next(1, 20);
+
+            var workmanship = GetWorkmanship(tier);
+            petDevice.SetProperty(PropertyInt.ItemWorkmanship, workmanship);
+
+            return petDevice;
         }
 
         private static WorldObject CreateRandomLootObjects(int tier, bool isMagical, LootBias lootBias = LootBias.UnBiased)
@@ -323,6 +361,10 @@ namespace ACE.Server.Factories
             workmanship = GetWorkmanship(tier);
 
             WorldObject wo = WorldObjectFactory.CreateNewWorldObject(gemType) as Gem;
+
+            if (wo == null)
+                return null;
+
             wo.SetProperty(PropertyInt.ItemWorkmanship, workmanship);
 
             if (spellDID > 0)
@@ -402,6 +444,10 @@ namespace ACE.Server.Factories
             }
             numCantrips = minorCantrips + majorCantrips + epicCantrips + legendaryCantrips;
             WorldObject wo = WorldObjectFactory.CreateNewWorldObject((uint)jewelType);
+
+            if (wo == null)
+                return null;
+
             workmanship = GetWorkmanship(tier);
             value = GetValue(tier, workmanship);
             spellcraft = GetSpellcraft(numSpells, tier);
@@ -533,7 +579,6 @@ namespace ACE.Server.Factories
             int itemDifficulty = GetDifficulty(tier, spellCraft);
             int wieldDiff = GetWield(tier, 3);
             WieldRequirement wieldRequirments = WieldRequirement.RawSkill;
-            Skill wieldSkillType = Skill.None;
             int maxMana = GetMaxMana(numSpells, tier);
 
             int eleType = ThreadSafeRandom.Next(0, 4);
@@ -541,7 +586,7 @@ namespace ACE.Server.Factories
             switch (weaponType)
             {
                 case 0:
-                    wieldSkillType = Skill.HeavyWeapons;
+                    // Heavy Weapons
                     int heavyWeaponsType = ThreadSafeRandom.Next(0, 22);
                     weaponWeenie = LootHelper.HeavyWeaponsMatrix[heavyWeaponsType][eleType];
 
@@ -623,9 +668,9 @@ namespace ACE.Server.Factories
                     }
                     break;
                 case 1:
-                    wieldSkillType = Skill.LightWeapons;
+                    // Light Weapons;
                     int lightWeaponsType = ThreadSafeRandom.Next(0, 19);
-                    weaponWeenie = LootHelper.HeavyWeaponsMatrix[lightWeaponsType][eleType];
+                    weaponWeenie = LootHelper.LightWeaponsMatrix[lightWeaponsType][eleType];
 
                     switch (lightWeaponsType)
                     {
@@ -704,9 +749,9 @@ namespace ACE.Server.Factories
                     }
                     break;
                 case 2:
-                    wieldSkillType = Skill.FinesseWeapons;
+                    // Finesse Weapons;
                     int finesseWeaponsType = ThreadSafeRandom.Next(0, 22);
-                    weaponWeenie = LootHelper.HeavyWeaponsMatrix[finesseWeaponsType][eleType];
+                    weaponWeenie = LootHelper.FinesseWeaponsMatrix[finesseWeaponsType][eleType];
 
                     switch (finesseWeaponsType)
                     {
@@ -786,10 +831,9 @@ namespace ACE.Server.Factories
                     }
                     break;
                 case 3:
-                    ///Two handed
-                    wieldSkillType = Skill.TwoHandedCombat;
+                    // Two handed
                     int twoHandedWeaponsType = ThreadSafeRandom.Next(0, 11);
-                    weaponWeenie = LootHelper.HeavyWeaponsMatrix[twoHandedWeaponsType][eleType];
+                    weaponWeenie = LootHelper.TwoHandedWeaponsMatrix[twoHandedWeaponsType][eleType];
 
                     damage = GetMaxDamage(3, tier, wieldDiff, 1);
                     damageVariance = GetVariance(3, 1);
@@ -831,13 +875,16 @@ namespace ACE.Server.Factories
             }
 
             WorldObject wo = WorldObjectFactory.CreateNewWorldObject((uint)weaponWeenie);
+
+            if (wo == null)
+                return null;
+
             wo.SetProperty(PropertyInt.GemCount, gemCount);
             wo.SetProperty(PropertyInt.GemType, gemType);
             wo.SetProperty(PropertyInt.Value, value);
             wo.SetProperty(PropertyInt.MaterialType, GetMaterialType(2, tier));
             wo.SetProperty(PropertyInt.ItemWorkmanship, workmanship);
 
-            wo.SetProperty(PropertyInt.WeaponSkill, (int)wieldSkillType);
             wo.SetProperty(PropertyInt.Damage, damage);
             wo.SetProperty(PropertyFloat.DamageVariance, damageVariance);
 
@@ -10445,6 +10492,10 @@ namespace ACE.Server.Factories
             armorModNether = .1 * ThreadSafeRandom.Next(1, 20);
 
             WorldObject wo = WorldObjectFactory.CreateNewWorldObject((uint)armorWeenie);
+
+            if (wo == null)
+                return null;
+
             int gemCount = ThreadSafeRandom.Next(1, 6);
             int gemType = ThreadSafeRandom.Next(10, 50);
             wo.SetProperty(PropertyInt.MaterialType, materialType);
@@ -11547,6 +11598,9 @@ namespace ACE.Server.Factories
 
             WorldObject wo = WorldObjectFactory.CreateNewWorldObject((uint)weaponWeenie);
 
+            if (wo == null)
+                return null;
+
             int workmanship = GetWorkmanship(tier);
             wo.SetProperty(PropertyInt.Value, GetValue(tier, workmanship));
             wo.SetProperty(PropertyInt.ItemWorkmanship, workmanship);
@@ -12148,6 +12202,9 @@ namespace ACE.Server.Factories
             }
 
             WorldObject wo = WorldObjectFactory.CreateNewWorldObject((uint)casterWeenie);
+
+            if (wo == null)
+                return null;
 
             int workmanship = GetWorkmanship(tier);
             wo.SetProperty(PropertyInt.Value, GetValue(tier, workmanship));
