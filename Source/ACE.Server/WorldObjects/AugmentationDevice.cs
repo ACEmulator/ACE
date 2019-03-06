@@ -107,6 +107,7 @@ namespace ACE.Server.WorldObjects
 
             else if (type == AugmentationType.PackSlot)
             {
+                // still seems to require the client to relog
                 player.ContainerCapacity++;
                 player.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(player, PropertyInt.ContainersCapacity, (int)player.ContainerCapacity));
             }
