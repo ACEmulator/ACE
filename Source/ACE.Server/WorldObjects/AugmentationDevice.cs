@@ -85,6 +85,19 @@ namespace ACE.Server.WorldObjects
             else if (AugTypeHelper.IsResist(type))
                 player.AugmentationResistanceFamily++;
 
+            else if (AugTypeHelper.IsSkill(type))
+            {
+                var playerSkill = player.GetCreatureSkill(AugTypeHelper.GetSkill(type));
+                playerSkill.AdvancementClass = SkillAdvancementClass.Specialized;
+                playerSkill.InitLevel += 5;
+                // adjust rank?
+                // handle overages?
+                // if trained skill is maxed, there will be a ~103m xp overage...
+                var specRank = player.GetRankForXP(SkillAdvancementClass.Specialized, playerSkill.ExperienceSpent);
+                playerSkill.Ranks = (ushort)specRank;
+                player.Session.Network.EnqueueSend(new GameMessagePrivateUpdateSkill(player, playerSkill));
+            }
+
             // consume xp
             player.AvailableExperience -= AugmentationCost;
 
