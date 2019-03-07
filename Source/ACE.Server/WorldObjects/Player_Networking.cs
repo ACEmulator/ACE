@@ -162,6 +162,8 @@ namespace ACE.Server.WorldObjects
                 if (((uint)state.ForwardCommand & (uint)CommandMask.SubState) != 0)
                     CurrentMotionState.SetForwardCommand(state.ForwardCommand);
             }
+            else
+                CurrentMotionState.SetForwardCommand(MotionCommand.Ready);
 
             if (state.CommandListLength > 0)
             {
