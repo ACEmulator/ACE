@@ -913,6 +913,7 @@ namespace ACE.Server.WorldObjects
         // and to partially resist drain health and harm attacks.
 
         // This caps out at a 50% resistance (the equivalent to level 5 life prots) to these damage types.
+
         // This resistance is not additive to life protections: higher level life protections will overwrite these natural resistances,
         // although life vulns will take these natural resistances into account, if the player does not have a higher level life protection cast upon them.
 
@@ -959,6 +960,19 @@ namespace ACE.Server.WorldObjects
             else if (strAndEnd > 380)   return "Resilient";
             else if (strAndEnd > 320)   return "Hardy";
             else if (strAndEnd > 260)   return "Mediocre";
+            else if (strAndEnd > 200)   return "Poor";
+            else
+                return "None";
+        }
+
+        public string GetRegenBonusString()
+        {
+            var strAndEnd = Strength.Base + 2 * Endurance.Base;
+
+            if (strAndEnd > 690)        return "Indomitable";
+            else if (strAndEnd > 580)   return "Resilient";
+            else if (strAndEnd > 470)   return "Hardy";
+            else if (strAndEnd > 346)   return "Mediocre";
             else if (strAndEnd > 200)   return "Poor";
             else
                 return "None";
