@@ -113,7 +113,7 @@ namespace ACE.Server.WorldObjects
         {
             // empty base - individual WorldObject types should override
 
-            var msg = $"{Name}.OnUse({activator.Name}) - undefined for wcid {WeenieClassId} type {WeenieType}";
+            var msg = $"{Name}.ActOnUse({activator.Name}) - undefined for wcid {WeenieClassId} type {WeenieType}";
             log.Error(msg);
 
             if (activator is Player _player)

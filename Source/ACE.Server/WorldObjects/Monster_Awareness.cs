@@ -310,7 +310,7 @@ namespace ACE.Server.WorldObjects
             foreach (var visiblePlayer in visiblePlayers)
             {
                 var player = visiblePlayer.WeenieObj.WorldObject as Player;
-                if (player == null || !player.IsAttackable) continue;
+                if (player == null || !player.IsAttackable || (player.Hidden ?? false)) continue;
 
                 var distSq = Location.SquaredDistanceTo(player.Location);
                 if (distSq < closestDistSq)
