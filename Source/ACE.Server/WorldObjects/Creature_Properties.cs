@@ -169,18 +169,15 @@ namespace ACE.Server.WorldObjects
                 case ResistanceType.HealthBoost:
                     return ResistHealthBoostMod;    // probably some other boost modifiers that should be factored in here...
                 case ResistanceType.HealthDrain:
-                    //return (ResistHealthDrain ?? 1.0) * GetResistanceMod(DamageType.Health, damageSource, weaponResistanceMod);
-                    return ResistHealthDrainMod;
+                    return (ResistHealthDrain ?? 1.0) * GetResistanceMod(DamageType.Health, damageSource, weaponResistanceMod);
                 case ResistanceType.StaminaBoost:
                     return ResistStaminaBoostMod;
                 case ResistanceType.StaminaDrain:
-                    //return (ResistStaminaDrain ?? 1.0) * GetResistanceMod(DamageType.Stamina, damageSource, weaponResistanceMod);
-                    return ResistStaminaDrainMod;
+                    return (ResistStaminaDrain ?? 1.0) * GetResistanceMod(DamageType.Stamina, damageSource, weaponResistanceMod);
                 case ResistanceType.ManaBoost:
                     return ResistManaBoostMod;
                 case ResistanceType.ManaDrain:
-                    //return (ResistManaDrain ?? 1.0) * GetResistanceMod(DamageType.Mana, damageSource, weaponResistanceMod);
-                    return ResistManaDrainMod;
+                    return (ResistManaDrain ?? 1.0) * GetResistanceMod(DamageType.Mana, damageSource, weaponResistanceMod);
                 default:
                     return 1.0;
             }
