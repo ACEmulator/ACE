@@ -178,17 +178,5 @@ namespace ACE.Server.WorldObjects
 
             return effectiveAL * effectiveRL;
         }
-
-        public float GetResistanceMod(DamageType damageType, WorldObject damageSource, float weaponResistanceMod)
-        {
-            var ignoreMagicResist = damageSource != null ? damageSource.IgnoreMagicResist : false;
-
-            var resistanceType = Creature.GetResistanceType(damageType);
-
-            if (ignoreMagicResist)
-                return (float)Creature.GetNaturalResistance(resistanceType);
-            else
-                return (float)Creature.GetResistanceMod(resistanceType, weaponResistanceMod);
-        }
     }
 }

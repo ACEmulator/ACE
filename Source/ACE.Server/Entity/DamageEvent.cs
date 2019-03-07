@@ -255,8 +255,8 @@ namespace ACE.Server.Entity
             }
             else
             {
-                // todo: move out of creature part, not part-related?
-                ResistanceMod = CreaturePart.GetResistanceMod(DamageType, DamageSource, WeaponResistanceMod);
+                var resistanceType = Creature.GetResistanceType(DamageType);
+                ResistanceMod = (float)defender.GetResistanceMod(resistanceType, DamageSource, WeaponResistanceMod);
             }
 
             // damage resistance rating

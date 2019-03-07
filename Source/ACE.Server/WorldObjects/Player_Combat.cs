@@ -893,13 +893,6 @@ namespace ACE.Server.WorldObjects
             SetCombatMode(newCombatMode);
         }
 
-        public float GetResistanceMod(DamageType damageType, WorldObject damageSource, float weaponResistanceMod)
-        {
-            var enchantmentMod = damageSource != null && damageSource.IgnoreMagicResist ? 1.0f : EnchantmentManager.GetResistanceMod(damageType);
-
-            return enchantmentMod * weaponResistanceMod;
-        }
-
         /// <summary>
         /// Returns the current attack maneuver for a player
         /// </summary>
@@ -912,6 +905,39 @@ namespace ACE.Server.WorldObjects
         public override bool CanDamage(Creature target)
         {
             return true;    // handled elsewhere
+        }
+
+        public override float GetNaturalResistance(DamageType damageType)
+        {
+            // base strength and endurance give the player a natural resistance to damage,
+            // which caps at 50% (equivalent to level 5 life prots)
+            // these do not stack with life protection spells
+
+            // - natural resistances are ignored by hollow damage
+
+            var strAndEnd = Strength.Base + Endurance.Base;
+
+            if (strAndEnd <= 200)
+                return 1.0f;
+
+            // linear or curve?
+            var naturalResistance = 1.0f - (float)(strAndEnd - 200) / 300 * 0.5f;
+            naturalResistance = Math.Max(naturalResistance, 0.5f);
+
+            return naturalResistance;
+        }
+
+        public string GetNaturalResistanceString(ResistanceType resistanceType)
+        {
+            var strAndEnd = Strength.Base + Endurance.Base;
+
+            if (strAndEnd > 440)        return "Indomitable";
+            else if (strAndEnd > 380)   return "Resilient";
+            else if (strAndEnd > 320)   return "Hardy";
+            else if (strAndEnd > 260)   return "Mediocre";
+            else if (strAndEnd > 200)   return "Poor";
+            else
+                return "None";
         }
     }
 }

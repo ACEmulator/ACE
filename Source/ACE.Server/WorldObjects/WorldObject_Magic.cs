@@ -425,7 +425,7 @@ namespace ACE.Server.WorldObjects
 
                     // should drain resistance be taken into account here,
                     // or only after the destVitalChange calc?
-                    srcVitalChange = (uint)Math.Round(source.GetCurrentCreatureVital(spell.Source) * spell.Proportion * source.GetResistanceMod(resistanceDrain));
+                    srcVitalChange = (uint)Math.Round(source.GetCurrentCreatureVital(spell.Source) * spell.Proportion * source.GetResistanceMod(resistanceDrain, caster));
 
                     if (spell.TransferCap != 0)
                     {
@@ -433,7 +433,7 @@ namespace ACE.Server.WorldObjects
                             srcVitalChange = (uint)spell.TransferCap;
                     }
                     resistanceBoost = GetBoostResistanceType(spell.Destination);
-                    destVitalChange = (uint)Math.Round(srcVitalChange * (1.0f - spell.LossPercent) * destination.GetResistanceMod(resistanceBoost));
+                    destVitalChange = (uint)Math.Round(srcVitalChange * (1.0f - spell.LossPercent) * destination.GetResistanceMod(resistanceBoost, caster));
 
                     // scale srcVitalChange to destVitalChange?
 
@@ -535,19 +535,19 @@ namespace ACE.Server.WorldObjects
 
                     if (spell.Name.Contains("Blight"))
                     {
-                        var tryDamage = (int)Math.Round(caster.GetCurrentCreatureVital(PropertyAttribute2nd.Mana) * spell.DrainPercentage / caster.GetResistanceMod(ResistanceType.ManaDrain));
+                        var tryDamage = (int)Math.Round(caster.GetCurrentCreatureVital(PropertyAttribute2nd.Mana) * spell.DrainPercentage / caster.GetResistanceMod(ResistanceType.ManaDrain, caster));
                         damage = (uint)-caster.UpdateVitalDelta(caster.Mana, -tryDamage);
                         damageType = DamageType.Mana;
                     }
                     else if (spell.Name.Contains("Tenacity"))
                     {
-                        var tryDamage = (int)Math.Round(caster.GetCurrentCreatureVital(PropertyAttribute2nd.Stamina) * spell.DrainPercentage / caster.GetResistanceMod(ResistanceType.StaminaDrain));
+                        var tryDamage = (int)Math.Round(caster.GetCurrentCreatureVital(PropertyAttribute2nd.Stamina) * spell.DrainPercentage / caster.GetResistanceMod(ResistanceType.StaminaDrain, caster));
                         damage = (uint)-caster.UpdateVitalDelta(caster.Stamina, -tryDamage);
                         damageType = DamageType.Stamina;
                     }
                     else
                     {
-                        var tryDamage = (int)Math.Round(caster.GetCurrentCreatureVital(PropertyAttribute2nd.Health) * spell.DrainPercentage / caster.GetResistanceMod(ResistanceType.HealthDrain));
+                        var tryDamage = (int)Math.Round(caster.GetCurrentCreatureVital(PropertyAttribute2nd.Health) * spell.DrainPercentage / caster.GetResistanceMod(ResistanceType.HealthDrain, caster));
                         damage = (uint)-caster.UpdateVitalDelta(caster.Health, -tryDamage);
                         caster.DamageHistory.Add(this, DamageType.Health, damage);
                         damageType = DamageType.Health;
