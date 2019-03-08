@@ -170,7 +170,7 @@ namespace ACE.Server.WorldObjects
             player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, useResult));
         }
 
-        public bool DoDestroyDiceRoll(Player player)
+        private bool DoDestroyDiceRoll(Player player)
         {
             if (DestroyChance == 0)
                 return false;
