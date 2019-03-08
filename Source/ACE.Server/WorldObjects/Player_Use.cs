@@ -60,6 +60,19 @@ namespace ACE.Server.WorldObjects
             }
 
 
+            // Is the target the player?
+            if (targetObjectGuid == Guid.Full)
+            {
+                // using something on ourselves
+                if (sourceItem.WeenieType == WeenieType.ManaStone)
+                    ((ManaStone)sourceItem).HandleActionUseOnTarget(this, this);
+                else
+                    RecipeManager.UseObjectOnTarget(this, sourceItem, this);
+
+                return;
+            }
+
+
             // Is the target item in our possession?
             var targetItem = FindObject(sourceObjectGuid, SearchLocations.MyInventory | SearchLocations.MyEquippedItems);
 
@@ -98,14 +111,6 @@ namespace ACE.Server.WorldObjects
             else if (sourceItem.WeenieType == WeenieType.Lockpick)
             {
                 ((Lockpick)sourceItem).HandleActionUseOnTarget(this, targetItem);
-            }
-            else if (targetObjectGuid == Guid.Full)
-            {
-                // using something on ourselves
-                if (sourceItem.WeenieType == WeenieType.ManaStone)
-                    ((ManaStone)sourceItem).HandleActionUseOnTarget(this, this);
-                else
-                    RecipeManager.UseObjectOnTarget(this, sourceItem, this);
             }
             else
             {
