@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2019-03-08
+[Ripley]
+* Exclude GamePiece from saving to Shard DB.
+
 ### 2019-03-02
 [Ripley]
 * Added migration coding to support migrating from previous SHA512 Hash/Salt method to BCrypt.
