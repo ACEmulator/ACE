@@ -101,8 +101,8 @@ namespace ACE.Server.Factories
         {
             int casterWeenie = 0; //done
             double elementalDamageMod = 0;
-            int wieldReqs = 2; //done
             int wield = 0; //done
+            Skill wieldSkillType = Skill.None;
             int chance = 0;
             int subType = 0;
 
@@ -204,6 +204,31 @@ namespace ACE.Server.Factories
                 // Determine element type: 0 - Slashing, 1 - Piercing, 2 - Blunt, 3 - Frost, 4 - Fire, 5 - Acid, 6 - Electric, 7 - Nether
                 int element = ThreadSafeRandom.Next(0, 7);
                 casterWeenie = LootTables.CasterWeaponsMatrix[casterType][element];
+
+                if (element == 7)
+                {
+                    wieldSkillType = Skill.VoidMagic;
+                }
+                else
+                {
+                    // Determine skill of wield requirement
+                    chance = ThreadSafeRandom.Next(0, 3);
+                    switch (chance)
+                    {
+                        case 0:
+                            wieldSkillType = Skill.WarMagic;
+                            break;
+                        case 2:
+                            wieldSkillType = Skill.CreatureEnchantment;
+                            break;
+                        case 3:
+                            wieldSkillType = Skill.ItemEnchantment;
+                            break;
+                        default:
+                            wieldSkillType = Skill.LifeMagic;
+                            break;
+                    }
+                }
             }
 
             WorldObject wo = WorldObjectFactory.CreateNewWorldObject((uint)casterWeenie);
@@ -242,8 +267,9 @@ namespace ACE.Server.Factories
 
             if (wield > 0)
             {
-                wo.SetProperty(PropertyInt.WieldRequirements, wieldReqs);
+                wo.SetProperty(PropertyInt.WieldRequirements, (int)WieldRequirement.RawSkill);
                 wo.SetProperty(PropertyInt.WieldDifficulty, wield);
+                wo.SetProperty(PropertyInt.WieldSkillType, (int)wieldSkillType);
             }
 
             wo.RemoveProperty(PropertyInt.ItemSkillLevelLimit);

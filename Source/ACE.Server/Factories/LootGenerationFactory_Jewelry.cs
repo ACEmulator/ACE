@@ -123,6 +123,8 @@ namespace ACE.Server.Factories
             wo.SetProperty(PropertyInt.GemCount, gemCount);
             wo.SetProperty(PropertyInt.GemType, gemType);
 
+            wo.RemoveProperty(PropertyInt.ItemSkillLevelLimit);
+
             if (isMagical)
             {
                 wo.SetProperty(PropertyInt.UiEffects, (int)UiEffects.Magical);
@@ -138,14 +140,12 @@ namespace ACE.Server.Factories
                 int difficulty = GetDifficulty(tier, spellcraft);
                 wo.SetProperty(PropertyInt.ItemDifficulty, difficulty);
 
-                wo.RemoveProperty(PropertyInt.ItemSkillLevelLimit);
-
                 int minorCantrips = GetNumMinorCantrips(tier);
                 int majorCantrips = GetNumMajorCantrips(tier);
                 int epicCantrips = GetNumEpicCantrips(tier);
                 int legendaryCantrips = GetNumLegendaryCantrips(tier);
 
-                int numCantrips = GetNumCantrips(numSpells);
+                int numCantrips = minorCantrips + majorCantrips + epicCantrips + legendaryCantrips;
                 if (numCantrips > 10)
                     minorCantrips = 0;
 
