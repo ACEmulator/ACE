@@ -2,7 +2,7 @@ namespace ACE.Common.Cryptography
 {
     public static class BCryptProvider
     {
-        private const int WorkFactor = 10;
+        private const int WorkFactor = 8;
 
         public static string HashPassword(string input)
         {
