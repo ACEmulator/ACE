@@ -382,7 +382,7 @@ namespace ACE.Server.WorldObjects
 
             if (searchLocations.HasFlag(SearchLocations.LastUsedContainer))
             {
-                if (CurrentLandblock?.GetObject(lastUsedContainerId) is Container lastUsedContainer)
+                if (CurrentLandblock?.GetObject(LastUsedContainerId) is Container lastUsedContainer)
                 {
                     if (lastUsedContainer is Vendor lastUsedVendor)
                     {

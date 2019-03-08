@@ -11,6 +11,11 @@ namespace ACE.Server.WorldObjects
     partial class Player
     {
         /// <summary>
+        /// This is set by HandleActionUseItem / TryUseItem
+        /// </summary>
+        public ObjectGuid LastUsedContainerId { get; set; }
+
+        /// <summary>
         /// Handles the 'GameAction 0x35 - UseWithTarget' network message
         /// when player double clicks an inventory item resulting in a target indicator
         /// and then clicks another item
@@ -109,11 +114,6 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// This is set by HandleActionUseItem / TryUseItem
-        /// </summary>
-        public ObjectGuid lastUsedContainerId { get; set; }
-
-        /// <summary>
         /// Handles the 'GameAction 0x36 - UseItem' network message
         /// when player double clicks an item in the 3d world
         /// </summary>
@@ -125,7 +125,7 @@ namespace ACE.Server.WorldObjects
 
             if (item != null)
             {
-                if (item.CurrentLandblock != null && !item.Visibility && item.Guid != lastUsedContainerId)
+                if (item.CurrentLandblock != null && !item.Visibility && item.Guid != LastUsedContainerId)
                     CreateMoveToChain(item, (success) => TryUseItem(item, success));
                 else
                     TryUseItem(item);
@@ -150,7 +150,7 @@ namespace ACE.Server.WorldObjects
             if (success)
             {
                 if (item is Container)
-                    lastUsedContainerId = item.Guid;
+                    LastUsedContainerId = item.Guid;
 
                 item.OnActivate(this);
             }
