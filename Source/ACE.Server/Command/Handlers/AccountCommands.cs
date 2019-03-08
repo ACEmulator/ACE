@@ -1,6 +1,7 @@
 using System;
 
 using ACE.Database;
+using ACE.Database.Models.Auth;
 using ACE.Entity.Enum;
 using ACE.Server.Network;
 
@@ -112,6 +113,88 @@ namespace ACE.Server.Command.Handlers
             DatabaseManager.Authentication.UpdateAccountAccessLevel(accountId, accessLevel);
 
             CommandHandlerHelper.WriteOutputInfo(session, "Account " + accountName + " updated with access rights set as " + articleAorAN + " " + Enum.GetName(typeof(AccessLevel), accessLevel) + ".", ChatMessageType.Broadcast);
+        }
+
+        // set-accountpassword accountname newpassword
+        [CommandHandler("set-accountpassword", AccessLevel.Admin, CommandHandlerFlag.None, 2,
+            "Set the account password.",
+            "accountname newpassword\n")]
+        public static void HandleAccountSetPassword(Session session, params string[] parameters)
+        {
+            string accountName = parameters[0].ToLower();
+
+            var account = DatabaseManager.Authentication.GetAccountByName(accountName);
+
+            if (account == null)
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, "Account " + accountName + " does not exist.", ChatMessageType.Broadcast);
+                return;
+            }
+
+            if (parameters.Length < 1)
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, "You must specify a password for the account.", ChatMessageType.Broadcast);
+                return;
+            }
+
+            account.SetPassword(parameters[1]);
+            account.SetSaltForBCrypt();
+
+            DatabaseManager.Authentication.UpdateAccount(account);
+
+            CommandHandlerHelper.WriteOutputInfo(session, $"Account password for {accountName} successfully changed.", ChatMessageType.Broadcast);
+        }
+
+        // passwd oldpassword newpassword
+        [CommandHandler("passwd", AccessLevel.Player, CommandHandlerFlag.RequiresWorld, 2,
+            "Change your account password.",
+            "oldpassword newpassword\n")]
+        public static void HandlePasswd(Session session, params string[] parameters)
+        {
+            if (session == null)
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, "This command is run from ingame client only", ChatMessageType.Broadcast);
+                return;
+            }
+
+            if (parameters.Length <= 0)
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, "You must specify the current password for the account.", ChatMessageType.Broadcast);
+                return;
+            }
+
+            if (parameters.Length < 1)
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, "You must specify a new password for the account.", ChatMessageType.Broadcast);
+                return;
+            }
+
+            var account = DatabaseManager.Authentication.GetAccountById(session.AccountId);
+
+            if (account == null)
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, $"Account {session.Account} ({session.AccountId}) wasn't found in the database! How are you in world without a valid account?", ChatMessageType.Broadcast);                
+                return;
+            }
+
+            var oldpassword = parameters[0];
+            var newpassword = parameters[1];
+
+            if (account.PasswordMatches(oldpassword))
+            {
+                account.SetPassword(newpassword);
+                account.SetSaltForBCrypt();
+            }
+            else
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, $"Unable to change password: Password provided in first parameter does not match current account password for this account!", ChatMessageType.Broadcast);
+                return;
+            }
+
+
+            DatabaseManager.Authentication.UpdateAccount(account);
+
+            CommandHandlerHelper.WriteOutputInfo(session, "Account password successfully changed.", ChatMessageType.Broadcast);
         }
     }
 }
