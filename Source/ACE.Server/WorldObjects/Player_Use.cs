@@ -1,4 +1,5 @@
 using System;
+
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Server.Entity.Actions;
@@ -18,18 +19,23 @@ namespace ACE.Server.WorldObjects
         {
             StopExistingMoveToChains();
 
-            var invSource = GetInventoryItem(sourceObjectGuid);
-            var invTarget = GetInventoryItem(targetObjectGuid);
-            var invWielded = GetEquippedItem(targetObjectGuid);
+            // source item is always in our possession
+            var sourceItem = FindObject(sourceObjectGuid, SearchLocations.MyInventory | SearchLocations.MyEquippedItems, out _, out _, out var sourceItemIsEquipped);
 
-            if (invSource == null)
+            if (sourceItem == null)
             {
-                // is this caster with a built-in spell?
-                var caster = GetEquippedItem(sourceObjectGuid);
-                if (caster != null && caster.SpellDID != null)
+                log.Warn($"{Name}.HandleActionUseWithTarget({sourceObjectGuid:X8}, {targetObjectGuid:X8}): couldn't find {sourceObjectGuid:X8}");
+                SendUseDoneEvent();
+                return;
+            }
+
+            if (sourceItemIsEquipped)
+            {
+                // This could be a caster with a built-in spell
+                if (sourceItem.SpellDID != null)
                 {
                     // check activation requirements
-                    var result = caster.CheckUseRequirements(this);
+                    var result = sourceItem.CheckUseRequirements(this);
                     if (!result.Success)
                     {
                         if (result.Message != null)
@@ -38,74 +44,67 @@ namespace ACE.Server.WorldObjects
                         SendUseDoneEvent();
                     }
                     else
-                        HandleActionCastTargetedSpell(targetObjectGuid, caster.SpellDID ?? 0);
+                        HandleActionCastTargetedSpell(targetObjectGuid, sourceItem.SpellDID ?? 0);
                 }
                 else
                 {
-                    log.Warn($"{Name}.HandleActionUseWithTarget({sourceObjectGuid:X8}, {targetObjectGuid:X8}): couldn't find {sourceObjectGuid:X8}");
-                    SendUseDoneEvent(WeenieError.None);
+                    SendUseDoneEvent();
                 }
+
                 return;
             }
 
-            var worldTarget = (invTarget == null) ? CurrentLandblock?.GetObject(targetObjectGuid) : null;
 
-            if (invTarget != null)
+            // Is the target item in our possession?
+            var targetItem = FindObject(sourceObjectGuid, SearchLocations.MyInventory | SearchLocations.MyEquippedItems);
+
+            if (targetItem != null)
             {
-                // inventory on inventory, we can do this now
-                if (invSource.WeenieType == WeenieType.ManaStone)
-                {
-                    var stone = invSource as ManaStone;
-                    stone.HandleActionUseOnTarget(this, invTarget);
-                }
+                if (sourceItem.WeenieType == WeenieType.ManaStone)
+                    ((ManaStone)sourceItem).HandleActionUseOnTarget(this, targetItem);
                 else
-                    RecipeManager.UseObjectOnTarget(this, invSource, invTarget);
-            }
-            else if (invSource.WeenieType == WeenieType.Healer)
-            {
-                if (!(worldTarget is Player))
-                {
-                    SendUseDoneEvent(WeenieError.YouCantHealThat);
-                    return;
-                }
+                    RecipeManager.UseObjectOnTarget(this, sourceItem, targetItem);
 
-                var healer = invSource as Healer;
-                healer.HandleActionUseOnTarget(this, worldTarget as Player);
+                return;
             }
-            else if (invSource.WeenieType == WeenieType.Key)
+
+
+            // Is the target on the landblock?
+            targetItem = FindObject(sourceObjectGuid, SearchLocations.Landblock);
+
+            if (targetItem == null)
             {
-                var key = invSource as Key;
-                key.HandleActionUseOnTarget(this, worldTarget);
+                log.Warn($"{Name}.HandleActionUseWithTarget({sourceObjectGuid:X8}, {targetObjectGuid:X8}): couldn't find {targetObjectGuid:X8}");
+                SendUseDoneEvent();
+                return;
             }
-            else if (invSource.WeenieType == WeenieType.Lockpick && worldTarget is Lock)
+
+            if (sourceItem.WeenieType == WeenieType.Healer)
             {
-                var lp = invSource as Lockpick;
-                lp.HandleActionUseOnTarget(this, worldTarget);
+                if (targetItem is Player player)
+                    ((Healer)sourceItem).HandleActionUseOnTarget(this, player);
+                else
+                    SendUseDoneEvent(WeenieError.YouCantHealThat);
+            }
+            else if (sourceItem.WeenieType == WeenieType.Key)
+            {
+                ((Key)sourceItem).HandleActionUseOnTarget(this, targetItem);
+            }
+            else if (sourceItem.WeenieType == WeenieType.Lockpick)
+            {
+                ((Lockpick)sourceItem).HandleActionUseOnTarget(this, targetItem);
             }
             else if (targetObjectGuid == Guid.Full)
             {
                 // using something on ourselves
-                if (invSource.WeenieType == WeenieType.ManaStone)
-                {
-                    var stone = invSource as ManaStone;
-                    stone.HandleActionUseOnTarget(this, this);
-                }
+                if (sourceItem.WeenieType == WeenieType.ManaStone)
+                    ((ManaStone)sourceItem).HandleActionUseOnTarget(this, this);
                 else
-                    RecipeManager.UseObjectOnTarget(this, invSource, this);
-            }
-            else if (invWielded != null)
-            {
-                if (invSource.WeenieType == WeenieType.ManaStone)
-                {
-                    var stone = invSource as ManaStone;
-                    stone.HandleActionUseOnTarget(this, invWielded);
-                }
-                else
-                    RecipeManager.UseObjectOnTarget(this, invSource, invWielded);
+                    RecipeManager.UseObjectOnTarget(this, sourceItem, this);
             }
             else
             {
-                RecipeManager.UseObjectOnTarget(this, invSource, worldTarget);
+                RecipeManager.UseObjectOnTarget(this, sourceItem, targetItem);
             }
         }
 
@@ -122,7 +121,7 @@ namespace ACE.Server.WorldObjects
         {
             StopExistingMoveToChains();
 
-            var item = FindObject(itemGuid, SearchLocations.MyInventory | SearchLocations.MyEquippedItems | SearchLocations.Landblock, out Container foundInContainer, out Container rootOwner, out bool wasEquipped);
+            var item = FindObject(itemGuid, SearchLocations.MyInventory | SearchLocations.MyEquippedItems | SearchLocations.Landblock);
 
             if (item != null)
             {
