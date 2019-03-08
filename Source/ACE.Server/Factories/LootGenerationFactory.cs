@@ -1916,10 +1916,11 @@ namespace ACE.Server.Factories
                     lowSpellTier = 5;
                     break;
                 case 5:
+                case 6:
                     lowSpellTier = 5;
                     break;
                 default:
-                    lowSpellTier = 6;
+                    lowSpellTier = 7;
                     break;
             }
 
