@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2019-03-08
+[OptimShi]
+* Corrected DatDatabaseType values
+
 ### 2019-02-28
 [gmriggs]
 * Added Linux installation instructions
