@@ -1832,13 +1832,13 @@ namespace ACE.Server.Factories
             switch (weaponType)
             {
                 case 1:
-                    tieredDamage = heavyWeaponDamageTable[baseWeapon - 1, tier];
+                    tieredDamage = heavyWeaponDamageTable[baseWeapon - 1, tier - 1];
                     break;
                 case 2:
-                    tieredDamage = lightWeaponDamageTable[baseWeapon - 1, tier];
+                    tieredDamage = lightWeaponDamageTable[baseWeapon - 1, tier - 1];
                     break;
                 case 3:
-                    tieredDamage = twohandedWeaponDamageTable[baseWeapon - 1, tier];
+                    tieredDamage = twohandedWeaponDamageTable[baseWeapon - 1, tier - 1];
                     break;
             }
 
