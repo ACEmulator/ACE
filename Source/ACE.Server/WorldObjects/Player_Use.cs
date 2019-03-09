@@ -74,7 +74,7 @@ namespace ACE.Server.WorldObjects
 
 
             // Is the target item in our possession?
-            var targetItem = FindObject(sourceObjectGuid, SearchLocations.MyInventory | SearchLocations.MyEquippedItems);
+            var targetItem = FindObject(targetObjectGuid, SearchLocations.MyInventory | SearchLocations.MyEquippedItems);
 
             if (targetItem != null)
             {
@@ -88,7 +88,7 @@ namespace ACE.Server.WorldObjects
 
 
             // Is the target on the landblock?
-            targetItem = FindObject(sourceObjectGuid, SearchLocations.Landblock);
+            targetItem = FindObject(targetObjectGuid, SearchLocations.Landblock);
 
             if (targetItem == null)
             {
