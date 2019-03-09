@@ -407,8 +407,10 @@ namespace ACE.Server.WorldObjects
                 }
                 var baseDamage = ThreadSafeRandom.Next(Spell.MinDamage, Spell.MaxDamage);
 
+                var weaponResistanceMod = GetWeaponResistanceModifier(source, attackSkill, Spell.DamageType);
+
                 finalDamage = baseDamage + damageBonus + warSkillBonus;
-                finalDamage *= target.GetResistanceMod(resistanceType, GetWeaponResistanceModifier(source, attackSkill, Spell.DamageType))
+                finalDamage *= target.GetResistanceMod(resistanceType, source, weaponResistanceMod)
                     * elementalDmgBonus * slayerBonus * shieldMod;
 
                 return finalDamage;
