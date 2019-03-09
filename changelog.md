@@ -1,5 +1,22 @@
 # ACEmulator Change Log
 
+### 2019-03-08
+[Ripley]
+* Exclude GamePiece from saving to Shard DB.
+
+[OptimShi]
+* Corrected DatDatabaseType values
+
+### 2019-03-02
+[Ripley]
+* Added migration coding to support migrating from previous SHA512 Hash/Salt method to BCrypt.
+* Script for Updating Auth database added to default passwords to BCrypt.
+* Added `passwd` and `set-accountpassword` commands for self-service password changing and admin-only override password changes.
+
+### 2019-03-01
+[zegegerslittlesis]
+* Changed account authentication to use BCrypt.
+
 ### 2019-02-28
 [gmriggs]
 * Added Linux installation instructions
