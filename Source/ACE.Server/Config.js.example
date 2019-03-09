@@ -11,7 +11,9 @@
     "Accounts": {
       "OverrideCharacterPermissions": true,
       "DefaultAccessLevel": 0,
-      "AllowAutoAccountCreation": true
+      "AllowAutoAccountCreation": true,
+      "PasswordHashWorkFactor": 10,
+      "ForceWorkFactorMigration": false
     },
     "DatFilesDirectory": "c:\\ACE\\",
     "ShutdownInterval": "60",
