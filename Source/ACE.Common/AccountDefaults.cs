@@ -40,7 +40,7 @@ namespace ACE.Common
         /// Upgrade or downgrade passwords to match PasswordHashWorkFactor specified in config 
         /// False by default.
         /// </summary>
-        [System.ComponentModel.DefaultValue(true)]
+        [System.ComponentModel.DefaultValue(false)]
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
         public bool ForceWorkFactorMigration { get; set; }
     }
