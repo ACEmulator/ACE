@@ -73,7 +73,20 @@ namespace ACE.Database.Models.Auth
 
         private static string GetPasswordHash(string password)
         {
-            return BCryptProvider.HashPassword(password, Common.ConfigManager.Config.Server.Accounts.PasswordHashWorkFactor);
+            var workFactor = Common.ConfigManager.Config.Server.Accounts.PasswordHashWorkFactor;
+
+            if (workFactor < 4)
+            {
+                log.Warn("PasswordHashWorkFactor in config less than minimum value of 4, using 4 and continuing.");
+                workFactor = 4;
+            }
+            else if (workFactor > 31)
+            {
+                log.Warn("PasswordHashWorkFactor in config greater than minimum value of 31, using 31 and continuing.");
+                workFactor = 31;
+            }
+
+            return BCryptProvider.HashPassword(password, workFactor);
         }
 
         private static string GetPasswordHash(Account account, string password)
