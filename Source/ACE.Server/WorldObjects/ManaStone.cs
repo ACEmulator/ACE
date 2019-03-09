@@ -76,7 +76,7 @@ namespace ACE.Server.WorldObjects
                             return;
                         }
                         ItemCurMana = (int)Math.Round(Efficiency.Value * target.ItemCurMana.Value);
-                        player.Session.Network.EnqueueSend(new GameMessageSystemChat($"The {Name} drains {ItemCurMana.Value.ToString("N0")} points of mana from the {target.Name}.\nThe {target.Name} is destroyed.", ChatMessageType.Broadcast));
+                        player.Session.Network.EnqueueSend(new GameMessageSystemChat($"The {Name} drains {ItemCurMana.Value:N0} points of mana from the {target.Name}.\nThe {target.Name} is destroyed.", ChatMessageType.Broadcast));
                         SetUiEffect(player, ACE.Entity.Enum.UiEffects.Magical);
                     }
                 }
@@ -150,8 +150,8 @@ namespace ACE.Server.WorldObjects
                         var manaToPour = Math.Min(targetManaNeeded, ItemCurMana.Value);
                         target.ItemCurMana += manaToPour;
                         var additionalManaNeeded = targetManaNeeded - manaToPour;
-                        var additionalManaText = (additionalManaNeeded > 0) ? $"\nYou need {additionalManaNeeded.ToString("N0")} more mana to fully charge your {target.Name}." : string.Empty;
-                        var msg = $"The {Name} gives {manaToPour.ToString("N0")} points of mana to the {target.Name}.{additionalManaText}";
+                        var additionalManaText = (additionalManaNeeded > 0) ? $"\nYou need {additionalManaNeeded:N0} more mana to fully charge your {target.Name}." : string.Empty;
+                        var msg = $"The {Name} gives {manaToPour:N0} points of mana to the {target.Name}.{additionalManaText}";
                         player.Session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
 
                         if (!DoDestroyDiceRoll(player))
