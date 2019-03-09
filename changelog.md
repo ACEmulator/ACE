@@ -1,6 +1,9 @@
 # ACEmulator Change Log
 
 ### 2019-03-08
+[Ripley]
+* Exclude GamePiece from saving to Shard DB.
+
 [OptimShi]
 * Corrected DatDatabaseType values
 
