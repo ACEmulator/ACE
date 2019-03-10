@@ -1465,7 +1465,7 @@ namespace ACE.Server.WorldObjects
                 }
 
                 if (sourceStackRootOwner == this)
-                    Session.Network.EnqueueSend(new GameMessageInventoryRemoveObject(Session, sourceStack));
+                    Session.Network.EnqueueSend(new GameMessageInventoryRemoveObject(sourceStack));
                 else
                     Session.Network.EnqueueSend(new GameMessageDeleteObject(sourceStack));
 
