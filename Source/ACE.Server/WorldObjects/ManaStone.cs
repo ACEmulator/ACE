@@ -52,13 +52,14 @@ namespace ACE.Server.WorldObjects
 
         public void SetUiEffect(Player player, UiEffects effect)
         {
-            player.EnqueueBroadcast(new GameMessagePublicUpdatePropertyInt(this, PropertyInt.UiEffects, (int)effect));
             UiEffects = effect;
+            player.EnqueueBroadcast(new GameMessagePublicUpdatePropertyInt(this, PropertyInt.UiEffects, (int)effect));
         }
 
         public void HandleActionUseOnTarget(Player player, WorldObject target)
         {
             var useResult = WeenieError.None;
+
             if (!ItemCurMana.HasValue)
             {
                 if (target == player)
