@@ -309,6 +309,11 @@ namespace ACE.Database
             }));
         }
 
+        public Character GetCharacterByName(string name)
+        {
+            return _wrappedDatabase.GetCharacterByName(name);
+        }
+
         public void SaveCharacter(Character character, ReaderWriterLockSlim rwLock, Action<bool> callback)
         {
             _queue.Add(new Task(() =>
@@ -356,11 +361,6 @@ namespace ACE.Database
         // ******************************************************************* OLD CODE BELOW ********************************
         // ******************************************************************* OLD CODE BELOW ********************************
         // ******************************************************************* OLD CODE BELOW ********************************
-
-        public void RenameCharacter(string currentName, string newName, Action<uint> callback)
-        {
-            throw new NotImplementedException();
-        }
 
         public void SetCharacterAccessLevelByName(string name, AccessLevel accessLevel, Action<uint> callback)
         {

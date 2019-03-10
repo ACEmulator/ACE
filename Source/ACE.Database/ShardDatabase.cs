@@ -615,6 +615,26 @@ namespace ACE.Database
             return results;
         }
 
+        public Character GetCharacterByName(string name) // When searching by name, only non-deleted characters matter
+        {
+            var context = new ShardDbContext();
+
+            var result = context.Character
+                //.Include(r => r.CharacterPropertiesContract)
+                //.Include(r => r.CharacterPropertiesFillCompBook)
+                //.Include(r => r.CharacterPropertiesFriendList)
+                //.Include(r => r.CharacterPropertiesQuestRegistry)
+                //.Include(r => r.CharacterPropertiesShortcutBar)
+                //.Include(r => r.CharacterPropertiesSpellBar)
+                //.Include(r => r.CharacterPropertiesTitleBook)
+                .Where(r => r.Name == name.ToLower() && !r.IsDeleted)
+                .FirstOrDefault();
+
+            CharacterContexts.Add(result, context);
+
+            return result;
+        }
+
         public bool SaveCharacter(Character character, ReaderWriterLockSlim rwLock)
         {
             if (CharacterContexts.TryGetValue(character, out var cachedContext))
