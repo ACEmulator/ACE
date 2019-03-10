@@ -57,16 +57,16 @@ namespace ACE.Server.WorldObjects
             }
         }
 
-        public override string Name
-        {
-            get
-            {
-                if ((CloakStatus ?? ACE.Entity.Enum.CloakStatus.Undef) >= ACE.Entity.Enum.CloakStatus.Player)
-                    return base.Name;
-                else
-                    return "+" + base.Name;
-            }
-            //set => SetProperty(PropertyString.Name, value);
-        }
+        //public override string Name
+        //{
+        //    get
+        //    {
+        //        if ((CloakStatus ?? ACE.Entity.Enum.CloakStatus.Undef) >= ACE.Entity.Enum.CloakStatus.Player)
+        //            return base.Name;
+        //        else
+        //            return "+" + base.Name;
+        //    }
+        //    //set => SetProperty(PropertyString.Name, value);
+        //}
     }
 }

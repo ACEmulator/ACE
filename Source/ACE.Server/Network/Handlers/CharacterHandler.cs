@@ -276,8 +276,13 @@ namespace ACE.Server.Network.Handlers
 
                     DatabaseManager.Shard.SaveCharacter(character, new ReaderWriterLockSlim(), result =>
                     {
+                        var name = character.Name;
+
+                        if (character.IsPlussed || ConfigManager.Config.Server.Accounts.OverrideCharacterPermissions && session.AccessLevel > AccessLevel.Advocate)
+                            name = "+" + name;
+
                         if (result)
-                            session.Network.EnqueueSend(new GameMessageCharacterRestore(guid, character.Name, 0u));
+                            session.Network.EnqueueSend(new GameMessageCharacterRestore(guid, name, 0u));
                         else
                             SendCharacterCreateResponse(session, CharacterGenerationVerificationResponse.Corrupt);
                     });

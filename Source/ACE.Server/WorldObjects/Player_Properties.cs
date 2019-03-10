@@ -1,4 +1,5 @@
 
+using ACE.Common;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 
@@ -44,6 +45,11 @@ namespace ACE.Server.WorldObjects
         {
             get => GetProperty(PropertyBool.IsAdvocate) ?? false;
             set { if (!value) RemoveProperty(PropertyBool.IsAdvocate); else SetProperty(PropertyBool.IsAdvocate, value); }
+        }
+
+        public bool IsPlussed
+        {
+            get => Character.IsPlussed || (ConfigManager.Config.Server.Accounts.OverrideCharacterPermissions && Session.AccessLevel > AccessLevel.Advocate);
         }
 
 

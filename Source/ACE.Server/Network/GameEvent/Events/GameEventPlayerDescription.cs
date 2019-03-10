@@ -121,9 +121,17 @@ namespace ACE.Server.Network.GameEvent.Events
                 Writer.Write((ushort)0x10);
 
                 foreach (var property in propertiesString)
-                {
+                {                    
                     Writer.Write((uint)property.Key);
-                    Writer.WriteString16L(property.Value);
+                    if (property.Key == PropertyString.Name)
+                    {
+                        if (Session.Player.IsPlussed && Session.Player.CloakStatus.HasValue && Session.Player.CloakStatus < CloakStatus.Player)
+                            Writer.WriteString16L("+" + property.Value);
+                        else
+                            Writer.WriteString16L(property.Value);
+                    }
+                    else
+                        Writer.WriteString16L(property.Value);
                 }
             }
 
