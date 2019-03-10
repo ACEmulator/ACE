@@ -5,6 +5,8 @@
 * Changed the way Name property is handled with regards to + (Admin/Sentinel characters).
 * Set up basic path to support replicating accesslevel changes on to existing characters.
 * Return @rename to functionality.
+* Add @pk command.
+* Revise @cloak command.
 
 ### 2019-03-09
 [OptimShi]

@@ -84,6 +84,9 @@ namespace ACE.Server.WorldObjects
             var possibleTactics = EnumHelper.GetFlags(TargetingTactic);
             var rng = ThreadSafeRandom.Next(1, possibleTactics.Count - 1);
 
+            if (TargetingTactic == 0)
+                rng = 0;
+
             CurrentTargetingTactic = (TargetingTactic)possibleTactics[rng];
 
             //Console.WriteLine($"{Name}.TargetingTactic: {CurrentTargetingTactic}");
