@@ -823,38 +823,10 @@ namespace ACE.Server.WorldObjects
         // ========== Generic Properties ==========
         // ========================================
         // used in SerializeCreateObject()
-        public string Name
+        public virtual string Name
         {
-            get
-            {
-                if (this is Player)
-                {
-                    var player = this as Player;
-
-                    if (player.IsPlussed)
-                    {
-                        if ((CloakStatus ?? ACE.Entity.Enum.CloakStatus.Off) < ACE.Entity.Enum.CloakStatus.Player)
-                            return "+" + GetProperty(PropertyString.Name);
-                    }
-                }
-
-                return GetProperty(PropertyString.Name);
-            }
-
-            set
-            {
-                if (this is Player)
-                {
-                    var name = value;
-
-                    if (name.StartsWith("+"))
-                        name = name.Substring(1);
-
-                    SetProperty(PropertyString.Name, name);
-                }
-                else
-                    SetProperty(PropertyString.Name, value);
-            }
+            get => GetProperty(PropertyString.Name);
+            set => SetProperty(PropertyString.Name, value);
         }
 
         public string DisplayName
