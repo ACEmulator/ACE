@@ -102,8 +102,8 @@ namespace ACE.Server.WorldObjects
 
             if (IsLocked)
             {
-                if (player.lastUsedContainerId == Guid)
-                    player.lastUsedContainerId = ObjectGuid.Invalid;
+                if (player.LastUsedContainerId == Guid)
+                    player.LastUsedContainerId = ObjectGuid.Invalid;
 
                 EnqueueBroadcast(new GameMessageSound(Guid, Sound.OpenFailDueToLock, 1.0f));
                 return;
