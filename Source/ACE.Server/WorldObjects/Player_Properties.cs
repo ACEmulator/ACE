@@ -9,16 +9,6 @@ namespace ACE.Server.WorldObjects
     {
         public override string Name
         {
-            //get
-            //{
-            //    if (IsPlussed)
-            //    {
-            //        if ((CloakStatus ?? ACE.Entity.Enum.CloakStatus.Off) < ACE.Entity.Enum.CloakStatus.Player)
-            //            return "+" + base.Name;
-            //    }
-            //    return base.Name;
-            //}
-
             get => IsPlussed ? (((CloakStatus ?? ACE.Entity.Enum.CloakStatus.Off) < ACE.Entity.Enum.CloakStatus.Player) ? "+" + base.Name : base.Name) : base.Name;
 
             set
