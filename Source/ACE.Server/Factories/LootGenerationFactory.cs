@@ -33,26 +33,6 @@ namespace ACE.Server.Factories
             return worldObjects;
         }
 
-        public static WorldObject CreateRandomObjects(int tier)
-        {
-            WorldObject wo;
-            int type = ThreadSafeRandom.Next(1, 3);
-            switch (type)
-            {
-                case 1:
-                    //nonmagical
-                    wo = CreateRandomLootObjects(tier, false);
-                    return wo;
-                case 2:
-                    //magical
-                    wo = CreateRandomLootObjects(tier, true);
-                    return wo;
-                default:
-                    wo = CreateMundaneObjects(tier);
-                    return wo;
-            }
-        }
-
         // Enum used for adjusting the loot bias for the various types of Mana forge chests
         public enum LootBias : uint
         {
@@ -68,6 +48,9 @@ namespace ACE.Server.Factories
 
         public static List<WorldObject> CreateRandomLootObjects(TreasureDeath profile)
         {
+            int numItems;
+            WorldObject lootWorldObject;
+
             LootBias lootBias = LootBias.UnBiased;
             var loot = new List<WorldObject>();
 
@@ -92,10 +75,9 @@ namespace ACE.Server.Factories
             var itemChance = ThreadSafeRandom.Next(1, 100);
             if (itemChance <= profile.ItemChance)
             {
-                var numItems = ThreadSafeRandom.Next(profile.ItemMinAmount, profile.ItemMaxAmount);
+                numItems = ThreadSafeRandom.Next(profile.ItemMinAmount, profile.ItemMaxAmount);
                 for (var i = 0; i < numItems; i++)
                 {
-                    WorldObject lootWorldObject;
                     if (lootBias == LootBias.MagicEquipment)
                         lootWorldObject = CreateRandomLootObjects(profile.Tier, false, LootBias.Weapons);
                     else
@@ -105,34 +87,113 @@ namespace ACE.Server.Factories
                 }
             }
 
-            var magicItemChance = ThreadSafeRandom.Next(1, 100);
-            if (magicItemChance <= profile.MagicItemChance)
+            if (itemChance <= profile.MagicItemChance)
             {
-                var numItems = ThreadSafeRandom.Next(profile.MagicItemMinAmount, profile.MagicItemMaxAmount);
+                numItems = ThreadSafeRandom.Next(profile.MagicItemMinAmount, profile.MagicItemMaxAmount);
                 for (var i = 0; i < numItems; i++)
                 {
-                    var lootWorldObject = CreateRandomLootObjects(profile.Tier, true, lootBias);
+                    lootWorldObject = CreateRandomLootObjects(profile.Tier, true, lootBias);
                     if (lootWorldObject != null)
                         loot.Add(lootWorldObject);
                 }
             }
 
-            var mundaneItemChance = ThreadSafeRandom.Next(1, 100);
-            if (mundaneItemChance <= profile.MundaneItemChance)
+            if (itemChance <= profile.MundaneItemChance)
             {
-                var numItems = ThreadSafeRandom.Next(profile.MundaneItemMinAmount, profile.MundaneItemMaxAmount);
+                numItems = ThreadSafeRandom.Next(profile.MundaneItemMinAmount, profile.MundaneItemMaxAmount);
                 for (var i = 0; i < numItems; i++)
                 {
-                    var lootWorldObject = CreateMundaneObjects(profile.Tier, lootBias);
+                    if (lootBias != LootBias.UnBiased)
+                        lootWorldObject = CreateRandomScroll(profile.Tier);
+                    else
+                        lootWorldObject = CreateMundaneObjects(profile.Tier);
+
+                    if (lootWorldObject != null)
+                        loot.Add(lootWorldObject);
+                }
+            }
+
+            // 25% chance to drop a scroll
+            itemChance = ThreadSafeRandom.Next(0, 3);
+            if (itemChance == 3)
+            {
+                if (lootBias == LootBias.UnBiased && profile.MagicItemMinAmount > 0)
+                {
+                    lootWorldObject = CreateRandomScroll(profile.Tier);
+
+                    if (lootWorldObject != null)
+                        loot.Add(lootWorldObject);
+                }
+            }
+
+            if (lootBias != LootBias.Armor && lootBias != LootBias.Weapons && lootBias != LootBias.MagicEquipment && profile.MagicItemMinAmount > 0)
+            {
+                // 33% chance to drop a summoning essence
+                itemChance = ThreadSafeRandom.Next(0, 2);
+                if (itemChance == 2)
+                {
+                    lootWorldObject = CreateSummoningEssence(profile.Tier);
+
                     if (lootWorldObject != null)
                         loot.Add(lootWorldObject);
                 }
 
+                // Roll for a 1 in 50 chance to drop an Encapsulated Spirit
+                itemChance = ThreadSafeRandom.Next(1, 50);
+                if (itemChance == 50)
+                {
+                    var encapSpirit = WorldObjectFactory.CreateNewWorldObject(49485);
+
+                    if (encapSpirit != null)
+                        loot.Add(encapSpirit);
+                }
             }
+
             return loot;
         }
 
-        public static WorldObject CreateRandomLootObjects(int tier, bool isMagical, LootBias lootBias = LootBias.UnBiased)
+        private static WorldObject CreateSummoningEssence(int tier)
+        {
+            uint id = 0;
+
+            if (tier < 1) tier = 1;
+            if (tier > 8) tier = 8;
+
+            int summoningEssenceIndex = ThreadSafeRandom.Next(0, LootHelper.SummoningEssencesMatrix.Length - 1);
+
+            id = (uint)LootHelper.SummoningEssencesMatrix[summoningEssenceIndex][tier - 1];
+
+            if (id == 0)
+                return null;
+
+            var petDevice = WorldObjectFactory.CreateNewWorldObject(id) as PetDevice;
+            if (petDevice == null)
+                return null;
+
+            var ratingChance = 0.5f;
+
+            // add rng ratings to pet device
+            // linear or biased?
+            if (ratingChance > ThreadSafeRandom.Next(0.0f, 1.0f))
+                petDevice.GearDamage = ThreadSafeRandom.Next(1, 20);
+            if (ratingChance > ThreadSafeRandom.Next(0.0f, 1.0f))
+                petDevice.GearDamageResist = ThreadSafeRandom.Next(1, 20);
+            if (ratingChance > ThreadSafeRandom.Next(0.0f, 1.0f))
+                petDevice.GearCritDamage = ThreadSafeRandom.Next(1, 20);
+            if (ratingChance > ThreadSafeRandom.Next(0.0f, 1.0f))
+                petDevice.GearCritDamageResist = ThreadSafeRandom.Next(1, 20);
+            if (ratingChance > ThreadSafeRandom.Next(0.0f, 1.0f))
+                petDevice.GearCrit = ThreadSafeRandom.Next(1, 20);
+            if (ratingChance > ThreadSafeRandom.Next(0.0f, 1.0f))
+                petDevice.GearCritResist = ThreadSafeRandom.Next(1, 20);
+
+            var workmanship = GetWorkmanship(tier);
+            petDevice.SetProperty(PropertyInt.ItemWorkmanship, workmanship);
+
+            return petDevice;
+        }
+
+        private static WorldObject CreateRandomLootObjects(int tier, bool isMagical, LootBias lootBias = LootBias.UnBiased)
         {
             int type;
             WorldObject wo;
@@ -171,54 +232,78 @@ namespace ACE.Server.Factories
             }
         }
 
-        private static int CreateLevel8SpellComp()
+        private static WorldObject CreateMundaneObjects(int tier)
         {
-            int mundaneLootMatrixIndex = 7; // Select the Level 8 spell components
-            int upperLimit = LootHelper.MundaneLootMatrix[mundaneLootMatrixIndex].Length - 1;
-            int chance = ThreadSafeRandom.Next(0, upperLimit);
+            uint id = 0;
+            int chance;
+            WorldObject wo;
 
-            return LootHelper.MundaneLootMatrix[mundaneLootMatrixIndex][chance];
-        }
-
-        private static WorldObject CreateMundaneObjects(int tier, LootBias lootBias = LootBias.UnBiased)
-        {
             if (tier < 1) tier = 1;
             if (tier > 8) tier = 8;
 
-            int mundaneLootMatrixIndex = tier - 1;
+            chance = ThreadSafeRandom.Next(0, 1);
 
-            WorldObject wo;
-            int id = 0;
-            int chance;
-            int upperLimit;
-
-            if (lootBias != LootBias.UnBiased)
-                id = CreateLevel8SpellComp();
-            else
+            switch (chance)
             {
-                upperLimit = LootHelper.MundaneLootMatrix[mundaneLootMatrixIndex].Length + 1;
-                chance = ThreadSafeRandom.Next(0, upperLimit);
-                if (chance == upperLimit)
-                {
-                    if (tier > 7)
-                        id = CreateLevel8SpellComp();
-                    else
-                    {
-                        int minSpellLevel = LootHelper.ScrollLootMatrix[mundaneLootMatrixIndex][0];
-                        int maxSpellLevel = LootHelper.ScrollLootMatrix[mundaneLootMatrixIndex][1];
-                        wo = CreateRandomScroll(ThreadSafeRandom.Next(minSpellLevel, maxSpellLevel));
-                        return wo;
-                    }
-                }
+                case 0:
+                    id = (uint)CreateFood();
+                    break;
+                default:
+                    int mundaneLootMatrixIndex = tier - 1;
+                    int upperLimit = LootHelper.MundaneLootMatrix[mundaneLootMatrixIndex].Length - 1;
 
-                if (chance == (upperLimit - 1))
-                    id = CreateFood();
-                else
-                    id = LootHelper.MundaneLootMatrix[mundaneLootMatrixIndex][chance];
+                    chance = ThreadSafeRandom.Next(0, upperLimit);
+                    id = (uint)LootHelper.MundaneLootMatrix[mundaneLootMatrixIndex][chance];
+                    break;
             }
 
-            wo = WorldObjectFactory.CreateNewWorldObject((uint)id);
+            if (id == 0)
+                return null;
+
+            wo = WorldObjectFactory.CreateNewWorldObject(id);
             return wo;
+        }
+
+        private static WorldObject CreateRandomScroll(int tier)
+        {
+            WorldObject wo;
+
+            if (tier > 7)
+            {
+                int id = CreateLevel8SpellComp();
+                wo = WorldObjectFactory.CreateNewWorldObject((uint)id);
+                return wo;
+            }
+
+            if (tier < 1) tier = 1;
+
+            int scrollLootMatrixIndex = tier - 1;
+            int minSpellLevel = LootHelper.ScrollLootMatrix[scrollLootMatrixIndex][0];
+            int maxSpellLevel = LootHelper.ScrollLootMatrix[scrollLootMatrixIndex][1];
+
+            int scrollLootIndex = ThreadSafeRandom.Next(minSpellLevel, maxSpellLevel);
+            uint spellID = 0;
+
+            while (spellID == 0)
+                spellID = (uint)LootHelper.ScrollSpells[ThreadSafeRandom.Next(0, LootHelper.ScrollSpells.Length - 1)][scrollLootIndex];
+
+            var weenie = DatabaseManager.World.GetScrollWeenie(spellID);
+            if (weenie == null)
+            {
+                log.WarnFormat("CreateRandomScroll for tier {0} and spellID of {1} returned null from the database.", tier, spellID);
+                return null;
+            }
+
+            wo = WorldObjectFactory.CreateNewWorldObject(weenie.ClassId);
+            return wo;
+        }
+
+        private static int CreateLevel8SpellComp()
+        {
+            int upperLimit = LootHelper.Level8SpellComps.Length - 1;
+            int chance = ThreadSafeRandom.Next(0, upperLimit);
+
+            return LootHelper.Level8SpellComps[chance];
         }
 
         private static WorldObject CreateJewels(int tier, bool isMagical)
@@ -276,6 +361,10 @@ namespace ACE.Server.Factories
             workmanship = GetWorkmanship(tier);
 
             WorldObject wo = WorldObjectFactory.CreateNewWorldObject(gemType) as Gem;
+
+            if (wo == null)
+                return null;
+
             wo.SetProperty(PropertyInt.ItemWorkmanship, workmanship);
 
             if (spellDID > 0)
@@ -320,22 +409,6 @@ namespace ACE.Server.Factories
             return foodType;
         }
 
-        private static WorldObject CreateRandomScroll(int tier)
-        {
-            var tier2 = tier;
-            if (tier > 6)
-                tier2 = 6;
-            var spellID = (uint)LootHelper.ScrollSpells[ThreadSafeRandom.Next(0, LootHelper.ScrollSpells.Length - 1)][tier2 - 1];
-            var weenie = DatabaseManager.World.GetScrollWeenie(spellID);
-            if (weenie == null)
-            {
-                log.WarnFormat("CreateRandomScroll for tier {0} and spellID of {1} returned null from the database.", tier, spellID);
-                return null;
-            }
-
-            return WorldObjectFactory.CreateNewWorldObject(weenie.ClassName);
-        }
-
         private static WorldObject CreateJewelry(int tier, bool isMagical)
         {
 
@@ -371,6 +444,10 @@ namespace ACE.Server.Factories
             }
             numCantrips = minorCantrips + majorCantrips + epicCantrips + legendaryCantrips;
             WorldObject wo = WorldObjectFactory.CreateNewWorldObject((uint)jewelType);
+
+            if (wo == null)
+                return null;
+
             workmanship = GetWorkmanship(tier);
             value = GetValue(tier, workmanship);
             spellcraft = GetSpellcraft(numSpells, tier);
@@ -499,10 +576,9 @@ namespace ACE.Server.Factories
             int workmanship = GetWorkmanship(tier);
             int value = GetValue(tier, workmanship);
             int spellCraft = GetSpellcraft(numSpells, tier);
-            int itemDifficulty = GetDifficulty(tier, spellCraft); ;
+            int itemDifficulty = GetDifficulty(tier, spellCraft);
             int wieldDiff = GetWield(tier, 3);
             WieldRequirement wieldRequirments = WieldRequirement.RawSkill;
-            Skill wieldSkillType = Skill.None;
             int maxMana = GetMaxMana(numSpells, tier);
 
             int eleType = ThreadSafeRandom.Next(0, 4);
@@ -510,7 +586,7 @@ namespace ACE.Server.Factories
             switch (weaponType)
             {
                 case 0:
-                    wieldSkillType = Skill.HeavyWeapons;
+                    // Heavy Weapons
                     int heavyWeaponsType = ThreadSafeRandom.Next(0, 22);
                     weaponWeenie = LootHelper.HeavyWeaponsMatrix[heavyWeaponsType][eleType];
 
@@ -592,9 +668,9 @@ namespace ACE.Server.Factories
                     }
                     break;
                 case 1:
-                    wieldSkillType = Skill.LightWeapons;
+                    // Light Weapons;
                     int lightWeaponsType = ThreadSafeRandom.Next(0, 19);
-                    weaponWeenie = LootHelper.HeavyWeaponsMatrix[lightWeaponsType][eleType];
+                    weaponWeenie = LootHelper.LightWeaponsMatrix[lightWeaponsType][eleType];
 
                     switch (lightWeaponsType)
                     {
@@ -673,9 +749,9 @@ namespace ACE.Server.Factories
                     }
                     break;
                 case 2:
-                    wieldSkillType = Skill.FinesseWeapons;
+                    // Finesse Weapons;
                     int finesseWeaponsType = ThreadSafeRandom.Next(0, 22);
-                    weaponWeenie = LootHelper.HeavyWeaponsMatrix[finesseWeaponsType][eleType];
+                    weaponWeenie = LootHelper.FinesseWeaponsMatrix[finesseWeaponsType][eleType];
 
                     switch (finesseWeaponsType)
                     {
@@ -755,10 +831,9 @@ namespace ACE.Server.Factories
                     }
                     break;
                 case 3:
-                    ///Two handed
-                    wieldSkillType = Skill.TwoHandedCombat;
+                    // Two handed
                     int twoHandedWeaponsType = ThreadSafeRandom.Next(0, 11);
-                    weaponWeenie = LootHelper.HeavyWeaponsMatrix[twoHandedWeaponsType][eleType];
+                    weaponWeenie = LootHelper.TwoHandedWeaponsMatrix[twoHandedWeaponsType][eleType];
 
                     damage = GetMaxDamage(3, tier, wieldDiff, 1);
                     damageVariance = GetVariance(3, 1);
@@ -800,13 +875,16 @@ namespace ACE.Server.Factories
             }
 
             WorldObject wo = WorldObjectFactory.CreateNewWorldObject((uint)weaponWeenie);
+
+            if (wo == null)
+                return null;
+
             wo.SetProperty(PropertyInt.GemCount, gemCount);
             wo.SetProperty(PropertyInt.GemType, gemType);
             wo.SetProperty(PropertyInt.Value, value);
             wo.SetProperty(PropertyInt.MaterialType, GetMaterialType(2, tier));
             wo.SetProperty(PropertyInt.ItemWorkmanship, workmanship);
 
-            wo.SetProperty(PropertyInt.WeaponSkill, (int)wieldSkillType);
             wo.SetProperty(PropertyInt.Damage, damage);
             wo.SetProperty(PropertyFloat.DamageVariance, damageVariance);
 
@@ -10414,6 +10492,10 @@ namespace ACE.Server.Factories
             armorModNether = .1 * ThreadSafeRandom.Next(1, 20);
 
             WorldObject wo = WorldObjectFactory.CreateNewWorldObject((uint)armorWeenie);
+
+            if (wo == null)
+                return null;
+
             int gemCount = ThreadSafeRandom.Next(1, 6);
             int gemType = ThreadSafeRandom.Next(10, 50);
             wo.SetProperty(PropertyInt.MaterialType, materialType);
@@ -11516,6 +11598,9 @@ namespace ACE.Server.Factories
 
             WorldObject wo = WorldObjectFactory.CreateNewWorldObject((uint)weaponWeenie);
 
+            if (wo == null)
+                return null;
+
             int workmanship = GetWorkmanship(tier);
             wo.SetProperty(PropertyInt.Value, GetValue(tier, workmanship));
             wo.SetProperty(PropertyInt.ItemWorkmanship, workmanship);
@@ -12117,6 +12202,9 @@ namespace ACE.Server.Factories
             }
 
             WorldObject wo = WorldObjectFactory.CreateNewWorldObject((uint)casterWeenie);
+
+            if (wo == null)
+                return null;
 
             int workmanship = GetWorkmanship(tier);
             wo.SetProperty(PropertyInt.Value, GetValue(tier, workmanship));

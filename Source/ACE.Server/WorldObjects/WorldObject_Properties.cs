@@ -2473,6 +2473,49 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyInstanceId.Killer); else SetProperty(PropertyInstanceId.Killer, value.Value); }
         }
 
+        /* Ratings */
+
+        public int? DamageRating
+        {
+            get => GetProperty(PropertyInt.DamageRating);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.DamageRating); else SetProperty(PropertyInt.DamageRating, value.Value); }
+        }
+
+        public int? DamageResistRating
+        {
+            get => GetProperty(PropertyInt.DamageResistRating);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.DamageResistRating); else SetProperty(PropertyInt.DamageResistRating, value.Value); }
+        }
+
+        public int? CritDamageRating
+        {
+            get => GetProperty(PropertyInt.CritDamageRating);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.CritDamageRating); else SetProperty(PropertyInt.CritDamageRating, value.Value); }
+        }
+
+        public int? CritDamageResistRating
+        {
+            get => GetProperty(PropertyInt.CritDamageResistRating);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.CritDamageRating); else SetProperty(PropertyInt.CritDamageRating, value.Value); }
+        }
+
+        /// <summary>
+        /// Increases the chance of landing a critical hit
+        /// </summary>
+        public int? CritRating
+        {
+            get => GetProperty(PropertyInt.CritRating);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.CritRating); else SetProperty(PropertyInt.CritRating, value.Value); }
+        }
+
+        /// <summary>
+        /// Decreases the chance of landing a critical hit
+        /// </summary>
+        public int? CritResistRating
+        {
+            get => GetProperty(PropertyInt.CritResistRating);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.CritResistRating); else SetProperty(PropertyInt.CritResistRating, value.Value); }
+        }
 
         /// <summary>
         /// In addition to setting StackSize, this will also set the EncumbranceVal and Value appropriately.

@@ -2,6 +2,7 @@ namespace ACE.Entity.Enum
 {
     public enum MaterialType : uint
     {
+        Unknown         = 0x00000000,
         Ceramic         = 0x00000001,
         Porcelain       = 0x00000002,
         Linen           = 0x00000004,

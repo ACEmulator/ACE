@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using ACE.Entity.Enum;
 using ACE.Server.Entity;
+using ACE.Server.WorldObjects;
 
 namespace ACE.Server.Managers
 {
@@ -27,6 +28,27 @@ namespace ACE.Server.Managers
 
             switch (confirm.ConfirmationType)
             {
+                case ConfirmationType.Augmentation:
+
+                    confirm.Player.CompleteConfirmation(confirm.ConfirmationType, confirm.ConfirmationID);
+
+                    if (response)
+                    {
+                        if (!(confirm.Source is AugmentationDevice aug))
+                            return;
+
+                        aug.DoAugmentation(confirm.Player);
+                    }
+                    break;
+
+                case ConfirmationType.CraftInteraction:
+
+                    confirm.Player.CompleteConfirmation(confirm.ConfirmationType, confirm.ConfirmationID);
+
+                    if (response)
+                        RecipeManager.HandleTinkering(confirm.Player, confirm.Source, confirm.Target, true);
+                    break;
+
                 case ConfirmationType.Fellowship:
 
                     var inviter = PlayerManager.GetOnlinePlayer(confirm.Source.Guid);
@@ -42,12 +64,12 @@ namespace ACE.Server.Managers
                 case ConfirmationType.SwearAllegiance:
                     break;
 
-                case ConfirmationType.CraftInteraction:
+                case ConfirmationType.Yes_No:
 
                     confirm.Player.CompleteConfirmation(confirm.ConfirmationType, confirm.ConfirmationID);
 
-                    if (response)
-                        RecipeManager.HandleTinkering(confirm.Player, confirm.Source, confirm.Target, true);
+                    confirm.Source.EmoteManager.ExecuteEmoteSet(response ? EmoteCategory.TestSuccess : EmoteCategory.TestFailure, confirm.Quest, confirm.Player);
+
                     break;
 
                 default:

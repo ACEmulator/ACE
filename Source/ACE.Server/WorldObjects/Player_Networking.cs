@@ -156,6 +156,21 @@ namespace ACE.Server.WorldObjects
                 stance = state.CurrentStyle;
             }
 
+            // update CurrentMotionState here for substates?
+            if ((state.Flags & RawMotionFlags.ForwardCommand) != 0)
+            {
+                if (((uint)state.ForwardCommand & (uint)CommandMask.SubState) != 0)
+                    CurrentMotionState.SetForwardCommand(state.ForwardCommand);
+            }
+            else
+                CurrentMotionState.SetForwardCommand(MotionCommand.Ready);
+
+            if (state.CommandListLength > 0)
+            {
+                if (((uint)state.Commands[0].MotionCommand & (uint)CommandMask.SubState) != 0)
+                    CurrentMotionState.SetForwardCommand(state.Commands[0].MotionCommand);
+            }
+
             var movementData = new MovementData(this, moveToState);
 
             var movementEvent = new GameMessageUpdateMotion(this, movementData);

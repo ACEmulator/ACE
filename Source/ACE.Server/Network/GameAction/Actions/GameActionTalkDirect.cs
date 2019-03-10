@@ -19,7 +19,7 @@ namespace ACE.Server.Network.GameAction.Actions
 
             session.Network.EnqueueSend(new GameMessageSystemChat($"You tell {creature.Name}, \"{message}\"", ChatMessageType.OutgoingTell));
 
-            creature.EmoteManager.OnTalkDirect(session.Player);
+            creature.EmoteManager.OnTalkDirect(session.Player, message);
         }
     }
 }

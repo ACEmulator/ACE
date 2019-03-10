@@ -719,7 +719,7 @@ namespace ACE.Server.Command.Handlers
         public static void HandleTeleto(Session session, params string[] parameters)
         {
             // @teleto - Teleports you to the specified character.
-            var playerName = String.Join(" ", parameters);
+            var playerName = string.Join(" ", parameters);
             // Lookup the player in the world
             var player = PlayerManager.GetOnlinePlayer(playerName);
             // If the player is found, teleport the admin to the Player's location
@@ -727,6 +727,23 @@ namespace ACE.Server.Command.Handlers
                 session.Player.Teleport(player.Location);
             else
                 session.Network.EnqueueSend(new GameMessageSystemChat($"Player {playerName} was not found.", ChatMessageType.Broadcast));
+        }
+
+        /// <summary>
+        /// Teleports a player to your current location
+        /// </summary>
+        [CommandHandler("teletome", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 1, "Teleports a player to your current location.", "PlayerName")]
+        public static void HandleTeleToMe(Session session, params string[] parameters)
+        {
+            var playerName = string.Join(" ", parameters);
+            var player = PlayerManager.GetOnlinePlayer(playerName);
+            if (player == null)
+            {
+                session.Network.EnqueueSend(new GameMessageSystemChat($"Player {playerName} was not found.", ChatMessageType.Broadcast));
+                return;
+            }
+            player.Teleport(session.Player.Location);
+            player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{session.Player.Name} has teleported you to their current location.", ChatMessageType.Broadcast));
         }
 
         // teleallto [char]

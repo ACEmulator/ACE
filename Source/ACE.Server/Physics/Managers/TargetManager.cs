@@ -61,7 +61,7 @@ namespace ACE.Server.Physics.Combat
 
             if (TargetInfo != null && TargetInfo.TargetPosition == null)
             {
-                Console.WriteLine("TargetManager.HandleTargetting - null position");
+                //Console.WriteLine("TargetManager.HandleTargetting - null position");
                 return;
             }
 

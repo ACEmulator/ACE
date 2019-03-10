@@ -13,7 +13,6 @@ using ACE.Server.Entity.Actions;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.Network.Structure;
-using ACE.Server.WorldObjects.Entity;
 
 namespace ACE.Server.WorldObjects
 {
@@ -447,7 +446,8 @@ namespace ACE.Server.WorldObjects
                 var endPos = new Position(Location);
                 var dist = startPos.DistanceTo(endPos);
 
-                if (dist > Windup_MaxMove)
+                // only PKs affected by these caps?
+                if (dist > Windup_MaxMove && PlayerKillerStatus != PlayerKillerStatus.NPK)
                 {
                     castingPreCheckStatus = CastingPreCheckStatus.CastFailed;
                     movedTooFar = true;
@@ -511,7 +511,10 @@ namespace ACE.Server.WorldObjects
                 }
 
                 if (movedTooFar)
-                    player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouHaveMovedTooFar));
+                {
+                    //player.Session.Network.EnqueueSend(new GameEventWeenieError(player.Session, WeenieError.YouHaveMovedTooFar));
+                    Session.Network.EnqueueSend(new GameMessageSystemChat("Your movement disrupted spell casting!", ChatMessageType.Magic));
+                }
 
                 player.SendUseDoneEvent(useDone);
             });
@@ -756,7 +759,7 @@ namespace ACE.Server.WorldObjects
             var castingDelay = spell.Formula.GetCastTime(MotionTableId, castSpeed);
             spellChain.AddDelaySeconds(castingDelay);
 
-            bool movedTooFar = true;
+            bool movedTooFar = false;
 
             spellChain.AddAction(this, () =>
             {
@@ -765,7 +768,8 @@ namespace ACE.Server.WorldObjects
                 var endPos = new Position(Location);
                 var dist = startPos.DistanceTo(endPos);
 
-                if (dist > Windup_MaxMove)
+                // only PKs affected by these caps?
+                if (dist > Windup_MaxMove && PlayerKillerStatus != PlayerKillerStatus.NPK)
                 {
                     castingPreCheckStatus = CastingPreCheckStatus.CastFailed;
                     movedTooFar = true;
@@ -798,10 +802,13 @@ namespace ACE.Server.WorldObjects
                 var returnStance = new Motion(MotionStance.Magic, MotionCommand.Ready, 1.0f);
                 EnqueueBroadcastMotion(returnStance);
 
-                Session.Network.EnqueueSend(new GameEventUseDone(Session, useDone));
-
                 if (movedTooFar)
-                    Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouHaveMovedTooFar));
+                {
+                    //Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouHaveMovedTooFar));
+                    Session.Network.EnqueueSend(new GameMessageSystemChat("Your movement disrupted spell casting!", ChatMessageType.Magic));
+                }
+
+                Session.Network.EnqueueSend(new GameEventUseDone(Session, useDone));
             });
 
             spellChain.AddDelaySeconds(1.0f);   // TODO: get actual recoil timing

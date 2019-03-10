@@ -51,10 +51,10 @@ namespace ACE.Database
         public Account CreateAccount(string name, string password, AccessLevel accessLevel)
         {
             var account = new Account();
-            account.CreateRandomSalt();
 
             account.AccountName = name;
             account.SetPassword(password);
+            account.SetSaltForBCrypt();
             account.AccessLevel = (uint)accessLevel;
 
             using (var context = new AuthDbContext())
