@@ -35,6 +35,7 @@ namespace ACE.Server.Managers
     public class WorldManager
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog packetLog = LogManager.GetLogger(System.Reflection.Assembly.GetEntryAssembly(), "Packets");
 
         // Hard coded server Id, this will need to change if we move to multi-process or multi-server model
         public const ushort ServerId = 0xB;
@@ -93,6 +94,7 @@ namespace ACE.Server.Managers
             {
                 if (packet.Header.Flags.HasFlag(PacketHeaderFlags.ConnectResponse))
                 {
+                    packetLog.Debug($"{packet}, {endPoint}");
                     PacketInboundConnectResponse connectResponse = new PacketInboundConnectResponse(packet);
 
                     // This should be set on the second packet to the server from the client.
@@ -138,6 +140,7 @@ namespace ACE.Server.Managers
             }
             else if (packet.Header.HasFlag(PacketHeaderFlags.LoginRequest))
             {
+                packetLog.Debug($"{packet}, {endPoint}");
                 if (!loggedInClients.Contains(endPoint) && loggedInClients.Count >= ConfigManager.Config.Server.Network.MaximumAllowedSessions)
                 {
                     log.InfoFormat("Login Request from {0} rejected. Server full.", endPoint);
@@ -148,7 +151,16 @@ namespace ACE.Server.Managers
                     log.DebugFormat("Login Request from {0}", endPoint);
                     var session = FindOrCreateSession(endPoint);
                     if (session != null)
+                    {
+                        if (session.State == SessionState.AuthConnectResponse)
+                        {
+                            // connect request packet sent to the client was corrupted in transit and session entered an unspecified state.
+                            // ignore the request and remove the broken session and the client will start a new session.
+                            RemoveSession(session);
+                            log.Warn($"Bad handshake from {endPoint}, aborting session.");
+                        }
                         session.ProcessPacket(packet);
+                    }
                     else
                     {
                         log.InfoFormat("Login Request from {0} rejected. Failed to find or create session.", endPoint);
@@ -170,6 +182,10 @@ namespace ACE.Server.Managers
                 {
                     log.WarnFormat("Null Session for Id {0}", packet.Header.Id);
                 }
+            }
+            else
+            {
+                log.WarnFormat("unsolicited packet from {0}", endPoint);
             }
         }
 
@@ -620,8 +636,16 @@ namespace ACE.Server.Managers
                 // Removes sessions in the NetworkTimeout state, including sessions that have reached a timeout limit.
                 for (int i = sessions.Count - 1; i >= 0; i--)
                 {
-                    if (sessions[i].State == SessionState.NetworkTimeout)
-                        sessions[i].DropSession(string.IsNullOrEmpty(sessions[i].BootSessionReason) ? "Network Timeout" : sessions[i].BootSessionReason);
+                    var sesh = sessions[i];
+                    switch (sesh.State)
+                    {
+                        case SessionState.NetworkTimeout:
+                            sesh.DropSession(string.IsNullOrEmpty(sesh.BootSessionReason) ? "Network Timeout" : sesh.BootSessionReason);
+                            break;
+                        case SessionState.ClientSentNetErrorDisconnect:
+                            sesh.DropSession(string.IsNullOrEmpty(sesh.BootSessionReason) ? "client sent network error disconnect" : sesh.BootSessionReason);
+                            break;
+                    }
                 }
             }
             finally

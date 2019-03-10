@@ -175,7 +175,6 @@ namespace ACE.Server.Command.Handlers
             CommandHandlerHelper.WriteOutputInfo(session, NetworkStatistics.Summary(), ChatMessageType.Broadcast);
         }
 
-#if NETDIAG
         [CommandHandler("trash_c2s", AccessLevel.Developer, CommandHandlerFlag.None, "Trash (corrupt) the next C2S packet that arrives.")]
         public static void HandleTrashNextPacketC2S(Session session, params string[] parameters)
         {
@@ -213,7 +212,6 @@ namespace ACE.Server.Command.Handlers
             HandleJunkC2S(session, parameters);
             HandleJunkS2C(session, parameters);
         }
-#endif
 
         /// <summary>
         /// List all clothing bases which are compatible with setup

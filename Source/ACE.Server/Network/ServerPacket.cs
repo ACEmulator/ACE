@@ -15,6 +15,7 @@ namespace ACE.Server.Network
         /// </summary>
         public BinaryWriter BodyWriter { get; private set; }
 
+        private uint finalChecksum;
         private uint issacXor;
         private bool issacXorSet;
         public uint IssacXor
@@ -70,9 +71,15 @@ namespace ACE.Server.Network
             Header.Size = (ushort)(size - PacketHeader.HeaderSize);
 
             var headerChecksum = Header.CalculateHash32();
+            finalChecksum = headerChecksum + payloadChecksum;
             Header.Checksum = headerChecksum + (payloadChecksum ^ issacXor);
-
             Header.AddPayloadToBuffer(buffer);
+        }
+
+        public override string ToString()
+        {
+            var c = Header.HasFlag(PacketHeaderFlags.EncryptedChecksum) ? $" CRC: {finalChecksum} XOR: {issacXor}" : "";
+            return $">>> {Header}{c}".TrimEnd();
         }
     }
 }
