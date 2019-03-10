@@ -75,8 +75,15 @@ namespace ACE.Server.WorldObjects
                             log.Error($"Failed to remove {target.Name} from player inventory.");
                             return;
                         }
+
+                        //The Mana Stone drains 5,253 points of mana from the Wand.
+                        //The Wand is destroyed.
+
+                        //The Mana Stone drains 4,482 points of mana from the Pantaloons.
+                        //The Pantaloons is destroyed.
+
                         ItemCurMana = (int)Math.Round(Efficiency.Value * target.ItemCurMana.Value);
-                        player.Session.Network.EnqueueSend(new GameMessageSystemChat($"The {Name} drains {ItemCurMana.Value:N0} points of mana from the {target.Name}.\nThe {target.Name} is destroyed.", ChatMessageType.Broadcast));
+                        player.Session.Network.EnqueueSend(new GameMessageSystemChat($"The Mana Stone drains {ItemCurMana.Value:N0} points of mana from the {target.Name}.\nThe {target.Name} is destroyed.", ChatMessageType.Broadcast));
                         SetUiEffect(player, ACE.Entity.Enum.UiEffects.Magical);
                     }
                 }
@@ -120,14 +127,20 @@ namespace ACE.Server.WorldObjects
 
                     if (itemsGivenMana.Count < 1)
                     {
-                        player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You have no items equipped that need mana.", ChatMessageType.Broadcast));
+                        player.Session.Network.EnqueueSend(new GameMessageSystemChat("You have no items equipped that need mana.", ChatMessageType.Broadcast));
                         useResult = WeenieError.ActionCancelled;
                     }
                     else
                     {
+                        //The Mana Stone gives 4,496 points of mana to the following items: Fire Compound Crossbow, Qafiya, Celdon Sleeves, Amuli Leggings, Messenger's Collar, Heavy Bracelet, Scalemail Bracers, Olthoi Alduressa Gauntlets, Studded Leather Girth, Shoes, Chainmail Greaves, Loose Pants, Mechanical Scarab, Ring, Ring, Heavy Bracelet
+                        //Your items are fully charged.
+
+                        //The Mana Stone gives 1,921 points of mana to the following items: Haebrean Girth, Chiran Helm, Ring, Baggy Breeches, Scalemail Greaves, Alduressa Boots, Heavy Bracelet, Heavy Bracelet, Lorica Breastplate, Pocket Watch, Heavy Necklace
+                        //You need 2,232 more mana to fully charge your items.
+
                         var additionalManaNeeded = origItemsNeedingMana.Sum(k => k.ItemMaxMana.Value - k.ItemCurMana.Value);
-                        var additionalManaText = (additionalManaNeeded > 0) ? $"\nYou need {additionalManaNeeded:N0} more mana to fully charge your items." : string.Empty;
-                        var msg = $"The {Name} gives {itemsGivenMana.Values.Sum():N0} points of mana to the following items: {itemsGivenMana.Select(c => c.Key.Name).Aggregate((a, b) => a + ", " + b)}.{additionalManaText}";
+                        var additionalManaText = (additionalManaNeeded > 0) ? $"\nYou need {additionalManaNeeded:N0} more mana to fully charge your items." : "Your items are fully charged.";
+                        var msg = $"The Mana Stone gives {itemsGivenMana.Values.Sum():N0} points of mana to the following items: {itemsGivenMana.Select(c => c.Key.Name).Aggregate((a, b) => a + ", " + b)}.{additionalManaText}";
                         player.Session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
 
                         if (!DoDestroyDiceRoll(player))
@@ -145,13 +158,14 @@ namespace ACE.Server.WorldObjects
                     }
                     else
                     {
-                        // dump mana into the item
+                        // The Mana Stone gives 3,502 points of mana to the Focusing Stone.
+
+                        // The Mana Stone gives 3,267 points of mana to the Protective Drudge Charm.
+
                         var targetManaNeeded = target.ItemCurMana.HasValue ? (target.ItemMaxMana.Value - target.ItemCurMana.Value) : target.ItemMaxMana.Value;
                         var manaToPour = Math.Min(targetManaNeeded, ItemCurMana.Value);
                         target.ItemCurMana += manaToPour;
-                        var additionalManaNeeded = targetManaNeeded - manaToPour;
-                        var additionalManaText = (additionalManaNeeded > 0) ? $"\nYou need {additionalManaNeeded:N0} more mana to fully charge your {target.Name}." : string.Empty;
-                        var msg = $"The {Name} gives {manaToPour:N0} points of mana to the {target.Name}.{additionalManaText}";
+                        var msg = $"The Mana Stone gives {manaToPour:N0} points of mana to the {target.Name}.";
                         player.Session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
 
                         if (!DoDestroyDiceRoll(player))
