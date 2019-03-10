@@ -90,7 +90,7 @@ namespace ACE.Server.WorldObjects
                 if (!TryRemoveFromInventory(item.Guid, out item))
                     return false;
 
-                Session.Network.EnqueueSend(new GameEventInventoryRemoveObject(Session, item));
+                Session.Network.EnqueueSend(new GameMessageInventoryRemoveObject(item));
 
                 item.Destroy();
             }
@@ -140,7 +140,7 @@ namespace ACE.Server.WorldObjects
             Session.Network.EnqueueSend(new GameMessagePublicUpdateInstanceID(item, PropertyInstanceId.Container, ObjectGuid.Invalid));
 
             if (removeFromInventoryAction == RemoveFromInventoryAction.TradeItem || removeFromInventoryAction == RemoveFromInventoryAction.ToCorpseOnDeath)
-                Session.Network.EnqueueSend(new GameEventInventoryRemoveObject(Session, item));
+                Session.Network.EnqueueSend(new GameMessageInventoryRemoveObject(item));
 
             if (removeFromInventoryAction != RemoveFromInventoryAction.ToWieldedSlot)
             {
@@ -1465,7 +1465,7 @@ namespace ACE.Server.WorldObjects
                 }
 
                 if (sourceStackRootOwner == this)
-                    Session.Network.EnqueueSend(new GameEventInventoryRemoveObject(Session, sourceStack));
+                    Session.Network.EnqueueSend(new GameMessageInventoryRemoveObject(Session, sourceStack));
                 else
                     Session.Network.EnqueueSend(new GameMessageDeleteObject(sourceStack));
 
