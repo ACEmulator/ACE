@@ -1,3 +1,7 @@
+using ACE.Common.Cryptography;
+
+using log4net;
+
 using System;
 using System.Linq;
 using System.Security.Cryptography;
@@ -7,28 +11,82 @@ namespace ACE.Database.Models.Auth
 {
     public static class AccountExtensions
     {
-        /// <summary>
-        /// creates a new account object and pre-creates a new, random salt
-        /// </summary>
-        public static void CreateRandomSalt(this Account account)
-        {
-            byte[] salt = new byte[64]; // 64 bytes = 512 bits, ideal for use with SHA512
-
-            using (var salter = new RNGCryptoServiceProvider())
-                salter.GetNonZeroBytes(salt);
-
-            account.PasswordSalt = Convert.ToBase64String(salt);
-        }
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
 
         public static bool PasswordMatches(this Account account, string password)
         {
-            var input = GetPasswordHash(account, password);
-            return input == account.PasswordHash;
+            if (account.PasswordSalt == "use bcrypt") // Account password is using bcrypt
+            {
+                if (Common.ConfigManager.Config.Server.Accounts.ForceWorkFactorMigration &&
+                    (BCryptProvider.GetPasswordWorkFactor(account.PasswordHash) != Common.ConfigManager.Config.Server.Accounts.PasswordHashWorkFactor))
+                // Upgrade (or downgrade) Password workfactor if not the same as config specifies, ForceWorkFactorMigration is TRUE and Password Matches
+                {
+                    if (BCryptProvider.Verify(password, account.PasswordHash))
+                    {
+                        account.SetPassword(password);
+                        account.SetSaltForBCrypt();
+
+                        DatabaseManager.Authentication.UpdateAccount(account);
+
+                        return true;
+                    }
+                    else
+                        return false;
+                }
+                else
+                    return BCryptProvider.Verify(password, account.PasswordHash);
+            }
+            else // Account password is using SHA512 salt
+            {
+                log.Debug($"{account.AccountName} password verified using SHA512 hash/salt, migrating to bcrypt.");
+
+                var input = GetPasswordHash(account, password);
+
+                if (input == account.PasswordHash) // If password matches, migrate to bcrypt
+                {
+                    account.SetPassword(password);
+                    account.SetSaltForBCrypt();
+
+                    DatabaseManager.Authentication.UpdateAccount(account);
+
+                    return true;
+                }
+                else
+                    return false;
+            }
         }
 
         public static void SetPassword(this Account account, string value)
         {
-            account.PasswordHash = GetPasswordHash(account, value);
+            account.PasswordHash = GetPasswordHash(value);
+        }
+
+        public static void SetSalt(this Account account, string value)
+        {
+            account.PasswordSalt = value;
+        }
+
+        public static void SetSaltForBCrypt(this Account account)
+        {
+            SetSalt(account, "use bcrypt"); // this is used just to indicate that the password is using bcrypt. For migration purposes only.
+        }
+
+        private static string GetPasswordHash(string password)
+        {
+            var workFactor = Common.ConfigManager.Config.Server.Accounts.PasswordHashWorkFactor;
+
+            if (workFactor < 4)
+            {
+                log.Warn("PasswordHashWorkFactor in config less than minimum value of 4, using 4 and continuing.");
+                workFactor = 4;
+            }
+            else if (workFactor > 31)
+            {
+                log.Warn("PasswordHashWorkFactor in config greater than minimum value of 31, using 31 and continuing.");
+                workFactor = 31;
+            }
+
+            return BCryptProvider.HashPassword(password, workFactor);
         }
 
         private static string GetPasswordHash(Account account, string password)

@@ -893,13 +893,6 @@ namespace ACE.Server.WorldObjects
             SetCombatMode(newCombatMode);
         }
 
-        public float GetResistanceMod(DamageType damageType, WorldObject damageSource, float weaponResistanceMod)
-        {
-            var enchantmentMod = damageSource != null && damageSource.IgnoreMagicResist ? 1.0f : EnchantmentManager.GetResistanceMod(damageType);
-
-            return enchantmentMod * weaponResistanceMod;
-        }
-
         /// <summary>
         /// Returns the current attack maneuver for a player
         /// </summary>
@@ -912,6 +905,77 @@ namespace ACE.Server.WorldObjects
         public override bool CanDamage(Creature target)
         {
             return true;    // handled elsewhere
+        }
+
+        // http://acpedia.org/wiki/Announcements_-_2002/04_-_Betrayal
+
+        // Some combination of strength and endurance (the two are roughly of equivalent importance) now allows one to have a level of "natural resistances" to the 7 damage types,
+        // and to partially resist drain health and harm attacks.
+
+        // This caps out at a 50% resistance (the equivalent to level 5 life prots) to these damage types.
+
+        // This resistance is not additive to life protections: higher level life protections will overwrite these natural resistances,
+        // although life vulns will take these natural resistances into account, if the player does not have a higher level life protection cast upon them.
+
+        // For example, a player will not get a free protective bonus from natural resistances if they have both Prot 7 and Vuln 7 cast upon them.
+        // The Prot and Vuln will cancel each other out, and since the Prot has overwritten the natural resistances, there will be no resistance bonus.
+
+        // The natural resistances, drain resistances, and regeneration rate info are now visible on the Character Information Panel, in what was once the Burden panel.
+
+        // The 5 categories for the endurance benefits are, in order from lowest benefit to highest: Poor, Mediocre, Hardy, Resilient, and Indomitable,
+        // with each range of benefits divided up equally amongst the 5 (e.g. Poor describes having anywhere from 1-10% resistance against drain health attacks, etc.).
+
+        // A few other important notes:
+
+        // - The abilities that Endurance or Endurance/Strength conveys are not increased by Strength or Endurance buffs.
+        //   It is the raw Strength and/or Endurance scores that determine the various bonuses.
+        // - For April, natural resistances will offer some protection versus hollow type damage, whether it is from a Hollow Minion or a Hollow weapon. This will be changed in May.
+        // - These abilities are player-only, creatures with high endurance will not benefit from any of these changes.
+        // - Come May, you can type @help endurance for a summary of the April changes to Endurance.
+
+        public override float GetNaturalResistance(DamageType damageType)
+        {
+            // base strength and endurance give the player a natural resistance to damage,
+            // which caps at 50% (equivalent to level 5 life prots)
+            // these do not stack with life protection spells
+
+            // - natural resistances are ignored by hollow damage
+
+            var strAndEnd = Strength.Base + Endurance.Base;
+
+            if (strAndEnd <= 200)
+                return 1.0f;
+
+            var naturalResistance = 1.0f - (float)(strAndEnd - 200) / 300 * 0.5f;
+            naturalResistance = Math.Max(naturalResistance, 0.5f);
+
+            return naturalResistance;
+        }
+
+        public string GetNaturalResistanceString(ResistanceType resistanceType)
+        {
+            var strAndEnd = Strength.Base + Endurance.Base;
+
+            if (strAndEnd > 440)        return "Indomitable";
+            else if (strAndEnd > 380)   return "Resilient";
+            else if (strAndEnd > 320)   return "Hardy";
+            else if (strAndEnd > 260)   return "Mediocre";
+            else if (strAndEnd > 200)   return "Poor";
+            else
+                return "None";
+        }
+
+        public string GetRegenBonusString()
+        {
+            var strAndEnd = Strength.Base + 2 * Endurance.Base;
+
+            if (strAndEnd > 690)        return "Indomitable";
+            else if (strAndEnd > 580)   return "Resilient";
+            else if (strAndEnd > 470)   return "Hardy";
+            else if (strAndEnd > 346)   return "Mediocre";
+            else if (strAndEnd > 200)   return "Poor";
+            else
+                return "None";
         }
     }
 }
