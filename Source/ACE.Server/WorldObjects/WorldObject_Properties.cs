@@ -835,13 +835,10 @@ namespace ACE.Server.WorldObjects
                     {
                         if ((CloakStatus ?? ACE.Entity.Enum.CloakStatus.Off) < ACE.Entity.Enum.CloakStatus.Player)
                             return "+" + GetProperty(PropertyString.Name);
-                        else
-                            return GetProperty(PropertyString.Name);
                     }
-                    return GetProperty(PropertyString.Name);
                 }
-                else
-                    return GetProperty(PropertyString.Name);
+
+                return GetProperty(PropertyString.Name);
             }
 
             set
