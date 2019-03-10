@@ -16,7 +16,26 @@ namespace ACE.Database.Models.Auth
         public static bool PasswordMatches(this Account account, string password)
         {
             if (account.PasswordSalt == "use bcrypt") // Account password is using bcrypt
-                return BCryptProvider.Verify(password, account.PasswordHash);
+            {
+                if (Common.ConfigManager.Config.Server.Accounts.ForceWorkFactorMigration &&
+                    (BCryptProvider.GetPasswordWorkFactor(account.PasswordHash) != Common.ConfigManager.Config.Server.Accounts.PasswordHashWorkFactor))
+                // Upgrade (or downgrade) Password workfactor if not the same as config specifies, ForceWorkFactorMigration is TRUE and Password Matches
+                {
+                    if (BCryptProvider.Verify(password, account.PasswordHash))
+                    {
+                        account.SetPassword(password);
+                        account.SetSaltForBCrypt();
+
+                        DatabaseManager.Authentication.UpdateAccount(account);
+
+                        return true;
+                    }
+                    else
+                        return false;
+                }
+                else
+                    return BCryptProvider.Verify(password, account.PasswordHash);
+            }
             else // Account password is using SHA512 salt
             {
                 log.Debug($"{account.AccountName} password verified using SHA512 hash/salt, migrating to bcrypt.");
@@ -54,7 +73,20 @@ namespace ACE.Database.Models.Auth
 
         private static string GetPasswordHash(string password)
         {
-            return BCryptProvider.HashPassword(password);
+            var workFactor = Common.ConfigManager.Config.Server.Accounts.PasswordHashWorkFactor;
+
+            if (workFactor < 4)
+            {
+                log.Warn("PasswordHashWorkFactor in config less than minimum value of 4, using 4 and continuing.");
+                workFactor = 4;
+            }
+            else if (workFactor > 31)
+            {
+                log.Warn("PasswordHashWorkFactor in config greater than minimum value of 31, using 31 and continuing.");
+                workFactor = 31;
+            }
+
+            return BCryptProvider.HashPassword(password, workFactor);
         }
 
         private static string GetPasswordHash(Account account, string password)

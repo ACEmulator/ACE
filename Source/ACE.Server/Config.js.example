@@ -1,7 +1,6 @@
 {
   "Server": {
     "WorldName": "ACEmulator",
-    "Welcome": "Welcome to this ACE server!\nFor more information visit http://emulator.ac",
     "Network": {
       "Host": "0.0.0.0",
       "Port": 9000,
@@ -11,7 +10,9 @@
     "Accounts": {
       "OverrideCharacterPermissions": true,
       "DefaultAccessLevel": 0,
-      "AllowAutoAccountCreation": true
+      "AllowAutoAccountCreation": true,
+      "PasswordHashWorkFactor": 8,
+      "ForceWorkFactorMigration": true
     },
     "DatFilesDirectory": "c:\\ACE\\",
     "ShutdownInterval": "60",
