@@ -578,9 +578,7 @@ namespace ACE.Server.Network
 
                 packetLog.Debug(packet.ToString());
 
-#if NETDIAG
                 buffer = NetworkSyntheticTesting.SyntheticCorruption_S2C(buffer);
-#endif
 
                 if (packetLog.IsDebugEnabled)
                 {

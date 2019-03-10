@@ -15,13 +15,13 @@ namespace ACE.Common.Cryptography
     {
         /// <summary>
         /// the search limit of the distance from the left side to the center of the range of offsets<para />
-        /// client->server [corruption, dropped, out of order] are factors that should be considered<para />
+        /// packet [corruption, dropped, out of order] are factors that should be considered<para />
         /// left <-> offset <-> right<para />
         /// </summary>
         private const int Left = 30;
         /// <summary>
         /// the search limit of the distance from the right side to the center of the range of offsets<para />
-        /// client->server [corruption, dropped, out of order] are factors that should be considered<para />
+        /// packet [corruption, dropped, out of order] are factors that should be considered<para />
         /// left <-> offset <-> right<para />
         /// </summary>
         private const int Right = 30;

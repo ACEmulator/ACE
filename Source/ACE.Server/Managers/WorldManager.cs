@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Net;
-using System.Numerics;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -35,6 +34,7 @@ namespace ACE.Server.Managers
     public class WorldManager
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog packetLog = LogManager.GetLogger(System.Reflection.Assembly.GetEntryAssembly(), "Packets");
 
         // Hard coded server Id, this will need to change if we move to multi-process or multi-server model
         public const ushort ServerId = 0xB;
@@ -93,7 +93,7 @@ namespace ACE.Server.Managers
             {
                 if (packet.Header.Flags.HasFlag(PacketHeaderFlags.ConnectResponse))
                 {
-                    log.Debug($"{endPoint} {packet}");
+                    packetLog.Debug($"{packet}, {endPoint}");
                     PacketInboundConnectResponse connectResponse = new PacketInboundConnectResponse(packet);
 
                     // This should be set on the second packet to the server from the client.
@@ -139,7 +139,7 @@ namespace ACE.Server.Managers
             }
             else if (packet.Header.HasFlag(PacketHeaderFlags.LoginRequest))
             {
-                log.Debug($"{endPoint} {packet}");
+                packetLog.Debug($"{packet}, {endPoint}");
                 if (!loggedInClients.Contains(endPoint) && loggedInClients.Count >= ConfigManager.Config.Server.Network.MaximumAllowedSessions)
                 {
                     log.InfoFormat("Login Request from {0} rejected. Server full.", endPoint);

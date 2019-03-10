@@ -18,9 +18,8 @@ namespace ACE.Server.Network
 
         public ClientPacket(byte[] data)
         {
-#if NETDIAG
             data = NetworkSyntheticTesting.SyntheticCorruption_C2S(data);
-#endif
+
             ParsePacketData(data);
             if (IsValid)
             {
