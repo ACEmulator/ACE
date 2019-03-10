@@ -514,8 +514,8 @@ namespace ACE.Server.WorldObjects
                 {
                     player.Session.Network.EnqueueSend(new GameEventCloseGroundContainer(player.Session, this));
 
-                    if (player.lastUsedContainerId == Guid)
-                        player.lastUsedContainerId = ObjectGuid.Invalid;
+                    if (player.LastUsedContainerId == Guid)
+                        player.LastUsedContainerId = ObjectGuid.Invalid;
 
                     // send deleteobject for all objects in this container's inventory to player
                     // this seems logical, but it bugs out the client for re-opening chests w/ respawned items
