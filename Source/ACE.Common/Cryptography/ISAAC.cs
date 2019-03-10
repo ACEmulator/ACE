@@ -1,5 +1,4 @@
 using System;
-using System.Linq;
 
 namespace ACE.Common.Cryptography
 {
@@ -11,6 +10,8 @@ namespace ACE.Common.Cryptography
         private uint[] mm;
         private uint[] randRsl;
 
+        public int OverallOffset { get; private set; }
+
         public ISAAC(byte[] seed)
         {
             mm      = new uint[256];
@@ -19,50 +20,11 @@ namespace ACE.Common.Cryptography
 
             Initialize(seed);
         }
-#if NETDIAG
-        private System.Collections.Generic.Queue<ISAAC> ancestry = new System.Collections.Generic.Queue<ISAAC>();
-        public ISAAC Copy()
-        {
-            ISAAC newCopy = new ISAAC(null);
-            newCopy.SetInternalState(offset, a, b, c, mm, randRsl, ancestry);
-            return newCopy;
-        }
-        public ISAAC Parent
-        {
-            get
-            {
-                return ancestry.ToArray().LastOrDefault();
-            }
-        }
-        private void SetInternalState(uint offset, uint a, uint b, uint c, uint[] mm, uint[] randRsl, System.Collections.Generic.Queue<ISAAC> ancestry)
-        {
-            SetInternalState(offset, a, b, c, mm, randRsl);
-            var g = ancestry.ToArray();
-            var f = new ISAAC[g.Length];
-            Array.Copy(g, f, g.Length);
-            this.ancestry = new System.Collections.Generic.Queue<ISAAC>(f);
-        }
-        private void SetInternalState(uint offset, uint a, uint b, uint c, uint[] mm, uint[] randRsl)
-        {
-            this.offset = offset;
-            this.a = a;
-            this.b = b;
-            this.c = c;
-            this.mm = new uint[256];
-            this.randRsl = new uint[256];
-            Array.Copy(mm, this.mm, mm.Length);
-            Array.Copy(randRsl, this.randRsl, randRsl.Length);
-        }
-#endif
+
         public uint GetOffset()
         {
-#if NETDIAG
-            ancestry.Enqueue(Copy());
-            if (ancestry.Count > 20)
-            {
-                var discardMe = ancestry.Dequeue();
-            }
-#endif
+            OverallOffset++;
+
             var issacValue = randRsl[offset];
             if (offset > 0)
                 offset--;

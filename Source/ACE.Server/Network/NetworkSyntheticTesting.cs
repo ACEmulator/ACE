@@ -2,7 +2,7 @@ using System;
 
 namespace ACE.Server.Network
 {
-#if NETDIAG
+
     public sealed class NetworkSyntheticTesting
     {
         private static readonly Lazy<NetworkSyntheticTesting> lazy =
@@ -12,10 +12,10 @@ namespace ACE.Server.Network
 
         private NetworkSyntheticTesting() { }
 
-        private bool _TrashNextPacketC2S = false;
+        public bool _TrashNextPacketC2S = false;
         public static bool TrashNextPacketC2S { get => Instance._TrashNextPacketC2S; set => Instance._TrashNextPacketC2S = value; }
 
-        private bool _JunkyConnectionC2S = false;
+        public bool _JunkyConnectionC2S = false;
         public static bool JunkyConnectionC2S { get => Instance._JunkyConnectionC2S; set => Instance._JunkyConnectionC2S = value; }
 
         public static byte[] SyntheticCorruption_C2S(byte[] packetBytes)
@@ -26,6 +26,9 @@ namespace ACE.Server.Network
             }
             else if (Instance._JunkyConnectionC2S)
             {
+                /// <summary>
+                /// TO-DO: rate of corruption needs to be adjustable
+                /// </summary>
                 if (ThreadSafeRandom.Next(0f, 1f) > 0.1)
                 {
                     return packetBytes;
@@ -58,6 +61,9 @@ namespace ACE.Server.Network
             {
                 Instance._TrashNextPacketS2C = false;
             }
+            /// <summary>
+            /// TO-DO: rate of corruption needs to be adjustable
+            /// </summary>
             else if (Instance._JunkyConnectionS2C)
             {
                 if (ThreadSafeRandom.Next(0f, 1f) > 0.1)
@@ -80,5 +86,5 @@ namespace ACE.Server.Network
             return packetBytes;
         }
     }
-#endif
+
 }

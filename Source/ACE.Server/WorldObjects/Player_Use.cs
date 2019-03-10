@@ -1,4 +1,5 @@
 using System;
+
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Server.Entity.Actions;
@@ -10,6 +11,11 @@ namespace ACE.Server.WorldObjects
     partial class Player
     {
         /// <summary>
+        /// This is set by HandleActionUseItem / TryUseItem
+        /// </summary>
+        public ObjectGuid LastUsedContainerId { get; set; }
+
+        /// <summary>
         /// Handles the 'GameAction 0x35 - UseWithTarget' network message
         /// when player double clicks an inventory item resulting in a target indicator
         /// and then clicks another item
@@ -18,18 +24,23 @@ namespace ACE.Server.WorldObjects
         {
             StopExistingMoveToChains();
 
-            var invSource = GetInventoryItem(sourceObjectGuid);
-            var invTarget = GetInventoryItem(targetObjectGuid);
-            var invWielded = GetEquippedItem(targetObjectGuid);
+            // source item is always in our possession
+            var sourceItem = FindObject(sourceObjectGuid, SearchLocations.MyInventory | SearchLocations.MyEquippedItems, out _, out _, out var sourceItemIsEquipped);
 
-            if (invSource == null)
+            if (sourceItem == null)
             {
-                // is this caster with a built-in spell?
-                var caster = GetEquippedItem(sourceObjectGuid);
-                if (caster != null && caster.SpellDID != null)
+                log.Warn($"{Name}.HandleActionUseWithTarget({sourceObjectGuid:X8}, {targetObjectGuid:X8}): couldn't find {sourceObjectGuid:X8}");
+                SendUseDoneEvent();
+                return;
+            }
+
+            if (sourceItemIsEquipped)
+            {
+                // This could be a caster with a built-in spell
+                if (sourceItem.SpellDID != null)
                 {
                     // check activation requirements
-                    var result = caster.CheckUseRequirements(this);
+                    var result = sourceItem.CheckUseRequirements(this);
                     if (!result.Success)
                     {
                         if (result.Message != null)
@@ -38,81 +49,74 @@ namespace ACE.Server.WorldObjects
                         SendUseDoneEvent();
                     }
                     else
-                        HandleActionCastTargetedSpell(targetObjectGuid, caster.SpellDID ?? 0);
+                        HandleActionCastTargetedSpell(targetObjectGuid, sourceItem.SpellDID ?? 0);
                 }
                 else
                 {
-                    log.Warn($"{Name}.HandleActionUseWithTarget({sourceObjectGuid:X8}, {targetObjectGuid:X8}): couldn't find {sourceObjectGuid:X8}");
-                    SendUseDoneEvent(WeenieError.None);
+                    SendUseDoneEvent();
                 }
+
                 return;
             }
 
-            var worldTarget = (invTarget == null) ? CurrentLandblock?.GetObject(targetObjectGuid) : null;
 
-            if (invTarget != null)
-            {
-                // inventory on inventory, we can do this now
-                if (invSource.WeenieType == WeenieType.ManaStone)
-                {
-                    var stone = invSource as ManaStone;
-                    stone.HandleActionUseOnTarget(this, invTarget);
-                }
-                else
-                    RecipeManager.UseObjectOnTarget(this, invSource, invTarget);
-            }
-            else if (invSource.WeenieType == WeenieType.Healer)
-            {
-                if (!(worldTarget is Player))
-                {
-                    SendUseDoneEvent(WeenieError.YouCantHealThat);
-                    return;
-                }
-
-                var healer = invSource as Healer;
-                healer.HandleActionUseOnTarget(this, worldTarget as Player);
-            }
-            else if (invSource.WeenieType == WeenieType.Key)
-            {
-                var key = invSource as Key;
-                key.HandleActionUseOnTarget(this, worldTarget);
-            }
-            else if (invSource.WeenieType == WeenieType.Lockpick && worldTarget is Lock)
-            {
-                var lp = invSource as Lockpick;
-                lp.HandleActionUseOnTarget(this, worldTarget);
-            }
-            else if (targetObjectGuid == Guid.Full)
+            // Is the target the player?
+            if (targetObjectGuid == Guid.Full)
             {
                 // using something on ourselves
-                if (invSource.WeenieType == WeenieType.ManaStone)
-                {
-                    var stone = invSource as ManaStone;
-                    stone.HandleActionUseOnTarget(this, this);
-                }
+                if (sourceItem.WeenieType == WeenieType.ManaStone)
+                    ((ManaStone)sourceItem).HandleActionUseOnTarget(this, this);
                 else
-                    RecipeManager.UseObjectOnTarget(this, invSource, this);
+                    RecipeManager.UseObjectOnTarget(this, sourceItem, this);
+
+                return;
             }
-            else if (invWielded != null)
+
+
+            // Is the target item in our possession?
+            var targetItem = FindObject(targetObjectGuid, SearchLocations.MyInventory | SearchLocations.MyEquippedItems);
+
+            if (targetItem != null)
             {
-                if (invSource.WeenieType == WeenieType.ManaStone)
-                {
-                    var stone = invSource as ManaStone;
-                    stone.HandleActionUseOnTarget(this, invWielded);
-                }
+                if (sourceItem.WeenieType == WeenieType.ManaStone)
+                    ((ManaStone)sourceItem).HandleActionUseOnTarget(this, targetItem);
                 else
-                    RecipeManager.UseObjectOnTarget(this, invSource, invWielded);
+                    RecipeManager.UseObjectOnTarget(this, sourceItem, targetItem);
+
+                return;
+            }
+
+
+            // Is the target on the landblock?
+            targetItem = FindObject(targetObjectGuid, SearchLocations.Landblock);
+
+            if (targetItem == null)
+            {
+                log.Warn($"{Name}.HandleActionUseWithTarget({sourceObjectGuid:X8}, {targetObjectGuid:X8}): couldn't find {targetObjectGuid:X8}");
+                SendUseDoneEvent();
+                return;
+            }
+
+            if (sourceItem.WeenieType == WeenieType.Healer)
+            {
+                if (targetItem is Player player)
+                    ((Healer)sourceItem).HandleActionUseOnTarget(this, player);
+                else
+                    SendUseDoneEvent(WeenieError.YouCantHealThat);
+            }
+            else if (sourceItem.WeenieType == WeenieType.Key)
+            {
+                ((Key)sourceItem).HandleActionUseOnTarget(this, targetItem);
+            }
+            else if (sourceItem.WeenieType == WeenieType.Lockpick)
+            {
+                ((Lockpick)sourceItem).HandleActionUseOnTarget(this, targetItem);
             }
             else
             {
-                RecipeManager.UseObjectOnTarget(this, invSource, worldTarget);
+                RecipeManager.UseObjectOnTarget(this, sourceItem, targetItem);
             }
         }
-
-        /// <summary>
-        /// This is set by HandleActionUseItem / TryUseItem
-        /// </summary>
-        public ObjectGuid lastUsedContainerId { get; set; }
 
         /// <summary>
         /// Handles the 'GameAction 0x36 - UseItem' network message
@@ -122,11 +126,11 @@ namespace ACE.Server.WorldObjects
         {
             StopExistingMoveToChains();
 
-            var item = FindObject(itemGuid, SearchLocations.MyInventory | SearchLocations.MyEquippedItems | SearchLocations.Landblock, out Container foundInContainer, out Container rootOwner, out bool wasEquipped);
+            var item = FindObject(itemGuid, SearchLocations.MyInventory | SearchLocations.MyEquippedItems | SearchLocations.Landblock);
 
             if (item != null)
             {
-                if (item.CurrentLandblock != null && !item.Visibility && item.Guid != lastUsedContainerId)
+                if (item.CurrentLandblock != null && !item.Visibility && item.Guid != LastUsedContainerId)
                     CreateMoveToChain(item, (success) => TryUseItem(item, success));
                 else
                     TryUseItem(item);
@@ -151,7 +155,7 @@ namespace ACE.Server.WorldObjects
             if (success)
             {
                 if (item is Container)
-                    lastUsedContainerId = item.Guid;
+                    LastUsedContainerId = item.Guid;
 
                 item.OnActivate(this);
             }

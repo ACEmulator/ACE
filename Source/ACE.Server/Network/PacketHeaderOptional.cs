@@ -1,6 +1,7 @@
+using ACE.Common.Cryptography;
 using System.Collections.Generic;
 using System.IO;
-using ACE.Common.Cryptography;
+using System.Linq;
 
 namespace ACE.Server.Network
 {
@@ -8,29 +9,36 @@ namespace ACE.Server.Network
     {
         public uint Size { get; private set; }
 
-        public uint Sequence { get; private set; }
+        public uint AckSequence { get; private set; }
         public double TimeSynch { get; private set; }
         public float EchoRequestClientTime { get; private set; }
-        public List<uint> RetransmitData { get; } = new List<uint>();
+        public List<uint> RetransmitData { get; } = null;
         public bool IsValid { get; private set; } = true;
+        public uint FlowBytes { get; private set; }
+        public ushort FlowInterval { get; private set; }
 
+        private PacketHeader Header { get; set; }
         private MemoryStream headerBytes = new MemoryStream();
 
         public byte[] Bytes => headerBytes.ToArray();
 
         public PacketHeaderOptional(BinaryReader payload, PacketHeader header)
         {
+            Header = header;
             Size = (uint)payload.BaseStream.Position;
             BinaryWriter writer = new BinaryWriter(headerBytes);
 
             if (header.HasFlag(PacketHeaderFlags.ServerSwitch)) // 0x100
+            {
                 writer.Write(payload.ReadBytes(8));
+            }
 
             if (header.HasFlag(PacketHeaderFlags.RequestRetransmit)) // 0x1000
             {
                 if (payload.BaseStream.Length < payload.BaseStream.Position + 4) { IsValid = false; return; }
                 uint retransmitCount = payload.ReadUInt32();
                 writer.Write(retransmitCount);
+                RetransmitData = new List<uint>();
                 for (uint i = 0u; i < retransmitCount; i++)
                 {
                     if (payload.BaseStream.Length < payload.BaseStream.Position + 4) { IsValid = false; return; }
@@ -55,14 +63,14 @@ namespace ACE.Server.Network
             if (header.HasFlag(PacketHeaderFlags.AckSequence)) // 0x4000
             {
                 if (payload.BaseStream.Length < payload.BaseStream.Position + 4) { IsValid = false; return; }
-                Sequence = payload.ReadUInt32();
-                writer.Write(Sequence);
+                AckSequence = payload.ReadUInt32();
+                writer.Write(AckSequence);
             }
 
             if (header.HasFlag(PacketHeaderFlags.LoginRequest)) // 0x10000
             {
-                var position = payload.BaseStream.Position;
-                var length = payload.BaseStream.Length - position;
+                long position = payload.BaseStream.Position;
+                long length = payload.BaseStream.Length - position;
                 if (length < 1) { IsValid = false; return; }
                 byte[] loginBytes = new byte[length];
                 payload.BaseStream.Read(loginBytes, (int)position, (int)length);
@@ -73,14 +81,14 @@ namespace ACE.Server.Network
             if (header.HasFlag(PacketHeaderFlags.WorldLoginRequest)) // 0x20000
             {
                 if (payload.BaseStream.Length < payload.BaseStream.Position + 8) { IsValid = false; return; }
-                var position = payload.BaseStream.Position;
+                long position = payload.BaseStream.Position;
                 writer.Write(payload.ReadBytes(8));
                 payload.BaseStream.Position = position;
             }
 
             if (header.HasFlag(PacketHeaderFlags.ConnectResponse)) // 0x80000
             {
-                var position = payload.BaseStream.Position;
+                long position = payload.BaseStream.Position;
                 if (payload.BaseStream.Length < payload.BaseStream.Position + 8) { IsValid = false; return; }
                 writer.Write(payload.ReadBytes(8));
                 payload.BaseStream.Position = position;
@@ -109,7 +117,10 @@ namespace ACE.Server.Network
             if (header.HasFlag(PacketHeaderFlags.Flow)) // 0x8000000
             {
                 if (payload.BaseStream.Length < payload.BaseStream.Position + 6) { IsValid = false; return; }
-                writer.Write(payload.ReadBytes(6));
+                FlowBytes = payload.ReadUInt32();
+                FlowInterval = payload.ReadUInt16();
+                writer.Write(FlowBytes);
+                writer.Write(FlowInterval);
             }
 
             Size = (uint)payload.BaseStream.Position - Size;
@@ -118,6 +129,29 @@ namespace ACE.Server.Network
         public uint CalculateHash32()
         {
             return Hash32.Calculate(Bytes, Bytes.Length);
+        }
+
+        public override string ToString()
+        {
+            if (Size == 0 || !IsValid)
+            {
+                return string.Empty;
+            }
+
+            string nice = "";
+            if (Header.HasFlag(PacketHeaderFlags.Flow))
+            {
+                nice = $" {FlowBytes} Interval: {FlowInterval}";
+            }
+            if (RetransmitData != null)
+            {
+                nice += $" requesting {RetransmitData.DefaultIfEmpty().Select(t => t.ToString()).Aggregate((a, b) => a + "," + b)}";
+            }
+            if (Header.HasFlag(PacketHeaderFlags.AckSequence))
+            {
+                nice += $" AckSeq: {AckSequence}";
+            }
+            return nice.Trim();
         }
     }
 }
