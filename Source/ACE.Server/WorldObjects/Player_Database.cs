@@ -72,17 +72,6 @@ namespace ACE.Server.WorldObjects
 
         public void SaveCharacterToDatabase()
         {
-            // Make sure our IsPlussed value is up to date
-            //bool isPlussed = false;
-
-            //if (WeenieType == WeenieType.Admin || WeenieType == WeenieType.Sentinel)
-            //    isPlussed = true;
-
-            //if (ConfigManager.Config.Server.Accounts.OverrideCharacterPermissions && Session.AccessLevel > AccessLevel.Advocate)
-            //    isPlussed = true;
-
-            //Character.IsPlussed = isPlussed;
-
             CharacterLastRequestedDatabaseSave = DateTime.UtcNow;
             CharacterChangesDetected = false;
 

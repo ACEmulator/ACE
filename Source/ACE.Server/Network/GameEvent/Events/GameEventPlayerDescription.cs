@@ -121,7 +121,7 @@ namespace ACE.Server.Network.GameEvent.Events
                 Writer.Write((ushort)0x10);
 
                 foreach (var property in propertiesString)
-                {                    
+                {
                     Writer.Write((uint)property.Key);
                     if (property.Key == PropertyString.Name)
                     {

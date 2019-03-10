@@ -825,8 +825,6 @@ namespace ACE.Server.WorldObjects
         // used in SerializeCreateObject()
         public string Name
         {
-            //get => GetProperty(PropertyString.Name);
-            //set => SetProperty(PropertyString.Name, value);
             get
             {
                 if (this is Player)
@@ -862,11 +860,11 @@ namespace ACE.Server.WorldObjects
             }
         }
 
-        //public string DisplayName
-        //{
-        //    get => GetProperty(PropertyString.DisplayName);
-        //    set => SetProperty(PropertyString.DisplayName, value);
-        //}
+        public string DisplayName
+        {
+            get => GetProperty(PropertyString.DisplayName);
+            set { if (value == null) RemoveProperty(PropertyString.DisplayName); else SetProperty(PropertyString.DisplayName, value); }
+        }
 
         /// <summary>
         /// wcid - stands for weenie class id
