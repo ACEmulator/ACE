@@ -17,9 +17,9 @@ namespace ACE.Server.Network.GameMessages.Messages
             foreach (var character in characters)
             {                
                 Writer.Write(character.Id);
-                if (character.IsPlussed)
+                if (ConfigManager.Config.Server.Accounts.OverrideCharacterPermissions && session.AccessLevel > ACE.Entity.Enum.AccessLevel.Advocate)
                     Writer.WriteString16L("+" + character.Name);
-                else if (ConfigManager.Config.Server.Accounts.OverrideCharacterPermissions && session.AccessLevel > ACE.Entity.Enum.AccessLevel.Advocate)
+                else if (!ConfigManager.Config.Server.Accounts.OverrideCharacterPermissions && character.IsPlussed)
                     Writer.WriteString16L("+" + character.Name);
                 else
                     Writer.WriteString16L(character.Name);

@@ -301,6 +301,11 @@ namespace ACE.Server.Factories
             player.Instantiation = new Position(player.Location);
             player.Sanctuary = new Position(player.Location);
 
+            if (player is Sentinel || player is Admin)
+            {
+                player.Character.IsPlussed = true;
+                player.CloakStatus = CloakStatus.Off;
+            }
 
             CharacterCreateSetDefaultCharacterOptions(player);
 

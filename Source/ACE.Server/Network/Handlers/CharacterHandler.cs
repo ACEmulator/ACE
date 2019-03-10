@@ -278,7 +278,9 @@ namespace ACE.Server.Network.Handlers
                     {
                         var name = character.Name;
 
-                        if (character.IsPlussed || ConfigManager.Config.Server.Accounts.OverrideCharacterPermissions && session.AccessLevel > AccessLevel.Advocate)
+                        if (ConfigManager.Config.Server.Accounts.OverrideCharacterPermissions && session.AccessLevel > AccessLevel.Advocate)
+                            name = "+" + name;
+                        else if (!ConfigManager.Config.Server.Accounts.OverrideCharacterPermissions && character.IsPlussed)
                             name = "+" + name;
 
                         if (result)

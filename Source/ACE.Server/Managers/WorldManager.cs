@@ -317,6 +317,40 @@ namespace ACE.Server.Managers
 
             Player.HandleNoLogLandblock(playerBiota);
 
+            var stripAdminProperties = false;
+            var addAdminProperties = false;
+            var addSentinelProperties = false;
+            if (ConfigManager.Config.Server.Accounts.OverrideCharacterPermissions)
+            {
+                if (session.AccessLevel <= AccessLevel.Advocate) // check for elevated characters
+                {
+                    if (playerBiota.WeenieType == (int)WeenieType.Admin || playerBiota.WeenieType == (int)WeenieType.Sentinel) // Downgrade weenie
+                    {
+                        character.IsPlussed = false;
+                        playerBiota.WeenieType = (int)WeenieType.Creature;
+                        stripAdminProperties = true;
+                    }
+                }
+                else if (session.AccessLevel >= AccessLevel.Sentinel && session.AccessLevel <= AccessLevel.Envoy)
+                {
+                    if (playerBiota.WeenieType == (int)WeenieType.Creature || playerBiota.WeenieType == (int)WeenieType.Admin) // Up/downgrade weenie
+                    {
+                        character.IsPlussed = true;
+                        playerBiota.WeenieType = (int)WeenieType.Sentinel;
+                        addSentinelProperties = true;
+                    }
+                }
+                else // Developers and Admins
+                {
+                    if (playerBiota.WeenieType == (int)WeenieType.Creature || playerBiota.WeenieType == (int)WeenieType.Sentinel) // Up/downgrade weenie
+                    {
+                        character.IsPlussed = true;
+                        playerBiota.WeenieType = (int)WeenieType.Admin;
+                        addAdminProperties = true;
+                    }
+                }
+            }
+
             if (playerBiota.WeenieType == (int)WeenieType.Admin)
                 player = new Admin(playerBiota, possessedBiotas.Inventory, possessedBiotas.WieldedItems, character, session);
             else if (playerBiota.WeenieType == (int)WeenieType.Sentinel)
@@ -325,6 +359,48 @@ namespace ACE.Server.Managers
                 player = new Player(playerBiota, possessedBiotas.Inventory, possessedBiotas.WieldedItems, character, session);
 
             session.SetPlayer(player);
+
+            if (stripAdminProperties) // continue stripping properties
+            {
+                player.CloakStatus = null;
+                player.Attackable = true;
+                player.SetProperty(ACE.Entity.Enum.Properties.PropertyBool.DamagedByCollisions, true);
+                player.AdvocateLevel = null;
+                player.ChannelsActive = null;
+                player.ChannelsAllowed = null;
+                player.Invincible = null;
+                player.Cloaked = null;
+
+
+                player.ChangesDetected = true;
+                player.CharacterChangesDetected = true;
+            }
+
+            if (addSentinelProperties || addAdminProperties) // continue restoring properties to default
+            {
+                WorldObject weenie;
+
+                if (addAdminProperties)
+                    weenie = Factories.WorldObjectFactory.CreateWorldObject(DatabaseManager.World.GetCachedWeenie("admin"), new ACE.Entity.ObjectGuid(ACE.Entity.ObjectGuid.Invalid.Full)) as Admin;
+                else
+                    weenie = Factories.WorldObjectFactory.CreateWorldObject(DatabaseManager.World.GetCachedWeenie("sentinel"), new ACE.Entity.ObjectGuid(ACE.Entity.ObjectGuid.Invalid.Full)) as Sentinel;
+
+                if (weenie != null)
+                {
+                    player.CloakStatus = CloakStatus.Off;
+                    player.Attackable = weenie.Attackable;
+                    player.SetProperty(ACE.Entity.Enum.Properties.PropertyBool.DamagedByCollisions, false);
+                    player.AdvocateLevel = weenie.GetProperty(ACE.Entity.Enum.Properties.PropertyInt.AdvocateLevel);
+                    player.ChannelsActive = (Channel?)weenie.GetProperty(ACE.Entity.Enum.Properties.PropertyInt.ChannelsActive);
+                    player.ChannelsAllowed = (Channel?)weenie.GetProperty(ACE.Entity.Enum.Properties.PropertyInt.ChannelsAllowed);
+                    player.Invincible = false;
+                    player.Cloaked = false;
+
+
+                    player.ChangesDetected = true;
+                    player.CharacterChangesDetected = true;
+                }
+            }
 
             // If the client is missing a location, we start them off in the starter dungeon
             if (session.Player.Location == null)
