@@ -216,7 +216,7 @@ namespace ACE.Server.WorldObjects
             // set 'killed by' for looting rights
             if (killer != null)
             {
-                corpse.LongDesc = $"Killed by {killer.Name}.";
+                corpse.LongDesc = $"Killed by {killer.Name.TrimStart('+')}."; // VTANK requires + to be stripped for regex matching.
                 if (killer is CombatPet)
                     corpse.KillerId = killer.PetOwner.Value;
                 else
