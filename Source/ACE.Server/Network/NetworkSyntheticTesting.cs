@@ -26,6 +26,9 @@ namespace ACE.Server.Network
             }
             else if (Instance._JunkyConnectionC2S)
             {
+                /// <summary>
+                /// TO-DO: rate of corruption needs to be adjustable
+                /// </summary>
                 if (ThreadSafeRandom.Next(0f, 1f) > 0.1)
                 {
                     return packetBytes;
@@ -58,6 +61,9 @@ namespace ACE.Server.Network
             {
                 Instance._TrashNextPacketS2C = false;
             }
+            /// <summary>
+            /// TO-DO: rate of corruption needs to be adjustable
+            /// </summary>
             else if (Instance._JunkyConnectionS2C)
             {
                 if (ThreadSafeRandom.Next(0f, 1f) > 0.1)
