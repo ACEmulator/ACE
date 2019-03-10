@@ -30,17 +30,17 @@ namespace ACE.Common
 
         /// <summary>
         /// Default WorkFactor for account passwords.
-        /// 10 by default.
+        /// 8 by default.
         /// </summary>
-        [System.ComponentModel.DefaultValue(10)]
+        [System.ComponentModel.DefaultValue(8)]
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
         public int PasswordHashWorkFactor { get; set; }
 
         /// <summary>
         /// Upgrade or downgrade passwords to match PasswordHashWorkFactor specified in config 
-        /// False by default.
+        /// True by default.
         /// </summary>
-        [System.ComponentModel.DefaultValue(false)]
+        [System.ComponentModel.DefaultValue(true)]
         [JsonProperty(DefaultValueHandling = DefaultValueHandling.Populate)]
         public bool ForceWorkFactorMigration { get; set; }
     }
