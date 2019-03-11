@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ACE.Factories
 {
-    public static class LootHelper
+    public static class LootTables
     {
         public static readonly int[][] SummoningEssencesMatrix =
         {
@@ -140,6 +140,31 @@ namespace ACE.Factories
             new int[] { 41046, 41047, 41048, 41049, 41050 }, // Pike
             new int[] { 40818, 40819, 40820, 40821, 40822 }, // Corsesca
             new int[] { 41041, 41042, 41043, 41044, 41045 } // Magari Yari
+        };
+
+        public static readonly int[][] CasterWeaponsMatrix =
+        {
+            new int[] { 2366, 2548, 2547, 2472 }, // Orb, Sceptre, Staff, Wand
+            new int[] { 29265, 29264, 29260, 29263, 29262, 29259, 29261, 43381 }, // Sceptre: Slashing, Piercing, Blunt, Frost, Fire, Acid, Electric, Nether
+            new int[] { 31819, 31825, 31821, 31824, 31823, 31820, 31822, 43382 }, // Baton: Slashing, Piercing, Blunt, Frost, Fire, Acid, Electric, Nether
+            new int[] { 37223, 37222, 37225, 37221, 37220, 37224, 37219, 43383 }  // Staff: Slashing, Piercing, Blunt, Frost, Fire, Acid, Electric, Nether
+        };
+
+        public static readonly int[][] NonElementalMissileWeaponsMatrix =
+        {
+            new int[] { 306, 363, 334, 307, 341, 30625, 360 }, // Longbow, Yumi, Nayin, Shortbow, Shouyumi, War Bow, Yag
+            new int[] { 30616, 311, 312 }, // Arbalest, Heavy Crossbow, Light Crossbow
+            new int[] { 12463, 20640 } // Atlatl, Royal Atlatl
+        };
+
+        public static readonly int[][] ElementalMissileWeaponsMatrix =
+        {
+            new int[] { 29244, 29239, 29243, 29241, 29242, 29238, 29240 },
+            new int[] { 29251, 29246, 29250, 29248, 29249, 29245, 29247 },
+            new int[] { 29258, 29253, 29257, 29255, 29256, 29252, 29254 },
+            new int[] { 31812, 31814, 31818, 31816, 31817, 31813, 31815 },
+            new int[] { 31798, 31800, 31804, 31802, 31803, 31799, 31801 },
+            new int[] { 31805, 31807, 31811, 31809, 31810, 31806, 31808 }
         };
 
         public static readonly int[][] GemCreatureSpellMatrix =
@@ -1010,6 +1035,21 @@ namespace ACE.Factories
             new int[] { 1569, 1570, 1571, 1572, 1573, 1574, 2113, 4412 },
         };
 
+        public static readonly int[][] WandSpells =
+        {
+                new int[] { 1421, 1422, 1423, 1424, 1425, 1426, 2067, 4305 }, // Focus
+                new int[] { 1445, 1446, 1447, 1448, 1449, 1450, 2091, 4329 }, // Willpower
+                new int[] { 5867, 5868, 5869, 5870, 5871, 5872, 5881, 5882 }, // Sneak Attack Mastery
+                new int[] { 678, 679, 680, 681, 682, 683, 2195, 4510 }, // Arcane Enlightenment
+                new int[] { 653, 654, 655, 656, 657, 658, 2287, 4602 }, // Mana Conversion Mastery
+                new int[] { 557, 558, 559, 560, 561, 562 , 2215, 4530}, // Creature Enchantment Mastery
+                new int[] { 581, 582, 583, 584, 585, 586, 2249, 4564 }, // Item Enchantment Mastery
+                new int[] { 605, 606, 607, 608, 609, 610, 2267, 4582 }, // Life Magic Mastery
+                new int[] { 629, 630, 631, 632, 633, 634 , 2287, 4602}, // War Magic Mastery
+                new int[] { 1599, 1600, 1601, 1602, 1603, 1604, 2101, 4400 }, // Defender
+                new int[] { 1475, 1476, 1477, 1478, 1479, 1480, 2117, 4418 }, // Hermetic Link
+        };
+
         public static readonly int[][] JewelrySpells =
         {
             ////Strength
@@ -1241,32 +1281,6 @@ namespace ACE.Factories
             new int[] { 1133, 1134, 1135, 1136, 1137, 1138, 2161, 4472 },
             ////Armor Self
             new int[] { 24, 1308, 1309, 1310, 1311, 1312, 2053, 4291 },
-        };
-
-        public static readonly int[][] WandSpells =
-        {
-            ////Focus
-            new int[] { 1421, 1422, 1423, 1424, 1425, 1426, 2067, 4305 },
-            ////Willpower
-            new int[] { 1445, 1446, 1447, 1448, 1449, 1450, 2091, 4329 },
-            ////Sneak Attack
-            new int[] { 5867, 5868, 5869, 5870, 5871, 5872, 5881, 5882 },
-            ////Arcane Enlight
-            new int[] { 678, 679, 680, 681, 682, 683, 2195, 4510 },
-            ////Mana C
-            new int[] { 653, 654, 655, 656, 657, 658, 2287, 4602 },
-            ////Creature Enchant
-            new int[] { 557, 558, 559, 560, 561, 562, 2215, 4530 },
-            ////Item Enchant
-            new int[] { 581, 582, 583, 584, 585, 586, 2249, 4564 },
-            ////Life Magic
-            new int[] { 605, 606, 607, 608, 609, 610, 2267, 4582 },
-            ////War Magic
-            new int[] { 629, 630, 631, 632, 633, 634, 2323, 4638 },
-            ////Defender
-            new int[] { 1599, 1601, 1602, 1603, 1604, 1605, 2101, 4400 },
-            ////Hermetic Link
-            new int[] { 1475, 1476, 1477, 1478, 1479, 1480, 2117, 4418 },
         };
 
         public static readonly int[][] MeleeSpells =
