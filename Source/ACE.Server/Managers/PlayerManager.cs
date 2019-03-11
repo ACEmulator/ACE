@@ -122,6 +122,29 @@ namespace ACE.Server.Managers
             return null;
         }
 
+        /// <summary>
+        /// This will return null of the name was not found.
+        /// </summary>
+        public static OfflinePlayer GetOfflinePlayer(string name)
+        {
+            var admin = "+" + name;
+
+            playersLock.EnterReadLock();
+            try
+            {
+                var offlinePlayer = offlinePlayers.Values.FirstOrDefault(p => p.Name.Equals(name, StringComparison.OrdinalIgnoreCase) || p.Name.Equals(admin, StringComparison.OrdinalIgnoreCase));
+
+                if (offlinePlayer != null)
+                    return offlinePlayer;
+            }
+            finally
+            {
+                playersLock.ExitReadLock();
+            }
+
+            return null;
+        }
+
         public static List<IPlayer> GetAllPlayers()
         {
             var offlinePlayers = GetAllOffline();

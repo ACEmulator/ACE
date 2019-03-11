@@ -457,12 +457,54 @@ namespace ACE.Server.Command.Handlers
         }
 
         // pk
-        [CommandHandler("pk", AccessLevel.Sentinel, CommandHandlerFlag.RequiresWorld, 0)]
+        [CommandHandler("pk", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0,
+            "sets your own PK state.",
+            "< npk / pk / pkl / free >\n" +
+            "This command sets your current player killer state\n" +
+            "This command also expects to be used '@cloak player' to properly reflect to other players\n" +
+            "< npk > You can only attack monsters.\n" +
+            "< pk > You can attack player killers and monsters.\n" +
+            "< pkl > You can attack player killer lites and monsters\n" +
+            "< free > You can attack players, player killers, player killer lites, monsters, and npcs")]
         public static void HandlePk(Session session, params string[] parameters)
         {
             // @pk - Toggles or sets your own PK state.
 
-            // TODO: output
+            if (parameters.Length == 0)
+            {
+                //player.EnqueueBroadcast(new GameMessagePublicUpdatePropertyInt(player, PropertyInt.PlayerKillerStatus, (int)player.PlayerKillerStatus));
+                var message = $"Your current PK state is: {session.Player.PlayerKillerStatus.ToString()}\n"
+                    + "You can change it to the following:\n"
+                    + "NPK      = Non-Player Killer\n"
+                    + "PK       = Player Killer\n"
+                    + "PKL      = Player Killer Lite\n"
+                    + "Free     = Can kill anything\n";
+                CommandHandlerHelper.WriteOutputInfo(session, message, ChatMessageType.Broadcast);
+            }
+            else
+            {
+                switch (parameters[0].ToLower())
+                {
+                    case "npk":
+                        session.Player.PlayerKillerStatus = PlayerKillerStatus.NPK;
+                        session.Player.PkLevelModifier = -1;
+                        break;
+                    case "pk":
+                        session.Player.PlayerKillerStatus = PlayerKillerStatus.PK;
+                        session.Player.PkLevelModifier = 1;
+                        break;
+                    case "pkl":
+                        session.Player.PkLevelModifier = 2;
+                        session.Player.PlayerKillerStatus = PlayerKillerStatus.PKLite;
+                        break;
+                    case "free":
+                        session.Player.PkLevelModifier = 3;
+                        session.Player.PlayerKillerStatus = PlayerKillerStatus.Free;
+                        break;
+                }
+                session.Player.EnqueueBroadcast(new GameMessagePublicUpdatePropertyInt(session.Player, PropertyInt.PlayerKillerStatus, (int)session.Player.PlayerKillerStatus));
+                CommandHandlerHelper.WriteOutputInfo(session, $"Your current PK state is now set to: {session.Player.PlayerKillerStatus.ToString()}", ChatMessageType.Broadcast);
+            }
         }
 
         // querypluginlist
@@ -1380,7 +1422,7 @@ namespace ACE.Server.Command.Handlers
         // morph
         [CommandHandler("morph", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1,
             "Morphs your bodily form into that of the specified creature. Be careful with this one!",
-            "[wcid or weenie class name]")]
+            "<wcid or weenie class name> [character name]")]
         public static void HandleMorph(Session session, params string[] parameters)
         {
             // @morph - Morphs your bodily form into that of the specified creature. Be careful with this one!
@@ -1416,69 +1458,93 @@ namespace ACE.Server.Command.Handlers
                 return;
             }
 
-            session.Network.EnqueueSend(new GameMessageSystemChat($"Morphing you into {weenie.GetProperty(PropertyString.Name)} ({weenieClassDescription})... You will be logged out.", ChatMessageType.Broadcast));
+            session.Network.EnqueueSend(new GameMessageSystemChat($"Morphing you into {weenie.GetProperty(PropertyString.Name)} ({weenieClassDescription})... You will be logged out.", ChatMessageType.Broadcast));            
 
             var guid = GuidManager.NewPlayerGuid();
 
             weenie.Type = (int)session.Player.WeenieType;
 
             var player = new Player(weenie, guid, session.AccountId);
-            player.Location = session.Player.Location;
 
-            player.Character.CharacterOptions1 = session.Player.Character.CharacterOptions1;
-            player.Character.CharacterOptions2 = session.Player.Character.CharacterOptions2;
-
-            //var wearables = weenie.GetCreateList((sbyte)DestinationType.Wield);
-            var wearables = weenie.WeeniePropertiesCreateList.Where(x => x.DestinationType == (int)DestinationType.Wield || x.DestinationType == (int)DestinationType.WieldTreasure).ToList();
-            foreach (var wearable in wearables)
+            var name = string.Join(' ', parameters.Skip(1));
+            if (parameters.Length > 1)
             {
-                var weenieOfWearable = DatabaseManager.World.GetCachedWeenie(wearable.WeenieClassId);
-
-                if (weenieOfWearable == null)
-                    continue;
-
-                var worldObject = WorldObjectFactory.CreateNewWorldObject(weenieOfWearable);
-
-                if (worldObject == null)
-                    continue;
-
-                if (wearable.Palette > 0)
-                    worldObject.PaletteTemplate = wearable.Palette;
-                if (wearable.Shade > 0)
-                    worldObject.Shade = wearable.Shade;
-
-                player.TryEquipObjectWithNetworking(worldObject, worldObject.ValidLocations ?? 0);
+                name = name.TrimStart('+').TrimStart(' ').TrimEnd(' ');
+                player.Name = name;
+                player.Character.Name = name;
             }
+            else
+                name = weenie.GetProperty(PropertyString.Name);
 
-            var containables = weenie.WeeniePropertiesCreateList.Where(x => x.DestinationType == (int)DestinationType.Contain || x.DestinationType == (int)DestinationType.Shop
-            || x.DestinationType == (int)DestinationType.Treasure || x.DestinationType == (int)DestinationType.ContainTreasure || x.DestinationType == (int)DestinationType.ShopTreasure).ToList();
-            foreach (var containable in containables)
+            DatabaseManager.Shard.IsCharacterNameAvailable(name, isAvailable =>
             {
-                var weenieOfWearable = DatabaseManager.World.GetCachedWeenie(containable.WeenieClassId);
+                if (!isAvailable)
+                {
+                    CommandHandlerHelper.WriteOutputInfo(session, $"{name} is not available to use for the morphed character, try another name.", ChatMessageType.Broadcast);
+                    return;
+                }
 
-                if (weenieOfWearable == null)
-                    continue;
+                player.Location = session.Player.Location;
 
-                var worldObject = WorldObjectFactory.CreateNewWorldObject(weenieOfWearable);
+                player.Character.CharacterOptions1 = session.Player.Character.CharacterOptions1;
+                player.Character.CharacterOptions2 = session.Player.Character.CharacterOptions2;
 
-                if (worldObject == null)
-                    continue;
+                //var wearables = weenie.GetCreateList((sbyte)DestinationType.Wield);
+                var wearables = weenie.WeeniePropertiesCreateList.Where(x => x.DestinationType == (int)DestinationType.Wield || x.DestinationType == (int)DestinationType.WieldTreasure).ToList();
+                foreach (var wearable in wearables)
+                {
+                    var weenieOfWearable = DatabaseManager.World.GetCachedWeenie(wearable.WeenieClassId);
 
-                if (containable.Palette > 0)
-                    worldObject.PaletteTemplate = containable.Palette;
-                if (containable.Shade > 0)
-                    worldObject.Shade = containable.Shade;
-                player.TryAddToInventory(worldObject);
-            }
+                    if (weenieOfWearable == null)
+                        continue;
 
-            var possessions = player.GetAllPossessions();
-            var possessedBiotas = new Collection<(Biota biota, ReaderWriterLockSlim rwLock)>();
-            foreach (var possession in possessions)
-                possessedBiotas.Add((possession.Biota, possession.BiotaDatabaseLock));
+                    var worldObject = WorldObjectFactory.CreateNewWorldObject(weenieOfWearable);
 
-            DatabaseManager.Shard.AddCharacterInParallel(player.Biota, player.BiotaDatabaseLock, possessedBiotas, player.Character, player.CharacterDatabaseLock, null);
+                    if (worldObject == null)
+                        continue;
 
-            session.LogOffPlayer();
+                    if (wearable.Palette > 0)
+                        worldObject.PaletteTemplate = wearable.Palette;
+                    if (wearable.Shade > 0)
+                        worldObject.Shade = wearable.Shade;
+
+                    player.TryEquipObjectWithNetworking(worldObject, worldObject.ValidLocations ?? 0);
+                }
+
+                var containables = weenie.WeeniePropertiesCreateList.Where(x => x.DestinationType == (int)DestinationType.Contain || x.DestinationType == (int)DestinationType.Shop
+                || x.DestinationType == (int)DestinationType.Treasure || x.DestinationType == (int)DestinationType.ContainTreasure || x.DestinationType == (int)DestinationType.ShopTreasure).ToList();
+                foreach (var containable in containables)
+                {
+                    var weenieOfWearable = DatabaseManager.World.GetCachedWeenie(containable.WeenieClassId);
+
+                    if (weenieOfWearable == null)
+                        continue;
+
+                    var worldObject = WorldObjectFactory.CreateNewWorldObject(weenieOfWearable);
+
+                    if (worldObject == null)
+                        continue;
+
+                    if (containable.Palette > 0)
+                        worldObject.PaletteTemplate = containable.Palette;
+                    if (containable.Shade > 0)
+                        worldObject.Shade = containable.Shade;
+                    player.TryAddToInventory(worldObject);
+                }
+
+                var possessions = player.GetAllPossessions();
+                var possessedBiotas = new Collection<(Biota biota, ReaderWriterLockSlim rwLock)>();
+                foreach (var possession in possessions)
+                    possessedBiotas.Add((possession.Biota, possession.BiotaDatabaseLock));
+
+                DatabaseManager.Shard.AddCharacterInParallel(player.Biota, player.BiotaDatabaseLock, possessedBiotas, player.Character, player.CharacterDatabaseLock, null);
+
+                PlayerManager.AddOfflinePlayer(player);
+                session.Characters.Add(player.Character);
+
+                session.LogOffPlayer();
+            });
+
         }
 
         // qst
@@ -1532,34 +1598,87 @@ namespace ACE.Server.Command.Handlers
         // rename <Current Name> <New Name>
         [CommandHandler("rename", AccessLevel.Envoy, CommandHandlerFlag.None, 2,
             "Rename a character. (Do NOT include +'s for admin names)",
-            "< Current Name > < New Name >")]
+            "< Current Name >, < New Name >")]
         public static void HandleRename(Session session, params string[] parameters)
         {
             // @rename <Current Name>, <New Name> - Rename a character. (Do NOT include +'s for admin names)
 
-            // As currently implemented below, the command does not exactly mimic retail usage in that the command was @rename oldName, newName
-            // and for us is @rename oldName newName || is this a big deal?? -Ripley
-
-            string fixupOldName = "";
-            string fixupNewName = "";
-
-            if (parameters[0] == "" || parameters[1] == "")
-                return;
-
-            fixupOldName = parameters[0].Replace("+", "").Remove(1).ToUpper() + parameters[0].Replace("+", "").Substring(1);
-            fixupNewName = parameters[1].Replace("+", "").Remove(1).ToUpper() + parameters[1].Replace("+", "").Substring(1);
-
-            string message = "";
-
-            DatabaseManager.Shard.RenameCharacter(fixupOldName, fixupNewName, ((uint charId) =>
+            if (!string.Join(" ", parameters).Contains(','))
             {
-                if (charId > 0)
-                    message = $"Character {fixupOldName} has been renamed to {fixupNewName}.";
-                else
-                    message = $"Rename failed because either there is no character by the name {fixupOldName} currently in the database or the name {fixupNewName} is already taken.";
+                CommandHandlerHelper.WriteOutputInfo(session, "Error, cannot rename. You must include the old name followed by a comma and then the new name.\n Example: @rename Old Name, New Name", ChatMessageType.Broadcast);
+                return;
+            }
 
-                CommandHandlerHelper.WriteOutputInfo(session, message, ChatMessageType.WorldBroadcast);
-            }));
+            var names = string.Join(" ", parameters).Split(",");
+
+            var oldName = names[0].TrimStart(' ').TrimEnd(' ');
+            var newName = names[1].TrimStart(' ').TrimEnd(' ');
+
+            if (oldName.StartsWith("+"))
+                oldName = oldName.Substring(1);
+            if (newName.StartsWith("+"))
+                newName = newName.Substring(1);
+
+            newName = newName.First().ToString().ToUpper() + newName.Substring(1);
+
+            var onlinePlayer = PlayerManager.GetOnlinePlayer(oldName);
+            var offlinePlayer = PlayerManager.GetOfflinePlayer(oldName);
+            if (onlinePlayer != null)
+            {
+                var success = false;
+                DatabaseManager.Shard.IsCharacterNameAvailable(newName, isAvailable =>
+                {
+                    if (!isAvailable)
+                    {
+                        CommandHandlerHelper.WriteOutputInfo(session, $"Error, a player named \"{newName}\" already exists.", ChatMessageType.Broadcast);
+                        return;
+                    }
+
+                    onlinePlayer.Character.Name = newName;
+                    onlinePlayer.CharacterChangesDetected = true;
+                    onlinePlayer.Name = newName;
+                    onlinePlayer.SavePlayerToDatabase();
+
+                    success = true;
+                });
+
+                if (success)
+                {
+                    CommandHandlerHelper.WriteOutputInfo(session, $"Player named \"{oldName}\" renamed to \"{newName}\" succesfully!", ChatMessageType.Broadcast);
+
+                    onlinePlayer.Session.LogOffPlayer();
+                }
+            }
+            else if (offlinePlayer != null)
+            {
+                var success = false;
+                DatabaseManager.Shard.IsCharacterNameAvailable(newName, isAvailable =>
+                {
+                    if (!isAvailable)
+                    {
+                        CommandHandlerHelper.WriteOutputInfo(session, $"Error, a player named \"{newName}\" already exists.", ChatMessageType.Broadcast);
+                        return;
+                    }
+
+                    var character = DatabaseManager.Shard.GetCharacterByName(oldName);
+
+                    character.Name = newName;
+                    DatabaseManager.Shard.SaveCharacter(character, new ReaderWriterLockSlim(), null);
+                    offlinePlayer.SetProperty(PropertyString.Name, newName);
+                    offlinePlayer.SaveBiotaToDatabase();
+
+                    success = true;
+                });
+
+                if (success)
+                    CommandHandlerHelper.WriteOutputInfo(session, $"Player named \"{oldName}\" renamed to \"{newName}\" succesfully!", ChatMessageType.Broadcast);
+            }
+            else
+            {
+                CommandHandlerHelper.WriteOutputInfo(session, $"Error, a player named \"{oldName}\" cannot be found.", ChatMessageType.Broadcast);
+                return;
+            }
+
         }
 
         // setadvclass

@@ -829,6 +829,12 @@ namespace ACE.Server.WorldObjects
             set => SetProperty(PropertyString.Name, value);
         }
 
+        public string DisplayName
+        {
+            get => GetProperty(PropertyString.DisplayName);
+            set { if (value == null) RemoveProperty(PropertyString.DisplayName); else SetProperty(PropertyString.DisplayName, value); }
+        }
+
         /// <summary>
         /// wcid - stands for weenie class id
         /// </summary>
