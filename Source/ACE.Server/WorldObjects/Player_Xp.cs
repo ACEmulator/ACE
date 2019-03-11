@@ -178,7 +178,7 @@ namespace ACE.Server.WorldObjects
 
             var maxLevel = GetMaxLevel();
 
-            if (Level == maxLevel) return;
+            if (Level >= maxLevel) return;
 
             var startingLevel = Level;
             bool creditEarned = false;
