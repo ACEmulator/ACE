@@ -107,6 +107,9 @@ namespace ACE.Server.WorldObjects
                     }
                     else
                         target.OnEvade(this, CombatType.Melee);
+
+                    if (combatPet != null)
+                        combatPet.PetOnAttackMonster(target);
                 });
             }
             actionChain.EnqueueChain();
