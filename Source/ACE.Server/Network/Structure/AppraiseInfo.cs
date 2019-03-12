@@ -158,9 +158,10 @@ namespace ACE.Server.Network.Structure
                         PropertiesString[PropertyString.PatronsTitle] = AllegianceTitle.GetTitle((HeritageGroup)(patron.Player.Heritage ?? 0), (Gender)(patron.Player.Gender ?? 0), patron.Rank) + " " + patron.Player.Name;
                     }
                 }
+
+                if (player.Fellowship != null)
+                    PropertiesString[PropertyString.Fellowship] = player.Fellowship.FellowshipName;
             }
-
-
 
             AddPropertyEnchantments(wo, wielder);
         }
