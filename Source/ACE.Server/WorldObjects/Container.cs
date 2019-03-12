@@ -478,7 +478,12 @@ namespace ACE.Server.WorldObjects
             SendInventory(player);
         }
 
-        public void SendInventory(Player player)
+        protected virtual float DoOnOpenMotionChanges()
+        {
+            return 0;
+        }
+
+        private void SendInventory(Player player)
         {
             // send createobject for all objects in this container's inventory to player
             var itemsToSend = new List<GameMessage>();
@@ -502,11 +507,6 @@ namespace ACE.Server.WorldObjects
             // send sub-containers
             foreach (var container in Inventory.Values.Where(i => i is Container))
                 player.Session.Network.EnqueueSend(new GameEventViewContents(player.Session, (Container)container));
-        }
-
-        protected virtual float DoOnOpenMotionChanges()
-        {
-            return 0;
         }
 
         public virtual void Close(Player player)
