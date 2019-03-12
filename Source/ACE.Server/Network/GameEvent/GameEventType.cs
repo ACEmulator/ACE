@@ -76,7 +76,7 @@ namespace ACE.Server.Network.GameEvent
         StartGame                              = 0x0282,
         MoveResponse                           = 0x0283,
         OpponentTurn                           = 0x0284,
-        OppenentStalemate                      = 0x0285,
+        OpponentStalemate                      = 0x0285,
         WeenieError                            = 0x028A,
         WeenieErrorWithString                  = 0x028B,
         GameOver                               = 0x028C,

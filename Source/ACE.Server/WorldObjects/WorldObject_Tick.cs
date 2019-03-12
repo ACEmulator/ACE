@@ -30,6 +30,9 @@ namespace ACE.Server.WorldObjects
         {
             var currentUnixTime = Time.GetUnixTime();
 
+            if (this is Game)
+                HeartbeatInterval = 1.0f;
+
             CachedHeartbeatInterval = HeartbeatInterval ?? 0;
 
             if (CachedHeartbeatInterval > 0)

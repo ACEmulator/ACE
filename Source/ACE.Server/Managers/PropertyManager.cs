@@ -439,6 +439,7 @@ namespace ACE.Server.Managers
 
         public static readonly ReadOnlyDictionary<string, bool> DefaultBooleanProperties =
             DictOf(
+                ("chess_enabled", true),
                 ("house_purchase_requirements", true),
                 ("house_rent_enabled", true),
                 ("pk_server", false)
