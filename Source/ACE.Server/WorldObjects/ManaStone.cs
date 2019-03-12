@@ -67,7 +67,8 @@ namespace ACE.Server.WorldObjects
                 invTarget = player.FindObject(target.Guid.Full, Player.SearchLocations.MyInventory | Player.SearchLocations.MyEquippedItems);
                 if (invTarget == null)
                 {
-                    player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.ActionCancelled));
+                    // Haven't looked to see if an error was sent for this case; however, this one fits
+                    player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.YouDoNotOwnThatItem));
                     return;
                 }
                 else
