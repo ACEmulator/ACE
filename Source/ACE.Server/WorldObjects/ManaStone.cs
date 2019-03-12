@@ -58,7 +58,21 @@ namespace ACE.Server.WorldObjects
 
         public void HandleActionUseOnTarget(Player player, WorldObject target)
         {
+            WorldObject invTarget;
+
             var useResult = WeenieError.None;
+
+            if (player != target)
+            {
+                invTarget = player.FindObject(target.Guid.Full, Player.SearchLocations.MyInventory | Player.SearchLocations.MyEquippedItems);
+                if (invTarget == null)
+                {
+                    player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.ActionCancelled));
+                    return;
+                }
+                else
+                    target = invTarget;
+            }
 
             if (!ItemCurMana.HasValue)
             {
@@ -74,7 +88,7 @@ namespace ACE.Server.WorldObjects
                         if (!player.TryConsumeFromInventoryWithNetworking(target))
                         {
                             log.Error($"Failed to remove {target.Name} from player inventory.");
-                            return;
+                            player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.ActionCancelled));
                         }
 
                         //The Mana Stone drains 5,253 points of mana from the Wand.
