@@ -2196,6 +2196,8 @@ namespace ACE.Server.Physics
                 {
                     newlyVisible = player.handle_visible_cells();
                     player.enqueue_objs(newlyVisible);
+
+                    player.ObjMaint.AddVoyeur(this);
                 }
             }
         }
