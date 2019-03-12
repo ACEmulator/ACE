@@ -382,9 +382,9 @@ namespace ACE.Server.WorldObjects
 
             if (searchLocations.HasFlag(SearchLocations.LastUsedContainer))
             {
-                if (CurrentLandblock?.GetObject(LastUsedContainerId) is Container lastUsedContainer)
+                if (CurrentLandblock?.GetObject(LastOpenedContainerId) is Container lastOpenedContainer)
                 {
-                    if (lastUsedContainer is Vendor lastUsedVendor)
+                    if (lastOpenedContainer is Vendor lastUsedVendor)
                     {
                         if (lastUsedVendor.AllItemsForSale.TryGetValue(objectGuid, out result))
                         {
@@ -392,13 +392,13 @@ namespace ACE.Server.WorldObjects
                             return result;
                         }
                     }
-                    if (lastUsedContainer.IsOpen && lastUsedContainer.Viewer == Guid.Full)
+                    if (lastOpenedContainer.IsOpen && lastOpenedContainer.Viewer == Guid.Full)
                     {
-                        result = lastUsedContainer.GetInventoryItem(objectGuid, out foundInContainer);
+                        result = lastOpenedContainer.GetInventoryItem(objectGuid, out foundInContainer);
 
                         if (result != null)
                         {
-                            rootOwner = lastUsedContainer;
+                            rootOwner = lastOpenedContainer;
                             return result;
                         }
                     }
