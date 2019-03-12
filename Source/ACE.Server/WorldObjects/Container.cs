@@ -514,36 +514,44 @@ namespace ACE.Server.WorldObjects
             if (!IsOpen) return;
 
             var animTime = DoOnCloseMotionChanges();
-            var actionChain = new ActionChain();
-            actionChain.AddDelaySeconds(animTime / 2.0f);
-            actionChain.AddAction(this, () =>
+
+            if (animTime <= 0)
+                FinishClose(player);
+            else
             {
-                IsOpen = false;
-                Viewer = 0;
-
-                if (player != null)
-                {
-                    player.Session.Network.EnqueueSend(new GameEventCloseGroundContainer(player.Session, this));
-
-                    if (player.LastOpenedContainerId == Guid)
-                        player.LastOpenedContainerId = ObjectGuid.Invalid;
-
-                    // send deleteobject for all objects in this container's inventory to player
-                    // this seems logical, but it bugs out the client for re-opening chests w/ respawned items
-                    /*var itemsToSend = new List<GameMessage>();
-
-                    foreach (var item in Inventory.Values)
-                        itemsToSend.Add(new GameMessageDeleteObject(item));
-
-                    player.Session.Network.EnqueueSend(itemsToSend.ToArray());*/
-                }
-            });
-            actionChain.EnqueueChain();
+                var actionChain = new ActionChain();
+                actionChain.AddDelaySeconds(animTime / 2.0f);
+                actionChain.AddAction(this, () => FinishClose(player));
+                actionChain.EnqueueChain();
+            }
         }
 
         protected virtual float DoOnCloseMotionChanges()
         {
             return 0;
+        }
+
+        private void FinishClose(Player player)
+        {
+            IsOpen = false;
+            Viewer = 0;
+
+            if (player != null)
+            {
+                player.Session.Network.EnqueueSend(new GameEventCloseGroundContainer(player.Session, this));
+
+                if (player.LastOpenedContainerId == Guid)
+                    player.LastOpenedContainerId = ObjectGuid.Invalid;
+
+                // send deleteobject for all objects in this container's inventory to player
+                // this seems logical, but it bugs out the client for re-opening chests w/ respawned items
+                /*var itemsToSend = new List<GameMessage>();
+
+                foreach (var item in Inventory.Values)
+                    itemsToSend.Add(new GameMessageDeleteObject(item));
+
+                player.Session.Network.EnqueueSend(itemsToSend.ToArray());*/
+            }
         }
 
         public virtual void Reset()
