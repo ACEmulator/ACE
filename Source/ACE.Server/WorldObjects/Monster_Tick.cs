@@ -27,16 +27,16 @@ namespace ACE.Server.WorldObjects
 
             CheckMissHome();    // tickrate?
 
-            if (AttackTarget == null && MonsterState != State.Return)
-            {
-                Sleep();
-                return;
-            }
-
             var pet = this as CombatPet;
             if (pet != null && DateTime.UtcNow >= pet.ExpirationTime)
             {
                 Destroy();
+                return;
+            }
+
+            if (AttackTarget == null && MonsterState != State.Return)
+            {
+                Sleep();
                 return;
             }
 

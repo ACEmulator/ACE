@@ -1,4 +1,4 @@
-﻿namespace ACE.Server.Network.Enum
+namespace ACE.Server.Network.Enum
 {
     public enum SessionState
     {
@@ -6,6 +6,10 @@
         AuthConnectResponse,
         AuthConnected,
         WorldConnected,
-        NetworkTimeout
+        NetworkTimeout,
+        /// <summary>
+        /// a trusted packet had PacketHeaderFlags.NetErrorDisconnect header flag
+        /// </summary>
+        ClientSentNetErrorDisconnect
     }
 }

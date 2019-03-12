@@ -1,7 +1,6 @@
 using System;
 using System.Collections.ObjectModel;
 using System.Threading;
-
 using ACE.Database;
 using ACE.Database.Models.Shard;
 using ACE.Entity.Enum;
@@ -72,14 +71,6 @@ namespace ACE.Server.WorldObjects
 
         public void SaveCharacterToDatabase()
         {
-            // Make sure our IsPlussed value is up to date
-            bool isPlussed = (GetProperty(PropertyBool.IsAdmin) ?? false) || (GetProperty(PropertyBool.IsArch) ?? false) || (GetProperty(PropertyBool.IsPsr) ?? false) || (GetProperty(PropertyBool.IsSentinel) ?? false);
-
-            if (WeenieType == WeenieType.Admin || WeenieType == WeenieType.Sentinel)
-                isPlussed = true;
-
-            Character.IsPlussed = isPlussed;
-
             CharacterLastRequestedDatabaseSave = DateTime.UtcNow;
             CharacterChangesDetected = false;
 

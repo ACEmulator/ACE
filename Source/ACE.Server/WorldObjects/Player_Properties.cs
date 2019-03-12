@@ -1,4 +1,5 @@
 
+using ACE.Common;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 
@@ -6,6 +7,21 @@ namespace ACE.Server.WorldObjects
 {
     partial class Player
     {
+        public override string Name
+        {
+            get => IsPlussed ? (((CloakStatus ?? ACE.Entity.Enum.CloakStatus.Off) < ACE.Entity.Enum.CloakStatus.Player) ? "+" + base.Name : base.Name) : base.Name;
+
+            set
+            {
+                var name = value;
+
+                if (name.StartsWith("+"))
+                    name = name.Substring(1);
+
+                base.Name = name;
+            }
+        }
+
         // ========================================
         // ========= Admin Tier Properties ========
         // ========================================
@@ -44,6 +60,11 @@ namespace ACE.Server.WorldObjects
         {
             get => GetProperty(PropertyBool.IsAdvocate) ?? false;
             set { if (!value) RemoveProperty(PropertyBool.IsAdvocate); else SetProperty(PropertyBool.IsAdvocate, value); }
+        }
+
+        public bool IsPlussed
+        {
+            get => Character.IsPlussed || (ConfigManager.Config.Server.Accounts.OverrideCharacterPermissions && Session.AccessLevel > AccessLevel.Advocate);
         }
 
 
@@ -465,6 +486,15 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
+        /// The number of innate attribute augs that have been applied (max 10)
+        /// </summary>
+        public int AugmentationInnateFamily
+        {
+            get => GetProperty(PropertyInt.AugmentationInnateFamily) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.AugmentationInnateFamily); else SetProperty(PropertyInt.AugmentationInnateFamily, value); }
+        }
+
+        /// <summary>
         /// Enhancement of the Blade Turner
         /// Grants the player 10% extra resistance to slashing damage. You may only have 2 resistance augmentations in effect at any time.
         /// </summary>
@@ -532,6 +562,15 @@ namespace ACE.Server.WorldObjects
         {
             get => GetProperty(PropertyInt.AugmentationResistanceLightning) ?? 0;
             set { if (value == 0) RemoveProperty(PropertyInt.AugmentationResistanceLightning); else SetProperty(PropertyInt.AugmentationResistanceLightning, value); }
+        }
+
+        /// <summary>
+        /// The number of resistance augs that have been applied (max 2)
+        /// </summary>
+        public int AugmentationResistanceFamily
+        {
+            get => GetProperty(PropertyInt.AugmentationResistanceFamily) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.AugmentationResistanceFamily); else SetProperty(PropertyInt.AugmentationResistanceFamily, value); }
         }
 
         /// <summary>

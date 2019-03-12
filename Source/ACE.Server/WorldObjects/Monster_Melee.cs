@@ -107,6 +107,9 @@ namespace ACE.Server.WorldObjects
                     }
                     else
                         target.OnEvade(this, CombatType.Melee);
+
+                    if (combatPet != null)
+                        combatPet.PetOnAttackMonster(target);
                 });
             }
             actionChain.EnqueueChain();
@@ -326,7 +329,7 @@ namespace ACE.Server.WorldObjects
             var damageRange = GetBaseDamage(attackPart);
             var baseDamage = ThreadSafeRandom.Next(damageRange.Min, damageRange.Max);
 
-            var damageRatingMod = GetRatingMod(EnchantmentManager.GetDamageRating());
+            var damageRatingMod = GetPositiveRatingMod(EnchantmentManager.GetDamageRating());
             //Console.WriteLine("Damage Rating: " + damageRatingMod);
 
             var recklessnessMod = player != null ? player.GetRecklessnessMod() : 1.0f;

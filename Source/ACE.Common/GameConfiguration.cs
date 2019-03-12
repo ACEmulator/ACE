@@ -20,9 +20,6 @@ namespace ACE.Common
         public string WorldName { get; set; }
 
         public string Description { get; set; }
-
-        public string Welcome { get; set; }
-
         public NetworkSettings Network { get; set; }
 
         public AccountDefaults Accounts { get; set; }

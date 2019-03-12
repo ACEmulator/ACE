@@ -85,11 +85,6 @@ namespace ACE.Server.Network
                 DropSession("PacketHeader Disconnect");
         }
 
-        public uint GetIssacValue(PacketDirection direction)
-        {
-            return (direction == PacketDirection.Client ? Network.ConnectionData.IssacClient.GetOffset() : Network.ConnectionData.IssacServer.GetOffset());
-        }
-
 
         /// <summary>
         /// This will process all inbound GameActions.

@@ -3,6 +3,7 @@ namespace ACE.Server.Network.GameMessages
     public enum GameMessageOpcode
     {
         None                            = 0x0000,
+        InventoryRemoveObject           = 0x0024,
         SetStackSize                    = 0x0197,
         PlayerKilled                    = 0x019E,
         EmoteText                       = 0x01E0,

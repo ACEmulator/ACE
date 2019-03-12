@@ -21,9 +21,9 @@ namespace ACE.Common
         /// <summary>
         /// initializes from a Config.js file specified by the path
         /// </summary>
-        public static void Initialize(string path = @"config.js")
+        public static void Initialize(string path = @"Config.js")
         {
-            string fpOld = Path.Combine(Environment.CurrentDirectory, path);
+            string fpOld = Path.Combine(Environment.CurrentDirectory, Path.GetFileNameWithoutExtension(path) + ".json");
             string fpNew = Path.Combine(Environment.CurrentDirectory, Path.GetFileNameWithoutExtension(path) + ".js");
             string fpChoice = null;
             try

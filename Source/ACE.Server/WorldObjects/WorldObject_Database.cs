@@ -131,16 +131,20 @@ namespace ACE.Server.WorldObjects
             if (IsGenerator || Generator != null)
                 return false;
 
-            if (WeenieType == WeenieType.Ammunition || WeenieType == WeenieType.ProjectileSpell)
+            if (WeenieType == WeenieType.Missile || WeenieType == WeenieType.Ammunition || WeenieType == WeenieType.ProjectileSpell || WeenieType == WeenieType.GamePiece)
                 return false;
 
             if (WeenieType == WeenieType.Corpse && this is Corpse corpse && corpse.IsMonster)
                 return false;
 
-            // Missiles are unique. The only missiles that are decayable are ones that already exist in the database.
+            // Missiles are unique. The only missiles that are persistable are ones that already exist in the database.
+            // TODO: See if we can remove this check by catching the WeenieType above.
             var missile = Missile;
             if (missile.HasValue && missile.Value)
+            {
+                log.Warn($"Missile: WeenieClassId: {WeenieClassId}, Name: {Name}, WeenieType: {WeenieType}, detected in IsDynamicThatShouldPersistToShard() that wasn't caught by prior check.");
                 return false;
+            }
 
             return true;
         }

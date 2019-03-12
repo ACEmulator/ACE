@@ -123,7 +123,6 @@ namespace ACE.WebApiServer.Modules
                         Online = PlayerManager.GetOnlineCount(),
                         Offline = PlayerManager.GetOfflineCount()
                     },
-                    Welcome = ConfigManager.Config.Server.Welcome,
                     Uptime = Timers.RunningTime,
                     WorldName = ConfigManager.Config.Server.WorldName,
                     Transfers = new TransferConfigResponseModel()

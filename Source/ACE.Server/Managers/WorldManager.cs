@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Net;
-using System.Numerics;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -35,6 +35,7 @@ namespace ACE.Server.Managers
     public class WorldManager
     {
         private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog packetLog = LogManager.GetLogger(System.Reflection.Assembly.GetEntryAssembly(), "Packets");
 
         // Hard coded server Id, this will need to change if we move to multi-process or multi-server model
         public const ushort ServerId = 0xB;
@@ -93,6 +94,7 @@ namespace ACE.Server.Managers
             {
                 if (packet.Header.Flags.HasFlag(PacketHeaderFlags.ConnectResponse))
                 {
+                    packetLog.Debug($"{packet}, {endPoint}");
                     PacketInboundConnectResponse connectResponse = new PacketInboundConnectResponse(packet);
 
                     // This should be set on the second packet to the server from the client.
@@ -138,6 +140,7 @@ namespace ACE.Server.Managers
             }
             else if (packet.Header.HasFlag(PacketHeaderFlags.LoginRequest))
             {
+                packetLog.Debug($"{packet}, {endPoint}");
                 if (!loggedInClients.Contains(endPoint) && loggedInClients.Count >= ConfigManager.Config.Server.Network.MaximumAllowedSessions)
                 {
                     log.InfoFormat("Login Request from {0} rejected. Server full.", endPoint);
@@ -148,7 +151,16 @@ namespace ACE.Server.Managers
                     log.DebugFormat("Login Request from {0}", endPoint);
                     var session = FindOrCreateSession(endPoint);
                     if (session != null)
+                    {
+                        if (session.State == SessionState.AuthConnectResponse)
+                        {
+                            // connect request packet sent to the client was corrupted in transit and session entered an unspecified state.
+                            // ignore the request and remove the broken session and the client will start a new session.
+                            RemoveSession(session);
+                            log.Warn($"Bad handshake from {endPoint}, aborting session.");
+                        }
                         session.ProcessPacket(packet);
+                    }
                     else
                     {
                         log.InfoFormat("Login Request from {0} rejected. Failed to find or create session.", endPoint);
@@ -170,6 +182,10 @@ namespace ACE.Server.Managers
                 {
                     log.WarnFormat("Null Session for Id {0}", packet.Header.Id);
                 }
+            }
+            else
+            {
+                log.WarnFormat("unsolicited packet from {0}", endPoint);
             }
         }
 
@@ -317,6 +333,40 @@ namespace ACE.Server.Managers
 
             Player.HandleNoLogLandblock(playerBiota);
 
+            var stripAdminProperties = false;
+            var addAdminProperties = false;
+            var addSentinelProperties = false;
+            if (ConfigManager.Config.Server.Accounts.OverrideCharacterPermissions)
+            {
+                if (session.AccessLevel <= AccessLevel.Advocate) // check for elevated characters
+                {
+                    if (playerBiota.WeenieType == (int)WeenieType.Admin || playerBiota.WeenieType == (int)WeenieType.Sentinel) // Downgrade weenie
+                    {
+                        character.IsPlussed = false;
+                        playerBiota.WeenieType = (int)WeenieType.Creature;
+                        stripAdminProperties = true;
+                    }
+                }
+                else if (session.AccessLevel >= AccessLevel.Sentinel && session.AccessLevel <= AccessLevel.Envoy)
+                {
+                    if (playerBiota.WeenieType == (int)WeenieType.Creature || playerBiota.WeenieType == (int)WeenieType.Admin) // Up/downgrade weenie
+                    {
+                        character.IsPlussed = true;
+                        playerBiota.WeenieType = (int)WeenieType.Sentinel;
+                        addSentinelProperties = true;
+                    }
+                }
+                else // Developers and Admins
+                {
+                    if (playerBiota.WeenieType == (int)WeenieType.Creature || playerBiota.WeenieType == (int)WeenieType.Sentinel) // Up/downgrade weenie
+                    {
+                        character.IsPlussed = true;
+                        playerBiota.WeenieType = (int)WeenieType.Admin;
+                        addAdminProperties = true;
+                    }
+                }
+            }
+
             if (playerBiota.WeenieType == (int)WeenieType.Admin)
                 player = new Admin(playerBiota, possessedBiotas.Inventory, possessedBiotas.WieldedItems, character, session);
             else if (playerBiota.WeenieType == (int)WeenieType.Sentinel)
@@ -325,6 +375,48 @@ namespace ACE.Server.Managers
                 player = new Player(playerBiota, possessedBiotas.Inventory, possessedBiotas.WieldedItems, character, session);
 
             session.SetPlayer(player);
+
+            if (stripAdminProperties) // continue stripping properties
+            {
+                player.CloakStatus = null;
+                player.Attackable = true;
+                player.SetProperty(ACE.Entity.Enum.Properties.PropertyBool.DamagedByCollisions, true);
+                player.AdvocateLevel = null;
+                player.ChannelsActive = null;
+                player.ChannelsAllowed = null;
+                player.Invincible = null;
+                player.Cloaked = null;
+
+
+                player.ChangesDetected = true;
+                player.CharacterChangesDetected = true;
+            }
+
+            if (addSentinelProperties || addAdminProperties) // continue restoring properties to default
+            {
+                WorldObject weenie;
+
+                if (addAdminProperties)
+                    weenie = Factories.WorldObjectFactory.CreateWorldObject(DatabaseManager.World.GetCachedWeenie("admin"), new ACE.Entity.ObjectGuid(ACE.Entity.ObjectGuid.Invalid.Full)) as Admin;
+                else
+                    weenie = Factories.WorldObjectFactory.CreateWorldObject(DatabaseManager.World.GetCachedWeenie("sentinel"), new ACE.Entity.ObjectGuid(ACE.Entity.ObjectGuid.Invalid.Full)) as Sentinel;
+
+                if (weenie != null)
+                {
+                    player.CloakStatus = CloakStatus.Off;
+                    player.Attackable = weenie.Attackable;
+                    player.SetProperty(ACE.Entity.Enum.Properties.PropertyBool.DamagedByCollisions, false);
+                    player.AdvocateLevel = weenie.GetProperty(ACE.Entity.Enum.Properties.PropertyInt.AdvocateLevel);
+                    player.ChannelsActive = (Channel?)weenie.GetProperty(ACE.Entity.Enum.Properties.PropertyInt.ChannelsActive);
+                    player.ChannelsAllowed = (Channel?)weenie.GetProperty(ACE.Entity.Enum.Properties.PropertyInt.ChannelsAllowed);
+                    player.Invincible = false;
+                    player.Cloaked = false;
+
+
+                    player.ChangesDetected = true;
+                    player.CharacterChangesDetected = true;
+                }
+            }
 
             // If the client is missing a location, we start them off in the starter dungeon
             if (session.Player.Location == null)
@@ -337,19 +429,37 @@ namespace ACE.Server.Managers
 
             session.Player.PlayerEnterWorld();
 
-            if (character.TotalLogins <= 1 || PropertyManager.GetBool("alwaysshowwelcome").Item)
-            {
-                // check the value of the welcome message. Only display it if it is not empty
-                string welcomeHeader = !string.IsNullOrEmpty(ConfigManager.Config.Server.Welcome) ? ConfigManager.Config.Server.Welcome : "Welcome to Asheron's Call!";
-                string msg = "To begin your training, speak to the Society Greeter. Walk up to the Society Greeter using the 'W' key, then double-click on her to initiate a conversation.";
-
-                session.Network.EnqueueSend(new GameEventPopupString(session, $"{welcomeHeader}\n{msg}"));
-            }
-
             LandblockManager.AddObject(session.Player, true);
 
-            var motdString = PropertyManager.GetString("motd_string").Item;
-            session.Network.EnqueueSend(new GameMessageSystemChat(motdString, ChatMessageType.Broadcast));
+            var popup_header = PropertyManager.GetString("popup_header").Item;
+            var popup_motd = PropertyManager.GetString("popup_motd").Item;
+            var popup_welcome = PropertyManager.GetString("popup_welcome").Item;
+
+            if (character.TotalLogins <= 1)
+            {
+                session.Network.EnqueueSend(new GameEventPopupString(session, AppendLines(popup_header, popup_motd, popup_welcome)));
+            }
+            else if (!string.IsNullOrEmpty(popup_motd))
+            {
+                session.Network.EnqueueSend(new GameEventPopupString(session, AppendLines(popup_header, popup_motd)));
+            }
+
+            var info = "Welcome to Asheron's Call\n  powered by ACEmulator\n\nFor more information on commands supported by this server, type @acehelp\n";
+            session.Network.EnqueueSend(new GameMessageSystemChat(info, ChatMessageType.Broadcast));
+
+            var server_motd = PropertyManager.GetString("server_motd").Item;
+            if (!string.IsNullOrEmpty(server_motd))
+                session.Network.EnqueueSend(new GameMessageSystemChat($"{server_motd}\n", ChatMessageType.Broadcast));
+        }
+
+        private static string AppendLines(params string[] lines)
+        {
+            var result = "";
+            foreach (var line in lines)
+                if (!string.IsNullOrEmpty(line))
+                    result += $"{line}\n";
+
+            return Regex.Replace(result, "\n$", "");
         }
 
         public static void EnqueueAction(IAction action)
@@ -602,8 +712,16 @@ namespace ACE.Server.Managers
                 // Removes sessions in the NetworkTimeout state, including sessions that have reached a timeout limit.
                 for (int i = sessions.Count - 1; i >= 0; i--)
                 {
-                    if (sessions[i].State == SessionState.NetworkTimeout)
-                        sessions[i].DropSession(string.IsNullOrEmpty(sessions[i].BootSessionReason) ? "Network Timeout" : sessions[i].BootSessionReason);
+                    var sesh = sessions[i];
+                    switch (sesh.State)
+                    {
+                        case SessionState.NetworkTimeout:
+                            sesh.DropSession(string.IsNullOrEmpty(sesh.BootSessionReason) ? "Network Timeout" : sesh.BootSessionReason);
+                            break;
+                        case SessionState.ClientSentNetErrorDisconnect:
+                            sesh.DropSession(string.IsNullOrEmpty(sesh.BootSessionReason) ? "client sent network error disconnect" : sesh.BootSessionReason);
+                            break;
+                    }
                 }
             }
             finally

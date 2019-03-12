@@ -315,8 +315,6 @@ namespace ACE.Server.WorldObjects
                 // selectedTarget = ObjectGuid.Invalid;
                 RequestedAppraisalTarget = null;
                 CurrentAppraisalTarget = null;
-
-                SendUseDoneEvent();
                 return;
             }
 
@@ -827,7 +825,7 @@ namespace ACE.Server.WorldObjects
             StartJump = new ACE.Entity.Position(Location);
 
             var strength = Strength.Current;
-            var capacity = EncumbranceSystem.EncumbranceCapacity((int)strength, 0);     // TODO: augs
+            var capacity = EncumbranceSystem.EncumbranceCapacity((int)strength, AugmentationIncreasedCarryingCapacity);
             var burden = EncumbranceSystem.GetBurden(capacity, EncumbranceVal ?? 0);
 
             // calculate stamina cost for this jump

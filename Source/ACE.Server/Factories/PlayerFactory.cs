@@ -286,7 +286,7 @@ namespace ACE.Server.Factories
             }
 
             player.Name = characterCreateInfo.Name;
-            player.Character.Name = player.Name;
+            player.Character.Name = characterCreateInfo.Name;
 
 
             // Index used to determine the starting location
@@ -298,9 +298,14 @@ namespace ACE.Server.Factories
                 starterArea.Locations[0].Frame.Origin.X, starterArea.Locations[0].Frame.Origin.Y, starterArea.Locations[0].Frame.Origin.Z,
                 starterArea.Locations[0].Frame.Orientation.X, starterArea.Locations[0].Frame.Orientation.Y, starterArea.Locations[0].Frame.Orientation.Z, starterArea.Locations[0].Frame.Orientation.W);
 
-            player.Instantiation = player.Location;
-            player.Sanctuary = player.Location;
+            player.Instantiation = new Position(player.Location);
+            player.Sanctuary = new Position(player.Location);
 
+            if (player is Sentinel || player is Admin)
+            {
+                player.Character.IsPlussed = true;
+                player.CloakStatus = CloakStatus.Off;
+            }
 
             CharacterCreateSetDefaultCharacterOptions(player);
 

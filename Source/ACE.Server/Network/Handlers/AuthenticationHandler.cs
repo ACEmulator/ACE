@@ -65,7 +65,7 @@ namespace ACE.Server.Network.Handlers
             catch (Exception ex)
             {
                 log.Error("Error in HandleLoginRequest trying to find the account.", ex);
-                AccountSelectCallback(null, session, null);
+                session.DropSession("AccountSelectCallback threw an exception.");
             }
         }
 
@@ -73,6 +73,13 @@ namespace ACE.Server.Network.Handlers
         private static void AccountSelectCallback(Account account, Session session, PacketInboundLoginRequest loginRequest)
         {
             packetLog.DebugFormat("ConnectRequest TS: {0}", session.Network.ConnectionData.ServerTime);
+
+            if (session.Network.ConnectionData.ServerSeed == null || session.Network.ConnectionData.ClientSeed == null)
+            {
+                // these are null if ConnectionData.DiscardSeeds() is called because of some other error condition.
+                session.BootSession("Bad handshake", new GameMessageCharacterError(CharacterError.Undefined));
+                return;
+            }
 
             var connectRequest = new PacketOutboundConnectRequest(
                 session.Network.ConnectionData.ServerTime,

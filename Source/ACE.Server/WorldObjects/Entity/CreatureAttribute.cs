@@ -71,7 +71,10 @@ namespace ACE.Server.WorldObjects.Entity
 
                 // TODO: cap at 10x of these augs across the board elsewhere
                 // verify this with client formula
-                if (creature is Player player)
+
+                // NOTE: this has been moved to InitLevel
+
+                /*if (creature is Player player)
                 {
                     switch (Attribute)
                     {
@@ -100,7 +103,7 @@ namespace ACE.Server.WorldObjects.Entity
                                 total += (uint)(player.AugmentationInnateSelf * 5);
                             break;
                     }
-                }
+                }*/
 
                 return total;
             }

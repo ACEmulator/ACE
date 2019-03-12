@@ -14,6 +14,8 @@ namespace ACE.Server.Entity
 
         public string Message { get; set; }
 
+        public string Quest { get; set; }
+
         public DateTime CreatedDateTime { get; set; }
 
         // define the callback function / parameters generically?
@@ -23,7 +25,7 @@ namespace ACE.Server.Entity
 
         public WorldObject Target { get; set; }
 
-        public Confirmation(ConfirmationType confirmationType, string message, WorldObject source, WorldObject target, Player player = null)
+        public Confirmation(ConfirmationType confirmationType, string message, WorldObject source, WorldObject target, Player player = null, string quest = null)
         {
             ConfirmationID = GenerateContextId();
             ConfirmationType = confirmationType;
@@ -34,6 +36,8 @@ namespace ACE.Server.Entity
             Player = player;
             Source = source;
             Target = target;
+
+            Quest = quest;
         }
 
         public Confirmation()

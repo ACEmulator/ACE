@@ -84,6 +84,12 @@ namespace ACE.Server.Managers
             {
                 var spell = new Spell(enchantment.SpellId);
 
+                if (spell.NotFound)
+                {
+                    Console.WriteLine($"EnchantmentManager.GetEnchantments({magicSchool}): couldn't find spell {enchantment.SpellId} for {WorldObject.Name}");
+                    continue;
+                }
+
                 if (spell.School == magicSchool)
                     spells.Add(enchantment);
             }
@@ -1036,7 +1042,7 @@ namespace ACE.Server.Managers
         public virtual int GetDamageRating()
         {
             // get from base properties (monsters)?
-            var damageRating = WorldObject.GetProperty(PropertyInt.DamageRating) ?? 0;
+            var damageRating = WorldObject.DamageRating ?? 0;
 
             damageRating += GetRating(PropertyInt.DamageRating);
 
@@ -1051,7 +1057,7 @@ namespace ACE.Server.Managers
 
         public virtual int GetDamageResistRating()
         {
-            var damageResistanceRating = WorldObject.GetProperty(PropertyInt.DamageResistRating) ?? 0;
+            var damageResistanceRating = WorldObject.DamageResistRating ?? 0;
 
             damageResistanceRating += GetRating(PropertyInt.DamageResistRating);
 
@@ -1235,7 +1241,7 @@ namespace ACE.Server.Managers
                     else
                         heritageMod = player.GetHeritageBonus(player.GetEquippedWeapon()) ? 1.05f : 1.0f;
                 }
-                var damageRatingMod = Creature.AdditiveCombine(heritageMod, Creature.GetRatingMod(damager.EnchantmentManager.GetDamageRating()));
+                var damageRatingMod = Creature.AdditiveCombine(heritageMod, Creature.GetPositiveRatingMod(damager.EnchantmentManager.GetDamageRating()));
                 var damageResistRatingMod = Creature.GetNegativeRatingMod(GetDamageResistRating());
                 //Console.WriteLine("DR: " + Creature.ModToRating(damageRatingMod));
                 //Console.WriteLine("DRR: " + Creature.NegativeModToRating(damageResistRatingMod));

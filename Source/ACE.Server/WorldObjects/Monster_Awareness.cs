@@ -6,6 +6,7 @@ using ACE.Common.Extensions;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
+using ACE.Server.Entity.Actions;
 
 namespace ACE.Server.WorldObjects
 {
@@ -82,6 +83,9 @@ namespace ACE.Server.WorldObjects
 
             var possibleTactics = EnumHelper.GetFlags(TargetingTactic);
             var rng = ThreadSafeRandom.Next(1, possibleTactics.Count - 1);
+
+            if (TargetingTactic == 0)
+                rng = 0;
 
             CurrentTargetingTactic = (TargetingTactic)possibleTactics[rng];
 
@@ -280,6 +284,48 @@ namespace ACE.Server.WorldObjects
         {
             PhysicsObj.ObjMaint.RemoveAllObjects();
             PhysicsObj.handle_visible_cells();
+        }
+
+        /// <summary>
+        /// Called when a monster is first spawning in
+        /// </summary>
+        public void CheckPlayers()
+        {
+            var attackable = Attackable ?? false;
+            var tolerance = (Tolerance)(GetProperty(PropertyInt.Tolerance) ?? 0);
+
+            if (!attackable && TargetingTactic == 0 || tolerance != Tolerance.None)
+                return;
+
+            var actionChain = new ActionChain();
+            actionChain.AddDelaySeconds(0.75f);
+            actionChain.AddAction(this, CheckPlayers_Inner);
+            actionChain.EnqueueChain();
+        }
+
+        public void CheckPlayers_Inner()
+        { 
+            var visiblePlayers = PhysicsObj.ObjMaint.VoyeurTable.Values;
+
+            Player closestPlayer = null;
+            var closestDistSq = float.MaxValue;
+
+            foreach (var visiblePlayer in visiblePlayers)
+            {
+                var player = visiblePlayer.WeenieObj.WorldObject as Player;
+                if (player == null || !player.IsAttackable || (player.Hidden ?? false)) continue;
+
+                var distSq = Location.SquaredDistanceTo(player.Location);
+                if (distSq < closestDistSq)
+                {
+                    closestDistSq = distSq;
+                    closestPlayer = player;
+                }
+            }
+            if (closestPlayer == null || closestDistSq > RadiusAwarenessSquared)
+                return;
+
+            closestPlayer.AlertMonster(this);
         }
 
         public double? VisualAwarenessRange

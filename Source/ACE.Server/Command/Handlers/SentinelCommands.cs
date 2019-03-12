@@ -40,16 +40,18 @@ namespace ACE.Server.Command.Handlers
                     session.Player.EnqueueBroadcastPhysicsState();
                     session.Player.Translucency = null;
                     session.Player.Visibility = false;
+
+                    if (session.Player.CloakStatus > CloakStatus.On)
+                        CommandHandlerHelper.WriteOutputInfo(session, $"You will now appear as an admin. You must relog for this to take effect", ChatMessageType.Broadcast);
+
                     session.Player.SetProperty(ACE.Entity.Enum.Properties.PropertyInt.CloakStatus, (int)CloakStatus.Off);
 
                     //session.Player.CurrentLandblock?.EnqueueBroadcast(session.Player.Location, new GameMessageRemoveObject(session.Player));
                     //session.Player.CurrentLandblock?.RemoveWorldObject(session.Player.Guid, false);
                     //session.Player.CurrentLandblock?.EnqueueBroadcast(session.Player.Location, new GameMessageCreateObject(session.Player));
                     //session.Player.CurrentLandblock?.AddWorldObject(session.Player);
-
                     break;
-                case "on":
-                    session.Player.SetProperty(ACE.Entity.Enum.Properties.PropertyInt.CloakStatus, (int)CloakStatus.On);
+                case "on":                    
                     session.Player.Cloaked = true;
                     session.Player.Ethereal = true;
                     // session.Player.IgnoreCollisions = true;
@@ -59,6 +61,11 @@ namespace ACE.Server.Command.Handlers
                     session.Player.Visibility = true;
                     session.Player.Translucency = 0.5f;
 
+                    if (session.Player.CloakStatus > CloakStatus.On)
+                        CommandHandlerHelper.WriteOutputInfo(session, $"You will now appear as an admin. You must relog for this to take effect", ChatMessageType.Broadcast);
+
+                    session.Player.SetProperty(ACE.Entity.Enum.Properties.PropertyInt.CloakStatus, (int)CloakStatus.On);
+
                     //session.Player.CurrentLandblock?.EnqueueBroadcast(session.Player.Location, new GameMessageRemoveObject(session.Player));
                     //session.Player.CurrentLandblock?.RemoveWorldObject(session.Player.Guid, false);
                     //session.Player.CurrentLandblock?.EnqueueBroadcast(session.Player.Location, new GameMessageCreateObject(session.Player));
@@ -67,38 +74,50 @@ namespace ACE.Server.Command.Handlers
 
                     break;
                 case "player":
-                    session.Player.Cloaked = false;
-                    session.Player.Ethereal = false;
-                    // session.Player.IgnoreCollisions = false;
-                    session.Player.NoDraw = false;
-                    // session.Player.ReportCollisions = true;
-                    session.Player.EnqueueBroadcastPhysicsState();
-                    session.Player.Translucency = null;
-                    session.Player.Visibility = false;
-                    session.Player.SetProperty(ACE.Entity.Enum.Properties.PropertyInt.CloakStatus, (int)CloakStatus.Player);
+                    if (session.AccessLevel > AccessLevel.Envoy)
+                    {
+                        session.Player.Cloaked = false;
+                        session.Player.Ethereal = false;
+                        // session.Player.IgnoreCollisions = false;
+                        session.Player.NoDraw = false;
+                        // session.Player.ReportCollisions = true;
+                        session.Player.EnqueueBroadcastPhysicsState();
+                        session.Player.Translucency = null;
+                        session.Player.Visibility = false;
+                        session.Player.SetProperty(ACE.Entity.Enum.Properties.PropertyInt.CloakStatus, (int)CloakStatus.Player);
 
-                    //session.Player.CurrentLandblock?.EnqueueBroadcast(session.Player.Location, new GameMessageRemoveObject(session.Player));
-                    //session.Player.CurrentLandblock?.RemoveWorldObject(session.Player.Guid, false);
-                    //session.Player.CurrentLandblock?.EnqueueBroadcast(session.Player.Location, new GameMessageCreateObject(session.Player));
-                    //session.Player.CurrentLandblock?.AddWorldObject(session.Player);
+                        //session.Player.CurrentLandblock?.EnqueueBroadcast(session.Player.Location, new GameMessageRemoveObject(session.Player));
+                        //session.Player.CurrentLandblock?.RemoveWorldObject(session.Player.Guid, false);
+                        //session.Player.CurrentLandblock?.EnqueueBroadcast(session.Player.Location, new GameMessageCreateObject(session.Player));
+                        //session.Player.CurrentLandblock?.AddWorldObject(session.Player);
 
+                        CommandHandlerHelper.WriteOutputInfo(session, $"You will now appear as a player. You must relog for this to take effect", ChatMessageType.Broadcast);
+                    }
+                    else
+                        CommandHandlerHelper.WriteOutputInfo(session, $"You do not have permission to do that state", ChatMessageType.Broadcast);
                     break;
                 case "creature":
-                    session.Player.Cloaked = false;
-                    session.Player.Ethereal = false;
-                    // session.Player.IgnoreCollisions = false;
-                    session.Player.NoDraw = false;
-                    // session.Player.ReportCollisions = true;
-                    session.Player.EnqueueBroadcastPhysicsState();
-                    session.Player.Translucency = null;
-                    session.Player.Visibility = false;
-                    session.Player.SetProperty(ACE.Entity.Enum.Properties.PropertyInt.CloakStatus, (int)CloakStatus.Creature);
+                    if (session.AccessLevel > AccessLevel.Envoy)
+                    {
+                        session.Player.Cloaked = false;
+                        session.Player.Ethereal = false;
+                        // session.Player.IgnoreCollisions = false;
+                        session.Player.NoDraw = false;
+                        // session.Player.ReportCollisions = true;
+                        session.Player.EnqueueBroadcastPhysicsState();
+                        session.Player.Translucency = null;
+                        session.Player.Visibility = false;
+                        session.Player.SetProperty(ACE.Entity.Enum.Properties.PropertyInt.CloakStatus, (int)CloakStatus.Creature);
 
-                    //session.Player.CurrentLandblock?.EnqueueBroadcast(session.Player.Location, new GameMessageRemoveObject(session.Player));
-                    //session.Player.CurrentLandblock?.RemoveWorldObject(session.Player.Guid, false);
-                    //session.Player.CurrentLandblock?.EnqueueBroadcast(session.Player.Location, new GameMessageCreateObject(session.Player));
-                    //session.Player.CurrentLandblock?.AddWorldObject(session.Player);
+                        //session.Player.CurrentLandblock?.EnqueueBroadcast(session.Player.Location, new GameMessageRemoveObject(session.Player));
+                        //session.Player.CurrentLandblock?.RemoveWorldObject(session.Player.Guid, false);
+                        //session.Player.CurrentLandblock?.EnqueueBroadcast(session.Player.Location, new GameMessageCreateObject(session.Player));
+                        //session.Player.CurrentLandblock?.AddWorldObject(session.Player);
 
+                        CommandHandlerHelper.WriteOutputInfo(session, $"You will now appear as a creature. You must relog for this to take effect\nIn order to appear correctly, you must also set '@attackable on'\nUse @pk free to be allowed to attack all living things.", ChatMessageType.Broadcast);
+                    }
+                    else
+                        CommandHandlerHelper.WriteOutputInfo(session, $"You do not have permission to do that state", ChatMessageType.Broadcast);
                     break;
                 default:
                     session.Network.EnqueueSend(new GameMessageSystemChat("Please specify if you want cloaking on or off.", ChatMessageType.Broadcast));
