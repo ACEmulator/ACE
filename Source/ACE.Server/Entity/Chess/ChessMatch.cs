@@ -355,12 +355,15 @@ namespace ACE.Server.Entity.Chess
                     onlinePlayer.ChessMatch = null;
             }
 
-            // adjust player ranks
-            var playerGuid = Sides[0].PlayerGuid;
-            var opponentGuid = Sides[1].PlayerGuid;
-            var winnerGuid = winner == 0 ? playerGuid : opponentGuid;
+            if (winner >= 0)
+            {
+                // adjust player ranks
+                var playerGuid = Sides[0].PlayerGuid;
+                var opponentGuid = Sides[1].PlayerGuid;
+                var winnerGuid = winner == 0 ? playerGuid : opponentGuid;
 
-            AdjustPlayerRanks(playerGuid, opponentGuid, winnerGuid);
+                AdjustPlayerRanks(playerGuid, opponentGuid, winnerGuid);
+            }
 
             Actions.Clear();
 
