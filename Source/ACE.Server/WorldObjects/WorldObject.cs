@@ -710,11 +710,13 @@ namespace ACE.Server.WorldObjects
             return adjusted;
         }
 
+        // TODO: This isn't overriden by any child object. Should we be using the virtual functions in Container instead?
         public virtual void Open(WorldObject opener)
         {
             // empty base, override in child objects
         }
 
+        // TODO: This isn't overriden by any child object. Should we be using the virtual functions in Container instead?
         public virtual void Close(WorldObject closer)
         {
             // empty base, override in child objects
