@@ -13,7 +13,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// This is set by HandleActionUseItem / TryUseItem
         /// </summary>
-        public ObjectGuid LastUsedContainerId { get; set; }
+        public ObjectGuid LastOpenedContainerId { get; set; }
 
         /// <summary>
         /// Handles the 'GameAction 0x35 - UseWithTarget' network message
@@ -130,7 +130,7 @@ namespace ACE.Server.WorldObjects
 
             if (item != null)
             {
-                if (item.CurrentLandblock != null && !item.Visibility && item.Guid != LastUsedContainerId)
+                if (item.CurrentLandblock != null && !item.Visibility && item.Guid != LastOpenedContainerId)
                     CreateMoveToChain(item, (success) => TryUseItem(item, success));
                 else
                     TryUseItem(item);

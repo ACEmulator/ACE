@@ -96,7 +96,7 @@ namespace ACE.Server.WorldObjects
             if (action != VendorType.Undef)
                 DoVendorEmote(action, player);
 
-            player.LastUsedContainerId = Guid;
+            player.LastOpenedContainerId = Guid;
         }
 
         /// <summary>
@@ -208,8 +208,8 @@ namespace ACE.Server.WorldObjects
 
             if (dist > UseRadius)
             {
-                if (LastPlayer.LastUsedContainerId == Guid)
-                    LastPlayer.LastUsedContainerId = ObjectGuid.Invalid;
+                if (LastPlayer.LastOpenedContainerId == Guid)
+                    LastPlayer.LastOpenedContainerId = ObjectGuid.Invalid;
 
                 EmoteManager.DoVendorEmote(VendorType.Close, LastPlayer);
                 LastPlayer = null;

@@ -440,15 +440,13 @@ namespace ACE.Server.WorldObjects
                 return;
 
             // If we have a previous container open, let's close it
-            if (player.LastUsedContainerId != ObjectGuid.Invalid && player.LastUsedContainerId != Guid)
+            if (player.LastOpenedContainerId != ObjectGuid.Invalid && player.LastOpenedContainerId != Guid)
             {
-                var lastUsedContainer = CurrentLandblock?.GetObject(player.LastUsedContainerId) as Container;
+                var lastOpenedContainer = CurrentLandblock?.GetObject(player.LastOpenedContainerId) as Container;
 
-                if (lastUsedContainer != null && lastUsedContainer.IsOpen && lastUsedContainer.Viewer == player.Guid.Full)
-                    lastUsedContainer.Close(player);
+                if (lastOpenedContainer != null && lastOpenedContainer.IsOpen && lastOpenedContainer.Viewer == player.Guid.Full)
+                    lastOpenedContainer.Close(player);
             }
-
-            player.LastUsedContainerId = Guid;
 
             if (!IsOpen)
             {
@@ -468,6 +466,8 @@ namespace ACE.Server.WorldObjects
         public virtual void Open(Player player)
         {
             if (IsOpen) return;
+
+            player.LastOpenedContainerId = Guid;
 
             IsOpen = true;
 
@@ -525,8 +525,8 @@ namespace ACE.Server.WorldObjects
                 {
                     player.Session.Network.EnqueueSend(new GameEventCloseGroundContainer(player.Session, this));
 
-                    if (player.LastUsedContainerId == Guid)
-                        player.LastUsedContainerId = ObjectGuid.Invalid;
+                    if (player.LastOpenedContainerId == Guid)
+                        player.LastOpenedContainerId = ObjectGuid.Invalid;
 
                     // send deleteobject for all objects in this container's inventory to player
                     // this seems logical, but it bugs out the client for re-opening chests w/ respawned items
