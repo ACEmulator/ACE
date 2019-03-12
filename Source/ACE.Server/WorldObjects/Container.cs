@@ -439,6 +439,17 @@ namespace ACE.Server.WorldObjects
             if (!(wo is Player player))
                 return;
 
+            // If we have a previous container open, let's close it
+            if (player.LastUsedContainerId != ObjectGuid.Invalid && player.LastUsedContainerId != Guid)
+            {
+                var lastUsedContainer = CurrentLandblock?.GetObject(player.LastUsedContainerId) as Container;
+
+                if (lastUsedContainer != null && lastUsedContainer.IsOpen && lastUsedContainer.Viewer == player.Guid.Full)
+                    lastUsedContainer.Close(player);
+            }
+
+            player.LastUsedContainerId = Guid;
+
             if (!IsOpen)
             {
                 Open(player);
