@@ -43,6 +43,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ACE.Server", "ACE.Server\AC
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ACE.Adapter", "ACE.Adapter\ACE.Adapter.csproj", "{3C925D75-B149-4898-8806-054D3E63A4BE}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ACE.WebApiServer", "ACE.WebApiServer\ACE.WebApiServer.csproj", "{F79B3B88-7473-45D6-81FC-FE048254B628}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -81,6 +83,14 @@ Global
 		{943276B8-1DCC-48C6-A98D-692D60F53E43}.Debug|x64.Build.0 = Debug|x64
 		{943276B8-1DCC-48C6-A98D-692D60F53E43}.Release|x64.ActiveCfg = Release|x64
 		{943276B8-1DCC-48C6-A98D-692D60F53E43}.Release|x64.Build.0 = Release|x64
+		{3C925D75-B149-4898-8806-054D3E63A4BE}.Debug|x64.ActiveCfg = Debug|x64
+		{3C925D75-B149-4898-8806-054D3E63A4BE}.Debug|x64.Build.0 = Debug|x64
+		{3C925D75-B149-4898-8806-054D3E63A4BE}.Release|x64.ActiveCfg = Release|x64
+		{3C925D75-B149-4898-8806-054D3E63A4BE}.Release|x64.Build.0 = Release|x64
+		{F79B3B88-7473-45D6-81FC-FE048254B628}.Debug|x64.ActiveCfg = Debug|x64
+		{F79B3B88-7473-45D6-81FC-FE048254B628}.Debug|x64.Build.0 = Debug|x64
+		{F79B3B88-7473-45D6-81FC-FE048254B628}.Release|x64.ActiveCfg = Release|x64
+		{F79B3B88-7473-45D6-81FC-FE048254B628}.Release|x64.Build.0 = Release|x64
 		{3C925D75-B149-4898-8806-054D3E63A4BE}.Debug|x64.ActiveCfg = Debug|Any CPU
 		{3C925D75-B149-4898-8806-054D3E63A4BE}.Debug|x64.Build.0 = Debug|Any CPU
 		{3C925D75-B149-4898-8806-054D3E63A4BE}.Release|x64.ActiveCfg = Release|Any CPU

@@ -1,4 +1,6 @@
 using System;
+using System.IO;
+using System.Text;
 using System.Threading;
 
 using log4net;
@@ -67,6 +69,35 @@ namespace ACE.Server.Managers
         public static void CancelShutdown()
         {
             ShutdownInitiated = false;
+        }
+
+        private const string SafeFileName = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        private static string FilesystemSafeServerName
+        {
+            get
+            {
+                string unsanitary = ConfigManager.Config.Server.WorldName;
+                StringBuilder sanitary = new StringBuilder();
+                foreach (char c in unsanitary)
+                {
+                    if (SafeFileName.Contains(c))
+                        sanitary.Append(c);
+                }
+                return sanitary.ToString();
+            }
+        }
+        public static string EnsureBasePath(ILog log = null)
+        {
+            var fldrNam = (string.IsNullOrWhiteSpace(FilesystemSafeServerName)) ? "acemulator" : "acemulator_" + FilesystemSafeServerName.ToLower();
+            var u = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), fldrNam);
+            if (!Directory.Exists(u))
+                try
+                {
+                    Directory.CreateDirectory(u);
+                    log?.Info($"Created base directory {u}");
+                }
+                catch (Exception ex) { log?.Fatal($"Failed to create base directory {u}", ex); }
+            return u;
         }
 
         /// <summary>

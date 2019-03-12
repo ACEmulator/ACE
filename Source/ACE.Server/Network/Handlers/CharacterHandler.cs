@@ -188,6 +188,13 @@ namespace ACE.Server.Network.Handlers
                 return;
             }
 
+            if (character.IsReadOnly)
+            {
+                // waiting for migration character snapshot package download or migration cancel
+                session.SendCharacterError(CharacterError.EnterGameCharacterLocked);
+                return;
+            }
+
             if (PlayerManager.GetOnlinePlayer(guid) != null)
             {
                 // If this happens, it could be that the previous session for this Player terminated in a way that didn't transfer the player to offline via PlayerManager properly.

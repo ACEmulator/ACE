@@ -11,10 +11,11 @@ using ACE.DatLoader;
 using ACE.Server.Command;
 using ACE.Server.Managers;
 using ACE.Server.Network.Managers;
+using System.Reflection;
 
 namespace ACE.Server
 {
-    class Program
+    public class Program
     {
         /// <summary>
         /// The timeBeginPeriod function sets the minimum timer resolution for an application or device driver. Used to manipulate the timer frequency.
@@ -31,9 +32,14 @@ namespace ACE.Server
         [DllImport("winmm.dll", EntryPoint = "timeEndPeriod")]
         public static extern uint MM_EndPeriod(uint uMilliseconds);
 
-        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+        private static readonly ILog log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
 
         public static void Main(string[] args)
+        {
+            Start();
+        }
+
+        public static void Start()
         {
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
             AppDomain.CurrentDomain.ProcessExit += new EventHandler(OnProcessExit);
@@ -41,7 +47,7 @@ namespace ACE.Server
             // Init our text encoding options. This will allow us to use more than standard ANSI text, which the client also supports.
             System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
 
-            var logRepository = LogManager.GetRepository(System.Reflection.Assembly.GetEntryAssembly());
+            var logRepository = LogManager.GetRepository(Assembly.GetEntryAssembly());
             XmlConfigurator.Configure(logRepository, new FileInfo("log4net.config"));
 
             // Do system specific initializations here
@@ -58,7 +64,10 @@ namespace ACE.Server
                 log.Error(ex.ToString());
             }
 
-            log.Info("Starting ACEmulator...");
+            var caller = Assembly.GetCallingAssembly().GetName().Name;
+            var txtCalledFrom = (caller == "ACE.Server") ? "" : $" Caller is {caller}";
+
+            log.Info($"Starting ACEmulator.{txtCalledFrom}");
             Console.Title = @"ACEmulator";
 
             log.Info("Initializing ConfigManager...");
@@ -66,6 +75,12 @@ namespace ACE.Server
 
             log.Info("Initializing ServerManager...");
             ServerManager.Initialize();
+
+            if (ConfigManager.Config.WebApi.Enabled || ConfigManager.Config.Transfer.AllowBackup || ConfigManager.Config.Transfer.AllowImport || ConfigManager.Config.Transfer.AllowMigrate)
+            {
+                log.Info("Initializing CertificateManager...");
+                CertificateManager.Initialize();
+            }
 
             log.Info("Initializing DatManager...");
             DatManager.Initialize(ConfigManager.Config.Server.DatFilesDirectory, true);

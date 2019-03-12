@@ -1,0 +1,36 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <ApplicationIcon />
+    <OutputType>Exe</OutputType>
+    <StartupObject />
+    <Platforms>x64</Platforms>
+  </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="AutoMapper" Version="8.0.0" />
+        <PackageReference Include="FluentValidation" Version="8.1.2" />
+        <PackageReference Include="log4net" Version="2.0.8" />
+        <PackageReference Include="Nancy" Version="2.0.0-clinteastwood" />
+        <PackageReference Include="Nancy.Authentication.Stateless" Version="2.0.0-clinteastwood" />
+        <PackageReference Include="Nancy.Validation.FluentValidation" Version="2.0.0-clinteastwood" />
+        <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
+        <PackageReference Include="Microsoft.AspNetCore.App" Version="2.1.1" />
+    </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\ACE.Server\ACE.Server.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="start_server+webapi.bat">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <Target Name="PreBuild" BeforeTargets="PreBuildEvent">
+    <Exec Command="copy &quot;$(SolutionDir)\Ace.Server\Config.js&quot; &quot;$(TargetDir)Config.js&quot;&#xD;&#xA;copy &quot;$(SolutionDir)\Ace.Server\log4net.config&quot; &quot;$(TargetDir)log4net.config&quot;" />
+  </Target>
+
+</Project>

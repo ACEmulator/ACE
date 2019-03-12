@@ -1,0 +1,1916 @@
+{
+	"info": {
+		"_postman_id": "b15a93d3-5588-4de9-bace-64282a0dcd38",
+		"name": "ACEmulator Web API",
+		"description": "**Authentication**:<br>\r\nThe Web API uses [basic access authentication](https://en.wikipedia.org/wiki/Basic_access_authentication) and to access some of the data resources requires a valid account username and password for the underlying ACEmulator server.\r\n\r\nIf using CURL then the `-k` option is needed since certificates are self-signed.  For authenticated resources CURL needs `-u myusername:mypassword`.\r\n\r\nIf a resource is marked Anonymous then authorization isn't needed.  If you attempt to access a resource that isn't marked Anonymous without supplying valid credentials then you will get a `401 Unauthorized` response.\r\n\r\nAuthenticated requests assume the accesslevel of the account authenticated as a series of claims.\r\n\r\nIf a resource is marked `Requires: [Admin]`, that means unless your account includes the `Admin` claim then you won't be able to access the resource and you will get a `403 Forbidden` response.\r\n\r\nIf a resource is marked `RequiresAny: [Admin,Advocate,Developer,Envoy,Player,Sentinel]` then unless your authenticated account claims at least one of the required claims you won't be able to access the resource and you will get a `403 Forbidden` response.\r\n\r\n**Web API**<br>\r\n[documentation](https://documenter.getpostman.com/view/6422801/RznLHGgq)<br>\r\nThe Web API server listens at the base ACE port + 2, TCP, TLS, HTTPS, JSON, REST, depends on CryptoManager within ACE.Server project that Generates and saves self-signed certificates when it can't find them.  One for WebApi, and one for signing character transfers, in `C:\\Users\\<user>\\AppData\\Roaming\\ACEmulator_<WorldName>\\Certificates` on Windows or `/home/<user>/.config/ACEmulator_<WorldName>/Certificates` on Linux.  Place or replace webapi.pfx with a \"valid\" web server certificate if needed.  Self-Hosting using NancyFX/OWIN/Kestrel in its own project that depends on and wraps around ACE.Server.  WebSockets is a future possibility.  To run ACE with web API capability start the batch file: `\\Source\\ACE.Server.WebApi\\bin\\x64\\Debug\\netcoreapp2.1\\start_server+webapi.bat`\r\n\r\n**To enable and run ACEmulator with WebAPI:**<br>\r\n1) Change the applicable setting to true in the configuration file, it should look like this after:\r\n\r\n```\r\n    \"WebApi\": {\r\n        \"Enabled\": true\r\n    },\r\n```\r\n\r\n2) Build the solution. \r\n3) Run the file `start_server+webapi.bat` in the output folder, which should be located somewhere like: `\\Source\\ACE.WebApiServer\\bin\\x64\\Debug\\netcoreapp2.1`\r\n\r\nA postman collection is included in the source: `WebApi.postman_collection.json` - just import that into postman for a working test suite.\r\n\r\n**Warning**<br>\r\nIf the world name in the server configuration is changed then the current transfers and certificate are lost unless the files are moved to the new location.  To mitigate this move or copy the contents of `C:\\Users\\<user>\\AppData\\Roaming\\ACEmulator_<OldWorldName>\\` to `C:\\Users\\<user>\\AppData\\Roaming\\ACEmulator_<NewWorldName>\\` replacing `<user>` with the applicable username, and `<OldWorldName>` and `<NewWorldName>` with applicable names.  For linux the path will usually be: `/home/<user>/.config/ACEmulator_<WorldName>/`.  If your world name contains special characters then the folder names will have them stripped out, allowed world name to folder name characters are: `abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789`.\r\n\r\n**Migrations**:<br>\r\n\r\n1. Via Web API, a request is made to migrate a character to another server.\r\n2. Character snapshot is packaged and character is  placed in a \"frozen\" state.\r\n3. Requester makes an API call to get the list of characters, of which is the migrating character in frozen state.\r\n* At any time before the next step is initiated, or if the target server rejects the source server, an API request can be made to the source server to unfreeze the character and cancel the migration.\r\n4. Requester makes a request to the target server (the character's new home).\r\n5. Target server makes sure source server is trusted before downloading and rejects the request if it doesn't.\r\n6. Target server downloads packaged snapshot from source server.\r\n7. Source server permanently deletes character upon package download completion.\r\n8. Target server performs cryptographic verification of the snapshot, and rejects it if it's been forged.\r\n9. Target server adds the character to the requester's account.\r\n\r\nNote:  Allowing migrations from itself enables cross account transfers and character renaming.\r\n\r\n**Backups**:<br>\r\nVia Web API, a request is made to backup a character.\r\nCharacter snapshot is packaged and returned in the response to the requester.\r\n\r\n**Imports**:<br>\r\n**with imports enabled the exploitation flood gates are essentially open**<br>\r\nrequester makes a request to the target server API including in the request the snapshot package encoded in base64 and the new character name.\r\ntarget server adds the character to the requester's account.\r\n\r\n**Recommended settings for flawless contract groups:**<br>\r\nallow backup: yes<br>\r\nallow migrate: yes<br>\r\nallow import: no<br>\r\n\r\n**Limitations**:<br>\r\n- ACE specific data constructs such as character options are not exported/imported.  This is to keep it as compatible as possible with LSD.\r\n\r\n**Disclaimer**<br>\r\nThe migration feature requires the assumption that all server operators involved are non defectors.  A defector is someone in the trust group who does malicious or negligent action of any kind.  Providing a system that works for flawless trust groups is easy, but as soon as an attempt is made to eliminate the human element and commission the possibility of defectors the entire system breaks.  Manual approval process and/or central \"antivirus\" server may be something that someone might want to come up with in the future, but that's NOT what this is meant for.  **_As a server operator, DO NOT blame anyone but yourself upon defection(s) when using this system.  NOBODY BUT YOURSELF IS LIABLE_**",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "/api/command",
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": [
+						{
+							"key": "password",
+							"value": "testpassword",
+							"type": "string"
+						},
+						{
+							"key": "username",
+							"value": "testaccount",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "https://localhost:9002/api/command?Command=shutdown",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "9002",
+					"path": [
+						"api",
+						"command"
+					],
+					"query": [
+						{
+							"key": "Command",
+							"value": "shutdown",
+							"description": "console command to invoke"
+						}
+					]
+				},
+				"description": "execute a console command\n<br>\nAuthorization: Requires: [Admin]"
+			},
+			"response": [
+				{
+					"name": "https://localhost:9002/api/command?Command=serversstatus",
+					"originalRequest": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "https://localhost:9002/api/command?Command=typocommand",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "9002",
+							"path": [
+								"api",
+								"command"
+							],
+							"query": [
+								{
+									"key": "Command",
+									"value": "typocommand"
+								}
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Date",
+							"value": "Sun, 20 Jan 2019 18:59:01 GMT"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Server",
+							"value": "Kestrel"
+						},
+						{
+							"key": "Transfer-Encoding",
+							"value": "chunked"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"Success\": false,\n    \"CommandResult\": \"CommandHandlerResponseError\",\n    \"CommandHandlerResponse\": \"InvalidCommand\",\n    \"SubmittedCommand\": \"typocommand\"\n}"
+				},
+				{
+					"name": "https://localhost:9002/api/command?Command=serversstatus",
+					"originalRequest": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "https://localhost:9002/api/command?Command=shutdown",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "9002",
+							"path": [
+								"api",
+								"command"
+							],
+							"query": [
+								{
+									"key": "Command",
+									"value": "shutdown"
+								}
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Date",
+							"value": "Sun, 20 Jan 2019 18:59:44 GMT"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Server",
+							"value": "Kestrel"
+						},
+						{
+							"key": "Transfer-Encoding",
+							"value": "chunked"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"Success\": true,\n    \"CommandResult\": \"Success\",\n    \"CommandHandlerResponse\": \"Ok\",\n    \"SubmittedCommand\": \"shutdown\"\n}"
+				}
+			]
+		},
+		{
+			"name": "/api/playerLocations",
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": [
+						{
+							"key": "password",
+							"value": "testpassword",
+							"type": "string"
+						},
+						{
+							"key": "username",
+							"value": "testaccount",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "https://localhost:9002/api/playerLocations",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "9002",
+					"path": [
+						"api",
+						"playerLocations"
+					]
+				},
+				"description": "get all names and locations of online players, requires admin accesslevel\n<br>\nAuthorization: Requires: [Admin]"
+			},
+			"response": [
+				{
+					"name": "/api/playerLocations",
+					"originalRequest": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "https://localhost:9002/api/playerLocations",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "9002",
+							"path": [
+								"api",
+								"playerLocations"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Date",
+							"value": "Sun, 20 Jan 2019 07:37:20 GMT"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Server",
+							"value": "Kestrel"
+						},
+						{
+							"key": "Transfer-Encoding",
+							"value": "chunked"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"Locations\": [\n        {\n            \"Location\": \"153: 45.7 -43 -17.995\",\n            \"Name\": \"Sikls\"\n        }\n    ]\n}"
+				}
+			]
+		},
+		{
+			"name": "/api/serverInfo",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "https://localhost:9002/api/serverInfo",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "9002",
+					"path": [
+						"api",
+						"serverInfo"
+					]
+				},
+				"description": "get the server name, welcome toast, player counts, and other configuration settings\n<br>\nAuthorization: Anonymous"
+			},
+			"response": [
+				{
+					"name": "/api/serverInfo",
+					"originalRequest": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "https://localhost:9002/api/serverInfo",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "9002",
+							"path": [
+								"api",
+								"serverInfo"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Date",
+							"value": "Thu, 31 Jan 2019 00:40:13 GMT"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Server",
+							"value": "Kestrel"
+						},
+						{
+							"key": "Transfer-Encoding",
+							"value": "chunked"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"WorldName\": \"Fartclaim\",\n    \"Welcome\": \"Welcome to this ACE server!\\nFor more information visit http://emulator.ac\",\n    \"Uptime\": 14.4342636,\n    \"PlayerCount\": {\n        \"Online\": 0,\n        \"Offline\": 11\n    },\n    \"Transfers\": {\n        \"MyThumbprint\": \"C6EF5CFB790CA6F39F0ED9A01CDF3D0BFC01EB69\",\n        \"AllowMigrationFrom\": [\n            \"C6EF5CFB790CA6F39F0ED9A01CDF3D0BFC01EB69\"\n        ],\n        \"AllowImportFrom\": [\n            \"C6EF5CFB790CA6F39F0ED9A01CDF3D0BFC01EB69\"\n        ],\n        \"AllowBackup\": true,\n        \"AllowImport\": true,\n        \"AllowMigrate\": true\n    },\n    \"AccountDefaults\": {\n        \"OverrideCharacterPermissions\": true,\n        \"DefaultAccessLevel\": 0,\n        \"AllowAutoAccountCreation\": true\n    }\n}"
+				}
+			]
+		},
+		{
+			"name": "/api/serverStatus",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "https://localhost:9002/api/serverStatus",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "9002",
+					"path": [
+						"api",
+						"serverStatus"
+					]
+				},
+				"description": "get overall server status\n<br>\nAuthorization: Anonymous"
+			},
+			"response": [
+				{
+					"name": "https://localhost:9002/api/serverStatus",
+					"originalRequest": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "https://localhost:9002/api/serverStatus",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "9002",
+							"path": [
+								"api",
+								"serverStatus"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Date",
+							"value": "Sun, 20 Jan 2019 08:12:16 GMT"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Server",
+							"value": "Kestrel"
+						},
+						{
+							"key": "Transfer-Encoding",
+							"value": "chunked"
+						}
+					],
+					"cookie": [],
+					"body": "\"Server Status:\\nServer Runtime: 0h 1m 9s\\nTotal CPU Time: 0h 0m 11s, Threads: 25\\n254 MB used\\n0 connections, 0 players online\\nTotal Accounts Created: 1, Total Characters Created: 8\\n9 active landblocks - Players: 0, Creatures: 67, Missiles: 0, Other: 127, Total: 194.\\nUpdateGameWorld 1.06 min - Total Events: 3,777, Average: 0.0006 s, Longest: 0.4398 s, Shortest: 0.0000 s, Last: 0.0002 s.\\nUpdateGameWorld 1.06 min - Total Events: 3,777, Average: 0.0006 s, Longest: 0.4398 s, Shortest: 0.0000 s, Last: 0.0002 s.\\nWorld DB Cache Counts - Weenies: 147, LandblockInstances: 9, PointsOfInterest: 0, Cookbooks: 0, Spells: 0, Encounters: 9, Events: 229\\nShard DB Counts - Biotas: 138\\nPortal.dat has 775 files cached of 81,988 total\\nCell.dat has 230 files cached of 805,348 total\\n\""
+				}
+			]
+		},
+		{
+			"name": "/api/playerCount",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "https://localhost:9002/api/playerCount",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "9002",
+					"path": [
+						"api",
+						"playerCount"
+					]
+				},
+				"description": "get number of online/offline players\n<br>\nAuthorization: Anonymous"
+			},
+			"response": [
+				{
+					"name": "/api/playerCount",
+					"originalRequest": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "https://localhost:9002/api/playerCount",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "9002",
+							"path": [
+								"api",
+								"playerCount"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Date",
+							"value": "Sun, 20 Jan 2019 07:10:39 GMT"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Server",
+							"value": "Kestrel"
+						},
+						{
+							"key": "Transfer-Encoding",
+							"value": "chunked"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"Online\": 1,\n    \"Offline\": 7\n}"
+				}
+			]
+		},
+		{
+			"name": "/api/landblockStatus",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "https://localhost:9002/api/landblockStatus",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "9002",
+					"path": [
+						"api",
+						"landblockStatus"
+					]
+				},
+				"description": "get landblock status\n<br>\nAuthorization: Requires: [Admin]"
+			},
+			"response": [
+				{
+					"name": "/api/landblockStatus",
+					"originalRequest": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "https://localhost:9002/api/landblockStatus",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "9002",
+							"path": [
+								"api",
+								"landblockStatus"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Date",
+							"value": "Thu, 24 Jan 2019 00:18:32 GMT"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Server",
+							"value": "Kestrel"
+						},
+						{
+							"key": "Transfer-Encoding",
+							"value": "chunked"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"Active\": [\n        {\n            \"Players\": [],\n            \"Creatures\": [\n                {\n                    \"Id\": 2121588775,\n                    \"Name\": \"Barkeeper Chon Nuo\"\n                },\n                {\n                    \"Id\": 2121588776,\n                    \"Name\": \"Archmage Shikiru Nohon\"\n                },\n                {\n                    \"Id\": 2121588777,\n                    \"Name\": \"Archmage Anyao Zai\"\n                },\n                {\n                    \"Id\": 2121588778,\n                    \"Name\": \"Barkeeper Fo Ya-Un\"\n                },\n                {\n                    \"Id\": 2121588780,\n                    \"Name\": \"Kouxao Ei the Healer\"\n                },\n                {\n                    \"Id\": 2121588781,\n                    \"Name\": \"Goro Yu-Ban the Provisioner\"\n                },\n                {\n                    \"Id\": 2121588782,\n                    \"Name\": \"Kento Do the Grocer\"\n                },\n                {\n                    \"Id\": 2121588784,\n                    \"Name\": \"Tailor Chueh Jian\"\n                },\n                {\n                    \"Id\": 2121588785,\n                    \"Name\": \"Aldera Brunall Weaponsmith\"\n                },\n                {\n                    \"Id\": 2121588786,\n                    \"Name\": \"Muozhen Wa the Jeweler\"\n                },\n                {\n                    \"Id\": 2121588787,\n                    \"Name\": \"Rayyib al-Afij the Armorer\"\n                },\n                {\n                    \"Id\": 2121588788,\n                    \"Name\": \"Fenza Tan the Scribe\"\n                },\n                {\n                    \"Id\": 2121588789,\n                    \"Name\": \"Lai Konsho the Armorsmith\"\n                },\n                {\n                    \"Id\": 2121588791,\n                    \"Name\": \"Yatenyu Zhuong the Bowyer\"\n                },\n                {\n                    \"Id\": 2121588837,\n                    \"Name\": \"Apprentice Scrivener of Item and War Magic\"\n                },\n                {\n                    \"Id\": 2121588838,\n                    \"Name\": \"Apprentice Scrivener of Item and War Magic\"\n                },\n                {\n                    \"Id\": 2121588839,\n                    \"Name\": \"Apprentice Scrivener of Creature Magic\"\n                },\n                {\n                    \"Id\": 2121588840,\n                    \"Name\": \"Apprentice Scrivener of Creature Magic\"\n                },\n                {\n                    \"Id\": 2121588841,\n                    \"Name\": \"Apprentice Scrivener of Life Magic\"\n                },\n                {\n                    \"Id\": 2121588842,\n                    \"Name\": \"Apprentice Scrivener of Life Magic\"\n                },\n                {\n                    \"Id\": 2121588843,\n                    \"Name\": \"Journeyman Scrivener of Life Magic\"\n                },\n                {\n                    \"Id\": 2121588844,\n                    \"Name\": \"Scrivener of Life Magic\"\n                },\n                {\n                    \"Id\": 2121588845,\n                    \"Name\": \"Scrivener of Creature Magic\"\n                },\n                {\n                    \"Id\": 2121588846,\n                    \"Name\": \"Journeyman Scrivener of Creature Magic\"\n                },\n                {\n                    \"Id\": 2121588849,\n                    \"Name\": \"Scrivener of War Magic\"\n                },\n                {\n                    \"Id\": 2121588850,\n                    \"Name\": \"Journeyman Scrivener of War Magic\"\n                },\n                {\n                    \"Id\": 2121588851,\n                    \"Name\": \"Scrivener of Item Magic\"\n                },\n                {\n                    \"Id\": 2121588852,\n                    \"Name\": \"Journeyman Scrivener of Item Magic\"\n                },\n                {\n                    \"Id\": 2147487322,\n                    \"Name\": \"Jewel Collector\"\n                },\n                {\n                    \"Id\": 2147487350,\n                    \"Name\": \"Trophy Smith\"\n                },\n                {\n                    \"Id\": 2147487365,\n                    \"Name\": \"Town Crier\"\n                },\n                {\n                    \"Id\": 2147487371,\n                    \"Name\": \"Shosa Kiroji Matanui\"\n                },\n                {\n                    \"Id\": 2147487380,\n                    \"Name\": \"Sign\"\n                },\n                {\n                    \"Id\": 2147487381,\n                    \"Name\": \"Li Fong\"\n                },\n                {\n                    \"Id\": 2147487389,\n                    \"Name\": \"Clutch of Kings Primary Stopgap!\"\n                }\n            ],\n            \"Missiles\": [],\n            \"Other\": [\n                {\n                    \"Id\": 2121588736,\n                    \"Name\": \"Sliding Door\"\n                },\n                {\n                    \"Id\": 2121588737,\n                    \"Name\": \"Sliding Door\"\n                },\n                {\n                    \"Id\": 2121588738,\n                    \"Name\": \"Sliding Door\"\n                },\n                {\n                    \"Id\": 2121588739,\n                    \"Name\": \"Sliding Door\"\n                },\n                {\n                    \"Id\": 2121588740,\n                    \"Name\": \"Sliding Door\"\n                },\n                {\n                    \"Id\": 2121588741,\n                    \"Name\": \"Sliding Door\"\n                },\n                {\n                    \"Id\": 2121588742,\n                    \"Name\": \"Sliding Door\"\n                },\n                {\n                    \"Id\": 2121588743,\n                    \"Name\": \"Sliding Door\"\n                },\n                {\n                    \"Id\": 2121588744,\n                    \"Name\": \"Sliding Door\"\n                },\n                {\n                    \"Id\": 2121588745,\n                    \"Name\": \"Sliding Door\"\n                },\n                {\n                    \"Id\": 2121588746,\n                    \"Name\": \"Door\"\n                },\n                {\n                    \"Id\": 2121588747,\n                    \"Name\": \"Door\"\n                },\n                {\n                    \"Id\": 2121588748,\n                    \"Name\": \"Sliding Door\"\n                },\n                {\n                    \"Id\": 2121588749,\n                    \"Name\": \"Sliding Door\"\n                },\n                {\n                    \"Id\": 2121588750,\n                    \"Name\": \"Door\"\n                },\n                {\n                    \"Id\": 2121588751,\n                    \"Name\": \"Door\"\n                },\n                {\n                    \"Id\": 2121588752,\n                    \"Name\": \"Chest\"\n                },\n                {\n                    \"Id\": 2121588753,\n                    \"Name\": \"Chest\"\n                },\n                {\n                    \"Id\": 2121588754,\n                    \"Name\": \"Sliding Door\"\n                },\n                {\n                    \"Id\": 2121588755,\n                    \"Name\": \"Sliding Door\"\n                },\n                {\n                    \"Id\": 2121588756,\n                    \"Name\": \"Sliding Door\"\n                },\n                {\n                    \"Id\": 2121588757,\n                    \"Name\": \"Sliding Door\"\n                },\n                {\n                    \"Id\": 2121588758,\n                    \"Name\": \"Hot Air\"\n                },\n                {\n                    \"Id\": 2121588759,\n                    \"Name\": \"Chest\"\n                },\n                {\n                    \"Id\": 2121588760,\n                    \"Name\": \"Door\"\n                },\n                {\n                    \"Id\": 2121588761,\n                    \"Name\": \"Door\"\n                },\n                {\n                    \"Id\": 2121588762,\n                    \"Name\": \"Sliding Door\"\n                },\n                {\n                    \"Id\": 2121588763,\n                    \"Name\": \"Sliding Door\"\n                },\n                {\n                    \"Id\": 2121588764,\n                    \"Name\": \"Door\"\n                },\n                {\n                    \"Id\": 2121588765,\n                    \"Name\": \"Door\"\n                },\n                {\n                    \"Id\": 2121588766,\n                    \"Name\": \"Sliding Door\"\n                },\n                {\n                    \"Id\": 2121588767,\n                    \"Name\": \"Chest\"\n                },\n                {\n                    \"Id\": 2121588768,\n                    \"Name\": \"Sliding Door\"\n                },\n                {\n                    \"Id\": 2121588769,\n                    \"Name\": \"Sliding Door\"\n                },\n                {\n                    \"Id\": 2121588770,\n                    \"Name\": \"Sliding Door\"\n                },\n                {\n                    \"Id\": 2121588771,\n                    \"Name\": \"Sliding Door\"\n                },\n                {\n                    \"Id\": 2121588772,\n                    \"Name\": \"Sliding Door\"\n                },\n                {\n                    \"Id\": 2121588773,\n                    \"Name\": \"Shikiru Nohon\"\n                },\n                {\n                    \"Id\": 2121588774,\n                    \"Name\": \"Hebian-to\"\n                },\n                {\n                    \"Id\": 2121588779,\n                    \"Name\": \"Sho Trophy Smith Gen\"\n                },\n                {\n                    \"Id\": 2121588783,\n                    \"Name\": \"Sho Jewel Collector Gen\"\n                },\n                {\n                    \"Id\": 2121588790,\n                    \"Name\": \"Grocery\"\n                },\n                {\n                    \"Id\": 2121588792,\n                    \"Name\": \"Rayyib's Defense\"\n                },\n                {\n                    \"Id\": 2121588793,\n                    \"Name\": \"Red Iron Forge\"\n                },\n                {\n                    \"Id\": 2121588794,\n                    \"Name\": \"Healer Kouxao\"\n                },\n                {\n                    \"Id\": 2121588795,\n                    \"Name\": \"Moonstone House\"\n                },\n                {\n                    \"Id\": 2121588796,\n                    \"Name\": \"The Shining Shield\"\n                },\n                {\n                    \"Id\": 2121588797,\n                    \"Name\": \"The Golden Book\"\n                },\n                {\n                    \"Id\": 2121588798,\n                    \"Name\": \"Weaver Chueh\"\n                },\n                {\n                    \"Id\": 2121588799,\n                    \"Name\": \"The Laughing Kirin\"\n                },\n                {\n                    \"Id\": 2121588800,\n                    \"Name\": \"West Wind Tower\"\n                },\n                {\n                    \"Id\": 2121588801,\n                    \"Name\": \"Aldera's Blades\"\n                },\n                {\n                    \"Id\": 2121588802,\n                    \"Name\": \"Fletcher\"\n                },\n                {\n                    \"Id\": 2121588803,\n                    \"Name\": \"Well\"\n                },\n                {\n                    \"Id\": 2121588805,\n                    \"Name\": \"Beer Keg\"\n                },\n                {\n                    \"Id\": 2121588806,\n                    \"Name\": \"Aerfalle Keep Stopgap Gen\"\n                },\n                {\n                    \"Id\": 2121588813,\n                    \"Name\": \"Linkable Monster Generator ( 3 Min.)\"\n                },\n                {\n                    \"Id\": 2121588820,\n                    \"Name\": \"Pedestal Weak Spot\"\n                },\n                {\n                    \"Id\": 2121588823,\n                    \"Name\": \"Fireworks Generator\"\n                },\n                {\n                    \"Id\": 2121588827,\n                    \"Name\": \"Sliding Door\"\n                },\n                {\n                    \"Id\": 2121588828,\n                    \"Name\": \"Sliding Door\"\n                },\n                {\n                    \"Id\": 2121588829,\n                    \"Name\": \"Sliding Door\"\n                },\n                {\n                    \"Id\": 2121588830,\n                    \"Name\": \"Sliding Door\"\n                },\n                {\n                    \"Id\": 2121588831,\n                    \"Name\": \"Sliding Door\"\n                },\n                {\n                    \"Id\": 2121588832,\n                    \"Name\": \"Sliding Door\"\n                },\n                {\n                    \"Id\": 2121588833,\n                    \"Name\": \"Sliding Door\"\n                },\n                {\n                    \"Id\": 2121588834,\n                    \"Name\": \"Sliding Door\"\n                },\n                {\n                    \"Id\": 2121588835,\n                    \"Name\": \"Nullified Statue of Ben Ten\"\n                },\n                {\n                    \"Id\": 2121588836,\n                    \"Name\": \"Effigy Foundry Portal\"\n                },\n                {\n                    \"Id\": 2121588903,\n                    \"Name\": \"April 2003 Raining Mad Cows Gen\"\n                },\n                {\n                    \"Id\": 2121588905,\n                    \"Name\": \"Life Stone\"\n                },\n                {\n                    \"Id\": 2121588913,\n                    \"Name\": \"Hebian-to Meeting Hall Portal\"\n                },\n                {\n                    \"Id\": 2121588914,\n                    \"Name\": \"Bind Stone\"\n                },\n                {\n                    \"Id\": 2121588919,\n                    \"Name\": \"Morgluuk's Head Gen\"\n                },\n                {\n                    \"Id\": 2121588921,\n                    \"Name\": \"Morgluuk Stopgap NPC Gen\"\n                },\n                {\n                    \"Id\": 2121588922,\n                    \"Name\": \"Izji Qo Raid Stopgap Generator\"\n                },\n                {\n                    \"Id\": 2121588923,\n                    \"Name\": \"Clutch of Kings Primary Stopgap Generator\"\n                },\n                {\n                    \"Id\": 2121588924,\n                    \"Name\": \"Reeshan Stopgap Generator\"\n                },\n                {\n                    \"Id\": 2121588925,\n                    \"Name\": \"Kiree Stopgap Generator\"\n                },\n                {\n                    \"Id\": 2121588926,\n                    \"Name\": \"Broodu Stopgap Generator\"\n                },\n                {\n                    \"Id\": 2121588927,\n                    \"Name\": \"Keerik Stopgap Generator\"\n                },\n                {\n                    \"Id\": 2121588928,\n                    \"Name\": \"Rehir Stopgap Generator\"\n                },\n                {\n                    \"Id\": 2121588930,\n                    \"Name\": \"Browerk Stopgap Generator\"\n                },\n                {\n                    \"Id\": 2121588931,\n                    \"Name\": \"Crown Browerk Stopgap Generator\"\n                },\n                {\n                    \"Id\": 2121588932,\n                    \"Name\": \"Font Browerk Stopgap Generator\"\n                },\n                {\n                    \"Id\": 2121588933,\n                    \"Name\": \"Night Club Portal Generator\"\n                },\n                {\n                    \"Id\": 2121588934,\n                    \"Name\": \"Fireworks Stopgap Gen\"\n                },\n                {\n                    \"Id\": 2121588975,\n                    \"Name\": \"Portal to Town Network\"\n                },\n                {\n                    \"Id\": 2147487370,\n                    \"Name\": \"Place Holder Object\"\n                }\n            ],\n            \"Id\": \"E74EFFFF\"\n        },\n        {\n            \"Players\": [],\n            \"Creatures\": [\n                {\n                    \"Id\": 2147487262,\n                    \"Name\": \"Water Golem\"\n                },\n                {\n                    \"Id\": 2147487334,\n                    \"Name\": \"Shallows Lurker\"\n                }\n            ],\n            \"Missiles\": [],\n            \"Other\": [\n                {\n                    \"Id\": 2147487151,\n                    \"Name\": \"Sho Newbie Shore Mix Generator\"\n                },\n                {\n                    \"Id\": 2147487153,\n                    \"Name\": \"Sho Newbie Shore Mix Generator\"\n                }\n            ],\n            \"Id\": \"E74F0000\"\n        },\n        {\n            \"Players\": [],\n            \"Creatures\": [\n                {\n                    \"Id\": 2147487361,\n                    \"Name\": \"Chicken\"\n                }\n            ],\n            \"Missiles\": [],\n            \"Other\": [\n                {\n                    \"Id\": 2121584640,\n                    \"Name\": \"Sanctum Residential Halls\"\n                },\n                {\n                    \"Id\": 2121584641,\n                    \"Name\": \"Sanctum Residential Halls Portal\"\n                },\n                {\n                    \"Id\": 2147487158,\n                    \"Name\": \"Harmless Sho Generator\"\n                }\n            ],\n            \"Id\": \"E74D0000\"\n        },\n        {\n            \"Players\": [],\n            \"Creatures\": [\n                {\n                    \"Id\": 2120540167,\n                    \"Name\": \"Jubei's Apprentice Craftsman\"\n                },\n                {\n                    \"Id\": 2147487272,\n                    \"Name\": \"Jubei Minawoto\"\n                },\n                {\n                    \"Id\": 2147487326,\n                    \"Name\": \"Town Crier\"\n                },\n                {\n                    \"Id\": 2147487348,\n                    \"Name\": \"Agent of the Arcanum\"\n                }\n            ],\n            \"Missiles\": [],\n            \"Other\": [\n                {\n                    \"Id\": 2120540160,\n                    \"Name\": \"Hebian-to\"\n                },\n                {\n                    \"Id\": 2120540161,\n                    \"Name\": \"Door\"\n                },\n                {\n                    \"Id\": 2120540163,\n                    \"Name\": \"Linkable Monster Generator ( 3 Min.)\"\n                },\n                {\n                    \"Id\": 2120540169,\n                    \"Name\": \"Linkable Monster Generator ( 3 Min.)\"\n                },\n                {\n                    \"Id\": 2120540170,\n                    \"Name\": \"Agent of the Arcanum \"\n                },\n                {\n                    \"Id\": 2147487267,\n                    \"Name\": \"Place Holder Object\"\n                },\n                {\n                    \"Id\": 2147487347,\n                    \"Name\": \"Place Holder Object\"\n                }\n            ],\n            \"Id\": \"E64E0000\"\n        },\n        {\n            \"Players\": [],\n            \"Creatures\": [\n                {\n                    \"Id\": 2147487318,\n                    \"Name\": \"Limestone Golem\"\n                },\n                {\n                    \"Id\": 2147487321,\n                    \"Name\": \"Chicken\"\n                },\n                {\n                    \"Id\": 2147487331,\n                    \"Name\": \"Brown Rabbit\"\n                },\n                {\n                    \"Id\": 2147487358,\n                    \"Name\": \"Wood Golem\"\n                },\n                {\n                    \"Id\": 2147487359,\n                    \"Name\": \"Brown Rabbit\"\n                },\n                {\n                    \"Id\": 2147487360,\n                    \"Name\": \"Chicken\"\n                },\n                {\n                    \"Id\": 2147487362,\n                    \"Name\": \"White Mattekar\"\n                },\n                {\n                    \"Id\": 2147487363,\n                    \"Name\": \"Snowy Mattekar\"\n                }\n            ],\n            \"Missiles\": [],\n            \"Other\": [\n                {\n                    \"Id\": 2122637312,\n                    \"Name\": \"Hebian-to Sewers\"\n                },\n                {\n                    \"Id\": 2147487167,\n                    \"Name\": \"Harmless Sho Generator\"\n                },\n                {\n                    \"Id\": 2147487168,\n                    \"Name\": \"Harmless Sho Generator\"\n                },\n                {\n                    \"Id\": 2147487169,\n                    \"Name\": \"Sho Newbie Hills Mix Generator\"\n                },\n                {\n                    \"Id\": 2147487170,\n                    \"Name\": \"Harmless Sho Generator\"\n                },\n                {\n                    \"Id\": 2147487171,\n                    \"Name\": \"Harmless Sho Generator\"\n                },\n                {\n                    \"Id\": 2147487172,\n                    \"Name\": \"Sho Newbie Hills Mix Generator\"\n                },\n                {\n                    \"Id\": 2147487173,\n                    \"Name\": \"Sho Newbie Hills Mix Generator\"\n                },\n                {\n                    \"Id\": 2147487354,\n                    \"Name\": \"White Mattekar Camp Generator\"\n                }\n            ],\n            \"Id\": \"E84E0000\"\n        },\n        {\n            \"Players\": [],\n            \"Creatures\": [\n                {\n                    \"Id\": 2147487284,\n                    \"Name\": \"Mud Golem\"\n                }\n            ],\n            \"Missiles\": [],\n            \"Other\": [\n                {\n                    \"Id\": 2147487149,\n                    \"Name\": \"Sho Newbie Shore Mix Generator\"\n                },\n                {\n                    \"Id\": 2147487152,\n                    \"Name\": \"Sho Newbie Shore Mix Generator\"\n                },\n                {\n                    \"Id\": 2147487181,\n                    \"Name\": \"Lapyan Plant\"\n                }\n            ],\n            \"Id\": \"E64F0000\"\n        },\n        {\n            \"Players\": [],\n            \"Creatures\": [\n                {\n                    \"Id\": 2147487184,\n                    \"Name\": \"Carrion Shreth\"\n                },\n                {\n                    \"Id\": 2147487319,\n                    \"Name\": \"Blue Phyntos Wasp\"\n                },\n                {\n                    \"Id\": 2147487343,\n                    \"Name\": \"Drudge Slinker\"\n                },\n                {\n                    \"Id\": 2147487384,\n                    \"Name\": \"Hunter Shreth\"\n                },\n                {\n                    \"Id\": 2147487385,\n                    \"Name\": \"Hunter Shreth\"\n                },\n                {\n                    \"Id\": 2147487386,\n                    \"Name\": \"Hunter Shreth\"\n                },\n                {\n                    \"Id\": 2147487387,\n                    \"Name\": \"Ivory Gromnie\"\n                },\n                {\n                    \"Id\": 2147487388,\n                    \"Name\": \"Ivory Gromnie\"\n                }\n            ],\n            \"Missiles\": [],\n            \"Other\": [\n                {\n                    \"Id\": 2147487150,\n                    \"Name\": \"Sho Newbie Forest Mix Generator\"\n                },\n                {\n                    \"Id\": 2147487163,\n                    \"Name\": \"Sho Newbie Hills Mix Generator\"\n                },\n                {\n                    \"Id\": 2147487164,\n                    \"Name\": \"Sho Newbie Shore Mix Generator\"\n                },\n                {\n                    \"Id\": 2147487165,\n                    \"Name\": \"Sho Newbie Hills Mix Generator\"\n                },\n                {\n                    \"Id\": 2147487166,\n                    \"Name\": \"Sho Newbie Shore Mix Generator\"\n                },\n                {\n                    \"Id\": 2147487333,\n                    \"Name\": \"Shreth Hunter Camp Generator\"\n                },\n                {\n                    \"Id\": 2147487342,\n                    \"Name\": \"Drudge Slinker Camp Generator\"\n                },\n                {\n                    \"Id\": 2147487345,\n                    \"Name\": \"Bonfire\"\n                },\n                {\n                    \"Id\": 2147487346,\n                    \"Name\": \"Ivory Gromnie Camp Generator\"\n                }\n            ],\n            \"Id\": \"E84F0000\"\n        },\n        {\n            \"Players\": [],\n            \"Creatures\": [\n                {\n                    \"Id\": 2147487227,\n                    \"Name\": \"Town Crier\"\n                },\n                {\n                    \"Id\": 2147487332,\n                    \"Name\": \"Chicken\"\n                },\n                {\n                    \"Id\": 2147487340,\n                    \"Name\": \"Brown Rabbit\"\n                },\n                {\n                    \"Id\": 2147487341,\n                    \"Name\": \"Chicken\"\n                },\n                {\n                    \"Id\": 2147487355,\n                    \"Name\": \"Carrion Shreth\"\n                },\n                {\n                    \"Id\": 2147487356,\n                    \"Name\": \"Carrion Shreth\"\n                },\n                {\n                    \"Id\": 2147487357,\n                    \"Name\": \"Carrion Shreth\"\n                }\n            ],\n            \"Missiles\": [],\n            \"Other\": [\n                {\n                    \"Id\": 2120536064,\n                    \"Name\": \"Hebian-to\"\n                },\n                {\n                    \"Id\": 2147487154,\n                    \"Name\": \"Harmless Sho Generator\"\n                },\n                {\n                    \"Id\": 2147487155,\n                    \"Name\": \"Harmless Sho Generator\"\n                },\n                {\n                    \"Id\": 2147487156,\n                    \"Name\": \"Sho Newbie Shore Mix Generator\"\n                },\n                {\n                    \"Id\": 2147487157,\n                    \"Name\": \"Harmless Sho Generator\"\n                },\n                {\n                    \"Id\": 2147487317,\n                    \"Name\": \"Shreth Carrion Camp Generator\"\n                }\n            ],\n            \"Id\": \"E64D0000\"\n        },\n        {\n            \"Players\": [],\n            \"Creatures\": [\n                {\n                    \"Id\": 2147487219,\n                    \"Name\": \"Brown Rabbit\"\n                },\n                {\n                    \"Id\": 2147487253,\n                    \"Name\": \"Brown Rabbit\"\n                },\n                {\n                    \"Id\": 2147487320,\n                    \"Name\": \"Brown Rabbit\"\n                },\n                {\n                    \"Id\": 2147487335,\n                    \"Name\": \"Town Crier\"\n                },\n                {\n                    \"Id\": 2147487364,\n                    \"Name\": \"Chicken\"\n                }\n            ],\n            \"Missiles\": [],\n            \"Other\": [\n                {\n                    \"Id\": 2122633216,\n                    \"Name\": \"Hebian-to\"\n                },\n                {\n                    \"Id\": 2147487159,\n                    \"Name\": \"Harmless Sho Generator\"\n                },\n                {\n                    \"Id\": 2147487160,\n                    \"Name\": \"Harmless Sho Generator\"\n                },\n                {\n                    \"Id\": 2147487161,\n                    \"Name\": \"Harmless Sho Generator\"\n                },\n                {\n                    \"Id\": 2147487162,\n                    \"Name\": \"Harmless Sho Generator\"\n                }\n            ],\n            \"Id\": \"E84D0000\"\n        }\n    ]\n}"
+				}
+			]
+		},
+		{
+			"name": "/api/networkStats",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "https://localhost:9002/api/networkStats",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "9002",
+					"path": [
+						"api",
+						"networkStats"
+					]
+				},
+				"description": "get overall network statistics\n<br>\nAuthorization: Anonymous"
+			},
+			"response": [
+				{
+					"name": "/api/networkStats",
+					"originalRequest": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "https://localhost:9002/api/networkStats",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "9002",
+							"path": [
+								"api",
+								"networkStats"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Date",
+							"value": "Sun, 20 Jan 2019 07:20:13 GMT"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Server",
+							"value": "Kestrel"
+						},
+						{
+							"key": "Transfer-Encoding",
+							"value": "chunked"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"C2S_RequestsForRetransmit_Aggregate\": 0,\n    \"S2C_RequestsForRetransmit_Aggregate\": 0,\n    \"C2S_CRCErrors_Aggregate\": 0,\n    \"C2S_Packets_Aggregate\": 52,\n    \"S2C_Packets_Aggregate\": 203,\n    \"Summary\": \"\\nnetwork statistics\\npackets\\nclient=>server: 52\\nserver=>client: 203\\nrequests for retransmit\\nclient=>server: 0 \\nServer=>client: 0 \\nCRC errors\\nclient=>server: 0 \\n\"\n}"
+				}
+			]
+		},
+		{
+			"name": "/api/character",
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": [
+						{
+							"key": "username",
+							"value": "testaccount2",
+							"type": "string"
+						},
+						{
+							"key": "password",
+							"value": "testpassword",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "https://localhost:9002/api/character",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "9002",
+					"path": [
+						"api",
+						"character"
+					]
+				},
+				"description": "Get a list of characters in your account.\n<br>\nAuthorization: RequiresAny: [Admin,Advocate,Developer,Envoy,Player,Sentinel]"
+			},
+			"response": [
+				{
+					"name": "https://localhost:9002/api/character",
+					"originalRequest": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "https://localhost:9002/api/character",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "9002",
+							"path": [
+								"api",
+								"character"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Date",
+							"value": "Sun, 20 Jan 2019 06:37:53 GMT"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Server",
+							"value": "Kestrel"
+						},
+						{
+							"key": "Transfer-Encoding",
+							"value": "chunked"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"Characters\": [\n        {\n            \"Id\": 1342177281,\n            \"AccountId\": 1,\n            \"Name\": \"Fartwhif\",\n            \"IsPlussed\": false,\n            \"IsDeleted\": false,\n            \"IsReadOnly\": false,\n            \"DeleteTime\": 0,\n            \"LastLoginTimestamp\": 1546906139.4276626,\n            \"TotalLogins\": 1,\n            \"CharacterOptions1\": 1355064650,\n            \"CharacterOptions2\": 9471744,\n            \"GameplayOptions\": \"AgAAAAABjAAAEIwAABARAAAAiwAAEAAAiwAAEAAAiwAAEAAAiwAAEAAAiwAAEAAAiwAAEAAAiwAAEAAAiwAAEAAAiwAAEAAAiwAAEAAAiwAAEAAAiwAAEAAAiwAAEAABigAAEIoAABAAiwAAEAAAiwAAEAAAiwAAEAAAiwAAEAAAAAAA\",\n            \"HairTexture\": 83890685,\n            \"DefaultHairTexture\": 83886232,\n            \"CharacterPropertiesContract\": [],\n            \"CharacterPropertiesFillCompBook\": [],\n            \"CharacterPropertiesFriendList\": [],\n            \"CharacterPropertiesQuestRegistry\": [\n                {\n                    \"Id\": 2,\n                    \"CharacterId\": 1342177281,\n                    \"QuestName\": \"AcademeyExitTokenGiven\",\n                    \"LastTimeCompleted\": 1546906102,\n                    \"NumTimesCompleted\": 1\n                },\n                {\n                    \"Id\": 1,\n                    \"CharacterId\": 1342177281,\n                    \"QuestName\": \"CallingStoneGiven\",\n                    \"LastTimeCompleted\": 1546906082,\n                    \"NumTimesCompleted\": 1\n                }\n            ],\n            \"CharacterPropertiesShortcutBar\": [],\n            \"CharacterPropertiesSpellBar\": [],\n            \"CharacterPropertiesTitleBook\": [\n                {\n                    \"Id\": 1,\n                    \"CharacterId\": 1342177281,\n                    \"TitleId\": 1\n                }\n            ]\n        },\n        {\n            \"Id\": 1342177282,\n            \"AccountId\": 1,\n            \"Name\": \"Sikls\",\n            \"IsPlussed\": false,\n            \"IsDeleted\": false,\n            \"IsReadOnly\": false,\n            \"DeleteTime\": 0,\n            \"LastLoginTimestamp\": 1547954091.0506752,\n            \"TotalLogins\": 1,\n            \"CharacterOptions1\": 1355064650,\n            \"CharacterOptions2\": 9471744,\n            \"GameplayOptions\": \"AgAAAAABjAAAEIwAABARAAAAiwAAEAAAiwAAEAAAiwAAEAAAiwAAEAAAiwAAEAAAiwAAEAACiAAAEIgAABBiAgAAiQAAEIkAABB4AAAAiwAAEAAAiwAAEAAAiwAAEAAAiwAAEAAAiwAAEAAAiwAAEAAAiwAAEAABigAAEIoAABAAiwAAEAAAiwAAEAAAiwAAEAAAiwAAEAAAAAAA\",\n            \"HairTexture\": 83890685,\n            \"DefaultHairTexture\": 83886232,\n            \"CharacterPropertiesContract\": [],\n            \"CharacterPropertiesFillCompBook\": [],\n            \"CharacterPropertiesFriendList\": [],\n            \"CharacterPropertiesQuestRegistry\": [\n                {\n                    \"Id\": 3,\n                    \"CharacterId\": 1342177282,\n                    \"QuestName\": \"AcademyTokenGiven\",\n                    \"LastTimeCompleted\": 1547954156,\n                    \"NumTimesCompleted\": 1\n                },\n                {\n                    \"Id\": 4,\n                    \"CharacterId\": 1342177282,\n                    \"QuestName\": \"AcademeyExitTokenGiven\",\n                    \"LastTimeCompleted\": 1547954181,\n                    \"NumTimesCompleted\": 1\n                }\n            ],\n            \"CharacterPropertiesShortcutBar\": [],\n            \"CharacterPropertiesSpellBar\": [],\n            \"CharacterPropertiesTitleBook\": [\n                {\n                    \"Id\": 2,\n                    \"CharacterId\": 1342177282,\n                    \"TitleId\": 11\n                }\n            ]\n        },\n        {\n            \"Id\": 1342177283,\n            \"AccountId\": 1,\n            \"Name\": \"myChar\",\n            \"IsPlussed\": false,\n            \"IsDeleted\": false,\n            \"IsReadOnly\": false,\n            \"DeleteTime\": 0,\n            \"LastLoginTimestamp\": 0,\n            \"TotalLogins\": 0,\n            \"CharacterOptions1\": 0,\n            \"CharacterOptions2\": 0,\n            \"GameplayOptions\": null,\n            \"HairTexture\": 0,\n            \"DefaultHairTexture\": 0,\n            \"CharacterPropertiesContract\": [],\n            \"CharacterPropertiesFillCompBook\": [],\n            \"CharacterPropertiesFriendList\": [],\n            \"CharacterPropertiesQuestRegistry\": [],\n            \"CharacterPropertiesShortcutBar\": [],\n            \"CharacterPropertiesSpellBar\": [],\n            \"CharacterPropertiesTitleBook\": []\n        },\n        {\n            \"Id\": 1342177284,\n            \"AccountId\": 1,\n            \"Name\": \"myChar2\",\n            \"IsPlussed\": false,\n            \"IsDeleted\": false,\n            \"IsReadOnly\": false,\n            \"DeleteTime\": 0,\n            \"LastLoginTimestamp\": 1547962601.5904114,\n            \"TotalLogins\": 1,\n            \"CharacterOptions1\": 1355064650,\n            \"CharacterOptions2\": 34560,\n            \"GameplayOptions\": null,\n            \"HairTexture\": 0,\n            \"DefaultHairTexture\": 0,\n            \"CharacterPropertiesContract\": [],\n            \"CharacterPropertiesFillCompBook\": [],\n            \"CharacterPropertiesFriendList\": [],\n            \"CharacterPropertiesQuestRegistry\": [],\n            \"CharacterPropertiesShortcutBar\": [],\n            \"CharacterPropertiesSpellBar\": [],\n            \"CharacterPropertiesTitleBook\": []\n        },\n        {\n            \"Id\": 1342177285,\n            \"AccountId\": 1,\n            \"Name\": \"testChar\",\n            \"IsPlussed\": false,\n            \"IsDeleted\": false,\n            \"IsReadOnly\": false,\n            \"DeleteTime\": 0,\n            \"LastLoginTimestamp\": 0,\n            \"TotalLogins\": 0,\n            \"CharacterOptions1\": 0,\n            \"CharacterOptions2\": 0,\n            \"GameplayOptions\": null,\n            \"HairTexture\": 0,\n            \"DefaultHairTexture\": 0,\n            \"CharacterPropertiesContract\": [],\n            \"CharacterPropertiesFillCompBook\": [],\n            \"CharacterPropertiesFriendList\": [],\n            \"CharacterPropertiesQuestRegistry\": [],\n            \"CharacterPropertiesShortcutBar\": [],\n            \"CharacterPropertiesSpellBar\": [],\n            \"CharacterPropertiesTitleBook\": []\n        },\n        {\n            \"Id\": 1342177286,\n            \"AccountId\": 1,\n            \"Name\": \"testChar2\",\n            \"IsPlussed\": false,\n            \"IsDeleted\": false,\n            \"IsReadOnly\": false,\n            \"DeleteTime\": 0,\n            \"LastLoginTimestamp\": 0,\n            \"TotalLogins\": 0,\n            \"CharacterOptions1\": 0,\n            \"CharacterOptions2\": 0,\n            \"GameplayOptions\": null,\n            \"HairTexture\": 0,\n            \"DefaultHairTexture\": 0,\n            \"CharacterPropertiesContract\": [],\n            \"CharacterPropertiesFillCompBook\": [],\n            \"CharacterPropertiesFriendList\": [],\n            \"CharacterPropertiesQuestRegistry\": [],\n            \"CharacterPropertiesShortcutBar\": [],\n            \"CharacterPropertiesSpellBar\": [],\n            \"CharacterPropertiesTitleBook\": []\n        }\n    ],\n    \"AccountName\": \"testaccount\",\n    \"AccessLevelName\": \"Player\"\n}"
+				}
+			]
+		},
+		{
+			"name": "/api/character/backup",
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": [
+						{
+							"key": "password",
+							"value": "testpassword",
+							"type": "string"
+						},
+						{
+							"key": "username",
+							"value": "testaccount",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "https://localhost:9002/api/character/backup?CharacterId=1342177281",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "9002",
+					"path": [
+						"api",
+						"character",
+						"backup"
+					],
+					"query": [
+						{
+							"key": "CharacterId",
+							"value": "1342177281",
+							"description": "id of the character to migrate (from /api/character)"
+						}
+					]
+				},
+				"description": "download a snapshot package of a character in your account\n<br>\nAuthorization: RequiresAny: [Admin,Advocate,Developer,Envoy,Player,Sentinel]"
+			},
+			"response": [
+				{
+					"name": "https://localhost:9002/api/character/backup",
+					"originalRequest": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "https://localhost:9002/api/character/backup?CharacterId=1342177211",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "9002",
+							"path": [
+								"api",
+								"character",
+								"backup"
+							],
+							"query": [
+								{
+									"key": "CharacterId",
+									"value": "1342177211"
+								}
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Date",
+							"value": "Sun, 20 Jan 2019 06:39:26 GMT"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Server",
+							"value": "Kestrel"
+						},
+						{
+							"key": "Transfer-Encoding",
+							"value": "chunked"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"Success\": false,\n    \"CharacterId\": 1342177211,\n    \"SnapshotPackage\": null\n}"
+				},
+				{
+					"name": "https://localhost:9002/api/character/backup",
+					"originalRequest": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "https://localhost:9002/api/character/backup?CharacterId=1342177281",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "9002",
+							"path": [
+								"api",
+								"character",
+								"backup"
+							],
+							"query": [
+								{
+									"key": "CharacterId",
+									"value": "1342177281"
+								}
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Date",
+							"value": "Sun, 20 Jan 2019 06:39:46 GMT"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Server",
+							"value": "Kestrel"
+						},
+						{
+							"key": "Transfer-Encoding",
+							"value": "chunked"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"Success\": true,\n    \"CharacterId\": 1342177281,\n    \"SnapshotPackage\": \"UEsDBBQAAAAIADewMU57l7pQgAsAAKSHAAAPAAAAMTM0MjE3NzI4MS5qc29u7V3dc5w4En+/qvsfXH5OXOgDAffmj/icu/HunMeb7N7WPmCPYnNhwAXMbnxb+7+fgJlBDBLQspINl/HLVNSIn7rV6m6pW+T3v/7l6Oj47fL4b0eIUIw8D/voVdX4nvMk4udxmOc1XW6+fX7iZZtTN87Tp3UcFnx5nsYxvy+iNLmMw4dcPEId4lPPr587i9IinGfpE8+KiOdnafpRPJKs41hJP02i1TzMCvHMz7+onyiKLLpbF+Vgfi4fODr6vf7ZsfVq9+/v7/4jxqZitiJveWpa3iZRMeO/8rhhtWqv2i6zdHU+FxSJcD5fPPGkHK9Tt/3xSjkoDB0U1g3K5qgIdFTkC4iKQgdFv8CgXOig3C8xfww6KmZ3VOXPwDLFyfKzr1Tg4KXGdZaJxu17XMtrmHze4YpZs7u63c88XjSsN2fp8nnrAF6oM//kz4LiNw0XXXtx8S6M2zMrWrKSixNPksZZmPPTbJVWlKa5anqXL4THfFRS5hHP7rmSdBavlw88TZRE4VSXSsJllKlfd3ofqXu8Kb1zFt0rid/x4pHvMXV21Vadq9llJQ/pketu02zThCVRXt10e3abZjeKnrOzLmanabZpamN2e3abZpsmjC0t+FrX2BhdcxS6Jov/oGoqVUOkq2vIH6Vrra43iq56ZWujnilQtdrWRt12tWSva3WTDNTBtI02bXiUacNddXNGaZvcsftUj661EDtP9WhaC3HzlKUAu9Yz2YYdzJpVNSOmakZM1YyYqpnCntnaMtVq5h3U7AsGasw0TmOmYRozjdKYpT1wrWZyrH+wZlbVDHmm5qzVE2TP2pgQg9bGHGPRPKC... (data truncated for documentation)\"\n}"
+				}
+			]
+		},
+		{
+			"name": "/api/character/import",
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": [
+						{
+							"key": "password",
+							"value": "testpassword",
+							"type": "string"
+						},
+						{
+							"key": "username",
+							"value": "testaccount",
+							"type": "string"
+						}
+					]
+				},
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "formdata",
+					"formdata": [
+						{
+							"key": "NewCharacterName",
+							"value": "testChar4",
+							"description": "desired character name for the imported character",
+							"type": "text"
+						},
+						{
+							"key": "SnapshotPackageBase64",
+							"value": "UEsDBBQAAAAIADewMU57l7pQgAsAAKSHAAAPAAAAMTM0MjE3NzI4MS5qc29u7V3dc5w4En+/qvsfXH5OXOgDAffmj/icu/HunMeb7N7WPmCPYnNhwAXMbnxb+7+fgJlBDBLQspINl/HLVNSIn7rV6m6pW+T3v/7l6Oj47fL4b0eIUIw8D/voVdX4nvMk4udxmOc1XW6+fX7iZZtTN87Tp3UcFnx5nsYxvy+iNLmMw4dcPEId4lPPr587i9IinGfpE8+KiOdnafpRPJKs41hJP02i1TzMCvHMz7+onyiKLLpbF+Vgfi4fODr6vf7ZsfVq9+/v7/4jxqZitiJveWpa3iZRMeO/8rhhtWqv2i6zdHU+FxSJcD5fPPGkHK9Tt/3xSjkoDB0U1g3K5qgIdFTkC4iKQgdFv8CgXOig3C8xfww6KmZ3VOXPwDLFyfKzr1Tg4KXGdZaJxu17XMtrmHze4YpZs7u63c88XjSsN2fp8nnrAF6oM//kz4LiNw0XXXtx8S6M2zMrWrKSixNPksZZmPPTbJVWlKa5anqXL4THfFRS5hHP7rmSdBavlw88TZRE4VSXSsJllKlfd3ofqXu8Kb1zFt0rid/x4pHvMXV21Vadq9llJQ/pketu02zThCVRXt10e3abZjeKnrOzLmanabZpamN2e3abZpsmjC0t+FrX2BhdcxS6Jov/oGoqVUOkq2vIH6Vrra43iq56ZWujnilQtdrWRt12tWSva3WTDNTBtI02bXiUacNddXNGaZvcsftUj661EDtP9WhaC3HzlKUAu9Yz2YYdzJpVNSOmakZM1YyYqpnCntnaMtVq5h3U7AsGasw0TmOmYRozjdKYpT1wrWZyrH+wZlbVDHmm5qzVE2TP2pgQg9bGHGPRPKC... (data truncated for documentation)",
+							"description": "the character backup package zip file encoded as base64 text",
+							"type": "text"
+						}
+					]
+				},
+				"url": {
+					"raw": "https://localhost:9002/api/character/import",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "9002",
+					"path": [
+						"api",
+						"character",
+						"import"
+					]
+				},
+				"description": "Import a backup snapshot package to a new character in your account.\n<br>\nAuthorization: RequiresAny: [Admin,Advocate,Developer,Envoy,Player,Sentinel]"
+			},
+			"response": [
+				{
+					"name": "https://localhost:9002/api/character/import",
+					"originalRequest": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "NewCharacterName",
+									"value": "testChar3",
+									"type": "text"
+								},
+								{
+									"key": "SnapshotPackageBase64",
+									"value": "UEsDBBQAAAAIADewMU57l7pQgAsAAKSHAAAPAAAAMTM0MjE3NzI4MS5qc29u7V3dc5w4En+/qvsfXH5OXOgDAffmj/icu/HunMeb7N7WPmCPYnNhwAXMbnxb+7+fgJlBDBLQspINl/HLVNSIn7rV6m6pW+T3v/7l6Oj47fL4b0eIUIw8D/voVdX4nvMk4udxmOc1XW6+fX7iZZtTN87Tp3UcFnx5nsYxvy+iNLmMw4dcPEId4lPPr587i9IinGfpE8+KiOdnafpRPJKs41hJP02i1TzMCvHMz7+onyiKLLpbF+Vgfi4fODr6vf7ZsfVq9+/v7/4jxqZitiJveWpa3iZRMeO/8rhhtWqv2i6zdHU+FxSJcD5fPPGkHK9Tt/3xSjkoDB0U1g3K5qgIdFTkC4iKQgdFv8CgXOig3C8xfww6KmZ3VOXPwDLFyfKzr1Tg4KXGdZaJxu17XMtrmHze4YpZs7u63c88XjSsN2fp8nnrAF6oM//kz4LiNw0XXXtx8S6M2zMrWrKSixNPksZZmPPTbJVWlKa5anqXL4THfFRS5hHP7rmSdBavlw88TZRE4VSXSsJllKlfd3ofqXu8Kb1zFt0rid/x4pHvMXV21Vadq9llJQ/pketu02zThCVRXt10e3abZjeKnrOzLmanabZpamN2e3abZpsmjC0t+FrX2BhdcxS6Jov/oGoqVUOkq2vIH6Vrra43iq56ZWujnilQtdrWRt12tWSva3WTDNTBtI02bXiUacNddXNGaZvcsftUj661EDtP9WhaC3HzlKUAu9Yz2YYdzJpVNSOmakZM1YyYqpnCntnaMtVq5h3U7AsGasw0TmOmYRozjdKYpT1wrWZyrH+wZlbVDHmm5qzVE2TP2pgQg9bGHGPRPKC... (data truncated for documentation)",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "https://localhost:9002/api/character/import",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "9002",
+							"path": [
+								"api",
+								"character",
+								"import"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Date",
+							"value": "Sun, 20 Jan 2019 06:46:59 GMT"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Server",
+							"value": "Kestrel"
+						},
+						{
+							"key": "Transfer-Encoding",
+							"value": "chunked"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"Success\": false,\n    \"FailureReason\": \"NameIsUnavailable\",\n    \"CharacterName\": null,\n    \"CharacterId\": 0\n}"
+				},
+				{
+					"name": "https://localhost:9002/api/character/import",
+					"originalRequest": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "NewCharacterName",
+									"value": "testChar4",
+									"type": "text"
+								},
+								{
+									"key": "SnapshotPackageBase64",
+									"value": "UEsDBBQAAAAIADewMU57l7pQgAsAAKSHAAAPAAAAMTM0MjE3NzI4MS5qc29u7V3dc5w4En+/qvsfXH5OXOgDAffmj/icu/HunMeb7N7WPmCPYnNhwAXMbnxb+7+fgJlBDBLQspINl/HLVNSIn7rV6m6pW+T3v/7l6Oj47fL4b0eIUIw8D/voVdX4nvMk4udxmOc1XW6+fX7iZZtTN87Tp3UcFnx5nsYxvy+iNLmMw4dcPEId4lPPr587i9IinGfpE8+KiOdnafpRPJKs41hJP02i1TzMCvHMz7+onyiKLLpbF+Vgfi4fODr6vf7ZsfVq9+/v7/4jxqZitiJveWpa3iZRMeO/8rhhtWqv2i6zdHU+FxSJcD5fPPGkHK9Tt/3xSjkoDB0U1g3K5qgIdFTkC4iKQgdFv8CgXOig3C8xfww6KmZ3VOXPwDLFyfKzr1Tg4KXGdZaJxu17XMtrmHze4YpZs7u63c88XjSsN2fp8nnrAF6oM//kz4LiNw0XXXtx8S6M2zMrWrKSixNPksZZmPPTbJVWlKa5anqXL4THfFRS5hHP7rmSdBavlw88TZRE4VSXSsJllKlfd3ofqXu8Kb1zFt0rid/x4pHvMXV21Vadq9llJQ/pketu02zThCVRXt10e3abZjeKnrOzLmanabZpamN2e3abZpsmjC0t+FrX2BhdcxS6Jov/oGoqVUOkq2vIH6Vrra43iq56ZWujnilQtdrWRt12tWSva3WTDNTBtI02bXiUacNddXNGaZvcsftUj661EDtP9WhaC3HzlKUAu9Yz2YYdzJpVNSOmakZM1YyYqpnCntnaMtVq5h3U7AsGasw0TmOmYRozjdKYpT1wrWZyrH+wZlbVDHmm5qzVE2TP2pgQg9bGHGPRPKC... (data truncated for documentation)",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "https://localhost:9002/api/character/import",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "9002",
+							"path": [
+								"api",
+								"character",
+								"import"
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Date",
+							"value": "Sun, 20 Jan 2019 06:47:23 GMT"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Server",
+							"value": "Kestrel"
+						},
+						{
+							"key": "Transfer-Encoding",
+							"value": "chunked"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"Success\": true,\n    \"FailureReason\": null,\n    \"CharacterName\": \"testChar4\",\n    \"CharacterId\": 1342177289\n}"
+				}
+			]
+		},
+		{
+			"name": "/api/character/migrationBegin",
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": [
+						{
+							"key": "username",
+							"value": "testaccount2",
+							"type": "string"
+						},
+						{
+							"key": "password",
+							"value": "testpassword",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "https://localhost:9002/api/character/migrationBegin?CharacterId=1342177294",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "9002",
+					"path": [
+						"api",
+						"character",
+						"migrationBegin"
+					],
+					"query": [
+						{
+							"key": "CharacterId",
+							"value": "1342177294",
+							"description": "id of the character to migrate (from /api/character)"
+						}
+					]
+				},
+				"description": "begin the migration procedure for a character in your account and freeze the character.\n<br>\nAuthorization: RequiresAny: [Admin,Advocate,Developer,Envoy,Player,Sentinel]"
+			},
+			"response": [
+				{
+					"name": "https://localhost:9002/api/character/migrationBegin",
+					"originalRequest": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "https://localhost:9002/api/character/migrationBegin?CharacterId=1342177281",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "9002",
+							"path": [
+								"api",
+								"character",
+								"migrationBegin"
+							],
+							"query": [
+								{
+									"key": "CharacterId",
+									"value": "1342177281"
+								}
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Date",
+							"value": "Sun, 20 Jan 2019 06:41:06 GMT"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Server",
+							"value": "Kestrel"
+						},
+						{
+							"key": "Transfer-Encoding",
+							"value": "chunked"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"Success\": true,\n    \"CharacterId\": 1342177281,\n    \"Cookie\": \"2OtjMv7e\",\n    \"BaseURL\": \"https://fartwhif.myqnapcloud.com:9002\"\n}"
+				},
+				{
+					"name": "https://localhost:9002/api/character/migrationBegin",
+					"originalRequest": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "https://localhost:9002/api/character/migrationBegin?CharacterId=1342177281",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "9002",
+							"path": [
+								"api",
+								"character",
+								"migrationBegin"
+							],
+							"query": [
+								{
+									"key": "CharacterId",
+									"value": "1342177281"
+								}
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Date",
+							"value": "Sun, 20 Jan 2019 06:41:32 GMT"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Server",
+							"value": "Kestrel"
+						},
+						{
+							"key": "Transfer-Encoding",
+							"value": "chunked"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"Success\": false,\n    \"CharacterId\": 1342177281,\n    \"Cookie\": null,\n    \"BaseURL\": null\n}"
+				}
+			]
+		},
+		{
+			"name": "/api/character/migrationCancel",
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": [
+						{
+							"key": "password",
+							"value": "testpassword",
+							"type": "string"
+						},
+						{
+							"key": "username",
+							"value": "testaccount",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "https://localhost:9002/api/character/migrationCancel?Cookie=IXfFGIF4",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "9002",
+					"path": [
+						"api",
+						"character",
+						"migrationCancel"
+					],
+					"query": [
+						{
+							"key": "Cookie",
+							"value": "IXfFGIF4",
+							"description": "cookie of the migration to cancel (from /api/character/migrationBegin)"
+						}
+					]
+				},
+				"description": "cancel a migration procedure and unfreeze the character\n<br>\nAuthorization: RequiresAny: [Admin,Advocate,Developer,Envoy,Player,Sentinel]"
+			},
+			"response": [
+				{
+					"name": "https://localhost:9002/api/character/migrationCancel",
+					"originalRequest": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "https://localhost:9002/api/character/migrationCancel?Cookie=2OtjMv7e",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "9002",
+							"path": [
+								"api",
+								"character",
+								"migrationCancel"
+							],
+							"query": [
+								{
+									"key": "Cookie",
+									"value": "2OtjMv7e"
+								}
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Date",
+							"value": "Sun, 20 Jan 2019 06:42:22 GMT"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Server",
+							"value": "Kestrel"
+						},
+						{
+							"key": "Transfer-Encoding",
+							"value": "chunked"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"Success\": true,\n    \"Cookie\": \"2OtjMv7e\"\n}"
+				},
+				{
+					"name": "https://localhost:9002/api/character/migrationCancel",
+					"originalRequest": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "https://localhost:9002/api/character/migrationCancel?Cookie=LJKAjreL",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "9002",
+							"path": [
+								"api",
+								"character",
+								"migrationCancel"
+							],
+							"query": [
+								{
+									"key": "Cookie",
+									"value": "LJKAjreL"
+								}
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Date",
+							"value": "Sun, 20 Jan 2019 06:42:02 GMT"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Server",
+							"value": "Kestrel"
+						},
+						{
+							"key": "Transfer-Encoding",
+							"value": "chunked"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"Success\": false,\n    \"Cookie\": \"LJKAjreL\"\n}"
+				}
+			]
+		},
+		{
+			"name": "/api/character/migrationCheck",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "https://localhost:9002/api/character/migrationCheck?cookie=IXfFGIF4&nonce=h3Dfs0x9tvs4m01b",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "9002",
+					"path": [
+						"api",
+						"character",
+						"migrationCheck"
+					],
+					"query": [
+						{
+							"key": "cookie",
+							"value": "IXfFGIF4",
+							"description": "cookie of the migration to check (from /api/character/migrationBegin)"
+						},
+						{
+							"key": "nonce",
+							"value": "h3Dfs0x9tvs4m01b",
+							"description": "per-request random string of length 16 characters a-zA-Z0-9  After verifying the signature the software should check to make sure it's the same as the nonce in the result."
+						}
+					]
+				},
+				"description": "Check status of a migration, and the server thumprint, thumprints allowed for various purposes, and which types of operations are allowed.  Inter-server resource.<br>\nEnd users should not be calling this resource.  Only servers completing migrations should ever be using this resource.  This is a server to server resource.  Use /api/character/migrationComplete instead.\n<br>\nAuthorization: Anonymous"
+			},
+			"response": [
+				{
+					"name": "/api/migrationCheck",
+					"originalRequest": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "https://localhost:9002/api/migrationCheck?cookie=a3O8ywxt&nonce=h3Djfs0x9tv4m01b",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "9002",
+							"path": [
+								"api",
+								"migrationCheck"
+							],
+							"query": [
+								{
+									"key": "cookie",
+									"value": "a3O8ywxt"
+								},
+								{
+									"key": "nonce",
+									"value": "h3Djfs0x9tv4m01b"
+								}
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Date",
+							"value": "Sat, 02 Feb 2019 00:27:47 GMT"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Server",
+							"value": "Kestrel"
+						},
+						{
+							"key": "Transfer-Encoding",
+							"value": "chunked"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"Result\": {\n        \"Config\": {\n            \"MyThumbprint\": \"5EA9785696CD23E00D0F3C22AD5CB114709FC1B0\",\n            \"AllowMigrationFrom\": [\n                \"C6EF5CFB790CA6F39F0ED9A01CDF3D0BFC01EB69\"\n            ],\n            \"AllowImportFrom\": [\n                \"C6EF5CFB790CA6F39F0ED9A01CDF3D0BFC01EB69\"\n            ],\n            \"AllowBackup\": true,\n            \"AllowImport\": true,\n            \"AllowMigrate\": true\n        },\n        \"Nonce\": \"h3Djfs0x9tv4m01b\",\n        \"Ready\": true,\n        \"ReadyStatus\": \"Ready\",\n        \"Cookie\": \"a3O8ywxt\"\n    },\n    \"Signature\": \"pJB958dn2lddTgMYVhaDhqGLSliqyqmsoexcEkCjsU5u5xts+ljQ7r88jZTnL/keMQSfLcqftszA/rfacf3Vwu950WoJzFjJRxYslHSOD8S3q70L9b3GPAYYdQ8/BEnKqKuoDr4tR1cVzUQFIkecXgCgjH4gc1XcL5cJBN7Y5wnvI1l7eemNwmqMPe6H70/vo2DRYRFKgojAkFPqV12Wh3Fr2JZjfTTfNXFYS64MzM6kfSdqB97SOO1oFBa/ILclXZX1PYrcFDINJH8iA5y3RqIYjNrZ6eqDFTIo98YvmtCuovUE4X8Zs6WozHWCGq6MjLmcmokgSlHLDh1+mHKlJg==\",\n    \"Signer\": \"MIIDHzCCAgegAwIBAgIIVF5kOZ2RPFQwDQYJKoZIhvcNAQENBQAwJjEkMCIGA1UEAxMbQUNFbXVsYXRvciBUcmFuc2ZlciBNYW5hZ2VyMB4XDTE5MDEzMDAzNTkyNloXDTI5MDEyODAzNTkyNlowJjEkMCIGA1UEAxMbQUNFbXVsYXRvciBUcmFuc2ZlciBNYW5hZ2VyMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAskJQ2Zo2IFXvZjvDJAre88B3pdqUrdc/2N4eTs7qbhue3taLbDRaKWi/DE326LqA9LJ/ndTmap2+WZ+R2gJmE8T5EL6AijWtV2qIQjdLA0tJtuJD0FsDoP+8TV3/Fgl/CJ3EFRkSQufY08bo9VOReQChk/wqFFKlbitzLOMcy4/jVuzIumkDDKkdYoLM5kCVxLQS+DDDfv8OdxGgpdRcYBa4f1dlRs0dZcGVYGSSDabmYot4THqAOFO9VcDGIf+EhDY8wN15EZ6BF3tBIURSdh+iFos/fhsCJgl6fCkHzr43L26ki7iev/UpeiDuT1OwSmnRn5XZ5ABB2IuzG4Rp3QIDAQABo1EwTzALBgNVHQ8EBAMCBLAwEwYDVR0lBAwwCgYIKwYBBQUHAwEwKwYDVR0RBCQwIocEfwAAAYIJbG9jYWxob3N0gg9ERVNLVE9QLTNSNjU4QUowDQYJKoZIhvcNAQENBQADggEBAE/YFnC3gTOwjI84dw6DisiAJ8C5gX8DOOT8X8V04q1IRY3Cq1gPxVuuEb2EIRSIfFMQ4lPOOmuvw5i5UDz87hkM4vA8zJ2iAoYtSNNhiqc6yg6GLOlDzmaromVbi7zxiTq/HcfVk7VMp3pUH0E+hn0ADfKGT3XjE9TFCE2rGCxz+3HySpwiYepmIZ7XvgAzecNvZZ6Zhx+X3aw9S+WSTJPGnmqn941xookT/TZ4Fo5B03UZocxYNO3w+i5KVnR1F2FIjZSdBfzkpprJmpZZg2SvF4tIYgY6lD7rg1O905X79IvEb4IN4hiFWq+JTrG5BfbK5a7wk/DreczcJQTUT5c=\"\n}"
+				}
+			]
+		},
+		{
+			"name": "/api/character/migrationDownload",
+			"request": {
+				"auth": {
+					"type": "noauth"
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "https://localhost:9002/api/character/migrationDownload?Cookie=pjRrUaai",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "9002",
+					"path": [
+						"api",
+						"character",
+						"migrationDownload"
+					],
+					"query": [
+						{
+							"key": "Cookie",
+							"value": "pjRrUaai",
+							"description": "cookie of the character migration package to download (from /api/character/migrationBegin)"
+						}
+					]
+				},
+				"description": "Download a migration snapshot package and delete the character.  Inter-server resource.<br>\nEnd users should not be calling this resource.  Only servers completing migrations should ever be using this resource.  This is a server to server resource.  Use /api/character/migrationComplete instead.<br>\nAuthorization: Anonymous"
+			},
+			"response": [
+				{
+					"name": "https://localhost:9002/api/character/migrationDownload",
+					"originalRequest": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "https://localhost:9002/api/character/migrationDownload?Cookie=pjRrUaai",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "9002",
+							"path": [
+								"api",
+								"character",
+								"migrationDownload"
+							],
+							"query": [
+								{
+									"key": "Cookie",
+									"value": "pjRrUaai"
+								}
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Date",
+							"value": "Sun, 20 Jan 2019 06:43:25 GMT"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Server",
+							"value": "Kestrel"
+						},
+						{
+							"key": "Transfer-Encoding",
+							"value": "chunked"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"Success\": true,\n    \"Cookie\": \"pjRrUaai\",\n    \"SnapshotPackage\": \"UEsDBBQAAAAIADewMU57l7pQgAsAAKSHAAAPAAAAMTM0MjE3NzI4MS5qc29u7V3dc5w4En+/qvsfXH5OXOgDAffmj/icu/HunMeb7N7WPmCPYnNhwAXMbnxb+7+fgJlBDBLQspINl/HLVNSIn7rV6m6pW+T3v/7l6Oj47fL4b0eIUIw8D/voVdX4nvMk4udxmOc1XW6+fX7iZZtTN87Tp3UcFnx5nsYxvy+iNLmMw4dcPEId4lPPr587i9IinGfpE8+KiOdnafpRPJKs41hJP02i1TzMCvHMz7+onyiKLLpbF+Vgfi4fODr6vf7ZsfVq9+/v7/4jxqZitiJveWpa3iZRMeO/8rhhtWqv2i6zdHU+FxSJcD5fPPGkHK9Tt/3xSjkoDB0U1g3K5qgIdFTkC4iKQgdFv8CgXOig3C8xfww6KmZ3VOXPwDLFyfKzr1Tg4KXGdZaJxu17XMtrmHze4YpZs7u63c88XjSsN2fp8nnrAF6oM//kz4LiNw0XXXtx8S6M2zMrWrKSixNPksZZmPPTbJVWlKa5anqXL4THfFRS5hHP7rmSdBavlw88TZRE4VSXSsJllKlfd3ofqXu8Kb1zFt0rid/x4pHvMXV21Vadq9llJQ/pketu02zThCVRXt10e3abZjeKnrOzLmanabZpamN2e3abZpsmjC0t+FrX2BhdcxS6Jov/oGoqVUOkq2vIH6Vrra43iq56ZWujnilQtdrWRt12tWSva3WTDNTBtI02bXiUacNddXNGaZvcsftUj661EDtP9WhaC3HzlKUAu9Yz2YYdzJpVNSOmakZM1YyYqpnCntnaMtVq5h3U7AsGasw0TmOmYRozjdKYpT1wrWZyrH+wZlbVDHmm5qzVE2TP2pgQg9bGHGPRPKC... (data truncated for documentation)\"\n}"
+				},
+				{
+					"name": "https://localhost:9002/api/character/migrationDownload",
+					"originalRequest": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "https://localhost:9002/api/character/migrationDownload?Cookie=epNXRHGz",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "9002",
+							"path": [
+								"api",
+								"character",
+								"migrationDownload"
+							],
+							"query": [
+								{
+									"key": "Cookie",
+									"value": "epNXRHGz"
+								}
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Date",
+							"value": "Sun, 20 Jan 2019 06:43:13 GMT"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Server",
+							"value": "Kestrel"
+						},
+						{
+							"key": "Transfer-Encoding",
+							"value": "chunked"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"Success\": false,\n    \"Cookie\": \"epNXRHGz\",\n    \"SnapshotPackage\": null\n}"
+				}
+			]
+		},
+		{
+			"name": "/api/character/migrationComplete",
+			"request": {
+				"auth": {
+					"type": "basic",
+					"basic": [
+						{
+							"key": "username",
+							"value": "testaccount2",
+							"type": "string"
+						},
+						{
+							"key": "password",
+							"value": "testpassword",
+							"type": "string"
+						}
+					]
+				},
+				"method": "GET",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": ""
+				},
+				"url": {
+					"raw": "https://localhost:9002/api/character/migrationComplete?BaseURL=https://fartwhif.myqnapcloud.com:9002&NewCharacterName=southpaw&Cookie=a3O8ywxt",
+					"protocol": "https",
+					"host": [
+						"localhost"
+					],
+					"port": "9002",
+					"path": [
+						"api",
+						"character",
+						"migrationComplete"
+					],
+					"query": [
+						{
+							"key": "BaseURL",
+							"value": "https://fartwhif.myqnapcloud.com:9002",
+							"description": "source server URL (from /api/character/migrationBegin)"
+						},
+						{
+							"key": "NewCharacterName",
+							"value": "southpaw",
+							"description": "desired character name for the migrated character"
+						},
+						{
+							"key": "Cookie",
+							"value": "a3O8ywxt",
+							"description": "cookie of the migration to complete  (from /api/character/migrationBegin)"
+						}
+					]
+				},
+				"description": "Complete a migration at the target server.\n<br>\nAuthorization: RequiresAny: [Admin,Advocate,Developer,Envoy,Player,Sentinel]"
+			},
+			"response": [
+				{
+					"name": "/api/character/migrationComplete",
+					"originalRequest": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "https://localhost:9002/api/character/migrationComplete?BaseURL=https://fartwhif.myqnapcloud.com:9002&NewCharacterName=southpaw&Cookie=a3O8ywxt",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "9002",
+							"path": [
+								"api",
+								"character",
+								"migrationComplete"
+							],
+							"query": [
+								{
+									"key": "BaseURL",
+									"value": "https://fartwhif.myqnapcloud.com:9002",
+									"description": "the source server URL (from /api/character/migrationBegin)"
+								},
+								{
+									"key": "NewCharacterName",
+									"value": "southpaw",
+									"description": "the desired character name for the migrated character"
+								},
+								{
+									"key": "Cookie",
+									"value": "a3O8ywxt",
+									"description": "the cookie of the migration to complete"
+								}
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Date",
+							"value": "Sat, 02 Feb 2019 00:56:32 GMT"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Server",
+							"value": "Kestrel"
+						},
+						{
+							"key": "Transfer-Encoding",
+							"value": "chunked"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"Success\": true,\n    \"FailureReason\": null,\n    \"Cookie\": \"a3O8ywxt\",\n    \"CharacterName\": \"southpaw\",\n    \"CharacterId\": 1342177294\n}"
+				},
+				{
+					"name": "https://localhost:9002/api/character/migrationComplete",
+					"originalRequest": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "https://localhost:9002/api/character/migrationComplete?BaseURL=https://fartwhif.myqnapcloud.com:9002&NewCharacterName=myChar2&Cookie=H1VARJ3C",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "9002",
+							"path": [
+								"api",
+								"character",
+								"migrationComplete"
+							],
+							"query": [
+								{
+									"key": "BaseURL",
+									"value": "https://fartwhif.myqnapcloud.com:9002"
+								},
+								{
+									"key": "NewCharacterName",
+									"value": "myChar2"
+								},
+								{
+									"key": "Cookie",
+									"value": "H1VARJ3C"
+								}
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Date",
+							"value": "Sun, 20 Jan 2019 06:44:37 GMT"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Server",
+							"value": "Kestrel"
+						},
+						{
+							"key": "Transfer-Encoding",
+							"value": "chunked"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"Success\": false,\n    \"FailureReason\": \"NameIsUnavailable\",\n    \"Cookie\": \"H1VARJ3C\",\n    \"CharacterName\": null,\n    \"CharacterId\": 0\n}"
+				},
+				{
+					"name": "https://localhost:9002/api/character/migrationComplete",
+					"originalRequest": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "https://localhost:9002/api/character/migrationComplete?BaseURL=https://fartwhif.myqnapcloud.com:9002&NewCharacterName=myChar3&Cookie=5gGnUruV",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "9002",
+							"path": [
+								"api",
+								"character",
+								"migrationComplete"
+							],
+							"query": [
+								{
+									"key": "BaseURL",
+									"value": "https://fartwhif.myqnapcloud.com:9002"
+								},
+								{
+									"key": "NewCharacterName",
+									"value": "myChar3"
+								},
+								{
+									"key": "Cookie",
+									"value": "5gGnUruV"
+								}
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Date",
+							"value": "Sun, 20 Jan 2019 06:46:27 GMT"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Server",
+							"value": "Kestrel"
+						},
+						{
+							"key": "Transfer-Encoding",
+							"value": "chunked"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"Success\": true,\n    \"FailureReason\": null,\n    \"Cookie\": \"5gGnUruV\",\n    \"CharacterName\": \"myChar3\",\n    \"CharacterId\": 1342177288\n}"
+				},
+				{
+					"name": "/api/character/migrationComplete",
+					"originalRequest": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": ""
+						},
+						"url": {
+							"raw": "https://localhost:9002/api/character/migrationComplete?BaseURL=https://fartwhif.myqnapcloud.com:9002&NewCharacterName=southpaw&Cookie=a3O8ywxt",
+							"protocol": "https",
+							"host": [
+								"localhost"
+							],
+							"port": "9002",
+							"path": [
+								"api",
+								"character",
+								"migrationComplete"
+							],
+							"query": [
+								{
+									"key": "BaseURL",
+									"value": "https://fartwhif.myqnapcloud.com:9002"
+								},
+								{
+									"key": "NewCharacterName",
+									"value": "southpaw"
+								},
+								{
+									"key": "Cookie",
+									"value": "a3O8ywxt"
+								}
+							]
+						}
+					},
+					"status": "OK",
+					"code": 200,
+					"_postman_previewlanguage": "json",
+					"header": [
+						{
+							"key": "Date",
+							"value": "Sat, 02 Feb 2019 00:46:23 GMT"
+						},
+						{
+							"key": "Content-Type",
+							"value": "application/json"
+						},
+						{
+							"key": "Server",
+							"value": "Kestrel"
+						},
+						{
+							"key": "Transfer-Encoding",
+							"value": "chunked"
+						}
+					],
+					"cookie": [],
+					"body": "{\n    \"Success\": false,\n    \"FailureReason\": \"UnverifiedSourceServerNotAllowed\",\n    \"Cookie\": \"a3O8ywxt\",\n    \"CharacterName\": null,\n    \"CharacterId\": 0\n}"
+				}
+			]
+		}
+	],
+	"auth": {
+		"type": "basic",
+		"basic": [
+			{
+				"key": "password",
+				"value": "mypassword",
+				"type": "string"
+			},
+			{
+				"key": "username",
+				"value": "myaccount",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"id": "72fd17fd-aa7e-4216-9868-aa2d3f08f43c",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"id": "55a8fa92-e8e7-43ac-8ed9-1af812897869",
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	]
+}

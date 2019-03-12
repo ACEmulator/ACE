@@ -46,6 +46,16 @@
 * Fixed an exception for PropertyManager when requesting the value of a property that didn't exist in the database
 * Cleanedup the WorldObject OnLoad, OnAddItem, OnRemoveItem code and flow
 
+### 2019-02-18
+[fartwhif]
+* Added ACE.WebApi project for use with websites and character transfers
+  - Allows a web client to obtain the current status of the server, and admins to obtain more detailed information and invoke console commands.
+  - Migrate characters between servers.  Allows regular accounts to do character list/import/migrate/backup of their owned characters. 
+  - Basic authentication for some resources, some require admin accesslevel, some don't, anonymous for others.
+  - Uses the underlying ACEmulator server for authentication and authorization.
+  - Uses HTTPS over Baseport + 2, 9002 for default configurations, generates self-signed certificates upon first use with the current world name and WebApi enabled.
+  - Disabled by default, see README.md in the ACE.WebServer project folder for enable and run instructions.
+
 ### 2019-02-09
 [Ripley]
 * Changed GenerateTreasure to check for null DeathTreasure and de-duped generate code so that items weren't generated twice upon death.
