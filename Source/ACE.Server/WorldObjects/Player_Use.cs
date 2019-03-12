@@ -59,36 +59,8 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-
-            // Is the target the player?
-            if (targetObjectGuid == Guid.Full)
-            {
-                // using something on ourselves
-                if (sourceItem.WeenieType == WeenieType.ManaStone)
-                    ((ManaStone)sourceItem).HandleActionUseOnTarget(this, this);
-                else
-                    RecipeManager.UseObjectOnTarget(this, sourceItem, this);
-
-                return;
-            }
-
-
-            // Is the target item in our possession?
-            var targetItem = FindObject(targetObjectGuid, SearchLocations.MyInventory | SearchLocations.MyEquippedItems);
-
-            if (targetItem != null)
-            {
-                if (sourceItem.WeenieType == WeenieType.ManaStone)
-                    ((ManaStone)sourceItem).HandleActionUseOnTarget(this, targetItem);
-                else
-                    RecipeManager.UseObjectOnTarget(this, sourceItem, targetItem);
-
-                return;
-            }
-
-
-            // Is the target on the landblock?
-            targetItem = FindObject(targetObjectGuid, SearchLocations.Landblock);
+            // Resolve the guid to an object that is either in our posession or on the Landblock
+            var targetItem = FindObject(targetObjectGuid, SearchLocations.MyInventory | SearchLocations.MyEquippedItems | SearchLocations.Landblock);
 
             if (targetItem == null)
             {
@@ -97,24 +69,26 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            if (sourceItem.WeenieType == WeenieType.Healer)
+            switch (sourceItem.WeenieType)
             {
-                if (targetItem is Player player)
-                    ((Healer)sourceItem).HandleActionUseOnTarget(this, player);
-                else
-                    SendUseDoneEvent(WeenieError.YouCantHealThat);
-            }
-            else if (sourceItem.WeenieType == WeenieType.Key)
-            {
-                ((Key)sourceItem).HandleActionUseOnTarget(this, targetItem);
-            }
-            else if (sourceItem.WeenieType == WeenieType.Lockpick)
-            {
-                ((Lockpick)sourceItem).HandleActionUseOnTarget(this, targetItem);
-            }
-            else
-            {
-                RecipeManager.UseObjectOnTarget(this, sourceItem, targetItem);
+                case WeenieType.ManaStone:
+                    ((ManaStone)sourceItem).HandleActionUseOnTarget(this, targetItem);
+                    break;
+                case WeenieType.Healer:
+                    if (targetItem is Player player)
+                        ((Healer)sourceItem).HandleActionUseOnTarget(this, player);
+                    else
+                        SendUseDoneEvent(WeenieError.YouCantHealThat);
+                    break;
+                case WeenieType.Key:
+                    ((Key)sourceItem).HandleActionUseOnTarget(this, targetItem);
+                    break;
+                case WeenieType.Lockpick:
+                    ((Lockpick)sourceItem).HandleActionUseOnTarget(this, targetItem);
+                    break;
+                default:
+                    RecipeManager.UseObjectOnTarget(this, sourceItem, targetItem);
+                    break;
             }
         }
 
