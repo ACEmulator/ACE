@@ -349,31 +349,18 @@ namespace ACE.Server.Entity.Chess
                         if (isOnline)
                             onlinePlayer.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(onlinePlayer, PropertyInt.ChessGamesLost, lost));
                     }
-
-                    // update rank
-                    var rank = player.GetProperty(PropertyInt.ChessRank) ?? 1400;
-                    var opRank = 1400;
-                    var opSide = Sides[(int)Chess.InverseColor(side.Color)];
-                    if (opSide != null && !opSide.IsAi())
-                    {
-                        var opPlayer = PlayerManager.FindByGuid(opSide.PlayerGuid);
-                        opRank = opPlayer.GetProperty(PropertyInt.ChessRank) ?? 1400;
-                    }
-
-                    var chance = ExpectationToWin(rank, opRank);
-
-                    var win = winnerColor == side.Color ? 1.0f : 0.0f;
-                    var delta = (int)Math.Round(RankFactor * (win - chance));
-
-                    player.SetProperty(PropertyInt.ChessRank, rank + delta);
-
-                    if (isOnline)
-                        onlinePlayer.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(onlinePlayer, PropertyInt.ChessRank, rank + delta));
                 }
 
                 if (isOnline)
                     onlinePlayer.ChessMatch = null;
             }
+
+            // adjust player ranks
+            var playerGuid = Sides[0].PlayerGuid;
+            var opponentGuid = Sides[1].PlayerGuid;
+            var winnerGuid = winner == 0 ? playerGuid : opponentGuid;
+
+            AdjustPlayerRanks(playerGuid, opponentGuid, winnerGuid);
 
             Actions.Clear();
 
@@ -667,19 +654,37 @@ namespace ACE.Server.Entity.Chess
         /// <summary>
         /// Adjusts the chess ranks for 2 players after a match
         /// </summary>
-        /// <param name="aWinner">if TRUE, player A won the match</param>
-        public static void AdjustPlayerRanks(Player a, Player b, bool aWinner)
+        public static void AdjustPlayerRanks(ObjectGuid playerGuid, ObjectGuid opponentGuid, ObjectGuid winnerGuid)
         {
-            var rank = a.GetProperty(PropertyInt.ChessRank) ?? 1400;
-            var opRank = b.GetProperty(PropertyInt.ChessRank) ?? 1400;
+            var player = PlayerManager.FindByGuid(playerGuid, out bool playerIsOnline);
+            var opponent = PlayerManager.FindByGuid(opponentGuid, out bool opponentIsOnline);
+
+            var rank = player.GetProperty(PropertyInt.ChessRank) ?? 1400;
+            var opRank = 1400;
+            if (opponent != null)   // chess ai
+                opRank = opponent.GetProperty(PropertyInt.ChessRank) ?? 1400;
 
             var chance = ExpectationToWin(rank, opRank);
 
-            var win = aWinner ? 1.0f : 0.0f;
+            var win = playerGuid == winnerGuid ? 1.0f : 0.0f;
             var delta = (int)Math.Round(RankFactor * (win - chance));
 
-            a.SetProperty(PropertyInt.ChessRank, rank   + delta);
-            b.SetProperty(PropertyInt.ChessRank, opRank - delta);
+            player.SetProperty(PropertyInt.ChessRank, rank + delta);
+
+            if (opponent != null)
+                opponent.SetProperty(PropertyInt.ChessRank, opRank - delta);
+
+            if (playerIsOnline)
+            {
+                var onlinePlayer = PlayerManager.GetOnlinePlayer(playerGuid);
+                onlinePlayer.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(onlinePlayer, PropertyInt.ChessRank, rank + delta));
+            }
+
+            if (opponent != null && opponentIsOnline)
+            {
+                var onlineOp = PlayerManager.GetOnlinePlayer(opponentGuid);
+                onlineOp.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt(onlineOp, PropertyInt.ChessRank, opRank - delta));
+            }
         }
 
         /// <summary>
