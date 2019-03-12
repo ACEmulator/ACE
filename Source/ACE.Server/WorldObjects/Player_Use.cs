@@ -59,7 +59,7 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            // Is the target item in our possession?
+            // Resolve the guid to an object that is either in our posession or on the Landblock
             var targetItem = FindObject(targetObjectGuid, SearchLocations.MyInventory | SearchLocations.MyEquippedItems | SearchLocations.Landblock);
 
             if (targetItem == null)

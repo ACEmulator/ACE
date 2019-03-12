@@ -71,8 +71,8 @@ namespace ACE.Server.WorldObjects
                     player.Session.Network.EnqueueSend(new GameEventUseDone(player.Session, WeenieError.YouDoNotOwnThatItem));
                     return;
                 }
-                else
-                    target = invTarget;
+
+                target = invTarget;
             }
 
             if (!ItemCurMana.HasValue)
