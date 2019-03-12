@@ -153,12 +153,7 @@ namespace ACE.Server.WorldObjects
             LastUseTime = 0.0f;
 
             if (success)
-            {
-                if (item is Container)
-                    LastUsedContainerId = item.Guid;
-
                 item.OnActivate(this);
-            }
 
             var actionChain = new ActionChain();
             actionChain.AddDelaySeconds(LastUseTime);
@@ -173,6 +168,20 @@ namespace ACE.Server.WorldObjects
         public void SendUseDoneEvent(WeenieError errorType = WeenieError.None)
         {
             Session.Network.EnqueueSend(new GameEventUseDone(Session, errorType));
+        }
+
+
+        /// <summary>
+        /// This method processes the Game Action (F7B1) No Longer Viewing Contents (0x0195)
+        /// This is raised when we:
+        /// - have a container open and open up a second container without closing the first container.
+        /// </summary>
+        public void HandleActionNoLongerViewingContents(uint objectGuid)
+        {
+            var container = CurrentLandblock?.GetObject(objectGuid) as Container;
+
+            if (container != null && container.Viewer == Guid.Full)
+                container.Close(this);
         }
     }
 }
