@@ -1,9 +1,7 @@
 using System;
-
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Server.Entity.Actions;
-using ACE.Server.Managers;
 using ACE.Server.Network.GameEvent.Events;
 
 namespace ACE.Server.WorldObjects
@@ -34,9 +32,9 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
+            // handle casters with built-in spells
             if (sourceItemIsEquipped)
             {
-                // This could be a caster with a built-in spell
                 if (sourceItem.SpellDID != null)
                 {
                     // check activation requirements
@@ -59,37 +57,17 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
-            // Resolve the guid to an object that is either in our posession or on the Landblock
-            var targetItem = FindObject(targetObjectGuid, SearchLocations.MyInventory | SearchLocations.MyEquippedItems | SearchLocations.Landblock);
+            // Resolve the guid to an object that is either in our possession or on the Landblock
+            var target = FindObject(targetObjectGuid, SearchLocations.MyInventory | SearchLocations.MyEquippedItems | SearchLocations.Landblock);
 
-            if (targetItem == null)
+            if (target == null)
             {
                 log.Warn($"{Name}.HandleActionUseWithTarget({sourceObjectGuid:X8}, {targetObjectGuid:X8}): couldn't find {targetObjectGuid:X8}");
                 SendUseDoneEvent();
                 return;
             }
 
-            switch (sourceItem.WeenieType)
-            {
-                case WeenieType.ManaStone:
-                    ((ManaStone)sourceItem).HandleActionUseOnTarget(this, targetItem);
-                    break;
-                case WeenieType.Healer:
-                    if (targetItem is Player player)
-                        ((Healer)sourceItem).HandleActionUseOnTarget(this, player);
-                    else
-                        SendUseDoneEvent(WeenieError.YouCantHealThat);
-                    break;
-                case WeenieType.Key:
-                    ((Key)sourceItem).HandleActionUseOnTarget(this, targetItem);
-                    break;
-                case WeenieType.Lockpick:
-                    ((Lockpick)sourceItem).HandleActionUseOnTarget(this, targetItem);
-                    break;
-                default:
-                    RecipeManager.UseObjectOnTarget(this, sourceItem, targetItem);
-                    break;
-            }
+            sourceItem.HandleActionUseOnTarget(this, target);
         }
 
         /// <summary>
