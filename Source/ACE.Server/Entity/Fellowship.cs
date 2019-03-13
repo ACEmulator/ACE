@@ -283,21 +283,21 @@ namespace ACE.Server.Entity
         /// </summary>
         /// <param name="amount">The pre-scaled amount of XP to be shared</param>
         /// <param name="fixedAmount">If false, XP is divided up and scaled by the fellowship bonus</param>
-        internal void SplitXp(UInt64 amount, bool fixedAmount)
+        public void SplitXp(ulong amount, bool fixedAmount)
         {
             if (EvenShare)
             {
-                UInt64 shareAmount = amount;
+                var shareAmount = amount;
 
                 if (!fixedAmount)
-                    shareAmount = (UInt64)(shareAmount * GetMemberSharePercent());
+                    shareAmount = (ulong)Math.Round(shareAmount * GetMemberSharePercent());
                 else
-                    shareAmount = (amount / (UInt64)SharableMembers.Count);
+                    shareAmount = (ulong)Math.Round((float)amount / SharableMembers.Count);
 
                 foreach (var member in SharableMembers)
                 {
-                    if (!member.Location.Indoors && !fixedAmount)
-                        shareAmount = (UInt64)(shareAmount * GetDistanceScalar(member));
+                    if (!fixedAmount)
+                        shareAmount = (ulong)Math.Round(shareAmount * GetDistanceScalar(member));
 
                     member.EarnXP((long)shareAmount, false);
                 }
@@ -311,11 +311,8 @@ namespace ACE.Server.Entity
                 {
                     var levelScale = (float)(member.Level ?? 1) / levelSum;
 
-                    if (!member.Location.Indoors)
-                    {
-                        UInt64 playerTotal = (UInt64)(amount * levelScale * GetDistanceScalar(member));
-                        member.EarnXP((long)playerTotal, false);
-                    }
+                    var playerTotal = (ulong)Math.Round(amount * levelScale * GetDistanceScalar(member));
+                    member.EarnXP((long)playerTotal, false);
                 }
             }
         }
@@ -353,7 +350,7 @@ namespace ACE.Server.Entity
         /// Returns the amount to scale the XP for a fellow
         /// based on distance from the leader
         /// </summary>
-        internal double GetDistanceScalar(Player player)
+        private double GetDistanceScalar(Player player)
         {
             Position leaderPosition = PlayerManager.GetOnlinePlayer(FellowshipLeaderGuid).Location;
             Position memberPosition = player.Location;
