@@ -34,7 +34,7 @@ namespace ACE.Server.WorldObjects
             lastCompletedMove = moveToChainCounter;
         }
 
-        public void CreateMoveToChain(WorldObject target, Action<bool> callback)
+        public void CreateMoveToChain(WorldObject target, Action<bool> callback, float? useRadius = null)
         {
             var thisMoveToChainNumber = GetNextMoveToChainNumber();
 
@@ -48,7 +48,7 @@ namespace ACE.Server.WorldObjects
             }
 
             // already within use distance?
-            var withinUseRadius = CurrentLandblock.WithinUseRadius(this, target.Guid, out var targetValid);
+            var withinUseRadius = CurrentLandblock.WithinUseRadius(this, target.Guid, out var targetValid, useRadius);
             if (withinUseRadius)
             {
                 // send TurnTo motion
@@ -71,10 +71,10 @@ namespace ACE.Server.WorldObjects
 
             moveToChainStartTime = DateTime.UtcNow;
 
-            MoveToChain(target, thisMoveToChainNumber, callback);
+            MoveToChain(target, thisMoveToChainNumber, callback, useRadius);
         }
 
-        public void MoveToChain(WorldObject target, int thisMoveToChainNumber, Action<bool> callback)
+        public void MoveToChain(WorldObject target, int thisMoveToChainNumber, Action<bool> callback, float? useRadius = null)
         {
             if (thisMoveToChainNumber != moveToChainCounter)
             {
@@ -102,7 +102,7 @@ namespace ACE.Server.WorldObjects
             }
 
             // Are we within use radius?
-            var success = CurrentLandblock.WithinUseRadius(this, target.Guid, out var targetValid);
+            var success = CurrentLandblock.WithinUseRadius(this, target.Guid, out var targetValid, useRadius);
 
             // If one of the items isn't on a landblock
             if (!targetValid)
@@ -117,7 +117,7 @@ namespace ACE.Server.WorldObjects
                 // target not reached yet
                 var actionChain = new ActionChain();
                 actionChain.AddDelaySeconds(0.1f);
-                actionChain.AddAction(this, () => MoveToChain(target, thisMoveToChainNumber, callback));
+                actionChain.AddAction(this, () => MoveToChain(target, thisMoveToChainNumber, callback, useRadius));
                 actionChain.EnqueueChain();
             }
             else
