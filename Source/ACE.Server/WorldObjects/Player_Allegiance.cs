@@ -152,11 +152,16 @@ namespace ACE.Server.WorldObjects
             Session.Network.EnqueueSend(new GameEventAllegianceUpdate(Session, Allegiance, AllegianceNode), new GameEventAllegianceAllegianceUpdateDone(Session));
         }
 
+        public static float Allegiance_MaxSwearDistance = 4.0f;
+
         /// <summary>
         /// Returns TRUE if this player can swear to the target guid
         /// </summary>
         public bool IsPledgable(uint targetGuid)
         {
+            // the client doesn't seem to display most of these werrors,
+            // so we also send similar messages as text
+
             // ensure target player is online, and within range
             var target = PlayerManager.GetOnlinePlayer(targetGuid);
             if (target == null)
@@ -168,6 +173,7 @@ namespace ACE.Server.WorldObjects
             // check ignore allegiance requests
             if (target.GetCharacterOption(CharacterOption.IgnoreAllegianceRequests))
             {
+                Session.Network.EnqueueSend(new GameMessageSystemChat($"Your offer of allegiance was ignored.", ChatMessageType.Broadcast));
                 Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YourOfferOfAllegianceWasIgnored));
                 return false;
             }
@@ -176,6 +182,7 @@ namespace ACE.Server.WorldObjects
             if (PatronId != null)
             {
                 //Console.WriteLine(Name + " tried to swear to " + target.Name + ", but is already sworn to " + PlayerManager.GetOfflinePlayerByGuidId(Patron.Value).Name);
+                Session.Network.EnqueueSend(new GameMessageSystemChat($"You've already sworn allegiance.", ChatMessageType.Broadcast));
                 Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouveAlreadySwornAllegiance));
                 return false;
             }
@@ -184,6 +191,7 @@ namespace ACE.Server.WorldObjects
             if (targetGuid == Guid.Full)
             {
                 //Console.WriteLine(Name + " tried to swear to themselves");
+                Session.Network.EnqueueSend(new GameMessageSystemChat($"You cannot swear allegiance to yourself.", ChatMessageType.Broadcast));
                 return false;
             }
 
@@ -191,13 +199,23 @@ namespace ACE.Server.WorldObjects
             if (target.Level < Level)
             {
                 //Console.WriteLine(Name + " tried to swear to a lower level character");
+                Session.Network.EnqueueSend(new GameMessageSystemChat($"You cannot swear to a lower level character.", ChatMessageType.Broadcast));
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.AllegianceIllegalLevel));
                 return false;
             }
 
-            // check distance <= 4.0
-            if (Location.DistanceTo(target.Location) > 4.0f)
+            // verify max distance
+            if (Location.DistanceTo(target.Location) > Allegiance_MaxSwearDistance)
             {
-                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.AllegianceMaxDistanceExceeded));
+                CreateMoveToChain(target, (success) =>
+                {
+                    if (success)
+                        HandleActionSwearAllegiance(target.Guid.Full);
+                    else
+                        Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.AllegianceMaxDistanceExceeded));
+
+                }, Allegiance_MaxSwearDistance);
+                
                 return false;
             }
 
@@ -210,6 +228,7 @@ namespace ACE.Server.WorldObjects
                 if (targetNode.TotalVassals >= 11)
                 {
                     //Console.WriteLine(target.Name + " already has the maximum # of vassals");
+                    Session.Network.EnqueueSend(new GameMessageSystemChat($"{target.Name} already has the maximum # of vassals", ChatMessageType.Broadcast));
                     return false;
                 }
 
@@ -220,6 +239,7 @@ namespace ACE.Server.WorldObjects
                     if (selfNode.PlayerGuid == targetNode.Monarch.PlayerGuid)
                     {
                         //Console.WriteLine(Name + " tried to swear to someone already in Allegiance: " + target.Name);
+                        Session.Network.EnqueueSend(new GameMessageSystemChat($"You cannot swear allegiance to {target.Name}.", ChatMessageType.Broadcast));
                         return false;
                     }
                 }
@@ -228,12 +248,14 @@ namespace ACE.Server.WorldObjects
                     && (targetNode.Player.AllegianceOfficerRank ?? 0) < (int)AllegianceOfficerLevel.Castellan)
                 {
                     //Console.WriteLine(Name + "tried to join locked allegiance, not in approved vassals list");
+                    Session.Network.EnqueueSend(new GameMessageSystemChat($"{target.Name} is not accepting allegiance requests.", ChatMessageType.Broadcast));
                     return false;
                 }
 
                 if (targetNode.Allegiance.BanList.Contains(Guid))
                 {
                     //Console.WriteLine(Name + "tried to join allegiance, but was banned!");
+                    Session.Network.EnqueueSend(new GameMessageSystemChat($"You are banned from joining {target.Name}'s allegiance.", ChatMessageType.Broadcast));
                     return false;
                 }
             }
@@ -242,6 +264,7 @@ namespace ACE.Server.WorldObjects
             if (House != null && House.HouseType == ACE.Entity.Enum.HouseType.Mansion)
             {
                 //Console.WriteLine(Name + "monarch tried to pledge allegiance, already owns a mansion");
+                Session.Network.EnqueueSend(new GameMessageSystemChat($"You cannot swear allegiance while owning a mansion.", ChatMessageType.Broadcast));
                 Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.CannotSwearAllegianceWhileOwningMansion));
                 return false;
             }

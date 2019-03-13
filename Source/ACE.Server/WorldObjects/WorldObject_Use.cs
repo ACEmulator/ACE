@@ -32,9 +32,11 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Used to determine how close you need to be to use an item.
         /// </summary>
-        public bool IsWithinUseRadiusOf(WorldObject wo)
+        public bool IsWithinUseRadiusOf(WorldObject wo, float? useRadius = null)
         {
-            var useRadius = wo.UseRadius ?? 0.6f;
+            if (useRadius == null)
+                useRadius = wo.UseRadius ?? 0.6f;
+
             var cylDist = GetCylinderDistance(wo);
 
             return cylDist <= useRadius;
