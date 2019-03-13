@@ -68,7 +68,8 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Handles player targeted casting message
         /// </summary>
-        public void HandleActionCastTargetedSpell(uint targetGuid, uint spellId)
+        /// <param name="builtInSpell">If TRUE, casting a built-in spell from a weapon</param>
+        public void HandleActionCastTargetedSpell(uint targetGuid, uint spellId, bool builtInSpell = false)
         {
             var target = CurrentLandblock?.GetObject(targetGuid);
             var targetCategory = TargetCategory.UnDef;
@@ -114,7 +115,7 @@ namespace ACE.Server.WorldObjects
 
             if (targetCategory != TargetCategory.WorldObject && targetCategory != TargetCategory.Wielded)
             {
-                CreatePlayerSpell(target, targetCategory, spellId);
+                CreatePlayerSpell(target, targetCategory, spellId, builtInSpell);
             }
             else
             {
@@ -127,7 +128,7 @@ namespace ACE.Server.WorldObjects
                 var actionChain = new ActionChain();
                 actionChain.AddDelaySeconds(rotateTime);
 
-                actionChain.AddAction(this, () => CreatePlayerSpell(target, targetCategory, spellId));
+                actionChain.AddAction(this, () => CreatePlayerSpell(target, targetCategory, spellId, builtInSpell));
                 actionChain.EnqueueChain();
             }
 
@@ -271,7 +272,8 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Method used for handling player targeted spell casts
         /// </summary>
-        public void CreatePlayerSpell(WorldObject target, TargetCategory targetCategory, uint spellId)
+        /// <param name="builtInSpell">If TRUE, casting a built-in spell from a weapon</param>
+        public void CreatePlayerSpell(WorldObject target, TargetCategory targetCategory, uint spellId, bool builtInSpell = false)
         {
             var player = this;
             var creatureTarget = target as Creature;
@@ -313,7 +315,7 @@ namespace ACE.Server.WorldObjects
             // if casting implement has spell built in,
             // use spellcraft from the item, instead of player's magic skill?
             var caster = GetEquippedWand();
-            var isWeaponSpell = IsWeaponSpell(spell);
+            var isWeaponSpell = builtInSpell && IsWeaponSpell(spell);
 
             // Grab player's skill level in the spell's Magic School
             var magicSkill = player.GetCreatureSkill(spell.School).Current;

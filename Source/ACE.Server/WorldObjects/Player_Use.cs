@@ -47,7 +47,7 @@ namespace ACE.Server.WorldObjects
                         SendUseDoneEvent();
                     }
                     else
-                        HandleActionCastTargetedSpell(targetObjectGuid, sourceItem.SpellDID ?? 0);
+                        HandleActionCastTargetedSpell(targetObjectGuid, sourceItem.SpellDID ?? 0, true);
                 }
                 else
                 {
