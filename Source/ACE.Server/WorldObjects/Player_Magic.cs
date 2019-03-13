@@ -398,7 +398,7 @@ namespace ACE.Server.WorldObjects
             spell.Formula.GetPlayerFormula(player);
 
             string spellWords = spell._spellBase.GetSpellWords(DatManager.PortalDat.SpellComponentsTable);
-            if (spellWords != null && !isWeaponSpell)
+            if (!string.IsNullOrWhiteSpace(spellWords) && !isWeaponSpell)
                 EnqueueBroadcast(new GameMessageCreatureMessage(spellWords, Name, Guid.Full, ChatMessageType.Spellcasting), LocalBroadcastRange);
 
             var spellChain = new ActionChain();
@@ -727,7 +727,7 @@ namespace ACE.Server.WorldObjects
             spell.Formula.GetPlayerFormula(this);
 
             string spellWords = spell._spellBase.GetSpellWords(DatManager.PortalDat.SpellComponentsTable);
-            if (spellWords != null)
+            if (!string.IsNullOrWhiteSpace(spellWords))
                 EnqueueBroadcast(new GameMessageCreatureMessage(spellWords, Name, Guid.Full, ChatMessageType.Magic), LocalBroadcastRange);
 
             ActionChain spellChain = new ActionChain();
