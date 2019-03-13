@@ -28,7 +28,7 @@ namespace ACE.Server.WorldObjects
             BaseDescriptionFlags |= ObjectDescriptionFlag.Lockpick;
         }
 
-        public void HandleActionUseOnTarget(Player player, WorldObject target)
+        public override void HandleActionUseOnTarget(Player player, WorldObject target)
         {
             UnlockerHelper.UseUnlocker(player, this, target);
         }

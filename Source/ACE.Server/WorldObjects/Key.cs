@@ -36,7 +36,7 @@ namespace ACE.Server.WorldObjects
             set { if (value == null) RemoveProperty(PropertyString.KeyCode); else SetProperty(PropertyString.KeyCode, value); }
         }
 
-        public void HandleActionUseOnTarget(Player player, WorldObject target)
+        public override void HandleActionUseOnTarget(Player player, WorldObject target)
         {
             UnlockerHelper.UseUnlocker(player, this, target);
         }

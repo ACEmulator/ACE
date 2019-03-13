@@ -130,7 +130,7 @@ namespace ACE.Server.Network.Structure
             {
                 // handle character options
                 if (!player.GetCharacterOption(CharacterOption.AllowOthersToSeeYourDateOfBirth))
-                    PropertiesInt.Remove(PropertyInt.CreationTimestamp);
+                    PropertiesString.Remove(PropertyString.DateOfBirth);
                 if (!player.GetCharacterOption(CharacterOption.AllowOthersToSeeYourAge))
                     PropertiesInt.Remove(PropertyInt.Age);
                 if (!player.GetCharacterOption(CharacterOption.AllowOthersToSeeYourChessRank))

@@ -4,6 +4,7 @@ using ACE.Server.Entity;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Server.Managers;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 
@@ -43,6 +44,14 @@ namespace ACE.Server.WorldObjects
         {
             return (float)Physics.Common.Position.CylinderDistance(PhysicsObj.GetRadius(), PhysicsObj.GetHeight(), PhysicsObj.Position,
                 wo.PhysicsObj.GetRadius(), wo.PhysicsObj.GetHeight(), wo.PhysicsObj.Position);
+        }
+
+        /// <summary>
+        /// Handles the 'GameAction 0x35 - UseWithTarget' network message
+        /// on a per-object type basis.
+        public virtual void HandleActionUseOnTarget(Player player, WorldObject target)
+        {
+            RecipeManager.UseObjectOnTarget(player, this, target);
         }
 
         public virtual void OnActivate(WorldObject activator)
