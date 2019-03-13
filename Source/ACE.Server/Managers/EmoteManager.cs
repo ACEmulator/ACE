@@ -195,7 +195,7 @@ namespace ACE.Server.Managers
                 case EmoteType.CloseMe:
 
                     // animation delay?
-                    if (targetObject is Container container)
+                    if (WorldObject is Container container)
                         container.Close(null);
                     break;
 
