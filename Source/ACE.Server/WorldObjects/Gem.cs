@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 
+using ACE.Common;
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.DatLoader.Entity;
@@ -11,6 +12,7 @@ using ACE.Server.Entity;
 using ACE.Server.Network;
 using ACE.Server.Network.Structure;
 using ACE.Server.Network.GameEvent.Events;
+using ACE.Server.Network.GameMessages.Messages;
 
 namespace ACE.Server.WorldObjects
 {
@@ -88,6 +90,16 @@ namespace ACE.Server.WorldObjects
 
                 if ((GetProperty(PropertyBool.UnlimitedUse) ?? false) == false)
                     player.TryConsumeFromInventoryWithNetworking(this, 1);
+
+                if (RareUsesTimer)
+                {
+                    // should this be using an enchantment cooldown,
+                    // to prevent stacking by logging off during the cooldown time?
+                    player.LastRareUsedTimestamp = Time.GetUnixTime();
+
+                    // local broadcast usage
+                    player.EnqueueBroadcast(new GameMessageSystemChat($"{player.Name} used the rare item {Name}", ChatMessageType.Broadcast));
+                }
             }
             else
                 ActOnUseContract(player);
@@ -153,6 +165,18 @@ namespace ACE.Server.WorldObjects
             }
             else
                 ChatPacket.SendServerMessage(player.Session, "You already have this quest tracked: " + contractTracker.ContractDetails.ContractName, ChatMessageType.Broadcast);
+        }
+
+        public int? RareId
+        {
+            get => GetProperty(PropertyInt.RareId);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.RareId); else SetProperty(PropertyInt.RareId, value.Value); }
+        }
+
+        public bool RareUsesTimer
+        {
+            get => GetProperty(PropertyBool.RareUsesTimer) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.RareUsesTimer); else SetProperty(PropertyBool.RareUsesTimer, value); }
         }
     }
 }
