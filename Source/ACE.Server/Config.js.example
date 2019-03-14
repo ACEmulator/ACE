@@ -56,6 +56,13 @@
         }
     ]
   },
+  "Plugins": {
+    "Enabled": true,
+    // the order of the enabled plugins list is important
+    "Plugins": [
+        "ACE.WebAPIServer"
+    ]
+  },
   "MySql": {
     "Authentication": {
       "Host": "127.0.0.1",

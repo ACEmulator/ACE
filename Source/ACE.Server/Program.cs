@@ -122,6 +122,12 @@ namespace ACE.Server
             log.Info("Initializing EventManager...");
             EventManager.Initialize();
 
+            if (ConfigManager.Config.Plugins.Enabled)
+            {
+                log.Info("Initializing PluginManager...");
+                PluginManager.Initialize();
+            }
+
             // This should be last
             log.Info("Initializing CommandManager...");
             CommandManager.Initialize();
