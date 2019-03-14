@@ -710,16 +710,6 @@ namespace ACE.Server.WorldObjects
             return adjusted;
         }
 
-        public virtual void Open(WorldObject opener)
-        {
-            // empty base, override in child objects
-        }
-
-        public virtual void Close(WorldObject closer)
-        {
-            // empty base, override in child objects
-        }
-
         /// <summary>
         /// Returns a strike message based on damage type and severity
         /// </summary>

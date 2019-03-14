@@ -96,7 +96,7 @@ namespace ACE.Server.WorldObjects
             if (action != VendorType.Undef)
                 DoVendorEmote(action, player);
 
-            player.LastUsedContainerId = Guid;
+            player.LastOpenedContainerId = Guid;
         }
 
         /// <summary>
@@ -208,8 +208,8 @@ namespace ACE.Server.WorldObjects
 
             if (dist > UseRadius)
             {
-                if (LastPlayer.LastUsedContainerId == Guid)
-                    LastPlayer.LastUsedContainerId = new ObjectGuid(0);
+                if (LastPlayer.LastOpenedContainerId == Guid)
+                    LastPlayer.LastOpenedContainerId = ObjectGuid.Invalid;
 
                 EmoteManager.DoVendorEmote(VendorType.Close, LastPlayer);
                 LastPlayer = null;
@@ -325,7 +325,7 @@ namespace ACE.Server.WorldObjects
                 if (wo.ItemType == ItemType.PromissoryNote)
                     sellRate = 1.15;
 
-                goldcost += (uint)Math.Ceiling((wo.Value ?? 0) * sellRate - 0.1);
+                goldcost += Math.Max(1, (uint)Math.Ceiling((wo.Value ?? 0) * sellRate - 0.1));
             }
 
             foreach (WorldObject wo in genlist)
@@ -334,7 +334,7 @@ namespace ACE.Server.WorldObjects
                 if (wo.ItemType == ItemType.PromissoryNote)
                     sellRate = 1.15;
 
-                goldcost += (uint)Math.Ceiling((wo.Value ?? 0) * sellRate - 0.1);
+                goldcost += Math.Max(1, (uint)Math.Ceiling((wo.Value ?? 0) * sellRate - 0.1));
             }
 
             // send transaction to player for further processing and.
@@ -376,7 +376,7 @@ namespace ACE.Server.WorldObjects
                     buyRate = 1.0;
 
                 // payout scaled by the vendor's buy rate
-                payout += (int)Math.Floor((wo.Value ?? 0) * buyRate + 0.1);
+                payout += Math.Max(1, (int)Math.Floor((wo.Value ?? 0) * buyRate + 0.1));
             }
 
             return payout;

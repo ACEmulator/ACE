@@ -1,9 +1,7 @@
 using System;
-
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Server.Entity.Actions;
-using ACE.Server.Managers;
 using ACE.Server.Network.GameEvent.Events;
 
 namespace ACE.Server.WorldObjects
@@ -13,7 +11,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// This is set by HandleActionUseItem / TryUseItem
         /// </summary>
-        public ObjectGuid LastUsedContainerId { get; set; }
+        public ObjectGuid LastOpenedContainerId { get; set; }
 
         /// <summary>
         /// Handles the 'GameAction 0x35 - UseWithTarget' network message
@@ -34,9 +32,9 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
+            // handle casters with built-in spells
             if (sourceItemIsEquipped)
             {
-                // This could be a caster with a built-in spell
                 if (sourceItem.SpellDID != null)
                 {
                     // check activation requirements
@@ -59,63 +57,17 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
+            // Resolve the guid to an object that is either in our possession or on the Landblock
+            var target = FindObject(targetObjectGuid, SearchLocations.MyInventory | SearchLocations.MyEquippedItems | SearchLocations.Landblock);
 
-            // Is the target the player?
-            if (targetObjectGuid == Guid.Full)
-            {
-                // using something on ourselves
-                if (sourceItem.WeenieType == WeenieType.ManaStone)
-                    ((ManaStone)sourceItem).HandleActionUseOnTarget(this, this);
-                else
-                    RecipeManager.UseObjectOnTarget(this, sourceItem, this);
-
-                return;
-            }
-
-
-            // Is the target item in our possession?
-            var targetItem = FindObject(targetObjectGuid, SearchLocations.MyInventory | SearchLocations.MyEquippedItems);
-
-            if (targetItem != null)
-            {
-                if (sourceItem.WeenieType == WeenieType.ManaStone)
-                    ((ManaStone)sourceItem).HandleActionUseOnTarget(this, targetItem);
-                else
-                    RecipeManager.UseObjectOnTarget(this, sourceItem, targetItem);
-
-                return;
-            }
-
-
-            // Is the target on the landblock?
-            targetItem = FindObject(targetObjectGuid, SearchLocations.Landblock);
-
-            if (targetItem == null)
+            if (target == null)
             {
                 log.Warn($"{Name}.HandleActionUseWithTarget({sourceObjectGuid:X8}, {targetObjectGuid:X8}): couldn't find {targetObjectGuid:X8}");
                 SendUseDoneEvent();
                 return;
             }
 
-            if (sourceItem.WeenieType == WeenieType.Healer)
-            {
-                if (targetItem is Player player)
-                    ((Healer)sourceItem).HandleActionUseOnTarget(this, player);
-                else
-                    SendUseDoneEvent(WeenieError.YouCantHealThat);
-            }
-            else if (sourceItem.WeenieType == WeenieType.Key)
-            {
-                ((Key)sourceItem).HandleActionUseOnTarget(this, targetItem);
-            }
-            else if (sourceItem.WeenieType == WeenieType.Lockpick)
-            {
-                ((Lockpick)sourceItem).HandleActionUseOnTarget(this, targetItem);
-            }
-            else
-            {
-                RecipeManager.UseObjectOnTarget(this, sourceItem, targetItem);
-            }
+            sourceItem.HandleActionUseOnTarget(this, target);
         }
 
         /// <summary>
@@ -130,7 +82,7 @@ namespace ACE.Server.WorldObjects
 
             if (item != null)
             {
-                if (item.CurrentLandblock != null && !item.Visibility && item.Guid != LastUsedContainerId)
+                if (item.CurrentLandblock != null && !item.Visibility && item.Guid != LastOpenedContainerId)
                     CreateMoveToChain(item, (success) => TryUseItem(item, success));
                 else
                     TryUseItem(item);
@@ -153,12 +105,7 @@ namespace ACE.Server.WorldObjects
             LastUseTime = 0.0f;
 
             if (success)
-            {
-                if (item is Container)
-                    LastUsedContainerId = item.Guid;
-
                 item.OnActivate(this);
-            }
 
             var actionChain = new ActionChain();
             actionChain.AddDelaySeconds(LastUseTime);
@@ -173,6 +120,20 @@ namespace ACE.Server.WorldObjects
         public void SendUseDoneEvent(WeenieError errorType = WeenieError.None)
         {
             Session.Network.EnqueueSend(new GameEventUseDone(Session, errorType));
+        }
+
+
+        /// <summary>
+        /// This method processes the Game Action (F7B1) No Longer Viewing Contents (0x0195)
+        /// This is raised when we:
+        /// - have a container open and open up a second container without closing the first container.
+        /// </summary>
+        public void HandleActionNoLongerViewingContents(uint objectGuid)
+        {
+            var container = CurrentLandblock?.GetObject(objectGuid) as Container;
+
+            if (container != null && container.Viewer == Guid.Full)
+                container.Close(this);
         }
     }
 }

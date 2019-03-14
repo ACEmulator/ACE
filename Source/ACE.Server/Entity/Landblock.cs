@@ -610,14 +610,14 @@ namespace ACE.Server.Entity
         /// <summary>
         /// Check to see if we are close enough to interact.   Adds a fudge factor of 1.5f
         /// </summary>
-        public bool WithinUseRadius(Player player, ObjectGuid targetGuid, out bool validTargetGuid)
+        public bool WithinUseRadius(Player player, ObjectGuid targetGuid, out bool validTargetGuid, float? useRadius = null)
         {
             var target = GetObject(targetGuid);
 
             validTargetGuid = target != null;
 
             if (target != null)
-                return player.IsWithinUseRadiusOf(target);
+                return player.IsWithinUseRadiusOf(target, useRadius);
 
             return false;
         }

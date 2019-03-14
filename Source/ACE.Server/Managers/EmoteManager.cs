@@ -195,8 +195,8 @@ namespace ACE.Server.Managers
                 case EmoteType.CloseMe:
 
                     // animation delay?
-                    if (targetObject != null)
-                        targetObject.Close(WorldObject);
+                    if (WorldObject is Container container)
+                        container.Close(null);
                     break;
 
                 case EmoteType.CreateTreasure:
@@ -809,7 +809,8 @@ namespace ACE.Server.Managers
 
                 case EmoteType.OpenMe:
 
-                    WorldObject.Open(WorldObject);
+                    if (WorldObject is Container container2)
+                        container2.Open(null);
                     break;
 
                 case EmoteType.PetCastSpellOnOwner:

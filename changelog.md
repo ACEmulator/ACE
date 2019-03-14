@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2019-03-12
+[gmriggs, Ripley]
+* Fix Vendors to handle 0 value items properly in buy/sell.
+
 ### 2019-03-10
 [Ripley]
 * Changed the way Name property is handled with regards to + (Admin/Sentinel characters).

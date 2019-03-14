@@ -41,22 +41,28 @@ namespace ACE.Server.WorldObjects
         {
             BaseDescriptionFlags |= ObjectDescriptionFlag.Healer;
         }
-        public void HandleActionUseOnTarget(Player healer, Player target)
+        public override void HandleActionUseOnTarget(Player healer, WorldObject target)
         {
-            if (target.Health.Current == target.Health.MaxValue)
+            if (!(target is Player targetPlayer))
+            {
+                healer.SendUseDoneEvent(WeenieError.YouCantHealThat);
+                return;
+            }
+
+            if (targetPlayer.Health.Current == targetPlayer.Health.MaxValue)
             {
                 healer.Session.Network.EnqueueSend(new GameEventWeenieErrorWithString(healer.Session, WeenieErrorWithString._IsAtFullHealth, target.Name));
                 healer.SendUseDoneEvent();
                 return;
             }
 
-            if (!healer.Equals(target))
+            if (!healer.Equals(targetPlayer))
             {
                 // perform moveto
-                healer.CreateMoveToChain(target, (success) => DoHealMotion(healer, target, success));
+                healer.CreateMoveToChain(target, (success) => DoHealMotion(healer, targetPlayer, success));
             }
             else
-                DoHealMotion(healer, target, true);
+                DoHealMotion(healer, targetPlayer, true);
         }
 
         public void DoHealMotion(Player healer, Player target, bool success)
