@@ -1,9 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using ACE.Database;
 using ACE.Database.Models.World;
-using ACE.DatLoader;
-using ACE.DatLoader.FileTypes;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
@@ -12,7 +11,6 @@ using ACE.Server.Entity.Actions;
 using ACE.Server.Factories;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameMessages.Messages;
-using System.Collections.Generic;
 
 namespace ACE.Server.WorldObjects
 {
@@ -282,10 +280,13 @@ namespace ACE.Server.WorldObjects
 
             // move wielded treasure over
             var wieldedTreasure = Inventory.Values.Concat(EquippedObjects.Values).Where(i => i.DestinationType.HasFlag(DestinationType.Treasure));
-            foreach (var item in wieldedTreasure)
+            foreach (var item in wieldedTreasure.ToList())
             {
                 if ((item.Bonded ?? 0) == (int)BondedStatus.Destroy)
                     continue;
+
+                if (TryDequipObjectWithBroadcasting(item.Guid, out var wo, out var wieldedLocation))
+                    TryAddToInventory(wo);
 
                 corpse.TryAddToInventory(item);
             }
