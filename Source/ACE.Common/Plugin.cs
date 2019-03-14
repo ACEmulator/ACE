@@ -71,7 +71,7 @@ namespace ACE.Common
         public ACEPluginType(Type Type ,TaskCompletionSource<bool> ResultOfInitTask)
         {
             this.Type = Type;
-            this.ResultOfInitTask = ResultOfInitTask;
+            this.ResultOfInitSink = ResultOfInitTask;
             InitTimeTaken = Stopwatch.StartNew(); // should be last in the constructor
         }
         public Type Type { get; private set; } = null;
@@ -84,14 +84,14 @@ namespace ACE.Common
         /// False indicates a fault occured during initialization
         /// Property is invalid until the result task result is set by the plugin during initialization or the plugin throws an exception during initialization
         /// </summary>
-        public bool ResultOfInit { get { return ResultOfInitTask.Task.Result; } }
+        public bool ResultOfInit { get { return ResultOfInitSink.Task.Result; } }
         /// <summary>
-        /// backing store for ResultOfInit
+        /// backing store for ResultOfInit passed to IACEPlugin type constructors
         /// True indicates sucessful initialization
         /// False indicates a fault occured during initialization
         /// It's imperative that the plugin reliably set the task result no matter what
         /// </summary>
-        public TaskCompletionSource<bool> ResultOfInitTask { get; private set; } = null;
+        public TaskCompletionSource<bool> ResultOfInitSink { get; private set; } = null;
         /// <summary>
         /// any exception that occured within init and bubbled up to the try/catch of the plugin init loop of the plugin manager
         /// </summary>

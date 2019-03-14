@@ -98,7 +98,7 @@ namespace ACE.Server.Managers
                                 log.Info($"Plugin {type} instance Created");
                                 try
                                 {
-                                    atyp.Instance.Start(atyp.ResultOfInitTask); // non blocking!
+                                    atyp.Instance.Start(atyp.ResultOfInitSink); // non blocking!
                                 }
                                 catch (Exception ex)
                                 {
