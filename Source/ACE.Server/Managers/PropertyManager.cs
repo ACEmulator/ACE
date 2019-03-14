@@ -439,6 +439,8 @@ namespace ACE.Server.Managers
 
         public static readonly ReadOnlyDictionary<string, bool> DefaultBooleanProperties =
             DictOf(
+                ("corpse_destroy_pyreals", true),   // when player loses pyreals on death, should the pyreals be destroyed completely (end of retail),
+                                                    // or should they be dropped on corpse (release)
                 ("house_purchase_requirements", true),
                 ("house_rent_enabled", true),
                 ("pk_server", false)

@@ -425,11 +425,13 @@ namespace ACE.Server.WorldObjects
             var slipperyItems = GetSlipperyItems();
             dropItems.AddRange(slipperyItems);
 
+            var destroyCoins = PropertyManager.GetBool("corpse_destroy_pyreals").Item;
+
             // add items to corpse
             foreach (var dropItem in dropItems)
             {
                 // coins already removed from SpendCurrency
-                if (dropItem.WeenieType == WeenieType.Coin)
+                if (destroyCoins && dropItem.WeenieType == WeenieType.Coin)
                     continue;
 
                 if (!corpse.TryAddToInventory(dropItem))
@@ -445,7 +447,7 @@ namespace ACE.Server.WorldObjects
             dropItems.AddRange(destroyedItems);
 
             // send network messages
-            var dropList = DropMessage(dropItems);
+            var dropList = DropMessage(dropItems, numCoinsDropped);
             Session.Network.EnqueueSend(new GameMessageSystemChat(dropList, ChatMessageType.WorldBroadcast));
 
             return dropItems;
@@ -522,13 +524,19 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Builds the network text message for list of items dropped
         /// </summary>
-        public string DropMessage(List<WorldObject> dropItems)
+        public string DropMessage(List<WorldObject> dropItems, int numCoinsDropped)
         {
             var msg = "";
+            var coinMsg = true;
 
             for (var i = 0; i < dropItems.Count; i++)
             {
                 var dropItem = dropItems[i];
+
+                var isCoin = dropItem.Name.Equals("Pyreal");
+
+                if (isCoin && !coinMsg)
+                    continue;
 
                 if (i == 0)
                     msg += "You've lost ";
@@ -540,10 +548,14 @@ namespace ACE.Server.WorldObjects
                         msg += "and ";
                 }
 
-                if (!dropItem.Name.Equals("Pyreal"))
-                    msg += "your ";
-
                 var stackSize = dropItem.StackSize ?? 1;
+                if (isCoin)
+                {
+                    stackSize = numCoinsDropped;
+                    coinMsg = false;
+                }
+                else
+                    msg += "your ";
 
                 if (stackSize == 1)
                     msg += dropItem.Name;
