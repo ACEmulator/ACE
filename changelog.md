@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2019-03-14
+[Ripley]
+* Allow passthrough of permaload flag to landblocks loaded by adjacent load.
+
 ### 2019-03-12
 [gmriggs, Ripley]
 * Fix Vendors to handle 0 value items properly in buy/sell.
