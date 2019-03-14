@@ -86,7 +86,15 @@ namespace ACE.Server.WorldObjects
         {
             if (CurrentLandblock == null)
             {
-                if (this is Creature)
+                if (isDestroyed)
+                {
+                    // Item is gone, no more work can be done to it
+                }
+                else if (decayCompleted)
+                {
+                    // Item probably completed decay and started the fade-out process right before the landblock unloaded.
+                }
+                else if (this is Creature)
                 {
                     // If we've hit this point, something is asking to add work to a detached creature
                     // It's likely a DelayManager processing a NextAct() action, and that action is likely an emote.
@@ -94,21 +102,29 @@ namespace ACE.Server.WorldObjects
                     // If we find that there is a case where Creatures need to act after they've been detached from the landblock,
                     // that work should be enqueued onto WorldManager
                 }
-                else if (IsGenerator)
-                {
-                    // This is a detached generator, we don't need to further the action chain
-                }
                 else if (this is SpellProjectile)
                 {
                     // Do no more work for detached spell projectiles
+                }
+                else if (IsGenerator)
+                {
+                    // This is a detached generator, we don't need to further the action chain
                 }
                 else
                 {
                     // Enqueue work for detached objects onto our thread-safe WorldManager
 
-                    // Slumlords (housing) can be loaded without its landblock
-                    if (!(this is SlumLord))
-                        log.WarnFormat("Item 0x{0:X8}:{1} has enqueued an action after it's been detached from a landblock.", Guid.Full, Name);
+                    // Here we filter out warnings for known cases where work may be queued onto an item that doesn't exist on a landblock
+                    if (this is SlumLord)
+                    {
+                        // Slumlords (housing) can be loaded without its landblock
+                    }
+                    else if (this is Container container && !container.InventoryLoaded)
+                    {
+                        // Containers enqueue the loading of their inventory from callbacks. It's possible the callback happened before the container was added to the landblock
+                    }
+                    else
+                        log.WarnFormat("Item 0x{0:X8}:{1} has enqueued an action but is not attached to a landblock.", Guid.Full, Name);
 
                     WorldManager.EnqueueAction(action);
                 }
