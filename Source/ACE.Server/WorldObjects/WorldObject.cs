@@ -944,6 +944,8 @@ namespace ACE.Server.WorldObjects
 
         public SetPosition ScatterPos;
 
+        public DestinationType DestinationType;
+
         public Skill ConvertToMoASkill(Skill skill)
         {
             if (this is Player player)

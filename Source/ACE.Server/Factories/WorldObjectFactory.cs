@@ -350,5 +350,31 @@ namespace ACE.Server.Factories
 
             return CreateNewWorldObject(weenie.ClassId);
         }
+
+        /// <summary>
+        /// Creates a new WorldObject from a CreateList item
+        /// </summary>
+        public static WorldObject CreateNewWorldObject(BiotaPropertiesCreateList item)
+        {
+            var isTreasure = (item.DestinationType & (int)DestinationType.Treasure) != 0;
+
+            var wo = CreateNewWorldObject(item.WeenieClassId);
+
+            if (wo == null) return null;
+
+            wo.DestinationType = (DestinationType)item.DestinationType;
+
+            if (item.StackSize > 1)
+                wo.SetStackSize(item.StackSize);
+
+            if (item.Palette > 0)
+                wo.PaletteTemplate = item.Palette;
+
+            // if treasure, this is probability instead of shade
+            if (!isTreasure && item.Shade > 0)
+                wo.Shade = item.Shade;
+
+            return wo;
+        }
     }
 }
