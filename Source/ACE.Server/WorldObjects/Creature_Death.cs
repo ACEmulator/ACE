@@ -256,6 +256,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         private void GenerateTreasure(Corpse corpse)
         {
+            // create death treasure from loot generation factory
             if (DeathTreasure != null)
             {
                 List<WorldObject> items = LootGenerationFactory.CreateRandomLootObjects(DeathTreasure);
@@ -265,24 +266,28 @@ namespace ACE.Server.WorldObjects
                 }
             }
 
-            foreach (var trophy in Biota.BiotaPropertiesCreateList.Where(x => x.DestinationType == (int)DestinationType.Contain || x.DestinationType == (int)DestinationType.Treasure || x.DestinationType == (int)DestinationType.ContainTreasure || x.DestinationType == (int)DestinationType.ShopTreasure || x.DestinationType == (int)DestinationType.WieldTreasure).OrderBy(x => x.Shade))
+            // contain and non-wielded treasure create
+            var createList = Biota.BiotaPropertiesCreateList.Where(i => (i.DestinationType & (int)DestinationType.Contain) != 0 ||
+                (i.DestinationType & (int)DestinationType.Treasure) != 0 && (i.DestinationType & (int)DestinationType.Wield) == 0).ToList();
+
+            var selected = CreateListSelect(createList);
+
+            foreach (var item in selected)
             {
-                if (ThreadSafeRandom.Next(0.0f, 1.0f) < trophy.Shade || trophy.Shade == 1 || trophy.Shade == 0 || trophy.Shade == -1) // Shade in this context is Probability
-                                                                                                                                      // Should there be rolls for each item or one roll to rule them all?
-                {
-                    var wo = WorldObjectFactory.CreateNewWorldObject(trophy.WeenieClassId);
+                var wo = WorldObjectFactory.CreateNewWorldObject(item);
 
-                    if (wo == null)
-                        continue;
-
-                    if (trophy.StackSize > 1)
-                        wo.SetStackSize(trophy.StackSize);
-
-                    if (trophy.Palette > 0)
-                        wo.PaletteTemplate = trophy.Palette;
-
+                if (wo != null)
                     corpse.TryAddToInventory(wo);
-                }
+            }
+
+            // move wielded treasure over
+            var wieldedTreasure = Inventory.Values.Concat(EquippedObjects.Values).Where(i => i.DestinationType.HasFlag(DestinationType.Treasure));
+            foreach (var item in wieldedTreasure)
+            {
+                if ((item.Bonded ?? 0) == (int)BondedStatus.Destroy)
+                    continue;
+
+                corpse.TryAddToInventory(item);
             }
         }
     }

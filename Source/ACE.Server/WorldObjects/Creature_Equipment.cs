@@ -469,16 +469,39 @@ namespace ACE.Server.WorldObjects
             }
         }
 
-
         public void GenerateWieldList()
         {
             var attackable = Attackable ?? false;
 
+            var wielded = Biota.BiotaPropertiesCreateList.Where(i => (i.DestinationType & (int)DestinationType.Wield) != 0).ToList();
+
+            var items = CreateListSelect(wielded);
+
+            foreach (var item in items)
+            {
+                var wo = WorldObjectFactory.CreateNewWorldObject(item);
+
+                if (wo == null) continue;
+
+                var equipped = false;
+
+                if (wo.ValidLocations != null)
+                    equipped = TryWieldObject(wo, (EquipMask)wo.ValidLocations);
+
+                if (!equipped)
+                    TryAddToInventory(wo);
+            }
+        }
+
+        public static List<BiotaPropertiesCreateList> CreateListSelect(List<BiotaPropertiesCreateList> createList)
+        {
             var rng = ThreadSafeRandom.Next(0.0f, 1.0f);
             var totalProbability = 0.0f;
             var rngSelected = false;
 
-            foreach (var item in Biota.BiotaPropertiesCreateList.Where(x => x.DestinationType == (int) DestinationType.Wield || x.DestinationType == (int) DestinationType.WieldTreasure))
+            var results = new List<BiotaPropertiesCreateList>();
+
+            foreach (var item in createList)
             {
                 var destinationType = (DestinationType)item.DestinationType;
                 var useRNG = destinationType.HasFlag(DestinationType.Treasure);
@@ -505,30 +528,10 @@ namespace ACE.Server.WorldObjects
                     rngSelected = true;
                 }
 
-                GenerateWieldList_CreateObject(item, useRNG);
+                results.Add(item);
             }
-        }
 
-        public void GenerateWieldList_CreateObject(BiotaPropertiesCreateList item, bool useRNG)
-        {
-            var wo = WorldObjectFactory.CreateNewWorldObject(item.WeenieClassId);
-
-            if (wo != null)
-            {
-                if (item.Palette > 0)
-                    wo.PaletteTemplate = item.Palette;
-
-                if (!useRNG && item.Shade > 0)
-                    wo.Shade = item.Shade;
-
-                //TryAddToInventory(wo);
-
-                if (wo.ValidLocations != null)
-                {
-                    var equipped = TryWieldObject(wo, (EquipMask)wo.ValidLocations);
-                    //Console.WriteLine($"{Name} tried to equip {wo.Name}, result {equipped}");
-                }
-            }
+            return results;
         }
 
         public uint? WieldedTreasureType
