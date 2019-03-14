@@ -159,6 +159,11 @@ namespace ACE.Server.Managers
             Tuple<string, Assembly> fil = GetFavoredDependencyDll(name, ref filList);
             if (fil != null && !string.IsNullOrWhiteSpace(fil.Item1))
             {
+                if (fil.Item2 != null)  //TEST: see if the runtime library loop always pick up on this already loaded library
+                {
+                    CurrentPlugin?.AssemblyResolutionSuggestions.Add(new Tuple<AssemblyName, string, Assembly>(name, fil.Item1, fil.Item2));
+                    return fil.Item2;
+                }
                 Assembly assem = context.LoadFromAssemblyPath(fil.Item1);
                 filList[filList.IndexOf(fil)] = new Tuple<string, Assembly>(filList[filList.IndexOf(fil)].Item1, assem);
                 log.Info($"Loaded {fil.Item1}");
