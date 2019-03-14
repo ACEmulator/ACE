@@ -874,7 +874,7 @@ namespace ACE.Server.WorldObjects
 
         public string GetPluralName()
         {
-            return Name + "s";
+            return GetProperty(PropertyString.PluralName) ?? Name + "s";
         }
 
         /// <summary>

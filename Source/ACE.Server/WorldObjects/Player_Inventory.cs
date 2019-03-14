@@ -1586,10 +1586,15 @@ namespace ACE.Server.WorldObjects
             if (item == itemToGive)
                 Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, target));
 
-            Session.Network.EnqueueSend(new GameMessageSystemChat($"You give {target.Name} {itemToGive.Name}.", ChatMessageType.Broadcast));
+            var stackSize = itemToGive.StackSize ?? 1;
+
+            var stackMsg = stackSize > 1 ? $"{stackSize} " : "";
+            var itemName = stackSize > 1 ? itemToGive.GetPluralName() : itemToGive.Name;
+
+            Session.Network.EnqueueSend(new GameMessageSystemChat($"You give {target.Name} {stackMsg}{itemName}.", ChatMessageType.Broadcast));
             Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.ReceiveItem));
 
-            target.Session.Network.EnqueueSend(new GameMessageSystemChat($"{Name} gives you {itemToGive.Name}.", ChatMessageType.Broadcast));
+            target.Session.Network.EnqueueSend(new GameMessageSystemChat($"{Name} gives you {stackMsg}{itemName}.", ChatMessageType.Broadcast));
             target.Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.ReceiveItem));
 
             // This is a hack because our Player_Tracking->RemoveTrackedEquippedObject() is doing GameMessageDeleteObject, not GameMessagePickupEvent
