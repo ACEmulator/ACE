@@ -673,7 +673,7 @@ namespace ACE.Server.WorldObjects
                 log.Debug($"HandleActionForceObjDescSend() - couldn't find object {itemGuid:X8}");
                 return;
             }
-            EnqueueBroadcast(new GameMessageObjDescEvent(wo));
+            Session.Network.EnqueueSend(new GameMessageObjDescEvent(wo));
         }
 
 
