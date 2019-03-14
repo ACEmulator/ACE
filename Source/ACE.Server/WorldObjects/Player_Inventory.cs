@@ -1586,8 +1586,10 @@ namespace ACE.Server.WorldObjects
             if (item == itemToGive)
                 Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, target));
 
-            var stackMsg = itemToGive.StackSize > 1 ? $"{itemToGive.StackSize} " : "";
-            var itemName = itemToGive.StackSize > 1 ? itemToGive.GetPluralName() : itemToGive.Name;
+            var stackSize = itemToGive.StackSize ?? 1;
+
+            var stackMsg = stackSize > 1 ? $"{stackSize} " : "";
+            var itemName = stackSize > 1 ? itemToGive.GetPluralName() : itemToGive.Name;
 
             Session.Network.EnqueueSend(new GameMessageSystemChat($"You give {target.Name} {stackMsg}{itemName}.", ChatMessageType.Broadcast));
             Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.ReceiveItem));
