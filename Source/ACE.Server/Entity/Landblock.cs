@@ -593,7 +593,7 @@ namespace ACE.Server.Entity
 
             wo.CurrentLandblock = null;
 
-            // Weenies can come with a default of 0 or -1. If they still have that value, we want to retain it.
+            // Weenies can come with a default of 0 (Instant Rot) or -1 (Never Rot). If they still have that value, we want to retain it.
             // We also want to make sure fromPickup is true so that we're not clearing out TimeToRot on server shutdown (unloads all landblocks and removed all objects).
             if (fromPickup && wo.TimeToRot.HasValue && wo.TimeToRot != 0 && wo.TimeToRot != -1)
                 wo.TimeToRot = null;
