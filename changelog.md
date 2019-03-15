@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2019-03-15
+[Ripley]
+* Exclude Burden in CreateObject messages for Creatures.
+
 ### 2019-03-14
 [Ripley]
 * Allow passthrough of permaload flag to landblocks loaded by adjacent load.
