@@ -97,7 +97,10 @@ namespace ACE.Server.WorldObjects
             }
 
             foreach (var item in EquippedObjects.Values)
-                Session.Network.EnqueueSend(new GameMessageCreateObject(item));
+            {
+                item.Wielder = this;
+                Session.Network.EnqueueSend(new GameMessageCreateObject(item));                
+            }
         }
 
         /// <summary>

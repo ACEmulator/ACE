@@ -201,7 +201,7 @@ namespace ACE.Server.WorldObjects
             // check activation requirements?
             foreach (var spell in item.Biota.BiotaPropertiesSpellBook)
                 CreateItemSpell(item, (uint)spell.Spell);
-        }
+        }        
 
         /// <summary>
         /// This will set the CurrentWieldedLocation property to wieldedLocation and the Wielder property to this guid and will add it to the EquippedObjects dictionary.<para />
@@ -215,6 +215,7 @@ namespace ACE.Server.WorldObjects
 
             worldObject.CurrentWieldedLocation = wieldedLocation;
             worldObject.WielderId = Biota.Id;
+            worldObject.Wielder = this;
 
             EquippedObjects[worldObject.Guid] = worldObject;
 
@@ -279,6 +280,7 @@ namespace ACE.Server.WorldObjects
 
             worldObject.RemoveProperty(PropertyInt.CurrentWieldedLocation);
             worldObject.RemoveProperty(PropertyInstanceId.Wielder);
+            worldObject.Wielder = null;
 
             worldObject.IsAffecting = false;
 
@@ -344,6 +346,22 @@ namespace ACE.Server.WorldObjects
 
             if (((EquipMask)item.CurrentWieldedLocation & EquipMask.Selectable) != 0)
                 return true;
+
+            if (((EquipMask)item.CurrentWieldedLocation & EquipMask.MissileAmmo) != 0)
+            {
+                var wielder = item.Wielder;
+
+                if (wielder != null && wielder is Creature creature)
+                {
+                    var weapon = creature.GetEquippedMissileWeapon();
+
+                    if (weapon == null)
+                        return false;
+
+                    if (creature.CombatMode == CombatMode.Missile && weapon.WeenieType == WeenieType.MissileLauncher)
+                        return true;
+                }
+            }
 
             return false;
         }
