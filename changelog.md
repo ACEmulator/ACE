@@ -3,6 +3,7 @@
 ### 2019-03-15
 [Ripley]
 * Exclude Burden in CreateObject messages for Creatures.
+* Update Player Description Event to reflect WeenieType and HasHealth accurately and not hard-coded values.
 
 ### 2019-03-14
 [Ripley]

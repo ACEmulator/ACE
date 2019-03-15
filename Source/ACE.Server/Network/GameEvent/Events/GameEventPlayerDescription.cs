@@ -45,7 +45,7 @@ namespace ACE.Server.Network.GameEvent.Events
             var propertyFlags = DescriptionPropertyFlag.None;
             var propertyFlagsPos = Writer.BaseStream.Position;
             Writer.Write(0u);
-            Writer.Write(0x0Au);
+            Writer.Write((uint)Session.Player.WeenieType);
 
             var propertiesInt = Session.Player.GetAllPropertyInt().Where(x => SendOnLoginProperties.PropertiesInt.Contains((ushort)x.Key)).ToList();
 
@@ -198,7 +198,8 @@ namespace ACE.Server.Network.GameEvent.Events
                 vectorFlags |= DescriptionVectorFlag.Enchantment;
 
             Writer.Write((uint)vectorFlags);
-            Writer.Write(1u);
+
+            Writer.Write(Convert.ToUInt32(Session.Player.Health != null));
 
             if ((vectorFlags & DescriptionVectorFlag.Attribute) != 0)
             {
