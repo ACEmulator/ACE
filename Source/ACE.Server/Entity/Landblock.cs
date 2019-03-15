@@ -534,25 +534,26 @@ namespace ACE.Server.Entity
 
         private void AddWorldObjectInternal(WorldObject wo)
         {
-            if (!worldObjects.ContainsKey(wo.Guid))
-                pendingAdditions[wo.Guid] = wo;
-            else
-                pendingRemovals.Remove(wo.Guid);
-
             wo.CurrentLandblock = this;
 
             if (wo.PhysicsObj == null)
                 wo.InitPhysicsObj();
 
             if (wo.PhysicsObj.CurCell == null)
-            { 
+            {
                 var success = wo.AddPhysicsObj();
                 if (!success)
                 {
+                    wo.CurrentLandblock = null;
                     log.Warn($"AddWorldObjectInternal: couldn't spawn {wo.Name}");
                     return;
                 }
             }
+
+            if (!worldObjects.ContainsKey(wo.Guid))
+                pendingAdditions[wo.Guid] = wo;
+            else
+                pendingRemovals.Remove(wo.Guid);
 
             // if adding a player to this landblock,
             // tell them about other nearby objects
