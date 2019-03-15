@@ -241,7 +241,7 @@ namespace ACE.Server.Managers
                 if (foundDlls.Count < 1)
                 {
                     // finally, fallback to the dlls in the other plugins' directories
-                    foundDlls = PluginDlls.Except(foundDlls).Where(k => Path.GetDirectoryName(k.Item1) != curPlugPath && Path.GetFileNameWithoutExtension(k.Item1) == name.Name).ToList();
+                    foundDlls = PluginDlls.Where(k => Path.GetDirectoryName(k.Item1) != curPlugPath && Path.GetFileNameWithoutExtension(k.Item1) == name.Name).ToList();
                     if (foundDlls.Count < 1)
                     {
                         return null;
