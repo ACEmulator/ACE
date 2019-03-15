@@ -89,7 +89,7 @@ namespace ACE.Server.Network.Structure
         public float GetDamageVariance(WorldObject weapon, WorldObject wielder)
         {
             // are there any spells which modify damage variance?
-            var baseVariance = weapon.GetProperty(PropertyFloat.DamageVariance) ?? 1.0f;   // safe to assume defaults here?
+            var baseVariance = weapon.GetProperty(PropertyFloat.DamageVariance) ?? 0.0f;   // safe to assume defaults here?
             var varianceMod = weapon.EnchantmentManager.GetVarianceMod();
             var auraVarianceMod = wielder != null ? wielder.EnchantmentManager.GetVarianceMod() : 1.0f;
             Enchantment_DamageVariance = weapon.IsEnchantable ? varianceMod * auraVarianceMod : varianceMod;
