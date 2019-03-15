@@ -201,7 +201,7 @@ namespace ACE.Server.WorldObjects
             // check activation requirements?
             foreach (var spell in item.Biota.BiotaPropertiesSpellBook)
                 CreateItemSpell(item, (uint)spell.Spell);
-        }        
+        }
 
         /// <summary>
         /// This will set the CurrentWieldedLocation property to wieldedLocation and the Wielder property to this guid and will add it to the EquippedObjects dictionary.<para />
