@@ -57,10 +57,22 @@
     ]
   },
   "Plugins": {
-    "Enabled": true,
-    // the order of the enabled plugins list is important
+    // Enable or disable the entire plugin system.  true=enabled, false=disabled
+    "Enabled": false,
+    /*
+    * Plugins are started in the sequence seen in the plugin list from top to bottom.
+    * It's important to order them so that the least dependent ones are at the top.
+    * If plugin startup is attempted for a plugin depending on another plugin
+    * that has not yet been started it could cause a cascade of plugin startup failures.
+    * To disable or enable a plugin add or remove 2 leading slashes to/from the entry.
+    * examples:
+    * //"This.Plugin.Is.Disabled",
+    * "This.Plugin.Is.Enabled",
+    */
     "Plugins": [
-        "ACE.WebAPIServer"
+        //"ACE.Plugin.Crypto",
+        //"ACE.Plugin.Transfer", // depends on ACE.Plugin.Crypto
+        //"ACE.Plugin.WebAPI",  // depends on ACE.Plugin.Crypto, ACE.Plugin.Transfer
     ]
   },
   "MySql": {

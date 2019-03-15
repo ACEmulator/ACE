@@ -48,4 +48,8 @@
     <Exec Command="if [ ! -f &quot;$(ProjectDir)Config.js&quot; ] &amp;&amp; [ -f &quot;$(ProjectDir)Config.json&quot; ] ; then mv &quot;$(ProjectDir)Config.json&quot; &quot;$(ProjectDir)Config.js&quot; ; fi&#xA;cp &quot;$(ProjectDir)Config.js&quot; &quot;$(TargetDir)Config.js&quot;" Condition="'$(OS)' != 'Windows_NT'" />
   </Target>
 
+  <Target Name="PostBuild" AfterTargets="PostBuildEvent">
+    <Exec Command="rem modify and uncomment the following to aid in plugin development&#xD;&#xA;rem set src=$(TargetDir)&#xD;&#xA;rem set dst=E:\from desktop\ACE\ACE-Plugins\Dependencies\ACE&#xD;&#xA;rem robocopy &quot;%src% &quot; &quot;%dst% &quot; &quot;*.*&quot; /XO /NJH /NP&#xD;&#xA;rem SET ERRORLEVEL = 0" />
+  </Target>
+
 </Project>
