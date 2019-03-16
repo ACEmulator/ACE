@@ -379,7 +379,7 @@ namespace ACE.Server.Factories
             return worldObject;
         }
 
-        private static void CreateIOU(Player player, uint missingWeenieId)
+        public static void CreateIOU(Player player, uint missingWeenieId)
         {
             var book = (Book)WorldObjectFactory.CreateNewWorldObject("parchment");
 

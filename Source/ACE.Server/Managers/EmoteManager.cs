@@ -309,22 +309,28 @@ namespace ACE.Server.Managers
                     bool success = false;
                     if (player != null && emote.WeenieClassId != null)
                     {
-                        var item = WorldObjectFactory.CreateNewWorldObject((uint)emote.WeenieClassId);
-                        var stackSize = emote.StackSize ?? 1;
-                        var stackMsg = "";
-                        if (stackSize > 1)
+                        if (emote.WeenieClassId == 365 && emote.Stat != null) // Parchment base weenie used to create the IOU
+                            PlayerFactory.CreateIOU(player, (uint)emote.Stat);
+                        else
                         {
-                            item.SetStackSize(stackSize);
-                            stackMsg = stackSize + " ";     // pluralize?
-                        }
-                        success = player.TryCreateInInventoryWithNetworking(item);
+                            var item = WorldObjectFactory.CreateNewWorldObject((uint)emote.WeenieClassId);
 
-                        // transaction / rollback on failure?
-                        if (success)
-                        {
-                            var msg = new GameMessageSystemChat($"{WorldObject.Name} gives you {stackMsg}{item.Name}.", ChatMessageType.Broadcast);
-                            var sound = new GameMessageSound(player.Guid, Sound.ReceiveItem, 1);
-                            player.Session.Network.EnqueueSend(msg, sound);
+                            var stackSize = emote.StackSize ?? 1;
+                            var stackMsg = "";
+                            if (stackSize > 1)
+                            {
+                                item.SetStackSize(stackSize);
+                                stackMsg = stackSize + " ";     // pluralize?
+                            }
+                            success = player.TryCreateInInventoryWithNetworking(item);
+
+                            // transaction / rollback on failure?
+                            if (success)
+                            {
+                                var msg = new GameMessageSystemChat($"{WorldObject.Name} gives you {stackMsg}{item.Name}.", ChatMessageType.Broadcast);
+                                var sound = new GameMessageSound(player.Guid, Sound.ReceiveItem, 1);
+                                player.Session.Network.EnqueueSend(msg, sound);
+                            }
                         }
                     }
                     break;
