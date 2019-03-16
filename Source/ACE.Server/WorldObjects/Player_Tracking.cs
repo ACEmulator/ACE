@@ -63,7 +63,8 @@ namespace ACE.Server.WorldObjects
             if (worldObject is Creature creature)
             {
                 foreach (var wieldedItem in creature.EquippedObjects.Values)
-                    TrackEquippedObject(creature, wieldedItem);
+                    if (IsInChildLocation(wieldedItem))
+                        TrackEquippedObject(creature, wieldedItem);
             }
         }
 

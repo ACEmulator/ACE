@@ -1,5 +1,11 @@
 # ACEmulator Change Log
 
+### 2019-03-15
+[Ripley]
+* Exclude Burden in CreateObject messages for Creatures.
+* Update Player Description Event to reflect WeenieType and HasHealth accurately and not hard-coded values.
+* Changed TrackObject to only send Selectable child objects wielded by their parents (No more oversending of everyone's complete equipibles)
+
 ### 2019-03-14
 [Ripley]
 * Allow passthrough of permaload flag to landblocks loaded by adjacent load.
