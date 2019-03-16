@@ -1878,6 +1878,11 @@ namespace ACE.Server.Command.Handlers
         [CommandHandler("serverstatus", AccessLevel.Advocate, CommandHandlerFlag.None, 0, "Displays a summary of server statistics and usage")]
         public static void HandleServerStatus(Session session, params string[] parameters)
         {
+            CommandHandlerHelper.WriteOutputInfo(session, GetServerStatus());
+        }
+
+        public static string GetServerStatus()
+        {
             // This is formatted very similarly to GDL.
 
             var sb = new StringBuilder();
@@ -1930,7 +1935,7 @@ namespace ACE.Server.Command.Handlers
             sb.Append($"Portal.dat has {DatManager.PortalDat.FileCache.Count:N0} files cached of {DatManager.PortalDat.AllFiles.Count:N0} total{'\n'}");
             sb.Append($"Cell.dat has {DatManager.CellDat.FileCache.Count:N0} files cached of {DatManager.CellDat.AllFiles.Count:N0} total{'\n'}");
 
-            CommandHandlerHelper.WriteOutputInfo(session, $"{sb}");
+            return sb.ToString();
         }
 
         [CommandHandler("modifybool", AccessLevel.Admin, CommandHandlerFlag.None, 2, "Modifies a server property that is a bool", "modifybool (string) (bool)")]

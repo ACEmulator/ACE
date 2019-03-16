@@ -49,7 +49,7 @@
   </Target>
 
   <Target Name="PostBuild" AfterTargets="PostBuildEvent">
-    <Exec Command="rem modify and uncomment the following to aid in plugin development&#xD;&#xA;rem set src=$(TargetDir)&#xD;&#xA;rem set dst=E:\from desktop\ACE\ACE-Plugins\Dependencies\ACE&#xD;&#xA;rem robocopy &quot;%src% &quot; &quot;%dst% &quot; &quot;*.*&quot; /XO /NJH /NP&#xD;&#xA;rem SET ERRORLEVEL = 0" />
+    <Exec Command="modify and uncomment the following to aid in plugin development&#xD;&#xA;set src=$(TargetDir)&#xD;&#xA;set dst=E:\from desktop\ACE\ACE-Plugins\Dependencies\ACE&#xD;&#xA;robocopy &quot;%src% &quot; &quot;%dst% &quot; &quot;*.*&quot; /XO /NJH /NP&#xD;&#xA;SET ERRORLEVEL = 0" />
   </Target>
 
 </Project>

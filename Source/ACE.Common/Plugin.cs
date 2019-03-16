@@ -14,7 +14,8 @@ namespace ACE.Common
     /// </summary>
     public interface IACEPlugin
     {
-        void Start(TaskCompletionSource<bool> tsc);
+        void Start(TaskCompletionSource<bool> StartedSink);
+        void AllPluginsStarted(TaskCompletionSource<bool> AllPluginsStartedSink);
     }
     /// <summary>
     /// Plugin enabled in config, found, and either successfully initialized or failed to initialize.
@@ -63,6 +64,10 @@ namespace ACE.Common
         /// False indicates a fault occured during outer initialization
         /// </summary>
         public bool StartupSuccess { get; set; } = false;
+        /// <summary>
+        /// False indicates there was either a failed init or a good init but a failed AllPluginsStarted call
+        /// </summary>
+        public bool AllSuccess { get; set; } = false;
         /// <summary>
         /// exception that occured within the plugin manager while trying to resolve dependency assemblies, activate the assembly, and identify valid IACEPlugin implementors
         /// </summary>

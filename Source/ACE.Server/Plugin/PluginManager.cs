@@ -1,6 +1,7 @@
 using ACE.Common;
 using log4net;
 using Microsoft.Extensions.DependencyModel;
+using Microsoft.Extensions.DependencyModel.Resolution;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -9,8 +10,11 @@ using System.Reflection;
 using System.Runtime.Loader;
 using System.Threading.Tasks;
 
-namespace ACE.Server.Managers
+namespace ACE.Server.Plugin
 {
+    /// <summary>
+    /// initializes and manages plugins
+    /// </summary>
     public static class PluginManager
     {
         private static readonly ILog log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
@@ -20,16 +24,19 @@ namespace ACE.Server.Managers
         private static readonly List<Tuple<string, Assembly>> PluginDlls = new List<Tuple<string, Assembly>>();
         private static readonly List<Tuple<string, Assembly>> ACEDlls = new List<Tuple<string, Assembly>>();
         private static readonly List<Assembly> ReferencedAssemblies = new List<Assembly>();
-        public static string DpACEBase { get; } = new FileInfo(new Uri(Assembly.GetExecutingAssembly().CodeBase).LocalPath).Directory.FullName;
-        private static string DpPlugins { get; } = Path.Combine(DpACEBase, PluginFolderName);
+        public static string PathToACEFolder { get; } = new FileInfo(new Uri(Assembly.GetExecutingAssembly().CodeBase).LocalPath).Directory.FullName;
+        private static string DpPlugins { get; } = Path.Combine(PathToACEFolder, PluginFolderName);
         public const string PluginFolderName = "Plugins";
+
+        //public delegate void AllPluginsInitCompletedDele();
+        //public static event AllPluginsInitCompletedDele AllPluginsInitialized;
 
         /// <summary>
         /// make lists of all the DLLs in the main ACE dir and the plugin dirs
         /// </summary>
         private static void GatherDlls()
         {
-            ACEDlls.AddRange(new DirectoryInfo(DpACEBase).GetFiles("*.dll", SearchOption.TopDirectoryOnly).Select(k => new Tuple<string, Assembly>(k.FullName, null)));
+            ACEDlls.AddRange(new DirectoryInfo(PathToACEFolder).GetFiles("*.dll", SearchOption.TopDirectoryOnly).Select(k => new Tuple<string, Assembly>(k.FullName, null)));
 
             DirectoryInfo[] plugDirs = new DirectoryInfo(DpPlugins).GetDirectories();
 
@@ -82,7 +89,7 @@ namespace ACE.Server.Managers
 
 
                         CurrentPlugin = new ActivatedPlugin(curPlugNam, fnPlDll, dpPl, Path.Combine(PluginFolderName, curPlugNam));
-                        log.Info($"Loading: {CurrentPlugin.PluginFileRelativePath}");
+                        log.Debug($"Loading: {CurrentPlugin.PluginFileRelativePath}");
                         Plugins.Add(CurrentPlugin);
                         try
                         {
@@ -95,18 +102,22 @@ namespace ACE.Server.Managers
 
                             if (types.Count() < 1)
                             {
-                                log.Warn($"Plugin {curPlugNam} failure: couldn't any IACEPlugin interfaces.");
+                                log.Warn($"Plugin {curPlugNam} failure: couldn't find any IACEPlugin interfaces.");
                                 continue;
                             }
 
                             // TODO (low priority): add support for parallel Type start
                             foreach (Type type in types)
                             {
+                                // not sure if it's necessary to enforce case sensitive exact naming scheme, so keep this commented out for now,
+                                // thinking about PluginConfigManager<T> and how it uses the caller assembly name to form the file path
+                                // if (!type.Name.StartsWith(curPlugNam)) { log.Info($"Type {type} is being skipped, it is not and does not belong to {curPlugNam}"); }
+
                                 TaskCompletionSource<bool> tsc = new TaskCompletionSource<bool>();
                                 ACEPluginType atyp = new ACEPluginType(type, tsc);
                                 CurrentPlugin.Types.Add(atyp);
                                 atyp.Instance = (IACEPlugin)Activator.CreateInstance(type);
-                                log.Info($"Instance created for: {type}");
+                                log.Debug($"Instance created for: {type}");
                                 try
                                 {
                                     atyp.Instance.Start(atyp.ResultOfInitSink); // non blocking!
@@ -148,10 +159,40 @@ namespace ACE.Server.Managers
             curPlugNam = null;
             curPlugPath = null;
             CurrentPlugin = null;
+            IEnumerable<ActivatedPlugin> goodPlugins = Plugins.Where(k => k.StartupSuccess);
+            if (log.IsDebugEnabled && Plugins.Any() && goodPlugins.Any())
+            {
+                log.Debug($"calling AllPluginsStarted for {goodPlugins.Count()} plugins");
+            }
 
+            foreach (ActivatedPlugin plug in goodPlugins)
+            {
+                try
+                {
+                    foreach (ACEPluginType typ in plug.Types)
+                    {
+                        TaskCompletionSource<bool> tsc = new TaskCompletionSource<bool>();
+                        typ.Instance.AllPluginsStarted(tsc);
+                        if (!tsc.Task.Wait(10000))
+                        {
+                            throw new Exception($"Type {typ} AllPluginsStarted implementation failed to report before 10s");
+                        }
+                        else if (!tsc.Task.Result)
+                        {
+                            throw new Exception($"Type {typ} AllPluginsStarted implementation reported failure");
+                        }
+                    }
+                    plug.AllSuccess = true;
+                }
+                catch (Exception ex)
+                {
+                    log.Warn($"Plugin {plug.PluginName} failure: {ex.Message}", ex);
+                }
+            }
+
+            goodPlugins = Plugins.Where(k => k.AllSuccess);
             if (log.IsInfoEnabled && Plugins.Any())
             {
-                IEnumerable<ActivatedPlugin> goodPlugins = Plugins.Where(k => k.StartupSuccess);
                 IEnumerable<ActivatedPlugin> badPlugins = Plugins.Except(goodPlugins);
                 List<string> blurb = new List<string>() { "Plugin initialization summary:" };
                 if (goodPlugins.Count() > 0)
@@ -174,6 +215,23 @@ namespace ACE.Server.Managers
             {
                 return null;
             }
+            if (LastRequestedAssembly != null && name.FullName == LastRequestedAssembly.FullName)
+            {
+                if (AssemblyRequestedCount > 3)
+                {
+                    return null; // prevent stack overflow, resolution failed...
+                }
+                else
+                {
+                    AssemblyRequestedCount++;
+                }
+            }
+            else
+            {
+                LastRequestedAssembly = name;
+                AssemblyRequestedCount = 1;
+            }
+
             IReadOnlyList<RuntimeLibrary> dependencies = DependencyContext.Default.RuntimeLibraries;
             foreach (RuntimeLibrary library in dependencies)
             {
@@ -185,6 +243,17 @@ namespace ACE.Server.Managers
                     return assem;
                 }
             }
+
+            // already loaded?
+            Assembly[] curAsems = AppDomain.CurrentDomain.GetAssemblies();
+            Assembly asem = curAsems.FirstOrDefault(k => name.FullName.StartsWith(k.GetName().Name + ","));
+            if (asem != null)
+            {
+                CurrentPlugin?.AssemblyResolutionSuggestions.Add(new Tuple<AssemblyName, string, Assembly>(name, asem.ManifestModule.FullyQualifiedName, asem));
+                return asem;
+            }
+
+            // resort to library files
             List<Tuple<string, Assembly>> filList = null;
             Tuple<string, Assembly> fil = GetFavoredDependencyDll(name, ref filList);
             if (fil != null && !string.IsNullOrWhiteSpace(fil.Item1))
@@ -196,7 +265,7 @@ namespace ACE.Server.Managers
                 }
                 Assembly assem = context.LoadFromAssemblyPath(fil.Item1);
                 filList[filList.IndexOf(fil)] = new Tuple<string, Assembly>(filList[filList.IndexOf(fil)].Item1, assem);
-                log.Info($"Loaded {fil.Item1}");
+                log.Debug($"Loaded {fil.Item1}");
                 CurrentPlugin?.AssemblyResolutionSuggestions.Add(new Tuple<AssemblyName, string, Assembly>(name, fil.Item1, assem));
                 return assem;
             }
@@ -215,23 +284,6 @@ namespace ACE.Server.Managers
         /// <returns></returns>
         private static Tuple<string, Assembly> GetFavoredDependencyDll(AssemblyName name, ref List<Tuple<string, Assembly>> fileList)
         {
-            if (name.FullName == LastRequestedAssembly.FullName)
-            {
-                if (AssemblyRequestedCount > 3)
-                {
-                    return null; // prevent stack overflow, resolution failed...
-                }
-                else
-                {
-                    AssemblyRequestedCount++;
-                }
-            }
-            else
-            {
-                LastRequestedAssembly = name;
-                AssemblyRequestedCount = 1;
-            }
-
             // first, locate all copies of the required library in ACE folder
             List<Tuple<string, Assembly>> foundDlls = ACEDlls.Where(k => Path.GetFileNameWithoutExtension(k.Item1) == name.Name).ToList();
             if (foundDlls.Count < 1)

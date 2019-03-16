@@ -60,6 +60,7 @@
     // Enable or disable the entire plugin system.  true=enabled, false=disabled
     "Enabled": false,
     /*
+    * Plugin names are case sensitive.
     * Plugins are started in the sequence seen in the plugin list from top to bottom.
     * It's important to order them so that the least dependent ones are at the top.
     * If plugin startup is attempted for a plugin depending on another plugin
@@ -71,8 +72,8 @@
     */
     "Plugins": [
         //"ACE.Plugin.Crypto",
-        //"ACE.Plugin.Transfer", // depends on ACE.Plugin.Crypto
-        //"ACE.Plugin.WebAPI",  // depends on ACE.Plugin.Crypto, ACE.Plugin.Transfer
+        //"ACE.Plugin.WebAPI",  // depends on ACE.Plugin.Crypto
+        //"ACE.Plugin.Transfer", // depends on ACE.Plugin.Crypto, ACE.Plugin.WebAPI(optionally)
     ]
   },
   "MySql": {
