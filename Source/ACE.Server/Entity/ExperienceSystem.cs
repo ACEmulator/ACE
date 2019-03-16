@@ -47,7 +47,7 @@ namespace ACE.Server.Entity
             switch (xpScheme)
             {
                 case ItemXpStyle.Fixed:
-                    level = (int)Math.Floor((float)gainedXP / baseXP);
+                    level = (int)Math.Floor((double)gainedXP / baseXP);
                     break;
 
                 case ItemXpStyle.ScalesWithLevel:
@@ -69,7 +69,7 @@ namespace ACE.Server.Entity
                     if (gainedXP >= baseXP && gainedXP < baseXP * 3)
                         level = 1;
                     else
-                        level = (int)Math.Floor((float)(gainedXP - baseXP) / baseXP);
+                        level = (int)Math.Floor((double)(gainedXP - baseXP) / baseXP);
 
                     break;
             }

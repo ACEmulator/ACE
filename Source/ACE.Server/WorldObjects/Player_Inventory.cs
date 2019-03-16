@@ -215,6 +215,10 @@ namespace ACE.Server.WorldObjects
                         item.IsAffecting = true;
                 }
 
+                // handle equipment sets
+                if (item.HasItemSet)
+                    EquipItemFromSet(item);
+
                 if (item.IsAffecting ?? false)
                 {
                     if (item.ItemCurMana.HasValue)
@@ -268,6 +272,10 @@ namespace ACE.Server.WorldObjects
                 foreach (var spell in item.Biota.BiotaPropertiesSpellBook)
                     RemoveItemSpell(item, (uint)spell.Spell, true);
             }
+
+            // handle equipment sets
+            if (item.HasItemSet)
+                DequipItemFromSet(item);
 
             if (dequipObjectAction == DequipObjectAction.ToCorpseOnDeath)
                 Session.Network.EnqueueSend(new GameMessageDeleteObject(item));

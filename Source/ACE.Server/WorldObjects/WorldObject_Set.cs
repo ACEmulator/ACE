@@ -1,4 +1,8 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
+
+using ACE.DatLoader;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
@@ -43,33 +47,55 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
+        /// The item set this piece of equipment belongs to
+        /// https://asheron.fandom.com/wiki/Item_Sets
+        /// </summary>
+        public EquipmentSet? EquipmentSetId
+        {
+            get => (EquipmentSet?)GetProperty(PropertyInt.EquipmentSetId);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.EquipmentSetId); else SetProperty(PropertyInt.EquipmentSetId, (int)value.Value); }
+        }
+
+        /// <summary>
+        /// Returns the level for an item
+        /// </summary>
+        public int? ItemLevel
+        {
+            get
+            {
+                if (!HasItemLevel) return null;
+
+                return ExperienceSystem.ItemTotalXPToLevel((ulong)ItemTotalXp.Value, (ulong)ItemBaseXp.Value, ItemMaxLevel.Value, ItemXpStyle.Value);
+            }
+        }
+
+        /// <summary>
         /// Returns TRUE if this item is part of a set
         /// </summary>
-        /// <returns></returns>
-        public bool HasItemSet()
-        {
-            return false;
-        }
+        public bool HasItemSet => EquipmentSetId != null;
 
         /// <summary>
         /// Returns TRUE if this item can be leveled
         /// </summary>
-        public bool HasItemLevel()
+        public bool HasItemLevel
         {
-            // seems like ItemMaxLevel would be good enough here,
-            // but using the client formula from ItemExamineUI::Appraisal_ShowItemLevelInfo
-            return ItemBaseXp != null && ItemBaseXp > 0 &&
-                   ItemMaxLevel != null && ItemMaxLevel > 0 &&
-                   ItemXpStyle != null && ItemXpStyle > 0;
+            get
+            {
+                // seems like ItemMaxLevel would be good enough here,
+                // but using the client formula from ItemExamineUI::Appraisal_ShowItemLevelInfo
+                return ItemBaseXp != null && ItemBaseXp > 0 &&
+                       ItemMaxLevel != null && ItemMaxLevel > 0 &&
+                       ItemXpStyle != null && ItemXpStyle > 0;
+            }
         }
 
         /// <summary>
         /// Grants XP to an item that can be leveled up
         /// </summary>
         /// <param name="amount">The amount of item XP to add</param>
-        public long EarnItemXP(long amount)
+        public long AddItemXP(long amount)
         {
-            if (!HasItemLevel())
+            if (!HasItemLevel)
             {
                 Console.WriteLine($"{Name}.GrantItemXp({amount}): no item level");
                 return 0;
@@ -91,6 +117,50 @@ namespace ACE.Server.WorldObjects
 
             // return amount added
             return itemTotalXp - prevAmount;
+        }
+
+        /// <summary>
+        /// Returns the item set spells for a particular level
+        /// </summary>
+        public static List<Spell> GetSpellSet(EquipmentSet equipmentSet, List<WorldObject> setItems)
+        {
+            var spells = new List<Spell>();
+
+            if (!DatManager.PortalDat.SpellTable.SpellSet.TryGetValue((uint)equipmentSet, out var spellSet))
+                return spells;
+
+            // apply maximum level cap here?
+            var level = (uint)setItems.Sum(i => i.ItemLevel.Value);
+            var highestTier = spellSet.SpellSetTiers.Last().Key;
+
+            //Console.WriteLine($"Total level: {level}");
+            level = Math.Min(level, highestTier);
+
+            if (!spellSet.SpellSetTiers.TryGetValue(level, out var spellSetTiers))
+                return spells;
+
+            foreach (var spellId in spellSetTiers.Spells)
+                spells.Add(new Spell(spellId, false));
+
+            return spells;
+        }
+
+        /// <summary>
+        /// Returns TRUE if spell is contained within any tier for this equipment set
+        /// </summary>
+        public bool ItemSetContains(uint spellID)
+        {
+            if (!HasItemSet) return false;
+
+            // get all spells from this set - cache?
+            if (!DatManager.PortalDat.SpellTable.SpellSet.TryGetValue((uint)EquipmentSetId, out var spellSet))
+                return false;
+
+            foreach (var tier in spellSet.SpellSetTiers.Values)
+                if (tier.Spells.Contains(spellID))
+                    return true;
+
+            return false;
         }
     }
 }

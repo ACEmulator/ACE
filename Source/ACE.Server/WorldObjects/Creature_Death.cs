@@ -152,13 +152,7 @@ namespace ACE.Server.WorldObjects
                 playerDamager.EarnXP(iTotalXP);
 
                 // handle item xp
-                foreach (var equippedItem in playerDamager.EquippedObjects.Values.Where(i => i.HasItemLevel()))
-                {
-                    var addItemXP = equippedItem.EarnItemXP(iTotalXP);
-
-                    if (addItemXP > 0)
-                        playerDamager.Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt64(equippedItem, PropertyInt64.ItemTotalXp, equippedItem.ItemTotalXp.Value));
-                }
+                playerDamager.EarnItemXP(iTotalXP);
             }
         }
 

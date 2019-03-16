@@ -9,7 +9,7 @@ namespace ACE.DatLoader.Entity
     {
         // uint key is the total combined item level of all the equipped pieces in the set
         // client calls this m_PieceCount
-        public Dictionary<uint, SpellSetTiers> SpellSetTiers = new Dictionary<uint, SpellSetTiers>();
+        public SortedDictionary<uint, SpellSetTiers> SpellSetTiers = new SortedDictionary<uint, SpellSetTiers>();
 
         public void Unpack(BinaryReader reader)
         {
