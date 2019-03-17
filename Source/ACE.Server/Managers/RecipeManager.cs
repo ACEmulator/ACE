@@ -62,6 +62,12 @@ namespace ACE.Server.Managers
             bool success = true; // assume success, unless there's a skill check
             double percentSuccess = 1;
 
+            if (player.CombatMode != CombatMode.NonCombat)
+            {
+                var stanceTime = player.SetCombatMode(CombatMode.NonCombat);
+                craftChain.AddDelaySeconds(stanceTime);
+            }
+
             var motion = new Motion(MotionStance.NonCombat, MotionCommand.ClapHands);
             craftChain.AddAction(player, () => player.EnqueueBroadcastMotion(motion));
             var motionTable = DatManager.PortalDat.ReadFromDat<MotionTable>(player.MotionTableId);
