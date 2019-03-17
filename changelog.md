@@ -1,5 +1,19 @@
 # ACEmulator Change Log
 
+### 2019-03-15
+[Ripley]
+* Exclude Burden in CreateObject messages for Creatures.
+* Update Player Description Event to reflect WeenieType and HasHealth accurately and not hard-coded values.
+* Changed TrackObject to only send Selectable child objects wielded by their parents (No more oversending of everyone's complete equipibles)
+
+### 2019-03-14
+[Ripley]
+* Allow passthrough of permaload flag to landblocks loaded by adjacent load.
+
+### 2019-03-12
+[gmriggs, Ripley]
+* Fix Vendors to handle 0 value items properly in buy/sell.
+
 ### 2019-03-10
 [Ripley]
 * Changed the way Name property is handled with regards to + (Admin/Sentinel characters).

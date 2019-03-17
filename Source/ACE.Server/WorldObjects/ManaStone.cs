@@ -56,7 +56,7 @@ namespace ACE.Server.WorldObjects
             player.EnqueueBroadcast(new GameMessagePublicUpdatePropertyInt(this, PropertyInt.UiEffects, (int)effect));
         }
 
-        public void HandleActionUseOnTarget(Player player, WorldObject target)
+        public override void HandleActionUseOnTarget(Player player, WorldObject target)
         {
             WorldObject invTarget;
 
@@ -155,7 +155,7 @@ namespace ACE.Server.WorldObjects
                         //You need 2,232 more mana to fully charge your items.
 
                         var additionalManaNeeded = origItemsNeedingMana.Sum(k => k.ItemMaxMana.Value - k.ItemCurMana.Value);
-                        var additionalManaText = (additionalManaNeeded > 0) ? $"\nYou need {additionalManaNeeded:N0} more mana to fully charge your items." : "Your items are fully charged.";
+                        var additionalManaText = (additionalManaNeeded > 0) ? $"\nYou need {additionalManaNeeded:N0} more mana to fully charge your items." : "\nYour items are fully charged.";
                         var msg = $"The Mana Stone gives {itemsGivenMana.Values.Sum():N0} points of mana to the following items: {itemsGivenMana.Select(c => c.Key.Name).Aggregate((a, b) => a + ", " + b)}.{additionalManaText}";
                         player.Session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
 

@@ -118,6 +118,7 @@ namespace ACE.Server.WorldObjects
             {
                 actionChain.AddAction(this, () =>
                 {
+                    Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, "You are out of ammunition!"));
                     SetCombatMode(CombatMode.NonCombat);
                 });
 

@@ -382,9 +382,9 @@ namespace ACE.Server.WorldObjects
 
             if (searchLocations.HasFlag(SearchLocations.LastUsedContainer))
             {
-                if (CurrentLandblock?.GetObject(LastUsedContainerId) is Container lastUsedContainer)
+                if (CurrentLandblock?.GetObject(LastOpenedContainerId) is Container lastOpenedContainer)
                 {
-                    if (lastUsedContainer is Vendor lastUsedVendor)
+                    if (lastOpenedContainer is Vendor lastUsedVendor)
                     {
                         if (lastUsedVendor.AllItemsForSale.TryGetValue(objectGuid, out result))
                         {
@@ -392,13 +392,13 @@ namespace ACE.Server.WorldObjects
                             return result;
                         }
                     }
-                    if (lastUsedContainer.IsOpen && lastUsedContainer.Viewer == Guid.Full)
+                    if (lastOpenedContainer.IsOpen && lastOpenedContainer.Viewer == Guid.Full)
                     {
-                        result = lastUsedContainer.GetInventoryItem(objectGuid, out foundInContainer);
+                        result = lastOpenedContainer.GetInventoryItem(objectGuid, out foundInContainer);
 
                         if (result != null)
                         {
-                            rootOwner = lastUsedContainer;
+                            rootOwner = lastOpenedContainer;
                             return result;
                         }
                     }
@@ -1586,10 +1586,15 @@ namespace ACE.Server.WorldObjects
             if (item == itemToGive)
                 Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, target));
 
-            Session.Network.EnqueueSend(new GameMessageSystemChat($"You give {target.Name} {itemToGive.Name}.", ChatMessageType.Broadcast));
+            var stackSize = itemToGive.StackSize ?? 1;
+
+            var stackMsg = stackSize > 1 ? $"{stackSize} " : "";
+            var itemName = stackSize > 1 ? itemToGive.GetPluralName() : itemToGive.Name;
+
+            Session.Network.EnqueueSend(new GameMessageSystemChat($"You give {target.Name} {stackMsg}{itemName}.", ChatMessageType.Broadcast));
             Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.ReceiveItem));
 
-            target.Session.Network.EnqueueSend(new GameMessageSystemChat($"{Name} gives you {itemToGive.Name}.", ChatMessageType.Broadcast));
+            target.Session.Network.EnqueueSend(new GameMessageSystemChat($"{Name} gives you {stackMsg}{itemName}.", ChatMessageType.Broadcast));
             target.Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.ReceiveItem));
 
             // This is a hack because our Player_Tracking->RemoveTrackedEquippedObject() is doing GameMessageDeleteObject, not GameMessagePickupEvent

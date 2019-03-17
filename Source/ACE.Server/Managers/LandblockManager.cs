@@ -144,7 +144,7 @@ namespace ACE.Server.Managers
             {
                 var adjacents = GetAdjacentIDs(landblock);
                 foreach (var adjacent in adjacents)
-                    GetLandblock(adjacent, false);
+                    GetLandblock(adjacent, false, permaload);
             }
 
             // cache adjacencies

@@ -534,25 +534,26 @@ namespace ACE.Server.Entity
 
         private void AddWorldObjectInternal(WorldObject wo)
         {
-            if (!worldObjects.ContainsKey(wo.Guid))
-                pendingAdditions[wo.Guid] = wo;
-            else
-                pendingRemovals.Remove(wo.Guid);
-
             wo.CurrentLandblock = this;
 
             if (wo.PhysicsObj == null)
                 wo.InitPhysicsObj();
 
             if (wo.PhysicsObj.CurCell == null)
-            { 
+            {
                 var success = wo.AddPhysicsObj();
                 if (!success)
                 {
+                    wo.CurrentLandblock = null;
                     log.Warn($"AddWorldObjectInternal: couldn't spawn {wo.Name}");
                     return;
                 }
             }
+
+            if (!worldObjects.ContainsKey(wo.Guid))
+                pendingAdditions[wo.Guid] = wo;
+            else
+                pendingRemovals.Remove(wo.Guid);
 
             // if adding a player to this landblock,
             // tell them about other nearby objects
@@ -593,7 +594,7 @@ namespace ACE.Server.Entity
 
             wo.CurrentLandblock = null;
 
-            // Weenies can come with a default of 0 or -1. If they still have that value, we want to retain it.
+            // Weenies can come with a default of 0 (Instant Rot) or -1 (Never Rot). If they still have that value, we want to retain it.
             // We also want to make sure fromPickup is true so that we're not clearing out TimeToRot on server shutdown (unloads all landblocks and removed all objects).
             if (fromPickup && wo.TimeToRot.HasValue && wo.TimeToRot != 0 && wo.TimeToRot != -1)
                 wo.TimeToRot = null;
@@ -610,14 +611,14 @@ namespace ACE.Server.Entity
         /// <summary>
         /// Check to see if we are close enough to interact.   Adds a fudge factor of 1.5f
         /// </summary>
-        public bool WithinUseRadius(Player player, ObjectGuid targetGuid, out bool validTargetGuid)
+        public bool WithinUseRadius(Player player, ObjectGuid targetGuid, out bool validTargetGuid, float? useRadius = null)
         {
             var target = GetObject(targetGuid);
 
             validTargetGuid = target != null;
 
             if (target != null)
-                return player.IsWithinUseRadiusOf(target);
+                return player.IsWithinUseRadiusOf(target, useRadius);
 
             return false;
         }

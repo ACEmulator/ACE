@@ -4,6 +4,7 @@ using ACE.Server.Entity;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Server.Managers;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
 
@@ -31,9 +32,11 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Used to determine how close you need to be to use an item.
         /// </summary>
-        public bool IsWithinUseRadiusOf(WorldObject wo)
+        public bool IsWithinUseRadiusOf(WorldObject wo, float? useRadius = null)
         {
-            var useRadius = wo.UseRadius ?? 0.6f;
+            if (useRadius == null)
+                useRadius = wo.UseRadius ?? 0.6f;
+
             var cylDist = GetCylinderDistance(wo);
 
             return cylDist <= useRadius;
@@ -43,6 +46,14 @@ namespace ACE.Server.WorldObjects
         {
             return (float)Physics.Common.Position.CylinderDistance(PhysicsObj.GetRadius(), PhysicsObj.GetHeight(), PhysicsObj.Position,
                 wo.PhysicsObj.GetRadius(), wo.PhysicsObj.GetHeight(), wo.PhysicsObj.Position);
+        }
+
+        /// <summary>
+        /// Handles the 'GameAction 0x35 - UseWithTarget' network message
+        /// on a per-object type basis.
+        public virtual void HandleActionUseOnTarget(Player player, WorldObject target)
+        {
+            RecipeManager.UseObjectOnTarget(player, this, target);
         }
 
         public virtual void OnActivate(WorldObject activator)

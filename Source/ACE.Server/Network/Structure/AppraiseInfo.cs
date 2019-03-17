@@ -130,7 +130,7 @@ namespace ACE.Server.Network.Structure
             {
                 // handle character options
                 if (!player.GetCharacterOption(CharacterOption.AllowOthersToSeeYourDateOfBirth))
-                    PropertiesInt.Remove(PropertyInt.CreationTimestamp);
+                    PropertiesString.Remove(PropertyString.DateOfBirth);
                 if (!player.GetCharacterOption(CharacterOption.AllowOthersToSeeYourAge))
                     PropertiesInt.Remove(PropertyInt.Age);
                 if (!player.GetCharacterOption(CharacterOption.AllowOthersToSeeYourChessRank))
@@ -158,9 +158,10 @@ namespace ACE.Server.Network.Structure
                         PropertiesString[PropertyString.PatronsTitle] = AllegianceTitle.GetTitle((HeritageGroup)(patron.Player.Heritage ?? 0), (Gender)(patron.Player.Gender ?? 0), patron.Rank) + " " + patron.Player.Name;
                     }
                 }
+
+                if (player.Fellowship != null)
+                    PropertiesString[PropertyString.Fellowship] = player.Fellowship.FellowshipName;
             }
-
-
 
             AddPropertyEnchantments(wo, wielder);
         }

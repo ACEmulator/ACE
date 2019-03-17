@@ -711,5 +711,14 @@ namespace ACE.Server.WorldObjects
             get => GetProperty(PropertyInt.AugmentationIncreasedSpellDuration) ?? 0;
             set { if (value == 0) RemoveProperty(PropertyInt.AugmentationIncreasedSpellDuration); else SetProperty(PropertyInt.AugmentationIncreasedSpellDuration, value); }
         }
+
+        // ========================================
+        // =============== Rares ==================
+        // ========================================
+        public double? LastRareUsedTimestamp
+        {
+            get => GetProperty(PropertyFloat.LastRareUsedTimestamp);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.LastRareUsedTimestamp); else SetProperty(PropertyFloat.LastRareUsedTimestamp, value.Value); }
+        }
     }
 }
