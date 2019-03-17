@@ -115,6 +115,15 @@ namespace ACE.Server.Managers
 
                 CreateDestroyItems(player, recipe.Recipe, source, target, success);
 
+                var updateObj = new GameMessageUpdateObject(target);
+                var updateDesc = new GameMessageObjDescEvent(player);
+
+                // more specifity for this, only if relevant properties are modified?
+                if (target.CurrentWieldedLocation != null)
+                    player.EnqueueBroadcast(updateObj, updateDesc);
+                else
+                    player.Session.Network.EnqueueSend(updateObj);
+
                 player.SendUseDoneEvent();
             });
 
