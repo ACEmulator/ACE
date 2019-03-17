@@ -36,7 +36,6 @@ namespace ACE.Server.WorldObjects
 
         private void SetEphemeralValues()
         {
-            ObjScale = 0.5f;
             TimeToRot = -1;
         }
 
@@ -79,12 +78,12 @@ namespace ACE.Server.WorldObjects
             {
                 case GamePieceState.MoveToSquare:
                     GamePieceState = GamePieceState.WaitingForMoveToSquare;
-                    MoveWeenie(Position, 0.1f, true);
+                    MoveWeenie(Position, 0.3f, true);
                     break;
 
                 // visual awareness range of piece is only 1, make sure we are close enough to attack
                 case GamePieceState.MoveToAttack:
-                    MoveWeenie(Position, 0.8f, false);
+                    MoveWeenie(Position, PhysicsObj.GetRadius() + TargetPiece.PhysicsObj.GetRadius(), false);
                     GamePieceState = GamePieceState.WaitingForMoveToAttack;
                     break;
 
@@ -143,8 +142,14 @@ namespace ACE.Server.WorldObjects
 
         public void MoveWeenie(Position to, float distanceToObject, bool finalHeading)
         {
+            if (MoveSpeed == 0.0f)
+                GetMovementSpeed();
+
             var moveToPosition = new Motion(this, to);
             moveToPosition.MoveToParameters.DistanceToObject = distanceToObject;
+            moveToPosition.MoveToParameters.MovementParameters |= MovementParams.StopCompletely;
+            moveToPosition.MoveToParameters.MovementParameters &= ~MovementParams.UseSpheres;
+
             if (finalHeading)
                 moveToPosition.MoveToParameters.MovementParameters |= MovementParams.UseFinalHeading;
 
@@ -162,7 +167,14 @@ namespace ACE.Server.WorldObjects
                 InitSticky = true;
             }
 
-            PhysicsObj.MoveToPosition(physPos, GetMovementParameters());
+            var mvp = GetMovementParameters();
+            mvp.CanWalk = true;
+            mvp.StopCompletely = true;
+            mvp.UseSpheres = false;
+            mvp.DistanceToObject = distanceToObject;
+            mvp.UseFinalHeading = finalHeading;
+
+            PhysicsObj.MoveToPosition(physPos, mvp);
             IsMoving = true;
             MonsterState = State.Awake;
             IsAwake = true;
