@@ -34,6 +34,13 @@ namespace ACE.Server.Managers
                 return;
             }
 
+            if (source is Gem)
+            {
+                // always tailoring?
+                Tailoring.UseObjectOnTarget(player, source, target);
+                return;
+            }
+
             var recipe = DatabaseManager.World.GetCachedCookbook(source.WeenieClassId, target.WeenieClassId);
 
             if (recipe == null)
