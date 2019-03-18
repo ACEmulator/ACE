@@ -210,6 +210,9 @@ namespace ACE.Server.WorldObjects
 
                 foreach (var spell in item.Biota.BiotaPropertiesSpellBook)
                 {
+                    if (item.HasProcSpell((uint)spell.Spell))
+                        continue;
+
                     var enchantmentStatus = CreateItemSpell(item, (uint)spell.Spell);
                     if (enchantmentStatus.Success)
                         item.IsAffecting = true;
@@ -266,7 +269,12 @@ namespace ACE.Server.WorldObjects
             if (item.Biota.BiotaPropertiesSpellBook != null)
             {
                 foreach (var spell in item.Biota.BiotaPropertiesSpellBook)
+                {
+                    if (item.HasProcSpell((uint)spell.Spell))
+                        continue;
+
                     RemoveItemSpell(item, (uint)spell.Spell, true);
+                }
             }
 
             if (dequipObjectAction == DequipObjectAction.ToCorpseOnDeath)
