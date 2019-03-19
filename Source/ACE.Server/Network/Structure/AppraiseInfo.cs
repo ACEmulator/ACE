@@ -178,7 +178,7 @@ namespace ACE.Server.Network.Structure
 
             if (wielder == null || !wo.IsEnchantable) return;
 
-            if (PropertiesFloat.ContainsKey(PropertyFloat.WeaponDefense) && !(wo is Ammunition))
+            if (PropertiesFloat.ContainsKey(PropertyFloat.WeaponDefense) && !(wo is Missile) && !(wo is Ammunition))
                 PropertiesFloat[PropertyFloat.WeaponDefense] += wielder.EnchantmentManager.GetDefenseMod();
 
             if (PropertiesFloat.ContainsKey(PropertyFloat.ManaConversionMod))
@@ -257,7 +257,7 @@ namespace ACE.Server.Network.Structure
                             activeSpells.Add(new AppraisalSpellBook() { SpellId = (ushort)enchantment.SpellId, EnchantmentState = AppraisalSpellBook._EnchantmentState.On });
                         }
                     }
-                    else if (worldObject is Ammunition)
+                    else if (worldObject is Missile || worldObject is Ammunition)
                     {
                         if ((enchantment.SpellCategory == (uint)SpellCategory.DamageLowering))
                             activeSpells.Add(new AppraisalSpellBook() { SpellId = (ushort)enchantment.SpellId, EnchantmentState = AppraisalSpellBook._EnchantmentState.On });
@@ -290,7 +290,7 @@ namespace ACE.Server.Network.Structure
                                 activeSpells.Add(new AppraisalSpellBook() { SpellId = (ushort)enchantment.SpellId, EnchantmentState = AppraisalSpellBook._EnchantmentState.On });
                             }
                         }
-                        else if (worldObject is Ammunition)
+                        else if (worldObject is Missile || worldObject is Ammunition)
                         {
                             if ((enchantment.SpellCategory == (uint)SpellCategory.DamageRaising))
                                 activeSpells.Add(new AppraisalSpellBook() { SpellId = (ushort)enchantment.SpellId, EnchantmentState = AppraisalSpellBook._EnchantmentState.On });

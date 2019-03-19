@@ -25,7 +25,7 @@ namespace ACE.Server.WorldObjects
 
             // apply xp modifier
             var modifier = PropertyManager.GetDouble("xp_modifier").Item;
-            var m_amount = (long)(amount * modifier);
+            var m_amount = (long)Math.Round(amount * modifier);
 
             if (m_amount < 0)
             {
@@ -347,7 +347,7 @@ namespace ACE.Server.WorldObjects
         public void GrantLuminance(long amount)
         {
             // apply lum modifier
-            amount = (long)(amount * PropertyManager.GetDouble("luminance_modifier").Item);
+            amount = (long)Math.Round(amount * PropertyManager.GetDouble("luminance_modifier").Item);
 
             if (AvailableLuminance + amount > MaximumLuminance)
                 amount = MaximumLuminance.Value - AvailableLuminance.Value;
@@ -357,6 +357,44 @@ namespace ACE.Server.WorldObjects
             var luminance = new GameMessagePrivateUpdatePropertyInt64(this, PropertyInt64.AvailableLuminance, AvailableLuminance ?? 0);
             var message = new GameMessageSystemChat($"{amount:N0} luminance granted.", ChatMessageType.Advancement);
             Session.Network.EnqueueSend(luminance, message);
+        }
+
+        /// <summary>
+        /// The player earns XP for items that can be leveled up
+        /// by killing creatures while those items are equipped.
+        /// </summary>
+        public void EarnItemXP(long amount)
+        {
+            // apply xp modifier
+            amount = (long)Math.Round(PropertyManager.GetDouble("xp_modifier").Item);
+
+            foreach (var item in EquippedObjects.Values.Where(i => i.HasItemLevel))
+            {
+                var prevItemLevel = item.ItemLevel.Value;
+                var addItemXP = item.AddItemXP(amount);
+
+                if (addItemXP > 0)
+                    Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt64(item, PropertyInt64.ItemTotalXp, item.ItemTotalXp.Value));
+
+                // handle item leveling up
+                var newItemLevel = item.ItemLevel.Value;
+                if (newItemLevel > prevItemLevel)
+                {
+                    var actionChain = new ActionChain();
+                    actionChain.AddAction(this, () =>
+                    {
+                        var msg = newItemLevel != item.ItemMaxLevel ? $"Your {item.Name} is now level {newItemLevel}!" : $"Your {item.Name} has reached the maximum level of {newItemLevel}!";
+                        Session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
+
+                        EnqueueBroadcast(new GameMessageScript(Guid, ACE.Entity.Enum.PlayScript.AetheriaLevelUp));
+
+                        if (newItemLevel == item.ItemMaxLevel)
+                            EnqueueBroadcast(new GameMessageScript(Guid, ACE.Entity.Enum.PlayScript.WeddingBliss));
+
+                    });
+                    actionChain.EnqueueChain();
+                }
+            }
         }
     }
 }

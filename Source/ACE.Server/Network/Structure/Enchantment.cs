@@ -74,6 +74,7 @@ namespace ACE.Server.Network.Structure
             Duration = entry.Duration;      // item spells can have -1, overriding the spell duration
             CasterGuid = entry.CasterObjectId;
             StatModValue = entry.StatModValue;
+            SpellSetID = entry.SpellSetId;
 
             Target = target;
             EnchantmentMask = (EnchantmentMask)entry.EnchantmentCategory;

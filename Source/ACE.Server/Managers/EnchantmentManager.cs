@@ -69,6 +69,14 @@ namespace ACE.Server.Managers
         }
 
         /// <summary>
+        /// Returns the enchantments for a specific spell from an equipment set
+        /// </summary>
+        public BiotaPropertiesEnchantmentRegistry GetEnchantment(uint spellID, EquipmentSet equipmentSet)
+        {
+            return WorldObject.Biota.GetEnchantmentBySpellSet((int)spellID, (int)equipmentSet, WorldObject.BiotaDatabaseLock);
+        }
+
+        /// <summary>
         /// Returns a list of all the active enchantments for a magic school
         /// </summary>
         public List<BiotaPropertiesEnchantmentRegistry> GetEnchantments(MagicSchool magicSchool)
@@ -237,6 +245,13 @@ namespace ACE.Server.Managers
             entry.StatModType = (uint)spell.StatModType;
             entry.StatModKey = spell.StatModKey;
             entry.StatModValue = spell.StatModVal;
+
+            // handle equipment sets
+            if (caster != null && caster.HasItemSet && caster.ItemSetContains(spell.Id))
+            {
+                entry.HasSpellSetId = true;
+                entry.SpellSetId = (uint)caster.EquipmentSetId;
+            }
 
             return entry;
         }

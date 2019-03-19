@@ -146,7 +146,11 @@ namespace ACE.Server.WorldObjects
                 if (playerDamager.AugmentationBonusXp > 0)
                     totalXP *= 1.0f + playerDamager.AugmentationBonusXp * 0.05f;
 
-                playerDamager.EarnXP((long)Math.Round(totalXP));
+                var iTotalXP = (long)Math.Round(totalXP);
+                playerDamager.EarnXP(iTotalXP);
+
+                // handle item xp
+                playerDamager.EarnItemXP(iTotalXP);
             }
         }
 

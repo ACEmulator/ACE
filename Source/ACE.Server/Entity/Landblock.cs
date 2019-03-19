@@ -231,6 +231,10 @@ namespace ACE.Server.Entity
 
                 wo.Location = new Position(pos.ObjCellID, pos.Frame.Origin, pos.Frame.Orientation);
 
+                var sortCell = LScape.get_landcell(pos.ObjCellID) as SortCell;
+                if (sortCell != null && sortCell.has_building())
+                    continue;
+
                 actionQueue.EnqueueAction(new ActionEventDelegate(() =>
                 {
                     AddWorldObject(wo);
