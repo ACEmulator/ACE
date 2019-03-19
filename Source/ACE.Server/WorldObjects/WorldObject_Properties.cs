@@ -1111,7 +1111,7 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyDataId.PhysicsScript); else SetProperty(PropertyDataId.PhysicsScript, value.Value); }
         }
 
-        private int? ItemWorkmanship
+        public int? ItemWorkmanship
         {
             get => GetProperty(PropertyInt.ItemWorkmanship);
             set { if (!value.HasValue) RemoveProperty(PropertyInt.ItemWorkmanship); else SetProperty(PropertyInt.ItemWorkmanship, value.Value); }
@@ -1937,6 +1937,24 @@ namespace ACE.Server.WorldObjects
         {
             get => GetProperty(PropertyFloat.Shade);
             set { if (!value.HasValue) RemoveProperty(PropertyFloat.Shade); else SetProperty(PropertyFloat.Shade, value.Value); }
+        }
+
+        public double? Shade2
+        {
+            get => GetProperty(PropertyFloat.Shade2);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.Shade2); else SetProperty(PropertyFloat.Shade2, value.Value); }
+        }
+
+        public double? Shade3
+        {
+            get => GetProperty(PropertyFloat.Shade3);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.Shade3); else SetProperty(PropertyFloat.Shade3, value.Value); }
+        }
+
+        public double? Shade4
+        {
+            get => GetProperty(PropertyFloat.Shade4);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.Shade4); else SetProperty(PropertyFloat.Shade4, value.Value); }
         }
 
         public int NumTimesTinkered

@@ -1,7 +1,8 @@
-
 using ACE.Common;
+using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Server.Network.GameMessages.Messages;
 
 namespace ACE.Server.WorldObjects
 {
@@ -719,6 +720,78 @@ namespace ACE.Server.WorldObjects
         {
             get => GetProperty(PropertyFloat.LastRareUsedTimestamp);
             set { if (!value.HasValue) RemoveProperty(PropertyFloat.LastRareUsedTimestamp); else SetProperty(PropertyFloat.LastRareUsedTimestamp, value.Value); }
+        }
+
+        public void UpdateProperty(WorldObject obj, PropertyInt prop, int? value)
+        {
+            if (value != null)
+                obj.SetProperty(prop, value.Value);
+            else
+                obj.RemoveProperty(prop);
+
+            Session.Network.EnqueueSend(new GameMessagePublicUpdatePropertyInt(obj, prop, value ?? 0));
+        }
+
+        public void UpdateProperty(WorldObject obj, PropertyBool prop, bool? value)
+        {
+            if (value != null)
+                obj.SetProperty(prop, value.Value);
+            else
+                obj.RemoveProperty(prop);
+
+            Session.Network.EnqueueSend(new GameMessagePublicUpdatePropertyBool(obj, prop, value ?? false));
+        }
+
+        public void UpdateProperty(WorldObject obj, PropertyFloat prop, double? value)
+        {
+            if (value != null)
+                obj.SetProperty(prop, value.Value);
+            else
+                obj.RemoveProperty(prop);
+
+            Session.Network.EnqueueSend(new GameMessagePublicUpdatePropertyFloat(obj, prop, value ?? 0.0));
+        }
+
+        public void UpdateProperty(WorldObject obj, PropertyDataId prop, uint? value)
+        {
+            if (value != null)
+                obj.SetProperty(prop, value.Value);
+            else
+                obj.RemoveProperty(prop);
+
+            Session.Network.EnqueueSend(new GameMessagePublicUpdatePropertyDataID(obj, prop, value ?? 0));
+        }
+
+        public void UpdateProperty(WorldObject obj, PropertyInstanceId prop, uint? value)
+        {
+            if (value != null)
+                obj.SetProperty(prop, value.Value);
+            else
+                obj.RemoveProperty(prop);
+
+            Session.Network.EnqueueSend(new GameMessagePublicUpdateInstanceID(obj, prop, new ObjectGuid(value ?? 0)));
+        }
+
+        public void UpdateProperty(WorldObject obj, PropertyString prop, string value)
+        {
+            if (value != null)
+                obj.SetProperty(prop, value);
+            else
+                obj.RemoveProperty(prop);
+
+            // the client seems to cache these values somewhere,
+            // and the object will not update until relogging or CO
+            Session.Network.EnqueueSend(new GameMessagePublicUpdatePropertyString(obj, prop, value));
+        }
+
+        public void UpdateProperty(WorldObject obj, PropertyInt64 prop, long? value)
+        {
+            if (value != null)
+                obj.SetProperty(prop, value.Value);
+            else
+                obj.RemoveProperty(prop);
+
+            Session.Network.EnqueueSend(new GameMessagePublicUpdatePropertyInt64(obj, prop, value ?? 0));
         }
     }
 }

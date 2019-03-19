@@ -15,6 +15,18 @@ namespace ACE.Server.WorldObjects
             set { if (value == AttackType.Undef) RemoveProperty(PropertyInt.AttackType); else SetProperty(PropertyInt.AttackType, (int)value); }
         }
 
+        public int? W_WeaponType
+        {
+            get => GetProperty(PropertyInt.WeaponType) ?? 0;
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.WeaponType); else SetProperty(PropertyInt.WeaponType, value.Value); }
+        }
+
+        public int? W_DamageType
+        {
+            get => GetProperty(PropertyInt.DamageType) ?? 0;
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.DamageType); else SetProperty(PropertyInt.DamageType, value.Value); }
+        }
+
         /// <summary>
         /// Spell ID for 'Cast on Strike'
         /// </summary>
