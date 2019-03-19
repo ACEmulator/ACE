@@ -119,18 +119,6 @@ namespace ACE.Server.WorldObjects
                 }
             }
 
-            /*float? damage = null;
-            if (targetPlayer != null)
-            {
-                damage = CalculateDamagePVP(target, damageSource, damageType, ref critical, ref sneakAttack, ref bodyPart);
-
-                // TODO: level up shield mod?
-                if (targetPlayer.Invincible ?? false)
-                    damage = 0.0f;
-            }
-            else
-                damage = CalculateDamage(target, damageSource, ref critical, ref sneakAttack);*/
-
             var damageEvent = DamageEvent.CalculateDamage(this, target, damageSource);
 
             if (damageEvent.HasDamage)
@@ -179,6 +167,11 @@ namespace ACE.Server.WorldObjects
                 // handle Dirty Fighting
                 if (GetCreatureSkill(Skill.DirtyFighting).AdvancementClass >= SkillAdvancementClass.Trained)
                     FightDirty(target);
+
+                // handle cast on strike / procs
+                var weapon = GetEquippedWeapon();
+                if (weapon != null && weapon.HasProc)
+                    weapon.HandleProc(this, target);
             }
 
             if (damageEvent.Damage > 0.0f)

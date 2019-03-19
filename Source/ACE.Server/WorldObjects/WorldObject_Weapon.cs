@@ -1,6 +1,8 @@
 using System;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Server.Entity;
+using ACE.Server.Network.GameMessages.Messages;
 using ACE.Server.WorldObjects.Entity;
 
 namespace ACE.Server.WorldObjects
@@ -11,6 +13,34 @@ namespace ACE.Server.WorldObjects
         {
             get => (AttackType)(GetProperty(PropertyInt.AttackType) ?? 0);
             set { if (value == AttackType.Undef) RemoveProperty(PropertyInt.AttackType); else SetProperty(PropertyInt.AttackType, (int)value); }
+        }
+
+        /// <summary>
+        /// Spell ID for 'Cast on Strike'
+        /// </summary>
+        public uint? ProcSpell
+        {
+            get => GetProperty(PropertyDataId.ProcSpell);
+            set { if (!value.HasValue) RemoveProperty(PropertyDataId.ProcSpell); else SetProperty(PropertyDataId.ProcSpell, value.Value); }
+        }
+
+        /// <summary>
+        /// The chance for activating 'Cast on strike' spell
+        /// </summary>
+        public double? ProcSpellRate
+        {
+            get => GetProperty(PropertyFloat.ProcSpellRate);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.ProcSpellRate); else SetProperty(PropertyFloat.ProcSpellRate, value.Value); }
+        }
+
+        /// <summary>
+        /// If TRUE, 'Cast on strike' spell targets self
+        /// instead of the target
+        /// </summary>
+        public bool ProcSpellSelfTargeted
+        {
+            get => GetProperty(PropertyBool.ProcSpellSelfTargeted) ?? false;
+            set { if (!value) RemoveProperty(PropertyBool.ProcSpellSelfTargeted); else SetProperty(PropertyBool.ProcSpellSelfTargeted, value); }
         }
 
         /// <summary>
@@ -637,6 +667,45 @@ namespace ACE.Server.WorldObjects
                     Console.WriteLine($"WorldObject_Weapon.GetImbuedSkillType({skill.Skill}): unexpected skill");
                     return ImbuedSkillType.Undef;
             }
+        }
+
+        /// <summary>
+        /// Returns TRUE if this item has a proc / 'cast on strike' spell
+        /// </summary>
+        public bool HasProc => ProcSpell != null;
+
+        /// <summary>
+        /// Returns TRUE if this item has a proc spell
+        /// that matches the input spell
+        /// </summary>
+        public bool HasProcSpell(uint spellID)
+        {
+            return HasProc && ProcSpell == spellID;
+        }
+
+        public void HandleProc(Creature wielder, Creature target)
+        {
+            if (!HasProc) return;
+
+            // roll for a chance of casting spell
+            var chance = ProcSpellRate ?? 0.0f;
+            var rng = ThreadSafeRandom.Next(0.0f, 1.0f);
+            if (rng > chance)
+                return;
+
+            // procs on caster or target?
+            var targetProc = ProcSpellSelfTargeted ? wielder : target;
+
+            var spell = new Spell(ProcSpell.Value);
+
+            if (spell.NotFound)
+            {
+                if (wielder is Player player)
+                    player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{spell.Name} spell not implemented, yet!", ChatMessageType.System));
+
+                return;
+            }
+            wielder.TryCastSpell(spell, targetProc, this);
         }
     }
 }
