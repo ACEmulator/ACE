@@ -1131,7 +1131,7 @@ namespace ACE.Server.WorldObjects
                 duration = spell.Duration;
             else
             {
-                if (caster.WeenieType == WeenieType.Gem)
+                if (caster.WeenieType == WeenieType.Gem && !Aetheria.IsAetheria(caster.WeenieClassId))
                     duration = spell.Duration;
                 else
                     duration = -1;
@@ -1731,14 +1731,6 @@ namespace ACE.Server.WorldObjects
                 default:
                     return ResistanceType.Undef;
             }
-        }
-
-        /// <summary>
-        /// Returns TRUE if this object's spellbook contains input spell
-        /// </summary>
-        public bool SpellbookContains(uint spellID)
-        {
-            return Biota.BiotaPropertiesSpellBook.Any(i => i.Spell == spellID);
         }
     }
 }

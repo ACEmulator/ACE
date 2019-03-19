@@ -9,6 +9,8 @@ namespace ACE.Server.Entity
 {
     public class Tailoring
     {
+        // https://asheron.fandom.com/wiki/Tailoring
+
         // tailoring kits
         public const uint ArmorTailoringKit = 41956;
         public const uint WeaponTailoringKit = 51445;
@@ -20,9 +22,18 @@ namespace ACE.Server.Entity
         public const uint ArmorLayeringToolTop = 42724;
         public const uint ArmorLayeringToolBottom = 42726;
 
+        // thanks for phenyl naphthylamine for a lot the initial work here!
         public static void UseObjectOnTarget(Player player, WorldObject source, WorldObject target)
         {
             //Console.WriteLine($"Tailoring.UseObjectOnTarget({player.Name}, {source.Name}, {target.Name})");
+
+            // verify use requirements
+            var useError = VerifyUseRequirements(player, source, target);
+            if (useError != WeenieError.None)
+            {
+                player.SendUseDoneEvent(useError);
+                return;
+            }
 
             var actionChain = new ActionChain();
 
@@ -41,18 +52,29 @@ namespace ACE.Server.Entity
             actionChain.EnqueueChain();
         }
 
-        // thanks for phenyl naphthylamine for a lot the initial work here!
+        public static WeenieError VerifyUseRequirements(Player player, WorldObject source, WorldObject target)
+        {
+            if (source == target)
+                return WeenieError.YouDoNotPassCraftingRequirements;
+
+            // ensure both source and target are in player's inventory
+            if (player.FindObject(source.Guid.Full, Player.SearchLocations.MyInventory) == null)
+                return WeenieError.YouDoNotPassCraftingRequirements;
+
+            if (player.FindObject(target.Guid.Full, Player.SearchLocations.MyInventory) == null)
+                return WeenieError.YouDoNotPassCraftingRequirements;
+
+            // TODO: more descriptive error messages?
+
+            // verify not retained item
+            if (target.Retained ?? false)
+                return WeenieError.YouDoNotPassCraftingRequirements;
+
+            return WeenieError.None;
+        }
 
         public static void DoTailoring(Player player, WorldObject source, WorldObject target)
         { 
-            // verify use requirements
-            var useError = VerifyUseRequirements(player, source, target);
-            if (useError != WeenieError.None)
-            {
-                player.SendUseDoneEvent(useError);
-                return;
-            }
-
             switch (source.WeenieClassId)
             {
                 case ArmorTailoringKit:
@@ -102,24 +124,6 @@ namespace ACE.Server.Entity
 
             player.SendUseDoneEvent(WeenieError.YouDoNotPassCraftingRequirements);
             return;
-        }
-
-        public static WeenieError VerifyUseRequirements(Player player, WorldObject source, WorldObject target)
-        {
-            // ensure both source and target are in player's inventory
-            if (player.FindObject(source.Guid.Full, Player.SearchLocations.MyInventory) == null)
-                return WeenieError.YouDoNotPassCraftingRequirements;
-
-            if (player.FindObject(target.Guid.Full, Player.SearchLocations.MyInventory) == null)
-                return WeenieError.YouDoNotPassCraftingRequirements;
-
-            // TODO: more descriptive error messages?
-
-            // verify not retained item
-            if (target.Retained ?? false)
-                return WeenieError.YouDoNotPassCraftingRequirements;
-
-            return WeenieError.None;
         }
 
         /// <summary>
@@ -446,5 +450,41 @@ namespace ACE.Server.Entity
         public const uint LeatherBoots = 42422;
         public const uint Tentacles = 44863;
         public const uint DarkHeart = 51451;
+
+        /// <summary>
+        /// Returns TRUE if the input wcid is a tailoring kit
+        /// </summary>
+        public static bool IsTailoringKit(uint wcid)
+        {
+            // ...
+            switch (wcid)
+            {
+                case ArmorTailoringKit:
+                case WeaponTailoringKit:
+                case ArmorMainReductionTool:
+                case ArmorLowerReductionTool:
+                case ArmorMiddleReductionTool:
+                case ArmorLayeringToolTop:
+                case ArmorLayeringToolBottom:
+                case Heaume:
+                case PlatemailGauntlets:
+                case LeatherBoots:
+                case LeatherVest:
+                case YoroiGirth:
+                case YoroiPauldrons:
+                case CeldonSleeves:
+                case YoroiGreaves:
+                case YoroiLeggings:
+                case AmuliLeggings:
+                case WingedCoat:
+                case Tentacles:
+
+                    return true;
+
+                default:
+
+                    return false;
+            }
+        }
     }
 }

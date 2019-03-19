@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using ACE.DatLoader.Entity;
 using ACE.Entity;
 using ACE.Entity.Enum;
@@ -169,9 +170,7 @@ namespace ACE.Server.WorldObjects
                     FightDirty(target);
 
                 // handle cast on strike / procs
-                var weapon = GetEquippedWeapon();
-                if (weapon != null && weapon.HasProc)
-                    weapon.HandleProc(this, target);
+                TryProcEquippedItems(target);
             }
 
             if (damageEvent.Damage > 0.0f)

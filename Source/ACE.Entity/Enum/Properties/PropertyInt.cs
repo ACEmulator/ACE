@@ -384,10 +384,15 @@ namespace ACE.Entity.Enum.Properties
         HearLocalSignals                         = 290,
         HearLocalSignalsRadius                   = 291,
         Cleaving                                 = 292,
+        [SendOnLogin]
         AugmentationSpecializeGearcraft          = 293,
+        [SendOnLogin]
         AugmentationInfusedCreatureMagic         = 294,
+        [SendOnLogin]
         AugmentationInfusedItemMagic             = 295,
+        [SendOnLogin]
         AugmentationInfusedLifeMagic             = 296,
+        [SendOnLogin]
         AugmentationInfusedWarMagic              = 297,
         [SendOnLogin]
         AugmentationCriticalExpertise            = 298,
@@ -395,7 +400,9 @@ namespace ACE.Entity.Enum.Properties
         AugmentationCriticalPower                = 299,
         [SendOnLogin]
         AugmentationSkilledMelee                 = 300,
+        [SendOnLogin]
         AugmentationSkilledMissile               = 301,
+        [SendOnLogin]
         AugmentationSkilledMagic                 = 302,
         ImbuedEffect2                            = 303,
         ImbuedEffect3                            = 304,
@@ -433,12 +440,11 @@ namespace ACE.Entity.Enum.Properties
         HealingBoostRating                       = 323,
         HeritageSpecificArmor                    = 324,
         AlternateRacialSkills                    = 325,
-        /// <summary>
-        /// why was this defaulted to 1?  leaving comment
-        /// </summary>
         [SendOnLogin]
         AugmentationJackOfAllTrades              = 326,
+        [SendOnLogin]
         AugmentationResistanceNether             = 327,
+        [SendOnLogin]
         AugmentationInfusedVoidMagic             = 328,
         [SendOnLogin]
         WeaknessRating                           = 329,

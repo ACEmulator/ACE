@@ -234,5 +234,10 @@ namespace ACE.Server.Entity
         {
             return Id.GetHashCode();
         }
+
+        public override string ToString()
+        {
+            return Name;
+        }
     }
 }

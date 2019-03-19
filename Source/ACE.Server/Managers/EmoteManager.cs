@@ -110,6 +110,7 @@ namespace ACE.Server.Managers
 
                 case EmoteType.AwardLevelProportionalXP:
 
+                    // share with fellowship?
                     if (player != null)
                         player.GrantLevelProportionalXp(emote.Percent ?? 0, (ulong)emote.Max64);
                     break;
@@ -124,7 +125,7 @@ namespace ACE.Server.Managers
 
                     if (player != null)
                     {
-                        player.EarnXP((long)emote.Amount64);
+                        player.EarnXP((long)emote.Amount64, XpType.Quest, false);
                         player.Session.Network.EnqueueSend(new GameMessageSystemChat("You've earned " + emote.Amount64.Value.ToString("N0") + " experience.", ChatMessageType.Broadcast));
                     }
                     break;
@@ -151,7 +152,7 @@ namespace ACE.Server.Managers
 
                     if (player != null)
                     {
-                        player.EarnXP((long)emote.Amount64);
+                        player.EarnXP((long)emote.Amount64, XpType.Quest, true);
                         player.Session.Network.EnqueueSend(new GameMessageSystemChat("You've earned " + emote.Amount64.Value.ToString("N0") + " experience.", ChatMessageType.Broadcast));
                     }
                     break;

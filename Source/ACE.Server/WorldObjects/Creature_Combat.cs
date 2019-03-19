@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Numerics;
 using ACE.Common;
 using ACE.DatLoader.Entity;
@@ -938,6 +939,32 @@ namespace ACE.Server.WorldObjects
                         return true;
                 }
                 return false;
+            }
+        }
+
+        public void TryProcEquippedItems(Creature target)
+        {
+            foreach (var item in EquippedObjects.Values.Where(i => i.HasProc))
+            {
+                // roll for a chance of casting spell
+                var chance = item.ProcSpellRate ?? 0.0f;
+                var rng = ThreadSafeRandom.Next(0.0f, 1.0f);
+                if (rng > chance)
+                    continue;
+
+                // procs on caster or target?
+                var targetProc = item.ProcSpellSelfTargeted ? this : target;
+
+                var spell = new Spell(item.ProcSpell.Value);
+
+                if (spell.NotFound)
+                {
+                    if (this is Player player)
+                        player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{spell.Name} spell not implemented, yet!", ChatMessageType.System));
+
+                    continue;
+                }
+                TryCastSpell(spell, targetProc, this);
             }
         }
     }
