@@ -236,6 +236,7 @@ namespace ACE.Entity.Enum.Properties
         GemType                                  = 178,
         ImbuedEffect                             = 179,
         AttackersRawSkillValue                   = 180,
+        [SendOnLogin]
         ChessRank                                = 181,
         ChessTotalGames                          = 182,
         ChessGamesWon                            = 183,

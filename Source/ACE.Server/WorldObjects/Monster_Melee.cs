@@ -79,6 +79,13 @@ namespace ACE.Server.WorldObjects
                 {
                     if (AttackTarget == null || IsDead) return;
 
+                    if (WeenieType == WeenieType.GamePiece)
+                    {
+                        target.TakeDamage(this, DamageType.Slash, target.Health.Current);
+                        (this as GamePiece).OnDealtDamage();
+                        return;
+                    }
+
                     var weapon = GetEquippedWeapon();
                     var damageEvent = DamageEvent.CalculateDamage(this, target, weapon, maneuver);
 
