@@ -62,6 +62,12 @@ namespace ACE.Server.Managers
             bool success = true; // assume success, unless there's a skill check
             double percentSuccess = 1;
 
+            if (player.CombatMode != CombatMode.NonCombat)
+            {
+                var stanceTime = player.SetCombatMode(CombatMode.NonCombat);
+                craftChain.AddDelaySeconds(stanceTime);
+            }
+
             var motion = new Motion(MotionStance.NonCombat, MotionCommand.ClapHands);
             craftChain.AddAction(player, () => player.EnqueueBroadcastMotion(motion));
             var motionTable = DatManager.PortalDat.ReadFromDat<MotionTable>(player.MotionTableId);
@@ -114,6 +120,15 @@ namespace ACE.Server.Managers
                     success = ThreadSafeRandom.Next(0.0f, 1.0f) <= percentSuccess;
 
                 CreateDestroyItems(player, recipe.Recipe, source, target, success);
+
+                var updateObj = new GameMessageUpdateObject(target);
+                var updateDesc = new GameMessageObjDescEvent(player);
+
+                // more specifity for this, only if relevant properties are modified?
+                if (target.CurrentWieldedLocation != null)
+                    player.EnqueueBroadcast(updateObj, updateDesc);
+                else
+                    player.Session.Network.EnqueueSend(updateObj);
 
                 player.SendUseDoneEvent();
             });
