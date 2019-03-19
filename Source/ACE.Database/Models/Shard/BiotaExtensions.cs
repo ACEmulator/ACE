@@ -1128,7 +1128,7 @@ namespace ACE.Database.Models.Shard
             }
         }
 
-        public static void RemoveAllEnchantments(this Biota biota, ICollection<int> spellsToExclude, ReaderWriterLockSlim rwLock)
+        public static void RemoveAllEnchantments(this Biota biota, IEnumerable<int> spellsToExclude, ReaderWriterLockSlim rwLock)
         {
             rwLock.EnterWriteLock();
             try
