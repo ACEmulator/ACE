@@ -218,8 +218,22 @@ namespace ACE.Server.Entity
 
         public static float CalcProcRate(WorldObject aetheria, Creature wielder)
         {
-            // ~1% per level?
-            return (aetheria.ItemLevel ?? 0) * 0.01f;
+            // ~1% base rate per level?
+            var procRate = (aetheria.ItemLevel ?? 0) * 0.01f;
+
+            // The proc rates depend on the attack type. Magic is best, then missile is slightly lower, then Melee is slightly lower than missile.
+            switch (wielder.CombatMode)
+            {
+                case CombatMode.Magic:
+                    procRate *= 2.0f;
+                    break;
+
+                case CombatMode.Missile:
+                    procRate *= 1.5f;
+                    break;
+            }
+            // It is unconfirmed, but believed, that the act of being hit or attacked increases the chances of a surge triggering.
+            return procRate;
         }
     }
 }
