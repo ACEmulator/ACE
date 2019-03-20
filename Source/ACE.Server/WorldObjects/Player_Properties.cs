@@ -838,6 +838,20 @@ namespace ACE.Server.WorldObjects
             set { if (value == 0) RemoveProperty(PropertyInt.LumAugSkilledSpec); else SetProperty(PropertyInt.LumAugSkilledSpec, value); }
         }
 
+        // ============ Enlightenment =============
+
+        public int Enlightenment
+        {
+            get => GetProperty(PropertyInt.Enlightenment) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.Enlightenment); else SetProperty(PropertyInt.Enlightenment, value); }
+        }
+
+        public int LumAugVitality
+        {
+            get => GetProperty(PropertyInt.LumAugVitality) ?? 0;
+            set { if (value == 0) RemoveProperty(PropertyInt.LumAugVitality); else SetProperty(PropertyInt.LumAugVitality, value); }
+        }
+
         // ========================================
         // =============== Rares ==================
         // ========================================
@@ -846,6 +860,7 @@ namespace ACE.Server.WorldObjects
             get => GetProperty(PropertyFloat.LastRareUsedTimestamp);
             set { if (!value.HasValue) RemoveProperty(PropertyFloat.LastRareUsedTimestamp); else SetProperty(PropertyFloat.LastRareUsedTimestamp, value.Value); }
         }
+
 
         public void UpdateProperty(WorldObject obj, PropertyInt prop, int? value)
         {
