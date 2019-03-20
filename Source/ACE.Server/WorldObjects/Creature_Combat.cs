@@ -942,30 +942,40 @@ namespace ACE.Server.WorldObjects
             }
         }
 
-        public void TryProcEquippedItems(Creature target)
+        /// <summary>
+        /// Called when a player or creature starts an attack
+        /// </summary>
+        public void OnAttack(Creature target)
         {
-            foreach (var item in EquippedObjects.Values.Where(i => i.HasProc))
-            {
-                // roll for a chance of casting spell
-                var chance = item.ProcSpellRate ?? 0.0f;
-                var rng = ThreadSafeRandom.Next(0.0f, 1.0f);
-                if (rng > chance)
-                    continue;
+            // self-procs happen on attack, regardless if the attack is successfully landed
+            TryProcEquippedItems(this, true);
+        }
 
-                // procs on caster or target?
-                var targetProc = item.ProcSpellSelfTargeted ? this : target;
+        /// <summary>
+        /// Called when a targeted attack hits successfully
+        /// </summary>
+        public void OnHitTarget(Creature target)
+        {
+            // target-procs happen when the target is successfully hit.
 
-                var spell = new Spell(item.ProcSpell.Value);
+            // this should only be called when targeted attacks are landed.
 
-                if (spell.NotFound)
-                {
-                    if (this is Player player)
-                        player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{spell.Name} spell not implemented, yet!", ChatMessageType.System));
+            // untargeted attacks, such as multi-projectile spells,
+            // should not call this method.
 
-                    continue;
-                }
-                TryCastSpell(spell, targetProc, this);
-            }
+            TryProcEquippedItems(target, false);
+        }
+
+        /// <summary>
+        /// Iterates through all of the equipped objects that have proc spells
+        /// matching the 'selfTarget' bool, and tries procing them w/ rng chance
+        /// </summary>
+        public void TryProcEquippedItems(Creature target, bool selfTarget)
+        {
+            var tryProcItems = EquippedObjects.Values.Where(i => i.HasProc && i.ProcSpellSelfTargeted == selfTarget);
+
+            foreach (var tryProcItem in tryProcItems)
+                tryProcItem.TryProcItem(this, target);
         }
     }
 }

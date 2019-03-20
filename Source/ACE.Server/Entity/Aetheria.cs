@@ -177,7 +177,7 @@ namespace ACE.Server.Entity
             target.Biota.GetOrAddKnownSpell((int)surgeSpell, target.BiotaDatabaseLock, out bool added);
 
             player.UpdateProperty(target, PropertyDataId.ProcSpell, (uint)surgeSpell);
-            target.SetProperty(PropertyFloat.ProcSpellRate, 0.1f);   // proc rate for aetheria?
+            //target.SetProperty(PropertyFloat.ProcSpellRate, 0.05f);   // proc rate for aetheria?
 
             if (SurgeTargetSelf[surgeSpell])
                 target.SetProperty(PropertyBool.ProcSpellSelfTargeted, true);
@@ -213,7 +213,13 @@ namespace ACE.Server.Entity
             { SpellId.AetheriaProcDamageOverTime,  false },
             { SpellId.AetheriaProcDamageReduction, true },
             { SpellId.AetheriaProcHealDebuff,      false },
-            { SpellId.AetheriaProcHealthOverTime,  false },
+            { SpellId.AetheriaProcHealthOverTime,  true },
         };
+
+        public static float CalcProcRate(WorldObject aetheria, Creature wielder)
+        {
+            // ~1% per level?
+            return (aetheria.ItemLevel ?? 0) * 0.01f;
+        }
     }
 }

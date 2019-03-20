@@ -174,13 +174,22 @@ namespace ACE.Server.WorldObjects
 
                 actionChain.AddAction(this, () =>
                 {
-                    DamageTarget(creature, weapon);
+                    // handle self-procs
+                    TryProcEquippedItems(this, true);
+
+                    var damageEvent = DamageTarget(creature, weapon);
+
+                    // handle target procs
+                    if (damageEvent != null && damageEvent.HasDamage)
+                        TryProcEquippedItems(creature, false);
 
                     if (weapon != null && weapon.IsCleaving)
                     {
                         var cleave = GetCleaveTarget(creature, weapon);
                         foreach (var cleaveHit in cleave)
                             DamageTarget(cleaveHit, weapon);
+
+                        // target procs don't happen for cleaving
                     }
                 });
 

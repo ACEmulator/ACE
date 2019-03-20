@@ -1074,7 +1074,14 @@ namespace ACE.Server.WorldObjects
             var difficultyMod = Math.Max(difficulty, 25);   // fix difficulty for level 1 spells?
 
             if (spell.IsHarmful)
+            {
                 Proficiency.OnSuccessUse(player, player.GetCreatureSkill(Skill.CreatureEnchantment), (target as Creature).GetCreatureSkill(Skill.MagicDefense).Current);
+
+                // handle target procs
+                var sourceCreature = this as Creature;
+                if (sourceCreature != null && targetCreature != null && sourceCreature != targetCreature)
+                    sourceCreature.TryProcEquippedItems(targetCreature, false);
+            }
             else
                 Proficiency.OnSuccessUse(player, player.GetCreatureSkill(Skill.CreatureEnchantment), difficultyMod);
 

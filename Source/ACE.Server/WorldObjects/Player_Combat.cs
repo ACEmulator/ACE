@@ -168,9 +168,6 @@ namespace ACE.Server.WorldObjects
                 // handle Dirty Fighting
                 if (GetCreatureSkill(Skill.DirtyFighting).AdvancementClass >= SkillAdvancementClass.Trained)
                     FightDirty(target);
-
-                // handle cast on strike / procs
-                TryProcEquippedItems(target);
             }
 
             if (damageEvent.Damage > 0.0f)
