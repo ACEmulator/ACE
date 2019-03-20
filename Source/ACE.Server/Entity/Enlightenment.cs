@@ -77,7 +77,7 @@ namespace ACE.Server.Entity
 
             if (player.Enlightenment >= 5)
             {
-                player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You have reached the maximum # of enlightenments!", ChatMessageType.Broadcast));
+                player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You have already reached the maximum enlightenment level!", ChatMessageType.Broadcast));
                 return false;
             }
             return true;
