@@ -717,7 +717,7 @@ namespace ACE.Server.WorldObjects
 
                 return;
             }
-            wielder.TryCastSpell(spell, target, this);
+            wielder.TryCastSpell(spell, target, wielder);
         }
     }
 }
