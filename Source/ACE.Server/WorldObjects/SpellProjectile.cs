@@ -512,8 +512,10 @@ namespace ACE.Server.WorldObjects
                     }
 
                     // DR / DRR applies for magic too?
-                    var damageRatingMod = Creature.AdditiveCombine(sneakAttackMod, heritageMod, Creature.GetPositiveRatingMod(ProjectileSource.EnchantmentManager.GetDamageRating()));
-                    var damageResistRatingMod = Creature.GetNegativeRatingMod(target.EnchantmentManager.GetDamageResistRating());
+                    var creatureSource = ProjectileSource as Creature;
+                    var damageRating = creatureSource != null ? creatureSource.GetDamageRating() : 0;
+                    var damageRatingMod = Creature.AdditiveCombine(Creature.GetPositiveRatingMod(damageRating), heritageMod, sneakAttackMod);
+                    var damageResistRatingMod = Creature.GetNegativeRatingMod(target.GetDamageResistRating());
                     damage *= damageRatingMod * damageResistRatingMod;
 
                     //Console.WriteLine($"Damage rating: " + Creature.ModToRating(damageRatingMod));

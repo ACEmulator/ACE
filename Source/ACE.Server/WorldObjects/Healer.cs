@@ -183,7 +183,8 @@ namespace ACE.Server.WorldObjects
             var healAmount = ThreadSafeRandom.Next(healMin, healMax);
 
             // verify this scales healing amount, and not difficulty
-            healAmount *= target.EnchantmentManager.GetHealingResistRatingMod();
+            var healResistRatingMod = Creature.GetNegativeRatingMod(target.GetHealingResistRating());
+            healAmount *= healResistRatingMod;
 
             // chance for critical healing
             criticalHeal = ThreadSafeRandom.Next(0.0f, 1.0f) < 0.1f;

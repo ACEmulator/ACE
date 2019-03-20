@@ -338,7 +338,7 @@ namespace ACE.Server.WorldObjects
             // heritage damge mod
             var heritageMod = GetHeritageBonus(weapon) ? 1.05f : 1.0f;
 
-            var damageRatingMod = AdditiveCombine(heritageMod, recklessnessMod, sneakAttackMod, GetPositiveRatingMod(EnchantmentManager.GetDamageRating()));
+            var damageRatingMod = AdditiveCombine(heritageMod, recklessnessMod, sneakAttackMod, GetPositiveRatingMod(GetDamageRating()));
             //Console.WriteLine("Damage rating: " + ModToRating(damageRatingMod));
 
             var damage = baseDamage * attributeMod * powerMod * damageRatingMod;
@@ -361,7 +361,7 @@ namespace ACE.Server.WorldObjects
             if (criticalHit)
             {
                 // not effective for criticals: recklessness
-                damageRatingMod = AdditiveCombine(heritageMod, sneakAttackMod, GetPositiveRatingMod(EnchantmentManager.GetDamageRating()));
+                damageRatingMod = AdditiveCombine(heritageMod, sneakAttackMod, GetPositiveRatingMod(GetDamageRating()));
                 damage = baseDamageRange.Max * attributeMod * powerMod * damageRatingMod * (1.0f + GetWeaponCritDamageMod(this, attackSkill, targetCreature));
             }
 
@@ -383,10 +383,10 @@ namespace ACE.Server.WorldObjects
             var resistanceMod = damageSource != null && damageSource.IgnoreMagicResist ? 1.0f : AttackTarget.EnchantmentManager.GetResistanceMod(damageType);
 
             // weapon resistance mod?
-            var damageResistRatingMod = GetNegativeRatingMod(AttackTarget.EnchantmentManager.GetDamageResistRating());
+            var attackTarget = AttackTarget as Creature;
+            var damageResistRatingMod = GetNegativeRatingMod(attackTarget.GetDamageResistRating());
 
             // get shield modifier
-            var attackTarget = AttackTarget as Creature;
             var shieldMod = attackTarget.GetShieldMod(this, damageType);
 
             var slayerMod = GetWeaponCreatureSlayerModifier(this, target as Creature);
@@ -423,7 +423,7 @@ namespace ACE.Server.WorldObjects
             // heritage damge mod
             var heritageMod = GetHeritageBonus(weapon) ? 1.05f : 1.0f;
 
-            var damageRatingMod = AdditiveCombine(recklessnessMod, sneakAttackMod, heritageMod, GetPositiveRatingMod(EnchantmentManager.GetDamageRating()));
+            var damageRatingMod = AdditiveCombine(recklessnessMod, sneakAttackMod, heritageMod, GetPositiveRatingMod(GetDamageRating()));
             //Console.WriteLine("Damage rating: " + ModToRating(damageRatingMod));
 
             var damage = baseDamage * attributeMod * powerAccuracyMod * damageRatingMod;
@@ -461,7 +461,7 @@ namespace ACE.Server.WorldObjects
             var resistance = GetResistance(creaturePart, damageType);
 
             // ratings
-            var damageResistRatingMod = GetNegativeRatingMod(creature.EnchantmentManager.GetDamageResistRating());
+            var damageResistRatingMod = GetNegativeRatingMod(creature.GetDamageResistRating());
             //Console.WriteLine("Damage resistance rating: " + NegativeModToRating(damageResistRatingMod));
 
             // scale damage for armor and shield

@@ -344,28 +344,55 @@ namespace ACE.Server.Network.Structure
 
         private void AddRatings(Creature creature)
         {
-            var damageRating = creature.EnchantmentManager.GetDamageRating();
+            var damageRating = creature.GetDamageRating();
 
             // include heritage / weapon type rating?
             var weapon = creature.GetEquippedWeapon();
             if (creature.GetHeritageBonus(weapon))
                 damageRating += 5;
 
-            var damageResistRating = creature.EnchantmentManager.GetDamageResistRating();
+            // factor in weakness here?
 
-            // crit rating - chance, already in, no buffs?
-            // crit damage rating - already in, no buffs?
+            var damageResistRating = creature.GetDamageResistRating();
 
-            // crit resist rating - chance, already in, no buffs?
-            // crit damage resist rating - already in, no buffs?
+            // factor in nether dot damage here?
 
-            // healing boost / nether resist
-            // life resist / gear max health
+            var critRating = creature.GetCritRating();
+            var critDamageRating = creature.GetCritDamageRating();
+
+            var critResistRating = creature.GetCritResistRating();
+            var critDamageResistRating = creature.GetCritDamageResistRating();
+
+            var healingBoostRating = creature.GetHealingBoostRating();
+            var netherResistRating = creature.GetNetherResistRating();
+
+            var lifeResistRating = creature.GetLifeResistRating();  // drain / harm resistance
+            var gearMaxHealth = creature.GetGearMaxHealth();
 
             if (damageRating != 0)
                 PropertiesInt[PropertyInt.DamageRating] = damageRating;
             if (damageResistRating != 0)
                 PropertiesInt[PropertyInt.DamageResistRating] = damageResistRating;
+
+            if (critRating != 0)
+                PropertiesInt[PropertyInt.CritRating] = critRating;
+            if (critDamageRating != 0)
+                PropertiesInt[PropertyInt.CritDamageRating] = critDamageRating;
+
+            if (critResistRating != 0)
+                PropertiesInt[PropertyInt.CritResistRating] = critResistRating;
+            if (critDamageResistRating != 0)
+                PropertiesInt[PropertyInt.CritDamageResistRating] = critDamageResistRating;
+
+            if (healingBoostRating != 0)
+                PropertiesInt[PropertyInt.HealingBoostRating] = healingBoostRating;
+            if (netherResistRating != 0)
+                PropertiesInt[PropertyInt.NetherResistRating] = netherResistRating;
+
+            if (lifeResistRating != 0)
+                PropertiesInt[PropertyInt.LifeResistRating] = lifeResistRating;
+            if (gearMaxHealth != 0)
+                PropertiesInt[PropertyInt.GearMaxHealth] = gearMaxHealth;
         }
 
         private void BuildWeapon(WorldObject weapon, WorldObject wielder)
