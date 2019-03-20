@@ -221,6 +221,13 @@ namespace ACE.Server.Entity
             // ~1% base rate per level?
             var procRate = (aetheria.ItemLevel ?? 0) * 0.01f;
 
+            if (wielder is Player player)
+            {
+                // +0.1% per luminance aug?
+                var augBonus = player.LumAugSurgeChanceRating * 0.001f;
+                procRate += augBonus;
+            }
+
             // The proc rates depend on the attack type. Magic is best, then missile is slightly lower, then Melee is slightly lower than missile.
             switch (wielder.CombatMode)
             {

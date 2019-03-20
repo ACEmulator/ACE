@@ -130,6 +130,10 @@ namespace ACE.Server.WorldObjects
                             var adjustedRation = Math.Min(ration, manaNeededForTopoff);
 
                             ItemCurMana -= adjustedRation;
+
+                            if (player.LumAugItemManaGain != 0)
+                                adjustedRation = (int)Math.Round(adjustedRation * Creature.GetPositiveRatingMod(player.LumAugItemManaGain));
+
                             item.ItemCurMana += adjustedRation;
                             if (!itemsGivenMana.ContainsKey(item))
                                 itemsGivenMana[item] = adjustedRation;

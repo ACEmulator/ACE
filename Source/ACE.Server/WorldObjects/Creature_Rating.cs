@@ -294,8 +294,11 @@ namespace ACE.Server.WorldObjects
             // additive enchantments
             var enchantments = EnchantmentManager.GetRating(PropertyInt.CritDamageResistRating);
 
-            // no augs / lum augs?
-            return critDamageResistRating + enchantments;
+            var lumAugBonus = 0;
+            if (this is Player player)
+                lumAugBonus = player.LumAugCritReductionRating;
+
+            return critDamageResistRating + enchantments + lumAugBonus;
         }
 
         public int GetHealingBoostRating()
@@ -376,6 +379,28 @@ namespace ACE.Server.WorldObjects
             var enchantments = EnchantmentManager.GetRating(PropertyInt.PKDamageResistRating);
 
             return pkDamageResistRating + enchantments;
+        }
+
+        public int GetItemManaReductionRating()
+        {
+            // only comes from luminance aug?
+            var lumAugBonus = 0;
+
+            if (this is Player player)
+                lumAugBonus = player.LumAugItemManaUsage;
+
+            return lumAugBonus;
+        }
+
+        public int GetManaChargeRating()
+        {
+            // only comes from luminance aug?
+            var lumAugBonus = 0;
+
+            if (this is Player player)
+                lumAugBonus = player.LumAugItemManaGain;
+
+            return lumAugBonus;
         }
     }
 }

@@ -182,9 +182,12 @@ namespace ACE.Server.WorldObjects
             var healMax = healBase * 0.5f;
             var healAmount = ThreadSafeRandom.Next(healMin, healMax);
 
-            // verify this scales healing amount, and not difficulty
+            // verify healing boost comes from target instead of healer?
+            // sounds like target in LumAugHealingRating...
+            var healRatingMod = Creature.GetPositiveRatingMod(target.GetHealingBoostRating());
             var healResistRatingMod = Creature.GetNegativeRatingMod(target.GetHealingResistRating());
-            healAmount *= healResistRatingMod;
+
+            healAmount *= healRatingMod * healResistRatingMod;
 
             // chance for critical healing
             criticalHeal = ThreadSafeRandom.Next(0.0f, 1.0f) < 0.1f;
