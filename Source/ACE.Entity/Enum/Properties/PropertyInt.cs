@@ -455,6 +455,7 @@ namespace ACE.Entity.Enum.Properties
         LumAugCritDamageRating                   = 335,
         [SendOnLogin]
         LumAugCritReductionRating                = 336,
+        [SendOnLogin]
         LumAugSurgeEffectRating                  = 337,
         [SendOnLogin]
         LumAugSurgeChanceRating                  = 338,
@@ -462,6 +463,7 @@ namespace ACE.Entity.Enum.Properties
         LumAugItemManaUsage                      = 339,
         [SendOnLogin]
         LumAugItemManaGain                       = 340,
+        [SendOnLogin]
         LumAugVitality                           = 341,
         [SendOnLogin]
         LumAugHealingRating                      = 342,
@@ -469,6 +471,7 @@ namespace ACE.Entity.Enum.Properties
         LumAugSkilledCraft                       = 343,
         [SendOnLogin]
         LumAugSkilledSpec                        = 344,
+        [SendOnLogin]
         LumAugNoDestroyCraft                     = 345,
         RestrictInteraction                      = 346,
         OlthoiLootTimestamp                      = 347,
