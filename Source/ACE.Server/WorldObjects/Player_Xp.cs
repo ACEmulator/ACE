@@ -366,7 +366,7 @@ namespace ACE.Server.WorldObjects
         public void EarnItemXP(long amount)
         {
             // apply xp modifier
-            amount = (long)Math.Round(PropertyManager.GetDouble("xp_modifier").Item);
+            amount = (long)Math.Round(amount * PropertyManager.GetDouble("xp_modifier").Item);
 
             foreach (var item in EquippedObjects.Values.Where(i => i.HasItemLevel))
             {
