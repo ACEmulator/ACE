@@ -279,32 +279,46 @@ namespace ACE.Server.Entity
         }
 
         /// <summary>
-        /// Grants XP to each sharable fellowship member
+        /// Splits XP amongst fellowship members, depending on XP type and fellow settings
         /// </summary>
-        /// <param name="amount">The pre-scaled amount of XP to be shared</param>
-        /// <param name="fixedAmount">If false, XP is divided up and scaled by the fellowship bonus</param>
-        public void SplitXp(ulong amount, bool fixedAmount)
+        /// <param name="amount">The input amount of XP</param>
+        /// <param name="xpType">The type of XP (quest XP is handled differently)</param>
+        /// <param name="player">The fellowship member who originated the XP</param>
+        public void SplitXp(ulong amount, XpType xpType, Player player)
         {
-            if (EvenShare)
+            // handle sharing quest XP with fellows
+            if (xpType == XpType.Quest)
             {
-                var shareAmount = amount;
+                foreach (var member in SharableMembers)
+                {
+                    var fellowXpType = player == member ? XpType.Quest : XpType.Fellowship;
 
-                if (!fixedAmount)
-                    shareAmount = (ulong)Math.Round(shareAmount * GetMemberSharePercent());
-                else
-                    shareAmount = (ulong)Math.Round((float)amount / SharableMembers.Count);
+                    member.GrantXP((long)amount, fellowXpType, false);
+                }
+            }
+
+            // divides XP evenly to all the sharable fellows within level range,
+            // but with a significant boost to the amount of xp, based on # of fellowship members
+            else if (EvenShare)
+            {
+                var totalAmount = (ulong)Math.Round(amount * GetMemberSharePercent());
 
                 foreach (var member in SharableMembers)
                 {
-                    if (!fixedAmount)
-                        shareAmount = (ulong)Math.Round(shareAmount * GetDistanceScalar(member));
+                    var shareAmount = (ulong)Math.Round(totalAmount * GetDistanceScalar(member));
 
-                    member.EarnXP((long)shareAmount, false);
+                    var fellowXpType = player == member ? xpType : XpType.Fellowship;
+
+                    member.GrantXP((long)shareAmount, fellowXpType, false);
                 }
+
+                return;
             }
+
+            // divides XP to all sharable fellows within level range
+            // based on each fellowship member's level
             else
             {
-                // Calc distribution %
                 var levelSum = SharableMembers.Select(p => p.Level ?? 1).Sum();
 
                 foreach (var member in SharableMembers)
@@ -312,7 +326,10 @@ namespace ACE.Server.Entity
                     var levelScale = (float)(member.Level ?? 1) / levelSum;
 
                     var playerTotal = (ulong)Math.Round(amount * levelScale * GetDistanceScalar(member));
-                    member.EarnXP((long)playerTotal, false);
+
+                    var fellowXpType = player == member ? xpType : XpType.Fellowship;
+
+                    member.GrantXP((long)playerTotal, fellowXpType, false);
                 }
             }
         }

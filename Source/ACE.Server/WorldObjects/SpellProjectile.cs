@@ -249,9 +249,9 @@ namespace ACE.Server.WorldObjects
 
             // for untargeted multi-projectile war spells launched by monsters,
             // ensure monster can damage target
-            if (ProjectileSource is Creature sourceCreature)
-                if (!sourceCreature.CanDamage(target))
-                    return;
+            var sourceCreature = ProjectileSource as Creature;
+            if (sourceCreature != null && !sourceCreature.CanDamage(target))
+                return;
 
             // if player target, ensure matching PK status
             var targetPlayer = target as Player;
@@ -293,6 +293,12 @@ namespace ACE.Server.WorldObjects
 
                 if (player != null)
                     Proficiency.OnSuccessUse(player, player.GetCreatureSkill(Spell.School), Spell.PowerMod);
+
+                // handle target procs
+                // note that for untargeted multi-projectile spells,
+                // ProjectileTarget will be null here, so procs will not apply
+                if (sourceCreature != null && ProjectileTarget != null)
+                    sourceCreature.TryProcEquippedItems(target, false);
             }
 
             // also called on resist

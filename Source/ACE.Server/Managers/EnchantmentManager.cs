@@ -221,12 +221,12 @@ namespace ACE.Server.Managers
             {
                 entry.Duration = spell.Duration;
 
-                if (caster is Player player && player.AugmentationIncreasedSpellDuration > 0)
+                if (caster is Player player && player.AugmentationIncreasedSpellDuration > 0 && spell.DotDuration == 0)
                     entry.Duration *= 1.0f + player.AugmentationIncreasedSpellDuration * 0.2f;
             }
             else
             {
-                if (caster?.WeenieType == WeenieType.Gem)
+                if (caster?.WeenieType == WeenieType.Gem && !Aetheria.IsAetheria(caster.WeenieClassId))
                     entry.Duration = spell.Duration;
                 else
                 {
