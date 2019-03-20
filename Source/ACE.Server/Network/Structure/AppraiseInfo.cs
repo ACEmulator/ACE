@@ -338,6 +338,34 @@ namespace ACE.Server.Network.Structure
             ResistColor = ResistMaskHelper.GetColorMask(creature);
 
             ArmorLevels = new ArmorLevel(creature);
+
+            AddRatings(creature);
+        }
+
+        private void AddRatings(Creature creature)
+        {
+            var damageRating = creature.EnchantmentManager.GetDamageRating();
+
+            // include heritage / weapon type rating?
+            var weapon = creature.GetEquippedWeapon();
+            if (creature.GetHeritageBonus(weapon))
+                damageRating += 5;
+
+            var damageResistRating = creature.EnchantmentManager.GetDamageResistRating();
+
+            // crit rating - chance, already in, no buffs?
+            // crit damage rating - already in, no buffs?
+
+            // crit resist rating - chance, already in, no buffs?
+            // crit damage resist rating - already in, no buffs?
+
+            // healing boost / nether resist
+            // life resist / gear max health
+
+            if (damageRating != 0)
+                PropertiesInt[PropertyInt.DamageRating] = damageRating;
+            if (damageResistRating != 0)
+                PropertiesInt[PropertyInt.DamageResistRating] = damageResistRating;
         }
 
         private void BuildWeapon(WorldObject weapon, WorldObject wielder)
