@@ -12,7 +12,7 @@ namespace ACE.Server.Entity
     /// The Spell class for game code
     /// A wrapper around SpellBase and Database.Spell
     /// </summary>
-    public partial class Spell
+    public partial class Spell: IEquatable<Spell>
     {
         /// <summary>
         /// The spell information from the client DAT
@@ -223,6 +223,21 @@ namespace ACE.Server.Entity
                     || Category == SpellCategory.AppraisalResistanceLowering
                     || Category == SpellCategory.SpellDamageRaising;
             }
+        }
+
+        public bool Equals(Spell spell)
+        {
+            return spell != null && Id == spell.Id;
+        }
+
+        public override int GetHashCode()
+        {
+            return Id.GetHashCode();
+        }
+
+        public override string ToString()
+        {
+            return Name;
         }
     }
 }

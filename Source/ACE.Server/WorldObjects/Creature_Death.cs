@@ -143,10 +143,11 @@ namespace ACE.Server.WorldObjects
                 var damagePercent = totalDamage / Health.MaxValue;
                 var totalXP = (XpOverride ?? 0) * damagePercent;
 
+                // should this be passed upstream to fellowship / allegiance?
                 if (playerDamager.AugmentationBonusXp > 0)
                     totalXP *= 1.0f + playerDamager.AugmentationBonusXp * 0.05f;
 
-                playerDamager.EarnXP((long)Math.Round(totalXP));
+                playerDamager.EarnXP((long)Math.Round(totalXP), XpType.Kill);
             }
         }
 

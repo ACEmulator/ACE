@@ -34,6 +34,13 @@ namespace ACE.Server.Managers
                 return;
             }
 
+            if (source is Gem)
+            {
+                // always tailoring?
+                Tailoring.UseObjectOnTarget(player, source, target);
+                return;
+            }
+
             var recipe = DatabaseManager.World.GetCachedCookbook(source.WeenieClassId, target.WeenieClassId);
 
             if (recipe == null)
@@ -61,6 +68,12 @@ namespace ACE.Server.Managers
             CreatureSkill skill = null;
             bool success = true; // assume success, unless there's a skill check
             double percentSuccess = 1;
+
+            if (player.CombatMode != CombatMode.NonCombat)
+            {
+                var stanceTime = player.SetCombatMode(CombatMode.NonCombat);
+                craftChain.AddDelaySeconds(stanceTime);
+            }
 
             var motion = new Motion(MotionStance.NonCombat, MotionCommand.ClapHands);
             craftChain.AddAction(player, () => player.EnqueueBroadcastMotion(motion));
@@ -114,6 +127,15 @@ namespace ACE.Server.Managers
                     success = ThreadSafeRandom.Next(0.0f, 1.0f) <= percentSuccess;
 
                 CreateDestroyItems(player, recipe.Recipe, source, target, success);
+
+                var updateObj = new GameMessageUpdateObject(target);
+                var updateDesc = new GameMessageObjDescEvent(player);
+
+                // more specifity for this, only if relevant properties are modified?
+                if (target.CurrentWieldedLocation != null)
+                    player.EnqueueBroadcast(updateObj, updateDesc);
+                else
+                    player.Session.Network.EnqueueSend(updateObj);
 
                 player.SendUseDoneEvent();
             });

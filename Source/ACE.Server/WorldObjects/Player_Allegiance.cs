@@ -350,7 +350,7 @@ namespace ACE.Server.WorldObjects
             if (AllegianceXPCached == 0) return;
 
             // TODO: handle ulong -> long?
-            EarnXP((long)AllegianceXPCached, false);
+            EarnXP((long)AllegianceXPCached, XpType.Allegiance, false);
 
             AllegianceXPReceived += AllegianceXPCached;
 

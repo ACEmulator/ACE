@@ -1111,7 +1111,7 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyDataId.PhysicsScript); else SetProperty(PropertyDataId.PhysicsScript, value.Value); }
         }
 
-        private int? ItemWorkmanship
+        public int? ItemWorkmanship
         {
             get => GetProperty(PropertyInt.ItemWorkmanship);
             set { if (!value.HasValue) RemoveProperty(PropertyInt.ItemWorkmanship); else SetProperty(PropertyInt.ItemWorkmanship, value.Value); }
@@ -1939,6 +1939,24 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyFloat.Shade); else SetProperty(PropertyFloat.Shade, value.Value); }
         }
 
+        public double? Shade2
+        {
+            get => GetProperty(PropertyFloat.Shade2);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.Shade2); else SetProperty(PropertyFloat.Shade2, value.Value); }
+        }
+
+        public double? Shade3
+        {
+            get => GetProperty(PropertyFloat.Shade3);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.Shade3); else SetProperty(PropertyFloat.Shade3, value.Value); }
+        }
+
+        public double? Shade4
+        {
+            get => GetProperty(PropertyFloat.Shade4);
+            set { if (!value.HasValue) RemoveProperty(PropertyFloat.Shade4); else SetProperty(PropertyFloat.Shade4, value.Value); }
+        }
+
         public int NumTimesTinkered
         {
             get => GetProperty(PropertyInt.NumTimesTinkered) ?? 0;
@@ -2522,6 +2540,43 @@ namespace ACE.Server.WorldObjects
             get => GetProperty(PropertyInt.CritResistRating);
             set { if (!value.HasValue) RemoveProperty(PropertyInt.CritResistRating); else SetProperty(PropertyInt.CritResistRating, value.Value); }
         }
+
+        public int? HealingBoostRating
+        {
+            get => GetProperty(PropertyInt.HealingBoostRating);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.HealingBoostRating); else SetProperty(PropertyInt.HealingBoostRating, value.Value); }
+        }
+
+        public int? HealingResistRating
+        {
+            get => GetProperty(PropertyInt.HealingResistRating);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.HealingResistRating); else SetProperty(PropertyInt.HealingResistRating, value.Value); }
+        }
+
+        public int? LifeResistRating
+        {
+            get => GetProperty(PropertyInt.LifeResistRating);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.LifeResistRating); else SetProperty(PropertyInt.LifeResistRating, value.Value); }
+        }
+
+        public int? NetherResistRating
+        {
+            get => GetProperty(PropertyInt.NetherResistRating);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.NetherResistRating); else SetProperty(PropertyInt.NetherResistRating, value.Value); }
+        }
+
+        public int? PKDamageRating
+        {
+            get => GetProperty(PropertyInt.PKDamageRating);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.PKDamageRating); else SetProperty(PropertyInt.PKDamageRating, value.Value); }
+        }
+
+        public int? PKDamageResistRating
+        {
+            get => GetProperty(PropertyInt.PKDamageResistRating);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.PKDamageResistRating); else SetProperty(PropertyInt.PKDamageResistRating, value.Value); }
+        }
+        
 
         /// <summary>
         /// In addition to setting StackSize, this will also set the EncumbranceVal and Value appropriately.

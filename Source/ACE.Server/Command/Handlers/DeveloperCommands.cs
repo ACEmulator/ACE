@@ -788,8 +788,11 @@ namespace ACE.Server.Command.Handlers
                 {
                     try
                     {
-                        var xp = (long)aceParams[1].AsLong;
-                        aceParams[0].AsPlayer.GrantXP(xp);
+                        var amount = aceParams[1].AsLong;
+                        aceParams[0].AsPlayer.GrantXP(amount, XpType.Admin, false); 
+
+                        session.Network.EnqueueSend(new GameMessageSystemChat($"{amount:N0} experience granted.", ChatMessageType.Advancement));
+
                         return;
                     }
                     catch
@@ -1733,9 +1736,9 @@ namespace ACE.Server.Command.Handlers
                 else if (param.Equals("off"))
                     session.Player.DebugDamage = Player.DebugDamageType.None;
                 else if (param.StartsWith("attack"))
-                    session.Player.DebugDamage |= Player.DebugDamageType.Attacker;
+                    session.Player.DebugDamage = Player.DebugDamageType.Attacker;
                 else if (param.StartsWith("defen"))
-                    session.Player.DebugDamage |= Player.DebugDamageType.Defender;
+                    session.Player.DebugDamage = Player.DebugDamageType.Defender;
                 else
                 {
                     session.Network.EnqueueSend(new GameMessageSystemChat($"DebugDamage: unknown {param}", ChatMessageType.Broadcast));
@@ -1743,6 +1746,20 @@ namespace ACE.Server.Command.Handlers
                 }
             }
             session.Network.EnqueueSend(new GameMessageSystemChat($"DebugDamage: {session.Player.DebugDamage}", ChatMessageType.Broadcast));
+        }
+
+        /// <summary>
+        /// Enables the aetheria slots for the player
+        /// </summary>
+        [CommandHandler("enable-aetheria", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 0, "Enables the aetheria slots for the player")]
+        public static void HandleEnableAetheria(Session session, params string[] parameters)
+        {
+            var flags = (int)AetheriaBitfield.All;
+
+            if (parameters.Length > 0)
+                int.TryParse(parameters[0], out flags);
+
+            session.Player.UpdateProperty(session.Player, PropertyInt.AetheriaBitfield, flags);
         }
     }
 }

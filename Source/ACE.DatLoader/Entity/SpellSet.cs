@@ -7,8 +7,9 @@ namespace ACE.DatLoader.Entity
 
     public class SpellSet : IUnpackable
     {
-        // uint key is the m_PieceCount, the level/number of items active in the set.
-        public Dictionary<uint, SpellSetTiers> SpellSetTiers = new Dictionary<uint, SpellSetTiers>();
+        // uint key is the total combined item level of all the equipped pieces in the set
+        // client calls this m_PieceCount
+        public SortedDictionary<uint, SpellSetTiers> SpellSetTiers = new SortedDictionary<uint, SpellSetTiers>();
 
         public void Unpack(BinaryReader reader)
         {

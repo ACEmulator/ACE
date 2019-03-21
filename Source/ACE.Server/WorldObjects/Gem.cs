@@ -9,6 +9,7 @@ using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
+using ACE.Server.Managers;
 using ACE.Server.Network;
 using ACE.Server.Network.Structure;
 using ACE.Server.Network.GameEvent.Events;
@@ -177,6 +178,25 @@ namespace ACE.Server.WorldObjects
         {
             get => GetProperty(PropertyBool.RareUsesTimer) ?? false;
             set { if (!value) RemoveProperty(PropertyBool.RareUsesTimer); else SetProperty(PropertyBool.RareUsesTimer, value); }
+        }
+
+        public override void HandleActionUseOnTarget(Player player, WorldObject target)
+        {
+            // should tailoring kit / aetheria be subtyped?
+            if (Tailoring.IsTailoringKit(WeenieClassId))
+            {
+                Tailoring.UseObjectOnTarget(player, this, target);
+                return;
+            }
+
+            if (WeenieClassId == Aetheria.AetheriaManaStone)
+            {
+                Aetheria.UseObjectOnTarget(player, this, target);
+                return;
+            }
+
+            // fallback on recipe manager?
+            base.HandleActionUseOnTarget(player, target);
         }
     }
 }

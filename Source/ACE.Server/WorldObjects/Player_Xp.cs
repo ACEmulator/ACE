@@ -17,24 +17,52 @@ namespace ACE.Server.WorldObjects
         /// A player earns XP through natural progression, ie. kills and quests completed
         /// </summary>
         /// <param name="amount">The amount of XP being added</param>
-        /// <param name="sharable">True if this XP can be shared with Fellowship</param>
-        /// <param name="fixedAmount">For fellowships, is the XP bonus applied?</param>
-        public void EarnXP(long amount, bool sharable = true, bool fixedAmount = false)
+        /// <param name="xpType">The source of XP being added</param>
+        /// <param name="shareable">True if this XP can be shared with Fellowship</param>
+        public void EarnXP(long amount, XpType xpType, bool shareable = true)
         {
             //Console.WriteLine($"{Name}.EarnXP({amount}, {sharable}, {fixedAmount})");
 
             // apply xp modifier
             var modifier = PropertyManager.GetDouble("xp_modifier").Item;
-            var m_amount = (long)(amount * modifier);
+            var m_amount = (long)Math.Round(amount * modifier);
 
             if (m_amount < 0)
             {
-                log.Warn($"{Name}.EarnXP({amount}, {sharable}, {fixedAmount})");
+                log.Warn($"{Name}.EarnXP({amount}, {shareable})");
                 log.Warn($"Modifier: {modifier}, m_amount: {m_amount}");
                 return;
             }
 
-            GrantXP(m_amount, sharable, fixedAmount, false);
+            GrantXP(m_amount, xpType, shareable);
+        }
+
+        /// <summary>
+        /// Directly grants XP to the player, without the XP modifier
+        /// </summary>
+        /// <param name="amount">The amount of XP to grant to the player</param>
+        /// <param name="passup">The source of the XP being granted</param>
+        /// <param name="shareable">If TRUE, this XP can be shared with fellowship members</param>
+        public void GrantXP(long amount, XpType xpType, bool shareable = true)
+        {
+            if (shareable && Fellowship != null && Fellowship.ShareXP && Fellowship.SharableMembers.Contains(this))
+            {
+                // this will divy up the XP, and re-call this function
+                // with shareable = false
+                Fellowship.SplitXp((ulong)amount, xpType, this);
+                return;
+            }
+
+            UpdateXpAndLevel(amount);
+
+            // for passing XP up the allegiance chain,
+            // this function is only called at the very beginning, to start the process.
+            if (xpType != XpType.Allegiance)
+                UpdateXpAllegiance(amount);
+
+            // only certain types of XP are granted to items
+            if (xpType == XpType.Kill || xpType == XpType.Quest)
+                GrantItemXP(amount);
         }
 
         /// <summary>
@@ -50,12 +78,14 @@ namespace ACE.Server.WorldObjects
 
             if (Level != maxLevel)
             {
+                var addAmount = amount;
+
                 var amountLeftToEnd = (long)maxLevelXp - TotalExperience ?? 0;
                 if (amount > amountLeftToEnd)
-                    amount = amountLeftToEnd;
+                    addAmount = amountLeftToEnd;
 
-                AvailableExperience += amount;
-                TotalExperience += amount;
+                AvailableExperience += addAmount;
+                TotalExperience += addAmount;
 
                 var xpTotalUpdate = new GameMessagePrivateUpdatePropertyInt64(this, PropertyInt64.TotalExperience, TotalExperience ?? 0);
                 var xpAvailUpdate = new GameMessagePrivateUpdatePropertyInt64(this, PropertyInt64.AvailableExperience, AvailableExperience ?? 0);
@@ -305,30 +335,6 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
-        /// Directly raises the available XP by a specified amount
-        /// For debugging purposes only. Normal XP progression should use EarnXP above.
-        /// </summary>
-        /// <param name="amount">The amount of XP to grant to the player</param>
-        /// <param name="passup">If TRUE, additional XP is passed up the allegiance chain</param>
-        public void GrantXP(long amount, bool sharable = true, bool fixedAmount = false, bool message = true)
-        {
-            if (sharable)
-            {
-                if (Fellowship != null && Fellowship.ShareXP && Fellowship.SharableMembers.Contains(this))
-                    Fellowship.SplitXp((ulong)amount, fixedAmount);
-                else
-                    UpdateXpAndLevel(amount);
-
-                UpdateXpAllegiance(amount);
-            }
-            else
-                UpdateXpAndLevel(amount);
-
-            if (message)
-                Session.Network.EnqueueSend(new GameMessageSystemChat($"{amount:N0} experience granted.", ChatMessageType.Advancement));
-        }
-
-        /// <summary>
         /// Raise the available XP by a percentage of the current level XP or a maximum
         /// </summary>
         public void GrantLevelProportionalXp(double percent, ulong max)
@@ -338,7 +344,8 @@ namespace ACE.Server.WorldObjects
 
             var nextLevelXP = GetXPBetweenLevels(Level.Value, Level.Value + 1);
             var scaledXP = (long)Math.Min(nextLevelXP * percent, max);
-            GrantXP(scaledXP);
+
+            GrantXP(scaledXP, XpType.Quest);
         }
 
         /// <summary>
@@ -347,7 +354,7 @@ namespace ACE.Server.WorldObjects
         public void GrantLuminance(long amount)
         {
             // apply lum modifier
-            amount = (long)(amount * PropertyManager.GetDouble("luminance_modifier").Item);
+            amount = (long)Math.Round(amount * PropertyManager.GetDouble("luminance_modifier").Item);
 
             if (AvailableLuminance + amount > MaximumLuminance)
                 amount = MaximumLuminance.Value - AvailableLuminance.Value;
@@ -357,6 +364,42 @@ namespace ACE.Server.WorldObjects
             var luminance = new GameMessagePrivateUpdatePropertyInt64(this, PropertyInt64.AvailableLuminance, AvailableLuminance ?? 0);
             var message = new GameMessageSystemChat($"{amount:N0} luminance granted.", ChatMessageType.Advancement);
             Session.Network.EnqueueSend(luminance, message);
+        }
+
+        /// <summary>
+        /// The player earns XP for items that can be leveled up
+        /// by killing creatures and completing quests,
+        /// while those items are equipped.
+        /// </summary>
+        public void GrantItemXP(long amount)
+        {
+            foreach (var item in EquippedObjects.Values.Where(i => i.HasItemLevel))
+            {
+                var prevItemLevel = item.ItemLevel.Value;
+                var addItemXP = item.AddItemXP(amount);
+
+                if (addItemXP > 0)
+                    Session.Network.EnqueueSend(new GameMessagePrivateUpdatePropertyInt64(item, PropertyInt64.ItemTotalXp, item.ItemTotalXp.Value));
+
+                // handle item leveling up
+                var newItemLevel = item.ItemLevel.Value;
+                if (newItemLevel > prevItemLevel)
+                {
+                    var actionChain = new ActionChain();
+                    actionChain.AddAction(this, () =>
+                    {
+                        var msg = newItemLevel != item.ItemMaxLevel ? $"Your {item.Name} is now level {newItemLevel}!" : $"Your {item.Name} has reached the maximum level of {newItemLevel}!";
+                        Session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
+
+                        EnqueueBroadcast(new GameMessageScript(Guid, ACE.Entity.Enum.PlayScript.AetheriaLevelUp));
+
+                        if (newItemLevel == item.ItemMaxLevel)
+                            EnqueueBroadcast(new GameMessageScript(Guid, ACE.Entity.Enum.PlayScript.WeddingBliss));
+
+                    });
+                    actionChain.EnqueueChain();
+                }
+            }
         }
     }
 }

@@ -1,47 +1,43 @@
-using ACE.Entity;
-
 namespace ACE.Server.Network.GameEvent.Events
 {
     public class GameEventStartBarber : GameEventMessage
     {
+        public static readonly uint EmpyreanMaleMotionDID   = 0x0900020E;
+        public static readonly uint EmpyreanFemaleMotionDID = 0x0900020D;
+
         public GameEventStartBarber(Session session)
             : base(GameEventType.StartBarber, GameMessageGroup.UIQueue, session)
         {
-            // These are the motion tables for Empyrean float and not-float (one for each gender). They are hard-coded into the client.
-            //const uint EmpyreanMaleMotionDID = 0x0900020Eu;
-            //const uint EmpyreanFemaleMotionDID = 0x0900020Du;
-            /* todo redo this for the new EF model
-            // We will use this function to get the current player's appearance values.
-            AceCharacter characterClone = (AceCharacter)Session.Player.GetAceObject();
+            var player = Session.Player;
 
-            Writer.Write((uint)session.Player.PaletteBaseId); // base palette for character
-            Writer.Write(characterClone.HeadObject); // Default Hair Model
-            Writer.Write(characterClone.HairTexture); // Hair Texture
-            Writer.Write(characterClone.DefaultHairTexture); // Default Hair Texture
+            Writer.Write(player.PaletteBaseDID ?? 0);
+            Writer.Write(player.HeadObjectDID ?? 0);
+            Writer.Write(player.Character.HairTexture);
+            Writer.Write(player.Character.DefaultHairTexture);
 
-            Writer.Write(characterClone.EyesTexture); // Eyes Texture
-            Writer.Write(characterClone.DefaultEyesTexture); // Default Eyes Texture
+            Writer.Write(player.EyesTextureDID ?? 0);
+            Writer.Write(player.DefaultEyesTextureDID ?? 0);
 
-            Writer.Write(characterClone.NoseTexture); // Nose Texture
-            Writer.Write(characterClone.DefaultNoseTexture); // Default Nose Texture
+            Writer.Write(player.NoseTextureDID ?? 0);
+            Writer.Write(player.DefaultNoseTextureDID ?? 0);
 
-            Writer.Write(characterClone.MouthTexture); // Mouth Texture
-            Writer.Write(characterClone.DefaultMouthTexture); // Default Mouth Texture
+            Writer.Write(player.MouthTextureDID ?? 0);
+            Writer.Write(player.DefaultMouthTextureDID ?? 0);
 
-            Writer.Write(characterClone.SkinPalette); // Skin Palette
-            Writer.Write(characterClone.HairPalette); // Hair Palette
-            Writer.Write(characterClone.EyesPalette); // Eyes Palette
+            Writer.Write(player.SkinPaletteDID ?? 0);
+            Writer.Write(player.HairPaletteDID ?? 0);
+            Writer.Write(player.EyesPaletteDID ?? 0);
 
-            Writer.Write((uint)characterClone.SetupTableId); // Setup Model
+            Writer.Write(player.SetupTableId);
 
-            // Check for Empyrean "Float" option
-            if (characterClone.MotionTableId == EmpyreanFemaleMotionDID || characterClone.MotionTableId == EmpyreanMaleMotionDID)
-                Writer.Write(0x0000001); // Currently using the "bound/running" animation
-            else
-                Writer.Write(0x0000000); // Current "default" animation (normal running for most, float for Empyrean)
-            
-            Writer.Write(0x0u); // Unknown - Client seems to have this hard-coded as 0, so likely was just a TBD for potential future use
-            */
+            // option1 - specifies the toggle option for some races, such as floating empyrean or flaming head on undead
+            // 0 = using the "default" animation (normal running for most, float for empyrean)
+            // 1 = using the "bound/running" animation for empyrean
+            var option1 = player.MotionTableId == EmpyreanFemaleMotionDID || player.MotionTableId == EmpyreanMaleMotionDID ? 1 : 0;
+            Writer.Write(option1);
+
+            // option2 - seems to be unused
+            Writer.Write(0);
         }
     }
 }

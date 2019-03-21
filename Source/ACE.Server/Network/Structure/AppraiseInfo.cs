@@ -178,7 +178,7 @@ namespace ACE.Server.Network.Structure
 
             if (wielder == null || !wo.IsEnchantable) return;
 
-            if (PropertiesFloat.ContainsKey(PropertyFloat.WeaponDefense) && !(wo is Ammunition))
+            if (PropertiesFloat.ContainsKey(PropertyFloat.WeaponDefense) && !(wo is Missile) && !(wo is Ammunition))
                 PropertiesFloat[PropertyFloat.WeaponDefense] += wielder.EnchantmentManager.GetDefenseMod();
 
             if (PropertiesFloat.ContainsKey(PropertyFloat.ManaConversionMod))
@@ -257,7 +257,7 @@ namespace ACE.Server.Network.Structure
                             activeSpells.Add(new AppraisalSpellBook() { SpellId = (ushort)enchantment.SpellId, EnchantmentState = AppraisalSpellBook._EnchantmentState.On });
                         }
                     }
-                    else if (worldObject is Ammunition)
+                    else if (worldObject is Missile || worldObject is Ammunition)
                     {
                         if ((enchantment.SpellCategory == (uint)SpellCategory.DamageLowering))
                             activeSpells.Add(new AppraisalSpellBook() { SpellId = (ushort)enchantment.SpellId, EnchantmentState = AppraisalSpellBook._EnchantmentState.On });
@@ -290,7 +290,7 @@ namespace ACE.Server.Network.Structure
                                 activeSpells.Add(new AppraisalSpellBook() { SpellId = (ushort)enchantment.SpellId, EnchantmentState = AppraisalSpellBook._EnchantmentState.On });
                             }
                         }
-                        else if (worldObject is Ammunition)
+                        else if (worldObject is Missile || worldObject is Ammunition)
                         {
                             if ((enchantment.SpellCategory == (uint)SpellCategory.DamageRaising))
                                 activeSpells.Add(new AppraisalSpellBook() { SpellId = (ushort)enchantment.SpellId, EnchantmentState = AppraisalSpellBook._EnchantmentState.On });
@@ -338,6 +338,63 @@ namespace ACE.Server.Network.Structure
             ResistColor = ResistMaskHelper.GetColorMask(creature);
 
             ArmorLevels = new ArmorLevel(creature);
+
+            AddRatings(creature);
+        }
+
+        private void AddRatings(Creature creature)
+        {
+            var damageRating = creature.GetDamageRating();
+
+            // include heritage / weapon type rating?
+            var weapon = creature.GetEquippedWeapon();
+            if (creature.GetHeritageBonus(weapon))
+                damageRating += 5;
+
+            // factor in weakness here?
+
+            var damageResistRating = creature.GetDamageResistRating();
+
+            // factor in nether dot damage here?
+
+            var critRating = creature.GetCritRating();
+            var critDamageRating = creature.GetCritDamageRating();
+
+            var critResistRating = creature.GetCritResistRating();
+            var critDamageResistRating = creature.GetCritDamageResistRating();
+
+            var healingBoostRating = creature.GetHealingBoostRating();
+            var netherResistRating = creature.GetNetherResistRating();
+
+            var lifeResistRating = creature.GetLifeResistRating();  // drain / harm resistance
+            var gearMaxHealth = creature.GetGearMaxHealth();
+
+            if (damageRating != 0)
+                PropertiesInt[PropertyInt.DamageRating] = damageRating;
+            if (damageResistRating != 0)
+                PropertiesInt[PropertyInt.DamageResistRating] = damageResistRating;
+
+            if (critRating != 0)
+                PropertiesInt[PropertyInt.CritRating] = critRating;
+            if (critDamageRating != 0)
+                PropertiesInt[PropertyInt.CritDamageRating] = critDamageRating;
+
+            if (critResistRating != 0)
+                PropertiesInt[PropertyInt.CritResistRating] = critResistRating;
+            if (critDamageResistRating != 0)
+                PropertiesInt[PropertyInt.CritDamageResistRating] = critDamageResistRating;
+
+            if (healingBoostRating != 0)
+                PropertiesInt[PropertyInt.HealingBoostRating] = healingBoostRating;
+            if (netherResistRating != 0)
+                PropertiesInt[PropertyInt.NetherResistRating] = netherResistRating;
+
+            if (lifeResistRating != 0)
+                PropertiesInt[PropertyInt.LifeResistRating] = lifeResistRating;
+            if (gearMaxHealth != 0)
+                PropertiesInt[PropertyInt.GearMaxHealth] = gearMaxHealth;
+
+            // add ratings from equipped items?
         }
 
         private void BuildWeapon(WorldObject weapon, WorldObject wielder)

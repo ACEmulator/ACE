@@ -210,10 +210,17 @@ namespace ACE.Server.WorldObjects
 
                 foreach (var spell in item.Biota.BiotaPropertiesSpellBook)
                 {
+                    if (item.HasProcSpell((uint)spell.Spell))
+                        continue;
+
                     var enchantmentStatus = CreateItemSpell(item, (uint)spell.Spell);
                     if (enchantmentStatus.Success)
                         item.IsAffecting = true;
                 }
+
+                // handle equipment sets
+                if (item.HasItemSet)
+                    EquipItemFromSet(item);
 
                 if (item.IsAffecting ?? false)
                 {
@@ -266,8 +273,17 @@ namespace ACE.Server.WorldObjects
             if (item.Biota.BiotaPropertiesSpellBook != null)
             {
                 foreach (var spell in item.Biota.BiotaPropertiesSpellBook)
+                {
+                    if (item.HasProcSpell((uint)spell.Spell))
+                        continue;
+
                     RemoveItemSpell(item, (uint)spell.Spell, true);
+                }
             }
+
+            // handle equipment sets
+            if (item.HasItemSet)
+                DequipItemFromSet(item);
 
             if (dequipObjectAction == DequipObjectAction.ToCorpseOnDeath)
                 Session.Network.EnqueueSend(new GameMessageDeleteObject(item));

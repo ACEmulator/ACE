@@ -119,7 +119,6 @@ namespace ACE.Entity.Enum.Properties
         AugmentationMutationFilter = 53,
         [ServerOnly]
         AugmentationEffect         = 54,
-        [ServerOnly]
         ProcSpell                  = 55,
         [ServerOnly]
         AugmentationCreateItem     = 56,

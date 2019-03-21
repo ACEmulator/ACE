@@ -1074,7 +1074,14 @@ namespace ACE.Server.WorldObjects
             var difficultyMod = Math.Max(difficulty, 25);   // fix difficulty for level 1 spells?
 
             if (spell.IsHarmful)
+            {
                 Proficiency.OnSuccessUse(player, player.GetCreatureSkill(Skill.CreatureEnchantment), (target as Creature).GetCreatureSkill(Skill.MagicDefense).Current);
+
+                // handle target procs
+                var sourceCreature = this as Creature;
+                if (sourceCreature != null && targetCreature != null && sourceCreature != targetCreature)
+                    sourceCreature.TryProcEquippedItems(targetCreature, false);
+            }
             else
                 Proficiency.OnSuccessUse(player, player.GetCreatureSkill(Skill.CreatureEnchantment), difficultyMod);
 
@@ -1131,7 +1138,7 @@ namespace ACE.Server.WorldObjects
                 duration = spell.Duration;
             else
             {
-                if (caster.WeenieType == WeenieType.Gem)
+                if (caster.WeenieType == WeenieType.Gem && !Aetheria.IsAetheria(caster.WeenieClassId))
                     duration = spell.Duration;
                 else
                     duration = -1;
@@ -1731,14 +1738,6 @@ namespace ACE.Server.WorldObjects
                 default:
                     return ResistanceType.Undef;
             }
-        }
-
-        /// <summary>
-        /// Returns TRUE if this object's spellbook contains input spell
-        /// </summary>
-        public bool SpellbookContains(uint spellID)
-        {
-            return Biota.BiotaPropertiesSpellBook.Any(i => i.Spell == spellID);
         }
     }
 }
