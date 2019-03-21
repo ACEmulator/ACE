@@ -393,6 +393,8 @@ namespace ACE.Server.Network.Structure
                 PropertiesInt[PropertyInt.LifeResistRating] = lifeResistRating;
             if (gearMaxHealth != 0)
                 PropertiesInt[PropertyInt.GearMaxHealth] = gearMaxHealth;
+
+            // add ratings from equipped items?
         }
 
         private void BuildWeapon(WorldObject weapon, WorldObject wielder)
