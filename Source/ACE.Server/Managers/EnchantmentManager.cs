@@ -190,7 +190,18 @@ namespace ACE.Server.Managers
             }
             else
             {
-                refreshSpell.StartTime = 0;
+                var duration = spell.Duration;
+                if (caster is Player player && player.AugmentationIncreasedSpellDuration > 0 && spell.DotDuration == 0)
+                    duration *= 1.0f + player.AugmentationIncreasedSpellDuration * 0.2f;
+
+                var timeRemaining = refreshSpell.Duration + refreshSpell.StartTime;
+
+                if (duration > timeRemaining)
+                {
+                    refreshSpell.StartTime = 0;
+                    refreshSpell.Duration = duration;
+                }
+
                 result.Enchantment = refreshSpell;
             }
             WorldObject.ChangesDetected = true;
