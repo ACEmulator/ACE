@@ -226,8 +226,11 @@ namespace ACE.Server.Managers
             }
             else
             {
-                if (caster?.WeenieType == WeenieType.Gem && !Aetheria.IsAetheria(caster.WeenieClassId))
+                if (caster?.WeenieType == WeenieType.Gem && !Aetheria.IsAetheria(caster.WeenieClassId) ||
+                    caster?.WeenieType == WeenieType.Switch || caster?.WeenieType == WeenieType.PressurePlate)
+                {
                     entry.Duration = spell.Duration;
+                }
                 else
                 {
                     entry.Duration = -1.0;
