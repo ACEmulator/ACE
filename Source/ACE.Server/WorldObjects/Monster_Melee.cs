@@ -336,7 +336,7 @@ namespace ACE.Server.WorldObjects
             var damageRange = GetBaseDamage(attackPart);
             var baseDamage = ThreadSafeRandom.Next(damageRange.Min, damageRange.Max);
 
-            var damageRatingMod = GetPositiveRatingMod(EnchantmentManager.GetDamageRating());
+            var damageRatingMod = GetPositiveRatingMod(GetDamageRating());
             //Console.WriteLine("Damage Rating: " + damageRatingMod);
 
             var recklessnessMod = player != null ? player.GetRecklessnessMod() : 1.0f;
@@ -377,10 +377,10 @@ namespace ACE.Server.WorldObjects
             // get resistance modifiers (protect/vuln)
             var resistanceMod = AttackTarget.EnchantmentManager.GetResistanceMod(damageType);
 
-            var damageResistRatingMod = GetNegativeRatingMod(AttackTarget.EnchantmentManager.GetDamageResistRating());
+            var attackTarget = AttackTarget as Creature;
+            var damageResistRatingMod = GetNegativeRatingMod(attackTarget.GetDamageResistRating());
 
             // get shield modifier
-            var attackTarget = AttackTarget as Creature;
             shieldMod = attackTarget.GetShieldMod(this, damageType);
 
             // scale damage by modifiers

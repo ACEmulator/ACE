@@ -2541,6 +2541,43 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyInt.CritResistRating); else SetProperty(PropertyInt.CritResistRating, value.Value); }
         }
 
+        public int? HealingBoostRating
+        {
+            get => GetProperty(PropertyInt.HealingBoostRating);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.HealingBoostRating); else SetProperty(PropertyInt.HealingBoostRating, value.Value); }
+        }
+
+        public int? HealingResistRating
+        {
+            get => GetProperty(PropertyInt.HealingResistRating);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.HealingResistRating); else SetProperty(PropertyInt.HealingResistRating, value.Value); }
+        }
+
+        public int? LifeResistRating
+        {
+            get => GetProperty(PropertyInt.LifeResistRating);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.LifeResistRating); else SetProperty(PropertyInt.LifeResistRating, value.Value); }
+        }
+
+        public int? NetherResistRating
+        {
+            get => GetProperty(PropertyInt.NetherResistRating);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.NetherResistRating); else SetProperty(PropertyInt.NetherResistRating, value.Value); }
+        }
+
+        public int? PKDamageRating
+        {
+            get => GetProperty(PropertyInt.PKDamageRating);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.PKDamageRating); else SetProperty(PropertyInt.PKDamageRating, value.Value); }
+        }
+
+        public int? PKDamageResistRating
+        {
+            get => GetProperty(PropertyInt.PKDamageResistRating);
+            set { if (!value.HasValue) RemoveProperty(PropertyInt.PKDamageResistRating); else SetProperty(PropertyInt.PKDamageResistRating, value.Value); }
+        }
+        
+
         /// <summary>
         /// In addition to setting StackSize, this will also set the EncumbranceVal and Value appropriately.
         /// </summary>

@@ -185,7 +185,7 @@ namespace ACE.Server.WorldObjects
             var critRateMod = (float)(weapon.GetProperty(PropertyFloat.CriticalFrequency) ?? defaultPhysicalCritFrequency);
 
             // multipliers before additives?
-            var chanceRatingMod = Creature.GetPositiveRatingMod(wielder.CritRating ?? 0);
+            var chanceRatingMod = Creature.GetPositiveRatingMod(wielder.GetCritRating());
             critRateMod *= chanceRatingMod;
 
             // TODO: handle AlwaysCritical upstream
@@ -195,12 +195,9 @@ namespace ACE.Server.WorldObjects
                 critRateMod += criticalStrikeMod;
             }
 
-            if (wielder is Player player && player.AugmentationCriticalExpertise > 0)
-                critRateMod += player.AugmentationCriticalExpertise * 0.01f;
-
             // mitigation
-            var chanceResistRatingMod = Creature.GetNegativeRatingMod(target.CritResistRating ?? 0);
-            critRateMod *= chanceResistRatingMod;
+            var critResistRatingMod = Creature.GetNegativeRatingMod(target.GetCritResistRating());
+            critRateMod *= critResistRatingMod;
 
             // 50% cap here, or only in criticalStrikeMod?
             critRateMod = Math.Min(critRateMod, 0.5f);
@@ -236,7 +233,7 @@ namespace ACE.Server.WorldObjects
             var critRateMod = (float)(weapon.GetProperty(PropertyFloat.CriticalFrequency) ?? defaultMagicCritFrequency);
 
             // multipliers before additives?
-            var chanceRatingMod = Creature.GetPositiveRatingMod(wielder.CritRating ?? 0);
+            var chanceRatingMod = Creature.GetPositiveRatingMod(wielder.GetCritRating());
             critRateMod *= chanceRatingMod;
 
             // TODO: handle AlwaysCritical upstream
@@ -246,12 +243,9 @@ namespace ACE.Server.WorldObjects
                 critRateMod += criticalStrikeMod;
             }
 
-            if (wielder is Player player && player.AugmentationCriticalExpertise > 0)
-                critRateMod += player.AugmentationCriticalExpertise * 0.01f;
-
             // mitigation
-            var chanceResistRatingMod = Creature.GetNegativeRatingMod(target.CritResistRating ?? 0);
-            critRateMod *= chanceResistRatingMod;
+            var critResistRatingMod = Creature.GetNegativeRatingMod(target.GetCritResistRating());
+            critRateMod *= critResistRatingMod;
 
             // 50% cap here, or only in criticalStrikeMod?
             critRateMod = Math.Min(critRateMod, 0.5f);
@@ -272,7 +266,7 @@ namespace ACE.Server.WorldObjects
             var critDamageMod = (float)(weapon.GetProperty(PropertyFloat.CriticalMultiplier) ?? defaultCritMultiplier);
 
             // multipliers before additive?
-            var critDamageRatingMod = Creature.GetPositiveRatingMod(wielder.CritDamageRating ?? 0);
+            var critDamageRatingMod = Creature.GetPositiveRatingMod(wielder.GetCritDamageRating());
             critDamageMod *= critDamageRatingMod;
 
             if (weapon.HasImbuedEffect(ImbuedEffectType.CripplingBlow))
@@ -281,11 +275,8 @@ namespace ACE.Server.WorldObjects
                 critDamageMod += cripplingBlowMod;      // additive float?
             }
 
-            if (wielder is Player player && player.AugmentationCriticalPower > 0)
-                critDamageMod += player.AugmentationCriticalPower * 0.03f;
-
             // mitigation
-            var critDamageResistRatingMod = Creature.GetNegativeRatingMod(target.CritDamageResistRating ?? 0);
+            var critDamageResistRatingMod = Creature.GetNegativeRatingMod(target.GetCritDamageResistRating());
             critDamageMod *= critDamageResistRatingMod;
 
             // caps at 6x upstream?
@@ -310,6 +301,7 @@ namespace ACE.Server.WorldObjects
             if (weapon.GetProperty(PropertyInt.SlayerCreatureType) != null && target != null)
                 if ((CreatureType)weapon.GetProperty(PropertyInt.SlayerCreatureType) == target.CreatureType)
                     modifier = (float)(weapon.GetProperty(PropertyFloat.SlayerDamageBonus) ?? modifier);
+
             return modifier;
         }
 
@@ -341,7 +333,6 @@ namespace ACE.Server.WorldObjects
                     }
                 }
             }
-
             return modifier;
         }
 

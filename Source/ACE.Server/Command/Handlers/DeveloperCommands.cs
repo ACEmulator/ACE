@@ -1736,9 +1736,9 @@ namespace ACE.Server.Command.Handlers
                 else if (param.Equals("off"))
                     session.Player.DebugDamage = Player.DebugDamageType.None;
                 else if (param.StartsWith("attack"))
-                    session.Player.DebugDamage |= Player.DebugDamageType.Attacker;
+                    session.Player.DebugDamage = Player.DebugDamageType.Attacker;
                 else if (param.StartsWith("defen"))
-                    session.Player.DebugDamage |= Player.DebugDamageType.Defender;
+                    session.Player.DebugDamage = Player.DebugDamageType.Defender;
                 else
                 {
                     session.Network.EnqueueSend(new GameMessageSystemChat($"DebugDamage: unknown {param}", ChatMessageType.Broadcast));
