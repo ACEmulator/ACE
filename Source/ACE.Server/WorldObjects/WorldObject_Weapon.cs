@@ -695,18 +695,18 @@ namespace ACE.Server.WorldObjects
             return HasProc && ProcSpell == spellID;
         }
 
-        public void HandleProc(Creature wielder, Creature target)
+        public void TryProcItem(Creature wielder, Creature target)
         {
-            if (!HasProc) return;
-
             // roll for a chance of casting spell
             var chance = ProcSpellRate ?? 0.0f;
+
+            // special handling for aetheria
+            if (Aetheria.IsAetheria(WeenieClassId))
+                chance = Aetheria.CalcProcRate(this, wielder);
+
             var rng = ThreadSafeRandom.Next(0.0f, 1.0f);
             if (rng > chance)
                 return;
-
-            // procs on caster or target?
-            var targetProc = ProcSpellSelfTargeted ? wielder : target;
 
             var spell = new Spell(ProcSpell.Value);
 
@@ -717,7 +717,7 @@ namespace ACE.Server.WorldObjects
 
                 return;
             }
-            wielder.TryCastSpell(spell, targetProc, this);
+            wielder.TryCastSpell(spell, target, wielder);
         }
     }
 }
