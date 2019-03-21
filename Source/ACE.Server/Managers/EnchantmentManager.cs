@@ -199,9 +199,7 @@ namespace ACE.Server.Managers
                 if (duration > timeRemaining)
                 {
                     refreshSpell.StartTime = 0;
-
-                    if (duration > refreshSpell.Duration)
-                        refreshSpell.Duration = duration;
+                    refreshSpell.Duration = duration;
                 }
 
                 result.Enchantment = refreshSpell;
