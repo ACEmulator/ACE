@@ -51,6 +51,7 @@ namespace ACE.Entity.Enum
         Weapon              = SigilTwo | TrinketOne | Held,
         WeaponReadySlot     = SigilOne | SigilTwo | TrinketOne | Held,
         Selectable          = MeleeWeapon | Shield | MissileWeapon | Held | TwoHanded,
+        SelectablePlusAmmo  = Selectable | MissileAmmo,
         All                 = 0x7FFFFFFF,
         CanGoInReadySlot    = 0x7FFFFFFF
     }

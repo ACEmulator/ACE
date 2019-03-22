@@ -184,5 +184,16 @@ namespace ACE.Server.WorldObjects
             }
             return 2.0f;
         }
+
+        public override void UpdateAmmoAfterLaunch(WorldObject ammo)
+        {
+            // hide previously held ammo
+            EnqueueBroadcast(new GameMessagePickupEvent(ammo));
+
+            if (ammo.StackSize == 1)
+                TryDequipObjectWithNetworking(ammo.Guid, out _, DequipObjectAction.ConsumeItem);
+            else
+                TryConsumeFromInventoryWithNetworking(ammo, 1);
+        }
     }
 }
