@@ -63,7 +63,7 @@ namespace ACE.Server.Network.Structure
         {
             var flags = MovementStateFlag.Invalid;
 
-            if (CurrentStyle != MotionStance.Invalid)
+            if (CurrentStyle != MotionStance.Invalid && CurrentStyle != 0)
                 flags |= MovementStateFlag.CurrentStyle;
 
             if (ForwardCommand != MotionCommand.Invalid)
