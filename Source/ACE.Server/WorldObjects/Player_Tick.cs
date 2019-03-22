@@ -1,5 +1,7 @@
 using System;
+using System.Linq;
 
+using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity.Actions;
 using ACE.Server.Network.GameMessages.Messages;
@@ -68,6 +70,89 @@ namespace ACE.Server.WorldObjects
         public override void EnqueueAction(IAction action)
         {
             actionQueue.EnqueueAction(action);
+        }
+
+        /// <summary>
+        /// Called every ~5 secs for equipped mana consuming items
+        /// </summary>
+        public void ManaConsumersTick()
+        {
+            if (!EquippedObjectsLoaded)
+                return;
+
+            var EquippedManaConsumers = EquippedObjects.Where(k =>
+                (k.Value.IsAffecting ?? false) &&
+                k.Value.ManaRate.HasValue &&
+                k.Value.ItemMaxMana.HasValue &&
+                k.Value.ItemCurMana.HasValue &&
+                k.Value.ItemCurMana.Value > 0).ToList();
+
+            foreach (var k in EquippedManaConsumers)
+            {
+                var item = k.Value;
+                var rate = item.ManaRate.Value;
+
+                if (LumAugItemManaUsage != 0)
+                    rate *= GetNegativeRatingMod(LumAugItemManaUsage);
+
+                if (!item.ItemManaConsumptionTimestamp.HasValue) item.ItemManaConsumptionTimestamp = DateTime.Now;
+                DateTime mostRecentBurn = item.ItemManaConsumptionTimestamp.Value;
+
+                var timePerBurn = -1 / rate;
+
+                var secondsSinceLastBurn = (DateTime.Now - mostRecentBurn).TotalSeconds;
+
+                var delta = secondsSinceLastBurn / timePerBurn;
+
+                var deltaChopped = (int)Math.Floor(delta);
+                var deltaExtra = delta - deltaChopped;
+
+                if (deltaChopped <= 0)
+                    continue;
+
+                var timeToAdd = (int)Math.Floor(deltaChopped * timePerBurn);
+                item.ItemManaConsumptionTimestamp = mostRecentBurn + new TimeSpan(0, 0, timeToAdd);
+                var manaToBurn = Math.Min(item.ItemCurMana.Value, deltaChopped);
+                deltaChopped = Math.Clamp(deltaChopped, 0, 10);
+                item.ItemCurMana -= deltaChopped;
+
+                if (item.ItemCurMana < 1 || item.ItemCurMana == null)
+                {
+                    item.IsAffecting = false;
+                    var msg = new GameMessageSystemChat($"Your {item.Name} is out of Mana.", ChatMessageType.Magic);
+                    var sound = new GameMessageSound(Guid, Sound.ItemManaDepleted);
+                    Session.Network.EnqueueSend(msg, sound);
+                    if (item.WielderId != null)
+                    {
+                        if (item.Biota.BiotaPropertiesSpellBook != null)
+                        {
+                            // unsure if these messages / sounds were ever sent in retail,
+                            // or if it just purged the enchantments invisibly
+                            // doing a delay here to prevent 'SpellExpired' sounds from overlapping with 'ItemManaDepleted'
+                            var actionChain = new ActionChain();
+                            actionChain.AddDelaySeconds(2.0f);
+                            actionChain.AddAction(this, () =>
+                            {
+                                for (int i = 0; i < item.Biota.BiotaPropertiesSpellBook.Count; i++)
+                                {
+                                    RemoveItemSpell(item, (uint)item.Biota.BiotaPropertiesSpellBook.ElementAt(i).Spell);
+                                }
+                            });
+                            actionChain.EnqueueChain();
+                        }
+                    }
+                }
+                else
+                {
+                    // get time until empty
+                    var secondsUntilEmpty = ((item.ItemCurMana - deltaExtra) * timePerBurn);
+                    if (secondsUntilEmpty <= 120 && (!item.ItemManaDepletionMessageTimestamp.HasValue || (DateTime.Now - item.ItemManaDepletionMessageTimestamp.Value).TotalSeconds > 120))
+                    {
+                        item.ItemManaDepletionMessageTimestamp = DateTime.Now;
+                        Session.Network.EnqueueSend(new GameMessageSystemChat($"Your {item.Name} is low on Mana.", ChatMessageType.Magic));
+                    }
+                }
+            }
         }
     }
 }
