@@ -378,7 +378,7 @@ namespace ACE.Server.Managers
                     if (targetCreature != null)
                     {
                         var attr = targetCreature.Attributes[(PropertyAttribute)emote.Stat];
-                        success = attr != null && attr.Ranks >= emote.Min && attr.Ranks <= emote.Max;
+                        success = attr != null && attr.Current >= emote.Min && attr.Current <= emote.Max;
                         ExecuteEmoteSet(success ? EmoteCategory.TestSuccess : EmoteCategory.TestFailure, emote.Message, targetObject, true);
                     }
                     break;
@@ -551,7 +551,7 @@ namespace ACE.Server.Managers
                     if (targetCreature != null)
                     {
                         var vital = targetCreature.Vitals[(PropertyAttribute2nd)emote.Stat];
-                        success = vital != null && vital.Ranks >= emote.Min && vital.Ranks <= emote.Max;
+                        success = vital != null && vital.Current >= emote.Min && vital.Current <= emote.Max;
                         ExecuteEmoteSet(success ? EmoteCategory.TestSuccess : EmoteCategory.TestFailure, emote.Message, targetObject, true);
                     }
                     break;
@@ -572,7 +572,7 @@ namespace ACE.Server.Managers
                     if (targetCreature != null)
                     {
                         var skill = targetCreature.GetCreatureSkill((Skill)emote.Stat);
-                        success = skill != null && skill.Ranks >= emote.Min && skill.Ranks <= emote.Max;
+                        success = skill != null && skill.Current >= emote.Min && skill.Current <= emote.Max;
 
                         ExecuteEmoteSet(success ? EmoteCategory.TestSuccess : EmoteCategory.TestFailure, emote.Message, targetObject, true);
                     }
@@ -1030,7 +1030,7 @@ namespace ACE.Server.Managers
                 case EmoteType.TeachSpell:
 
                     if (player != null)
-                        player.LearnSpellWithNetworking((uint)emote.SpellId);
+                        player.LearnSpellWithNetworking((uint)emote.SpellId, false);
                     break;
 
                 case EmoteType.TeleportSelf:
