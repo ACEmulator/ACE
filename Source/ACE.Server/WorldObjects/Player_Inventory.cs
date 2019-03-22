@@ -98,7 +98,7 @@ namespace ACE.Server.WorldObjects
             {
                 var stack = FindObject(item.Guid, SearchLocations.MyInventory | SearchLocations.MyEquippedItems, out var stackFoundInContainer, out var stackRootOwner, out _);
 
-                if (stack == null || stackFoundInContainer == null || stackRootOwner == null)
+                if (stack == null || stackRootOwner == null)
                     return false;
 
                 AdjustStack(stack, -amount, stackFoundInContainer, stackRootOwner);
@@ -495,12 +495,12 @@ namespace ACE.Server.WorldObjects
                 // We add to these values because amount will be negative if we're subtracting from a stack, so we want to add a negative number.
                 container.EncumbranceVal += (stack.StackUnitEncumbrance * amount);
                 container.Value += (stack.StackUnitValue * amount);
+            }
 
-                if (rootContainer != container)
-                {
-                    rootContainer.EncumbranceVal += (stack.StackUnitEncumbrance * amount);
-                    rootContainer.Value += (stack.StackUnitValue * amount);
-                }
+            if (rootContainer != null && rootContainer != container)
+            {
+                rootContainer.EncumbranceVal += (stack.StackUnitEncumbrance * amount);
+                rootContainer.Value += (stack.StackUnitValue * amount);
             }
         }
 
