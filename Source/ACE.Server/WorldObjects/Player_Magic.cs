@@ -1079,11 +1079,7 @@ namespace ACE.Server.WorldObjects
                     continue;
                 }
 
-                item.SetStackSize(item.StackSize - 1);
-                if (item.StackSize > 0)
-                    Session.Network.EnqueueSend(new GameMessageSetStackSize(item));
-                else
-                    TryConsumeFromInventoryWithNetworking(item);
+                TryConsumeFromInventoryWithNetworking(item, 1);
             }
 
             // send message to player

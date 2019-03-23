@@ -38,7 +38,14 @@ namespace ACE.Server.WorldObjects
             actionChain.AddAction(this, () =>
             {
                 EnqueueActionBroadcast(p => p.TrackEquippedObject(this, ammo));
-                EnqueueBroadcast(new GameMessageParentEvent(this, ammo, (int)ACE.Entity.Enum.ParentLocation.RightHand, (int)ACE.Entity.Enum.Placement.RightHandCombat));
+
+                var delayChain = new ActionChain();
+                delayChain.AddDelaySeconds(0.001f);     // ensuring this message gets sent after player broadcasts above...
+                delayChain.AddAction(this, () =>
+                {
+                    EnqueueBroadcast(new GameMessageParentEvent(this, ammo, (int)ACE.Entity.Enum.ParentLocation.RightHand, (int)ACE.Entity.Enum.Placement.RightHandCombat));
+                });
+                delayChain.EnqueueChain();
             });
 
             if (newChain)
@@ -108,23 +115,20 @@ namespace ACE.Server.WorldObjects
         /// Updates the ammo count or destroys the ammo after launching the projectile.
         /// </summary>
         /// <param name="ammo">The equipped missile ammo object</param>
-        public void UpdateAmmoAfterLaunch(WorldObject ammo)
+        public virtual void UpdateAmmoAfterLaunch(WorldObject ammo)
         {
-            ammo.SetStackSize(ammo.StackSize - 1);
+            // hide previously held ammo
+            EnqueueBroadcast(new GameMessagePickupEvent(ammo));
 
-            if (ammo.StackSize == 0)
+            if (ammo.StackSize == 1)
             {
-                if (this is Player player)
-                    player.TryDequipObjectWithNetworking(ammo.Guid, out _, Player.DequipObjectAction.ConsumeItem);
-                else
-                {
-                    TryUnwieldObjectWithBroadcasting(ammo.Guid, out _, out _);
-                    ammo.Destroy();
-                }
+                TryUnwieldObjectWithBroadcasting(ammo.Guid, out _, out _);
+                ammo.Destroy();
             }
             else
             {
-                EnqueueBroadcast(new GameMessagePickupEvent(ammo), new GameMessageSetStackSize(ammo));
+                ammo.SetStackSize(ammo.StackSize - 1);
+                EnqueueBroadcast(new GameMessageSetStackSize(ammo));
             }
         }
 
