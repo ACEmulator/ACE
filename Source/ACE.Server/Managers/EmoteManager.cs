@@ -310,12 +310,12 @@ namespace ACE.Server.Managers
                     bool success = false;
                     if (player != null && emote.WeenieClassId != null)
                     {
-                        if (emote.WeenieClassId == 365 && emote.Stat != null) // Parchment base weenie used to create the IOU
-                            PlayerFactory.CreateIOU(player, (uint)emote.Stat);
+                        var item = WorldObjectFactory.CreateNewWorldObject((uint)emote.WeenieClassId);
+
+                        if (item == null) // Give IOU for item that isn't yet present in the DB
+                            PlayerFactory.CreateIOU(player, (uint)emote.WeenieClassId);
                         else
                         {
-                            var item = WorldObjectFactory.CreateNewWorldObject((uint)emote.WeenieClassId);
-
                             var stackSize = emote.StackSize ?? 1;
                             var stackMsg = "";
                             if (stackSize > 1)
