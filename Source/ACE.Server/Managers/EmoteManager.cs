@@ -313,7 +313,16 @@ namespace ACE.Server.Managers
                         var item = WorldObjectFactory.CreateNewWorldObject((uint)emote.WeenieClassId);
 
                         if (item == null) // Give IOU for item that isn't yet present in the DB
-                            PlayerFactory.CreateIOU(player, (uint)emote.WeenieClassId);
+                        {
+                            success = PlayerFactory.CreateIOU(player, (uint)emote.WeenieClassId, true);
+
+                            if (success)
+                            {
+                                var msg = new GameMessageSystemChat($"{WorldObject.Name} gives you an IOU.", ChatMessageType.Broadcast);
+                                var sound = new GameMessageSound(player.Guid, Sound.ReceiveItem, 1);
+                                player.Session.Network.EnqueueSend(msg, sound);
+                            }
+                        }
                         else
                         {
                             var stackSize = emote.StackSize ?? 1;

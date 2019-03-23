@@ -379,14 +379,17 @@ namespace ACE.Server.Factories
             return worldObject;
         }
 
-        public static void CreateIOU(Player player, uint missingWeenieId)
+        public static bool CreateIOU(Player player, uint missingWeenieId, bool withNetworking = false)
         {
             var book = (Book)WorldObjectFactory.CreateNewWorldObject("parchment");
 
             book.SetProperties("IOU", "An IOU for a missing database object.", "Sorry about that chief...", "ACEmulator", "prewritten");
             book.AddPage(player.Guid.Full, "ACEmulator", "prewritten", false, $"{missingWeenieId}\n\nSorry but the database does not have a weenie for weenieClassId #{missingWeenieId} so in lieu of that here is an IOU for that item.");
 
-            player.TryAddToInventory(book);
+            if (withNetworking == false)
+                return player.TryAddToInventory(book);
+            else
+                return player.TryCreateInInventoryWithNetworking(book);
         }
 
         /// <summary>
