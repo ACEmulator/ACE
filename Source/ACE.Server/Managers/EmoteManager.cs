@@ -1030,7 +1030,7 @@ namespace ACE.Server.Managers
                 case EmoteType.TeachSpell:
 
                     if (player != null)
-                        player.LearnSpellWithNetworking((uint)emote.SpellId, false);
+                        player.LearnSpellWithNetworking((uint)emote.SpellId);
                     break;
 
                 case EmoteType.TeleportSelf:

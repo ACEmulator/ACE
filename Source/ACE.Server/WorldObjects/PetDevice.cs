@@ -120,13 +120,6 @@ namespace ACE.Server.WorldObjects
 
             // cooldowns for gems and pet devices, anything else?
 
-            // should this verification be in base CheckUseRequirements?
-            if (!player.EnchantmentManager.CheckCooldown(CooldownId))
-            {
-                player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, "You have used this item too recently"));
-                return new ActivationResult(false);
-            }
-
             // TODO: limit non-golems to summoning mastery
 
             return new ActivationResult(true);

@@ -39,31 +39,6 @@ namespace ACE.Server.WorldObjects
         {
         }
 
-        public override ActivationResult CheckUseRequirements(WorldObject activator)
-        {
-            if (!(activator is Player player))
-                return new ActivationResult(false);
-
-            var baseRequirements = base.CheckUseRequirements(activator);
-            if (!baseRequirements.Success)
-                return baseRequirements;
-
-            // are cooldown timers specific to gems, or should they be in base?
-            if (!player.EnchantmentManager.CheckCooldown(CooldownId))
-            {
-                // TODO: werror/string not found, find exact message
-
-                /*var cooldown = player.GetCooldown(this);
-                var timer = cooldown.GetFriendlyString();
-                player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{Name} can be activated again in {timer}", ChatMessageType.Broadcast));*/
-
-                player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, "You have used this item too recently"));
-                return new ActivationResult(false);
-            }
-
-            return new ActivationResult(true);
-        }
-
         /// <summary>
         /// This is raised by Player.HandleActionUseItem.<para />
         /// The item should be in the players possession.
@@ -80,8 +55,6 @@ namespace ACE.Server.WorldObjects
 
             if (UseCreateContractId == null)
             {
-                player.EnchantmentManager.StartCooldown(this);
-
                 if (SpellDID.HasValue)
                 {
                     var spell = new Server.Entity.Spell((uint)SpellDID);
