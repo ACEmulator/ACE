@@ -660,7 +660,6 @@ namespace ACE.Server.Entity.Chess
                 var enPassantCoord = new ChessPieceCoord(to);
                 //enPassantCoord.MoveOffset(0, color == ChessColor.Black ? 2 : -2);
                 enPassantCoord.MoveOffset(0, color == ChessColor.Black ? 1 : -1);
-                Console.WriteLine($"Setting EnPassantCoord: {enPassantCoord}");
                 EnPassantCoord = enPassantCoord;
             }
             else
