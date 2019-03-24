@@ -705,7 +705,16 @@ namespace ACE.Server.Entity.Chess
                 if (flags.HasFlag(ChessMoveFlag.Capture))
                 {
                     var piece = AddPiece(Turn, move.Captured, move.To);
-                    piece.Guid = move.Guid;
+                    piece.Guid = move.CapturedGuid;
+                }
+
+                if (flags.HasFlag(ChessMoveFlag.EnPassantCapture))
+                {
+                    var enPassantFrom = new ChessPieceCoord(move.To);
+                    enPassantFrom.MoveOffset(0, move.Color == ChessColor.Black ? 1 : -1);
+
+                    var piece = AddPiece(Turn, ChessPieceType.Pawn, enPassantFrom);
+                    piece.Guid = move.CapturedGuid;
                 }
 
                 if ((flags & (ChessMoveFlag.KingSideCastle | ChessMoveFlag.QueenSideCastle)) != 0)

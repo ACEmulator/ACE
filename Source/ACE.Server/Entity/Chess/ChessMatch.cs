@@ -634,8 +634,10 @@ namespace ACE.Server.Entity.Chess
         {
             var gamePiece = ChessBoard.CurrentLandblock.GetObject(piece.Guid) as GamePiece;
             if (gamePiece == null)
+            {
+                Console.WriteLine($"RemoveWeeniePiece - couldn't find {piece.Guid} @ {piece.Coord}");
                 return;
-
+            }
             piece.Guid = new ObjectGuid(0);
             gamePiece.Destroy();
         }
