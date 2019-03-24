@@ -99,9 +99,6 @@ namespace ACE.Server.WorldObjects
             // if ActivationTarget is another object,
             // should this be checking the ActivationResponse of the target object?
 
-            // if ActivationTarget is another object,
-            // should this be checking the ActivationResponse of the target object?
-
             // Chests with ActivationResponse.CastSpell ( and Active 65535 ) should
             // still process ActOnUse as normal but need to stop further processing
             // after completing, as the CastSpell portion is handled internally
