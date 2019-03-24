@@ -1138,7 +1138,9 @@ namespace ACE.Server.WorldObjects
                 duration = spell.Duration;
             else
             {
-                if (caster.WeenieType == WeenieType.Gem && !Aetheria.IsAetheria(caster.WeenieClassId))
+                if (caster.WeenieType == WeenieType.Gem && !Aetheria.IsAetheria(caster.WeenieClassId) ||
+                    caster.WeenieType == WeenieType.Switch || caster.WeenieType == WeenieType.PressurePlate ||
+                    caster.WeenieType == WeenieType.Chest)
                     duration = spell.Duration;
                 else
                     duration = -1;
@@ -1170,7 +1172,7 @@ namespace ACE.Server.WorldObjects
 
             string message = null;
 
-            if (spell.Duration != -1)
+            if (duration < -1 || duration > -1)
             {
                 if (caster is Creature)
                 {
@@ -1187,6 +1189,7 @@ namespace ACE.Server.WorldObjects
                         message = null;
                 }
             }
+
             if (target is Player)
             {
                 playerTarget.Session.Network.EnqueueSend(new GameEventMagicUpdateEnchantment(playerTarget.Session, new Enchantment(playerTarget, addResult.Enchantment)));
