@@ -211,6 +211,7 @@ namespace ACE.Server.Entity.Chess
             var storage = new List<ChessMove>();
             GenerateMoves(Turn, storage);
 
+            var nonCheckMoves = new List<ChessMove>();
             foreach (var generatedMove in storage)
             {
                 // no need to evaluate the board if the ai has checkmated the other player
@@ -222,11 +223,15 @@ namespace ACE.Server.Entity.Chess
                     return result;
                 }
 
-                var boardScore = EvaluateBoard();
-                if (boardScore > bestBoardScore)
+                if (!InCheck(color))
                 {
-                    bestMove = generatedMove;
-                    bestBoardScore = boardScore;
+                    var boardScore = EvaluateBoard();
+                    if (boardScore > bestBoardScore)
+                    {
+                        bestMove = generatedMove;
+                        bestBoardScore = boardScore;
+                    }
+                    nonCheckMoves.Add(generatedMove);
                 }
 
                 UndoMove(1);
@@ -234,14 +239,17 @@ namespace ACE.Server.Entity.Chess
 
             // every generated move had the same board score, pick one at random
             // this shouldn't happen, just here to prevent crash
-            if (bestMove == null && storage.Count > 0)
+            if (bestMove == null && nonCheckMoves.Count > 0)
             {
-                var rng = ThreadSafeRandom.Next(0, storage.Count - 1);
+                var rng = ThreadSafeRandom.Next(0, nonCheckMoves.Count - 1);
                 rng = 0;    // easier debugging
-                bestMove = storage[rng];
+                bestMove = nonCheckMoves[rng];
             }
 
-            Debug.Assert(bestMove != null);
+            // offer stalemate
+            if (bestMove == null)
+                return ChessMoveResult.NoMoveResult;
+
             from = bestMove.From;
             to = bestMove.To;
 
@@ -532,18 +540,18 @@ namespace ACE.Server.Entity.Chess
             return false;
         }
 
-        public bool InCheck()
+        public bool InCheck(ChessColor color)
         {
-            var king = GetPiece(Turn, ChessPieceType.King);
+            var king = GetPiece(color, ChessPieceType.King);
             Debug.Assert(king != null);
-            return CanAttack(Chess.InverseColor(Turn), king.Coord);
+            return CanAttack(Chess.InverseColor(color), king.Coord);
         }
 
-        public bool InCheckmate()
+        public bool InCheckmate(ChessColor color)
         {
             var storage = new List<ChessMove>();
-            GenerateMoves(Turn, storage);
-            return InCheck() && storage.Count == 0;
+            GenerateMoves(color, storage);
+            return InCheck(color) && storage.Count == 0;
         }
 
         public void BuildMove(List<ChessMove> storage, ChessMoveFlag result, ChessColor color, ChessPieceType type, ChessPieceCoord from, ChessPieceCoord to)
@@ -585,9 +593,9 @@ namespace ACE.Server.Entity.Chess
                 result |= ChessMoveResult.OKMovePromotion;
 
             // win conditions
-            if (InCheck())
+            if (InCheck(Turn))
                 result |= ChessMoveResult.OKMoveCheck;
-            if (InCheckmate())
+            if (InCheckmate(Turn))
                 result |= ChessMoveResult.OKMoveCheckmate;
 
             return result;

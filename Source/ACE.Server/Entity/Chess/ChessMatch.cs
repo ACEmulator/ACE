@@ -442,6 +442,21 @@ namespace ACE.Server.Entity.Chess
 
             var result = AiFuture;
             MoveResult = result.Result;
+
+            if (MoveResult == ChessMoveResult.NoMoveResult)
+            {
+                // offer stalemate
+                var side = Sides[(int)Logic.Turn];
+                var opSide = Sides[(int)Chess.InverseColor(Logic.Turn)];
+
+                side.Stalemate = true;
+
+                if (opSide.Stalemate)
+                    Finish(Chess.ChessWinnerStalemate);
+                else
+                    SendOpponentStalemate(opSide.GetPlayer(), side.Color, true);
+            }
+
             FinalizeWeenieMove(result.Result);
 
             //Console.WriteLine($"Calculated Chess AI move in {result.ProfilingTime} ms with {result.ProfilingCounter} minimax calculations.");

@@ -31,7 +31,7 @@ namespace ACE.Server.Entity.Chess
 
         public virtual bool CanAttack(int dx, int dy)
         {
-            return false;
+            return CanMove(dx, dy);
         }
 
         public virtual bool CanMove(int dx, int dy)
