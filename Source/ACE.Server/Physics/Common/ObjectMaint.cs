@@ -289,8 +289,7 @@ namespace ACE.Server.Physics.Common
 
             // use PVS / VisibleCells for EnvCells not seen outside
             // (mostly dungeons, also some large indoor areas ie. caves)
-            var envCell = cell as EnvCell;
-            if (envCell != null && !envCell.SeenOutside)
+            if (cell is EnvCell envCell && !envCell.SeenOutside)
                 return GetVisibleObjects(envCell);
 
             // use current landblock + adjacents for outdoors,
@@ -304,7 +303,7 @@ namespace ACE.Server.Physics.Common
                     visibleObjs.AddRange(adjacent.ServerObjects);
             }
 
-            return visibleObjs.Where(i => i.ID != PhysicsObj.ID).ToList();
+            return visibleObjs.Where(i => i.ID != PhysicsObj.ID && (!(i.CurCell is EnvCell indoors) || indoors.SeenOutside)).ToList();
 
             /*var cells = GetOutdoorCells(cell);
 
