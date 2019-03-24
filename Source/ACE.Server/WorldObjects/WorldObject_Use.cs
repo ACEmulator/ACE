@@ -66,8 +66,8 @@ namespace ACE.Server.WorldObjects
             // which can have a list of possible ActivationResponses - 
             // Use (by far the most common), Animate, Talk, Emote, CastSpell, Generate
 
-            // PropertyInt.Active indicates if this object can be activated, default is 1
-            if (Active == 0) return;
+            // PropertyInt.Active indicates if this object can be activated, default is true
+            if (!Active) return;
 
             // verify use requirements
             var result = CheckUseRequirements(activator);
@@ -99,18 +99,9 @@ namespace ACE.Server.WorldObjects
             // if ActivationTarget is another object,
             // should this be checking the ActivationResponse of the target object?
 
-            // Chests with 'ActivationResponse - CastSpell' should still ActOnUse
-            if (WeenieType == WeenieType.Chest && Active == 65535)
-            {
+            // default use action
+            if (ActivationResponse.HasFlag(ActivationResponse.Use))
                 target.ActOnUse(activator);
-                return;
-            }
-            else
-            {
-                // default use action
-                if (ActivationResponse.HasFlag(ActivationResponse.Use))
-                    target.ActOnUse(activator);
-            }
 
             // perform motion animation - rarely used (only 4 instances in PY16 db)
             if (ActivationResponse.HasFlag(ActivationResponse.Animate))
@@ -163,12 +154,12 @@ namespace ACE.Server.WorldObjects
                 EmoteManager.OnActivation(creature);
         }
 
-        public virtual void OnCastSpell(WorldObject activator, WorldObject caster = null)
+        public virtual void OnCastSpell(WorldObject activator)
         {
-            if (SpellDID.HasValue)
+            if (SpellDID != null)
             {
                 var spell = new Spell(SpellDID.Value);
-                TryCastSpell(spell, activator, caster);
+                TryCastSpell(spell, activator, this);
             }
         }
 
@@ -185,10 +176,8 @@ namespace ACE.Server.WorldObjects
         {
             //Console.WriteLine($"{Name}.CheckUseRequirements({activator.Name})");
 
-            if (!(activator is Player))
+            if (!(activator is Player player))
                 return new ActivationResult(false);
-
-            var player = activator as Player;
 
             // verify arcane lore requirement
             if (ItemDifficulty != null)
