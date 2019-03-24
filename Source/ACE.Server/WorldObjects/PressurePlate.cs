@@ -1,4 +1,7 @@
 using System;
+
+using log4net;
+
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.Entity;
@@ -12,6 +15,8 @@ namespace ACE.Server.WorldObjects
     /// </summary>
     public class PressurePlate : WorldObject
     {
+        private static readonly ILog log = LogManager.GetLogger(System.Reflection.MethodBase.GetCurrentMethod().DeclaringType);
+
         /// <summary>
         /// The last time this pressure plate was activated
         /// </summary>
@@ -71,6 +76,18 @@ namespace ACE.Server.WorldObjects
             player.EnqueueBroadcast(new GameMessageSound(player.Guid, (Sound)UseSound));
 
             base.OnActivate(activator);
+        }
+
+        public override void ActOnUse(WorldObject activator)
+        {
+            // Pressure Plate should be activating a linked object configured via landblock_link
+            // If its own ActOnUse triggers, something isn't correct, so provide logging feedback.
+
+            var msg = $"{WeenieType} {Guid} target undefined";
+            log.Error(msg);
+
+            if (activator is Player player)
+                player.Session.Network.EnqueueSend(new GameMessageSystemChat(msg, ChatMessageType.Broadcast));
         }
     }
 }
