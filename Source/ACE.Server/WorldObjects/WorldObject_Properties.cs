@@ -2409,13 +2409,39 @@ namespace ACE.Server.WorldObjects
         /* pressure plates */
 
         /// <summary>
-        /// Returns 1 or 65535 if this object can be activated (1 is default)
-        /// 23 Weenies in Cache.bin contain Active 65535
+        /// Returns Active.Active or Active.SecondaryAction, if this object can be activated (1 is default)
+        /// 23 Weenies in Cache.bin contain Active 65535 or 0xffff
         /// </summary>
-        public int Active
+        private Active Active
         {
-            get => (GetProperty(PropertyInt.Active) ?? 1);
-            set { if (value == 0) RemoveProperty(PropertyInt.Active); else SetProperty(PropertyInt.Active, value); }
+            get
+            {
+                int activeStatus = GetProperty(PropertyInt.Active) ?? 1;
+                switch (activeStatus)
+                {
+                    case 0:
+                        return Active.Inert;
+                    case 0xffff:
+                        return Active.SecondaryAction;
+                    default:
+                        return Active.Active;
+                }
+            }
+            set
+            {
+                switch (value)
+                {
+                    case Active.Inert:
+                        SetProperty(PropertyInt.Active, 0);
+                        break;
+                    case Active.SecondaryAction:
+                        SetProperty(PropertyInt.Active, 0xffff);
+                        break;
+                    default:
+                        RemoveProperty(PropertyInt.Active);
+                        break;
+                }
+            }
         }
 
         /// <summary>

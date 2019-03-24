@@ -51,6 +51,7 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Handles the 'GameAction 0x35 - UseWithTarget' network message
         /// on a per-object type basis.
+        /// </summary>
         public virtual void HandleActionUseOnTarget(Player player, WorldObject target)
         {
             RecipeManager.UseObjectOnTarget(player, this, target);
@@ -67,7 +68,7 @@ namespace ACE.Server.WorldObjects
             // Use (by far the most common), Animate, Talk, Emote, CastSpell, Generate
 
             // PropertyInt.Active indicates if this object can be activated, default is 1
-            if (Active == 0) return;
+            if (Active == Active.Inert) return;
 
             // verify use requirements
             var result = CheckUseRequirements(activator);
@@ -99,8 +100,14 @@ namespace ACE.Server.WorldObjects
             // if ActivationTarget is another object,
             // should this be checking the ActivationResponse of the target object?
 
-            // Chests with 'ActivationResponse - CastSpell' should still ActOnUse
-            if (WeenieType == WeenieType.Chest && Active == 65535)
+            // if ActivationTarget is another object,
+            // should this be checking the ActivationResponse of the target object?
+
+            // Chests with ActivationResponse.CastSpell ( and Active 65535 ) should
+            // still process ActOnUse as normal but need to stop further processing
+            // after completing, as the CastSpell portion is handled internally
+            // by the Chest() class only during the Chest().Open event
+            if (WeenieType == WeenieType.Chest && Active == Active.SecondaryAction)
             {
                 target.ActOnUse(activator);
                 return;
