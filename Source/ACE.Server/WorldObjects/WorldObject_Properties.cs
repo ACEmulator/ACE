@@ -2409,12 +2409,13 @@ namespace ACE.Server.WorldObjects
         /* pressure plates */
 
         /// <summary>
-        /// Returns TRUE if this object can be activated (default)
+        /// Returns 1 or 65535 if this object can be activated (1 is default)
+        /// 23 Weenies in Cache.bin contain Active 65535
         /// </summary>
-        public bool Active
+        public int Active
         {
-            get => (GetProperty(PropertyInt.Active) ?? 1) == 1;
-            set { if (value) RemoveProperty(PropertyInt.Active); else SetProperty(PropertyInt.Active, 0); }
+            get => (GetProperty(PropertyInt.Active) ?? 1);
+            set { if (value == 0) RemoveProperty(PropertyInt.Active); else SetProperty(PropertyInt.Active, value); }
         }
 
         /// <summary>

@@ -66,8 +66,8 @@ namespace ACE.Server.WorldObjects
             // which can have a list of possible ActivationResponses - 
             // Use (by far the most common), Animate, Talk, Emote, CastSpell, Generate
 
-            // PropertyInt.Active indicates if this object can be activated, default is true
-            if (!Active) return;
+            // PropertyInt.Active indicates if this object can be activated, default is 1
+            if (Active == 0) return;
 
             // verify use requirements
             var result = CheckUseRequirements(activator);
@@ -99,9 +99,18 @@ namespace ACE.Server.WorldObjects
             // if ActivationTarget is another object,
             // should this be checking the ActivationResponse of the target object?
 
-            // default use action
-            if (ActivationResponse.HasFlag(ActivationResponse.Use))
+            // Chests with 'ActivationResponse - CastSpell' should still ActOnUse
+            if (WeenieType == WeenieType.Chest && Active == 65535)
+            {
                 target.ActOnUse(activator);
+                return;
+            }
+            else
+            {
+                // default use action
+                if (ActivationResponse.HasFlag(ActivationResponse.Use))
+                    target.ActOnUse(activator);
+            }
 
             // perform motion animation - rarely used (only 4 instances in PY16 db)
             if (ActivationResponse.HasFlag(ActivationResponse.Animate))
