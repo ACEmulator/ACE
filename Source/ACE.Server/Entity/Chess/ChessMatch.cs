@@ -591,6 +591,8 @@ namespace ACE.Server.Entity.Chess
             if (gamePiece == null)
             {
                 Console.WriteLine($"ChessMatch.MoveWeeniePiece({piece.Guid:X8}): couldn't find game piece");
+                DebugMove();
+                Logic.DebugBoard();
                 return;
             }
 
@@ -733,12 +735,28 @@ namespace ACE.Server.Entity.Chess
 
         public void DebugMove()
         {
-            var prefix = "*";
-            foreach (var move in Log)
+            Console.WriteLine("  | White | Black");
+            Console.WriteLine("-----------------");
+            var num = 1;
+
+            for (var i = 0; i < Log.Count; i++)
             {
-                Console.WriteLine($"{prefix}{move.From}-{move.To}");
-                prefix = prefix == "" ? "*" : "";
+                if (i % 2 == 0)
+                {
+                    var numStr = num.ToString().PadRight(2, ' ');
+                    Console.Write($"{numStr}| ");
+                    num++;
+                }
+
+                var move = Log[i];
+                Console.Write($"{move.From}-{move.To}");
+
+                if (i % 2 == 0)
+                    Console.Write(" | ");
+                else
+                    Console.WriteLine();
             }
+            Console.WriteLine();
         }
     }
 }
