@@ -159,12 +159,7 @@ namespace ACE.Server.WorldObjects
                 player.Session.Network.EnqueueSend(new GameMessageSystemChat(ActivationTalk, ChatMessageType.Broadcast));
             }
 
-            if (SpellDID.HasValue)
-            {
-                var spell = new Server.Entity.Spell((uint)SpellDID);
-
-                TryCastSpell(spell, player, this);
-            }
+            base.OnCastSpell(player, this);
         }
 
         /// <summary>

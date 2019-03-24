@@ -163,12 +163,12 @@ namespace ACE.Server.WorldObjects
                 EmoteManager.OnActivation(creature);
         }
 
-        public virtual void OnCastSpell(WorldObject activator)
+        public virtual void OnCastSpell(WorldObject activator, WorldObject caster = null)
         {
-            if (SpellDID != null)
+            if (SpellDID.HasValue)
             {
                 var spell = new Spell(SpellDID.Value);
-                TryCastSpell(spell, activator);
+                TryCastSpell(spell, activator, caster);
             }
         }
 
