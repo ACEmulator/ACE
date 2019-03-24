@@ -32,6 +32,9 @@ namespace ACE.Server.Entity.Chess
         public List<ObjectGuid> Motions;
 
         public DateTime? NextRangeCheck;
+        public DateTime? StartAiTime;
+
+        public List<ChessMove> Log;
 
         public ChessMatch(Game chessBoard)
         {
@@ -42,6 +45,8 @@ namespace ACE.Server.Entity.Chess
 
             Actions = new Queue<ChessDelayedAction>();
             Motions = new List<ObjectGuid>();
+
+            Log = new List<ChessMove>();
         }
 
         public ChessColor GetColor(ObjectGuid playerGuid)
@@ -66,6 +71,15 @@ namespace ACE.Server.Entity.Chess
         {
             switch (State)
             {
+                case ChessState.WaitingForPlayers:
+                    {
+                        if (StartAiTime != null && DateTime.UtcNow >= StartAiTime)
+                        {
+                            AddAi();
+                        }
+                        break;
+                    }
+
                 case ChessState.InProgress:
                     {
                         switch (AiState)
@@ -150,7 +164,7 @@ namespace ACE.Server.Entity.Chess
             // ai is represented with object guid 0
             var playerGuid = player != null ? player.Guid : new ObjectGuid(0);
 
-            Sides[(int)color] = new ChessSide(player.Guid, color);
+            Sides[(int)color] = new ChessSide(playerGuid, color);
 
             if (player != null)
                 player.ChessMatch = this;
@@ -162,7 +176,16 @@ namespace ACE.Server.Entity.Chess
                     AddWeeniePiece(piece);
             });
 
-            if (Sides[(int)Chess.InverseColor(color)] != null)
+            if (Sides[(int)Chess.InverseColor(color)] == null)
+            {
+                var ai_enabled = PropertyManager.GetDouble("chess_ai_start_time").Item;
+                if (ai_enabled > 0)
+                {
+                    player.Session.Network.EnqueueSend(new GameMessageSystemChat($"If another player doesn't join within {ai_enabled} seconds, the game will automatically start with AI", ChatMessageType.Broadcast));
+                    StartAiTime = DateTime.UtcNow.AddSeconds(ai_enabled);
+                }
+            }
+            else
                 Actions.Enqueue(new ChessDelayedAction(ChessDelayedActionType.Start));
         }
 
@@ -172,7 +195,7 @@ namespace ACE.Server.Entity.Chess
                 return;
 
             var color = GetFreeColor();
-            if (color != ChessColor.None)
+            if (color == ChessColor.None)
                 return;
 
             AddSide(null, color);
@@ -382,6 +405,7 @@ namespace ACE.Server.Entity.Chess
         {
             var side = Sides[(int)Chess.InverseColor(Logic.Turn)];
             var opponent = side.GetPlayer();
+            var opponentGuid = side.PlayerGuid;
             if (side != null && !side.IsAi())
                 SendMoveResponse(opponent, MoveResult);
 
@@ -395,7 +419,7 @@ namespace ACE.Server.Entity.Chess
                     var move = Logic.GetLastMove();
                     var piece = Logic.GetPiece(move.To);
                     var data = new GameMoveData(ChessMoveType.FromTo, move.Color, move.From, move.To);
-                    SendOpponentTurn(side.GetPlayer(), opponent, piece, data);
+                    SendOpponentTurn(side.GetPlayer(), opponentGuid, piece, data);
                 }
             }
         }
@@ -405,9 +429,10 @@ namespace ACE.Server.Entity.Chess
             Debug.Assert(AiState == ChessAiState.WaitingToStart);
             AiState = ChessAiState.WaitingForWorker;
 
-            // execute ai work on a separate thread;
-            ChessAiMove aiMove;
-            //AiFuture = 
+            // todo: execute ai work on a separate thread
+            var key = new ChessAiAsyncTurnKey();
+            AiFuture = new ChessAiMoveResult();
+            AsyncMoveAiSimple(key, AiFuture);
         }
 
         public void FinishAiMove()
@@ -419,12 +444,13 @@ namespace ACE.Server.Entity.Chess
             MoveResult = result.Result;
             FinalizeWeenieMove(result.Result);
 
-            Console.WriteLine($"Calculated Chess AI move in {result.ProfilingTime} ms with {result.ProfilingCounter} minimax calculations.");
+            //Console.WriteLine($"Calculated Chess AI move in {result.ProfilingTime} ms with {result.ProfilingCounter} minimax calculations.");
         }
 
         public void FinalizeWeenieMove(ChessMoveResult result)
         {
             var move = Logic.GetLastMove();
+            Log.Add(move);
 
             // need to use destination coordinate as Logic has already moved the piece
             var piece = Logic.GetPiece(move.To);
@@ -583,6 +609,11 @@ namespace ACE.Server.Entity.Chess
         public void AttackWeeniePiece(BasePiece piece, ObjectGuid victim)
         {
             var gamePiece = ChessBoard.CurrentLandblock.GetObject(piece.Guid) as GamePiece;
+            if (gamePiece == null)
+            {
+                DebugMove();
+                Logic.DebugBoard();
+            }
             Debug.Assert(gamePiece != null);
 
             var frame = new AFrame(ChessBoard.PhysicsObj.Position.Frame);
@@ -632,9 +663,9 @@ namespace ACE.Server.Entity.Chess
             player.Session.Network.EnqueueSend(new GameEventMoveResponse(player.Session, ChessBoard.Guid, result));
         }
 
-        public void SendOpponentTurn(Player player, Player opponent, BasePiece piece, GameMoveData data)
+        public void SendOpponentTurn(Player player, ObjectGuid opponentGuid, BasePiece piece, GameMoveData data)
         {
-            player.Session.Network.EnqueueSend(new GameEventOpponentTurn(player.Session, ChessBoard.Guid, new ChessMoveData(opponent.Guid, piece.Guid, data)));
+            player.Session.Network.EnqueueSend(new GameEventOpponentTurn(player.Session, ChessBoard.Guid, new ChessMoveData(opponentGuid, piece.Guid, data)));
         }
 
         public void SendOpponentStalemate(Player player, ChessColor color, bool stalemate)
@@ -698,6 +729,16 @@ namespace ACE.Server.Entity.Chess
             var rankDiff = opRank - rank;
 
             return 1.0f / (1.0f + Math.Pow(10, rankDiff / 400.0f));
+        }
+
+        public void DebugMove()
+        {
+            var prefix = "*";
+            foreach (var move in Log)
+            {
+                Console.WriteLine($"{prefix}{move.From}-{move.To}");
+                prefix = prefix == "" ? "*" : "";
+            }
         }
     }
 }

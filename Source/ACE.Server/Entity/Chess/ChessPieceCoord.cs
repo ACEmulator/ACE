@@ -55,7 +55,8 @@ namespace ACE.Server.Entity.Chess
 
         public override string ToString()
         {
-            return $"X: {X} Y: {Y}";
+            //return $"({X},{Y})";
+            return $"{(char)('A' + X)}{Y + 1}";
         }
 
         public bool IsValid()

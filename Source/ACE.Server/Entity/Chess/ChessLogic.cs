@@ -237,6 +237,7 @@ namespace ACE.Server.Entity.Chess
             if (bestMove == null && storage.Count > 0)
             {
                 var rng = ThreadSafeRandom.Next(0, storage.Count - 1);
+                rng = 0;    // easier debugging
                 bestMove = storage[rng];
             }
 
@@ -361,7 +362,7 @@ namespace ACE.Server.Entity.Chess
             if (piece.Type == ChessPieceType.Pawn)
             {
                 // single
-                var from = piece.Coord;
+                var from = new ChessPieceCoord(piece.Coord);
                 var to = new ChessPieceCoord(from);
                 to.MoveOffset(Chess.PawnOffsets[(int)color, 0]);
 
@@ -563,7 +564,14 @@ namespace ACE.Server.Entity.Chess
             if (toPiece != null)
                 captured = toPiece.Type;
             else if (result.HasFlag(ChessMoveFlag.EnPassantCapture))
+            {
                 captured = ChessPieceType.Pawn;
+
+                var enPassantCoord = new ChessPieceCoord(to);
+                enPassantCoord.MoveOffset(0, color == ChessColor.Black ? 1 : -1);
+
+                toPiece = GetPiece(enPassantCoord);
+            }
 
             storage.Add(new ChessMove(result, color, type, from, to, promotion, captured, Move, HalfMove, Castling, EnPassantCoord, fromPiece.Guid, captured != ChessPieceType.Empty ? toPiece.Guid : new ObjectGuid(0)));
         }
@@ -597,8 +605,8 @@ namespace ACE.Server.Entity.Chess
 
             if (flags.HasFlag(ChessMoveFlag.EnPassantCapture))
             {
-                var enPassantCoord = to;
-                enPassantCoord.MoveOffset(0, color == ChessColor.Black ? 2 : -2);
+                var enPassantCoord = new ChessPieceCoord(to);
+                enPassantCoord.MoveOffset(0, color == ChessColor.Black ? 1 : -1);
                 RemovePiece(enPassantCoord);
             }
 
@@ -650,7 +658,9 @@ namespace ACE.Server.Entity.Chess
             if (flags.HasFlag(ChessMoveFlag.BigPawn))
             {
                 var enPassantCoord = new ChessPieceCoord(to);
-                enPassantCoord.MoveOffset(0, color == ChessColor.Black ? 2 : -2);
+                //enPassantCoord.MoveOffset(0, color == ChessColor.Black ? 2 : -2);
+                enPassantCoord.MoveOffset(0, color == ChessColor.Black ? 1 : -1);
+                Console.WriteLine($"Setting EnPassantCoord: {enPassantCoord}");
                 EnPassantCoord = enPassantCoord;
             }
             else
@@ -741,6 +751,32 @@ namespace ACE.Server.Entity.Chess
         public ChessMove GetLastMove()
         {
             return History.Peek();
+        }
+
+        public void DebugBoard()
+        {
+            for (var y = 7; y >= 0; y--)
+            {
+                for (var x = 0; x <= 7; x++)
+                {
+                    var piece = GetPiece(new ChessPieceCoord(x, y));
+                    if (piece == null)
+                        Console.Write(" ");
+                    else if (piece is PawnPiece)
+                        Console.Write("P");
+                    else if (piece is KingPiece)
+                        Console.Write("K");
+                    else if (piece is QueenPiece)
+                        Console.Write("Q");
+                    else if (piece is BishopPiece)
+                        Console.Write("B");
+                    else if (piece is KnightPiece)
+                        Console.Write("N");
+                    else if (piece is RookPiece)
+                        Console.Write("R");
+                }
+                Console.WriteLine();
+            }
         }
     }
 }
