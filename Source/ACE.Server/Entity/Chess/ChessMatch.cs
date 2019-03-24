@@ -445,19 +445,28 @@ namespace ACE.Server.Entity.Chess
 
             if (MoveResult == ChessMoveResult.NoMoveResult)
             {
-                // offer stalemate
-                var side = Sides[(int)Logic.Turn];
-                var opSide = Sides[(int)Chess.InverseColor(Logic.Turn)];
+                var color = Chess.InverseColor(Logic.Turn);
+                var side = Sides[(int)color];
+                var opSide = Sides[(int)Logic.Turn];
 
-                side.Stalemate = true;
-
-                if (opSide.Stalemate)
-                    Finish(Chess.ChessWinnerStalemate);
+                // checkmate
+                if (Logic.InCheckmate(color, true))
+                {
+                    Finish((int)Logic.Turn);
+                }
+                // stalemate
                 else
-                    SendOpponentStalemate(opSide.GetPlayer(), side.Color, true);
-            }
+                {
+                    side.Stalemate = true;
 
-            FinalizeWeenieMove(result.Result);
+                    if (opSide.Stalemate)
+                        Finish(Chess.ChessWinnerStalemate);
+                    else
+                        SendOpponentStalemate(opSide.GetPlayer(), side.Color, true);
+                }
+            }
+            else
+                FinalizeWeenieMove(result.Result);
 
             //Console.WriteLine($"Calculated Chess AI move in {result.ProfilingTime} ms with {result.ProfilingCounter} minimax calculations.");
         }

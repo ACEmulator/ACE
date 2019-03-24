@@ -13,7 +13,7 @@ namespace ACE.Server.Entity.Chess
 
         public int Offset => X + Y * Chess.BoardSize;
 
-        public ChessPieceRank Rank => (ChessPieceRank)(Offset >> 3);
+        public int Rank => Y + 1;
 
         public ChessPieceCoord()
         {

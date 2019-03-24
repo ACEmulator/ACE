@@ -23,8 +23,8 @@ namespace ACE.Server.Entity.Chess
 
         public bool CanAttack(ChessPieceCoord target)
         {
-            var dx = Coord.X - target.X;
-            var dy = Coord.Y - target.Y;
+            var dx = target.X - Coord.X;
+            var dy = target.Y - Coord.Y;
 
             return CanAttack(dx, dy);
         }

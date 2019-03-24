@@ -209,7 +209,7 @@ namespace ACE.Server.Entity.Chess
             ChessMove bestMove = null;
 
             var storage = new List<ChessMove>();
-            GenerateMoves(Turn, storage);
+            GenerateMoves(color, storage);
 
             var nonCheckMoves = new List<ChessMove>();
             foreach (var generatedMove in storage)
@@ -246,7 +246,7 @@ namespace ACE.Server.Entity.Chess
                 bestMove = nonCheckMoves[rng];
             }
 
-            // offer stalemate
+            // checkmate / stalemate
             if (bestMove == null)
                 return ChessMoveResult.NoMoveResult;
 
@@ -382,7 +382,7 @@ namespace ACE.Server.Entity.Chess
                     to = new ChessPieceCoord(from);
                     to.MoveOffset(Chess.PawnOffsets[(int)color, 1]);
 
-                    if (GetPiece(to) == null && (color == ChessColor.Black ? ChessPieceRank.Rank2 : ChessPieceRank.Rank7) == from.Rank)
+                    if (GetPiece(to) == null && from.Rank == (color == ChessColor.White ? 2 : 7))
                         BuildMove(storage, ChessMoveFlag.BigPawn, color, piece.Type, from, to);
                 }
 
@@ -547,11 +547,31 @@ namespace ACE.Server.Entity.Chess
             return CanAttack(Chess.InverseColor(color), king.Coord);
         }
 
-        public bool InCheckmate(ChessColor color)
+        public bool InCheckmate(ChessColor color, bool fullCheck = false)
         {
             var storage = new List<ChessMove>();
             GenerateMoves(color, storage);
-            return InCheck(color) && storage.Count == 0;
+
+            var hasMove = false;
+            if (fullCheck)
+            {
+                foreach (var generatedMove in storage)
+                {
+                    var result = FinalizeMove(generatedMove);
+
+                    if (!InCheck(color))
+                        hasMove = true;
+
+                    UndoMove(1);
+
+                    if (hasMove)
+                        break;
+                }
+            }
+            else
+                hasMove = storage.Count > 0;
+
+            return InCheck(color) && !hasMove;
         }
 
         public void BuildMove(List<ChessMove> storage, ChessMoveFlag result, ChessColor color, ChessPieceType type, ChessPieceCoord from, ChessPieceCoord to)
@@ -561,8 +581,7 @@ namespace ACE.Server.Entity.Chess
 
             // AC's Chess implementation doesn't support underpromotion
             var promotion = ChessPieceType.Empty;
-            if (fromPiece.Type == ChessPieceType.Pawn
-                && (to.Rank == ChessPieceRank.Rank8 || to.Rank == ChessPieceRank.Rank1))
+            if (fromPiece.Type == ChessPieceType.Pawn && (to.Rank == 1 || to.Rank == 8))
             {
                 promotion = ChessPieceType.Queen;
                 result |= ChessMoveFlag.Promotion;
@@ -595,7 +614,7 @@ namespace ACE.Server.Entity.Chess
             // win conditions
             if (InCheck(Turn))
                 result |= ChessMoveResult.OKMoveCheck;
-            if (InCheckmate(Turn))
+            if (InCheckmate(Turn, false))
                 result |= ChessMoveResult.OKMoveCheckmate;
 
             return result;

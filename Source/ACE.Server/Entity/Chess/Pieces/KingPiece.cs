@@ -12,7 +12,7 @@ namespace ACE.Server.Entity.Chess
 
         public override bool CanMove(int dx, int dy)
         {
-            return Math.Abs(dx) < 2 && Math.Abs(dx) < 2;
+            return Math.Abs(dx) < 2 && Math.Abs(dy) < 2;
         }
     }
 }
