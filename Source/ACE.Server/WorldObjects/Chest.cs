@@ -89,6 +89,34 @@ namespace ACE.Server.WorldObjects
         protected static readonly Motion motionOpen = new Motion(MotionStance.NonCombat, MotionCommand.On);
         protected static readonly Motion motionClosed = new Motion(MotionStance.NonCombat, MotionCommand.Off);
 
+        public override ActivationResult CheckUseRequirements(WorldObject activator)
+        {
+            var baseRequirements = base.CheckUseRequirements(activator);
+            if (!baseRequirements.Success)
+                return baseRequirements;
+
+            if (!(activator is Player player))
+                return new ActivationResult(false);
+
+            if (IsLocked)
+            {
+                EnqueueBroadcast(new GameMessageSound(Guid, Sound.OpenFailDueToLock, 1.0f));
+                return new ActivationResult(false);
+            }
+
+            if (IsOpen)
+            {
+                // player has this chest open, close it
+                if (Viewer == player.Guid.Full)
+                    Close(player);
+
+                // else another player has this chest open - send error message?
+                return new ActivationResult(false);
+            }
+
+            return new ActivationResult(true);
+        }
+
         /// <summary>
         /// This is raised by Player.HandleActionUseItem.<para />
         /// The item does not exist in the players possession.<para />
@@ -99,22 +127,6 @@ namespace ACE.Server.WorldObjects
         {
             if (!(wo is Player player))
                 return;
-
-            if (IsLocked)
-            {
-                EnqueueBroadcast(new GameMessageSound(Guid, Sound.OpenFailDueToLock, 1.0f));
-                return;
-            }
-
-            if (IsOpen)
-            {
-                // player has this chest open, close it
-                if (Viewer == player.Guid.Full)
-                    Close(player);
-
-                // else another player has this chest open - send error message?
-                return;
-            }
 
             // open chest
             Open(player);
@@ -151,12 +163,6 @@ namespace ACE.Server.WorldObjects
                 ResetMessagePending = true;
 
                 //UseTimestamp++;
-            }
-
-            if (ActivationTalk != null)
-            {
-                // send only to activator?
-                player.Session.Network.EnqueueSend(new GameMessageSystemChat(ActivationTalk, ChatMessageType.Broadcast));
             }
 
             base.OnCastSpell(player, this);

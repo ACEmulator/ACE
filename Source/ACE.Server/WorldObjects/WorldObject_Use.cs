@@ -192,10 +192,8 @@ namespace ACE.Server.WorldObjects
         {
             //Console.WriteLine($"{Name}.CheckUseRequirements({activator.Name})");
 
-            if (!(activator is Player))
+            if (!(activator is Player player))
                 return new ActivationResult(false);
-
-            var player = activator as Player;
 
             // verify arcane lore requirement
             if (ItemDifficulty != null)

@@ -91,26 +91,26 @@ namespace ACE.Server.Factories
                 if (hat != null)
                     player.TryEquipObject(hat, hat.ValidLocations ?? 0);
                 else
-                    CreateIOU(player, sex.GetHeadgearWeenie(characterCreateInfo.Apperance.HeadgearStyle));
+                    player.TryAddToInventory(CreateIOU(player, sex.GetHeadgearWeenie(characterCreateInfo.Apperance.HeadgearStyle)));
             }
 
             var shirt = GetClothingObject(sex.GetShirtWeenie(characterCreateInfo.Apperance.ShirtStyle), characterCreateInfo.Apperance.ShirtColor, characterCreateInfo.Apperance.ShirtHue);
             if (shirt != null)
                 player.TryEquipObject(shirt, shirt.ValidLocations ?? 0);
             else
-                CreateIOU(player, sex.GetShirtWeenie(characterCreateInfo.Apperance.ShirtStyle));
+                player.TryAddToInventory(CreateIOU(player, sex.GetShirtWeenie(characterCreateInfo.Apperance.ShirtStyle)));
 
             var pants = GetClothingObject(sex.GetPantsWeenie(characterCreateInfo.Apperance.PantsStyle), characterCreateInfo.Apperance.PantsColor, characterCreateInfo.Apperance.PantsHue);
             if (pants != null)
                 player.TryEquipObject(pants, pants.ValidLocations ?? 0);
             else
-                CreateIOU(player, sex.GetPantsWeenie(characterCreateInfo.Apperance.PantsStyle));
+                player.TryAddToInventory(CreateIOU(player, sex.GetPantsWeenie(characterCreateInfo.Apperance.PantsStyle)));
 
             var shoes = GetClothingObject(sex.GetFootwearWeenie(characterCreateInfo.Apperance.FootwearStyle), characterCreateInfo.Apperance.FootwearColor, characterCreateInfo.Apperance.FootwearHue);
             if (shoes != null)
                 player.TryEquipObject(shoes, shoes.ValidLocations ?? 0);
             else
-                CreateIOU(player, sex.GetFootwearWeenie(characterCreateInfo.Apperance.FootwearStyle));
+                player.TryAddToInventory(CreateIOU(player, sex.GetFootwearWeenie(characterCreateInfo.Apperance.FootwearStyle)));
 
             string templateName = heritageGroup.Templates[characterCreateInfo.TemplateOption].Name;
             //player.SetProperty(PropertyString.Title, templateName);
@@ -227,7 +227,7 @@ namespace ACE.Server.Factories
                         }
                         else
                         {
-                            CreateIOU(player, item.WeenieId);
+                            player.TryAddToInventory(CreateIOU(player, item.WeenieId));
                             continue;
                         }
 
@@ -258,7 +258,7 @@ namespace ACE.Server.Factories
                             }
                             else
                             {
-                                CreateIOU(player, item.WeenieId);
+                                player.TryAddToInventory(CreateIOU(player, item.WeenieId));
                                 continue;
                             }
 
@@ -379,17 +379,14 @@ namespace ACE.Server.Factories
             return worldObject;
         }
 
-        public static bool CreateIOU(Player player, uint missingWeenieId, bool withNetworking = false)
+        public static WorldObject CreateIOU(Player player, uint missingWeenieId)
         {
-            var book = (Book)WorldObjectFactory.CreateNewWorldObject("parchment");
+            var iou = (Book)WorldObjectFactory.CreateNewWorldObject("parchment");
 
-            book.SetProperties("IOU", "An IOU for a missing database object.", "Sorry about that chief...", "ACEmulator", "prewritten");
-            book.AddPage(player.Guid.Full, "ACEmulator", "prewritten", false, $"{missingWeenieId}\n\nSorry but the database does not have a weenie for weenieClassId #{missingWeenieId} so in lieu of that here is an IOU for that item.");
+            iou.SetProperties("IOU", "An IOU for a missing database object.", "Sorry about that chief...", "ACEmulator", "prewritten");
+            iou.AddPage(player.Guid.Full, "ACEmulator", "prewritten", false, $"{missingWeenieId}\n\nSorry but the database does not have a weenie for weenieClassId #{missingWeenieId} so in lieu of that here is an IOU for that item.");
 
-            if (withNetworking == false)
-                return player.TryAddToInventory(book);
-            else
-                return player.TryCreateInInventoryWithNetworking(book);
+            return iou;
         }
 
         /// <summary>

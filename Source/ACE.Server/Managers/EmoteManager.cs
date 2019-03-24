@@ -312,35 +312,26 @@ namespace ACE.Server.Managers
                     {
                         var item = WorldObjectFactory.CreateNewWorldObject((uint)emote.WeenieClassId);
 
-                        if (item == null) // Give IOU for item that isn't yet present in the DB
-                        {
-                            success = PlayerFactory.CreateIOU(player, (uint)emote.WeenieClassId, true);
-
-                            if (success)
-                            {
-                                var msg = new GameMessageSystemChat($"{WorldObject.Name} gives you an IOU.", ChatMessageType.Broadcast);
-                                var sound = new GameMessageSound(player.Guid, Sound.ReceiveItem, 1);
-                                player.Session.Network.EnqueueSend(msg, sound);
-                            }
-                        }
-                        else
+                        var stackMsg = "";
+                        if (item != null)
                         {
                             var stackSize = emote.StackSize ?? 1;
-                            var stackMsg = "";
                             if (stackSize > 1)
                             {
                                 item.SetStackSize(stackSize);
                                 stackMsg = stackSize + " ";     // pluralize?
                             }
-                            success = player.TryCreateInInventoryWithNetworking(item);
+                        }
+                        else
+                            item = PlayerFactory.CreateIOU(player, (uint)emote.WeenieClassId);
 
-                            // transaction / rollback on failure?
-                            if (success)
-                            {
-                                var msg = new GameMessageSystemChat($"{WorldObject.Name} gives you {stackMsg}{item.Name}.", ChatMessageType.Broadcast);
-                                var sound = new GameMessageSound(player.Guid, Sound.ReceiveItem, 1);
-                                player.Session.Network.EnqueueSend(msg, sound);
-                            }
+                        success = player.TryCreateInInventoryWithNetworking(item);
+
+                        // transaction / rollback on failure?
+                        if (success)
+                        {
+                            var msg = new GameMessageSystemChat($"{WorldObject.Name} gives you {stackMsg}{item.Name}.", ChatMessageType.Broadcast);
+                            var sound = new GameMessageSound(player.Guid, Sound.ReceiveItem, 1);
                         }
                     }
                     break;
@@ -825,8 +816,8 @@ namespace ACE.Server.Managers
 
                 case EmoteType.OpenMe:
 
-                    if (WorldObject is Container container2)
-                        container2.Open(null);
+                    if (WorldObject is Container openContainer)
+                        openContainer.Open(null);
                     break;
 
                 case EmoteType.PetCastSpellOnOwner:

@@ -29,9 +29,8 @@ namespace ACE.Entity.Enum
         StubbornProjectile  = 0x20000,
         StubbornMelee       = 0x40000,
         StubbornMissile     = 0x80000,
-        Melee               = Unarmed | OneHanded | OneHandedAndShield | TwoHanded | DualWield, // 271
-        Missile             = Bow | Crossbow | Sling | ThrownWeapon | Atlatl | ThrownShield, // 3312
-        // Magics           = Magic, // 512
-        All                 = 65535
+        Melee               = Unarmed | OneHanded | OneHandedAndShield | TwoHanded | DualWield,
+        Missile             = Bow | Crossbow | Sling | ThrownWeapon | Atlatl | ThrownShield,
+        All                 = 0xFFFF
     }
 }
