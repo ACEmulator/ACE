@@ -1187,6 +1187,12 @@ namespace ACE.Server.WorldObjects
             set { if (!value.HasValue) RemoveProperty(PropertyInstanceId.HouseOwner); else SetProperty(PropertyInstanceId.HouseOwner, value.Value); }
         }
 
+        public string HouseOwnerName
+        {
+            get => GetProperty(PropertyString.HouseOwnerName);
+            set { if (value == null) RemoveProperty(PropertyString.HouseOwnerName); else SetProperty(PropertyString.HouseOwnerName, value); }
+        }
+
         public int HouseStatus
         {
             get => GetProperty(PropertyInt.HouseStatus) ?? 0;

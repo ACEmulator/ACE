@@ -174,6 +174,7 @@ namespace ACE.Server.Managers
 
             house.HouseOwner = null;
             house.MonarchId = null;
+            house.HouseOwnerName = null;
 
             house.ClearPermissions();
 

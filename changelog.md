@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2019-03-25
+[OptimShi]
+* Appraised items on houseing hooks now show the details on the hooked item.
+
 ### 2019-03-15
 [Ripley]
 * Exclude Burden in CreateObject messages for Creatures.
