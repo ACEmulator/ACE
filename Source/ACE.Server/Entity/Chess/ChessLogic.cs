@@ -209,8 +209,9 @@ namespace ACE.Server.Entity.Chess
             ChessMove bestMove = null;
 
             var storage = new List<ChessMove>();
-            GenerateMoves(Turn, storage);
+            GenerateMoves(color, storage);
 
+            var nonCheckMoves = new List<ChessMove>();
             foreach (var generatedMove in storage)
             {
                 // no need to evaluate the board if the ai has checkmated the other player
@@ -222,11 +223,15 @@ namespace ACE.Server.Entity.Chess
                     return result;
                 }
 
-                var boardScore = EvaluateBoard();
-                if (boardScore > bestBoardScore)
+                if (!InCheck(color))
                 {
-                    bestMove = generatedMove;
-                    bestBoardScore = boardScore;
+                    var boardScore = EvaluateBoard();
+                    if (boardScore > bestBoardScore)
+                    {
+                        bestMove = generatedMove;
+                        bestBoardScore = boardScore;
+                    }
+                    nonCheckMoves.Add(generatedMove);
                 }
 
                 UndoMove(1);
@@ -234,13 +239,17 @@ namespace ACE.Server.Entity.Chess
 
             // every generated move had the same board score, pick one at random
             // this shouldn't happen, just here to prevent crash
-            if (bestMove == null && storage.Count > 0)
+            if (bestMove == null && nonCheckMoves.Count > 0)
             {
-                var rng = ThreadSafeRandom.Next(0, storage.Count - 1);
-                bestMove = storage[rng];
+                var rng = ThreadSafeRandom.Next(0, nonCheckMoves.Count - 1);
+                rng = 0;    // easier debugging
+                bestMove = nonCheckMoves[rng];
             }
 
-            Debug.Assert(bestMove != null);
+            // checkmate / stalemate
+            if (bestMove == null)
+                return ChessMoveResult.NoMoveResult;
+
             from = bestMove.From;
             to = bestMove.To;
 
@@ -361,7 +370,7 @@ namespace ACE.Server.Entity.Chess
             if (piece.Type == ChessPieceType.Pawn)
             {
                 // single
-                var from = piece.Coord;
+                var from = new ChessPieceCoord(piece.Coord);
                 var to = new ChessPieceCoord(from);
                 to.MoveOffset(Chess.PawnOffsets[(int)color, 0]);
 
@@ -373,7 +382,7 @@ namespace ACE.Server.Entity.Chess
                     to = new ChessPieceCoord(from);
                     to.MoveOffset(Chess.PawnOffsets[(int)color, 1]);
 
-                    if (GetPiece(to) == null && (color == ChessColor.Black ? ChessPieceRank.Rank2 : ChessPieceRank.Rank7) == from.Rank)
+                    if (GetPiece(to) == null && from.Rank == (color == ChessColor.White ? 2 : 7))
                         BuildMove(storage, ChessMoveFlag.BigPawn, color, piece.Type, from, to);
                 }
 
@@ -531,18 +540,38 @@ namespace ACE.Server.Entity.Chess
             return false;
         }
 
-        public bool InCheck()
+        public bool InCheck(ChessColor color)
         {
-            var king = GetPiece(Turn, ChessPieceType.King);
+            var king = GetPiece(color, ChessPieceType.King);
             Debug.Assert(king != null);
-            return CanAttack(Chess.InverseColor(Turn), king.Coord);
+            return CanAttack(Chess.InverseColor(color), king.Coord);
         }
 
-        public bool InCheckmate()
+        public bool InCheckmate(ChessColor color, bool fullCheck = false)
         {
             var storage = new List<ChessMove>();
-            GenerateMoves(Turn, storage);
-            return InCheck() && storage.Count == 0;
+            GenerateMoves(color, storage);
+
+            var hasMove = false;
+            if (fullCheck)
+            {
+                foreach (var generatedMove in storage)
+                {
+                    var result = FinalizeMove(generatedMove);
+
+                    if (!InCheck(color))
+                        hasMove = true;
+
+                    UndoMove(1);
+
+                    if (hasMove)
+                        break;
+                }
+            }
+            else
+                hasMove = storage.Count > 0;
+
+            return InCheck(color) && !hasMove;
         }
 
         public void BuildMove(List<ChessMove> storage, ChessMoveFlag result, ChessColor color, ChessPieceType type, ChessPieceCoord from, ChessPieceCoord to)
@@ -552,8 +581,7 @@ namespace ACE.Server.Entity.Chess
 
             // AC's Chess implementation doesn't support underpromotion
             var promotion = ChessPieceType.Empty;
-            if (fromPiece.Type == ChessPieceType.Pawn
-                && (to.Rank == ChessPieceRank.Rank8 || to.Rank == ChessPieceRank.Rank1))
+            if (fromPiece.Type == ChessPieceType.Pawn && (to.Rank == 1 || to.Rank == 8))
             {
                 promotion = ChessPieceType.Queen;
                 result |= ChessMoveFlag.Promotion;
@@ -563,7 +591,14 @@ namespace ACE.Server.Entity.Chess
             if (toPiece != null)
                 captured = toPiece.Type;
             else if (result.HasFlag(ChessMoveFlag.EnPassantCapture))
+            {
                 captured = ChessPieceType.Pawn;
+
+                var enPassantCoord = new ChessPieceCoord(to);
+                enPassantCoord.MoveOffset(0, color == ChessColor.Black ? 1 : -1);
+
+                toPiece = GetPiece(enPassantCoord);
+            }
 
             storage.Add(new ChessMove(result, color, type, from, to, promotion, captured, Move, HalfMove, Castling, EnPassantCoord, fromPiece.Guid, captured != ChessPieceType.Empty ? toPiece.Guid : new ObjectGuid(0)));
         }
@@ -577,9 +612,9 @@ namespace ACE.Server.Entity.Chess
                 result |= ChessMoveResult.OKMovePromotion;
 
             // win conditions
-            if (InCheck())
+            if (InCheck(Turn))
                 result |= ChessMoveResult.OKMoveCheck;
-            if (InCheckmate())
+            if (InCheckmate(Turn, false))
                 result |= ChessMoveResult.OKMoveCheckmate;
 
             return result;
@@ -597,8 +632,8 @@ namespace ACE.Server.Entity.Chess
 
             if (flags.HasFlag(ChessMoveFlag.EnPassantCapture))
             {
-                var enPassantCoord = to;
-                enPassantCoord.MoveOffset(0, color == ChessColor.Black ? 2 : -2);
+                var enPassantCoord = new ChessPieceCoord(to);
+                enPassantCoord.MoveOffset(0, color == ChessColor.Black ? 1 : -1);
                 RemovePiece(enPassantCoord);
             }
 
@@ -650,7 +685,8 @@ namespace ACE.Server.Entity.Chess
             if (flags.HasFlag(ChessMoveFlag.BigPawn))
             {
                 var enPassantCoord = new ChessPieceCoord(to);
-                enPassantCoord.MoveOffset(0, color == ChessColor.Black ? 2 : -2);
+                //enPassantCoord.MoveOffset(0, color == ChessColor.Black ? 2 : -2);
+                enPassantCoord.MoveOffset(0, color == ChessColor.Black ? 1 : -1);
                 EnPassantCoord = enPassantCoord;
             }
             else
@@ -696,7 +732,16 @@ namespace ACE.Server.Entity.Chess
                 if (flags.HasFlag(ChessMoveFlag.Capture))
                 {
                     var piece = AddPiece(Turn, move.Captured, move.To);
-                    piece.Guid = move.Guid;
+                    piece.Guid = move.CapturedGuid;
+                }
+
+                if (flags.HasFlag(ChessMoveFlag.EnPassantCapture))
+                {
+                    var enPassantFrom = new ChessPieceCoord(move.To);
+                    enPassantFrom.MoveOffset(0, move.Color == ChessColor.Black ? 1 : -1);
+
+                    var piece = AddPiece(Turn, ChessPieceType.Pawn, enPassantFrom);
+                    piece.Guid = move.CapturedGuid;
                 }
 
                 if ((flags & (ChessMoveFlag.KingSideCastle | ChessMoveFlag.QueenSideCastle)) != 0)
@@ -741,6 +786,32 @@ namespace ACE.Server.Entity.Chess
         public ChessMove GetLastMove()
         {
             return History.Peek();
+        }
+
+        public void DebugBoard()
+        {
+            for (var y = 7; y >= 0; y--)
+            {
+                for (var x = 0; x <= 7; x++)
+                {
+                    var piece = GetPiece(new ChessPieceCoord(x, y));
+                    if (piece == null)
+                        Console.Write(" ");
+                    else if (piece is PawnPiece)
+                        Console.Write("P");
+                    else if (piece is KingPiece)
+                        Console.Write("K");
+                    else if (piece is QueenPiece)
+                        Console.Write("Q");
+                    else if (piece is BishopPiece)
+                        Console.Write("B");
+                    else if (piece is KnightPiece)
+                        Console.Write("N");
+                    else if (piece is RookPiece)
+                        Console.Write("R");
+                }
+                Console.WriteLine();
+            }
         }
     }
 }

@@ -13,7 +13,7 @@ namespace ACE.Server.Entity.Chess
 
         public int Offset => X + Y * Chess.BoardSize;
 
-        public ChessPieceRank Rank => (ChessPieceRank)(Offset >> 3);
+        public int Rank => Y + 1;
 
         public ChessPieceCoord()
         {
@@ -55,7 +55,8 @@ namespace ACE.Server.Entity.Chess
 
         public override string ToString()
         {
-            return $"X: {X} Y: {Y}";
+            //return $"({X},{Y})";
+            return $"{(char)('A' + X)}{Y + 1}";
         }
 
         public bool IsValid()
