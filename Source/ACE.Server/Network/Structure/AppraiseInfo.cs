@@ -139,7 +139,6 @@ namespace ACE.Server.Network.Structure
                             var houseOwnerPlayer = PlayerManager.FindByGuid((uint)wo.ParentLink.HouseOwner);
                             if(houseOwnerPlayer != null)
                             {
-                                Console.WriteLine("Setting House.HouseOwnerName to " + houseOwnerPlayer.Name);
                                 wo.ParentLink.HouseOwnerName = houseOwnerPlayer.Name;
                                 wo.ParentLink.SaveBiotaToDatabase();
                             }
