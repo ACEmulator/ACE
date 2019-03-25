@@ -1130,21 +1130,6 @@ namespace ACE.Server.WorldObjects
         public EnchantmentStatus CreateEnchantment(WorldObject target, WorldObject caster, Spell spell)
         {
             var enchantmentStatus = new EnchantmentStatus(spell);
-            double duration;
-
-            // what should the default duration be? -1 or 0?
-            // changed from spell -> spellStatMod for void magic...
-            if (caster is Creature)
-                duration = spell.Duration;
-            else
-            {
-                if (caster.WeenieType == WeenieType.Gem && !Aetheria.IsAetheria(caster.WeenieClassId) ||
-                    caster.WeenieType == WeenieType.Switch || caster.WeenieType == WeenieType.PressurePlate ||
-                    caster.WeenieType == WeenieType.Chest)
-                    duration = spell.Duration;
-                else
-                    duration = -1;
-            }
 
             // create enchantment
             var addResult = target.EnchantmentManager.Add(spell, caster);
@@ -1172,22 +1157,19 @@ namespace ACE.Server.WorldObjects
 
             string message = null;
 
-            if (duration < -1 || duration > -1)
+            if (caster is Creature)
             {
-                if (caster is Creature)
-                {
-                    if (caster.Guid == Guid)
-                        message = $"You cast {spell.Name} on {targetName}{suffix}";
-                    else
-                        message = $"{caster.Name} casts {spell.Name} on {targetName}{suffix}"; // for the sentinel command `/buff [target player name]`
-                }
+                if (caster.Guid == Guid)
+                    message = $"You cast {spell.Name} on {targetName}{suffix}";
                 else
-                {
-                    if (target.Name != caster.Name)
-                        message = $"{caster.Name} casts {spell.Name} on you{suffix}";
-                    else
-                        message = null;
-                }
+                    message = $"{caster.Name} casts {spell.Name} on {targetName}{suffix}"; // for the sentinel command `/buff [target player name]`
+            }
+            else
+            {
+                if (target.Name != caster.Name)
+                    message = $"{caster.Name} casts {spell.Name} on you{suffix}";
+                else
+                    message = null;
             }
 
             if (target is Player)
