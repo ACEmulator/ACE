@@ -72,11 +72,5 @@ namespace ACE.Server.WorldObjects
 
             base.OnActivate(activator);
         }
-
-        public override void ActOnUse(WorldObject activator)
-        {
-            // do nothing?
-            //Console.WriteLine($"Empty pressure plate detected: {Name} ({WeenieClassId} - {WeenieClassName})");
-        }
     }
 }
