@@ -455,6 +455,7 @@ namespace ACE.Server.Managers
 
         public static readonly ReadOnlyDictionary<string, double> DefaultDoubleProperties =
             DictOf(
+                ("chess_ai_start_time", -1.0),  // the number of seconds for the chess ai to start. defaults to -1 (disabled)
                 ("luminance_modifier", 1.0),
                 ("vitae_penalty", 0.05),
                 ("vitae_penalty_max", 0.40),

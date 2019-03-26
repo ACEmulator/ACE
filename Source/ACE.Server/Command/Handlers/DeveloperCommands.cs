@@ -15,6 +15,7 @@ using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
+using ACE.Server.Entity.Chess;
 using ACE.Server.Factories;
 using ACE.Server.Managers;
 using ACE.Server.Network;
@@ -1760,6 +1761,18 @@ namespace ACE.Server.Command.Handlers
                 int.TryParse(parameters[0], out flags);
 
             session.Player.UpdateProperty(session.Player, PropertyInt.AetheriaBitfield, flags);
+        }
+
+        [CommandHandler("debugchess", AccessLevel.Player, CommandHandlerFlag.RequiresWorld, 0, "Shows the chess move history for a player")]
+        public static void HandleDebugChess(Session session, params string[] parameters)
+        {
+            session.Player.ChessMatch?.DebugMove();
+        }
+
+        [CommandHandler("debugboard", AccessLevel.Player, CommandHandlerFlag.RequiresWorld, 0, "Shows the current chess board state")]
+        public static void HandleDebugBoard(Session session, params string[] parameters)
+        {
+            session.Player.ChessMatch?.Logic?.DebugBoard();
         }
     }
 }

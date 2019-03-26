@@ -83,8 +83,8 @@ namespace ACE.Server.WorldObjects
 
                 // visual awareness range of piece is only 1, make sure we are close enough to attack
                 case GamePieceState.MoveToAttack:
-                    MoveWeenie(Position, PhysicsObj.GetRadius() + TargetPiece.PhysicsObj.GetRadius(), false);
                     GamePieceState = GamePieceState.WaitingForMoveToAttack;
+                    MoveWeenie(Position, PhysicsObj.GetRadius() + TargetPiece.PhysicsObj.GetRadius(), false);
                     break;
 
                 case GamePieceState.WaitingForMoveToSquare:
@@ -116,7 +116,12 @@ namespace ACE.Server.WorldObjects
 
         public override void OnMoveComplete(WeenieError status)
         {
+            //Console.WriteLine($"{Name}.OnMoveComplete({status})");
+
             base.OnMoveComplete(status);
+
+            if (status != WeenieError.None)
+                return;
 
             switch (GamePieceState)
             {
@@ -173,6 +178,7 @@ namespace ACE.Server.WorldObjects
             mvp.UseSpheres = false;
             mvp.DistanceToObject = distanceToObject;
             mvp.UseFinalHeading = finalHeading;
+            mvp.DesiredHeading = physPos.Frame.get_heading();
 
             PhysicsObj.MoveToPosition(physPos, mvp);
             IsMoving = true;

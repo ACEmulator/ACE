@@ -81,10 +81,17 @@ namespace ACE.Server.WorldObjects
 
             //Console.WriteLine($"{Name}.TargetingTactics: {TargetingTactic}");
 
-            var possibleTactics = EnumHelper.GetFlags(TargetingTactic);
+            // if targeting tactic is none,
+            // use the most common targeting tactic
+            // TODO: ensure all monsters in the db have a targeting tactic
+            var targetingTactic = TargetingTactic;
+            if (targetingTactic == TargetingTactic.None)
+                targetingTactic = TargetingTactic.Random | TargetingTactic.TopDamager;
+
+            var possibleTactics = EnumHelper.GetFlags(targetingTactic);
             var rng = ThreadSafeRandom.Next(1, possibleTactics.Count - 1);
 
-            if (TargetingTactic == 0)
+            if (targetingTactic == 0)
                 rng = 0;
 
             CurrentTargetingTactic = (TargetingTactic)possibleTactics[rng];

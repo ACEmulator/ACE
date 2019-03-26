@@ -12,15 +12,16 @@ namespace ACE.Server.Entity.Chess
 
         public override bool CanMove(int dx, int dy)
         {
-            var rank = Color == ChessColor.Black ? ChessPieceRank.Rank2 : ChessPieceRank.Rank7;
-            var hasMoved = (int)rank != dy;
+            var startRank = Color == ChessColor.White ? 2 : 7;
+            var hasMoved = startRank != Coord.Y;
             var ady = Math.Abs(dy);
             return dx == 0 && (ady == 1 || ady == 2 && !hasMoved);
         }
 
         public override bool CanAttack(int dx, int dy)
         {
-            return Math.Abs(dx) == 1 && dy == 1;
+            var y = Color == ChessColor.White ? 1 : -1;
+            return Math.Abs(dx) == 1 && dy == y;
         }
     }
 }

@@ -19,7 +19,7 @@ namespace ACE.Server.Entity.Chess
 
         public bool IsAi()
         {
-            return PlayerGuid == null;
+            return !PlayerGuid.IsPlayer();
         }
 
         public Player GetPlayer()
