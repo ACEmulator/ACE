@@ -66,6 +66,11 @@ namespace ACE.Server.Network.Structure
         /// </summary>
         public AppraiseInfo(WorldObject wo, Player examiner, bool success = true)
         {
+            generateAppraisalInfo(wo, examiner, success);
+        }
+
+        private void generateAppraisalInfo(WorldObject wo, Player examiner, bool success = true)
+        {
             //Console.WriteLine("Appraise: " + wo.Guid);
             Success = success;
 
@@ -112,6 +117,45 @@ namespace ACE.Server.Network.Structure
             {
                 if (PropertiesInt.ContainsKey(PropertyInt.EncumbranceVal))
                     PropertiesInt.Remove(PropertyInt.EncumbranceVal);
+            }
+
+            if (wo is Hook)
+            {
+                // If the hook has any inventory, we need to send THOSE properties instead.
+                var hook = wo as Container;
+                if (hook.Inventory.Count == 1)
+                {
+                    WorldObject hookedItem = hook.Inventory.First().Value;
+
+                    // Hooked items have a custom "description", containing the desc of the sub item and who the owner of the house is (if any)
+                    generateAppraisalInfo(hookedItem, examiner, success);
+                    string baseDescString = "";
+                    if (wo.ParentLink.HouseOwner != null)
+                    {
+                        // This is for backwards compatibility. This value was not set/saved in earlier versions.
+                        // It will get the player's name and save that to the HouseOwnerName property of the house. This is now done when a player purchases a house.
+                        if(wo.ParentLink.HouseOwnerName == null)
+                        {
+                            var houseOwnerPlayer = PlayerManager.FindByGuid((uint)wo.ParentLink.HouseOwner);
+                            if(houseOwnerPlayer != null)
+                            {
+                                wo.ParentLink.HouseOwnerName = houseOwnerPlayer.Name;
+                                wo.ParentLink.SaveBiotaToDatabase();
+                            }
+                        }
+                        baseDescString = "This hook is owned by " + wo.ParentLink.HouseOwnerName + ". "; //if house is owned, display this text
+                    }
+                    if (PropertiesString.ContainsKey(PropertyString.LongDesc) && PropertiesString[PropertyString.LongDesc] != null)
+                    {
+                        PropertiesString[PropertyString.LongDesc] = baseDescString + "It contains: \n" + PropertiesString[PropertyString.LongDesc];
+                    }
+                    else if (PropertiesString.ContainsKey(PropertyString.ShortDesc) && PropertiesString[PropertyString.ShortDesc] != null)
+                    {
+                        PropertiesString[PropertyString.LongDesc] = baseDescString + "It contains: \n" + PropertiesString[PropertyString.ShortDesc];
+                    }
+
+                    BuildHookProfile(hookedItem);
+                }
             }
 
             BuildFlags();
@@ -419,6 +463,27 @@ namespace ACE.Server.Network.Structure
                 return null;
 
             return examiner.FindObject(weapon.WielderId.Value, Player.SearchLocations.Landblock);
+        }
+
+        private void BuildHookProfile(WorldObject hookedItem)
+        {
+            HookProfile = new HookProfile();
+            if (hookedItem.Inscription != null)
+                HookProfile.Flags |= HookFlags.Inscribable;
+            if (hookedItem.ValidLocations != null)
+                HookProfile.ValidLocations = (uint)hookedItem.ValidLocations;
+
+            // This only handles basic Arrow, Quarrels and Darts. It does not, for instance, handle Crystal Arrows.
+            // How were those handled?
+            if (hookedItem.AmmoType != null)
+            {
+                if ((hookedItem.AmmoType & AmmoType.Arrow) != 0)
+                    HookProfile.AmmoType |= HookAmmoType.Arrow;
+                if ((hookedItem.AmmoType & AmmoType.Bolt) != 0)
+                    HookProfile.AmmoType |= HookAmmoType.Bolt;
+                if ((hookedItem.AmmoType & AmmoType.Atlatl) != 0)
+                    HookProfile.AmmoType |= HookAmmoType.Dart;
+            }
         }
 
         /// <summary>
