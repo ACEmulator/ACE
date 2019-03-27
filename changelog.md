@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2019-03-27
+[Ripley]
+* Support AdvocateItem changing/updating Radar Blip Color in similar fashion to retail servers.
+
 ### 2019-03-25
 [OptimShi]
 * Appraised items on houseing hooks now show the details on the hooked item.

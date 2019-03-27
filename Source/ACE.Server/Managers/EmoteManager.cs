@@ -900,7 +900,10 @@ namespace ACE.Server.Managers
                     break;
 
                 case EmoteType.SetIntStat:
-                    player.SetProperty((PropertyInt)emote.Stat, (int)emote.Amount);
+                    //player.SetProperty((PropertyInt)emote.Stat, (int)emote.Amount);
+                    //player.UpdateProperty(player, (PropertyInt)emote.Stat, (int)emote.Amount);
+                    player.UpdateProperty(player, (PropertyInt)emote.Stat, emote.Amount);
+                    player.EnqueueBroadcast(new GameMessagePublicUpdatePropertyInt(player, (PropertyInt)emote.Stat, Convert.ToInt32(emote.Amount)));
                     break;
 
                 case EmoteType.SetMouthPalette:
