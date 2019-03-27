@@ -224,7 +224,7 @@ namespace ACE.Server.WorldObjects
 
             TrySetChild(worldObject);
 
-            worldObject.EmoteManager.OnWield(this);
+            worldObject.OnWield(this);
 
             return true;
         }
@@ -292,7 +292,7 @@ namespace ACE.Server.WorldObjects
             var wo = worldObject;
             Children.Remove(Children.Find(s => s.Guid == wo.Guid.Full));
 
-            worldObject.EmoteManager.OnUnwield(this);
+            worldObject.OnUnWield(this);
 
             return true;
         }
