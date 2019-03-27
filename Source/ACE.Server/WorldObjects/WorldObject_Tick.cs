@@ -126,10 +126,6 @@ namespace ACE.Server.WorldObjects
                     {
                         // Containers enqueue the loading of their inventory from callbacks. It's possible the callback happened before the container was added to the landblock
                     }
-                    else if (this is AdvocateItem)
-                    {
-                        // AdvocateItem is a wielded item and emote queues on Wield/UnWield. CurrentLandblock is always null for wielded items at present.
-                    }
                     else
                         log.WarnFormat("Item 0x{0:X8}:{1} has enqueued an action but is not attached to a landblock.", Guid.Full, Name);
 

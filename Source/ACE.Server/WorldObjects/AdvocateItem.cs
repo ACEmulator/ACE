@@ -28,56 +28,10 @@ namespace ACE.Server.WorldObjects
 
         private void SetEphemeralValues()
         {
-            //if (Biota.BiotaPropertiesEmote.Count == 0)
-            //{
-            //    Biota.BiotaPropertiesEmote.Add(new BiotaPropertiesEmote
-            //    {
-            //        ObjectId = Guid.Full,
-            //        Category = (uint)EmoteCategory.Wield,
-            //        Probability = 1,
-            //        BiotaPropertiesEmoteAction = new List<BiotaPropertiesEmoteAction>
-            //        {
-            //            new BiotaPropertiesEmoteAction
-            //            {
-            //                EmoteId = uint.MaxValue,
-            //                Order = 0,
-            //                Type = (int)EmoteType.SetIntStat,
-            //                Delay = 0,
-            //                Extent = 1,
-            //                Stat = (int)ACE.Entity.Enum.Properties.PropertyInt.RadarBlipColor,
-            //                Amount = (int)ACE.Entity.Enum.RadarColor.Advocate
-            //            }
-            //        }
-            //    });
-
-            //    Biota.BiotaPropertiesEmote.Add(new BiotaPropertiesEmote
-            //    {
-            //        ObjectId = Guid.Full,
-            //        Category = (uint)EmoteCategory.UnWield,
-            //        Probability = 1,
-            //        BiotaPropertiesEmoteAction = new List<BiotaPropertiesEmoteAction>
-            //        {
-            //            new BiotaPropertiesEmoteAction
-            //            {
-            //                EmoteId = uint.MaxValue,
-            //                Order = 0,
-            //                Type = (int)EmoteType.SetIntStat,
-            //                Delay = 0,
-            //                Extent = 1,
-            //                Stat = (int)ACE.Entity.Enum.Properties.PropertyInt.RadarBlipColor,
-            //                Amount = null
-            //            }
-            //        }
-            //    });
-            //}
         }
 
         public override void OnWield(Creature creature)
         {
-            //var player = creature as Player;
-
-            //player.UpdateProperty(player, ACE.Entity.Enum.Properties.PropertyInt.RadarBlipColor, (int)ACE.Entity.Enum.RadarColor.Advocate);
-            //player.EnqueueBroadcast(new GameMessagePublicUpdatePropertyInt(player, (PropertyInt)emote.Stat, Convert.ToInt32(emote.Amount)));
             creature.RadarColor = ACE.Entity.Enum.RadarColor.Advocate;
             creature.EnqueueBroadcast(true, new GameMessagePublicUpdatePropertyInt(creature, PropertyInt.RadarBlipColor, (int)creature.RadarColor));
             creature.SetProperty(PropertyBool.AdvocateState, true);
