@@ -87,12 +87,6 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public virtual void EnqueueAction(IAction action)
         {
-            //if (CurrentLandblock == null && Wielder != null)
-            //{
-            //    Wielder.CurrentLandblock.EnqueueAction(action);
-            //    return;
-            //}
-
             if (CurrentLandblock == null)
             {
                 if (isDestroyed)
@@ -132,7 +126,7 @@ namespace ACE.Server.WorldObjects
                     {
                         // Containers enqueue the loading of their inventory from callbacks. It's possible the callback happened before the container was added to the landblock
                     }
-                    else if(this is AdvocateItem)
+                    else if (this is AdvocateItem)
                     {
                         // AdvocateItem is a wielded item and emote queues on Wield/UnWield. CurrentLandblock is always null for wielded items at present.
                     }
