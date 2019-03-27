@@ -885,7 +885,7 @@ namespace ACE.Server.Managers
                     break;
 
                 case EmoteType.SetFloatStat:
-                    player.UpdateProperty(player, (PropertyFloat)emote.Stat, (double)emote.Percent);
+                    player.UpdateProperty(player, (PropertyFloat)emote.Stat, emote.Percent);
                     player.EnqueueBroadcast(false, new GameMessagePublicUpdatePropertyFloat(player, (PropertyFloat)emote.Stat, Convert.ToDouble(emote.Percent)));
                     break;
 
