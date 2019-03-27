@@ -524,6 +524,8 @@ namespace ACE.Server.WorldObjects
 
                 player.TryConsumeFromInventoryWithNetworking(spirit, 1);
 
+                player.Session.Network.EnqueueSend(new GameMessageSystemChat("You add the spirit to the essence.", ChatMessageType.Broadcast));
+
                 player.SendUseDoneEvent();
             });
 
