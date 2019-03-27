@@ -242,6 +242,14 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
+        /// Returns the total # of inventory items matching a wcid
+        /// </summary>
+        public int GetNumInventoryItemsOfWCID(uint weenieClassId)
+        {
+            return GetInventoryItemsOfWCID(weenieClassId).Select(i => i.StackSize ?? 1).Sum();
+        }
+
+        /// <summary>
         /// Returns all of the trade notes from inventory + side packs
         /// </summary>
         public List<WorldObject> GetTradeNotes()

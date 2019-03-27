@@ -137,38 +137,67 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
+        /// Returns TRUE if player meets the gold / alternate currency costs for purchase
+        /// </summary>
+        public bool ValidateBuyTransaction(Vendor vendor, uint goldcost, uint altcost)
+        {
+            // validation
+            var valid = true;
+
+            if (goldcost > CoinValue)
+                valid = false;
+
+            if (altcost > 0)
+            {
+                var altCurrency = vendor.AlternateCurrency ?? 0;
+
+                var numItems = GetNumInventoryItemsOfWCID(altCurrency);
+
+                if (numItems < altcost)
+                    valid = false;
+            }
+
+            return valid;
+        }
+
+        /// <summary>
         /// Vendor has validated the transactions and sent a list of items for processing.
         /// </summary>
-        public void FinalizeBuyTransaction(Vendor vendor, List<WorldObject> uqlist, List<WorldObject> genlist, bool valid, uint goldcost)
+        public void FinalizeBuyTransaction(Vendor vendor, List<WorldObject> uqlist, List<WorldObject> genlist, uint goldcost, uint altcost)
         {
             // todo research packets more for both buy and sell. ripley thinks buy is update..
             // vendor accepted the transaction
+
+            var valid = ValidateBuyTransaction(vendor, goldcost, altcost);
+
             if (valid)
             {
-                if (SpendCurrency(goldcost, WeenieType.Coin) != null)
-                {
-                    foreach (WorldObject wo in uqlist)
-                        TryCreateInInventoryWithNetworking(wo);
+                SpendCurrency(goldcost, WeenieType.Coin);
 
-                    foreach (var gen in genlist)
+                foreach (WorldObject wo in uqlist)
+                    TryCreateInInventoryWithNetworking(wo);
+
+                foreach (var gen in genlist)
+                {
+                    var service = gen.GetProperty(PropertyBool.VendorService) ?? false;
+
+                    if (!service)
+                        TryCreateInInventoryWithNetworking(gen);
+                    else
                     {
-                        var service = gen.GetProperty(PropertyBool.VendorService) ?? false;
-
-                        if (!service)
-                            TryCreateInInventoryWithNetworking(gen);
-                        else
-                        {
-                            var spell = new Spell(gen.SpellDID ?? 0);
-                            TryCastSpell(spell, this, null, false, false);
-                        }
+                        var spell = new Spell(gen.SpellDID ?? 0);
+                        TryCastSpell(spell, this, null, false, false);
                     }
+                }
 
-                    Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.PickUpItem));
-                }
-                else // not enough cash.
+                if (altcost > 0)
                 {
-                    valid = false;
+                    var altCurrency = vendor.AlternateCurrency ?? 0;
+
+                    TryConsumeFromInventoryWithNetworking(altCurrency, (int)altcost);
                 }
+
+                Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.PickUpItem));
             }
 
             vendor.BuyItems_FinalTransaction(this, uqlist, valid);
