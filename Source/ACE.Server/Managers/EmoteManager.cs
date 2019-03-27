@@ -898,8 +898,8 @@ namespace ACE.Server.Managers
                     break;
 
                 case EmoteType.SetInt64Stat:
-                    player.UpdateProperty(player, (PropertyInt64)emote.Stat, emote.Amount);
-                    player.EnqueueBroadcast(false, new GameMessagePublicUpdatePropertyInt64(player, (PropertyInt64)emote.Stat, Convert.ToInt64(emote.Amount)));
+                    player.UpdateProperty(player, (PropertyInt64)emote.Stat, emote.Amount64);
+                    player.EnqueueBroadcast(false, new GameMessagePublicUpdatePropertyInt64(player, (PropertyInt64)emote.Stat, Convert.ToInt64(emote.Amount64)));
                     break;
 
                 case EmoteType.SetIntStat:
