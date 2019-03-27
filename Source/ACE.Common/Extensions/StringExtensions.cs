@@ -19,9 +19,9 @@ namespace ACE.Common.Extensions
         public static string Pluralize(this string name)
         {
             if (name.EndsWith("ch") || name.EndsWith("s") || name.EndsWith("sh") || name.EndsWith("x") || name.EndsWith("z"))
-                return "es";
+                return name + "es";
             else
-                return "s";
+                return name + "s";
         }
     }
 }
