@@ -490,23 +490,27 @@ namespace ACE.Server.WorldObjects
 
             foreach (var item in Inventory.Values)
             {
+                item.Placement = ACE.Entity.Enum.Placement.Resting;
+
                 // FIXME: only send messages for unknown objects
                 itemsToSend.Add(new GameMessageCreateObject(item));
 
                 if (item is Container container)
                 {
+                    item.Placement = ACE.Entity.Enum.Placement.Resting;
+
                     foreach (var containerItem in container.Inventory.Values)
                         itemsToSend.Add(new GameMessageCreateObject(containerItem));
                 }
             }
-
-            player.Session.Network.EnqueueSend(itemsToSend.ToArray());
 
             player.Session.Network.EnqueueSend(new GameEventViewContents(player.Session, this));
 
             // send sub-containers
             foreach (var container in Inventory.Values.Where(i => i is Container))
                 player.Session.Network.EnqueueSend(new GameEventViewContents(player.Session, (Container)container));
+
+            player.Session.Network.EnqueueSend(itemsToSend.ToArray());
         }
 
         public virtual void Close(Player player)
