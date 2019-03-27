@@ -220,6 +220,9 @@ namespace ACE.Server.WorldObjects
                 ephemeralPropertyInt64s.TryAdd((PropertyInt64)x, null);
             foreach (var x in EphemeralProperties.PropertiesString.ToList())
                 ephemeralPropertyStrings.TryAdd((PropertyString)x, null);
+
+            foreach (var x in Biota.BiotaPropertiesSpellBook)
+                BiotaPropertySpells[x.Spell] = x;
         }
 
         private void SetEphemeralValues()

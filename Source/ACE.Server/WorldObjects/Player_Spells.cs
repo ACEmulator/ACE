@@ -11,7 +11,7 @@ namespace ACE.Server.WorldObjects
     {
         public bool SpellIsKnown(uint spellId)
         {
-            return Biota.SpellIsKnown((int)spellId, BiotaDatabaseLock);
+            return Biota.SpellIsKnown((int)spellId, BiotaDatabaseLock, BiotaPropertySpells);
         }
 
         /// <summary>
@@ -19,7 +19,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public bool AddKnownSpell(uint spellId)
         {
-            Biota.GetOrAddKnownSpell((int)spellId, BiotaDatabaseLock, out var spellAdded);
+            Biota.GetOrAddKnownSpell((int)spellId, BiotaDatabaseLock, BiotaPropertySpells, out var spellAdded);
 
             if (spellAdded)
                 ChangesDetected = true;
@@ -62,7 +62,7 @@ namespace ACE.Server.WorldObjects
 
         public void HandleActionMagicRemoveSpellId(uint spellId)
         {
-            if (!Biota.TryRemoveKnownSpell((int)spellId, out _, BiotaDatabaseLock))
+            if (!Biota.TryRemoveKnownSpell((int)spellId, out _, BiotaDatabaseLock, BiotaPropertySpells))
             {
                 log.Error("Invalid spellId passed to Player.RemoveSpellFromSpellBook");
                 return;

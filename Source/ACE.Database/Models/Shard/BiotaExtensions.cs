@@ -1273,6 +1273,19 @@ namespace ACE.Database.Models.Shard
             }
         }
 
+        public static bool SpellIsKnown(this Biota biota, int spell, ReaderWriterLockSlim rwLock, IDictionary<int, BiotaPropertiesSpellBook> cache)
+        {
+            rwLock.EnterReadLock();
+            try
+            {
+                return cache.ContainsKey(spell);
+            }
+            finally
+            {
+                rwLock.ExitReadLock();
+            }
+        }
+
         public static BiotaPropertiesSpellBook GetOrAddKnownSpell(this Biota biota, int spell, ReaderWriterLockSlim rwLock, out bool spellAdded)
         {
             rwLock.EnterUpgradeableReadLock();
@@ -1304,6 +1317,11 @@ namespace ACE.Database.Models.Shard
             }
         }
 
+        public static BiotaPropertiesSpellBook GetOrAddKnownSpell(this Biota biota, int spell, ReaderWriterLockSlim rwLock, IDictionary<int, BiotaPropertiesSpellBook> cache, out bool spellAdded)
+        {
+            throw new System.NotImplementedException();
+        }
+
         public static bool TryRemoveKnownSpell(this Biota biota, int spell, out BiotaPropertiesSpellBook entity, ReaderWriterLockSlim rwLock)
         {
             rwLock.EnterUpgradeableReadLock();
@@ -1331,6 +1349,16 @@ namespace ACE.Database.Models.Shard
                 rwLock.ExitUpgradeableReadLock();
             }
         }
+
+        public static bool TryRemoveKnownSpell(this Biota biota, int spell, out BiotaPropertiesSpellBook entity, ReaderWriterLockSlim rwLock, IDictionary<int, BiotaPropertiesSpellBook> cache)
+        {
+            throw new System.NotImplementedException();
+        }
+
+
+        // =====================================
+        // HousePermission
+        // =====================================
 
         public static List<HousePermission> GetHousePermission(this Biota biota, ReaderWriterLockSlim rwLock)
         {
