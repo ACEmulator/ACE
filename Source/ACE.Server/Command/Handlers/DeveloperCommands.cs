@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Numerics;
@@ -9,13 +8,13 @@ using log4net;
 
 using ACE.Common;
 using ACE.Database;
+using ACE.Database.Models.World;
 using ACE.DatLoader;
 using ACE.DatLoader.FileTypes;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
-using ACE.Server.Entity.Chess;
 using ACE.Server.Factories;
 using ACE.Server.Managers;
 using ACE.Server.Network;
@@ -1773,6 +1772,100 @@ namespace ACE.Server.Command.Handlers
         public static void HandleDebugBoard(Session session, params string[] parameters)
         {
             session.Player.ChessMatch?.Logic?.DebugBoard();
+        }
+
+        /// <summary>
+        /// Teleports directly to a dungeon by name or landblock
+        /// </summary>
+        [CommandHandler("teledungeon", AccessLevel.Developer, CommandHandlerFlag.RequiresWorld, 1, "<dungeon name or landblock>")]
+        public static void HandleTeleDungeon(Session session, params string[] parameters)
+        {
+            var isBlock = true;
+            var param = parameters[0];
+            if (parameters.Length > 1)
+                isBlock = false;
+
+            var landblock = 0u;
+            if (isBlock)
+            {
+                try
+                {
+                    landblock = Convert.ToUInt32(param, 16);
+
+                    if (landblock >= 0xFFFF)
+                        landblock = landblock >> 16;
+                }
+                catch (Exception)
+                {
+                    isBlock = false;
+                }
+            }
+
+            // teleport to dungeon landblock
+            if (isBlock)
+                HandleTeleDungeonBlock(session, landblock);
+
+            // teleport to dungeon by name
+            else
+                HandleTeleDungeonName(session, parameters);
+        }
+
+        public static void HandleTeleDungeonBlock(Session session, uint landblock)
+        {
+            using (var ctx = new WorldDbContext())
+            {
+                var query = from weenie in ctx.Weenie
+                            join wpos in ctx.WeeniePropertiesPosition on weenie.ClassId equals wpos.ObjectId
+                            where weenie.Type == (int)WeenieType.Portal && wpos.PositionType == (int)PositionType.Destination
+                            select new
+                            {
+                                Weenie = weenie,
+                                Dest = wpos
+                            };
+
+                var results = query.ToList();
+
+                var dest = results.Where(i => i.Dest.ObjCellId >> 16 == landblock).Select(i => i.Dest).FirstOrDefault();
+
+                if (dest == null)
+                {
+                    session.Network.EnqueueSend(new GameMessageSystemChat($"Couldn't find dungeon {landblock:X4}", ChatMessageType.Broadcast));
+                    return;
+                }
+
+                session.Player.Teleport(new Position(dest.ObjCellId, dest.OriginX, dest.OriginY, dest.OriginZ, dest.AnglesX, dest.AnglesY, dest.AnglesZ, dest.AnglesW));
+            }
+        }
+
+        public static void HandleTeleDungeonName(Session session, params string[] parameters)
+        {
+            var searchName = string.Join(" ", parameters);
+
+            using (var ctx = new WorldDbContext())
+            {
+                var query = from weenie in ctx.Weenie
+                            join wstr in ctx.WeeniePropertiesString on weenie.ClassId equals wstr.ObjectId
+                            join wpos in ctx.WeeniePropertiesPosition on weenie.ClassId equals wpos.ObjectId
+                            where weenie.Type == (int)WeenieType.Portal && wstr.Type == (int)PropertyString.Name && wpos.PositionType == (int)PositionType.Destination
+                            select new
+                            {
+                                Weenie = weenie,
+                                Name = wstr,
+                                Dest = wpos
+                            };
+
+                var results = query.ToList();
+
+                var dest = results.Where(i => i.Name.Value.Equals(searchName, StringComparison.OrdinalIgnoreCase)).Select(i => i.Dest).FirstOrDefault();
+
+                if (dest == null)
+                {
+                    session.Network.EnqueueSend(new GameMessageSystemChat($"Couldn't find dungeon name {searchName}", ChatMessageType.Broadcast));
+                    return;
+                }
+
+                session.Player.Teleport(new Position(dest.ObjCellId, dest.OriginX, dest.OriginY, dest.OriginZ, dest.AnglesX, dest.AnglesY, dest.AnglesZ, dest.AnglesW));
+            }
         }
     }
 }

@@ -1,4 +1,5 @@
 using System.Linq;
+using ACE.Common.Extensions;
 using ACE.Database.Models.Shard;
 using ACE.Entity;
 using ACE.Entity.Enum;
@@ -131,6 +132,15 @@ namespace ACE.Database.Models.World
             return weenie.WeeniePropertiesTextureMap.FirstOrDefault(x => x.Index == index);
         }
 
+        public static string GetPluralName(this Weenie weenie)
+        {
+            var pluralName = weenie.GetProperty(PropertyString.PluralName);
+
+            if (pluralName == null)
+                pluralName = weenie.GetProperty(PropertyString.Name).Pluralize();
+
+            return pluralName;
+        }
 
         public static Biota CreateCopyAsBiota(this Weenie weenie, uint id)
         {

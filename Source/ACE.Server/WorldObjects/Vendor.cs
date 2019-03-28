@@ -37,6 +37,12 @@ namespace ACE.Server.WorldObjects
 
         public Player LastPlayer;
 
+        public uint? AlternateCurrency
+        {
+            get => GetProperty(PropertyDataId.AlternateCurrency);
+            set { if (!value.HasValue) RemoveProperty(PropertyDataId.AlternateCurrency); else SetProperty(PropertyDataId.AlternateCurrency, value.Value); }
+        }
+
         /// <summary>
         /// A new biota be created taking all of its values from weenie.
         /// </summary>
@@ -288,6 +294,7 @@ namespace ACE.Server.WorldObjects
             List<WorldObject> genlist = new List<WorldObject>();
 
             uint goldcost = 0;
+            uint altcost = 0;
 
             // filter items out vendor no longer has in stock or never had in stock
             foreach (ItemProfile item in items)
@@ -330,15 +337,20 @@ namespace ACE.Server.WorldObjects
 
             foreach (WorldObject wo in genlist)
             {
-                var sellRate = SellPrice ?? 1.0;
-                if (wo.ItemType == ItemType.PromissoryNote)
-                    sellRate = 1.15;
+                if (AlternateCurrency == null)
+                {
+                    var sellRate = SellPrice ?? 1.0;
+                    if (wo.ItemType == ItemType.PromissoryNote)
+                        sellRate = 1.15;
 
-                goldcost += Math.Max(1, (uint)Math.Ceiling((wo.Value ?? 0) * sellRate - 0.1));
+                    goldcost += Math.Max(1, (uint)Math.Ceiling((wo.Value ?? 0) * sellRate - 0.1));
+                }
+                else
+                    altcost += (uint)((wo.StackSize ?? 1) * (wo.StackUnitValue ?? 1));
             }
 
             // send transaction to player for further processing and.
-            player.FinalizeBuyTransaction(this, uqlist, genlist, true, goldcost);
+            player.FinalizeBuyTransaction(this, uqlist, genlist, goldcost, altcost);
         }
 
         /// <summary>
@@ -355,10 +367,8 @@ namespace ACE.Server.WorldObjects
                         UniqueItemsForSale.Add(wo.Guid, wo);
                 }
             }
-
             ApproachVendor(player, VendorType.Buy);
         }
-
 
         // ==========================
         // Helper Functions - Selling
