@@ -328,7 +328,7 @@ namespace ACE.Server.WorldObjects
             }
 
             worldObject.Location = null;
-            worldObject.Placement = null;
+            worldObject.Placement = ACE.Entity.Enum.Placement.Resting;
 
             worldObject.OwnerId = Guid.Full;
             worldObject.ContainerId = Guid.Full;
@@ -490,24 +490,13 @@ namespace ACE.Server.WorldObjects
 
             foreach (var item in Inventory.Values)
             {
-                // ideally this should be done elsewhere,
-                // when an item is first placed into a chest container
-                // this needs further investigation, ie. should items in a player's inventory
-                // have Placement.Resting? keeping this to Chest/Container.Open for now...
-
-                item.Placement = ACE.Entity.Enum.Placement.Resting;
-
                 // FIXME: only send messages for unknown objects
                 itemsToSend.Add(new GameMessageCreateObject(item));
 
                 if (item is Container container)
                 {
                     foreach (var containerItem in container.Inventory.Values)
-                    {
-                        containerItem.Placement = ACE.Entity.Enum.Placement.Resting;
-
                         itemsToSend.Add(new GameMessageCreateObject(containerItem));
-                    }
                 }
             }
 
