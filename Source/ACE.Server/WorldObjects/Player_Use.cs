@@ -72,7 +72,7 @@ namespace ACE.Server.WorldObjects
 
         /// <summary>
         /// Handles the 'GameAction 0x36 - UseItem' network message
-        /// when player double clicks an item in the 3d world
+        /// when player double clicks an item
         /// </summary>
         public void HandleActionUseItem(uint itemGuid)
         {

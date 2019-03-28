@@ -311,13 +311,20 @@ namespace ACE.Server.Managers
                     if (player != null && emote.WeenieClassId != null)
                     {
                         var item = WorldObjectFactory.CreateNewWorldObject((uint)emote.WeenieClassId);
-                        var stackSize = emote.StackSize ?? 1;
+
                         var stackMsg = "";
-                        if (stackSize > 1)
+                        if (item != null)
                         {
-                            item.SetStackSize(stackSize);
-                            stackMsg = stackSize + " ";     // pluralize?
+                            var stackSize = emote.StackSize ?? 1;
+                            if (stackSize > 1)
+                            {
+                                item.SetStackSize(stackSize);
+                                stackMsg = stackSize + " ";     // pluralize?
+                            }
                         }
+                        else
+                            item = PlayerFactory.CreateIOU(player, (uint)emote.WeenieClassId);
+
                         success = player.TryCreateInInventoryWithNetworking(item);
 
                         // transaction / rollback on failure?
@@ -372,7 +379,7 @@ namespace ACE.Server.Managers
                     if (targetCreature != null)
                     {
                         var attr = targetCreature.Attributes[(PropertyAttribute)emote.Stat];
-                        success = attr != null && attr.Ranks >= emote.Min && attr.Ranks <= emote.Max;
+                        success = attr != null && attr.Current >= emote.Min && attr.Current <= emote.Max;
                         ExecuteEmoteSet(success ? EmoteCategory.TestSuccess : EmoteCategory.TestFailure, emote.Message, targetObject, true);
                     }
                     break;
@@ -545,7 +552,7 @@ namespace ACE.Server.Managers
                     if (targetCreature != null)
                     {
                         var vital = targetCreature.Vitals[(PropertyAttribute2nd)emote.Stat];
-                        success = vital != null && vital.Ranks >= emote.Min && vital.Ranks <= emote.Max;
+                        success = vital != null && vital.Current >= emote.Min && vital.Current <= emote.Max;
                         ExecuteEmoteSet(success ? EmoteCategory.TestSuccess : EmoteCategory.TestFailure, emote.Message, targetObject, true);
                     }
                     break;
@@ -566,7 +573,7 @@ namespace ACE.Server.Managers
                     if (targetCreature != null)
                     {
                         var skill = targetCreature.GetCreatureSkill((Skill)emote.Stat);
-                        success = skill != null && skill.Ranks >= emote.Min && skill.Ranks <= emote.Max;
+                        success = skill != null && skill.Current >= emote.Min && skill.Current <= emote.Max;
 
                         ExecuteEmoteSet(success ? EmoteCategory.TestSuccess : EmoteCategory.TestFailure, emote.Message, targetObject, true);
                     }
@@ -810,8 +817,9 @@ namespace ACE.Server.Managers
 
                 case EmoteType.OpenMe:
 
-                    if (WorldObject is Container container2)
-                        container2.Open(null);
+                    if (WorldObject is Container openContainer)
+                        openContainer.Open(null);
+
                     break;
 
                 case EmoteType.PetCastSpellOnOwner:

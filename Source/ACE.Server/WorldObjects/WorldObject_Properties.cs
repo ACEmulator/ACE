@@ -2413,7 +2413,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public bool Active
         {
-            get => (GetProperty(PropertyInt.Active) ?? 1) == 1;
+            get => (GetProperty(PropertyInt.Active) ?? 1) != 0;
             set { if (value) RemoveProperty(PropertyInt.Active); else SetProperty(PropertyInt.Active, 0); }
         }
 
