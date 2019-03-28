@@ -861,7 +861,7 @@ namespace ACE.Server.WorldObjects
         // ======= Weenie Header Properties =======
         // ========================================
         // used in CalculatedWeenieHeaderFlag()
-        public string NamePlural
+        public string PluralName
         {
             get => GetProperty(PropertyString.PluralName);
             set { if (value == null) RemoveProperty(PropertyString.PluralName); else SetProperty(PropertyString.PluralName, value); }
@@ -1868,12 +1868,6 @@ namespace ACE.Server.WorldObjects
         {
             get => GetProperty(PropertyBool.DealMagicalItems);
             set { if (!value.HasValue) RemoveProperty(PropertyBool.DealMagicalItems); else SetProperty(PropertyBool.DealMagicalItems, value.Value); }
-        }
-
-        public uint? AlternateCurrencyDID
-        {
-            get => GetProperty(PropertyDataId.AlternateCurrency);
-            set { if (!value.HasValue) RemoveProperty(PropertyDataId.AlternateCurrency); else SetProperty(PropertyDataId.AlternateCurrency, value.Value); }
         }
 
         public double? HeartbeatInterval

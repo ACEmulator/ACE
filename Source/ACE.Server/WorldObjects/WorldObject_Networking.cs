@@ -78,7 +78,7 @@ namespace ACE.Server.WorldObjects
                 writer.Write((uint)weenieFlags2);
 
             if ((weenieFlags & WeenieHeaderFlag.PluralName) != 0)
-                writer.WriteString16L(NamePlural);
+                writer.WriteString16L(PluralName);
 
             if ((weenieFlags & WeenieHeaderFlag.ItemsCapacity) != 0)
                 writer.Write(ItemCapacity ?? 0);
@@ -662,7 +662,7 @@ namespace ACE.Server.WorldObjects
         {
             var weenieHeaderFlag = WeenieHeaderFlag.None;
 
-            if (NamePlural != null)
+            if (PluralName != null)
                 weenieHeaderFlag |= WeenieHeaderFlag.PluralName;
 
             if (ItemCapacity != null)

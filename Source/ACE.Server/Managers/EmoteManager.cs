@@ -1005,20 +1005,8 @@ namespace ACE.Server.Managers
                 case EmoteType.TakeItems:
 
                     if (player != null)
-                    {
-                        var items = player.GetInventoryItemsOfWCID(emote.WeenieClassId ?? 0);
+                        player.TryConsumeFromInventoryWithNetworking(emote.WeenieClassId ?? 0, emote.StackSize ?? 0);
 
-                        var leftReq = emote.StackSize ?? 0;
-                        foreach (var item in items)
-                        {
-                            var removeNum = Math.Min(leftReq, item.StackSize ?? 1);
-                            player.TryConsumeFromInventoryWithNetworking(item, removeNum);
-
-                            leftReq -= removeNum;
-                            if (leftReq <= 0)
-                                break;
-                        }
-                    }
                     break;
 
                 case EmoteType.TeachSpell:
