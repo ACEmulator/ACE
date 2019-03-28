@@ -28,5 +28,18 @@ namespace ACE.Server.WorldObjects
         private void SetEphemeralValues()
         {
         }
+
+        public override void HandleActionUseOnTarget(Player player, WorldObject target)
+        {
+            // TODO: does this have to be generic object?
+            if (PetDevice.IsEncapsulatedSpirit(this) && target is PetDevice petDevice)
+            {
+                petDevice.Refill(player, this);
+                return;
+            }
+
+            // fallback on recipe manager?
+            base.HandleActionUseOnTarget(player, target);
+        }
     }
 }
