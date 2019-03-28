@@ -303,10 +303,13 @@ namespace ACE.Server.WorldObjects
             Session.Network.EnqueueSend(new GameMessagePlayerTeleport(this));
 
             // load quickly, but player can load into landblock before server is finished loading
-            //Location = newPosition;
-            //SendUpdatePosition();
 
-            UpdatePlayerPhysics(new Position(newPosition), true);
+            // send a "fake" update position to get the client to start loading asap,
+            // also might fix some decal bugs
+            var prevLoc = Location;
+            Location = newPosition;
+            SendUpdatePosition();
+            Location = prevLoc;
 
             DoTeleportPhysicsStateChanges();
 
@@ -315,6 +318,8 @@ namespace ACE.Server.WorldObjects
 
             if (UnderLifestoneProtection)
                 LifestoneProtectionDispel();
+
+            UpdatePlayerPhysics(new Position(newPosition), true);
         }
 
         public void DoPreTeleportHide()
