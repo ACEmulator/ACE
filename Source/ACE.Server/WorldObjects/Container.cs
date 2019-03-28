@@ -497,10 +497,12 @@ namespace ACE.Server.WorldObjects
 
                 if (item is Container container)
                 {
-                    item.Placement = ACE.Entity.Enum.Placement.Resting;
-
                     foreach (var containerItem in container.Inventory.Values)
+                    {
+                        containerItem.Placement = ACE.Entity.Enum.Placement.Resting;
+
                         itemsToSend.Add(new GameMessageCreateObject(containerItem));
+                    }
                 }
             }
 
