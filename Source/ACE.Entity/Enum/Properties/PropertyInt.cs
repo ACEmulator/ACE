@@ -136,7 +136,6 @@ namespace ACE.Entity.Enum.Properties
         PhysicsState                             = 93,
         [ServerOnly]
         TargetType                               = 94,
-        [Ephemeral]
         RadarBlipColor                           = 95,
         EncumbranceCapacity                      = 96,
         LoginTimestamp                           = 97,

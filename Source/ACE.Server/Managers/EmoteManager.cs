@@ -870,7 +870,11 @@ namespace ACE.Server.Managers
                     break;
 
                 case EmoteType.SetBoolStat:
-                    targetObject.SetProperty((PropertyBool)emote.Stat, emote.Amount == 0 ? false : true);
+                    if (player != null)
+                    {
+                        player.UpdateProperty(player, (PropertyBool)emote.Stat, emote.Amount == 0 ? false : true);
+                        player.EnqueueBroadcast(false, new GameMessagePublicUpdatePropertyBool(player, (PropertyBool)emote.Stat, emote.Amount == 0 ? false : true));
+                    }
                     break;
 
                 case EmoteType.SetEyePalette:
@@ -884,7 +888,11 @@ namespace ACE.Server.Managers
                     break;
 
                 case EmoteType.SetFloatStat:
-                    targetObject.SetProperty((PropertyFloat)emote.Stat, (float)emote.Amount);
+                    if (player != null)
+                    {
+                        player.UpdateProperty(player, (PropertyFloat)emote.Stat, emote.Percent);
+                        player.EnqueueBroadcast(false, new GameMessagePublicUpdatePropertyFloat(player, (PropertyFloat)emote.Stat, Convert.ToDouble(emote.Percent)));
+                    }
                     break;
 
                 case EmoteType.SetHeadObject:
@@ -896,11 +904,19 @@ namespace ACE.Server.Managers
                     break;
 
                 case EmoteType.SetInt64Stat:
-                    player.SetProperty((PropertyInt64)emote.Stat, (int)emote.Amount);
+                    if (player != null)
+                    {
+                        player.UpdateProperty(player, (PropertyInt64)emote.Stat, emote.Amount64);
+                        player.EnqueueBroadcast(false, new GameMessagePublicUpdatePropertyInt64(player, (PropertyInt64)emote.Stat, Convert.ToInt64(emote.Amount64)));
+                    }
                     break;
 
                 case EmoteType.SetIntStat:
-                    player.SetProperty((PropertyInt)emote.Stat, (int)emote.Amount);
+                    if (player != null)
+                    {
+                        player.UpdateProperty(player, (PropertyInt)emote.Stat, emote.Amount);
+                        player.EnqueueBroadcast(false, new GameMessagePublicUpdatePropertyInt(player, (PropertyInt)emote.Stat, Convert.ToInt32(emote.Amount)));
+                    }
                     break;
 
                 case EmoteType.SetMouthPalette:
