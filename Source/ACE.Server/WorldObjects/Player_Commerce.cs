@@ -232,7 +232,7 @@ namespace ACE.Server.WorldObjects
                 if (item == null)
                     continue;
 
-                if (!(item.GetProperty(PropertyBool.IsSellable) ?? true) || (item.GetProperty(PropertyBool.Retained) ?? false))
+                if (!(item.GetProperty(PropertyBool.IsSellable) ?? true) || (item.GetProperty(PropertyBool.Retained) ?? false) || !(((ItemType)vendor.MerchandiseItemTypes & item.ItemType) != 0))
                 {
                     var itemName = (item.StackSize ?? 1) > 1 ? item.GetPluralName() : item.Name;
                     Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, $"The {itemName} cannot be sold")); // TODO: find retail messages
