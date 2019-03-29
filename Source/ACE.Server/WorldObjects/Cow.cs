@@ -37,7 +37,9 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public override void ActOnUse(WorldObject activator)
         {
-            if (!(activator is Player player) || AllowedActivator != null)
+            // handled via EmoteCategory.Use
+
+            /*if (!(activator is Player player) || AllowedActivator != null)
                 return;
 
             AllowedActivator = activator.Guid.Full;
@@ -55,7 +57,7 @@ namespace ACE.Server.WorldObjects
             actionChain.AddAction(this, () => ResetCow());
             actionChain.EnqueueChain();
 
-            UseTimestamp++;
+            UseTimestamp++;*/
         }
 
         private void ResetCow()
