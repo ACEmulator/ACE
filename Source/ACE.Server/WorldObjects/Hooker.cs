@@ -29,7 +29,7 @@ namespace ACE.Server.WorldObjects
 
         public override void ActOnUse(WorldObject activator)
         {
-            // EmoteManager.OnUse handled in base
+            // handled in base.OnActivate -> EmoteManager.OnUse()
         }
     }
 }
