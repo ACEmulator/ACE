@@ -27,46 +27,7 @@ namespace ACE.Server.WorldObjects
 
         private void SetEphemeralValues()
         {
-        }
-
-        /// <summary>
-        /// This is raised by Player.HandleActionUseItem.<para />
-        /// The item does not exist in the players possession.<para />
-        /// If the item was outside of range, the player will have been commanded to move using DoMoveTo before ActOnUse is called.<para />
-        /// When this is called, it should be assumed that the player is within range.
-        /// </summary>
-        public override void ActOnUse(WorldObject activator)
-        {
-            if (!(activator is Player player) || AllowedActivator != null)
-                return;
-
-            AllowedActivator = activator.Guid.Full;
-
-            // Stamp Cow tipping quest here;
-            EmoteManager.IsBusy = true;
-
-            //var dir = player.GetSplatterDir(this);
-            //var motion = dir.Contains("Left") ? MotionCommand.TippedRight : MotionCommand.TippedLeft;
-
-            var motion = MotionCommand.TippedRight;     // left bugged?
-
-            var actionChain = new ActionChain();
-            EnqueueMotion(actionChain, motion);
-            actionChain.AddAction(this, () => ResetCow());
-            actionChain.EnqueueChain();
-
-            UseTimestamp++;
-        }
-
-        private void ResetCow()
-        {
-            CurrentMotionState = new Motion(MotionStance.NonCombat, MotionCommand.Ready);
-
-            EmoteManager.IsBusy = false;
-
-            AllowedActivator = null;
-
-            ResetTimestamp++;
+            ActivationResponse |= ActivationResponse.Use;
         }
     }
 }
