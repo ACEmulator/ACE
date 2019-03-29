@@ -44,11 +44,6 @@ namespace ACE.Server.WorldObjects
 
         public double Default_ChestResetInterval = 120;
 
-        /// <summary>
-        /// The current player who has a chest opened
-        /// </summary>
-        public Player CurrentViewer;
-
         public bool ResetMessagePending
         {
             get => GetProperty(PropertyBool.ResetMessagePending) ?? false;
@@ -113,6 +108,15 @@ namespace ACE.Server.WorldObjects
                     Close(player);
 
                 // else another player has this chest open - send error message?
+                else
+                {
+                    var currentViewer = CurrentLandblock.GetObject(Viewer) as Player;
+
+                    // current viewer not found, close it
+                    if (currentViewer == null)
+                        Close(null);
+                }
+
                 return new ActivationResult(false);
             }
 
@@ -136,7 +140,6 @@ namespace ACE.Server.WorldObjects
 
         public override void Open(Player player)
         {
-            CurrentViewer = player;
             base.Open(player);
 
             // chests can have a couple of different profiles
@@ -174,7 +177,6 @@ namespace ACE.Server.WorldObjects
         public void Close(Player player, bool tryReset = true)
         {
             base.Close(player);
-            CurrentViewer = null;
 
             if (ChestRegenOnClose && tryReset)
                 Reset();
@@ -184,8 +186,10 @@ namespace ACE.Server.WorldObjects
         {
             // TODO: if 'ResetInterval' style, do we want to ensure a minimum amount of time for the last viewer?
 
+            var player = CurrentLandblock.GetObject(Viewer) as Player;
+
             if (IsOpen)
-                Close(CurrentViewer, false);
+                Close(player, false);
 
             if (DefaultLocked && !IsLocked)
             {
