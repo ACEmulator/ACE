@@ -6,7 +6,6 @@ namespace ACE.Entity.Enum
         Undef,
         Fixed,
         ScalesWithLevel,
-        // This appears to be another "scales with level type" that appears in the client but was never used
-        Unknown
+        FixedPlusBase   // unused?
     }
 }

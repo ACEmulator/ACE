@@ -123,10 +123,7 @@ namespace ACE.Server.Managers
             varianceModCache = null;
             armorModCache = null;
             armorModVsTypeModCache.Clear();
-
-            damageRatingCache = null;
-            damageResistRatingCache = null;
-            healingResistRatingModCache = null;
+            ratingCache.Clear();
         }
 
 
@@ -420,47 +417,18 @@ namespace ACE.Server.Managers
             return value;
         }
 
+        private readonly Dictionary<PropertyInt, int> ratingCache = new Dictionary<PropertyInt, int>();
 
-        private int? damageRatingCache;
-
-        /// <summary>
-        /// Returns the damage rating modifier from enchantments as an int rating (additive)
-        /// </summary>
-        public override int GetDamageRating()
+        public override int GetRating(PropertyInt property)
         {
-            if (damageRatingCache.HasValue)
-                return damageRatingCache.Value;
+            if (ratingCache.TryGetValue(property, out var value))
+                return value;
 
-            damageRatingCache = base.GetDamageRating();
+            value = base.GetRating(property);
 
-            return damageRatingCache.Value;
-        }
+            ratingCache[property] = value;
 
-        private int? damageResistRatingCache;
-
-        public override int GetDamageResistRating()
-        {
-            if (damageResistRatingCache.HasValue)
-                return damageResistRatingCache.Value;
-
-            damageResistRatingCache = base.GetDamageResistRating();
-
-            return damageResistRatingCache.Value;
-        }
-
-        private float? healingResistRatingModCache;
-
-        /// <summary>
-        /// Returns the healing resistance rating enchantment modifier
-        /// </summary>
-        public override float GetHealingResistRatingMod()
-        {
-            if (healingResistRatingModCache.HasValue)
-                return healingResistRatingModCache.Value;
-
-            healingResistRatingModCache = base.GetHealingResistRatingMod();
-
-            return healingResistRatingModCache.Value;
+            return value;
         }
     }
 }

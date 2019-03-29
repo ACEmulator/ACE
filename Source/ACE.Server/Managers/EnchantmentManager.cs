@@ -69,6 +69,14 @@ namespace ACE.Server.Managers
         }
 
         /// <summary>
+        /// Returns the enchantments for a specific spell from an equipment set
+        /// </summary>
+        public BiotaPropertiesEnchantmentRegistry GetEnchantment(uint spellID, EquipmentSet equipmentSet)
+        {
+            return WorldObject.Biota.GetEnchantmentBySpellSet((int)spellID, (int)equipmentSet, WorldObject.BiotaDatabaseLock);
+        }
+
+        /// <summary>
         /// Returns a list of all the active enchantments for a magic school
         /// </summary>
         public List<BiotaPropertiesEnchantmentRegistry> GetEnchantments(MagicSchool magicSchool)
@@ -182,7 +190,18 @@ namespace ACE.Server.Managers
             }
             else
             {
-                refreshSpell.StartTime = 0;
+                var duration = spell.Duration;
+                if (caster is Player player && player.AugmentationIncreasedSpellDuration > 0 && spell.DotDuration == 0)
+                    duration *= 1.0f + player.AugmentationIncreasedSpellDuration * 0.2f;
+
+                var timeRemaining = refreshSpell.Duration + refreshSpell.StartTime;
+
+                if (duration > timeRemaining)
+                {
+                    refreshSpell.StartTime = 0;
+                    refreshSpell.Duration = duration;
+                }
+
                 result.Enchantment = refreshSpell;
             }
             WorldObject.ChangesDetected = true;
@@ -213,13 +232,15 @@ namespace ACE.Server.Managers
             {
                 entry.Duration = spell.Duration;
 
-                if (caster is Player player && player.AugmentationIncreasedSpellDuration > 0)
+                if (caster is Player player && player.AugmentationIncreasedSpellDuration > 0 && spell.DotDuration == 0)
                     entry.Duration *= 1.0f + player.AugmentationIncreasedSpellDuration * 0.2f;
             }
             else
             {
-                if (caster?.WeenieType == WeenieType.Gem)
+                if (caster == null || caster.CurrentWieldedLocation == null && !caster.ItemSetContains(spell.Id))
+                {
                     entry.Duration = spell.Duration;
+                }
                 else
                 {
                     entry.Duration = -1.0;
@@ -237,6 +258,13 @@ namespace ACE.Server.Managers
             entry.StatModType = (uint)spell.StatModType;
             entry.StatModKey = spell.StatModKey;
             entry.StatModValue = spell.StatModVal;
+
+            // handle equipment sets
+            if (caster != null && caster.HasItemSet && caster.ItemSetContains(spell.Id))
+            {
+                entry.HasSpellSetId = true;
+                entry.SpellSetId = (uint)caster.EquipmentSetId;
+            }
 
             return entry;
         }
@@ -315,12 +343,12 @@ namespace ACE.Server.Managers
         }
 
         /// <summary>
-        /// Removes all enchantments except for vitae
+        /// Removes all enchantments except for vitae and item spells
         /// Called on player death
         /// </summary>
         public virtual void RemoveAllEnchantments()
         {
-            var spellsToExclude = new Collection<int> { (int)SpellId.Vitae };
+            var spellsToExclude = WorldObject.Biota.GetEnchantments(WorldObject.BiotaDatabaseLock).Where(i => i.Duration == -1).Select(i => i.SpellId);
 
             WorldObject.Biota.RemoveAllEnchantments(spellsToExclude, WorldObject.BiotaDatabaseLock);
             WorldObject.ChangesDetected = true;
@@ -1028,46 +1056,12 @@ namespace ACE.Server.Managers
         /// Returns a rating enchantment modifier
         /// </summary>
         /// <param name="property">The rating to return an enchantment modifier</param>
-        public int GetRating(PropertyInt property)
+        public virtual int GetRating(PropertyInt property)
         {
             var typeFlags = EnchantmentTypeFlags.Int | EnchantmentTypeFlags.SingleStat | EnchantmentTypeFlags.Additive;
             var enchantments = GetEnchantments_TopLayer(typeFlags, (uint)property);
 
             return (int)Math.Round(GetAdditiveMod(enchantments));
-        }
-
-        /// <summary>
-        /// Returns the damage rating modifier from enchantments as an int rating (additive)
-        /// </summary>
-        public virtual int GetDamageRating()
-        {
-            // get from base properties (monsters)?
-            var damageRating = WorldObject.DamageRating ?? 0;
-
-            damageRating += GetRating(PropertyInt.DamageRating);
-
-            if (WorldObject is Player player && player.AugmentationDamageBonus > 0)
-                damageRating += player.AugmentationDamageBonus * 3;
-
-            // weakness as negative damage rating?
-            var weaknessRating = GetRating(PropertyInt.WeaknessRating);
-
-            return damageRating - weaknessRating;
-        }
-
-        public virtual int GetDamageResistRating()
-        {
-            var damageResistanceRating = WorldObject.DamageResistRating ?? 0;
-
-            damageResistanceRating += GetRating(PropertyInt.DamageResistRating);
-
-            if (WorldObject is Player player && player.AugmentationDamageReduction > 0)
-                damageResistanceRating += player.AugmentationDamageReduction * 3;
-
-            // nether DoTs as negative DRR?
-            var netherDotDamageRating = GetNetherDotDamageRating();
-
-            return damageResistanceRating - netherDotDamageRating;
         }
 
         public int GetNetherDotDamageRating()
@@ -1083,23 +1077,12 @@ namespace ACE.Server.Managers
                 var baseDamage = Math.Max(0.5f, spell.Formula.Level - 1);
 
                 // destructive curse / corruption
-                if (netherDot.SpellCategory == 636 || netherDot.SpellCategory == 638)
+                if (netherDot.SpellCategory == (int)SpellCategory.NetherDamageOverTimeRaising || netherDot.SpellCategory == (int)SpellCategory.NetherDamageOverTimeRaising3)
                     totalRating += baseDamage;
-                else if (netherDot.SpellCategory == 637)    // corrosion
+                else if (netherDot.SpellCategory == (int)SpellCategory.NetherDamageOverTimeRaising2)    // corrosion
                     totalRating += Math.Max(baseDamage * 2 - 1, 2);
             }
             return totalRating.Round();
-        }
-
-        /// <summary>
-        /// Returns the healing resistance rating enchantment modifier
-        /// </summary>
-        public virtual float GetHealingResistRatingMod()
-        {
-            var rating = GetRating(PropertyInt.HealingResistRating);
-
-            // return as rating mod
-            return 100.0f / (100 + rating);
         }
 
         /// <summary>
@@ -1225,7 +1208,7 @@ namespace ACE.Server.Managers
                 // for each damage tick, this pre-calc would then be multiplied
                 // against the realtime resistances
 
-                var damager = WorldObject.CurrentLandblock?.GetObject(enchantment.CasterObjectId);
+                var damager = WorldObject.CurrentLandblock?.GetObject(enchantment.CasterObjectId) as Creature;
                 if (damager == null)
                 {
                     Console.WriteLine($"{WorldObject.Name}.ApplyDamageTick() - couldn't find damager {enchantment.CasterObjectId:X8}");
@@ -1241,8 +1224,8 @@ namespace ACE.Server.Managers
                     else
                         heritageMod = player.GetHeritageBonus(player.GetEquippedWeapon()) ? 1.05f : 1.0f;
                 }
-                var damageRatingMod = Creature.AdditiveCombine(heritageMod, Creature.GetPositiveRatingMod(damager.EnchantmentManager.GetDamageRating()));
-                var damageResistRatingMod = Creature.GetNegativeRatingMod(GetDamageResistRating());
+                var damageRatingMod = Creature.AdditiveCombine(heritageMod, Creature.GetPositiveRatingMod(damager.GetDamageRating()));
+                var damageResistRatingMod = Creature.GetNegativeRatingMod(creature.GetDamageResistRating());
                 //Console.WriteLine("DR: " + Creature.ModToRating(damageRatingMod));
                 //Console.WriteLine("DRR: " + Creature.NegativeModToRating(damageResistRatingMod));
                 tickAmount *= damageRatingMod * damageResistRatingMod;

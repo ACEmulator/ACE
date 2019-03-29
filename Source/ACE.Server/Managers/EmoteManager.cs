@@ -110,6 +110,7 @@ namespace ACE.Server.Managers
 
                 case EmoteType.AwardLevelProportionalXP:
 
+                    // share with fellowship?
                     if (player != null)
                         player.GrantLevelProportionalXp(emote.Percent ?? 0, (ulong)emote.Max64);
                     break;
@@ -124,7 +125,7 @@ namespace ACE.Server.Managers
 
                     if (player != null)
                     {
-                        player.EarnXP((long)emote.Amount64);
+                        player.EarnXP((long)emote.Amount64, XpType.Quest, false);
                         player.Session.Network.EnqueueSend(new GameMessageSystemChat("You've earned " + emote.Amount64.Value.ToString("N0") + " experience.", ChatMessageType.Broadcast));
                     }
                     break;
@@ -151,7 +152,7 @@ namespace ACE.Server.Managers
 
                     if (player != null)
                     {
-                        player.EarnXP((long)emote.Amount64);
+                        player.EarnXP((long)emote.Amount64, XpType.Quest, true);
                         player.Session.Network.EnqueueSend(new GameMessageSystemChat("You've earned " + emote.Amount64.Value.ToString("N0") + " experience.", ChatMessageType.Broadcast));
                     }
                     break;
@@ -310,13 +311,20 @@ namespace ACE.Server.Managers
                     if (player != null && emote.WeenieClassId != null)
                     {
                         var item = WorldObjectFactory.CreateNewWorldObject((uint)emote.WeenieClassId);
-                        var stackSize = emote.StackSize ?? 1;
+
                         var stackMsg = "";
-                        if (stackSize > 1)
+                        if (item != null)
                         {
-                            item.SetStackSize(stackSize);
-                            stackMsg = stackSize + " ";     // pluralize?
+                            var stackSize = emote.StackSize ?? 1;
+                            if (stackSize > 1)
+                            {
+                                item.SetStackSize(stackSize);
+                                stackMsg = stackSize + " ";     // pluralize?
+                            }
                         }
+                        else
+                            item = PlayerFactory.CreateIOU(player, (uint)emote.WeenieClassId);
+
                         success = player.TryCreateInInventoryWithNetworking(item);
 
                         // transaction / rollback on failure?
@@ -371,7 +379,7 @@ namespace ACE.Server.Managers
                     if (targetCreature != null)
                     {
                         var attr = targetCreature.Attributes[(PropertyAttribute)emote.Stat];
-                        success = attr != null && attr.Ranks >= emote.Min && attr.Ranks <= emote.Max;
+                        success = attr != null && attr.Current >= emote.Min && attr.Current <= emote.Max;
                         ExecuteEmoteSet(success ? EmoteCategory.TestSuccess : EmoteCategory.TestFailure, emote.Message, targetObject, true);
                     }
                     break;
@@ -544,7 +552,7 @@ namespace ACE.Server.Managers
                     if (targetCreature != null)
                     {
                         var vital = targetCreature.Vitals[(PropertyAttribute2nd)emote.Stat];
-                        success = vital != null && vital.Ranks >= emote.Min && vital.Ranks <= emote.Max;
+                        success = vital != null && vital.Current >= emote.Min && vital.Current <= emote.Max;
                         ExecuteEmoteSet(success ? EmoteCategory.TestSuccess : EmoteCategory.TestFailure, emote.Message, targetObject, true);
                     }
                     break;
@@ -565,7 +573,7 @@ namespace ACE.Server.Managers
                     if (targetCreature != null)
                     {
                         var skill = targetCreature.GetCreatureSkill((Skill)emote.Stat);
-                        success = skill != null && skill.Ranks >= emote.Min && skill.Ranks <= emote.Max;
+                        success = skill != null && skill.Current >= emote.Min && skill.Current <= emote.Max;
 
                         ExecuteEmoteSet(success ? EmoteCategory.TestSuccess : EmoteCategory.TestFailure, emote.Message, targetObject, true);
                     }
@@ -809,8 +817,9 @@ namespace ACE.Server.Managers
 
                 case EmoteType.OpenMe:
 
-                    if (WorldObject is Container container2)
-                        container2.Open(null);
+                    if (WorldObject is Container openContainer)
+                        openContainer.Open(null);
+
                     break;
 
                 case EmoteType.PetCastSpellOnOwner:
@@ -869,7 +878,11 @@ namespace ACE.Server.Managers
                     break;
 
                 case EmoteType.SetBoolStat:
-                    targetObject.SetProperty((PropertyBool)emote.Stat, emote.Amount == 0 ? false : true);
+                    if (player != null)
+                    {
+                        player.UpdateProperty(player, (PropertyBool)emote.Stat, emote.Amount == 0 ? false : true);
+                        player.EnqueueBroadcast(false, new GameMessagePublicUpdatePropertyBool(player, (PropertyBool)emote.Stat, emote.Amount == 0 ? false : true));
+                    }
                     break;
 
                 case EmoteType.SetEyePalette:
@@ -883,7 +896,11 @@ namespace ACE.Server.Managers
                     break;
 
                 case EmoteType.SetFloatStat:
-                    targetObject.SetProperty((PropertyFloat)emote.Stat, (float)emote.Amount);
+                    if (player != null)
+                    {
+                        player.UpdateProperty(player, (PropertyFloat)emote.Stat, emote.Percent);
+                        player.EnqueueBroadcast(false, new GameMessagePublicUpdatePropertyFloat(player, (PropertyFloat)emote.Stat, Convert.ToDouble(emote.Percent)));
+                    }
                     break;
 
                 case EmoteType.SetHeadObject:
@@ -895,11 +912,19 @@ namespace ACE.Server.Managers
                     break;
 
                 case EmoteType.SetInt64Stat:
-                    player.SetProperty((PropertyInt64)emote.Stat, (int)emote.Amount);
+                    if (player != null)
+                    {
+                        player.UpdateProperty(player, (PropertyInt64)emote.Stat, emote.Amount64);
+                        player.EnqueueBroadcast(false, new GameMessagePublicUpdatePropertyInt64(player, (PropertyInt64)emote.Stat, Convert.ToInt64(emote.Amount64)));
+                    }
                     break;
 
                 case EmoteType.SetIntStat:
-                    player.SetProperty((PropertyInt)emote.Stat, (int)emote.Amount);
+                    if (player != null)
+                    {
+                        player.UpdateProperty(player, (PropertyInt)emote.Stat, emote.Amount);
+                        player.EnqueueBroadcast(false, new GameMessagePublicUpdatePropertyInt(player, (PropertyInt)emote.Stat, Convert.ToInt32(emote.Amount)));
+                    }
                     break;
 
                 case EmoteType.SetMouthPalette:
@@ -1004,20 +1029,8 @@ namespace ACE.Server.Managers
                 case EmoteType.TakeItems:
 
                     if (player != null)
-                    {
-                        var items = player.GetInventoryItemsOfWCID(emote.WeenieClassId ?? 0);
+                        player.TryConsumeFromInventoryWithNetworking(emote.WeenieClassId ?? 0, emote.StackSize ?? 0);
 
-                        var leftReq = emote.StackSize ?? 0;
-                        foreach (var item in items)
-                        {
-                            var removeNum = Math.Min(leftReq, item.StackSize ?? 1);
-                            player.TryConsumeFromInventoryWithNetworking(item, removeNum);
-
-                            leftReq -= removeNum;
-                            if (leftReq <= 0)
-                                break;
-                        }
-                    }
                     break;
 
                 case EmoteType.TeachSpell:

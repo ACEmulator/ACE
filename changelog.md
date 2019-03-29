@@ -1,5 +1,23 @@
 # ACEmulator Change Log
 
+### 2019-03-27
+[Ripley]
+* Support AdvocateItem changing/updating Radar Blip Color in similar fashion to retail servers.
+
+### 2019-03-25
+[OptimShi]
+* Appraised items on houseing hooks now show the details on the hooked item.
+
+### 2019-03-15
+[Ripley]
+* Exclude Burden in CreateObject messages for Creatures.
+* Update Player Description Event to reflect WeenieType and HasHealth accurately and not hard-coded values.
+* Changed TrackObject to only send Selectable child objects wielded by their parents (No more oversending of everyone's complete equipibles)
+
+### 2019-03-14
+[Ripley]
+* Allow passthrough of permaload flag to landblocks loaded by adjacent load.
+
 ### 2019-03-12
 [gmriggs, Ripley]
 * Fix Vendors to handle 0 value items properly in buy/sell.

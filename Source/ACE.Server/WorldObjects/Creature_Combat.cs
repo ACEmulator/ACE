@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Numerics;
 using ACE.Common;
 using ACE.DatLoader.Entity;
@@ -939,6 +940,42 @@ namespace ACE.Server.WorldObjects
                 }
                 return false;
             }
+        }
+
+        /// <summary>
+        /// Called when a player or creature starts an attack
+        /// </summary>
+        public void OnAttack(Creature target)
+        {
+            // self-procs happen on attack, regardless if the attack is successfully landed
+            TryProcEquippedItems(this, true);
+        }
+
+        /// <summary>
+        /// Called when a targeted attack hits successfully
+        /// </summary>
+        public void OnHitTarget(Creature target)
+        {
+            // target-procs happen when the target is successfully hit.
+
+            // this should only be called when targeted attacks are landed.
+
+            // untargeted attacks, such as multi-projectile spells,
+            // should not call this method.
+
+            TryProcEquippedItems(target, false);
+        }
+
+        /// <summary>
+        /// Iterates through all of the equipped objects that have proc spells
+        /// matching the 'selfTarget' bool, and tries procing them w/ rng chance
+        /// </summary>
+        public void TryProcEquippedItems(Creature target, bool selfTarget)
+        {
+            var tryProcItems = EquippedObjects.Values.Where(i => i.HasProc && i.ProcSpellSelfTargeted == selfTarget);
+
+            foreach (var tryProcItem in tryProcItems)
+                tryProcItem.TryProcItem(this, target);
         }
     }
 }

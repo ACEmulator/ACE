@@ -1,6 +1,8 @@
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.Entity;
+using ACE.Entity.Enum.Properties;
+using ACE.Server.Network.GameMessages.Messages;
 
 namespace ACE.Server.WorldObjects
 {
@@ -24,6 +26,24 @@ namespace ACE.Server.WorldObjects
 
         private void SetEphemeralValues()
         {
+        }
+
+        public override void OnWield(Creature creature)
+        {
+            creature.RadarColor = ACE.Entity.Enum.RadarColor.Advocate;
+            creature.EnqueueBroadcast(true, new GameMessagePublicUpdatePropertyInt(creature, PropertyInt.RadarBlipColor, (int)creature.RadarColor));
+            creature.SetProperty(PropertyBool.AdvocateState, true);
+
+            base.OnWield(creature);
+        }
+
+        public override void OnUnWield(Creature creature)
+        {
+            creature.RadarColor = null;
+            creature.EnqueueBroadcast(true, new GameMessagePublicUpdatePropertyInt(creature, PropertyInt.RadarBlipColor, 0));
+            creature.SetProperty(PropertyBool.AdvocateState, false);
+
+            base.OnUnWield(creature);
         }
     }
 }

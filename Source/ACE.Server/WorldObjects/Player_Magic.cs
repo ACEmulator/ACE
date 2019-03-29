@@ -68,8 +68,14 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Handles player targeted casting message
         /// </summary>
-        public void HandleActionCastTargetedSpell(uint targetGuid, uint spellId)
+        /// <param name="builtInSpell">If TRUE, casting a built-in spell from a weapon</param>
+        public void HandleActionCastTargetedSpell(uint targetGuid, uint spellId, bool builtInSpell = false)
         {
+            // verify spell is contained in player's spellbook,
+            // or in the weapon's spellbook in the case of built-in spells
+            if (!VerifySpell(spellId, builtInSpell))
+                return;
+
             var target = CurrentLandblock?.GetObject(targetGuid);
             var targetCategory = TargetCategory.UnDef;
 
@@ -114,7 +120,7 @@ namespace ACE.Server.WorldObjects
 
             if (targetCategory != TargetCategory.WorldObject && targetCategory != TargetCategory.Wielded)
             {
-                CreatePlayerSpell(target, targetCategory, spellId);
+                CreatePlayerSpell(target, targetCategory, spellId, builtInSpell);
             }
             else
             {
@@ -127,7 +133,7 @@ namespace ACE.Server.WorldObjects
                 var actionChain = new ActionChain();
                 actionChain.AddDelaySeconds(rotateTime);
 
-                actionChain.AddAction(this, () => CreatePlayerSpell(target, targetCategory, spellId));
+                actionChain.AddAction(this, () => CreatePlayerSpell(target, targetCategory, spellId, builtInSpell));
                 actionChain.EnqueueChain();
             }
 
@@ -140,6 +146,11 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public void HandleActionMagicCastUnTargetedSpell(uint spellId)
         {
+            // verify spell is contained in player's spellbook,
+            // or in the weapon's spellbook in the case of built-in spells
+            if (!VerifySpell(spellId))
+                return;
+
             CreatePlayerSpell(spellId);
 
             if (UnderLifestoneProtection)
@@ -271,7 +282,8 @@ namespace ACE.Server.WorldObjects
         /// <summary>
         /// Method used for handling player targeted spell casts
         /// </summary>
-        public void CreatePlayerSpell(WorldObject target, TargetCategory targetCategory, uint spellId)
+        /// <param name="builtInSpell">If TRUE, casting a built-in spell from a weapon</param>
+        public void CreatePlayerSpell(WorldObject target, TargetCategory targetCategory, uint spellId, bool builtInSpell = false)
         {
             var player = this;
             var creatureTarget = target as Creature;
@@ -313,7 +325,7 @@ namespace ACE.Server.WorldObjects
             // if casting implement has spell built in,
             // use spellcraft from the item, instead of player's magic skill?
             var caster = GetEquippedWand();
-            var isWeaponSpell = IsWeaponSpell(spell);
+            var isWeaponSpell = builtInSpell && IsWeaponSpell(spell.Id);
 
             // Grab player's skill level in the spell's Magic School
             var magicSkill = player.GetCreatureSkill(spell.School).Current;
@@ -471,6 +483,10 @@ namespace ACE.Server.WorldObjects
                             foreach (var fellow in fellows)
                                 CreatePlayerSpell(fellow, spell);
                         }
+
+                        // handle self procs
+                        TryProcEquippedItems(this, true);
+
                         break;
 
                     case CastingPreCheckStatus.InvalidPKStatus:
@@ -568,7 +584,13 @@ namespace ACE.Server.WorldObjects
                         player.Session.Network.EnqueueSend(enchantmentStatus.Message);
 
                     if (spell.IsHarmful)
+                    {
                         Proficiency.OnSuccessUse(player, player.GetCreatureSkill(Skill.CreatureEnchantment), (target as Creature).GetCreatureSkill(Skill.MagicDefense).Current);
+
+                        // handle target procs
+                        if (creatureTarget != null && creatureTarget != this)
+                            TryProcEquippedItems(creatureTarget, false);
+                    }
                     else
                         Proficiency.OnSuccessUse(player, player.GetCreatureSkill(Skill.CreatureEnchantment), spell.PowerMod);
 
@@ -600,7 +622,13 @@ namespace ACE.Server.WorldObjects
                     if (spell.MetaSpellType != SpellType.LifeProjectile)
                     {
                         if (spell.IsHarmful)
+                        {
                             Proficiency.OnSuccessUse(player, player.GetCreatureSkill(Skill.LifeMagic), (target as Creature).GetCreatureSkill(Skill.MagicDefense).Current);
+
+                            // handle target procs
+                            if (creatureTarget != null && creatureTarget != this)
+                                TryProcEquippedItems(creatureTarget, false);
+                        }
                         else
                             Proficiency.OnSuccessUse(player, player.GetCreatureSkill(Skill.LifeMagic), spell.PowerMod);
                     }
@@ -791,6 +819,10 @@ namespace ACE.Server.WorldObjects
                                 Session.Network.EnqueueSend(new GameMessageSystemChat("Untargeted SpellID " + spellId + " not yet implemented!", ChatMessageType.System));
                                 break;
                         }
+
+                        // handle self procs
+                        TryProcEquippedItems(this, true);
+
                         break;
                     default:
                         useDone = WeenieError.YourSpellFizzled;
@@ -1047,11 +1079,7 @@ namespace ACE.Server.WorldObjects
                     continue;
                 }
 
-                item.SetStackSize(item.StackSize - 1);
-                if (item.StackSize > 0)
-                    Session.Network.EnqueueSend(new GameMessageSetStackSize(item));
-                else
-                    TryConsumeFromInventoryWithNetworking(item);
+                TryConsumeFromInventoryWithNetworking(item, 1);
             }
 
             // send message to player
@@ -1102,13 +1130,13 @@ namespace ACE.Server.WorldObjects
         /// Returns TRUE if the currently equipped casting implement
         /// has a built-in spell
         /// </summary>
-        public bool IsWeaponSpell(Spell spell)
+        public bool IsWeaponSpell(uint spellId)
         {
             var caster = GetEquippedWand();
             if (caster == null || caster.SpellDID == null)
                 return false;
 
-            return caster.SpellDID == spell.Id;
+            return caster.SpellDID == spellId;
         }
 
         public void HandleSpellbookFilters(SpellBookFilterOptions filters)
@@ -1145,6 +1173,21 @@ namespace ACE.Server.WorldObjects
                 return Fellowship.FellowshipMembers;
             else
                 return new List<Player>() { this };
+        }
+
+        /// <summary>
+        /// Verifies spell is contained in player's spellbook,
+        /// or in the weapon's spellbook in the case of built-in spells
+        /// </summary>
+        /// <param name="builtInSpell">If TRUE, casting a built-in spell from a weapon</param>
+        public bool VerifySpell(uint spellId, bool builtInSpell = false)
+        {
+            if (builtInSpell)
+                return IsWeaponSpell(spellId);
+            else
+                return SpellIsKnown(spellId);
+
+            // send error message?
         }
     }
 }

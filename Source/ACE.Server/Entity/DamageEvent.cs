@@ -178,7 +178,7 @@ namespace ACE.Server.Entity
             ElementalDamageBonus = WorldObject.GetMissileElementalDamageModifier(attacker, defender, DamageType);
 
             // ratings
-            DamageRatingBaseMod = Creature.GetPositiveRatingMod(attacker.EnchantmentManager.GetDamageRating());
+            DamageRatingBaseMod = Creature.GetPositiveRatingMod(attacker.GetDamageRating());
             RecklessnessMod = Creature.GetRecklessnessMod(attacker, defender);
             SneakAttackMod = attacker.GetSneakAttackMod(defender);
             HeritageMod = attacker.GetHeritageBonus(Weapon) ? 1.05f : 1.0f;
@@ -260,7 +260,7 @@ namespace ACE.Server.Entity
             }
 
             // damage resistance rating
-            DamageResistanceRatingMod = Creature.GetNegativeRatingMod(defender.EnchantmentManager.GetDamageResistRating());
+            DamageResistanceRatingMod = Creature.GetNegativeRatingMod(defender.GetDamageResistRating());
 
             // get shield modifier
             ShieldMod = defender.GetShieldMod(attacker, DamageType);
@@ -321,6 +321,9 @@ namespace ACE.Server.Entity
             BaseDamage = ThreadSafeRandom.Next(BaseDamageRange.Min, BaseDamageRange.Max);
 
             DamageType = attacker.GetDamageType(AttackPart);
+
+            if (attacker is CombatPet combatPet)
+                DamageType = combatPet.DamageType;
         }
 
         /// <summary>

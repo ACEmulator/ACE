@@ -63,7 +63,8 @@ namespace ACE.Server.WorldObjects
             if (worldObject is Creature creature)
             {
                 foreach (var wieldedItem in creature.EquippedObjects.Values)
-                    TrackEquippedObject(creature, wieldedItem);
+                    if (IsInChildLocation(wieldedItem))
+                        TrackEquippedObject(creature, wieldedItem);
             }
         }
 
@@ -112,7 +113,7 @@ namespace ACE.Server.WorldObjects
             //Console.WriteLine($"Player {Name} - TrackEquippedObject({wieldedItem.Name}) on Wielder {wielder.Name}");
 
             // We make sure the item is actually wielded and selectable
-            if ((wieldedItem.CurrentWieldedLocation ?? 0 & EquipMask.Selectable) == 0)
+            if ((wieldedItem.CurrentWieldedLocation ?? 0 & EquipMask.SelectablePlusAmmo) == 0)
                 return;
 
             // The wielder already knows about this object
@@ -127,7 +128,7 @@ namespace ACE.Server.WorldObjects
             //Console.WriteLine($"Player {Name} - RemoveTrackedEquippedObject({worldObject.Name}) on Former Wielder {formerWielder.Name}");
 
             // We don't need to remove objects that couldn't have been tracked in the first place
-            if ((worldObject.ValidLocations ?? 0 & EquipMask.Selectable) == 0)
+            if ((worldObject.ValidLocations ?? 0 & EquipMask.SelectablePlusAmmo) == 0)
                 return;
 
             // The former wielder already knows about this object was removed

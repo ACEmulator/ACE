@@ -8,6 +8,7 @@ using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
 using ACE.Server.Entity;
+using ACE.Server.Entity.Actions;
 using ACE.Server.Managers;
 using ACE.Server.Network.GameEvent.Events;
 using ACE.Server.Network.GameMessages.Messages;
@@ -119,13 +120,6 @@ namespace ACE.Server.WorldObjects
                 return baseRequirements;
 
             // cooldowns for gems and pet devices, anything else?
-
-            // should this verification be in base CheckUseRequirements?
-            if (!player.EnchantmentManager.CheckCooldown(CooldownId))
-            {
-                player.Session.Network.EnqueueSend(new GameEventCommunicationTransientString(player.Session, "You have used this item too recently"));
-                return new ActivationResult(false);
-            }
 
             // TODO: limit non-golems to summoning mastery
 
@@ -487,5 +481,48 @@ namespace ACE.Server.WorldObjects
             { 49322, new Tuple<uint, DamageType>(7127, DamageType.Electric) }, // lightning wisp (180)
             { 49323, new Tuple<uint, DamageType>(25667, DamageType.Electric) }, // voltaic wisp (200)
         };
+
+        /// <summary>
+        /// Returns TRUE if wo is Encapsulated Spirit
+        /// </summary>
+        public static bool IsEncapsulatedSpirit(WorldObject wo)
+        {
+            return wo.WeenieClassId == 49485;
+        }
+
+        /// <summary>
+        /// Applies an encapsulated spirit to a PetDevice
+        /// </summary>
+        public void Refill(Player player, GenericObject spirit)
+        {
+            // TODO: this should be moved to recipe system
+            if (!IsEncapsulatedSpirit(spirit))
+                return;
+
+            var actionChain = new ActionChain();
+
+            // handle switching to peace mode
+            if (player.CombatMode != CombatMode.NonCombat)
+            {
+                var stanceTime = player.SetCombatMode(CombatMode.NonCombat);
+                actionChain.AddDelaySeconds(stanceTime);
+            }
+
+            // perform clapping motion
+            player.EnqueueMotion(actionChain, MotionCommand.ClapHands);
+
+            actionChain.AddAction(player, () =>
+            {
+                player.UpdateProperty(this, PropertyInt.Structure, MaxStructure);
+
+                player.TryConsumeFromInventoryWithNetworking(spirit, 1);
+
+                player.Session.Network.EnqueueSend(new GameMessageSystemChat("You add the spirit to the essence.", ChatMessageType.Broadcast));
+
+                player.SendUseDoneEvent();
+            });
+
+            actionChain.EnqueueChain();
+        }
     }
 }

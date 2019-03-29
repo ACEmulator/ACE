@@ -103,6 +103,11 @@ namespace ACE.Server.Entity
         public double Duration { get => _spell != null && _spell.DotDuration.HasValue ? _spell.DotDuration.Value : _spellBase.Duration; }
 
         /// <summary>
+        /// The DoT (damage over time) duration for the spell
+        /// </summary>
+        public double DotDuration { get => _spell.DotDuration ?? 0; }
+
+        /// <summary>
         /// Unknown what this does?
         /// client visual FX possibly?
         /// </summary>

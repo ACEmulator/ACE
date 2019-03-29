@@ -102,6 +102,39 @@ namespace ACE.Server.WorldObjects
 
                 case SkillAlterationType.Lower:
 
+                    // salvage / tinkering skills specialized via augmentations
+                    // cannot be untrained or unspecialized
+                    bool specAug = false;
+
+                    switch (currentSkill.Skill)
+                    {
+                        case Skill.ArmorTinkering:
+                            specAug = player.AugmentationSpecializeArmorTinkering > 0;
+                            break;
+
+                        case Skill.ItemTinkering:
+                            specAug = player.AugmentationSpecializeItemTinkering > 0;
+                            break;
+
+                        case Skill.MagicItemTinkering:
+                            specAug = player.AugmentationSpecializeMagicItemTinkering > 0;
+                            break;
+
+                        case Skill.WeaponTinkering:
+                            specAug = player.AugmentationSpecializeWeaponTinkering > 0;
+                            break;
+
+                        case Skill.Salvaging:
+                            specAug = player.AugmentationSpecializeSalvaging > 0;
+                            break;
+                    }
+
+                    if (specAug)
+                    {
+                        player.Session.Network.EnqueueSend(new GameMessageSystemChat($"You cannot lower your {currentSkill.Skill.ToSentence()} augmented skill.", ChatMessageType.Broadcast));
+                        break;
+                    }
+
                     //We're using a Gem of Forgetfullness
 
                     //Check for equipped items that have requirements in the skill we're lowering

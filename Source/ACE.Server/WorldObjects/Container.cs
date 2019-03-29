@@ -242,6 +242,14 @@ namespace ACE.Server.WorldObjects
         }
 
         /// <summary>
+        /// Returns the total # of inventory items matching a wcid
+        /// </summary>
+        public int GetNumInventoryItemsOfWCID(uint weenieClassId)
+        {
+            return GetInventoryItemsOfWCID(weenieClassId).Select(i => i.StackSize ?? 1).Sum();
+        }
+
+        /// <summary>
         /// Returns all of the trade notes from inventory + side packs
         /// </summary>
         public List<WorldObject> GetTradeNotes()
@@ -328,7 +336,7 @@ namespace ACE.Server.WorldObjects
             }
 
             worldObject.Location = null;
-            worldObject.Placement = null;
+            worldObject.Placement = ACE.Entity.Enum.Placement.Resting;
 
             worldObject.OwnerId = Guid.Full;
             worldObject.ContainerId = Guid.Full;
@@ -500,13 +508,13 @@ namespace ACE.Server.WorldObjects
                 }
             }
 
-            player.Session.Network.EnqueueSend(itemsToSend.ToArray());
-
             player.Session.Network.EnqueueSend(new GameEventViewContents(player.Session, this));
 
             // send sub-containers
             foreach (var container in Inventory.Values.Where(i => i is Container))
                 player.Session.Network.EnqueueSend(new GameEventViewContents(player.Session, (Container)container));
+
+            player.Session.Network.EnqueueSend(itemsToSend.ToArray());
         }
 
         public virtual void Close(Player player)

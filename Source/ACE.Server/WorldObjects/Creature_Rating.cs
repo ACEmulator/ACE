@@ -1,4 +1,5 @@
 using System;
+using ACE.Entity.Enum.Properties;
 
 namespace ACE.Server.WorldObjects
 {
@@ -23,7 +24,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public static float GetPositiveRatingMod(int rating)
         {
-            if (rating < 0) return GetNegativeRatingMod(rating);
+            if (rating < 0) return GetNegativeRatingMod(-rating);
 
             // formula: (100 + rating) / 100 = 1.xx modifier
             var ratingMod = (100 + rating) / 100.0f;
@@ -36,7 +37,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public static float GetNegativeRatingMod(int rating)
         {
-            if (rating < 0) return GetPositiveRatingMod(rating);
+            if (rating < 0) return GetPositiveRatingMod(-rating);
 
             // formula: 100 / (100 + rating) = 0.xx modifier
             var ratingMod = 100.0f / (100 + rating);
@@ -180,6 +181,226 @@ namespace ACE.Server.WorldObjects
                 totalRating += ModToRating(mod);
 
             return GetRatingMod(totalRating);
+        }
+
+        public int GetDamageRating()
+        {
+            // get from base properties (monsters)?
+            var damageRating = DamageRating ?? 0;
+
+            // additive enchantments
+            var enchantments = EnchantmentManager.GetRating(PropertyInt.DamageRating);
+
+            // weakness as negative damage rating?
+            // TODO: this should be factored in as a separate weakness rating...
+            var weaknessRating = EnchantmentManager.GetRating(PropertyInt.WeaknessRating);
+
+            var augBonus = 0;
+            var lumAugBonus = 0;
+
+            if (this is Player player)
+            {
+                augBonus = player.AugmentationDamageBonus * 3;
+                lumAugBonus = player.LumAugDamageRating;
+            }
+
+            // heritage / weapon type bonus factored in elsewhere?
+            return damageRating + enchantments - weaknessRating + augBonus + lumAugBonus;
+        }
+
+        public int GetDamageResistRating()
+        {
+            // get from base properties (monsters)?
+            var damageResistRating = DamageResistRating ?? 0;
+
+            // additive enchantments
+            var enchantments = EnchantmentManager.GetRating(PropertyInt.DamageResistRating);
+
+            // nether DoTs as negative DRR?
+            // TODO: this should be factored in as a separate nether damage rating...
+            var netherDotDamageRating = EnchantmentManager.GetNetherDotDamageRating();
+
+            var augBonus = 0;
+            var lumAugBonus = 0;
+
+            if (this is Player player)
+            {
+                augBonus = player.AugmentationDamageReduction * 3;
+                lumAugBonus = player.LumAugDamageReductionRating;
+            }
+
+            return damageResistRating + enchantments - netherDotDamageRating + augBonus + lumAugBonus;
+        }
+
+        public int GetCritRating()
+        {
+            // crit chance
+
+            // get from base properties (monsters)?
+            var critChanceRating = CritRating ?? 0;
+
+            // additive enchantments
+            var enchantments = EnchantmentManager.GetRating(PropertyInt.CritRating);
+
+            // augmentations
+            var augBonus = 0;
+
+            if (this is Player player)
+                augBonus = player.AugmentationCriticalExpertise;
+
+            return critChanceRating + enchantments + augBonus;
+        }
+
+        public int GetCritDamageRating()
+        {
+            // get from base properties (monsters)?
+            var critDamageRating = CritDamageRating ?? 0;
+
+            // additive enchantments
+            var enchantments = EnchantmentManager.GetRating(PropertyInt.CritDamageRating);
+
+            // augmentations
+            var augBonus = 0;
+            var lumAugBonus = 0;
+
+            if (this is Player player)
+            {
+                augBonus = player.AugmentationCriticalPower * 3;
+                lumAugBonus = player.LumAugCritDamageRating;
+            }
+
+            return critDamageRating + enchantments + augBonus + lumAugBonus;
+        }
+
+        public int GetCritResistRating()
+        {
+            // crit resist chance
+
+            // get from base properties (monsters)?
+            var critResistRating = CritResistRating ?? 0;
+
+            // additive enchantments
+            var enchantments = EnchantmentManager.GetRating(PropertyInt.CritResistRating);
+
+            // no augs / lum augs?
+            return critResistRating + enchantments;
+        }
+
+        public int GetCritDamageResistRating()
+        {
+            // get from base properties (monsters)?
+            var critDamageResistRating = CritDamageResistRating ?? 0;
+
+            // additive enchantments
+            var enchantments = EnchantmentManager.GetRating(PropertyInt.CritDamageResistRating);
+
+            var lumAugBonus = 0;
+            if (this is Player player)
+                lumAugBonus = player.LumAugCritReductionRating;
+
+            return critDamageResistRating + enchantments + lumAugBonus;
+        }
+
+        public int GetHealingBoostRating()
+        {
+            // get from base properties (monsters)?
+            var healBoostRating = HealingBoostRating ?? 0;
+
+            // additive enchantments
+            var enchantments = EnchantmentManager.GetRating(PropertyInt.HealingBoostRating);
+
+            var lumAugBonus = 0;
+            if (this is Player player)
+                lumAugBonus = player.LumAugHealingRating;
+
+            return healBoostRating + enchantments + lumAugBonus;
+        }
+
+        public int GetHealingResistRating()
+        {
+            // debuff?
+            var healResistRating = HealingResistRating ?? 0;
+
+            // additive enchantments
+            var enchantments = EnchantmentManager.GetRating(PropertyInt.HealingResistRating);
+
+            return healResistRating + enchantments;
+        }
+
+        public int GetLifeResistRating()
+        {
+            // drain resistance?
+
+            // Drain Resistances - allows one to partially resist drain health/stamina/mana and harm attacks (not including other life transfer spells).
+
+            // get from base properties (monsters)?
+            var lifeResistRating = LifeResistRating ?? 0;
+
+            // additive enchantments
+            var enchantments = EnchantmentManager.GetRating(PropertyInt.LifeResistRating);
+
+            return lifeResistRating + enchantments;
+        }
+
+        public int GetNetherResistRating()
+        {
+            // wiki calls this dot resistance, does this affect dirty fighting bleed attack?
+
+            // get from base properties (monsters)?
+            var netherResistRating = NetherResistRating ?? 0;
+
+            // additive enchantments
+            var enchantments = EnchantmentManager.GetRating(PropertyInt.NetherResistRating);
+
+            return netherResistRating + enchantments;
+        }
+
+        public int GetGearMaxHealth()
+        {
+            // ??
+            return 0;
+        }
+
+        public int GetPKDamageRating()
+        {
+            var pkDamageRating = PKDamageRating ?? 0;
+
+            // additive enchantments?
+            var enchantments = EnchantmentManager.GetRating(PropertyInt.PKDamageRating);
+
+            return pkDamageRating + enchantments;
+        }
+
+        public int GetPKDamageResistRating()
+        {
+            var pkDamageResistRating = PKDamageResistRating ?? 0;
+
+            // additive enchantments?
+            var enchantments = EnchantmentManager.GetRating(PropertyInt.PKDamageResistRating);
+
+            return pkDamageResistRating + enchantments;
+        }
+
+        public int GetItemManaReductionRating()
+        {
+            // only comes from luminance aug?
+            var lumAugBonus = 0;
+
+            if (this is Player player)
+                lumAugBonus = player.LumAugItemManaUsage;
+
+            return lumAugBonus;
+        }
+
+        public int GetManaChargeRating()
+        {
+            // only comes from luminance aug?
+            var lumAugBonus = 0;
+
+            if (this is Player player)
+                lumAugBonus = player.LumAugItemManaGain;
+
+            return lumAugBonus;
         }
     }
 }

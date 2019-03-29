@@ -98,7 +98,7 @@ namespace ACE.Server.WorldObjects
             {
                 var stack = FindObject(item.Guid, SearchLocations.MyInventory | SearchLocations.MyEquippedItems, out var stackFoundInContainer, out var stackRootOwner, out _);
 
-                if (stack == null || stackFoundInContainer == null || stackRootOwner == null)
+                if (stack == null || stackRootOwner == null)
                     return false;
 
                 AdjustStack(stack, -amount, stackFoundInContainer, stackRootOwner);
@@ -110,6 +110,24 @@ namespace ACE.Server.WorldObjects
             if (item.WeenieType == WeenieType.Coin)
                 UpdateCoinValue();
 
+            return true;
+        }
+
+        public bool TryConsumeFromInventoryWithNetworking(uint wcid, int amount = int.MaxValue)
+        {
+            var items = GetInventoryItemsOfWCID(wcid);
+
+            var leftReq = amount;
+            foreach (var item in items)
+            {
+                var removeNum = Math.Min(leftReq, item.StackSize ?? 1);
+                if (!TryConsumeFromInventoryWithNetworking(item, removeNum))
+                    return false;
+
+                leftReq -= removeNum;
+                if (leftReq <= 0)
+                    break;
+            }
             return true;
         }
 
@@ -210,10 +228,17 @@ namespace ACE.Server.WorldObjects
 
                 foreach (var spell in item.Biota.BiotaPropertiesSpellBook)
                 {
+                    if (item.HasProcSpell((uint)spell.Spell))
+                        continue;
+
                     var enchantmentStatus = CreateItemSpell(item, (uint)spell.Spell);
                     if (enchantmentStatus.Success)
                         item.IsAffecting = true;
                 }
+
+                // handle equipment sets
+                if (item.HasItemSet)
+                    EquipItemFromSet(item);
 
                 if (item.IsAffecting ?? false)
                 {
@@ -266,8 +291,17 @@ namespace ACE.Server.WorldObjects
             if (item.Biota.BiotaPropertiesSpellBook != null)
             {
                 foreach (var spell in item.Biota.BiotaPropertiesSpellBook)
+                {
+                    if (item.HasProcSpell((uint)spell.Spell))
+                        continue;
+
                     RemoveItemSpell(item, (uint)spell.Spell, true);
+                }
             }
+
+            // handle equipment sets
+            if (item.HasItemSet)
+                DequipItemFromSet(item);
 
             if (dequipObjectAction == DequipObjectAction.ToCorpseOnDeath)
                 Session.Network.EnqueueSend(new GameMessageDeleteObject(item));
@@ -479,12 +513,12 @@ namespace ACE.Server.WorldObjects
                 // We add to these values because amount will be negative if we're subtracting from a stack, so we want to add a negative number.
                 container.EncumbranceVal += (stack.StackUnitEncumbrance * amount);
                 container.Value += (stack.StackUnitValue * amount);
+            }
 
-                if (rootContainer != container)
-                {
-                    rootContainer.EncumbranceVal += (stack.StackUnitEncumbrance * amount);
-                    rootContainer.Value += (stack.StackUnitValue * amount);
-                }
+            if (rootContainer != null && rootContainer != container)
+            {
+                rootContainer.EncumbranceVal += (stack.StackUnitEncumbrance * amount);
+                rootContainer.Value += (stack.StackUnitValue * amount);
             }
         }
 
@@ -1586,10 +1620,15 @@ namespace ACE.Server.WorldObjects
             if (item == itemToGive)
                 Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, target));
 
-            Session.Network.EnqueueSend(new GameMessageSystemChat($"You give {target.Name} {itemToGive.Name}.", ChatMessageType.Broadcast));
+            var stackSize = itemToGive.StackSize ?? 1;
+
+            var stackMsg = stackSize > 1 ? $"{stackSize} " : "";
+            var itemName = stackSize > 1 ? itemToGive.GetPluralName() : itemToGive.Name;
+
+            Session.Network.EnqueueSend(new GameMessageSystemChat($"You give {target.Name} {stackMsg}{itemName}.", ChatMessageType.Broadcast));
             Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.ReceiveItem));
 
-            target.Session.Network.EnqueueSend(new GameMessageSystemChat($"{Name} gives you {itemToGive.Name}.", ChatMessageType.Broadcast));
+            target.Session.Network.EnqueueSend(new GameMessageSystemChat($"{Name} gives you {stackMsg}{itemName}.", ChatMessageType.Broadcast));
             target.Session.Network.EnqueueSend(new GameMessageSound(Guid, Sound.ReceiveItem));
 
             // This is a hack because our Player_Tracking->RemoveTrackedEquippedObject() is doing GameMessageDeleteObject, not GameMessagePickupEvent

@@ -461,8 +461,20 @@ namespace ACE.Server.Physics.Animation
             }
             else
             {
+                // custom for low monster update rate
+                var inRange = false;
+
+                if (!MovementParams.UseSpheres)
+                {
+                    if (dist < 1.0f && PreviousDistance < dist)
+                        inRange = true;
+
+                    PreviousDistance = dist;
+                    PreviousDistanceTime = PhysicsTimer.CurrentTime;
+                }
+
                 FailProgressCount = 0;
-                if (MovingAway && dist >= MovementParams.MinDistance || !MovingAway && dist <= MovementParams.DistanceToObject)
+                if (MovingAway && dist >= MovementParams.MinDistance || !MovingAway && dist <= MovementParams.DistanceToObject || inRange)
                 {
                     PendingActions.RemoveAt(0);
                     _StopMotion(CurrentCommand, movementParams);

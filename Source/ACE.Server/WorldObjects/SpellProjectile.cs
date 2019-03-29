@@ -249,9 +249,9 @@ namespace ACE.Server.WorldObjects
 
             // for untargeted multi-projectile war spells launched by monsters,
             // ensure monster can damage target
-            if (ProjectileSource is Creature sourceCreature)
-                if (!sourceCreature.CanDamage(target))
-                    return;
+            var sourceCreature = ProjectileSource as Creature;
+            if (sourceCreature != null && !sourceCreature.CanDamage(target))
+                return;
 
             // if player target, ensure matching PK status
             var targetPlayer = target as Player;
@@ -293,6 +293,12 @@ namespace ACE.Server.WorldObjects
 
                 if (player != null)
                     Proficiency.OnSuccessUse(player, player.GetCreatureSkill(Spell.School), Spell.PowerMod);
+
+                // handle target procs
+                // note that for untargeted multi-projectile spells,
+                // ProjectileTarget will be null here, so procs will not apply
+                if (sourceCreature != null && ProjectileTarget != null)
+                    sourceCreature.TryProcEquippedItems(target, false);
             }
 
             // also called on resist
@@ -512,8 +518,10 @@ namespace ACE.Server.WorldObjects
                     }
 
                     // DR / DRR applies for magic too?
-                    var damageRatingMod = Creature.AdditiveCombine(sneakAttackMod, heritageMod, Creature.GetPositiveRatingMod(ProjectileSource.EnchantmentManager.GetDamageRating()));
-                    var damageResistRatingMod = Creature.GetNegativeRatingMod(target.EnchantmentManager.GetDamageResistRating());
+                    var creatureSource = ProjectileSource as Creature;
+                    var damageRating = creatureSource != null ? creatureSource.GetDamageRating() : 0;
+                    var damageRatingMod = Creature.AdditiveCombine(Creature.GetPositiveRatingMod(damageRating), heritageMod, sneakAttackMod);
+                    var damageResistRatingMod = Creature.GetNegativeRatingMod(target.GetDamageResistRating());
                     damage *= damageRatingMod * damageResistRatingMod;
 
                     //Console.WriteLine($"Damage rating: " + Creature.ModToRating(damageRatingMod));

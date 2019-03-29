@@ -7,6 +7,7 @@ using System.Text;
 using log4net;
 
 using ACE.Common;
+using ACE.Common.Extensions;
 using ACE.Database.Models.Shard;
 using ACE.Database.Models.World;
 using ACE.Entity;
@@ -77,6 +78,8 @@ namespace ACE.Server.WorldObjects
 
         public WorldObject ProjectileSource;
         public WorldObject ProjectileTarget;
+
+        public WorldObject Wielder;
 
         public WorldObject() { }
 
@@ -874,7 +877,12 @@ namespace ACE.Server.WorldObjects
 
         public string GetPluralName()
         {
-            return Name + "s";
+            var pluralName = PluralName;
+
+            if (pluralName == null)
+                pluralName = Name.Pluralize();
+
+            return pluralName;
         }
 
         /// <summary>
@@ -943,6 +951,8 @@ namespace ACE.Server.WorldObjects
         public static readonly float LocalBroadcastRange = 96.0f;
 
         public SetPosition ScatterPos;
+
+        public DestinationType DestinationType;
 
         public Skill ConvertToMoASkill(Skill skill)
         {

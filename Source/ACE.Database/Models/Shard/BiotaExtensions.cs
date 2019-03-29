@@ -1035,6 +1035,19 @@ namespace ACE.Database.Models.Shard
             }
         }
 
+        public static BiotaPropertiesEnchantmentRegistry GetEnchantmentBySpellSet(this Biota biota, int spellId, int spellSetId, ReaderWriterLockSlim rwLock)
+        {
+            rwLock.EnterReadLock();
+            try
+            {
+                return biota.BiotaPropertiesEnchantmentRegistry.FirstOrDefault(e => e.SpellId == spellId && e.SpellSetId == spellSetId);
+            }
+            finally
+            {
+                rwLock.ExitReadLock();
+            }
+        }
+
         public static List<BiotaPropertiesEnchantmentRegistry> GetEnchantments(this Biota biota, ReaderWriterLockSlim rwLock)
         {
             rwLock.EnterReadLock();
@@ -1115,7 +1128,7 @@ namespace ACE.Database.Models.Shard
             }
         }
 
-        public static void RemoveAllEnchantments(this Biota biota, ICollection<int> spellsToExclude, ReaderWriterLockSlim rwLock)
+        public static void RemoveAllEnchantments(this Biota biota, IEnumerable<int> spellsToExclude, ReaderWriterLockSlim rwLock)
         {
             rwLock.EnterWriteLock();
             try

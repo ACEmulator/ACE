@@ -103,7 +103,11 @@ namespace ACE.Server.Network.Structure
             {
                 if (rawState.ForwardCommand == MotionCommand.WalkForward || rawState.ForwardCommand == MotionCommand.WalkBackwards)
                 {
-                    interpState.ForwardCommand = holdKey == HoldKey.Run ? MotionCommand.RunForward : MotionCommand.WalkForward;
+                    interpState.ForwardCommand = MotionCommand.WalkForward;
+
+                    if (rawState.ForwardCommand == MotionCommand.WalkForward && holdKey == HoldKey.Run)
+                        interpState.ForwardCommand = MotionCommand.RunForward;
+
                     interpState.ForwardSpeed = speed;
 
                     if (rawState.ForwardCommand == MotionCommand.WalkBackwards)
