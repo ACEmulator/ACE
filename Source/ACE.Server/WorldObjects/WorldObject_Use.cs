@@ -69,6 +69,10 @@ namespace ACE.Server.WorldObjects
             // PropertyInt.Active indicates if this object can be activated, default is true
             if (!Active) return;
 
+            // Should we check Usable flag here?
+            //if (Usable == ACE.Entity.Enum.Usable.No)
+            //    return;
+
             // verify use requirements
             var result = CheckUseRequirements(activator);
 

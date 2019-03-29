@@ -58,8 +58,8 @@ namespace ACE.Server.Managers
             var delay = 0.0f;
             var emoteType = (EmoteType)emote.Type;
 
-            //if (Debug)
-                //Console.WriteLine($"{WorldObject.Name}.ExecuteEmote({emoteType})");
+            if (Debug)
+                Console.WriteLine($"{WorldObject.Name}.ExecuteEmote({emoteType})");
 
             var text = emote.Message;
 
@@ -497,7 +497,7 @@ namespace ACE.Server.Managers
                         var canSolve = player.QuestManager.CanSolve(emote.Message);
 
                         // verify: QuestSuccess = player has quest, and their last completed time + quest minDelta <= currentTime
-                        success = hasQuest && !canSolve;
+                        success = hasQuest && canSolve;
 
                         ExecuteEmoteSet(success ? EmoteCategory.QuestSuccess : EmoteCategory.QuestFailure, emote.Message, targetObject, true);
                     }
