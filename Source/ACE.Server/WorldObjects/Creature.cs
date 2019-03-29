@@ -258,17 +258,8 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public override void ActOnUse(WorldObject worldObject)
         {
-            var player = worldObject as Player;
-            if (player == null) return;
-
-            var rotateTime = player.Rotate(this);
-
-            var actionChain = new ActionChain();
-            actionChain.AddDelaySeconds(rotateTime);
-
-            actionChain.AddAction(this, () => EmoteManager.ExecuteEmoteSet(EmoteCategory.Use, null, player));
-            actionChain.EnqueueChain();
-       }
+            // handled in base.OnActivate -> EmoteManager.OnUse()
+        }
 
         public override void OnCollideObject(WorldObject target)
         {
