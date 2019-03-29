@@ -2,6 +2,7 @@
 
 ### 2019-03-29
 [Ripley]
+* Change action that occurs for selling items to vendors so they appear in the buy window if they aren't destroyed on sell.
 * Prevent selling objects (via drag-drop on vendor) that vendor doesn't accept in its MerchandiseItemTypes field. These same items would red-circle using traditional drop into panel method.
 * Set minimum for hotspot cycles. Prevents hotspot of doom (HotspotCycleTime == 0)
 
