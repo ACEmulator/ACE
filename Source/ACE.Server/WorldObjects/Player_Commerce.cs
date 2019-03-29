@@ -232,7 +232,7 @@ namespace ACE.Server.WorldObjects
                 var item = allPossessions.FirstOrDefault(i => i.Guid.Full == profile.ObjectGuid);
 
                 if (item == null)
-                    continue;                
+                    continue;
 
                 if (!(item.GetProperty(PropertyBool.IsSellable) ?? true) || (item.GetProperty(PropertyBool.Retained) ?? false) || (acceptedItemTypes & item.ItemType) == 0)
                 {
