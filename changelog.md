@@ -2,6 +2,7 @@
 
 ### 2019-03-29
 [Ripley]
+* Prevent selling objects (via drag-drop on vendor) that vendor doesn't accept in its MerchandiseItemTypes field. These same items would red-circle using traditional drop into panel method.
 * Set minimum for hotspot cycles. Prevents hotspot of doom (HotspotCycleTime == 0)
 
 ### 2019-03-27
