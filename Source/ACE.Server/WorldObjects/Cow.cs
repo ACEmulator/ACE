@@ -34,7 +34,7 @@ namespace ACE.Server.WorldObjects
         /// </summary>
         public override void ActOnUse(WorldObject activator)
         {
-            // handled via EmoteCategory.Use
+            // handled in base.OnActivate -> EmoteManager.OnUse()
         }
     }
 }
