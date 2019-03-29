@@ -188,9 +188,9 @@ namespace ACE.Server.Network.GameAction.Actions
                             break;
                         }
 
-                        foreach (var vassal in session.Player.AllegianceNode.Vassals)
+                        foreach (var vassalGuid in session.Player.AllegianceNode.Vassals.Keys)
                         {
-                            var vassalPlayer = PlayerManager.GetOnlinePlayer(vassal.PlayerGuid);
+                            var vassalPlayer = PlayerManager.GetOnlinePlayer(vassalGuid);
 
                             if (vassalPlayer != null && !vassalPlayer.Squelches.Contains(session.Player))
                                 vassalPlayer.Session.Network.EnqueueSend(new GameEventChannelBroadcast(vassalPlayer.Session, groupChatType, session.Player.Name, message));
@@ -267,15 +267,15 @@ namespace ACE.Server.Network.GameAction.Actions
                         if (patronPlayer != null && !patronPlayer.Squelches.Contains(session.Player))
                             patronPlayer.Session.Network.EnqueueSend(new GameEventChannelBroadcast(patronPlayer.Session, Channel.Patron, session.Player.Name, message));
 
-                        foreach (var covassal in session.Player.AllegianceNode.Patron.Vassals)
+                        foreach (var covassalGuid in session.Player.AllegianceNode.Patron.Vassals.Keys)
                         {
-                            if (covassal.PlayerGuid.Full == session.Player.Guid.Full)
+                            if (covassalGuid == session.Player.Guid.Full)
                             {
                                 session.Network.EnqueueSend(new GameEventChannelBroadcast(session, groupChatType, "", message));
                             }
                             else
                             {
-                                var covassalPlayer = PlayerManager.GetOnlinePlayer(covassal.PlayerGuid);
+                                var covassalPlayer = PlayerManager.GetOnlinePlayer(covassalGuid);
 
                                 if (covassalPlayer != null && !covassalPlayer.Squelches.Contains(session.Player))
                                     covassalPlayer.Session.Network.EnqueueSend(new GameEventChannelBroadcast(covassalPlayer.Session, groupChatType, session.Player.Name, message));

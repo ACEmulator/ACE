@@ -128,7 +128,7 @@ namespace ACE.Server.Network.Structure
                     // vassals
                     if (node.TotalVassals > 0)
                     {
-                        foreach (var vassal in node.Vassals)
+                        foreach (var vassal in node.Vassals.Values)
                             records.Add(new Tuple<ObjectGuid, AllegianceData>(node.PlayerGuid, new AllegianceData(vassal)));
                     }
                 }
