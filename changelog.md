@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2019-03-29
+[Ripley]
+* Fix issue with Cow Tipping quest and EmoteManager.
+
 ### 2019-03-27
 [Ripley]
 * Support AdvocateItem changing/updating Radar Blip Color in similar fashion to retail servers.
