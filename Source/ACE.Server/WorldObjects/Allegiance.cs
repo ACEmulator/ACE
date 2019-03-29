@@ -131,7 +131,7 @@ namespace ACE.Server.WorldObjects
 
             Members.Add(node.PlayerGuid, node);
 
-            foreach (var vassal in node.Vassals)
+            foreach (var vassal in node.Vassals.Values)
                 BuildMembers(vassal);
         }
 

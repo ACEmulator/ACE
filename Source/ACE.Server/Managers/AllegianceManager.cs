@@ -385,7 +385,7 @@ namespace ACE.Server.Managers
             player.MonarchId = null;
 
             // vassals now become monarchs...
-            foreach (var vassal in allegianceNode.Vassals)
+            foreach (var vassal in allegianceNode.Vassals.Values)
             {
                 var vassalPlayer = PlayerManager.FindByGuid(vassal.PlayerGuid, out bool isOnline);
 
