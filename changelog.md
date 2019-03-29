@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2019-03-29
+[Ripley]
+* Set minimum for hotspot cycles. Prevents hotspot of doom (HotspotCycleTime == 0)
+
 ### 2019-03-27
 [Ripley]
 * Support AdvocateItem changing/updating Radar Blip Color in similar fashion to retail servers.
