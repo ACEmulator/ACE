@@ -42,7 +42,7 @@ Build status: [![Windows CI](https://ci.appveyor.com/api/projects/status/rqebda3
 * SKIP THIS STEP IF USING DOWNLOADED WORLD DATA FROM PREVIOUS STEP.
   - If using custom database, you may need to update the schema for the emulator to operate correctly. If you're using the official release data, this step is not recommended.
   - Load all incremental SQL updates found in the Database\Updates\World sub directory in the order of oldest to newest. Skip this step if there are no updates in this directory.
-* Copy `ACE\Config.js.example` to `Config.js` and modify settings, such as passwords and other server settings.
+* Copy `ACE.Server\Config.js.example` to `Config.js` and modify settings, such as passwords and other server settings.
 * Open ACE.sln with Visual Studio and build the solution.
 * Download and install [Microsoft .NET Core Runtime - 2.1](https://www.microsoft.com/net/download) if you don't already have it.
 * Start the server by running the batch file located in the netcoreapp2.1 output directory: `start_server.bat`

@@ -294,7 +294,7 @@ namespace ACE.Server.WorldObjects
             {
                 if (player != null)
                 {
-                    player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{creature.Name} resists {spell.Name}", ChatMessageType.Magic));
+                    player.Session.Network.EnqueueSend(new GameMessageSystemChat($"{creature.Name} resists your spell", ChatMessageType.Magic));
                     player.Session.Network.EnqueueSend(new GameMessageSound(player.Guid, Sound.ResistSpell, 1.0f));
                 }
                 if (targetPlayer != null)
