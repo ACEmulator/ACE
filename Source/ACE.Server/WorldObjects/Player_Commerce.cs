@@ -225,14 +225,16 @@ namespace ACE.Server.WorldObjects
 
             var sellList = new List<WorldObject>();
 
+            var acceptedItemTypes = (ItemType)(vendor.MerchandiseItemTypes ?? 0);
+
             foreach (ItemProfile profile in itemprofiles)
             {
                 var item = allPossessions.FirstOrDefault(i => i.Guid.Full == profile.ObjectGuid);
 
                 if (item == null)
-                    continue;
+                    continue;                
 
-                if (!(item.GetProperty(PropertyBool.IsSellable) ?? true) || (item.GetProperty(PropertyBool.Retained) ?? false) || !(((ItemType)vendor.MerchandiseItemTypes & item.ItemType) != 0))
+                if (!(item.GetProperty(PropertyBool.IsSellable) ?? true) || (item.GetProperty(PropertyBool.Retained) ?? false) || (acceptedItemTypes & item.ItemType) == 0)
                 {
                     var itemName = (item.StackSize ?? 1) > 1 ? item.GetPluralName() : item.Name;
                     Session.Network.EnqueueSend(new GameEventCommunicationTransientString(Session, $"The {itemName} cannot be sold")); // TODO: find retail messages
