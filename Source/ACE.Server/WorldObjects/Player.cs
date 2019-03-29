@@ -36,6 +36,7 @@ namespace ACE.Server.WorldObjects
         public QuestManager QuestManager;
 
         public bool LastContact = true;
+        public bool IsJumping = false;
 
         public SquelchDB Squelches;
 
@@ -734,16 +735,36 @@ namespace ACE.Server.WorldObjects
             var burden = EncumbranceSystem.GetBurden(capacity, EncumbranceVal ?? 0);
 
             // calculate stamina cost for this jump
-            var staminaCost = MovementSystem.JumpStaminaCost(jump.Extent, burden, false);
+            var extent = Math.Clamp(jump.Extent, 0.0f, 1.0f);
+            var staminaCost = MovementSystem.JumpStaminaCost(extent, burden, false);
 
             //Console.WriteLine($"Strength: {strength}, Capacity: {capacity}, Encumbrance: {EncumbranceVal ?? 0}, Burden: {burden}, StaminaCost: {staminaCost}");
 
-            // TODO: ensure player has enough stamina to jump
+            // ensure player has enough stamina to jump
+
+            /*if (staminaCost > Stamina.Current)
+            {
+                // get adjusted power
+                extent = MovementSystem.GetJumpPower(Stamina.Current, burden, false);
+
+                staminaCost = (int)Stamina.Current;
+
+                // adjust jump velocity
+                var velocityZ = MovementSystem.GetJumpHeight(burden, GetCreatureSkill(Skill.Jump).Current, extent, 1.0f);
+
+                jump.Velocity.Z = velocityZ;
+            }*/
+
+            IsJumping = true;
+
             UpdateVitalDelta(Stamina, -staminaCost);
+
+            IsJumping = false;
 
             //Console.WriteLine($"Jump velocity: {jump.Velocity}");
 
             // set jump velocity
+            // TODO: have server verify / scale magnitude
             PhysicsObj.set_velocity(jump.Velocity, true);
 
             // this shouldn't be needed, but without sending this update motion / simulated movement event beforehand,
@@ -765,7 +786,7 @@ namespace ACE.Server.WorldObjects
         public void OnExhausted()
         {
             // adjust player speed if running
-            if (CurrentMotionCommand == MotionCommand.RunForward)
+            if (CurrentMotionCommand == MotionCommand.RunForward && !IsJumping)
             {
                 // verify - forced commands from server should be non-autonomous, but could have been sent as autonomous in retail?
                 // if set to autonomous here, the desired effect doesn't happen
