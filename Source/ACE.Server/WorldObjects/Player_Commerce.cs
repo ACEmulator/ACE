@@ -273,7 +273,7 @@ namespace ACE.Server.WorldObjects
             foreach (var item in sellList)
             {
                 if (TryRemoveFromInventoryWithNetworking(item.Guid, out _, RemoveFromInventoryAction.SellItem) || TryDequipObjectWithNetworking(item.Guid, out _, DequipObjectAction.SellItem))
-                    Session.Network.EnqueueSend(new GameMessageDeleteObject(item));
+                    Session.Network.EnqueueSend(new GameEventItemServerSaysContainId(Session, item, vendor));
                 else
                     log.WarnFormat("Item 0x{0:X8}:{1} for player {2} not found in HandleActionSellItem.", item.Guid.Full, item.Name, Name); // This shouldn't happen
             }
