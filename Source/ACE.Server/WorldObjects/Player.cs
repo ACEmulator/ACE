@@ -452,9 +452,6 @@ namespace ACE.Server.WorldObjects
                 // remove the player from landblock management -- after the animation has run
                 logoutChain.AddAction(this, () =>
                 {
-                    if (PlayerKillerStatus == PlayerKillerStatus.PKLite)
-                        PlayerKillerStatus = PlayerKillerStatus.NPK;
-
                     CurrentLandblock?.RemoveWorldObject(Guid, false);
                     SetPropertiesAtLogOut();
                     SavePlayerToDatabase();
@@ -964,6 +961,8 @@ namespace ACE.Server.WorldObjects
                 return;
             }
 
+            EnqueueBroadcast(new GameMessageSystemChat($"{Name} is looking for a fight!", ChatMessageType.Broadcast));
+
             // perform pk lite entry motion / effect
             var motion = new Motion(MotionStance.NonCombat, MotionCommand.EnterPKLite);
             EnqueueBroadcastMotion(motion);
@@ -975,14 +974,11 @@ namespace ACE.Server.WorldObjects
             actionChain.AddDelaySeconds(animLength);
             actionChain.AddAction(this, () =>
             {
-                PlayerKillerStatus = PlayerKillerStatus.PKLite;
+                UpdateProperty(this, PropertyInt.PlayerKillerStatus, (int)PlayerKillerStatus.PKLite);
 
-                var status = new GameMessagePublicUpdatePropertyInt(this, PropertyInt.PlayerKillerStatus, (int)PlayerKillerStatus);
-                var msg = new GameMessageSystemChat($"{Name} is looking for a fight!", ChatMessageType.Broadcast);
-
-                EnqueueBroadcast(status, msg);
-
+                Session.Network.EnqueueSend(new GameMessageSystemChat($"A cold wind touches your heart. You are now a Player Killer Lite.", ChatMessageType.Broadcast));
             });
+
             actionChain.EnqueueChain();
         }
 

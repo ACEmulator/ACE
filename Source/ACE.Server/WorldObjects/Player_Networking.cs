@@ -5,6 +5,7 @@ using ACE.Database.Models.Shard;
 using ACE.Entity;
 using ACE.Entity.Enum;
 using ACE.Entity.Enum.Properties;
+using ACE.Server.Entity.Actions;
 using ACE.Server.Managers;
 using ACE.Server.Network.Enum;
 using ACE.Server.Network.GameEvent.Events;
@@ -54,6 +55,19 @@ namespace ACE.Server.WorldObjects
             // check if vassals earned XP while offline
             HandleAllegianceOnLogin();
             HandleHouseOnLogin();
+
+            if (PlayerKillerStatus == PlayerKillerStatus.PKLite)
+            {
+                var actionChain = new ActionChain();
+                actionChain.AddDelaySeconds(3.0f);
+                actionChain.AddAction(this, () =>
+                {
+                    UpdateProperty(this, PropertyInt.PlayerKillerStatus, (int)PlayerKillerStatus.NPK);
+
+                    Session.Network.EnqueueSend(new GameMessageSystemChat("You are enveloped in a feeling of warmth as you are brought back into the protection of the Light. You are once again a Non-Player Killer.", ChatMessageType.Broadcast));
+                });
+                actionChain.EnqueueChain();
+            }
 
             HandleDBUpdates();
         }
