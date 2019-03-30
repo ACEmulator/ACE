@@ -148,6 +148,7 @@ namespace ACE.Server.Managers
                 }
 
                 player.SendUseDoneEvent();
+                player.IsBusy = false;
             });
 
             craftChain.EnqueueChain();
