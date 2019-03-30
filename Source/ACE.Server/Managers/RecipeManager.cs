@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using log4net;
 
 using ACE.Common.Extensions;
@@ -131,14 +132,20 @@ namespace ACE.Server.Managers
 
                 CreateDestroyItems(player, recipe.Recipe, source, target, success);
 
-                var updateObj = new GameMessageUpdateObject(target);
-                var updateDesc = new GameMessageObjDescEvent(player);
-
+                // this code was intended for dyes, but UpdateObj seems to remove crafting components
+                // from shortcut bar, if they are hotkeyed
                 // more specifity for this, only if relevant properties are modified?
-                if (target.CurrentWieldedLocation != null)
-                    player.EnqueueBroadcast(updateObj, updateDesc);
-                else
-                    player.Session.Network.EnqueueSend(updateObj);
+                var shortcuts = player.GetShortcuts();
+                if (!shortcuts.Select(i => i.ObjectId).Contains(target.Guid.Full))
+                {
+                    var updateObj = new GameMessageUpdateObject(target);
+                    var updateDesc = new GameMessageObjDescEvent(player);
+
+                    if (target.CurrentWieldedLocation != null)
+                        player.EnqueueBroadcast(updateObj, updateDesc);
+                    else
+                        player.Session.Network.EnqueueSend(updateObj);
+                }
 
                 player.SendUseDoneEvent();
                 player.IsBusy = false;
