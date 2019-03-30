@@ -335,6 +335,12 @@ namespace ACE.Server.WorldObjects
                 }
             }
 
+            if (Inventory.ContainsKey(worldObject.Guid))
+            {
+                container = null;
+                return false;
+            }
+
             worldObject.Location = null;
             worldObject.Placement = ACE.Entity.Enum.Placement.Resting;
 

@@ -161,13 +161,12 @@ namespace ACE.Server.Entity
                     FellowshipMembers.Remove(player);
                     oldFellows.TryAdd(player.Guid.Full, DateTime.Now);
                     player.Session.Network.EnqueueSend(new GameEventFellowshipQuit(player.Session, player.Guid.Full));
-                    //member.Session.Network.EnqueueSend(new GameMessageFellowshipQuit(member.Session, player.Guid.Full));
                     AssignNewLeader(null);
                     CalculateXPSharing();
                     SendMessageAndUpdate($"{player.Name} left the fellowship");
                 }
             }
-            else
+            else if (!disband)
             {
                 FellowshipMembers.Remove(player);
                 oldFellows.TryAdd(player.Guid.Full, DateTime.Now);
