@@ -45,6 +45,8 @@ namespace ACE.Server.Managers
         /// <param name="player">A player at any level of an allegiance</param>
         public static Allegiance GetAllegiance(IPlayer player)
         {
+            if (player == null) return null;
+
             var monarch = GetMonarch(player);
 
             if (monarch == null) return null;
@@ -318,7 +320,8 @@ namespace ACE.Server.Managers
         public static void OnBreakAllegiance(IPlayer self, IPlayer target)
         {
             // remove the previous allegiance structure
-            RemoveCache(self.Allegiance);
+            if (self != null)   // ??
+                RemoveCache(self.Allegiance);
 
             // rebuild for self and target
             Rebuild(GetAllegiance(self));
