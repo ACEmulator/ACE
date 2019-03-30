@@ -51,6 +51,9 @@ namespace ACE.Server.Entity
 
         public void AddFellowshipMember(Player inviter, Player newMember)
         {
+            if (inviter == null || newMember == null)
+                return;
+
             if (FellowshipMembers.Count == MaxFellows)
             {
                 inviter.Session.Network.EnqueueSend(new GameMessageSystemChat("Fellowship is already full", ChatMessageType.Fellowship));
@@ -79,6 +82,8 @@ namespace ACE.Server.Entity
 
         public void AddConfirmedMember(Player inviter, Player player, bool response)
         {
+            if (inviter == null || player == null) return;
+
             if (response)
             {
                 if (FellowshipMembers.Count == 9)
@@ -106,6 +111,8 @@ namespace ACE.Server.Entity
         
         public void RemoveFellowshipMember(Player player)
         {
+            if (player == null) return;
+
             foreach (var member in FellowshipMembers)
             {
                 member.Session.Network.EnqueueSend(new GameEventFellowshipDismiss(member.Session, player));
@@ -121,6 +128,9 @@ namespace ACE.Server.Entity
         {
             foreach (var member in FellowshipMembers)
             {
+                if (member == null || member.Session == null)
+                    continue;
+
                 member.Session.Network.EnqueueSend(new GameEventFellowshipFullUpdate(member.Session));
                 //member.Session.Network.EnqueueSend(new GameEventFellowshipFellowUpdateDone(member.Session));
             }
@@ -130,6 +140,9 @@ namespace ACE.Server.Entity
         {
             foreach (var member in FellowshipMembers)
             {
+                if (member == null || member.Session == null)
+                    continue;
+
                 member.Session.Network.EnqueueSend(new GameMessageSystemChat(message, ChatMessageType.Fellowship));
                 member.Session.Network.EnqueueSend(new GameEventFellowshipFullUpdate(member.Session));
                 //member.Session.Network.EnqueueSend(new GameEventFellowshipFellowUpdateDone(member.Session));
@@ -138,12 +151,16 @@ namespace ACE.Server.Entity
 
         public void QuitFellowship(Player player, bool disband)
         {
+            if (player == null) return;
+
             if (player.Guid.Full == FellowshipLeaderGuid)
             {
                 if (disband)
                 {
                     foreach (var member in FellowshipMembers)
                     {
+                        if (member == null || member.Session == null) continue;
+
                         member.Session.Network.EnqueueSend(new GameEventFellowshipQuit(member.Session, member.Guid.Full));
                         if (member.Guid.Full == FellowshipLeaderGuid)
                         {
@@ -396,14 +413,19 @@ namespace ACE.Server.Entity
         public void OnVitalUpdate(Player player)
         {
             foreach (var fellow in FellowshipMembers)
+            {
+                if (fellow == null || fellow.Session == null)
+                    continue;
+
                 fellow.Session.Network.EnqueueSend(new GameEventFellowshipUpdateFellow(fellow.Session, player, ShareXP, FellowUpdateType.Vitals));
+            }
         }
 
         public void OnDeath(Player player)
         {
             foreach (var fellow in FellowshipMembers)
             {
-                if (fellow != player)
+                if (fellow != null && fellow.Session != null && fellow != player)
                     fellow.Session.Network.EnqueueSend(new GameMessageSystemChat($"Your fellow {player.Name} has died!", ChatMessageType.Broadcast));
             }
         }
