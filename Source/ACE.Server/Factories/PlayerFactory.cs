@@ -152,7 +152,7 @@ namespace ACE.Server.Factories
             player.Mana.Current = player.Mana.Base;
 
             // set initial skill credit amount. 52 for all but "Olthoi", which have 68
-            player.SetProperty(PropertyInt.AvailableSkillCredits, (int)heritageGroup.SkillCredits);            
+            player.SetProperty(PropertyInt.AvailableSkillCredits, (int)heritageGroup.SkillCredits);
 
             for (int i = 0; i < characterCreateInfo.SkillAdvancementClasses.Count; i++)
             {
