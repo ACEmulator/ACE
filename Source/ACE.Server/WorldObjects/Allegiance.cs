@@ -290,6 +290,8 @@ namespace ACE.Server.WorldObjects
                 var player = PlayerManager.FindByGuid(member.Key);
                 var onlinePlayer = PlayerManager.GetOnlinePlayer(member.Key);
 
+                if (player == null) continue;
+
                 // if changed, update monarch id
                 if ((player.MonarchId ?? 0) != member.Value.Allegiance.MonarchId)
                 {

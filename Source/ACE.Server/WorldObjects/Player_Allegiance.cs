@@ -118,6 +118,8 @@ namespace ACE.Server.WorldObjects
 
             var target = PlayerManager.FindByGuid(targetGuid, out var targetIsOnline);
 
+            if (target == null) return;
+
             //Console.WriteLine(Name + " breaking allegiance to " + target.Name);
 
             // target can be either patron or vassal

@@ -383,7 +383,9 @@ namespace ACE.Server.Managers
             if (player.PatronId != null)
             {
                 var patron = PlayerManager.FindByGuid(player.PatronId.Value);
-                players.Add(patron);
+
+                if (patron != null)
+                    players.Add(patron);
             }
 
             player.PatronId = null;
@@ -393,6 +395,8 @@ namespace ACE.Server.Managers
             foreach (var vassal in allegianceNode.Vassals.Values)
             {
                 var vassalPlayer = PlayerManager.FindByGuid(vassal.PlayerGuid, out bool isOnline);
+
+                if (vassalPlayer == null) continue;
 
                 vassalPlayer.PatronId = null;
                 vassalPlayer.MonarchId = null;
