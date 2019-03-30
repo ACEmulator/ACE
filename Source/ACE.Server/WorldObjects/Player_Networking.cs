@@ -64,7 +64,7 @@ namespace ACE.Server.WorldObjects
                 {
                     UpdateProperty(this, PropertyInt.PlayerKillerStatus, (int)PlayerKillerStatus.NPK);
 
-                    Session.Network.EnqueueSend(new GameMessageSystemChat("You are enveloped in a feeling of warmth as you are brought back into the protection of the Light. You are once again a Non-Player Killer.", ChatMessageType.Broadcast));
+                    Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouAreNonPKAgain));
                 });
                 actionChain.EnqueueChain();
             }

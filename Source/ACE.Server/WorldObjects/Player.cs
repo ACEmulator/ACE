@@ -957,7 +957,7 @@ namespace ACE.Server.WorldObjects
             // ensure permanent npk
             if (PlayerKillerStatus != PlayerKillerStatus.NPK || MinimumTimeSincePk != null)
             {
-                Session.Network.EnqueueSend(new GameMessageSystemChat("Only Non-Player Killers may enter PK Lite. Please see @help pklite for more details about this command.", ChatMessageType.Broadcast));
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.OnlyNonPKsMayEnterPKLite));
                 return;
             }
 
@@ -976,7 +976,7 @@ namespace ACE.Server.WorldObjects
             {
                 UpdateProperty(this, PropertyInt.PlayerKillerStatus, (int)PlayerKillerStatus.PKLite);
 
-                Session.Network.EnqueueSend(new GameMessageSystemChat($"A cold wind touches your heart. You are now a Player Killer Lite.", ChatMessageType.Broadcast));
+                Session.Network.EnqueueSend(new GameEventWeenieError(Session, WeenieError.YouAreNowPKLite));
             });
 
             actionChain.EnqueueChain();
