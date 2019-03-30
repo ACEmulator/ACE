@@ -18,7 +18,7 @@ namespace ACE.Server.WorldObjects
         public Allegiance Allegiance { get; set; }
         public AllegianceNode AllegianceNode { get; set; }
 
-        public bool HasAllegiance { get => Allegiance != null && Allegiance.TotalMembers > 1; }
+        public bool HasAllegiance { get => Allegiance != null && AllegianceNode != null && Allegiance.TotalMembers > 1; }
 
         public ulong AllegianceXPCached
         {

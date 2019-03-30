@@ -187,7 +187,7 @@ namespace ACE.Server.Network.Structure
                     PropertiesInt.Remove(PropertyInt.NumCharacterTitles);
 
                 // handle dynamic properties for appraisal
-                if (player.Allegiance != null)
+                if (player.Allegiance != null && player.AllegianceNode != null)
                 {
                     if (player.AllegianceNode.IsMonarch)
                     {
