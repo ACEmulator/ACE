@@ -198,6 +198,8 @@ namespace ACE.Server.Factories
                     player.UntrainSkill((Skill) i, 0);
             }
 
+            var isDualWieldTrainedOrSpecialized = player.Skills[Skill.DualWield].AdvancementClass > SkillAdvancementClass.Untrained;
+
             // grant starter items based on skills
             var starterGearConfig = StarterGearFactory.GetStarterGearConfiguration();
             var grantedWeenies = new List<uint>();
@@ -228,11 +230,26 @@ namespace ACE.Server.Factories
                         else
                         {
                             player.TryAddToInventory(CreateIOU(player, item.WeenieId));
-                            continue;
                         }
 
-                        if (player.TryAddToInventory(loot))
+                        if (loot != null && player.TryAddToInventory(loot))
                             grantedWeenies.Add(item.WeenieId);
+
+                        if (isDualWieldTrainedOrSpecialized && loot != null)
+                        {
+                            if (loot.WeenieType == WeenieType.MeleeWeapon)
+                            {
+                                var dualloot = WorldObjectFactory.CreateNewWorldObject(item.WeenieId);
+                                if (dualloot != null)
+                                {
+                                    player.TryAddToInventory(dualloot);
+                                }
+                                else
+                                {
+                                    player.TryAddToInventory(CreateIOU(player, item.WeenieId));
+                                }
+                            }
+                        }
                     }
 
                     var heritageLoot = skillGear.Heritage.FirstOrDefault(sh => sh.HeritageId == characterCreateInfo.Heritage);
@@ -259,11 +276,26 @@ namespace ACE.Server.Factories
                             else
                             {
                                 player.TryAddToInventory(CreateIOU(player, item.WeenieId));
-                                continue;
                             }
 
-                            if (player.TryAddToInventory(loot))
+                            if (loot != null && player.TryAddToInventory(loot))
                                 grantedWeenies.Add(item.WeenieId);
+
+                            if (isDualWieldTrainedOrSpecialized && loot != null)
+                            {
+                                if (loot.WeenieType == WeenieType.MeleeWeapon)
+                                {
+                                    var dualloot = WorldObjectFactory.CreateNewWorldObject(item.WeenieId);
+                                    if (dualloot != null)
+                                    {
+                                        player.TryAddToInventory(dualloot);
+                                    }
+                                    else
+                                    {
+                                        player.TryAddToInventory(CreateIOU(player, item.WeenieId));
+                                    }
+                                }
+                            }
                         }
                     }
 
