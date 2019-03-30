@@ -704,7 +704,7 @@ namespace ACE.Database.Models.Shard
 
             modelBuilder.Entity<BiotaPropertiesEnchantmentRegistry>(entity =>
             {
-                entity.HasKey(e => new { e.ObjectId, e.EnchantmentCategory, e.SpellId, e.LayerId });
+                entity.HasKey(e => new { e.ObjectId, e.SpellId, e.CasterObjectId, e.LayerId });
 
                 entity.ToTable("biota_properties_enchantment_registry");
 
@@ -716,21 +716,17 @@ namespace ACE.Database.Models.Shard
                     .HasColumnName("object_Id")
                     .HasDefaultValueSql("'0'");
 
-                entity.Property(e => e.EnchantmentCategory)
-                    .HasColumnName("enchantment_Category")
-                    .HasDefaultValueSql("'0'");
-
                 entity.Property(e => e.SpellId)
                     .HasColumnName("spell_Id")
                     .HasColumnType("int(10)")
                     .HasDefaultValueSql("'0'");
 
-                entity.Property(e => e.LayerId)
-                    .HasColumnName("layer_Id")
-                    .HasDefaultValueSql("'0'");
-
                 entity.Property(e => e.CasterObjectId)
                     .HasColumnName("caster_Object_Id")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.LayerId)
+                    .HasColumnName("layer_Id")
                     .HasDefaultValueSql("'0'");
 
                 entity.Property(e => e.DegradeLimit)
@@ -743,6 +739,10 @@ namespace ACE.Database.Models.Shard
 
                 entity.Property(e => e.Duration)
                     .HasColumnName("duration")
+                    .HasDefaultValueSql("'0'");
+
+                entity.Property(e => e.EnchantmentCategory)
+                    .HasColumnName("enchantment_Category")
                     .HasDefaultValueSql("'0'");
 
                 entity.Property(e => e.HasSpellSetId)
