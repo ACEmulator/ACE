@@ -332,7 +332,7 @@ namespace ACE.Server.WorldObjects
                 {
                     if (member.Guid != Guid && member.GetCharacterOption(CharacterOption.ShowAllegianceLogons))
                     {
-                        var prefix = GetPrefix(member);
+                        var prefix = member.GetPrefix(this);
 
                         member.Session.Network.EnqueueSend(new GameMessageSystemChat($"{prefix}{Name} is online.", ChatMessageType.Broadcast));
                     }
@@ -348,9 +348,9 @@ namespace ACE.Server.WorldObjects
                 {
                     if (member.Guid != Guid && member.GetCharacterOption(CharacterOption.ShowAllegianceLogons))
                     {
-                        var prefix = GetPrefix(member);
+                        var prefix = member.GetPrefix(this);
 
-                        member.Session.Network.EnqueueSend(new GameMessageSystemChat($"{prefix}{Name} is offline.", ChatMessageType.Allegiance));
+                        member.Session.Network.EnqueueSend(new GameMessageSystemChat($"{prefix}{Name} is offline.", ChatMessageType.Broadcast));
                     }
                 }
             }
