@@ -704,7 +704,7 @@ namespace ACE.Server.WorldObjects
         {
             var castingPreCheckStatus = CastingPreCheckStatus.CastFailed;
 
-            if (IsBusy)
+            if (IsBusy || Teleporting)
             {
                 Session.Network.EnqueueSend(new GameEventUseDone(Session, errorType: WeenieError.YoureTooBusy));
                 return;
