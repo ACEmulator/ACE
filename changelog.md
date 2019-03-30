@@ -2,6 +2,7 @@
 
 ### 2019-03-30
 [Ripley]
+* Update Shard DB Enchantment Registry composite key.
 * Fixed CharGen issue for Dual Wield characters. 2x Melee Weapons are created if Dual Wield is trained or specialized.
 
 ### 2019-03-29
