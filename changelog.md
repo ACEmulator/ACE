@@ -1,5 +1,9 @@
 # ACEmulator Change Log
 
+### 2019-03-30
+[Ripley]
+* Fixed CharGen issue for Dual Wield characters. 2x Melee Weapons are created if Dual Wield is trained or specialized.
+
 ### 2019-03-29
 [Ripley]
 * Change action that occurs for selling items to vendors so they appear in the buy window if they aren't destroyed on sell.
